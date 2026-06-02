@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import { Box, Static, Text, useApp, useInput } from "ink";
-import TextInput from "ink-text-input";
+import { Composer } from "./composer.js";
+import { spinnerFrames } from "./spinners.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
@@ -36,7 +37,7 @@ export type Action =
   | { t: "note"; text: string }
   | { t: "clear" };
 
-const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const SPINNER = spinnerFrames();
 
 function commitStreaming(entries: Entry[], streaming: string): Entry[] {
   return streaming.trim() ? [...entries, { kind: "assistant", text: streaming }] : entries;
@@ -248,7 +249,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         <Box flexDirection="column" marginTop={1}>
           <Box borderStyle="round" borderColor={state.busy ? "gray" : "cyan"} paddingX={1} width={w}>
             <Text color={state.busy ? "gray" : "cyan"}>{"› "}</Text>
-            <TextInput
+            <Composer
               value={input}
               onChange={setInput}
               onSubmit={submit}
