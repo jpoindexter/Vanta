@@ -138,7 +138,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       .send(text)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
-        void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started }).catch(() => {});
+        void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
       })
       .catch((err: unknown) => {
         dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });

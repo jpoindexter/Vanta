@@ -127,7 +127,7 @@ export async function runChat(
     state.turnIndex++;
     const outcome = await convo.send(text);
     console.log(`\n${outcome.finalText}`);
-    await saveSession(state.sessionId, convo.messages, { started: state.started }).catch(() => {});
+    await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
     await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText);
     await suggestSkillFromRun(text, process.env);
     await reviewAfterTurn({
