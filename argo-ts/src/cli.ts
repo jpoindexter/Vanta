@@ -8,6 +8,7 @@ import { listSkills, readSkill } from "./skills/store.js";
 import { installSkillLibrary } from "./skills/library.js";
 import { listSessions } from "./sessions/store.js";
 import { runGateway } from "./gateway/run.js";
+import { TelegramAdapter, parseAllowlist } from "./gateway/platforms/telegram.js";
 import { installService, uninstallService, serviceStatus } from "./service/manager.js";
 import { resolveArgoHome } from "./store/home.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
@@ -230,9 +231,16 @@ function buildCronRunTask(repoRoot: string): RunTask {
 // `argo gateway` — run the cron scheduler as a foreground daemon (the long-lived
 // process that fires scheduled tasks without an external trigger).
 async function runGatewayCommand(repoRoot: string): Promise<void> {
+  const runTask = buildCronRunTask(repoRoot);
+  const token = process.env.ARGO_TELEGRAM_TOKEN;
+  const platform = token
+    ? new TelegramAdapter({ token, allow: parseAllowlist(process.env.ARGO_TELEGRAM_ALLOW) })
+    : undefined;
   await runGateway({
     dataDir: dataDirFor(repoRoot),
-    run: buildCronRunTask(repoRoot),
+    run: runTask,
+    platform,
+    handle: platform ? async (text) => (await runTask(text)).finalText : undefined,
     tickMs: Number(process.env.ARGO_GATEWAY_TICK_MS) || undefined,
   });
 }

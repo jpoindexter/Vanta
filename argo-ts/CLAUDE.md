@@ -38,6 +38,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `schedule/commands.ts` | Phase 6 — `argo schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
 | `gateway/run.ts` | v1 E1 — `argo gateway` foreground daemon: `gatewayTick` (run due cron tasks once) + `runGateway` (interruptible tick loop, SIGINT/SIGTERM-clean). `ARGO_GATEWAY_TICK_MS` |
 | `service/launchd.ts` + `service/manager.ts` | v1 E1 — pure `buildLaunchdPlist` + `argo service install\|uninstall\|status` (launchd user agent that keeps `argo gateway` alive; captures PATH). macOS only for now |
+| `gateway/platforms/base.ts` | v1 E2 — `PlatformAdapter` contract (`connect`/`disconnect`/`send`/`poll`) + `InboundMessage`/`OutboundMessage`. One adapter per messaging platform |
+| `gateway/platforms/telegram.ts` | v1 E2 — `TelegramAdapter` (getUpdates long-poll + sendMessage, no SDK) + pure `parseUpdates`/`parseAllowlist`. `gateway/run.ts pollPlatform` runs inbound→agent→reply. Enabled by `ARGO_TELEGRAM_TOKEN`; offline-tested, live needs a @BotFather token |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
 | `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
 | `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `ARGO_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `argo room <name>` runs rooted there → per-project goal stream |
