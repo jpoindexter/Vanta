@@ -18,7 +18,8 @@ describe("Banner", () => {
     const frame = lastFrame() ?? "";
     expect(frame).toContain("Argo");
     expect(frame).toContain("gemini-2.5-flash");
-    expect(frame).toContain("Available Tools");
+    expect(frame).toContain("Capabilities");
+    expect(frame).toContain("Files"); // domain-grouped
     expect(frame).toContain("read_file");
     expect(frame).toContain("3 tools");
     expect(frame).toContain("/help");
