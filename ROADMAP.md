@@ -116,7 +116,10 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 - [ ] **O3 · Eyes (screen)** — capture the screen (macOS `screencapture`) → native image to the model; "see my screen." Builds on the multimodal input pipeline.
 - [ ] **O4 · Camera** — capture a webcam frame → native image (optional).
 - [ ] **O5 · Video** — extract frames from a video file (ffmpeg) → native images; video understanding.
-- [ ] **O6 · Self-directed model selection** — the agent picks its own model per task autonomously (not just via /model), tied to O1.
+- [x] **O6 · Self-directed model selection** — ✅ shipped with O1 (the `delegate` provider/model params + tool description tell the agent it can pick a backend per subtask).
+- [ ] **O7 · Speech & audio** — STT (mic → text), TTS (reply → voice), audio-file understanding, voice notes. Providers: whisper/local for STT, system `say`/TTS for output. `/voice` toggle.
+- [ ] **O8 · Self-improving via the web** — agent browses (web_search/web_fetch/browser) to find tasks/info worth learning, then writes skills from what it learns (ties to track B self-improvement). "Find what it wants to do and learn."
+- [ ] **O9 · Self-improving codebase ("dark factory")** — agent autonomously improves its OWN codebase (refactor, add tests, close gaps) on a loop, ALWAYS under the kernel's non-destructive rules + verified-output + approval-before-risk. Manifesto hard lines are the guardrails that make this safe.
 
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
