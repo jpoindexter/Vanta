@@ -11,6 +11,7 @@ import {
   maybeCurate,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
+import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 
 const LOGO = String.raw`
@@ -69,10 +70,18 @@ const CHAT_HELP = [
  * Launch the interactive session: print the banner, then a REPL that holds a
  * single conversation (history persists across turns) until /exit.
  */
-export async function runChat(repoRoot: string): Promise<void> {
+export async function runChat(
+  repoRoot: string,
+  opts: { resumeId?: string } = {},
+): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
   const skills = await listSkills();
+
+  const resumed = opts.resumeId ? await loadSession(opts.resumeId) : null;
+  const sessionId = resumed?.id ?? newSessionId();
+  const started = resumed?.started ?? new Date().toISOString();
+
   console.log(
     renderBanner({
       modelId: setup.provider.modelId(),
@@ -82,23 +91,38 @@ export async function runChat(repoRoot: string): Promise<void> {
       skillNames: skills.map((s) => s.meta.name),
     }),
   );
+  if (resumed) {
+    const userTurns = resumed.messages.filter((m) => m.role === "user").length;
+    console.log(`  ↻ Resumed session ${resumed.id} "${resumed.title}" (${userTurns} turn(s))\n`);
+  } else if (opts.resumeId) {
+    console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
+  }
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const convo = createConversation(setup.systemPrompt, {
-    provider: setup.provider,
-    safety: setup.safety,
-    registry: setup.registry,
-    root: repoRoot,
-    requestApproval: approver(rl),
-    maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
-    summarize: buildSummarizer(setup.provider),
-    ...consoleCallbacks(),
-  });
+  const convo = createConversation(
+    setup.systemPrompt,
+    {
+      provider: setup.provider,
+      safety: setup.safety,
+      registry: setup.registry,
+      root: repoRoot,
+      requestApproval: approver(rl),
+      maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+      summarize: buildSummarizer(setup.provider),
+      ...consoleCallbacks(),
+    },
+    { history: resumed?.messages },
+  );
 
-  let turnIndex = 0;
+  let turnIndex = resumed?.messages.filter((m) => m.role === "user").length ?? 0;
   try {
     for (;;) {
-      const line = (await rl.question("\nargo › ")).trim();
+      let line: string;
+      try {
+        line = (await rl.question("\nargo › ")).trim();
+      } catch {
+        break; // stdin closed (Ctrl+D / EOF / piped input ended) → exit cleanly
+      }
       if (!line) continue;
       if (line === "/exit" || line === "/quit") break;
       if (line === "/help") {
@@ -117,6 +141,7 @@ export async function runChat(repoRoot: string): Promise<void> {
       turnIndex++;
       const outcome = await convo.send(line);
       console.log(`\n${outcome.finalText}`);
+      await saveSession(sessionId, convo.messages, { started }).catch(() => {});
       await writeRunMemory(setup.provider, setup.goals, line, outcome.finalText);
       await suggestSkillFromRun(line, process.env);
       await reviewAfterTurn({

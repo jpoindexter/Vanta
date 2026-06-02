@@ -6,6 +6,7 @@ import { runAgent, createConversation } from "./agent.js";
 import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { installSkillLibrary } from "./skills/library.js";
+import { listSessions } from "./sessions/store.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import {
   runRoomsList,
@@ -50,6 +51,7 @@ function usage(): void {
   console.log(
     [
       "Usage: argo                              start an interactive session",
+      "       argo sessions | resume <id>       list past sessions, or resume one",
       "       argo setup                        first-run wizard: pick a model backend",
       "       argo status | doctor              health check (kernel, provider, keys, store)",
       '       argo run "<instruction>"          run one instruction and exit',
@@ -79,7 +81,10 @@ function isConfigured(env: NodeJS.ProcessEnv): boolean {
  * backend is configured. The auto-launch is TTY-gated: a non-interactive caller
  * (piped/cron) is told to run `argo setup` rather than blocking on a prompt.
  */
-async function startInteractive(repoRoot: string): Promise<void> {
+async function startInteractive(
+  repoRoot: string,
+  opts: { resumeId?: string } = {},
+): Promise<void> {
   if (!isConfigured(process.env)) {
     if (!process.stdin.isTTY) {
       console.log("No model backend configured. Run `argo setup` in a terminal first.");
@@ -89,7 +94,24 @@ async function startInteractive(repoRoot: string): Promise<void> {
     if (!wrote) return;
     loadEnv(repoRoot); // pick up the freshly written .env
   }
-  return runChat(repoRoot);
+  return runChat(repoRoot, opts);
+}
+
+/** Extract a `--resume <id>` value from args, if present. */
+function resumeIdFrom(args: string[]): string | undefined {
+  const i = args.indexOf("--resume");
+  return i >= 0 ? args[i + 1] : undefined;
+}
+
+async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  const sessions = await listSessions(env);
+  if (sessions.length === 0) {
+    return void console.log("(no saved sessions yet)");
+  }
+  for (const s of sessions) {
+    console.log(`${s.id}  ${s.turns} turn(s)  ${s.title}`);
+  }
+  console.log("\nResume with: argo resume <id>");
 }
 
 function usageExit(): never {
@@ -207,7 +229,11 @@ async function main(): Promise<void> {
 
   const [cmd, ...rest] = process.argv.slice(2);
 
-  if (cmd === undefined || cmd === "chat") return startInteractive(repoRoot);
+  if (cmd === undefined || cmd === "chat")
+    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest) });
+  if (cmd === "--resume") return startInteractive(repoRoot, { resumeId: rest[0] });
+  if (cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
+  if (cmd === "sessions") return runSessionsList();
   if (cmd === "help" || cmd === "-h" || cmd === "--help") return usage();
   if (cmd === "setup") return void (await runSetup(repoRoot));
   if (cmd === "status" || cmd === "doctor") return runStatus();

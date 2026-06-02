@@ -59,6 +59,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `argo-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
 | `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `argo-learned`. Best-effort. Env: `ARGO_SELF_IMPROVE`/`ARGO_REVIEW_MIN_TOOLS`/`ARGO_REVIEW_EVERY` |
 | `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.argo/memories/<goalId>.md` |
+| `sessions/store.ts` | Session persist/resume: `saveSession`/`loadSession`/`listSessions`/`newSessionId`. JSON files `~/.argo/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `argo sessions`/`resume <id>`/`--resume`. `createConversation(...,{history})` seeds resumed turns |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `ARGO_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
