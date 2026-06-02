@@ -7,6 +7,8 @@ import {
   consoleCallbacks,
   approver,
   writeRunMemory,
+  reviewAfterTurn,
+  maybeCurate,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import type { Goal } from "./types.js";
@@ -69,6 +71,7 @@ const CHAT_HELP = [
  */
 export async function runChat(repoRoot: string): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session");
+  await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
   const skills = await listSkills();
   console.log(
     renderBanner({
@@ -92,6 +95,7 @@ export async function runChat(repoRoot: string): Promise<void> {
     ...consoleCallbacks(),
   });
 
+  let turnIndex = 0;
   try {
     for (;;) {
       const line = (await rl.question("\nargo › ")).trim();
@@ -110,10 +114,19 @@ export async function runChat(repoRoot: string): Promise<void> {
         );
         continue;
       }
+      turnIndex++;
       const outcome = await convo.send(line);
       console.log(`\n${outcome.finalText}`);
       await writeRunMemory(setup.provider, setup.goals, line, outcome.finalText);
       await suggestSkillFromRun(line, process.env);
+      await reviewAfterTurn({
+        provider: setup.provider,
+        safety: setup.safety,
+        root: repoRoot,
+        transcript: convo.messages,
+        toolIterations: outcome.toolIterations,
+        turnIndex,
+      });
     }
   } finally {
     rl.close();

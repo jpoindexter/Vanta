@@ -25,6 +25,8 @@ export type AgentOutcome = {
   finalText: string;
   iterations: number;
   stoppedReason: StoppedReason;
+  /** Total tool calls executed this turn — drives the post-turn self-improvement nudge. */
+  toolIterations: number;
 };
 
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -75,6 +77,7 @@ async function runTurn(
   const maxIter = deps.maxIterations ?? 50;
   messages.push({ role: "user", content: userText });
   let consecutiveFailures = 0;
+  let toolIterations = 0;
 
   for (let iter = 1; iter <= maxIter; iter++) {
     const trimmed = deps.summarize
@@ -85,7 +88,7 @@ async function runTurn(
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
         messages.push({ role: "assistant", content: result.text });
-        return { finalText: result.text, iterations: iter, stoppedReason: "done" };
+        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations };
       }
       // Empty, no tools: nudge once and continue.
       messages.push({ role: "assistant", content: "" });
@@ -105,6 +108,7 @@ async function runTurn(
 
     for (const call of result.toolCalls) {
       const outcome = await dispatchTool(call, deps, ctx);
+      toolIterations++;
       messages.push({
         role: "tool",
         toolCallId: call.id,
@@ -122,6 +126,7 @@ async function runTurn(
         finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`,
         iterations: iter,
         stoppedReason: "repeated_failure",
+        toolIterations,
       };
     }
   }
@@ -130,6 +135,7 @@ async function runTurn(
     finalText: `Reached the ${maxIter}-iteration limit before completing.`,
     iterations: maxIter,
     stoppedReason: "max_iterations",
+    toolIterations,
   };
 }
 

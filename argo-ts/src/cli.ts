@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
-import { runAgent } from "./agent.js";
+import { runAgent, createConversation } from "./agent.js";
 import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
@@ -19,6 +19,8 @@ import {
   writeRunMemory,
   consoleCallbacks,
   approver,
+  reviewAfterTurn,
+  maybeCurate,
 } from "./session.js";
 import { runChat } from "./interactive.js";
 import { runSetup } from "./setup.js";
@@ -103,12 +105,13 @@ async function runInstruction(
 ): Promise<void> {
   const root = opts.root ?? repoRoot;
   const setup = await prepareRun(root, instruction, opts.skillBody);
+  await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
   const activeGoals = setup.goals.filter((g) => g.status === "active").length;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
   console.log(`argo · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
   try {
-    const outcome = await runAgent(setup.systemPrompt, instruction, {
+    const convo = createConversation(setup.systemPrompt, {
       provider: setup.provider,
       safety: setup.safety,
       registry: setup.registry,
@@ -118,10 +121,19 @@ async function runInstruction(
       summarize: buildSummarizer(setup.provider),
       ...consoleCallbacks(),
     });
+    const outcome = await convo.send(instruction);
     console.log(`\n${outcome.finalText}`);
     console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory(setup.provider, setup.goals, instruction, outcome.finalText);
     await suggestSkillFromRun(instruction, process.env);
+    await reviewAfterTurn({
+      provider: setup.provider,
+      safety: setup.safety,
+      root,
+      transcript: convo.messages,
+      toolIterations: outcome.toolIterations,
+      turnIndex: 1,
+    });
   } finally {
     rl.close();
   }

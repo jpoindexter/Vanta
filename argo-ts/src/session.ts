@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
 import type { Interface as Readline } from "node:readline/promises";
 import { SafetyClient } from "./safety-client.js";
 import { ensureKernel } from "./kernel-launcher.js";
@@ -6,10 +7,13 @@ import { buildRegistry } from "./tools/index.js";
 import { buildSystemPrompt } from "./prompt.js";
 import { recentMemory, appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
+import { curate } from "./skills/curator.js";
+import { resolveArgoHome } from "./store/home.js";
+import { reviewTurn, shouldReview } from "./review/background-review.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
 import type { AgentDeps } from "./agent.js";
-import type { Goal } from "./types.js";
+import type { Message, Goal } from "./types.js";
 
 // Shared run setup used by both the one-shot CLI (`argo run`) and the
 // interactive session (`argo` / `argo chat`). Kept here so neither imports the
@@ -123,6 +127,65 @@ export function consoleCallbacks(): Pick<
     onToolResult: (n, ok, out) =>
       console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`),
   };
+}
+
+const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days, matching Hermes
+
+/**
+ * Run the skill curator at most once per interval, at session start. Best-effort
+ * and non-destructive (see curator.ts): a failure here never affects the session.
+ * State (last-run time) lives in ~/.argo/.curator_state.json.
+ */
+export async function maybeCurate(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  try {
+    const statePath = join(resolveArgoHome(env), ".curator_state.json");
+    const now = Date.now();
+    let lastRunMs = 0;
+    try {
+      const parsed: unknown = JSON.parse(await readFile(statePath, "utf8"));
+      if (parsed && typeof parsed === "object" && "lastRunMs" in parsed) {
+        lastRunMs = Number((parsed as { lastRunMs: unknown }).lastRunMs) || 0;
+      }
+    } catch {
+      // no state yet — first run
+    }
+    if (now - lastRunMs < CURATOR_INTERVAL_MS) return;
+
+    const r = await curate({ env });
+    await writeFile(statePath, JSON.stringify({ lastRunMs: now }), "utf8");
+    const flagged = r.staleUnowned.length + r.prunable.length + r.overlaps.length;
+    if (r.archived.length || flagged) {
+      console.log(
+        `  · curator: archived ${r.archived.length}, ${flagged} flagged for review`,
+      );
+    }
+  } catch {
+    // best-effort maintenance — never break a session on it
+  }
+}
+
+/**
+ * Post-turn self-improvement nudge. When the turn warrants review (busy turn or
+ * the periodic interval — see {@link shouldReview}), spawn the background-review
+ * fork to capture a skill. Best-effort and quiet unless something was learned.
+ */
+export async function reviewAfterTurn(opts: {
+  provider: LLMProvider;
+  safety: SafetyClient;
+  root: string;
+  transcript: Message[];
+  toolIterations: number;
+  turnIndex: number;
+  env?: NodeJS.ProcessEnv;
+}): Promise<void> {
+  if (!shouldReview(opts.toolIterations, opts.turnIndex, opts.env ?? process.env)) return;
+  const { wrote } = await reviewTurn({
+    provider: opts.provider,
+    safety: opts.safety,
+    root: opts.root,
+    transcript: opts.transcript,
+  });
+  if (wrote.length) console.log(`  💾 self-improvement: learned ${wrote.join(", ")}`);
 }
 
 /** Interactive y/n approval bound to a readline interface. */
