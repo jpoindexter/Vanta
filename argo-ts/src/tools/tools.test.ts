@@ -28,10 +28,17 @@ afterEach(async () => {
 });
 
 describe("registry", () => {
-  it("registers the four core tools and exposes schemas", () => {
+  it("registers the core and web tools and exposes schemas", () => {
     const r = buildRegistry();
     const names = r.schemas().map((s) => s.name).sort();
-    expect(names).toEqual(["inspect_state", "read_file", "shell_cmd", "write_file"]);
+    expect(names).toEqual([
+      "inspect_state",
+      "read_file",
+      "shell_cmd",
+      "web_fetch",
+      "web_search",
+      "write_file",
+    ]);
   });
 });
 

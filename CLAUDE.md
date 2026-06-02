@@ -56,7 +56,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-Phase 1 (agent loop) **done** — 38 tests green, verified live on Ollama qwen2.5:14b. Next: Phase 2A skills+memory, Phase 2B web search. See `docs/prd.md`.
+Phase 1 (agent loop) **done** — verified live on Ollama qwen2.5:14b. Phase 2B (web search) **done** — `SearchProvider` (ddg/searxng/serpapi/brave) + `web_search`/`web_fetch` tools; 49 TS + 16 Rust tests green, `web_fetch` verified live (DDG live-blocked by IP in this env — code correct + unit-tested; use Searxng/Brave off-datacenter). Next: Phase 2A skills+memory, then Phases 3–7. See `docs/prd.md`.
 
 ## Rule zero
 
