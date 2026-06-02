@@ -13,7 +13,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama** (same SDK, `baseURL` swap). Converts internal↔OpenAI message/tool shapes |
-| `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. Anthropic throws "Phase 4" |
+| `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. openai/ollama/anthropic |
 | `safety-client.ts` | `fetch` client → kernel. `assess/getGoals/proposeApproval/approve/deny/logEvent/status`. Zod-validates responses |
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `ARGO_ROOT` + cwd, poll 5s |
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
@@ -22,7 +22,14 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools |
 | `tools/{web-search,web-fetch}.ts` | Phase 2B web tools. `web-fetch` exports pure `extractReadable(html,url)` |
 | `tools/{write-skill,recall}.ts` | Phase 2A learning tools. `describeForSafety` is a constant internal-op string (no path/query → kernel `Allow`) |
-| `tools/index.ts` | `buildRegistry()` — registers all eight tools |
+| `tools/{screenshot,browser-navigate,browser-extract}.ts` | Phase 3 browser tools (lazy `playwright-core`). Allowlist + `requestApproval` for new domains. `browser-extract` exports pure `extractFromHtml` |
+| `tools/describe-image.ts` | Phase 3 vision — OpenAI vision model on a scoped image (`ARGO_VISION_MODEL`, default gpt-4o-mini) |
+| `tools/run-code.ts` | Phase 4 — run python/node/rust in an isolated temp dir, timeout, **approval-gated** |
+| `tools/lsp.ts` + `lsp/ts-service.ts` | Phase 4 — diagnostics + go-to-definition for .ts/.tsx via the **TS compiler API** (no separate language server) |
+| `tools/git.ts` | Phase 4 — 6 git tools. status/diff read-only; commit/push/branch/checkout call `requestApproval` (risk:ask) |
+| `browser/allowlist.ts` | `isAllowedDomain`/`extractDomain` — `ARGO_ALLOWED_DOMAINS` gate for browser tools |
+| `providers/anthropic.ts` | Phase 4 full Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). Pure `toAnthropicMessages` |
+| `tools/index.ts` | `buildRegistry()` — registers all 21 tools |
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
@@ -93,6 +100,8 @@ ESM `.js` imports · zod at every LLM/HTTP boundary · errors-as-values in tools
 Search (Phase 2B): `ARGO_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default ddg) · `ARGO_SEARCH_URL` (searxng) · `SERPAPI_KEY` · `BRAVE_KEY`.
 
 Store (Phase 2A): `ARGO_HOME` overrides the global store dir (default `~/.argo`). Holds `skills/` + `memories/`, git-init'd; writes auto-commit (best-effort). Tests point `ARGO_HOME` at a temp dir.
+
+Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `ARGO_VISION_MODEL` (describe_image, default gpt-4o-mini) · `ARGO_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
 
 ## Gotchas
 

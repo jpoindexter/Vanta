@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { Goal } from "./types.js";
 import type { ToolSchema } from "./providers/interface.js";
 
-const CONTEXT_FILES = ["ARGO.md", "AGENTS.md", "CLAUDE.md"];
+const CONTEXT_FILES = ["ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
 
 async function readIfExists(path: string): Promise<string | null> {
   try {
