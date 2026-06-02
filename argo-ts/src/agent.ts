@@ -3,7 +3,7 @@ import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
 import type { Message, ToolCall } from "./types.js";
-import { trimMessages, compressMessages } from "./context.js";
+import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 
 export type AgentDeps = {
@@ -89,7 +89,8 @@ async function runTurn(
     const trimmed = deps.summarize
       ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize)
       : trimMessages(messages, deps.provider.contextWindow());
-    const result = await deps.provider.complete(trimmed, deps.registry.schemas());
+    const safe = sanitizeMessages(trimmed); // final pre-flight scrub (orphans, surrogates)
+    const result = await deps.provider.complete(safe, deps.registry.schemas());
 
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {

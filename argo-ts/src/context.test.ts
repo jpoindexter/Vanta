@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { estimateTokens, trimMessages, compressMessages } from "./context.js";
+import {
+  estimateTokens,
+  trimMessages,
+  compressMessages,
+  sanitizeMessages,
+} from "./context.js";
 import type { Message } from "./types.js";
 
 function manyMessages(): Message[] {
@@ -85,5 +90,39 @@ describe("compressMessages", () => {
     });
     expect(result.some((m) => m.content.includes("trimmed to fit"))).toBe(true);
     expect(result.some((m) => m.content.includes("[Summary of"))).toBe(false);
+  });
+});
+
+describe("sanitizeMessages", () => {
+  it("drops an orphaned tool result (no matching assistant tool_call)", () => {
+    const msgs: Message[] = [
+      { role: "system", content: "s" },
+      { role: "user", content: "hi" },
+      { role: "tool", toolCallId: "ghost", name: "read_file", content: "stale" },
+    ];
+    const out = sanitizeMessages(msgs);
+    expect(out.some((m) => m.role === "tool")).toBe(false);
+    expect(out).toHaveLength(2);
+  });
+
+  it("keeps a tool result whose assistant tool_call is present", () => {
+    const msgs: Message[] = [
+      { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "read_file", arguments: {} }] },
+      { role: "tool", toolCallId: "c1", name: "read_file", content: "ok" },
+    ];
+    const out = sanitizeMessages(msgs);
+    expect(out).toHaveLength(2);
+    expect(out[1]?.role).toBe("tool");
+  });
+
+  it("strips lone unicode surrogates from content", () => {
+    const msgs: Message[] = [{ role: "user", content: `clean\uD800text` }];
+    const out = sanitizeMessages(msgs);
+    expect(out[0]?.content).toBe("cleantext");
+  });
+
+  it("preserves valid surrogate pairs (emoji)", () => {
+    const msgs: Message[] = [{ role: "user", content: "ship it 🚀" }];
+    expect(sanitizeMessages(msgs)[0]?.content).toBe("ship it 🚀");
   });
 });

@@ -64,10 +64,10 @@ skills, prunes them safely) → it's reachable as a background service you can t
 - [ ] **E6 · ACP server wrapper** (L, optional) — implement ACP `Agent` methods over Argo's session + delegate primitives so editors (Zed/Claude-Code-style) can drive Argo. *Why:* networked cross-agent without inventing a protocol. Lowest priority.
 
 ### F — Robustness steals (cheap, fold in opportunistically)
-- [ ] **F1 · Message sanitization** (S) — strip Unicode surrogates / orphaned tool_results before each API call. *Why:* prevents silent 400s. ~20 lines.
-- [ ] **F2 · Loop guardrails** (S) — stop on same tool+args failing N times / idempotent tool returning identical result N times. *Why:* runaway-loop safety, distinct from kernel content-safety.
-- [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results. *Why:* prevents path confusion in deep trees.
-- [ ] **F4 · Retry w/ jittered backoff** (S) — in the OpenAI adapter (5s base, 60s cap, interrupt-aware). *Why:* survive transient API/rate errors.
+- [x] **F1 · Message sanitization** (S) — `sanitizeMessages` (context.ts), run pre-flight before every model call: drops orphaned tool_results + strips lone Unicode surrogates (keeps valid emoji pairs). *Prevents silent 400s.*
+- [~] **F2 · Loop guardrails** — PARTIAL: the loop already stops on 3 consecutive empty tool results (`MAX_CONSECUTIVE_FAILURES`). Same-tool+args-repeat detection still pending.
+- [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results.
+- [~] **F4 · Retry w/ jittered backoff** — the `openai` SDK already retries with backoff (maxRetries default 2); explicit per-model tracking deferred unless we hit limits.
 
 ### G — Subscription auth (enhancement to A; API keys work without it)
 - [ ] **G1 · Claude subscription OAuth** (M) — port Hermes' PKCE flow (claude.ai/oauth/authorize, paste `code#state`, exchange + refresh), store `~/.argo/.anthropic_oauth.json`, auto-refresh. *Why:* the "Claude subscription not API key" ask (14 Hermes reactions).
