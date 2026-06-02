@@ -1,4 +1,4 @@
-import { readFile, appendFile } from "node:fs/promises";
+import { readFile, appendFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   memoriesDir,
@@ -7,6 +7,10 @@ import {
 } from "../store/home.js";
 
 const DEFAULT_MAX_PER_GOAL = 3;
+// Upper bound on stored blocks per goal. Far above the injection cap — older
+// blocks are pruned from the live file but remain in git history (capped, not
+// lost). Override with ARGO_MEMORY_MAX_BLOCKS.
+const DEFAULT_MAX_STORED_BLOCKS = 50;
 const BLOCK_DELIM = "## ";
 
 type AppendOptions = { env?: NodeJS.ProcessEnv; now?: string };
@@ -29,8 +33,16 @@ export async function appendMemory(
   const env = opts.env;
   await ensureArgoStore(env);
   const now = opts.now ?? new Date().toISOString();
+  const file = memoryFile(goalId, env);
   const block = `${BLOCK_DELIM}${now}\n${summary.trim()}\n\n`;
-  await appendFile(memoryFile(goalId, env), block, "utf8");
+  await appendFile(file, block, "utf8");
+  // Bound the stored file (Hermes-style capped memory): keep the most recent
+  // blocks; older ones are pruned from the live file but preserved in git below.
+  const cap = Number(env?.ARGO_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
+  const blocks = splitBlocks(await readFile(file, "utf8").catch(() => ""));
+  if (blocks.length > cap) {
+    await writeFile(file, `${blocks.slice(-cap).join("\n\n")}\n\n`, "utf8");
+  }
   await commitInHome(join("memories", `${goalId}.md`), `memory: goal ${goalId}`, env);
 }
 

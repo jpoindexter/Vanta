@@ -28,6 +28,19 @@ describe("memory store", () => {
     expect(content).toContain("## 2026-06-02T11:00:00.000Z");
   });
 
+  it("caps the stored file at ARGO_MEMORY_MAX_BLOCKS, keeping the most recent", async () => {
+    const capped = { ...env, ARGO_MEMORY_MAX_BLOCKS: "3" };
+    for (let i = 1; i <= 5; i++) {
+      await appendMemory(7, `summary ${i}`, { env: capped, now: `2026-06-02T1${i}:00:00.000Z` });
+    }
+    const content = (await readMemory(7, capped)) ?? "";
+    const blocks = content.split(/(?=^## )/m).filter((b) => b.trim().startsWith("## "));
+    expect(blocks).toHaveLength(3); // capped
+    expect(content).toContain("summary 5"); // newest kept
+    expect(content).toContain("summary 3");
+    expect(content).not.toContain("summary 1"); // oldest pruned from live file
+  });
+
   it("recentMemory with maxPerGoal=1 returns only the latest block", async () => {
     await appendMemory(7, "older entry", { env, now: "2026-06-02T10:00:00.000Z" });
     await appendMemory(7, "newest entry", { env, now: "2026-06-02T12:00:00.000Z" });
