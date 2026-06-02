@@ -1,0 +1,11 @@
+[package]
+name = "argo-kernel"
+version = "0.1.0"
+edition = "2021"
+description = "Argo — trusted operator agent kernel"
+
+[[bin]]
+name = "argo-kernel"
+path = "src/main.rs"
+
+[dependencies]
