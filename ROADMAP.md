@@ -147,6 +147,25 @@ under the kernel's hard lines (non-destructive, verified, approval-before-risk).
 - [ ] **S5 · Heartbeat** — a steady tick (the `argo gateway` daemon, E1) that drives S2/S3
   + cron + the self-improving-codebase loop (O9). Wire selfhood updates onto it.
 
+## SHIPPED in the 2026-06-02/03 build marathon (all committed + pushed)
+**501 TS + 21 Rust tests green, tsc clean.** Across v1.1–v1.5:
+- **Providers:** Codex ChatGPT-OAuth, claude-code; agent-chosen model on `delegate` (O1/O6) + workers get skill index + brain.
+- **Senses:** native image input (paste/drag-drop/`/image`/`/paste`/`/attachments`); `look_at_screen` (eyes, O3); `watch_video` (O5); `speak` TTS (O7); vision routed through the ACTIVE provider.
+- **Selfhood:** Argo **brain** (`~/.argo/brain/`, 7 regions, neurodivergent-first identity, frugality drive) read each session + `brain` tool + `/memory`.
+- **UX:** queued type-ahead (U1), notifications (U3), real token usage (U4), `/compress` (U5), `/memory` (U6), `/export` (U7); full command set incl. `/goal /plan /title /fork /history /retry /undo /usage /copy /update`.
+- **Skills/memory:** skill-index injection + recall-body, capped memory, `skills lint`, in-session `todo`+`/plan`.
+- **Safety (manifesto-critical):** kernel `assess_action` hardened against the Hermes #36846/#36645 denylist/scope bypasses.
+- **Efficiency:** token/power frugality directive; prefer-local delegation. **Installer:** `bootstrap.sh`. **Docs:** MANIFESTO + parity-audit + claude-cli-gaps + hermes-issues-map; CLAUDE.md kept current.
+
+## RESIDUAL — needs a dedicated session (high blast radius / research; do NOT cram)
+- **O9 · Self-improving codebase loop ("dark factory")** — autonomous self-modification under the kernel; needs careful loop + guardrail design.
+- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate; research.
+- **O2 · True parallel swarms** — concurrent tool/delegate execution; agent-loop concurrency change.
+- **O7-b · STT / audio input** — needs whisper or provider audio; **O4 camera**.
+- **#37070 cron awareness · volatile skills #36656 · S4 skill-versioning · S2/S3 continuous-learning heartbeat** (behavior largely enabled by brain+tools).
+- **U2 @-mentions · /context visual · /mcp cmd · multi-dir · themes · /vim** — polish tier.
+- **O8 web-self-improve** — enabled by web tools + write_skill + brain drives; needs a behavior loop.
+
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
 - [ ] **U1 · Queued input while busy** (★★★) — type-ahead; pending-input queue drained on turn end. TUI reducer + readline.
