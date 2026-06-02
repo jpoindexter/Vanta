@@ -4,7 +4,7 @@ The TypeScript agent loop. Read root `../CLAUDE.md` for the kernel + project ove
 
 ## Runtime
 
-Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`, `process.loadEnvFile` — **no dotenv, no axios.** Relative imports use `.js` extensions (ESM convention; tsx resolves to `.ts`).
+Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`, `process.loadEnvFile` — **no dotenv, no axios.** Relative imports use `.js` extensions (ESM convention; tsx resolves to `.ts`). **TUI** uses React/Ink 7 (`jsx: react-jsx` automatic runtime — components don't import React; `.tsx` runs under tsx + vitest). Deps: `ink`, `react`, `ink-text-input`.
 
 ## File map (`src/`)
 
@@ -12,7 +12,9 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 |------|----------------|
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
-| `providers/openai.ts` | OpenAI **+ Ollama** (same SDK, `baseURL` swap). Converts internal↔OpenAI message/tool shapes |
+| `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
+| `tui/app.tsx` | The Ink/React TUI: streaming transcript + tool activity + spinner status + composer + inline approvals. Pure `reduce` reducer (tested). Minimal slash (`/help /clear /model /exit`) |
+| `tui/launch.tsx` | `runTui(repoRoot)` — prepareRun + maybeCurate + `render(<App/>)`. `argo` uses it on a TTY; readline REPL is the fallback |
 | `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. openai/ollama/anthropic/**gemini**/**openrouter**/**claude-code** (gemini+openrouter = OpenAI adapter w/ baseURL swap; claude-code = Anthropic adapter w/ OAuth token) |
 | `providers/claude-code-auth.ts` | v1 G1 — `resolveClaudeCodeToken` reads a Claude Pro/Max OAuth token (env or `~/.claude/.credentials.json`), `isTokenExpired`. **Grey area** (ToS); `ARGO_PROVIDER=claude-code`. No refresh (Claude Code keeps creds fresh). See DECISIONS 2026-06-02 |
 | `providers/catalog.ts` | `PROVIDER_CATALOG` — small shared `{id,label,envVar,defaultModel,signupUrl}` list the setup wizard + `doctor` read. **Not** the full registry (deferred); extend alongside `resolveProvider` |

@@ -22,6 +22,12 @@ web search, browser+vision, code/dev, autonomy primitives, comms. Interactive ba
 self-improvement layer* is thin: no setup, no Gemini, no memory of past conversations,
 nothing learns automatically, not reachable as a service. v1 closes that.
 
+## TUI — real terminal UI (shipped 2026-06-02, modeled on Hermes ui-tui + Claude CLI)
+- **Streaming engine**: `LLMProvider.stream()` (OpenAI family) yields token deltas; `agent.ts` emits them via `onTextDelta` (falls back to non-streaming `complete()` when unused — all prior paths unchanged). Pure `foldToolCallDeltas` assembles streamed tool calls.
+- **Ink TUI** (`tui/app.tsx` + `tui/launch.tsx`): React/Ink 7 app — streaming transcript (live token-by-token), interleaved tool activity (`→`/`✓`/`✗`), spinner status line (model + state), input composer (`ink-text-input`), **inline approval prompts** for kernel `ask` risks, minimal slash (`/help /clear /model /exit`). `argo` launches it on a TTY; `--no-tui` / `ARGO_NO_TUI` / resume / non-TTY fall back to the readline REPL (which keeps the full slash set).
+- Verified: pure reducer + `ink-testing-library` render smoke + module load under tsx. **Live streaming in a real terminal is the user's to confirm** (a TTY is needed; can't drive one from the build sandbox). New deps: `ink`, `react`, `ink-text-input` (+ dev `@types/react`, `ink-testing-library`).
+- *Next for the TUI:* full slash parity in-TUI (refactor repl-commands to return lines), scrollback/virtual history, resume-in-TUI, wire the self-improvement review without console noise.
+
 ## Install & REPL (shipped 2026-06-02)
 - **`./install.sh`** — Hermes/OpenClaw-style installer: builds kernel + deps, seeds `~/.argo/skills`, installs a global **`argo`** launcher into `~/.local/bin` (only edits a shell rc if that dir isn't already on PATH). Type `argo` from anywhere.
 - **Full REPL slash commands** (`repl-commands.ts`): `/help /exit /clear /skills /tools /model /status /goals /sessions /resume <id> /cron` — was only `/help /exit /skills`.
