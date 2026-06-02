@@ -11,58 +11,112 @@ export type ProviderEntry = {
   id: string;
   /** Human label for the picker. */
   label: string;
+  /** Short name for the /model picker rows. */
+  short: string;
   /** API-key env var, or null for keyless backends (Ollama). */
   envVar: string | null;
   /** Default model written if the user accepts it. */
   defaultModel: string;
+  /**
+   * Curated model IDs surfaced in the /model picker. NOT exhaustive — the picker
+   * also accepts any free-typed ID, which is how OpenRouter's 200+ and Ollama's
+   * machine-local models stay reachable. Live model listing is a later upgrade.
+   */
+  models: string[];
   /** Where to get a key (shown in the wizard). */
   signupUrl?: string;
   /** One-line hint shown under the label. */
   note?: string;
 };
 
+// Reused by both API-key Anthropic and the Pro/Max subscription backend.
+const ANTHROPIC_MODELS = [
+  "claude-opus-4-8",
+  "claude-sonnet-4-6",
+  "claude-haiku-4-5",
+  "claude-sonnet-4-5",
+  "claude-opus-4-1",
+];
+
 export const PROVIDER_CATALOG: ProviderEntry[] = [
   {
     id: "gemini",
     label: "Google Gemini",
+    short: "Gemini",
     envVar: "GEMINI_API_KEY",
     defaultModel: "gemini-2.5-flash",
+    models: [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash-lite",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+      "gemini-1.5-pro",
+    ],
     signupUrl: "https://aistudio.google.com/apikey",
     note: "free tier available",
   },
   {
     id: "openai",
     label: "OpenAI (ChatGPT models)",
+    short: "OpenAI",
     envVar: "OPENAI_API_KEY",
     defaultModel: "gpt-4o-mini",
+    models: [
+      "gpt-4o",
+      "gpt-4o-mini",
+      "gpt-4.1",
+      "gpt-4.1-mini",
+      "gpt-4.1-nano",
+      "o3",
+      "o4-mini",
+      "o3-mini",
+      "gpt-4-turbo",
+      "gpt-3.5-turbo",
+    ],
     signupUrl: "https://platform.openai.com/api-keys",
   },
   {
     id: "anthropic",
     label: "Anthropic (Claude, API key)",
+    short: "Anthropic",
     envVar: "ANTHROPIC_API_KEY",
     defaultModel: "claude-sonnet-4-6",
+    models: ANTHROPIC_MODELS,
     signupUrl: "https://console.anthropic.com/settings/keys",
   },
   {
     id: "claude-code",
     label: "Claude via Pro/Max subscription (uses your `claude` login — grey area)",
+    short: "Claude (sub)",
     envVar: null,
     defaultModel: "claude-sonnet-4-6",
+    models: ANTHROPIC_MODELS,
     note: "needs `claude` signed in; subscription token use is a grey area under Anthropic ToS",
   },
   {
     id: "openrouter",
     label: "OpenRouter (one key → 200+ models)",
+    short: "OpenRouter",
     envVar: "OPENROUTER_API_KEY",
     defaultModel: "anthropic/claude-sonnet-4.5",
+    models: [
+      "anthropic/claude-sonnet-4.5",
+      "anthropic/claude-opus-4.1",
+      "openai/gpt-4o",
+      "google/gemini-2.5-pro",
+      "meta-llama/llama-3.3-70b-instruct",
+      "deepseek/deepseek-chat",
+    ],
     signupUrl: "https://openrouter.ai/keys",
   },
   {
     id: "ollama",
     label: "Ollama (local, no key)",
+    short: "Ollama",
     envVar: null,
     defaultModel: "qwen2.5:14b",
+    models: ["qwen2.5:14b", "llama3.3", "deepseek-r1:14b", "mistral-small"],
     note: "needs Ollama running locally",
   },
 ];

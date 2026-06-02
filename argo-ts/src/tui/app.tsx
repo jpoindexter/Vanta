@@ -1,17 +1,22 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
-import { join } from "node:path";
 import { Box, Static, Text, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
-import { saveSession, newSessionId, listSessions, loadSession, deleteSession, type SessionMeta } from "../sessions/store.js";
-import { executeSlash, SLASH_COMMANDS, type ReplCtx, type ReplState } from "../repl-commands.js";
+import { saveSession, newSessionId } from "../sessions/store.js";
+import { executeSlash, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
+import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
+import { ModelPicker } from "./model-picker.js";
 import { Transcript, Palette, shortArgs, firstLine, type Entry } from "./transcript.js";
+import { useOverlays } from "./use-overlays.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
+
+/** Picker availability: keyless backends + any provider whose API key is set. */
+const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!process.env[entry.envVar];
 
 // The Ink TUI — a Claude-CLI-style terminal app: streaming transcript, live
 // status line, input composer, inline approval prompts. Renders the streaming
@@ -80,8 +85,6 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [sel, setSel] = useState(0);
   const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
   const [banner, setBanner] = useState<BannerData | null>(null);
-  const [overlay, setOverlay] = useState<null | "sessions" | "model">(null);
-  const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
   // Single source of truth for the live model — the /model picker swaps this and
   // the conversation's provider together, so every read here stays consistent.
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
@@ -89,6 +92,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const turnStartRef = useRef<number>(0);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
+  const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
+    useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
 
   // Build the conversation once, wiring streaming events to the reducer.
   if (convoRef.current === null) {
@@ -124,42 +129,6 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     return () => clearInterval(id);
   }, [state.busy]);
 
-  const buildCtx = (): ReplCtx => ({
-    convo: convoRef.current!,
-    setup: { ...setup, provider: activeProvider },
-    dataDir: join(repoRoot, ".argo"),
-    state: replStateRef.current,
-    env: process.env,
-    now: () => new Date(),
-  });
-
-  // ── Sessions overlay handlers ──────────────────────────────────────────────
-  const openSessions = (): void => {
-    void listSessions(process.env).then((list) => {
-      setSessionList(list);
-      setOverlay("sessions");
-    });
-  };
-  const resumeSession = (id: string): void => {
-    if (!convoRef.current) return;
-    void executeSlash(`/resume ${id}`, buildCtx()).then((r) => {
-      dispatch({ t: "clear" });
-      if (r.output) dispatch({ t: "note", text: r.output });
-      setOverlay(null);
-    });
-  };
-  const newSession = (): void => {
-    if (!convoRef.current) return;
-    void executeSlash("/clear", buildCtx()).then(() => {
-      dispatch({ t: "clear" });
-      setOverlay(null);
-    });
-  };
-  const removeSession = (id: string): void => {
-    void deleteSession(id, process.env).catch(() => {});
-    setSessionList((list) => list.filter((s) => s.id !== id));
-  };
-
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
@@ -191,6 +160,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       const resolvedCmd = parts[0] ?? "";
       const resolvedArg = parts.slice(1).join(" ").trim();
       if (resolvedCmd === "sessions" && !resolvedArg) return void openSessions();
+      if (resolvedCmd === "model" && !resolvedArg) return void openModel();
       void executeSlash(effective, buildCtx()).then((r) => {
         if (r.exit) return void app.exit();
         if (r.cleared) dispatch({ t: "clear" });
@@ -266,6 +236,21 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           />
           <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}>
             <Text dimColor>{"› "}choosing session…</Text>
+          </Box>
+        </Box>
+      ) : overlay === "model" ? (
+        <Box flexDirection="column" marginTop={1}>
+          <ModelPicker
+            providers={PROVIDER_CATALOG}
+            currentProviderId={process.env.ARGO_PROVIDER ?? "openai"}
+            currentModel={activeProvider.modelId()}
+            hasKey={hasKey}
+            width={w}
+            onSelect={selectModel}
+            onCancel={() => setOverlay(null)}
+          />
+          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}>
+            <Text dimColor>{"› "}picking model…</Text>
           </Box>
         </Box>
       ) : (

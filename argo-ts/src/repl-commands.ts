@@ -37,7 +37,7 @@ export type SlashResult = {
 export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: string }> = [
   { name: "help", desc: "show this command list" },
   { name: "clear", desc: "start a fresh conversation (keeps the session log)" },
-  { name: "model", desc: "show the active model + context window" },
+  { name: "model", desc: "change provider & model — interactive picker" },
   { name: "tools", desc: "list available tools" },
   { name: "skills", desc: "list learned + installed skills" },
   { name: "status", desc: "kernel, provider, keys, store health" },
