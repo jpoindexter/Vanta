@@ -182,6 +182,24 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(sys?.role === "system" && sys.content).toContain("ship the parity slices");
   });
 
+  it("/image reads a file and queues it as a pending attachment", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const png = join(home, "shot.png");
+    await writeFile(png, Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG magic bytes
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash(`/image ${png}`, ctx);
+    expect(r.output).toContain("attached");
+    expect(ctx.state.pendingImages).toHaveLength(1);
+    expect(ctx.state.pendingImages![0]!.mime).toBe("image/png");
+    expect(ctx.state.pendingImages![0]!.dataBase64).toBe(Buffer.from([0x89, 0x50, 0x4e, 0x47]).toString("base64"));
+  });
+
+  it("/image with no path shows usage", async () => {
+    const r = await executeSlash("/image", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
   it("/usage reports an estimate, context window, and turn count", async () => {
     const r = await executeSlash("/usage", makeCtx(home, convo()));
     expect(r.output).toMatch(/tokens/);

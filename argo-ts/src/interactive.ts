@@ -127,7 +127,9 @@ export async function runChat(
   // by typed input and by /retry (which re-sends the last message).
   const runUserTurn = async (text: string): Promise<void> => {
     state.turnIndex++;
-    const outcome = await convo.send(text);
+    const images = state.pendingImages; // attach + consume any /image or /paste
+    state.pendingImages = undefined;
+    const outcome = await convo.send(text, images);
     console.log(`\n${outcome.finalText}`);
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
     await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText);

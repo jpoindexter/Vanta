@@ -1,11 +1,21 @@
-import { dirname } from "node:path";
+import { dirname, basename, join } from "node:path";
+import { homedir, tmpdir } from "node:os";
 import { listSkills } from "./skills/store.js";
 import { gatherStatus, formatStatus } from "./status.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "./sessions/store.js";
 import { loadCron } from "./schedule/cron.js";
 import type { Conversation } from "./agent.js";
-import type { Message } from "./types.js";
+import type { Message, ImageAttachment } from "./types.js";
 import type { RunSetup } from "./session.js";
+
+/** Infer an image MIME type from a file path's extension. */
+function mimeFromPath(p: string): string {
+  const ext = p.toLowerCase().split(".").pop() ?? "";
+  const map: Record<string, string> = {
+    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
+  };
+  return map[ext] ?? "image/png";
+}
 
 /** Collapse whitespace and cap a string for one-line display. */
 function oneLine(s: string, max = 200): string {
@@ -39,8 +49,15 @@ export function formatHistory(messages: Message[]): string {
 // prints the result. Each command reuses an existing subsystem (status,
 // sessions, cron, skills); none duplicates logic.
 
-/** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork). */
-export type ReplState = { sessionId: string; started: string; turnIndex: number; title?: string };
+/** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork, /image). */
+export type ReplState = {
+  sessionId: string;
+  started: string;
+  turnIndex: number;
+  title?: string;
+  /** Images attached via /image or /paste, consumed by the next user turn. */
+  pendingImages?: ImageAttachment[];
+};
 
 export type ReplCtx = {
   convo: Conversation;
@@ -81,6 +98,8 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "title", arg: "<name>", desc: "name the current session" },
   { name: "fork", desc: "branch the current conversation into a new session" },
   { name: "cron", desc: "list scheduled tasks" },
+  { name: "image", arg: "<path>", desc: "attach an image for your next message" },
+  { name: "paste", desc: "attach an image from the clipboard (macOS)" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
@@ -276,6 +295,39 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
         return { output: `  ⬆ ${stdout.trim() || "already up to date"}\n  · run ./install.sh to rebuild if anything changed` };
       } catch (err) {
         return { output: `  update failed: ${(err as Error).message.split("\n")[0]}` };
+      }
+    }
+
+    case "image": {
+      if (!arg) return { output: "  usage: /image <path>" };
+      try {
+        const { readFile } = await import("node:fs/promises");
+        const abs = arg.startsWith("~") ? join(homedir(), arg.slice(1)) : arg;
+        const buf = await readFile(abs);
+        const mime = mimeFromPath(abs);
+        (ctx.state.pendingImages ??= []).push({ mime, dataBase64: buf.toString("base64") });
+        return { output: `  🖼  attached ${basename(abs)} (${mime}, ${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
+      } catch (err) {
+        return { output: `  could not read image: ${(err as Error).message.split("\n")[0]}` };
+      }
+    }
+
+    case "paste": {
+      try {
+        const { execFile } = await import("node:child_process");
+        const { promisify } = await import("node:util");
+        const { readFile, rm } = await import("node:fs/promises");
+        const tmp = join(tmpdir(), `argo-paste-${ctx.now().getTime()}.png`);
+        // macOS: dump the clipboard image to a file via AppleScript.
+        const script = `set f to (open for access (POSIX file "${tmp}") with write permission)\ntry\nwrite (the clipboard as «class PNGf») to f\nend try\nclose access f`;
+        await promisify(execFile)("osascript", ["-e", script]);
+        const buf = await readFile(tmp).catch(() => Buffer.alloc(0));
+        await rm(tmp, { force: true }).catch(() => {});
+        if (!buf.length) return { output: "  (no image on the clipboard — copy one, or use /image <path>)" };
+        (ctx.state.pendingImages ??= []).push({ mime: "image/png", dataBase64: buf.toString("base64") });
+        return { output: `  🖼  pasted clipboard image (${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
+      } catch (err) {
+        return { output: `  paste failed (macOS only): ${(err as Error).message.split("\n")[0]} — try /image <path>` };
       }
     }
 

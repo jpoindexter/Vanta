@@ -134,8 +134,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     if (!convo) return;
     replStateRef.current.turnIndex++;
     turnStartRef.current = Date.now();
+    const images = replStateRef.current.pendingImages; // attach + consume /image or /paste
+    replStateRef.current.pendingImages = undefined;
     void convo
-      .send(text)
+      .send(text, images)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
