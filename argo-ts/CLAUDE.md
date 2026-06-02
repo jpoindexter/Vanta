@@ -13,7 +13,10 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama** (same SDK, `baseURL` swap). Converts internal↔OpenAI message/tool shapes |
-| `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. openai/ollama/anthropic |
+| `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. openai/ollama/anthropic/**gemini**/**openrouter** (gemini+openrouter = OpenAI adapter w/ baseURL swap) |
+| `providers/catalog.ts` | `PROVIDER_CATALOG` — small shared `{id,label,envVar,defaultModel,signupUrl}` list the setup wizard + `doctor` read. **Not** the full registry (deferred); extend alongside `resolveProvider` |
+| `setup.ts` | `argo setup` first-run wizard. Pure `upsertEnv(existing, updates)` (merges into `.env`, preserves other keys) + `buildEnvUpdates` + interactive `runSetup(repoRoot, rl?)` (hidden key prompt, 0600 write) |
+| `status.ts` | `argo status`/`doctor`. Pure `formatStatus(report)` + `gatherStatus(env)` (kernel **ping only**, provider try/catch, key **presence**, store/goal counts) |
 | `safety-client.ts` | `fetch` client → kernel. `assess/getGoals/proposeApproval/approve/deny/logEvent/status`. Zod-validates responses |
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `ARGO_ROOT` + cwd, poll 5s |
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
@@ -61,7 +64,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `agent.ts` | `createConversation()` (persistent multi-turn) + `runAgent()` (one-shot wrapper over it) + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
 | `session.ts` | Shared run setup for one-shot + interactive: `prepareRun` (kernel up + provider + goals + memory + system prompt), `buildSummarizer`, `writeRunMemory`, `consoleCallbacks` (live tool printers), `approver` (y/n bound to readline). Neither cli.ts nor interactive.ts imports the other |
 | `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists, `/help` `/exit` `/skills`) |
-| `cli.ts` | `argo` (no args) or `chat` → `runChat`; `argo run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider (model-router), memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
+| `cli.ts` | `argo` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `argo setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
 

@@ -21,6 +21,9 @@ import {
   approver,
 } from "./session.js";
 import { runChat } from "./interactive.js";
+import { runSetup } from "./setup.js";
+import { runStatus } from "./status.js";
+import { resolveProvider } from "./providers/index.js";
 import type { RunTask } from "./schedule/runner.js";
 
 function findRepoRoot(): string {
@@ -44,6 +47,8 @@ function usage(): void {
   console.log(
     [
       "Usage: argo                              start an interactive session",
+      "       argo setup                        first-run wizard: pick a model backend",
+      "       argo status | doctor              health check (kernel, provider, keys, store)",
       '       argo run "<instruction>"          run one instruction and exit',
       "       argo skills                       list stored skills",
       '       argo skill <name> ["<instruction>"]  print a skill, or run with it',
@@ -54,6 +59,34 @@ function usage(): void {
       "       argo auth google                  one-time Google OAuth",
     ].join("\n"),
   );
+}
+
+/** True when a model backend resolves from the current env (a usable config exists). */
+function isConfigured(env: NodeJS.ProcessEnv): boolean {
+  try {
+    resolveProvider(env);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Launch the interactive session, running the first-run wizard first if no
+ * backend is configured. The auto-launch is TTY-gated: a non-interactive caller
+ * (piped/cron) is told to run `argo setup` rather than blocking on a prompt.
+ */
+async function startInteractive(repoRoot: string): Promise<void> {
+  if (!isConfigured(process.env)) {
+    if (!process.stdin.isTTY) {
+      console.log("No model backend configured. Run `argo setup` in a terminal first.");
+      process.exit(1);
+    }
+    const wrote = await runSetup(repoRoot);
+    if (!wrote) return;
+    loadEnv(repoRoot); // pick up the freshly written .env
+  }
+  return runChat(repoRoot);
 }
 
 function usageExit(): never {
@@ -148,8 +181,10 @@ async function main(): Promise<void> {
 
   const [cmd, ...rest] = process.argv.slice(2);
 
-  if (cmd === undefined || cmd === "chat") return runChat(repoRoot);
+  if (cmd === undefined || cmd === "chat") return startInteractive(repoRoot);
   if (cmd === "help" || cmd === "-h" || cmd === "--help") return usage();
+  if (cmd === "setup") return void (await runSetup(repoRoot));
+  if (cmd === "status" || cmd === "doctor") return runStatus();
   if (cmd === "schedule") {
     const code = await runScheduleCommand(dataDirFor(repoRoot), rest);
     if (code !== 0) usage();
