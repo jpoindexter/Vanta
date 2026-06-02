@@ -110,6 +110,14 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 
 **Custom-Hermes fixes worth studying (diff `hermes-agent` vs `hermes-agent-clean`):** `gateway/stream_dispatch.py`+`stream_events.py` (streaming), `gateway/platforms/*`, `cron/scheduler.py`, `hermes_cli/config.py`+`web_server.py`, `plugins/model-providers/ai-gateway`.
 
+## v1.3 — Autonomy + senses (requested 2026-06-02, rapid-fire)
+- [~] **O1 · Agent-chosen model on delegate** (BUILDING) — `delegate` gains `provider`/`model` params so the agent routes a subtask to ANY backend it wants (e.g. local Ollama, gpt-4o, gemini) and gets the result back — "launch ollama, complete the task, come back." Frees a goal from one model/agent.
+- [ ] **O2 · Swarms** — agent spawns multiple workers (parallel delegate / fan-out) and synthesizes; "launch sub agents, swarms… when and how it wants."
+- [ ] **O3 · Eyes (screen)** — capture the screen (macOS `screencapture`) → native image to the model; "see my screen." Builds on the multimodal input pipeline.
+- [ ] **O4 · Camera** — capture a webcam frame → native image (optional).
+- [ ] **O5 · Video** — extract frames from a video file (ffmpeg) → native images; video understanding.
+- [ ] **O6 · Self-directed model selection** — the agent picks its own model per task autonomously (not just via /model), tied to O1.
+
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
 - [ ] **U1 · Queued input while busy** (★★★) — type-ahead; pending-input queue drained on turn end. TUI reducer + readline.
