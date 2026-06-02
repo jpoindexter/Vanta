@@ -10,6 +10,7 @@ import { resolveRoutedProvider } from "./routing/model-router.js";
 import { curate } from "./skills/curator.js";
 import { resolveArgoHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
+import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
 import type { AgentDeps } from "./agent.js";
@@ -42,6 +43,9 @@ export async function prepareRun(
 
   const safety = new SafetyClient(baseUrl);
   const registry = buildRegistry();
+  // Mount any configured MCP servers (no-op without config). Their tools join the
+  // registry and pass through the same kernel assess() as built-in tools.
+  await mountMcpServers(registry, process.env, (m) => console.log(m));
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
