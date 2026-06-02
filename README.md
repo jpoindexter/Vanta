@@ -10,45 +10,41 @@ Two layers:
 
 See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.
 
-## What works now (Phase 1)
+## Quickstart
 
-**Kernel (Rust):**
-- Action risk classifier (allow / ask / block) — the enforced boundary, not advisory
-- Native approval queue (`.argo/approvals.tsv`), goal ledger (`.argo/goals.tsv`), event log (`.argo/events.jsonl`)
-- Local HTTP cockpit + JSON API; `ARGO_ROOT` env override for explicit project scoping
+```bash
+./run.sh run "read README.md and summarize it"
+```
+
+First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `argo-ts/.env` to switch to OpenAI/Anthropic.
+
+```bash
+./run.sh                                   # list all commands
+./run.sh run "<instruction>"               # the agent loop
+./run.sh skills | skill <name> ["<instr>"] # learned skills
+./run.sh modes install                     # the 6 operator modes
+./run.sh rooms | room <name> "<instr>"     # per-project goal streams
+./run.sh schedule "<instr>" --cron "0 8 * * *" | schedule list | cron
+./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
+```
+
+(`./argo` is an alias for `./run.sh`. Prereqs: Rust + Node 22.)
+
+## What works now (all 7 PRD phases — 32 tools, 290 tests green)
+
+**Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `ARGO_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Agent loop: goal-inject → plan → assess → execute → verify
-- LLM providers: OpenAI + Ollama (one adapter, baseURL swap); Anthropic arrives in Phase 4
-- Tools: `read_file`, `write_file` (overwrite needs approval), `shell_cmd`, `inspect_state` — all scope-checked and kernel-gated
-- Three-tier system prompt (SOUL.md + ARGO/AGENTS/CLAUDE.md discovery + active goals)
-- Context trimmer, kernel auto-start, pause-on-ask approval
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic providers; 4 core tools (read/write/shell/inspect)
+- **Skills & memory** — learned `~/.argo/skills`, per-goal memory, curator, LLM context compression (git-versioned)
+- **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
+- **Browser & vision** — screenshot / navigate / extract (Playwright) + image understanding
+- **Code & dev** — `run_code`, LSP diagnostics/definition (TS), git tools
+- **Autonomous** — cron scheduler, subagent delegation, A2A bus
+- **Digital person** — project rooms, operator modes, model routing, mode learning
+- **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 
-## Run the kernel
-
-```bash
-cargo build
-cargo run -- doctor          # health check, creates .argo/
-cargo run -- goals add "Ship Argo v0 agent loop"
-cargo run -- serve 7788      # cockpit at http://127.0.0.1:7788
-```
-
-## Run the agent
-
-```bash
-cd argo-ts
-npm install
-cp .env.example .env         # defaults to local Ollama (qwen2.5:14b)
-
-# the kernel auto-starts if not already running
-npm run argo -- run "what are my active goals"
-npm run argo -- run "read README.md and summarize"
-
-# use OpenAI instead of local models:
-#   set ARGO_PROVIDER=openai, ARGO_MODEL=gpt-4o-mini, OPENAI_API_KEY in .env
-```
-
-Tests: `cargo test` (kernel) and `cd argo-ts && npm test` (agent).
+Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd argo-ts && npm test` (agent).
 
 ## Rule zero
 
