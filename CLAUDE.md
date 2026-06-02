@@ -25,12 +25,14 @@ cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
-./run.sh run "<instruction>"              # or ./argo run "..." ; kernel auto-starts
-./run.sh                                   # list all subcommands
+./run.sh                                   # interactive session: banner + chat REPL (history persists)
+./run.sh run "<instruction>"              # or ./argo run "..." ; one-shot, kernel auto-starts
+./run.sh help                              # list all subcommands
 
 # Agent (TypeScript) — from argo-ts/ (direct)
 npm install
-npm run argo -- run "<instruction>"       # kernel auto-starts if down
+npm run argo                              # interactive session (no args)
+npm run argo -- run "<instruction>"       # one-shot; kernel auto-starts if down
 npm test                                  # 274 vitest tests
 npm run typecheck                         # tsc --noEmit (must be clean)
 ```
@@ -60,7 +62,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**All 7 PRD phases done.** 5: Gmail/Calendar/Drive (10 tools, every outbound approval-gated) via one-click `argo auth google` (per-user OAuth, tokens local). **32 tools · 274 TS + 16 Rust = 290 tests green.**
+**All 7 PRD phases done + interactive agent shell.** `argo` (no args) launches a banner (logo, model, goals, all 32 tools, skills) + a chat REPL holding one persistent conversation — the "straight-up agent" experience. 5: Gmail/Calendar/Drive (10 tools, every outbound approval-gated) via one-click `argo auth google` (per-user OAuth, tokens local). **32 tools · 274 TS + 16 Rust = 290 tests green.**
 
 Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`ARGO_GOOGLE_CLIENT_ID/SECRET`, one-time) + `argo auth google`; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
 
