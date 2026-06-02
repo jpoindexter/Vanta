@@ -1,4 +1,5 @@
 import { OpenAIProvider } from "./openai.js";
+import { AnthropicProvider } from "./anthropic.js";
 import type { LLMProvider } from "./interface.js";
 
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
@@ -7,7 +8,7 @@ const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
  * Resolve an LLM provider from environment.
  *   ARGO_PROVIDER=openai    → api.openai.com (needs OPENAI_API_KEY)
  *   ARGO_PROVIDER=ollama    → local Ollama, OpenAI-compatible
- *   ARGO_PROVIDER=anthropic → Phase 4, not yet implemented
+ *   ARGO_PROVIDER=anthropic → api.anthropic.com (needs ANTHROPIC_API_KEY)
  */
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const provider = (env.ARGO_PROVIDER ?? "openai").toLowerCase();
@@ -29,10 +30,18 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
         baseURL: env.ARGO_OLLAMA_URL ?? DEFAULT_OLLAMA_URL,
         model: model ?? "qwen2.5:14b",
       });
-    case "anthropic":
-      throw new Error(
-        "Anthropic provider arrives in Phase 4. Use ARGO_PROVIDER=openai or ollama for now.",
-      );
+    case "anthropic": {
+      const apiKey = env.ANTHROPIC_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "ANTHROPIC_API_KEY is not set. Set it in argo-ts/.env, or use ARGO_PROVIDER=openai|ollama.",
+        );
+      }
+      return new AnthropicProvider({
+        apiKey,
+        model: model ?? "claude-sonnet-4-6",
+      });
+    }
     default:
       throw new Error(
         `Unknown ARGO_PROVIDER "${provider}". Use openai, ollama, or anthropic.`,

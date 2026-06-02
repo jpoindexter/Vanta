@@ -56,7 +56,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-Phases 1, 2A, 2B **done**. 2B: web search (`SearchProvider` ddg/searxng/serpapi/brave + `web_search`/`web_fetch`; `web_fetch` verified live, DDG IP-blocked here). 2A: skills (`~/.argo/skills/<slug>/SKILL.md`, `write_skill`/`recall`, curator), per-goal memory (`~/.argo/memories/`) injected into the prompt, LLM context compression, `argo skills`/`skill` subcommands — git-versioning verified live. **97 TS + 16 Rust tests green.** Next: Phases 3 (browser/vision), 4 (code/dev), 6 (autonomous) — building in parallel; 5 (comms, needs MCP-access decision) and 7 (digital person) after. See `docs/prd.md`, `DECISIONS.md`.
+Phases 1, 2A, 2B, 3, 4 **done**. 3: browser (`screenshot`/`browser_navigate`/`browser_extract` via playwright-core + domain allowlist) + vision (`describe_image`). 4: `run_code`, `lsp_diagnostics`/`lsp_definition` (TS compiler API), 6 git tools, README context autodetect, **full Anthropic provider** (`claude-sonnet-4-6`). 21 tools registered. **160 TS + 16 Rust tests green.** Live-setup caveats: browser needs `npx playwright install chromium`; anthropic/vision need keys; LSP is .ts/.tsx only. Next: Phase 6 (autonomous); then 5 (comms — needs transport decision) and 7 (digital person). See `docs/prd.md`, `DECISIONS.md`.
 
 ## Rule zero
 

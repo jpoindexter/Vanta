@@ -32,9 +32,22 @@ describe("registry", () => {
     const r = buildRegistry();
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
+      "browser_extract",
+      "browser_navigate",
+      "describe_image",
+      "git_branch",
+      "git_checkout",
+      "git_commit",
+      "git_diff",
+      "git_push",
+      "git_status",
       "inspect_state",
+      "lsp_definition",
+      "lsp_diagnostics",
       "read_file",
       "recall",
+      "run_code",
+      "screenshot",
       "shell_cmd",
       "web_fetch",
       "web_search",
