@@ -157,14 +157,20 @@ under the kernel's hard lines (non-destructive, verified, approval-before-risk).
 - **Safety (manifesto-critical):** kernel `assess_action` hardened against the Hermes #36846/#36645 denylist/scope bypasses.
 - **Efficiency:** token/power frugality directive; prefer-local delegation. **Installer:** `bootstrap.sh`. **Docs:** MANIFESTO + parity-audit + claude-cli-gaps + hermes-issues-map; CLAUDE.md kept current.
 
-## RESIDUAL — needs a dedicated session (high blast radius / research; do NOT cram)
-- **O9 · Self-improving codebase loop ("dark factory")** — autonomous self-modification under the kernel; needs careful loop + guardrail design.
-- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate; research.
-- **O2 · True parallel swarms** — concurrent tool/delegate execution; agent-loop concurrency change.
-- **O7-b · STT / audio input** — needs whisper or provider audio; **O4 camera**.
-- **#37070 cron awareness · volatile skills #36656 · S4 skill-versioning · S2/S3 continuous-learning heartbeat** (behavior largely enabled by brain+tools).
-- **U2 @-mentions · /context visual · /mcp cmd · multi-dir · themes · /vim** — polish tier.
-- **O8 web-self-improve** — enabled by web tools + write_skill + brain drives; needs a behavior loop.
+## ALSO SHIPPED in the marathon (continued)
+O2 swarms · O4 camera (`look_at_camera`) · O5 video (`watch_video`) · O7 speak (TTS) + transcribe (STT) ·
+volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · `/memory` · `/plan`+todo ·
+`skills lint` · O8/S2/S3 continuous-self-improvement behavior (prompt rule 9 + brain Growth drive).
+
+## RESIDUAL — genuinely needs a dedicated session (research / high blast radius; NOT crammable)
+- **O9 · Self-improving codebase loop ("dark factory")** — autonomous self-modification on a loop. The
+  pieces exist (kernel safety, verified-output, delegate/swarm, run_code, git tools, brain). What's missing
+  is the *autonomous driver loop* + stopping conditions + a safety review — this must be designed deliberately,
+  not bolted on. Highest-value next dedicated effort.
+- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate (its own format/code).
+  Open research; the md brain (v1.4) is the bootstrap.
+- **Polish tier:** U2 @-mentions (composer autocomplete) · themes/output-styles · `/vim` · multi-dir `/add-dir`
+  · #37070 cron-output-awareness (gateway integration) · S4 skill-versioning-on-write.
 
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
