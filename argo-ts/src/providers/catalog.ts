@@ -111,6 +111,15 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     signupUrl: "https://openrouter.ai/keys",
   },
   {
+    id: "codex",
+    label: "OpenAI Codex via ChatGPT subscription (uses your `codex` login)",
+    short: "Codex (sub)",
+    envVar: null,
+    defaultModel: "gpt-5.5",
+    models: ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex-spark"],
+    note: "needs `codex login` (ChatGPT Plus/Pro); uses the Responses API",
+  },
+  {
     id: "ollama",
     label: "Ollama (local, no key)",
     short: "Ollama",

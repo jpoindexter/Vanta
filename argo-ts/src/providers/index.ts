@@ -1,5 +1,6 @@
 import { OpenAIProvider } from "./openai.js";
 import { AnthropicProvider } from "./anthropic.js";
+import { CodexProvider } from "./codex.js";
 import { resolveClaudeCodeToken } from "./claude-code-auth.js";
 import type { LLMProvider } from "./interface.js";
 
@@ -18,6 +19,7 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1";
  *   ARGO_PROVIDER=gemini      → Google Gemini via OpenAI-compat (needs GEMINI_API_KEY)
  *   ARGO_PROVIDER=openrouter  → OpenRouter (needs OPENROUTER_API_KEY)
  *   ARGO_PROVIDER=claude-code → Claude via your Pro/Max subscription token (grey area)
+ *   ARGO_PROVIDER=codex       → OpenAI Codex via your ChatGPT subscription (OAuth, `codex login`)
  */
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const provider = (env.ARGO_PROVIDER ?? "openai").toLowerCase();
@@ -50,6 +52,13 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
         apiKey,
         model: model ?? "claude-sonnet-4-6",
       });
+    }
+    case "codex":
+    case "openai-codex": {
+      // OpenAI Codex via your ChatGPT subscription. Uses the shared
+      // ~/.codex/auth.json OAuth session (run `codex login`). Speaks the
+      // Responses API; constructor throws actionably if not logged in.
+      return new CodexProvider({ model: model ?? "gpt-5.5" });
     }
     case "claude-code":
     case "claude-cli": {
@@ -89,7 +98,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
     }
     default:
       throw new Error(
-        `Unknown ARGO_PROVIDER "${provider}". Use openai, ollama, anthropic, gemini, openrouter, or claude-code.`,
+        `Unknown ARGO_PROVIDER "${provider}". Use openai, ollama, anthropic, gemini, openrouter, codex, or claude-code.`,
       );
   }
 }
