@@ -52,6 +52,12 @@ async function contextTier(root: string): Promise<string> {
  * on demand via the `recall` tool. This is how the skill library stays useful
  * without bloating context (the Hermes pattern).
  */
+/** Argo's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */
+function brainTier(digest?: string): string {
+  if (!digest?.trim()) return "";
+  return `Your brain (durable self — read/grow it with the \`brain\` tool):\n${digest}`;
+}
+
 function skillsTier(skills?: SkillIndexEntry[]): string {
   if (!skills?.length) return "";
   const index = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
@@ -78,6 +84,7 @@ export async function buildSystemPrompt(opts: {
   now: string;
   memory?: string;
   skills?: SkillIndexEntry[];
+  brain?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -89,6 +96,7 @@ export async function buildSystemPrompt(opts: {
       "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
+    brainTier(opts.brain),
     skillsTier(opts.skills),
     await contextTier(opts.root),
     volatileTier(opts.goals, opts.now, opts.memory),

@@ -32,6 +32,7 @@ describe("registry", () => {
     const r = buildRegistry();
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
+      "brain",
       "browser_extract",
       "browser_navigate",
       "calendar_create",
