@@ -11,6 +11,8 @@ import { runAgent } from "./agent.js";
 import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { recentMemory, appendMemory } from "./memory/store.js";
+import { runScheduleCommand, runCron } from "./schedule/commands.js";
+import type { RunTask } from "./schedule/runner.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
 import type { Goal } from "./types.js";
@@ -40,6 +42,9 @@ function usage(): void {
       "       argo skills                       list stored skills",
       "       argo skill <name>                 print a skill",
       '       argo skill <name> "<instruction>" run with that skill applied',
+      '       argo schedule "<instruction>" --cron "<expr>"  add a scheduled task',
+      "       argo schedule list                list scheduled tasks",
+      "       argo cron                         run due tasks now (for the OS scheduler, e.g. launchd/cron every minute)",
     ].join("\n"),
   );
 }
@@ -211,12 +216,51 @@ async function runSkillShow(name: string): Promise<void> {
   console.log(`# ${skill.meta.name}\n\n${skill.body}`);
 }
 
+function dataDirFor(repoRoot: string): string {
+  return join(repoRoot, ".argo");
+}
+
+/**
+ * Build the non-interactive task runner for `argo cron`. Each due task gets a
+ * fresh run setup; approval-gated tool calls are denied (no TTY under the OS
+ * scheduler) and the outcome is recorded to goal memory like `argo run`.
+ */
+function buildCronRunTask(repoRoot: string): RunTask {
+  return async (instruction) => {
+    const { safety, registry, provider, goals, systemPrompt } =
+      await prepareRun(repoRoot);
+    const maxIterations = Number(process.env.ARGO_MAX_ITER) || undefined;
+    const outcome = await runAgent(systemPrompt, instruction, {
+      provider,
+      safety,
+      registry,
+      root: repoRoot,
+      requestApproval: async () => false,
+      maxIterations,
+      summarize: buildSummarizer(provider),
+    });
+    await writeRunMemory(provider, goals, instruction, outcome.finalText);
+    return { finalText: outcome.finalText };
+  };
+}
+
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
   await ensureArgoStore();
 
   const [cmd, ...rest] = process.argv.slice(2);
+
+  if (cmd === "schedule") {
+    const code = await runScheduleCommand(dataDirFor(repoRoot), rest);
+    if (code !== 0) usage();
+    process.exit(code);
+  }
+
+  if (cmd === "cron") {
+    await runCron(dataDirFor(repoRoot), new Date(), buildCronRunTask(repoRoot));
+    return;
+  }
 
   if (cmd === "skills") {
     await runSkillsList();
