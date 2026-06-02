@@ -1,11 +1,12 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import { join } from "node:path";
-import { Box, Text, useApp, useInput } from "ink";
+import { Box, Static, Text, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
 import { executeSlash, SLASH_COMMANDS, type ReplCtx, type ReplState } from "../repl-commands.js";
+import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import type { RunSetup } from "../session.js";
 
 // The Ink TUI — a Claude-CLI-style terminal app: streaming transcript, live
@@ -89,6 +90,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
   const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
+  const [banner, setBanner] = useState<BannerData | null>(null);
   const approvalResolve = useRef<((ok: boolean) => void) | null>(null);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
@@ -112,6 +114,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         }),
     });
   }
+
+  // Gather the startup banner once on mount (tools are sync; skills + MCP are
+  // async file reads). Rendered via <Static> so it commits to scrollback.
+  useEffect(() => {
+    void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Spinner tick while busy.
   useEffect(() => {
@@ -198,12 +207,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Box marginBottom={1}>
-        <Text color="cyan" bold>
-          ⚓ Argo
-        </Text>
-        <Text dimColor>  trusted operator · {setup.provider.modelId()}</Text>
-      </Box>
+      <Static items={banner ? [banner] : []}>{(d) => <Banner key="banner" data={d} />}</Static>
 
       <Transcript entries={state.entries} streaming={state.streaming} />
 
