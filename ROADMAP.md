@@ -121,6 +121,13 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 - [ ] **O8 · Self-improving via the web** — agent browses (web_search/web_fetch/browser) to find tasks/info worth learning, then writes skills from what it learns (ties to track B self-improvement). "Find what it wants to do and learn."
 - [ ] **O9 · Self-improving codebase ("dark factory")** — agent autonomously improves its OWN codebase (refactor, add tests, close gaps) on a loop, ALWAYS under the kernel's non-destructive rules + verified-output + approval-before-risk. Manifesto hard lines are the guardrails that make this safe.
 
+## v1.5 — Efficiency & emergent brain (requested 2026-06-03)
+Target hardware: MacBook Pro 14" M4 Pro / 48GB / macOS Tahoe — must run lean here.
+- [~] **E-eff1 · Token + power frugality** — agent uses as few tokens / as little power as it can, "however it sees fit": concise by default, prefer LOCAL (Ollama) models for simple subtasks via delegate, trim prompt injection when context is tight. Bake a frugality directive into the prompt + brain drives. (directive shipped; routing heuristics next)
+- [ ] **E-eff2 · Prefer-local routing** — auto-route simple/cheap work to local Ollama on the M4 Pro (free, low-power); reserve paid frontier models for hard reasoning. Extends model routing + delegate.
+- [ ] **B-v2 · Emergent self-designed brain** — beyond md files: let Argo design its OWN brain representation (its own code/format/tech) that humans don't need to read. The md brain (v1.4) is the bootstrap; v2 lets Argo evolve the substrate under the kernel's rules. (research + careful — high blast radius.)
+- [ ] **META · Don't stop until complete** — standing directive: work the whole backlog top-down, commit + push every slice, until done. (Active.)
+
 ## v1.4 — Selfhood & continuous learning (requested 2026-06-02/03)
 The agent grows an identity and a living model of its world. Everything here stays
 under the kernel's hard lines (non-destructive, verified, approval-before-risk).
