@@ -54,7 +54,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
 | `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits |
 | `skills/recall.ts` | pure `searchSkills(query, skills)` — weighted substring ranking |
-| `skills/curator.ts` | `curate()` — archive >30d stale, remove >90d archived, report overlaps (no auto-merge) |
+| `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `argo-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
+| `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `argo-learned`. Best-effort. Env: `ARGO_SELF_IMPROVE`/`ARGO_REVIEW_MIN_TOOLS`/`ARGO_REVIEW_EVERY` |
 | `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.argo/memories/<goalId>.md` |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
@@ -62,7 +63,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
 | `agent.ts` | `createConversation()` (persistent multi-turn) + `runAgent()` (one-shot wrapper over it) + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
-| `session.ts` | Shared run setup for one-shot + interactive: `prepareRun` (kernel up + provider + goals + memory + system prompt), `buildSummarizer`, `writeRunMemory`, `consoleCallbacks` (live tool printers), `approver` (y/n bound to readline). Neither cli.ts nor interactive.ts imports the other |
+| `session.ts` | Shared run setup for one-shot + interactive: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver`, **`maybeCurate`** (session-start, 7d-gated skill maintenance), **`reviewAfterTurn`** (post-turn self-improvement nudge). Neither cli.ts nor interactive.ts imports the other |
 | `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists, `/help` `/exit` `/skills`) |
 | `cli.ts` | `argo` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `argo setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 

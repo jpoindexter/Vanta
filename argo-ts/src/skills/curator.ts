@@ -1,37 +1,45 @@
-import { readdir, readFile, rename, rm, mkdir } from "node:fs/promises";
+import { readdir, readFile, rename, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { skillsDir, slugifySkillName } from "../store/home.js";
-import { listSkills } from "./store.js";
+import { listSkills, LEARNED_TAG } from "./store.js";
 import { parseSkill } from "./frontmatter.js";
 import type { Skill } from "./types.js";
 
 const SKILL_FILE = "SKILL.md";
 
-// Hermes-derived lifecycle thresholds (see docs/prd.md / hermes-map): a skill
-// untouched for 30 days is archived; an archived skill untouched for 90 days is
-// removed. Overlap >= 0.6 Jaccard is reported (never auto-merged — destructive).
+// Hermes-derived lifecycle thresholds. A skill untouched for 30 days is a stale
+// candidate; a learned skill is archived (reversible move to _archive), a
+// hand-authored one is only REPORTED. A long-archived skill (90 days) is
+// reported as prunable but NEVER auto-deleted — auto-delete is irreversible data
+// loss the reference design (and Argo's Rule Zero) forbid. Overlap >= 0.6
+// Jaccard is reported, never auto-merged.
 const STALE_DAYS = 30;
-const REMOVE_DAYS = 90;
+const PRUNE_REPORT_DAYS = 90;
 const OVERLAP_THRESHOLD = 0.6;
 const MS_PER_DAY = 86_400_000;
 const ARCHIVE_DIR = "_archive";
 
 export type CurateResult = {
+  /** Stale + learned (provenance-tagged) → moved to `_archive` (recoverable). */
   archived: string[];
-  removed: string[];
+  /** Stale but hand-authored → reported only; never auto-moved. */
+  staleUnowned: string[];
+  /** Long-archived → reported for manual prune; NEVER auto-deleted. */
+  prunable: string[];
+  /** Heavily-overlapping active pairs for human review; never auto-merged. */
   overlaps: [string, string][];
 };
 
 /**
- * Background maintenance over the on-disk skill library. Archives stale active
- * skills, removes long-dead archived skills, and reports heavily-overlapping
- * active pairs for human review.
+ * Background maintenance over the on-disk skill library. NON-DESTRUCTIVE by
+ * design: it archives only stale skills the self-improvement loop authored
+ * (tagged {@link LEARNED_TAG}), reports stale hand-authored skills without
+ * touching them, reports long-archived skills as prunable without deleting, and
+ * reports heavily-overlapping active pairs. Nothing is ever removed.
  *
- * Classifies active vs archived purely by `_archive` dir membership. Active
- * metadata (incl. `meta.updated`) comes from {@link listSkills} (which skips
- * `_archive`); archived metadata is read directly from each archived SKILL.md,
- * since listSkills never surfaces archived skills. A dir whose SKILL.md is
- * missing/unparseable is skipped (age unknowable → treated as not-stale).
+ * Active vs archived is classified by `_archive` dir membership. Active metadata
+ * comes from {@link listSkills} (which skips `_archive`); archived metadata is
+ * read directly. A dir whose SKILL.md is missing/unparseable is skipped.
  *
  * `now` is injected for deterministic tests; defaults to the current instant.
  */
@@ -52,21 +60,27 @@ export async function curate(
   const archivedEntries = await listDirNames(archivePath);
 
   const archived: string[] = [];
+  const staleUnowned: string[] = [];
   for (const entry of activeEntries) {
     const skill = bySlug.get(entry);
     if (!skill || !isOlderThan(skill.meta.updated, STALE_DAYS, nowMs)) continue;
+    if (!skill.meta.tags.includes(LEARNED_TAG)) {
+      // Hand-authored — surface it, but never move a skill the user wrote.
+      staleUnowned.push(entry);
+      continue;
+    }
     await mkdir(archivePath, { recursive: true });
     await rename(join(root, entry), join(archivePath, entry));
     archived.push(entry);
   }
 
-  const removed: string[] = [];
+  // Long-archived skills are REPORTED, never deleted (Rule Zero).
+  const prunable: string[] = [];
   for (const entry of archivedEntries) {
-    // listSkills excludes _archive, so read the archived skill's metadata directly.
     const skill = await tryReadArchivedSkill(join(archivePath, entry));
-    if (!skill || !isOlderThan(skill.meta.updated, REMOVE_DAYS, nowMs)) continue;
-    await rm(join(archivePath, entry), { recursive: true, force: true });
-    removed.push(entry);
+    if (skill && isOlderThan(skill.meta.updated, PRUNE_REPORT_DAYS, nowMs)) {
+      prunable.push(entry);
+    }
   }
 
   // Overlap candidates = active skills still on disk after this run's archiving.
@@ -77,7 +91,7 @@ export async function curate(
     .filter((skill): skill is Skill => skill !== undefined);
   const overlaps = findOverlaps(activeSkills);
 
-  return { archived, removed, overlaps };
+  return { archived, staleUnowned, prunable, overlaps };
 }
 
 /** Read+parse an archived skill's SKILL.md, returning null if missing/unparseable. */

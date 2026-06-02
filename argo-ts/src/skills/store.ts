@@ -13,6 +13,13 @@ import type { Skill } from "./types.js";
 const ARCHIVE_DIR = "_archive";
 const SKILL_FILE = "SKILL.md";
 
+/**
+ * Tag stamped on skills the post-turn self-improvement review writes. Lightweight
+ * provenance: the curator only auto-archives stale skills carrying this tag, so
+ * hand-authored skills are never moved without the user's say-so.
+ */
+export const LEARNED_TAG = "argo-learned";
+
 type StoreOpts = { env?: NodeJS.ProcessEnv; now?: string };
 
 type WriteInput = {
