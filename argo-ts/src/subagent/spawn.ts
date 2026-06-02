@@ -1,6 +1,8 @@
 import { join } from "node:path";
 import { runAgent } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
+import { listSkills } from "../skills/store.js";
+import { brainDigest } from "../brain/store.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal } from "../types.js";
 
@@ -27,12 +29,20 @@ export async function spawnSubagent(opts: {
   const { deps } = opts;
   const now = (opts.now ?? new Date()).toISOString();
   const goals: Goal[] = [{ id: 0, text: opts.goal, status: "active" }];
+  // Workers are as aware as the parent: they see the skill index + the brain.
+  const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
+    name: s.meta.name,
+    description: s.meta.description,
+  }));
+  const brain = await brainDigest(process.env).catch(() => "");
   const systemPrompt = await buildSystemPrompt({
     root: deps.root,
     soulPath: opts.soulPath ?? join(deps.root, "SOUL.md"),
     goals,
     tools: deps.registry.schemas(),
     now,
+    skills,
+    brain,
   });
   return runAgent(systemPrompt, opts.instruction, {
     ...deps,
