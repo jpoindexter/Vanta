@@ -9,6 +9,7 @@ import { recentMemory, appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
 import { curate } from "./skills/curator.js";
 import { listSkills } from "./skills/store.js";
+import { brainDigest } from "./brain/store.js";
 import { resolveArgoHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
 import { mountMcpServers } from "./mcp/mount.js";
@@ -57,6 +58,8 @@ export async function prepareRun(
     name: s.meta.name,
     description: s.meta.description,
   }));
+  // Argo reads its own brain (durable self) each session.
+  const brain = await brainDigest(process.env).catch(() => "");
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -65,6 +68,7 @@ export async function prepareRun(
     now: new Date().toISOString(),
     memory,
     skills,
+    brain,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   return { safety, registry, provider, goals, systemPrompt };

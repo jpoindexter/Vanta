@@ -121,6 +121,25 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 - [ ] **O8 · Self-improving via the web** — agent browses (web_search/web_fetch/browser) to find tasks/info worth learning, then writes skills from what it learns (ties to track B self-improvement). "Find what it wants to do and learn."
 - [ ] **O9 · Self-improving codebase ("dark factory")** — agent autonomously improves its OWN codebase (refactor, add tests, close gaps) on a loop, ALWAYS under the kernel's non-destructive rules + verified-output + approval-before-risk. Manifesto hard lines are the guardrails that make this safe.
 
+## v1.4 — Selfhood & continuous learning (requested 2026-06-02/03)
+The agent grows an identity and a living model of its world. Everything here stays
+under the kernel's hard lines (non-destructive, verified, approval-before-risk).
+- [ ] **S1 · Self-authored identity files** — agent creates + evolves its own `SOUL.md`,
+  `personality.md`, `mind.md` (and psyche notes). SOUL.md is already loaded into the
+  prompt (prompt.ts); add the others as prompt tiers the agent can write to. "Create its
+  own soul, mind, personality."
+- [ ] **S2 · Personality develops from interaction** — the agent updates its persona based
+  on what the user says + does with it over time (writes to personality.md via the
+  self-improvement loop). Loyalty/relationship (the Nemotron "magical" injection-resistance).
+- [ ] **S3 · Continuous world/user/codebase context** — a heartbeat that keeps updating its
+  model of the world, the user, and the codebase (memory + skills + a periodic context
+  refresh). Ties to the gateway daemon (E1 heartbeat) + memory.
+- [ ] **S4 · Skill authorship discipline** — make/define skills AND be smart enough not to
+  blindly overwrite its own. PARTIAL: curator already uses `LEARNED_TAG` provenance +
+  never-auto-deletes; extend to versioning/merge instead of overwrite on `write_skill`.
+- [ ] **S5 · Heartbeat** — a steady tick (the `argo gateway` daemon, E1) that drives S2/S3
+  + cron + the self-improving-codebase loop (O9). Wire selfhood updates onto it.
+
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
 - [ ] **U1 · Queued input while busy** (★★★) — type-ahead; pending-input queue drained on turn end. TUI reducer + readline.
