@@ -8,6 +8,7 @@ import { buildSystemPrompt } from "./prompt.js";
 import { recentMemory, appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
 import { curate } from "./skills/curator.js";
+import { listSkills } from "./skills/store.js";
 import { resolveArgoHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
 import { mountMcpServers } from "./mcp/mount.js";
@@ -50,6 +51,12 @@ export async function prepareRun(
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
   const memory = await recentMemory(activeIds);
+  // Inject the learned-skill INDEX (names+descriptions) so the agent knows what
+  // it can recall; bodies are loaded on demand via the `recall` tool.
+  const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
+    name: s.meta.name,
+    description: s.meta.description,
+  }));
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -57,6 +64,7 @@ export async function prepareRun(
     tools: registry.schemas(),
     now: new Date().toISOString(),
     memory,
+    skills,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   return { safety, registry, provider, goals, systemPrompt };

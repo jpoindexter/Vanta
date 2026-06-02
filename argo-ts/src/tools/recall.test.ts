@@ -51,11 +51,13 @@ describe("recallTool", () => {
     expect(res.ok).toBe(false);
   });
 
-  it("returns the matching skill name for a relevant query", async () => {
+  it("returns the matching skill name AND its full body for a relevant query", async () => {
     await writeSkill();
     const res = await recallTool.execute({ query: "web research" }, ctx);
     expect(res.ok).toBe(true);
     expect(res.output).toContain(SKILL_NAME);
+    // The body is now loaded on demand, not just the index line.
+    expect(res.output).toContain("Use search, then fetch and cross-check each claim.");
   });
 
   it("returns the no-match message for an unrelated query", async () => {
