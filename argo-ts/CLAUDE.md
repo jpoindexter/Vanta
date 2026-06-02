@@ -58,8 +58,10 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `ARGO_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
 | `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
-| `agent.ts` | `runAgent()` + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
-| `cli.ts` | `argo run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]`: env, kernel+store, **routed** provider (model-router), memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
+| `agent.ts` | `createConversation()` (persistent multi-turn) + `runAgent()` (one-shot wrapper over it) + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
+| `session.ts` | Shared run setup for one-shot + interactive: `prepareRun` (kernel up + provider + goals + memory + system prompt), `buildSummarizer`, `writeRunMemory`, `consoleCallbacks` (live tool printers), `approver` (y/n bound to readline). Neither cli.ts nor interactive.ts imports the other |
+| `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists, `/help` `/exit` `/skills`) |
+| `cli.ts` | `argo` (no args) or `chat` → `runChat`; `argo run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider (model-router), memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
 

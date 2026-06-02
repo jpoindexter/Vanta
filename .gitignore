@@ -14,5 +14,8 @@ node_modules
 .argo/
 .nexarion/
 
+# CodeGraph index (rebuildable from source)
+.codegraph/
+
 # OS
 .DS_Store

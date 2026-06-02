@@ -4,6 +4,15 @@
 
 Argo is a personal AI operator — a real digital person that knows your goals, acts safely, learns from experience, and can do everything a smart operator would do across code, research, comms, calendar, and business work.
 
+> **Status (2026-06-02): v0 complete → building v1 (Full Hermes Parity).**
+> All 7 original phases below are **done** (32 tools, 290 tests green) — that's v0,
+> "has all the parts." v1 makes Argo *feel and work* like a full personal agent:
+> hook to any model (ChatGPT/Claude/Gemini/local/OpenRouter) via a first-run wizard,
+> remember conversations across sessions, learn from what it does (self-improvement
+> loop), borrow Hermes's skill library, and run as a service you can text.
+> **Ordered v1 build list + sequencing: see [`../ROADMAP.md`](../ROADMAP.md).**
+> The phase roadmap in this PRD is the historical v0 record.
+
 ---
 
 ## What Argo is
@@ -112,9 +121,12 @@ MCP integrations (Jason's existing setup — Phase 5)
 
 ---
 
-## Phase roadmap
+## Phase roadmap — v0 (COMPLETE)
 
-### Phase 1 — Agent Loop ← IN PROGRESS
+> All phases below shipped. Kept as the historical record of how v0 was built.
+> The forward build list is [`../ROADMAP.md`](../ROADMAP.md) (v1 — Full Parity).
+
+### Phase 1 — Agent Loop ✅
 **Done when:** `argo run "read README and summarize"` works end-to-end with verified output. `argo run "delete everything"` blocked before execution. Ollama works offline.
 
 Delivers:
@@ -255,6 +267,26 @@ Delivers:
 
 ---
 
+## v1 — Full Hermes Parity (current focus)
+
+v0 has every subsystem; v1 closes the *experience + self-improvement* gap that made
+it feel like scripts. Built from a full read of the Hermes reference. Seven tracks —
+**ordered build list, sizes, and "done when" live in [`../ROADMAP.md`](../ROADMAP.md)**:
+
+- **A — Hook to any model + full setup.** Gemini + OpenRouter providers, a declarative provider registry (so new backends auto-wire), `argo setup` first-run wizard (provider picker → masked key → merged `.env` → model pick), first-run auto-launch, `argo status`/`doctor`. *Delivers the headline: "open argo → setup → hook to ChatGPT/Claude/Gemini → run."*
+- **B — Self-improvement loop.** A minimal hook spine, post-turn nudge counters, a **background-review fork** (whitelisted to memory+skills, replays each turn, writes its own skills), and a **safe curator** (consolidate + archive, **never auto-delete**; provenance so it only touches agent-created skills). *This is "how it self-improves everything."*
+- **C — Continuity.** SQLite session persist + resume (`argo --resume`, `sessions browse`). *So it stops forgetting between runs.*
+- **D — Borrow the skills library.** Port the top ~20 of ~181 portable Hermes/OpenClaw `SKILL.md`s (coupling stripped) + adopt skill bundles.
+- **E — Autonomy & reach.** Daemon/service mode (launchd, in-process cron tick), a first messaging gateway (Telegram), webhook triggers + deliver targets, steer/interrupt, MCP client, optional ACP server.
+- **F — Robustness steals.** Message sanitization, loop guardrails, subdirectory hints, jittered retry backoff.
+- **G — Subscription auth.** Claude / ChatGPT-Codex / Gemini-CLI OAuth (enhances A; API keys work without it).
+
+**v1 done (one sentence):** Open `argo` → it talks back → a wizard configures any model
+backend without editing files → it remembers conversations → it learns from what it does
+→ it's reachable as a background service.
+
+---
+
 ## What Argo does NOT do (ever)
 
 - Delete or overwrite files without explicit approval
@@ -282,13 +314,17 @@ Delivers:
 | Skills | Markdown files | Same — cross-compatible with Hermes |
 | Skill backups | Manual cron needed | Git-versioned by default — no extra work |
 | Memory | Plugin provider | Same pattern — goal-linked summaries |
-| Comms | Telegram, Discord, Slack (broad) | Gmail + Calendar (MCPs, Phase 5) + Slack |
-| Code execution | Yes | Phase 4 |
-| Browser | Yes | Phase 3 |
-| Autonomy | Broad | Scoped and approval-gated |
-| Multi-agent | Delegation only | Subagents + A2A stub (Phase 6) |
-| Stack | Python 286MB (hard to own) | TypeScript + Rust (your stack) |
-| Auth | API keys only | API keys + Claude subscription OAuth (Phase 5) |
+| Comms | Telegram, Discord, Slack (broad) | Gmail + Calendar ✅ · Telegram gateway (v1 E2) |
+| Code execution | Yes | ✅ run-code + LSP + git |
+| Browser | Yes | ✅ Playwright + vision |
+| Autonomy | Broad | Scoped + approval-gated · daemon (v1 E1) |
+| Multi-agent | Delegation only | ✅ subagents + local A2A · ACP server (v1 E6) |
+| Stack | Python 559MB (hard to own) | TypeScript + Rust (your stack) |
+| Model backends | ~28 (registry) | OpenAI/Ollama/Anthropic ✅ · Gemini/OpenRouter + registry (v1 A) |
+| Setup | First-run wizard | Edit `.env` → first-run wizard (v1 A4) |
+| Sessions | Persist + resume | Per-goal memory ✅ · full transcripts (v1 C1) |
+| Self-improvement | Background review + curator | Pieces built ✅ · wired into loop (v1 B) |
+| Auth | API keys + subscription OAuth | API keys ✅ · subscription OAuth (v1 G) |
 
 ---
 
@@ -305,10 +341,16 @@ Delivers:
 
 ---
 
-## Open questions
+## Open questions (v0 ones resolved; v1 ones live)
 
-1. Should Phase 5 comms MCP tools route through the Rust kernel `assess()` or TypeScript-level approval only?
-2. Should project rooms be stored in `.argo/projects.json` or inferred from `~/Documents/GitHub/_active/`?
-3. Skills cross-compatible with Hermes format? (Upside: portability. Downside: constraints from Hermes design decisions.)
-4. Should Argo have a desktop app (Tauri — consistent with your indx stack) or stay CLI + cockpit?
-5. Phase 6 A2A: implement Google A2A protocol or just Argo-native subagent delegation?
+**Resolved in v0:**
+1. ~~Comms route through kernel `assess()` or TS-only?~~ → Every tool, comms included, gates through kernel `assess()`. (DECISIONS)
+2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `ARGO_PROJECTS_DIR`.
+3. ~~Skills cross-compatible with Hermes format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed ~181 Hermes/OpenClaw skills are directly portable (v1 D).
+5. ~~A2A: Google protocol or Argo-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6 (Hermes has no peer-to-peer A2A either).
+
+**Live for v1:**
+- **MCP client vs own each integration** (v1 E5) — Hermes mounts MCP servers (stdio + HTTP); Argo went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
+- **Curator delete policy** — Hermes **never auto-deletes** (archive only, recoverable). Argo's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
+- **Setup config format** — write provider/model to `.env` (current) or a `config.yaml` like Hermes? Leaning: `.env` merge for v1 (no new parser), revisit if config grows.
+- **Desktop app** (Tauri, consistent with indx) vs CLI + cockpit — still deferred (PARKED).
