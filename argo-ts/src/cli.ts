@@ -61,7 +61,7 @@ function usage(): void {
       "       argo setup                        first-run wizard: pick a model backend",
       "       argo status | doctor              health check (kernel, provider, keys, store)",
       '       argo run "<instruction>"          run one instruction and exit',
-      "       argo skills [install [--force]]   list skills, or install the bundled library",
+      "       argo skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
       '       argo skill <name> ["<instruction>"]  print a skill, or run with it',
       '       argo schedule "<instruction>" --cron "<expr>" | schedule list',
       "       argo cron                         run due tasks once (for launchd/cron)",
@@ -193,6 +193,13 @@ async function runSkillsList(): Promise<void> {
 // `argo skills` → list; `argo skills install [--force]` → copy the bundled
 // library into ~/.argo/skills (skips existing unless --force).
 async function runSkillsCommand(rest: string[]): Promise<void> {
+  if (rest[0] === "lint") {
+    const { lintSkills, formatLint } = await import("./skills/lint.js");
+    const issues = await lintSkills();
+    console.log(formatLint(issues));
+    if (issues.some((i) => i.level === "error")) process.exit(1);
+    return;
+  }
   if (rest[0] !== "install") return runSkillsList();
   const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });
   console.log(
