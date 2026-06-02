@@ -1,7 +1,7 @@
 # Argo Roadmap — v0 (done) → v1 (Full Hermes Parity)
 
 Source of truth for build order. One line moves between `[ ]`/`[~]`/`[x]` as slices land.
-Vision + rationale live in `docs/prd.md`. Hermes component map: `docs/hermes-map.html`.
+North star / why: [`MANIFESTO.md`](MANIFESTO.md). Vision + rationale: `docs/prd.md`. Hermes component map: `docs/hermes-map.html`.
 Runtime flow: `docs/argo-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `PARKED.md`.
 
 > This roadmap was rebuilt 2026-06-02 from a full read of the Hermes reference
