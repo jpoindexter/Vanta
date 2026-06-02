@@ -30,6 +30,7 @@ import {
   maybeCurate,
 } from "./session.js";
 import { runChat } from "./interactive.js";
+import { runTui } from "./tui/launch.js";
 import { runSetup } from "./setup.js";
 import { runStatus } from "./status.js";
 import { resolveProvider } from "./providers/index.js";
@@ -90,7 +91,7 @@ function isConfigured(env: NodeJS.ProcessEnv): boolean {
  */
 async function startInteractive(
   repoRoot: string,
-  opts: { resumeId?: string } = {},
+  opts: { resumeId?: string; noTui?: boolean } = {},
 ): Promise<void> {
   if (!isConfigured(process.env)) {
     if (!process.stdin.isTTY) {
@@ -101,7 +102,14 @@ async function startInteractive(
     if (!wrote) return;
     loadEnv(repoRoot); // pick up the freshly written .env
   }
-  return runChat(repoRoot, opts);
+  // The Ink TUI is the default interactive surface; fall back to the readline
+  // REPL for resume (TUI v1 doesn't rehydrate), --no-tui, ARGO_NO_TUI, or no TTY.
+  const useTui =
+    Boolean(process.stdin.isTTY) &&
+    !opts.resumeId &&
+    !opts.noTui &&
+    !process.env.ARGO_NO_TUI;
+  return useTui ? runTui(repoRoot) : runChat(repoRoot, opts);
 }
 
 /** Extract a `--resume <id>` value from args, if present. */
@@ -310,7 +318,10 @@ async function main(): Promise<void> {
   const [cmd, ...rest] = process.argv.slice(2);
 
   if (cmd === undefined || cmd === "chat")
-    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest) });
+    return startInteractive(repoRoot, {
+      resumeId: resumeIdFrom(rest),
+      noTui: rest.includes("--no-tui"),
+    });
   if (cmd === "--resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "sessions") return runSessionsList();
