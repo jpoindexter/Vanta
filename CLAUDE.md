@@ -56,7 +56,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-Phases 1, 2A, 2B, 3, 4, 6 **done**. 3: browser + vision. 4: run_code, lsp (TS compiler API), 6 git tools, full Anthropic provider. 6: cron scheduler (`argo schedule`/`cron`, `.argo/cron.tsv`), subagent spawning (`delegate` tool, scoped/isolated workers), A2A local bus. 22 tools. **199 TS + 16 Rust tests green.** Live-setup caveats: browser needs `npx playwright install chromium`; anthropic/vision need keys; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked (launchd/cron). Next: Phase 7 (digital person — no creds, building now); then Phase 5 (comms — one-click `argo auth google`). See `docs/prd.md`, `DECISIONS.md`.
+Phases 1, 2A, 2B, 3, 4, 6, 7 **done** — only Phase 5 (comms) remains. 7: project rooms (`argo rooms`/`room <name>`, per-project goal streams), 6 operator modes (skills via `installModes`), multi-model routing (`classifyTask` + `ARGO_MODEL_CHEAP/EXPENSIVE`), mode learning (propose a skill after 3 repeats). 22 tools. **234 TS + 16 Rust tests green.** Live-setup caveats: browser needs `npx playwright install chromium`; anthropic/vision need keys; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. Remaining: **Phase 5 — Gmail/Calendar/Drive via one-click `argo auth google`** (per-user OAuth, tokens local). See `docs/prd.md`, `DECISIONS.md`.
 
 ## Rule zero
 
