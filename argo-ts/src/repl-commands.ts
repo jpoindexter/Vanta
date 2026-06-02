@@ -140,6 +140,8 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "image", arg: "<path>", desc: "attach an image for your next message" },
   { name: "paste", desc: "attach an image from the clipboard (macOS)" },
   { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
+  { name: "context", desc: "visual context-budget breakdown" },
+  { name: "mcp", desc: "list configured MCP servers" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
@@ -347,6 +349,27 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       ctx.state.sessionId = newId;
       ctx.state.started = startedAt;
       return { output: `  ⑂ forked into new session ${newId} (history carried over)` };
+    }
+
+    case "context": {
+      const msgs = ctx.convo.messages;
+      const chars = msgs.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0);
+      const est = Math.round(chars / 4);
+      const win = ctx.setup.provider.contextWindow();
+      const pct = win ? Math.round((est / win) * 100) : 0;
+      const sysTok = msgs[0]?.role === "system" ? Math.round(msgs[0].content.length / 4) : 0;
+      const byRole = msgs.reduce<Record<string, number>>((acc, m) => ((acc[m.role] = (acc[m.role] ?? 0) + 1), acc), {});
+      const filled = Math.round((pct / 100) * 20);
+      const bar = "█".repeat(Math.min(20, filled)) + "░".repeat(Math.max(0, 20 - filled));
+      const roles = Object.entries(byRole).map(([r, n]) => `${r}:${n}`).join(" · ");
+      return { output: `  context  [${bar}] ${pct}%  ~${est.toLocaleString()}/${win.toLocaleString()} tok\n  system prompt ~${sysTok.toLocaleString()} tok · ${msgs.length} messages (${roles})` };
+    }
+
+    case "mcp": {
+      const { readMcpConfig } = await import("./mcp/mount.js");
+      const cfg = await readMcpConfig(ctx.env).catch(() => ({ servers: {} as Record<string, unknown> }));
+      const names = Object.keys(cfg.servers ?? {});
+      return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set ARGO_MCP_SERVERS or ~/.argo/mcp.json)") };
     }
 
     case "usage": {

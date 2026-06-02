@@ -220,6 +220,18 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(await maybeDroppedImage(`${join(home, "missing.png")}`)).toBeNull(); // path doesn't exist
   });
 
+  it("/context shows a budget bar + message breakdown", async () => {
+    const r = await executeSlash("/context", makeCtx(home, convo()));
+    expect(r.output).toContain("context");
+    expect(r.output).toMatch(/\d+%/);
+    expect(r.output).toContain("messages");
+  });
+
+  it("/mcp reports none when unconfigured", async () => {
+    const r = await executeSlash("/mcp", makeCtx(home, convo()));
+    expect(r.output).toContain("no MCP servers");
+  });
+
   it("/usage reports an estimate, context window, and turn count", async () => {
     const r = await executeSlash("/usage", makeCtx(home, convo()));
     expect(r.output).toMatch(/tokens/);
