@@ -21,30 +21,50 @@ import {
   gitBranchTool,
   gitCheckoutTool,
 } from "./git.js";
+import { delegateTool } from "./delegate.js";
+import type { Tool } from "./types.js";
 
-export function buildRegistry(): ToolRegistry {
+/**
+ * Every tool the agent can use, in registration order. Kept as an array (rather
+ * than registered inline) so {@link buildRegistry} can filter by name before
+ * registering — used to give a subagent a registry without `delegate`.
+ */
+const ALL_TOOLS: readonly Tool[] = [
+  readFileTool,
+  writeFileTool,
+  shellCmdTool,
+  inspectStateTool,
+  webSearchTool,
+  webFetchTool,
+  writeSkillTool,
+  recallTool,
+  screenshotTool,
+  browserNavigateTool,
+  browserExtractTool,
+  describeImageTool,
+  runCodeTool,
+  lspDiagnosticsTool,
+  lspDefinitionTool,
+  gitStatusTool,
+  gitDiffTool,
+  gitCommitTool,
+  gitPushTool,
+  gitBranchTool,
+  gitCheckoutTool,
+  delegateTool,
+];
+
+/**
+ * Build the tool registry. With no args it registers every tool. Pass
+ * `exclude` to omit tools by `schema.name` — a subagent excludes `delegate` so
+ * it cannot recursively spawn further workers.
+ */
+export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
   const registry = new ToolRegistry();
-  registry.register(readFileTool);
-  registry.register(writeFileTool);
-  registry.register(shellCmdTool);
-  registry.register(inspectStateTool);
-  registry.register(webSearchTool);
-  registry.register(webFetchTool);
-  registry.register(writeSkillTool);
-  registry.register(recallTool);
-  registry.register(screenshotTool);
-  registry.register(browserNavigateTool);
-  registry.register(browserExtractTool);
-  registry.register(describeImageTool);
-  registry.register(runCodeTool);
-  registry.register(lspDiagnosticsTool);
-  registry.register(lspDefinitionTool);
-  registry.register(gitStatusTool);
-  registry.register(gitDiffTool);
-  registry.register(gitCommitTool);
-  registry.register(gitPushTool);
-  registry.register(gitBranchTool);
-  registry.register(gitCheckoutTool);
+  const exclude = new Set(opts?.exclude ?? []);
+  for (const tool of ALL_TOOLS) {
+    if (!exclude.has(tool.schema.name)) registry.register(tool);
+  }
   return registry;
 }
 

@@ -29,7 +29,13 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/git.ts` | Phase 4 — 6 git tools. status/diff read-only; commit/push/branch/checkout call `requestApproval` (risk:ask) |
 | `browser/allowlist.ts` | `isAllowedDomain`/`extractDomain` — `ARGO_ALLOWED_DOMAINS` gate for browser tools |
 | `providers/anthropic.ts` | Phase 4 full Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). Pure `toAnthropicMessages` |
-| `tools/index.ts` | `buildRegistry()` — registers all 21 tools |
+| `tools/delegate.ts` | Phase 6 — spawns a scoped subagent. Child registry excludes `delegate` (no runaway recursion) |
+| `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.argo/cron.tsv` load/add/save |
+| `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks; one failure doesn't abort the batch |
+| `schedule/commands.ts` | Phase 6 — `argo schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
+| `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
+| `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 22 tools (`exclude:["delegate"]` → 21 for workers) |
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
@@ -43,7 +49,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
 | `agent.ts` | `runAgent()` + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
-| `cli.ts` | `argo run\|skills\|skill <name> [instr]`: load env, ensure kernel + store, inject memory, run, write goal memory post-run |
+| `cli.ts` | `argo run\|skills\|skill <name> [instr]\|schedule "<i>" --cron "<e>"\|schedule list\|cron`: env, kernel+store, memory inject, run, post-run memory. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
 

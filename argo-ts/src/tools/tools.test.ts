@@ -34,6 +34,7 @@ describe("registry", () => {
     expect(names).toEqual([
       "browser_extract",
       "browser_navigate",
+      "delegate",
       "describe_image",
       "git_branch",
       "git_checkout",
@@ -54,6 +55,12 @@ describe("registry", () => {
       "write_file",
       "write_skill",
     ]);
+  });
+
+  it("excludes named tools when given an exclude list", () => {
+    const r = buildRegistry({ exclude: ["delegate"] });
+    const names = r.schemas().map((s) => s.name);
+    expect(names).not.toContain("delegate");
   });
 });
 

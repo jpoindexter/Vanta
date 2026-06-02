@@ -56,7 +56,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-Phases 1, 2A, 2B, 3, 4 **done**. 3: browser (`screenshot`/`browser_navigate`/`browser_extract` via playwright-core + domain allowlist) + vision (`describe_image`). 4: `run_code`, `lsp_diagnostics`/`lsp_definition` (TS compiler API), 6 git tools, README context autodetect, **full Anthropic provider** (`claude-sonnet-4-6`). 21 tools registered. **160 TS + 16 Rust tests green.** Live-setup caveats: browser needs `npx playwright install chromium`; anthropic/vision need keys; LSP is .ts/.tsx only. Next: Phase 6 (autonomous); then 5 (comms — needs transport decision) and 7 (digital person). See `docs/prd.md`, `DECISIONS.md`.
+Phases 1, 2A, 2B, 3, 4, 6 **done**. 3: browser + vision. 4: run_code, lsp (TS compiler API), 6 git tools, full Anthropic provider. 6: cron scheduler (`argo schedule`/`cron`, `.argo/cron.tsv`), subagent spawning (`delegate` tool, scoped/isolated workers), A2A local bus. 22 tools. **199 TS + 16 Rust tests green.** Live-setup caveats: browser needs `npx playwright install chromium`; anthropic/vision need keys; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked (launchd/cron). Next: Phase 7 (digital person — no creds, building now); then Phase 5 (comms — one-click `argo auth google`). See `docs/prd.md`, `DECISIONS.md`.
 
 ## Rule zero
 
