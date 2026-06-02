@@ -24,10 +24,14 @@ cargo run -- doctor                       # health check, creates .argo/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
-# Agent (TypeScript) — from argo-ts/
+# Agent — from repo root (preferred): self-bootstrapping launcher
+./run.sh run "<instruction>"              # or ./argo run "..." ; kernel auto-starts
+./run.sh                                   # list all subcommands
+
+# Agent (TypeScript) — from argo-ts/ (direct)
 npm install
 npm run argo -- run "<instruction>"       # kernel auto-starts if down
-npm test                                  # 22 vitest tests
+npm test                                  # 274 vitest tests
 npm run typecheck                         # tsc --noEmit (must be clean)
 ```
 
