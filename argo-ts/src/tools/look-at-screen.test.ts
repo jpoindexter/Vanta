@@ -6,14 +6,20 @@ import type { ToolContext } from "./types.js";
 const ctx = {} as ToolContext;
 
 describe("lookAtScreenTool", () => {
-  const orig = process.env.OPENAI_API_KEY;
-  afterEach(() => { if (orig === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = orig; });
+  const saved = { provider: process.env.ARGO_PROVIDER, key: process.env.OPENAI_API_KEY };
+  afterEach(() => {
+    if (saved.provider === undefined) delete process.env.ARGO_PROVIDER;
+    else process.env.ARGO_PROVIDER = saved.provider;
+    if (saved.key === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = saved.key;
+  });
 
-  it("requires a vision key (no network without one)", async () => {
-    delete process.env.OPENAI_API_KEY;
+  it("fails fast (no screen capture) when no model is configured", async () => {
+    process.env.ARGO_PROVIDER = "openai";
+    delete process.env.OPENAI_API_KEY; // openai with no key → resolveProvider throws
     const r = await lookAtScreenTool.execute({}, ctx);
     expect(r.ok).toBe(false);
-    expect(r.output).toMatch(/OPENAI_API_KEY/);
+    expect(r.output).toMatch(/needs a model/);
   });
 
   it("never leaks content in its safety label", () => {

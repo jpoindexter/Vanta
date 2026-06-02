@@ -3,6 +3,7 @@ import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveInScope } from "../scope.js";
+import { resolveProvider } from "../providers/index.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -10,7 +11,6 @@ const Args = z.object({
 });
 
 const DEFAULT_PROMPT = "Describe this image.";
-const DEFAULT_MODEL = "gpt-4o-mini";
 
 // Vision models accept these raster formats as data URLs; reject anything else
 // before spending an API call on it.
@@ -74,40 +74,18 @@ export const describeImageTool: Tool = {
       };
     }
 
-    const key = process.env.OPENAI_API_KEY;
-    if (!key) {
-      return {
-        ok: false,
-        output: "OPENAI_API_KEY required for describe_image",
-      };
-    }
-
     try {
       const buf = await readFile(abs);
-      const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
-
-      const { default: OpenAI } = await import("openai");
-      const client = new OpenAI({ apiKey: key });
-      const model = process.env.ARGO_VISION_MODEL ?? DEFAULT_MODEL;
-
-      const res = await client.chat.completions.create({
-        model,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt ?? DEFAULT_PROMPT },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      });
-
-      const text = res.choices[0]?.message?.content?.trim();
-      if (!text) {
-        return { ok: false, output: "vision model returned no description" };
-      }
-      return { ok: true, output: text };
+      // Use the ACTIVE provider's vision (Gemini/Codex/OpenAI/Anthropic) via the
+      // multimodal message pipeline — no hardcoded OpenAI key.
+      const provider = resolveProvider(process.env);
+      const result = await provider.complete(
+        [{ role: "user", content: prompt ?? DEFAULT_PROMPT, images: [{ mime, dataBase64: buf.toString("base64") }] }],
+        [],
+      );
+      return result.text?.trim()
+        ? { ok: true, output: result.text.trim() }
+        : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
     } catch (err) {
       return {
         ok: false,

@@ -1,14 +1,14 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
+import { resolveProvider } from "../providers/index.js";
 
-// Argo's "eyes": capture the user's screen and describe it with a vision model.
-// Unlike describe_image (root-scoped file), this captures to a temp file Argo
-// owns and sends it straight to the vision model — so it works regardless of the
+// Argo's "eyes": capture the user's screen and describe it with the ACTIVE vision
+// model (Gemini/Codex/OpenAI — whatever's configured), via the multimodal message
+// pipeline. Captures to a temp file Argo owns, so it works regardless of the
 // filesystem scope. macOS only (screencapture); needs Screen Recording permission.
 
 const Args = z.object({ prompt: z.string().optional() });
 const DEFAULT_PROMPT = "Describe what is currently on the screen, including any visible text and UI state.";
-const DEFAULT_MODEL = "gpt-4o-mini";
 
 export const lookAtScreenTool: Tool = {
   schema: {
@@ -27,8 +27,14 @@ export const lookAtScreenTool: Tool = {
   async execute(raw) {
     const parsed = Args.safeParse(raw);
     const prompt = parsed.success ? parsed.data.prompt : undefined;
-    const key = process.env.OPENAI_API_KEY;
-    if (!key) return { ok: false, output: "OPENAI_API_KEY required for look_at_screen (vision)" };
+    // Resolve the vision provider FIRST — fail fast without capturing the screen
+    // if no backend is configured.
+    let provider;
+    try {
+      provider = resolveProvider(process.env);
+    } catch (err) {
+      return { ok: false, output: `look_at_screen needs a model: ${(err as Error).message}` };
+    }
     try {
       const { tmpdir } = await import("node:os");
       const { join } = await import("node:path");
@@ -44,23 +50,14 @@ export const lookAtScreenTool: Tool = {
         return { ok: false, output: "screen capture failed (macOS only; grant Screen Recording permission to the terminal)" };
       }
 
-      const { default: OpenAI } = await import("openai");
-      const client = new OpenAI({ apiKey: key });
-      const model = process.env.ARGO_VISION_MODEL ?? DEFAULT_MODEL;
-      const res = await client.chat.completions.create({
-        model,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt ?? DEFAULT_PROMPT },
-              { type: "image_url", image_url: { url: `data:image/png;base64,${buf.toString("base64")}` } },
-            ],
-          },
-        ],
-      });
-      const text = res.choices[0]?.message?.content?.trim();
-      return text ? { ok: true, output: text } : { ok: false, output: "vision model returned no description" };
+      // Use the ACTIVE provider's vision (Gemini/Codex/OpenAI) via the multimodal pipeline.
+      const result = await provider.complete(
+        [{ role: "user", content: prompt ?? DEFAULT_PROMPT, images: [{ mime: "image/png", dataBase64: buf.toString("base64") }] }],
+        [],
+      );
+      return result.text?.trim()
+        ? { ok: true, output: result.text.trim() }
+        : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
     } catch (err) {
       return { ok: false, output: `look_at_screen failed: ${(err as Error).message}` };
     }

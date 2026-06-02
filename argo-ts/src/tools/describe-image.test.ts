@@ -41,6 +41,7 @@ describe("describeImageTool", () => {
   describe("with a real in-scope image and no API key", () => {
     let dir: string;
     const savedKey = process.env.OPENAI_API_KEY;
+    const savedProvider = process.env.ARGO_PROVIDER;
 
     beforeEach(async () => {
       dir = await mkdtemp(join(tmpdir(), "argo-img-"));
@@ -55,20 +56,24 @@ describe("describeImageTool", () => {
     afterEach(async () => {
       if (savedKey === undefined) delete process.env.OPENAI_API_KEY;
       else process.env.OPENAI_API_KEY = savedKey;
+      if (savedProvider === undefined) delete process.env.ARGO_PROVIDER;
+      else process.env.ARGO_PROVIDER = savedProvider;
       await rm(dir, { recursive: true, force: true });
     });
 
-    it("returns a clear ok:false when OPENAI_API_KEY is empty (no API call)", async () => {
+    it("returns a clear ok:false when the active provider has no key (no API call)", async () => {
+      process.env.ARGO_PROVIDER = "openai"; // deterministic; no real network
       process.env.OPENAI_API_KEY = "";
       const res = await describeImageTool.execute(
         { path: "pixel.png" },
         makeCtx(dir),
       );
       expect(res.ok).toBe(false);
-      expect(res.output).toContain("OPENAI_API_KEY required");
+      expect(res.output).toMatch(/OPENAI_API_KEY|could not describe/);
     });
 
     it("rejects an unsupported image extension before any API call", async () => {
+      process.env.ARGO_PROVIDER = "openai";
       process.env.OPENAI_API_KEY = "sk-should-not-be-used";
       await writeFile(join(dir, "note.txt"), "not an image");
       const res = await describeImageTool.execute(
