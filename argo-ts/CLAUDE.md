@@ -40,6 +40,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `service/launchd.ts` + `service/manager.ts` | v1 E1 — pure `buildLaunchdPlist` + `argo service install\|uninstall\|status` (launchd user agent that keeps `argo gateway` alive; captures PATH). macOS only for now |
 | `gateway/platforms/base.ts` | v1 E2 — `PlatformAdapter` contract (`connect`/`disconnect`/`send`/`poll`) + `InboundMessage`/`OutboundMessage`. One adapter per messaging platform |
 | `gateway/platforms/telegram.ts` | v1 E2 — `TelegramAdapter` (getUpdates long-poll + sendMessage, no SDK) + pure `parseUpdates`/`parseAllowlist`. `gateway/run.ts pollPlatform` runs inbound→agent→reply. Enabled by `ARGO_TELEGRAM_TOKEN`; offline-tested, live needs a @BotFather token |
+| `mcp/client.ts` | v1 E5 — dependency-free MCP stdio JSON-RPC client (`McpClient` + injectable `Transport` + `stdioTransport`): initialize/listTools/callTool, concurrent-request correlation. `textFromContent` pure |
+| `mcp/mount.ts` | v1 E5 — `readMcpConfig` (`ARGO_MCP_SERVERS` or `~/.argo/mcp.json`) + `mountMcpServers` (spawn each, register discovered tools as Argo tools via `mcpToolToArgoTool` — gated by kernel `assess()`). Called in `prepareRun`; no-op without config |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
 | `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
 | `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `ARGO_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `argo room <name>` runs rooted there → per-project goal stream |
