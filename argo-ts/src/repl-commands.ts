@@ -1,3 +1,4 @@
+import { dirname } from "node:path";
 import { listSkills } from "./skills/store.js";
 import { gatherStatus, formatStatus } from "./status.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "./sessions/store.js";
@@ -80,6 +81,9 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "title", arg: "<name>", desc: "name the current session" },
   { name: "fork", desc: "branch the current conversation into a new session" },
   { name: "cron", desc: "list scheduled tasks" },
+  { name: "usage", desc: "token usage + context fill for this session" },
+  { name: "copy", desc: "copy the last response to the clipboard" },
+  { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
   { name: "exit", desc: "leave the session" },
 ];
 
@@ -238,6 +242,41 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       ctx.state.sessionId = newId;
       ctx.state.started = startedAt;
       return { output: `  ⑂ forked into new session ${newId} (history carried over)` };
+    }
+
+    case "usage": {
+      const chars = ctx.convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0);
+      const est = Math.round(chars / 4); // ~4 chars/token, matches the status bar's estimate
+      const ctxWin = ctx.setup.provider.contextWindow();
+      const pct = ctxWin ? Math.round((est / ctxWin) * 100) : 0;
+      return {
+        output: `  ~${est.toLocaleString()} tokens / ${ctxWin.toLocaleString()} ctx (${pct}%) · ${ctx.state.turnIndex} turn(s) · ${ctx.setup.provider.modelId()}`,
+      };
+    }
+
+    case "copy": {
+      const last = [...ctx.convo.messages].reverse().find((m) => m.role === "assistant" && m.content.trim());
+      if (!last || last.role !== "assistant") return { output: "  (nothing to copy)" };
+      try {
+        const { spawn } = await import("node:child_process");
+        const p = spawn("pbcopy");
+        p.stdin.end(last.content);
+        return { output: "  📋 copied the last response to the clipboard" };
+      } catch {
+        return { output: "  copy failed (pbcopy unavailable)" };
+      }
+    }
+
+    case "update": {
+      const repoRoot = dirname(ctx.dataDir); // dataDir is <repoRoot>/.argo
+      try {
+        const { execFile } = await import("node:child_process");
+        const { promisify } = await import("node:util");
+        const { stdout } = await promisify(execFile)("git", ["-C", repoRoot, "pull", "--ff-only"]);
+        return { output: `  ⬆ ${stdout.trim() || "already up to date"}\n  · run ./install.sh to rebuild if anything changed` };
+      } catch (err) {
+        return { output: `  update failed: ${(err as Error).message.split("\n")[0]}` };
+      }
     }
 
     case "cron": {

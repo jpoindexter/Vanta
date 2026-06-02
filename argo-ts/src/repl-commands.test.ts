@@ -182,6 +182,18 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(sys?.role === "system" && sys.content).toContain("ship the parity slices");
   });
 
+  it("/usage reports an estimate, context window, and turn count", async () => {
+    const r = await executeSlash("/usage", makeCtx(home, convo()));
+    expect(r.output).toMatch(/tokens/);
+    expect(r.output).toContain("ctx");
+    expect(r.output).toContain("turn(s)");
+  });
+
+  it("/copy reports nothing to copy when there is no assistant reply", async () => {
+    const r = await executeSlash("/copy", makeCtx(home, [{ role: "system", content: "sys" }]));
+    expect(r.output).toContain("nothing to copy");
+  });
+
   it("/goal status lists active goals (none here)", async () => {
     const r = await executeSlash("/goal status", makeCtx(home, convo()));
     expect(r.output).toContain("no active goals");
