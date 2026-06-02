@@ -49,6 +49,13 @@ export type Conversation = {
   messages: Message[];
   /** Send a user turn; runs the agent loop and returns the outcome, keeping history. */
   send: (userText: string) => Promise<AgentOutcome>;
+  /**
+   * Hot-swap the model mid-conversation (the /model picker). Reassigns the
+   * provider the loop reads each turn; pass a matching summarizer so context
+   * compression stays on the new model. History is preserved. Switch only
+   * between turns — never mid-flight.
+   */
+  setProvider: (provider: LLMProvider, summarize?: Summarizer) => void;
 };
 
 /**
@@ -74,6 +81,10 @@ export function createConversation(
   return {
     messages,
     send: (userText: string) => runTurn(messages, ctx, deps, userText),
+    setProvider: (provider, summarize) => {
+      deps.provider = provider;
+      if (summarize) deps.summarize = summarize;
+    },
   };
 }
 
