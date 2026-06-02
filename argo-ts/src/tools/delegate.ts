@@ -8,13 +8,31 @@ const Args = z.object({
   goal: z.string().min(1),
   instruction: z.string().min(1),
   max_iterations: z.number().int().min(1).max(50).optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
+
+/** Env for the worker — overlay the agent's chosen provider/model over the parent's. */
+export function delegateEnv(
+  env: NodeJS.ProcessEnv,
+  provider?: string,
+  model?: string,
+): NodeJS.ProcessEnv {
+  const merged: NodeJS.ProcessEnv = { ...env };
+  if (provider) merged.ARGO_PROVIDER = provider;
+  if (model) merged.ARGO_MODEL = model;
+  return merged;
+}
 
 export const delegateTool: Tool = {
   schema: {
     name: "delegate",
     description:
-      "Delegate a scoped subtask to a worker agent. The worker runs its own loop with the same tools (minus delegate) and returns its final result.",
+      "Delegate a scoped subtask to a worker agent — optionally on a DIFFERENT model/provider. " +
+      "The worker runs its own loop with the same tools (minus delegate) and returns its result. " +
+      "Use `provider`/`model` to route a subtask to the best backend (e.g. provider:'ollama' for a " +
+      "free local model, provider:'openai' model:'gpt-4o' for a hard reasoning step). Call it multiple " +
+      "times to fan a goal out across several workers/models.",
     parameters: {
       type: "object",
       properties: {
@@ -31,6 +49,14 @@ export const delegateTool: Tool = {
           minimum: 1,
           maximum: 50,
           description: "Optional cap on the worker's loop iterations (1-50)",
+        },
+        provider: {
+          type: "string",
+          description: "Optional backend for the worker: openai | ollama | anthropic | gemini | openrouter | codex | claude-code. Defaults to the parent's.",
+        },
+        model: {
+          type: "string",
+          description: "Optional model id for the worker (e.g. gpt-4o, qwen2.5:14b, gemini-2.5-flash).",
         },
       },
       required: ["goal", "instruction"],
@@ -50,8 +76,14 @@ export const delegateTool: Tool = {
       };
     }
     try {
-      const { goal, instruction, max_iterations: maxIterations } = parsed.data;
-      const provider = resolveProvider(process.env);
+      const { goal, instruction, max_iterations: maxIterations, provider: prov, model } = parsed.data;
+      // The agent may route this worker to a different backend (Ollama, gpt-4o, …).
+      let provider;
+      try {
+        provider = resolveProvider(delegateEnv(process.env, prov, model));
+      } catch (err) {
+        return { ok: false, output: `cannot use ${prov ?? "default"}/${model ?? "default"}: ${(err as Error).message}` };
+      }
       // Child cannot spawn further delegates — prevents runaway recursion.
       const registry = buildRegistry({ exclude: ["delegate"] });
       const outcome = await spawnSubagent({
