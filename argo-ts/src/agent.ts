@@ -29,21 +29,51 @@ export type AgentOutcome = {
 
 const MAX_CONSECUTIVE_FAILURES = 3;
 
-export async function runAgent(
+/** A stateful multi-turn conversation that retains history across `send` calls. */
+export type Conversation = {
+  /** The live transcript (system first). Read-only in spirit; the loop mutates it. */
+  messages: Message[];
+  /** Send a user turn; runs the agent loop and returns the outcome, keeping history. */
+  send: (userText: string) => Promise<AgentOutcome>;
+};
+
+/**
+ * Open a conversation that persists message history across turns — the basis for
+ * the interactive REPL. `runAgent` is the one-shot form of this.
+ */
+export function createConversation(
   systemPrompt: string,
-  instruction: string,
   deps: AgentDeps,
-): Promise<AgentOutcome> {
-  const maxIter = deps.maxIterations ?? 50;
-  const messages: Message[] = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: instruction },
-  ];
+): Conversation {
+  const messages: Message[] = [{ role: "system", content: systemPrompt }];
   const ctx: ToolContext = {
     root: deps.root,
     safety: deps.safety,
     requestApproval: deps.requestApproval,
   };
+  return {
+    messages,
+    send: (userText: string) => runTurn(messages, ctx, deps, userText),
+  };
+}
+
+/** One-shot: a fresh conversation with a single user turn. Behaviour unchanged. */
+export async function runAgent(
+  systemPrompt: string,
+  instruction: string,
+  deps: AgentDeps,
+): Promise<AgentOutcome> {
+  return createConversation(systemPrompt, deps).send(instruction);
+}
+
+async function runTurn(
+  messages: Message[],
+  ctx: ToolContext,
+  deps: AgentDeps,
+  userText: string,
+): Promise<AgentOutcome> {
+  const maxIter = deps.maxIterations ?? 50;
+  messages.push({ role: "user", content: userText });
   let consecutiveFailures = 0;
 
   for (let iter = 1; iter <= maxIter; iter++) {
