@@ -1,9 +1,11 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
-import { Box, Text, useApp } from "ink";
+import { join } from "node:path";
+import { Box, Text, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
+import { executeSlash, SLASH_COMMANDS, type ReplCtx, type ReplState } from "../repl-commands.js";
 import type { RunSetup } from "../session.js";
 
 // The Ink TUI — a Claude-CLI-style terminal app: streaming transcript, live
@@ -79,19 +81,17 @@ const firstLine = (t: string): string => {
   return l.length > 80 ? `${l.slice(0, 77)}...` : l;
 };
 
-const SLASH_HELP_TUI =
-  "/help /clear /model /exit — anything else is sent to the agent. (Full slash set: run `argo` without the TUI.)";
-
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, { entries: [], streaming: "", busy: false, status: "idle" });
   const [input, setInput] = useState("");
   const [frame, setFrame] = useState(0);
+  const [sel, setSel] = useState(0);
   const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
   const approvalResolve = useRef<((ok: boolean) => void) | null>(null);
   const convoRef = useRef<Conversation | null>(null);
-  const sessionRef = useRef({ id: newSessionId(), started: new Date().toISOString() });
+  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
 
   // Build the conversation once, wiring streaming events to the reducer.
   if (convoRef.current === null) {
@@ -135,33 +135,62 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     }
 
     if (line.startsWith("/")) {
-      const cmd = line.slice(1).split(/\s+/)[0];
-      if (cmd === "exit" || cmd === "quit") return void app.exit();
-      if (cmd === "clear" || cmd === "new") {
-        convoRef.current?.messages.splice(1);
-        sessionRef.current = { id: newSessionId(), started: new Date().toISOString() };
-        return void dispatch({ t: "clear" });
-      }
-      if (cmd === "help") return void dispatch({ t: "note", text: SLASH_HELP_TUI });
-      if (cmd === "model")
-        return void dispatch({ t: "note", text: `${setup.provider.modelId()} · ${setup.provider.contextWindow().toLocaleString()} ctx` });
-      return void dispatch({ t: "note", text: `unknown command /${cmd ?? ""} — /help` });
+      const convo = convoRef.current;
+      if (!convo) return;
+      // A bare prefix (no arg yet, not an exact name) runs the highlighted
+      // palette match — so typing `/sta` + Enter runs `/status`.
+      const head = line.slice(1).split(/\s+/)[0] ?? "";
+      const ms = SLASH_COMMANDS.filter((c) => c.name.startsWith(head));
+      const effective =
+        !line.slice(1).includes(" ") && ms.length > 0 && !ms.some((c) => c.name === head)
+          ? `/${(ms[Math.min(sel, ms.length - 1)] ?? ms[0])!.name}`
+          : line;
+      const ctx: ReplCtx = {
+        convo,
+        setup,
+        dataDir: join(repoRoot, ".argo"),
+        state: replStateRef.current,
+        env: process.env,
+        now: () => new Date(),
+      };
+      void executeSlash(effective, ctx).then((r) => {
+        if (r.exit) return void app.exit();
+        if (r.cleared) dispatch({ t: "clear" });
+        if (r.output) dispatch({ t: "note", text: r.output });
+      });
+      return;
     }
 
     dispatch({ t: "user", text: line });
     const convo = convoRef.current;
     if (!convo) return;
+    replStateRef.current.turnIndex++;
     void convo
       .send(line)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
-        void saveSession(sessionRef.current.id, convo.messages, { started: sessionRef.current.started }).catch(() => {});
+        void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started }).catch(() => {});
       })
       .catch((err: unknown) => {
         dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
         dispatch({ t: "commit", finalText: "" });
       });
   };
+
+  // Slash palette — suggest matching commands while typing a bare `/word`.
+  const slashHead =
+    !pending && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
+  const matches = slashHead !== null ? SLASH_COMMANDS.filter((c) => c.name.startsWith(slashHead)) : [];
+  const showPalette = matches.length > 0;
+  useEffect(() => setSel(0), [slashHead]);
+  useInput(
+    (_in, key) => {
+      if (key.upArrow) setSel((s) => (s - 1 + matches.length) % matches.length);
+      else if (key.downArrow) setSel((s) => (s + 1) % matches.length);
+      else if (key.tab) setInput(`/${(matches[sel] ?? matches[0])!.name} `);
+    },
+    { isActive: showPalette },
+  );
 
   const cols = process.stdout.columns ?? 80;
   const w = Math.max(24, Math.min(cols - 2, 100));
@@ -198,14 +227,39 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
               placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"}
             />
           </Box>
+          {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
           <Box width={w} justifyContent="space-between">
             <Text dimColor>
               {statusText} · {setup.provider.modelId()}
             </Text>
-            <Text dimColor>/help  /clear  /exit</Text>
+            <Text dimColor>{showPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit"}</Text>
           </Box>
         </Box>
       )}
+    </Box>
+  );
+}
+
+function Palette(props: {
+  matches: ReadonlyArray<{ name: string; arg?: string; desc: string }>;
+  sel: number;
+  width: number;
+}): ReactElement {
+  return (
+    <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} width={props.width}>
+      {props.matches.map((c, i) => {
+        const active = i === props.sel;
+        const label = `/${c.name}${c.arg ? ` ${c.arg}` : ""}`;
+        return (
+          <Box key={c.name} justifyContent="space-between">
+            <Text color={active ? "cyan" : undefined} bold={active}>
+              {active ? "› " : "  "}
+              {label}
+            </Text>
+            <Text dimColor>{c.desc}</Text>
+          </Box>
+        );
+      })}
     </Box>
   );
 }
