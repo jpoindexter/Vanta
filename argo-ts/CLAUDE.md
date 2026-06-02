@@ -52,7 +52,9 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
-| `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits |
+| `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |
+| `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.argo/skills` (idempotent, skips existing unless `--force`). `argo skills install` |
+| `../skills-library/` | 10 high-value skills ported from Hermes/OpenClaw (coupling stripped), shipped with Argo. Add more `<slug>/SKILL.md` dirs to grow the bundle |
 | `skills/recall.ts` | pure `searchSkills(query, skills)` — weighted substring ranking |
 | `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `argo-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
 | `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `argo-learned`. Best-effort. Env: `ARGO_SELF_IMPROVE`/`ARGO_REVIEW_MIN_TOOLS`/`ARGO_REVIEW_EVERY` |

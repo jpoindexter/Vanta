@@ -51,9 +51,9 @@ skills, prunes them safely) → it's reachable as a background service you can t
 ### C — Continuity
 - [ ] **C1 · Session persist + resume** (M) — SQLite `sessions`+`messages` (id = `YYYYMMDD_HHMMSS_rand`), `argo --resume <id>`, `argo sessions list|browse` picker, rehydrate into the message list. *Why:* Argo forgets everything between runs — the single biggest "feels like an agent" gap. Mirrors `hermes_state.py`.
 
-### D — Borrow the skills library
-- [ ] **D1 · Port top-20 skills** (M) — copy the highest-value Hermes/OpenClaw `SKILL.md`s into a bundled `argo-ts/skills-library/` shipped with Argo + an install path into `~/.argo/skills/`, stripping Hermes-internal coupling (`HERMES_HOME`, `delegate_task`, kanban, s6, TUI). Start: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, claude-design, humanizer, github-pr-workflow, gstack-openclaw-retro (→ weekly-review), duckduckgo-search, spike. *Why:* "all the skills we can borrow" — instant capability, no code.
-- [ ] **D2 · Skill bundles** (S) — adopt Hermes' YAML bundle schema (`name`/`description`/`skills:[]`/`instruction`) so one `/slash` loads several skills. *Why:* composite operator commands; bundle wins over same-named skill.
+### D — Borrow the skills library  ← ✅ SHIPPED 2026-06-02
+- [x] **D1 · Port skills** (M) — 10 high-value Hermes/OpenClaw skills ported into bundled `argo-ts/skills-library/` (coupling stripped: `HERMES_HOME`→`ARGO_HOME`, `delegate_task`→delegate subagent, kanban/s6/TUI removed), with `argo skills install [--force]` → idempotent, non-destructive copy into `~/.argo/skills/` (`skills/library.ts`). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10). *Headroom:* ~171 more portable skills exist in the references — add more to `skills-library/` any time.
+- [ ] **D2 · Skill bundles** (S) — adopt Hermes' YAML bundle schema (`name`/`description`/`skills:[]`/`instruction`) so one `/slash` loads several skills. *Why:* composite operator commands. (Pending — not blocking.)
 
 ### E — Autonomy & reach  ← larger, later (daemon is the keystone)
 - [ ] **E1 · Daemon / service mode** (M/L) — `ServiceManager` w/ launchd (macOS) + foreground `argo gateway`; move cron from OS-trigger to an in-process 5s `tick()`. *Why:* cron only fires when something long-lived runs; unlocks everything below.

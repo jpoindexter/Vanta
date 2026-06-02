@@ -5,6 +5,7 @@ import { createInterface } from "node:readline/promises";
 import { runAgent, createConversation } from "./agent.js";
 import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
+import { installSkillLibrary } from "./skills/library.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import {
   runRoomsList,
@@ -52,7 +53,7 @@ function usage(): void {
       "       argo setup                        first-run wizard: pick a model backend",
       "       argo status | doctor              health check (kernel, provider, keys, store)",
       '       argo run "<instruction>"          run one instruction and exit',
-      "       argo skills                       list stored skills",
+      "       argo skills [install [--force]]   list skills, or install the bundled library",
       '       argo skill <name> ["<instruction>"]  print a skill, or run with it',
       '       argo schedule "<instruction>" --cron "<expr>" | schedule list',
       "       argo cron                         run due tasks (for launchd/cron)",
@@ -141,8 +142,21 @@ async function runInstruction(
 
 async function runSkillsList(): Promise<void> {
   const skills = await listSkills();
-  if (skills.length === 0) return void console.log("(no skills yet)");
+  if (skills.length === 0) return void console.log("(no skills yet — `argo skills install` to add the bundled library)");
   for (const s of skills) console.log(`${s.meta.name} — ${s.meta.description}`);
+}
+
+// `argo skills` → list; `argo skills install [--force]` → copy the bundled
+// library into ~/.argo/skills (skips existing unless --force).
+async function runSkillsCommand(rest: string[]): Promise<void> {
+  if (rest[0] !== "install") return runSkillsList();
+  const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });
+  console.log(
+    `Installed ${installed.length} skill(s)${installed.length ? `: ${installed.join(", ")}` : ""}.`,
+  );
+  if (skipped.length) {
+    console.log(`Skipped ${skipped.length} already present (use --force to overwrite): ${skipped.join(", ")}.`);
+  }
 }
 
 async function runSkillCommand(repoRoot: string, rest: string[]): Promise<void> {
@@ -204,7 +218,7 @@ async function main(): Promise<void> {
   }
   if (cmd === "cron")
     return runCron(dataDirFor(repoRoot), new Date(), buildCronRunTask(repoRoot));
-  if (cmd === "skills") return runSkillsList();
+  if (cmd === "skills") return runSkillsCommand(rest);
   if (cmd === "skill") return runSkillCommand(repoRoot, rest);
   if (cmd === "rooms") return runRoomsList(process.env);
   if (cmd === "room") return runRoomCommand(repoRoot, rest);
