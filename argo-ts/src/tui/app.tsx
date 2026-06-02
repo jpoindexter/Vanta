@@ -7,6 +7,8 @@ import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
 import { executeSlash, SLASH_COMMANDS, type ReplCtx, type ReplState } from "../repl-commands.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
+import { StatusBar, estimateTokens } from "./status-bar.js";
+import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 
 // The Ink TUI — a Claude-CLI-style terminal app: streaming transcript, live
@@ -91,7 +93,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [sel, setSel] = useState(0);
   const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
   const [banner, setBanner] = useState<BannerData | null>(null);
+  // Single source of truth for the live model — the /model picker swaps this and
+  // the conversation's provider together, so every read here stays consistent.
+  const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
   const approvalResolve = useRef<((ok: boolean) => void) | null>(null);
+  const turnStartRef = useRef<number>(0);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
 
@@ -156,7 +162,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           : line;
       const ctx: ReplCtx = {
         convo,
-        setup,
+        setup: { ...setup, provider: activeProvider },
         dataDir: join(repoRoot, ".argo"),
         state: replStateRef.current,
         env: process.env,
@@ -174,6 +180,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     const convo = convoRef.current;
     if (!convo) return;
     replStateRef.current.turnIndex++;
+    turnStartRef.current = Date.now();
     void convo
       .send(line)
       .then((outcome) => {
@@ -203,7 +210,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   const cols = process.stdout.columns ?? 80;
   const w = Math.max(24, Math.min(cols - 2, 100));
-  const statusText = state.busy ? `${SPINNER[frame] ?? "⠋"} ${state.status}` : "● ready";
+  const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
+  const elapsedMs = state.busy && turnStartRef.current ? Date.now() - turnStartRef.current : 0;
 
   return (
     <Box flexDirection="column" paddingX={1}>
@@ -232,12 +240,17 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
-          <Box width={w} justifyContent="space-between">
-            <Text dimColor>
-              {statusText} · {setup.provider.modelId()}
-            </Text>
-            <Text dimColor>{showPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit"}</Text>
-          </Box>
+          <StatusBar
+            status={state.status}
+            busy={state.busy}
+            spinner={SPINNER[frame] ?? "⠋"}
+            model={activeProvider.modelId()}
+            estTokens={estTokens}
+            contextWindow={activeProvider.contextWindow()}
+            elapsedMs={elapsedMs}
+            width={w}
+            hint={showPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit"}
+          />
         </Box>
       )}
     </Box>
