@@ -40,7 +40,12 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `modes/builtin.ts` | Phase 7 — 6 operator modes as real skills (`OPERATOR_MODES`, `installModes`). Run via `argo skill <mode> "<instr>"` |
 | `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.argo/usage.tsv`) |
 | `routing/model-router.ts` | Phase 7 — `classifyTask` (cheap/expensive) + `resolveRoutedProvider` (`ARGO_MODEL_CHEAP`/`_EXPENSIVE`; no-op when unset) |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 22 tools (`exclude:["delegate"]` → 21 for workers) |
+| `google/auth.ts` | Phase 5 — one-time OAuth (`runGoogleAuth`, loopback) + token store `~/.argo/google-tokens.json` (0600), `getAccessToken` (auto-refresh) |
+| `google/client.ts` | Phase 5 — `googleFetch` (Bearer + 401-retry) + pure `buildUrl` |
+| `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
+| `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
+| `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 32 tools (`exclude:["delegate"]` → 31 for workers) |
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
@@ -115,6 +120,8 @@ Store (Phase 2A): `ARGO_HOME` overrides the global store dir (default `~/.argo`)
 Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `ARGO_VISION_MODEL` (describe_image, default gpt-4o-mini) · `ARGO_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
 
 Phase 7: `ARGO_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `ARGO_MODEL_CHEAP` / `ARGO_MODEL_EXPENSIVE` (task-routed models; unset = no routing).
+
+Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time OAuth client — provision once in Google Cloud Console, then `argo auth google` is one click per user). Tokens stored per-user in `~/.argo/google-tokens.json`. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.
 
 ## Gotchas
 

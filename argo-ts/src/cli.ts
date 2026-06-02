@@ -13,6 +13,7 @@ import { recentMemory, appendMemory } from "./memory/store.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import { runRoomsList, resolveRoomOrExit, runModes, suggestSkillFromRun } from "./projects/commands.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
+import { runAuthCommand } from "./google/commands.js";
 import type { RunTask } from "./schedule/runner.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -49,6 +50,7 @@ function usage(): void {
       "       argo rooms                        list project rooms",
       '       argo room <name> ["<instruction>"]  run in a project room (or print its path)',
       "       argo modes [list|install]         list or install operator modes",
+      "       argo auth google                  one-time Google OAuth (gmail/calendar/drive)",
     ].join("\n"),
   );
 }
@@ -242,10 +244,7 @@ async function runRoomCommand(repoRoot: string, rest: string[]): Promise<void> {
   await runInstruction(repoRoot, instr.join(" "), { root: room.path });
 }
 
-function dataDirFor(repoRoot: string): string {
-  return join(repoRoot, ".argo");
-}
-
+const dataDirFor = (repoRoot: string): string => join(repoRoot, ".argo");
 // Non-interactive task runner for `argo cron`: fresh setup per task, approvals
 // denied (no TTY under the OS scheduler), outcome recorded like `argo run`.
 function buildCronRunTask(repoRoot: string): RunTask {
@@ -286,6 +285,7 @@ async function main(): Promise<void> {
   if (cmd === "rooms") return runRoomsList(process.env);
   if (cmd === "room") return runRoomCommand(repoRoot, rest);
   if (cmd === "modes") return runModes(process.env, rest[0]);
+  if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
 
   if (cmd !== "run" || rest.length === 0) {
     usage();

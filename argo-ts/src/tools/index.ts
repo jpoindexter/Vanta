@@ -22,6 +22,22 @@ import {
   gitCheckoutTool,
 } from "./git.js";
 import { delegateTool } from "./delegate.js";
+import {
+  gmailSearchTool,
+  gmailReadTool,
+  gmailDraftTool,
+  gmailSendTool,
+} from "./gmail.js";
+import {
+  calendarReadTool,
+  calendarCreateTool,
+  calendarUpdateTool,
+} from "./calendar.js";
+import {
+  driveReadTool,
+  driveCreateTool,
+  driveUpdateTool,
+} from "./drive.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -52,6 +68,16 @@ const ALL_TOOLS: readonly Tool[] = [
   gitBranchTool,
   gitCheckoutTool,
   delegateTool,
+  gmailSearchTool,
+  gmailReadTool,
+  gmailDraftTool,
+  gmailSendTool,
+  calendarReadTool,
+  calendarCreateTool,
+  calendarUpdateTool,
+  driveReadTool,
+  driveCreateTool,
+  driveUpdateTool,
 ];
 
 /**
