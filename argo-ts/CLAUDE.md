@@ -146,3 +146,25 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 ## Gotchas
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
+
+## Session additions (2026-06-02/03) — keep current
+
+**Providers:** `ARGO_PROVIDER` now also: `gemini` · `openrouter` · `codex` (alias `openai-codex`, ChatGPT-subscription OAuth via `~/.codex/auth.json`, Responses API — `providers/codex.ts`+`codex-auth.ts`) · `claude-code` (Claude sub OAuth). Catalog: `providers/catalog.ts`.
+
+**Multimodal:** user `Message` carries optional `images:[{mime,dataBase64}]` (`types.ts`), mapped natively by every provider. Attach via `/image <path>`, `/paste` (clipboard, macOS), drag-drop (`maybeDroppedImage`), or `/attachments [clear]`. Vision tools `describe_image` + `look_at_screen` (Argo's eyes — `screencapture`) route through the ACTIVE provider (no hardcoded OpenAI; `ARGO_VISION_MODEL` no longer used).
+
+**Brain (selfhood):** `brain/regions.ts` + `brain/store.ts` → `~/.argo/brain/<region>.md` (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. `brain` tool (list/read/append/replace). `brainDigest` injected as a prompt tier — Argo reads its brain each session.
+
+**Skills:** skill INDEX injected into the prompt (`prompt.ts` skillsTier); `recall` loads the full body on demand.
+
+**Memory:** stored file capped per goal (`ARGO_MEMORY_MAX_BLOCKS`, default 50; older blocks git-retained).
+
+**Delegate:** `provider`/`model` params → agent routes a subtask to any backend (e.g. local ollama). `delegateEnv` overlays the choice.
+
+**Kernel safety (`src/safety.rs`):** hardened — `normalize_cmd` (strips quote/backslash escapes), broadened destructive set, arbitrary-exec vectors (interpreters/eval/pipe/egress) → ASK, absolute-path-outside-root → ASK. Closes the bypassable-denylist holes (Hermes #36846/#36645).
+
+**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/etc.). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `ARGO_SPINNER`).
+
+**Env added:** `ARGO_MEMORY_MAX_BLOCKS` · `ARGO_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
+
+**Docs:** `MANIFESTO.md` (north star) · `docs/parity-audit.md` · `docs/claude-cli-gaps.md` · `docs/hermes-issues-map.md` · `ROADMAP.md` v1.1–v1.5 (parity + UX + autonomy/senses + selfhood + efficiency).
