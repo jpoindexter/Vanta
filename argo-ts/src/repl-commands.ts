@@ -74,6 +74,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "skills", desc: "list learned + installed skills" },
   { name: "status", desc: "kernel, provider, keys, store health" },
   { name: "goals", desc: "active goals from the kernel" },
+  { name: "goal", arg: "<text|status|clear|done N>", desc: "set / manage a standing goal Argo works toward" },
   { name: "sessions", desc: "list saved sessions" },
   { name: "resume", arg: "<id>", desc: "load a past session into this conversation" },
   { name: "title", arg: "<name>", desc: "name the current session" },
@@ -165,6 +166,34 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       const goals = await ctx.setup.safety.getGoals().catch(() => []);
       const active = goals.filter((g) => g.status === "active");
       return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals)") };
+    }
+
+    case "goal": {
+      const safety = ctx.setup.safety;
+      const sub = arg.split(/\s+/)[0]?.toLowerCase() ?? "";
+      if (!arg || sub === "status") {
+        const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
+        return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals — /goal <text> to set one)") };
+      }
+      if (sub === "clear") {
+        const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
+        for (const g of active) await safety.completeGoal(g.id);
+        return { output: `  · cleared ${active.length} active goal(s)` };
+      }
+      if (sub === "done") {
+        const id = Number(arg.split(/\s+/)[1]);
+        if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
+        const ok = await safety.completeGoal(id);
+        return { output: ok ? `  ✓ completed goal ${id}` : `  could not complete goal ${id}` };
+      }
+      // Anything else is new goal text. Persist to the kernel AND reflect it in the
+      // live system prompt so the agent works on it this turn, not just next session.
+      const ok = await safety.addGoal(arg);
+      if (ok) {
+        const sys = ctx.convo.messages[0];
+        if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
+      }
+      return { output: ok ? `  ◎ goal set: ${arg}` : "  could not set goal (kernel unreachable?)" };
     }
 
     case "sessions": {

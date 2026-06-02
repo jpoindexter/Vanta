@@ -48,6 +48,26 @@ export class SafetyClient {
     return GoalsResponse.parse(await r.json());
   }
 
+  /** Add a standing goal the agent works toward across turns. Returns false on failure. */
+  async addGoal(text: string): Promise<boolean> {
+    try {
+      const r = await fetch(`${this.baseUrl}/api/goals/add`, { method: "POST", body: text });
+      return r.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Mark a goal complete (the kernel drops it from the active set). */
+  async completeGoal(id: number): Promise<boolean> {
+    try {
+      const r = await fetch(`${this.baseUrl}/api/goals/complete/${id}`, { method: "POST" });
+      return r.ok;
+    } catch {
+      return false;
+    }
+  }
+
   async getApprovals(): Promise<unknown[]> {
     const r = await fetch(`${this.baseUrl}/api/approvals`);
     const json: unknown = await r.json();

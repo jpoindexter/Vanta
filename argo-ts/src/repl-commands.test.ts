@@ -12,7 +12,7 @@ function makeCtx(home: string, messages: Message[]): ReplCtx {
     setup: {
       registry: { schemas: () => [{ name: "read_file", description: "", parameters: {} }, { name: "shell_cmd", description: "", parameters: {} }] },
       provider: { modelId: () => "gpt-4o-mini", contextWindow: () => 128_000 },
-      safety: { getGoals: async () => [] },
+      safety: { getGoals: async () => [], addGoal: async () => true, completeGoal: async () => true },
       goals: [],
       systemPrompt: "sys",
     },
@@ -171,6 +171,24 @@ describe("conversation commands (history / retry / undo / reset)", () => {
 
   it("/title with no name shows usage", async () => {
     const r = await executeSlash("/title", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/goal <text> sets a goal and reflects it in the live system prompt", async () => {
+    const ctx = makeCtx(home, [{ role: "system", content: "base prompt" }, ...convo().slice(1)]);
+    const r = await executeSlash("/goal ship the parity slices", ctx);
+    expect(r.output).toContain("goal set");
+    const sys = ctx.convo.messages[0];
+    expect(sys?.role === "system" && sys.content).toContain("ship the parity slices");
+  });
+
+  it("/goal status lists active goals (none here)", async () => {
+    const r = await executeSlash("/goal status", makeCtx(home, convo()));
+    expect(r.output).toContain("no active goals");
+  });
+
+  it("/goal done <id> requires a numeric id", async () => {
+    const r = await executeSlash("/goal done abc", makeCtx(home, convo()));
     expect(r.output).toContain("usage:");
   });
 
