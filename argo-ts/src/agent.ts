@@ -46,8 +46,14 @@ export type Conversation = {
 export function createConversation(
   systemPrompt: string,
   deps: AgentDeps,
+  opts?: { history?: Message[] },
 ): Conversation {
+  // Fresh system prompt (goals/time may have changed) + any prior non-system
+  // turns, so a resumed session keeps its transcript but re-grounds its rules.
   const messages: Message[] = [{ role: "system", content: systemPrompt }];
+  if (opts?.history?.length) {
+    messages.push(...opts.history.filter((m) => m.role !== "system"));
+  }
   const ctx: ToolContext = {
     root: deps.root,
     safety: deps.safety,
