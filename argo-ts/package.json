@@ -4,6 +4,9 @@
   "type": "module",
   "private": true,
   "description": "Argo agent layer — goal-aware, scope-enforced operator runtime",
+  "bin": {
+    "argo": "bin/argo.mjs"
+  },
   "scripts": {
     "argo": "tsx src/cli.ts",
     "test": "vitest run",
