@@ -79,9 +79,9 @@ skills, prunes them safely) → it's reachable as a background service you can t
 - [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results.
 - [~] **F4 · Retry w/ jittered backoff** — the `openai` SDK already retries with backoff (maxRetries default 2); explicit per-model tracking deferred unless we hit limits.
 
-### G — Subscription auth  ← G1 SHIPPED (grey area, user-run); G2 deferred
+### G — Subscription auth  ← G1 + G2(Codex) SHIPPED (grey area, user-run)
 - [x] **G1 · Claude subscription (`claude-code` provider)** — ✅ SHIPPED 2026-06-02 (unit-tested; **user live-verifies** — the harness blocks the assistant from running it as credential-repurposing). `ARGO_PROVIDER=claude-code` uses your Claude Pro/Max OAuth token (from `~/.claude/.credentials.json` or `CLAUDE_CODE_OAUTH_TOKEN`). The earlier "not viable" was WRONG — it works with the full Claude-Code header set + system-prompt spoof (see DECISIONS reversal). **Grey area** under Anthropic ToS; the wizard labels it as such. API keys remain the clean path.
-- [~] **G2 · ChatGPT-Codex / Gemini-CLI OAuth** — DEFERRED. Same subscription-endpoint gating; API keys already cover both. Revisit with a verifiable path.
+- [x] **G2 · ChatGPT-Codex OAuth** — ✅ SHIPPED 2026-06-02 (unit-tested + **live-verified** end-to-end with real `~/.codex/auth.json`; user-run, same grey-area as G1). `ARGO_PROVIDER=codex` uses your ChatGPT subscription via the Codex CLI's OAuth session — Responses API at `chatgpt.com/backend-api/codex`, refresh + write-back to the shared `~/.codex/auth.json`. The earlier "deferred, same gating as Claude" was WRONG: the Codex backend accepts subscription tokens (see DECISIONS reversal). `providers/codex.ts` + `codex-auth.ts`. **Gemini-CLI OAuth still deferred** — API keys cover Gemini; revisit only if asked.
 
 ---
 
