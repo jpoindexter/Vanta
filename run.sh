@@ -33,5 +33,11 @@ if [ ! -d "$DIR/argo-ts/node_modules" ]; then
 fi
 
 # --- launch (cli.ts finds the repo root from its own path; cwd is irrelevant) -
+# Use the local tsx binary directly (not `npx`) so stdin/stdout stay a real TTY —
+# the Ink TUI needs that, and the npx wrapper can interpose a non-TTY pipe.
 cd "$DIR/argo-ts"
-exec npx tsx src/cli.ts "$@"
+if [ -x "node_modules/.bin/tsx" ]; then
+  exec node_modules/.bin/tsx src/cli.ts "$@"
+else
+  exec npx tsx src/cli.ts "$@"
+fi
