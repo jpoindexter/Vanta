@@ -69,9 +69,9 @@ skills, prunes them safely) → it's reachable as a background service you can t
 - [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results.
 - [~] **F4 · Retry w/ jittered backoff** — the `openai` SDK already retries with backoff (maxRetries default 2); explicit per-model tracking deferred unless we hit limits.
 
-### G — Subscription auth (enhancement to A; API keys work without it)
-- [ ] **G1 · Claude subscription OAuth** (M) — port Hermes' PKCE flow (claude.ai/oauth/authorize, paste `code#state`, exchange + refresh), store `~/.argo/.anthropic_oauth.json`, auto-refresh. *Why:* the "Claude subscription not API key" ask (14 Hermes reactions).
-- [ ] **G2 · ChatGPT (Codex) + Gemini-CLI OAuth** (M) — device-code / PKCE subscription login. *Why:* "hook to ChatGPT/Gemini" via subscription, not just API key. Lower priority — API keys already cover both.
+### G — Subscription auth  ← ✗ CLOSED (not viable for direct API use; see DECISIONS 2026-06-02)
+- [✗] **G1 · Claude subscription OAuth** — **WON'T BUILD.** Primary-source evidence: Anthropic's Messages API **rejects** OAuth subscription tokens (`sk-ant-oat01-*`) — "OAuth authentication is currently not supported" (anthropics/claude-code#37205). They work only inside Claude Code / a gateway proxy, never the direct calls Argo makes. Building it ships runtime-401 code. API keys (shipped) are the supported path. Logged in DECISIONS so it's not re-attempted.
+- [~] **G2 · ChatGPT-Codex / Gemini-CLI OAuth** — DEFERRED. Same subscription-endpoint gating + unverifiable without consent; API keys already cover both. Revisit only with a verifiable path.
 
 ---
 

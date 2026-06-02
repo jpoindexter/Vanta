@@ -34,3 +34,9 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Alternatives:** (a) Bypass `assess` for these tools — rejected, weakens the boundary. (b) Include name/query in the description — rejected, user content can contain trigger words ("delete") that false-trigger `Block`.
 **Why:** The safety-relevant view of writing Argo's own memory is "internal op, no user files touched" — consistent with the existing rule that `describeForSafety` sends only the risk-relevant part. The gate still runs and logs; nothing is bypassed.
 **Reversible?** Yes. **Flagged for Jason's veto.**
+
+## 2026-06-02 — Claude subscription OAuth is NOT viable for direct API use (v1 G closed)
+**Choice:** Do NOT build subscription-OAuth login for Claude (ROADMAP G1). Stay on API keys for Anthropic.
+**Why:** Primary-source evidence — Anthropic's **Messages API rejects OAuth subscription tokens** (`sk-ant-oat01-*`) with "OAuth authentication is currently not supported" (anthropics/claude-code#37205, badlogic/pi-mono#2751, June 2026). Those tokens only work *inside* Claude Code or through an LLM gateway/proxy — never the direct Messages API calls Argo makes. Building the PKCE flow Hermes uses would ship code that 401s at runtime. The supported path for programmatic Claude access is an API key (`ANTHROPIC_API_KEY`, already wired) — or, for subscription billing, routing through a proxy (out of v1 scope).
+**Implications:** G2 (ChatGPT-Codex / Gemini-CLI OAuth) is similarly subscription-endpoint-gated and unverifiable here — deferred, not closed. "Hook to ChatGPT/Claude/Gemini" is satisfied via API keys + the `argo setup` wizard (shipped).
+**Reversible?** Yes — revisit if/when Anthropic supports OAuth on the Messages API, or if Argo adds a gateway-proxy provider.
