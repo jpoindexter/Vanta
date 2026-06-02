@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runSlashCommand, executeSlash, formatHistory, type ReplCtx } from "./repl-commands.js";
-import { saveSession } from "./sessions/store.js";
+import { saveSession, loadSession } from "./sessions/store.js";
 import type { Message } from "./types.js";
 
 function makeCtx(home: string, messages: Message[]): ReplCtx {
@@ -158,5 +158,30 @@ describe("conversation commands (history / retry / undo / reset)", () => {
   it("formatHistory is pure and skips system", () => {
     const out = formatHistory(convo());
     expect(out.split("\n")).toHaveLength(4); // 2 user + 2 assistant
+  });
+
+  it("/title sets and persists the session title", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/title Parity work", ctx);
+    expect(r.output).toContain("Parity work");
+    expect(ctx.state.title).toBe("Parity work");
+    const saved = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(saved?.title).toBe("Parity work");
+  });
+
+  it("/title with no name shows usage", async () => {
+    const r = await executeSlash("/title", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/fork branches into a new session id, preserving history", async () => {
+    const ctx = makeCtx(home, convo());
+    const original = ctx.state.sessionId;
+    const r = await executeSlash("/fork", ctx);
+    expect(r.output).toContain("forked");
+    expect(ctx.state.sessionId).not.toBe(original);
+    expect(ctx.convo.messages).toHaveLength(5); // history carried into the fork
+    const forked = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(forked?.messages).toHaveLength(5);
   });
 });

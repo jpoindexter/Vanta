@@ -1,6 +1,6 @@
 import { listSkills } from "./skills/store.js";
 import { gatherStatus, formatStatus } from "./status.js";
-import { listSessions, loadSession, newSessionId } from "./sessions/store.js";
+import { listSessions, loadSession, newSessionId, saveSession } from "./sessions/store.js";
 import { loadCron } from "./schedule/cron.js";
 import type { Conversation } from "./agent.js";
 import type { Message } from "./types.js";
@@ -38,8 +38,8 @@ export function formatHistory(messages: Message[]): string {
 // prints the result. Each command reuses an existing subsystem (status,
 // sessions, cron, skills); none duplicates logic.
 
-/** Mutable per-session REPL state that some commands change (/clear, /resume). */
-export type ReplState = { sessionId: string; started: string; turnIndex: number };
+/** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork). */
+export type ReplState = { sessionId: string; started: string; turnIndex: number; title?: string };
 
 export type ReplCtx = {
   convo: Conversation;
@@ -76,6 +76,8 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "goals", desc: "active goals from the kernel" },
   { name: "sessions", desc: "list saved sessions" },
   { name: "resume", arg: "<id>", desc: "load a past session into this conversation" },
+  { name: "title", arg: "<name>", desc: "name the current session" },
+  { name: "fork", desc: "branch the current conversation into a new session" },
   { name: "cron", desc: "list scheduled tasks" },
   { name: "exit", desc: "leave the session" },
 ];
@@ -115,6 +117,7 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       ctx.state.sessionId = newSessionId(ctx.now());
       ctx.state.started = ctx.now().toISOString();
       ctx.state.turnIndex = 0;
+      ctx.state.title = undefined;
       return { output: "  · started a fresh conversation", cleared: true };
 
     case "history":
@@ -176,8 +179,36 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       ctx.convo.messages.splice(1, Infinity, ...s.messages.filter((m) => m.role !== "system"));
       ctx.state.sessionId = s.id;
       ctx.state.started = s.started;
+      ctx.state.title = s.title;
       ctx.state.turnIndex = s.messages.filter((m) => m.role === "user").length;
       return { output: `  ↻ resumed ${s.id} "${s.title}" (${ctx.state.turnIndex} turn(s))`, resumed: true };
+    }
+
+    case "title": {
+      if (!arg) return { output: "  usage: /title <name>" };
+      ctx.state.title = arg;
+      // Persist immediately so the title sticks even without a further turn.
+      await saveSession(ctx.state.sessionId, ctx.convo.messages, {
+        env: ctx.env,
+        started: ctx.state.started,
+        title: arg,
+      }).catch(() => {});
+      return { output: `  · session titled "${arg}"` };
+    }
+
+    case "fork": {
+      // Branch the current transcript into a NEW session id; the original session
+      // file is left intact. Future turns save under the fork.
+      const newId = newSessionId(ctx.now());
+      const startedAt = ctx.now().toISOString();
+      await saveSession(newId, ctx.convo.messages, {
+        env: ctx.env,
+        started: startedAt,
+        title: ctx.state.title,
+      }).catch(() => {});
+      ctx.state.sessionId = newId;
+      ctx.state.started = startedAt;
+      return { output: `  ⑂ forked into new session ${newId} (history carried over)` };
     }
 
     case "cron": {

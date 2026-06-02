@@ -68,14 +68,15 @@ function deriveTitle(messages: Message[]): string {
 export async function saveSession(
   id: string,
   messages: Message[],
-  opts: { env?: NodeJS.ProcessEnv; now?: string; started?: string } = {},
+  opts: { env?: NodeJS.ProcessEnv; now?: string; started?: string; title?: string } = {},
 ): Promise<void> {
   const dir = sessionsDir(opts.env);
   await mkdir(dir, { recursive: true });
   const now = opts.now ?? new Date().toISOString();
   const session: Session = {
     id,
-    title: deriveTitle(messages),
+    // Explicit /title override wins; otherwise derive from the first user message.
+    title: opts.title?.trim() || deriveTitle(messages),
     started: opts.started ?? now,
     updated: now,
     messages,
