@@ -51,6 +51,19 @@ function lastUserIndex(messages: Message[]): number {
   return -1;
 }
 
+/** Full-fidelity markdown export of a conversation (no truncation) for `/export`. */
+export function formatExport(messages: Message[]): string {
+  const out: string[] = [];
+  for (const m of messages) {
+    if (m.role === "user") out.push(`## You\n\n${m.content}`);
+    else if (m.role === "assistant") {
+      const calls = m.toolCalls?.length ? `\n\n${m.toolCalls.map((tc) => `- \`${tc.name}(${JSON.stringify(tc.arguments)})\``).join("\n")}` : "";
+      if (m.content.trim() || calls) out.push(`## Argo\n\n${m.content}${calls}`);
+    } else if (m.role === "tool") out.push(`### ⚙ ${m.name}\n\n\`\`\`\n${m.content}\n\`\`\``);
+  }
+  return out.join("\n\n");
+}
+
 /** Render the live transcript (skipping the system message) for `/history`. */
 export function formatHistory(messages: Message[]): string {
   const out: string[] = [];
@@ -107,6 +120,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "clear", desc: "start a fresh conversation (keeps the session log)" },
   { name: "reset", desc: "start a fresh conversation (alias of /clear)" },
   { name: "history", desc: "show this conversation's transcript" },
+  { name: "export", desc: "export this conversation to a markdown file" },
   { name: "retry", desc: "re-run your last message" },
   { name: "undo", desc: "drop the last turn from the conversation" },
   { name: "model", desc: "change provider & model — interactive picker" },
@@ -182,6 +196,16 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
 
     case "history":
       return { output: formatHistory(ctx.convo.messages) || "  (no history yet)" };
+
+    case "export": {
+      const { writeFile, mkdir } = await import("node:fs/promises");
+      const dir = join(ctx.dataDir, "exports");
+      await mkdir(dir, { recursive: true });
+      const file = join(dir, `${ctx.state.sessionId}.md`);
+      const body = `# ${ctx.state.title ?? ctx.state.sessionId}\n\n${formatExport(ctx.convo.messages)}\n`;
+      await writeFile(file, body, "utf8");
+      return { output: `  ⤓ exported to ${file}` };
+    }
 
     case "retry": {
       const idx = lastUserIndex(ctx.convo.messages);

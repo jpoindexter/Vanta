@@ -240,6 +240,18 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect((await readRegion("semantic", ctx.env)) ?? "").toContain("Jason prefers terse replies");
   });
 
+  it("/export writes a markdown transcript file", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/export", ctx);
+    expect(r.output).toContain("exported to");
+    const { readFile } = await import("node:fs/promises");
+    const path = r.output!.split("exported to ")[1]!.trim();
+    const md = await readFile(path, "utf8");
+    expect(md).toContain("## You");
+    expect(md).toContain("first");
+    expect(md).toContain("reply one");
+  });
+
   it("/compress is a safe no-op on a short conversation (nothing to compact)", async () => {
     const ctx = makeCtx(home, convo()); // 5 messages, all protected → no summarizer call
     const r = await executeSlash("/compress", ctx);
