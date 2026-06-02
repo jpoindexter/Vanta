@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { executeSlash, type ReplState } from "./repl-commands.js";
+import { groupToolsByDomain } from "./tui/capabilities.js";
 import {
   prepareRun,
   buildSummarizer,
@@ -51,7 +52,8 @@ export function renderBanner(d: BannerData): string {
     "  Active goals:",
     goalLines,
     "",
-    `  Tools (${d.toolNames.length}): ${d.toolNames.join(", ")}`,
+    `  Capabilities (${d.toolNames.length} tools):`,
+    ...groupToolsByDomain(d.toolNames).map((g) => `    ${g.label.padEnd(34)} ${g.tools.join(", ")}`),
     "",
     `  Skills: ${skills}`,
     "",

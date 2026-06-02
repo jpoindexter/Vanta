@@ -2,6 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { listSkills } from "../skills/store.js";
 import { readMcpConfig } from "../mcp/mount.js";
+import { groupToolsByDomain } from "./capabilities.js";
 import type { RunSetup } from "../session.js";
 
 // Startup banner — the first thing a session prints: an ASCII wordmark plus a
@@ -20,8 +21,6 @@ const LOGO = [
   " ██║  ██║██║  ██║╚██████╔╝╚██████╔╝",
   " ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝",
 ].join("\n");
-
-const TOOLS_SHOWN = 18;
 
 export type BannerData = {
   model: string;
@@ -74,8 +73,7 @@ function Section(props: { mark: string; title: string; meta?: string; children?:
 
 export function Banner(props: { data: BannerData }): ReactElement {
   const d = props.data;
-  const shown = d.toolNames.slice(0, TOOLS_SHOWN);
-  const extra = d.toolNames.length - shown.length;
+  const domains = groupToolsByDomain(d.toolNames);
   const mcpCount = d.mcpServers?.length ?? 0;
   const skillLabel = d.skillCount === null ? "…" : `${d.skillCount} installed`;
   const mcpLabel = d.mcpServers === null ? "…" : `${mcpCount}`;
@@ -95,12 +93,16 @@ export function Banner(props: { data: BannerData }): ReactElement {
           <Text dimColor>{`  ·  ${d.model}  ·  Session: ${d.sessionId}`}</Text>
         </Text>
 
-        <Section mark="▾" title="Available Tools" meta={`(${d.toolNames.length})`}>
-          <Text color="white">
-            {"    "}
-            {shown.join("  ")}
-            {extra > 0 ? <Text dimColor> … +{extra} more</Text> : null}
-          </Text>
+        <Section mark="▾" title="Capabilities" meta={`(${d.toolNames.length} tools · ${domains.length} domains)`}>
+          <Box flexDirection="column">
+            {domains.map((g) => (
+              <Text key={g.label}>
+                {"    "}
+                <Text color="cyan">{g.label}</Text>
+                <Text dimColor>{`  ${g.tools.join(", ")}`}</Text>
+              </Text>
+            ))}
+          </Box>
         </Section>
 
         <Section mark="▸" title="Available Skills" meta={`(${skillLabel})`} />
