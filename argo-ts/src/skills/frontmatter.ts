@@ -36,6 +36,7 @@ function parseMeta(block: string): SkillMeta {
     else if (key === "created") meta.created = value;
     else if (key === "updated") meta.updated = value;
     else if (key === "tags") meta.tags = parseTags(value);
+    else if (key === "volatile") meta.volatile = value === "true";
     // Unknown keys are ignored — SkillMeta is a closed shape.
   }
   return meta;
@@ -75,6 +76,7 @@ export function serializeSkill(skill: Skill): string {
     `created: ${meta.created}`,
     `updated: ${meta.updated}`,
     `tags: [${meta.tags.join(", ")}]`,
+    ...(meta.volatile ? ["volatile: true"] : []),
     "---",
   ].join("\n");
   return `${frontmatter}\n\n${body}`;

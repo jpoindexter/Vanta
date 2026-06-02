@@ -3,6 +3,7 @@ import { Box, Static, Text, useApp, useInput } from "ink";
 import { Composer } from "./composer.js";
 import { spinnerFrames } from "./spinners.js";
 import { notify, shouldNotify } from "./notify.js";
+import { pruneVolatileSkills } from "../skills/volatile.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
@@ -148,6 +149,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       .send(text, images)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
+        pruneVolatileSkills(convo.messages);
         if (outcome.usage) {
           dispatch({ t: "note", text: `· ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens` });
         }

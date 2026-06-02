@@ -10,6 +10,8 @@ export type SkillMeta = {
   updated: string;
   /** Freeform tags for grouping and search. */
   tags: string[];
+  /** When true, a recalled body is dropped from history after the turn (lean context). */
+  volatile?: boolean;
 };
 
 /** A parsed skill: frontmatter metadata + the markdown body after it. */

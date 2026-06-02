@@ -4,6 +4,7 @@ import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { executeSlash, maybeDroppedImage, type ReplState } from "./repl-commands.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
+import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
   prepareRun,
   buildSummarizer,
@@ -136,6 +137,7 @@ export async function runChat(
     const images = state.pendingImages; // attach + consume any /image, /paste, or drop
     state.pendingImages = undefined;
     const outcome = await convo.send(text, images);
+    pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);
     if (outcome.usage) {
       console.log(`  · ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens`);
