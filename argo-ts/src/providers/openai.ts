@@ -7,6 +7,7 @@ import type {
   CompletionConfig,
   CompletionResult,
   LLMProvider,
+  StreamChunk,
   ToolSchema,
 } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
@@ -77,6 +78,82 @@ export class OpenAIProvider implements LLMProvider {
       toolCalls,
       finishReason: choice.finish_reason ?? "stop",
     };
+  }
+
+  async *stream(
+    messages: Message[],
+    tools: ToolSchema[],
+    config?: CompletionConfig,
+  ): AsyncIterable<StreamChunk> {
+    let stream;
+    try {
+      stream = await this.client.chat.completions.create({
+        model: this.model,
+        messages: messages.map(toOpenAIMessage),
+        tools: tools.length ? tools.map(toOpenAITool) : undefined,
+        temperature: config?.temperature ?? 0.2,
+        max_tokens: config?.maxTokens,
+        stream: true,
+      });
+    } catch (err) {
+      throw translateError(err, this.model);
+    }
+
+    let text = "";
+    let finishReason = "stop";
+    const toolDeltas: ToolCallDelta[] = [];
+    for await (const chunk of stream) {
+      const choice = chunk.choices[0];
+      if (!choice) continue;
+      const delta = choice.delta;
+      if (delta?.content) {
+        text += delta.content;
+        yield { type: "text", delta: delta.content };
+      }
+      for (const tc of delta?.tool_calls ?? []) {
+        toolDeltas.push({ index: tc.index, id: tc.id, function: tc.function });
+      }
+      if (choice.finish_reason) finishReason = choice.finish_reason;
+    }
+
+    yield {
+      type: "done",
+      result: { text, toolCalls: foldToolCallDeltas(toolDeltas), finishReason },
+    };
+  }
+}
+
+export type ToolCallDelta = {
+  index: number;
+  id?: string;
+  function?: { name?: string; arguments?: string };
+};
+
+/**
+ * Assemble streamed tool-call fragments into complete ToolCalls. OpenAI streams
+ * each tool call across many deltas keyed by `index`: the id + name arrive once,
+ * the JSON arguments arrive in pieces to concatenate. Pure. Drops any call that
+ * never got a name (malformed stream).
+ */
+export function foldToolCallDeltas(deltas: ToolCallDelta[]): ToolCall[] {
+  const byIndex = new Map<number, { id: string; name: string; args: string }>();
+  for (const d of deltas) {
+    const cur = byIndex.get(d.index) ?? { id: "", name: "", args: "" };
+    if (d.id) cur.id = d.id;
+    if (d.function?.name) cur.name = d.function.name;
+    if (d.function?.arguments) cur.args += d.function.arguments;
+    byIndex.set(d.index, cur);
+  }
+  return [...byIndex.values()]
+    .filter((c) => c.name)
+    .map((c) => ({ id: c.id, name: c.name, arguments: parseArgs(c.args) }));
+}
+
+function parseArgs(raw: string): Record<string, unknown> {
+  try {
+    return JSON.parse(raw || "{}") as Record<string, unknown>;
+  } catch {
+    return { _raw: raw };
   }
 }
 

@@ -1,4 +1,4 @@
-import type { LLMProvider } from "./providers/interface.js";
+import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
@@ -13,6 +13,9 @@ export type AgentDeps = {
   root: string;
   requestApproval: (action: string, reason: string) => Promise<boolean>;
   onText?: (text: string) => void;
+  /** Live token deltas as the model streams. When set (and the provider supports
+   * streaming), the loop streams instead of waiting for the full completion. */
+  onTextDelta?: (delta: string) => void;
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, ok: boolean, output: string) => void;
   maxIterations?: number;
@@ -108,7 +111,7 @@ async function runTurn(
       ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize)
       : trimMessages(messages, deps.provider.contextWindow());
     const safe = sanitizeMessages(trimmed); // final pre-flight scrub (orphans, surrogates)
-    const result = await deps.provider.complete(safe, deps.registry.schemas());
+    const result = await getCompletion(deps, safe);
 
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
@@ -176,6 +179,25 @@ async function runTurn(
     stoppedReason: "max_iterations",
     toolIterations,
   };
+}
+
+/**
+ * Get one model completion. Streams (emitting onTextDelta per token) when both
+ * the provider supports it and a delta consumer is wired; otherwise the plain
+ * non-streaming call. Either way returns the assembled CompletionResult so the
+ * loop's tool-dispatch path is identical.
+ */
+async function getCompletion(deps: AgentDeps, messages: Message[]): Promise<CompletionResult> {
+  const schemas = deps.registry.schemas();
+  if (deps.provider.stream && deps.onTextDelta) {
+    let result: CompletionResult | null = null;
+    for await (const chunk of deps.provider.stream(messages, schemas)) {
+      if (chunk.type === "text") deps.onTextDelta(chunk.delta);
+      else result = chunk.result;
+    }
+    if (result) return result;
+  }
+  return deps.provider.complete(messages, schemas);
 }
 
 type DispatchOutcome = { executed: boolean; empty: boolean; output: string };
