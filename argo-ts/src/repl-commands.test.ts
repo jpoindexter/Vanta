@@ -232,6 +232,14 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(r.output).toContain("nothing to copy");
   });
 
+  it("/memory appends what you tell it to the brain's semantic region", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/memory Jason prefers terse replies", ctx);
+    expect(r.output).toContain("remembered");
+    const { readRegion } = await import("./brain/store.js");
+    expect((await readRegion("semantic", ctx.env)) ?? "").toContain("Jason prefers terse replies");
+  });
+
   it("/goal status lists active goals (none here)", async () => {
     const r = await executeSlash("/goal status", makeCtx(home, convo()));
     expect(r.output).toContain("no active goals");
