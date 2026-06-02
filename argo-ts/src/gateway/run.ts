@@ -3,6 +3,7 @@ import { runDueTasks } from "../schedule/runner.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter } from "./platforms/base.js";
+import { startWebhookServer, type Deliver, type WebhookServer } from "./webhook.js";
 
 // The gateway daemon: a long-lived process that ticks the cron scheduler on an
 // interval, so scheduled tasks fire without an external OS trigger. `argo
@@ -21,8 +22,16 @@ export type GatewayDeps = {
   load?: (dataDir: string) => Promise<CronEntry[]>;
   /** Optional messaging gateway (Telegram, etc.) polled each tick. */
   platform?: PlatformAdapter;
-  /** Run one inbound message as an agent turn → reply text. Required with `platform`. */
+  /** Run one inbound message as an agent turn → reply text. Required with `platform`/`webhook`. */
   handle?: (text: string) => Promise<string>;
+  /** Optional inbound webhook listener; events run as agent turns and deliver. */
+  webhook?: {
+    port: number;
+    secret?: string;
+    /** Build the agent instruction from the raw request body. */
+    prompt: (body: string) => string;
+    deliver: Deliver;
+  };
 };
 
 function firstLine(text: string): string {
@@ -88,6 +97,25 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   process.once("SIGTERM", stop);
 
   if (deps.platform) await deps.platform.connect().catch(() => {});
+
+  let webhookServer: WebhookServer | undefined;
+  if (deps.webhook && deps.handle) {
+    const { prompt, deliver } = deps.webhook;
+    const handle = deps.handle;
+    webhookServer = await startWebhookServer({
+      port: deps.webhook.port,
+      secret: deps.webhook.secret,
+      log,
+      onEvent: async (body) => {
+        const reply = await handle(prompt(body));
+        await deliver(reply);
+      },
+    }).catch((err: unknown) => {
+      log(`argo gateway: webhook listener failed — ${err instanceof Error ? err.message : String(err)}`);
+      return undefined;
+    });
+  }
+
   log(
     `argo gateway: ticking every ${Math.round(tickMs / 1000)}s` +
       (deps.platform ? ` · ${deps.platform.id} gateway live` : "") +
@@ -105,5 +133,6 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
     }
   }
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
+  if (webhookServer) await webhookServer.close().catch(() => {});
   log("argo gateway: stopped.");
 }

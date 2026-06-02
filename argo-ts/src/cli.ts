@@ -9,6 +9,7 @@ import { installSkillLibrary } from "./skills/library.js";
 import { listSessions } from "./sessions/store.js";
 import { runGateway } from "./gateway/run.js";
 import { TelegramAdapter, parseAllowlist } from "./gateway/platforms/telegram.js";
+import { resolveDeliver } from "./gateway/webhook.js";
 import { installService, uninstallService, serviceStatus } from "./service/manager.js";
 import { resolveArgoHome } from "./store/home.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
@@ -236,11 +237,32 @@ async function runGatewayCommand(repoRoot: string): Promise<void> {
   const platform = token
     ? new TelegramAdapter({ token, allow: parseAllowlist(process.env.ARGO_TELEGRAM_ALLOW) })
     : undefined;
+  const handle = async (text: string): Promise<string> => (await runTask(text)).finalText;
+
+  const port = Number(process.env.ARGO_WEBHOOK_PORT);
+  const webhook = port
+    ? {
+        port,
+        secret: process.env.ARGO_WEBHOOK_SECRET,
+        prompt: (body: string) =>
+          (process.env.ARGO_WEBHOOK_PROMPT ??
+            "Handle this inbound webhook event and summarize what happened:\n{body}").replace(
+            "{body}",
+            body.slice(0, 4000),
+          ),
+        deliver: resolveDeliver(
+          process.env.ARGO_WEBHOOK_DELIVER ?? "local",
+          platform ? (chatId, text) => platform.send({ chatId, text }) : undefined,
+        ),
+      }
+    : undefined;
+
   await runGateway({
     dataDir: dataDirFor(repoRoot),
     run: runTask,
     platform,
-    handle: platform ? async (text) => (await runTask(text)).finalText : undefined,
+    handle,
+    webhook,
     tickMs: Number(process.env.ARGO_GATEWAY_TICK_MS) || undefined,
   });
 }
