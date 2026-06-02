@@ -3,6 +3,8 @@ import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
 import { shellCmdTool } from "./shell-cmd.js";
 import { inspectStateTool } from "./inspect-state.js";
+import { webSearchTool } from "./web-search.js";
+import { webFetchTool } from "./web-fetch.js";
 
 export function buildRegistry(): ToolRegistry {
   const registry = new ToolRegistry();
@@ -10,6 +12,8 @@ export function buildRegistry(): ToolRegistry {
   registry.register(writeFileTool);
   registry.register(shellCmdTool);
   registry.register(inspectStateTool);
+  registry.register(webSearchTool);
+  registry.register(webFetchTool);
   return registry;
 }
 
