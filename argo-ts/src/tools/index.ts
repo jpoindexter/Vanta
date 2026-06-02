@@ -12,6 +12,7 @@ import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
 import { describeImageTool } from "./describe-image.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
+import { lookAtCameraTool } from "./look-at-camera.js";
 import { brainTool } from "./brain.js";
 import { todoTool } from "./todo.js";
 import { watchVideoTool } from "./watch-video.js";
@@ -65,6 +66,7 @@ const ALL_TOOLS: readonly Tool[] = [
   browserExtractTool,
   describeImageTool,
   lookAtScreenTool,
+  lookAtCameraTool,
   brainTool,
   todoTool,
   watchVideoTool,

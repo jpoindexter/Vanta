@@ -54,6 +54,7 @@ describe("registry", () => {
       "gmail_search",
       "gmail_send",
       "inspect_state",
+      "look_at_camera",
       "look_at_screen",
       "lsp_definition",
       "lsp_diagnostics",
