@@ -5,7 +5,7 @@ import { spinnerFrames } from "./spinners.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
-import { executeSlash, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
+import { executeSlash, maybeDroppedImage, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
@@ -180,7 +180,15 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       return;
     }
 
-    sendToAgent(line);
+    // Drag an image into the terminal → path arrives as text; attach + send.
+    void maybeDroppedImage(line).then((dropped) => {
+      if (dropped) {
+        (replStateRef.current.pendingImages ??= []).push(dropped);
+        sendToAgent("Take a look at this image.");
+      } else {
+        sendToAgent(line);
+      }
+    });
   };
 
   // Slash palette — suggest matching commands while typing a bare `/word`.

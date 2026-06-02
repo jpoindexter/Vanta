@@ -2,7 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
-import { executeSlash, type ReplState } from "./repl-commands.js";
+import { executeSlash, maybeDroppedImage, type ReplState } from "./repl-commands.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import {
   prepareRun,
@@ -126,8 +126,14 @@ export async function runChat(
   // One user turn: send to the agent + run the full post-turn pipeline. Shared
   // by typed input and by /retry (which re-sends the last message).
   const runUserTurn = async (text: string): Promise<void> => {
+    // Drag an image into the terminal → its path arrives as text; attach it.
+    const dropped = await maybeDroppedImage(text);
+    if (dropped) {
+      (state.pendingImages ??= []).push(dropped);
+      text = "Take a look at this image.";
+    }
     state.turnIndex++;
-    const images = state.pendingImages; // attach + consume any /image or /paste
+    const images = state.pendingImages; // attach + consume any /image, /paste, or drop
     state.pendingImages = undefined;
     const outcome = await convo.send(text, images);
     console.log(`\n${outcome.finalText}`);

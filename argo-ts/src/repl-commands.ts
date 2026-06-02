@@ -17,6 +17,28 @@ function mimeFromPath(p: string): string {
   return map[ext] ?? "image/png";
 }
 
+/**
+ * If `input` is just a path to an existing image file (the common case when you
+ * drag a file into the terminal — it inserts the path, possibly quoted or with
+ * backslash-escaped spaces), read it and return an attachment. Else null. This
+ * gives the "drag an image in and it just works" flow on top of /image.
+ */
+export async function maybeDroppedImage(input: string): Promise<ImageAttachment | null> {
+  let s = input.trim();
+  if (s.length < 5 || s.includes("\n")) return null;
+  if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) s = s.slice(1, -1);
+  s = s.replace(/\\ /g, " ");
+  if (s.startsWith("~")) s = join(homedir(), s.slice(1));
+  if (!/\.(png|jpe?g|gif|webp)$/i.test(s)) return null;
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const buf = await readFile(s);
+    return { mime: mimeFromPath(s), dataBase64: buf.toString("base64") };
+  } catch {
+    return null; // not a readable file — treat as ordinary text
+  }
+}
+
 /** Collapse whitespace and cap a string for one-line display. */
 function oneLine(s: string, max = 200): string {
   const t = s.trim().replace(/\s+/g, " ");
