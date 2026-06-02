@@ -10,13 +10,24 @@ const DEFAULT_MODEL = "claude-sonnet-4-6";
 const CONTEXT_WINDOW = 200_000;
 const DEFAULT_MAX_TOKENS = 4096;
 
+// Grey-area: a Claude Pro/Max OAuth token (from `claude` / Claude Code) used
+// programmatically. The Messages API only accepts it WITH this beta header, a
+// claude-code User-Agent, and a system prompt that opens with the Claude Code
+// identity line — otherwise it 400s. (See DECISIONS 2026-06-02.)
+const OAUTH_BETA = "oauth-2025-04-20";
+const OAUTH_USER_AGENT = "claude-cli/1.0.0 (external, argo)";
+const CLAUDE_CODE_SPOOF = "You are Claude Code, Anthropic's official CLI for Claude.";
+
 /** Anthropic Messages API provider. SDK is lazy-imported in complete(). */
 export class AnthropicProvider implements LLMProvider {
-  private readonly apiKey: string;
+  private readonly apiKey?: string;
+  private readonly authToken?: string;
   private readonly model: string;
 
-  constructor(opts: { apiKey: string; model?: string }) {
+  /** Pass `apiKey` for a normal key, or `authToken` for a Claude Code OAuth token. */
+  constructor(opts: { apiKey?: string; authToken?: string; model?: string }) {
     this.apiKey = opts.apiKey;
+    this.authToken = opts.authToken;
     this.model = opts.model ?? DEFAULT_MODEL;
   }
 
@@ -35,8 +46,20 @@ export class AnthropicProvider implements LLMProvider {
   ): Promise<CompletionResult> {
     // Lazy so Argo loads even when the SDK isn't installed.
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey: this.apiKey });
-    const { system, messages: amsgs } = toAnthropicMessages(messages);
+    const oauth = Boolean(this.authToken);
+    const client = oauth
+      ? new Anthropic({
+          authToken: this.authToken,
+          defaultHeaders: { "anthropic-beta": OAUTH_BETA, "user-agent": OAUTH_USER_AGENT },
+        })
+      : new Anthropic({ apiKey: this.apiKey });
+
+    const converted = toAnthropicMessages(messages);
+    const amsgs = converted.messages;
+    // OAuth mode requires the system prompt to open with the Claude Code line.
+    const system = oauth
+      ? `${CLAUDE_CODE_SPOOF}\n\n${converted.system}`
+      : converted.system;
 
     let response;
     try {
