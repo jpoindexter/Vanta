@@ -115,6 +115,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "status", desc: "kernel, provider, keys, store health" },
   { name: "goals", desc: "active goals from the kernel" },
   { name: "goal", arg: "<text|status|clear|done N>", desc: "set / manage a standing goal Argo works toward" },
+  { name: "plan", desc: "show the agent's current task plan (todo list)" },
   { name: "sessions", desc: "list saved sessions" },
   { name: "resume", arg: "<id>", desc: "load a past session into this conversation" },
   { name: "title", arg: "<name>", desc: "name the current session" },
@@ -217,6 +218,11 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
     case "status":
     case "doctor":
       return { output: formatStatus(await gatherStatus(ctx.env)) };
+
+    case "plan": {
+      const { readTodos, formatTodos } = await import("./todo/store.js");
+      return { output: formatTodos(await readTodos(ctx.env)) };
+    }
 
     case "goals": {
       const goals = await ctx.setup.safety.getGoals().catch(() => []);

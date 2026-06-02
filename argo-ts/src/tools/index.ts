@@ -13,6 +13,7 @@ import { browserExtractTool } from "./browser-extract.js";
 import { describeImageTool } from "./describe-image.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
 import { brainTool } from "./brain.js";
+import { todoTool } from "./todo.js";
 import { runCodeTool } from "./run-code.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
@@ -62,6 +63,7 @@ const ALL_TOOLS: readonly Tool[] = [
   describeImageTool,
   lookAtScreenTool,
   brainTool,
+  todoTool,
   runCodeTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
