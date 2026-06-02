@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runSlashCommand, executeSlash, formatHistory, type ReplCtx } from "./repl-commands.js";
+import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, type ReplCtx } from "./repl-commands.js";
 import { saveSession, loadSession } from "./sessions/store.js";
 import type { Message } from "./types.js";
 
@@ -198,6 +198,17 @@ describe("conversation commands (history / retry / undo / reset)", () => {
   it("/image with no path shows usage", async () => {
     const r = await executeSlash("/image", makeCtx(home, convo()));
     expect(r.output).toContain("usage:");
+  });
+
+  it("maybeDroppedImage attaches a lone existing image path (quoted too), else null", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const png = join(home, "drop.png");
+    await writeFile(png, Buffer.from([1, 2, 3]));
+    expect((await maybeDroppedImage(png))?.mime).toBe("image/png");
+    expect((await maybeDroppedImage(`'${png}'`))?.mime).toBe("image/png"); // terminal-quoted
+    expect(await maybeDroppedImage("just a normal message")).toBeNull();
+    expect(await maybeDroppedImage(`${join(home, "missing.png")}`)).toBeNull(); // path doesn't exist
   });
 
   it("/usage reports an estimate, context window, and turn count", async () => {
