@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { readdir, readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveArgoHome } from "../store/home.js";
@@ -95,6 +95,11 @@ export async function loadSession(
   } catch {
     return null;
   }
+}
+
+/** Delete a session file. Idempotent — a missing file is not an error. */
+export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promise<void> {
+  await rm(join(sessionsDir(env), `${id}.json`), { force: true });
 }
 
 /** List session metadata, newest first. Skips unparseable files. */

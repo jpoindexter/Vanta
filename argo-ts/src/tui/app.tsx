@@ -4,10 +4,12 @@ import { Box, Static, Text, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
-import { saveSession, newSessionId } from "../sessions/store.js";
+import { saveSession, newSessionId, listSessions, loadSession, deleteSession, type SessionMeta } from "../sessions/store.js";
 import { executeSlash, SLASH_COMMANDS, type ReplCtx, type ReplState } from "../repl-commands.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
+import { SessionsPicker } from "./sessions-picker.js";
+import { Transcript, Palette, shortArgs, firstLine, type Entry } from "./transcript.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 
@@ -15,12 +17,6 @@ import type { RunSetup } from "../session.js";
 // status line, input composer, inline approval prompts. Renders the streaming
 // engine's events (onTextDelta / onToolCall / onToolResult) live. Slash commands
 // here are a minimal set; the readline REPL keeps the full set.
-
-type Entry =
-  | { kind: "user"; text: string }
-  | { kind: "assistant"; text: string }
-  | { kind: "tool"; name: string; args: string; ok?: boolean; output?: string }
-  | { kind: "note"; text: string };
 
 export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string };
 
@@ -75,15 +71,6 @@ export function reduce(s: State, a: Action): State {
   }
 }
 
-const shortArgs = (a: Record<string, unknown>): string => {
-  const s = JSON.stringify(a);
-  return s.length > 60 ? `${s.slice(0, 57)}...` : s;
-};
-const firstLine = (t: string): string => {
-  const l = (t.split("\n")[0] ?? "").trim();
-  return l.length > 80 ? `${l.slice(0, 77)}...` : l;
-};
-
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
   const app = useApp();
@@ -93,6 +80,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [sel, setSel] = useState(0);
   const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
   const [banner, setBanner] = useState<BannerData | null>(null);
+  const [overlay, setOverlay] = useState<null | "sessions" | "model">(null);
+  const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
   // Single source of truth for the live model — the /model picker swaps this and
   // the conversation's provider together, so every read here stays consistent.
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
@@ -135,6 +124,42 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     return () => clearInterval(id);
   }, [state.busy]);
 
+  const buildCtx = (): ReplCtx => ({
+    convo: convoRef.current!,
+    setup: { ...setup, provider: activeProvider },
+    dataDir: join(repoRoot, ".argo"),
+    state: replStateRef.current,
+    env: process.env,
+    now: () => new Date(),
+  });
+
+  // ── Sessions overlay handlers ──────────────────────────────────────────────
+  const openSessions = (): void => {
+    void listSessions(process.env).then((list) => {
+      setSessionList(list);
+      setOverlay("sessions");
+    });
+  };
+  const resumeSession = (id: string): void => {
+    if (!convoRef.current) return;
+    void executeSlash(`/resume ${id}`, buildCtx()).then((r) => {
+      dispatch({ t: "clear" });
+      if (r.output) dispatch({ t: "note", text: r.output });
+      setOverlay(null);
+    });
+  };
+  const newSession = (): void => {
+    if (!convoRef.current) return;
+    void executeSlash("/clear", buildCtx()).then(() => {
+      dispatch({ t: "clear" });
+      setOverlay(null);
+    });
+  };
+  const removeSession = (id: string): void => {
+    void deleteSession(id, process.env).catch(() => {});
+    setSessionList((list) => list.filter((s) => s.id !== id));
+  };
+
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
@@ -160,15 +185,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         !line.slice(1).includes(" ") && ms.length > 0 && !ms.some((c) => c.name === head)
           ? `/${(ms[Math.min(sel, ms.length - 1)] ?? ms[0])!.name}`
           : line;
-      const ctx: ReplCtx = {
-        convo,
-        setup: { ...setup, provider: activeProvider },
-        dataDir: join(repoRoot, ".argo"),
-        state: replStateRef.current,
-        env: process.env,
-        now: () => new Date(),
-      };
-      void executeSlash(effective, ctx).then((r) => {
+      // Commands that open an interactive overlay are handled here, not by the
+      // string-returning executeSlash (which is shared with the readline REPL).
+      const parts = effective.slice(1).split(/\s+/);
+      const resolvedCmd = parts[0] ?? "";
+      const resolvedArg = parts.slice(1).join(" ").trim();
+      if (resolvedCmd === "sessions" && !resolvedArg) return void openSessions();
+      void executeSlash(effective, buildCtx()).then((r) => {
         if (r.exit) return void app.exit();
         if (r.cleared) dispatch({ t: "clear" });
         if (r.output) dispatch({ t: "note", text: r.output });
@@ -195,7 +218,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   // Slash palette — suggest matching commands while typing a bare `/word`.
   const slashHead =
-    !pending && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
+    !pending && !overlay && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
   const matches = slashHead !== null ? SLASH_COMMANDS.filter((c) => c.name.startsWith(slashHead)) : [];
   const showPalette = matches.length > 0;
   useEffect(() => setSel(0), [slashHead]);
@@ -228,6 +251,23 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             <TextInput value={input} onChange={setInput} onSubmit={submit} />
           </Box>
         </Box>
+      ) : overlay === "sessions" ? (
+        <Box flexDirection="column" marginTop={1}>
+          <SessionsPicker
+            sessions={sessionList}
+            currentId={replStateRef.current.sessionId}
+            currentTurns={replStateRef.current.turnIndex}
+            nowMs={Date.now()}
+            width={w}
+            onResume={resumeSession}
+            onNew={newSession}
+            onDelete={removeSession}
+            onCancel={() => setOverlay(null)}
+          />
+          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}>
+            <Text dimColor>{"› "}choosing session…</Text>
+          </Box>
+        </Box>
       ) : (
         <Box flexDirection="column" marginTop={1}>
           <Box borderStyle="round" borderColor={state.busy ? "gray" : "cyan"} paddingX={1} width={w}>
@@ -256,55 +296,3 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     </Box>
   );
 }
-
-function Palette(props: {
-  matches: ReadonlyArray<{ name: string; arg?: string; desc: string }>;
-  sel: number;
-  width: number;
-}): ReactElement {
-  return (
-    <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} width={props.width}>
-      {props.matches.map((c, i) => {
-        const active = i === props.sel;
-        const label = `/${c.name}${c.arg ? ` ${c.arg}` : ""}`;
-        return (
-          <Box key={c.name} justifyContent="space-between">
-            <Text color={active ? "cyan" : undefined} bold={active}>
-              {active ? "› " : "  "}
-              {label}
-            </Text>
-            <Text dimColor>{c.desc}</Text>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
-
-function Transcript(props: { entries: Entry[]; streaming: string }): ReactElement {
-  return (
-    <Box flexDirection="column">
-      {props.entries.map((e, i) => (
-        <EntryLine key={i} entry={e} />
-      ))}
-      {props.streaming.trim() ? <Text>{props.streaming}</Text> : null}
-    </Box>
-  );
-}
-
-function EntryLine(props: { entry: Entry }): ReactElement {
-  const e = props.entry;
-  if (e.kind === "user") return <Text color="cyan">› {e.text}</Text>;
-  if (e.kind === "assistant") return <Text>{e.text}</Text>;
-  if (e.kind === "note") return <Text dimColor>  {e.text}</Text>;
-  const mark = e.ok === undefined ? "→" : e.ok ? "✓" : "✗";
-  const tail = e.output !== undefined ? `: ${e.output}` : `(${e.args})`;
-  return (
-    <Text dimColor>
-      {"  "}
-      {mark} {e.name}
-      {tail}
-    </Text>
-  );
-}
-
