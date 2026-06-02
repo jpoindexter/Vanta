@@ -3,7 +3,33 @@ import { gatherStatus, formatStatus } from "./status.js";
 import { listSessions, loadSession, newSessionId } from "./sessions/store.js";
 import { loadCron } from "./schedule/cron.js";
 import type { Conversation } from "./agent.js";
+import type { Message } from "./types.js";
 import type { RunSetup } from "./session.js";
+
+/** Collapse whitespace and cap a string for one-line display. */
+function oneLine(s: string, max = 200): string {
+  const t = s.trim().replace(/\s+/g, " ");
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+}
+
+/** Index of the last user message, or -1 if there isn't one. */
+function lastUserIndex(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) if (messages[i]!.role === "user") return i;
+  return -1;
+}
+
+/** Render the live transcript (skipping the system message) for `/history`. */
+export function formatHistory(messages: Message[]): string {
+  const out: string[] = [];
+  for (const m of messages) {
+    if (m.role === "user") out.push(`  you  › ${oneLine(m.content)}`);
+    else if (m.role === "assistant") {
+      if (m.content.trim()) out.push(`  argo › ${oneLine(m.content)}`);
+      for (const tc of m.toolCalls ?? []) out.push(`    ⚙ ${tc.name}(${oneLine(JSON.stringify(tc.arguments), 80)})`);
+    } else if (m.role === "tool") out.push(`    ↳ ${m.name}: ${oneLine(m.content, 120)}`);
+  }
+  return out.join("\n");
+}
 
 // Slash commands for the interactive surface — the Hermes/OpenClaw `/` set,
 // scoped to what Argo actually has. The core is `executeSlash`, which RETURNS
@@ -31,12 +57,18 @@ export type SlashResult = {
   cleared?: boolean;
   resumed?: boolean;
   unknown?: boolean;
+  /** Text the host should send to the agent as a fresh turn (drives /retry). */
+  resend?: string;
 };
 
 /** Canonical command catalog — drives `/help`, the TUI palette, and validation. */
 export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: string }> = [
   { name: "help", desc: "show this command list" },
   { name: "clear", desc: "start a fresh conversation (keeps the session log)" },
+  { name: "reset", desc: "start a fresh conversation (alias of /clear)" },
+  { name: "history", desc: "show this conversation's transcript" },
+  { name: "retry", desc: "re-run your last message" },
+  { name: "undo", desc: "drop the last turn from the conversation" },
   { name: "model", desc: "change provider & model — interactive picker" },
   { name: "tools", desc: "list available tools" },
   { name: "skills", desc: "list learned + installed skills" },
@@ -78,11 +110,33 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
 
     case "clear":
     case "new":
+    case "reset":
       ctx.convo.messages.splice(1); // keep the system message, drop history
       ctx.state.sessionId = newSessionId(ctx.now());
       ctx.state.started = ctx.now().toISOString();
       ctx.state.turnIndex = 0;
       return { output: "  · started a fresh conversation", cleared: true };
+
+    case "history":
+      return { output: formatHistory(ctx.convo.messages) || "  (no history yet)" };
+
+    case "retry": {
+      const idx = lastUserIndex(ctx.convo.messages);
+      if (idx < 0) return { output: "  (nothing to retry)" };
+      const last = ctx.convo.messages[idx];
+      const text = last && last.role === "user" ? last.content : "";
+      ctx.convo.messages.splice(idx); // drop the user turn + everything after it
+      ctx.state.turnIndex = Math.max(0, ctx.state.turnIndex - 1);
+      return { output: `  ↻ retrying: ${oneLine(text, 60)}`, resend: text };
+    }
+
+    case "undo": {
+      const idx = lastUserIndex(ctx.convo.messages);
+      if (idx < 0) return { output: "  (nothing to undo)" };
+      ctx.convo.messages.splice(idx); // drop the last user turn + its response
+      ctx.state.turnIndex = Math.max(0, ctx.state.turnIndex - 1);
+      return { output: "  ↩ undid the last turn" };
+    }
 
     case "skills": {
       const s = await listSkills(ctx.env);

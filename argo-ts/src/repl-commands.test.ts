@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runSlashCommand, type ReplCtx } from "./repl-commands.js";
+import { runSlashCommand, executeSlash, formatHistory, type ReplCtx } from "./repl-commands.js";
 import { saveSession } from "./sessions/store.js";
 import type { Message } from "./types.js";
 
@@ -90,5 +90,73 @@ describe("runSlashCommand", () => {
   it("unknown commands are reported, not sent to the model", async () => {
     expect(await runSlashCommand("/bogus", makeCtx(home, []))).toBe(false);
     expect(log.mock.calls.flat().join("\n")).toContain("unknown command /bogus");
+  });
+});
+
+describe("conversation commands (history / retry / undo / reset)", () => {
+  let home: string;
+  const convo = (): Message[] => [
+    { role: "system", content: "sys" },
+    { role: "user", content: "first" },
+    { role: "assistant", content: "reply one" },
+    { role: "user", content: "second" },
+    { role: "assistant", content: "reply two" },
+  ];
+
+  beforeEach(async () => {
+    home = await mkdtemp(join(tmpdir(), "argo-repl-"));
+  });
+  afterEach(async () => {
+    await rm(home, { recursive: true, force: true });
+  });
+
+  it("/history renders the transcript without the system message", async () => {
+    const r = await executeSlash("/history", makeCtx(home, convo()));
+    expect(r.output).toContain("you  › first");
+    expect(r.output).toContain("argo › reply one");
+    expect(r.output).toContain("you  › second");
+    expect(r.output).not.toContain("sys");
+  });
+
+  it("/history on an empty conversation says so", async () => {
+    const r = await executeSlash("/history", makeCtx(home, [{ role: "system", content: "sys" }]));
+    expect(r.output).toContain("no history");
+  });
+
+  it("/retry drops the last turn, resends the last user text, decrements turnIndex", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/retry", ctx);
+    expect(r.resend).toBe("second");
+    expect(ctx.convo.messages).toHaveLength(3); // system + first user + its reply
+    expect(ctx.convo.messages.at(-1)).toMatchObject({ role: "assistant", content: "reply one" });
+    expect(ctx.state.turnIndex).toBe(4); // was 5
+  });
+
+  it("/retry with no user turns is a no-op", async () => {
+    const ctx = makeCtx(home, [{ role: "system", content: "sys" }]);
+    const r = await executeSlash("/retry", ctx);
+    expect(r.resend).toBeUndefined();
+    expect(r.output).toContain("nothing to retry");
+  });
+
+  it("/undo drops the last turn without resending", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/undo", ctx);
+    expect(r.resend).toBeUndefined();
+    expect(ctx.convo.messages).toHaveLength(3);
+    expect(ctx.state.turnIndex).toBe(4);
+  });
+
+  it("/reset clears history but keeps the system message", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/reset", ctx);
+    expect(r.cleared).toBe(true);
+    expect(ctx.convo.messages).toHaveLength(1);
+    expect(ctx.convo.messages[0]).toMatchObject({ role: "system" });
+  });
+
+  it("formatHistory is pure and skips system", () => {
+    const out = formatHistory(convo());
+    expect(out.split("\n")).toHaveLength(4); // 2 user + 2 assistant
   });
 });

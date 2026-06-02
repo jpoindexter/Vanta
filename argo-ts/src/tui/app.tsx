@@ -126,6 +126,26 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     return () => clearInterval(id);
   }, [state.busy]);
 
+  // Send one user turn to the agent + wire its result. Shared by typed input
+  // and by /retry (which re-sends the last message via the slash `resend` signal).
+  const sendToAgent = (text: string): void => {
+    dispatch({ t: "user", text });
+    const convo = convoRef.current;
+    if (!convo) return;
+    replStateRef.current.turnIndex++;
+    turnStartRef.current = Date.now();
+    void convo
+      .send(text)
+      .then((outcome) => {
+        dispatch({ t: "commit", finalText: outcome.finalText });
+        void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started }).catch(() => {});
+      })
+      .catch((err: unknown) => {
+        dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
+        dispatch({ t: "commit", finalText: "" });
+      });
+  };
+
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
@@ -153,25 +173,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         if (r.exit) return void app.exit();
         if (r.cleared) dispatch({ t: "clear" });
         if (r.output) dispatch({ t: "note", text: r.output });
+        if (r.resend) sendToAgent(r.resend);
       });
       return;
     }
 
-    dispatch({ t: "user", text: line });
-    const convo = convoRef.current;
-    if (!convo) return;
-    replStateRef.current.turnIndex++;
-    turnStartRef.current = Date.now();
-    void convo
-      .send(line)
-      .then((outcome) => {
-        dispatch({ t: "commit", finalText: outcome.finalText });
-        void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started }).catch(() => {});
-      })
-      .catch((err: unknown) => {
-        dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
-        dispatch({ t: "commit", finalText: "" });
-      });
+    sendToAgent(line);
   };
 
   // Slash palette — suggest matching commands while typing a bare `/word`.

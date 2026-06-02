@@ -2,7 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
-import { runSlashCommand, type ReplState } from "./repl-commands.js";
+import { executeSlash, type ReplState } from "./repl-commands.js";
 import {
   prepareRun,
   buildSummarizer,
@@ -121,6 +121,25 @@ export async function runChat(
     now: () => new Date(),
   };
 
+  // One user turn: send to the agent + run the full post-turn pipeline. Shared
+  // by typed input and by /retry (which re-sends the last message).
+  const runUserTurn = async (text: string): Promise<void> => {
+    state.turnIndex++;
+    const outcome = await convo.send(text);
+    console.log(`\n${outcome.finalText}`);
+    await saveSession(state.sessionId, convo.messages, { started: state.started }).catch(() => {});
+    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText);
+    await suggestSkillFromRun(text, process.env);
+    await reviewAfterTurn({
+      provider: setup.provider,
+      safety: setup.safety,
+      root: repoRoot,
+      transcript: convo.messages,
+      toolIterations: outcome.toolIterations,
+      turnIndex: state.turnIndex,
+    });
+  };
+
   try {
     for (;;) {
       let line: string;
@@ -131,23 +150,13 @@ export async function runChat(
       }
       if (!line) continue;
       if (line.startsWith("/")) {
-        if (await runSlashCommand(line, ctx)) break;
+        const result = await executeSlash(line, ctx);
+        if (result.output) console.log(result.output);
+        if (result.exit) break;
+        if (result.resend) await runUserTurn(result.resend);
         continue;
       }
-      state.turnIndex++;
-      const outcome = await convo.send(line);
-      console.log(`\n${outcome.finalText}`);
-      await saveSession(state.sessionId, convo.messages, { started: state.started }).catch(() => {});
-      await writeRunMemory(setup.provider, setup.goals, line, outcome.finalText);
-      await suggestSkillFromRun(line, process.env);
-      await reviewAfterTurn({
-        provider: setup.provider,
-        safety: setup.safety,
-        root: repoRoot,
-        transcript: convo.messages,
-        toolIterations: outcome.toolIterations,
-        turnIndex: state.turnIndex,
-      });
+      await runUserTurn(line);
     }
   } finally {
     rl.close();
