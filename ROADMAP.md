@@ -65,7 +65,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 
 ### F — Robustness steals (cheap, fold in opportunistically)
 - [x] **F1 · Message sanitization** (S) — `sanitizeMessages` (context.ts), run pre-flight before every model call: drops orphaned tool_results + strips lone Unicode surrogates (keeps valid emoji pairs). *Prevents silent 400s.*
-- [~] **F2 · Loop guardrails** — PARTIAL: the loop already stops on 3 consecutive empty tool results (`MAX_CONSECUTIVE_FAILURES`). Same-tool+args-repeat detection still pending.
+- [x] **F2 · Loop guardrails** — ✅ SHIPPED 2026-06-02. Stops on 3 consecutive empty results (`MAX_CONSECUTIVE_FAILURES`) AND on the same tool+args called 3× in a turn (`MAX_IDENTICAL_CALLS` — stuck-in-a-rut detection). Unit-tested.
 - [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results.
 - [~] **F4 · Retry w/ jittered backoff** — the `openai` SDK already retries with backoff (maxRetries default 2); explicit per-model tracking deferred unless we hit limits.
 

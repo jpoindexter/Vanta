@@ -32,6 +32,13 @@ export type AgentOutcome = {
 };
 
 const MAX_CONSECUTIVE_FAILURES = 3;
+// Stop if the model calls the exact same tool with the exact same args this many
+// times in a turn — it's stuck in a rut, not making progress (Hermes guardrail).
+const MAX_IDENTICAL_CALLS = 3;
+
+function callSignature(name: string, args: Record<string, unknown>): string {
+  return `${name}:${JSON.stringify(args)}`;
+}
 
 /** A stateful multi-turn conversation that retains history across `send` calls. */
 export type Conversation = {
@@ -86,6 +93,7 @@ async function runTurn(
   messages.push({ role: "user", content: userText });
   let consecutiveFailures = 0;
   let toolIterations = 0;
+  const callCounts = new Map<string, number>();
 
   for (let iter = 1; iter <= maxIter; iter++) {
     if (deps.signal?.aborted) {
@@ -123,6 +131,7 @@ async function runTurn(
       toolCalls: result.toolCalls,
     });
 
+    let stuckTool: string | null = null;
     for (const call of result.toolCalls) {
       const outcome = await dispatchTool(call, deps, ctx);
       toolIterations++;
@@ -136,6 +145,19 @@ async function runTurn(
       if (outcome.executed) {
         consecutiveFailures = outcome.empty ? consecutiveFailures + 1 : 0;
       }
+      const sig = callSignature(call.name, call.arguments);
+      const count = (callCounts.get(sig) ?? 0) + 1;
+      callCounts.set(sig, count);
+      if (count >= MAX_IDENTICAL_CALLS) stuckTool = call.name;
+    }
+
+    if (stuckTool) {
+      return {
+        finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`,
+        iterations: iter,
+        stoppedReason: "repeated_failure",
+        toolIterations,
+      };
     }
 
     if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
