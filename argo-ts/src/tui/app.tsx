@@ -163,23 +163,47 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       });
   };
 
+  const cols = process.stdout.columns ?? 80;
+  const w = Math.max(24, Math.min(cols - 2, 100));
+  const statusText = state.busy ? `${SPINNER[frame] ?? "⠋"} ${state.status}` : "● ready";
+
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" paddingX={1}>
+      <Box marginBottom={1}>
+        <Text color="cyan" bold>
+          ⚓ Argo
+        </Text>
+        <Text dimColor>  trusted operator · {setup.provider.modelId()}</Text>
+      </Box>
+
       <Transcript entries={state.entries} streaming={state.streaming} />
-      <StatusLine model={setup.provider.modelId()} busy={state.busy} status={state.status} spinner={SPINNER[frame] ?? "⠋"} />
+
       {pending ? (
         <Box flexDirection="column" marginTop={1}>
           <Text color="yellow">⚠ approve: {pending.action}</Text>
           <Text dimColor>{pending.reason}</Text>
-          <Box>
-            <Text color="yellow">approve? (y/n) </Text>
+          <Box borderStyle="round" borderColor="yellow" paddingX={1} width={w}>
+            <Text color="yellow">approve (y/n) › </Text>
             <TextInput value={input} onChange={setInput} onSubmit={submit} />
           </Box>
         </Box>
       ) : (
-        <Box marginTop={1}>
-          <Text color="cyan">{state.busy ? "  " : "› "}</Text>
-          <TextInput value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "message, or /help"} />
+        <Box flexDirection="column" marginTop={1}>
+          <Box borderStyle="round" borderColor={state.busy ? "gray" : "cyan"} paddingX={1} width={w}>
+            <Text color={state.busy ? "gray" : "cyan"}>{"› "}</Text>
+            <TextInput
+              value={input}
+              onChange={setInput}
+              onSubmit={submit}
+              placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"}
+            />
+          </Box>
+          <Box width={w} justifyContent="space-between">
+            <Text dimColor>
+              {statusText} · {setup.provider.modelId()}
+            </Text>
+            <Text dimColor>/help  /clear  /exit</Text>
+          </Box>
         </Box>
       )}
     </Box>
@@ -213,12 +237,3 @@ function EntryLine(props: { entry: Entry }): ReactElement {
   );
 }
 
-function StatusLine(props: { model: string; busy: boolean; status: string; spinner: string }): ReactElement {
-  return (
-    <Box marginTop={1}>
-      <Text dimColor>
-        {props.busy ? `${props.spinner} ${props.status}` : "ready"} · {props.model}
-      </Text>
-    </Box>
-  );
-}
