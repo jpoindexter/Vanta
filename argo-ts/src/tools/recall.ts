@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool } from "./types.js";
 import { listSkills } from "../skills/store.js";
 import { searchSkills } from "../skills/recall.js";
+import { markVolatile } from "../skills/volatile.js";
 
 const Args = z.object({ query: z.string().min(1) });
 
@@ -46,6 +47,8 @@ export const recallTool: Tool = {
       if (others.length) {
         output += `\n\n---\nOther matches (recall with a more specific query to load one):\n${others.join("\n")}`;
       }
+      // Volatile skills are dropped from history after the turn (pruneVolatileSkills).
+      if (top.meta.volatile) output = markVolatile(top.meta.name, output);
       return { ok: true, output };
     } catch (err) {
       return { ok: false, output: `recall failed: ${(err as Error).message}` };
