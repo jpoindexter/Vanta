@@ -1,6 +1,8 @@
 import { createInterface } from "node:readline/promises";
+import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
+import { runSlashCommand, type ReplState } from "./repl-commands.js";
 import {
   prepareRun,
   buildSummarizer,
@@ -58,17 +60,10 @@ export function renderBanner(d: BannerData): string {
   ].join("\n");
 }
 
-const CHAT_HELP = [
-  "  Commands:",
-  "    /help        show this",
-  "    /exit /quit  leave the session",
-  "    /skills      list learned skills",
-  "  Anything else is sent to the agent. It keeps context across the session.",
-].join("\n");
-
 /**
  * Launch the interactive session: print the banner, then a REPL that holds a
- * single conversation (history persists across turns) until /exit.
+ * single conversation (history persists across turns) until /exit. Slash
+ * commands are handled by repl-commands.ts; anything else goes to the agent.
  */
 export async function runChat(
   repoRoot: string,
@@ -79,8 +74,11 @@ export async function runChat(
   const skills = await listSkills();
 
   const resumed = opts.resumeId ? await loadSession(opts.resumeId) : null;
-  const sessionId = resumed?.id ?? newSessionId();
-  const started = resumed?.started ?? new Date().toISOString();
+  const state: ReplState = {
+    sessionId: resumed?.id ?? newSessionId(),
+    started: resumed?.started ?? new Date().toISOString(),
+    turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
+  };
 
   console.log(
     renderBanner({
@@ -114,7 +112,15 @@ export async function runChat(
     { history: resumed?.messages },
   );
 
-  let turnIndex = resumed?.messages.filter((m) => m.role === "user").length ?? 0;
+  const ctx = {
+    convo,
+    setup,
+    dataDir: join(repoRoot, ".argo"),
+    state,
+    env: process.env,
+    now: () => new Date(),
+  };
+
   try {
     for (;;) {
       let line: string;
@@ -124,24 +130,14 @@ export async function runChat(
         break; // stdin closed (Ctrl+D / EOF / piped input ended) → exit cleanly
       }
       if (!line) continue;
-      if (line === "/exit" || line === "/quit") break;
-      if (line === "/help") {
-        console.log(CHAT_HELP);
+      if (line.startsWith("/")) {
+        if (await runSlashCommand(line, ctx)) break;
         continue;
       }
-      if (line === "/skills") {
-        const list = await listSkills();
-        console.log(
-          list.length
-            ? list.map((s) => `  ${s.meta.name} — ${s.meta.description}`).join("\n")
-            : "  (no skills yet)",
-        );
-        continue;
-      }
-      turnIndex++;
+      state.turnIndex++;
       const outcome = await convo.send(line);
       console.log(`\n${outcome.finalText}`);
-      await saveSession(sessionId, convo.messages, { started }).catch(() => {});
+      await saveSession(state.sessionId, convo.messages, { started: state.started }).catch(() => {});
       await writeRunMemory(setup.provider, setup.goals, line, outcome.finalText);
       await suggestSkillFromRun(line, process.env);
       await reviewAfterTurn({
@@ -150,7 +146,7 @@ export async function runChat(
         root: repoRoot,
         transcript: convo.messages,
         toolIterations: outcome.toolIterations,
-        turnIndex,
+        turnIndex: state.turnIndex,
       });
     }
   } finally {

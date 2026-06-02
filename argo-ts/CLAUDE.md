@@ -75,7 +75,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
 | `agent.ts` | `createConversation()` (persistent multi-turn, optional `{history}`) + `runAgent()` (one-shot) + `dispatchTool()` — the loop. `summarize` dep selects compress vs trim; `signal?: AbortSignal` interrupts between iterations (→ `stoppedReason: "interrupted"`); `toolIterations` drives the self-improvement nudge |
 | `session.ts` | Shared run setup for one-shot + interactive: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver`, **`maybeCurate`** (session-start, 7d-gated skill maintenance), **`reviewAfterTurn`** (post-turn self-improvement nudge). Neither cli.ts nor interactive.ts imports the other |
-| `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists, `/help` `/exit` `/skills`) |
+| `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists; slash commands via repl-commands.ts; session save + post-turn review) |
+| `repl-commands.ts` | REPL slash commands: `/help /exit /quit /clear /new /skills /tools /model /status /doctor /goals /sessions /resume <id> /cron`. `runSlashCommand(input, ctx)` → exit?; reuses status/sessions/cron/skills subsystems |
 | `cli.ts` | `argo` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `argo setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)

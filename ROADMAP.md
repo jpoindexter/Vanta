@@ -22,6 +22,10 @@ web search, browser+vision, code/dev, autonomy primitives, comms. Interactive ba
 self-improvement layer* is thin: no setup, no Gemini, no memory of past conversations,
 nothing learns automatically, not reachable as a service. v1 closes that.
 
+## Install & REPL (shipped 2026-06-02)
+- **`./install.sh`** — Hermes/OpenClaw-style installer: builds kernel + deps, seeds `~/.argo/skills`, installs a global **`argo`** launcher into `~/.local/bin` (only edits a shell rc if that dir isn't already on PATH). Type `argo` from anywhere.
+- **Full REPL slash commands** (`repl-commands.ts`): `/help /exit /clear /skills /tools /model /status /goals /sessions /resume <id> /cron` — was only `/help /exit /skills`.
+
 ## v1 done — one sentence
 
 Open `argo` → it greets you and talks back → a first-run wizard configures any model
