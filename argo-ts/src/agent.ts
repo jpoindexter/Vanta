@@ -3,7 +3,8 @@ import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
 import type { Message, ToolCall } from "./types.js";
-import { trimMessages } from "./context.js";
+import { trimMessages, compressMessages } from "./context.js";
+import type { Summarizer } from "./context.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -15,6 +16,7 @@ export type AgentDeps = {
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, ok: boolean, output: string) => void;
   maxIterations?: number;
+  summarize?: Summarizer;
 };
 
 export type StoppedReason = "done" | "max_iterations" | "repeated_failure";
@@ -45,7 +47,9 @@ export async function runAgent(
   let consecutiveFailures = 0;
 
   for (let iter = 1; iter <= maxIter; iter++) {
-    const trimmed = trimMessages(messages, deps.provider.contextWindow());
+    const trimmed = deps.summarize
+      ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize)
+      : trimMessages(messages, deps.provider.contextWindow());
     const result = await deps.provider.complete(trimmed, deps.registry.schemas());
 
     if (result.toolCalls.length === 0) {

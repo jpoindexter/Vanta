@@ -56,7 +56,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-Phase 1 (agent loop) **done** — verified live on Ollama qwen2.5:14b. Phase 2B (web search) **done** — `SearchProvider` (ddg/searxng/serpapi/brave) + `web_search`/`web_fetch` tools; 49 TS + 16 Rust tests green, `web_fetch` verified live (DDG live-blocked by IP in this env — code correct + unit-tested; use Searxng/Brave off-datacenter). Next: Phase 2A skills+memory, then Phases 3–7. See `docs/prd.md`.
+Phases 1, 2A, 2B **done**. 2B: web search (`SearchProvider` ddg/searxng/serpapi/brave + `web_search`/`web_fetch`; `web_fetch` verified live, DDG IP-blocked here). 2A: skills (`~/.argo/skills/<slug>/SKILL.md`, `write_skill`/`recall`, curator), per-goal memory (`~/.argo/memories/`) injected into the prompt, LLM context compression, `argo skills`/`skill` subcommands — git-versioning verified live. **97 TS + 16 Rust tests green.** Next: Phases 3 (browser/vision), 4 (code/dev), 6 (autonomous) — building in parallel; 5 (comms, needs MCP-access decision) and 7 (digital person) after. See `docs/prd.md`, `DECISIONS.md`.
 
 ## Rule zero
 

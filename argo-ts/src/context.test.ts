@@ -1,6 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { estimateTokens, trimMessages } from "./context.js";
+import { estimateTokens, trimMessages, compressMessages } from "./context.js";
 import type { Message } from "./types.js";
+
+function manyMessages(): Message[] {
+  const msgs: Message[] = [{ role: "system", content: "sys" }];
+  for (let i = 0; i < 40; i++) {
+    msgs.push({ role: "user", content: `message ${i} `.repeat(50) });
+  }
+  return msgs;
+}
 
 describe("trimMessages", () => {
   it("returns messages unchanged when under threshold", () => {
@@ -37,5 +45,45 @@ describe("trimMessages", () => {
     const small = estimateTokens([{ role: "user", content: "hi" }]);
     const big = estimateTokens([{ role: "user", content: "x".repeat(4000) }]);
     expect(big).toBeGreaterThan(small);
+  });
+});
+
+describe("compressMessages", () => {
+  it("returns messages unchanged when under threshold", async () => {
+    const msgs: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "hi" },
+    ];
+    const result = await compressMessages(msgs, 100_000, async () => "summary");
+    expect(result).toEqual(msgs);
+  });
+
+  it("inserts the summary note and preserves head and tail", async () => {
+    const msgs = manyMessages();
+    const summarize = async () => "the user worked through 30 steps";
+    const result = await compressMessages(msgs, 1000, summarize, {
+      protectFirst: 3,
+      protectLast: 6,
+    });
+    expect(result.length).toBeLessThan(msgs.length);
+    expect(result[0]).toEqual({ role: "system", content: "sys" });
+    const note = result.find((m) => m.content.includes("[Summary of"));
+    expect(note?.content).toContain("the user worked through 30 steps");
+    // Head (first non-system) and tail (last message) are preserved verbatim.
+    expect(result[1]).toEqual(msgs[1]);
+    expect(result[result.length - 1]).toEqual(msgs[msgs.length - 1]);
+  });
+
+  it("falls back to a trimmed result when the summarizer throws", async () => {
+    const msgs = manyMessages();
+    const summarize = async (): Promise<string> => {
+      throw new Error("provider down");
+    };
+    const result = await compressMessages(msgs, 1000, summarize, {
+      protectFirst: 3,
+      protectLast: 6,
+    });
+    expect(result.some((m) => m.content.includes("trimmed to fit"))).toBe(true);
+    expect(result.some((m) => m.content.includes("[Summary of"))).toBe(false);
   });
 });

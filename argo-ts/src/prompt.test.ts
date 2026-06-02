@@ -36,4 +36,17 @@ describe("buildSystemPrompt", () => {
     });
     expect(prompt).toContain("no active goals");
   });
+
+  it("injects memory into the volatile tier when provided", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [{ id: 1, text: "Ship Argo v0", status: "active" }],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+      memory: "Earlier I learned the build runs with `npm test`.",
+    });
+    expect(prompt).toContain("Recent memory toward your goals:");
+    expect(prompt).toContain("Earlier I learned the build runs");
+  });
 });

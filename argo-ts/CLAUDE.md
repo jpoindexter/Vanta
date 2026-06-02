@@ -21,14 +21,22 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
 | `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools |
 | `tools/{web-search,web-fetch}.ts` | Phase 2B web tools. `web-fetch` exports pure `extractReadable(html,url)` |
-| `tools/index.ts` | `buildRegistry()` — registers the six tools |
+| `tools/{write-skill,recall}.ts` | Phase 2A learning tools. `describeForSafety` is a constant internal-op string (no path/query → kernel `Allow`) |
+| `tools/index.ts` | `buildRegistry()` — registers all eight tools |
+| `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
+| `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
+| `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
+| `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits |
+| `skills/recall.ts` | pure `searchSkills(query, skills)` — weighted substring ranking |
+| `skills/curator.ts` | `curate()` — archive >30d stale, remove >90d archived, report overlaps (no auto-merge) |
+| `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.argo/memories/<goalId>.md` |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `ARGO_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
-| `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time) |
-| `context.ts` | `trimMessages()` — 75% trigger, protect first-3/last-6, orphan-tool guard |
-| `agent.ts` | `runAgent()` + `dispatchTool()` — the loop |
-| `cli.ts` | `argo run "..."` entry: load env, find repo root, ensure kernel, build prompt, run |
+| `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
+| `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
+| `agent.ts` | `runAgent()` + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
+| `cli.ts` | `argo run\|skills\|skill <name> [instr]`: load env, ensure kernel + store, inject memory, run, write goal memory post-run |
 
 ## The loop (`agent.ts`)
 
@@ -83,6 +91,8 @@ ESM `.js` imports · zod at every LLM/HTTP boundary · errors-as-values in tools
 `ARGO_PROVIDER` (openai|ollama|anthropic) · `ARGO_MODEL` · `OPENAI_API_KEY` · `ARGO_OLLAMA_URL` · `ARGO_KERNEL_URL` · `ARGO_MAX_ITER`. Defaults in `.env.example`. Local `.env` (gitignored) defaults to Ollama qwen2.5:14b.
 
 Search (Phase 2B): `ARGO_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default ddg) · `ARGO_SEARCH_URL` (searxng) · `SERPAPI_KEY` · `BRAVE_KEY`.
+
+Store (Phase 2A): `ARGO_HOME` overrides the global store dir (default `~/.argo`). Holds `skills/` + `memories/`, git-init'd; writes auto-commit (best-effort). Tests point `ARGO_HOME` at a temp dir.
 
 ## Gotchas
 
