@@ -35,6 +35,11 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `schedule/commands.ts` | Phase 6 — `argo schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
 | `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
+| `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `ARGO_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `argo room <name>` runs rooted there → per-project goal stream |
+| `projects/commands.ts` | Phase 7 — `argo rooms`/`room`/`modes` CLI handlers + learning suggestion (keeps cli.ts ≤300) |
+| `modes/builtin.ts` | Phase 7 — 6 operator modes as real skills (`OPERATOR_MODES`, `installModes`). Run via `argo skill <mode> "<instr>"` |
+| `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.argo/usage.tsv`) |
+| `routing/model-router.ts` | Phase 7 — `classifyTask` (cheap/expensive) + `resolveRoutedProvider` (`ARGO_MODEL_CHEAP`/`_EXPENSIVE`; no-op when unset) |
 | `tools/index.ts` | `buildRegistry({exclude?})` — registers all 22 tools (`exclude:["delegate"]` → 21 for workers) |
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
@@ -49,7 +54,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
 | `agent.ts` | `runAgent()` + `dispatchTool()` — the loop. Optional `summarize` dep selects compress vs trim |
-| `cli.ts` | `argo run\|skills\|skill <name> [instr]\|schedule "<i>" --cron "<e>"\|schedule list\|cron`: env, kernel+store, memory inject, run, post-run memory. `cron` is OS-scheduler-invoked |
+| `cli.ts` | `argo run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]`: env, kernel+store, **routed** provider (model-router), memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
 
@@ -108,6 +113,8 @@ Search (Phase 2B): `ARGO_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default dd
 Store (Phase 2A): `ARGO_HOME` overrides the global store dir (default `~/.argo`). Holds `skills/` + `memories/`, git-init'd; writes auto-commit (best-effort). Tests point `ARGO_HOME` at a temp dir.
 
 Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `ARGO_VISION_MODEL` (describe_image, default gpt-4o-mini) · `ARGO_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
+
+Phase 7: `ARGO_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `ARGO_MODEL_CHEAP` / `ARGO_MODEL_EXPENSIVE` (task-routed models; unset = no routing).
 
 ## Gotchas
 
