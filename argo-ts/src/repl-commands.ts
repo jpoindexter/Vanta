@@ -122,6 +122,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "cron", desc: "list scheduled tasks" },
   { name: "image", arg: "<path>", desc: "attach an image for your next message" },
   { name: "paste", desc: "attach an image from the clipboard (macOS)" },
+  { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
@@ -164,7 +165,17 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
       ctx.state.started = ctx.now().toISOString();
       ctx.state.turnIndex = 0;
       ctx.state.title = undefined;
+      ctx.state.pendingImages = undefined;
       return { output: "  · started a fresh conversation", cleared: true };
+
+    case "attachments": {
+      const n = ctx.state.pendingImages?.length ?? 0;
+      if (arg.toLowerCase() === "clear") {
+        ctx.state.pendingImages = undefined;
+        return { output: `  · cleared ${n} pending attachment(s)` };
+      }
+      return { output: n ? `  ${n} image(s) attached for your next message — /attachments clear to remove` : "  (no pending attachments)" };
+    }
 
     case "history":
       return { output: formatHistory(ctx.convo.messages) || "  (no history yet)" };
