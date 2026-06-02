@@ -98,17 +98,21 @@ export class CodexProvider implements LLMProvider {
 
     let text = "";
     const toolCalls: ToolCall[] = [];
+    let usage: { inputTokens: number; outputTokens: number } | undefined;
     for await (const ev of parseSSE(res.body)) {
       if (ev.type === "response.output_text.delta" && typeof ev.delta === "string") {
         text += ev.delta;
         yield { type: "text", delta: ev.delta };
       } else if (ev.type === "response.output_item.done" && ev.item?.type === "function_call") {
         toolCalls.push({ id: ev.item.call_id, name: ev.item.name, arguments: parseArgs(ev.item.arguments) });
+      } else if (ev.type === "response.completed" && ev.response?.usage) {
+        const u = ev.response.usage;
+        usage = { inputTokens: u.input_tokens ?? 0, outputTokens: u.output_tokens ?? 0 };
       } else if (ev.type === "response.failed" || ev.type === "error") {
         throw new Error(`Codex response error: ${JSON.stringify(ev.response?.error ?? ev).slice(0, 300)}`);
       }
     }
-    yield { type: "done", result: { text, toolCalls, finishReason: toolCalls.length ? "tool_calls" : "stop" } };
+    yield { type: "done", result: { text, toolCalls, finishReason: toolCalls.length ? "tool_calls" : "stop", usage } };
   }
 }
 

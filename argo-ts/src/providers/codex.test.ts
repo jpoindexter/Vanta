@@ -85,7 +85,7 @@ const SSE = [
   ``,
   `data: {"type":"response.output_item.done","item":{"type":"function_call","call_id":"call_1","name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}}`,
   ``,
-  `data: {"type":"response.completed","response":{}}`,
+  `data: {"type":"response.completed","response":{"usage":{"input_tokens":42,"output_tokens":7}}}`,
   ``,
 ].join("\n");
 
@@ -107,6 +107,7 @@ describe("CodexProvider.stream", () => {
     expect(done.result.text).toBe("Hello there");
     expect(done.result.toolCalls).toEqual([{ id: "call_1", name: "get_weather", arguments: { city: "Paris" } }]);
     expect(done.result.finishReason).toBe("tool_calls");
+    expect(done.result.usage).toEqual({ inputTokens: 42, outputTokens: 7 });
   });
 
   it("complete() returns the same assembled result", async () => {

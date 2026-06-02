@@ -78,7 +78,11 @@ export class AnthropicProvider implements LLMProvider {
       throw translateError(err, this.model);
     }
 
-    return parseResponse(response.content, response.stop_reason ?? "end_turn");
+    const result = parseResponse(response.content, response.stop_reason ?? "end_turn");
+    if (response.usage) {
+      result.usage = { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens };
+    }
+    return result;
   }
 }
 
