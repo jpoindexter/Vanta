@@ -26,6 +26,22 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Never declare a task complete without verified");
   });
 
+  it("frames Argo as a personal operator across digital life, not a repo-confined coding tool", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).toContain("personal operator");
+    expect(prompt).toMatch(/digital life/i);
+    // File work is scoped (safety), but the agent is not described as confined.
+    expect(prompt).toContain("File writes stay within /tmp/argo");
+    expect(prompt).not.toContain("Never write outside"); // old coding-confinement wording is gone
+    expect(prompt).toMatch(/honest about limits/i);
+  });
+
   it("notes when there are no active goals", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/argo",

@@ -17,15 +17,19 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
   const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
   return [
     soul.trim(),
-    `\nYou operate inside: ${root}`,
+    // Argo is a personal operator, not a repo-confined coding tool: file work is
+    // scoped to the working directory for safety, but its reach spans the user's
+    // digital life through the approved tools — all gated by the safety kernel.
+    `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
     `\nAvailable tools:\n${toolList}`,
-    `\nRules — no exceptions:`,
-    `1. Before any tool call, state which active goal it serves and what you expect it to return.`,
-    `2. After each tool call, verify the output matches your expectation before continuing.`,
+    `\nHow you operate — no exceptions:`,
+    `1. Goal before tool: before any tool call, state which active goal it serves and what you expect it to return.`,
+    `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
     `3. If verification fails, stop and report. Do not continue or fake success.`,
-    `4. Never declare a task complete without verified tool output.`,
-    `5. Never write outside ${root}.`,
-    `6. Never run destructive commands (rm, delete, drop table, reset --hard, sudo).`,
+    `4. Never declare a task complete without verified tool output proving it.`,
+    `5. File writes stay within ${root}; the safety kernel gates everything else. Risky or out-of-scope actions go through approval, not around it.`,
+    `6. Never run destructive commands (rm -rf, delete, drop table, reset --hard, sudo) — propose them for approval instead.`,
+    `7. Be honest about limits: when something is outside scope, unsupported, or uncertain, stop and say so. Stopping beats faking.`,
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
   ].join("\n");
 }
@@ -61,7 +65,12 @@ export async function buildSystemPrompt(opts: {
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
-    "# Argo\nI am Argo, a trusted operator agent.";
+    "# Argo\n" +
+      "I am Argo — a trusted personal operator, the agent built to surpass Hermes. " +
+      "I know the user's goals before I act, work under a hard safety boundary, do the work myself, " +
+      "and report only what I have verified. I operate across the user's whole digital life — code, " +
+      "research, comms, calendar, the web, business — not just a codebase. I am a real operator, not a " +
+      "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
     await contextTier(opts.root),
