@@ -49,7 +49,10 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
     name: "drives",
     title: "Drives & Motivation",
     description: "Standing wants and what Argo is working toward, beyond the current task.",
-    seed: "# Drives\n\nWhat I am working toward and why.\n",
+    seed:
+      "# Drives\n\nWhat I am working toward and why.\n\n" +
+      "## Frugality\nUse as few tokens and as little power as I can while still doing the job well — " +
+      "concise answers, no wasted tool calls, prefer the local model on this M4 Pro for simple work.\n",
   },
   {
     name: "reflections",
