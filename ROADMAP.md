@@ -110,4 +110,15 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 
 **Custom-Hermes fixes worth studying (diff `hermes-agent` vs `hermes-agent-clean`):** `gateway/stream_dispatch.py`+`stream_events.py` (streaming), `gateway/platforms/*`, `cron/scheduler.py`, `hermes_cli/config.py`+`web_server.py`, `plugins/model-providers/ai-gateway`.
 
+## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
+Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
+- [ ] **U1 · Queued input while busy** (★★★) — type-ahead; pending-input queue drained on turn end. TUI reducer + readline.
+- [ ] **U2 · @-file mentions** (★★★) — composer path autocomplete (pairs with image attach).
+- [ ] **U3 · Notifications** (★★★) — terminal bell + optional `osascript` desktop ping on turn-complete / approval-needed (matters for a leave-it-running operator).
+- [ ] **U4 · Real token/cost usage** (★★) — capture provider `usage` (OpenAI/Anthropic/Gemini fields; Codex SSE `response.completed`) → exact tokens + $ in `/usage` + status bar (replaces the chars/4 estimate).
+- [ ] **U5 · /context + /compact** (★★) — visual token-budget map + manual compaction command.
+- [ ] **U6 · /memory # quick-add** (★★) — capture a memory mid-turn.
+- [~] **U7+ · export · /mcp command · multi-dir (/add-dir) · themes · /vim** (★/◦) — demand-driven.
+Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model picker, /copy, /usage, streaming, approvals.
+
 **Self-evolving-Hermes takeaways (Nemotron Labs livestream, 2026):** The skill-bloat answer is NOT fewer/curated skills — it's **management**: inject only the skill *index* (names+descriptions) into context, adaptive-search to pull a full skill *body* on demand, and a background **curator** that prunes/compresses/revises the library. Argo already has the curator (track B); the missing piece is **index-only injection + on-demand body load** (currently Argo lists skills but should verify it's not over-injecting). Memory layer is **capped and pruned** (relevance decays over time). Identity carries a persona + "rules of engagement" + a sense of shared history with the user (loyalty) as prompt-injection resistance, paired with hard kernel boundaries. → This **reframes P6**: the win is the skill *system* (index/search/curator), so a small high-value seed set + good management beats bulk-porting 192. Folds into P2 (capped/pruned memory) and P3 (curator + skill-from-workflow are the self-evolving core — diff vs Argo's track B).
