@@ -62,6 +62,7 @@ describe("registry", () => {
       "run_code",
       "screenshot",
       "shell_cmd",
+      "speak",
       "todo",
       "watch_video",
       "web_fetch",
