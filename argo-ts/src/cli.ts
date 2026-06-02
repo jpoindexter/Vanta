@@ -140,6 +140,11 @@ async function runInstruction(
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
   console.log(`argo · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
+  // Ctrl+C aborts the current run gracefully (between iterations) instead of
+  // hard-killing — the loop returns "interrupted" and post-run memory still runs.
+  const controller = new AbortController();
+  const onSigint = (): void => controller.abort();
+  process.once("SIGINT", onSigint);
   try {
     const convo = createConversation(setup.systemPrompt, {
       provider: setup.provider,
@@ -149,6 +154,7 @@ async function runInstruction(
       requestApproval: approver(rl),
       maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
+      signal: controller.signal,
       ...consoleCallbacks(),
     });
     const outcome = await convo.send(instruction);
@@ -165,6 +171,7 @@ async function runInstruction(
       turnIndex: 1,
     });
   } finally {
+    process.removeListener("SIGINT", onSigint);
     rl.close();
   }
 }

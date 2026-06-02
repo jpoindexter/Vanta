@@ -17,9 +17,11 @@ export type AgentDeps = {
   onToolResult?: (name: string, ok: boolean, output: string) => void;
   maxIterations?: number;
   summarize?: Summarizer;
+  /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
+  signal?: AbortSignal;
 };
 
-export type StoppedReason = "done" | "max_iterations" | "repeated_failure";
+export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted";
 
 export type AgentOutcome = {
   finalText: string;
@@ -86,6 +88,14 @@ async function runTurn(
   let toolIterations = 0;
 
   for (let iter = 1; iter <= maxIter; iter++) {
+    if (deps.signal?.aborted) {
+      return {
+        finalText: "Interrupted.",
+        iterations: iter - 1,
+        stoppedReason: "interrupted",
+        toolIterations,
+      };
+    }
     const trimmed = deps.summarize
       ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize)
       : trimMessages(messages, deps.provider.contextWindow());
