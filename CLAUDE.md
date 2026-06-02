@@ -25,7 +25,9 @@ cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
-./run.sh                                   # interactive session: banner + chat REPL (history persists)
+./run.sh                                   # interactive session (runs first-run setup wizard if unconfigured)
+./run.sh setup                             # pick a model backend: openai | gemini | anthropic | openrouter | ollama
+./run.sh doctor                            # agent-side health: kernel ping, provider, key presence, store, goals
 ./run.sh run "<instruction>"              # or ./argo run "..." ; one-shot, kernel auto-starts
 ./run.sh help                              # list all subcommands
 

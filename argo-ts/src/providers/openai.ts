@@ -19,6 +19,10 @@ const CONTEXT_WINDOWS: Record<string, number> = {
   "o3-mini": 200_000,
   "qwen2.5:14b": 32_000,
   "llama3.2": 128_000,
+  // Gemini (OpenAI-compat endpoint)
+  "gemini-2.5-pro": 1_000_000,
+  "gemini-2.5-flash": 1_000_000,
+  "gemini-2.0-flash": 1_000_000,
 };
 
 /** Covers OpenAI and any OpenAI-compatible endpoint (Ollama, LM Studio). */

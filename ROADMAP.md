@@ -33,13 +33,13 @@ skills, prunes them safely) → it's reachable as a background service you can t
 
 ## Build order (execute top-down; each slice = real code + co-located tests + `tsc` clean + one commit)
 
-### A — Hook to any model + full setup  ← the literal end-state, do first
-- [ ] **A1 · Gemini provider** (S) — Google's OpenAI-compatible endpoint via the existing OpenAI adapter (baseURL swap), `GEMINI_API_KEY`. *Done when:* `ARGO_PROVIDER=gemini argo run "hi"` works. Completes "ChatGPT / Claude / Gemini".
-- [ ] **A2 · Provider registry** (M) — replace the env `switch` in `providers/index.ts` with a declarative `ProviderProfile` table (name, aliases, env_vars, baseUrl, authType, apiMode) + `registerProvider`/`listProviders`. *Why:* every later piece (wizard, model list, doctor) auto-wires off the registry instead of editing N files per provider. Mirrors Hermes `providers/base.py`.
-- [ ] **A3 · OpenRouter provider** (S) — one key → 200+ models (Claude/GPT/Gemini/Llama). *Why:* cheapest path to "or whatever"; public catalog needs no auth to list.
-- [ ] **A4 · `argo setup` wizard** (M) — provider picker → masked key prompt → **merge** into `argo-ts/.env` (never regenerate — preserves Google/search keys) → live model list w/ fallback → persist. Pure `upsertEnv(existing, updates)`. *Why:* the explicit "full setup on first launch" ask; replaces hand-editing `.env`.
-- [ ] **A5 · First-run detection** (S) — no `.env` (or `ARGO_PROVIDER` unset) on launch → auto-run `argo setup` before the banner. *Why:* "open argo and do a full setup" with zero prior knowledge.
-- [ ] **A6 · `argo status` / `argo doctor`** (S) — boxed health: kernel reachability (ping only, **never** auto-spawn), provider+model, per-provider key **presence** (✓/✗, never the value), store path + skill/memory/goal counts, live API ping. *Why:* instant "is my agent healthy"; mirrors `hermes_cli/status.py`+`doctor.py`.
+### A — Hook to any model + full setup  ← ✅ SHIPPED 2026-06-02 (live-verified on Gemini)
+- [x] **A1 · Gemini provider** (S) — Google's OpenAI-compatible endpoint via the OpenAI adapter (baseURL swap), `GEMINI_API_KEY`/`GOOGLE_API_KEY`. **Live-verified:** `ARGO_PROVIDER=gemini argo run` returns on `gemini-2.5-flash`.
+- [~] **A2 · Provider registry** — **DEFERRED** (review call): two adapters cover 5 providers; the full ProviderProfile registry is premature (over-generalization). A small shared `providers/catalog.ts` was extracted instead. Build the registry at the 6th provider / 3rd wire format.
+- [x] **A3 · OpenRouter provider** (S) — one key → 200+ models, OpenAI-compatible. `OPENROUTER_API_KEY`.
+- [x] **A4 · `argo setup` wizard** (M) — provider picker → hidden key prompt → **merge** into `argo-ts/.env` (pure `upsertEnv`, preserves all other keys) → model w/ default → persist (0600). Unit + integration tested.
+- [x] **A5 · First-run detection** (S) — no resolvable backend on launch → auto-run `argo setup`, **TTY-gated** (non-interactive callers told to run `argo setup`, never block). Wired `setup`/`status`/`doctor` commands.
+- [x] **A6 · `argo status` / `argo doctor`** (S) — boxed health: kernel **ping only** (never spawn), provider+model, per-provider key **presence** (✓/✗, never the value), store + skill/memory/goal counts. Live-verified.
 
 ### B — Self-improvement loop  ← "how it self-improves everything"
 - [ ] **B1 · Hook spine** (S) — minimal event bus: `onSessionStart`, `preLlmCall`, `preToolCall`, `postTurn`, `onSessionEnd`. *Why:* every self-improvement action in Hermes hangs off `invoke_hook`; without it there's nowhere to attach the loop. (Don't build all 17 Hermes hooks — these 5 cover it.)
