@@ -200,6 +200,15 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(r.output).toContain("usage:");
   });
 
+  it("/attachments shows and clears pending images (Hermes #37184)", async () => {
+    const ctx = makeCtx(home, convo());
+    ctx.state.pendingImages = [{ mime: "image/png", dataBase64: "AAAA" }];
+    expect((await executeSlash("/attachments", ctx)).output).toContain("1 image");
+    const cleared = await executeSlash("/attachments clear", ctx);
+    expect(cleared.output).toContain("cleared 1");
+    expect(ctx.state.pendingImages).toBeUndefined();
+  });
+
   it("maybeDroppedImage attaches a lone existing image path (quoted too), else null", async () => {
     const { writeFile } = await import("node:fs/promises");
     const { join } = await import("node:path");
