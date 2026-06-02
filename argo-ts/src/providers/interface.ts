@@ -16,7 +16,12 @@ export type CompletionResult = {
   text: string;
   toolCalls: ToolCall[];
   finishReason: string;
+  /** Real token counts when the provider reports them (else estimates are used). */
+  usage?: Usage;
 };
+
+/** Real token counts from the provider's response, when it reports them. */
+export type Usage = { inputTokens: number; outputTokens: number };
 
 /**
  * A streaming chunk. `text` deltas arrive as the model generates; a single

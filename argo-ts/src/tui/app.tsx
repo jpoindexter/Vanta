@@ -148,6 +148,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       .send(text, images)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
+        if (outcome.usage) {
+          dispatch({ t: "note", text: `· ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens` });
+        }
         // Ping when a long turn finishes — you may have looked away.
         if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Argo", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});

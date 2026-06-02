@@ -137,6 +137,9 @@ export async function runChat(
     state.pendingImages = undefined;
     const outcome = await convo.send(text, images);
     console.log(`\n${outcome.finalText}`);
+    if (outcome.usage) {
+      console.log(`  · ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens`);
+    }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
     await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText);
     await suggestSkillFromRun(text, process.env);

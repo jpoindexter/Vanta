@@ -34,6 +34,8 @@ export type AgentOutcome = {
   stoppedReason: StoppedReason;
   /** Total tool calls executed this turn — drives the post-turn self-improvement nudge. */
   toolIterations: number;
+  /** Real token usage summed across the turn's provider calls, when reported. */
+  usage?: { inputTokens: number; outputTokens: number };
 };
 
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -110,6 +112,9 @@ async function runTurn(
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   let consecutiveFailures = 0;
   let toolIterations = 0;
+  const turnUsage = { inputTokens: 0, outputTokens: 0 };
+  let sawUsage = false;
+  const usage = () => (sawUsage ? { ...turnUsage } : undefined);
   const callCounts = new Map<string, number>();
 
   for (let iter = 1; iter <= maxIter; iter++) {
@@ -119,6 +124,7 @@ async function runTurn(
         iterations: iter - 1,
         stoppedReason: "interrupted",
         toolIterations,
+        usage: usage(),
       };
     }
     const trimmed = deps.summarize
@@ -126,11 +132,16 @@ async function runTurn(
       : trimMessages(messages, deps.provider.contextWindow());
     const safe = sanitizeMessages(trimmed); // final pre-flight scrub (orphans, surrogates)
     const result = await getCompletion(deps, safe);
+    if (result.usage) {
+      turnUsage.inputTokens += result.usage.inputTokens;
+      turnUsage.outputTokens += result.usage.outputTokens;
+      sawUsage = true;
+    }
 
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
         messages.push({ role: "assistant", content: result.text });
-        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations };
+        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations, usage: usage() };
       }
       // Empty, no tools: nudge once and continue.
       messages.push({ role: "assistant", content: "" });
@@ -174,6 +185,7 @@ async function runTurn(
         iterations: iter,
         stoppedReason: "repeated_failure",
         toolIterations,
+        usage: usage(),
       };
     }
 
@@ -183,6 +195,7 @@ async function runTurn(
         iterations: iter,
         stoppedReason: "repeated_failure",
         toolIterations,
+        usage: usage(),
       };
     }
   }
@@ -192,6 +205,7 @@ async function runTurn(
     iterations: maxIter,
     stoppedReason: "max_iterations",
     toolIterations,
+    usage: usage(),
   };
 }
 

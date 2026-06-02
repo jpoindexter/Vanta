@@ -77,6 +77,9 @@ export class OpenAIProvider implements LLMProvider {
       text: choice.message.content ?? "",
       toolCalls,
       finishReason: choice.finish_reason ?? "stop",
+      usage: response.usage
+        ? { inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens }
+        : undefined,
     };
   }
 
@@ -94,6 +97,7 @@ export class OpenAIProvider implements LLMProvider {
         temperature: config?.temperature ?? 0.2,
         max_tokens: config?.maxTokens,
         stream: true,
+        stream_options: { include_usage: true },
       });
     } catch (err) {
       throw translateError(err, this.model);
@@ -101,8 +105,11 @@ export class OpenAIProvider implements LLMProvider {
 
     let text = "";
     let finishReason = "stop";
+    let usage: { inputTokens: number; outputTokens: number } | undefined;
     const toolDeltas: ToolCallDelta[] = [];
     for await (const chunk of stream) {
+      // The final usage chunk (with include_usage) has empty choices + a usage field.
+      if (chunk.usage) usage = { inputTokens: chunk.usage.prompt_tokens, outputTokens: chunk.usage.completion_tokens };
       const choice = chunk.choices[0];
       if (!choice) continue;
       const delta = choice.delta;
@@ -118,7 +125,7 @@ export class OpenAIProvider implements LLMProvider {
 
     yield {
       type: "done",
-      result: { text, toolCalls: foldToolCallDeltas(toolDeltas), finishReason },
+      result: { text, toolCalls: foldToolCallDeltas(toolDeltas), finishReason, usage },
     };
   }
 }
