@@ -11,6 +11,7 @@ import { screenshotTool } from "./screenshot.js";
 import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
 import { describeImageTool } from "./describe-image.js";
+import { lookAtScreenTool } from "./look-at-screen.js";
 import { runCodeTool } from "./run-code.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
@@ -58,6 +59,7 @@ const ALL_TOOLS: readonly Tool[] = [
   browserNavigateTool,
   browserExtractTool,
   describeImageTool,
+  lookAtScreenTool,
   runCodeTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
