@@ -24,6 +24,9 @@ cargo run -- doctor                       # health check, creates .argo/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
+# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.argo seed)
+./install.sh                               # then `argo` works from anywhere (no profile edit if ~/.local/bin is on PATH)
+
 # Agent — from repo root (preferred): self-bootstrapping launcher
 ./run.sh                                   # interactive session (runs first-run setup wizard if unconfigured)
 ./run.sh setup                             # pick a model backend: openai | gemini | anthropic | openrouter | ollama
