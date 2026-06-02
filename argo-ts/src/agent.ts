@@ -11,7 +11,9 @@ export type AgentDeps = {
   safety: SafetyClient;
   registry: ToolRegistry;
   root: string;
-  requestApproval: (action: string, reason: string) => Promise<boolean>;
+  /** Ask the human to approve a gated action. `toolName` lets the host key an
+   * allowlist ("always allow this tool"); omitted by tool-internal callers. */
+  requestApproval: (action: string, reason: string, toolName?: string) => Promise<boolean>;
   onText?: (text: string) => void;
   /** Live token deltas as the model streams. When set (and the provider supports
    * streaming), the loop streams instead of waiting for the full completion. */
@@ -235,7 +237,7 @@ async function dispatchTool(
   }
 
   if (verdict.risk === "ask") {
-    const approved = await deps.requestApproval(action, verdict.reason);
+    const approved = await deps.requestApproval(action, verdict.reason, call.name);
     const id = await deps.safety.proposeApproval(action);
     if (!approved) {
       if (id) await deps.safety.deny(id);
