@@ -95,3 +95,17 @@ skills, prunes them safely) → it's reachable as a background service you can t
 
 ## What stays out of v1 (→ PARKED)
 Bedrock + the long tail of ~20 niche providers; the other ~19 messaging platforms beyond Telegram; image-gen / transcription providers; multi-credential failover pool; trajectory/datagen pipeline (training-data, not runtime); desktop (Tauri) app.
+
+---
+
+## v1.1 — Hermes parity (post-recon 2026-06-02)
+Founding mandate (from the genesis session): **"the next agent, better than Hermes."** Match Hermes' breadth, exceed on kernel safety. Reference = Jason's CUSTOMIZED install `~/.hermes/hermes-agent/` (not the public repo). Sequenced slices — ship ONE at a time, each with a one-sentence Done.
+
+- [ ] **P1 · Slash-command parity** (SHIP FIRST). Add the session commands Hermes has that Argo lacks: `/history` (show transcript), `/retry` (re-run last user turn), `/undo` (drop last turn[s]), `/title <name>` (name session), `/reset` (full reset incl. system), `/fork` (branch session → new id, copy history), `/redraw` (TUI repaint). Wire in BOTH readline (`repl-commands.ts`) + TUI (`SLASH_COMMANDS`/palette). **Done = each command backed by real convo/session logic with a test; visible in both UIs.**
+- [ ] **P2 · Memory parity = DIFF, not build.** Argo already shipped a memory store (`~/.argo`, injection, LLM compression). Compare against Hermes' memory (`~/.hermes/memories`, state.db) and close only the real deltas. Don't rebuild.
+- [ ] **P3 · Self-improvement parity = DIFF.** Argo shipped track B (background-review, `write_skill`, safe curator). Diff vs Hermes' self-improvement loop; close deltas only.
+- [ ] **P4 · Identity reframe** (LOW RISK — prompt wording only). `prompt.ts`: reframe from repo-confined coding tool → personal operator across life domains (email/calendar/home/media/research) that KEEPS goal-gating + verified-output + kernel approval. Safety is enforced in code (`resolveInScope` + kernel `assess`), independent of prompt wording — confirmed 2026-06-02. FS work stays root-scoped; non-FS tools gated by approval. Blend = Jason's "both 1 and 2".
+- [ ] **P5 · Capability breadth (banner + tools).** Reflect the real tool/skill surface in the startup banner (Hermes shows domains: media/research/smart-home/productivity/social). Add genuinely-missing high-value tools only.
+- [~] **P6 · Skills — PARKED.** Hermes has 192 but Jason: "random ass skills that make no sense." Do NOT bulk-port. Curate a small high-value set later, demand-driven. Lowest priority.
+
+**Custom-Hermes fixes worth studying (diff `hermes-agent` vs `hermes-agent-clean`):** `gateway/stream_dispatch.py`+`stream_events.py` (streaming), `gateway/platforms/*`, `cron/scheduler.py`, `hermes_cli/config.py`+`web_server.py`, `plugins/model-providers/ai-gateway`.
