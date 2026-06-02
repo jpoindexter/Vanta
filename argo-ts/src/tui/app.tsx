@@ -10,8 +10,10 @@ import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
+import { ApprovalPrompt } from "./approval.js";
 import { Transcript, Palette, shortArgs, firstLine, type Entry } from "./transcript.js";
 import { useOverlays } from "./use-overlays.js";
+import { useApproval } from "./use-approval.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 
@@ -83,15 +85,14 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [input, setInput] = useState("");
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
-  const [pending, setPending] = useState<{ action: string; reason: string } | null>(null);
   const [banner, setBanner] = useState<BannerData | null>(null);
   // Single source of truth for the live model — the /model picker swaps this and
   // the conversation's provider together, so every read here stays consistent.
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
-  const approvalResolve = useRef<((ok: boolean) => void) | null>(null);
   const turnStartRef = useRef<number>(0);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
+  const { pending, requestApproval, chooseApproval } = useApproval(dispatch);
   const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
 
@@ -107,16 +108,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, args: shortArgs(args) }),
       onToolResult: (name, ok, output) => dispatch({ t: "toolResult", name, ok, output: firstLine(output) }),
-      requestApproval: (action, reason) =>
-        new Promise<boolean>((resolve) => {
-          approvalResolve.current = resolve;
-          setPending({ action, reason });
-        }),
+      requestApproval,
     });
   }
 
-  // Gather the startup banner once on mount (tools are sync; skills + MCP are
-  // async file reads). Rendered via <Static> so it commits to scrollback.
+  // Gather the startup banner once on mount. Rendered via <Static>.
   useEffect(() => {
     void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,16 +128,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
-    if (!line) return;
-
-    if (pending) {
-      const ok = /^y/i.test(line);
-      approvalResolve.current?.(ok);
-      approvalResolve.current = null;
-      setPending(null);
-      dispatch({ t: "note", text: ok ? "✓ approved" : "✗ denied" });
-      return;
-    }
+    if (!line || pending) return; // approval is handled by the ApprovalPrompt's own keys
 
     if (line.startsWith("/")) {
       const convo = convoRef.current;
@@ -214,11 +201,15 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
       {pending ? (
         <Box flexDirection="column" marginTop={1}>
-          <Text color="yellow">⚠ approve: {pending.action}</Text>
-          <Text dimColor>{pending.reason}</Text>
-          <Box borderStyle="round" borderColor="yellow" paddingX={1} width={w}>
-            <Text color="yellow">approve (y/n) › </Text>
-            <TextInput value={input} onChange={setInput} onSubmit={submit} />
+          <ApprovalPrompt
+            action={pending.action}
+            reason={pending.reason}
+            toolName={pending.toolName}
+            width={w}
+            onChoose={chooseApproval}
+          />
+          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}>
+            <Text dimColor>{"› "}awaiting approval…</Text>
           </Box>
         </Box>
       ) : overlay === "sessions" ? (
