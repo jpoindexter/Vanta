@@ -53,6 +53,35 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("no active goals");
   });
 
+  it("injects the skill index (names + descriptions) when skills are provided", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+      skills: [
+        { name: "systematic-debugging", description: "trace root cause before fixing" },
+        { name: "tdd-cycle", description: "red-green-refactor loop" },
+      ],
+    });
+    expect(prompt).toContain("Your learned skills");
+    expect(prompt).toContain("systematic-debugging: trace root cause before fixing");
+    expect(prompt).toContain("tdd-cycle: red-green-refactor loop");
+    expect(prompt).toContain("recall"); // tells the agent how to load a body
+  });
+
+  it("omits the skills section when there are none", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).not.toContain("Your learned skills");
+  });
+
   it("injects memory into the volatile tier when provided", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/argo",

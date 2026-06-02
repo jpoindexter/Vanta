@@ -5,6 +5,9 @@ import type { ToolSchema } from "./providers/interface.js";
 
 const CONTEXT_FILES = ["ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
 
+/** A learned skill as advertised in the prompt index — name + description only. */
+export type SkillIndexEntry = { name: string; description: string };
+
 async function readIfExists(path: string): Promise<string | null> {
   try {
     return await readFile(path, "utf8");
@@ -43,6 +46,18 @@ async function contextTier(root: string): Promise<string> {
   return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
 }
 
+/**
+ * The learned-skill INDEX (names + descriptions only — never bodies). Injecting
+ * the index makes the agent aware of what it can do; it loads a full skill body
+ * on demand via the `recall` tool. This is how the skill library stays useful
+ * without bloating context (the Hermes pattern).
+ */
+function skillsTier(skills?: SkillIndexEntry[]): string {
+  if (!skills?.length) return "";
+  const index = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
+  return `Your learned skills — call \`recall\` to load the full body of one before applying it:\n${index}`;
+}
+
 function volatileTier(goals: Goal[], now: string, memory?: string): string {
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
@@ -62,6 +77,7 @@ export async function buildSystemPrompt(opts: {
   tools: ToolSchema[];
   now: string;
   memory?: string;
+  skills?: SkillIndexEntry[];
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -73,6 +89,7 @@ export async function buildSystemPrompt(opts: {
       "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
+    skillsTier(opts.skills),
     await contextTier(opts.root),
     volatileTier(opts.goals, opts.now, opts.memory),
   ].filter(Boolean);
