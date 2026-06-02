@@ -36,6 +36,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.argo/cron.tsv` load/add/save |
 | `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks; one failure doesn't abort the batch |
 | `schedule/commands.ts` | Phase 6 — `argo schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
+| `gateway/run.ts` | v1 E1 — `argo gateway` foreground daemon: `gatewayTick` (run due cron tasks once) + `runGateway` (interruptible tick loop, SIGINT/SIGTERM-clean). `ARGO_GATEWAY_TICK_MS` |
+| `service/launchd.ts` + `service/manager.ts` | v1 E1 — pure `buildLaunchdPlist` + `argo service install\|uninstall\|status` (launchd user agent that keeps `argo gateway` alive; captures PATH). macOS only for now |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
 | `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
 | `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `ARGO_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `argo room <name>` runs rooted there → per-project goal stream |

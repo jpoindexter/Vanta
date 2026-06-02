@@ -7,6 +7,9 @@ import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { installSkillLibrary } from "./skills/library.js";
 import { listSessions } from "./sessions/store.js";
+import { runGateway } from "./gateway/run.js";
+import { installService, uninstallService, serviceStatus } from "./service/manager.js";
+import { resolveArgoHome } from "./store/home.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import {
   runRoomsList,
@@ -58,7 +61,9 @@ function usage(): void {
       "       argo skills [install [--force]]   list skills, or install the bundled library",
       '       argo skill <name> ["<instruction>"]  print a skill, or run with it',
       '       argo schedule "<instruction>" --cron "<expr>" | schedule list',
-      "       argo cron                         run due tasks (for launchd/cron)",
+      "       argo cron                         run due tasks once (for launchd/cron)",
+      "       argo gateway                      run the scheduler as a foreground daemon",
+      "       argo service [install|uninstall|status]   manage the background launchd agent",
       "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
       "       argo modes [list|install]         operator modes",
       "       argo auth google                  one-time Google OAuth",
@@ -222,6 +227,44 @@ function buildCronRunTask(repoRoot: string): RunTask {
   };
 }
 
+// `argo gateway` — run the cron scheduler as a foreground daemon (the long-lived
+// process that fires scheduled tasks without an external trigger).
+async function runGatewayCommand(repoRoot: string): Promise<void> {
+  await runGateway({
+    dataDir: dataDirFor(repoRoot),
+    run: buildCronRunTask(repoRoot),
+    tickMs: Number(process.env.ARGO_GATEWAY_TICK_MS) || undefined,
+  });
+}
+
+// `argo service install|uninstall|status` — manage the background launchd agent.
+async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void> {
+  const sub = rest[0] ?? "status";
+  try {
+    if (sub === "install") {
+      const path = await installService(repoRoot);
+      console.log(`Service installed and loaded: ${path}`);
+      console.log(`Logs: ${join(resolveArgoHome(), "gateway.log")}`);
+      return;
+    }
+    if (sub === "uninstall") {
+      await uninstallService();
+      return void console.log("Service uninstalled.");
+    }
+    if (sub === "status") {
+      const s = await serviceStatus();
+      console.log(
+        `platform ${s.platform} · installed ${s.installed ? "yes" : "no"} · running ${s.running ? "yes" : "no"}`,
+      );
+      return void console.log(s.plistPath);
+    }
+    console.log("Usage: argo service install | uninstall | status");
+  } catch (err: unknown) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
+}
+
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
@@ -244,6 +287,8 @@ async function main(): Promise<void> {
   }
   if (cmd === "cron")
     return runCron(dataDirFor(repoRoot), new Date(), buildCronRunTask(repoRoot));
+  if (cmd === "gateway") return runGatewayCommand(repoRoot);
+  if (cmd === "service") return runServiceCommand(repoRoot, rest);
   if (cmd === "skills") return runSkillsCommand(rest);
   if (cmd === "skill") return runSkillCommand(repoRoot, rest);
   if (cmd === "rooms") return runRoomsList(process.env);
