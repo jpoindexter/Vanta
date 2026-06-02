@@ -3,7 +3,7 @@ import { render } from "ink-testing-library";
 import { App, reduce, type State } from "./app.js";
 import type { RunSetup } from "../session.js";
 
-const base: State = { entries: [], streaming: "", busy: false, status: "idle" };
+const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [] };
 
 describe("tui reduce", () => {
   it("user submit adds an entry and goes busy/thinking", () => {
@@ -11,6 +11,14 @@ describe("tui reduce", () => {
     expect(s.entries).toEqual([{ kind: "user", text: "hi" }]);
     expect(s.busy).toBe(true);
     expect(s.status).toBe("thinking");
+  });
+
+  it("enqueue stores type-ahead and shows it; dequeue pops the first", () => {
+    const a = reduce(reduce(base, { t: "enqueue", text: "first" }), { t: "enqueue", text: "second" });
+    expect(a.queued).toEqual(["first", "second"]);
+    expect(a.entries.at(-1)).toEqual({ kind: "note", text: "⏎ queued: second" });
+    const b = reduce(a, { t: "dequeue" });
+    expect(b.queued).toEqual(["second"]);
   });
 
   it("deltas accumulate into the streaming buffer", () => {
@@ -46,7 +54,7 @@ describe("tui reduce", () => {
 
   it("clear empties the transcript", () => {
     const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true }, { t: "clear" });
-    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle" });
+    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [] });
   });
 });
 

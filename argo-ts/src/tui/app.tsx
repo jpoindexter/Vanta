@@ -26,7 +26,7 @@ const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!pro
 // engine's events (onTextDelta / onToolCall / onToolResult) live. Slash commands
 // here are a minimal set; the readline REPL keeps the full set.
 
-export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string };
+export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[] };
 
 export type Action =
   | { t: "user"; text: string }
@@ -35,6 +35,8 @@ export type Action =
   | { t: "toolResult"; name: string; ok: boolean; output: string }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
+  | { t: "enqueue"; text: string }
+  | { t: "dequeue" }
   | { t: "clear" };
 
 const SPINNER = spinnerFrames();
@@ -74,15 +76,20 @@ export function reduce(s: State, a: Action): State {
     }
     case "note":
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
+    case "enqueue":
+      // Type-ahead while busy: queue the message + show it now; drained on commit.
+      return { ...s, entries: [...s.entries, { kind: "note", text: `⏎ queued: ${a.text}` }], queued: [...s.queued, a.text] };
+    case "dequeue":
+      return { ...s, queued: s.queued.slice(1) };
     case "clear":
-      return { entries: [], streaming: "", busy: false, status: "idle" };
+      return { entries: [], streaming: "", busy: false, status: "idle", queued: [] };
   }
 }
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
   const app = useApp();
-  const [state, dispatch] = useReducer(reduce, { entries: [], streaming: "", busy: false, status: "idle" });
+  const [state, dispatch] = useReducer(reduce, { entries: [], streaming: "", busy: false, status: "idle", queued: [] });
   const [input, setInput] = useState("");
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
@@ -180,6 +187,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       return;
     }
 
+    // Type-ahead: if a turn is running, queue this message instead of dropping it.
+    if (state.busy) {
+      dispatch({ t: "enqueue", text: line });
+      return;
+    }
     // Drag an image into the terminal → path arrives as text; attach + send.
     void maybeDroppedImage(line).then((dropped) => {
       if (dropped) {
@@ -190,6 +202,18 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       }
     });
   };
+
+  // Drain the type-ahead queue: when a turn finishes and messages are queued,
+  // send the next one. (Effect, so it re-runs when busy flips false.)
+  const sendRef = useRef(sendToAgent);
+  sendRef.current = sendToAgent;
+  useEffect(() => {
+    if (!state.busy && state.queued.length > 0) {
+      const next = state.queued[0]!;
+      dispatch({ t: "dequeue" });
+      sendRef.current(next);
+    }
+  }, [state.busy, state.queued]);
 
   // Slash palette — suggest matching commands while typing a bare `/word`.
   const slashHead =
