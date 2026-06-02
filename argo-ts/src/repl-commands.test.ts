@@ -240,6 +240,13 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect((await readRegion("semantic", ctx.env)) ?? "").toContain("Jason prefers terse replies");
   });
 
+  it("/compress is a safe no-op on a short conversation (nothing to compact)", async () => {
+    const ctx = makeCtx(home, convo()); // 5 messages, all protected → no summarizer call
+    const r = await executeSlash("/compress", ctx);
+    expect(r.output).toContain("compressed");
+    expect(ctx.convo.messages).toHaveLength(5);
+  });
+
   it("/goal status lists active goals (none here)", async () => {
     const r = await executeSlash("/goal status", makeCtx(home, convo()));
     expect(r.output).toContain("no active goals");
