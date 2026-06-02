@@ -2,6 +2,43 @@ import type { Message } from "./types.js";
 
 const CHARS_PER_TOKEN = 4;
 
+// Lone (unpaired) UTF-16 surrogate code units — high surrogate not followed by a
+// low one, or a low not preceded by a high. These slip in from truncated tool
+// output and make the model API reject the whole request with an opaque 400.
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+function stripSurrogates(text: string): string {
+  return text.replace(LONE_SURROGATE, "");
+}
+
+/**
+ * Final pre-flight scrub right before an API call. Two cheap defenses against
+ * silent 400s that are painful to diagnose:
+ *  1. Drop any `tool` message whose `toolCallId` has no matching assistant
+ *     `tool_calls` id anywhere in the set (orphaned by trim/compression).
+ *  2. Strip lone Unicode surrogates from all message content.
+ * Pure — returns a new array; the live transcript is untouched.
+ */
+export function sanitizeMessages(messages: Message[]): Message[] {
+  const callIds = new Set<string>();
+  for (const m of messages) {
+    if (m.role === "assistant") {
+      for (const tc of m.toolCalls ?? []) callIds.add(tc.id);
+    }
+  }
+
+  const out: Message[] = [];
+  for (const m of messages) {
+    if (m.role === "tool") {
+      if (!callIds.has(m.toolCallId)) continue; // orphaned result → drop
+      out.push({ ...m, content: stripSurrogates(m.content) });
+    } else {
+      out.push({ ...m, content: stripSurrogates(m.content) });
+    }
+  }
+  return out;
+}
+
 export function estimateTokens(messages: Message[]): number {
   return Math.ceil(JSON.stringify(messages).length / CHARS_PER_TOKEN);
 }
