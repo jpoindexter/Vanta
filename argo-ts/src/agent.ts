@@ -2,7 +2,7 @@ import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
-import type { Message, ToolCall } from "./types.js";
+import type { Message, ToolCall, ImageAttachment } from "./types.js";
 import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 
@@ -49,8 +49,8 @@ function callSignature(name: string, args: Record<string, unknown>): string {
 export type Conversation = {
   /** The live transcript (system first). Read-only in spirit; the loop mutates it. */
   messages: Message[];
-  /** Send a user turn; runs the agent loop and returns the outcome, keeping history. */
-  send: (userText: string) => Promise<AgentOutcome>;
+  /** Send a user turn (optionally with attached images); runs the loop, keeps history. */
+  send: (userText: string, images?: ImageAttachment[]) => Promise<AgentOutcome>;
   /**
    * Hot-swap the model mid-conversation (the /model picker). Reassigns the
    * provider the loop reads each turn; pass a matching summarizer so context
@@ -82,7 +82,7 @@ export function createConversation(
   };
   return {
     messages,
-    send: (userText: string) => runTurn(messages, ctx, deps, userText),
+    send: (userText: string, images?: ImageAttachment[]) => runTurn(messages, ctx, deps, userText, images),
     setProvider: (provider, summarize) => {
       deps.provider = provider;
       if (summarize) deps.summarize = summarize;
@@ -104,9 +104,10 @@ async function runTurn(
   ctx: ToolContext,
   deps: AgentDeps,
   userText: string,
+  images?: ImageAttachment[],
 ): Promise<AgentOutcome> {
   const maxIter = deps.maxIterations ?? 50;
-  messages.push({ role: "user", content: userText });
+  messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   let consecutiveFailures = 0;
   let toolIterations = 0;
   const callCounts = new Map<string, number>();

@@ -14,7 +14,11 @@ const SESSIONS_SUBDIR = "sessions";
 const MessageSchema: z.ZodType<Message> = z.lazy(() =>
   z.union([
     z.object({ role: z.literal("system"), content: z.string() }),
-    z.object({ role: z.literal("user"), content: z.string() }),
+    z.object({
+      role: z.literal("user"),
+      content: z.string(),
+      images: z.array(z.object({ mime: z.string(), dataBase64: z.string() })).optional(),
+    }),
     z.object({
       role: z.literal("assistant"),
       content: z.string(),

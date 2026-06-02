@@ -162,6 +162,18 @@ function toOpenAIMessage(m: Message): ChatCompletionMessageParam {
     case "system":
       return { role: "system", content: m.content };
     case "user":
+      if (m.images?.length) {
+        return {
+          role: "user",
+          content: [
+            ...(m.content ? [{ type: "text" as const, text: m.content }] : []),
+            ...m.images.map((img) => ({
+              type: "image_url" as const,
+              image_url: { url: `data:${img.mime};base64,${img.dataBase64}` },
+            })),
+          ],
+        };
+      }
       return { role: "user", content: m.content };
     case "tool":
       return { role: "tool", tool_call_id: m.toolCallId, content: m.content };

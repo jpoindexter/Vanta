@@ -100,7 +100,20 @@ export function toAnthropicMessages(messages: Message[]): {
         systemParts.push(m.content);
         break;
       case "user":
-        out.push({ role: "user", content: m.content });
+        if (m.images?.length) {
+          out.push({
+            role: "user",
+            content: [
+              ...(m.content ? [{ type: "text", text: m.content }] : []),
+              ...m.images.map((img) => ({
+                type: "image",
+                source: { type: "base64", media_type: img.mime, data: img.dataBase64 },
+              })),
+            ],
+          });
+        } else {
+          out.push({ role: "user", content: m.content });
+        }
         break;
       case "tool":
         out.push({

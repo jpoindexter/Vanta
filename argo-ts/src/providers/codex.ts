@@ -122,7 +122,16 @@ export function toCodexInput(messages: Message[]): { instructions: string; input
         system.push(m.content);
         break;
       case "user":
-        input.push({ role: "user", content: [{ type: "input_text", text: m.content }] });
+        input.push({
+          role: "user",
+          content: [
+            { type: "input_text", text: m.content },
+            ...(m.images?.map((img) => ({
+              type: "input_image",
+              image_url: `data:${img.mime};base64,${img.dataBase64}`,
+            })) ?? []),
+          ],
+        });
         break;
       case "assistant":
         if (m.content) input.push({ role: "assistant", content: [{ type: "output_text", text: m.content }] });
