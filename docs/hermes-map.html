@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hermes Architecture Map — Argo Reference</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e8e8e2;font:14px/1.5 -apple-system,BlinkMacSystemFont,'Inter',monospace;min-height:100vh}
+header{padding:20px 28px 16px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;gap:16px;justify-content:space-between}
+header h1{font-size:15px;font-weight:700;letter-spacing:.02em}header span{color:#666;font-size:13px}
+.legend{display:flex;gap:12px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot.steal{background:#4ade80}.dot.improve{background:#fbbf24}.dot.replace{background:#f87171}.dot.skip{background:#3a3a3a}
+.legend-item{font-size:12px;color:#999;display:flex;align-items:center}
+.layout{display:grid;grid-template-columns:1fr 340px;height:calc(100vh - 61px)}
+.graph{overflow-y:auto;padding:20px 24px}
+.layer{margin-bottom:20px}
+.layer-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#444;margin-bottom:10px;padding-left:2px}
+.nodes{display:flex;flex-wrap:wrap;gap:8px}
+.node{border-radius:10px;padding:9px 13px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.node:hover{transform:translateY(-1px);filter:brightness(1.15)}
+.node.active{outline:2px solid #fff;outline-offset:2px}
+.node.steal{background:#0d2417;border-color:#1e4d2b;color:#4ade80}
+.node.improve{background:#241a00;border-color:#4d3800;color:#fbbf24}
+.node.replace{background:#240a0a;border-color:#4d1414;color:#f87171}
+.node.skip{background:#141414;border-color:#2a2a2a;color:#555}
+.node .name{font-size:13px;font-weight:600}
+.node .meta{font-size:11px;opacity:.65;margin-top:2px}
+.panel{border-left:1px solid #1e1e1e;background:#0d0d0d;overflow-y:auto;padding:24px 20px}
+.panel .empty{color:#444;font-size:13px;margin-top:40px;text-align:center}
+.panel h2{font-size:14px;font-weight:700;margin-bottom:4px}
+.panel .badge{display:inline-block;border-radius:4px;font-size:11px;font-weight:600;padding:2px 7px;margin-bottom:14px;letter-spacing:.05em}
+.badge.steal{background:#0d2417;color:#4ade80;border:1px solid #1e4d2b}
+.badge.improve{background:#241a00;color:#fbbf24;border:1px solid #4d3800}
+.badge.replace{background:#240a0a;color:#f87171;border:1px solid #4d1414}
+.badge.skip{background:#141414;color:#555;border:1px solid #2a2a2a}
+.panel section{margin-bottom:18px}
+.panel section h3{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#555;margin-bottom:6px}
+.panel section p{font-size:13px;color:#bbb;line-height:1.6}
+.panel .argo-box{background:#0f1a14;border:1px solid #1e4d2b;border-radius:8px;padding:10px 12px}
+.panel .argo-box .file{font-family:monospace;font-size:12px;color:#4ade80}
+.panel .argo-box .note{font-size:12px;color:#888;margin-top:4px}
+.panel .functions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.fn-tag{background:#161616;border:1px solid #2a2a2a;border-radius:5px;padding:2px 7px;font-size:11px;font-family:monospace;color:#aaa}
+.panel .why-box{background:#1a1200;border:1px solid #4d3800;border-radius:8px;padding:10px 12px;font-size:12px;color:#fbbf24;line-height:1.6}
+.panel .skip-note{font-size:12px;color:#555;font-style:italic}
+hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <h1>Hermes Architecture Map</h1>
+    <span>Argo reference — click any module</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="dot steal"></span>Steal pattern</div>
+    <div class="legend-item"><span class="dot improve"></span>Improve on</div>
+    <div class="legend-item"><span class="dot replace"></span>Replace entirely</div>
+    <div class="legend-item"><span class="dot skip"></span>Skip / not relevant</div>
+  </div>
+</header>
+<div class="layout">
+<div class="graph">
+
+<div class="layer">
+  <div class="layer-label">Entry Points</div>
+  <div class="nodes">
+    <div class="node improve" data-id="run_agent" onclick="show('run_agent')">
+      <div class="name">run_agent.py</div>
+      <div class="meta">AIAgent class · 4575 lines · entry</div>
+    </div>
+    <div class="node improve" data-id="cli" onclick="show('cli')">
+      <div class="name">cli.py</div>
+      <div class="meta">Interactive CLI · prompt_toolkit</div>
+    </div>
+    <div class="node skip" data-id="gateway" onclick="show('gateway')">
+      <div class="name">gateway/</div>
+      <div class="meta">Telegram · Discord · Slack · Signal</div>
+    </div>
+    <div class="node skip" data-id="acp_adapter" onclick="show('acp_adapter')">
+      <div class="name">acp_adapter/</div>
+      <div class="meta">ACP protocol adapter</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Conversation Loop</div>
+  <div class="nodes">
+    <div class="node improve" data-id="conversation_loop" onclick="show('conversation_loop')">
+      <div class="name">conversation_loop.py</div>
+      <div class="meta">run_conversation() · 40 symbols · core loop</div>
+    </div>
+    <div class="node steal" data-id="iteration_budget" onclick="show('iteration_budget')">
+      <div class="name">iteration_budget.py</div>
+      <div class="meta">IterationBudget · 90 parent / 50 sub</div>
+    </div>
+    <div class="node steal" data-id="retry_utils" onclick="show('retry_utils')">
+      <div class="name">retry_utils.py</div>
+      <div class="meta">Jittered backoff · 5s base / 120s cap</div>
+    </div>
+    <div class="node improve" data-id="error_classifier" onclick="show('error_classifier')">
+      <div class="name">error_classifier.py</div>
+      <div class="meta">API error → category · billing / auth / rate</div>
+    </div>
+    <div class="node steal" data-id="message_sanitization" onclick="show('message_sanitization')">
+      <div class="name">message_sanitization.py</div>
+      <div class="meta">Scrub surrogates / orphan tool results</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Prompt System</div>
+  <div class="nodes">
+    <div class="node steal" data-id="system_prompt" onclick="show('system_prompt')">
+      <div class="name">system_prompt.py</div>
+      <div class="meta">3-tier: stable + context + volatile · 11 symbols</div>
+    </div>
+    <div class="node steal" data-id="prompt_builder" onclick="show('prompt_builder')">
+      <div class="name">prompt_builder.py</div>
+      <div class="meta">Builds messages[] · 65 symbols</div>
+    </div>
+    <div class="node steal" data-id="soul_md" onclick="show('soul_md')">
+      <div class="name">SOUL.md</div>
+      <div class="meta">Agent identity · editable file</div>
+    </div>
+    <div class="node steal" data-id="prompt_caching" onclick="show('prompt_caching')">
+      <div class="name">prompt_caching.py</div>
+      <div class="meta">Anthropic prefix cache · stable tier cached</div>
+    </div>
+    <div class="node steal" data-id="subdirectory_hints" onclick="show('subdirectory_hints')">
+      <div class="name">subdirectory_hints.py</div>
+      <div class="meta">Injects cwd context after tool results</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Memory &amp; Context</div>
+  <div class="nodes">
+    <div class="node steal" data-id="memory_manager" onclick="show('memory_manager')">
+      <div class="name">memory_manager.py</div>
+      <div class="meta">MemoryManager · pre/post turn sync · 48 symbols</div>
+    </div>
+    <div class="node steal" data-id="memory_provider" onclick="show('memory_provider')">
+      <div class="name">memory_provider.py</div>
+      <div class="meta">MemoryProvider interface · plugin abstraction</div>
+    </div>
+    <div class="node steal" data-id="context_engine" onclick="show('context_engine')">
+      <div class="name">context_engine.py</div>
+      <div class="meta">Pluggable compression · 75% trigger · 18 sym</div>
+    </div>
+    <div class="node steal" data-id="context_compressor" onclick="show('context_compressor')">
+      <div class="name">context_compressor.py</div>
+      <div class="meta">protect_first=3 / last=6 · 69 symbols</div>
+    </div>
+    <div class="node steal" data-id="conversation_compression" onclick="show('conversation_compression')">
+      <div class="name">conversation_compression.py</div>
+      <div class="meta">LLM-based summarization · 16 symbols</div>
+    </div>
+    <div class="node skip" data-id="context_references" onclick="show('context_references')">
+      <div class="name">context_references.py</div>
+      <div class="meta">@ file references in messages</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Tools &amp; Safety</div>
+  <div class="nodes">
+    <div class="node improve" data-id="tool_executor" onclick="show('tool_executor')">
+      <div class="name">tool_executor.py</div>
+      <div class="meta">Sequential / concurrent (8 workers) · 22 sym</div>
+    </div>
+    <div class="node improve" data-id="tool_guardrails" onclick="show('tool_guardrails')">
+      <div class="name">tool_guardrails.py</div>
+      <div class="meta">Loop safety · repeated failures · 35 symbols</div>
+    </div>
+    <div class="node steal" data-id="tool_dispatch_helpers" onclick="show('tool_dispatch_helpers')">
+      <div class="name">tool_dispatch_helpers.py</div>
+      <div class="meta">Toolset scope · schema collection · 32 sym</div>
+    </div>
+    <div class="node replace" data-id="file_safety" onclick="show('file_safety')">
+      <div class="name">file_safety.py</div>
+      <div class="meta">Advisory blocklist · "NOT a security boundary"</div>
+    </div>
+    <div class="node steal" data-id="tool_result_classification" onclick="show('tool_result_classification')">
+      <div class="name">tool_result_classification.py</div>
+      <div class="meta">Classify tool output type · 5 symbols</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Skills &amp; Learning</div>
+  <div class="nodes">
+    <div class="node steal" data-id="skill_commands" onclick="show('skill_commands')">
+      <div class="name">skill_commands.py</div>
+      <div class="meta">Load skills · slash command discovery · 24 sym</div>
+    </div>
+    <div class="node steal" data-id="skill_bundles" onclick="show('skill_bundles')">
+      <div class="name">skill_bundles.py</div>
+      <div class="meta">YAML bundles · group related skills · 28 sym</div>
+    </div>
+    <div class="node steal" data-id="curator" onclick="show('curator')">
+      <div class="name">curator.py</div>
+      <div class="meta">Background consolidation · archive stale · 52 sym</div>
+    </div>
+    <div class="node steal" data-id="skill_utils" onclick="show('skill_utils')">
+      <div class="name">skill_utils.py</div>
+      <div class="meta">Skill file helpers · 33 symbols</div>
+    </div>
+    <div class="node steal" data-id="skill_preprocessing" onclick="show('skill_preprocessing')">
+      <div class="name">skill_preprocessing.py</div>
+      <div class="meta">Template substitution · shell expansion</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">LLM Providers &amp; Transports</div>
+  <div class="nodes">
+    <div class="node steal" data-id="transports_base" onclick="show('transports_base')">
+      <div class="name">transports/base.py</div>
+      <div class="meta">Transport interface · base class</div>
+    </div>
+    <div class="node steal" data-id="transports_chat" onclick="show('transports_chat')">
+      <div class="name">transports/chat_completions.py</div>
+      <div class="meta">OpenAI compat format · 21 symbols</div>
+    </div>
+    <div class="node improve" data-id="anthropic_adapter" onclick="show('anthropic_adapter')">
+      <div class="name">anthropic_adapter.py</div>
+      <div class="meta">Anthropic native · 97 symbols · streaming</div>
+    </div>
+    <div class="node skip" data-id="bedrock_adapter" onclick="show('bedrock_adapter')">
+      <div class="name">bedrock_adapter.py</div>
+      <div class="meta">AWS Bedrock · 50 symbols</div>
+    </div>
+    <div class="node skip" data-id="gemini_adapter" onclick="show('gemini_adapter')">
+      <div class="name">gemini_native_adapter.py</div>
+      <div class="meta">Google Gemini · 61 symbols</div>
+    </div>
+    <div class="node steal" data-id="model_metadata" onclick="show('model_metadata')">
+      <div class="name">model_metadata.py</div>
+      <div class="meta">Context windows · pricing · caps · 88 sym</div>
+    </div>
+    <div class="node improve" data-id="nous_rate_guard" onclick="show('nous_rate_guard')">
+      <div class="name">nous_rate_guard.py</div>
+      <div class="meta">Per-model rate limiting · 22 symbols</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Shell, Display &amp; Hooks</div>
+  <div class="nodes">
+    <div class="node steal" data-id="shell_hooks" onclick="show('shell_hooks')">
+      <div class="name">shell_hooks.py</div>
+      <div class="meta">on_session_start · pre_llm_call · 59 sym</div>
+    </div>
+    <div class="node improve" data-id="display" onclick="show('display')">
+      <div class="name">display.py</div>
+      <div class="meta">Terminal streaming output · 66 symbols</div>
+    </div>
+    <div class="node improve" data-id="trajectory" onclick="show('trajectory')">
+      <div class="name">trajectory.py</div>
+      <div class="meta">Action trajectory log · 9 symbols</div>
+    </div>
+    <div class="node steal" data-id="agent_runtime_helpers" onclick="show('agent_runtime_helpers')">
+      <div class="name">agent_runtime_helpers.py</div>
+      <div class="meta">Background tasks · steer · 43 symbols</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Credentials &amp; Auth (skip for Argo)</div>
+  <div class="nodes">
+    <div class="node skip" data-id="credential_pool" onclick="show('credential_pool')">
+      <div class="name">credential_pool.py</div>
+      <div class="meta">Multi-profile cred management · 95 sym</div>
+    </div>
+    <div class="node skip" data-id="credential_sources" onclick="show('credential_sources')">
+      <div class="name">credential_sources.py</div>
+      <div class="meta">API key resolution chain · 22 symbols</div>
+    </div>
+    <div class="node skip" data-id="google_oauth" onclick="show('google_oauth')">
+      <div class="name">google_oauth.py</div>
+      <div class="meta">Google OAuth flow · 91 symbols</div>
+    </div>
+    <div class="node skip" data-id="onboarding" onclick="show('onboarding')">
+      <div class="name">onboarding.py</div>
+      <div class="meta">First-run setup · key entry · 18 sym</div>
+    </div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-label">Media Providers (skip for Argo)</div>
+  <div class="nodes">
+    <div class="node skip" data-id="browser_provider" onclick="show('browser_provider')">
+      <div class="name">browser_provider.py</div>
+      <div class="meta">Playwright / browser control</div>
+    </div>
+    <div class="node skip" data-id="image_gen" onclick="show('image_gen')">
+      <div class="name">image_gen_registry.py</div>
+      <div class="meta">DALL-E / image generation</div>
+    </div>
+    <div class="node skip" data-id="transcription" onclick="show('transcription')">
+      <div class="name">transcription_registry.py</div>
+      <div class="meta">Voice transcription · Whisper</div>
+    </div>
+    <div class="node skip" data-id="web_search" onclick="show('web_search')">
+      <div class="name">web_search_registry.py</div>
+      <div class="meta">Web search provider · 17 symbols</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="panel" id="panel">
+  <div class="empty">← Click any module to see details,<br>Argo equivalent, and build notes.</div>
+</div>
+</div>
+
+<script>
+const data = {
+  run_agent: {
+    label: "run_agent.py",
+    cat: "improve",
+    desc: "The AIAgent class — the central orchestrator. Owns the conversation loop, spawns subagents, manages profile state, handles scheduling. 4,575 lines. The biggest file.",
+    fns: ["run_conversation()", "chat()", "delegate_task()", "spawn_subagent()"],
+    argo: "agent.ts",
+    argoNote: "Argo's agent loop. Same responsibility, TS. No profile management — one user only. Goal injection happens here.",
+    why: "Improve: the pattern is right, but there's no goal-first check before any tool call. Argo injects active goals into every session before the first LLM call."
+  },
+  cli: {
+    label: "cli.py",
+    cat: "improve",
+    desc: "Interactive CLI built on prompt_toolkit. Handles multiline editing, command history, slash commands, streaming output. The primary user interface.",
+    fns: ["main()", "process_command()", "_handle_background_command()", "display_stream()"],
+    argo: "cli.ts",
+    argoNote: "Argo's CLI entry. Simpler — no TUI framework needed for v0. Just stdin/stdout with streaming tool output.",
+    why: "Improve: prompt_toolkit is heavy. Argo starts with minimal CLI, adds TUI later if needed."
+  },
+  gateway: {
+    label: "gateway/",
+    cat: "skip",
+    desc: "Messaging platform adapters: Telegram, Discord, Slack, WhatsApp, Signal, email. Each implements a base adapter pattern. Not relevant for a local operator agent.",
+    fns: [],
+    argo: null,
+    argoNote: "Not built in Argo v0. Local operator only.",
+    why: null
+  },
+  acp_adapter: {
+    label: "acp_adapter/",
+    cat: "skip",
+    desc: "ACP (Agent Communication Protocol) adapter. Enables Hermes to speak the ACP standard for cross-agent communication. Not relevant for v0.",
+    fns: [],
+    argo: null,
+    argoNote: "Not built in Argo v0.",
+    why: null
+  },
+  conversation_loop: {
+    label: "conversation_loop.py",
+    cat: "improve",
+    desc: "The main agent loop. run_conversation() calls the API, dispatches tool calls, handles retries, manages context compression, fires plugin hooks. Jittered backoff, fallback chain, streaming health checks.",
+    fns: ["run_conversation()", "dispatch_tools()", "_compress_if_needed()", "_fire_hooks()"],
+    argo: "agent.ts",
+    argoNote: "Same loop structure, but with three additions: (1) safety assess() before every tool call, (2) goal context injected at startup, (3) verified-output check before declaring done.",
+    why: "Improve: the loop architecture is solid. Missing: goal-awareness, enforced safety gate, verification discipline."
+  },
+  iteration_budget: {
+    label: "iteration_budget.py",
+    cat: "steal",
+    desc: "Thread-safe iteration counter. Parent agents get 90, subagents get 50. execute_code calls are refunded — they don't eat the budget. Hard ceiling prevents runaway loops.",
+    fns: ["consume()", "refund()", "remaining", "used"],
+    argo: "agent.ts (inline)",
+    argoNote: "ARGO_MAX_ITER env var (default 50). Steal the refund pattern for shell-cmd tool calls.",
+    why: null
+  },
+  retry_utils: {
+    label: "retry_utils.py",
+    cat: "steal",
+    desc: "Jittered exponential backoff for API retries. 5s base, 120s cap. Interrupt-responsive — checks for user input during wait.",
+    fns: ["retry_with_backoff()", "jitter()"],
+    argo: "providers/openai.ts",
+    argoNote: "Same pattern in the OpenAI adapter. 5s base, 60s cap for v0.",
+    why: null
+  },
+  error_classifier: {
+    label: "error_classifier.py",
+    cat: "improve",
+    desc: "Classifies API errors into categories: billing, auth, rate-limit, context-too-large, malformed. Drives retry/fallback decisions in the loop.",
+    fns: ["classify_error()", "is_retryable()", "is_fatal()"],
+    argo: "providers/interface.ts",
+    argoNote: "Argo surfaces errors directly with clear messages. Simplified — no multi-provider fallback in v0.",
+    why: "Improve: good pattern. Argo implements a simpler version focused on the OpenAI error surface."
+  },
+  message_sanitization: {
+    label: "message_sanitization.py",
+    cat: "steal",
+    desc: "Strips malformed Unicode surrogates, orphaned tool_result messages, and non-ASCII before each API call. Prevents silent 400 errors from garbage in the message history.",
+    fns: ["sanitize_messages()", "strip_surrogates()", "remove_orphan_results()"],
+    argo: "agent.ts",
+    argoNote: "Include in Argo's message pipeline. Easy 20-line addition that prevents hard-to-debug failures.",
+    why: null
+  },
+  system_prompt: {
+    label: "system_prompt.py",
+    cat: "steal",
+    desc: "Three-tier system prompt: Stable (identity, tools, skills) + Context (AGENTS.md, project files) + Volatile (memory, user profile, timestamp). Built once per session, cached for Anthropic prefix cache warmth.",
+    fns: ["build_system_prompt()", "get_stable_tier()", "get_context_tier()", "get_volatile_tier()"],
+    argo: "prompt.ts",
+    argoNote: "Exact same architecture. Stable = SOUL.md + tools + rules. Context = ARGO.md/AGENTS.md/CLAUDE.md from cwd. Volatile = active goals from kernel + timestamp.",
+    why: null
+  },
+  prompt_builder: {
+    label: "prompt_builder.py",
+    cat: "steal",
+    desc: "Builds the messages[] array. Handles tool result injection, memory context blocks, system message placement. 65 symbols — the message construction layer.",
+    fns: ["build_messages()", "inject_memory()", "format_tool_result()", "format_tools_for_system_message()"],
+    argo: "agent.ts",
+    argoNote: "Message construction is inline in agent.ts for v0. Extract to prompt-builder.ts if it grows.",
+    why: null
+  },
+  soul_md: {
+    label: "SOUL.md",
+    cat: "steal",
+    desc: "The agent's identity file. Plain markdown. Defines personality, values, and operating principles. Loaded as the first block of the stable prompt tier. Editable, version-controlled, not hardcoded.",
+    fns: [],
+    argo: "SOUL.md (already written)",
+    argoNote: "Already exists at /Argo/SOUL.md. 'I know the goal before I pick a tool. I verify output before I claim success. I do not drift.'",
+    why: null
+  },
+  prompt_caching: {
+    label: "prompt_caching.py",
+    cat: "steal",
+    desc: "Manages Anthropic prompt cache headers. Marks the stable tier for caching so repeated sessions don't re-pay for the same system prompt tokens. Can reduce costs 60–90% for the stable portion.",
+    fns: ["add_cache_control()", "should_cache()"],
+    argo: "providers/anthropic.ts",
+    argoNote: "Add cache_control to stable tier messages in the Anthropic adapter when that adapter is built.",
+    why: null
+  },
+  subdirectory_hints: {
+    label: "subdirectory_hints.py",
+    cat: "steal",
+    desc: "After each tool result, injects a hint about the current working directory. Helps the model understand where it is relative to the project root. Prevents path confusion in deep file trees.",
+    fns: ["build_hint()", "inject_after_tool_result()"],
+    argo: "agent.ts",
+    argoNote: "Inject cwd hint after each shell-cmd or file tool result. One line addition to the tool result message.",
+    why: null
+  },
+  memory_manager: {
+    label: "memory_manager.py",
+    cat: "steal",
+    desc: "MemoryManager orchestrates multiple memory providers. Pre-turn: prefetch relevant context, inject as <memory-context> blocks. Post-turn: sync completed exchange to providers. Only ONE external plugin provider allowed at a time.",
+    fns: ["prefetch_all()", "sync_all()", "handle_tool_call()", "queue_prefetch_all()"],
+    argo: "memory.ts (v1)",
+    argoNote: "Not in v0. Architecture is worth replicating: provider interface + pre/post hooks. Argo's memory will be goal-linked (what did I do toward goal X).",
+    why: null
+  },
+  memory_provider: {
+    label: "memory_provider.py",
+    cat: "steal",
+    desc: "MemoryProvider interface. Exposes: system_prompt(), tool_schemas(), on_turn_start(), on_session_switch(), on_pre_compress(). Allows plug-in memory backends (file, vector DB, etc.).",
+    fns: ["system_prompt()", "tool_schemas()", "on_turn_start()", "on_pre_compress()"],
+    argo: "memory.ts (v1)",
+    argoNote: "Same interface pattern for Argo's memory module. First implementation: flat file summary per goal.",
+    why: null
+  },
+  context_engine: {
+    label: "context_engine.py",
+    cat: "steal",
+    desc: "Pluggable context compression engine. Tracks token usage, decides when to compress (75% threshold). Protect first 3 and last 6 messages from summarization. Default: ContextCompressor.",
+    fns: ["should_compress()", "compress()", "get_protected_range()"],
+    argo: "context.ts",
+    argoNote: "Same thresholds: 75% trigger, protect_first=3, protect_last=6. v0: trim (not summarize). v1: LLM summarization.",
+    why: null
+  },
+  context_compressor: {
+    label: "context_compressor.py",
+    cat: "steal",
+    desc: "Default ContextEngine implementation. Uses LLM to summarize middle messages, preserving first 3 and last 6. Configurable per-topic preservation. 69 symbols.",
+    fns: ["compress()", "summarize_middle()", "preserve_topic_context()"],
+    argo: "context.ts",
+    argoNote: "v0: simple trim (drop middle messages, keep protected range). v1: add LLM summarization.",
+    why: null
+  },
+  conversation_compression: {
+    label: "conversation_compression.py",
+    cat: "steal",
+    desc: "Manual and automatic conversation compression. Handles the case where a user explicitly asks to compact or where preflight compression fires before a large request.",
+    fns: ["compress_conversation()", "preflight_compress()"],
+    argo: "context.ts",
+    argoNote: "Preflight check is important — compress before hitting the window, not after getting a 400.",
+    why: null
+  },
+  context_references: {
+    label: "context_references.py",
+    cat: "skip",
+    desc: "Handles @ file reference syntax in user messages (e.g. @src/app.ts). Loads file content and injects it into the message. 41 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Not in Argo v0. File reads go through the read-file tool with safety gating.",
+    why: null
+  },
+  tool_executor: {
+    label: "tool_executor.py",
+    cat: "improve",
+    desc: "Dispatches tool calls. Sequential or concurrent (ThreadPoolExecutor, 8 workers). Heartbeat monitoring during long batches. Handles built-ins (memory, todo, delegate_task) separately from external tools.",
+    fns: ["execute_tool()", "execute_concurrent()", "execute_sequential()"],
+    argo: "tools/registry.ts",
+    argoNote: "Same dispatch pattern. Key addition: every tool call goes through assess() on the Rust kernel before execution. No tool runs without a safety verdict.",
+    why: "Improve: dispatch pattern is right. Missing safety gate — tools execute if the model says so, not if Argo says it's safe."
+  },
+  tool_guardrails: {
+    label: "tool_guardrails.py",
+    cat: "improve",
+    desc: "Loop safety only — not content safety. Blocks: same tool+args failing 5 times, same tool failing 8 times per turn, idempotent tool returning same result 5 times. Separate policy (decision) from enforcement (action).",
+    fns: ["before_call()", "after_call()", "ToolCallSignature", "ToolGuardrailDecision"],
+    argo: "agent.ts (inline)",
+    argoNote: "Steal the loop-safety pattern (consecutive failure detection). Add to agent.ts. Argo's content safety is the Rust kernel — separate concern.",
+    why: "Improve: loop safety is good, but not the same as content/scope safety. Argo needs both."
+  },
+  tool_dispatch_helpers: {
+    label: "tool_dispatch_helpers.py",
+    cat: "steal",
+    desc: "Toolset scope enforcement, schema collection, tool availability checking. Toolsets control which tools are exposed to which agent contexts. 32 symbols.",
+    fns: ["collect_schemas()", "check_availability()", "enforce_scope()"],
+    argo: "tools/registry.ts",
+    argoNote: "Argo's tool registry. register(), lookup(), toJsonSchema(). Toolset concept not needed for v0 — one context.",
+    why: null
+  },
+  file_safety: {
+    label: "file_safety.py",
+    cat: "replace",
+    desc: "Advisory blocklist for file operations. Blocks SSH keys, .env files, credential stores via hardcoded list. Explicitly says: 'This is NOT a security boundary' — guards return warnings, callers decide. HERMES_WRITE_SAFE_ROOT env var for scope.",
+    fns: ["check_write()", "check_read()", "is_blocked_path()"],
+    argo: "Rust safety kernel (safety.rs)",
+    argoNote: "The Rust kernel IS the security boundary. assess() returns block/ask/allow — the agent cannot bypass it. No 'HERMES_WRITE_SAFE_ROOT' opt-in needed.",
+    why: "Replace: advisory safety is not safety. Argo enforces scope via the kernel on every single tool call."
+  },
+  tool_result_classification: {
+    label: "tool_result_classification.py",
+    cat: "steal",
+    desc: "Classifies tool output type (text, image, error, empty). Drives decisions about retry and what to include in the next API call. 5 symbols.",
+    fns: ["classify_result()"],
+    argo: "agent.ts",
+    argoNote: "Needed for Argo's consecutive-failure detection. If result is empty or error 3 times → stop loop.",
+    why: null
+  },
+  skill_commands: {
+    label: "skill_commands.py",
+    cat: "steal",
+    desc: "Skills are markdown files with YAML frontmatter at ~/.hermes/skills/<name>/SKILL.md. Slash commands mapped to skill slugs. Inline shell expansion and template variable substitution. 24 symbols.",
+    fns: ["load_skill()", "list_skills()", "skill_view()", "resolve_command_key()"],
+    argo: "~/.argo/skills/ (v1)",
+    argoNote: "Same pattern. ~/.argo/skills/<name>/SKILL.md. Same YAML frontmatter. Builds on Hermes's format — cross-compatible.",
+    why: null
+  },
+  skill_bundles: {
+    label: "skill_bundles.py",
+    cat: "steal",
+    desc: "Groups skills into named bundles via YAML files at ~/.hermes/skill-bundles/*.yaml. Bundle wins over individual skill on name conflict. Cheap disk-change-aware caching. 28 symbols.",
+    fns: ["get_skill_bundles()", "resolve_bundle_command_key()", "build_bundle_invocation_message()"],
+    argo: "~/.argo/skill-bundles/ (v1)",
+    argoNote: "Same format. Cross-compatible bundles with Hermes.",
+    why: null
+  },
+  curator: {
+    label: "curator.py",
+    cat: "steal",
+    desc: "Background skill maintenance — NOT skill creation. Fires when idle AND last run >7 days ago. Consolidates narrow skills into umbrella skills. Archives stale (30 days) and removes after 90 days. Never deletes — archives are recoverable.",
+    fns: ["run_curator()", "consolidate()", "archive_stale()", "demote_to_support()"],
+    argo: "~/.argo/curator (v1)",
+    argoNote: "Same pattern. Note: the 'closed learning loop' claim is about this curator + agent writing skill files via tools. Not magic — just markdown file management.",
+    why: null
+  },
+  skill_utils: {
+    label: "skill_utils.py",
+    cat: "steal",
+    desc: "Skill file system helpers. Path resolution, config injection, skill directory scanning. 33 symbols.",
+    fns: ["skill_path()", "get_config()", "scan_skills_dir()"],
+    argo: "~/.argo/skills/ (v1)",
+    argoNote: null,
+    why: null
+  },
+  skill_preprocessing: {
+    label: "skill_preprocessing.py",
+    cat: "steal",
+    desc: "Template variable substitution and inline shell expansion in skill markdown files. Allows dynamic skill content. 14 symbols.",
+    fns: ["preprocess_skill()", "expand_shell()", "substitute_vars()"],
+    argo: "~/.argo/skills/ (v1)",
+    argoNote: null,
+    why: null
+  },
+  transports_base: {
+    label: "transports/base.py",
+    cat: "steal",
+    desc: "Abstract Transport base class. Defines the interface all LLM transports implement. 13 symbols.",
+    fns: ["complete()", "stream()", "tool_use_format()"],
+    argo: "providers/interface.ts",
+    argoNote: "LLMProvider interface in Argo. complete(messages, tools, config) → AsyncIterable<Chunk>. Same abstraction.",
+    why: null
+  },
+  transports_chat: {
+    label: "transports/chat_completions.py",
+    cat: "steal",
+    desc: "OpenAI chat completions API format. Used for OpenAI, local models (Ollama, LM Studio), and any OpenAI-compatible endpoint. 21 symbols.",
+    fns: ["complete()", "format_tools()", "parse_response()"],
+    argo: "providers/openai.ts",
+    argoNote: "One adapter covers OpenAI + Ollama. Set baseURL to 'http://localhost:11434/v1' for Ollama. Same SDK.",
+    why: null
+  },
+  anthropic_adapter: {
+    label: "anthropic_adapter.py",
+    cat: "improve",
+    desc: "Anthropic native adapter. Handles streaming tool use, extended thinking, prompt caching headers, and Anthropic-specific message format. 97 symbols — the most complex adapter.",
+    fns: ["complete()", "stream_response()", "add_cache_headers()", "format_tool_use()"],
+    argo: "providers/anthropic.ts",
+    argoNote: "Interface stubbed in v0. Implement when Claude is needed. Will add prompt caching and extended thinking support.",
+    why: "Improve: wrap in the typed LLMProvider interface so the rest of Argo never talks to Anthropic directly."
+  },
+  bedrock_adapter: {
+    label: "bedrock_adapter.py",
+    cat: "skip",
+    desc: "AWS Bedrock adapter. Claude via AWS. Handles SigV4 auth, Bedrock-specific message format. 50 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Not in Argo scope.",
+    why: null
+  },
+  gemini_adapter: {
+    label: "gemini_native_adapter.py",
+    cat: "skip",
+    desc: "Google Gemini native adapter. Handles Gemini's message format, function calling schema, and safety settings. 61 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Not in Argo scope for v0.",
+    why: null
+  },
+  model_metadata: {
+    label: "model_metadata.py",
+    cat: "steal",
+    desc: "Per-model metadata: context window sizes, pricing, tool use support, thinking capability flags, max output tokens. 88 symbols. Source of truth for capability routing.",
+    fns: ["get_context_window()", "supports_tools()", "supports_thinking()", "get_pricing()"],
+    argo: "providers/interface.ts",
+    argoNote: "modelId(), supportsTools(), contextWindow() on the LLMProvider interface. Ollama tool support detection uses this.",
+    why: null
+  },
+  nous_rate_guard: {
+    label: "nous_rate_guard.py",
+    cat: "improve",
+    desc: "Per-model rate limiting. Tracks requests per minute and tokens per minute, backs off when limits are hit. 22 symbols.",
+    fns: ["check_rate()", "record_usage()", "backoff_if_needed()"],
+    argo: "providers/openai.ts",
+    argoNote: "Basic rate handling in v0 — rely on OpenAI SDK's built-in retry. Add explicit tracking in v1 if hitting limits.",
+    why: null
+  },
+  shell_hooks: {
+    label: "shell_hooks.py",
+    cat: "steal",
+    desc: "Plugin hook system. Fires: on_session_start, pre_llm_call, pre_api_request, pre_tool_call. Plugins extend without modifying core. 59 symbols.",
+    fns: ["fire_hook()", "register_hook()", "on_session_start()", "pre_tool_call()"],
+    argo: "agent.ts",
+    argoNote: "v0: inline hooks (no plugin system). v1: extract to hooks.ts with same event names for compatibility.",
+    why: null
+  },
+  display: {
+    label: "display.py",
+    cat: "improve",
+    desc: "Terminal streaming display. Handles streaming text chunks, tool call display, progress indicators, ANSI formatting. 66 symbols.",
+    fns: ["stream_chunk()", "show_tool_call()", "show_approval_request()", "clear_line()"],
+    argo: "cli.ts",
+    argoNote: "Argo v0: plain process.stdout.write() for streaming. Add rich display in v1.",
+    why: null
+  },
+  trajectory: {
+    label: "trajectory.py",
+    cat: "improve",
+    desc: "Records agent action trajectory — what tools were called, what they returned, what the model decided. Used for debugging and batch generation. 9 symbols.",
+    fns: ["record_action()", "record_tool_result()", "to_jsonl()"],
+    argo: "Rust kernel events.jsonl",
+    argoNote: "Argo logs every tool call to .argo/events.jsonl via the kernel logEvent() API. Same purpose, different implementation.",
+    why: "Improve: Argo's event log is the trajectory. Already built in the Rust kernel."
+  },
+  agent_runtime_helpers: {
+    label: "agent_runtime_helpers.py",
+    cat: "steal",
+    desc: "Background task management, steer injection (mid-turn user messages), interrupt handling. 43 symbols.",
+    fns: ["queue_steer()", "drain_steers()", "check_interrupt()", "run_background()"],
+    argo: "agent.ts",
+    argoNote: "Ctrl+C interrupt handling is important for v0. Steer injection (user sends new message mid-run) is v1.",
+    why: null
+  },
+  credential_pool: {
+    label: "credential_pool.py",
+    cat: "skip",
+    desc: "Multi-profile credential management. Each profile gets isolated API keys. 95 symbols. Complex multi-tenant auth system.",
+    fns: [],
+    argo: null,
+    argoNote: "Not relevant — Argo is single-user, single-profile. API key from .env.",
+    why: null
+  },
+  credential_sources: {
+    label: "credential_sources.py",
+    cat: "skip",
+    desc: "API key resolution chain: env vars → keychain → config file → interactive prompt. 22 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Argo reads from .env. ARGO_PROVIDER, OPENAI_API_KEY, ARGO_MODEL.",
+    why: null
+  },
+  google_oauth: {
+    label: "google_oauth.py",
+    cat: "skip",
+    desc: "Google OAuth 2.0 flow for Google Code Assist and Gemini access. 91 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: null,
+    why: null
+  },
+  onboarding: {
+    label: "onboarding.py",
+    cat: "skip",
+    desc: "First-run setup wizard. API key entry, model selection, profile creation. 18 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Argo: run `cargo run -- doctor` to initialize. No wizard.",
+    why: null
+  },
+  browser_provider: {
+    label: "browser_provider.py",
+    cat: "skip",
+    desc: "Playwright browser automation. Allows the agent to navigate, click, screenshot. 13 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Not in Argo v0. Parked for v2+.",
+    why: null
+  },
+  image_gen: {
+    label: "image_gen_registry.py",
+    cat: "skip",
+    desc: "Image generation providers (DALL-E, etc.). Registry pattern. 13 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: null,
+    why: null
+  },
+  transcription: {
+    label: "transcription_registry.py",
+    cat: "skip",
+    desc: "Voice transcription providers. Whisper. 13 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: null,
+    why: null
+  },
+  web_search: {
+    label: "web_search_registry.py",
+    cat: "skip",
+    desc: "Web search provider registry. Pluggable search backends. 17 symbols.",
+    fns: [],
+    argo: null,
+    argoNote: "Not in Argo v0. Parked for v1 — useful for research tasks.",
+    why: null
+  }
+};
+
+function show(id) {
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) el.classList.add('active');
+  const d = data[id];
+  if (!d) return;
+  const catLabel = {steal:'Steal this pattern',improve:'Improve on this',replace:'Replace entirely',skip:'Skip for Argo'};
+  let html = `<h2>${d.label}</h2><span class="badge ${d.cat}">${catLabel[d.cat]}</span>`;
+  html += `<section><h3>What it does</h3><p>${d.desc}</p></section>`;
+  if (d.fns && d.fns.length) {
+    html += `<section><h3>Key symbols</h3><div class="functions">${d.fns.map(f=>`<span class="fn-tag">${f}</span>`).join('')}</div></section>`;
+  }
+  if (d.argo) {
+    html += `<hr><section><h3>Argo equivalent</h3><div class="argo-box"><div class="file">${d.argo}</div>${d.argoNote?`<div class="note">${d.argoNote}</div>`:''}</div></section>`;
+  } else if (d.argoNote) {
+    html += `<hr><section><h3>Argo note</h3><p class="skip-note">${d.argoNote}</p></section>`;
+  }
+  if (d.why) {
+    html += `<section><div class="why-box">${d.why}</div></section>`;
+  }
+  document.getElementById('panel').innerHTML = html;
+}
+</script>
+</body>
+</html>
