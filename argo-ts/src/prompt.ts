@@ -39,12 +39,15 @@ async function contextTier(root: string): Promise<string> {
   return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
 }
 
-function volatileTier(goals: Goal[], now: string): string {
+function volatileTier(goals: Goal[], now: string, memory?: string): string {
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
     ? active.map((g) => `- [${g.id}] ${g.text}`).join("\n")
     : "(no active goals — ask the user what to work toward)";
-  return `Active goals:\n${goalText}\n\nSession started: ${now}`;
+  const base = `Active goals:\n${goalText}\n\nSession started: ${now}`;
+  return memory?.trim()
+    ? `${base}\n\nRecent memory toward your goals:\n${memory}`
+    : base;
 }
 
 /** Build the three-tier system prompt: stable + context + volatile. */
@@ -54,6 +57,7 @@ export async function buildSystemPrompt(opts: {
   goals: Goal[];
   tools: ToolSchema[];
   now: string;
+  memory?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -61,7 +65,7 @@ export async function buildSystemPrompt(opts: {
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
     await contextTier(opts.root),
-    volatileTier(opts.goals, opts.now),
+    volatileTier(opts.goals, opts.now, opts.memory),
   ].filter(Boolean);
   return tiers.join("\n\n---\n\n");
 }
