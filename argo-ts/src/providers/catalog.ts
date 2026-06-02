@@ -39,10 +39,17 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
   },
   {
     id: "anthropic",
-    label: "Anthropic (Claude)",
+    label: "Anthropic (Claude, API key)",
     envVar: "ANTHROPIC_API_KEY",
     defaultModel: "claude-sonnet-4-6",
     signupUrl: "https://console.anthropic.com/settings/keys",
+  },
+  {
+    id: "claude-code",
+    label: "Claude via Pro/Max subscription (uses your `claude` login — grey area)",
+    envVar: null,
+    defaultModel: "claude-sonnet-4-6",
+    note: "needs `claude` signed in; subscription token use is a grey area under Anthropic ToS",
   },
   {
     id: "openrouter",

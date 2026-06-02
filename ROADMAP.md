@@ -69,9 +69,9 @@ skills, prunes them safely) → it's reachable as a background service you can t
 - [ ] **F3 · Subdirectory hints** (S) — inject cwd hint after file/shell tool results.
 - [~] **F4 · Retry w/ jittered backoff** — the `openai` SDK already retries with backoff (maxRetries default 2); explicit per-model tracking deferred unless we hit limits.
 
-### G — Subscription auth  ← ✗ CLOSED (not viable for direct API use; see DECISIONS 2026-06-02)
-- [✗] **G1 · Claude subscription OAuth** — **WON'T BUILD.** Primary-source evidence: Anthropic's Messages API **rejects** OAuth subscription tokens (`sk-ant-oat01-*`) — "OAuth authentication is currently not supported" (anthropics/claude-code#37205). They work only inside Claude Code / a gateway proxy, never the direct calls Argo makes. Building it ships runtime-401 code. API keys (shipped) are the supported path. Logged in DECISIONS so it's not re-attempted.
-- [~] **G2 · ChatGPT-Codex / Gemini-CLI OAuth** — DEFERRED. Same subscription-endpoint gating + unverifiable without consent; API keys already cover both. Revisit only with a verifiable path.
+### G — Subscription auth  ← G1 SHIPPED (grey area, user-run); G2 deferred
+- [x] **G1 · Claude subscription (`claude-code` provider)** — ✅ SHIPPED 2026-06-02 (unit-tested; **user live-verifies** — the harness blocks the assistant from running it as credential-repurposing). `ARGO_PROVIDER=claude-code` uses your Claude Pro/Max OAuth token (from `~/.claude/.credentials.json` or `CLAUDE_CODE_OAUTH_TOKEN`). The earlier "not viable" was WRONG — it works with the full Claude-Code header set + system-prompt spoof (see DECISIONS reversal). **Grey area** under Anthropic ToS; the wizard labels it as such. API keys remain the clean path.
+- [~] **G2 · ChatGPT-Codex / Gemini-CLI OAuth** — DEFERRED. Same subscription-endpoint gating; API keys already cover both. Revisit with a verifiable path.
 
 ---
 
