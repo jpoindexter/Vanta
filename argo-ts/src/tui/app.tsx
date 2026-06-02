@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef, useState, type ReactElement } from "reac
 import { Box, Static, Text, useApp, useInput } from "ink";
 import { Composer } from "./composer.js";
 import { spinnerFrames } from "./spinners.js";
+import { notify, shouldNotify } from "./notify.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
@@ -147,6 +148,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       .send(text, images)
       .then((outcome) => {
         dispatch({ t: "commit", finalText: outcome.finalText });
+        // Ping when a long turn finishes — you may have looked away.
+        if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Argo", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
       })
       .catch((err: unknown) => {
@@ -214,6 +217,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       sendRef.current(next);
     }
   }, [state.busy, state.queued]);
+
+  // Ping when Argo needs a human decision (approval), so you can step away.
+  useEffect(() => {
+    if (pending) notify({ title: "Argo", message: "needs your approval" });
+  }, [pending]);
 
   // Slash palette — suggest matching commands while typing a bare `/word`.
   const slashHead =
