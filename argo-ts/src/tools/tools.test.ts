@@ -63,6 +63,7 @@ describe("registry", () => {
       "screenshot",
       "shell_cmd",
       "speak",
+      "swarm",
       "todo",
       "watch_video",
       "web_fetch",
