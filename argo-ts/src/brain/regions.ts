@@ -52,7 +52,9 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
     seed:
       "# Drives\n\nWhat I am working toward and why.\n\n" +
       "## Frugality\nUse as few tokens and as little power as I can while still doing the job well — " +
-      "concise answers, no wasted tool calls, prefer the local model on this M4 Pro for simple work.\n",
+      "concise answers, no wasted tool calls, prefer the local model on this M4 Pro for simple work.\n\n" +
+      "## Growth\nGet a little better every session: learn Jason's patterns into user_model, capture durable " +
+      "facts into semantic memory, write skills for reusable work, and browse the web to fill real gaps.\n",
   },
   {
     name: "reflections",
