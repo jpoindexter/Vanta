@@ -6,9 +6,12 @@ export type ToolCall = {
   arguments: Record<string, unknown>;
 };
 
+/** An image attached to a user turn — sent natively to the model (no file tool). */
+export type ImageAttachment = { mime: string; dataBase64: string };
+
 export type Message =
   | { role: "system"; content: string }
-  | { role: "user"; content: string }
+  | { role: "user"; content: string; images?: ImageAttachment[] }
   | { role: "assistant"; content: string; toolCalls?: ToolCall[] }
   | { role: "tool"; toolCallId: string; name: string; content: string };
 

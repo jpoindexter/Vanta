@@ -45,6 +45,21 @@ describe("toCodexTools", () => {
 });
 
 describe("toCodexInput", () => {
+  it("attaches images to a user turn as input_image parts", () => {
+    const { input } = toCodexInput([
+      { role: "user", content: "what is this?", images: [{ mime: "image/png", dataBase64: "AAAA" }] },
+    ]);
+    expect(input).toEqual([
+      {
+        role: "user",
+        content: [
+          { type: "input_text", text: "what is this?" },
+          { type: "input_image", image_url: "data:image/png;base64,AAAA" },
+        ],
+      },
+    ]);
+  });
+
   it("maps each Argo role onto the right Responses item", () => {
     const messages: Message[] = [
       { role: "system", content: "be terse" },
