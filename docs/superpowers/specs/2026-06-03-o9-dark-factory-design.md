@@ -60,7 +60,7 @@ argo-ts/src/factory/
   run.ts        orchestrator: gate → snapshot → triage → branch → plan → execute → verify → commit. Owns lock + budget (too small to split).
   triage.ts     reads concrete inputs (vitest json, tsc stderr, ROADMAP, PARKED) → WorkItem | null
   planner.ts    builds factory.plan.json (one slice); renders to TUI when interactive; gates on approval in review mode
-  executor.ts   swarm/delegate dispatch for the slice + co-located tests + per-folder CLAUDE.md/AGENT.md update
+  executor.ts   swarm/delegate dispatch for the slice + co-located tests + per-folder CLAUDE.md/AGENTS.md update
   verifier.ts   the trust gate: new-test-fails-on-old-code · full prior suite passes · tsc clean · no protected path touched
   types.ts      WorkItem · CycleResult · AutonomyLevel · FactoryConfig
 ```
@@ -106,7 +106,7 @@ Protected set (in-root, forbidden to autonomous writes):
 - The protected-list definition itself.
 
 **Writable** (explicitly *not* protected): `ROADMAP.md` (it must tick checkboxes),
-`AGENT-MANIFESTO.md`, per-folder `CLAUDE.md`/`AGENT.md`, and all feature code outside the set.
+`AGENT-MANIFESTO.md`, per-folder `CLAUDE.md`/`AGENTS.md`, and all feature code outside the set.
 
 ### 6.2 Two manifestos (decision: split)
 
@@ -182,7 +182,7 @@ auto-approved at 3am. The factory does only what is auto-safe.
 3. TRIAGE    local model reads vitest --reporter=json, tsc stderr, ROADMAP, PARKED → WorkItem | null;  null → exit clean (~0 cost)
 4. BRANCH    git checkout -b factory/auto-<ts>
 5. PLAN      build factory.plan.json (ONE slice).  review-mode → render + wait for `argo factory approve`.  auto-mode → proceed
-6. EXECUTE   swarm/delegate builds slice + co-located tests + updates CLAUDE.md & AGENT.md in every touched folder; budget enforced
+6. EXECUTE   swarm/delegate builds slice + co-located tests + updates CLAUDE.md & AGENTS.md in every touched folder; budget enforced
 7. VERIFY    new test fails on pre-change code? · full prior suite passes? · tsc clean? · no protected path touched?  — ALL must hold
 8. COMMIT    pass → git commit + push to factory/auto-<ts>; tick ROADMAP box; commit + push that too
              fail → git checkout . (discard; nothing entered history); log; exit
@@ -196,13 +196,21 @@ reviewability for throughput; wrong trade until trust is established. Revisit po
 
 The factory updates docs **as part of the slice that changes code**, never as a skippable
 post-step:
-- Every folder it touches gets/keeps a `CLAUDE.md` and an `AGENT.md` (file map + env + purpose).
+- Every folder it touches gets/keeps a `CLAUDE.md` and an `AGENTS.md` (file map + env + purpose).
 - Completing a ROADMAP item ticks its checkbox in `ROADMAP.md` and commits that.
 - `HANDOFF.md` / `DECISIONS.md` updated when a cycle makes a decision worth recording.
 - Every slice commits **and pushes** (the standing Argo convention).
 
 This is inlined in `executor.ts` per slice — a separate docs module would be skippable; an
 inlined step cannot be.
+
+**Token discipline — index, don't inject.** A `CLAUDE.md` + `AGENTS.md` in every folder, all
+read at session start, is the skill-bloat problem in a new costume. Argo already solved this for
+skills (index injection + on-demand body load) and uses the **same pattern** here: the agent
+reads a folder's `CLAUDE.md`/`AGENTS.md` **only when it works in that folder**, never all-at-once.
+The root docs (`CLAUDE.md`, `AGENTS.md`) carry a one-line pointer to subfolder docs; the body is
+loaded lazily on entry. This keeps per-folder context useful without burning the context window
+on every folder up front.
 
 ## 9. Testing
 
