@@ -35,7 +35,7 @@ describe("ModelPicker wizard", () => {
     unmount();
   });
 
-  it("provider with key → model step → ⏎ selects (session persist by default)", async () => {
+  it("provider with key → model step → ⏎ selects (persists to .env by default)", async () => {
     const onSelect = vi.fn();
     const { stdin, unmount } = render(<ModelPicker {...base} onSelect={onSelect} onCancel={() => {}} />);
     stdin.write(KEY.enter); // gemini -> model step
@@ -44,11 +44,11 @@ describe("ModelPicker wizard", () => {
     await tick();
     stdin.write(KEY.enter);
     await tick();
-    expect(onSelect).toHaveBeenCalledWith({ providerId: "gemini", model: "gemini-2.5-pro", apiKey: undefined, persistGlobal: false });
+    expect(onSelect).toHaveBeenCalledWith({ providerId: "gemini", model: "gemini-2.5-pro", apiKey: undefined, persistGlobal: true });
     unmount();
   });
 
-  it("^g toggles global persist", async () => {
+  it("^g toggles to session-only persist", async () => {
     const onSelect = vi.fn();
     const { stdin, unmount } = render(<ModelPicker {...base} onSelect={onSelect} onCancel={() => {}} />);
     stdin.write(KEY.ctrlG);
@@ -57,7 +57,7 @@ describe("ModelPicker wizard", () => {
     await tick();
     stdin.write(KEY.enter); // first model
     await tick();
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ persistGlobal: true, model: "gemini-2.5-flash" }));
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ persistGlobal: false, model: "gemini-2.5-flash" }));
     unmount();
   });
 

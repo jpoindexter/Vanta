@@ -74,7 +74,9 @@ export function ModelPicker(props: {
   const [filter, setFilter] = useState("");
   const [keyInput, setKeyInput] = useState("");
   const [enteredKey, setEnteredKey] = useState("");
-  const [persistGlobal, setPersistGlobal] = useState(false);
+  // Persist to .env by default — picking a model should be remembered next launch.
+  // ^g toggles to session-only for a one-off switch.
+  const [persistGlobal, setPersistGlobal] = useState(true);
 
   const provRows = stage === "provider" ? fuzzyFilter(props.providers, filter, (p) => `${p.short} ${p.id} ${p.label}`) : props.providers;
   const provCur = Math.min(providerIdx, Math.max(0, provRows.length - 1));
