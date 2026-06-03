@@ -19,9 +19,26 @@ Dark factory: the bounded autonomous loop that improves Argo's own codebase. One
 - `MANIFESTO.md` is kernel-protected. `AGENT-MANIFESTO.md` is writable.
 - `verifier.ts:checkNoProtectedPaths` must mirror `src/safety.rs:is_protected_path` exactly.
 
+## Autonomy ladder (O10)
+
+`config.autonomyLevel: 1|2|3|4` controls how far a cycle proceeds after a clean verify
+(`resolveAutonomyLevel(sub, env)` maps CLI + `ARGO_AUTONOMY_LEVEL` → level):
+
+| L | name | stops after | CycleResult |
+|---|------|-------------|-------------|
+| 1 | suggest | print plan (no branch) | `aborted` |
+| 2 | implement | branch → execute → verify | `implemented` |
+| 3 | commit | + commit (no push) | `committed` (pushed:false) |
+| 4 | push | + push branch | `committed` (pushed:true) |
+| 5 | merge | *reserved — clamps to 4* | — |
+
+The kernel's `is_protected_path` blocks skeleton/brainstem edits at EVERY level — the ladder
+governs reach over writable code only. `improve`/review = L1; `approve` = `ARGO_AUTONOMY_LEVEL`
+(default 4). L5 auto-merge + a low-risk classifier is the next slice.
+
 ## Entry points
 
-- `argo improve` → `run.ts runCycle` (review mode — prints plan, exits)
-- `argo factory approve` → `run.ts runCycle` (auto mode — executes plan)
+- `argo improve` → `runCycle` at **L1** (suggest — prints plan, exits)
+- `argo factory approve` → `runCycle` at **L4** by default; `ARGO_AUTONOMY_LEVEL=2|3` stops earlier
 - `argo factory status` → shows lockfile + last log entry
 - gateway cron `__factory__` → gateway spawns `argo factory approve` as detached child

@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { checkGate, formatCycleLog } from "./run.js";
+import { checkGate, formatCycleLog, resolveAutonomyLevel } from "./run.js";
 import type { FactoryConfig, CycleResult } from "./types.js";
 
 const baseConfig: FactoryConfig = {
   argoRoot: "/repo",
   dataDir: "/home/.argo",
-  autonomy: "review",
+  autonomyLevel: 1,
   budgetTokens: 80_000,
   interactive: false,
 };
@@ -44,18 +44,44 @@ describe("formatCycleLog", () => {
     expect(formatCycleLog(r)).toContain("disabled");
   });
 
-  it("formats committed with token spend", () => {
+  it("formats committed (pushed) with token spend", () => {
     const r: CycleResult = {
       status: "committed",
       workItem: { category: "roadmap", description: "Add foo" },
       branch: "factory/auto-20260603-1400",
       commitSha: "abc1234",
       tokenSpend: 12_500,
+      pushed: true,
     };
     const log = formatCycleLog(r);
     expect(log).toContain("committed");
+    expect(log).toContain("pushed");
     expect(log).toContain("12,500");
     expect(log).toContain("factory/auto-20260603-1400");
+  });
+
+  it("formats committed (local, not pushed)", () => {
+    const r: CycleResult = {
+      status: "committed",
+      workItem: { category: "roadmap", description: "Add foo" },
+      branch: "factory/auto-x",
+      commitSha: "abc1234",
+      tokenSpend: 100,
+      pushed: false,
+    };
+    expect(formatCycleLog(r)).toContain("not pushed");
+  });
+
+  it("formats implemented (verified, awaiting commit)", () => {
+    const r: CycleResult = {
+      status: "implemented",
+      workItem: { category: "quality", description: "Refactor bar" },
+      branch: "factory/auto-y",
+      tokenSpend: 2_000,
+    };
+    const log = formatCycleLog(r);
+    expect(log).toContain("implemented");
+    expect(log).toContain("NOT committed");
   });
 
   it("formats verify-failed", () => {
@@ -66,5 +92,30 @@ describe("formatCycleLog", () => {
     };
     expect(formatCycleLog(r)).toContain("verify-failed");
     expect(formatCycleLog(r)).toContain("pre-change");
+  });
+});
+
+describe("resolveAutonomyLevel", () => {
+  it("review / improve is always L1 (suggest)", () => {
+    expect(resolveAutonomyLevel("review", {} as NodeJS.ProcessEnv)).toBe(1);
+    expect(resolveAutonomyLevel("", { ARGO_AUTONOMY_LEVEL: "4" } as NodeJS.ProcessEnv)).toBe(1);
+  });
+
+  it("approve defaults to L4 (commit + push) when unset", () => {
+    expect(resolveAutonomyLevel("approve", {} as NodeJS.ProcessEnv)).toBe(4);
+  });
+
+  it("approve honors ARGO_AUTONOMY_LEVEL 2 and 3", () => {
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "2" } as NodeJS.ProcessEnv)).toBe(2);
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "3" } as NodeJS.ProcessEnv)).toBe(3);
+  });
+
+  it("clamps L5+ down to the max implemented level (4)", () => {
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "5" } as NodeJS.ProcessEnv)).toBe(4);
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "99" } as NodeJS.ProcessEnv)).toBe(4);
+  });
+
+  it("falls back to L4 on garbage input", () => {
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "abc" } as NodeJS.ProcessEnv)).toBe(4);
   });
 });
