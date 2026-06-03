@@ -1,0 +1,24 @@
+# gitleaks config — Argo
+# Runs in pre-commit via scripts/pre-commit (install: ./install.sh or symlink manually)
+title = "argo-gitleaks"
+
+[extend]
+# Extend the built-in ruleset (gitleaks default rules cover API keys, tokens, etc.)
+useDefault = true
+
+[[allowlists]]
+description = "Example and test fixture files"
+paths = [
+  ".env.example",
+  ".mcp.json.example",
+  '''.*\.test\.ts''',
+  '''__fixtures__/.*''',
+]
+
+[[allowlists]]
+description = "Known safe placeholder strings"
+regexes = [
+  '''your-.*-here''',
+  '''<YOUR_.*>''',
+  '''PLACEHOLDER''',
+]

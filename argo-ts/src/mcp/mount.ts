@@ -6,8 +6,12 @@ import { McpClient, stdioTransport, type McpToolDef } from "./client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 
-// Mount external MCP servers as Argo tools. Config from ARGO_MCP_SERVERS (JSON)
-// or ~/.argo/mcp.json: { "servers": { "<name>": { "command", "args"?, "env"? } } }.
+// Mount external MCP servers as Argo tools.
+// Config sources (first wins for inline; files are merged with project winning on conflict):
+//   1. ARGO_MCP_SERVERS env (JSON, inline)
+//   2. ./.mcp.json in cwd — Claude-compatible format (mcpServers key)
+//   3. ~/.argo/mcp.json — user-level fallback (servers key)
+// Accepts both "mcpServers" (Claude Code convention) and "servers" (Argo convention).
 // No config → no-op (zero overhead). Each server is best-effort: one that fails
 // to start doesn't block the others or the session. MCP tools go through the
 // kernel `assess()` like every other tool.
@@ -17,20 +21,41 @@ const ServerSchema = z.object({
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
 });
-const ConfigSchema = z.object({ servers: z.record(ServerSchema).default({}) });
 
-export type McpConfig = z.infer<typeof ConfigSchema>;
+// Accept both "servers" (Argo) and "mcpServers" (Claude Code) keys; merge with servers winning.
+const ConfigSchema = z
+  .object({
+    servers: z.record(ServerSchema).optional(),
+    mcpServers: z.record(ServerSchema).optional(),
+  })
+  .transform((d) => ({ servers: { ...(d.mcpServers ?? {}), ...(d.servers ?? {}) } }));
 
-/** Read MCP server config from env or ~/.argo/mcp.json. Empty when absent/invalid. */
-export async function readMcpConfig(env: NodeJS.ProcessEnv): Promise<McpConfig> {
-  const inline = env.ARGO_MCP_SERVERS?.trim();
-  const raw = inline ?? (await readFile(join(resolveArgoHome(env), "mcp.json"), "utf8").catch(() => ""));
-  if (!raw) return { servers: {} };
+export type McpConfig = { servers: Record<string, z.infer<typeof ServerSchema>> };
+
+function parseOrEmpty(raw: string): McpConfig {
   try {
     return ConfigSchema.parse(JSON.parse(raw));
   } catch {
     return { servers: {} };
   }
+}
+
+/**
+ * Read MCP server config. Checks ARGO_MCP_SERVERS first, then merges
+ * ./.mcp.json (project-level, Claude-compat) with ~/.argo/mcp.json (user-level).
+ * Project-level wins on conflict.
+ */
+export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {
+  const inline = env.ARGO_MCP_SERVERS?.trim();
+  if (inline) return parseOrEmpty(inline);
+
+  const projectRaw = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");
+  const userRaw = await readFile(join(resolveArgoHome(env), "mcp.json"), "utf8").catch(() => "");
+
+  const project = projectRaw ? parseOrEmpty(projectRaw) : { servers: {} };
+  const user = userRaw ? parseOrEmpty(userRaw) : { servers: {} };
+  // user fills gaps; project wins on conflict
+  return { servers: { ...user.servers, ...project.servers } };
 }
 
 /** Slugify a server+tool pair into an OpenAI-safe tool name (`[a-zA-Z0-9_-]`). */

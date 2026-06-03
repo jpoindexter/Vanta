@@ -58,6 +58,7 @@ describe("registry", () => {
       "look_at_screen",
       "lsp_definition",
       "lsp_diagnostics",
+      "mount_mcp",
       "read_file",
       "recall",
       "run_code",
