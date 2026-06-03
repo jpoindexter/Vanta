@@ -53,7 +53,9 @@ async function releaseLock(dataDir: string): Promise<void> {
 async function isTreeDirty(root: string): Promise<boolean> {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", ["status", "--porcelain"], { cwd: root });
+  // --untracked-files=no: only flag tracked files with uncommitted edits.
+  // Untracked artifacts (handoff docs, temp files) should not block the factory.
+  const { stdout } = await promisify(execFile)("git", ["status", "--porcelain", "--untracked-files=no"], { cwd: root });
   return stdout.trim().length > 0;
 }
 
