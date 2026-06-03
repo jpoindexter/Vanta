@@ -1,6 +1,9 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { spawn } from "node:child_process";
 import { runDueTasks } from "../schedule/runner.js";
+import { isDue, loadCron } from "../schedule/cron.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter } from "./platforms/base.js";
@@ -46,16 +49,10 @@ function firstLine(text: string): string {
  * Checks the lockfile before spawning to prevent double-runs.
  */
 function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
-  const lockPath = join(dataDir, "factory.lock");
-  try {
-    // Sync lock check — we're in a tick, not a hot path
-    const { accessSync } = require("node:fs") as typeof import("node:fs");
-    accessSync(lockPath);
+  if (existsSync(join(dataDir, "factory.lock"))) {
     log("factory: already running (lockfile present) — skipping gateway spawn");
     return;
-  } catch { /* lock not present — proceed */ }
-
-  const { spawn } = require("node:child_process") as typeof import("node:child_process");
+  }
   const child = spawn("argo", ["factory", "approve"], {
     detached: true,
     stdio: "ignore",
@@ -76,8 +73,6 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   const log = deps.log ?? ((m: string) => console.log(m));
 
   // Intercept factory entries before handing the rest to runDueTasks
-  const { isDue } = await import("../schedule/cron.js");
-  const { loadCron } = await import("../schedule/cron.js");
   const allEntries = deps.load ? await deps.load(deps.dataDir) : await loadCron(deps.dataDir);
   const dueEntries = allEntries.filter((e) => e.status === "active" && isDue(e.cron, now));
   const factoryEntries = dueEntries.filter((e) => e.instruction.startsWith("__factory__"));
