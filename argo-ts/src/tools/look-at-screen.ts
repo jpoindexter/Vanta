@@ -59,7 +59,11 @@ export const lookAtScreenTool: Tool = {
         ? { ok: true, output: result.text.trim() }
         : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
     } catch (err) {
-      return { ok: false, output: `look_at_screen failed: ${(err as Error).message}` };
+      const msg = (err as Error).message;
+      if (/could not create image/i.test(msg)) {
+        return { ok: false, output: "look_at_screen needs Screen Recording permission — open System Settings → Privacy & Security → Screen Recording and enable your terminal, then try again." };
+      }
+      return { ok: false, output: `look_at_screen failed: ${msg}` };
     }
   },
 };

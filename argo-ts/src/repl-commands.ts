@@ -39,6 +39,26 @@ export async function maybeDroppedImage(input: string): Promise<ImageAttachment 
   }
 }
 
+/**
+ * If `input` is a path to an existing video file, return the resolved absolute
+ * path. Else null. Mirrors `maybeDroppedImage` — covers the drag-a-video-in flow.
+ */
+export async function maybeDroppedVideo(input: string): Promise<string | null> {
+  let s = input.trim();
+  if (s.length < 5 || s.includes("\n")) return null;
+  if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) s = s.slice(1, -1);
+  s = s.replace(/\\ /g, " ");
+  if (s.startsWith("~")) s = join(homedir(), s.slice(1));
+  if (!/\.(mp4|mov|avi|mkv|webm|m4v|flv|wmv)$/i.test(s)) return null;
+  try {
+    const { access } = await import("node:fs/promises");
+    await access(s);
+    return s;
+  } catch {
+    return null;
+  }
+}
+
 /** Collapse whitespace and cap a string for one-line display. */
 function oneLine(s: string, max = 200): string {
   const t = s.trim().replace(/\s+/g, " ");
