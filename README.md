@@ -10,6 +10,18 @@ Two layers:
 
 See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.
 
+## Install
+
+One command on a fresh machine — clones Argo into `~/argo`, builds the kernel, and puts a global `argo` on your PATH:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jpoindexter/Argo/main/bootstrap.sh | bash
+```
+
+> The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `ARGO_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.
+
+Then: `argo setup` (pick a model backend) → `argo` (interactive session) → `argo doctor` (health check).
+
 ## Quickstart
 
 ```bash

@@ -6,8 +6,9 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/jpoindexter/Argo/main/bootstrap.sh | bash
 #
-# The repo is PRIVATE, so the clone uses your GitHub git auth (SSH key, gh, or a
-# credential helper). Override the install location with:
+# While the repo is PRIVATE the clone uses your GitHub git auth (SSH key, gh, or
+# a credential helper); the curl one-liner above works once the repo is public.
+# Installs to ~/argo (Hermes-style, home-level). Override with:
 #   ARGO_DIR=/path/to/Argo bash bootstrap.sh
 # Idempotent — re-run any time; it fast-forward-updates an existing checkout.
 # ============================================================================
@@ -15,7 +16,7 @@ set -e
 
 CYAN='\033[0;36m'; GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
 REPO="${ARGO_REPO:-https://github.com/jpoindexter/Argo.git}"
-DIR="${ARGO_DIR:-$HOME/Documents/GitHub/Argo}"
+DIR="${ARGO_DIR:-$HOME/argo}"
 
 echo ""
 echo -e "${CYAN}⚓ Argo bootstrap${NC}"
