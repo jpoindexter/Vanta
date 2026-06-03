@@ -127,6 +127,40 @@ describe("write_file", () => {
     expect(res.ok).toBe(true);
     expect(await readFile(join(root, "exists.txt"), "utf8")).toBe("changed");
   });
+
+  it("writes outside the project into a configured writable zone", async () => {
+    const zone = await mkdtemp(join(tmpdir(), "argo-zone-"));
+    const prev = process.env.ARGO_WRITABLE_DIRS;
+    process.env.ARGO_WRITABLE_DIRS = zone;
+    try {
+      const target = join(zone, "report.html");
+      const res = await writeFileTool.execute({ path: target, content: "<h1>hi</h1>" }, ctx());
+      expect(res.ok).toBe(true);
+      expect(await readFile(target, "utf8")).toBe("<h1>hi</h1>");
+    } finally {
+      if (prev === undefined) delete process.env.ARGO_WRITABLE_DIRS;
+      else process.env.ARGO_WRITABLE_DIRS = prev;
+      await rm(zone, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a path outside the project and outside every writable zone", async () => {
+    const outside = await mkdtemp(join(tmpdir(), "argo-outside-"));
+    const prev = process.env.ARGO_WRITABLE_DIRS;
+    process.env.ARGO_WRITABLE_DIRS = "/some/allowed/zone";
+    try {
+      const res = await writeFileTool.execute(
+        { path: join(outside, "x.txt"), content: "nope" },
+        ctx(),
+      );
+      expect(res.ok).toBe(false);
+      expect(res.output).toContain("not in a writable zone");
+    } finally {
+      if (prev === undefined) delete process.env.ARGO_WRITABLE_DIRS;
+      else process.env.ARGO_WRITABLE_DIRS = prev;
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("shell_cmd", () => {
