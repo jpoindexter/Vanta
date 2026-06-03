@@ -91,10 +91,34 @@ describe("read_file", () => {
     expect(res.output).toBe("world");
   });
 
-  it("refuses a path outside scope", async () => {
-    const res = await readFileTool.execute({ path: "../../etc/passwd" }, ctx());
-    expect(res.ok).toBe(false);
-    expect(res.output).toContain("outside project scope");
+  it("reads a file from a configured readable zone outside the project", async () => {
+    const zone = await mkdtemp(join(tmpdir(), "argo-rzone-"));
+    const prev = process.env.ARGO_READABLE_DIRS;
+    process.env.ARGO_READABLE_DIRS = zone;
+    try {
+      const target = join(zone, "skill.md");
+      await writeFile(target, "# Sibling skill");
+      const res = await readFileTool.execute({ path: target }, ctx());
+      expect(res.ok).toBe(true);
+      expect(res.output).toBe("# Sibling skill");
+    } finally {
+      if (prev === undefined) delete process.env.ARGO_READABLE_DIRS;
+      else process.env.ARGO_READABLE_DIRS = prev;
+      await rm(zone, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a path outside the project and outside every readable zone", async () => {
+    const prev = process.env.ARGO_READABLE_DIRS;
+    process.env.ARGO_READABLE_DIRS = "/some/allowed/zone";
+    try {
+      const res = await readFileTool.execute({ path: "/etc/hosts" }, ctx());
+      expect(res.ok).toBe(false);
+      expect(res.output).toContain("not in a readable zone");
+    } finally {
+      if (prev === undefined) delete process.env.ARGO_READABLE_DIRS;
+      else process.env.ARGO_READABLE_DIRS = prev;
+    }
   });
 });
 
