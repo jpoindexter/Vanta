@@ -70,6 +70,8 @@ function usage(): void {
       "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
       "       argo modes [list|install]         operator modes",
       "       argo auth google                  one-time Google OAuth",
+      "       argo improve                      run one factory cycle (review mode — prints plan)",
+      "       argo factory [approve|status]     execute or check the dark factory",
     ].join("\n"),
   );
 }
@@ -317,6 +319,49 @@ async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void
   }
 }
 
+async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
+  const { runCycle, formatCycleLog } = await import("./factory/run.js");
+  const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
+  const dataDir = resolveArgoHome(process.env);
+
+  if (sub === "approve") {
+    const result = await runCycle(
+      { argoRoot: repoRoot, dataDir, autonomy: "auto", budgetTokens: budget, interactive: true },
+      console.log,
+    );
+    console.log(`\n${formatCycleLog(result)}`);
+    return;
+  }
+
+  if (sub === "status") {
+    const { access, readFile } = await import("node:fs/promises");
+    const locked = await access(join(dataDir, "factory.lock")).then(() => true).catch(() => false);
+    console.log(locked ? "factory: RUNNING (lockfile present)" : "factory: idle");
+    const logDir = join(dataDir, "logs");
+    try {
+      const { readdirSync } = await import("node:fs");
+      const logs = readdirSync(logDir).filter((f: string) => f.startsWith("factory-")).sort().reverse();
+      if (logs[0]) {
+        const last = await readFile(join(logDir, logs[0]!), "utf8");
+        console.log(`last cycle: ${last.trim().split("\n").at(-1) ?? ""}`);
+      }
+    } catch { /* no logs yet */ }
+    return;
+  }
+
+  if (sub === "review" || sub === "") {
+    // argo improve or argo factory (no sub): review mode — print plan, don't execute
+    const result = await runCycle(
+      { argoRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
+      console.log,
+    );
+    console.log(`\n${formatCycleLog(result)}`);
+    return;
+  }
+
+  console.log("Usage: argo factory [approve|status]");
+}
+
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
@@ -351,6 +396,8 @@ async function main(): Promise<void> {
   if (cmd === "modes") return runModes(process.env, rest[0]);
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
+  if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 
   usageExit();
 }
