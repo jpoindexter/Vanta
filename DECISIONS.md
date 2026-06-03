@@ -57,3 +57,9 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Models:** gpt-5.5 (default), gpt-5.4, gpt-5.4-mini, codex-auto-review (272k ctx), gpt-5.3-codex-spark (128k).
 **Grey area / honesty:** Same ToS caveat as `claude-code` — subscription tokens are meant for the Codex CLI's interactive use; user-run under their own judgment, API keys remain the supported path.
 **Reversible?** Yes — one provider case + two files.
+
+## 2026-06-03 — All Argo documentation must be agent-ready (structured source → generated human view)
+**Choice:** New/living docs use a **structured, parseable source of truth** (JSON/typed), with human-facing views *generated from it* — never the reverse. First instance: `roadmap.json` is canonical; `roadmap.html` is generated for Jason; Argo reads the JSON directly. The agent should never have to scrape prose/HTML to know a fact about itself or the project.
+**Alternatives:** (a) Keep prose markdown/HTML as source and have the agent parse it — rejected, fragile and not reliably machine-readable. (b) Maintain human + agent copies by hand — rejected, drifts.
+**Why:** Argo is an autonomous operator that reads its own docs (status, roadmap, config). Structured source = Argo parses natively + the factory can act on it; one source = no drift; humans still get a rendered view. Applies going forward to new docs; existing narrative docs (ROADMAP.md, PRD) stay as rationale archives, not status sources.
+**Reversible?** Yes — per-doc choice; nothing forces a big-bang migration.

@@ -130,6 +130,14 @@ Target hardware: MacBook Pro 14" M4 Pro / 48GB / macOS Tahoe — must run lean h
 - [ ] **B-v2 · Emergent self-designed brain** — beyond md files: let Argo design its OWN brain representation (its own code/format/tech) that humans don't need to read. The md brain (v1.4) is the bootstrap; v2 lets Argo evolve the substrate under the kernel's rules. (research + careful — high blast radius.)
 - [ ] **META · Don't stop until complete** — standing directive: work the whole backlog top-down, commit + push every slice, until done. (Active.)
 
+## v1.6 — MCP: use · make · serve (requested 2026-06-03)
+Argo as a self-extending operator: consume any MCP server, build/hook in new ones on
+its own, and be callable as a server itself. Extends **E5** (MCP client, shipped). Built
+in order — each phase ships working before the next starts (anti-drift: no three-half-things).
+- [~] **MCP-1 · Use any MCP (consume)** (S) — E5's dependency-free stdio client is built + tested; the only gap is **config discovery**. Accept Claude's `mcpServers` key (not just `servers`); discover `./.mcp.json` in the project (not just `~/.argo/mcp.json` + `ARGO_MCP_SERVERS`); add `argo mcp list` to verify loaded servers/tools. **Done =** `argo mcp list` shows a configured server's tools and Argo calls one in a live session. *Unblocks the immediate use case: Cosmos image search → design Argo's own visual style.*
+- [ ] **MCP-2 · Make + hook in at runtime** (M) — the autonomous half. **`mount_mcp` tool**: Argo adds an MCP server to its LIVE registry mid-session, no restart (kernel-gated like any spawn) — *"find an MCP and hook in."* **`build-mcp-server` skill**: Argo scaffolds a new MCP server (TS template + protocol handshake + build) when no tool exists, then mounts it via the tool above — *"the site's blocking me, I'll build one."* **Done =** in one session Argo builds a trivial MCP, mounts it, calls its tool; and separately mounts an existing server on command.
+- [ ] **MCP-3 · Be a server (serve)** (M/L) — **`argo mcp serve`**: expose Argo's tools over MCP stdio so it's callable FROM Claude Code (drive Argo's operator tools inside your main CC session). Every incoming call routes through the kernel `assess()` gate (already enforced — that's what makes exposure safe). Design wrinkle: a non-interactive caller can't answer an `Ask` verdict → external calls need a **pre-approved allowlist** (read-only tools auto-allow; mutations need explicit config). **Done =** from Claude Code, a tool call into Argo executes through the kernel gate. Supersedes **E6** (ACP wrapper) as the cross-agent path.
+
 ## v1.4 — Selfhood & continuous learning (requested 2026-06-02/03)
 The agent grows an identity and a living model of its world. Everything here stays
 under the kernel's hard lines (non-destructive, verified, approval-before-risk).
