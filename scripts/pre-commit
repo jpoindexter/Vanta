@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Pre-commit hook: run gitleaks on staged changes.
+# Install: ln -sf ../../scripts/pre-commit .git/hooks/pre-commit
+# Or run: ./install.sh  (installs automatically)
+
+if ! command -v gitleaks &>/dev/null; then
+  echo "⚠  gitleaks not found — skipping secret scan (install: brew install gitleaks)"
+  exit 0
+fi
+
+if ! gitleaks protect --staged --config .gitleaks.toml 2>&1; then
+  echo ""
+  echo "✗  gitleaks found potential secrets in staged files."
+  echo "   Review the findings above, then rotate any real secrets before committing."
+  exit 1
+fi

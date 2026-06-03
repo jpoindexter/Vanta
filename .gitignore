@@ -17,5 +17,8 @@ node_modules
 # CodeGraph index (rebuildable from source)
 .codegraph/
 
+# Generated artifacts
+roadmap.html
+
 # OS
 .DS_Store

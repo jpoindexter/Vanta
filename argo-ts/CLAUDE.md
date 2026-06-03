@@ -145,6 +145,8 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 
 ## Gotchas
 
+- **gitleaks pre-commit hook** runs `gitleaks protect --staged` on every commit. Hook lives at `scripts/pre-commit`; `install.sh` symlinks it into `.git/hooks/`. Example files (`.env.example`, `.mcp.json.example`) and test fixtures are allowlisted in `.gitleaks.toml`. If you get a false positive, add a pattern to the `allowlists` section — don't skip the hook.
+
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
 ## Session additions (2026-06-02/03) — keep current

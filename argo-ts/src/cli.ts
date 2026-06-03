@@ -70,6 +70,7 @@ function usage(): void {
       "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
       "       argo modes [list|install]         operator modes",
       "       argo auth google                  one-time Google OAuth",
+      "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
       "       argo factory [approve|status]     execute or check the dark factory",
     ].join("\n"),
@@ -319,6 +320,14 @@ async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void
   }
 }
 
+async function runRoadmapCommand(repoRoot: string): Promise<void> {
+  const { buildRoadmap } = await import("./roadmap/build.js");
+  const { execSync } = await import("node:child_process");
+  const htmlPath = await buildRoadmap(repoRoot);
+  execSync(`open "${htmlPath}"`);
+  console.log(`  → opened ${htmlPath}`);
+}
+
 async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
   const { runCycle, formatCycleLog } = await import("./factory/run.js");
   const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
@@ -396,6 +405,7 @@ async function main(): Promise<void> {
   if (cmd === "modes") return runModes(process.env, rest[0]);
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "roadmap") return runRoadmapCommand(repoRoot);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 

@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { readMcpConfig, mcpToolToArgoTool } from "./mount.js";
 
 describe("readMcpConfig", () => {
@@ -25,6 +28,64 @@ describe("readMcpConfig", () => {
   it("returns empty when no config is present", async () => {
     const cfg = await readMcpConfig({ ARGO_HOME: "/nonexistent-argo-home-xyz" } as NodeJS.ProcessEnv);
     expect(cfg.servers).toEqual({});
+  });
+
+  it("accepts mcpServers key in inline config (Claude Code convention)", async () => {
+    const cfg = await readMcpConfig({
+      ARGO_MCP_SERVERS: JSON.stringify({
+        mcpServers: { myserver: { command: "mcp-tool", args: ["--flag"] } },
+      }),
+    } as NodeJS.ProcessEnv);
+    expect(cfg.servers.myserver).toEqual({ command: "mcp-tool", args: ["--flag"] });
+  });
+
+  it("merges servers and mcpServers with servers winning on conflict", async () => {
+    const cfg = await readMcpConfig({
+      ARGO_MCP_SERVERS: JSON.stringify({
+        mcpServers: { a: { command: "from-mcp-servers" }, b: { command: "only-in-mcp" } },
+        servers: { a: { command: "from-servers" } },
+      }),
+    } as NodeJS.ProcessEnv);
+    expect(cfg.servers.a?.command).toBe("from-servers");
+    expect(cfg.servers.b?.command).toBe("only-in-mcp");
+  });
+
+  it("discovers .mcp.json in cwd", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "argo-mcp-"));
+    try {
+      await writeFile(
+        join(dir, ".mcp.json"),
+        JSON.stringify({ mcpServers: { local: { command: "local-server" } } }),
+        "utf8",
+      );
+      const cfg = await readMcpConfig({ ARGO_HOME: "/nonexistent" } as NodeJS.ProcessEnv, dir);
+      expect(cfg.servers.local).toEqual({ command: "local-server" });
+    } finally {
+      await rm(dir, { recursive: true });
+    }
+  });
+
+  it("project-level .mcp.json wins over user-level ~/.argo/mcp.json on conflict", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "argo-mcp-"));
+    const home = await mkdtemp(join(tmpdir(), "argo-home-"));
+    try {
+      await writeFile(
+        join(dir, ".mcp.json"),
+        JSON.stringify({ servers: { shared: { command: "project-cmd" } } }),
+        "utf8",
+      );
+      await writeFile(
+        join(home, "mcp.json"),
+        JSON.stringify({ servers: { shared: { command: "user-cmd" }, only_user: { command: "u" } } }),
+        "utf8",
+      );
+      const cfg = await readMcpConfig({ ARGO_HOME: home } as NodeJS.ProcessEnv, dir);
+      expect(cfg.servers.shared?.command).toBe("project-cmd");
+      expect(cfg.servers.only_user?.command).toBe("u");
+    } finally {
+      await rm(dir, { recursive: true });
+      await rm(home, { recursive: true });
+    }
   });
 });
 

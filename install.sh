@@ -63,6 +63,16 @@ if "$SCRIPT_DIR/run.sh" skills install >/dev/null 2>&1; then
   echo -e "${GREEN}✓${NC} bundled skills seeded into ~/.argo/skills"
 fi
 
+# --- dev: install git pre-commit hook (gitleaks secret scan) -----------------
+if [ -d "$SCRIPT_DIR/.git" ] && [ -f "$SCRIPT_DIR/scripts/pre-commit" ]; then
+  ln -sf ../../scripts/pre-commit "$SCRIPT_DIR/.git/hooks/pre-commit" 2>/dev/null || true
+  if command -v gitleaks &>/dev/null; then
+    echo -e "${GREEN}✓${NC} pre-commit hook installed (gitleaks secret scan)"
+  else
+    echo -e "${YELLOW}⚠${NC}  pre-commit hook installed — install gitleaks for it to run: brew install gitleaks"
+  fi
+fi
+
 echo ""
 echo -e "${GREEN}✓ Done.${NC} Start with:"
 echo "    argo setup      # pick a model backend (ChatGPT / Claude / Gemini / local)"
