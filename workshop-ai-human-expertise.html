@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Human Expertise in the Age of AI — Workshop</title>
+  <style>
+    :root {
+      --bg: #090909;
+      --paper: #f4efe5;
+      --paper-2: #e9dfcf;
+      --ink: #101010;
+      --muted: #6f675d;
+      --line: rgba(16,16,16,.18);
+      --red: #ff4b2b;
+      --blue: #5f7cff;
+      --green: #36d399;
+      --yellow: #f6c445;
+      --mono: "SF Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--paper);
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        radial-gradient(circle at 22% 12%, rgba(95,124,255,.18), transparent 28rem),
+        radial-gradient(circle at 84% 18%, rgba(255,75,43,.16), transparent 24rem),
+        radial-gradient(circle at 65% 92%, rgba(54,211,153,.12), transparent 26rem),
+        var(--bg);
+      background-size: 42px 42px, 42px 42px, auto, auto, auto, auto;
+      font-family: var(--sans);
+      line-height: 1.45;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(244,239,229,.72);
+    }
+
+    .status {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 18px rgba(54,211,153,.75);
+    }
+
+    .hero {
+      min-height: 78vh;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 34px;
+      align-items: stretch;
+      padding: 34px 0 58px;
+    }
+
+    .poster {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(244,239,229,.18);
+      border-radius: 30px;
+      background: var(--paper);
+      color: var(--ink);
+      padding: clamp(28px, 5vw, 58px);
+      box-shadow: 0 28px 90px rgba(0,0,0,.46);
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      pointer-events: none;
+    }
+
+    .poster::after {
+      content: "AI / HUMAN / JUDGMENT / FRICTION / EXPERTISE /";
+      position: absolute;
+      left: -10px;
+      bottom: 18px;
+      width: 120%;
+      color: rgba(16,16,16,.08);
+      font-family: var(--mono);
+      font-size: clamp(28px, 6vw, 74px);
+      font-weight: 900;
+      letter-spacing: -.08em;
+      white-space: nowrap;
+      transform: rotate(-3deg);
+      pointer-events: none;
+    }
+
+    .kicker {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #403a33;
+      background: rgba(255,255,255,.42);
+    }
+
+    .mark {
+      width: 10px;
+      height: 10px;
+      background: var(--red);
+      transform: rotate(45deg);
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 46px 0 24px;
+      max-width: 11ch;
+      font-family: var(--serif);
+      font-weight: 500;
+      letter-spacing: -.075em;
+      line-height: .88;
+      font-size: clamp(64px, 12vw, 142px);
+    }
+
+    .subtitle {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0;
+      color: #39342e;
+      font-size: clamp(19px, 2.2vw, 28px);
+      line-height: 1.22;
+      letter-spacing: -.03em;
+    }
+
+    .metadata {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 42px;
+    }
+
+    .meta {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #4f473e;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .meta strong {
+      display: block;
+      margin-top: 7px;
+      font-family: var(--sans);
+      font-size: 18px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      text-transform: none;
+      color: var(--ink);
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid rgba(244,239,229,.16);
+      border-radius: 26px;
+      padding: 24px;
+      background: rgba(244,239,229,.075);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.24);
+    }
+
+    .panel h2, .panel h3 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-family: var(--mono);
+      color: rgba(244,239,229,.68);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .panel p {
+      margin: 0;
+      color: rgba(244,239,229,.86);
+      font-size: 18px;
+      letter-spacing: -.02em;
+    }
+
+    .not {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 13px 14px;
+      border: 1px solid rgba(244,239,229,.14);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(244,239,229,.78);
+    }
+
+    .chip b { color: var(--paper); font-weight: 600; }
+
+    .section {
+      padding: 64px 0;
+    }
+
+    .section-title {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 30px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+
+    .section-title .label {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(244,239,229,.58);
+    }
+
+    .section-title h2 {
+      margin: 0;
+      max-width: 760px;
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: clamp(38px, 5vw, 72px);
+      line-height: .95;
+      letter-spacing: -.055em;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .q {
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
+      border: 1px solid rgba(244,239,229,.15);
+      border-radius: 22px;
+      background: rgba(244,239,229,.07);
+    }
+
+    .q span {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(244,239,229,.46);
+    }
+
+    .q p {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.025em;
+      color: rgba(244,239,229,.9);
+    }
+
+    .manifesto {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .statement {
+      padding: clamp(26px, 4vw, 44px);
+      border-radius: 30px;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .statement.dark {
+      background: #121212;
+      color: var(--paper);
+      border: 1px solid rgba(244,239,229,.16);
+    }
+
+    .statement h3 {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--red);
+    }
+
+    .statement.dark h3 { color: var(--yellow); }
+
+    .statement p {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    .included {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .item {
+      padding: 22px;
+      min-height: 154px;
+      border-radius: 22px;
+      border: 1px solid rgba(244,239,229,.14);
+      background: rgba(244,239,229,.07);
+    }
+
+    .item .num {
+      display: block;
+      margin-bottom: 28px;
+      font-family: var(--mono);
+      color: rgba(244,239,229,.44);
+      font-size: 12px;
+    }
+
+    .item p {
+      margin: 0;
+      font-size: 19px;
+      color: rgba(244,239,229,.88);
+      letter-spacing: -.025em;
+    }
+
+    .bio {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .portrait {
+      min-height: 360px;
+      border-radius: 30px;
+      border: 1px solid rgba(244,239,229,.14);
+      background:
+        linear-gradient(135deg, rgba(255,75,43,.28), transparent 42%),
+        linear-gradient(225deg, rgba(95,124,255,.26), transparent 48%),
+        rgba(244,239,229,.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portrait::before {
+      content: "IRIS LATOUR";
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .15em;
+      color: rgba(244,239,229,.68);
+    }
+
+    .portrait::after {
+      content: "";
+      position: absolute;
+      inset: 48px;
+      border: 1px solid rgba(244,239,229,.22);
+      border-radius: 50%;
+      box-shadow: 0 0 0 44px rgba(244,239,229,.035), 0 0 0 88px rgba(244,239,229,.025);
+    }
+
+    .bio-copy {
+      border-radius: 30px;
+      padding: clamp(28px, 4vw, 48px);
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .bio-copy h2 {
+      margin: 0 0 20px;
+      font-family: var(--serif);
+      font-size: clamp(42px, 5vw, 76px);
+      line-height: .9;
+      letter-spacing: -.06em;
+      font-weight: 500;
+    }
+
+    .bio-copy p {
+      margin: 0 0 16px;
+      color: #39342e;
+      font-size: 20px;
+      letter-spacing: -.025em;
+    }
+
+    .cta {
+      padding: 34px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--red), #b923ff 55%, var(--blue));
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 60px;
+    }
+
+    .cta h2 {
+      margin: 0;
+      max-width: 720px;
+      font-family: var(--serif);
+      font-size: clamp(42px, 6vw, 90px);
+      line-height: .88;
+      letter-spacing: -.06em;
+      font-weight: 500;
+    }
+
+    .cta p {
+      margin: 0;
+      max-width: 260px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.82);
+    }
+
+    @media (max-width: 960px) {
+      .hero, .manifesto, .bio { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .included { grid-template-columns: repeat(2, 1fr); }
+      .section-title { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 24px, 1120px); }
+      .metadata, .cards, .included { grid-template-columns: 1fr; }
+      .poster { border-radius: 22px; }
+      .cta { display: block; }
+      .cta p { margin-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <div class="status"><span class="dot"></span> Participatory Workshop</div>
+      <div>Creativity × Cognition × AI</div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="title">
+        <div class="poster">
+          <div class="kicker"><span class="mark"></span> Three-hour facilitated session</div>
+          <h1 id="title">Human Expertise in the Age of AI</h1>
+          <p class="subtitle">
+            A workshop on creativity, judgment, and what happens to our thinking when answers become instant.
+          </p>
+          <div class="metadata" aria-label="Workshop details">
+            <div class="meta">Format<strong>Participatory</strong></div>
+            <div class="meta">Audience<strong>Designers & researchers</strong></div>
+            <div class="meta">Preparation<strong>None required</strong></div>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="panel">
+            <h2>Premise</h2>
+            <p>
+              AI can help us write, brainstorm, synthesize, and decide faster. But speed changes the shape of thought. This workshop creates room to notice what we gain, what we lose, and what we choose to protect.
+            </p>
+          </div>
+
+          <div class="panel">
+            <h3>This is not</h3>
+            <div class="not">
+              <div class="chip"><span>Anti-AI polemic</span><b>✕</b></div>
+              <div class="chip"><span>Productivity seminar</span><b>✕</b></div>
+              <div class="chip"><span>Prompt engineering session</span><b>✕</b></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>This is</h3>
+            <p>
+              A space for thoughtful practitioners to pause, reflect, and explore human expertise in a world optimized for speed.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <div class="section-title">
+          <div class="label">Inquiry map</div>
+          <h2>Questions worth slowing down for.</h2>
+        </div>
+        <div class="cards">
+          <article class="q"><span>01</span><p>Where does AI genuinely help us think better?</p></article>
+          <article class="q"><span>02</span><p>Where does it risk replacing thinking altogether?</p></article>
+          <article class="q"><span>03</span><p>What kinds of creative friction are worth preserving?</p></article>
+          <article class="q"><span>04</span><p>How does collaboration change when AI enters the room?</p></article>
+          <article class="q"><span>05</span><p>What parts of thinking are worth protecting?</p></article>
+        </div>
+      </section>
+
+      <section class="section manifesto" aria-label="Workshop framing">
+        <div class="statement">
+          <h3>Why now</h3>
+          <p>Designers, researchers, and creative practitioners are among the first to work alongside AI every day.</p>
+        </div>
+        <div class="statement dark">
+          <h3>Why this room</h3>
+          <p>Few of us get to step back and ask what that relationship is doing to how we think together.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">
+          <div class="label">Included</div>
+          <h2>Structured reflection, conversation, and a shared artifact.</h2>
+        </div>
+        <div class="included">
+          <div class="item"><span class="num">01</span><p>A 3-hour facilitated workshop</p></div>
+          <div class="item"><span class="num">02</span><p>Breakfast, coffee, and snacks</p></div>
+          <div class="item"><span class="num">03</span><p>Interactive exercises and group discussion</p></div>
+          <div class="item"><span class="num">04</span><p>A collective artifact created by participants</p></div>
+          <div class="item"><span class="num">05</span><p>Thoughtful conversations with designers and researchers</p></div>
+          <div class="item"><span class="num">06</span><p>No preparation required. Just bring curiosity.</p></div>
+        </div>
+      </section>
+
+      <section class="section bio" aria-label="Facilitator">
+        <div class="portrait" aria-hidden="true"></div>
+        <div class="bio-copy">
+          <h2>Facilitated by Iris Latour</h2>
+          <p>
+            Iris Latour is Director of Research at THEFT Studio, where she researches AI products, AI transformation, and the evolving relationship between people and intelligent systems.
+          </p>
+          <p>
+            She holds a Master’s degree in Design for Responsible AI from Elisava and has spent her career helping organizations turn complex human behavior into meaningful product decisions.
+          </p>
+        </div>
+      </section>
+
+      <section class="cta" aria-label="Closing statement">
+        <h2>Protect the parts of thinking that make us human.</h2>
+        <p>Breakfast. Coffee. Snacks. Conversation. No prep required.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
