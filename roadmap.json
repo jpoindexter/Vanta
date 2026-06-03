@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-03",
+  "updated": "2026-06-04",
   "items": [
     {"id":"TUI","track":"Core UX","title":"Ink TUI + streaming","status":"shipped","size":"M","summary":"React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.","done":"open argo → full TUI with streaming tokens."},
     {"id":"REPL","track":"Core UX","title":"Full REPL + install","status":"shipped","size":"S","summary":"install.sh global argo command + full slash set.","done":"argo works from anywhere."},
@@ -32,11 +32,11 @@
     {"id":"S1","track":"Selfhood","title":"Self-authored identity files","status":"shipped","size":"M","summary":"Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.","done":"Argo has a persistent identity."},
     {"id":"S5","track":"Selfhood","title":"Heartbeat selfhood updates","status":"horizon","size":"S","summary":"Wire brain writes onto the gateway tick.","done":"Identity evolves continuously via daemon."},
     {"id":"P1","track":"Hermes Parity","title":"Slash-command parity","status":"shipped","size":"M","summary":"/history /retry /undo /reset /title /fork.","done":"Full slash parity readline + TUI."},
-    {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"building","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Argo reads roadmap.json natively."},
-    {"id":"SEC","track":"Docs + Tooling","title":"Secret-hygiene hardening","status":"next","size":"S","summary":"gitleaks pre-commit hook + .example twins + pre-push check.","done":"A secret-shaped string can't be committed."},
-    {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. argo mcp list.","done":"argo mcp list shows a server's tools; Argo calls one live."},
-    {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"horizon","size":"M","summary":"mount_mcp tool (live runtime mount) + build-mcp-server skill (scaffold on demand).","done":"Argo builds a trivial MCP, mounts it, calls its tool; and mounts an existing server on command."},
-    {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"argo mcp serve — expose Argo tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Argo executes through the kernel gate."},
+    {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"shipped","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Argo reads roadmap.json natively."},
+    {"id":"SEC","track":"Docs + Tooling","title":"Secret-hygiene hardening","status":"shipped","size":"S","summary":"gitleaks pre-commit hook + .example twins, installed by install.sh.","done":"A secret-shaped string can't be committed (verified: hook runs gitleaks protect --staged)."},
+    {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"shipped","size":"S","summary":"readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.argo/mcp.json (user). argo mcp list.","done":"Config discovery shipped; live consume needs a real server."},
+    {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"shipped","size":"M","summary":"mount_mcp tool (live runtime mount, kernel-gated) + build-mcp-server skill (scaffold on demand).","done":"mount_mcp registers a server's tools into the live registry; skill teaches scaffolding."},
+    {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"shipped","size":"L","summary":"argo mcp serve — exposes Argo tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.","done":"Live-verified: real McpClient drove argo mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."},
     {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override."}
   ]
 }

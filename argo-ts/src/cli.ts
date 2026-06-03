@@ -70,6 +70,7 @@ function usage(): void {
       "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
       "       argo modes [list|install]         operator modes",
       "       argo auth google                  one-time Google OAuth",
+      "       argo mcp [list|serve]             list MCP servers Argo consumes, or serve Argo's tools over MCP stdio",
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
       "       argo factory [approve|status]     execute or check the dark factory",
@@ -320,6 +321,44 @@ async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void
   }
 }
 
+async function runMcpCommand(repoRoot: string, rest: string[]): Promise<void> {
+  const sub = rest[0] ?? "list";
+
+  if (sub === "serve") {
+    // CRITICAL: stdout carries the JSON-RPC stream only. Re-route every stdout
+    // logger (kernel launcher, mcp mount, etc.) to stderr before anything runs,
+    // else the first diagnostic line corrupts the protocol and the handshake dies.
+    console.log = console.error;
+    const { ensureKernel } = await import("./kernel-launcher.js");
+    const { SafetyClient } = await import("./safety-client.js");
+    const { buildRegistry } = await import("./tools/index.js");
+    const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("./mcp/server.js");
+
+    const baseUrl = process.env.ARGO_KERNEL_URL ?? "http://127.0.0.1:7788";
+    const kernelBin = join(repoRoot, "target", "debug", "argo-kernel");
+    await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
+
+    const safety = new SafetyClient(baseUrl);
+    const registry = buildRegistry();
+    const allowlist = resolveServeAllowlist(process.env);
+    // Headless: no human to prompt, so self-checks (overwrite, new domain) deny.
+    const ctx = { root: repoRoot, safety, requestApproval: async () => false };
+    console.error(`argo mcp serve — ${allowlist.size} tool(s) exposed, kernel-gated`);
+    await runMcpServer(stdioServerTransport(), { registry, safety, ctx, allowlist });
+    return;
+  }
+
+  // default: list configured MCP servers Argo would consume (MCP-1 side)
+  const { readMcpConfig } = await import("./mcp/mount.js");
+  const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));
+  const names = Object.keys(cfg.servers);
+  if (names.length === 0) {
+    console.log("  (no MCP servers — set ARGO_MCP_SERVERS, ./.mcp.json, or ~/.argo/mcp.json)");
+  } else {
+    for (const n of names) console.log(`  ${n}`);
+  }
+}
+
 async function runRoadmapCommand(repoRoot: string): Promise<void> {
   const { buildRoadmap } = await import("./roadmap/build.js");
   const { execSync } = await import("node:child_process");
@@ -405,6 +444,7 @@ async function main(): Promise<void> {
   if (cmd === "modes") return runModes(process.env, rest[0]);
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
