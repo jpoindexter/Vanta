@@ -11,6 +11,7 @@ Dark factory: the bounded autonomous loop that improves Argo's own codebase. One
 | `planner.ts` | `buildPlan(item, root)` → `FactoryPlan`. Per-category agent instructions. Pure. |
 | `executor.ts` | `execute(root, plan, budget)` → `SliceArtifact`. Runs agent + harvests touched files. |
 | `verifier.ts` | `verify(root, artifact, preExisting)` → `VerifyResult`. All checks must pass. |
+| `compartments.ts` | O11 — `classifyCompartment(file)` → tier · `compartmentMaxAutonomy(tier)` → max L · `autonomyCapForFiles(files)` → most-restrictive cap. Pure. |
 | `run.ts` | `runCycle(config, log)` → `CycleResult`. Orchestrates the full cycle. |
 
 ## Safety invariants (do not change without a kernel update)
@@ -35,6 +36,24 @@ Dark factory: the bounded autonomous loop that improves Argo's own codebase. One
 The kernel's `is_protected_path` blocks skeleton/brainstem edits at EVERY level — the ladder
 governs reach over writable code only. `improve`/review = L1; `approve` = `ARGO_AUTONOMY_LEVEL`
 (default 4). L5 auto-merge + a low-risk classifier is the next slice.
+
+## Compartments (O11)
+
+After a clean verify, `run.ts` clamps the requested level to the most restrictive
+compartment among the files the slice **actually touched** (`compartments.ts:autonomyCapForFiles`):
+
+| Tier | Files | Max L | Rationale |
+|------|-------|-------|-----------|
+| skeleton | kernel `src/*.rs`, `Cargo.*`, `factory/*.ts`, `MANIFESTO.md` | 0 | never autonomous (also hard-blocked by the kernel) |
+| brainstem | `agent.ts`, `providers/`, `prompt.ts`, `context.ts`, `session.ts`, `safety-client.ts`, `kernel-launcher.ts`, `scope.ts` | 2 | changes how Argo decides → implement, then STOP for review |
+| reflexes | `skills/`, `skills-library/` | 5 | self-evolving skill data |
+| memory | `brain/`, `memory/` | 5 | self-knowledge |
+| limbs | `tools/` + all other app code (default) | 5 | freely improvable |
+
+A mixed slice takes the **minimum** cap (a tool + `agent.ts` → L2). So a brainstem fix
+can't auto-commit even when `ARGO_AUTONOMY_LEVEL=4`; only limbs/reflexes/memory reach the
+full ladder. This is the soft policy the kernel can't express; `is_protected_path` is still
+the hard boundary (skeleton would fail verify before the clamp ever runs).
 
 ## Entry points
 

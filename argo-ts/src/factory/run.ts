@@ -3,6 +3,7 @@ import { triage } from "./triage.js";
 import { buildPlan } from "./planner.js";
 import { execute } from "./executor.js";
 import { verify, listPreExistingFiles } from "./verifier.js";
+import { autonomyCapForFiles } from "./compartments.js";
 import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 
 // --- Pure helpers ---
@@ -162,7 +163,16 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "verify-failed", workItem: item, reason: verifyResult.reason ?? "unknown" };
     }
 
-    if (level <= 2) {
+    // O11 — clamp the requested level to the most restrictive compartment the
+    // slice touched. A brainstem fix can't auto-commit even at L4; only limbs/
+    // reflexes/memory reach the full ladder. Skeleton would have failed verify.
+    const cap = autonomyCapForFiles(artifact.touchedFiles);
+    const effectiveLevel = Math.min(level, cap.maxLevel);
+    if (effectiveLevel < level) {
+      log(`factory: [O11] ${cap.compartment} compartment caps autonomy at L${cap.maxLevel} — clamping from L${level}`);
+    }
+
+    if (effectiveLevel <= 2) {
       // L2 implement — leave the verified changes on the branch for human review.
       log(`factory: [L2] verified on ${branch} — review the diff, then commit when ready.`);
       return { status: "implemented", workItem: item, branch, tokenSpend: artifact.tokenSpend };
@@ -172,12 +182,12 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const sha = await commitSlice(config.argoRoot, msg);
     log(`factory: committed ${sha}`);
 
-    if (level <= 3) {
+    if (effectiveLevel <= 3) {
       // L3 commit — committed locally, but not pushed.
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: false };
     }
 
-    // L4 push — publish the branch (no merge; L5 reserved).
+    // L4 push — publish the branch (no merge; L5 reserved for O10b).
     await pushBranch(config.argoRoot);
     log(`factory: pushed ${branch}`);
     return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
