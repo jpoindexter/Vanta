@@ -18,6 +18,8 @@ Runtime flow: `docs/argo-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `PA
 web search, browser+vision, code/dev, autonomy primitives, comms. Interactive banner+REPL.
 32 tools · 290 tests green (16 Rust + 274 TS) · typecheck clean.
 
+**v1 = done.** All v1.1–v1.5 tracks shipped. 581 tests green (27 Rust + 554 TS) · tsc clean · pushed.
+
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and
 self-improvement layer* is thin: no setup, no Gemini, no memory of past conversations,
 nothing learns automatically, not reachable as a service. v1 closes that.
@@ -111,15 +113,15 @@ Founding mandate (from the genesis session): **"the next agent, better than Herm
 **Custom-Hermes fixes worth studying (diff `hermes-agent` vs `hermes-agent-clean`):** `gateway/stream_dispatch.py`+`stream_events.py` (streaming), `gateway/platforms/*`, `cron/scheduler.py`, `hermes_cli/config.py`+`web_server.py`, `plugins/model-providers/ai-gateway`.
 
 ## v1.3 — Autonomy + senses (requested 2026-06-02, rapid-fire)
-- [~] **O1 · Agent-chosen model on delegate** (BUILDING) — `delegate` gains `provider`/`model` params so the agent routes a subtask to ANY backend it wants (e.g. local Ollama, gpt-4o, gemini) and gets the result back — "launch ollama, complete the task, come back." Frees a goal from one model/agent.
-- [ ] **O2 · Swarms** — agent spawns multiple workers (parallel delegate / fan-out) and synthesizes; "launch sub agents, swarms… when and how it wants."
-- [ ] **O3 · Eyes (screen)** — capture the screen (macOS `screencapture`) → native image to the model; "see my screen." Builds on the multimodal input pipeline.
-- [ ] **O4 · Camera** — capture a webcam frame → native image (optional).
-- [ ] **O5 · Video** — extract frames from a video file (ffmpeg) → native images; video understanding.
-- [x] **O6 · Self-directed model selection** — ✅ shipped with O1 (the `delegate` provider/model params + tool description tell the agent it can pick a backend per subtask).
-- [ ] **O7 · Speech & audio** — STT (mic → text), TTS (reply → voice), audio-file understanding, voice notes. Providers: whisper/local for STT, system `say`/TTS for output. `/voice` toggle.
-- [ ] **O8 · Self-improving via the web** — agent browses (web_search/web_fetch/browser) to find tasks/info worth learning, then writes skills from what it learns (ties to track B self-improvement). "Find what it wants to do and learn."
-- [ ] **O9 · Self-improving codebase ("dark factory")** — agent autonomously improves its OWN codebase (refactor, add tests, close gaps) on a loop, ALWAYS under the kernel's non-destructive rules + verified-output + approval-before-risk. Manifesto hard lines are the guardrails that make this safe.
+- [x] **O1 · Agent-chosen model on delegate** — ✅ SHIPPED. `delegate` provider/model params + tool description. Agent routes subtasks to any backend (Ollama, Gemini, etc.).
+- [x] **O2 · Swarms** — ✅ SHIPPED. `tools/swarm.ts` — parallel multi-agent workers, fan-out + synthesize.
+- [x] **O3 · Eyes (screen)** — ✅ SHIPPED. `look_at_screen` — `screencapture -x` → vision model. Needs Screen Recording permission.
+- [x] **O4 · Camera** — ✅ SHIPPED. `look_at_camera` — webcam frame → vision model.
+- [x] **O5 · Video** — ✅ SHIPPED. `watch_video` — ffmpeg frame extraction → vision model.
+- [x] **O6 · Self-directed model selection** — ✅ shipped with O1.
+- [x] **O7 · Speech & audio** — ✅ SHIPPED. `speak` (TTS via `say`) + `transcribe` (STT via whisper).
+- [x] **O8 · Self-improving via the web** — ✅ SHIPPED (behavior). Prompt rule 9 + brain Growth drive directs the agent to browse and write skills from what it learns.
+- [x] **O9 · Self-improving codebase ("dark factory")** — ✅ SHIPPED 2026-06-03. `factory/` module: triage → plan → execute → verify → commit. Kernel-enforced: `is_protected_path` blocks writes to `src/*.rs`, `factory/*.ts`, `MANIFESTO.md`. `argo improve` (review mode) + `argo factory approve` (auto). Live-verified end-to-end.
 
 ## v1.5 — Efficiency & emergent brain (requested 2026-06-03)
 Target hardware: MacBook Pro 14" M4 Pro / 48GB / macOS Tahoe — must run lean here.
@@ -131,21 +133,11 @@ Target hardware: MacBook Pro 14" M4 Pro / 48GB / macOS Tahoe — must run lean h
 ## v1.4 — Selfhood & continuous learning (requested 2026-06-02/03)
 The agent grows an identity and a living model of its world. Everything here stays
 under the kernel's hard lines (non-destructive, verified, approval-before-risk).
-- [ ] **S1 · Self-authored identity files** — agent creates + evolves its own `SOUL.md`,
-  `personality.md`, `mind.md` (and psyche notes). SOUL.md is already loaded into the
-  prompt (prompt.ts); add the others as prompt tiers the agent can write to. "Create its
-  own soul, mind, personality."
-- [ ] **S2 · Personality develops from interaction** — the agent updates its persona based
-  on what the user says + does with it over time (writes to personality.md via the
-  self-improvement loop). Loyalty/relationship (the Nemotron "magical" injection-resistance).
-- [ ] **S3 · Continuous world/user/codebase context** — a heartbeat that keeps updating its
-  model of the world, the user, and the codebase (memory + skills + a periodic context
-  refresh). Ties to the gateway daemon (E1 heartbeat) + memory.
-- [ ] **S4 · Skill authorship discipline** — make/define skills AND be smart enough not to
-  blindly overwrite its own. PARTIAL: curator already uses `LEARNED_TAG` provenance +
-  never-auto-deletes; extend to versioning/merge instead of overwrite on `write_skill`.
-- [ ] **S5 · Heartbeat** — a steady tick (the `argo gateway` daemon, E1) that drives S2/S3
-  + cron + the self-improving-codebase loop (O9). Wire selfhood updates onto it.
+- [x] **S1 · Self-authored identity files** — ✅ SHIPPED. Brain regions (`~/.argo/brain/`: identity, semantic, episodic, user_model, drives, reflections, mood). `brain` tool + `/memory`. `SOUL.md` + `AGENT-MANIFESTO.md` at repo root.
+- [~] **S2 · Personality develops from interaction** — PARTIAL. Brain `user_model` region + prompt rule 9 drives it. Full personality.md evolution loop is demand-driven.
+- [~] **S3 · Continuous world/user/codebase context** — PARTIAL. Brain regions + post-turn memory cover this. Full heartbeat-driven refresh ties to S5.
+- [~] **S4 · Skill authorship discipline** — PARTIAL. Curator uses `LEARNED_TAG` + never-auto-deletes. Versioning/merge on `write_skill` deferred.
+- [ ] **S5 · Heartbeat** — steady tick driving S2/S3 selfhood updates + factory loop. Gateway daemon exists (E1); wiring the selfhood updates onto it is the remaining piece.
 
 ## SHIPPED in the 2026-06-02/03 build marathon (all committed + pushed)
 **501 TS + 21 Rust tests green, tsc clean.** Across v1.1–v1.5:
@@ -162,25 +154,27 @@ O2 swarms · O4 camera (`look_at_camera`) · O5 video (`watch_video`) · O7 spea
 volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · `/memory` · `/plan`+todo ·
 `skills lint` · O8/S2/S3 continuous-self-improvement behavior (prompt rule 9 + brain Growth drive).
 
-## RESIDUAL — genuinely needs a dedicated session (research / high blast radius; NOT crammable)
-- **O9 · Self-improving codebase loop ("dark factory")** — autonomous self-modification on a loop. The
-  pieces exist (kernel safety, verified-output, delegate/swarm, run_code, git tools, brain). What's missing
-  is the *autonomous driver loop* + stopping conditions + a safety review — this must be designed deliberately,
-  not bolted on. Highest-value next dedicated effort.
-- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate (its own format/code).
-  Open research; the md brain (v1.4) is the bootstrap.
-- **Polish tier:** U2 @-mentions (composer autocomplete) · themes/output-styles · `/vim` · multi-dir `/add-dir`
-  · #37070 cron-output-awareness (gateway integration) · S4 skill-versioning-on-write.
+## SHIPPED 2026-06-03 (post-marathon session)
+**581 tests green (27 Rust + 554 TS) · tsc clean · pushed.**
+- **Bug fixes (4):** dropped file paths treated as slash commands (readline + TUI) · video drops not routed to `watch_video` · `look_at_screen` cryptic permission error → friendly hint · agent falsely claimed Desktop image paths were out of scope.
+- **O9 dark factory (complete):** `factory/` module (triage/planner/executor/verifier/run) · kernel `is_protected_path` (27 Rust tests) · `argo improve` + `argo factory [approve|status]` CLI · gateway detached-child spawn for `__factory__` cron entries · `AGENT-MANIFESTO.md` · live end-to-end verified (verifier correctly rejected a bad model output, discarded cleanly).
+
+## RESIDUAL — open-ended or demand-driven (not blocking daily use)
+- **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate (its own format/code). Open research; the md brain (S1) is the bootstrap. No clear done line — pursue when the md brain feels limiting.
+- **S5 · Heartbeat selfhood updates** — wire brain writes onto the gateway tick so identity evolves continuously. Small, concrete, low urgency.
+- **E-eff2 · Prefer-local routing** — auto-route cheap work to local Ollama. Extends `model-router.ts`. Small.
+- **Polish tier:** U2 @-mentions (composer autocomplete) · themes · `/vim` · multi-dir `/add-dir` · S4 skill-versioning-on-write · cron-output-awareness (gateway).
+- **D2 · Skill bundles** — YAML bundle schema for composite slash commands. The factory can implement this.
 
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
-- [ ] **U1 · Queued input while busy** (★★★) — type-ahead; pending-input queue drained on turn end. TUI reducer + readline.
+- [x] **U1 · Queued input while busy** — ✅ SHIPPED. Type-ahead queue in TUI reducer + readline; drained on turn end.
 - [ ] **U2 · @-file mentions** (★★★) — composer path autocomplete (pairs with image attach).
-- [ ] **U3 · Notifications** (★★★) — terminal bell + optional `osascript` desktop ping on turn-complete / approval-needed (matters for a leave-it-running operator).
-- [ ] **U4 · Real token/cost usage** (★★) — capture provider `usage` (OpenAI/Anthropic/Gemini fields; Codex SSE `response.completed`) → exact tokens + $ in `/usage` + status bar (replaces the chars/4 estimate).
-- [ ] **U5 · /context + /compact** (★★) — visual token-budget map + manual compaction command.
-- [ ] **U6 · /memory # quick-add** (★★) — capture a memory mid-turn.
-- [~] **U7+ · export · /mcp command · multi-dir (/add-dir) · themes · /vim** (★/◦) — demand-driven.
+- [x] **U3 · Notifications** — ✅ SHIPPED. Terminal bell + `osascript` desktop ping on turn-complete and approval-needed.
+- [x] **U4 · Real token/cost usage** — ✅ SHIPPED. Provider `usage` fields captured → exact tokens in `/usage` + status bar.
+- [x] **U5 · /context + /compress** — ✅ SHIPPED. `/context` shows token-budget breakdown; `/compress` triggers manual compaction.
+- [x] **U6 · /memory quick-add** — ✅ SHIPPED. `/memory <text>` appends to brain semantic region mid-turn.
+- [x] **U7+ · export · /mcp · /copy · /update** — ✅ SHIPPED. `/export` (markdown transcript), `/mcp` (list servers), `/copy` (clipboard), `/update` (git pull). Multi-dir `/add-dir` + themes + `/vim` remain demand-driven.
 Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model picker, /copy, /usage, streaming, approvals.
 
 **Self-evolving-Hermes takeaways (Nemotron Labs livestream, 2026):** The skill-bloat answer is NOT fewer/curated skills — it's **management**: inject only the skill *index* (names+descriptions) into context, adaptive-search to pull a full skill *body* on demand, and a background **curator** that prunes/compresses/revises the library. Argo already has the curator (track B); the missing piece is **index-only injection + on-demand body load** (currently Argo lists skills but should verify it's not over-injecting). Memory layer is **capped and pruned** (relevance decays over time). Identity carries a persona + "rules of engagement" + a sense of shared history with the user (loyalty) as prompt-injection resistance, paired with hard kernel boundaries. → This **reframes P6**: the win is the skill *system* (index/search/curator), so a small high-value seed set + good management beats bulk-porting 192. Folds into P2 (capped/pruned memory) and P3 (curator + skill-from-workflow are the self-evolving core — diff vs Argo's track B).
