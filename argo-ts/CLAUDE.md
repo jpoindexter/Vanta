@@ -25,7 +25,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
 | `tools/types.ts` | `Tool` (schema + optional `describeForSafety` + `execute`), `ToolContext`, `ToolResult` |
 | `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
-| `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools |
+| `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools. `write-file` writes inside the repo freely; outside the repo only into a **writable zone** (approval-gated) |
+| `tools/writable-zones.ts` | SCOPE-1 — `resolveWritableZones`/`isInWritableZone`/`expandHome`. Out-of-repo write targets allowed by `write_file` (default `~/Desktop`+`~/Downloads`, `ARGO_WRITABLE_DIRS` override). Kernel still Asks per write; the zone list is the backstop bounding where an approved write lands |
 | `tools/{web-search,web-fetch}.ts` | Phase 2B web tools. `web-fetch` exports pure `extractReadable(html,url)` |
 | `tools/{write-skill,recall}.ts` | Phase 2A learning tools. `describeForSafety` is a constant internal-op string (no path/query → kernel `Allow`) |
 | `tools/{screenshot,browser-navigate,browser-extract}.ts` | Phase 3 browser tools (lazy `playwright-core`). Allowlist + `requestApproval` for new domains. `browser-extract` exports pure `extractFromHtml` |
