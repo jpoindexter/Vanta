@@ -38,14 +38,23 @@ export type VerifyResult = {
   reason?: string;
 };
 
-/** Whether the factory needs human approval before committing. */
-export type AutonomyLevel = "review" | "auto";
+/**
+ * How far the factory proceeds autonomously after a clean verify (the "autonomy ladder"):
+ *   1 suggest    — print the plan, change nothing
+ *   2 implement  — branch, execute, verify, then STOP (human reviews the diff)
+ *   3 commit     — also commit the verified slice, but do NOT push
+ *   4 push       — also push the branch (no merge)
+ *   5 merge      — also auto-merge low-risk slices  [reserved — not yet implemented]
+ * The kernel's `is_protected_path` blocks skeleton/brainstem (kernel, factory, manifesto)
+ * edits at EVERY level — the ladder controls reach over WRITABLE code only.
+ */
+export type AutonomyLevel = 1 | 2 | 3 | 4 | 5;
 
 /** Configuration for one factory cycle. */
 export type FactoryConfig = {
   argoRoot: string;
   dataDir: string;
-  autonomy: AutonomyLevel;
+  autonomyLevel: AutonomyLevel;
   /** Hard ceiling on output tokens per cycle. Default: 80_000. */
   budgetTokens: number;
   /** True when launched via `argo improve` (streams to TUI). False for gateway child. */
@@ -57,4 +66,12 @@ export type CycleResult =
   | { status: "nothing-to-do" }
   | { status: "aborted"; reason: string }
   | { status: "verify-failed"; workItem: WorkItem; reason: string }
-  | { status: "committed"; workItem: WorkItem; branch: string; commitSha: string; tokenSpend: number };
+  | { status: "implemented"; workItem: WorkItem; branch: string; tokenSpend: number }
+  | {
+      status: "committed";
+      workItem: WorkItem;
+      branch: string;
+      commitSha: string;
+      tokenSpend: number;
+      pushed: boolean;
+    };

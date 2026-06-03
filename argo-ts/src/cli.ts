@@ -73,7 +73,7 @@ function usage(): void {
       "       argo mcp [list|serve]             list MCP servers Argo consumes, or serve Argo's tools over MCP stdio",
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
-      "       argo factory [approve|status]     execute or check the dark factory",
+      "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via ARGO_AUTONOMY_LEVEL)",
     ].join("\n"),
   );
 }
@@ -368,13 +368,15 @@ async function runRoadmapCommand(repoRoot: string): Promise<void> {
 }
 
 async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
-  const { runCycle, formatCycleLog } = await import("./factory/run.js");
+  const { runCycle, formatCycleLog, resolveAutonomyLevel } = await import("./factory/run.js");
   const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
   const dataDir = resolveArgoHome(process.env);
 
   if (sub === "approve") {
+    // L4 by default (commit + push); ARGO_AUTONOMY_LEVEL=2|3 stops earlier.
+    const autonomyLevel = resolveAutonomyLevel("approve", process.env);
     const result = await runCycle(
-      { argoRoot: repoRoot, dataDir, autonomy: "auto", budgetTokens: budget, interactive: true },
+      { argoRoot: repoRoot, dataDir, autonomyLevel, budgetTokens: budget, interactive: true },
       console.log,
     );
     console.log(`\n${formatCycleLog(result)}`);
@@ -398,9 +400,9 @@ async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
   }
 
   if (sub === "review" || sub === "") {
-    // argo improve or argo factory (no sub): review mode — print plan, don't execute
+    // argo improve or argo factory (no sub): L1 suggest — print plan, don't execute
     const result = await runCycle(
-      { argoRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
+      { argoRoot: repoRoot, dataDir, autonomyLevel: 1, budgetTokens: budget, interactive: true },
       console.log,
     );
     console.log(`\n${formatCycleLog(result)}`);

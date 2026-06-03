@@ -3,7 +3,7 @@ import { triage } from "./triage.js";
 import { buildPlan } from "./planner.js";
 import { execute } from "./executor.js";
 import { verify, listPreExistingFiles } from "./verifier.js";
-import type { FactoryConfig, CycleResult } from "./types.js";
+import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 
 // --- Pure helpers ---
 
@@ -16,6 +16,21 @@ export function checkGate(_config: FactoryConfig, inputs: GateInputs): string | 
   return null;
 }
 
+/** Highest ladder rung implemented today (L5 auto-merge is reserved). */
+export const MAX_AUTONOMY_LEVEL = 4;
+
+/**
+ * Resolve the factory autonomy level (1–4) from the CLI subcommand + env.
+ * `improve`/review is always suggest-only (L1). `approve` reads ARGO_AUTONOMY_LEVEL
+ * (default 4 = commit+push, preserving prior behavior); out-of-range clamps into 1–4.
+ */
+export function resolveAutonomyLevel(sub: string, env: NodeJS.ProcessEnv): AutonomyLevel {
+  if (sub === "review" || sub === "") return 1;
+  const raw = Number(env.ARGO_AUTONOMY_LEVEL);
+  if (!Number.isInteger(raw) || raw < 1) return 4;
+  return Math.min(raw, MAX_AUTONOMY_LEVEL) as AutonomyLevel;
+}
+
 export function formatCycleLog(result: CycleResult): string {
   switch (result.status) {
     case "nothing-to-do":
@@ -24,8 +39,10 @@ export function formatCycleLog(result: CycleResult): string {
       return `factory: aborted — ${result.reason}`;
     case "verify-failed":
       return `factory: verify-failed — ${result.reason} (work discarded, no history entry)`;
+    case "implemented":
+      return `factory: implemented on ${result.branch} (${result.tokenSpend.toLocaleString()} tokens) — verified, NOT committed; review the diff then commit — ${result.workItem.description}`;
     case "committed":
-      return `factory: committed ${result.commitSha} on ${result.branch} (${result.tokenSpend.toLocaleString()} tokens) — ${result.workItem.description}`;
+      return `factory: committed ${result.commitSha} on ${result.branch} ${result.pushed ? "(pushed)" : "(local — not pushed)"} (${result.tokenSpend.toLocaleString()} tokens) — ${result.workItem.description}`;
   }
 }
 
@@ -69,18 +86,23 @@ async function createBranch(root: string): Promise<string> {
   return branch;
 }
 
-async function commitAndPush(root: string, message: string): Promise<string> {
+async function commitSlice(root: string, message: string): Promise<string> {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
   const exec = promisify(execFile);
   await exec("git", ["add", "-A"], { cwd: root });
   await exec("git", ["commit", "-m", message], { cwd: root });
   const { stdout } = await exec("git", ["rev-parse", "HEAD"], { cwd: root });
-  const sha = stdout.trim().slice(0, 7);
+  return stdout.trim().slice(0, 7);
+}
+
+async function pushBranch(root: string): Promise<void> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const exec = promisify(execFile);
   await exec("git", ["push", "-u", "origin", "HEAD"], { cwd: root }).catch(() => {
     /* non-fatal: no remote configured */
   });
-  return sha;
 }
 
 async function discardSlice(root: string): Promise<void> {
@@ -116,10 +138,12 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const plan = buildPlan(item, config.argoRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
-    if (config.autonomy === "review") {
-      // Don't create a branch until the user approves — leave the working tree unchanged.
-      log(`[review mode] Run 'argo factory approve' to execute this plan.`);
-      return { status: "aborted", reason: "review mode — awaiting approval (run: argo factory approve)" };
+    const level = config.autonomyLevel;
+
+    if (level <= 1) {
+      // L1 suggest — print the plan, change nothing (no branch).
+      log(`[L1 suggest] Run 'argo factory approve' to implement this plan.`);
+      return { status: "aborted", reason: "suggest mode (L1) — awaiting approval (run: argo factory approve)" };
     }
 
     const preExisting = await listPreExistingFiles(config.argoRoot);
@@ -138,10 +162,25 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "verify-failed", workItem: item, reason: verifyResult.reason ?? "unknown" };
     }
 
+    if (level <= 2) {
+      // L2 implement — leave the verified changes on the branch for human review.
+      log(`factory: [L2] verified on ${branch} — review the diff, then commit when ready.`);
+      return { status: "implemented", workItem: item, branch, tokenSpend: artifact.tokenSpend };
+    }
+
     const msg = `factory(auto): ${item.description}\n\ncategory: ${item.category}\ntokens: ${artifact.tokenSpend.toLocaleString()}\nbranch: ${branch}`;
-    const sha = await commitAndPush(config.argoRoot, msg);
+    const sha = await commitSlice(config.argoRoot, msg);
     log(`factory: committed ${sha}`);
-    return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend };
+
+    if (level <= 3) {
+      // L3 commit — committed locally, but not pushed.
+      return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: false };
+    }
+
+    // L4 push — publish the branch (no merge; L5 reserved).
+    await pushBranch(config.argoRoot);
+    log(`factory: pushed ${branch}`);
+    return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
   } finally {
     await releaseLock(config.dataDir);
   }
