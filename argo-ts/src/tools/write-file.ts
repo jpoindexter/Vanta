@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveInScope } from "../scope.js";
-import { expandHome, resolveWritableZones, isInWritableZone } from "./writable-zones.js";
+import { expandHome, resolveWritableZones, isInZone } from "./writable-zones.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -49,7 +49,7 @@ export const writeFileTool: Tool = {
     // Outside the project root: permitted only inside a configured writable zone.
     // The kernel has already returned Ask for any out-of-root path (so dispatch
     // prompted the human); the zone allowlist bounds where that approved write can land.
-    if (!ok && !isInWritableZone(abs, resolveWritableZones(process.env))) {
+    if (!ok && !isInZone(abs, resolveWritableZones(process.env))) {
       return {
         ok: false,
         output: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set ARGO_WRITABLE_DIRS)`,
