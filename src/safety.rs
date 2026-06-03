@@ -74,6 +74,12 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     if has_any(&t, MACHINE_CONFIG) {
         return ask("machine/config/credential change requires explicit approval");
     }
+    // Protected-path check: factory cannot edit the kernel, factory loop, or manifesto.
+    if let Some(path) = extract_write_path(&t) {
+        if is_protected_path(Path::new(&path), root) {
+            return block("protected path — only out-of-band human approval can authorize this write");
+        }
+    }
     Verdict {
         risk: Risk::Allow,
         reason: "safe inside trusted-operator boundary".into(),
@@ -130,6 +136,54 @@ fn mentions_outside_home(text: &str) -> bool {
 fn mentions_outside_scope(text: &str, root: &Path) -> bool {
     let marker = root.display().to_string().to_lowercase();
     text.contains("/users/jasonpoindexter/documents/github") && !text.contains(&marker)
+}
+
+/// True for paths that autonomous writes are permanently forbidden from touching.
+/// In-root but forbidden — a new rule class beyond the existing scope check.
+/// Protected: kernel source, factory loop files, human MANIFESTO. Writable: ROADMAP,
+/// AGENT-MANIFESTO, all feature code outside this set.
+pub fn is_protected_path(path: &Path, root: &Path) -> bool {
+    let abs = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        normalize(root).join(path)
+    };
+    let base = normalize(root);
+    let rel = match abs.strip_prefix(&base) {
+        Ok(r) => r.to_string_lossy().to_lowercase(),
+        Err(_) => return false,
+    };
+    let s: &str = rel.as_ref();
+    // Kernel source — the safety boundary itself
+    if (s.starts_with("src/") && (s.ends_with(".rs") || s.ends_with(".toml") || s.ends_with(".lock")))
+        || s == "cargo.toml"
+        || s == "cargo.lock"
+    {
+        return true;
+    }
+    // Factory loop — can't rewrite its own guardrails or their tests
+    if s.starts_with("argo-ts/src/factory/") && s.ends_with(".ts") {
+        return true;
+    }
+    // Human north star
+    if s == "manifesto.md" {
+        return true;
+    }
+    false
+}
+
+/// Extract the target path from a safety-description string like "write file src/foo.ts".
+/// Returns `None` if the text doesn't look like a write action.
+fn extract_write_path(text: &str) -> Option<String> {
+    for prefix in &["write file ", "write to ", "overwrite "] {
+        if let Some(rest) = text.strip_prefix(prefix) {
+            let path = rest.split_whitespace().next().unwrap_or("").to_string();
+            if !path.is_empty() {
+                return Some(path);
+            }
+        }
+    }
+    None
 }
 
 fn block(reason: &str) -> Verdict {
@@ -203,5 +257,61 @@ mod tests {
     fn allows_safe_local_shell() {
         assert_eq!(assess_action("run shell command: cargo test --workspace", &root()).risk, Risk::Allow);
         assert_eq!(assess_action("run shell command: git status", &root()).risk, Risk::Allow);
+    }
+
+    #[test]
+    fn protected_path_blocks_kernel_source() {
+        let r = root();
+        assert!(is_protected_path(&r.join("src/safety.rs"), &r));
+        assert!(is_protected_path(&r.join("src/main.rs"), &r));
+        assert!(is_protected_path(&r.join("Cargo.toml"), &r));
+        assert!(is_protected_path(&r.join("Cargo.lock"), &r));
+    }
+
+    #[test]
+    fn protected_path_blocks_factory_ts() {
+        let r = root();
+        assert!(is_protected_path(&r.join("argo-ts/src/factory/run.ts"), &r));
+        assert!(is_protected_path(&r.join("argo-ts/src/factory/verifier.ts"), &r));
+        assert!(is_protected_path(&r.join("argo-ts/src/factory/triage.test.ts"), &r));
+    }
+
+    #[test]
+    fn protected_path_blocks_manifesto() {
+        let r = root();
+        assert!(is_protected_path(&r.join("MANIFESTO.md"), &r));
+    }
+
+    #[test]
+    fn protected_path_allows_writable_files() {
+        let r = root();
+        assert!(!is_protected_path(&r.join("ROADMAP.md"), &r));
+        assert!(!is_protected_path(&r.join("AGENT-MANIFESTO.md"), &r));
+        assert!(!is_protected_path(&r.join("argo-ts/src/tools/new-tool.ts"), &r));
+        assert!(!is_protected_path(&r.join("CLAUDE.md"), &r));
+    }
+
+    #[test]
+    fn assess_action_blocks_write_to_protected_path() {
+        let r = root();
+        let v = assess_action("write file src/safety.rs", &r);
+        assert_eq!(v.risk, Risk::Block);
+        assert!(v.reason.contains("protected"));
+
+        let v2 = assess_action("write file argo-ts/src/factory/run.ts", &r);
+        assert_eq!(v2.risk, Risk::Block);
+
+        let v3 = assess_action("write file MANIFESTO.md", &r);
+        assert_eq!(v3.risk, Risk::Block);
+    }
+
+    #[test]
+    fn assess_action_allows_write_to_writable_files() {
+        let r = root();
+        let v = assess_action("write file ROADMAP.md", &r);
+        assert_eq!(v.risk, Risk::Allow);
+
+        let v2 = assess_action("write file argo-ts/src/tools/new-tool.ts", &r);
+        assert_eq!(v2.risk, Risk::Allow);
     }
 }
