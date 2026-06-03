@@ -164,6 +164,18 @@ Minor fix if desired: remove the model from the static banner (it's in the live 
 
 ---
 
+## Pi harness — evaluated 2026-06-03
+
+Repo: `https://github.com/earendil-works/pi` — TypeScript agent harness mono repo. Packages: `pi-agent-core` (runtime + tool calling), `pi-ai` (multi-provider LLM), `pi-coding-agent` (interactive CLI), `pi-tui` (custom TUI).
+
+**Don't use pi as a dev environment for Argo.** Claude Code + advisor + Opus 4.8 is better for design-heavy sessions. Pi has no advisor equivalent.
+
+**Don't build Argo ON pi's packages.** Argo's Rust kernel is the entire reason Argo exists. pi-agent-core is pure TS with no kernel concept. Supply-chain risk on a small project. Argo's `providers/` + agent loop is already at parity.
+
+**DO steal `pi-tui`'s approach.** It's a custom differential terminal renderer — no Ink, no React. Solves the ScrollBox/scrollback limitation that's in PARKED.md. Don't depend on the package — read the renderer code and port the approach into `argo-ts/src/tui/`. This is the one concrete takeaway.
+
+---
+
 ## Recommended next actions (in order)
 
 1. **Write the O9 implementation plan** (`writing-plans` skill, spec is at `docs/superpowers/specs/2026-06-03-o9-dark-factory-design.md`).
