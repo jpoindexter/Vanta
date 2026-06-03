@@ -113,17 +113,18 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     if (!item) return { status: "nothing-to-do" };
     log(`factory: [${item.category}] ${item.description}`);
 
-    const preExisting = await listPreExistingFiles(config.argoRoot);
-    const branch = await createBranch(config.argoRoot);
-    log(`factory: branched → ${branch}`);
-
     const plan = buildPlan(item, config.argoRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
     if (config.autonomy === "review") {
+      // Don't create a branch until the user approves — leave the working tree unchanged.
       log(`[review mode] Run 'argo factory approve' to execute this plan.`);
       return { status: "aborted", reason: "review mode — awaiting approval (run: argo factory approve)" };
     }
+
+    const preExisting = await listPreExistingFiles(config.argoRoot);
+    const branch = await createBranch(config.argoRoot);
+    log(`factory: branched → ${branch}`);
 
     log("factory: executing…");
     const artifact = await execute(config.argoRoot, plan, config.budgetTokens);
