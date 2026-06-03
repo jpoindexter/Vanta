@@ -26,6 +26,7 @@ describe("lookAtScreenTool", () => {
     expect(lookAtScreenTool.describeForSafety?.({ prompt: "read my passwords" })).toBe("capture and analyze the screen");
   });
 
+
   it("is registered in the tool registry", () => {
     expect(buildRegistry().schemas().some((s) => s.name === "look_at_screen")).toBe(true);
   });

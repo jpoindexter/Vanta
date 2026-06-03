@@ -7,7 +7,7 @@ import { pruneVolatileSkills } from "../skills/volatile.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { saveSession, newSessionId } from "../sessions/store.js";
-import { executeSlash, maybeDroppedImage, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
+import { executeSlash, maybeDroppedImage, maybeDroppedVideo, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
@@ -168,7 +168,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     setInput("");
     if (!line || pending) return; // approval is handled by the ApprovalPrompt's own keys
 
-    if (line.startsWith("/")) {
+    // Slash commands are /word — Finder-dropped paths (/Users/...) have a nested slash.
+    const firstToken = line.slice(1).split(/\s/)[0] ?? "";
+    if (line.startsWith("/") && !firstToken.includes("/")) {
       const convo = convoRef.current;
       if (!convo) return;
       // A bare prefix (no arg yet, not an exact name) runs the highlighted
@@ -200,15 +202,21 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       dispatch({ t: "enqueue", text: line });
       return;
     }
-    // Drag an image into the terminal → path arrives as text; attach + send.
-    void maybeDroppedImage(line).then((dropped) => {
+    // Drag an image or video into the terminal → path arrives as text; attach + send.
+    void (async () => {
+      const dropped = await maybeDroppedImage(line);
       if (dropped) {
         (replStateRef.current.pendingImages ??= []).push(dropped);
         sendToAgent("Take a look at this image.");
-      } else {
-        sendToAgent(line);
+        return;
       }
-    });
+      const videoPath = await maybeDroppedVideo(line);
+      if (videoPath) {
+        sendToAgent(`Watch this video and describe what you see: ${videoPath}`);
+        return;
+      }
+      sendToAgent(line);
+    })();
   };
 
   // Drain the type-ahead queue: when a turn finishes and messages are queued,

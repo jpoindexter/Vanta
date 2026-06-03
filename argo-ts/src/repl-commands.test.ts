@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, type ReplCtx } from "./repl-commands.js";
+import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, maybeDroppedVideo, type ReplCtx } from "./repl-commands.js";
 import { saveSession, loadSession } from "./sessions/store.js";
 import type { Message } from "./types.js";
 
@@ -218,6 +218,18 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect((await maybeDroppedImage(`'${png}'`))?.mime).toBe("image/png"); // terminal-quoted
     expect(await maybeDroppedImage("just a normal message")).toBeNull();
     expect(await maybeDroppedImage(`${join(home, "missing.png")}`)).toBeNull(); // path doesn't exist
+  });
+
+  it("maybeDroppedVideo returns the path for an existing video file, null otherwise", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const mov = join(home, "clip.mov");
+    await writeFile(mov, Buffer.from([0]));
+    expect(await maybeDroppedVideo(mov)).toBe(mov);
+    expect(await maybeDroppedVideo(`'${mov}'`)).toBe(mov); // terminal-quoted
+    expect(await maybeDroppedVideo("just a normal message")).toBeNull();
+    expect(await maybeDroppedVideo(join(home, "missing.mp4"))).toBeNull(); // doesn't exist
+    expect(await maybeDroppedVideo(join(home, "drop.png"))).toBeNull(); // wrong extension
   });
 
   it("/context shows a budget bar + message breakdown", async () => {

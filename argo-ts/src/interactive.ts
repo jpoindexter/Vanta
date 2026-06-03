@@ -2,7 +2,7 @@ import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
-import { executeSlash, maybeDroppedImage, type ReplState } from "./repl-commands.js";
+import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } from "./repl-commands.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -127,11 +127,14 @@ export async function runChat(
   // One user turn: send to the agent + run the full post-turn pipeline. Shared
   // by typed input and by /retry (which re-sends the last message).
   const runUserTurn = async (text: string): Promise<void> => {
-    // Drag an image into the terminal → its path arrives as text; attach it.
+    // Drag an image or video into the terminal → path arrives as text; attach it.
     const dropped = await maybeDroppedImage(text);
     if (dropped) {
       (state.pendingImages ??= []).push(dropped);
       text = "Take a look at this image.";
+    } else {
+      const videoPath = await maybeDroppedVideo(text);
+      if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;
     }
     state.turnIndex++;
     const images = state.pendingImages; // attach + consume any /image, /paste, or drop
@@ -164,7 +167,10 @@ export async function runChat(
         break; // stdin closed (Ctrl+D / EOF / piped input ended) → exit cleanly
       }
       if (!line) continue;
-      if (line.startsWith("/")) {
+      // Slash commands are /word — file paths dropped from Finder start with /Users/...
+      // and have a nested slash in the first token. Route those to runUserTurn, not slash.
+      const firstToken = line.slice(1).split(/\s/)[0] ?? "";
+      if (line.startsWith("/") && !firstToken.includes("/")) {
         const result = await executeSlash(line, ctx);
         if (result.output) console.log(result.output);
         if (result.exit) break;
