@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { partitionBlocks } from "./tool-display.js";
+import { renderMarkdown } from "./markdown.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
 // / tool / note rows), the streaming buffer, and the slash-command palette.
@@ -47,6 +48,8 @@ export function Transcript(props: { entries: Entry[]; streaming: string }): Reac
         ),
       )}
       {props.streaming.trim() ? <Text>{props.streaming}</Text> : null}
+      {/* Streaming is rendered as plain text (content is incomplete); committed
+          assistant entries get full markdown rendering above via SingleLine. */}
     </Box>
   );
 }
@@ -54,7 +57,7 @@ export function Transcript(props: { entries: Entry[]; streaming: string }): Reac
 function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
   const e = props.entry;
   if (e.kind === "user") return <Text color="cyan">› {e.text}</Text>;
-  if (e.kind === "assistant") return <Text>{e.text}</Text>;
+  if (e.kind === "assistant") return renderMarkdown(e.text);
   return <Text dimColor>  {e.text}</Text>;
 }
 
