@@ -32,6 +32,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
   { name: "planmode", arg: "[on|off]", desc: "toggle plan-first mode — Argo plans + confirms before acting" },
+  { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "exit", desc: "leave the session" },
 ];
 

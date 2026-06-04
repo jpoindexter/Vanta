@@ -1037,7 +1037,7 @@
       "id": "EF-TASKBOUNDARY",
       "track": "Executive Function (inclusive spine)",
       "title": "Explicit task boundaries \u2014 clean context handoff on topic switch",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "PMC4455841 set shifting: context pollution from previous tasks bleeds into current work (\"set\" persists when it should be cleared). Argo has /clear but no lightweight mid-session boundary. Design: when the agent detects a significant topic shift mid-session (classifier on user message vs active goal), propose a task-boundary event: summarize the previous task state, archive it to brain/session memory, and begin fresh with the new task context. Unlike /clear (full wipe), task boundary preserves the conversation but explicitly marks the shift, preventing the prior approach from contaminating the new task. Optional: /boundary slash command as manual trigger. ND fit F4+F5 (one control that says \"new thing now\", structured handoff).",
       "done": "Topic shifts generate a task-boundary event; prior task state is archived; new task starts clean without full context loss.",

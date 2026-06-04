@@ -18,6 +18,7 @@ import {
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
+import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 
@@ -147,6 +148,10 @@ export async function runChat(
     const complexityScore = scoreComplexity(text);
     if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
       console.log(`\n${buildComplexityNote(complexityScore)}`);
+    }
+    const activeGoal = setup.goals.find((g) => g.status === "active") ?? null;
+    if (isTopicShift(text, activeGoal, 0.15)) {
+      console.log(`\n${buildTopicShiftNote()}`);
     }
     const outcome = await convo.send(text, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
