@@ -1080,6 +1080,66 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
+    },
+    {
+      "id": "EF-RESEARCH-GATE",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Research convergence gate (pattern: research spiral)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Real pattern from sessions: research spiral. Started implementation sprint, pivoted to 6+ research threads with no convergence. Inhibition failure: new discoveries reinforce continuation (reward loop). Counter-measure: after N consecutive research/analysis turns without an actionable commit or shipped item, surface a gentle gate: the turn count since last concrete output, the original stated goal, one question: want to pick one finding to build now? Not a block. A pattern interrupt that fires at the right moment. ARGO_RESEARCH_GATE_TURNS env (default 8). ND fit F1 (task initiation when stuck in exploration mode).",
+      "done": "After 8 research turns without actionable output, Argo surfaces the spiral pattern and offers a one-question redirect to execution.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-CHOICEREDUCE",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Backlog choice reduction gate (pattern: initiation paralysis)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Real pattern from sessions: 11-item backlog \u2192 paralysis. Case 4-2 analog: paralyzed when faced with multifaceted problems. The backlog is the multifaceted problem. Counter-measure: when the next queue has > 3 items and the user asks what to do next, present ONLY the top 3 (ranked by: dependencies_met + time_since_last_touched + smallest_size). Do not show the full list. One question: which of these 3? This is occupational therapy Environmental Manipulation (simplify the task environment). Pairs with /next which reduces to a single micro-step. KANBAN WIP limit prevents adding while paralyzed. ND fit F1+F5 (structure reduces the blank-page-of-100-options problem).",
+      "done": "When next queue > 3, /next and agenda-style prompts show only the top 3 candidates; the rest are hidden until one ships.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-VELOCITY",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Velocity tracker \u2014 capture:ship ratio (pattern: ideas-rich/finish-poor)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Real pattern from sessions: roadmap grew from 0 to 100 items in 4 sessions, shipped items grew much more slowly. Fluency excess masks planning deficit (MMSE 28/30 analog: backlog looks productive, shipping rate is low). Counter-measure: rolling 7-day capture:ship ratio stored in ~/.argo/velocity.json. When ratio > 5:1 (5 ideas captured per 1 shipped), surface on /status and at session start: capture/ship ratio is 8:1 this week \u2014 consider closing before opening. Not a block. A visible metric that makes the pattern legible. ND fit F2+F5 (ambient awareness without having to remember to check).",
+      "done": "/status shows the rolling capture:ship ratio; ratio > 5:1 surfaces a one-line note at session start.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-SCOPEDELTA",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Scope delta tracker \u2014 topic count per turn (pattern: while-we-are-at-it)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Real pattern from sessions: while implementing FAC-INTENT, also checked MemPalace issues, added 8 roadmap items, wrote two design docs, analyzed clinical papers. Each is individually justified; together they are 6 topics in one turn. Inhibition failure: prepotent response to each interesting thing fires. Counter-measure: at the end of each assistant turn, count distinct topics/files/goals touched. If > 3, add a dim annotation: n topics this turn. Not alarming \u2014 just visible. Over a session, the annotation pattern becomes its own signal. ND fit F3+F6 (calm ambient signal without interrupting flow).",
+      "done": "Multi-topic turns show a dim topic count annotation; annotation accumulates across a session into a visible pattern.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-CLOSUREGATE",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Closure gate \u2014 incomplete thread detector before new major threads",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Real pattern from sessions: items reach 70% completion then a new session begins on something else. Set Shifting failure: moved to a new cognitive set without completing the prior set. Incomplete thread accumulation: each thread is almost done but none gets closure. Counter-measure: when a major new thread begins (detected by: new goal set, topic shift > threshold, /clear), scan the current session and recent sessions for items that are > 50% done but not closed. Surface: 2 items appear in-progress from this session. Want to close one first? One-tap dismiss. Ties to MEM-SESSION-RECOVER (orphaned sessions). ND fit F1+F5 (makes the hidden cost of switching visible).",
+      "done": "Before major thread switches, Argo surfaces in-progress items; user can close them or explicitly defer with one action.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "medium"
     }
   ]
 }
