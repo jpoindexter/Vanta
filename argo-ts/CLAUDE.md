@@ -13,7 +13,11 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
-| `tui/app.tsx` | The Ink/React TUI: streaming transcript + tool activity + spinner status + composer + inline approvals. Pure `reduce` reducer (tested). Minimal slash (`/help /clear /model /exit`) |
+| `tui/app.tsx` | The Ink/React TUI: App component only — wires hooks, JSX, palette logic, submit. Delegates state to `app-reducer.ts` and agent I/O to `use-agent-send.ts` |
+| `tui/app-reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `app.test.tsx`) |
+| `tui/use-agent-send.ts` | `useAgentSend` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
+| `tui/markdown.tsx` | `renderMarkdown` — minimal Ink markdown renderer: headers, fenced code, bullets, numbered, inline **bold** + `code`. Pure `tokenizeInline` + `parseBlocks` (tested) |
+| `tui/at-context.ts` | U2 @-context: `parseAtRefs`, `activeAtRef`, `buildContextBlock`, `listRepoFiles` (depth-3 repo walk, skips build dirs). Powers TUI @ autocomplete + submit context injection |
 | `tui/launch.tsx` | `runTui(repoRoot)` — prepareRun + maybeCurate + `render(<App/>)`. `argo` uses it on a TTY; readline REPL is the fallback |
 | `providers/index.ts` | `resolveProvider(env)` — reads `ARGO_PROVIDER`/`ARGO_MODEL`. openai/ollama/anthropic/**gemini**/**openrouter**/**claude-code** (gemini+openrouter = OpenAI adapter w/ baseURL swap; claude-code = Anthropic adapter w/ OAuth token) |
 | `providers/claude-code-auth.ts` | v1 G1 — `resolveClaudeCodeToken` reads a Claude Pro/Max OAuth token (env or `~/.claude/.credentials.json`), `isTokenExpired`. **Grey area** (ToS); `ARGO_PROVIDER=claude-code`. No refresh (Claude Code keeps creds fresh). See DECISIONS 2026-06-02 |
@@ -27,6 +31,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
 | `tools/roadmap-move.ts` | KANBAN — `roadmap_move` tool. Moves a roadmap item to a new status, writes `roadmap.json`, regenerates HTML. `describeForSafety` → kernel Allow |
 | `roadmap/move.ts` | `moveRoadmapItem(repoRoot, id, toStatus)` — pure fn: read → validate → patch → write → rebuild |
+| `roadmap/server.ts` | KANBAN-S2 — `createRoadmapServer(repoRoot)` (Node http) + `serveRoadmap(repoRoot, port)`. Routes: `GET /roadmap/board` (serves roadmap.html), `POST /roadmap/move` → `moveRoadmapItem`. `argo roadmap serve` wires this |
 | `tools/clarify.ts` | ND2 — `clarify` tool. Agent calls this when intent is ambiguous. Returns a formatted question (+ optional numbered choices) as `output`; the model surfaces it in its reply and awaits the next turn. End-of-turn design: no `ToolContext` changes. `describeForSafety` → "ask user a clarifying question" → kernel Allow |
 | `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools. `write-file` writes in-repo freely / out-of-repo only into a **writable zone**; `read-file` reads in-repo freely / out-of-repo only from a **readable zone** (both approval-gated by the kernel) |
 | `tools/writable-zones.ts` | SCOPE-1/2 — `resolveWritableZones` (write_file: `~/Desktop`+`~/Downloads`, `ARGO_WRITABLE_DIRS`) · `resolveReadableZones(env,root)` (read_file: project's parent dir + writable zones, `ARGO_READABLE_DIRS`) · `isInZone`/`expandHome`. Kernel still Asks per out-of-root access; the zone lists are the backstop bounding where an approved access lands |
@@ -84,7 +89,11 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `agent.ts` | `createConversation()` (persistent multi-turn, optional `{history}`) + `runAgent()` (one-shot) + `dispatchTool()` — the loop. `summarize` dep selects compress vs trim; `signal?: AbortSignal` interrupts between iterations (→ `stoppedReason: "interrupted"`); `toolIterations` drives the self-improvement nudge |
 | `session.ts` | Shared run setup for one-shot + interactive: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver`, **`maybeCurate`** (session-start, 7d-gated skill maintenance), **`reviewAfterTurn`** (post-turn self-improvement nudge). Neither cli.ts nor interactive.ts imports the other |
 | `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists; slash commands via repl-commands.ts; session save + post-turn review) |
-| `repl-commands.ts` | REPL slash commands: `/help /exit /quit /clear /new /skills /tools /model /status /doctor /goals /sessions /resume <id> /cron`. `runSlashCommand(input, ctx)` → exit?; reuses status/sessions/cron/skills subsystems |
+| `repl-commands.ts` | REPL slash commands dispatcher — re-exports `SLASH_COMMANDS`, `executeSlash`, `runSlashCommand`. Handlers live in `repl/handlers.ts` |
+| `repl/catalog.ts` | `SLASH_COMMANDS` array + `SLASH_HELP` — canonical command list driving `/help`, TUI palette, and validation |
+| `repl/handlers.ts` | `HANDLERS` registry + `dispatch(cmd, arg, ctx)` — every slash handler, each a `SlashHandler` const |
+| `repl/next.ts` | ND1 — `next` handler: reads active kernel goals → `resend` prompt asking agent for one concrete next micro-step |
+| `repl/plan-mode.ts` | ND3 — `planMode` handler: toggles plan-first mode via `PLAN_MARKER` injection into live system prompt (`/planmode [on|off]`) |
 | `cli.ts` | `argo` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `argo setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
@@ -171,7 +180,7 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 
 **Kernel safety (`src/safety.rs`):** hardened — `normalize_cmd` (strips quote/backslash escapes), broadened destructive set, arbitrary-exec vectors (interpreters/eval/pipe/egress) → ASK, absolute-path-outside-root → ASK. Closes the bypassable-denylist holes (Hermes #36846/#36645).
 
-**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/etc.). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `ARGO_SPINNER`).
+**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments /next /planmode` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline). `@file` autocomplete in TUI → inlines file content as context on submit. Markdown rendering in transcript (`tui/markdown.tsx`). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `ARGO_SPINNER`). Drag-and-drop roadmap board: `argo roadmap serve` → `http://localhost:7789/roadmap/board`.
 
 **Env added:** `ARGO_MEMORY_MAX_BLOCKS` · `ARGO_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
 
