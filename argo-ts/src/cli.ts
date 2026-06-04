@@ -75,6 +75,7 @@ function usage(): void {
       "       argo auth google                  one-time Google OAuth",
       "       argo mcp [list|serve]             list MCP servers Argo consumes, or serve Argo's tools over MCP stdio",
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
+      "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
       "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via ARGO_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -273,7 +274,7 @@ async function main(): Promise<void> {
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
   if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
-  if (cmd === "roadmap") return runRoadmapCommand(repoRoot);
+  if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 

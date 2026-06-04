@@ -136,7 +136,26 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
   }
 }
 
-export async function runRoadmapCommand(repoRoot: string): Promise<void> {
+export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
+  if (args[0] === "move") {
+    const id = args[1];
+    const status = args[2];
+    if (!id || !status) {
+      console.error("Usage: argo roadmap move <id> <status>");
+      console.error("  status: shipped | building | next | horizon");
+      process.exit(1);
+    }
+    const { moveRoadmapItem } = await import("../roadmap/move.js");
+    const { STATUS } = await import("../roadmap/schema.js");
+    if (!(STATUS as readonly string[]).includes(status)) {
+      console.error(`Invalid status '${status}'. Valid: ${STATUS.join(", ")}`);
+      process.exit(1);
+    }
+    const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status);
+    console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
+    return;
+  }
+
   const { buildRoadmap } = await import("../roadmap/build.js");
   const { execSync } = await import("node:child_process");
   const htmlPath = await buildRoadmap(repoRoot);
