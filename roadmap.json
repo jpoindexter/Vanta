@@ -1025,7 +1025,7 @@
       "id": "EF-SELFMONITOR",
       "track": "Executive Function (inclusive spine)",
       "title": "Pre-action self-monitor (right-hemisphere analog)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "PMC4455841 anatomy: the right prefrontal cortex specializes in self-monitoring \u2014 error detection, inconsistency detection, checking output before committing. Argo has post-turn background review (reviewAfterTurn) but no PRE-action check. Design: before committing a significant action (write_file overwrite, shell command, commit), the system runs a one-shot \"does this make sense given the goal?\" check using a fast cheap model (haiku). Not a hard gate (the kernel is that) \u2014 a sanity check that catches \"about to write the wrong file\" or \"this shell command will affect more than intended\" before execution. Catches the class of errors that the user notices immediately post-action but that are expensive to reverse. ND fit F6 (trust \u2014 the agent double-checks itself).",
       "done": "Before destructive/significant tool calls, a fast self-monitor check runs; inconsistencies with the stated goal are surfaced before execution.",
