@@ -38,6 +38,15 @@ import {
   type SetShiftState,
 } from "./repl/set-shift.js";
 export type { SetShiftState } from "./repl/set-shift.js";
+import {
+  countTopicsInLastTurn,
+  shouldAnnotateScopeDelta,
+  nextScopeDeltaState,
+  buildScopeDeltaText,
+  DEFAULT_SCOPE_DELTA_THRESHOLD,
+  type ScopeDeltaState,
+} from "./repl/scope-delta.js";
+export type { ScopeDeltaState } from "./repl/scope-delta.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -326,6 +335,33 @@ export async function setShiftAfterTurn(
     const newState = nextSetShiftState(state, toolNames);
     if (shouldAlertSetShift(newState, threshold)) {
       onNote(buildSetShiftText(newState.repeatingTool!, newState.consecutiveRuns));
+    }
+    return newState;
+  } catch {
+    return state;
+  }
+}
+
+/**
+ * After-turn scope delta annotation. Counts distinct topics/files/tools touched
+ * in the last turn; when the count exceeds ARGO_SCOPE_DELTA_THRESHOLD (default 3)
+ * emits a dim ambient note and increments the session accumulator.
+ * Non-alarming — just visible. Best-effort.
+ */
+export async function scopeDeltaAfterTurn(
+  state: ScopeDeltaState,
+  messages: Message[],
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<ScopeDeltaState> {
+  try {
+    const raw = parseInt(env.ARGO_SCOPE_DELTA_THRESHOLD ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_SCOPE_DELTA_THRESHOLD : raw;
+    if (threshold === 0) return state;
+    const count = countTopicsInLastTurn(messages);
+    const newState = nextScopeDeltaState(state, count, threshold);
+    if (shouldAnnotateScopeDelta(count, threshold)) {
+      onNote(buildScopeDeltaText(count, newState.totalAnnotations));
     }
     return newState;
   } catch {

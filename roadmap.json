@@ -1121,7 +1121,7 @@
       "id": "EF-SCOPEDELTA",
       "track": "Executive Function (inclusive spine)",
       "title": "Scope delta tracker \u2014 topic count per turn (pattern: while-we-are-at-it)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Real pattern from sessions: while implementing FAC-INTENT, also checked MemPalace issues, added 8 roadmap items, wrote two design docs, analyzed clinical papers. Each is individually justified; together they are 6 topics in one turn. Inhibition failure: prepotent response to each interesting thing fires. Counter-measure: at the end of each assistant turn, count distinct topics/files/goals touched. If > 3, add a dim annotation: n topics this turn. Not alarming \u2014 just visible. Over a session, the annotation pattern becomes its own signal. ND fit F3+F6 (calm ambient signal without interrupting flow).",
       "done": "Multi-topic turns show a dim topic count annotation; annotation accumulates across a session into a visible pattern.",
