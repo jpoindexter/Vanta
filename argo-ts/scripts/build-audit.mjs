@@ -46,6 +46,16 @@ function render(d) {
     (f) => `<div class="fdef"><b>${esc(f.code)}</b> ${esc(f.name)} — <span class="muted">${esc(f.desc)}</span></div>`,
   ).join("");
 
+  const thesisList = (d.vision?.thesis || []).map((t) => `<li>${esc(t)}</li>`).join("");
+
+  const patRows = (d.operatorPatterns?.items || [])
+    .map(
+      (p) => `<tr><td class="cap">${esc(p.pattern)} ${fchips(p.filters, F)}</td><td class="muted">${esc(
+        p.evidence,
+      )}</td><td>${esc(p.feature)}</td></tr>`,
+    )
+    .join("");
+
   const invCats = (d.argoInventory?.categories || [])
     .map(
       (c) => `<div class="card span4 inv"><h3>${esc(c.name)}</h3><ul>${c.items
@@ -153,6 +163,7 @@ nav a:hover{color:var(--green);border-color:var(--line)}
 .agent .row1{display:flex;justify-content:space-between;align-items:baseline}.agent .lic{font-size:11px;color:var(--violet)}
 .agent .lineage{font-size:11px;margin:2px 0 6px}.agent .tag{font-size:12px;min-height:34px}.agent .vsa{font-size:12px;color:#bcc8c2;border-top:1px solid var(--line);padding-top:8px}.agent .k{color:var(--blue)}
 .fdef{font-size:12px;margin:3px 0}.fdef b{color:var(--green)}
+ul.thesis{margin:6px 0 4px;padding-left:18px}ul.thesis li{font-size:13px;color:#d2dcd6;margin:6px 0}
 .inv ul{margin:0;padding-left:16px}.inv li{font-size:12px;color:#bcc8c2;margin:2px 0}
 .line{border-left:2px solid var(--line);padding:4px 0 4px 10px;margin:6px 0}.line.ok{border-color:var(--green)}.line.warn{border-color:var(--amber)}
 table.t{width:100%;border-collapse:collapse;font-size:12px}table.t th,table.t td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -174,7 +185,7 @@ input.search{background:#0a0f0e;border:1px solid var(--line);color:var(--text);b
 <div class="stamp">generated ${esc(d.generated)} · source: audit.json (agent-ready) · regenerate: node argo-ts/scripts/build-audit.mjs</div>
 </header>
 <nav>
-<a href="#agents">Agents</a><a href="#vision">ND Vision</a><a href="#inventory">Argo Inventory</a>
+<a href="#agents">Agents</a><a href="#vision">Vision</a><a href="#patterns">Patterns→Features</a><a href="#inventory">Argo Inventory</a>
 <a href="#nd">ND Alignment</a><a href="#matrix">Matrix</a><a href="#pulls">Pulls</a><a href="#drops">Drops</a>
 <a href="#issues">Issues</a><a href="#local">Local Hermes</a><a href="#cc">Claude Code</a><a href="#docs">Docs</a>
 </nav>
@@ -183,10 +194,15 @@ input.search{background:#0a0f0e;border:1px solid var(--line);color:var(--text);b
 <section id="agents"><h2>The agents</h2><div class="grid">${agentCards
     .replace(/class="card agent"/g, 'class="card span4 agent"')}</div></section>
 
-<section id="vision"><h2>ND / executive-function vision — the filter</h2>
+<section id="vision"><h2>Vision — full-capability, executive-function-first</h2>
 <div class="card span12"><p>${esc(d.vision?.statement || "")}</p>
-<h3>Fit filters</h3>${filterDefs}
+${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
+<h3>Fit filters (the design lens)</h3>${filterDefs}
 <h3>Curation bias</h3><p class="muted">${esc(d.vision?.curationBias || "")}</p></div></section>
+
+<section id="patterns"><h2>Operator patterns → the feature that supplies the missing executive function</h2>
+<p class="note">${esc(d.operatorPatterns?.note || "")}</p>
+<div class="card span12"><table class="t"><thead><tr><th>Pattern (real, documented)</th><th>Evidence</th><th>Argo feature that supplies the EF</th></tr></thead><tbody>${patRows}</tbody></table></div></section>
 
 <section id="inventory"><h2>Argo — current surface (dedupe baseline)</h2>
 <p class="note">${esc(d.argoInventory?.note || "")}</p><div class="grid">${invCats}</div></section>
