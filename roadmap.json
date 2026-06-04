@@ -900,6 +900,78 @@
       "tier": "pebble",
       "model": "haiku",
       "effort": "medium"
+    },
+    {
+      "id": "MEM-LAYERS",
+      "track": "Memory + Continuity",
+      "title": "Multi-tier memory injection (avoid dark-memory gap)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "AgentMemory issue #732: their highest-value memory tiers (semantic facts, procedural skills, crystals, insights) are written by consolidation but never read for injection -- the data is dark. Argo risk: brain regions get written by brain tool but only the brainDigest subset reaches the prompt. Fix: (1) verify every write path has a corresponding read/inject path; (2) add typed memory tiers beyond the 7 regions (semantic_fact, procedural, insight, pattern); (3) per-tier injection budget so small tiers do not crowd out others. Never add a memory type without wiring its consumption.",
+      "done": "Every tier that gets written is also injected (or explicitly excluded with documented reason); no dark memory.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "PROMPT-STABILITY",
+      "track": "Efficiency",
+      "title": "Stable prompt prefix for LLM cache hit rate",
+      "status": "horizon",
+      "size": "S",
+      "summary": "AgentMemory issue #720: per-turn system prompt mutation (injecting current time, session-specific context) drops prompt cache hit rate ~10pp because prefix matching fails on any change. Argo buildSystemPrompt() injects now: timestamp in the volatile tier every turn, invalidating the stable prefix. Fix: freeze the stable tier (SOUL + tools + rules + skills index) as a constant string computed once per session; inject now/goals/moim only in a trailing volatile block that never touches the prefix. Anthropic ephemeral caching matches on the first N tokens -- keep those stable.",
+      "done": "Stable prompt prefix never changes within a session; volatile suffix changes freely; cache hit rate measurably improves.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "MEM-WORKTREE",
+      "track": "Memory + Continuity",
+      "title": "Worktree-aware project identity for memory scoping",
+      "status": "horizon",
+      "size": "S",
+      "summary": "AgentMemory issue #728: git worktrees return the worktree root from git rev-parse --show-toplevel, not the main repo. Memory fragments across worktrees of the same project. Argo uses worktrees extensively (superpowers:using-git-worktrees). Fix: for memory and session scoping, use git remote get-url origin (canonical repo URL) as the project identity, falling back to git rev-parse --show-toplevel for the main checkout. Worktree sessions share memory with the main branch.",
+      "done": "A session run from a worktree of Argo reads/writes the same memory as a session run from the main checkout.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "MEM-TIMESTAMPS",
+      "track": "Memory + Continuity",
+      "title": "Conversation timestamps in memory (not ingest time)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "MemPalace issue #1649: the miner writes filed_at (ingest time) but the transcript already carries per-message timestamps. A session from 3 weeks ago mined today shows filed_at=today, breaking time-based recall. Argo sessions store messages as Message[] with no timestamp. Fix: add timestamp to the Message type (record at send time); propagate to memory store entries. Enables: argo memory search --since 7d, temporal graph queries, correct time anchoring for what-did-we-do-last-Tuesday recall.",
+      "done": "Every memory entry carries the conversation timestamp (not ingest time); time-scoped search works.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "PROJ-IDENTITY",
+      "track": "Memory + Continuity",
+      "title": "Canonical project identity from git remote URL",
+      "status": "horizon",
+      "size": "S",
+      "summary": "AgentMemory issues #716/#733: projects named by directory basename collide across machines and clones (~/work/foo vs ~/dev/foo = same project, different memory silos). Fix: resolve project identity from git remote get-url origin (e.g., github.com/jpoindexter/Argo) and use that as the memory namespace key. Fall back to directory name for non-git roots. Enables memory portability: clone the repo on a new machine and existing memories surface. ARGO_PROJECT_ID env override for non-git use.",
+      "done": "Memory scoping uses the git remote URL; cloning to a new path preserves memory continuity.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "BRAIN-NEURO",
+      "track": "Memory + Continuity",
+      "title": "Full neurocognitive brain architecture (12-axis memory space)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Beyond 5D: a complete brain modelled on human cognitive architecture. 12 axes per memory node: (1) type (fact/skill/preference/pattern/insight/plan/emotion), (2) temporal (created/modified/accessed), (3) confidence 0-1 (epistemic uncertainty), (4) strength 0-1 (consolidation score), (5) salience (relevance to current context), (6) associative (graph edges by type: relates-to/caused-by/contradicts/extends), (7) provenance (source session + tool call + user utterance), (8) forgetting curve (half-life, Ebbinghaus decay), (9) goal linkage (which goal this serves), (10) granularity (atom/pattern/insight/principle), (11) activation state (working/long-term/archived), (12) distinctiveness (dedup score vs nearest neighbors). Implementation: ~/.argo/brain.db SQLite + vector index. Synthesis layer generates insights by combining high-strength nodes. Contradiction detector flags conflicting beliefs. Prospective memory (future plans) injected separately from episodic. This is BRAIN-5D extended -- implement 5D first, then layer remaining axes.",
+      "done": "Argo has a living, self-maintaining belief graph: memories decay unless reinforced, contradictions surface, insights crystallize from recurring patterns, provenance is always traceable.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high"
     }
   ]
 }
