@@ -6,6 +6,7 @@ import type { Message, ToolCall, ImageAttachment } from "./types.js";
 import type { DiffLine } from "./util/diff.js";
 import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
+import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -267,6 +268,11 @@ async function dispatchTool(
     if (id) await deps.safety.approve(id);
   }
 
+  try {
+    if (shouldWarn(action, deps.activeGoalText)) {
+      deps.onText?.(buildSelfMonitorText(call.name, deps.activeGoalText!));
+    }
+  } catch { /* best-effort — never block */ }
   const res = await tool.execute(call.arguments, ctx);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   return { executed: true, empty: res.output.trim().length === 0, output: res.output };
