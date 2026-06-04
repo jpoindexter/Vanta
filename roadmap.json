@@ -1133,7 +1133,7 @@
       "id": "EF-CLOSUREGATE",
       "track": "Executive Function (inclusive spine)",
       "title": "Closure gate \u2014 incomplete thread detector before new major threads",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Real pattern from sessions: items reach 70% completion then a new session begins on something else. Set Shifting failure: moved to a new cognitive set without completing the prior set. Incomplete thread accumulation: each thread is almost done but none gets closure. Counter-measure: when a major new thread begins (detected by: new goal set, topic shift > threshold, /clear), scan the current session and recent sessions for items that are > 50% done but not closed. Surface: 2 items appear in-progress from this session. Want to close one first? One-tap dismiss. Ties to MEM-SESSION-RECOVER (orphaned sessions). ND fit F1+F5 (makes the hidden cost of switching visible).",
       "done": "Before major thread switches, Argo surfaces in-progress items; user can close them or explicitly defer with one action.",

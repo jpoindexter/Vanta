@@ -7,6 +7,7 @@ import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState } from "../session.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
+import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
@@ -41,6 +42,13 @@ export function useAgentSend(
     const activeGoal = goals.find((g) => g.status === "active") ?? null;
     if (isTopicShift(text, activeGoal, 0.15)) {
       dispatch({ t: "note", text: buildTopicShiftNote() });
+      try {
+        const convo = convoRef.current;
+        if (convo) {
+          const inProgress = getInProgressItems(convo.messages);
+          if (inProgress.length) dispatch({ t: "note", text: buildClosureGateText(inProgress) });
+        }
+      } catch { /* best-effort */ }
     }
     replStateRef.current.turnIndex++;
     turnStartRef.current = Date.now();
