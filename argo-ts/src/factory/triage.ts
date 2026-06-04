@@ -50,7 +50,10 @@ export function parseRoadmapItem(content: string): WorkItem | null {
     const line = lines[i] ?? "";
     if (/^- \[ \]/.test(line)) {
       const description = line.replace(/^- \[ \]\s*/, "").trim();
-      return { category: "roadmap", description, sourceLine: i + 1 };
+      // FAC-CLOSE: extract roadmap JSON ID from bold text like **FAC-STALL**
+      const idMatch = description.match(/\*\*([A-Z][A-Z0-9-]+)\*\*/);
+      const roadmapId = idMatch?.[1];
+      return { category: "roadmap", description, sourceLine: i + 1, roadmapId };
     }
   }
   return null;

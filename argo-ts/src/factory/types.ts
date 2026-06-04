@@ -11,6 +11,8 @@ export type WorkItem = {
   targetFile?: string;
   /** 1-based line in ROADMAP.md or PARKED.md where this item lives (for checkbox tick). */
   sourceLine?: number;
+  /** Roadmap JSON item ID (e.g. "EF-SCOPEDELTA") — present when parsed from ROADMAP.md. */
+  roadmapId?: string;
 };
 
 /** Agent instruction + metadata produced by the planner for one slice. */
