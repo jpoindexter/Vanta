@@ -35,6 +35,26 @@ describe("buildPlan", () => {
     expect(plan.instruction).toContain("TS2322");
   });
 
+  it("injects the PROVEN-PATTERNS block for roadmap items", () => {
+    const item: WorkItem = { category: "roadmap", description: "Add new thing" };
+    const plan = buildPlan(item, "/repo");
+    expect(plan.instruction).toContain("PROVEN-PATTERNS");
+    expect(plan.instruction).toContain("300 lines");
+    expect(plan.instruction).toContain("registry");
+  });
+
+  it("injects the PROVEN-PATTERNS block for parked items", () => {
+    const item: WorkItem = { category: "parked", description: "my-parked-idea" };
+    const plan = buildPlan(item, "/repo");
+    expect(plan.instruction).toContain("PROVEN-PATTERNS");
+  });
+
+  it("does NOT inject PROVEN-PATTERNS for test-failure items", () => {
+    const item: WorkItem = { category: "test-failure", description: "fix it", targetFile: "foo.test.ts" };
+    const plan = buildPlan(item, "/repo");
+    expect(plan.instruction).not.toContain("PROVEN-PATTERNS");
+  });
+
   it("builds a parked plan", () => {
     const item: WorkItem = { category: "parked", description: "my-parked-idea" };
     const plan = buildPlan(item, "/repo");

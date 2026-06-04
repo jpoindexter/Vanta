@@ -9,11 +9,23 @@ export function buildPlan(item: WorkItem, root: string): FactoryPlan {
   };
 }
 
+const PROVEN_PATTERNS = [
+  `PROVEN-PATTERNS (apply to this slice; spec overrides on conflict):`,
+  `- Max 300 lines per new file. If a unit needs more, split it.`,
+  `- One concern per file. Name describes the single responsibility (≤ 4 words).`,
+  `- Registry-by-default: new tool = new file (tools/<name>.ts) + one entry in ALL_TOOLS registry (tools/index.ts). No switch edits.`,
+  `- Every new .ts file gets a co-located .test.ts. Tests name the behavior, not the implementation.`,
+  `- Errors as values: return { ok, output } — never throw across module boundaries.`,
+  `- Zod at every LLM/API boundary. No \`any\` — use \`unknown\` + narrowing.`,
+].join("\n");
+
 function buildInstruction(item: WorkItem, root: string): string {
   const tsRoot = `${root}/argo-ts`;
   switch (item.category) {
     case "roadmap":
       return [
+        PROVEN_PATTERNS,
+        ``,
         `ROADMAP item: "${item.description}"`,
         ``,
         `Implement this item in the Argo TypeScript layer (${tsRoot}/src/).`,
@@ -26,6 +38,8 @@ function buildInstruction(item: WorkItem, root: string): string {
 
     case "parked":
       return [
+        PROVEN_PATTERNS,
+        ``,
         `PARKED idea to promote: "${item.description}"`,
         ``,
         `Assess if this is now feasible and small enough for one slice.`,
