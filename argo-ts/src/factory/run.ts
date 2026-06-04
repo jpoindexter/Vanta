@@ -4,6 +4,7 @@ import { buildPlan } from "./planner.js";
 import { execute } from "./executor.js";
 import { verify, listPreExistingFiles } from "./verifier.js";
 import { autonomyCapForFiles } from "./compartments.js";
+import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
 import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 
 // --- Pure helpers ---
@@ -17,13 +18,15 @@ export function checkGate(_config: FactoryConfig, inputs: GateInputs): string | 
   return null;
 }
 
-/** Highest ladder rung implemented today (L5 auto-merge is reserved). */
-export const MAX_AUTONOMY_LEVEL = 4;
+/** Highest ladder rung implemented (L5 auto-merge — gated by ARGO_AUTONOMY_ALLOW_MERGE). */
+export const MAX_AUTONOMY_LEVEL = 5;
 
 /**
- * Resolve the factory autonomy level (1–4) from the CLI subcommand + env.
+ * Resolve the factory autonomy level (1–5) from the CLI subcommand + env.
  * `improve`/review is always suggest-only (L1). `approve` reads ARGO_AUTONOMY_LEVEL
- * (default 4 = commit+push, preserving prior behavior); out-of-range clamps into 1–4.
+ * (default 4 = commit+push, preserving prior behavior); out-of-range clamps into 1–5.
+ * Note: requesting L5 only auto-merges when ARGO_AUTONOMY_ALLOW_MERGE is also set and
+ * the slice passes the low-risk gate (merge.ts) — otherwise it lands at L4 push.
  */
 export function resolveAutonomyLevel(sub: string, env: NodeJS.ProcessEnv): AutonomyLevel {
   if (sub === "review" || sub === "") return 1;
@@ -44,6 +47,8 @@ export function formatCycleLog(result: CycleResult): string {
       return `factory: implemented on ${result.branch} (${result.tokenSpend.toLocaleString()} tokens) — verified, NOT committed; review the diff then commit — ${result.workItem.description}`;
     case "committed":
       return `factory: committed ${result.commitSha} on ${result.branch} ${result.pushed ? "(pushed)" : "(local — not pushed)"} (${result.tokenSpend.toLocaleString()} tokens) — ${result.workItem.description}`;
+    case "merged":
+      return `factory: merged ${result.commitSha} (${result.branch}) → ${result.mergedInto} (${result.tokenSpend.toLocaleString()} tokens) — ${result.workItem.description}`;
   }
 }
 
@@ -106,6 +111,52 @@ async function pushBranch(root: string): Promise<void> {
   });
 }
 
+/** The branch HEAD is on right now (so we can restore it after a merge). */
+async function currentBranch(root: string): Promise<string> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { stdout } = await promisify(execFile)("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root });
+  return stdout.trim();
+}
+
+/** Changed lines (added + deleted) in the most recent commit (the slice). */
+async function lastCommitLineCount(root: string): Promise<number> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { stdout } = await promisify(execFile)("git", ["show", "--numstat", "--format=", "HEAD"], { cwd: root });
+  let total = 0;
+  for (const line of stdout.trim().split("\n")) {
+    const [add, del] = line.split("\t");
+    total += (Number(add) || 0) + (Number(del) || 0); // "-" (binary) → 0
+  }
+  return total;
+}
+
+/**
+ * Merge `sourceBranch` into `target` with --no-ff (never force), then restore the
+ * original branch. Returns true on a clean merge. Fails closed: a missing target
+ * or a conflict aborts and returns false (the caller stays at L4 push).
+ */
+async function mergeIntoTarget(root: string, target: string, sourceBranch: string, restoreTo: string): Promise<boolean> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const exec = promisify(execFile);
+  try {
+    // Target must already exist — creating an integration branch is itself a
+    // mutation the operator should make deliberately (it's the opt-in landing zone).
+    await exec("git", ["rev-parse", "--verify", target], { cwd: root });
+    await exec("git", ["checkout", target], { cwd: root });
+    await exec("git", ["merge", "--no-ff", "--no-edit", sourceBranch], { cwd: root });
+    await exec("git", ["checkout", restoreTo], { cwd: root }).catch(() => {});
+    return true;
+  } catch {
+    // Abort any half-done merge and return to where we were.
+    await exec("git", ["merge", "--abort"], { cwd: root }).catch(() => {});
+    await exec("git", ["checkout", restoreTo], { cwd: root }).catch(() => {});
+    return false;
+  }
+}
+
 async function discardSlice(root: string): Promise<void> {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
@@ -148,6 +199,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     const preExisting = await listPreExistingFiles(config.argoRoot);
+    const startBranch = await currentBranch(config.argoRoot);
     const branch = await createBranch(config.argoRoot);
     log(`factory: branched → ${branch}`);
 
@@ -187,10 +239,36 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: false };
     }
 
-    // L4 push — publish the branch (no merge; L5 reserved for O10b).
+    // L4 push — publish the branch.
     await pushBranch(config.argoRoot);
     log(`factory: pushed ${branch}`);
-    return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
+
+    if (effectiveLevel <= 4) {
+      return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
+    }
+
+    // L5 merge — auto-land the slice into the integration branch IFF it passes
+    // the low-risk gate (merge.ts). The gate, not the kernel, is the safety story
+    // here (git runs outside assess()); it fails closed → otherwise we stay at L4.
+    const mergeTarget = resolveMergeTarget(process.env);
+    const decision = assessMergeRisk({
+      touchedFiles: artifact.touchedFiles,
+      diffLineCount: await lastCommitLineCount(config.argoRoot),
+      allowMerge: Boolean(process.env.ARGO_AUTONOMY_ALLOW_MERGE),
+      mergeTarget,
+    });
+    if (!decision.merge) {
+      log(`factory: [L5] not merging — ${decision.reason} (left at L4 push on ${branch})`);
+      return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
+    }
+
+    const merged = await mergeIntoTarget(config.argoRoot, mergeTarget, branch, startBranch);
+    if (!merged) {
+      log(`factory: [L5] merge into ${mergeTarget} failed (conflict or missing target) — left at L4 push on ${branch}`);
+      return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
+    }
+    log(`factory: [L5] merged ${branch} → ${mergeTarget}`);
+    return { status: "merged", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, mergedInto: mergeTarget };
   } finally {
     await releaseLock(config.dataDir);
   }

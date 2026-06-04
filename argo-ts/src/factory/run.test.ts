@@ -84,6 +84,21 @@ describe("formatCycleLog", () => {
     expect(log).toContain("NOT committed");
   });
 
+  it("formats merged with the integration target", () => {
+    const r: CycleResult = {
+      status: "merged",
+      workItem: { category: "quality", description: "Tidy a tool" },
+      branch: "factory/auto-z",
+      commitSha: "def5678",
+      tokenSpend: 3_000,
+      mergedInto: "factory/integration",
+    };
+    const log = formatCycleLog(r);
+    expect(log).toContain("merged");
+    expect(log).toContain("factory/integration");
+    expect(log).toContain("def5678");
+  });
+
   it("formats verify-failed", () => {
     const r: CycleResult = {
       status: "verify-failed",
@@ -110,9 +125,9 @@ describe("resolveAutonomyLevel", () => {
     expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "3" } as NodeJS.ProcessEnv)).toBe(3);
   });
 
-  it("clamps L5+ down to the max implemented level (4)", () => {
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "5" } as NodeJS.ProcessEnv)).toBe(4);
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "99" } as NodeJS.ProcessEnv)).toBe(4);
+  it("allows L5 (merge) and clamps above it to the max implemented level (5)", () => {
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "5" } as NodeJS.ProcessEnv)).toBe(5);
+    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "99" } as NodeJS.ProcessEnv)).toBe(5);
   });
 
   it("falls back to L4 on garbage input", () => {
