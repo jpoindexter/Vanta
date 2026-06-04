@@ -219,6 +219,20 @@ async function runSkillsCommand(rest: string[]): Promise<void> {
     if (issues.some((i) => i.level === "error")) process.exit(1);
     return;
   }
+  if (rest[0] === "bundle") {
+    const { listBundles, readBundle } = await import("./skills/bundle.js");
+    const name = rest[1];
+    if (!name) {
+      const bundles = await listBundles();
+      if (!bundles.length) return void console.log("(no bundles yet — create ~/.argo/skill-bundles/<name>.yaml)");
+      for (const b of bundles) console.log(`${b.name} — ${b.description} [${b.skills.join(", ")}]`);
+      return;
+    }
+    const cfg = await readBundle(name);
+    if (!cfg) { console.log(`No bundle named "${name}".`); process.exit(1); }
+    console.log(`Bundle: ${cfg.name}\n  Skills: ${cfg.skills.join(", ")}\n${cfg.instruction ? `  Instruction: ${cfg.instruction}` : ""}`);
+    return;
+  }
   if (rest[0] !== "install") return runSkillsList();
   const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });
   console.log(
@@ -227,6 +241,51 @@ async function runSkillsCommand(rest: string[]): Promise<void> {
   if (skipped.length) {
     console.log(`Skipped ${skipped.length} already present (use --force to overwrite): ${skipped.join(", ")}.`);
   }
+}
+
+async function runHooksCommand(rest: string[]): Promise<void> {
+  const { homedir } = await import("node:os");
+  const { readFile, writeFile, mkdir } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const settingsPath = join(homedir(), ".claude", "settings.json");
+  const argoCmd = join(homedir(), ".local", "bin", "argo");
+  if (rest[0] === "run") {
+    // Called by Claude Code Stop/PreCompact hooks — write a brain episodic note.
+    const event = rest[1] ?? "stop";
+    try {
+      const { writeRegion } = await import("./brain/store.js");
+      const note = `\n- [${new Date().toISOString()}] Claude Code hook: ${event}`;
+      await writeRegion("episodic", note, { append: true });
+    } catch { /* best-effort */ }
+    return;
+  }
+  if (rest[0] === "status") {
+    try {
+      const raw = await readFile(settingsPath, "utf8");
+      const settings: Record<string, unknown> = JSON.parse(raw);
+      const hooks = settings.hooks as Record<string, unknown> | undefined;
+      console.log(`hooks.Stop:       ${hooks?.Stop ? "✓ configured" : "✗ not set"}`);
+      console.log(`hooks.PreCompact: ${hooks?.PreCompact ? "✓ configured" : "✗ not set"}`);
+    } catch {
+      console.log("(~/.claude/settings.json not found or not readable)");
+    }
+    return;
+  }
+  // install
+  await mkdir(join(homedir(), ".claude"), { recursive: true });
+  let settings: Record<string, unknown> = {};
+  try { settings = JSON.parse(await readFile(settingsPath, "utf8")); } catch { /* new file */ }
+  const makeHook = (event: string) => [{
+    matcher: "",
+    hooks: [{ type: "command", command: `${argoCmd} hooks run ${event} 2>/dev/null &` }],
+  }];
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
+  hooks.Stop = makeHook("stop");
+  hooks.PreCompact = makeHook("precompact");
+  settings.hooks = hooks;
+  await writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
+  console.log(`✓ hooks installed in ${settingsPath}`);
+  console.log("  Stop + PreCompact → argo hooks run <event>");
 }
 
 async function runSkillCommand(repoRoot: string, rest: string[]): Promise<void> {
@@ -284,6 +343,7 @@ async function main(): Promise<void> {
   if (cmd === "modes") return runModes(process.env, rest[0]);
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "hooks") return runHooksCommand(rest);
   if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");

@@ -47,6 +47,18 @@ export async function writeRegion(
   if (opts.append) {
     await appendFile(f, `\n${content.trim()}\n`, "utf8");
   } else {
+    // MEM-VERSIONING: archive the old content before overwriting so the version
+    // chain is preserved. Files live in brain/archive/<region>/ — the main
+    // brain file is the current head; git history is the full chain.
+    try {
+      const old = await readFile(f, "utf8");
+      if (old.trim()) {
+        const archiveDir = join(brainDir(env), "archive", name);
+        await mkdir(archiveDir, { recursive: true });
+        const ts = new Date().toISOString().replace(/[:.]/g, "-");
+        await writeFile(join(archiveDir, `${ts}.md`), old, "utf8");
+      }
+    } catch { /* no prior file — nothing to archive */ }
     await writeFile(f, `${content.trim()}\n`, "utf8");
   }
   await commitInHome(join("brain", `${name}.md`), `brain: ${name}`, env);
