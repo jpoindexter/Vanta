@@ -989,7 +989,7 @@
       "id": "EF-INHIBIT",
       "track": "Executive Function (inclusive spine)",
       "title": "Pre-action goal check (inhibition support \u2014 soft gate, not wall)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "PMC4455841 inhibition: the healthy prefrontal cortex suppresses prepotent (automatic/habitual) responses before they execute. Argo has no equivalent pre-action check \u2014 scope creep, rabbit holes, and while-we-are-here additions happen because there is no inhibition layer. Design: before each tool call, a lightweight check compares the tool + args against the active goal and recent instruction. Not a hard block (that is the kernel) \u2014 a soft annotation: log when a call is adjacent-to but not directly-serving the stated goal. After N adjacent calls in a row, surface: \"I notice I am doing X, original goal was Y \u2014 continue?\". Prevents perseverative drift without breaking flow. ND fit F4+F6.",
       "done": "Off-goal tool calls generate a logged annotation; after 3 adjacent calls, Argo surfaces a drift alert; user can confirm or redirect.",
