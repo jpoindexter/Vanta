@@ -25,6 +25,9 @@ import {
   type WmManipState,
 } from "./session.js";
 import { SessionWorkingMemory } from "./memory/working.js";
+import { loadUserCommands, type UserCommand } from "./commands/loader.js";
+import { CheckpointStore } from "./sessions/checkpoint.js";
+import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
@@ -120,6 +123,9 @@ export async function runChat(
   let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
   let wmManipState: WmManipState = { manipTurns: 0 };
   const workingMemory = new SessionWorkingMemory();
+  const checkpoints = new CheckpointStore();
+  const { checkpoint: checkpointHandler, rollback: rollbackHandler } = buildCheckpointHandlers(checkpoints);
+  const userCommands: UserCommand[] = await loadUserCommands(process.env);
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const convo = createConversation(
@@ -238,6 +244,24 @@ export async function runChat(
       // and have a nested slash in the first token. Route those to runUserTurn, not slash.
       const firstToken = line.slice(1).split(/\s/)[0] ?? "";
       if (line.startsWith("/") && !firstToken.includes("/")) {
+        // REL2: checkpoint + rollback handled inline (session-scoped state).
+        if (firstToken === "checkpoint") {
+          const r = checkpointHandler(line.slice(firstToken.length + 1).trim(), ctx);
+          if ("output" in r && r.output) console.log(r.output);
+          continue;
+        }
+        if (firstToken === "rollback") {
+          const r = rollbackHandler("", ctx);
+          if ("output" in r && r.output) console.log(r.output);
+          continue;
+        }
+        // TUI-CMD: check user-defined commands before the default slash dispatcher.
+        const userCmd = userCommands.find((c) => c.name === firstToken);
+        if (userCmd) {
+          const arg = line.slice(firstToken.length + 2).trim();
+          await runUserTurn(arg ? `${userCmd.content}\n\nArgs: ${arg}` : userCmd.content);
+          continue;
+        }
         const result = await executeSlash(line, ctx);
         if (result.output) console.log(result.output);
         if (result.exit) break;
