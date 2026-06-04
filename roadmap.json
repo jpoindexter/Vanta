@@ -437,7 +437,7 @@
       "id": "ND2",
       "track": "Executive Function (inclusive spine)",
       "title": "clarify tool (ask before acting)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Ported concept from Hermes clarify_tool.py. A tool that lets the agent ask ONE structured question before acting when intent is ambiguous, instead of guessing and thrashing. Kernel-gated like any tool. ND fit F1+F4+F6 (predictable, low-vigilance, ask-don't-assume). Small surface, high fit.",
       "done": "On ambiguous intent Argo asks one tappable structured question instead of guessing; wrong-guess rework drops.",
