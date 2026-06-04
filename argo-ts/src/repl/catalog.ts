@@ -30,6 +30,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
+  { name: "next", desc: "surface one concrete next micro-step from your active goals" },
   { name: "exit", desc: "leave the session" },
 ];
 
