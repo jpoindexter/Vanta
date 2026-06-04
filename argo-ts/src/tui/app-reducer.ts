@@ -1,4 +1,5 @@
 import type { Entry } from "./transcript.js";
+import type { DiffLine } from "../util/diff.js";
 
 export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[] };
 
@@ -6,7 +7,7 @@ export type Action =
   | { t: "user"; text: string }
   | { t: "delta"; d: string }
   | { t: "toolCall"; name: string; icon: string; verb: string; detail: string }
-  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string }
+  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; diff?: DiffLine[] }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
   | { t: "enqueue"; text: string }
@@ -38,7 +39,7 @@ export function reduce(s: State, a: Action): State {
       for (let i = entries.length - 1; i >= 0; i--) {
         const e = entries[i];
         if (e && e.kind === "tool" && e.name === a.name && e.ok === undefined) {
-          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine };
+          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine, diff: a.diff };
           break;
         }
       }
