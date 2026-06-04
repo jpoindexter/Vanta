@@ -4,6 +4,7 @@ import { writeFileTool } from "./write-file.js";
 import { shellCmdTool } from "./shell-cmd.js";
 import { inspectStateTool } from "./inspect-state.js";
 import { clarifyTool } from "./clarify.js";
+import { roadmapMoveTool } from "./roadmap-move.js";
 import { webSearchTool } from "./web-search.js";
 import { webFetchTool } from "./web-fetch.js";
 import { writeSkillTool } from "./write-skill.js";
@@ -61,6 +62,7 @@ const ALL_TOOLS: readonly Tool[] = [
   shellCmdTool,
   inspectStateTool,
   clarifyTool,
+  roadmapMoveTool,
   webSearchTool,
   webFetchTool,
   writeSkillTool,
