@@ -972,6 +972,78 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high"
+    },
+    {
+      "id": "EF-WORKINGMEM",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Active task stack \u2014 breadcrumbs + goal re-injection (working memory prosthetic)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "PMC4455841 working memory: the agent loses the thread mid-subtask, especially after context compaction. Three parts: (1) /where slash command \u2014 surfaces the last stated intent + the last N tool calls as a brief breadcrumb (where were we before this rabbit hole); (2) Active task stack \u2014 before entering a subtask, push the parent goal; on return, pop and re-assert it; (3) Goal re-injection after compaction \u2014 when the context is compressed, the active goal is prepended to the next system prompt volatile tier explicitly. This is the architectural version of the working memory phonologic loop \u2014 keep the goal in the \"rehearsal buffer\". ND fit F1+F2 (start the right thing, stay on it).",
+      "done": "/where shows the thread; subtask entry/exit is logged; goal survives compaction and is re-asserted at the top of the next turn.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "EF-INHIBIT",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Pre-action goal check (inhibition support \u2014 soft gate, not wall)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 inhibition: the healthy prefrontal cortex suppresses prepotent (automatic/habitual) responses before they execute. Argo has no equivalent pre-action check \u2014 scope creep, rabbit holes, and while-we-are-here additions happen because there is no inhibition layer. Design: before each tool call, a lightweight check compares the tool + args against the active goal and recent instruction. Not a hard block (that is the kernel) \u2014 a soft annotation: log when a call is adjacent-to but not directly-serving the stated goal. After N adjacent calls in a row, surface: \"I notice I am doing X, original goal was Y \u2014 continue?\". Prevents perseverative drift without breaking flow. ND fit F4+F6.",
+      "done": "Off-goal tool calls generate a logged annotation; after 3 adjacent calls, Argo surfaces a drift alert; user can confirm or redirect.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "medium"
+    },
+    {
+      "id": "EF-SETSHIFT",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Auto strategy rotation + ERRORS.md pre-read (set shifting support)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "PMC4455841 set shifting: perseverative loops happen because the agent lacks a signal to change strategy. Two parts: (1) Before attempting any task, auto-scan ERRORS.md for prior failures on similar tasks (ERRORS.md is currently human-checked only \u2014 make it agent-checked at session start and task start); (2) Approach diversity tracker: when 3+ consecutive iterations follow the same pattern without progress (not just identical tool calls \u2014 similar strategic direction), auto-trigger a strategy pivot with a different approach vector. The FAC-STALL roadmap item covers the factory version; EF-SETSHIFT covers the interactive session. Ties to the dorsolateral PFC set-shifting function. ND fit F1+F6.",
+      "done": "Argo checks ERRORS.md before similar tasks; after 3 non-progressing similar-direction attempts, proposes a strategy switch.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "EF-COMPLEXITY-GATE",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Complexity gate \u2014 auto-prompt to plan before executing complex requests",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 planning/organization: difficulty breaking complex tasks into steps, sequencing, anticipating obstacles. Currently Argo has /planmode as an opt-in toggle. But the user must know to use it. Fix: lightweight complexity classifier on each incoming user message \u2014 estimate task complexity by indicators (multi-file, schema change, migration, cross-service, ambiguous spec). If complexity > threshold, auto-suggest plan-first mode before any tool call. Same principle as the kernel ambiguity gate (FAC-PREFLIGHT) but for the interactive session. User can dismiss with one key to proceed directly. ND fit F1+F5 (breaks the blank-page paralysis, provides structure before confusion).",
+      "done": "Complex requests trigger a one-line plan prompt before tool use; user can dismiss; simple requests are not interrupted.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-SELFMONITOR",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Pre-action self-monitor (right-hemisphere analog)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 anatomy: the right prefrontal cortex specializes in self-monitoring \u2014 error detection, inconsistency detection, checking output before committing. Argo has post-turn background review (reviewAfterTurn) but no PRE-action check. Design: before committing a significant action (write_file overwrite, shell command, commit), the system runs a one-shot \"does this make sense given the goal?\" check using a fast cheap model (haiku). Not a hard gate (the kernel is that) \u2014 a sanity check that catches \"about to write the wrong file\" or \"this shell command will affect more than intended\" before execution. Catches the class of errors that the user notices immediately post-action but that are expensive to reverse. ND fit F6 (trust \u2014 the agent double-checks itself).",
+      "done": "Before destructive/significant tool calls, a fast self-monitor check runs; inconsistencies with the stated goal are surfaced before execution.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "medium"
+    },
+    {
+      "id": "EF-TASKBOUNDARY",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Explicit task boundaries \u2014 clean context handoff on topic switch",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 set shifting: context pollution from previous tasks bleeds into current work (\"set\" persists when it should be cleared). Argo has /clear but no lightweight mid-session boundary. Design: when the agent detects a significant topic shift mid-session (classifier on user message vs active goal), propose a task-boundary event: summarize the previous task state, archive it to brain/session memory, and begin fresh with the new task context. Unlike /clear (full wipe), task boundary preserves the conversation but explicitly marks the shift, preventing the prior approach from contaminating the new task. Optional: /boundary slash command as manual trigger. ND fit F4+F5 (one control that says \"new thing now\", structured handoff).",
+      "done": "Topic shifts generate a task-boundary event; prior task state is archived; new task starts clean without full context loss.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
     }
   ]
 }
