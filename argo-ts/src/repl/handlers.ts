@@ -264,12 +264,31 @@ const cron: SlashHandler = async (_arg, ctx) => {
   return { output: lines(entries.map((e) => `  #${e.id} [${e.status}] ${e.cron} — ${e.instruction}`), "  (no scheduled tasks)") };
 };
 
+const moim: SlashHandler = async (arg, ctx) => {
+  const { readMoim, writeMoim, clearMoim } = await import("../moim/store.js");
+  if (!arg) {
+    const note = await readMoim(ctx.env);
+    return { output: note ? `  ⚑ ${note}` : "  (nothing pinned — /moim <text> to set, /moim clear to remove)" };
+  }
+  if (arg.toLowerCase() === "clear") {
+    await clearMoim(ctx.env);
+    return { output: "  · top-of-mind cleared (removed from future sessions)" };
+  }
+  await writeMoim(arg, ctx.env);
+  // Patch the live system prompt so the agent sees it in this session too.
+  const sys = ctx.convo.messages[0];
+  if (sys && sys.role === "system") {
+    sys.content = `⚑ Top of mind (pinned by user — keep this in focus):\n${arg}\n\n${sys.content}`;
+  }
+  return { output: `  ⚑ pinned: ${oneLine(arg, 80)}` };
+};
+
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron,
+  mcp, usage, copy, update, image, paste, cron, moim,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

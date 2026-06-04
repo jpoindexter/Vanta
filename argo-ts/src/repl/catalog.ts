@@ -29,6 +29,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
+  { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "exit", desc: "leave the session" },
 ];
 
