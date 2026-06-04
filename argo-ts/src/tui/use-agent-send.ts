@@ -6,9 +6,11 @@ import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, type ResearchGateState } from "../session.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
+import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
+import type { Goal } from "../types.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
 type MutableRef<T> = React.MutableRefObject<T>;
@@ -20,6 +22,7 @@ export function useAgentSend(
   busy: boolean,
   queued: string[],
   safety: SafetyClient,
+  goals: Goal[] = [],
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
   const turnStartRef = useRef<number>(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -32,6 +35,10 @@ export function useAgentSend(
     const complexityScore = scoreComplexity(text);
     if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
       dispatch({ t: "note", text: buildComplexityNote(complexityScore) });
+    }
+    const activeGoal = goals.find((g) => g.status === "active") ?? null;
+    if (isTopicShift(text, activeGoal, 0.15)) {
+      dispatch({ t: "note", text: buildTopicShiftNote() });
     }
     replStateRef.current.turnIndex++;
     turnStartRef.current = Date.now();
