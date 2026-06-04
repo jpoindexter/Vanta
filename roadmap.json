@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-04 (audit + kanban research + workflows)",
+  "updated": "2026-06-04 (audit + research; next-lane needs right-sizing — see note)",
   "items": [
     {
       "id": "TUI",
@@ -513,6 +513,15 @@
       "size": "L",
       "summary": "From Anthropic’s Claude Code team (Thariq Shihipar & Sid Bidasaria, “A harness for every task”, /Desktop PDF). Let Argo write its own JS orchestration harness on the fly to spawn+coordinate sub-agents, extending the existing delegate+swarm. Canonical patterns: classify-and-act, fan-out-and-synthesize, adversarial-verification, generate-and-filter, tournament, loop-until-done. Combats the long-context failure modes the article names — agentic laziness (stops at 20/50 items), self-preferential bias (prefers own results when judging), goal drift (loses the objective after compaction) — by giving each sub-agent its own clean context + isolated goal. Token budgets (“use 10k tokens”), worktree isolation, model/intelligence routing per subtask, save/reuse workflows. VISION TIE-IN: this is executive function FOR THE AGENT — making Argo itself finish and stay on-objective — the mirror of the human-EF moat. Pairs with Argo’s /goal + a /loop equivalent.",
       "done": "Argo can compose+run a multi-agent workflow (fan-out/synthesize, adversarial-verify, tournament, loop-until-done) with a token budget; a long/parallel task that single-context drifts on completes without agentic laziness or goal drift."
+    },
+    {
+      "id": "SR",
+      "track": "Self-improvement",
+      "title": "Safe kernel self-repair (propose→prove→swap)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Design: docs/self-repair-architecture.md. Limbs already self-heal (O11+factory); this closes the skeleton/kernel tier WITHOUT letting the running boundary edit itself in place. (1) propose-only candidate kernel binary, never overwrite live; (2) differential safety-invariant conformance — the OLD kernel judges the NEW, reject if more permissive on any Rule-Zero case; (3) blue-green shadow swap + auto-rollback to last-good (never breaks the system); (4) human promotion for any safety-contract diff, classifier FAILS CLOSED; (5) immutable trust root = the promotion authority + invariant spec (machine-checkable twin of MANIFESTO Rule Zero) — the one thing Argo cannot self-modify. ND fit F6 (an agent that maintains itself removes the vigilance burden). HORIZON — kernel blast radius; kernel stays hard-blocked until built.",
+      "done": "A non-weakening kernel change promotes via conformance + blue-green with auto-rollback; any safety-contract change requires human promotion; the live boundary is never edited in place."
     }
   ]
 }
