@@ -14,7 +14,8 @@ import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
-import { Transcript, Palette, shortArgs, firstLine, type Entry } from "./transcript.js";
+import { Transcript, Palette, firstLine, type Entry } from "./transcript.js";
+import { toolDisplay } from "./tool-display.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -33,8 +34,8 @@ export type State = { entries: Entry[]; streaming: string; busy: boolean; status
 export type Action =
   | { t: "user"; text: string }
   | { t: "delta"; d: string }
-  | { t: "toolCall"; name: string; args: string }
-  | { t: "toolResult"; name: string; ok: boolean; output: string }
+  | { t: "toolCall"; name: string; icon: string; verb: string; detail: string }
+  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
   | { t: "enqueue"; text: string }
@@ -56,16 +57,19 @@ export function reduce(s: State, a: Action): State {
     case "toolCall":
       return {
         ...s,
-        entries: [...commitStreaming(s.entries, s.streaming), { kind: "tool", name: a.name, args: a.args }],
+        entries: [
+          ...commitStreaming(s.entries, s.streaming),
+          { kind: "tool", name: a.name, icon: a.icon, verb: a.verb, detail: a.detail },
+        ],
         streaming: "",
-        status: a.name,
+        status: `${a.verb}${a.detail ? ` ${a.detail}` : ""}`,
       };
     case "toolResult": {
       const entries = [...s.entries];
       for (let i = entries.length - 1; i >= 0; i--) {
         const e = entries[i];
         if (e && e.kind === "tool" && e.name === a.name && e.ok === undefined) {
-          entries[i] = { ...e, ok: a.ok, output: a.output };
+          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine };
           break;
         }
       }
@@ -116,8 +120,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
-      onToolCall: (name, args) => dispatch({ t: "toolCall", name, args: shortArgs(args) }),
-      onToolResult: (name, ok, output) => dispatch({ t: "toolResult", name, ok, output: firstLine(output) }),
+      onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
+      onToolResult: (name, ok, output) =>
+        dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output) }),
       requestApproval,
     });
   }
