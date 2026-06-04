@@ -7,8 +7,8 @@ const fixture: Roadmap = {
   items: [
     { id: "T1", track: "Core", title: "Shipped thing", status: "shipped", size: "S", summary: "Done.", done: "Shipped." },
     { id: "T2", track: "Core", title: "Building now", status: "building", size: "M", summary: "In progress.", done: "When done." },
-    { id: "T3", track: "MCP", title: "Next up", status: "next", size: "S", summary: "Coming.", done: "When shipped." },
-    { id: "T4", track: "Vision", title: "Future thing", status: "horizon", size: "L", summary: "Aspirational.", done: "Someday." },
+    { id: "T3", track: "MCP", title: "Next up", status: "next", size: "S", summary: "Coming.", done: "When shipped.", tier: "rock", model: "sonnet", effort: "medium" },
+    { id: "T4", track: "Vision", title: "Future thing", status: "horizon", size: "L", summary: "Aspirational.", done: "Someday.", tier: "sand", model: "haiku", effort: "low" },
   ],
 };
 
@@ -48,6 +48,30 @@ describe("renderRoadmap", () => {
     expect(html).toContain("Core");
     expect(html).toContain("MCP");
     expect(html).toContain("Vision");
+  });
+
+  it("shows a model·effort badge for tagged items", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain('class="me m-sonnet"');
+    expect(html).toContain("sonnet · medium");
+  });
+
+  it("groups a column by pickle-jar tier", () => {
+    const html = renderRoadmap(fixture);
+    expect(html).toContain("Rocks · foundational");
+    expect(html).toContain("Sand · quick wins");
+  });
+
+  it("renders an untagged item without a routing badge", () => {
+    const html = renderRoadmap({
+      updated: "2026-06-03",
+      items: [
+        { id: "U", track: "T", title: "Untagged", status: "next", size: "S", summary: "x", done: "y" },
+      ],
+    });
+    expect(html).toContain("Untagged");
+    expect(html).not.toContain('class="badges"');
+    expect(html).toContain("Untriaged");
   });
 
   it("escapes HTML in item data", () => {
