@@ -33,6 +33,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
   { name: "planmode", arg: "[on|off]", desc: "toggle plan-first mode — Argo plans + confirms before acting" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
+  { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
   { name: "exit", desc: "leave the session" },
 ];
 

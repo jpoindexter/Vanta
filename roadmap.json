@@ -977,7 +977,7 @@
       "id": "EF-WORKINGMEM",
       "track": "Executive Function (inclusive spine)",
       "title": "Active task stack \u2014 breadcrumbs + goal re-injection (working memory prosthetic)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "PMC4455841 working memory: the agent loses the thread mid-subtask, especially after context compaction. Three parts: (1) /where slash command \u2014 surfaces the last stated intent + the last N tool calls as a brief breadcrumb (where were we before this rabbit hole); (2) Active task stack \u2014 before entering a subtask, push the parent goal; on return, pop and re-assert it; (3) Goal re-injection after compaction \u2014 when the context is compressed, the active goal is prepended to the next system prompt volatile tier explicitly. This is the architectural version of the working memory phonologic loop \u2014 keep the goal in the \"rehearsal buffer\". ND fit F1+F2 (start the right thing, stay on it).",
       "done": "/where shows the thread; subtask entry/exit is logged; goal survives compaction and is re-asserted at the top of the next turn.",

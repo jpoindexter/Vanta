@@ -10,11 +10,11 @@ import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
 import { next } from "./next.js";
 import { planMode } from "./plan-mode.js";
 import { boundary } from "./boundary.js";
+import { where } from "./where.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
 // that IS the command's job (/clear, /resume). Reuses existing subsystems.
-
 const help: SlashHandler = () => ({ output: SLASH_HELP });
 const exit: SlashHandler = () => ({ exit: true });
 
@@ -290,7 +290,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

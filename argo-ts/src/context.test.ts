@@ -79,6 +79,28 @@ describe("compressMessages", () => {
     expect(result[result.length - 1]).toEqual(msgs[msgs.length - 1]);
   });
 
+  it("injects active goal note right after system messages when activeGoalText is set", async () => {
+    const msgs = manyMessages();
+    const result = await compressMessages(msgs, 1000, async () => "summary", {
+      protectFirst: 3,
+      protectLast: 6,
+      activeGoalText: "ship the EF pebbles",
+    });
+    expect(result[0]?.role).toBe("system");
+    const goalMsg = result[1];
+    expect(goalMsg?.content).toContain("ship the EF pebbles");
+    expect(goalMsg?.content).toContain("Active goal");
+  });
+
+  it("does not inject a goal note when activeGoalText is absent", async () => {
+    const msgs = manyMessages();
+    const result = await compressMessages(msgs, 1000, async () => "summary", {
+      protectFirst: 3,
+      protectLast: 6,
+    });
+    expect(result.every((m) => !m.content.includes("Active goal"))).toBe(true);
+  });
+
   it("falls back to a trimmed result when the summarizer throws", async () => {
     const msgs = manyMessages();
     const summarize = async (): Promise<string> => {
