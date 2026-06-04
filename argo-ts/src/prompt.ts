@@ -3,6 +3,9 @@ import { join } from "node:path";
 import type { Goal } from "./types.js";
 import type { ToolSchema } from "./providers/interface.js";
 
+/** The separator between prompt tiers — stable tiers first, volatile tier last. */
+export const TIER_SEP = "\n\n---\n\n";
+
 const CONTEXT_FILES = ["ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
 
 /** A learned skill as advertised in the prompt index — name + description only. */
@@ -108,5 +111,21 @@ export async function buildSystemPrompt(opts: {
     await contextTier(opts.root),
     volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote),
   ].filter(Boolean);
-  return tiers.join("\n\n---\n\n");
+  return tiers.join(TIER_SEP);
+}
+
+/**
+ * Split a built system prompt at the stable/volatile boundary (the last
+ * TIER_SEP occurrence). The volatile suffix contains goals, time, and
+ * memory — it changes each session. The stable prefix is identical for the
+ * same Argo configuration and can be marked for LLM-provider caching
+ * (e.g. Anthropic ephemeral cache_control).
+ */
+export function splitStableVolatile(prompt: string): { stable: string; volatile: string } {
+  const idx = prompt.lastIndexOf(TIER_SEP);
+  if (idx === -1) return { stable: prompt, volatile: "" };
+  return {
+    stable: prompt.slice(0, idx),
+    volatile: prompt.slice(idx + TIER_SEP.length),
+  };
 }

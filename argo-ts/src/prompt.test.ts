@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSystemPrompt } from "./prompt.js";
+import { buildSystemPrompt, splitStableVolatile, TIER_SEP } from "./prompt.js";
 import type { Goal } from "./types.js";
 
 describe("buildSystemPrompt", () => {
@@ -120,5 +120,42 @@ describe("buildSystemPrompt", () => {
     });
     expect(prompt).not.toContain("Top of mind");
     expect(prompt).not.toContain("pinned by user");
+  });
+});
+
+describe("splitStableVolatile", () => {
+  it("splits on the last TIER_SEP — stable is everything before, volatile is everything after", () => {
+    const { stable, volatile } = splitStableVolatile(`stable part${TIER_SEP}volatile part`);
+    expect(stable).toBe("stable part");
+    expect(volatile).toBe("volatile part");
+  });
+
+  it("returns the full string as stable with empty volatile when no separator is present", () => {
+    const { stable, volatile } = splitStableVolatile("no separator here");
+    expect(stable).toBe("no separator here");
+    expect(volatile).toBe("");
+  });
+
+  it("splits on the LAST separator — all middle tiers stay in stable", () => {
+    const input = `tier1${TIER_SEP}tier2${TIER_SEP}tier3`;
+    const { stable, volatile } = splitStableVolatile(input);
+    expect(stable).toBe(`tier1${TIER_SEP}tier2`);
+    expect(volatile).toBe("tier3");
+  });
+
+  it("buildSystemPrompt volatile tier (after split) contains goals and session time, not stable rules", async () => {
+    const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [{ id: 1, text: "Ship v1", status: "active" }],
+      tools: sampleTools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    const { stable, volatile } = splitStableVolatile(prompt);
+    expect(volatile).toContain("Active goals:");
+    expect(volatile).toContain("Session started:");
+    expect(stable).toContain("read_file"); // tools are in the stable part
+    expect(stable).not.toContain("Session started:");
   });
 });

@@ -5,6 +5,13 @@ import type {
   ToolSchema,
 } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
+import { splitStableVolatile } from "../prompt.js";
+
+type AnthropicTextBlock = {
+  type: "text";
+  text: string;
+  cache_control?: { type: "ephemeral" };
+};
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
 const CONTEXT_WINDOW = 200_000;
@@ -57,16 +64,23 @@ export class AnthropicProvider implements LLMProvider {
     const converted = toAnthropicMessages(messages);
     const amsgs = converted.messages;
     // OAuth mode requires the system prompt to open with the Claude Code line.
-    const system = oauth
-      ? `${CLAUDE_CODE_SPOOF}\n\n${converted.system}`
-      : converted.system;
+    let system: string | AnthropicTextBlock[];
+    if (oauth) {
+      if (Array.isArray(converted.system)) {
+        system = [{ type: "text", text: CLAUDE_CODE_SPOOF }, ...converted.system];
+      } else {
+        system = `${CLAUDE_CODE_SPOOF}\n\n${converted.system}`;
+      }
+    } else {
+      system = converted.system;
+    }
 
     let response;
     try {
       response = await client.messages.create({
         model: this.model,
         max_tokens: config?.maxTokens ?? DEFAULT_MAX_TOKENS,
-        system,
+        system: system as Parameters<typeof client.messages.create>[0]["system"],
         messages: amsgs as Parameters<typeof client.messages.create>[0]["messages"],
         tools: tools.length
           ? (tools.map(toAnthropicTool) as Parameters<
@@ -88,11 +102,12 @@ export class AnthropicProvider implements LLMProvider {
 
 /**
  * Convert Argo messages to Anthropic's shape. System messages are concatenated
- * into a single `system` string; the rest become role-tagged message objects.
+ * and split at the stable/volatile boundary; the stable prefix gets
+ * cache_control so Anthropic's ephemeral cache can reuse it across turns.
  * Pure — no SDK import — so the conversion can be unit-tested.
  */
 export function toAnthropicMessages(messages: Message[]): {
-  system: string;
+  system: string | AnthropicTextBlock[];
   messages: unknown[];
 } {
   const systemParts: string[] = [];
@@ -137,7 +152,23 @@ export function toAnthropicMessages(messages: Message[]): {
     }
   }
 
-  return { system: systemParts.join("\n\n"), messages: out };
+  const rawSystem = systemParts.join("\n\n");
+  return { system: toSystemBlocks(rawSystem), messages: out };
+}
+
+/**
+ * Apply Anthropic ephemeral cache_control to the stable prefix. When the
+ * prompt has a stable/volatile split (all real Argo prompts do), returns a
+ * two-block array so Anthropic caches the stable part across sessions.
+ * Falls back to a plain string for prompts without a tier separator.
+ */
+function toSystemBlocks(system: string): string | AnthropicTextBlock[] {
+  const { stable, volatile } = splitStableVolatile(system);
+  if (!volatile) return system;
+  return [
+    { type: "text", text: stable, cache_control: { type: "ephemeral" } },
+    { type: "text", text: volatile },
+  ];
 }
 
 function toAssistantMessage(content: string, toolCalls?: ToolCall[]): unknown {

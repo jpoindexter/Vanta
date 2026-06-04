@@ -80,4 +80,46 @@ describe("toAnthropicMessages", () => {
       },
     ]);
   });
+
+  it("returns system as plain string when there is no tier separator", () => {
+    const messages: Message[] = [{ role: "system", content: "You are Argo." }];
+    const result = toAnthropicMessages(messages);
+    expect(typeof result.system).toBe("string");
+    expect(result.system).toBe("You are Argo.");
+  });
+
+  it("applies cache_control to the stable prefix when system contains the tier separator", () => {
+    const messages: Message[] = [
+      {
+        role: "system",
+        content: "Stable rules and tools.\n\n---\n\nActive goals:\n- [1] Ship v1\n\nSession started: 2026-06-04T00:00:00Z",
+      },
+    ];
+    const result = toAnthropicMessages(messages);
+    expect(Array.isArray(result.system)).toBe(true);
+    const blocks = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+    expect(blocks).toHaveLength(2);
+    const [stable, volatile] = blocks;
+    if (!stable || !volatile) throw new Error("expected 2 blocks");
+    expect(stable.text).toBe("Stable rules and tools.");
+    expect(stable.cache_control).toEqual({ type: "ephemeral" });
+    expect(volatile.text).toBe("Active goals:\n- [1] Ship v1\n\nSession started: 2026-06-04T00:00:00Z");
+    expect(volatile.cache_control).toBeUndefined();
+  });
+
+  it("splits only on the LAST tier separator so middle tiers remain in stable", () => {
+    const messages: Message[] = [
+      {
+        role: "system",
+        content: "soul\n\n---\n\nbrain\n\n---\n\nActive goals: none\n\nSession started: now",
+      },
+    ];
+    const result = toAnthropicMessages(messages);
+    const blocks = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+    const [stable, volatile] = blocks;
+    if (!stable || !volatile) throw new Error("expected 2 blocks");
+    expect(stable.text).toBe("soul\n\n---\n\nbrain");
+    expect(stable.cache_control).toEqual({ type: "ephemeral" });
+    expect(volatile.text).toBe("Active goals: none\n\nSession started: now");
+  });
 });
