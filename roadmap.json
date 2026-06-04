@@ -1097,7 +1097,7 @@
       "id": "EF-CHOICEREDUCE",
       "track": "Executive Function (inclusive spine)",
       "title": "Backlog choice reduction gate (pattern: initiation paralysis)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Real pattern from sessions: 11-item backlog \u2192 paralysis. Case 4-2 analog: paralyzed when faced with multifaceted problems. The backlog is the multifaceted problem. Counter-measure: when the next queue has > 3 items and the user asks what to do next, present ONLY the top 3 (ranked by: dependencies_met + time_since_last_touched + smallest_size). Do not show the full list. One question: which of these 3? This is occupational therapy Environmental Manipulation (simplify the task environment). Pairs with /next which reduces to a single micro-step. KANBAN WIP limit prevents adding while paralyzed. ND fit F1+F5 (structure reduces the blank-page-of-100-options problem).",
       "done": "When next queue > 3, /next and agenda-style prompts show only the top 3 candidates; the rest are hidden until one ships.",
