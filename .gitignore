@@ -22,3 +22,6 @@ roadmap.html
 
 # OS
 .DS_Store
+
+# External agent source cloned for audit (not vendored)
+reference/
