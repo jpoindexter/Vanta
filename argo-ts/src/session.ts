@@ -13,6 +13,15 @@ import { brainDigest } from "./brain/store.js";
 import { resolveArgoHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
 import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "./repl/nudge.js";
+import {
+  nextGateState,
+  shouldFireGate,
+  buildGateText,
+  extractLastTurnToolNames,
+  DEFAULT_RESEARCH_GATE_TURNS,
+  type ResearchGateState,
+} from "./repl/research-gate.js";
+export type { ResearchGateState } from "./repl/research-gate.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -228,6 +237,36 @@ export async function nudgeAfterTurn(
     if (note) onNote(note);
   } catch {
     // best-effort — never break the session
+  }
+}
+
+/**
+ * After-turn research-spiral gate. Tracks consecutive non-output turns; at
+ * ARGO_RESEARCH_GATE_TURNS (default 8), fires a gentle note asking whether to
+ * switch from exploration to execution. Returns the updated state for the caller
+ * to persist. Best-effort — never throws.
+ */
+export async function researchGateAfterTurn(
+  state: ResearchGateState,
+  messages: Message[],
+  safety: SafetyClient,
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<ResearchGateState> {
+  try {
+    const raw = parseInt(env.ARGO_RESEARCH_GATE_TURNS ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_RESEARCH_GATE_TURNS : raw;
+    if (threshold === 0) return state;
+    const toolNames = extractLastTurnToolNames(messages);
+    const newState = nextGateState(state, toolNames);
+    if (shouldFireGate(newState, threshold)) {
+      const goals = await safety.getGoals().catch(() => []);
+      const activeGoal = goals.find((g) => g.status === "active") ?? null;
+      onNote(buildGateText(newState.consecutiveTurns, activeGoal));
+    }
+    return newState;
+  } catch {
+    return state;
   }
 }
 
