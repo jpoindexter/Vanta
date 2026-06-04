@@ -13,8 +13,10 @@ import {
   writeRunMemory,
   reviewAfterTurn,
   researchGateAfterTurn,
+  inhibitAfterTurn,
   maybeCurate,
   type ResearchGateState,
+  type InhibitState,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
@@ -104,6 +106,7 @@ export async function runChat(
   }
 
   let researchGateState: ResearchGateState = { consecutiveTurns: 0 };
+  let inhibitState: InhibitState = { consecutiveCalls: 0 };
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const convo = createConversation(
@@ -173,6 +176,12 @@ export async function runChat(
     });
     researchGateState = await researchGateAfterTurn(
       researchGateState,
+      convo.messages,
+      setup.safety,
+      (note) => console.log(`\n${note}`),
+    );
+    inhibitState = await inhibitAfterTurn(
+      inhibitState,
       convo.messages,
       setup.safety,
       (note) => console.log(`\n${note}`),

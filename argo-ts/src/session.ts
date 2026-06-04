@@ -22,6 +22,14 @@ import {
   type ResearchGateState,
 } from "./repl/research-gate.js";
 export type { ResearchGateState } from "./repl/research-gate.js";
+import {
+  nextInhibitState,
+  shouldAlertInhibit,
+  buildInhibitText,
+  DEFAULT_INHIBIT_THRESHOLD,
+  type InhibitState,
+} from "./repl/inhibit.js";
+export type { InhibitState } from "./repl/inhibit.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -263,6 +271,30 @@ export async function researchGateAfterTurn(
       const goals = await safety.getGoals().catch(() => []);
       const activeGoal = goals.find((g) => g.status === "active") ?? null;
       onNote(buildGateText(newState.consecutiveTurns, activeGoal));
+    }
+    return newState;
+  } catch {
+    return state;
+  }
+}
+
+export async function inhibitAfterTurn(
+  state: InhibitState,
+  messages: Message[],
+  safety: SafetyClient,
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<InhibitState> {
+  try {
+    const raw = parseInt(env.ARGO_INHIBIT_THRESHOLD ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_INHIBIT_THRESHOLD : raw;
+    if (threshold === 0) return state;
+    const toolNames = extractLastTurnToolNames(messages);
+    const newState = nextInhibitState(state, toolNames);
+    if (shouldAlertInhibit(newState, threshold)) {
+      const goals = await safety.getGoals().catch(() => []);
+      const activeGoal = goals.find((g) => g.status === "active") ?? null;
+      onNote(buildInhibitText(newState.consecutiveCalls, activeGoal));
     }
     return newState;
   } catch {
