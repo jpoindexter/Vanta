@@ -64,6 +64,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
       maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
+      onThinking: (text) => dispatch({ t: "thinking", text }),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
       onToolResult: (name, ok, output, diff) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), diff }),

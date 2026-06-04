@@ -18,6 +18,8 @@ export type CompletionResult = {
   finishReason: string;
   /** Real token counts when the provider reports them (else estimates are used). */
   usage?: Usage;
+  /** Extended thinking / reasoning text, when the provider returns it. */
+  thinking?: string;
 };
 
 /** Real token counts from the provider's response, when it reports them. */

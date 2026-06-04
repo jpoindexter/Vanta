@@ -129,6 +129,7 @@ export async function runChat(
       summarize: buildSummarizer(setup.provider),
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       ...consoleCallbacks(),
+      onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
     },
     { history: resumed?.messages },
   );

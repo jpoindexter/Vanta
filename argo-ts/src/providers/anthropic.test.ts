@@ -1,6 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { toAnthropicMessages } from "./anthropic.js";
+import { toAnthropicMessages, parseResponse } from "./anthropic.js";
 import type { Message } from "../types.js";
+
+describe("parseResponse", () => {
+  it("extracts text blocks", () => {
+    const r = parseResponse([{ type: "text", text: "hello" }], "end_turn");
+    expect(r.text).toBe("hello");
+    expect(r.thinking).toBeUndefined();
+  });
+
+  it("extracts thinking blocks into result.thinking", () => {
+    const r = parseResponse(
+      [{ type: "thinking", thinking: "Let me analyze..." }, { type: "text", text: "Done." }],
+      "end_turn",
+    );
+    expect(r.thinking).toBe("Let me analyze...");
+    expect(r.text).toBe("Done.");
+  });
+
+  it("joins multiple thinking blocks with newline", () => {
+    const r = parseResponse(
+      [{ type: "thinking", thinking: "Part 1" }, { type: "thinking", thinking: "Part 2" }],
+      "end_turn",
+    );
+    expect(r.thinking).toBe("Part 1\nPart 2");
+  });
+
+  it("omits thinking when no thinking blocks present", () => {
+    const r = parseResponse([{ type: "text", text: "hi" }], "end_turn");
+    expect(r.thinking).toBeUndefined();
+  });
+});
 
 describe("toAnthropicMessages", () => {
   it("extracts system, builds tool_use and tool_result blocks for a full sequence", () => {
