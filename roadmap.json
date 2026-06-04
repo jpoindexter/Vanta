@@ -7,8 +7,8 @@
       "title": "Ink TUI + streaming",
       "status": "shipped",
       "size": "M",
-      "summary": "React/Ink 7 app \u2014 streaming transcript, tool activity, spinner, inline approvals, slash commands.",
-      "done": "open argo \u2192 full TUI with streaming tokens."
+      "summary": "React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.",
+      "done": "open argo → full TUI with streaming tokens."
     },
     {
       "id": "REPL",
@@ -26,7 +26,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "/model picker persists the choice to .env by default (^g = session-only). Selected model survives relaunch instead of reverting to the ollama/qwen seed.",
-      "done": "Pick a model in the TUI \u2192 it's still the model next launch."
+      "done": "Pick a model in the TUI → it's still the model next launch."
     },
     {
       "id": "U2",
@@ -34,8 +34,8 @@
       "title": "@-context references",
       "status": "next",
       "size": "M",
-      "summary": "Composer @-autocomplete for files \u2014 extended (per the audit) to @file/@diff/@url context references (Hermes + Claude Code both have this). A cheap externalize-context affordance: less typing/recall to hand Argo context. ND fit F2+F4. Promoted from horizon by the audit.",
-      "done": "Type @ in the TUI \u2192 autocomplete files/diff/url and inline them as context.",
+      "summary": "Composer @-autocomplete for files — extended (per the audit) to @file/@diff/@url context references (Hermes + Claude Code both have this). A cheap externalize-context affordance: less typing/recall to hand Argo context. ND fit F2+F4. Promoted from horizon by the audit.",
+      "done": "Type @ in the TUI → autocomplete files/diff/url and inline them as context.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
@@ -46,8 +46,8 @@
       "title": "Calmer TUI (less firehose)",
       "status": "shipped",
       "size": "M",
-      "summary": "tui/tool-display.ts (pure, 14 tests): toolDisplay(name,args)\u2192{icon,verb,detail} computed at dispatch time \u2014 clean verbs + a per-tool verb map (read/wrote/ran/searched/saw screen/git\u00b7sub/\u2026), abbrevPath (temp dirs incl NSIRD \u2192 basename, $HOME\u2192~, deep\u2192\u2026/last/two), never raw JSON. Detail comes from ARGS not raw output (kills the temp-path leak; output\u2192model only). On error a red firstLine tail stays visible. partitionBlocks groups consecutive tool rows into one indented cluster. transcript.tsx renders the parts purely; app.tsx reducer carries icon/verb/detail + errorLine. Design note: docs/tui-smooth-design.md. DEFERRED (needs Jason's interactive design): collapse/expand folding + the 'does it feel calm' judgment \u2014 Hashmark turned out to be a web app, not a transferable TUI reference.",
-      "done": "A multi-tool turn reads as a calm grouped feed \u2014 no raw temp paths, no JSON dumps, indented clusters. Interactive collapse/expand flagged for brainstorming."
+      "summary": "tui/tool-display.ts (pure, 14 tests): toolDisplay(name,args)→{icon,verb,detail} computed at dispatch time — clean verbs + a per-tool verb map (read/wrote/ran/searched/saw screen/git·sub/…), abbrevPath (temp dirs incl NSIRD → basename, $HOME→~, deep→…/last/two), never raw JSON. Detail comes from ARGS not raw output (kills the temp-path leak; output→model only). On error a red firstLine tail stays visible. partitionBlocks groups consecutive tool rows into one indented cluster. transcript.tsx renders the parts purely; app.tsx reducer carries icon/verb/detail + errorLine. Design note: docs/tui-smooth-design.md. DEFERRED (needs Jason's interactive design): collapse/expand folding + the 'does it feel calm' judgment — Hashmark turned out to be a web app, not a transferable TUI reference.",
+      "done": "A multi-tool turn reads as a calm grouped feed — no raw temp paths, no JSON dumps, indented clusters. Interactive collapse/expand flagged for brainstorming."
     },
     {
       "id": "A1",
@@ -82,7 +82,7 @@
       "title": "First-run detection",
       "status": "shipped",
       "size": "S",
-      "summary": "No backend on launch \u2192 auto-run argo setup.",
+      "summary": "No backend on launch → auto-run argo setup.",
       "done": "Clean install self-configures."
     },
     {
@@ -145,16 +145,16 @@
       "title": "Dark factory (self-improving codebase)",
       "status": "shipped",
       "size": "L",
-      "summary": "factory/ module: triage\u2192plan\u2192execute\u2192verify\u2192commit. argo improve + argo factory approve.",
+      "summary": "factory/ module: triage→plan→execute→verify→commit. argo improve + argo factory approve.",
       "done": "Live end-to-end: verifier correctly rejected bad model output."
     },
     {
       "id": "O10",
       "track": "Self-improvement",
-      "title": "Autonomy ladder (L1\u2013L4, kernel-bounded)",
+      "title": "Autonomy ladder (L1–L4, kernel-bounded)",
       "status": "shipped",
       "size": "M",
-      "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) \u00b7 L2 implement (branch+execute+verify, stop for review) \u00b7 L3 commit (no push) \u00b7 L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=ARGO_AUTONOMY_LEVEL (default 4). Split commitAndPush\u2192commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
+      "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=ARGO_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
       "done": "argo factory approve with ARGO_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
     },
     {
@@ -163,8 +163,8 @@
       "title": "Autonomy L5 (auto-merge low-risk)",
       "status": "shipped",
       "size": "M",
-      "summary": "factory/merge.ts: assessMergeRisk fails-closed through 3 gates \u2014 armed (ARGO_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, \u226420 files & \u2264400 diff lines). MAX_AUTONOMY_LEVEL 4\u21925. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target \u2192 stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).",
-      "done": "A low-risk verified slice auto-merges when armed; anything failing the classifier stops at L4 push. Default OFF (riskiest rung \u2014 opt-in)."
+      "summary": "factory/merge.ts: assessMergeRisk fails-closed through 3 gates — armed (ARGO_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, ≤20 files & ≤400 diff lines). MAX_AUTONOMY_LEVEL 4→5. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target → stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).",
+      "done": "A low-risk verified slice auto-merges when armed; anything failing the classifier stops at L4 push. Default OFF (riskiest rung — opt-in)."
     },
     {
       "id": "O11",
@@ -172,7 +172,7 @@
       "title": "Compartmentalized self-repair (body model)",
       "status": "shipped",
       "size": "M",
-      "summary": "factory/compartments.ts: classifyCompartment(file)\u2192tier (skeleton/brainstem/limbs/reflexes/memory), compartmentMaxAutonomy(tier)\u2192max L (skeleton 0 \u00b7 brainstem 2 \u00b7 limbs/reflexes/memory 5), autonomyCapForFiles(files)\u2192most-restrictive cap. run.ts clamps the requested autonomy level to the cap of the files a slice ACTUALLY touched (mixed slice \u2192 minimum). A brainstem fix can't auto-commit even at L4; only limbs/reflexes/memory reach the full ladder. is_protected_path stays the hard boundary; this is the soft policy it can't express.",
+      "summary": "factory/compartments.ts: classifyCompartment(file)→tier (skeleton/brainstem/limbs/reflexes/memory), compartmentMaxAutonomy(tier)→max L (skeleton 0 · brainstem 2 · limbs/reflexes/memory 5), autonomyCapForFiles(files)→most-restrictive cap. run.ts clamps the requested autonomy level to the cap of the files a slice ACTUALLY touched (mixed slice → minimum). A brainstem fix can't auto-commit even at L4; only limbs/reflexes/memory reach the full ladder. is_protected_path stays the hard boundary; this is the soft policy it can't express.",
       "done": "A tier map exists + the factory refuses to exceed a compartment's max autonomy: limb fixes flow autonomously, brainstem/skeleton don't. 12 compartments.test.ts."
     },
     {
@@ -182,7 +182,7 @@
       "status": "horizon",
       "size": "L",
       "summary": "Let Argo design its own brain substrate (its own format/code).",
-      "done": "Open research \u2014 no fixed done line.",
+      "done": "Open research — no fixed done line.",
       "tier": "rock",
       "model": "opus",
       "effort": "high"
@@ -260,7 +260,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "write_file now writes outside the repo into bounded, approval-gated writable zones (default ~/Desktop+~/Downloads, ARGO_WRITABLE_DIRS override) instead of hard-refusing. TS-only: the kernel already returned Ask for out-of-root paths; the tool was stricter than the boundary. ~-expansion + prefix-collision-safe zone check. Out-of-zone still refused (backstop vs yes-fatigue).",
-      "done": "Live-verified: write_file wrote directly to ~/Desktop in one step \u2014 no repo pollution, no shell copy."
+      "done": "Live-verified: write_file wrote directly to ~/Desktop in one step — no repo pollution, no shell copy."
     },
     {
       "id": "SCOPE-2",
@@ -268,7 +268,7 @@
       "title": "Readable zones (read across the workspace)",
       "status": "shipped",
       "size": "S",
-      "summary": "read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones \u2014 default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; ARGO_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.",
+      "summary": "read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones — default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; ARGO_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.",
       "done": "Live-verified: read theft-kit/design-html/SKILL.md (64KB); ~/.ssh/id_rsa still refused."
     },
     {
@@ -286,7 +286,7 @@
       "title": "Swarms",
       "status": "shipped",
       "size": "S",
-      "summary": "tools/swarm.ts \u2014 parallel multi-agent fan-out + synthesize.",
+      "summary": "tools/swarm.ts — parallel multi-agent fan-out + synthesize.",
       "done": "Swarm dispatches and returns."
     },
     {
@@ -295,7 +295,7 @@
       "title": "Eyes (look_at_screen)",
       "status": "shipped",
       "size": "S",
-      "summary": "screencapture -x \u2192 vision model.",
+      "summary": "screencapture -x → vision model.",
       "done": "Needs Screen Recording permission."
     },
     {
@@ -304,7 +304,7 @@
       "title": "Camera (look_at_camera)",
       "status": "shipped",
       "size": "S",
-      "summary": "Webcam frame \u2192 vision model.",
+      "summary": "Webcam frame → vision model.",
       "done": "Shipped."
     },
     {
@@ -313,7 +313,7 @@
       "title": "Video (watch_video)",
       "status": "shipped",
       "size": "S",
-      "summary": "ffmpeg frame extraction \u2192 vision model.",
+      "summary": "ffmpeg frame extraction → vision model.",
       "done": "Shipped."
     },
     {
@@ -361,7 +361,7 @@
       "title": "Interactive product roadmap",
       "status": "shipped",
       "size": "S",
-      "summary": "roadmap.json (agent-ready) \u2192 roadmap.html (Now/Next/Later view). argo roadmap command.",
+      "summary": "roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.",
       "done": "argo roadmap opens the view; Argo reads roadmap.json natively."
     },
     {
@@ -379,12 +379,12 @@
       "title": "One-line curl install",
       "status": "shipped",
       "size": "S",
-      "summary": "bootstrap.sh clones Argo into ~/argo (ARGO_DIR override, default branch \u2014 no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
+      "summary": "bootstrap.sh clones Argo into ~/argo (ARGO_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
       "done": "Clone+install logic verified via local clone smoke; curl-pipe one-liner activates when the repo flips public."
     },
     {
       "id": "MCP-1",
-      "track": "MCP: use \u00b7 make \u00b7 serve",
+      "track": "MCP: use · make · serve",
       "title": "Use any MCP (consume)",
       "status": "shipped",
       "size": "S",
@@ -393,7 +393,7 @@
     },
     {
       "id": "MCP-2",
-      "track": "MCP: use \u00b7 make \u00b7 serve",
+      "track": "MCP: use · make · serve",
       "title": "Make + hook in at runtime",
       "status": "shipped",
       "size": "M",
@@ -402,12 +402,12 @@
     },
     {
       "id": "MCP-3",
-      "track": "MCP: use \u00b7 make \u00b7 serve",
+      "track": "MCP: use · make · serve",
       "title": "Be a server (serve)",
       "status": "shipped",
       "size": "L",
-      "summary": "argo mcp serve \u2014 exposes Argo tools over MCP stdio, kernel-gated + read-only allowlist. console.log\u2192stderr keeps the protocol stream clean.",
-      "done": "Live-verified: real McpClient drove argo mcp serve subprocess \u2014 handshake, tools/list, allow\u2192execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."
+      "summary": "argo mcp serve — exposes Argo tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.",
+      "done": "Live-verified: real McpClient drove argo mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."
     },
     {
       "id": "E-eff2",
@@ -427,8 +427,8 @@
       "title": "Task-initiation affordance",
       "status": "next",
       "size": "M",
-      "summary": "From the 4-way audit (see audit.html): the executive-function activation wall is the #1 ND need and NO surveyed agent (Hermes/Goose/Claude Code) targets it directly \u2014 Argo's true differentiator, not a copy. A 'start the next tiny step' affordance: given a goal, surface ONE concrete smallest next action and let the user begin with a single keystroke. ND fit F1 (initiation) + F5 (structure).",
-      "done": "From a stated goal, Argo proposes one tiny next step and the user can start it in one action \u2014 measured: time-from-open-to-first-action drops.",
+      "summary": "From the 4-way audit (see audit.html): the executive-function activation wall is the #1 ND need and NO surveyed agent (Hermes/Goose/Claude Code) targets it directly — Argo's true differentiator, not a copy. A 'start the next tiny step' affordance: given a goal, surface ONE concrete smallest next action and let the user begin with a single keystroke. ND fit F1 (initiation) + F5 (structure).",
+      "done": "From a stated goal, Argo proposes one tiny next step and the user can start it in one action — measured: time-from-open-to-first-action drops.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
@@ -451,7 +451,7 @@
       "title": "Plan-first / converse mode",
       "status": "next",
       "size": "M",
-      "summary": "Two agents converged here (Hermes 'converse mode' + Goose '/plan'). An opt-in mode where Argo clarifies \u2192 lays out the steps \u2192 confirms \u2192 then acts, instead of acting immediately. Breaks blank-page paralysis and gives a calm act-gate. Extends Argo's autonomy ladder L1 into an interactive front door. ND fit F1+F4+F6.",
+      "summary": "Two agents converged here (Hermes 'converse mode' + Goose '/plan'). An opt-in mode where Argo clarifies → lays out the steps → confirms → then acts, instead of acting immediately. Breaks blank-page paralysis and gives a calm act-gate. Extends Argo's autonomy ladder L1 into an interactive front door. ND fit F1+F4+F6.",
       "done": "A /plan (or converse) mode produces a confirmed step list before any tool runs; toggleable; integrates with the autonomy ladder.",
       "tier": "pebble",
       "model": "sonnet",
@@ -463,7 +463,7 @@
       "title": "Top-of-mind reminder (MOIM)",
       "status": "shipped",
       "size": "S",
-      "summary": "Ported from Goose 'tom'/MOIM. A short pinned 'what am I doing / don't forget X' note the user sets, injected into every turn's prompt as a volatile tier. Pure working-memory offload \u2014 smallest, highest-fit ND feature. ND fit F2+F5.",
+      "summary": "Ported from Goose 'tom'/MOIM. A short pinned 'what am I doing / don't forget X' note the user sets, injected into every turn's prompt as a volatile tier. Pure working-memory offload — smallest, highest-fit ND feature. ND fit F2+F5.",
       "done": "User pins a top-of-mind note; it appears in the prompt every turn until cleared; survives across a session.",
       "tier": "rock",
       "model": "haiku",
@@ -476,7 +476,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "From the Claude Code survey (claude-code-haha modelSupportOverrides) + Goose issue #9529. A small declarative map of which optional params (thinking/reasoning_effort/etc.) a model accepts, so free-typed OpenRouter/Ollama model IDs don't get sent params they 400/500 on. Lives alongside providers/catalog.ts. ND fit F6 (reliability removes vigilance burden).",
-      "done": "Free-typing an OpenRouter/Ollama model that lacks thinking/effort no longer errors \u2014 Argo omits unsupported params per a capability lookup.",
+      "done": "Free-typing an OpenRouter/Ollama model that lacks thinking/effort no longer errors — Argo omits unsupported params per a capability lookup.",
       "tier": "pebble",
       "model": "haiku",
       "effort": "medium"
@@ -487,7 +487,7 @@
       "title": "Proactive nudge cadence",
       "status": "horizon",
       "size": "M",
-      "summary": "Hermes users hacked ADHD morning/evening standups + unprompted reminders on top of cron; make it native and GENTLE (respect F3 \u2014 a nudge, never a nag). Optional scheduled gentle check-ins tied to goals ('still on X? want the next step?'). ND fit F1+F5.",
+      "summary": "Hermes users hacked ADHD morning/evening standups + unprompted reminders on top of cron; make it native and GENTLE (respect F3 — a nudge, never a nag). Optional scheduled gentle check-ins tied to goals ('still on X? want the next step?'). ND fit F1+F5.",
       "done": "User opts into a gentle cadence; Argo sends a calm goal-aware check-in on schedule via the gateway; easy to snooze/stop.",
       "tier": "pebble",
       "model": "sonnet",
@@ -499,8 +499,8 @@
       "title": "Voice conversational loop",
       "status": "horizon",
       "size": "M",
-      "summary": "Hermes voice_mode + an explicit accessibility demand in its user-stories ('can't type well, voice is huge'; a blind user built an NVDA addon). Argo already has speak/transcribe tools; the gap is a live mic-in \u2192 spoken-reply loop. ND fit F1 (initiation, lower input friction) + F3 (calm). Broad ND / motor accessibility.",
-      "done": "A voice mode runs a live transcribe\u2192agent\u2192speak loop in the terminal; degrades gracefully without mic/STT.",
+      "summary": "Hermes voice_mode + an explicit accessibility demand in its user-stories ('can't type well, voice is huge'; a blind user built an NVDA addon). Argo already has speak/transcribe tools; the gap is a live mic-in → spoken-reply loop. ND fit F1 (initiation, lower input friction) + F3 (calm). Broad ND / motor accessibility.",
+      "done": "A voice mode runs a live transcribe→agent→speak loop in the terminal; degrades gracefully without mic/STT.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
@@ -511,7 +511,7 @@
       "title": "Checkpoints + /rollback",
       "status": "horizon",
       "size": "M",
-      "summary": "Ported concept from Hermes checkpoint_manager.py. Shadow-git auto-snapshot before destructive ops + a /rollback to restore. Argo's kernel BLOCKS risky ops but doesn't snapshot/restore \u2014 an undo safety net lowers anxiety around letting the agent act. ND fit F6 (trust). Opt-in, dedup store.",
+      "summary": "Ported concept from Hermes checkpoint_manager.py. Shadow-git auto-snapshot before destructive ops + a /rollback to restore. Argo's kernel BLOCKS risky ops but doesn't snapshot/restore — an undo safety net lowers anxiety around letting the agent act. ND fit F6 (trust). Opt-in, dedup store.",
       "done": "Argo snapshots before a destructive op; /rollback restores the prior state; never touches kernel-protected paths.",
       "tier": "pebble",
       "model": "sonnet",
@@ -535,7 +535,7 @@
       "title": "Recovery / degraded CLI",
       "status": "horizon",
       "size": "S",
-      "summary": "From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability \u2014 always reachable).",
+      "summary": "From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability — always reachable).",
       "done": "ARGO_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start.",
       "tier": "sand",
       "model": "haiku",
@@ -547,7 +547,7 @@
       "title": "Live roadmap kanban (you + Argo control) + WIP limit",
       "status": "shipped",
       "size": "M",
-      "summary": "The roadmap IS already a kanban (status enum = columns; render.ts renders Now/Next/Later). Make it bi-directionally LIVE, source of truth stays roadmap.json (agent-ready, git-versioned). (1) Argo control: roadmap_move tool + `argo roadmap move <id> <status>` (kernel-gated write\u2192regenerate); the dark factory moves cards next\u2192building on start, building\u2192shipped on verified-commit. (2) Human control: roadmap.html drag-to-move POSTs to a tiny local endpoint (argo roadmap serve / kernel /api/roadmap/move) that rewrites roadmap.json. (3) THE EF FEATURE \u2014 a hard WIP limit on Now(building)=1-2: moving a 3rd card in refuses and asks you to finish or park one. WIP limit = the anti-bounce/finish-what-you-start prosthesis (targets the documented ideas-rich/finish-poor pattern + this session\u2019s live 8-goal bounce). Ship #1 first (smallest slice). Research: docs/kanban-roadmap-research.md. ND fit F2+F4+F5+F6.",
+      "summary": "The roadmap IS already a kanban (status enum = columns; render.ts renders Now/Next/Later). Make it bi-directionally LIVE, source of truth stays roadmap.json (agent-ready, git-versioned). (1) Argo control: roadmap_move tool + `argo roadmap move <id> <status>` (kernel-gated write→regenerate); the dark factory moves cards next→building on start, building→shipped on verified-commit. (2) Human control: roadmap.html drag-to-move POSTs to a tiny local endpoint (argo roadmap serve / kernel /api/roadmap/move) that rewrites roadmap.json. (3) THE EF FEATURE — a hard WIP limit on Now(building)=1-2: moving a 3rd card in refuses and asks you to finish or park one. WIP limit = the anti-bounce/finish-what-you-start prosthesis (targets the documented ideas-rich/finish-poor pattern + this session’s live 8-goal bounce). Ship #1 first (smallest slice). Research: docs/kanban-roadmap-research.md. ND fit F2+F4+F5+F6.",
       "done": "Both you and Argo move cards on one live board (roadmap.json source); Now is WIP-limited and refuses a 3rd card until one is finished or parked.",
       "tier": "rock",
       "model": "sonnet",
@@ -559,7 +559,7 @@
       "title": "Dynamic workflows (agent writes its own orchestration harness)",
       "status": "horizon",
       "size": "L",
-      "summary": "From Anthropic\u2019s Claude Code team (Thariq Shihipar & Sid Bidasaria, \u201cA harness for every task\u201d, /Desktop PDF). Let Argo write its own JS orchestration harness on the fly to spawn+coordinate sub-agents, extending the existing delegate+swarm. Canonical patterns: classify-and-act, fan-out-and-synthesize, adversarial-verification, generate-and-filter, tournament, loop-until-done. Combats the long-context failure modes the article names \u2014 agentic laziness (stops at 20/50 items), self-preferential bias (prefers own results when judging), goal drift (loses the objective after compaction) \u2014 by giving each sub-agent its own clean context + isolated goal. Token budgets (\u201cuse 10k tokens\u201d), worktree isolation, model/intelligence routing per subtask, save/reuse workflows. VISION TIE-IN: this is executive function FOR THE AGENT \u2014 making Argo itself finish and stay on-objective \u2014 the mirror of the human-EF moat. Pairs with Argo\u2019s /goal + a /loop equivalent.",
+      "summary": "From Anthropic’s Claude Code team (Thariq Shihipar & Sid Bidasaria, “A harness for every task”, /Desktop PDF). Let Argo write its own JS orchestration harness on the fly to spawn+coordinate sub-agents, extending the existing delegate+swarm. Canonical patterns: classify-and-act, fan-out-and-synthesize, adversarial-verification, generate-and-filter, tournament, loop-until-done. Combats the long-context failure modes the article names — agentic laziness (stops at 20/50 items), self-preferential bias (prefers own results when judging), goal drift (loses the objective after compaction) — by giving each sub-agent its own clean context + isolated goal. Token budgets (“use 10k tokens”), worktree isolation, model/intelligence routing per subtask, save/reuse workflows. VISION TIE-IN: this is executive function FOR THE AGENT — making Argo itself finish and stay on-objective — the mirror of the human-EF moat. Pairs with Argo’s /goal + a /loop equivalent.",
       "done": "Argo can compose+run a multi-agent workflow (fan-out/synthesize, adversarial-verify, tournament, loop-until-done) with a token budget; a long/parallel task that single-context drifts on completes without agentic laziness or goal drift.",
       "tier": "rock",
       "model": "opus",
@@ -568,10 +568,10 @@
     {
       "id": "SR",
       "track": "Self-improvement",
-      "title": "Safe kernel self-repair (propose\u2192prove\u2192swap)",
+      "title": "Safe kernel self-repair (propose→prove→swap)",
       "status": "horizon",
       "size": "L",
-      "summary": "Design: docs/self-repair-architecture.md. Limbs already self-heal (O11+factory); this closes the skeleton/kernel tier WITHOUT letting the running boundary edit itself in place. (1) propose-only candidate kernel binary, never overwrite live; (2) differential safety-invariant conformance \u2014 the OLD kernel judges the NEW, reject if more permissive on any Rule-Zero case; (3) blue-green shadow swap + auto-rollback to last-good (never breaks the system); (4) human promotion for any safety-contract diff, classifier FAILS CLOSED; (5) immutable trust root = the promotion authority + invariant spec (machine-checkable twin of MANIFESTO Rule Zero) \u2014 the one thing Argo cannot self-modify. ND fit F6 (an agent that maintains itself removes the vigilance burden). HORIZON \u2014 kernel blast radius; kernel stays hard-blocked until built.",
+      "summary": "Design: docs/self-repair-architecture.md. Limbs already self-heal (O11+factory); this closes the skeleton/kernel tier WITHOUT letting the running boundary edit itself in place. (1) propose-only candidate kernel binary, never overwrite live; (2) differential safety-invariant conformance — the OLD kernel judges the NEW, reject if more permissive on any Rule-Zero case; (3) blue-green shadow swap + auto-rollback to last-good (never breaks the system); (4) human promotion for any safety-contract diff, classifier FAILS CLOSED; (5) immutable trust root = the promotion authority + invariant spec (machine-checkable twin of MANIFESTO Rule Zero) — the one thing Argo cannot self-modify. ND fit F6 (an agent that maintains itself removes the vigilance burden). HORIZON — kernel blast radius; kernel stays hard-blocked until built.",
       "done": "A non-weakening kernel change promotes via conformance + blue-green with auto-rollback; any safety-contract change requires human promotion; the live boundary is never edited in place.",
       "tier": "rock",
       "model": "opus",
@@ -583,7 +583,7 @@
       "title": "Born-small codegen (registry-by-default + 300 gate)",
       "status": "shipped",
       "size": "M",
-      "summary": "Make the dark factory GENERATE small, independently-repairable units by default (the broken-leg property without later refactoring). Doc: docs/factory-evolution.md. 3 human-authored slices on factory/*.ts (skeleton): (1) verifier HARD GATE \u2014 pure checkNewFilesUnderLineLimit on NEW source files only (<=300; new-files-only is universally safe vs false-positiving bug fixes to pre-existing large files) + argo-ts/CONVENTIONS.md (3-tier taxonomy: HARD GATE/GUIDANCE/CONVENTION DOC + the Tools-registry template); (2) planner gene-transfusion \u2014 prepend a PROVEN-PATTERNS block (spec wins on conflict) to buildInstruction for roadmap+parked only; (3) executor wiring \u2014 inject per-dir CLAUDE.md from plan.touchedDirs (closes the loop: factory requires those docs but never reads them back). Canonical template = tools/index.ts ALL_TOOLS + buildRegistry; mirrored by repl/handlers HANDLERS.",
+      "summary": "Make the dark factory GENERATE small, independently-repairable units by default (the broken-leg property without later refactoring). Doc: docs/factory-evolution.md. 3 human-authored slices on factory/*.ts (skeleton): (1) verifier HARD GATE — pure checkNewFilesUnderLineLimit on NEW source files only (<=300; new-files-only is universally safe vs false-positiving bug fixes to pre-existing large files) + argo-ts/CONVENTIONS.md (3-tier taxonomy: HARD GATE/GUIDANCE/CONVENTION DOC + the Tools-registry template); (2) planner gene-transfusion — prepend a PROVEN-PATTERNS block (spec wins on conflict) to buildInstruction for roadmap+parked only; (3) executor wiring — inject per-dir CLAUDE.md from plan.touchedDirs (closes the loop: factory requires those docs but never reads them back). Canonical template = tools/index.ts ALL_TOOLS + buildRegistry; mirrored by repl/handlers HANDLERS.",
       "done": "Factory refuses to birth a >300-line unit, instructs new-feature work to land as a registry unit (new file + one entry, no switch edit), and feeds each dir's own CLAUDE.md back to the agent.",
       "tier": "pebble",
       "model": "sonnet",
@@ -595,7 +595,7 @@
       "title": "Holdout author-separation validation",
       "status": "horizon",
       "size": "L",
-      "summary": "From OctopusGarden + StrongDM + Willison (triple-confirmed). The codegen agent must NOT author its own acceptance check \u2014 today the same cycle writes code + test, so it can write a weak test (self-preferential-bias / reward-hacking). Hold a scenario/acceptance set the executor never sees; a separate implementation-blind agent (or pre-existing scenario) judges it. This is Argo's SECOND validation layer (the kernel is the first) \u2014 NOT a kernel replacement. Adapt the idea, not the Digital-Twin-Universe machinery (irrelevant to self-improvement).",
+      "summary": "From OctopusGarden + StrongDM + Willison (triple-confirmed). The codegen agent must NOT author its own acceptance check — today the same cycle writes code + test, so it can write a weak test (self-preferential-bias / reward-hacking). Hold a scenario/acceptance set the executor never sees; a separate implementation-blind agent (or pre-existing scenario) judges it. This is Argo's SECOND validation layer (the kernel is the first) — NOT a kernel replacement. Adapt the idea, not the Digital-Twin-Universe machinery (irrelevant to self-improvement).",
       "done": "A factory slice is accepted only against criteria the implementing agent never saw; a slice that games its own test is caught.",
       "tier": "pebble",
       "model": "opus",
@@ -607,7 +607,7 @@
       "title": "Intent-satisfaction LLM-judge gate",
       "status": "horizon",
       "size": "M",
-      "summary": "The biggest concrete gap found in the audit: the verifier proves code is CORRECT (tests pass, tsc clean) but never that it DID WHAT THE ITEM ASKED \u2014 a slice can pass every test and not fulfill the work item. Add an LLM-as-judge gate scoring intent-satisfaction against the work item; keep BOOLEAN for the deterministic checks (boolean is correct for did-the-build-break \u2014 do NOT fuzz those), judged only for subjective intent.",
+      "summary": "The biggest concrete gap found in the audit: the verifier proves code is CORRECT (tests pass, tsc clean) but never that it DID WHAT THE ITEM ASKED — a slice can pass every test and not fulfill the work item. Add an LLM-as-judge gate scoring intent-satisfaction against the work item; keep BOOLEAN for the deterministic checks (boolean is correct for did-the-build-break — do NOT fuzz those), judged only for subjective intent.",
       "done": "A slice that passes tests but doesn't address the work item's intent is rejected by the intent judge; deterministic gates stay boolean.",
       "tier": "pebble",
       "model": "sonnet",
@@ -619,7 +619,7 @@
       "title": "Ambiguity-gated preflight (unifies with ND clarify)",
       "status": "horizon",
       "size": "M",
-      "summary": "From Ouroboros (Ambiguity = 1 - sum(clarity*weight), gate before codegen) \u2014 take the lightweight GATE, not the 9-minds/Double-Diamond ceremony. Before running a cycle, assess whether the work item is clear enough; if not, clarify or skip rather than burn tokens + drift. One mechanism serving BOTH the factory preflight AND the ND ND2 clarify / ND3 plan-first items.",
+      "summary": "From Ouroboros (Ambiguity = 1 - sum(clarity*weight), gate before codegen) — take the lightweight GATE, not the 9-minds/Double-Diamond ceremony. Before running a cycle, assess whether the work item is clear enough; if not, clarify or skip rather than burn tokens + drift. One mechanism serving BOTH the factory preflight AND the ND ND2 clarify / ND3 plan-first items.",
       "done": "The factory refuses to execute a too-vague item and routes it to clarify; clear items proceed. Shared with the ND clarify/plan-first surface.",
       "tier": "pebble",
       "model": "sonnet",
@@ -655,7 +655,7 @@
       "title": "Work-item closure loop",
       "status": "horizon",
       "size": "S",
-      "summary": "When the factory ships a work item it should CLOSE it \u2014 tick the ROADMAP/PARKED checkbox or move the KANBAN card to shipped \u2014 not just commit code. Closes the triage->done loop so the backlog reflects reality automatically. Ties directly to the KANBAN item (Argo moving cards as it works).",
+      "summary": "When the factory ships a work item it should CLOSE it — tick the ROADMAP/PARKED checkbox or move the KANBAN card to shipped — not just commit code. Closes the triage->done loop so the backlog reflects reality automatically. Ties directly to the KANBAN item (Argo moving cards as it works).",
       "done": "A shipped factory slice automatically closes/moves its source work item; the board reflects what was actually shipped without manual edits.",
       "tier": "sand",
       "model": "sonnet",
@@ -667,7 +667,7 @@
       "title": "Composer basics: input history + multiline",
       "status": "building",
       "size": "M",
-      "summary": "Argo's composer is single-line and explicitly ignores up/down (composer.tsx line 75). All four references have these table-stakes: (1) input HISTORY \u2014 up/down recalls prior messages (Gemini, Claude Code); (2) MULTILINE input \u2014 shift+enter / backslash / paste a block (all); (3) graceful large-paste (paste a big block \u2192 collapse to a reference rather than flooding the line). The #1 'missing normal stuff'. ND fit F1 (lower input friction).",
+      "summary": "Argo's composer is single-line and explicitly ignores up/down (composer.tsx line 75). All four references have these table-stakes: (1) input HISTORY — up/down recalls prior messages (Gemini, Claude Code); (2) MULTILINE input — shift+enter / backslash / paste a block (all); (3) graceful large-paste (paste a big block → collapse to a reference rather than flooding the line). The #1 'missing normal stuff'. ND fit F1 (lower input friction).",
       "done": "Up/down recalls history; shift+enter inserts a newline; pasting a large block doesn't break the line.",
       "tier": "pebble",
       "model": "sonnet",
@@ -679,7 +679,7 @@
       "title": "Esc to interrupt a running turn",
       "status": "shipped",
       "size": "S",
-      "summary": "Claude Code / Codex / Gemini all let Esc cancel a running turn. Argo HAS the mechanism (createConversation signal + AbortController, stoppedReason 'interrupted') but the TUI never wires a key to it \u2014 you can't stop a runaway turn from the Ink UI (only the one-shot CLI has SIGINT). Wire Esc \u2192 controller.abort() in app.tsx. ND fit F6 (control/trust) + F3 (stop the firehose).",
+      "summary": "Claude Code / Codex / Gemini all let Esc cancel a running turn. Argo HAS the mechanism (createConversation signal + AbortController, stoppedReason 'interrupted') but the TUI never wires a key to it — you can't stop a runaway turn from the Ink UI (only the one-shot CLI has SIGINT). Wire Esc → controller.abort() in app.tsx. ND fit F6 (control/trust) + F3 (stop the firehose).",
       "done": "Pressing Esc during a busy turn aborts it cleanly between iterations and returns control to the composer.",
       "tier": "sand",
       "model": "haiku",
@@ -691,7 +691,7 @@
       "title": "Markdown + syntax-highlight rendering",
       "status": "next",
       "size": "M",
-      "summary": "Assistant output renders as plain <Text> today. Gemini + Claude Code render markdown (headings/lists/bold/links) + syntax-highlighted code blocks. For an ND-readability product this is core F3 (calm, scannable output, not a wall of monospace) \u2014 arguably Argo's highest-value TUI gap given the vision. Use an Ink markdown renderer + a highlighter; respect the calm aesthetic (no neon).",
+      "summary": "Assistant output renders as plain <Text> today. Gemini + Claude Code render markdown (headings/lists/bold/links) + syntax-highlighted code blocks. For an ND-readability product this is core F3 (calm, scannable output, not a wall of monospace) — arguably Argo's highest-value TUI gap given the vision. Use an Ink markdown renderer + a highlighter; respect the calm aesthetic (no neon).",
       "done": "Assistant messages render markdown structure + highlighted code blocks; output is scannable, not a flat wall of text.",
       "tier": "pebble",
       "model": "sonnet",
@@ -703,7 +703,7 @@
       "title": "In-TUI mode / approval toggle (shift+tab)",
       "status": "horizon",
       "size": "M",
-      "summary": "Claude Code cycles normal/auto-accept/plan with shift+tab; Codex has /approvals + mode switch; Gemini has a yolo toggle. Argo gates via the kernel + autonomy ladder (L1-5) but offers no in-session toggle \u2014 you can't flip 'ask me every time' vs 'just go' without env vars. Map a shift+tab cycle onto the autonomy ladder / approval posture (kernel still the hard floor). ND fit F4 (one control for how much it asks).",
+      "summary": "Claude Code cycles normal/auto-accept/plan with shift+tab; Codex has /approvals + mode switch; Gemini has a yolo toggle. Argo gates via the kernel + autonomy ladder (L1-5) but offers no in-session toggle — you can't flip 'ask me every time' vs 'just go' without env vars. Map a shift+tab cycle onto the autonomy ladder / approval posture (kernel still the hard floor). ND fit F4 (one control for how much it asks).",
       "done": "A visible mode indicator cycles via shift+tab (e.g. review / auto within kernel bounds); the kernel remains the hard floor.",
       "tier": "pebble",
       "model": "sonnet",
@@ -715,7 +715,7 @@
       "title": "Diff rendering for file edits",
       "status": "horizon",
       "size": "M",
-      "summary": "Codex + Claude Code render a colored diff when the agent edits a file, before/at approval. Argo's write_file shows a clean tool line (post TUI-SMOOTH) but no diff \u2014 you can't see WHAT changed in the TUI. Render a unified diff for write_file/edits in the activity feed + the approval prompt. ND fit F6 (see exactly what it did \u2192 trust).",
+      "summary": "Codex + Claude Code render a colored diff when the agent edits a file, before/at approval. Argo's write_file shows a clean tool line (post TUI-SMOOTH) but no diff — you can't see WHAT changed in the TUI. Render a unified diff for write_file/edits in the activity feed + the approval prompt. ND fit F6 (see exactly what it did → trust).",
       "done": "A file edit shows a concise colored diff in the feed and in its approval prompt.",
       "tier": "pebble",
       "model": "sonnet",
@@ -727,8 +727,8 @@
       "title": "Prefix shortcuts: bash (!) + memory (#)",
       "status": "horizon",
       "size": "S",
-      "summary": "Claude Code: '!' runs a shell command inline (output into context), '#' appends a line to memory without a full command. Argo has shell_cmd as a tool + /memory as a command but no fast prefixes. Add composer prefixes: leading ! \u2192 shell (kernel-gated), leading # \u2192 brain/memory append. ND fit F1 (lower friction for the two most common quick actions).",
-      "done": "Typing '! <cmd>' runs a kernel-gated shell command; '# <note>' appends to the brain \u2014 no slash command needed.",
+      "summary": "Claude Code: '!' runs a shell command inline (output into context), '#' appends a line to memory without a full command. Argo has shell_cmd as a tool + /memory as a command but no fast prefixes. Add composer prefixes: leading ! → shell (kernel-gated), leading # → brain/memory append. ND fit F1 (lower friction for the two most common quick actions).",
+      "done": "Typing '! <cmd>' runs a kernel-gated shell command; '# <note>' appends to the brain — no slash command needed.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
@@ -739,7 +739,7 @@
       "title": "Custom user slash commands",
       "status": "horizon",
       "size": "M",
-      "summary": "Claude Code + Gemini let users define their own slash commands (markdown/prompt files in a commands dir). Argo's slash set is a fixed registry (repl/handlers.ts). Add user-defined commands discovered from ~/.argo/commands/ (or skills) that expand into a prompt \u2014 extend the HANDLERS registry at load. ND fit F1/F5 (capture a repeated workflow as one keystroke).",
+      "summary": "Claude Code + Gemini let users define their own slash commands (markdown/prompt files in a commands dir). Argo's slash set is a fixed registry (repl/handlers.ts). Add user-defined commands discovered from ~/.argo/commands/ (or skills) that expand into a prompt — extend the HANDLERS registry at load. ND fit F1/F5 (capture a repeated workflow as one keystroke).",
       "done": "A user drops a command file in ~/.argo/commands/; it appears in the palette and runs as a templated prompt.",
       "tier": "pebble",
       "model": "sonnet",
@@ -751,7 +751,7 @@
       "title": "Persistent rich status line",
       "status": "horizon",
       "size": "S",
-      "summary": "Gemini + Claude Code show a persistent status line (model \u00b7 context % \u00b7 tokens \u00b7 sometimes cost). Argo has a one-line hint + /context + /usage commands but no always-on status. Add a calm persistent footer: model, context-fill %, token/cost (ties to FAC-ESCALATE cost ledger). ND fit F2/F6 (ambient state without asking).",
+      "summary": "Gemini + Claude Code show a persistent status line (model · context % · tokens · sometimes cost). Argo has a one-line hint + /context + /usage commands but no always-on status. Add a calm persistent footer: model, context-fill %, token/cost (ties to FAC-ESCALATE cost ledger). ND fit F2/F6 (ambient state without asking).",
       "done": "A persistent footer shows model + context% + tokens; updates live, stays calm (no flicker).",
       "tier": "sand",
       "model": "haiku",
@@ -763,7 +763,7 @@
       "title": "Themes incl. accessibility (high-contrast / dyslexia)",
       "status": "horizon",
       "size": "S",
-      "summary": "Gemini ships selectable themes. For an ND product this is accessibility, not decoration: a high-contrast theme, a low-arousal muted theme, and a dyslexia-friendly option (spacing/weight). Token-drive the TUI colors + ARGO_THEME. ND fit F3 (sensory regulation \u2014 let the user tune arousal/contrast).",
+      "summary": "Gemini ships selectable themes. For an ND product this is accessibility, not decoration: a high-contrast theme, a low-arousal muted theme, and a dyslexia-friendly option (spacing/weight). Token-drive the TUI colors + ARGO_THEME. ND fit F3 (sensory regulation — let the user tune arousal/contrast).",
       "done": "ARGO_THEME selects among calm / high-contrast / dyslexia-friendly palettes; persists like the model choice.",
       "tier": "sand",
       "model": "haiku",
