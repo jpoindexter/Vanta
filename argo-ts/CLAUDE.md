@@ -25,6 +25,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
 | `tools/types.ts` | `Tool` (schema + optional `describeForSafety` + `execute`), `ToolContext`, `ToolResult` |
 | `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
+| `tools/clarify.ts` | ND2 — `clarify` tool. Agent calls this when intent is ambiguous. Returns a formatted question (+ optional numbered choices) as `output`; the model surfaces it in its reply and awaits the next turn. End-of-turn design: no `ToolContext` changes. `describeForSafety` → "ask user a clarifying question" → kernel Allow |
 | `tools/{read-file,write-file,shell-cmd,inspect-state}.ts` | The four v0 tools. `write-file` writes in-repo freely / out-of-repo only into a **writable zone**; `read-file` reads in-repo freely / out-of-repo only from a **readable zone** (both approval-gated by the kernel) |
 | `tools/writable-zones.ts` | SCOPE-1/2 — `resolveWritableZones` (write_file: `~/Desktop`+`~/Downloads`, `ARGO_WRITABLE_DIRS`) · `resolveReadableZones(env,root)` (read_file: project's parent dir + writable zones, `ARGO_READABLE_DIRS`) · `isInZone`/`expandHome`. Kernel still Asks per out-of-root access; the zone lists are the backstop bounding where an approved access lands |
 | `tools/{web-search,web-fetch}.ts` | Phase 2B web tools. `web-fetch` exports pure `extractReadable(html,url)` |
@@ -61,7 +62,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 32 tools (`exclude:["delegate"]` → 31 for workers) |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 41 tools + `mount_mcp` via factory = 42 total (`exclude:["delegate"]` → 40 for workers) |
 | `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`ARGO_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
