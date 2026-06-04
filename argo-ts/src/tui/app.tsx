@@ -17,6 +17,7 @@ import { Transcript, Palette, firstLine, type Entry } from "./transcript.js";
 import { toolDisplay } from "./tool-display.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
+import { nextMode, type ApprovalMode } from "./approval-mode.js";
 import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
@@ -44,7 +45,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
-  const { pending, requestApproval, chooseApproval } = useApproval(dispatch);
+  const [mode, setMode] = useState<ApprovalMode>("review");
+  const modeRef = useRef<ApprovalMode>("review");
+  const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
   const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
 
@@ -96,6 +99,19 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       if (chosen) setInput(input.replace(/@[\w./\-]*$/, `@${chosen} `));
     }
   }, { isActive: showAtPalette });
+
+  // Shift+tab cycles the approval mode. Keep modeRef in sync so requestApproval
+  // always reads the latest value without closing over stale state.
+  useInput((_in, key) => {
+    if (key.tab && key.shift) {
+      setMode((prev) => {
+        const next = nextMode(prev);
+        modeRef.current = next;
+        dispatch({ t: "note", text: next === "auto" ? "⚡ auto-approve mode — ⇧⇥ to return to review" : "● review mode — approvals restored" });
+        return next;
+      });
+    }
+  });
 
   const handleSlash = (line: string): void => {
     const convo = convoRef.current;
@@ -170,7 +186,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}
-          <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} />
+          <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} />
         </Box>
       )}
     </Box>
