@@ -4,7 +4,7 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, type ResearchGateState, type InhibitState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState } from "../session.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import type { SafetyClient } from "../safety-client.js";
@@ -28,6 +28,7 @@ export function useAgentSend(
   const abortRef = useRef<AbortController | null>(null);
   const researchGateRef = useRef<ResearchGateState>({ consecutiveTurns: 0 });
   const inhibitRef = useRef<InhibitState>({ consecutiveCalls: 0 });
+  const setShiftRef = useRef<SetShiftState>({ repeatingTool: null, consecutiveRuns: 0 });
 
   const sendToAgent = (text: string): void => {
     dispatch({ t: "user", text });
@@ -71,6 +72,11 @@ export function useAgentSend(
           safety,
           (note) => dispatch({ t: "note", text: note }),
         ).then((s) => { inhibitRef.current = s; });
+        void setShiftAfterTurn(
+          setShiftRef.current,
+          convo.messages,
+          (note) => dispatch({ t: "note", text: note }),
+        ).then((s) => { setShiftRef.current = s; });
       })
       .catch((err: unknown) => {
         abortRef.current = null;

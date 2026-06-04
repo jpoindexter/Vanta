@@ -30,6 +30,14 @@ import {
   type InhibitState,
 } from "./repl/inhibit.js";
 export type { InhibitState } from "./repl/inhibit.js";
+import {
+  nextSetShiftState,
+  shouldAlertSetShift,
+  buildSetShiftText,
+  DEFAULT_SETSHIFT_THRESHOLD,
+  type SetShiftState,
+} from "./repl/set-shift.js";
+export type { SetShiftState } from "./repl/set-shift.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -80,6 +88,7 @@ export async function prepareRun(
   const brain = await brainDigest(process.env).catch(() => "");
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
+  const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -90,6 +99,7 @@ export async function prepareRun(
     moimNote,
     skills,
     brain,
+    errorsLog,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   return { safety, registry, provider, goals, systemPrompt };
@@ -295,6 +305,27 @@ export async function inhibitAfterTurn(
       const goals = await safety.getGoals().catch(() => []);
       const activeGoal = goals.find((g) => g.status === "active") ?? null;
       onNote(buildInhibitText(newState.consecutiveCalls, activeGoal));
+    }
+    return newState;
+  } catch {
+    return state;
+  }
+}
+
+export async function setShiftAfterTurn(
+  state: SetShiftState,
+  messages: Message[],
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<SetShiftState> {
+  try {
+    const raw = parseInt(env.ARGO_SETSHIFT_THRESHOLD ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_SETSHIFT_THRESHOLD : raw;
+    if (threshold === 0) return state;
+    const toolNames = extractLastTurnToolNames(messages);
+    const newState = nextSetShiftState(state, toolNames);
+    if (shouldAlertSetShift(newState, threshold)) {
+      onNote(buildSetShiftText(newState.repeatingTool!, newState.consecutiveRuns));
     }
     return newState;
   } catch {
