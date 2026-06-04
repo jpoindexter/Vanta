@@ -1,7 +1,63 @@
 # Executive Dysfunction → Argo Brain Design
 
-Source: Tanner & Sherrat, "Executive Dysfunction in Neurologic Disease"  
-PMC4455841 (2015). Cross-referenced against Argo's ND-first design audit.
+Source: Rabinovici GD, Stephens ML, Possin KL. "Executive Dysfunction."  
+Continuum (Minneap Minn). 2015 Jun;21(3 Behavioral Neurology and Neuropsychiatry):646–659.  
+PMC4455841 — UCSF Memory and Aging Center. Full text + clinical cases read 2026-06-04.
+
+---
+
+## What the full article adds (missed on first pass)
+
+### Two-network brain architecture (CRITICAL)
+The article explicitly distinguishes two intrinsic connectivity networks:
+
+**Executive Control Network** (what EF science usually covers):
+- Prefrontal cortex (dorsolateral, ventrolateral), parietal cortex, basal ganglia, thalamus, cerebellum
+- Functions: working memory, set shifting, inhibition, planning, fluency
+
+**Salience Network** (separate, often forgotten):
+- Frontal insula + anterior cingulate + ventromedial PFC + limbic/subcortical connections
+- Functions: "decision making related to social and emotional as well as autonomic and interoceptive processing — monitoring the internal state as reflected by heart and respiratory rates or homeostatic needs such as hunger and thirst"
+- Specifically targeted EARLY in frontotemporal dementia
+- Determines WHAT MATTERS — which inputs deserve attention
+
+**For Argo's brain**: These must be two separate systems. The salience network decides what deserves attention; the executive control network determines how to act on it. Conflating them causes: trying to plan while not knowing what matters, or tracking what matters without being able to act.
+
+### Two modes of working memory (from neuroanatomy section)
+- **Maintenance mode** (ventrolateral PFC): hold information without transformation — "don't lose this"
+- **Manipulation mode** (dorsolateral PFC): actively transform, update, or reason about held information — "compute with this"
+
+Current Argo MOIM is maintenance only. The gap: when given complex information that requires active reasoning (not just holding), there's no manipulation mode.
+
+### Anterior cingulate = real-time error detection
+The anterior cingulate cortex "plays a critical role in error detection." This is different from post-hoc review — it fires DURING execution when an error is being made. Argo's background review (reviewAfterTurn) is a post-hoc reviewer, not a real-time error detector.
+
+### Pre-supplementary motor area = response selection gate
+"Engaged during response selection" — the moment between deciding what to do and doing it. In Argo terms: the gap between "tool chosen" and "tool executed." This is where inhibition and self-monitoring interact.
+
+### Orbitofrontal cortex = reward/punishment updating
+"Particularly critical for assessing shifting reward-punishment contingencies." In Argo terms: updating the agent's model of which approaches are working vs failing in the current context. Not just memory of past failures — active updating of the reward landscape.
+
+### Clinical case insights (from full case readings)
+
+**Case 4-1 (depression → EF deficit)**: A 74-year-old scored 30/30 on MoCA (seemingly perfect) but was below average on backward digit span and letter fluency. Depression was the cause — not cognitive decline. Key lesson: **EF failure can be caused by mood state, not cognitive capability**. Argo's mood region should affect EF availability. A "stressed" or "confused" mood state should reduce ambition of planned actions.
+
+**Case 4-2 (Alzheimer's via EF, not memory)**: A 54-year-old scored 28/30 on MMSE (seemingly fine) but had profound functional impairment. She "felt paralyzed when faced with multifaceted problems" and "was unable to get things together." Key lessons:
+1. Surface metrics (test scores) mask functional impairment — `/status green` ≠ ability to execute complex tasks
+2. "Paralysis when faced with multifaceted problems" = the exact failure mode EF-COMPLEXITY-GATE prevents
+3. "Misrepresented symptoms as memory loss" — agents (and users) may diagnose as "I don't know this" when the real problem is inability to plan/organize
+
+**Case 4-3 (meningioma displacing right frontal cortex)**: A nursing assistant with right inferior frontal cortex displacement presented with "difficulty planning, organization, multitasking." She "made impulsive decisions with poor outcomes" and later "felt paralyzed." Key lesson: **Right hemisphere specializes in self-monitoring and spatial tasks** — the brain region responsible for "does this make sense?" is the right PFC. EF-SELFMONITOR maps directly here.
+
+### MoCA vs MMSE insight (clinically critical)
+"MoCA is more sensitive than MMSE for detecting executive dysfunction." The MMSE is a simple pass/fail (28/30 looks fine). MoCA tests actual executive sub-components.
+
+For Argo: **Argo's own `/status` is MMSE-level (structural health check). We need a MoCA-level functional assessment** — can Argo actually complete a multi-step task correctly? This is distinct from "does the kernel respond" or "does the provider work."
+
+### Tower of London = the factory planner problem
+The Tower of London test (moving colored beads across pegs to reproduce a target design in as few moves as possible) is the canonical planning test. For Argo: implementing a feature is Tower of London — minimum tool calls, correct sequencing, target state. The factory planner is solving this problem. The BRAIN-NEURO architecture should include a planning substrate that explicitly models goal states and transition sequences.
+
+---
 
 ---
 

@@ -1044,6 +1044,42 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
+    },
+    {
+      "id": "BRAIN-SALIENCE",
+      "track": "Memory + Continuity",
+      "title": "Two-network brain: salience network + executive control network (separate)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "PMC4455841 neuroanatomy: two DISTINCT intrinsic connectivity networks. (1) Executive Control Network (DLPFC, parietal, basal ganglia, thalamus, cerebellum) \u2014 planning, working memory, inhibition, set shifting. (2) Salience Network (frontal insula, anterior cingulate, ventromedial PFC, limbic) \u2014 determines WHAT MATTERS: emotional/social relevance, interoceptive state monitoring (internal load, stress level), attention allocation. Frontotemporal dementia specifically destroys the salience network, not the executive control network \u2014 this is why social behavior breaks first. Argo currently conflates these: brain/mood is vaguely salience-adjacent but not architected as a separate system. BRAIN-NEURO must implement both, with explicit interaction: salience filters what enters executive processing; executive control determines how to act on what salience flagged. ND fit: salience network degradation = inability to determine priorities (everything feels equally urgent).",
+      "done": "Argo has a named salience subsystem that determines attention allocation separate from the executive planning subsystem; mood/stress state modulates what enters active processing.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high"
+    },
+    {
+      "id": "EF-ERRORDETECT",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Real-time error detection (anterior cingulate analog)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 neuroanatomy: the anterior cingulate cortex plays a critical role in REAL-TIME error detection \u2014 it fires during execution when an error is being committed, not after. Argo has reviewAfterTurn (post-hoc, like a retrospective audit) and EF-SELFMONITOR (pre-action sanity check). The missing piece is mid-execution error detection: detecting when a running tool chain has drifted from the goal WHILE it is running, not just before or after. Implementation: between tool calls within a single turn, a lightweight check (not an LLM call \u2014 a heuristic) tracks whether the sequence is still converging toward the stated goal. If N consecutive tool calls produce no apparent progress toward the goal, surface an interrupt opportunity. Pairs with EF-INHIBIT (which is pre-action) and EF-SELFMONITOR (which is pre-execution). ND fit F6 (catch errors before they compound).",
+      "done": "Mid-execution drift is detected between tool calls; after N non-converging calls, Argo surfaces an interrupt opportunity rather than continuing on autopilot.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "EF-WORKINGMEM-MANIP",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Working memory manipulation mode (dorsolateral PFC analog)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "PMC4455841 two working memory modes: (1) maintenance (ventrolateral PFC) \u2014 hold without transformation, example: MOIM note. (2) manipulation (dorsolateral PFC) \u2014 actively transform, update, reason about held information, example: backward digit span, serial 7s. MOIM covers maintenance only. Argo has no manipulation mode: when given complex information that requires active reasoning (not just holding), there is no architectural support for that working. Design: a /think slash command (or auto-trigger on complex prompts) that activates a structured reasoning pass \u2014 explicitly takes held information from working memory and manipulates it toward a conclusion before acting. This is the dorsolateral PFC operation: not just remembering, but computing. ND fit F1+F4 (low-friction way to activate structured reasoning without jumping to action).",
+      "done": "/think activates manipulation mode on held information; reasoning is explicit and visible before any tool call follows.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
     }
   ]
 }
