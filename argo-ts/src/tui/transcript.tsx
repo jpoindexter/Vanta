@@ -28,7 +28,8 @@ export type Entry =
   | { kind: "user"; text: string }
   | { kind: "assistant"; text: string }
   | ToolEntry
-  | { kind: "note"; text: string };
+  | { kind: "note"; text: string }
+  | { kind: "thinking"; text: string };
 
 /** First non-empty line of a tool result, truncated — used for error rows. */
 export const firstLine = (t: string): string => {
@@ -62,6 +63,11 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
   const e = props.entry;
   if (e.kind === "user") return <Text color="cyan">› {e.text}</Text>;
   if (e.kind === "assistant") return renderMarkdown(e.text);
+  if (e.kind === "thinking") {
+    const preview = e.text.split("\n")[0] ?? "";
+    const truncated = preview.length > 80 ? `${preview.slice(0, 77)}...` : preview;
+    return <Text dimColor>  ⚙ {truncated}</Text>;
+  }
   return <Text dimColor>  {e.text}</Text>;
 }
 

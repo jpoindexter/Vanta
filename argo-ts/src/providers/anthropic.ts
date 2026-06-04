@@ -75,19 +75,26 @@ export class AnthropicProvider implements LLMProvider {
       system = converted.system;
     }
 
+    const thinkingBudget = parseInt(process.env.ARGO_THINKING_BUDGET ?? "", 10);
+    const thinkingParam = !isNaN(thinkingBudget) && thinkingBudget > 0
+      ? { type: "enabled" as const, budget_tokens: thinkingBudget }
+      : undefined;
+
+    const maxTokens = config?.maxTokens ?? (thinkingParam ? Math.max(DEFAULT_MAX_TOKENS, thinkingBudget + 1024) : DEFAULT_MAX_TOKENS);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createParams: any = {
+      model: this.model,
+      max_tokens: maxTokens,
+      system: system as Parameters<typeof client.messages.create>[0]["system"],
+      messages: amsgs as Parameters<typeof client.messages.create>[0]["messages"],
+      tools: tools.length ? tools.map(toAnthropicTool) : undefined,
+    };
+    if (thinkingParam) createParams.thinking = thinkingParam;
+
     let response;
     try {
-      response = await client.messages.create({
-        model: this.model,
-        max_tokens: config?.maxTokens ?? DEFAULT_MAX_TOKENS,
-        system: system as Parameters<typeof client.messages.create>[0]["system"],
-        messages: amsgs as Parameters<typeof client.messages.create>[0]["messages"],
-        tools: tools.length
-          ? (tools.map(toAnthropicTool) as Parameters<
-              typeof client.messages.create
-            >[0]["tools"])
-          : undefined,
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      response = await (client.messages.create(createParams) as Promise<any>);
     } catch (err) {
       throw translateError(err, this.model);
     }
@@ -202,14 +209,17 @@ function toAnthropicTool(t: ToolSchema): {
 }
 
 /** Narrow Anthropic response content blocks into a CompletionResult. */
-function parseResponse(content: unknown, finishReason: string): CompletionResult {
+export function parseResponse(content: unknown, finishReason: string): CompletionResult {
   const blocks = Array.isArray(content) ? content : [];
   const textParts: string[] = [];
+  const thinkingParts: string[] = [];
   const toolCalls: ToolCall[] = [];
 
   for (const block of blocks) {
     if (!isRecord(block)) continue;
-    if (block.type === "text" && typeof block.text === "string") {
+    if (block.type === "thinking" && typeof block.thinking === "string") {
+      thinkingParts.push(block.thinking);
+    } else if (block.type === "text" && typeof block.text === "string") {
       textParts.push(block.text);
     } else if (block.type === "tool_use") {
       const id = typeof block.id === "string" ? block.id : "";
@@ -219,7 +229,9 @@ function parseResponse(content: unknown, finishReason: string): CompletionResult
     }
   }
 
-  return { text: textParts.join(""), toolCalls, finishReason };
+  const result: CompletionResult = { text: textParts.join(""), toolCalls, finishReason };
+  if (thinkingParts.length) result.thinking = thinkingParts.join("\n");
+  return result;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

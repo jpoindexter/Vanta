@@ -10,6 +10,7 @@ export type Action =
   | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; diff?: DiffLine[] }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
+  | { t: "thinking"; text: string }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
   | { t: "clear" };
@@ -52,6 +53,8 @@ export function reduce(s: State, a: Action): State {
     }
     case "note":
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
+    case "thinking":
+      return { ...s, entries: [...s.entries, { kind: "thinking", text: a.text }] };
     case "enqueue":
       return { ...s, entries: [...s.entries, { kind: "note", text: `⏎ queued: ${a.text}` }], queued: [...s.queued, a.text] };
     case "dequeue":

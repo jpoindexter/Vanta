@@ -773,7 +773,7 @@
       "id": "TUI-THINK",
       "track": "TUI parity",
       "title": "Thinking / reasoning display (collapsible)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Claude Code shows (collapsible) thinking; Codex exposes reasoning levels. Argo's loop discards/ignores reasoning in the TUI. When a provider returns reasoning, show it dim + collapsed (expand on key) so the user can see WHY without the firehose. ND fit F3 (optional depth, calm by default) + F6 (transparency).",
       "done": "Reasoning, when present, shows as a dim collapsed line that expands on demand; off by default to stay calm.",

@@ -18,6 +18,9 @@ export type AgentDeps = {
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
   requestApproval: (action: string, reason: string, toolName?: string) => Promise<boolean>;
   onText?: (text: string) => void;
+  /** Extended thinking / reasoning text returned by the provider (e.g. Anthropic
+   * extended thinking). Called once per turn when the provider returns thinking. */
+  onThinking?: (text: string) => void;
   /** Live token deltas as the model streams. When set (and the provider supports
    * streaming), the loop streams instead of waiting for the full completion. */
   onTextDelta?: (delta: string) => void;
@@ -162,6 +165,7 @@ async function runTurn(
       continue;
     }
 
+    if (result.thinking) deps.onThinking?.(result.thinking);
     if (result.text.trim()) deps.onText?.(result.text);
     messages.push({
       role: "assistant",
