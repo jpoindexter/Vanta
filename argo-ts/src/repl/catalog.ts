@@ -34,6 +34,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "planmode", arg: "[on|off]", desc: "toggle plan-first mode — Argo plans + confirms before acting" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
+  { name: "wm", arg: "[note]", desc: "view or add to session working memory (cleared each session)" },
   { name: "exit", desc: "leave the session" },
 ];
 

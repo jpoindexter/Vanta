@@ -16,12 +16,15 @@ import {
   inhibitAfterTurn,
   setShiftAfterTurn,
   scopeDeltaAfterTurn,
+  wmManipAfterTurn,
   maybeCurate,
   type ResearchGateState,
   type InhibitState,
   type SetShiftState,
   type ScopeDeltaState,
+  type WmManipState,
 } from "./session.js";
+import { SessionWorkingMemory } from "./memory/working.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
@@ -115,6 +118,8 @@ export async function runChat(
   let inhibitState: InhibitState = { consecutiveCalls: 0 };
   let setShiftState: SetShiftState = { repeatingTool: null, consecutiveRuns: 0 };
   let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
+  let wmManipState: WmManipState = { manipTurns: 0 };
+  const workingMemory = new SessionWorkingMemory();
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const convo = createConversation(
@@ -141,6 +146,7 @@ export async function runChat(
     state,
     env: process.env,
     now: () => new Date(),
+    workingMemory,
   };
 
   // One user turn: send to the agent + run the full post-turn pipeline. Shared
@@ -171,7 +177,9 @@ export async function runChat(
       } catch { /* best-effort */ }
     }
     const turnStart = new Date().toISOString();
-    const outcome = await convo.send(text, images);
+    // Inject working memory as context prefix when the session has accumulated notes.
+    const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
+    const outcome = await convo.send(`${wmCtx}${text}`, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);
     if (outcome.usage) {
@@ -207,6 +215,11 @@ export async function runChat(
     );
     scopeDeltaState = await scopeDeltaAfterTurn(
       scopeDeltaState,
+      convo.messages,
+      (note) => console.log(`\n${note}`),
+    );
+    wmManipState = await wmManipAfterTurn(
+      wmManipState,
       convo.messages,
       (note) => console.log(`\n${note}`),
     );
