@@ -52,7 +52,7 @@ export type Conversation = {
   /** The live transcript (system first). Read-only in spirit; the loop mutates it. */
   messages: Message[];
   /** Send a user turn (optionally with attached images); runs the loop, keeps history. */
-  send: (userText: string, images?: ImageAttachment[]) => Promise<AgentOutcome>;
+  send: (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => Promise<AgentOutcome>;
   /**
    * Hot-swap the model mid-conversation (the /model picker). Reassigns the
    * provider the loop reads each turn; pass a matching summarizer so context
@@ -84,7 +84,7 @@ export function createConversation(
   };
   return {
     messages,
-    send: (userText: string, images?: ImageAttachment[]) => runTurn(messages, ctx, deps, userText, images),
+    send: (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => runTurn(messages, ctx, deps, userText, images, signal),
     setProvider: (provider, summarize) => {
       deps.provider = provider;
       if (summarize) deps.summarize = summarize;
@@ -107,7 +107,9 @@ async function runTurn(
   deps: AgentDeps,
   userText: string,
   images?: ImageAttachment[],
+  signal?: AbortSignal,
 ): Promise<AgentOutcome> {
+  const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   let consecutiveFailures = 0;
@@ -118,7 +120,7 @@ async function runTurn(
   const callCounts = new Map<string, number>();
 
   for (let iter = 1; iter <= maxIter; iter++) {
-    if (deps.signal?.aborted) {
+    if (effectiveSignal?.aborted) {
       return {
         finalText: "Interrupted.",
         iterations: iter - 1,
