@@ -97,6 +97,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, { entries: [], streaming: "", busy: false, status: "idle", queued: [] });
   const [input, setInput] = useState("");
+  const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
   const [banner, setBanner] = useState<BannerData | null>(null);
@@ -176,6 +177,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
+    if (line) setInputHistory((h) => [...h, line]);
     if (!line || pending) return; // approval is handled by the ApprovalPrompt's own keys
 
     // Slash commands are /word — Finder-dropped paths (/Users/...) have a nested slash.
@@ -337,6 +339,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
               onChange={setInput}
               onSubmit={submit}
               placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"}
+              history={inputHistory}
+              isHistoryActive={!showPalette && !state.busy}
             />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
