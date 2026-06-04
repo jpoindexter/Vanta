@@ -118,7 +118,16 @@ async function startInteractive(
     !opts.resumeId &&
     !opts.noTui &&
     !process.env.ARGO_NO_TUI;
-  return useTui ? runTui(repoRoot) : runChat(repoRoot, opts);
+  if (!useTui) return runChat(repoRoot, opts);
+  // REL3: wrap TUI launch in a try-catch; fall back to readline REPL if Ink
+  // fails to render (bad TERM, missing native deps, restricted environment).
+  try {
+    return await runTui(repoRoot);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`\nTUI unavailable (${msg.split("\n")[0]}); falling back to readline REPL.\nSet ARGO_NO_TUI=1 to suppress this warning.\n`);
+    return runChat(repoRoot, opts);
+  }
 }
 
 /** Extract a `--resume <id>` value from args, if present. */

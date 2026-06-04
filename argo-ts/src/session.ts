@@ -98,6 +98,8 @@ export async function prepareRun(
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
   const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
+  const { canonicalProjectId } = await import("./projects/identity.js");
+  const projectId = await canonicalProjectId(repoRoot).catch(() => undefined);
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -109,6 +111,7 @@ export async function prepareRun(
     skills,
     brain,
     errorsLog,
+    projectId,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   return { safety, registry, provider, goals, systemPrompt };
