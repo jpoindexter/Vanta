@@ -31,6 +31,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "update", desc: "git pull the latest Argo (then ./install.sh to rebuild)" },
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
+  { name: "planmode", arg: "[on|off]", desc: "toggle plan-first mode — Argo plans + confirms before acting" },
   { name: "exit", desc: "leave the session" },
 ];
 
