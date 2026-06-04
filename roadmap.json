@@ -1013,7 +1013,7 @@
       "id": "EF-COMPLEXITY-GATE",
       "track": "Executive Function (inclusive spine)",
       "title": "Complexity gate \u2014 auto-prompt to plan before executing complex requests",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "PMC4455841 planning/organization: difficulty breaking complex tasks into steps, sequencing, anticipating obstacles. Currently Argo has /planmode as an opt-in toggle. But the user must know to use it. Fix: lightweight complexity classifier on each incoming user message \u2014 estimate task complexity by indicators (multi-file, schema change, migration, cross-service, ambiguous spec). If complexity > threshold, auto-suggest plan-first mode before any tool call. Same principle as the kernel ambiguity gate (FAC-PREFLIGHT) but for the interactive session. User can dismiss with one key to proceed directly. ND fit F1+F5 (breaks the blank-page paralysis, provides structure before confusion).",
       "done": "Complex requests trigger a one-line plan prompt before tool use; user can dismiss; simple requests are not interrupted.",
