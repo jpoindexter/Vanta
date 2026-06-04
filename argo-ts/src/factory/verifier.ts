@@ -44,6 +44,26 @@ export function checkNoExistingTestModified(touched: string[], preExisting: Set<
   return { ok: true };
 }
 
+/**
+ * Hard gate: every NEW non-test source file must be ≤ `limit` lines.
+ * Applies to new files only — bug fixes to pre-existing large files are safe.
+ */
+export async function checkNewFilesUnderLineLimit(
+  newSourceFiles: string[],
+  limit = 300,
+): Promise<VerifyResult> {
+  const { readFile } = await import("node:fs/promises");
+  for (const f of newSourceFiles) {
+    const content = await readFile(f, "utf8").catch(() => "");
+    const lines = content.trimEnd().split("\n").length;
+    if (lines > limit) {
+      const base = f.split("/").at(-1) ?? f;
+      return { ok: false, reason: `${base} has ${lines} lines (limit ${limit}) — split into smaller units` };
+    }
+  }
+  return { ok: true };
+}
+
 // --- I/O: subprocess-driven checks ---
 
 /** List git-tracked files at HEAD (before the cycle's changes). */
@@ -76,9 +96,10 @@ async function runTestFiles(tsRoot: string, testFiles: string[]): Promise<number
  * Run the full verification trust gate:
  * 1. No protected paths touched.
  * 2. No pre-existing test files modified.
- * 3. New tests fail against pre-change code (git stash / pop).
- * 4. Full prior suite passes.
- * 5. tsc --noEmit clean.
+ * 3. New source files ≤ 300 lines (born-small gate).
+ * 4. New tests fail against pre-change code (git stash / pop).
+ * 5. Full prior suite passes.
+ * 6. tsc --noEmit clean.
  */
 export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>): Promise<VerifyResult> {
   const tsRoot = join(root, "argo-ts");
@@ -95,6 +116,13 @@ export async function verify(root: string, artifact: SliceArtifact, preExisting:
   if (!existingTestCheck.ok) return existingTestCheck;
 
   const { newTestFiles } = classifyTouchedFiles(artifact.touchedFiles, preExisting);
+
+  // 3. New source files must be born small (≤ 300 lines)
+  const newSourceFiles = artifact.touchedFiles
+    .filter((f) => !preExisting.has(f) && f.endsWith(".ts") && !f.endsWith(".test.ts"))
+    .map((f) => join(root, f));
+  const sizeCheck = await checkNewFilesUnderLineLimit(newSourceFiles);
+  if (!sizeCheck.ok) return sizeCheck;
 
   // 3. New tests must FAIL against pre-change code
   if (newTestFiles.length > 0) {

@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { rm, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModified } from "./verifier.js";
+import { writeFile, mkdir } from "node:fs/promises";
+import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModified, checkNewFilesUnderLineLimit } from "./verifier.js";
 
 let tmp: string;
 beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "argo-verifier-")); });
@@ -73,5 +74,35 @@ describe("checkNoExistingTestModified", () => {
 
   it("returns ok:true for empty touched list", () => {
     expect(checkNoExistingTestModified([], new Set(["src/foo.test.ts"])).ok).toBe(true);
+  });
+});
+
+describe("checkNewFilesUnderLineLimit", () => {
+  it("returns ok:true when all new source files are under the limit", async () => {
+    const file = join(tmp, "small.ts");
+    await writeFile(file, "const x = 1;\n".repeat(50));
+    const r = await checkNewFilesUnderLineLimit([file], 300);
+    expect(r.ok).toBe(true);
+  });
+
+  it("returns ok:false when a new source file exceeds the limit", async () => {
+    const file = join(tmp, "big.ts");
+    await writeFile(file, "const x = 1;\n".repeat(301));
+    const r = await checkNewFilesUnderLineLimit([file], 300);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/301.*lines/);
+    expect(r.reason).toMatch(/big\.ts/);
+  });
+
+  it("returns ok:true for an empty list", async () => {
+    expect((await checkNewFilesUnderLineLimit([], 300)).ok).toBe(true);
+  });
+
+  it("returns ok:true for files in subdirectories", async () => {
+    await mkdir(join(tmp, "sub"), { recursive: true });
+    const file = join(tmp, "sub", "ok.ts");
+    await writeFile(file, "export const x = 1;\n".repeat(10));
+    const r = await checkNewFilesUnderLineLimit([file], 300);
+    expect(r.ok).toBe(true);
   });
 });

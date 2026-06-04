@@ -3,10 +3,29 @@ import type { FactoryPlan, SliceArtifact } from "./types.js";
 
 // --- Pure helpers ---
 
+/**
+ * Read CLAUDE.md from each directory in `dirs` (relative to `root`).
+ * Returns the file contents for dirs that have one; silently skips missing ones.
+ */
+export async function readDirContexts(root: string, dirs: string[]): Promise<string[]> {
+  const { readFile } = await import("node:fs/promises");
+  const results: string[] = [];
+  for (const dir of dirs) {
+    const claudePath = join(root, dir, "CLAUDE.md");
+    const content = await readFile(claudePath, "utf8").catch(() => null);
+    if (content) results.push(content.trim());
+  }
+  return results;
+}
+
 /** Build the agent instruction for a factory execution cycle. */
-export function buildFactoryInstruction(plan: FactoryPlan, budgetTokens: number): string {
+export function buildFactoryInstruction(plan: FactoryPlan, budgetTokens: number, dirContexts: string[] = []): string {
   const dirs = plan.touchedDirs.length ? plan.touchedDirs.join(", ") : "any folder you modify";
+  const contextBlock = dirContexts.length
+    ? [`--- Directory context (from CLAUDE.md files) ---`, ...dirContexts, `--- End context ---`, ``].join("\n")
+    : "";
   return [
+    contextBlock,
     `Factory cycle — implement the following slice as a single self-contained unit:`,
     ``,
     plan.instruction,
@@ -44,7 +63,8 @@ export async function execute(
   const { promisify } = await import("node:util");
   const exec = promisify(execFile);
 
-  const instruction = buildFactoryInstruction(plan, budgetTokens);
+  const dirContexts = await readDirContexts(root, plan.touchedDirs);
+  const instruction = buildFactoryInstruction(plan, budgetTokens, dirContexts);
   const setup = await prepareRun(root, instruction);
 
   let outputTokens = 0;
