@@ -1,60 +1,500 @@
 {
   "updated": "2026-06-04 (audit pass — see audit.html)",
   "items": [
-    {"id":"TUI","track":"Core UX","title":"Ink TUI + streaming","status":"shipped","size":"M","summary":"React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.","done":"open argo → full TUI with streaming tokens."},
-    {"id":"REPL","track":"Core UX","title":"Full REPL + install","status":"shipped","size":"S","summary":"install.sh global argo command + full slash set.","done":"argo works from anywhere."},
-    {"id":"UX-MODEL","track":"Core UX","title":"Persistent model selection","status":"shipped","size":"S","summary":"/model picker persists the choice to .env by default (^g = session-only). Selected model survives relaunch instead of reverting to the ollama/qwen seed.","done":"Pick a model in the TUI → it's still the model next launch."},
-    {"id":"U2","track":"Core UX","title":"@-context references","status":"next","size":"M","summary":"Composer @-autocomplete for files — extended (per the audit) to @file/@diff/@url context references (Hermes + Claude Code both have this). A cheap externalize-context affordance: less typing/recall to hand Argo context. ND fit F2+F4. Promoted from horizon by the audit.","done":"Type @ in the TUI → autocomplete files/diff/url and inline them as context."},
-    {"id":"TUI-SMOOTH","track":"Core UX","title":"Calmer TUI (less firehose)","status":"shipped","size":"M","summary":"tui/tool-display.ts (pure, 14 tests): toolDisplay(name,args)→{icon,verb,detail} computed at dispatch time — clean verbs + a per-tool verb map (read/wrote/ran/searched/saw screen/git·sub/…), abbrevPath (temp dirs incl NSIRD → basename, $HOME→~, deep→…/last/two), never raw JSON. Detail comes from ARGS not raw output (kills the temp-path leak; output→model only). On error a red firstLine tail stays visible. partitionBlocks groups consecutive tool rows into one indented cluster. transcript.tsx renders the parts purely; app.tsx reducer carries icon/verb/detail + errorLine. Design note: docs/tui-smooth-design.md. DEFERRED (needs Jason's interactive design): collapse/expand folding + the 'does it feel calm' judgment — Hashmark turned out to be a web app, not a transferable TUI reference.","done":"A multi-tool turn reads as a calm grouped feed — no raw temp paths, no JSON dumps, indented clusters. Interactive collapse/expand flagged for brainstorming."},
-    {"id":"A1","track":"Models + Setup","title":"Gemini provider","status":"shipped","size":"S","summary":"Google OpenAI-compatible endpoint, GEMINI_API_KEY.","done":"ARGO_PROVIDER=gemini argo run returns on gemini-2.5-flash."},
-    {"id":"A3","track":"Models + Setup","title":"OpenRouter provider","status":"shipped","size":"S","summary":"One key, 200+ models.","done":"OPENROUTER_API_KEY works."},
-    {"id":"A4","track":"Models + Setup","title":"argo setup wizard","status":"shipped","size":"M","summary":"Provider picker, hidden key prompt, merge into .env.","done":"First-run wizard configures any backend."},
-    {"id":"A5","track":"Models + Setup","title":"First-run detection","status":"shipped","size":"S","summary":"No backend on launch → auto-run argo setup.","done":"Clean install self-configures."},
-    {"id":"A6","track":"Models + Setup","title":"argo status / doctor","status":"shipped","size":"S","summary":"Boxed health: kernel ping, provider, key presence, counts.","done":"argo status shows green health."},
-    {"id":"G1","track":"Models + Setup","title":"Claude subscription provider","status":"shipped","size":"S","summary":"ARGO_PROVIDER=claude-code uses Claude Pro/Max OAuth token.","done":"claude-code provider authenticates."},
-    {"id":"G2","track":"Models + Setup","title":"ChatGPT-Codex OAuth","status":"shipped","size":"S","summary":"ARGO_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.","done":"Live-verified end-to-end."},
-    {"id":"B2","track":"Self-improvement","title":"Post-turn nudge counters","status":"shipped","size":"S","summary":"shouldReview: busy turn or periodic interval triggers background review.","done":"Review fires automatically."},
-    {"id":"B3","track":"Self-improvement","title":"Background-review fork","status":"shipped","size":"M","summary":"Post-turn tool-restricted agent replays transcript, writes skills.","done":"Live-verified: judged no skill on trivial turn."},
-    {"id":"B4","track":"Self-improvement","title":"Skill provenance + safe curator","status":"shipped","size":"M","summary":"argo-learned tag, curator archives only learned-stale skills, 7d interval.","done":"Curator runs at session start without breaking anything."},
-    {"id":"O9","track":"Self-improvement","title":"Dark factory (self-improving codebase)","status":"shipped","size":"L","summary":"factory/ module: triage→plan→execute→verify→commit. argo improve + argo factory approve.","done":"Live end-to-end: verifier correctly rejected bad model output."},
-    {"id":"O10","track":"Self-improvement","title":"Autonomy ladder (L1–L4, kernel-bounded)","status":"shipped","size":"M","summary":"factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=ARGO_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).","done":"argo factory approve with ARGO_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."},
-    {"id":"O10b","track":"Self-improvement","title":"Autonomy L5 (auto-merge low-risk)","status":"shipped","size":"M","summary":"factory/merge.ts: assessMergeRisk fails-closed through 3 gates — armed (ARGO_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, ≤20 files & ≤400 diff lines). MAX_AUTONOMY_LEVEL 4→5. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target → stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).","done":"A low-risk verified slice auto-merges when armed; anything failing the classifier stops at L4 push. Default OFF (riskiest rung — opt-in)."},
-    {"id":"O11","track":"Self-improvement","title":"Compartmentalized self-repair (body model)","status":"shipped","size":"M","summary":"factory/compartments.ts: classifyCompartment(file)→tier (skeleton/brainstem/limbs/reflexes/memory), compartmentMaxAutonomy(tier)→max L (skeleton 0 · brainstem 2 · limbs/reflexes/memory 5), autonomyCapForFiles(files)→most-restrictive cap. run.ts clamps the requested autonomy level to the cap of the files a slice ACTUALLY touched (mixed slice → minimum). A brainstem fix can't auto-commit even at L4; only limbs/reflexes/memory reach the full ladder. is_protected_path stays the hard boundary; this is the soft policy it can't express.","done":"A tier map exists + the factory refuses to exceed a compartment's max autonomy: limb fixes flow autonomously, brainstem/skeleton don't. 12 compartments.test.ts."},
-    {"id":"B-v2","track":"Self-improvement","title":"Emergent self-designed brain","status":"horizon","size":"L","summary":"Let Argo design its own brain substrate (its own format/code).","done":"Open research — no fixed done line."},
-    {"id":"C1","track":"Continuity","title":"Session persist + resume","status":"shipped","size":"M","summary":"File-based sessions, argo sessions list, argo resume <id>.","done":"Resume rehydrates a prior conversation."},
-    {"id":"D1","track":"Skills","title":"Port skills library","status":"shipped","size":"M","summary":"10 high-value skills ported, argo skills install.","done":"10/10 installed live."},
-    {"id":"D2","track":"Skills","title":"Skill bundles","status":"horizon","size":"S","summary":"YAML bundle schema for composite slash commands.","done":"One /slash loads several skills."},
-    {"id":"E1","track":"Autonomy + Reach","title":"Daemon / service mode","status":"shipped","size":"M","summary":"argo gateway foreground daemon + launchd service manager.","done":"Foreground daemon starts/ticks/stops."},
-    {"id":"E2","track":"Autonomy + Reach","title":"Telegram gateway","status":"shipped","size":"M","summary":"Long-poll + allowlist, wired into gateway.","done":"Offline-tested; live needs bot token."},
-    {"id":"E3","track":"Autonomy + Reach","title":"Webhook triggers","status":"shipped","size":"M","summary":"HMAC-gated webhook server, resolveDeliver, background agent run.","done":"Real localhost requests: 200 signed / 401 unsigned."},
-    {"id":"E5","track":"Autonomy + Reach","title":"MCP client","status":"shipped","size":"M","summary":"Dependency-free stdio JSON-RPC client + mount.ts. Mounted in prepareRun.","done":"Protocol unit-tested; live needs a real server + config fix (MCP-1)."},
-    {"id":"SCOPE-1","track":"Autonomy + Reach","title":"Writable zones beyond the repo","status":"shipped","size":"S","summary":"write_file now writes outside the repo into bounded, approval-gated writable zones (default ~/Desktop+~/Downloads, ARGO_WRITABLE_DIRS override) instead of hard-refusing. TS-only: the kernel already returned Ask for out-of-root paths; the tool was stricter than the boundary. ~-expansion + prefix-collision-safe zone check. Out-of-zone still refused (backstop vs yes-fatigue).","done":"Live-verified: write_file wrote directly to ~/Desktop in one step — no repo pollution, no shell copy."},
-    {"id":"SCOPE-2","track":"Autonomy + Reach","title":"Readable zones (read across the workspace)","status":"shipped","size":"S","summary":"read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones — default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; ARGO_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.","done":"Live-verified: read theft-kit/design-html/SKILL.md (64KB); ~/.ssh/id_rsa still refused."},
-    {"id":"O1","track":"Senses + Autonomy","title":"Agent-chosen model on delegate","status":"shipped","size":"S","summary":"delegate tool with provider/model params.","done":"Agent routes subtasks to any backend."},
-    {"id":"O2","track":"Senses + Autonomy","title":"Swarms","status":"shipped","size":"S","summary":"tools/swarm.ts — parallel multi-agent fan-out + synthesize.","done":"Swarm dispatches and returns."},
-    {"id":"O3","track":"Senses + Autonomy","title":"Eyes (look_at_screen)","status":"shipped","size":"S","summary":"screencapture -x → vision model.","done":"Needs Screen Recording permission."},
-    {"id":"O4","track":"Senses + Autonomy","title":"Camera (look_at_camera)","status":"shipped","size":"S","summary":"Webcam frame → vision model.","done":"Shipped."},
-    {"id":"O5","track":"Senses + Autonomy","title":"Video (watch_video)","status":"shipped","size":"S","summary":"ffmpeg frame extraction → vision model.","done":"Shipped."},
-    {"id":"O7","track":"Senses + Autonomy","title":"Speech + audio","status":"shipped","size":"S","summary":"speak TTS + transcribe STT.","done":"Shipped."},
-    {"id":"S1","track":"Selfhood","title":"Self-authored identity files","status":"shipped","size":"M","summary":"Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.","done":"Argo has a persistent identity."},
-    {"id":"S5","track":"Selfhood","title":"Heartbeat selfhood updates","status":"horizon","size":"S","summary":"Wire brain writes onto the gateway tick.","done":"Identity evolves continuously via daemon."},
-    {"id":"P1","track":"Hermes Parity","title":"Slash-command parity","status":"shipped","size":"M","summary":"/history /retry /undo /reset /title /fork.","done":"Full slash parity readline + TUI."},
-    {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"shipped","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Argo reads roadmap.json natively."},
-    {"id":"SEC","track":"Docs + Tooling","title":"Secret-hygiene hardening","status":"shipped","size":"S","summary":"gitleaks pre-commit hook + .example twins, installed by install.sh.","done":"A secret-shaped string can't be committed (verified: hook runs gitleaks protect --staged)."},
-    {"id":"INSTALL","track":"Docs + Tooling","title":"One-line curl install","status":"shipped","size":"S","summary":"bootstrap.sh clones Argo into ~/argo (ARGO_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.","done":"Clone+install logic verified via local clone smoke; curl-pipe one-liner activates when the repo flips public."},
-    {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"shipped","size":"S","summary":"readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.argo/mcp.json (user). argo mcp list.","done":"Config discovery shipped; live consume needs a real server."},
-    {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"shipped","size":"M","summary":"mount_mcp tool (live runtime mount, kernel-gated) + build-mcp-server skill (scaffold on demand).","done":"mount_mcp registers a server's tools into the live registry; skill teaches scaffolding."},
-    {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"shipped","size":"L","summary":"argo mcp serve — exposes Argo tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.","done":"Live-verified: real McpClient drove argo mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."},
-    {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override."},
-    {"id":"ND1","track":"Neurodivergent EF (spine)","title":"Task-initiation affordance","status":"next","size":"M","summary":"From the 4-way audit (see audit.html): the executive-function activation wall is the #1 ND need and NO surveyed agent (Hermes/Goose/Claude Code) targets it directly — Argo's true differentiator, not a copy. A 'start the next tiny step' affordance: given a goal, surface ONE concrete smallest next action and let the user begin with a single keystroke. ND fit F1 (initiation) + F5 (structure).","done":"From a stated goal, Argo proposes one tiny next step and the user can start it in one action — measured: time-from-open-to-first-action drops."},
-    {"id":"ND2","track":"Neurodivergent EF (spine)","title":"clarify tool (ask before acting)","status":"next","size":"S","summary":"Ported concept from Hermes clarify_tool.py. A tool that lets the agent ask ONE structured question before acting when intent is ambiguous, instead of guessing and thrashing. Kernel-gated like any tool. ND fit F1+F4+F6 (predictable, low-vigilance, ask-don't-assume). Small surface, high fit.","done":"On ambiguous intent Argo asks one tappable structured question instead of guessing; wrong-guess rework drops."},
-    {"id":"ND3","track":"Neurodivergent EF (spine)","title":"Plan-first / converse mode","status":"next","size":"M","summary":"Two agents converged here (Hermes 'converse mode' + Goose '/plan'). An opt-in mode where Argo clarifies → lays out the steps → confirms → then acts, instead of acting immediately. Breaks blank-page paralysis and gives a calm act-gate. Extends Argo's autonomy ladder L1 into an interactive front door. ND fit F1+F4+F6.","done":"A /plan (or converse) mode produces a confirmed step list before any tool runs; toggleable; integrates with the autonomy ladder."},
-    {"id":"ND4","track":"Neurodivergent EF (spine)","title":"Top-of-mind reminder (MOIM)","status":"next","size":"S","summary":"Ported from Goose 'tom'/MOIM. A short pinned 'what am I doing / don't forget X' note the user sets, injected into every turn's prompt as a volatile tier. Pure working-memory offload — smallest, highest-fit ND feature. ND fit F2+F5.","done":"User pins a top-of-mind note; it appears in the prompt every turn until cleared; survives across a session."},
-    {"id":"REL1","track":"Reliability (ND trust)","title":"Per-model capability matrix","status":"next","size":"S","summary":"From the Claude Code survey (claude-code-haha modelSupportOverrides) + Goose issue #9529. A small declarative map of which optional params (thinking/reasoning_effort/etc.) a model accepts, so free-typed OpenRouter/Ollama model IDs don't get sent params they 400/500 on. Lives alongside providers/catalog.ts. ND fit F6 (reliability removes vigilance burden).","done":"Free-typing an OpenRouter/Ollama model that lacks thinking/effort no longer errors — Argo omits unsupported params per a capability lookup."},
-    {"id":"ND5","track":"Neurodivergent EF (spine)","title":"Proactive nudge cadence","status":"horizon","size":"M","summary":"Hermes users hacked ADHD morning/evening standups + unprompted reminders on top of cron; make it native and GENTLE (respect F3 — a nudge, never a nag). Optional scheduled gentle check-ins tied to goals ('still on X? want the next step?'). ND fit F1+F5.","done":"User opts into a gentle cadence; Argo sends a calm goal-aware check-in on schedule via the gateway; easy to snooze/stop."},
-    {"id":"ND6","track":"Neurodivergent EF (spine)","title":"Voice conversational loop","status":"horizon","size":"M","summary":"Hermes voice_mode + an explicit accessibility demand in its user-stories ('can't type well, voice is huge'; a blind user built an NVDA addon). Argo already has speak/transcribe tools; the gap is a live mic-in → spoken-reply loop. ND fit F1 (initiation, lower input friction) + F3 (calm). Broad ND / motor accessibility.","done":"A voice mode runs a live transcribe→agent→speak loop in the terminal; degrades gracefully without mic/STT."},
-    {"id":"REL2","track":"Reliability (ND trust)","title":"Checkpoints + /rollback","status":"horizon","size":"M","summary":"Ported concept from Hermes checkpoint_manager.py. Shadow-git auto-snapshot before destructive ops + a /rollback to restore. Argo's kernel BLOCKS risky ops but doesn't snapshot/restore — an undo safety net lowers anxiety around letting the agent act. ND fit F6 (trust). Opt-in, dedup store.","done":"Argo snapshots before a destructive op; /rollback restores the prior state; never touches kernel-protected paths."},
-    {"id":"UX-STREAM","track":"Core UX","title":"Typed stream-event contract","status":"horizon","size":"M","summary":"Ported concept from the local-Hermes customization (stream_events.py + stream_dispatch.py): a typed event vocabulary (message chunk/stop, commentary, tool-call chunk/finished, long-tool hint, notice) that names WHAT happened, and a per-surface dispatcher where a surface that can't render tool chrome can 'eat' it. Generalizes TUI-SMOOTH's calm feed beyond the TUI (telegram/webhook). ND fit F3 (calm output everywhere).","done":"Agent emits typed events; each surface (TUI/telegram/webhook) renders or suppresses per its capability; the TUI feed is driven by the typed contract."},
-    {"id":"REL3","track":"Reliability (ND trust)","title":"Recovery / degraded CLI","status":"horizon","size":"S","summary":"From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability — always reachable).","done":"ARGO_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start."}
+    {
+      "id": "TUI",
+      "track": "Core UX",
+      "title": "Ink TUI + streaming",
+      "status": "shipped",
+      "size": "M",
+      "summary": "React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.",
+      "done": "open argo → full TUI with streaming tokens."
+    },
+    {
+      "id": "REPL",
+      "track": "Core UX",
+      "title": "Full REPL + install",
+      "status": "shipped",
+      "size": "S",
+      "summary": "install.sh global argo command + full slash set.",
+      "done": "argo works from anywhere."
+    },
+    {
+      "id": "UX-MODEL",
+      "track": "Core UX",
+      "title": "Persistent model selection",
+      "status": "shipped",
+      "size": "S",
+      "summary": "/model picker persists the choice to .env by default (^g = session-only). Selected model survives relaunch instead of reverting to the ollama/qwen seed.",
+      "done": "Pick a model in the TUI → it's still the model next launch."
+    },
+    {
+      "id": "U2",
+      "track": "Core UX",
+      "title": "@-context references",
+      "status": "next",
+      "size": "M",
+      "summary": "Composer @-autocomplete for files — extended (per the audit) to @file/@diff/@url context references (Hermes + Claude Code both have this). A cheap externalize-context affordance: less typing/recall to hand Argo context. ND fit F2+F4. Promoted from horizon by the audit.",
+      "done": "Type @ in the TUI → autocomplete files/diff/url and inline them as context."
+    },
+    {
+      "id": "TUI-SMOOTH",
+      "track": "Core UX",
+      "title": "Calmer TUI (less firehose)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "tui/tool-display.ts (pure, 14 tests): toolDisplay(name,args)→{icon,verb,detail} computed at dispatch time — clean verbs + a per-tool verb map (read/wrote/ran/searched/saw screen/git·sub/…), abbrevPath (temp dirs incl NSIRD → basename, $HOME→~, deep→…/last/two), never raw JSON. Detail comes from ARGS not raw output (kills the temp-path leak; output→model only). On error a red firstLine tail stays visible. partitionBlocks groups consecutive tool rows into one indented cluster. transcript.tsx renders the parts purely; app.tsx reducer carries icon/verb/detail + errorLine. Design note: docs/tui-smooth-design.md. DEFERRED (needs Jason's interactive design): collapse/expand folding + the 'does it feel calm' judgment — Hashmark turned out to be a web app, not a transferable TUI reference.",
+      "done": "A multi-tool turn reads as a calm grouped feed — no raw temp paths, no JSON dumps, indented clusters. Interactive collapse/expand flagged for brainstorming."
+    },
+    {
+      "id": "A1",
+      "track": "Models + Setup",
+      "title": "Gemini provider",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Google OpenAI-compatible endpoint, GEMINI_API_KEY.",
+      "done": "ARGO_PROVIDER=gemini argo run returns on gemini-2.5-flash."
+    },
+    {
+      "id": "A3",
+      "track": "Models + Setup",
+      "title": "OpenRouter provider",
+      "status": "shipped",
+      "size": "S",
+      "summary": "One key, 200+ models.",
+      "done": "OPENROUTER_API_KEY works."
+    },
+    {
+      "id": "A4",
+      "track": "Models + Setup",
+      "title": "argo setup wizard",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Provider picker, hidden key prompt, merge into .env.",
+      "done": "First-run wizard configures any backend."
+    },
+    {
+      "id": "A5",
+      "track": "Models + Setup",
+      "title": "First-run detection",
+      "status": "shipped",
+      "size": "S",
+      "summary": "No backend on launch → auto-run argo setup.",
+      "done": "Clean install self-configures."
+    },
+    {
+      "id": "A6",
+      "track": "Models + Setup",
+      "title": "argo status / doctor",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Boxed health: kernel ping, provider, key presence, counts.",
+      "done": "argo status shows green health."
+    },
+    {
+      "id": "G1",
+      "track": "Models + Setup",
+      "title": "Claude subscription provider",
+      "status": "shipped",
+      "size": "S",
+      "summary": "ARGO_PROVIDER=claude-code uses Claude Pro/Max OAuth token.",
+      "done": "claude-code provider authenticates."
+    },
+    {
+      "id": "G2",
+      "track": "Models + Setup",
+      "title": "ChatGPT-Codex OAuth",
+      "status": "shipped",
+      "size": "S",
+      "summary": "ARGO_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.",
+      "done": "Live-verified end-to-end."
+    },
+    {
+      "id": "B2",
+      "track": "Self-improvement",
+      "title": "Post-turn nudge counters",
+      "status": "shipped",
+      "size": "S",
+      "summary": "shouldReview: busy turn or periodic interval triggers background review.",
+      "done": "Review fires automatically."
+    },
+    {
+      "id": "B3",
+      "track": "Self-improvement",
+      "title": "Background-review fork",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Post-turn tool-restricted agent replays transcript, writes skills.",
+      "done": "Live-verified: judged no skill on trivial turn."
+    },
+    {
+      "id": "B4",
+      "track": "Self-improvement",
+      "title": "Skill provenance + safe curator",
+      "status": "shipped",
+      "size": "M",
+      "summary": "argo-learned tag, curator archives only learned-stale skills, 7d interval.",
+      "done": "Curator runs at session start without breaking anything."
+    },
+    {
+      "id": "O9",
+      "track": "Self-improvement",
+      "title": "Dark factory (self-improving codebase)",
+      "status": "shipped",
+      "size": "L",
+      "summary": "factory/ module: triage→plan→execute→verify→commit. argo improve + argo factory approve.",
+      "done": "Live end-to-end: verifier correctly rejected bad model output."
+    },
+    {
+      "id": "O10",
+      "track": "Self-improvement",
+      "title": "Autonomy ladder (L1–L4, kernel-bounded)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=ARGO_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
+      "done": "argo factory approve with ARGO_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
+    },
+    {
+      "id": "O10b",
+      "track": "Self-improvement",
+      "title": "Autonomy L5 (auto-merge low-risk)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "factory/merge.ts: assessMergeRisk fails-closed through 3 gates — armed (ARGO_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, ≤20 files & ≤400 diff lines). MAX_AUTONOMY_LEVEL 4→5. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target → stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).",
+      "done": "A low-risk verified slice auto-merges when armed; anything failing the classifier stops at L4 push. Default OFF (riskiest rung — opt-in)."
+    },
+    {
+      "id": "O11",
+      "track": "Self-improvement",
+      "title": "Compartmentalized self-repair (body model)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "factory/compartments.ts: classifyCompartment(file)→tier (skeleton/brainstem/limbs/reflexes/memory), compartmentMaxAutonomy(tier)→max L (skeleton 0 · brainstem 2 · limbs/reflexes/memory 5), autonomyCapForFiles(files)→most-restrictive cap. run.ts clamps the requested autonomy level to the cap of the files a slice ACTUALLY touched (mixed slice → minimum). A brainstem fix can't auto-commit even at L4; only limbs/reflexes/memory reach the full ladder. is_protected_path stays the hard boundary; this is the soft policy it can't express.",
+      "done": "A tier map exists + the factory refuses to exceed a compartment's max autonomy: limb fixes flow autonomously, brainstem/skeleton don't. 12 compartments.test.ts."
+    },
+    {
+      "id": "B-v2",
+      "track": "Self-improvement",
+      "title": "Emergent self-designed brain",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Let Argo design its own brain substrate (its own format/code).",
+      "done": "Open research — no fixed done line."
+    },
+    {
+      "id": "C1",
+      "track": "Continuity",
+      "title": "Session persist + resume",
+      "status": "shipped",
+      "size": "M",
+      "summary": "File-based sessions, argo sessions list, argo resume <id>.",
+      "done": "Resume rehydrates a prior conversation."
+    },
+    {
+      "id": "D1",
+      "track": "Skills",
+      "title": "Port skills library",
+      "status": "shipped",
+      "size": "M",
+      "summary": "10 high-value skills ported, argo skills install.",
+      "done": "10/10 installed live."
+    },
+    {
+      "id": "D2",
+      "track": "Skills",
+      "title": "Skill bundles",
+      "status": "horizon",
+      "size": "S",
+      "summary": "YAML bundle schema for composite slash commands.",
+      "done": "One /slash loads several skills."
+    },
+    {
+      "id": "E1",
+      "track": "Autonomy + Reach",
+      "title": "Daemon / service mode",
+      "status": "shipped",
+      "size": "M",
+      "summary": "argo gateway foreground daemon + launchd service manager.",
+      "done": "Foreground daemon starts/ticks/stops."
+    },
+    {
+      "id": "E2",
+      "track": "Autonomy + Reach",
+      "title": "Telegram gateway",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Long-poll + allowlist, wired into gateway.",
+      "done": "Offline-tested; live needs bot token."
+    },
+    {
+      "id": "E3",
+      "track": "Autonomy + Reach",
+      "title": "Webhook triggers",
+      "status": "shipped",
+      "size": "M",
+      "summary": "HMAC-gated webhook server, resolveDeliver, background agent run.",
+      "done": "Real localhost requests: 200 signed / 401 unsigned."
+    },
+    {
+      "id": "E5",
+      "track": "Autonomy + Reach",
+      "title": "MCP client",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Dependency-free stdio JSON-RPC client + mount.ts. Mounted in prepareRun.",
+      "done": "Protocol unit-tested; live needs a real server + config fix (MCP-1)."
+    },
+    {
+      "id": "SCOPE-1",
+      "track": "Autonomy + Reach",
+      "title": "Writable zones beyond the repo",
+      "status": "shipped",
+      "size": "S",
+      "summary": "write_file now writes outside the repo into bounded, approval-gated writable zones (default ~/Desktop+~/Downloads, ARGO_WRITABLE_DIRS override) instead of hard-refusing. TS-only: the kernel already returned Ask for out-of-root paths; the tool was stricter than the boundary. ~-expansion + prefix-collision-safe zone check. Out-of-zone still refused (backstop vs yes-fatigue).",
+      "done": "Live-verified: write_file wrote directly to ~/Desktop in one step — no repo pollution, no shell copy."
+    },
+    {
+      "id": "SCOPE-2",
+      "track": "Autonomy + Reach",
+      "title": "Readable zones (read across the workspace)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones — default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; ARGO_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.",
+      "done": "Live-verified: read theft-kit/design-html/SKILL.md (64KB); ~/.ssh/id_rsa still refused."
+    },
+    {
+      "id": "O1",
+      "track": "Senses + Autonomy",
+      "title": "Agent-chosen model on delegate",
+      "status": "shipped",
+      "size": "S",
+      "summary": "delegate tool with provider/model params.",
+      "done": "Agent routes subtasks to any backend."
+    },
+    {
+      "id": "O2",
+      "track": "Senses + Autonomy",
+      "title": "Swarms",
+      "status": "shipped",
+      "size": "S",
+      "summary": "tools/swarm.ts — parallel multi-agent fan-out + synthesize.",
+      "done": "Swarm dispatches and returns."
+    },
+    {
+      "id": "O3",
+      "track": "Senses + Autonomy",
+      "title": "Eyes (look_at_screen)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "screencapture -x → vision model.",
+      "done": "Needs Screen Recording permission."
+    },
+    {
+      "id": "O4",
+      "track": "Senses + Autonomy",
+      "title": "Camera (look_at_camera)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Webcam frame → vision model.",
+      "done": "Shipped."
+    },
+    {
+      "id": "O5",
+      "track": "Senses + Autonomy",
+      "title": "Video (watch_video)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "ffmpeg frame extraction → vision model.",
+      "done": "Shipped."
+    },
+    {
+      "id": "O7",
+      "track": "Senses + Autonomy",
+      "title": "Speech + audio",
+      "status": "shipped",
+      "size": "S",
+      "summary": "speak TTS + transcribe STT.",
+      "done": "Shipped."
+    },
+    {
+      "id": "S1",
+      "track": "Selfhood",
+      "title": "Self-authored identity files",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.",
+      "done": "Argo has a persistent identity."
+    },
+    {
+      "id": "S5",
+      "track": "Selfhood",
+      "title": "Heartbeat selfhood updates",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Wire brain writes onto the gateway tick.",
+      "done": "Identity evolves continuously via daemon."
+    },
+    {
+      "id": "P1",
+      "track": "Hermes Parity",
+      "title": "Slash-command parity",
+      "status": "shipped",
+      "size": "M",
+      "summary": "/history /retry /undo /reset /title /fork.",
+      "done": "Full slash parity readline + TUI."
+    },
+    {
+      "id": "ROADMAP",
+      "track": "Docs + Tooling",
+      "title": "Interactive product roadmap",
+      "status": "shipped",
+      "size": "S",
+      "summary": "roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.",
+      "done": "argo roadmap opens the view; Argo reads roadmap.json natively."
+    },
+    {
+      "id": "SEC",
+      "track": "Docs + Tooling",
+      "title": "Secret-hygiene hardening",
+      "status": "shipped",
+      "size": "S",
+      "summary": "gitleaks pre-commit hook + .example twins, installed by install.sh.",
+      "done": "A secret-shaped string can't be committed (verified: hook runs gitleaks protect --staged)."
+    },
+    {
+      "id": "INSTALL",
+      "track": "Docs + Tooling",
+      "title": "One-line curl install",
+      "status": "shipped",
+      "size": "S",
+      "summary": "bootstrap.sh clones Argo into ~/argo (ARGO_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
+      "done": "Clone+install logic verified via local clone smoke; curl-pipe one-liner activates when the repo flips public."
+    },
+    {
+      "id": "MCP-1",
+      "track": "MCP: use · make · serve",
+      "title": "Use any MCP (consume)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.argo/mcp.json (user). argo mcp list.",
+      "done": "Config discovery shipped; live consume needs a real server."
+    },
+    {
+      "id": "MCP-2",
+      "track": "MCP: use · make · serve",
+      "title": "Make + hook in at runtime",
+      "status": "shipped",
+      "size": "M",
+      "summary": "mount_mcp tool (live runtime mount, kernel-gated) + build-mcp-server skill (scaffold on demand).",
+      "done": "mount_mcp registers a server's tools into the live registry; skill teaches scaffolding."
+    },
+    {
+      "id": "MCP-3",
+      "track": "MCP: use · make · serve",
+      "title": "Be a server (serve)",
+      "status": "shipped",
+      "size": "L",
+      "summary": "argo mcp serve — exposes Argo tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.",
+      "done": "Live-verified: real McpClient drove argo mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."
+    },
+    {
+      "id": "E-eff2",
+      "track": "Efficiency",
+      "title": "Prefer-local routing",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Auto-route simple work to local Ollama on M4 Pro.",
+      "done": "Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override."
+    },
+    {
+      "id": "ND1",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Task-initiation affordance",
+      "status": "next",
+      "size": "M",
+      "summary": "From the 4-way audit (see audit.html): the executive-function activation wall is the #1 ND need and NO surveyed agent (Hermes/Goose/Claude Code) targets it directly — Argo's true differentiator, not a copy. A 'start the next tiny step' affordance: given a goal, surface ONE concrete smallest next action and let the user begin with a single keystroke. ND fit F1 (initiation) + F5 (structure).",
+      "done": "From a stated goal, Argo proposes one tiny next step and the user can start it in one action — measured: time-from-open-to-first-action drops."
+    },
+    {
+      "id": "ND2",
+      "track": "Executive Function (inclusive spine)",
+      "title": "clarify tool (ask before acting)",
+      "status": "next",
+      "size": "S",
+      "summary": "Ported concept from Hermes clarify_tool.py. A tool that lets the agent ask ONE structured question before acting when intent is ambiguous, instead of guessing and thrashing. Kernel-gated like any tool. ND fit F1+F4+F6 (predictable, low-vigilance, ask-don't-assume). Small surface, high fit.",
+      "done": "On ambiguous intent Argo asks one tappable structured question instead of guessing; wrong-guess rework drops."
+    },
+    {
+      "id": "ND3",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Plan-first / converse mode",
+      "status": "next",
+      "size": "M",
+      "summary": "Two agents converged here (Hermes 'converse mode' + Goose '/plan'). An opt-in mode where Argo clarifies → lays out the steps → confirms → then acts, instead of acting immediately. Breaks blank-page paralysis and gives a calm act-gate. Extends Argo's autonomy ladder L1 into an interactive front door. ND fit F1+F4+F6.",
+      "done": "A /plan (or converse) mode produces a confirmed step list before any tool runs; toggleable; integrates with the autonomy ladder."
+    },
+    {
+      "id": "ND4",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Top-of-mind reminder (MOIM)",
+      "status": "next",
+      "size": "S",
+      "summary": "Ported from Goose 'tom'/MOIM. A short pinned 'what am I doing / don't forget X' note the user sets, injected into every turn's prompt as a volatile tier. Pure working-memory offload — smallest, highest-fit ND feature. ND fit F2+F5.",
+      "done": "User pins a top-of-mind note; it appears in the prompt every turn until cleared; survives across a session."
+    },
+    {
+      "id": "REL1",
+      "track": "Reliability (ND trust)",
+      "title": "Per-model capability matrix",
+      "status": "next",
+      "size": "S",
+      "summary": "From the Claude Code survey (claude-code-haha modelSupportOverrides) + Goose issue #9529. A small declarative map of which optional params (thinking/reasoning_effort/etc.) a model accepts, so free-typed OpenRouter/Ollama model IDs don't get sent params they 400/500 on. Lives alongside providers/catalog.ts. ND fit F6 (reliability removes vigilance burden).",
+      "done": "Free-typing an OpenRouter/Ollama model that lacks thinking/effort no longer errors — Argo omits unsupported params per a capability lookup."
+    },
+    {
+      "id": "ND5",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Proactive nudge cadence",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Hermes users hacked ADHD morning/evening standups + unprompted reminders on top of cron; make it native and GENTLE (respect F3 — a nudge, never a nag). Optional scheduled gentle check-ins tied to goals ('still on X? want the next step?'). ND fit F1+F5.",
+      "done": "User opts into a gentle cadence; Argo sends a calm goal-aware check-in on schedule via the gateway; easy to snooze/stop."
+    },
+    {
+      "id": "ND6",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Voice conversational loop",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Hermes voice_mode + an explicit accessibility demand in its user-stories ('can't type well, voice is huge'; a blind user built an NVDA addon). Argo already has speak/transcribe tools; the gap is a live mic-in → spoken-reply loop. ND fit F1 (initiation, lower input friction) + F3 (calm). Broad ND / motor accessibility.",
+      "done": "A voice mode runs a live transcribe→agent→speak loop in the terminal; degrades gracefully without mic/STT."
+    },
+    {
+      "id": "REL2",
+      "track": "Reliability (ND trust)",
+      "title": "Checkpoints + /rollback",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Ported concept from Hermes checkpoint_manager.py. Shadow-git auto-snapshot before destructive ops + a /rollback to restore. Argo's kernel BLOCKS risky ops but doesn't snapshot/restore — an undo safety net lowers anxiety around letting the agent act. ND fit F6 (trust). Opt-in, dedup store.",
+      "done": "Argo snapshots before a destructive op; /rollback restores the prior state; never touches kernel-protected paths."
+    },
+    {
+      "id": "UX-STREAM",
+      "track": "Core UX",
+      "title": "Typed stream-event contract",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Ported concept from the local-Hermes customization (stream_events.py + stream_dispatch.py): a typed event vocabulary (message chunk/stop, commentary, tool-call chunk/finished, long-tool hint, notice) that names WHAT happened, and a per-surface dispatcher where a surface that can't render tool chrome can 'eat' it. Generalizes TUI-SMOOTH's calm feed beyond the TUI (telegram/webhook). ND fit F3 (calm output everywhere).",
+      "done": "Agent emits typed events; each surface (TUI/telegram/webhook) renders or suppresses per its capability; the TUI feed is driven by the typed contract."
+    },
+    {
+      "id": "REL3",
+      "track": "Reliability (ND trust)",
+      "title": "Recovery / degraded CLI",
+      "status": "horizon",
+      "size": "S",
+      "summary": "From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability — always reachable).",
+      "done": "ARGO_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start."
+    }
   ]
 }
