@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-04 (+ factory-evolution capture — see docs/factory-evolution.md)",
+  "updated": "2026-06-04 (+ TUI parity capture — Claude Code/Codex/Gemini/Hermes gaps)",
   "items": [
     {
       "id": "TUI",
@@ -585,6 +585,114 @@
       "size": "S",
       "summary": "When the factory ships a work item it should CLOSE it — tick the ROADMAP/PARKED checkbox or move the KANBAN card to shipped — not just commit code. Closes the triage->done loop so the backlog reflects reality automatically. Ties directly to the KANBAN item (Argo moving cards as it works).",
       "done": "A shipped factory slice automatically closes/moves its source work item; the board reflects what was actually shipped without manual edits."
+    },
+    {
+      "id": "TUI-INPUT",
+      "track": "TUI parity",
+      "title": "Composer basics: input history + multiline",
+      "status": "next",
+      "size": "M",
+      "summary": "Argo's composer is single-line and explicitly ignores up/down (composer.tsx line 75). All four references have these table-stakes: (1) input HISTORY — up/down recalls prior messages (Gemini, Claude Code); (2) MULTILINE input — shift+enter / backslash / paste a block (all); (3) graceful large-paste (paste a big block → collapse to a reference rather than flooding the line). The #1 'missing normal stuff'. ND fit F1 (lower input friction).",
+      "done": "Up/down recalls history; shift+enter inserts a newline; pasting a large block doesn't break the line."
+    },
+    {
+      "id": "TUI-INTERRUPT",
+      "track": "TUI parity",
+      "title": "Esc to interrupt a running turn",
+      "status": "next",
+      "size": "S",
+      "summary": "Claude Code / Codex / Gemini all let Esc cancel a running turn. Argo HAS the mechanism (createConversation signal + AbortController, stoppedReason 'interrupted') but the TUI never wires a key to it — you can't stop a runaway turn from the Ink UI (only the one-shot CLI has SIGINT). Wire Esc → controller.abort() in app.tsx. ND fit F6 (control/trust) + F3 (stop the firehose).",
+      "done": "Pressing Esc during a busy turn aborts it cleanly between iterations and returns control to the composer."
+    },
+    {
+      "id": "TUI-MARKDOWN",
+      "track": "TUI parity",
+      "title": "Markdown + syntax-highlight rendering",
+      "status": "next",
+      "size": "M",
+      "summary": "Assistant output renders as plain <Text> today. Gemini + Claude Code render markdown (headings/lists/bold/links) + syntax-highlighted code blocks. For an ND-readability product this is core F3 (calm, scannable output, not a wall of monospace) — arguably Argo's highest-value TUI gap given the vision. Use an Ink markdown renderer + a highlighter; respect the calm aesthetic (no neon).",
+      "done": "Assistant messages render markdown structure + highlighted code blocks; output is scannable, not a flat wall of text."
+    },
+    {
+      "id": "TUI-MODE",
+      "track": "TUI parity",
+      "title": "In-TUI mode / approval toggle (shift+tab)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Claude Code cycles normal/auto-accept/plan with shift+tab; Codex has /approvals + mode switch; Gemini has a yolo toggle. Argo gates via the kernel + autonomy ladder (L1-5) but offers no in-session toggle — you can't flip 'ask me every time' vs 'just go' without env vars. Map a shift+tab cycle onto the autonomy ladder / approval posture (kernel still the hard floor). ND fit F4 (one control for how much it asks).",
+      "done": "A visible mode indicator cycles via shift+tab (e.g. review / auto within kernel bounds); the kernel remains the hard floor."
+    },
+    {
+      "id": "TUI-DIFF",
+      "track": "TUI parity",
+      "title": "Diff rendering for file edits",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Codex + Claude Code render a colored diff when the agent edits a file, before/at approval. Argo's write_file shows a clean tool line (post TUI-SMOOTH) but no diff — you can't see WHAT changed in the TUI. Render a unified diff for write_file/edits in the activity feed + the approval prompt. ND fit F6 (see exactly what it did → trust).",
+      "done": "A file edit shows a concise colored diff in the feed and in its approval prompt."
+    },
+    {
+      "id": "TUI-SHORTCUTS",
+      "track": "TUI parity",
+      "title": "Prefix shortcuts: bash (!) + memory (#)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Claude Code: '!' runs a shell command inline (output into context), '#' appends a line to memory without a full command. Argo has shell_cmd as a tool + /memory as a command but no fast prefixes. Add composer prefixes: leading ! → shell (kernel-gated), leading # → brain/memory append. ND fit F1 (lower friction for the two most common quick actions).",
+      "done": "Typing '! <cmd>' runs a kernel-gated shell command; '# <note>' appends to the brain — no slash command needed."
+    },
+    {
+      "id": "TUI-CMD",
+      "track": "TUI parity",
+      "title": "Custom user slash commands",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Claude Code + Gemini let users define their own slash commands (markdown/prompt files in a commands dir). Argo's slash set is a fixed registry (repl/handlers.ts). Add user-defined commands discovered from ~/.argo/commands/ (or skills) that expand into a prompt — extend the HANDLERS registry at load. ND fit F1/F5 (capture a repeated workflow as one keystroke).",
+      "done": "A user drops a command file in ~/.argo/commands/; it appears in the palette and runs as a templated prompt."
+    },
+    {
+      "id": "TUI-STATUS",
+      "track": "TUI parity",
+      "title": "Persistent rich status line",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Gemini + Claude Code show a persistent status line (model · context % · tokens · sometimes cost). Argo has a one-line hint + /context + /usage commands but no always-on status. Add a calm persistent footer: model, context-fill %, token/cost (ties to FAC-ESCALATE cost ledger). ND fit F2/F6 (ambient state without asking).",
+      "done": "A persistent footer shows model + context% + tokens; updates live, stays calm (no flicker)."
+    },
+    {
+      "id": "TUI-THEME",
+      "track": "TUI parity",
+      "title": "Themes incl. accessibility (high-contrast / dyslexia)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Gemini ships selectable themes. For an ND product this is accessibility, not decoration: a high-contrast theme, a low-arousal muted theme, and a dyslexia-friendly option (spacing/weight). Token-drive the TUI colors + ARGO_THEME. ND fit F3 (sensory regulation — let the user tune arousal/contrast).",
+      "done": "ARGO_THEME selects among calm / high-contrast / dyslexia-friendly palettes; persists like the model choice."
+    },
+    {
+      "id": "TUI-THINK",
+      "track": "TUI parity",
+      "title": "Thinking / reasoning display (collapsible)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Claude Code shows (collapsible) thinking; Codex exposes reasoning levels. Argo's loop discards/ignores reasoning in the TUI. When a provider returns reasoning, show it dim + collapsed (expand on key) so the user can see WHY without the firehose. ND fit F3 (optional depth, calm by default) + F6 (transparency).",
+      "done": "Reasoning, when present, shows as a dim collapsed line that expands on demand; off by default to stay calm."
+    },
+    {
+      "id": "TUI-VIM",
+      "track": "TUI parity",
+      "title": "Vim-mode composer editing",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Gemini + Claude Code offer vim-mode line editing. Lower priority but cheap given the custom composer already owns key handling (composer.tsx). Add an opt-in modal (normal/insert) editing mode behind ARGO_VIM. ND fit F1 (muscle-memory for vim users = lower friction).",
+      "done": "ARGO_VIM enables modal editing in the composer (normal/insert, basic motions); off by default."
+    },
+    {
+      "id": "TUI-HELP",
+      "track": "TUI parity",
+      "title": "Keyboard shortcut help overlay",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Most TUIs offer a '?' / shortcut to a key-binding cheat sheet. Argo has /help (commands) but no key-binding reference and the custom composer keys (ctrl a/e/u/k/w, etc.) are undiscoverable. Add a '?' overlay listing keys + modes. ND fit F2 (don't make me remember the bindings).",
+      "done": "A '?' overlay lists every composer key, slash command, and mode toggle; dismiss with esc."
     }
   ]
 }
