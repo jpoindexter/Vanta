@@ -31,59 +31,31 @@ export type Block =
   | { type: "paragraph"; text: string }
   | { type: "spacer" };
 
+function parseFencedCode(lines: string[], from: number): { block: Block; end: number } {
+  const lang = lines[from]!.slice(3).trim();
+  const codeLines: string[] = [];
+  let i = from + 1;
+  while (i < lines.length && !lines[i]!.startsWith("```")) codeLines.push(lines[i++]!);
+  return { block: { type: "code", lang, lines: codeLines }, end: i + 1 };
+}
+
 export function parseBlocks(markdown: string): Block[] {
   const blocks: Block[] = [];
   const lines = markdown.split("\n");
   let i = 0;
   while (i < lines.length) {
     const line = lines[i]!;
-
-    // Fenced code block
     if (line.startsWith("```")) {
-      const lang = line.slice(3).trim();
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i]!.startsWith("```")) {
-        codeLines.push(lines[i]!);
-        i++;
-      }
-      blocks.push({ type: "code", lang, lines: codeLines });
-      i++; // consume closing ```
-      continue;
+      const { block, end } = parseFencedCode(lines, i);
+      blocks.push(block); i = end; continue;
     }
-
-    // Heading (any depth, clamped to 3)
     const hm = line.match(/^(#{1,})\s+(.*)/);
-    if (hm) {
-      const level = Math.min(hm[1]!.length, 3) as 1 | 2 | 3;
-      blocks.push({ type: "heading", level, text: hm[2]! });
-      i++;
-      continue;
-    }
-
-    // Bullet (- or * at line start)
+    if (hm) { blocks.push({ type: "heading", level: Math.min(hm[1]!.length, 3) as 1 | 2 | 3, text: hm[2]! }); i++; continue; }
     const bm = line.match(/^[-*]\s+(.*)/);
-    if (bm) {
-      blocks.push({ type: "bullet", text: bm[1]! });
-      i++;
-      continue;
-    }
-
-    // Numbered list
+    if (bm) { blocks.push({ type: "bullet", text: bm[1]! }); i++; continue; }
     const nm = line.match(/^(\d+)\.\s+(.*)/);
-    if (nm) {
-      blocks.push({ type: "numbered", n: Number(nm[1]), text: nm[2]! });
-      i++;
-      continue;
-    }
-
-    // Blank line
-    if (line.trim() === "") {
-      blocks.push({ type: "spacer" });
-      i++;
-      continue;
-    }
-
+    if (nm) { blocks.push({ type: "numbered", n: Number(nm[1]), text: nm[2]! }); i++; continue; }
+    if (line.trim() === "") { blocks.push({ type: "spacer" }); i++; continue; }
     blocks.push({ type: "paragraph", text: line });
     i++;
   }
