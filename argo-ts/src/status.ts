@@ -4,6 +4,7 @@ import { resolveProvider } from "./providers/index.js";
 import { PROVIDER_CATALOG } from "./providers/catalog.js";
 import { resolveArgoHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
+import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
 
 // `argo status` / `argo doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -16,6 +17,7 @@ export type StatusReport = {
   keys: { envVar: string; label: string; present: boolean }[];
   store: { home: string; skills: number; memories: number };
   goals: { active: number; total: number } | { error: string };
+  velocity?: VelocityStats;
 };
 
 const mark = (ok: boolean): string => (ok ? "✓" : "✗");
@@ -46,6 +48,13 @@ export function formatStatus(r: StatusReport): string {
     lines.push(`  goals     — ${r.goals.error}`);
   } else {
     lines.push(`  goals     ${r.goals.active} active / ${r.goals.total} total`);
+  }
+
+  if (r.velocity && (r.velocity.captures > 0 || r.velocity.ships > 0)) {
+    const v = r.velocity;
+    const ratioStr = v.ratio === null ? "∞:1" : `${v.ratio.toFixed(0)}:1`;
+    const note = v.warn ? "  ⚠ consider closing before opening" : "";
+    lines.push(`  velocity  capture:ship 7d  ${v.captures}:${v.ships} (${ratioStr})${note}`);
   }
 
   lines.push("");
@@ -100,12 +109,17 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
     goals = { error: "kernel down" };
   }
 
+  const velEvents = await readVelocityEvents(env).catch(() => []);
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const velocity = velocityStats(velEvents, SEVEN_DAYS_MS, new Date());
+
   return {
     kernel: { url, up },
     provider,
     keys,
     store: { home: resolveArgoHome(env), skills, memories },
     goals,
+    velocity,
   };
 }
 
