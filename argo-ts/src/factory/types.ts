@@ -44,7 +44,8 @@ export type VerifyResult = {
  *   2 implement  — branch, execute, verify, then STOP (human reviews the diff)
  *   3 commit     — also commit the verified slice, but do NOT push
  *   4 push       — also push the branch (no merge)
- *   5 merge      — also auto-merge low-risk slices  [reserved — not yet implemented]
+ *   5 merge      — also auto-merge low-risk slices into a dedicated integration
+ *                  branch (OFF unless ARGO_AUTONOMY_ALLOW_MERGE is set; see merge.ts)
  * The kernel's `is_protected_path` blocks skeleton/brainstem (kernel, factory, manifesto)
  * edits at EVERY level — the ladder controls reach over WRITABLE code only.
  */
@@ -74,4 +75,12 @@ export type CycleResult =
       commitSha: string;
       tokenSpend: number;
       pushed: boolean;
+    }
+  | {
+      status: "merged";
+      workItem: WorkItem;
+      branch: string;
+      commitSha: string;
+      tokenSpend: number;
+      mergedInto: string;
     };

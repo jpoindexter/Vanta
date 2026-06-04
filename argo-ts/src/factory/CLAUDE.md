@@ -31,11 +31,22 @@ Dark factory: the bounded autonomous loop that improves Argo's own codebase. One
 | 2 | implement | branch → execute → verify | `implemented` |
 | 3 | commit | + commit (no push) | `committed` (pushed:false) |
 | 4 | push | + push branch | `committed` (pushed:true) |
-| 5 | merge | *reserved — clamps to 4* | — |
+| 5 | merge | + auto-merge low-risk slice (gated) | `merged` |
 
 The kernel's `is_protected_path` blocks skeleton/brainstem edits at EVERY level — the ladder
 governs reach over writable code only. `improve`/review = L1; `approve` = `ARGO_AUTONOMY_LEVEL`
-(default 4). L5 auto-merge + a low-risk classifier is the next slice.
+(default 4).
+
+### L5 auto-merge (O10b — `merge.ts`)
+
+The factory's git lifecycle (branch/commit/push/merge) runs git **directly, outside** the
+kernel `assess()` gate. A merge adds no new content (the verifier already vetted the slice),
+so the **entire** safety story at merge time is `assessMergeRisk` — pure, exhaustively tested,
+fails closed. Three independent gates must ALL pass or the cycle stays at L4 push:
+
+1. **armed** — `ARGO_AUTONOMY_ALLOW_MERGE` set (default OFF; L5 silently lands at L4 otherwise)
+2. **safe target** — `resolveMergeTarget` (`ARGO_FACTORY_MERGE_TARGET`, default `factory/integration`); never `main`/`master`; merge is `--no-ff`, never force; target must already exist (a missing/conflicting merge aborts and restores HEAD)
+3. **low-risk** — limbs/reflexes/memory only (via O11 `autonomyCapForFiles`), no dep/env/config/migration file, ≤`MAX_MERGE_FILES` files & ≤`MAX_MERGE_DIFF_LINES` lines
 
 ## Compartments (O11)
 
