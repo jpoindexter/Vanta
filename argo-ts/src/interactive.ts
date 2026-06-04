@@ -15,10 +15,12 @@ import {
   researchGateAfterTurn,
   inhibitAfterTurn,
   setShiftAfterTurn,
+  scopeDeltaAfterTurn,
   maybeCurate,
   type ResearchGateState,
   type InhibitState,
   type SetShiftState,
+  type ScopeDeltaState,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
@@ -111,6 +113,7 @@ export async function runChat(
   let researchGateState: ResearchGateState = { consecutiveTurns: 0 };
   let inhibitState: InhibitState = { consecutiveCalls: 0 };
   let setShiftState: SetShiftState = { repeatingTool: null, consecutiveRuns: 0 };
+  let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const convo = createConversation(
@@ -196,6 +199,11 @@ export async function runChat(
     );
     setShiftState = await setShiftAfterTurn(
       setShiftState,
+      convo.messages,
+      (note) => console.log(`\n${note}`),
+    );
+    scopeDeltaState = await scopeDeltaAfterTurn(
+      scopeDeltaState,
       convo.messages,
       (note) => console.log(`\n${note}`),
     );

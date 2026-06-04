@@ -4,7 +4,7 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type ScopeDeltaState } from "../session.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
@@ -30,6 +30,7 @@ export function useAgentSend(
   const researchGateRef = useRef<ResearchGateState>({ consecutiveTurns: 0 });
   const inhibitRef = useRef<InhibitState>({ consecutiveCalls: 0 });
   const setShiftRef = useRef<SetShiftState>({ repeatingTool: null, consecutiveRuns: 0 });
+  const scopeDeltaRef = useRef<ScopeDeltaState>({ totalAnnotations: 0 });
 
   const sendToAgent = (text: string): void => {
     dispatch({ t: "user", text });
@@ -85,6 +86,11 @@ export function useAgentSend(
           convo.messages,
           (note) => dispatch({ t: "note", text: note }),
         ).then((s) => { setShiftRef.current = s; });
+        void scopeDeltaAfterTurn(
+          scopeDeltaRef.current,
+          convo.messages,
+          (note) => dispatch({ t: "note", text: note }),
+        ).then((s) => { scopeDeltaRef.current = s; });
       })
       .catch((err: unknown) => {
         abortRef.current = null;
