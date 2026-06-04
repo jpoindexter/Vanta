@@ -60,6 +60,8 @@ export async function prepareRun(
   }));
   // Argo reads its own brain (durable self) each session.
   const brain = await brainDigest(process.env).catch(() => "");
+  const { readMoim } = await import("./moim/store.js");
+  const moimNote = await readMoim(process.env).catch(() => undefined);
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -67,6 +69,7 @@ export async function prepareRun(
     tools: registry.schemas(),
     now: new Date().toISOString(),
     memory,
+    moimNote,
     skills,
     brain,
   });

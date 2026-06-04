@@ -66,15 +66,19 @@ function skillsTier(skills?: SkillIndexEntry[]): string {
   return `Your learned skills — call \`recall\` to load the full body of one before applying it:\n${index}`;
 }
 
-function volatileTier(goals: Goal[], now: string, memory?: string): string {
+function volatileTier(goals: Goal[], now: string, memory?: string, moimNote?: string): string {
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
     ? active.map((g) => `- [${g.id}] ${g.text}`).join("\n")
     : "(no active goals — ask the user what to work toward)";
   const base = `Active goals:\n${goalText}\n\nSession started: ${now}`;
-  return memory?.trim()
+  const withMemory = memory?.trim()
     ? `${base}\n\nRecent memory toward your goals:\n${memory}`
     : base;
+  // Top-of-mind note: pinned by the user, injected first — highest cognitive salience.
+  return moimNote?.trim()
+    ? `⚑ Top of mind (pinned by user — keep this in focus):\n${moimNote}\n\n${withMemory}`
+    : withMemory;
 }
 
 /** Build the three-tier system prompt: stable + context + volatile. */
@@ -85,6 +89,7 @@ export async function buildSystemPrompt(opts: {
   tools: ToolSchema[];
   now: string;
   memory?: string;
+  moimNote?: string;
   skills?: SkillIndexEntry[];
   brain?: string;
 }): Promise<string> {
@@ -101,7 +106,7 @@ export async function buildSystemPrompt(opts: {
     brainTier(opts.brain),
     skillsTier(opts.skills),
     await contextTier(opts.root),
-    volatileTier(opts.goals, opts.now, opts.memory),
+    volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote),
   ].filter(Boolean);
   return tiers.join("\n\n---\n\n");
 }

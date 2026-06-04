@@ -94,4 +94,31 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Recent memory toward your goals:");
     expect(prompt).toContain("Earlier I learned the build runs");
   });
+
+  it("injects the MOIM note at the top of the volatile tier when provided", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [{ id: 1, text: "Ship Argo v0", status: "active" }],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+      moimNote: "debugging the auth flow",
+    });
+    expect(prompt).toContain("Top of mind");
+    expect(prompt).toContain("debugging the auth flow");
+    // MOIM appears before goals in the volatile tier
+    expect(prompt.indexOf("debugging the auth flow")).toBeLessThan(prompt.indexOf("Active goals:"));
+  });
+
+  it("omits the MOIM block when no note is set", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).not.toContain("Top of mind");
+    expect(prompt).not.toContain("pinned by user");
+  });
 });
