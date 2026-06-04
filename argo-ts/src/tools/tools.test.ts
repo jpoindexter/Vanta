@@ -62,6 +62,7 @@ describe("registry", () => {
       "mount_mcp",
       "read_file",
       "recall",
+      "roadmap_move",
       "run_code",
       "screenshot",
       "shell_cmd",
