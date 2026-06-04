@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { RoadmapSchema } from "./schema.js";
 import type { RoadmapItem, Status } from "./schema.js";
 import { buildRoadmap } from "./build.js";
+import { checkWipLimit } from "./wip.js";
+export { WipLimitError } from "./wip.js";
 
 export async function moveRoadmapItem(
   repoRoot: string,
@@ -17,6 +19,9 @@ export async function moveRoadmapItem(
   if (!item) {
     throw new Error(`no item with id '${id}' in roadmap.json`);
   }
+
+  const violation = checkWipLimit(data.items, id, toStatus);
+  if (violation) throw violation;
 
   item.status = toStatus;
   data.updated = new Date().toISOString().slice(0, 10);

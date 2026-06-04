@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { moveRoadmapItem } from "./move.js";
+import { moveRoadmapItem, WipLimitError } from "./move.js";
 import { STATUS, type Status } from "./schema.js";
 
 export function createRoadmapServer(repoRoot: string): Server {
@@ -37,8 +37,13 @@ export function createRoadmapServer(repoRoot: string): Server {
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ ok: true, id: item.id, status: item.status, title: item.title }));
         } catch (err) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }));
+          if (err instanceof WipLimitError) {
+            res.writeHead(409, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: false, error: err.message, wip: { count: err.count, limit: err.limit } }));
+          } else {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }));
+          }
         }
       });
       return;
