@@ -11,6 +11,7 @@ import { next } from "./next.js";
 import { planMode } from "./plan-mode.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
+import { wm } from "./wm.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -284,13 +285,12 @@ const moim: SlashHandler = async (arg, ctx) => {
   }
   return { output: `  ⚑ pinned: ${oneLine(arg, 80)}` };
 };
-
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

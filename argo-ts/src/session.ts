@@ -47,6 +47,15 @@ import {
   type ScopeDeltaState,
 } from "./repl/scope-delta.js";
 export type { ScopeDeltaState } from "./repl/scope-delta.js";
+import {
+  detectWmMode,
+  nextWmManipState,
+  shouldAlertWmManip,
+  buildWmManipText,
+  DEFAULT_MANIP_THRESHOLD,
+  type WmManipState,
+} from "./repl/wm-manip.js";
+export type { WmManipState } from "./repl/wm-manip.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -368,6 +377,30 @@ export async function scopeDeltaAfterTurn(
     const newState = nextScopeDeltaState(state, count, threshold);
     if (shouldAnnotateScopeDelta(count, threshold)) {
       onNote(buildScopeDeltaText(count, newState.totalAnnotations));
+    }
+    return newState;
+  } catch {
+    return state;
+  }
+}
+
+/** EF-WORKINGMEM-MANIP: post-turn working-memory manipulation mode detector.
+ * Tracks consecutive turns involving active memory transformation. Alerts when
+ * the agent has been manipulating working memory for N turns without concrete output. */
+export async function wmManipAfterTurn(
+  state: WmManipState,
+  messages: Message[],
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<WmManipState> {
+  try {
+    const raw = parseInt(env.ARGO_WM_MANIP_THRESHOLD ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_MANIP_THRESHOLD : raw;
+    if (threshold === 0) return state;
+    const mode = detectWmMode(messages);
+    const newState = nextWmManipState(state, mode);
+    if (shouldAlertWmManip(newState, threshold)) {
+      onNote(buildWmManipText(newState.manipTurns));
     }
     return newState;
   } catch {

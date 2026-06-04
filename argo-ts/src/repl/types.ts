@@ -1,6 +1,7 @@
 import type { Conversation } from "../agent.js";
 import type { ImageAttachment } from "../types.js";
 import type { RunSetup } from "../session.js";
+import type { SessionWorkingMemory } from "../memory/working.js";
 
 /** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork, /image). */
 export type ReplState = {
@@ -19,6 +20,8 @@ export type ReplCtx = {
   state: ReplState;
   env: NodeJS.ProcessEnv;
   now: () => Date;
+  /** Session working memory — available in the REPL; may be absent in TUI buildCtx. */
+  workingMemory?: SessionWorkingMemory;
 };
 
 /** Outcome of a slash command: text to show plus control signals for the host. */
