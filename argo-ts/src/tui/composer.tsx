@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Text, useInput } from "ink";
 
+export type VimMode = "normal" | "insert";
+
 // Composer with readline/emacs key bindings + input history + multiline.
 // Value is controlled by the parent (the slash palette reads it); cursor is
 // local. Up/down navigate history when isHistoryActive; when the palette is
@@ -15,6 +17,8 @@ export type ComposerProps = {
   isHistoryActive?: boolean;
   history?: string[];
   color?: string;
+  vimEnabled?: boolean;
+  onVimModeChange?: (mode: VimMode) => void;
 };
 
 // Pure helper — tested directly.
@@ -40,9 +44,15 @@ function deleteWordBefore(value: string, pos: number): { value: string; pos: num
 }
 
 export function Composer(props: ComposerProps): ReactElement {
-  const { value, onChange, onSubmit, placeholder = "", isActive = true, isHistoryActive = false, history = [], color } = props;
+  const { value, onChange, onSubmit, placeholder = "", isActive = true, isHistoryActive = false, history = [], color, vimEnabled = false, onVimModeChange } = props;
   const [cursor, setCursor] = useState(value.length);
+  const [vimMode, setVimModeState] = useState<VimMode>("insert");
   const histRef = useRef<HistState>({ histIdx: -1, draft: "", value: "" });
+
+  const setVimMode = (m: VimMode): void => {
+    setVimModeState(m);
+    onVimModeChange?.(m);
+  };
 
   // Keep the cursor inside the value when the parent rewrites it (e.g. clears on
   // submit, or tab-completes a slash command). Also reset history navigation on clear.
@@ -53,6 +63,26 @@ export function Composer(props: ComposerProps): ReactElement {
 
   useInput(
     (input, key) => {
+      // Vim normal mode key handling — only active when vim is enabled.
+      if (vimEnabled && vimMode === "normal") {
+        if (input === "i") { setVimMode("insert"); return; }
+        if (input === "a") { setCursor((c) => Math.min(value.length, c + 1)); setVimMode("insert"); return; }
+        if (input === "I") { setCursor(0); setVimMode("insert"); return; }
+        if (input === "A") { setCursor(value.length); setVimMode("insert"); return; }
+        if (input === "h" || key.leftArrow) { setCursor((c) => Math.max(0, c - 1)); return; }
+        if (input === "l" || key.rightArrow) { setCursor((c) => Math.min(value.length, c + 1)); return; }
+        if (input === "0") { setCursor(0); return; }
+        if (input === "$") { setCursor(value.length); return; }
+        if (input === "x") {
+          if (cursor < value.length) { onChange(value.slice(0, cursor) + value.slice(cursor + 1)); }
+          return;
+        }
+        if (key.return) return onSubmit(value); // Enter submits even in normal mode
+        return; // ignore all other keys in normal mode
+      }
+      // Insert mode: Esc exits to normal when vim enabled.
+      if (vimEnabled && vimMode === "insert" && key.escape) { setVimMode("normal"); return; }
+
       // Multiline: shift+enter inserts \n at cursor (modern terminals only).
       if (key.shift && key.return) {
         onChange(value.slice(0, cursor) + "\n" + value.slice(cursor));

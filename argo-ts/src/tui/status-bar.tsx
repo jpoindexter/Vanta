@@ -48,19 +48,24 @@ export function StatusBar(props: {
   width: number;
   hint: string;
   mode?: ApprovalMode;
+  primaryColor?: string;
+  vimMode?: "normal" | "insert";
 }): ReactElement {
   const { bar, pct } = progressBar(props.estTokens, props.contextWindow);
+  const color = props.primaryColor ?? "cyan";
   const left = props.busy ? `${props.spinner} ${props.status}` : "● ready";
   const dur = props.busy ? ` · ${formatDuration(props.elapsedMs)}` : "";
   const modeTag = props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> : null;
+  const vimTag = props.vimMode ? <Text color={color}> [{props.vimMode === "normal" ? "N" : "I"}]</Text> : null;
   return (
     <Box width={props.width} justifyContent="space-between">
       <Text dimColor>
-        <Text color={props.busy ? "yellow" : "cyan"}>{left}</Text>
+        <Text color={props.busy ? "yellow" : color}>{left}</Text>
         {` · ${props.model} · ~${formatCount(props.estTokens)}/${formatCount(props.contextWindow)} `}
-        <Text color="cyan">{bar}</Text>
+        <Text color={color}>{bar}</Text>
         {` ${pct}%${dur}`}
         {modeTag}
+        {vimTag}
       </Text>
       <Text dimColor>{props.hint}</Text>
     </Box>

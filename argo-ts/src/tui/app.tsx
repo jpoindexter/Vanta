@@ -20,6 +20,9 @@ import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
 import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "../repl/shortcuts.js";
+import { HelpOverlay } from "./help-overlay.js";
+import { resolveTheme } from "./theme.js";
+import type { VimMode } from "./composer.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -32,6 +35,8 @@ export { reduce, type State, type Action };
 const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!process.env[entry.envVar];
 
 const SPINNER = spinnerFrames();
+const THEME = resolveTheme(process.env);
+const VIM_ENABLED = !!process.env.ARGO_VIM;
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
@@ -48,6 +53,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
   const [mode, setMode] = useState<ApprovalMode>("review");
   const modeRef = useRef<ApprovalMode>("review");
+  const [showHelp, setShowHelp] = useState(false);
+  const [vimMode, setVimMode] = useState<VimMode>("insert");
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
   const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
@@ -142,6 +149,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     if (!line || pending) return;
     const firstToken = line.slice(1).split(/\s/)[0] ?? "";
     if (line.startsWith("/") && !firstToken.includes("/")) { handleSlash(line); return; }
+    if (line === "?") { setShowHelp((h) => !h); return; }
     const shortcut = parseShortcut(line);
     if (shortcut) {
       if (shortcut.type === "bash") {
@@ -171,7 +179,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const w = Math.max(24, Math.min(cols - 2, 100));
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
-  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit";
+  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : "/help  /clear  ?  /exit";
 
   return (
     <Box flexDirection="column" paddingX={1}>
@@ -194,13 +202,14 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         </Box>
       ) : (
         <Box flexDirection="column" marginTop={1}>
-          <Box borderStyle="round" borderColor={state.busy ? "gray" : "cyan"} paddingX={1} width={w}>
-            <Text color={state.busy ? "gray" : "cyan"}>{"› "}</Text>
-            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"} history={inputHistory} isHistoryActive={!showPalette && !showAtPalette && !state.busy} />
+          {showHelp && <HelpOverlay width={w} vimEnabled={VIM_ENABLED} />}
+          <Box borderStyle="round" borderColor={state.busy ? "gray" : THEME.border} paddingX={1} width={w}>
+            <Text color={state.busy ? "gray" : THEME.primary}>{"› "}</Text>
+            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"} history={inputHistory} isHistoryActive={!showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}
-          <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} />
+          <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} primaryColor={THEME.primary} vimMode={VIM_ENABLED ? vimMode : undefined} />
         </Box>
       )}
     </Box>
