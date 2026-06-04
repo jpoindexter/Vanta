@@ -158,4 +158,30 @@ describe("splitStableVolatile", () => {
     expect(stable).toContain("read_file"); // tools are in the stable part
     expect(stable).not.toContain("Session started:");
   });
+
+  it("injects errorsLog when provided", async () => {
+    const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools: sampleTools,
+      now: "2026-06-02T00:00:00Z",
+      errorsLog: "## 2026-01-01 — broken migration\nWhat failed: direct SQL\n",
+    });
+    expect(prompt).toContain("ERRORS.md");
+    expect(prompt).toContain("broken migration");
+  });
+
+  it("omits errors tier when errorsLog is absent", async () => {
+    const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/argo",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools: sampleTools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).not.toContain("ERRORS.md");
+  });
 });

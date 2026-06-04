@@ -69,6 +69,12 @@ function skillsTier(skills?: SkillIndexEntry[]): string {
   return `Your learned skills — call \`recall\` to load the full body of one before applying it:\n${index}`;
 }
 
+function errorsLogTier(errorsLog?: string): string {
+  if (!errorsLog?.trim()) return "";
+  const trimmed = errorsLog.trim().slice(0, 3000); // cap to avoid bloating context
+  return `Prior failures log (ERRORS.md — consult before approaching similar tasks):\n${trimmed}`;
+}
+
 function volatileTier(goals: Goal[], now: string, memory?: string, moimNote?: string): string {
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
@@ -95,6 +101,8 @@ export async function buildSystemPrompt(opts: {
   moimNote?: string;
   skills?: SkillIndexEntry[];
   brain?: string;
+  /** Contents of ERRORS.md — injected as context so Argo avoids repeating prior failures. */
+  errorsLog?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -109,6 +117,7 @@ export async function buildSystemPrompt(opts: {
     brainTier(opts.brain),
     skillsTier(opts.skills),
     await contextTier(opts.root),
+    errorsLogTier(opts.errorsLog),
     volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
