@@ -116,6 +116,7 @@ export async function runChat(
       requestApproval: approver(rl),
       maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
+      activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       ...consoleCallbacks(),
     },
     { history: resumed?.messages },

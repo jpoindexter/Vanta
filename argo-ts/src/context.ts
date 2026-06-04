@@ -47,6 +47,8 @@ type TrimOptions = {
   protectFirst?: number;
   protectLast?: number;
   thresholdPct?: number;
+  /** When set, a goal-reminder note is injected right after system messages on compression. */
+  activeGoalText?: string;
 };
 
 /**
@@ -116,7 +118,10 @@ export async function compressMessages(
       role: "user",
       content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
     };
-    return [...system, ...head, note, ...tail];
+    const compressed = [...system, ...head, note, ...tail];
+    if (!opts.activeGoalText) return compressed;
+    const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
+    return [...system, goalNote, ...compressed.slice(system.length)];
   } catch {
     return trimMessages(messages, contextWindow, opts);
   }

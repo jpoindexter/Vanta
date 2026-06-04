@@ -23,6 +23,8 @@ export type AgentDeps = {
   onToolResult?: (name: string, ok: boolean, output: string, diff?: DiffLine[]) => void;
   maxIterations?: number;
   summarize?: Summarizer;
+  /** When set, a goal-reminder note is re-injected after context compression. */
+  activeGoalText?: string;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
 };
@@ -131,7 +133,7 @@ async function runTurn(
       };
     }
     const trimmed = deps.summarize
-      ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize)
+      ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize, { activeGoalText: deps.activeGoalText })
       : trimMessages(messages, deps.provider.contextWindow());
     const safe = sanitizeMessages(trimmed); // final pre-flight scrub (orphans, surrogates)
     const result = await getCompletion(deps, safe);
