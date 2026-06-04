@@ -1,5 +1,7 @@
 import { join } from "node:path";
-import type { SliceArtifact, VerifyResult } from "./types.js";
+import type { SliceArtifact, VerifyResult, WorkItem } from "./types.js";
+import type { LLMProvider } from "../providers/interface.js";
+import { checkIntentSatisfied } from "./intent-judge.js";
 
 // --- Pure helpers (all exported for testing) ---
 
@@ -92,6 +94,12 @@ async function runTestFiles(tsRoot: string, testFiles: string[]): Promise<number
   }
 }
 
+export type VerifyOpts = {
+  workItem?: WorkItem;
+  /** Override the LLM judge provider (default: resolved from env when workItem is set). */
+  provider?: LLMProvider;
+};
+
 /**
  * Run the full verification trust gate:
  * 1. No protected paths touched.
@@ -100,8 +108,9 @@ async function runTestFiles(tsRoot: string, testFiles: string[]): Promise<number
  * 4. New tests fail against pre-change code (git stash / pop).
  * 5. Full prior suite passes.
  * 6. tsc --noEmit clean.
+ * 7. LLM intent-satisfaction judge (if workItem provided; fails open on LLM error).
  */
-export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>): Promise<VerifyResult> {
+export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>, opts?: VerifyOpts): Promise<VerifyResult> {
   const tsRoot = join(root, "argo-ts");
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
@@ -149,6 +158,17 @@ export async function verify(root: string, artifact: SliceArtifact, preExisting:
   } catch (err) {
     const msg = ((err as { stderr?: string }).stderr ?? (err as Error).message).split("\n")[0] ?? "";
     return { ok: false, reason: `tsc error: ${msg}` };
+  }
+
+  // 7. Intent-satisfaction judge (subjective — runs last, fails open on LLM errors)
+  if (opts?.workItem) {
+    let judgeProvider = opts.provider;
+    if (!judgeProvider) {
+      const { resolveProvider } = await import("../providers/index.js");
+      judgeProvider = resolveProvider(process.env);
+    }
+    const intentResult = await checkIntentSatisfied(opts.workItem, artifact.touchedFiles, judgeProvider);
+    if (!intentResult.ok) return intentResult;
   }
 
   return { ok: true };

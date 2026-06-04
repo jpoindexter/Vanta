@@ -208,7 +208,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     log(`factory: ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
 
     log("factory: verifying…");
-    const verifyResult = await verify(config.argoRoot, artifact, preExisting);
+    const verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
       await discardSlice(config.argoRoot);
