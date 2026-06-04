@@ -23,6 +23,7 @@ import {
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
+import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 
@@ -159,6 +160,10 @@ export async function runChat(
     const activeGoal = setup.goals.find((g) => g.status === "active") ?? null;
     if (isTopicShift(text, activeGoal, 0.15)) {
       console.log(`\n${buildTopicShiftNote()}`);
+      try {
+        const inProgress = getInProgressItems(convo.messages);
+        if (inProgress.length) console.log(`\n${buildClosureGateText(inProgress)}`);
+      } catch { /* best-effort */ }
     }
     const outcome = await convo.send(text, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
