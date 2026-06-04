@@ -32,7 +32,7 @@
       "id": "U2",
       "track": "Core UX",
       "title": "@-context references",
-      "status": "building",
+      "status": "shipped",
       "size": "M",
       "summary": "Composer @-autocomplete for files — extended (per the audit) to @file/@diff/@url context references (Hermes + Claude Code both have this). A cheap externalize-context affordance: less typing/recall to hand Argo context. ND fit F2+F4. Promoted from horizon by the audit.",
       "done": "Type @ in the TUI → autocomplete files/diff/url and inline them as context.",

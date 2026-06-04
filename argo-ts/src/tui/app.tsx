@@ -17,6 +17,7 @@ import { ApprovalPrompt } from "./approval.js";
 import { Transcript, Palette, firstLine, type Entry } from "./transcript.js";
 import { toolDisplay } from "./tool-display.js";
 import { useOverlays } from "./use-overlays.js";
+import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
 import { useApproval } from "./use-approval.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
@@ -98,6 +99,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [state, dispatch] = useReducer(reduce, { entries: [], streaming: "", busy: false, status: "idle", queued: [] });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
+  const [atFiles, setAtFiles] = useState<string[]>([]);
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
   const [banner, setBanner] = useState<BannerData | null>(null);
@@ -132,6 +134,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // Gather the startup banner once on mount. Rendered via <Static>.
   useEffect(() => {
     void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load repo file list once for @-context autocomplete.
+  useEffect(() => {
+    void listRepoFiles(repoRoot).then(setAtFiles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -227,7 +235,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         sendToAgent(`Watch this video and describe what you see: ${videoPath}`);
         return;
       }
-      sendToAgent(line);
+      // Resolve @path references and prepend their content as context.
+      const refs = parseAtRefs(line);
+      const ctxBlock = refs.length > 0 ? await buildContextBlock(refs, repoRoot) : "";
+      sendToAgent(ctxBlock ? `${ctxBlock}\n\n${line}` : line);
     })();
   };
 
@@ -261,6 +272,24 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       else if (key.tab) setInput(`/${(matches[sel] ?? matches[0])!.name} `);
     },
     { isActive: showPalette },
+  );
+
+  // @-context palette — suggest files while typing @<partial-path>.
+  const atHead = !pending && !overlay && !state.busy && !showPalette ? activeAtRef(input) : null;
+  const atMatches = atHead !== null ? atFiles.filter((f) => f.includes(atHead)).slice(0, 8) : [];
+  const showAtPalette = atMatches.length > 0;
+  const [atSel, setAtSel] = useState(0);
+  useEffect(() => setAtSel(0), [atHead]);
+  useInput(
+    (_in, key) => {
+      if (key.upArrow) setAtSel((s) => (s - 1 + atMatches.length) % atMatches.length);
+      else if (key.downArrow) setAtSel((s) => (s + 1) % atMatches.length);
+      else if (key.tab) {
+        const chosen = atMatches[atSel] ?? atMatches[0];
+        if (chosen) setInput(input.replace(/@[\w./\-]*$/, `@${chosen} `));
+      }
+    },
+    { isActive: showAtPalette },
   );
 
   // Esc while busy → abort the current turn between iterations.
@@ -340,10 +369,17 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
               onSubmit={submit}
               placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"}
               history={inputHistory}
-              isHistoryActive={!showPalette && !state.busy}
+              isHistoryActive={!showPalette && !showAtPalette && !state.busy}
             />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
+          {showAtPalette ? (
+            <Palette
+              matches={atMatches.map((f) => ({ name: f, desc: "" }))}
+              sel={Math.min(atSel, atMatches.length - 1)}
+              width={w}
+            />
+          ) : null}
           <StatusBar
             status={state.status}
             busy={state.busy}
@@ -353,7 +389,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             contextWindow={activeProvider.contextWindow()}
             elapsedMs={elapsedMs}
             width={w}
-            hint={showPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit"}
+            hint={showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : "/help  /clear  /exit"}
           />
         </Box>
       )}
