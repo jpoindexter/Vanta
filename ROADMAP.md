@@ -162,6 +162,16 @@ O2 swarms · O4 camera (`look_at_camera`) · O5 video (`watch_video`) · O7 spea
 volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · `/memory` · `/plan`+todo ·
 `skills lint` · O8/S2/S3 continuous-self-improvement behavior (prompt rule 9 + brain Growth drive).
 
+## SHIPPED 2026-06-04 (build sprint — session 2)
+**751 tests green (27 Rust + 724 TS) · tsc clean · pushed · all files ≤300 lines.**
+- **KANBAN-S2 · Drag-and-drop roadmap board:** `roadmap/server.ts` — `GET /roadmap/board` serves `roadmap.html`; `POST /roadmap/move` → `moveRoadmapItem` live. `argo roadmap serve` builds + opens `http://localhost:7789/roadmap/board`. Drag a card between columns → board reloads.
+- **TUI-INPUT · Composer history + multiline:** up/down arrows cycle sent messages (`navigateHistory` pure helper, tested). Shift+enter inserts `\n` at cursor (modern terminals). History active only when slash/@ palette not showing.
+- **TUI-MARKDOWN · Markdown rendering in transcript:** `tui/markdown.tsx` — `tokenizeInline` (**bold**, `code`) + `parseBlocks` (h1-3, bullets, numbered, fenced code, spacer) + `renderMarkdown` Ink renderer. Committed assistant entries route through it.
+- **ND1 · /next:** reads active kernel goals → sends agent a one-shot "concrete next micro-step" prompt. `repl/next.ts` + wired in HANDLERS + SLASH_COMMANDS.
+- **ND3 · /planmode:** toggle plan-first mode via `PLAN_MARKER` injection into live system prompt. `/planmode [on|off]`. `repl/plan-mode.ts`.
+- **U2 · @-file context:** `tui/at-context.ts` — `parseAtRefs`, `activeAtRef`, `buildContextBlock`, `listRepoFiles`. TUI shows @ autocomplete palette (↑↓ tab); on submit, `@path` refs are resolved to `<file>` context blocks prepended to the agent message.
+- **Compliance cleanup:** extracted `app-reducer.ts` + `useAgentSend` hook; `app.tsx` 398→178 lines; `parseBlocks` 58→22 lines; all new files ≤300, all non-component fns ≤50.
+
 ## SHIPPED 2026-06-03 (post-marathon session)
 **581 tests green (27 Rust + 554 TS) · tsc clean · pushed.**
 - **Bug fixes (4):** dropped file paths treated as slash commands (readline + TUI) · video drops not routed to `watch_video` · `look_at_screen` cryptic permission error → friendly hint · agent falsely claimed Desktop image paths were out of scope.
@@ -171,7 +181,7 @@ volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · 
 - **B-v2 · Emergent self-designed brain** — agent designs its own brain substrate (its own format/code). Open research; the md brain (S1) is the bootstrap. No clear done line — pursue when the md brain feels limiting.
 - **S5 · Heartbeat selfhood updates** — wire brain writes onto the gateway tick so identity evolves continuously. Small, concrete, low urgency.
 - **E-eff2 · Prefer-local routing** — auto-route cheap work to local Ollama. Extends `model-router.ts`. Small.
-- **Polish tier:** U2 @-mentions (composer autocomplete) · themes · `/vim` · multi-dir `/add-dir` · S4 skill-versioning-on-write · cron-output-awareness (gateway).
+- **Polish tier:** themes · `/vim` · multi-dir `/add-dir` · S4 skill-versioning-on-write · cron-output-awareness (gateway). *(U2 @-mentions shipped 2026-06-04)*
 - **D2 · Skill bundles** — YAML bundle schema for composite slash commands. The factory can implement this.
 - [x] **SCOPE-2 · Readable zones (read across the workspace)** (S) — ✅ SHIPPED 2026-06-04. The read-side mirror of SCOPE-1. `read_file` hard-refused out-of-repo reads, so Argo couldn't read a sibling repo's skills (`~/Documents/GitHub/theft-kit/...`) even though `shell_cmd cat` could. Now `read_file` reads from **readable zones** — default = the project's **parent dir** (so sibling repos in the same workspace are readable) + the writable zones; `ARGO_READABLE_DIRS` override. Generalized `isInWritableZone`→`isInZone` + `resolveReadableZones(env,root)` in `tools/writable-zones.ts`; `~`-expansion. **Verified:** unit (12 zone + 2 read_file) + live (read `theft-kit/design-html/SKILL.md`, 64 KB; `~/.ssh/id_rsa` still refused). **Follow-up:** secret-filename read-guard (`.env`/`*.key`/`id_rsa`) even in-zone — readable zones currently expose sibling secrets to kernel-Asked reads.
 - [x] **SCOPE-1 · Writable zones beyond the repo** (S) — ✅ SHIPPED 2026-06-04. `write_file` no longer hard-refuses out-of-repo paths; it writes into **bounded, approval-gated writable zones** (`tools/writable-zones.ts`: default `~/Desktop` + `~/Downloads`, `ARGO_WRITABLE_DIRS` override). **TS-only** — the kernel already returned `Ask` for out-of-root paths (`mentions_outside_home`/`references_abs_path_outside_root`, safety.rs:71), so dispatch already prompts the human; the tool was simply stricter than the boundary and refused *after* approval. Now: in-repo writes free, in-zone writes proceed (kernel Asked at dispatch), **out-of-zone still refused** (the backstop against yes-fatigue on `~/.ssh`). `~`-expansion + prefix-collision-safe (`Desktop-evil` ≠ `Desktop`). Chose **bounded zones** over any-path-with-approval. **Verified:** unit (9 zone + 2 write_file) + live (wrote directly to `~/Desktop` in one step).
@@ -184,7 +194,7 @@ volatile skills (#36656) · `/context` · `/mcp` · `/export` · `/compress` · 
 ## v1.2 — Claude-CLI UX parity (non-coding) — gap analysis 2026-06-02
 Full grounded gap list: [`docs/claude-cli-gaps.md`](docs/claude-cli-gaps.md) (vs Claude Code 2.1.156, coding-specific features excluded, Argo side verified against the repo). Build order:
 - [x] **U1 · Queued input while busy** — ✅ SHIPPED. Type-ahead queue in TUI reducer + readline; drained on turn end.
-- [ ] **U2 · @-file mentions** (★★★) — composer path autocomplete (pairs with image attach).
+- [x] **U2 · @-file mentions** (★★★) — ✅ SHIPPED 2026-06-04. TUI @ autocomplete palette (↑↓ tab) + context injection on submit (`tui/at-context.ts`). See session 2 entry above.
 - [x] **U3 · Notifications** — ✅ SHIPPED. Terminal bell + `osascript` desktop ping on turn-complete and approval-needed.
 - [x] **U4 · Real token/cost usage** — ✅ SHIPPED. Provider `usage` fields captured → exact tokens in `/usage` + status bar.
 - [x] **U5 · /context + /compress** — ✅ SHIPPED. `/context` shows token-budget breakdown; `/compress` triggers manual compaction.
