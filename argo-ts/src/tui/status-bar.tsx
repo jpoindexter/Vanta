@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
+import type { ApprovalMode } from "./approval-mode.js";
 
 // The live status bar — the bottom readout that mirrors docs/hermes-model.html
 // tab 4. Shows run state, active model, an estimated context fill (with a bar),
@@ -46,10 +47,12 @@ export function StatusBar(props: {
   elapsedMs: number;
   width: number;
   hint: string;
+  mode?: ApprovalMode;
 }): ReactElement {
   const { bar, pct } = progressBar(props.estTokens, props.contextWindow);
   const left = props.busy ? `${props.spinner} ${props.status}` : "● ready";
   const dur = props.busy ? ` · ${formatDuration(props.elapsedMs)}` : "";
+  const modeTag = props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> : null;
   return (
     <Box width={props.width} justifyContent="space-between">
       <Text dimColor>
@@ -57,6 +60,7 @@ export function StatusBar(props: {
         {` · ${props.model} · ~${formatCount(props.estTokens)}/${formatCount(props.contextWindow)} `}
         <Text color="cyan">{bar}</Text>
         {` ${pct}%${dur}`}
+        {modeTag}
       </Text>
       <Text dimColor>{props.hint}</Text>
     </Box>

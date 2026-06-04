@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { loadAlwaysAllow, addAlwaysAllow } from "../sessions/approvals-store.js";
 import type { ApprovalChoice } from "./approval.js";
 import type { Action } from "./app.js";
+import type { ApprovalMode } from "./approval-mode.js";
 
 // Owns the HITL approval state behind the conversation's requestApproval gate.
 // once/session live in a ref for the session; "always" also persists via
@@ -10,7 +11,10 @@ import type { Action } from "./app.js";
 
 export type Pending = { action: string; reason: string; toolName?: string };
 
-export function useApproval(dispatch: (a: Action) => void): {
+export function useApproval(
+  dispatch: (a: Action) => void,
+  modeRef: React.MutableRefObject<ApprovalMode>,
+): {
   pending: Pending | null;
   requestApproval: (action: string, reason: string, toolName?: string) => Promise<boolean>;
   chooseApproval: (choice: ApprovalChoice) => void;
@@ -26,6 +30,7 @@ export function useApproval(dispatch: (a: Action) => void): {
   const requestApproval = (action: string, reason: string, toolName?: string): Promise<boolean> =>
     new Promise<boolean>((resolve) => {
       if (toolName && allowRef.current.has(toolName)) return resolve(true);
+      if (modeRef.current === "auto") { resolve(true); return; }
       resolveRef.current = resolve;
       setPending({ action, reason, toolName });
     });
