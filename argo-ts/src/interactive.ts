@@ -26,6 +26,7 @@ import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
+import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 
@@ -226,6 +227,15 @@ export async function runChat(
         if (result.output) console.log(result.output);
         if (result.exit) break;
         if (result.resend) await runUserTurn(result.resend);
+        continue;
+      }
+      const shortcut = parseShortcut(line);
+      if (shortcut) {
+        if (shortcut.type === "bash") {
+          console.log(await runBashShortcut(shortcut.cmd, setup.safety, repoRoot).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
+        } else {
+          console.log(await runMemoryShortcut(shortcut.text, process.env).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
+        }
         continue;
       }
       await runUserTurn(line);
