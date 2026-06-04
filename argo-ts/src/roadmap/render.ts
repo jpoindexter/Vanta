@@ -26,7 +26,7 @@ function routing(item: RoadmapItem): string {
 }
 
 function card(item: RoadmapItem): string {
-  return `<div class="card s-${item.status}" data-track="${esc(item.track)}">
+  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}">
 <div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span><span class="trk">${esc(item.track)}</span></div>
 ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 <p class="sum">${esc(item.summary)}</p>
@@ -48,7 +48,7 @@ function column(status: string, items: RoadmapItem[]): string {
   const tail = untiered.length
     ? `<div class="tg"><h3>Untriaged</h3>${untiered.map(card).join("")}</div>`
     : "";
-  return `<div class="col"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}</h2>${groups}${tail}</div>`;
+  return `<div class="col" data-status="${status}"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}</h2>${groups}${tail}</div>`;
 }
 
 const CSS = `*{box-sizing:border-box;margin:0;padding:0}
@@ -94,7 +94,32 @@ details[open]>summary::before{content:"▾ "}
 .sh-grid .card{break-inside:avoid}
 .hidden{display:none!important}
 @media(max-width:880px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}}
-@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}}`;
+@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}}
+.col.drag-over{outline:2px dashed #3b82f6;background:#1a2744;border-radius:6px}
+.card[draggable=true]{cursor:grab}
+.card.dragging{opacity:.4}`;
+
+const DRAG_JS = `(function(){
+var dragging=null;
+document.querySelectorAll('.card').forEach(function(card){
+card.setAttribute('draggable','true');
+card.addEventListener('dragstart',function(){dragging=this.dataset.id;this.classList.add('dragging');});
+card.addEventListener('dragend',function(){this.classList.remove('dragging');dragging=null;});
+});
+document.querySelectorAll('.col[data-status]').forEach(function(col){
+col.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+col.addEventListener('dragleave',function(e){if(!this.contains(e.relatedTarget)){this.classList.remove('drag-over');}});
+col.addEventListener('drop',function(e){
+e.preventDefault();this.classList.remove('drag-over');
+var id=dragging;var status=this.dataset.status;
+if(!id||!status)return;
+fetch('/roadmap/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,status:status})})
+.then(function(r){return r.json();})
+.then(function(j){if(j.ok)location.reload();else alert('Move failed: '+j.error);})
+.catch(function(err){alert('Move error: '+err);});
+});
+});
+})();`;
 
 const JS = `(function(){
 var cards=document.querySelectorAll('.card');
@@ -150,7 +175,7 @@ ${trackButtons}
 <summary>Shipped (${shipped.length})</summary>
 <div class="sh-grid">${shipped.map(card).join("")}</div>
 </details>
-<script>${JS}</script>
+<script>${DRAG_JS}${JS}</script>
 </body>
 </html>`;
 }

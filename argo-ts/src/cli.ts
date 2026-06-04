@@ -76,6 +76,7 @@ function usage(): void {
       "       argo mcp [list|serve]             list MCP servers Argo consumes, or serve Argo's tools over MCP stdio",
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
+      "       argo roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
       "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via ARGO_AUTONOMY_LEVEL)",
     ].join("\n"),

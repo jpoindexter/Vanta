@@ -137,6 +137,23 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
 }
 
 export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
+  if (args[0] === "serve") {
+    const port = Number(process.env.ARGO_ROADMAP_PORT) || 7789;
+    const [{ serveRoadmap }, { buildRoadmap }, { execSync }] = await Promise.all([
+      import("../roadmap/server.js"),
+      import("../roadmap/build.js"),
+      import("node:child_process"),
+    ]);
+    await buildRoadmap(repoRoot);
+    setTimeout(() => {
+      try {
+        execSync(`open "http://localhost:${port}/roadmap/board"`);
+      } catch {}
+    }, 300);
+    await serveRoadmap(repoRoot, port);
+    return;
+  }
+
   if (args[0] === "move") {
     const id = args[1];
     const status = args[2];
