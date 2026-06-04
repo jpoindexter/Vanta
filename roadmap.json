@@ -852,6 +852,54 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high"
+    },
+    {
+      "id": "BRAIN-5D",
+      "track": "Memory + Continuity",
+      "title": "Multi-dimensional brain (5D: type x time x strength x relations x decay)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Replace the 7 flat brain region .md files with a typed, timestamped, confidence-scored, graph-connected, decay-aware entry model. Dimensions: (1) type/region, (2) createdAt/updatedAt, (3) strength 0-1, (4) relatedIds cross-references, (5) forgetAfter decay. Store in ~/.argo/brain.db (SQLite). AgentMemory Memory type as the reference model. Each brain write now carries strength + timestamp; the brainDigest injection selects by strength+recency, not just all text. Auto-decay stale entries (7d unless reinforced). ND fit F6 (Argo has an honest, maintained self-model, not a stale dump).",
+      "done": "Each brain entry has a strength score; brainDigest injects top-K by strength*recency; stale entries decay; conflicting beliefs show version history.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high"
+    },
+    {
+      "id": "MEM-COMPRESS",
+      "track": "Memory + Continuity",
+      "title": "Observation compression pipeline (raw event -> facts -> memory)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "AgentMemory-inspired 3-stage pipeline: (1) raw hook observations (tool calls, user prompts, assistant responses); (2) compressed observations (type, title, facts[], narrative, concepts[], importance); (3) consolidated memories (pattern/preference/architecture/bug/workflow/fact). Today reviewAfterTurn extracts skills. This extends it to extract all typed knowledge. Each tool result that produces insight generates a CompressedObservation; the consolidator promotes recurring patterns to long-term Memory entries. ND fit F5 (Argo builds a real mental model, not just a skills list).",
+      "done": "A file edit, decision, or discovery generates a typed CompressedObservation; recurring patterns crystallize into Memory entries; the brain grows from experience.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high"
+    },
+    {
+      "id": "MEM-WORKINGMEM",
+      "track": "Memory + Continuity",
+      "title": "Working memory (hot session cache + injection)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "AgentMemory-inspired working memory: a session-scoped cache of the most relevant observations from the current session (vs long-term memory which is cross-session). Injected into the prompt as a volatile tier above the stable brain digest, below MOIM. Size-capped (ARGO_WORKING_MEM_TOKENS, default 2k). Auto-populated from current-session tool results and user prompts. ND fit F2+F3 (Argo tracks what just happened without re-reading the full brain).",
+      "done": "A working-memory block appears in the system prompt for active sessions; it reflects the last N tool calls and decisions without hitting long-term memory.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "medium"
+    },
+    {
+      "id": "MEM-VERSIONING",
+      "track": "Memory + Continuity",
+      "title": "Memory versioning (supersedes chain, no data loss)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "AgentMemory-inspired version chain: when a belief is updated (e.g., preferred provider changed), the old entry is archived with a supersedes pointer rather than overwritten. Brain writes use version+parentId. Enables: argo brain history <entry> to see how a belief evolved; auto-detection of conflicting beliefs (two entries with same concept but different content). ND fit F6 (trust - Argo cant accidentally forget something important by overwriting).",
+      "done": "Updating a brain entry creates a new version; argo brain history shows the chain; conflicting entries are flagged, not silently dropped.",
+      "tier": "pebble",
+      "model": "haiku",
+      "effort": "medium"
     }
   ]
 }
