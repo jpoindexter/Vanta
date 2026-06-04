@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-04 (audit pass — see audit.html)",
+  "updated": "2026-06-04 (audit + kanban research + workflows)",
   "items": [
     {
       "id": "TUI",
@@ -495,6 +495,24 @@
       "size": "S",
       "summary": "From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability — always reachable).",
       "done": "ARGO_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start."
+    },
+    {
+      "id": "KANBAN",
+      "track": "Executive Function (inclusive spine)",
+      "title": "Live roadmap kanban (you + Argo control) + WIP limit",
+      "status": "next",
+      "size": "M",
+      "summary": "The roadmap IS already a kanban (status enum = columns; render.ts renders Now/Next/Later). Make it bi-directionally LIVE, source of truth stays roadmap.json (agent-ready, git-versioned). (1) Argo control: roadmap_move tool + `argo roadmap move <id> <status>` (kernel-gated write→regenerate); the dark factory moves cards next→building on start, building→shipped on verified-commit. (2) Human control: roadmap.html drag-to-move POSTs to a tiny local endpoint (argo roadmap serve / kernel /api/roadmap/move) that rewrites roadmap.json. (3) THE EF FEATURE — a hard WIP limit on Now(building)=1-2: moving a 3rd card in refuses and asks you to finish or park one. WIP limit = the anti-bounce/finish-what-you-start prosthesis (targets the documented ideas-rich/finish-poor pattern + this session’s live 8-goal bounce). Ship #1 first (smallest slice). Research: docs/kanban-roadmap-research.md. ND fit F2+F4+F5+F6.",
+      "done": "Both you and Argo move cards on one live board (roadmap.json source); Now is WIP-limited and refuses a 3rd card until one is finished or parked."
+    },
+    {
+      "id": "WORKFLOWS",
+      "track": "Self-improvement",
+      "title": "Dynamic workflows (agent writes its own orchestration harness)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "From Anthropic’s Claude Code team (Thariq Shihipar & Sid Bidasaria, “A harness for every task”, /Desktop PDF). Let Argo write its own JS orchestration harness on the fly to spawn+coordinate sub-agents, extending the existing delegate+swarm. Canonical patterns: classify-and-act, fan-out-and-synthesize, adversarial-verification, generate-and-filter, tournament, loop-until-done. Combats the long-context failure modes the article names — agentic laziness (stops at 20/50 items), self-preferential bias (prefers own results when judging), goal drift (loses the objective after compaction) — by giving each sub-agent its own clean context + isolated goal. Token budgets (“use 10k tokens”), worktree isolation, model/intelligence routing per subtask, save/reuse workflows. VISION TIE-IN: this is executive function FOR THE AGENT — making Argo itself finish and stay on-objective — the mirror of the human-EF moat. Pairs with Argo’s /goal + a /loop equivalent.",
+      "done": "Argo can compose+run a multi-agent workflow (fan-out/synthesize, adversarial-verify, tournament, loop-until-done) with a token budget; a long/parallel task that single-context drifts on completes without agentic laziness or goal drift."
     }
   ]
 }
