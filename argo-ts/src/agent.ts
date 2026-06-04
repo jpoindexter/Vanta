@@ -3,6 +3,7 @@ import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
 import type { Message, ToolCall, ImageAttachment } from "./types.js";
+import type { DiffLine } from "./util/diff.js";
 import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 
@@ -19,7 +20,7 @@ export type AgentDeps = {
    * streaming), the loop streams instead of waiting for the full completion. */
   onTextDelta?: (delta: string) => void;
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
-  onToolResult?: (name: string, ok: boolean, output: string) => void;
+  onToolResult?: (name: string, ok: boolean, output: string, diff?: DiffLine[]) => void;
   maxIterations?: number;
   summarize?: Summarizer;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
@@ -265,6 +266,6 @@ async function dispatchTool(
   }
 
   const res = await tool.execute(call.arguments, ctx);
-  deps.onToolResult?.(call.name, res.ok, res.output);
+  deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   return { executed: true, empty: res.output.trim().length === 0, output: res.output };
 }

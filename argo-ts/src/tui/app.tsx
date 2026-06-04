@@ -55,7 +55,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       summarize: buildSummarizer(setup.provider),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
-      onToolResult: (name, ok, output) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output) }),
+      onToolResult: (name, ok, output, diff) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), diff }),
       requestApproval,
     });
   }

@@ -2,6 +2,8 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { partitionBlocks } from "./tool-display.js";
 import { renderMarkdown } from "./markdown.js";
+import { DiffView } from "./diff-view.js";
+import type { DiffLine } from "../util/diff.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
 // / tool / note rows), the streaming buffer, and the slash-command palette.
@@ -18,6 +20,8 @@ export type ToolEntry = {
   ok?: boolean;
   /** First line of a FAILED result only — successes show nothing (output → model). */
   errorLine?: string;
+  /** Diff lines for write_file results — shown inline after the tool line. */
+  diff?: DiffLine[];
 };
 
 export type Entry =
@@ -61,17 +65,20 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
   return <Text dimColor>  {e.text}</Text>;
 }
 
-/** One clean activity line: `<mark> <icon> <verb> <detail>` (+ error tail). */
+/** One clean activity line: `<mark> <icon> <verb> <detail>` (+ error tail + diff). */
 function ToolLine(props: { entry: ToolEntry }): ReactElement {
   const e = props.entry;
   const mark = e.ok === undefined ? "·" : e.ok ? "✓" : "✗";
   const tail = e.detail ? ` ${e.detail}` : "";
   return (
-    <Text dimColor>
-      {mark} {e.icon} {e.verb}
-      {tail}
-      {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
-    </Text>
+    <Box flexDirection="column">
+      <Text dimColor>
+        {mark} {e.icon} {e.verb}
+        {tail}
+        {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
+      </Text>
+      {e.ok && e.diff?.length ? <DiffView lines={e.diff} /> : null}
+    </Box>
   );
 }
 

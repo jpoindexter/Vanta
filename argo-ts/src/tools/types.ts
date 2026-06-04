@@ -1,7 +1,10 @@
 import type { SafetyClient } from "../safety-client.js";
 import type { ToolSchema } from "../providers/interface.js";
+import type { DiffLine } from "../util/diff.js";
 
-export type ToolResult = { ok: boolean; output: string };
+export type { DiffLine };
+
+export type ToolResult = { ok: boolean; output: string; diff?: DiffLine[] };
 
 export type ToolContext = {
   root: string;

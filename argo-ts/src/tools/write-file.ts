@@ -1,9 +1,10 @@
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveInScope } from "../scope.js";
 import { expandHome, resolveWritableZones, isInZone } from "./writable-zones.js";
+import { computeDiff } from "../util/diff.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -57,7 +58,9 @@ export const writeFileTool: Tool = {
     }
 
     const isExisting = await exists(abs);
+    let oldContent = "";
     if (isExisting) {
+      try { oldContent = await readFile(abs, "utf8"); } catch { /* leave as "" on read error */ }
       const approved = await ctx.requestApproval(
         `Overwrite existing file ${path}`,
         "file already exists — overwriting is destructive",
@@ -72,7 +75,8 @@ export const writeFileTool: Tool = {
       await writeFile(abs, content, "utf8");
       const bytes = Buffer.byteLength(content);
       const kind = isExisting ? "overwritten" : "new file";
-      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})` };
+      const diff = computeDiff(oldContent, content);
+      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})`, diff: diff.length ? diff : undefined };
     } catch (err) {
       return {
         ok: false,
