@@ -170,6 +170,7 @@ export async function runChat(
         if (inProgress.length) console.log(`\n${buildClosureGateText(inProgress)}`);
       } catch { /* best-effort */ }
     }
+    const turnStart = new Date().toISOString();
     const outcome = await convo.send(text, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);
@@ -177,7 +178,7 @@ export async function runChat(
       console.log(`  · ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens`);
     }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
-    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText);
+    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, { now: turnStart });
     await suggestSkillFromRun(text, process.env);
     await reviewAfterTurn({
       provider: setup.provider,

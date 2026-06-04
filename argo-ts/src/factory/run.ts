@@ -203,12 +203,21 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const branch = await createBranch(config.argoRoot);
     log(`factory: branched → ${branch}`);
 
-    log("factory: executing…");
-    const artifact = await execute(config.argoRoot, plan, config.budgetTokens);
-    log(`factory: ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
-
-    log("factory: verifying…");
-    const verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+    // FAC-STALL: bounded retry when verify fails (ARGO_FACTORY_MAX_RETRIES, default 1).
+    const maxRetries = Math.max(0, parseInt(process.env.ARGO_FACTORY_MAX_RETRIES ?? "1", 10));
+    let artifact = await execute(config.argoRoot, plan, config.budgetTokens);
+    log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
+    let verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+    for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
+      log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})…`);
+      await discardSlice(config.argoRoot);
+      const retryBranch = await createBranch(config.argoRoot);
+      log(`factory: branched → ${retryBranch}`);
+      const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
+      artifact = await execute(config.argoRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
+      log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens`);
+      verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+    }
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
       await discardSlice(config.argoRoot);
@@ -233,6 +242,12 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const msg = `factory(auto): ${item.description}\n\ncategory: ${item.category}\ntokens: ${artifact.tokenSpend.toLocaleString()}\nbranch: ${branch}`;
     const sha = await commitSlice(config.argoRoot, msg);
     log(`factory: committed ${sha}`);
+    // FAC-CLOSE: mark the roadmap item shipped so the KANBAN reflects the close.
+    if (item.roadmapId && item.category === "roadmap") {
+      const { moveRoadmapItem } = await import("../roadmap/move.js");
+      await moveRoadmapItem(config.argoRoot, item.roadmapId, "shipped").catch(() => {});
+      log(`factory: closed roadmap item ${item.roadmapId}`);
+    }
 
     if (effectiveLevel <= 3) {
       // L3 commit — committed locally, but not pushed.

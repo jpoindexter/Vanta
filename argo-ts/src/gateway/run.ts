@@ -89,7 +89,23 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
     load: async () => regularEntries,
   });
   for (const r of results) log(`  ↳ #${r.id} ${firstLine(r.result)}`);
+
+  // S5: periodic brain heartbeat — update drives/identity region every N ticks.
+  await writeHeartbeat(deps.dataDir, now).catch(() => {});
+
   return results.length + factoryEntries.length;
+}
+
+const HEARTBEAT_EVERY_MS = 3_600_000; // 1 hour
+let lastHeartbeatMs = 0;
+
+async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
+  const ms = now.getTime();
+  if (ms - lastHeartbeatMs < HEARTBEAT_EVERY_MS) return;
+  lastHeartbeatMs = ms;
+  const { writeRegion } = await import("../brain/store.js");
+  const note = `\n- [${now.toISOString()}] gateway heartbeat — daemon alive, tasks processed`;
+  await writeRegion("drives", note, { append: true });
 }
 
 /**
