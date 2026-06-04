@@ -1,0 +1,183 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Audit — Argo vs Hermes vs Goose (+ Claude Code)</title>
+<style>
+:root{--bg:#070807;--panel:#0d1110;--panel2:#111817;--line:#26302d;--text:#e8eee9;--muted:#8a9992;--green:#64f4a1;--amber:#ffd166;--red:#ff6b6b;--blue:#7aa7ff;--violet:#c99cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#14211b 0,#070807 34%,#050605 100%);color:var(--text);font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+header{padding:38px 44px 26px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(100,244,161,.08),transparent)}
+h1{margin:0 0 8px;font-size:26px;letter-spacing:-.04em}h2{margin:0 0 12px;font-size:16px;color:#fff;letter-spacing:-.02em}
+h3{margin:14px 0 8px;font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.08em}
+.sub{color:var(--muted);max-width:1000px}.stamp{margin-top:14px;color:#5f7068;font-size:12px}
+.wrap{padding:24px 44px 80px;max-width:1500px;margin:auto}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:14px 0}
+.card{background:linear-gradient(180deg,var(--panel),#0a0d0c);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
+.span4{grid-column:span 4}.span6{grid-column:span 6}.span12{grid-column:span 12}
+p{margin:0 0 8px;color:#cad4cf}.muted{color:var(--muted)}
+.chip{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);background:#0a0f0e;border-radius:999px;padding:2px 8px;margin:2px;color:#cfd8d3;font-size:11px}
+.chip.f{border-color:#2c4a3c;color:var(--green)}.chip.ok{border-color:#2c4a3c;color:var(--green)}.chip.bad{border-color:#4a2c2c;color:var(--red)}
+.ok{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}
+section{margin:30px 0;scroll-margin-top:14px}
+nav{position:sticky;top:0;z-index:5;background:rgba(7,8,7,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:10px 44px;display:flex;gap:8px;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;font-size:12px;padding:4px 9px;border:1px solid transparent;border-radius:8px}
+nav a:hover{color:var(--green);border-color:var(--line)}
+.agent .row1{display:flex;justify-content:space-between;align-items:baseline}.agent .lic{font-size:11px;color:var(--violet)}
+.agent .lineage{font-size:11px;margin:2px 0 6px}.agent .tag{font-size:12px;min-height:34px}.agent .vsa{font-size:12px;color:#bcc8c2;border-top:1px solid var(--line);padding-top:8px}.agent .k{color:var(--blue)}
+.fdef{font-size:12px;margin:3px 0}.fdef b{color:var(--green)}
+.inv ul{margin:0;padding-left:16px}.inv li{font-size:12px;color:#bcc8c2;margin:2px 0}
+.line{border-left:2px solid var(--line);padding:4px 0 4px 10px;margin:6px 0}.line.ok{border-color:var(--green)}.line.warn{border-color:var(--amber)}
+table.t{width:100%;border-collapse:collapse;font-size:12px}table.t th,table.t td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t th{color:var(--muted);font-weight:600;position:sticky;top:44px;background:#0b0f0e}
+.cap{color:#fff}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.btn{cursor:pointer;border:1px solid var(--line);background:#0a0f0e;color:#cfd8d3;border-radius:8px;padding:5px 11px;font:inherit;font-size:12px}
+.btn.active{border-color:var(--green);color:var(--green)}
+.pull .row1,.drop .row1{display:flex;justify-content:space-between;align-items:baseline}.pull{border-color:#2c4a3c}.drop{border-color:#3a2c2c}
+.meta{font-size:11px;color:var(--muted);margin:4px 0}
+.note{font-size:12px;color:var(--muted);margin:0 0 10px}
+.statusbar{display:inline-block;border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:3px 9px;font-size:11px;margin-top:10px}
+input.search{background:#0a0f0e;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 10px;font:inherit;font-size:12px;min-width:220px}
+</style></head><body>
+<header>
+<h1>Agent Audit — Argo vs Hermes vs Goose (+ Claude Code)</h1>
+<div class="sub">Argo's sharpened product vision: a trusted personal AI operator FOR neurodivergent people — built to support executive function and other ND traits (broad ND: dyslexia, dyscalculia, autism, ADHD, aphantasia, and more — not just autism+ADHD). This sharpens the manifesto's 'trusted digital operator' with a who and a why. Grounded in Argo's existing neurodivergent-first brain identity and the operator's own profile. The kernel-safety thesis (safe by construction) is itself an ND feature: it removes the vigilance burden.</div>
+<div class="statusbar">v0 — Argo/ClaudeCode/local-Hermes populated; Hermes &amp; Goose deep-dives enriching</div>
+<div class="stamp">generated 2026-06-04 · source: audit.json (agent-ready) · regenerate: node argo-ts/scripts/build-audit.mjs</div>
+</header>
+<nav>
+<a href="#agents">Agents</a><a href="#vision">ND Vision</a><a href="#inventory">Argo Inventory</a>
+<a href="#nd">ND Alignment</a><a href="#matrix">Matrix</a><a href="#pulls">Pulls</a><a href="#drops">Drops</a>
+<a href="#issues">Issues</a><a href="#local">Local Hermes</a><a href="#cc">Claude Code</a><a href="#docs">Docs</a>
+</nav>
+<div class="wrap">
+
+<section id="agents"><h2>The agents</h2><div class="grid"><div class="card span4 agent" data-id="argo">
+      <div class="row1"><b>Argo</b><span class="lic">private</span></div>
+      <div class="muted lineage">OpenClaw → Hermes → Argo · Rust kernel + TS (Node22/ESM)</div>
+      <p class="tag">Trusted operator: knows the goal, enforces scope on every action, reports only verified output.</p>
+      <div class="vsa"><span class="k">vs Argo:</span> —</div>
+    </div><div class="card span4 agent" data-id="hermes">
+      <div class="row1"><b>Hermes (upstream)</b><span class="lic">MIT</span></div>
+      <div class="muted lineage">NousResearch · Python</div>
+      <p class="tag">The self-improving AI agent — built-in learning loop, skills from experience, runs on a $5 VPS, text it from Telegram.</p>
+      <div class="vsa"><span class="k">vs Argo:</span> Same lineage/concept — Argo hardens Hermes's breadth into a kernel-enforced safety contract. Heavy overlap expected; delta is what matters.</div>
+    </div><div class="card span4 agent" data-id="hermesLocal">
+      <div class="row1"><b>Hermes (local customized)</b><span class="lic">MIT</span></div>
+      <div class="muted lineage">~/.hermes/hermes-agent vs -clean baseline · Python</div>
+      <p class="tag">Jason's customized Hermes — the bar Argo set out to match then exceed.</p>
+      <div class="vsa"><span class="k">vs Argo:</span> Customizations: gateway streaming dispatch, ai-gateway provider plugin, browser_providers, telegram/cron tweaks.</div>
+    </div><div class="card span4 agent" data-id="goose">
+      <div class="row1"><b>Goose</b><span class="lic">Apache-2.0</span></div>
+      <div class="muted lineage">Block → Linux Foundation (AAIF) · Rust core + Electron/React desktop</div>
+      <p class="tag">Native open-source AI agent — desktop, CLI, API — for code &amp; workflows.</p>
+      <div class="vsa"><span class="k">vs Argo:</span> Different lineage (Block). Dev-tool-centric → expect many DROPs, a few genuinely novel ideas (extensions/MCP maturity, recipes, scheduler).</div>
+    </div><div class="card span4 agent" data-id="claudeCode">
+      <div class="row1"><b>Claude Code (reference)</b><span class="lic">proprietary (study-only)</span></div>
+      <div class="muted lineage">Anthropic (leaked/ported source surveyed) · TS (Bun)</div>
+      <p class="tag">The reference harness — surveyed for plumbing/permission/runnability patterns.</p>
+      <div class="vsa"><span class="k">vs Argo:</span> Study-only; reimplement clean. Findings are infra-level (permission protocol, capability matrix, activity-feed extraction).</div>
+    </div></div></section>
+
+<section id="vision"><h2>ND / executive-function vision — the filter</h2>
+<div class="card span12"><p>Argo's sharpened product vision: a trusted personal AI operator FOR neurodivergent people — built to support executive function and other ND traits (broad ND: dyslexia, dyscalculia, autism, ADHD, aphantasia, and more — not just autism+ADHD). This sharpens the manifesto's 'trusted digital operator' with a who and a why. Grounded in Argo's existing neurodivergent-first brain identity and the operator's own profile. The kernel-safety thesis (safe by construction) is itself an ND feature: it removes the vigilance burden.</p>
+<h3>Fit filters</h3><div class="fdef"><b>F1</b> Initiation friction — <span class="muted">Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall).</span></div><div class="fdef"><b>F2</b> Externalized memory — <span class="muted">Offloads working memory — remembers goals, context, where you left off, what was decided.</span></div><div class="fdef"><b>F3</b> Calm output — <span class="muted">Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.</span></div><div class="fdef"><b>F4</b> Low decision load — <span class="muted">Sensible defaults; doesn't demand constant micro-choices (decision fatigue / analysis paralysis).</span></div><div class="fdef"><b>F5</b> Structure &amp; follow-through — <span class="muted">Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits.</span></div><div class="fdef"><b>F6</b> Reliability / trust — <span class="muted">Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.</span></div>
+<h3>Curation bias</h3><p class="muted">RUTHLESS by design. Six escalating 'add to goal' messages is itself scope creep — so this audit's job is a SMALL curated pull-set and a LOT of explicit DROP. A feature being slick in a dev-tool (Goose) or broad in Hermes does not make it fit an ND executive-function assistant. Default verdict is DROP unless it scores ≥2 ND filters with low cognitive cost.</p></div></section>
+
+<section id="inventory"><h2>Argo — current surface (dedupe baseline)</h2>
+<p class="note">Argo's current surface — the dedupe baseline. 675 tests green (648 TS + 27 Rust).</p><div class="grid"><div class="card span4 inv"><h3>Architecture</h3><ul><li>Rust safety kernel (assess() gates every tool call: Allow/Ask/Block)</li><li>Approvals queue + goal ledger + event log</li><li>TS agent layer (Node22/ESM/tsx, no build step)</li><li>Kernel is the boundary — TS cannot bypass it</li></ul></div><div class="card span4 inv"><h3>Agent loop</h3><ul><li>Non-streaming complete + kernel-gated tool dispatch</li><li>Context compress (LLM-summarize) / trim fallback</li><li>AbortSignal interrupt between iterations</li><li>Self-improvement nudge counters</li></ul></div><div class="card span4 inv"><h3>Providers (7)</h3><ul><li>openai</li><li>ollama (local)</li><li>anthropic</li><li>gemini</li><li>openrouter (200+ models)</li><li>claude-code (Pro/Max OAuth)</li><li>codex (ChatGPT OAuth)</li></ul></div><div class="card span4 inv"><h3>Tools (33)</h3><ul><li>read_file / write_file (scoped writable+readable zones)</li><li>shell_cmd, run_code, inspect_state, todo</li><li>web_search (ddg/searxng/serpapi/brave), web_fetch</li><li>browser (playwright: navigate/extract/screenshot)</li><li>vision: look_at_screen/camera, watch_video, describe_image</li><li>speak / transcribe (TTS/STT)</li><li>recall / write_skill (learning)</li><li>brain (selfhood read/write)</li><li>delegate / swarm (sub-agents)</li><li>git (6: status/diff/commit/push/branch/checkout)</li><li>gmail/calendar/drive (10, outbound approval-gated)</li><li>lsp (diagnostics/definition), mount_mcp</li></ul></div><div class="card span4 inv"><h3>TUI / UX</h3><ul><li>React/Ink streaming transcript + tool activity + spinner</li><li>Inline approvals, slash commands, custom composer</li><li>TUI-SMOOTH: clean per-tool activity feed (no JSON/temp-path firehose)</li><li>Domain-grouped capability banner</li></ul></div><div class="card span4 inv"><h3>Prompt</h3><ul><li>3-tier: stable (SOUL+tools+rules) / context (ARGO+AGENTS+CLAUDE.md) / volatile (goals+time+memory)</li><li>Brain digest injected</li><li>Skill index injected; recall loads full body</li></ul></div><div class="card span4 inv"><h3>Self-improvement</h3><ul><li>Background review → writes skills tagged argo-learned</li><li>Safe curator (archives only stale learned skills, never deletes)</li><li>Dark factory: triage→plan→execute→verify→commit</li><li>Autonomy ladder L1–L5 (O10/O10b) + compartment tiers (O11)</li></ul></div><div class="card span4 inv"><h3>Selfhood / memory</h3><ul><li>Brain regions (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood)</li><li>SOUL.md + AGENT-MANIFESTO.md</li><li>Per-goal memory summaries (capped, git-retained)</li><li>Sessions persist/resume</li></ul></div><div class="card span4 inv"><h3>Autonomy / reach</h3><ul><li>Gateway daemon + launchd service</li><li>Telegram gateway (long-poll + allowlist)</li><li>Webhook triggers (HMAC-gated)</li><li>MCP: consume (mount servers) + serve (Argo as MCP server)</li><li>Cron schedule, project rooms, operator modes, model routing</li></ul></div></div></section>
+
+<section id="nd"><h2>ND alignment — what Argo already does · where the gaps are</h2>
+<div class="grid"><div class="card span6"><h3>Already strong</h3><div class="line ok"><b>Kernel safe-by-construction</b> <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span><div class="muted">Removes vigilance burden — the operator never has to police the agent; the boundary is physical.</div></div><div class="line ok"><b>Goal ledger + per-goal memory</b> <span class="chip f" title="Externalized memory — Offloads working memory — remembers goals, context, where you left off, what was decided.">F2</span><span class="chip f" title="Structure &amp; follow-through — Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits.">F5</span><div class="muted">Externalizes goals and context across sessions — offloads working memory; supports follow-through.</div></div><div class="line ok"><b>Brain identity[neurodivergent-first]</b> <span class="chip f" title="Externalized memory — Offloads working memory — remembers goals, context, where you left off, what was decided.">F2</span><span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span><div class="muted">Builds a persistent model of the user; the ND framing is already encoded.</div></div><div class="line ok"><b>TUI-SMOOTH calm activity feed</b> <span class="chip f" title="Calm output — Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.">F3</span><div class="muted">Just shipped — kills the firehose; low-arousal output.</div></div></div>
+<div class="card span6"><h3>Gaps (pull candidates)</h3><div class="line warn"><b>No explicit task-initiation / 'just start' affordance</b> <span class="chip f" title="Initiation friction — Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall).">F1</span><div class="muted">Candidate pull target — the activation wall is the #1 ND exec-function need.</div></div><div class="line warn"><b>No body-doubling / gentle nudge cadence</b> <span class="chip f" title="Initiation friction — Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall).">F1</span><span class="chip f" title="Structure &amp; follow-through — Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits.">F5</span><div class="muted">Candidate — presence + nudges support initiation &amp; follow-through.</div></div><div class="line warn"><b>No reading-mode / dyslexia-friendly output shaping</b> <span class="chip f" title="Calm output — Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.">F3</span><div class="muted">Candidate — broad ND, not just exec function.</div></div></div></div></section>
+
+<section id="matrix"><h2>Capability matrix</h2>
+<p class="note">Decision-level capability matrix. Cells: ✓ has · ~ partial · ✗ lacks · — n/a. Hermes/Goose cells refined by deep-dive agents.</p>
+<div class="controls">
+<button class="btn active" data-filt="all">All</button>
+<button class="btn" data-filt="ok">Leads / Pull</button>
+<button class="btn" data-filt="warn">Parity / Defer</button>
+<button class="btn" data-filt="bad">Drop</button>
+<input class="search" id="msearch" placeholder="filter capabilities…"/>
+</div>
+<div class="card span12"><table class="t" id="matrix-t"><thead><tr><th>Capability</th><th>Argo</th><th>Hermes</th><th>Goose</th><th>Claude Code</th><th>Verdict</th><th>Note</th></tr></thead><tbody><tr data-verdict="ok">
+      <td class="cap">Kernel-enforced safety boundary <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td>
+      <td>✓ Rust assess()</td><td>~ prompt+policy, not a kernel</td><td>~ permission modes</td><td>~ permission tool</td>
+      <td class="ok">ARGO LEADS</td>
+      <td class="muted">Argo's structural differentiator — safe by construction, not by suggestion.</td></tr><tr data-verdict="warn">
+      <td class="cap">Self-improvement / learning loop <span class="chip f" title="Externalized memory — Offloads working memory — remembers goals, context, where you left off, what was decided.">F2</span></td>
+      <td>✓ review+factory</td><td>✓ original learning loop</td><td>✗</td><td>✗</td>
+      <td class="warn">PARITY (Hermes)</td>
+      <td class="muted">Argo inherited + hardened Hermes's loop.</td></tr><tr data-verdict="warn">
+      <td class="cap">Skills (markdown, git-versioned) <span class="chip f" title="Externalized memory — Offloads working memory — remembers goals, context, where you left off, what was decided.">F2</span><span class="chip f" title="Structure &amp; follow-through — Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits.">F5</span></td>
+      <td>✓</td><td>✓</td><td>~ recipes</td><td>~ bundled skills</td>
+      <td class="warn">PARITY</td>
+      <td class="muted"></td></tr><tr data-verdict="warn">
+      <td class="cap">Telegram / text-it-from-phone <span class="chip f" title="Initiation friction — Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall).">F1</span></td>
+      <td>✓ gateway</td><td>✓</td><td>✗</td><td>✗</td>
+      <td class="warn">PARITY (Hermes)</td>
+      <td class="muted">Low-friction capture from anywhere = initiation aid.</td></tr><tr data-verdict="ok">
+      <td class="cap">Extension / MCP ecosystem </td>
+      <td>✓ consume+serve</td><td>~ ACP adapter</td><td>✓ mature extension system</td><td>~ MCP</td>
+      <td class="ok">GOOSE MAY LEAD</td>
+      <td class="muted">Pending Goose deep-dive — depth of extension UX.</td></tr><tr data-verdict="ok">
+      <td class="cap">Calm / low-firehose output <span class="chip f" title="Calm output — Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.">F3</span></td>
+      <td>✓ TUI-SMOOTH</td><td>~</td><td>~</td><td>~ activity extraction</td>
+      <td class="ok">ARGO LEADS</td>
+      <td class="muted">Core ND differentiator.</td></tr><tr data-verdict="ok">
+      <td class="cap">Per-model capability matrix <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td>
+      <td>✗</td><td>?</td><td>?</td><td>✓ override map</td>
+      <td class="ok">PULL (ClaudeCode)</td>
+      <td class="muted">Prevents 400s on free-typed OpenRouter/Ollama models → reliability.</td></tr><tr data-verdict="warn">
+      <td class="cap">Degraded/headless fallback CLI <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td>
+      <td>~ readline REPL</td><td>✓ web UI + CLI</td><td>✓ CLI+desktop+API</td><td>✓ recovery CLI</td>
+      <td class="warn">DEFER</td>
+      <td class="muted">Resilience when Ink can't render.</td></tr></tbody></table></div></section>
+
+<section id="pulls"><h2 class="ok">Pull — worth adding (curated)</h2>
+<p class="note">WORTH ADDING — curated, ND-aligned. Small by design. Hermes &amp; Goose deep-dive agents will add their curated PULLs here.</p><div class="grid"><div class="card span6 pull">
+      <div class="row1"><b>Task-initiation affordance ('just start' / next-tiny-step)</b><span class="chip ok">HIGH</span></div>
+      <div class="meta">src: ND-vision gap · effort MED · risk LOW <span class="chip f" title="Initiation friction — Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall).">F1</span><span class="chip f" title="Structure &amp; follow-through — Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits.">F5</span></div>
+      <p class="muted">The activation wall is the central ND exec-function need; nothing in any of the 3 agents targets it directly. This is Argo's differentiator, not a copy.</p></div><div class="card span6 pull">
+      <div class="row1"><b>Per-model capability matrix in providers/catalog</b><span class="chip ok">HIGH</span></div>
+      <div class="meta">src: Claude Code (claude-code-haha) · effort LOW · risk LOW <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></div>
+      <p class="muted">Free-typed OpenRouter/Ollama models get sent thinking/effort params they 400 on. Small declarative map fixes a real reliability gap.</p></div><div class="card span6 pull">
+      <div class="row1"><b>Activity-feed extraction polish (extractActivities pattern)</b><span class="chip ok">MED</span></div>
+      <div class="meta">src: Claude Code (leaked) · effort LOW · risk LOW <span class="chip f" title="Calm output — Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.">F3</span></div>
+      <p class="muted">Reinforces TUI-SMOOTH — bounded, summarized activity. Already partly done; pattern confirms direction.</p></div></div></section>
+
+<section id="drops"><h2 class="bad">Drop — lose totally / do not build</h2>
+<p class="note">LOSE TOTALLY / DO NOT BUILD — fails the ND filter or duplicates Argo. Hermes &amp; Goose deep-dive agents will add the bulk of DROPs here (esp. Goose dev-power-tooling).</p><div class="grid"><div class="card span6 drop">
+      <div class="row1"><b>AI-gateway model-provider plugin (local Hermes)</b><span class="chip bad">DROP</span></div>
+      <div class="meta">src: Hermes local</div>
+      <p class="muted">Argo already has 7 providers incl OpenRouter (the same 'one key, many models' value). Duplicate; adds cognitive surface.</p></div><div class="card span6 drop">
+      <div class="row1"><b>browser_providers (local Hermes)</b><span class="chip bad">DROP</span></div>
+      <div class="meta">src: Hermes local</div>
+      <p class="muted">Argo already has Playwright browser tools. Likely duplicate — verify, then drop.</p></div><div class="card span6 drop">
+      <div class="row1"><b>Plugin/recipe marketplaces &amp; sharing ecosystems</b><span class="chip bad">DROP</span></div>
+      <div class="meta">src: Goose (anticipated)</div>
+      <p class="muted">Platform-thinking before users; adds choice load (F4 violation). Anti-ND.</p></div></div></section>
+
+<section id="issues"><h2>GitHub issue triage</h2>
+<p class="note">GitHub issue triage — worth-adding vs not, ND-lens. Populated by deep-dive agents.</p>
+<div class="grid"><div class="card span6"><h3>Hermes issues</h3><p class="muted">Pending deep-dive enrichment.</p></div>
+<div class="card span6"><h3>Goose issues</h3><p class="muted">Pending deep-dive enrichment.</p></div></div></section>
+
+<section id="local"><h2>Local Hermes — customization delta</h2>
+<p class="note">Customizations in ~/.hermes/hermes-agent vs the clean baseline — what Jason+Claude changed.</p>
+<div class="card span12"><table class="t"><thead><tr><th>File / area</th><th>What it does</th><th>Verdict</th><th>Why</th></tr></thead><tbody><tr><td class="cap">gateway/stream_dispatch.py + stream_events.py</td><td>Streaming events through the gateway (live dispatch + event stream).</td><td class="warn">DEFER</td><td class="muted">Check if Argo's gateway already streams; if not, this aids calm live feedback (F3).</td></tr><tr><td class="cap">plugins/model-providers/ai-gateway</td><td>An AI-gateway model provider plugin.</td><td class="bad">DROP</td><td class="muted">Argo's 7 providers + OpenRouter cover this.</td></tr><tr><td class="cap">tools/browser_providers</td><td>Pluggable browser backends.</td><td class="bad">DROP</td><td class="muted">Argo has Playwright browser tools.</td></tr><tr><td class="cap">gateway/platforms/telegram.py (send-draft format) + cron tweaks</td><td>Telegram draft formatting + cronjob tool adjustments.</td><td class="warn">DEFER</td><td class="muted">Minor polish; revisit only if Argo's telegram/cron output is noisy (F3).</td></tr></tbody></table></div></section>
+
+<section id="cc"><h2>Claude Code — reference findings</h2>
+<p class="note">Claude Code CLI survey (leaked-claude-code = partial leak/plumbing layer; claude-code-haha = runnability layer). Study-only; reimplement clean.</p>
+<div class="card span12"><table class="t"><thead><tr><th>Finding</th><th>Repo</th><th>Value</th><th>Risk</th><th>Note</th></tr></thead><tbody><tr><td class="cap">Per-model capability override matrix <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>claude-code-haha</td><td>HIGH</td><td>LOW</td><td class="muted">→ PULL. Real Argo gap: free-typed models 400 on unsupported params.</td></tr><tr><td class="cap">Permission-as-pluggable-tool + abort-signal racing <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>leaked-claude-code</td><td>HIGH</td><td>MED</td><td class="muted">Decouples Ask-resolution from the kernel gate; ports cleanly. Argo has no hooks layer.</td></tr><tr><td class="cap">Hooks race the UI prompt (first wins) via stream-json control protocol <span class="chip f" title="Low decision load — Sensible defaults; doesn't demand constant micro-choices (decision fatigue / analysis paralysis).">F4</span><span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>leaked-claude-code</td><td>HIGH</td><td>MED</td><td class="muted">Programmatic policy auto-decides without blocking the user — could reduce approval fatigue.</td></tr><tr><td class="cap">extractActivities firehose→bounded summary <span class="chip f" title="Calm output — Low-arousal, low-firehose, sensory-regulating output — never a wall of noise.">F3</span></td><td>leaked-claude-code</td><td>MED</td><td>LOW</td><td class="muted">Confirms TUI-SMOOTH direction.</td></tr><tr><td class="cap">Recovery/degraded readline CLI behind a flag <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>claude-code-haha</td><td>MED</td><td>LOW</td><td class="muted">Resilience when Ink can't render (CI/headless/native-dep failure).</td></tr><tr><td class="cap">SSE resume (Last-Event-ID) + SerialBatchEventUploader (backpressure, Retry-After) <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>leaked-claude-code</td><td>MED</td><td>MED</td><td class="muted">Gateway event-delivery robustness — verify vs Argo's gateway first.</td></tr><tr><td class="cap">Native-module fault tolerance (try/catch → safe default) <span class="chip f" title="Reliability / trust — Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature.">F6</span></td><td>claude-code-haha</td><td>MED</td><td>LOW</td><td class="muted">Optional native deps should degrade, never break the input loop.</td></tr><tr><td class="cap">Bun coupling (bun:bundle macro in 197 files) </td><td>claude-code-haha</td><td>—</td><td>—</td><td class="muted">ANTI-FINDING — do not lift the entrypoint to Node/tsx without stubbing.</td></tr><tr><td class="cap">Not in leak: system prompt, compaction, todo UX, grep/glob/multiedit, thinking, prompt-caching </td><td>leaked-claude-code</td><td>—</td><td>—</td><td class="muted">Partial leak — cannot source these. Honest gap.</td></tr></tbody></table></div></section>
+
+<section id="docs"><h2>Docs takeaways</h2><div class="grid">
+<div class="card span6"><h3>Hermes user-stories</h3><p class="muted">Pending — fetch hermes-agent.nousresearch.com/docs/user-stories.</p></div>
+<div class="card span6"><h3>Goose guides</h3><p class="muted">Pending — fetch goose-docs.ai/docs/category/guides.</p></div></div></section>
+
+</div>
+<script>
+const rows=[...document.querySelectorAll('#matrix-t tbody tr')];
+const apply=()=>{const f=document.querySelector('.btn.active').dataset.filt;const q=(document.getElementById('msearch').value||'').toLowerCase();
+rows.forEach(r=>{const okF=f==='all'||r.dataset.verdict===f;const okQ=!q||r.textContent.toLowerCase().includes(q);r.style.display=(okF&&okQ)?'':'none';});};
+document.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');apply();});
+document.getElementById('msearch').oninput=apply;
+</script></body></html>
