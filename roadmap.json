@@ -917,7 +917,7 @@
       "id": "PROMPT-STABILITY",
       "track": "Efficiency",
       "title": "Stable prompt prefix for LLM cache hit rate",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "AgentMemory issue #720: per-turn system prompt mutation (injecting current time, session-specific context) drops prompt cache hit rate ~10pp because prefix matching fails on any change. Argo buildSystemPrompt() injects now: timestamp in the volatile tier every turn, invalidating the stable prefix. Fix: freeze the stable tier (SOUL + tools + rules + skills index) as a constant string computed once per session; inject now/goals/moim only in a trailing volatile block that never touches the prefix. Anthropic ephemeral caching matches on the first N tokens -- keep those stable.",
       "done": "Stable prompt prefix never changes within a session; volatile suffix changes freely; cache hit rate measurably improves.",
