@@ -7,6 +7,7 @@ import type { DiffLine } from "./util/diff.js";
 import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
+import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -26,6 +27,8 @@ export type AgentDeps = {
   summarize?: Summarizer;
   /** When set, a goal-reminder note is re-injected after context compression. */
   activeGoalText?: string;
+  /** Called when consecutive tool failures hit the threshold; fire a note or interrupt. */
+  onIterationCheck?: (consecutiveFailures: number) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
 };
@@ -117,6 +120,7 @@ async function runTurn(
   const maxIter = deps.maxIterations ?? 50;
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
   let consecutiveFailures = 0;
+  let consecutiveErrorResults = 0;
   let toolIterations = 0;
   const turnUsage = { inputTokens: 0, outputTokens: 0 };
   let sawUsage = false;
@@ -178,6 +182,18 @@ async function runTurn(
       await deps.safety.logEvent(`${call.name}: ${outcome.output.slice(0, 120)}`);
       if (outcome.executed) {
         consecutiveFailures = outcome.empty ? consecutiveFailures + 1 : 0;
+        if (isErrorResult(outcome.ok, outcome.output)) {
+          consecutiveErrorResults++;
+          const threshold = DEFAULT_ERRORDETECT_THRESHOLD;
+          if (consecutiveErrorResults >= threshold && consecutiveErrorResults % threshold === 0) {
+            try {
+              deps.onText?.(buildErrorDetectText(consecutiveErrorResults));
+              deps.onIterationCheck?.(consecutiveErrorResults);
+            } catch { /* best-effort */ }
+          }
+        } else {
+          consecutiveErrorResults = 0;
+        }
       }
       const sig = callSignature(call.name, call.arguments);
       const count = (callCounts.get(sig) ?? 0) + 1;
@@ -234,7 +250,7 @@ async function getCompletion(deps: AgentDeps, messages: Message[]): Promise<Comp
   return deps.provider.complete(messages, schemas);
 }
 
-type DispatchOutcome = { executed: boolean; empty: boolean; output: string };
+type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean };
 
 async function dispatchTool(
   call: ToolCall,
@@ -244,7 +260,7 @@ async function dispatchTool(
   deps.onToolCall?.(call.name, call.arguments);
   const tool = deps.registry.get(call.name);
   if (!tool) {
-    return { executed: false, empty: false, output: `unknown tool: ${call.name}` };
+    return { executed: false, empty: false, ok: false, output: `unknown tool: ${call.name}` };
   }
 
   const action = tool.describeForSafety
@@ -254,7 +270,7 @@ async function dispatchTool(
 
   if (verdict.risk === "block") {
     deps.onToolResult?.(call.name, false, `blocked: ${verdict.reason}`);
-    return { executed: false, empty: false, output: `blocked by safety: ${verdict.reason}` };
+    return { executed: false, empty: false, ok: false, output: `blocked by safety: ${verdict.reason}` };
   }
 
   if (verdict.risk === "ask") {
@@ -263,7 +279,7 @@ async function dispatchTool(
     if (!approved) {
       if (id) await deps.safety.deny(id);
       deps.onToolResult?.(call.name, false, "denied by user");
-      return { executed: false, empty: false, output: `denied by user: ${verdict.reason}` };
+      return { executed: false, empty: false, ok: false, output: `denied by user: ${verdict.reason}` };
     }
     if (id) await deps.safety.approve(id);
   }
@@ -275,5 +291,5 @@ async function dispatchTool(
   } catch { /* best-effort — never block */ }
   const res = await tool.execute(call.arguments, ctx);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
-  return { executed: true, empty: res.output.trim().length === 0, output: res.output };
+  return { executed: true, empty: res.output.trim().length === 0, ok: res.ok, output: res.output };
 }

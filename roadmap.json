@@ -1061,7 +1061,7 @@
       "id": "EF-ERRORDETECT",
       "track": "Executive Function (inclusive spine)",
       "title": "Real-time error detection (anterior cingulate analog)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "PMC4455841 neuroanatomy: the anterior cingulate cortex plays a critical role in REAL-TIME error detection \u2014 it fires during execution when an error is being committed, not after. Argo has reviewAfterTurn (post-hoc, like a retrospective audit) and EF-SELFMONITOR (pre-action sanity check). The missing piece is mid-execution error detection: detecting when a running tool chain has drifted from the goal WHILE it is running, not just before or after. Implementation: between tool calls within a single turn, a lightweight check (not an LLM call \u2014 a heuristic) tracks whether the sequence is still converging toward the stated goal. If N consecutive tool calls produce no apparent progress toward the goal, surface an interrupt opportunity. Pairs with EF-INHIBIT (which is pre-action) and EF-SELFMONITOR (which is pre-execution). ND fit F6 (catch errors before they compound).",
       "done": "Mid-execution drift is detected between tool calls; after N non-converging calls, Argo surfaces an interrupt opportunity rather than continuing on autopilot.",
