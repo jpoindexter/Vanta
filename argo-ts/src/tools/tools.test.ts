@@ -38,6 +38,7 @@ describe("registry", () => {
       "calendar_create",
       "calendar_read",
       "calendar_update",
+      "clarify",
       "delegate",
       "describe_image",
       "drive_create",
