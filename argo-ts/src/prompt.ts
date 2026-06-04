@@ -75,12 +75,13 @@ function errorsLogTier(errorsLog?: string): string {
   return `Prior failures log (ERRORS.md — consult before approaching similar tasks):\n${trimmed}`;
 }
 
-function volatileTier(goals: Goal[], now: string, memory?: string, moimNote?: string): string {
+function volatileTier(goals: Goal[], now: string, memory?: string, moimNote?: string, projectId?: string): string {
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
     ? active.map((g) => `- [${g.id}] ${g.text}`).join("\n")
     : "(no active goals — ask the user what to work toward)";
-  const base = `Active goals:\n${goalText}\n\nSession started: ${now}`;
+  const idLine = projectId ? `Project ID: ${projectId} (stable across machines and worktrees)\n\n` : "";
+  const base = `${idLine}Active goals:\n${goalText}\n\nSession started: ${now}`;
   const withMemory = memory?.trim()
     ? `${base}\n\nRecent memory toward your goals:\n${memory}`
     : base;
@@ -103,6 +104,8 @@ export async function buildSystemPrompt(opts: {
   brain?: string;
   /** Contents of ERRORS.md — injected as context so Argo avoids repeating prior failures. */
   errorsLog?: string;
+  /** Canonical project ID (git-remote-based) — stable across machines and worktrees. */
+  projectId?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -118,7 +121,7 @@ export async function buildSystemPrompt(opts: {
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
-    volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote),
+    volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote, opts.projectId),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
 }
