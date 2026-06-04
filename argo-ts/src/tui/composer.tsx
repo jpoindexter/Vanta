@@ -1,14 +1,10 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Text, useInput } from "ink";
 
-// Single-line input composer with readline/emacs key bindings — the bits
-// ink-text-input is missing. macOS Terminal does NOT emit Cmd+Backspace to the
-// app, so "clear the line" is bound to Ctrl+U (kill-to-start), the binding every
-// terminal actually sends. Word delete is Ctrl+W / Option+Backspace.
-//
-// Value is controlled by the parent (the slash palette reads it); the cursor is
-// local. Up/down/Tab are deliberately ignored so the slash palette's own
-// useInput owns selection while this composer is mounted alongside it.
+// Composer with readline/emacs key bindings + input history + multiline.
+// Value is controlled by the parent (the slash palette reads it); cursor is
+// local. Up/down navigate history when isHistoryActive; when the palette is
+// showing the palette's own useInput takes over selection.
 
 export type ComposerProps = {
   value: string;
@@ -16,8 +12,24 @@ export type ComposerProps = {
   onSubmit: (value: string) => void;
   placeholder?: string;
   isActive?: boolean;
+  isHistoryActive?: boolean;
+  history?: string[];
   color?: string;
 };
+
+// Pure helper — tested directly.
+export type HistState = { histIdx: number; draft: string; value: string };
+export function navigateHistory(history: string[], state: HistState, dir: "up" | "down"): HistState {
+  if (dir === "up") {
+    if (history.length === 0) return state;
+    const draft = state.histIdx === -1 ? state.value : state.draft;
+    const histIdx = Math.min(state.histIdx + 1, history.length - 1);
+    return { histIdx, draft, value: history[history.length - 1 - histIdx] ?? "" };
+  }
+  if (state.histIdx <= 0) return { histIdx: -1, draft: "", value: state.draft };
+  const histIdx = state.histIdx - 1;
+  return { ...state, histIdx, value: history[history.length - 1 - histIdx] ?? "" };
+}
 
 /** Delete the word (and any trailing whitespace) immediately before `pos`. */
 function deleteWordBefore(value: string, pos: number): { value: string; pos: number } {
@@ -28,19 +40,44 @@ function deleteWordBefore(value: string, pos: number): { value: string; pos: num
 }
 
 export function Composer(props: ComposerProps): ReactElement {
-  const { value, onChange, onSubmit, placeholder = "", isActive = true, color } = props;
+  const { value, onChange, onSubmit, placeholder = "", isActive = true, isHistoryActive = false, history = [], color } = props;
   const [cursor, setCursor] = useState(value.length);
+  const histRef = useRef<HistState>({ histIdx: -1, draft: "", value: "" });
 
   // Keep the cursor inside the value when the parent rewrites it (e.g. clears on
-  // submit, or tab-completes a slash command).
+  // submit, or tab-completes a slash command). Also reset history navigation on clear.
   useEffect(() => {
     setCursor((c) => Math.min(c, value.length));
-  }, [value.length]);
+    if (value === "") histRef.current = { histIdx: -1, draft: "", value: "" };
+  }, [value]);
 
   useInput(
     (input, key) => {
-      // Submit.
+      // Multiline: shift+enter inserts \n at cursor (modern terminals only).
+      if (key.shift && key.return) {
+        onChange(value.slice(0, cursor) + "\n" + value.slice(cursor));
+        setCursor((c) => c + 1);
+        return;
+      }
+
+      // Submit (plain enter — shift+enter handled above).
       if (key.return) return onSubmit(value);
+
+      // History navigation — only when the slash palette is not open.
+      if (isHistoryActive && key.upArrow) {
+        const next = navigateHistory(history, histRef.current, "up");
+        histRef.current = next;
+        onChange(next.value);
+        setCursor(next.value.length);
+        return;
+      }
+      if (isHistoryActive && key.downArrow) {
+        const next = navigateHistory(history, histRef.current, "down");
+        histRef.current = next;
+        onChange(next.value);
+        setCursor(next.value.length);
+        return;
+      }
 
       // Cursor movement (left/right + home/end). Up/down/Tab are left for the
       // slash palette.
@@ -71,7 +108,7 @@ export function Composer(props: ComposerProps): ReactElement {
         return setCursor((c) => c - 1);
       }
 
-      // Ignore remaining control/navigation keys (incl. up/down/tab).
+      // Ignore remaining control/navigation keys.
       if (!input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape) return;
 
       // Insert printable text at the cursor.
