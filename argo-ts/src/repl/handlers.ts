@@ -7,6 +7,7 @@ import { loadCron } from "../schedule/cron.js";
 import { SLASH_HELP } from "./catalog.js";
 import { oneLine, lastUserIndex, formatExport, formatHistory, mimeFromPath, lines } from "./format.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
+import { next } from "./next.js";
 
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
@@ -288,7 +289,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim,
+  mcp, usage, copy, update, image, paste, cron, moim, next,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */
