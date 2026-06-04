@@ -1,4 +1,5 @@
 import type { Roadmap, RoadmapItem } from "./schema.js";
+import { WIP_LIMIT } from "./wip.js";
 
 function esc(s: string): string {
   return s
@@ -36,7 +37,7 @@ ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 
 // Within a status column the cards are grouped by pickle-jar tier (rocks first),
 // so the board reads top-priority-down. Untiered items fall into a trailing bucket.
-function column(status: string, items: RoadmapItem[]): string {
+function column(status: string, items: RoadmapItem[], wipLimit?: number): string {
   const colItems = items.filter((i) => i.status === status);
   const groups = TIER_ORDER.filter((t) => colItems.some((i) => i.tier === t))
     .map(
@@ -48,7 +49,12 @@ function column(status: string, items: RoadmapItem[]): string {
   const tail = untiered.length
     ? `<div class="tg"><h3>Untriaged</h3>${untiered.map(card).join("")}</div>`
     : "";
-  return `<div class="col" data-status="${status}"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}</h2>${groups}${tail}</div>`;
+  const wipBadge =
+    wipLimit !== undefined
+      ? ` <span class="wip${colItems.length >= wipLimit ? " at-limit" : ""}">${colItems.length}/${wipLimit}</span>`
+      : "";
+  const heading = `${COL_LABEL[status] ?? status}${wipBadge}`;
+  return `<div class="col" data-status="${status}"><h2 class="ch s-${status}">${heading}</h2>${groups}${tail}</div>`;
 }
 
 const CSS = `*{box-sizing:border-box;margin:0;padding:0}
@@ -97,7 +103,9 @@ details[open]>summary::before{content:"▾ "}
 @media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}}
 .col.drag-over{outline:2px dashed #3b82f6;background:#1a2744;border-radius:6px}
 .card[draggable=true]{cursor:grab}
-.card.dragging{opacity:.4}`;
+.card.dragging{opacity:.4}
+.wip{font-size:.6rem;font-weight:400;color:#94a3b8;background:#0f172a;border-radius:3px;padding:.1rem .3rem;margin-left:.4rem;font-family:ui-monospace,monospace;vertical-align:middle}
+.wip.at-limit{color:#f87171;background:#1c0a0a}`;
 
 const DRAG_JS = `(function(){
 var dragging=null;
@@ -151,7 +159,7 @@ c.style.display=vis?'':'none';
 
 export function renderRoadmap(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))];
-  const board = COLS.map((s) => column(s, data.items)).join("");
+  const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
   const trackButtons = tracks
     .map((t) => `<button data-track="${esc(t)}">${esc(t)}</button>`)
