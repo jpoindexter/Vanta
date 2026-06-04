@@ -24,6 +24,20 @@ describe("RoadmapItemSchema", () => {
     const { id: _id, ...rest } = validItem;
     expect(() => RoadmapItemSchema.parse(rest)).toThrow();
   });
+
+  it("accepts the optional tier/model/effort fields", () => {
+    const tagged = { ...validItem, tier: "rock", model: "sonnet", effort: "medium" };
+    expect(() => RoadmapItemSchema.parse(tagged)).not.toThrow();
+  });
+
+  it("accepts an item with the optional fields absent", () => {
+    expect(() => RoadmapItemSchema.parse(validItem)).not.toThrow();
+  });
+
+  it("rejects an unknown tier/model value", () => {
+    expect(() => RoadmapItemSchema.parse({ ...validItem, tier: "boulder" })).toThrow();
+    expect(() => RoadmapItemSchema.parse({ ...validItem, model: "gpt" })).toThrow();
+  });
 });
 
 describe("RoadmapSchema", () => {

@@ -11,24 +11,44 @@ function esc(s: string): string {
 const COLS = ["building", "next", "horizon"] as const;
 const COL_LABEL: Record<string, string> = { building: "Now", next: "Next", horizon: "Later" };
 
+const TIER_ORDER = ["rock", "pebble", "sand"] as const;
+const TIER_LABEL: Record<string, string> = {
+  rock: "Rocks · foundational",
+  pebble: "Pebbles",
+  sand: "Sand · quick wins",
+};
+
+// model·effort build-routing badge — only when tagged
+function routing(item: RoadmapItem): string {
+  if (!item.model) return "";
+  const effort = item.effort ? ` · ${esc(item.effort)}` : "";
+  return `<span class="me m-${esc(item.model)}">${esc(item.model)}${effort}</span>`;
+}
+
 function card(item: RoadmapItem): string {
   return `<div class="card s-${item.status}" data-track="${esc(item.track)}">
 <div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span><span class="trk">${esc(item.track)}</span></div>
+${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 <p class="sum">${esc(item.summary)}</p>
 <details><summary>Done criteria</summary><p class="done">${esc(item.done)}</p></details>
 </div>`;
 }
 
-function column(status: string, items: RoadmapItem[], tracks: string[]): string {
+// Within a status column the cards are grouped by pickle-jar tier (rocks first),
+// so the board reads top-priority-down. Untiered items fall into a trailing bucket.
+function column(status: string, items: RoadmapItem[]): string {
   const colItems = items.filter((i) => i.status === status);
-  const groups = tracks
-    .filter((t) => colItems.some((i) => i.track === t))
+  const groups = TIER_ORDER.filter((t) => colItems.some((i) => i.tier === t))
     .map(
       (t) =>
-        `<div class="tg" data-track="${esc(t)}"><h3>${esc(t)}</h3>${colItems.filter((i) => i.track === t).map(card).join("")}</div>`,
+        `<div class="tg t-${t}"><h3>${TIER_LABEL[t]}</h3>${colItems.filter((i) => i.tier === t).map(card).join("")}</div>`,
     )
     .join("");
-  return `<div class="col"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}</h2>${groups}</div>`;
+  const untiered = colItems.filter((i) => !i.tier);
+  const tail = untiered.length
+    ? `<div class="tg"><h3>Untriaged</h3>${untiered.map(card).join("")}</div>`
+    : "";
+  return `<div class="col"><h2 class="ch s-${status}">${COL_LABEL[status] ?? status}</h2>${groups}${tail}</div>`;
 }
 
 const CSS = `*{box-sizing:border-box;margin:0;padding:0}
@@ -46,6 +66,14 @@ button.active,button:hover{background:#3b82f6;border-color:#3b82f6;color:#fff}
 .s-shipped{background:#1e293b;color:#64748b}
 .tg{margin-bottom:.75rem}
 .tg h3{font-size:.65rem;font-weight:700;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.35rem;padding:.15rem .5rem;border-left:2px solid #334155}
+.t-rock h3{color:#fbbf24;border-left-color:#fbbf24}
+.t-pebble h3{color:#93c5fd;border-left-color:#3b82f6}
+.t-sand h3{color:#86efac;border-left-color:#22c55e}
+.badges{display:flex;gap:.35rem;margin-bottom:.35rem}
+.me{font-family:ui-monospace,monospace;font-size:.6rem;padding:.1rem .35rem;border-radius:3px;border:1px solid #334155;color:#94a3b8}
+.m-haiku{border-color:#22c55e;color:#86efac}
+.m-sonnet{border-color:#3b82f6;color:#93c5fd}
+.m-opus{border-color:#a855f7;color:#d8b4fe}
 .card{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:.7rem;margin-bottom:.45rem}
 .card:hover{border-color:#475569}
 .hd{display:flex;align-items:baseline;gap:.45rem;margin-bottom:.3rem}
@@ -83,7 +111,10 @@ tgs.forEach(function(t){t.style.display='';});
 cols.forEach(function(c){c.style.display='';});
 }else{
 cards.forEach(function(c){c.classList.toggle('hidden',c.dataset.track!==f);});
-tgs.forEach(function(t){t.style.display=t.dataset.track===f?'':'none';});
+tgs.forEach(function(t){
+var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
+t.style.display=vis?'':'none';
+});
 cols.forEach(function(c){
 var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.display!=='none';});
 c.style.display=vis?'':'none';
@@ -95,7 +126,7 @@ c.style.display=vis?'':'none';
 
 export function renderRoadmap(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))];
-  const board = COLS.map((s) => column(s, data.items, tracks)).join("");
+  const board = COLS.map((s) => column(s, data.items)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
   const trackButtons = tracks
     .map((t) => `<button data-track="${esc(t)}">${esc(t)}</button>`)
