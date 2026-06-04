@@ -84,16 +84,22 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `ARGO_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
-| `prompt.ts` | `buildSystemPrompt()` — 3 tiers: stable (SOUL+tools+rules) / context (ARGO/AGENTS/CLAUDE.md) / volatile (goals+time+**recent goal memory**) |
-| `context.ts` | `trimMessages()` (fallback) + `compressMessages()` — LLM summarization of the dropped middle, falls back to trim on error |
-| `agent.ts` | `createConversation()` (persistent multi-turn, optional `{history}`) + `runAgent()` (one-shot) + `dispatchTool()` — the loop. `summarize` dep selects compress vs trim; `signal?: AbortSignal` interrupts between iterations (→ `stoppedReason: "interrupted"`); `toolIterations` drives the self-improvement nudge |
-| `session.ts` | Shared run setup for one-shot + interactive: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver`, **`maybeCurate`** (session-start, 7d-gated skill maintenance), **`reviewAfterTurn`** (post-turn self-improvement nudge). Neither cli.ts nor interactive.ts imports the other |
+| `prompt.ts` | `buildSystemPrompt()` — tiers: stable (SOUL+tools+rules) / brain / skills / context / `errorsLogTier` (ERRORS.md, capped 3k) / volatile (goals+time+memory) |
+| `context.ts` | `trimMessages()` (fallback) + `compressMessages(msgs, ctx, summarize, {activeGoalText?})` — injects goal-reminder note after system messages when `activeGoalText` is set |
+| `agent.ts` | `createConversation()` + `runAgent()` + `dispatchTool()`. `AgentDeps`: `activeGoalText?` (goal re-injection), `onIterationCheck?` (consecutive failure hook). `dispatchTool` runs EF-SELFMONITOR heuristic before `tool.execute`. `runTurn` tracks `consecutiveErrorResults` → `onText` note at threshold |
+| `session.ts` | Shared run setup for one-shot + interactive: `prepareRun` (reads ERRORS.md → `errorsLog`), `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver`, **`maybeCurate`**, **`reviewAfterTurn`**, `researchGateAfterTurn`, `inhibitAfterTurn`, `setShiftAfterTurn`. Neither cli.ts nor interactive.ts imports the other |
 | `interactive.ts` | `renderBanner` (logo, model, goals, tool + skill inventory) + `runChat` (the REPL: one `createConversation`, history persists; slash commands via repl-commands.ts; session save + post-turn review) |
 | `repl-commands.ts` | REPL slash commands dispatcher — re-exports `SLASH_COMMANDS`, `executeSlash`, `runSlashCommand`. Handlers live in `repl/handlers.ts` |
 | `repl/catalog.ts` | `SLASH_COMMANDS` array + `SLASH_HELP` — canonical command list driving `/help`, TUI palette, and validation |
 | `repl/handlers.ts` | `HANDLERS` registry + `dispatch(cmd, arg, ctx)` — every slash handler, each a `SlashHandler` const |
 | `repl/next.ts` | ND1 — `next` handler: reads active kernel goals → `resend` prompt asking agent for one concrete next micro-step |
 | `repl/plan-mode.ts` | ND3 — `planMode` handler: toggles plan-first mode via `PLAN_MARKER` injection into live system prompt (`/planmode [on|off]`) |
+| `repl/where.ts` | EF-WORKINGMEM — `/where` handler: `lastIntent` (last user message) + `lastToolCalls` (last 5 tool names) as a breadcrumb |
+| `repl/inhibit.ts` | EF-INHIBIT — `InhibitState` + `nextInhibitState`/`shouldAlertInhibit`/`buildInhibitText`. Post-turn drift counter (3 consecutive non-output turns → alert). `ARGO_INHIBIT_THRESHOLD` override |
+| `repl/set-shift.ts` | EF-SETSHIFT — `SetShiftState` + `getPrimaryTool`/`nextSetShiftState`/`shouldAlertSetShift`. Post-turn stuck-loop detector (same primary tool 3 turns → alert). `ARGO_SETSHIFT_THRESHOLD` override |
+| `repl/self-monitor.ts` | EF-SELFMONITOR — `isDestructiveAction`/`isAdditiveGoal`/`shouldWarn`/`buildSelfMonitorText`. Synchronous pre-execution heuristic in `dispatchTool`; fires via `deps.onText` (zero LLM, never blocks) |
+| `repl/error-detect.ts` | EF-ERRORDETECT — `isErrorResult`/`buildErrorDetectText`. Consecutive `ok:false` or error-keyword results tracked in `runTurn`; at 3 fires `onText` note + `deps.onIterationCheck?` callback |
+| `repl/closure-gate.ts` | EF-CLOSUREGATE — `extractWrittenFiles`/`hasCommitAfterIndex`/`getInProgressItems`/`buildClosureGateText`. On topic shift (same `isTopicShift` check), surfaces unclosed write_file calls without a subsequent commit |
 | `cli.ts` | `argo` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `argo setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
@@ -180,7 +186,9 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 
 **Kernel safety (`src/safety.rs`):** hardened — `normalize_cmd` (strips quote/backslash escapes), broadened destructive set, arbitrary-exec vectors (interpreters/eval/pipe/egress) → ASK, absolute-path-outside-root → ASK. Closes the bypassable-denylist holes (Hermes #36846/#36645).
 
-**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments /next /planmode` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline). `@file` autocomplete in TUI → inlines file content as context on submit. Markdown rendering in transcript (`tui/markdown.tsx`). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `ARGO_SPINNER`). Drag-and-drop roadmap board: `argo roadmap serve` → `http://localhost:7789/roadmap/board`.
+**Phase 2 EF gates (2026-06-04):** All gates are best-effort, non-blocking, wrapped in try/catch. Post-turn gates (inhibit, set-shift) live as session-scoped state refs in `interactive.ts` + `tui/use-agent-send.ts`, mirroring the `researchGateRef` pattern. Pre-turn gate (closure-gate) fires inside `runUserTurn` / `sendToAgent` alongside complexity-gate and topic-shift check. In-loop gates (self-monitor, error-detect) live in `agent.ts dispatchTool` / `runTurn`. New env overrides: `ARGO_INHIBIT_THRESHOLD` · `ARGO_SETSHIFT_THRESHOLD`. `handlers.ts` MUST STAY at 300 lines — new slash handlers go in own files, trade a blank line for the import.
+
+**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments /next /planmode /where` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline). `@file` autocomplete in TUI → inlines file content as context on submit. Markdown rendering in transcript (`tui/markdown.tsx`). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `ARGO_SPINNER`). Drag-and-drop roadmap board: `argo roadmap serve` → `http://localhost:7789/roadmap/board`.
 
 **Env added:** `ARGO_MEMORY_MAX_BLOCKS` · `ARGO_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
 
