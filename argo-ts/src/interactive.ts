@@ -17,6 +17,7 @@ import {
   type ResearchGateState,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
+import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 
@@ -143,6 +144,10 @@ export async function runChat(
     state.turnIndex++;
     const images = state.pendingImages; // attach + consume any /image, /paste, or drop
     state.pendingImages = undefined;
+    const complexityScore = scoreComplexity(text);
+    if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
+      console.log(`\n${buildComplexityNote(complexityScore)}`);
+    }
     const outcome = await convo.send(text, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);

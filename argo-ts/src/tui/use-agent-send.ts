@@ -5,6 +5,7 @@ import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, type ResearchGateState } from "../session.js";
+import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
@@ -28,6 +29,10 @@ export function useAgentSend(
     dispatch({ t: "user", text });
     const convo = convoRef.current;
     if (!convo) return;
+    const complexityScore = scoreComplexity(text);
+    if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
+      dispatch({ t: "note", text: buildComplexityNote(complexityScore) });
+    }
     replStateRef.current.turnIndex++;
     turnStartRef.current = Date.now();
     const images = replStateRef.current.pendingImages;
