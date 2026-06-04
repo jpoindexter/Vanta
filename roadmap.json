@@ -1085,7 +1085,7 @@
       "id": "EF-RESEARCH-GATE",
       "track": "Executive Function (inclusive spine)",
       "title": "Research convergence gate (pattern: research spiral)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Real pattern from sessions: research spiral. Started implementation sprint, pivoted to 6+ research threads with no convergence. Inhibition failure: new discoveries reinforce continuation (reward loop). Counter-measure: after N consecutive research/analysis turns without an actionable commit or shipped item, surface a gentle gate: the turn count since last concrete output, the original stated goal, one question: want to pick one finding to build now? Not a block. A pattern interrupt that fires at the right moment. ARGO_RESEARCH_GATE_TURNS env (default 8). ND fit F1 (task initiation when stuck in exploration mode).",
       "done": "After 8 research turns without actionable output, Argo surfaces the spiral pattern and offers a one-question redirect to execution.",

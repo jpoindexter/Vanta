@@ -12,7 +12,9 @@ import {
   approver,
   writeRunMemory,
   reviewAfterTurn,
+  researchGateAfterTurn,
   maybeCurate,
+  type ResearchGateState,
 } from "./session.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
@@ -99,6 +101,8 @@ export async function runChat(
     console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
   }
 
+  let researchGateState: ResearchGateState = { consecutiveTurns: 0 };
+
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const convo = createConversation(
     setup.systemPrompt,
@@ -156,6 +160,12 @@ export async function runChat(
       toolIterations: outcome.toolIterations,
       turnIndex: state.turnIndex,
     });
+    researchGateState = await researchGateAfterTurn(
+      researchGateState,
+      convo.messages,
+      setup.safety,
+      (note) => console.log(`\n${note}`),
+    );
   };
 
   try {
