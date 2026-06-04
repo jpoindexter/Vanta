@@ -1109,7 +1109,7 @@
       "id": "EF-VELOCITY",
       "track": "Executive Function (inclusive spine)",
       "title": "Velocity tracker \u2014 capture:ship ratio (pattern: ideas-rich/finish-poor)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Real pattern from sessions: roadmap grew from 0 to 100 items in 4 sessions, shipped items grew much more slowly. Fluency excess masks planning deficit (MMSE 28/30 analog: backlog looks productive, shipping rate is low). Counter-measure: rolling 7-day capture:ship ratio stored in ~/.argo/velocity.json. When ratio > 5:1 (5 ideas captured per 1 shipped), surface on /status and at session start: capture/ship ratio is 8:1 this week \u2014 consider closing before opening. Not a block. A visible metric that makes the pattern legible. ND fit F2+F5 (ambient awareness without having to remember to check).",
       "done": "/status shows the rolling capture:ship ratio; ratio > 5:1 surfaces a one-line note at session start.",
