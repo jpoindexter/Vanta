@@ -28,19 +28,27 @@ describe("tui reduce", () => {
 
   it("a tool call commits streamed text as an assistant entry then logs the tool", () => {
     let s = reduce(base, { t: "delta", d: "let me read it" });
-    s = reduce(s, { t: "toolCall", name: "read_file", args: '{"path":"x"}' });
+    s = reduce(s, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
     expect(s.entries).toEqual([
       { kind: "assistant", text: "let me read it" },
-      { kind: "tool", name: "read_file", args: '{"path":"x"}' },
+      { kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "x" },
     ]);
     expect(s.streaming).toBe("");
-    expect(s.status).toBe("read_file");
+    expect(s.status).toBe("read x");
   });
 
-  it("a tool result fills ok/output on the matching open tool entry", () => {
-    let s = reduce(base, { t: "toolCall", name: "read_file", args: "{}" });
-    s = reduce(s, { t: "toolResult", name: "read_file", ok: true, output: "# Argo" });
-    expect(s.entries[0]).toEqual({ kind: "tool", name: "read_file", args: "{}", ok: true, output: "# Argo" });
+  it("a tool result fills ok on success (no error line) on the matching open tool entry", () => {
+    let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "" });
+    s = reduce(s, { t: "toolResult", name: "read_file", ok: true });
+    expect(s.entries[0]).toEqual({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "", ok: true, errorLine: undefined });
+  });
+
+  it("a failed tool result records the error line", () => {
+    let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
+    s = reduce(s, { t: "toolResult", name: "read_file", ok: false, errorLine: "no such file" });
+    const e = s.entries[0];
+    expect(e?.kind === "tool" && e.ok).toBe(false);
+    expect(e?.kind === "tool" && e.errorLine).toBe("no such file");
   });
 
   it("commit uses the streamed text, or the final text when nothing streamed", () => {
