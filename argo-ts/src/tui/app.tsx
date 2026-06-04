@@ -104,6 +104,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // the conversation's provider together, so every read here stays consistent.
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
   const turnStartRef = useRef<number>(0);
+  const abortRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch);
@@ -150,9 +151,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     turnStartRef.current = Date.now();
     const images = replStateRef.current.pendingImages; // attach + consume /image or /paste
     replStateRef.current.pendingImages = undefined;
+    const ac = new AbortController();
+    abortRef.current = ac;
     void convo
-      .send(text, images)
+      .send(text, images, ac.signal)
       .then((outcome) => {
+        abortRef.current = null;
         dispatch({ t: "commit", finalText: outcome.finalText });
         pruneVolatileSkills(convo.messages);
         if (outcome.usage) {
@@ -163,6 +167,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
       })
       .catch((err: unknown) => {
+        abortRef.current = null;
         dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
         dispatch({ t: "commit", finalText: "" });
       });
@@ -254,6 +259,17 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       else if (key.tab) setInput(`/${(matches[sel] ?? matches[0])!.name} `);
     },
     { isActive: showPalette },
+  );
+
+  // Esc while busy → abort the current turn between iterations.
+  useInput(
+    (_in, key) => {
+      if (key.escape && state.busy && abortRef.current) {
+        abortRef.current.abort();
+        dispatch({ t: "note", text: "· interrupted" });
+      }
+    },
+    { isActive: state.busy },
   );
 
   const cols = process.stdout.columns ?? 80;
