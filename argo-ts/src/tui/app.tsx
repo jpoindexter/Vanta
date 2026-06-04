@@ -72,7 +72,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Argo", message: "needs your approval" }); }, [pending]);
 
-  const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued);
+  const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety);
 
   // Slash palette — suggest matching commands while typing a bare `/word`.
   const slashHead = !pending && !overlay && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;

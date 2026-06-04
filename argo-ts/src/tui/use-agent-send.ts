@@ -4,6 +4,8 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
+import { nudgeAfterTurn } from "../session.js";
+import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
 
@@ -16,6 +18,7 @@ export function useAgentSend(
   replStateRef: MutableRef<ReplState>,
   busy: boolean,
   queued: string[],
+  safety: SafetyClient,
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
   const turnStartRef = useRef<number>(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -41,6 +44,7 @@ export function useAgentSend(
         }
         if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Argo", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
+        void nudgeAfterTurn(replStateRef.current.turnIndex, safety, (note) => dispatch({ t: "note", text: note }));
       })
       .catch((err: unknown) => {
         abortRef.current = null;

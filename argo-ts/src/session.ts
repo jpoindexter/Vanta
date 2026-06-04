@@ -12,6 +12,7 @@ import { listSkills } from "./skills/store.js";
 import { brainDigest } from "./brain/store.js";
 import { resolveArgoHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
+import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "./repl/nudge.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
 import type { Summarizer } from "./context.js";
@@ -205,6 +206,29 @@ export async function reviewAfterTurn(opts: {
     transcript: opts.transcript,
   });
   if (wrote.length) console.log(`  💾 self-improvement: learned ${wrote.join(", ")}`);
+}
+
+/**
+ * After-turn gentle nudge. When the turn index hits a multiple of
+ * ARGO_NUDGE_EVERY (default 5), reads active goals and calls onNote with a
+ * short reminder. No-op when disabled (every=0) or no active goals. Best-effort.
+ */
+export async function nudgeAfterTurn(
+  turnIndex: number,
+  safety: SafetyClient,
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<void> {
+  try {
+    const raw = parseInt(env.ARGO_NUDGE_EVERY ?? "", 10);
+    const every = isNaN(raw) || raw < 0 ? DEFAULT_NUDGE_EVERY : raw;
+    if (!shouldNudge(turnIndex, every)) return;
+    const goals = await safety.getGoals().catch(() => []);
+    const note = buildNudgeText(goals);
+    if (note) onNote(note);
+  } catch {
+    // best-effort — never break the session
+  }
 }
 
 /** Interactive y/n approval bound to a readline interface. */
