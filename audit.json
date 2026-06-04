@@ -1,9 +1,9 @@
 {
   "generated": "2026-06-04",
   "title": "Agent Audit — Argo vs Hermes vs Goose (+ Claude Code)",
-  "status": "v0 — Argo/ClaudeCode/local-Hermes populated; Hermes & Goose deep-dives enriching",
+  "status": "complete — 4-way deep-dive: code, docs, issues, local-Hermes delta, ND-vision filter",
   "vision": {
-    "statement": "Argo's sharpened product vision: a trusted personal AI operator FOR neurodivergent people — built to support executive function and other ND traits (broad ND: dyslexia, dyscalculia, autism, ADHD, aphantasia, and more — not just autism+ADHD). This sharpens the manifesto's 'trusted digital operator' with a who and a why. Grounded in Argo's existing neurodivergent-first brain identity and the operator's own profile. The kernel-safety thesis (safe by construction) is itself an ND feature: it removes the vigilance burden.",
+    "statement": "Argo's sharpened product vision: a trusted personal AI operator FOR neurodivergent people — built to support executive function and other ND traits (broad ND: dyslexia, dyscalculia, autism, ADHD, aphantasia, and more — not just autism+ADHD). This sharpens the manifesto's 'trusted digital operator' with a who and a why. Grounded in Argo's existing neurodivergent-first brain identity and the operator's own profile. The kernel-safety thesis (safe by construction) is itself an ND feature: it removes the vigilance burden. KEY FINDING: Hermes treats accessibility/ND as edge cases (voice-first, ADHD standups, proactive reminders exist but are not the spine); Goose has zero ND framing. Argo's wedge is to make ND executive-function support THE spine, not a side effect.",
     "filters": [
       { "code": "F1", "name": "Initiation friction", "desc": "Reduces task activation cost — lowers the 'getting started' barrier (the core ADHD/exec-function wall)." },
       { "code": "F2", "name": "Externalized memory", "desc": "Offloads working memory — remembers goals, context, where you left off, what was decided." },
@@ -12,24 +12,24 @@
       { "code": "F5", "name": "Structure & follow-through", "desc": "Breaks down, sequences, nudges, tracks — supports planning and follow-through deficits." },
       { "code": "F6", "name": "Reliability / trust", "desc": "Predictable, safe, honest — removes the vigilance burden. Safe-by-construction = ND feature." }
     ],
-    "curationBias": "RUTHLESS by design. Six escalating 'add to goal' messages is itself scope creep — so this audit's job is a SMALL curated pull-set and a LOT of explicit DROP. A feature being slick in a dev-tool (Goose) or broad in Hermes does not make it fit an ND executive-function assistant. Default verdict is DROP unless it scores ≥2 ND filters with low cognitive cost."
+    "curationBias": "RUTHLESS by design. Six escalating 'add to goal' messages is itself scope creep — so this audit's job is a SMALL curated pull-set and a LOT of explicit DROP. A feature being slick in a dev-tool (Goose) or broad in Hermes does not make it fit an ND executive-function assistant. Default verdict is DROP unless it scores ≥2 ND filters with low cognitive cost. Result: ~8 worthy pulls, ~15 explicit drops. Goose: ~80% of distinct features correctly DROP (dev-throughput agent). Hermes: breadth is the anti-pattern; the few ND signals it treats as edge cases are Argo's spine."
   },
   "agents": [
     { "id": "argo", "name": "Argo", "lineage": "OpenClaw → Hermes → Argo", "lang": "Rust kernel + TS (Node22/ESM)", "license": "private", "tagline": "Trusted operator: knows the goal, enforces scope on every action, reports only verified output.", "vsArgo": "—" },
-    { "id": "hermes", "name": "Hermes (upstream)", "lineage": "NousResearch", "lang": "Python", "license": "MIT", "tagline": "The self-improving AI agent — built-in learning loop, skills from experience, runs on a $5 VPS, text it from Telegram.", "vsArgo": "Same lineage/concept — Argo hardens Hermes's breadth into a kernel-enforced safety contract. Heavy overlap expected; delta is what matters." },
-    { "id": "hermesLocal", "name": "Hermes (local customized)", "lineage": "~/.hermes/hermes-agent vs -clean baseline", "lang": "Python", "license": "MIT", "tagline": "Jason's customized Hermes — the bar Argo set out to match then exceed.", "vsArgo": "Customizations: gateway streaming dispatch, ai-gateway provider plugin, browser_providers, telegram/cron tweaks." },
-    { "id": "goose", "name": "Goose", "lineage": "Block → Linux Foundation (AAIF)", "lang": "Rust core + Electron/React desktop", "license": "Apache-2.0", "tagline": "Native open-source AI agent — desktop, CLI, API — for code & workflows.", "vsArgo": "Different lineage (Block). Dev-tool-centric → expect many DROPs, a few genuinely novel ideas (extensions/MCP maturity, recipes, scheduler)." },
-    { "id": "claudeCode", "name": "Claude Code (reference)", "lineage": "Anthropic (leaked/ported source surveyed)", "lang": "TS (Bun)", "license": "proprietary (study-only)", "tagline": "The reference harness — surveyed for plumbing/permission/runnability patterns.", "vsArgo": "Study-only; reimplement clean. Findings are infra-level (permission protocol, capability matrix, activity-feed extraction)." }
+    { "id": "hermes", "name": "Hermes (upstream)", "lineage": "NousResearch", "lang": "Python (~25k tests, 70+ tools, 28 toolsets, 20 platform adapters)", "license": "MIT", "tagline": "The self-improving AI agent — built-in learning loop, skills from experience, $5 VPS, text it from Telegram.", "vsArgo": "Argo's parent. Argo hardens Hermes's breadth into a kernel-enforced safety contract + ND spine. Hermes maximizes capability for builders; Argo narrows to ND executive-function." },
+    { "id": "hermesLocal", "name": "Hermes (local customized)", "lineage": "~/.hermes/hermes-agent vs -clean baseline", "lang": "Python", "license": "MIT", "tagline": "Jason's customized Hermes — the bar Argo set out to match then exceed.", "vsArgo": "Customizations: gateway streaming dispatch (now upstreamed), ai-gateway provider plugin, browser_providers, telegram/cron tweaks." },
+    { "id": "goose", "name": "Goose", "lineage": "Block → Linux Foundation (AAIF)", "lang": "Rust core (~12 crates) + Electron/React desktop", "license": "Apache-2.0", "tagline": "Native open-source AI agent — desktop, CLI, API — for code & workflows.", "vsArgo": "Different lineage (Block). Dev-team-throughput agent. ~80% of distinct features DROP for an ND assistant; two ideas worth pulling (top-of-mind reminders, interactive plan mode)." },
+    { "id": "claudeCode", "name": "Claude Code (reference)", "lineage": "Anthropic (leaked/ported source surveyed)", "lang": "TS (Bun)", "license": "proprietary (study-only)", "tagline": "The reference harness — surveyed for plumbing/permission/runnability patterns.", "vsArgo": "Study-only; reimplement clean. Findings are infra-level (permission protocol, per-model capability matrix, activity-feed extraction)." }
   ],
   "argoInventory": {
     "note": "Argo's current surface — the dedupe baseline. 675 tests green (648 TS + 27 Rust).",
     "categories": [
-      { "name": "Architecture", "items": ["Rust safety kernel (assess() gates every tool call: Allow/Ask/Block)", "Approvals queue + goal ledger + event log", "TS agent layer (Node22/ESM/tsx, no build step)", "Kernel is the boundary — TS cannot bypass it"] },
+      { "name": "Architecture", "items": ["Rust safety kernel (assess() gates every tool call: Allow/Ask/Block) — deterministic, FAIL-CLOSED", "Approvals queue + goal ledger + event log", "TS agent layer (Node22/ESM/tsx, no build step)", "Kernel is the boundary — TS cannot bypass it"] },
       { "name": "Agent loop", "items": ["Non-streaming complete + kernel-gated tool dispatch", "Context compress (LLM-summarize) / trim fallback", "AbortSignal interrupt between iterations", "Self-improvement nudge counters"] },
       { "name": "Providers (7)", "items": ["openai", "ollama (local)", "anthropic", "gemini", "openrouter (200+ models)", "claude-code (Pro/Max OAuth)", "codex (ChatGPT OAuth)"] },
-      { "name": "Tools (33)", "items": ["read_file / write_file (scoped writable+readable zones)", "shell_cmd, run_code, inspect_state, todo", "web_search (ddg/searxng/serpapi/brave), web_fetch", "browser (playwright: navigate/extract/screenshot)", "vision: look_at_screen/camera, watch_video, describe_image", "speak / transcribe (TTS/STT)", "recall / write_skill (learning)", "brain (selfhood read/write)", "delegate / swarm (sub-agents)", "git (6: status/diff/commit/push/branch/checkout)", "gmail/calendar/drive (10, outbound approval-gated)", "lsp (diagnostics/definition), mount_mcp"] },
+      { "name": "Tools (33)", "items": ["read_file / write_file (scoped writable+readable zones)", "shell_cmd, run_code, inspect_state, todo", "web_search (ddg/searxng/serpapi/brave), web_fetch", "browser (playwright: navigate/extract/screenshot)", "vision: look_at_screen/camera, watch_video, describe_image", "speak / transcribe (TTS/STT)", "recall / write_skill (learning)", "brain (selfhood read/write)", "delegate / swarm (sub-agents)", "git (6), gmail/calendar/drive (10, outbound approval-gated)", "lsp (diagnostics/definition), mount_mcp"] },
       { "name": "TUI / UX", "items": ["React/Ink streaming transcript + tool activity + spinner", "Inline approvals, slash commands, custom composer", "TUI-SMOOTH: clean per-tool activity feed (no JSON/temp-path firehose)", "Domain-grouped capability banner"] },
-      { "name": "Prompt", "items": ["3-tier: stable (SOUL+tools+rules) / context (ARGO+AGENTS+CLAUDE.md) / volatile (goals+time+memory)", "Brain digest injected", "Skill index injected; recall loads full body"] },
+      { "name": "Prompt", "items": ["3-tier: stable / context / volatile", "Brain digest injected", "Skill index injected; recall loads full body"] },
       { "name": "Self-improvement", "items": ["Background review → writes skills tagged argo-learned", "Safe curator (archives only stale learned skills, never deletes)", "Dark factory: triage→plan→execute→verify→commit", "Autonomy ladder L1–L5 (O10/O10b) + compartment tiers (O11)"] },
       { "name": "Selfhood / memory", "items": ["Brain regions (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood)", "SOUL.md + AGENT-MANIFESTO.md", "Per-goal memory summaries (capped, git-retained)", "Sessions persist/resume"] },
       { "name": "Autonomy / reach", "items": ["Gateway daemon + launchd service", "Telegram gateway (long-poll + allowlist)", "Webhook triggers (HMAC-gated)", "MCP: consume (mount servers) + serve (Argo as MCP server)", "Cron schedule, project rooms, operator modes, model routing"] }
@@ -38,60 +38,109 @@
   "ndVisionAlignment": {
     "note": "How Argo's EXISTING features already serve the ND vision — and where the gaps are.",
     "strong": [
-      { "feature": "Kernel safe-by-construction", "filters": ["F6"], "why": "Removes vigilance burden — the operator never has to police the agent; the boundary is physical." },
+      { "feature": "Kernel safe-by-construction (fail-closed)", "filters": ["F6"], "why": "Removes vigilance burden — the operator never polices the agent; the boundary is physical. Stronger than Goose's fail-open LLM reviewer or Hermes's in-process approval." },
       { "feature": "Goal ledger + per-goal memory", "filters": ["F2", "F5"], "why": "Externalizes goals and context across sessions — offloads working memory; supports follow-through." },
       { "feature": "Brain identity[neurodivergent-first]", "filters": ["F2", "F6"], "why": "Builds a persistent model of the user; the ND framing is already encoded." },
-      { "feature": "TUI-SMOOTH calm activity feed", "filters": ["F3"], "why": "Just shipped — kills the firehose; low-arousal output." }
+      { "feature": "TUI-SMOOTH calm activity feed", "filters": ["F3"], "why": "Just shipped — kills the firehose; low-arousal output. Argo LEADS all three on calm output." }
     ],
     "gaps": [
-      { "gap": "No explicit task-initiation / 'just start' affordance", "filters": ["F1"], "note": "Candidate pull target — the activation wall is the #1 ND exec-function need." },
-      { "gap": "No body-doubling / gentle nudge cadence", "filters": ["F1", "F5"], "note": "Candidate — presence + nudges support initiation & follow-through." },
-      { "gap": "No reading-mode / dyslexia-friendly output shaping", "filters": ["F3"], "note": "Candidate — broad ND, not just exec function." }
+      { "gap": "No explicit task-initiation / 'just start the next tiny step' affordance", "filters": ["F1", "F5"], "note": "PULL #1 — the activation wall is the central ND exec-function need; NONE of the 3 agents target it directly. Argo's differentiator." },
+      { "gap": "No interactive plan/clarify-before-act ritual", "filters": ["F1", "F4"], "note": "PULL — Hermes 'converse mode' + Goose 'plan mode' both exist; Argo's autonomy L1 is adjacent but not an interactive front-door." },
+      { "gap": "No top-of-mind / pinned-reminder injected every turn", "filters": ["F2", "F5"], "note": "PULL — Goose 'tom'/MOIM; pure working-memory offload." },
+      { "gap": "No proactive nudge cadence (gentle check-ins / standups)", "filters": ["F1", "F5"], "note": "PULL — Hermes users built ADHD standups + unprompted reminders on top; make it native." },
+      { "gap": "No undo safety net (checkpoint/rollback)", "filters": ["F6"], "note": "PULL — Hermes shadow-git checkpoints; reduces anxiety around destructive ops." },
+      { "gap": "No dyslexia-friendly / reading-mode output shaping", "filters": ["F3"], "note": "Candidate — broad ND, not just exec function." }
     ]
   },
   "comparison": {
-    "note": "Decision-level capability matrix. Cells: ✓ has · ~ partial · ✗ lacks · — n/a. Hermes/Goose cells refined by deep-dive agents.",
+    "note": "Decision-level matrix. Cells: ✓ has · ~ partial · ✗ lacks. Verdict from the ND filter. Refined by code+docs+issues deep-dive.",
     "rows": [
-      { "capability": "Kernel-enforced safety boundary", "argo": "✓ Rust assess()", "hermes": "~ prompt+policy, not a kernel", "goose": "~ permission modes", "claudeCode": "~ permission tool", "verdict": "ARGO LEADS", "ndFit": ["F6"], "note": "Argo's structural differentiator — safe by construction, not by suggestion." },
-      { "capability": "Self-improvement / learning loop", "argo": "✓ review+factory", "hermes": "✓ original learning loop", "goose": "✗", "claudeCode": "✗", "verdict": "PARITY (Hermes)", "ndFit": ["F2"], "note": "Argo inherited + hardened Hermes's loop." },
-      { "capability": "Skills (markdown, git-versioned)", "argo": "✓", "hermes": "✓", "goose": "~ recipes", "claudeCode": "~ bundled skills", "verdict": "PARITY", "ndFit": ["F2", "F5"], "note": "" },
-      { "capability": "Telegram / text-it-from-phone", "argo": "✓ gateway", "hermes": "✓", "goose": "✗", "claudeCode": "✗", "verdict": "PARITY (Hermes)", "ndFit": ["F1"], "note": "Low-friction capture from anywhere = initiation aid." },
-      { "capability": "Extension / MCP ecosystem", "argo": "✓ consume+serve", "hermes": "~ ACP adapter", "goose": "✓ mature extension system", "claudeCode": "~ MCP", "verdict": "GOOSE MAY LEAD", "ndFit": [], "note": "Pending Goose deep-dive — depth of extension UX." },
-      { "capability": "Calm / low-firehose output", "argo": "✓ TUI-SMOOTH", "hermes": "~", "goose": "~", "claudeCode": "~ activity extraction", "verdict": "ARGO LEADS", "ndFit": ["F3"], "note": "Core ND differentiator." },
-      { "capability": "Per-model capability matrix", "argo": "✗", "hermes": "?", "goose": "?", "claudeCode": "✓ override map", "verdict": "PULL (ClaudeCode)", "ndFit": ["F6"], "note": "Prevents 400s on free-typed OpenRouter/Ollama models → reliability." },
-      { "capability": "Degraded/headless fallback CLI", "argo": "~ readline REPL", "hermes": "✓ web UI + CLI", "goose": "✓ CLI+desktop+API", "claudeCode": "✓ recovery CLI", "verdict": "DEFER", "ndFit": ["F6"], "note": "Resilience when Ink can't render." }
+      { "capability": "Kernel-enforced safety (fail-closed)", "argo": "✓ Rust assess()", "hermes": "~ in-process approval", "goose": "~ LLM reviewer (fail-OPEN)", "claudeCode": "~ permission tool", "verdict": "ARGO LEADS", "ndFit": ["F6"], "note": "Argo's structural moat — safe by construction. Goose adversary-mode fails OPEN (reviewer error → call allowed)." },
+      { "capability": "Calm / low-firehose output", "argo": "✓ TUI-SMOOTH", "hermes": "~ typed stream events (local)", "goose": "~ token/cost dot", "claudeCode": "~ activity extraction", "verdict": "ARGO LEADS", "ndFit": ["F3"], "note": "Core ND differentiator; reinforced by Hermes's stream_events/dispatch 'eat noisy chrome per surface' pattern (PULL the concept)." },
+      { "capability": "Self-improvement / learning loop", "argo": "✓ review + dark factory", "hermes": "✓ original learning loop", "goose": "✗", "claudeCode": "✗", "verdict": "PARITY (Hermes)", "ndFit": ["F2"], "note": "Argo inherited + hardened Hermes's loop; added autonomous build factory." },
+      { "capability": "Skills (markdown, git-versioned)", "argo": "✓", "hermes": "✓ + Skills Hub + AST audit", "goose": "~ recipes", "claudeCode": "~ bundled", "verdict": "PARITY", "ndFit": ["F2", "F5"], "note": "Hermes has provenance/AST-audit extras (not ND-critical)." },
+      { "capability": "Messaging reach (text-it-from-phone)", "argo": "✓ telegram", "hermes": "✓ 20 adapters", "goose": "~ mobile tunnel", "claudeCode": "✗", "verdict": "PARITY (breadth Hermes)", "ndFit": ["F1"], "note": "Low-friction capture = initiation aid. Argo's 1 adapter is enough for one user; breadth is DROP." },
+      { "capability": "Plan / clarify before acting", "argo": "~ autonomy L1", "hermes": "✓ clarify tool + converse mode", "goose": "✓ /plan mode", "claudeCode": "~", "verdict": "PULL", "ndFit": ["F1", "F4", "F6"], "note": "Two independent agents converged here; strong ND fit (kills wrong-guess thrash + blank-page paralysis)." },
+      { "capability": "Top-of-mind pinned reminder (injected every turn)", "argo": "✗", "hermes": "~ memory", "goose": "✓ tom/MOIM", "claudeCode": "✗", "verdict": "PULL", "ndFit": ["F2", "F5"], "note": "Smallest, highest-fit working-memory offload." },
+      { "capability": "Proactive nudges / check-ins", "argo": "~ cron", "hermes": "✓ user-built standups + unprompted msgs", "goose": "~ scheduler", "claudeCode": "✗", "verdict": "PULL", "ndFit": ["F1", "F5"], "note": "Hermes users hacked this for ADHD; make it native + gentle." },
+      { "capability": "Checkpoints + rollback (undo net)", "argo": "✗ (kernel blocks, no snapshot)", "hermes": "✓ shadow-git + /rollback", "goose": "~ session", "claudeCode": "✗", "verdict": "PULL", "ndFit": ["F6"], "note": "Undo safety net = low-anxiety trust." },
+      { "capability": "Context references @file/@diff/@url", "argo": "~ roadmap U2", "hermes": "✓", "goose": "~", "claudeCode": "✓", "verdict": "PULL", "ndFit": ["F2", "F4"], "note": "Cheap externalize-context affordance; aligns with Argo's planned @-file mentions." },
+      { "capability": "Per-model capability matrix", "argo": "✗", "hermes": "~ routing", "goose": "~ n_ctx issue open", "claudeCode": "✓ override map", "verdict": "PULL", "ndFit": ["F6"], "note": "Prevents 400s on free-typed OpenRouter/Ollama models → reliability." },
+      { "capability": "Voice / conversational loop", "argo": "~ speak+transcribe tools", "hermes": "✓ voice_mode", "goose": "✗", "claudeCode": "✗", "verdict": "DEFER→PULL", "ndFit": ["F1", "F3"], "note": "Explicit accessibility demand in Hermes user-stories (motor needs, blind user). ND-aligned." },
+      { "capability": "Extension / MCP ecosystem", "argo": "✓ consume + serve", "hermes": "~ ACP adapter", "goose": "✓ mature + malware check + allowlist", "claudeCode": "~ MCP", "verdict": "PARITY", "ndFit": [], "note": "Goose deepest, but Argo's consume+serve covers the one-user need." },
+      { "capability": "Context compaction", "argo": "✓ compress/trim", "hermes": "✓ pluggable ContextEngine + prefix caching", "goose": "✓ summarize/truncate strategies", "claudeCode": "~ (not in leak)", "verdict": "PARITY", "ndFit": ["F6"], "note": "All three handle it; Hermes most pluggable." },
+      { "capability": "Recipes / shareable workflows", "argo": "✗", "hermes": "~ skills", "goose": "✓ recipes + deeplinks + cookbook", "claudeCode": "✗", "verdict": "DROP", "ndFit": [], "note": "Sharing ecosystem = platform-thinking before users." },
+      { "capability": "Multi terminal/browser/sandbox backends", "argo": "~ run_code + playwright", "hermes": "✓ 6 terminal / 5 browser", "goose": "✓ + macOS App Sandbox", "claudeCode": "✗", "verdict": "DROP", "ndFit": [], "note": "Power-user infra breadth; Argo's kernel already gates." }
     ]
   },
   "pulls": {
-    "note": "WORTH ADDING — curated, ND-aligned. Small by design.",
+    "note": "WORTH ADDING — curated, ND-aligned. The top tier (HIGH) become roadmap items; DEFER items are horizon. Small by design.",
     "items": [
-      { "feature": "Task-initiation affordance ('just start' / next-tiny-step)", "source": "ND-vision gap", "filters": ["F1", "F5"], "value": "HIGH", "effort": "MED", "risk": "LOW", "why": "The activation wall is the central ND exec-function need; nothing in any of the 3 agents targets it directly. This is Argo's differentiator, not a copy." },
-      { "feature": "Per-model capability matrix in providers/catalog", "source": "Claude Code (claude-code-haha)", "filters": ["F6"], "value": "HIGH", "effort": "LOW", "risk": "LOW", "why": "Free-typed OpenRouter/Ollama models get sent thinking/effort params they 400 on. Small declarative map fixes a real reliability gap." },
-      { "feature": "Activity-feed extraction polish (extractActivities pattern)", "source": "Claude Code (leaked)", "filters": ["F3"], "value": "MED", "effort": "LOW", "risk": "LOW", "why": "Reinforces TUI-SMOOTH — bounded, summarized activity. Already partly done; pattern confirms direction." }
-    ],
-    "pendingFrom": "Hermes & Goose deep-dive agents will add their curated PULLs here."
+      { "feature": "Task-initiation affordance ('start the next tiny step')", "source": "ND-vision gap (Argo-original)", "filters": ["F1", "F5"], "value": "HIGH", "effort": "MED", "risk": "LOW", "why": "The activation wall is the central ND exec-function need; NO agent surveyed targets it. Argo's true differentiator — not a copy." },
+      { "feature": "clarify tool (ask one structured question before acting)", "source": "Hermes (clarify_tool.py)", "filters": ["F1", "F4", "F6"], "value": "HIGH", "effort": "LOW", "risk": "LOW", "why": "Kills wrong-guess thrash; ask-don't-assume = predictable + low-vigilance. Tiny surface, high fit." },
+      { "feature": "Plan-first / converse mode (clarify→steps→confirm→act)", "source": "Hermes converse + Goose /plan", "filters": ["F1", "F4", "F6"], "value": "HIGH", "effort": "MED", "risk": "LOW", "why": "Two agents converged. Opt-in act-gate that breaks blank-page paralysis; extends Argo's autonomy L1 into an interactive front door." },
+      { "feature": "Top-of-mind reminder (pinned text injected every turn)", "source": "Goose (tom/MOIM)", "filters": ["F2", "F5"], "value": "HIGH", "effort": "LOW", "risk": "LOW", "why": "Smallest, highest-fit working-memory offload — 'what am I doing / don't forget X' always in context." },
+      { "feature": "Per-model capability matrix in providers/catalog", "source": "Claude Code (claude-code-haha)", "filters": ["F6"], "value": "HIGH", "effort": "LOW", "risk": "LOW", "why": "Free-typed OpenRouter/Ollama models 400 on unsupported thinking/effort params. Small declarative map fixes a real reliability gap (echoed by Goose issue #9529)." },
+      { "feature": "Proactive nudge cadence (gentle native check-ins / standup)", "source": "Hermes user-stories (ADHD standups)", "filters": ["F1", "F5"], "value": "MED", "effort": "MED", "risk": "MED", "why": "Hermes users hacked this for ADHD on top of cron; make it native + gentle (not nagging — respect F3)." },
+      { "feature": "Checkpoints + /rollback (shadow-git undo net)", "source": "Hermes (checkpoint_manager.py)", "filters": ["F6"], "value": "MED", "effort": "MED", "risk": "MED", "why": "Undo safety net = low-anxiety trust around destructive ops. Argo's kernel blocks but doesn't snapshot/restore." },
+      { "feature": "Context references @file/@diff/@url (composer)", "source": "Hermes + Claude Code", "filters": ["F2", "F4"], "value": "MED", "effort": "LOW", "risk": "LOW", "why": "Cheap externalize-context affordance; less typing/recall. Already adjacent to Argo's planned U2 @-file mentions — merge them." },
+      { "feature": "Typed stream-event contract + per-surface chrome suppression", "source": "Hermes local (stream_events/dispatch)", "filters": ["F3"], "value": "MED", "effort": "MED", "risk": "LOW", "why": "Clean agent→surface event vocabulary; surfaces that can't render tool chrome 'eat' it. Reinforces TUI-SMOOTH (calm output). Port the design, not the Python." },
+      { "feature": "Voice conversational loop (live mic-in / spoken reply)", "source": "Hermes (voice_mode.py)", "filters": ["F1", "F3"], "value": "MED", "effort": "MED", "risk": "MED", "why": "DEFER. Explicit accessibility demand (motor needs, blind user w/ NVDA). Argo has speak/transcribe tools; the live loop is the gap." },
+      { "feature": "Recovery / degraded readline CLI (behind a flag)", "source": "Claude Code (claude-code-haha)", "filters": ["F6"], "value": "LOW", "effort": "LOW", "risk": "LOW", "why": "DEFER. Resilience when Ink can't render (CI/headless/native-dep failure)." },
+      { "feature": "Visible token/cost indicator (calm at-a-glance)", "source": "Goose (smart-context-management)", "filters": ["F6", "F4"], "value": "LOW", "effort": "LOW", "risk": "LOW", "why": "DEFER. A small calm dot, not a dashboard — borders on noise; keep minimal if pulled." }
+    ]
   },
   "drops": {
-    "note": "LOSE TOTALLY / DO NOT BUILD — fails the ND filter or duplicates Argo.",
+    "note": "LOSE TOTALLY / DO NOT BUILD — fails the ND filter, duplicates Argo, or is platform-thinking-before-users.",
     "items": [
-      { "feature": "AI-gateway model-provider plugin (local Hermes)", "source": "Hermes local", "why": "Argo already has 7 providers incl OpenRouter (the same 'one key, many models' value). Duplicate; adds cognitive surface." },
-      { "feature": "browser_providers (local Hermes)", "source": "Hermes local", "why": "Argo already has Playwright browser tools. Likely duplicate — verify, then drop." },
-      { "feature": "Plugin/recipe marketplaces & sharing ecosystems", "source": "Goose (anticipated)", "why": "Platform-thinking before users; adds choice load (F4 violation). Anti-ND." }
-    ],
-    "pendingFrom": "Hermes & Goose deep-dive agents will add the bulk of DROPs here (esp. Goose dev-power-tooling)."
+      { "feature": "Adversary mode (LLM reviewer gates each tool call)", "source": "Goose", "why": "WEAKER duplicate of Argo's kernel: LLM-judged + FAIL-OPEN (reviewer error → call allowed) vs Argo's deterministic fail-closed assess(). Importing it would weaken the moat." },
+      { "feature": "Recipes + deeplinks + cookbook (shareable workflow packages)", "source": "Goose", "why": "Sharing ecosystem / marketplace = platform-thinking before users; adds choice load (F4 violation)." },
+      { "feature": "Goose Apps / MCP-UI (embedded HTML mini-apps in chat)", "source": "Goose", "why": "Adds visual surface + cognitive load; plugin-UI platform-thinking. Argo TUI stays calm." },
+      { "feature": "Code Mode (LLM writes JS in Deno runtime to chain tools)", "source": "Goose", "why": "Pure context/perf optimization for 5+ extensions; new runtime dep. Dev-power-tooling, anti-fit." },
+      { "feature": "ML prompt-injection scanner (external HF endpoint)", "source": "Goose", "why": "Requires external service/token; enterprise noise for a solo ND user." },
+      { "feature": "Kanban multi-profile board", "source": "Hermes (kanban_tools.py)", "why": "Multi-agent fleet coordination = platform-thinking. Argo's todo + delegate + swarm cover the single-user need." },
+      { "feature": "Mixture-of-Agents (MoA) ensemble tool", "source": "Hermes (mixture_of_agents_tool.py)", "why": "Quality-via-ensemble dev tooling; adds cost/latency/noise, no EF benefit." },
+      { "feature": "ACP / IDE adapter (VS Code/Zed/JetBrains)", "source": "Hermes + Goose", "why": "IDE-integration breadth; Argo is a standalone operator, not an IDE plugin." },
+      { "feature": "6 terminal backends (docker/ssh/modal/daytona/singularity)", "source": "Hermes", "why": "Power-user infra breadth; Argo's Rust kernel already gates execution." },
+      { "feature": "Integration sprawl (X/Spotify/HomeAssistant/MS-Graph/image+video gen)", "source": "Hermes", "why": "Breadth that adds cognitive load + config burden; not an EF need." },
+      { "feature": "China/regional platform adapters (QQ, Feishu, WeCom) + i18n desktop", "source": "Hermes", "why": "Platform/locale breadth; Argo is single-user, English, macOS-first." },
+      { "feature": "ai-gateway model-provider plugin (local Hermes)", "source": "Hermes local", "why": "Argo's 7 providers incl OpenRouter already aggregate models. Duplicate." },
+      { "feature": "browser_providers — pluggable browser backends (local Hermes)", "source": "Hermes local", "why": "Argo has Playwright browser tools. Power-tooling, low ND priority." },
+      { "feature": "Full hooks plugin framework (lifecycle shell hooks)", "source": "Goose", "why": "Config surface + plugin discovery; keep ONLY the notify-on-finish idea (folded into proactive nudges), drop the framework." },
+      { "feature": "OpenTelemetry trace emitter plugin", "source": "Hermes issue #38824", "why": "Observability/enterprise; no end-user ND value." },
+      { "feature": "Batch trajectory generation / compression (training data)", "source": "Hermes", "why": "Research/training tooling, not an end-user feature." }
+    ]
   },
   "issues": {
-    "note": "GitHub issue triage — worth-adding vs not, ND-lens. Populated by deep-dive agents.",
-    "hermes": [],
-    "goose": []
+    "note": "GitHub issue triage (live, 2026-06-04). ND-lens. Both trackers are dominated by dev/platform/provider concerns with near-zero ND framing — which validates the opportunity. Worth-adding items are mostly F6 reliability lessons, not big features.",
+    "hermes": [
+      { "num": "converse", "title": "'Converse mode' — agent won't act until you say go", "verdict": "WORTH", "note": "Community ask. Plan-first gate; top ND fit (F4/F6). → PULL." },
+      { "num": "voice/timmmie", "title": "'Can't type well, voice is huge' (accessibility)", "verdict": "WORTH", "note": "Direct accessibility demand (F1/F3); supports voice-mode PULL." },
+      { "num": "#9189", "title": "Google Tasks integration", "verdict": "WORTH", "note": "Task capture = F2/F5; pairs with Argo's todo + gmail/calendar." },
+      { "num": "#38799", "title": "Setup wizard loops on stale credential pool entry", "verdict": "WORTH (lesson)", "note": "F6 — Argo's setup must avoid this onboarding failure mode (initiation friction if onboarding breaks)." },
+      { "num": "#38804", "title": "Temporary Gemini rate-limits surfaced as 'quota exhausted'", "verdict": "WORTH (lesson)", "note": "F6 — honest, accurate error mapping (Argo manifesto: report only what's true)." },
+      { "num": "#4379", "title": "73% of every API call is fixed overhead", "verdict": "WATCH", "note": "Token-overhead profiling; informs whether Argo ever needs tool_search (not at 33 tools)." },
+      { "num": "#38824", "title": "OpenTelemetry trace emitter plugin", "verdict": "NOT", "note": "Observability/enterprise; no ND value. → DROP." },
+      { "num": "#38821/#38826/#38808", "title": "CJK/Chinese IME input + Chinese desktop UI", "verdict": "NOT", "note": "i18n breadth; Argo is English/macOS-first single-user." },
+      { "num": "#38805", "title": "Matrix adapter room-name propagation", "verdict": "NOT", "note": "Platform-adapter breadth." }
+    ],
+    "goose": [
+      { "num": "#9529", "title": "Read context limit from meta.n_ctx for local servers", "verdict": "WORTH (lesson)", "note": "F6 — reliable auto-compaction for local Ollama/llama.cpp; ties to the per-model capability matrix PULL." },
+      { "num": "#9558", "title": "SKILL.md relative paths don't work — CWD is workspace not skill dir", "verdict": "WORTH (lesson)", "note": "F6 — Argo's skill execution should set CWD to the skill dir; cheap correctness fix." },
+      { "num": "#9549", "title": "Register MCP extensions dynamically at runtime", "verdict": "NOT (have it)", "note": "Argo already has mount_mcp (live runtime mount, kernel-gated)." },
+      { "num": "#9576", "title": "Image paths containing spaces silently not detected", "verdict": "NOT (minor lesson)", "note": "Bug-class lesson: handle spaces in paths; not a feature." },
+      { "num": "#9548/#9572/#9577", "title": "Azure Bearer auth / Bedrock GPT / Bedrock streaming", "verdict": "NOT", "note": "Provider breadth; Argo's 7 providers suffice." },
+      { "num": "#9556", "title": "Migrate mobile tunnel to quic/p2p/relays", "verdict": "NOT", "note": "Mobile infra breadth." }
+    ]
   },
   "localHermesDelta": {
-    "note": "Customizations in ~/.hermes/hermes-agent vs the clean baseline — what Jason+Claude changed.",
+    "note": "Customizations in ~/.hermes/hermes-agent vs the clean baseline — what Jason+Claude changed. (stream_* are now upstreamed; ai-gateway + browser_providers remain local-only.)",
     "items": [
-      { "file": "gateway/stream_dispatch.py + stream_events.py", "what": "Streaming events through the gateway (live dispatch + event stream).", "verdict": "DEFER", "why": "Check if Argo's gateway already streams; if not, this aids calm live feedback (F3)." },
-      { "file": "plugins/model-providers/ai-gateway", "what": "An AI-gateway model provider plugin.", "verdict": "DROP", "why": "Argo's 7 providers + OpenRouter cover this." },
-      { "file": "tools/browser_providers", "what": "Pluggable browser backends.", "verdict": "DROP", "why": "Argo has Playwright browser tools." },
-      { "file": "gateway/platforms/telegram.py (send-draft format) + cron tweaks", "what": "Telegram draft formatting + cronjob tool adjustments.", "verdict": "DEFER", "why": "Minor polish; revisit only if Argo's telegram/cron output is noisy (F3)." }
+      { "file": "gateway/stream_events.py", "what": "Typed frozen-dataclass event vocabulary (MessageChunk/Stop, Commentary, ToolCallChunk/Finished, LongToolHint, GatewayNotice) — names WHAT happened, not HOW delivered.", "verdict": "PULL (concept)", "why": "Clean agent→surface contract; Argo's TUI feed would benefit from typed events vs ad-hoc callbacks. F3 calm output." },
+      { "file": "gateway/stream_dispatch.py", "what": "Per-surface router — an adapter can return None to 'eat' tool chrome on surfaces that can't render it; tool lines join one progress queue (kills draft-vs-tool race).", "verdict": "PULL (concept)", "why": "'Eat noisy chrome per surface' IS ND output-regulation (F3). Port the design, not the Python." },
+      { "file": "plugins/model-providers/ai-gateway", "what": "An AI-gateway model-provider plugin (local-only; not in upstream).", "verdict": "DROP", "why": "Argo's 7 providers + OpenRouter cover this." },
+      { "file": "tools/browser_providers", "what": "Pluggable browser backends (local-only; not in upstream).", "verdict": "DROP", "why": "Argo has Playwright browser tools." },
+      { "file": "gateway/platforms/telegram.py + cron tweaks", "what": "Telegram send-draft formatting + cronjob tool adjustments.", "verdict": "DEFER", "why": "Surface polish; revisit only if Argo's telegram/cron output is noisy (F3)." }
     ]
   },
   "claudeCode": {
@@ -99,9 +148,9 @@
     "items": [
       { "finding": "Per-model capability override matrix", "repo": "claude-code-haha", "value": "HIGH", "risk": "LOW", "filters": ["F6"], "note": "→ PULL. Real Argo gap: free-typed models 400 on unsupported params." },
       { "finding": "Permission-as-pluggable-tool + abort-signal racing", "repo": "leaked-claude-code", "value": "HIGH", "risk": "MED", "filters": ["F6"], "note": "Decouples Ask-resolution from the kernel gate; ports cleanly. Argo has no hooks layer." },
-      { "finding": "Hooks race the UI prompt (first wins) via stream-json control protocol", "repo": "leaked-claude-code", "value": "HIGH", "risk": "MED", "filters": ["F4", "F6"], "note": "Programmatic policy auto-decides without blocking the user — could reduce approval fatigue." },
+      { "finding": "Hooks race the UI prompt (first wins) via stream-json control protocol", "repo": "leaked-claude-code", "value": "HIGH", "risk": "MED", "filters": ["F4", "F6"], "note": "Programmatic policy auto-decides without blocking the user — could reduce approval fatigue. (Pull the idea, not the whole hooks framework.)" },
       { "finding": "extractActivities firehose→bounded summary", "repo": "leaked-claude-code", "value": "MED", "risk": "LOW", "filters": ["F3"], "note": "Confirms TUI-SMOOTH direction." },
-      { "finding": "Recovery/degraded readline CLI behind a flag", "repo": "claude-code-haha", "value": "MED", "risk": "LOW", "filters": ["F6"], "note": "Resilience when Ink can't render (CI/headless/native-dep failure)." },
+      { "finding": "Recovery/degraded readline CLI behind a flag", "repo": "claude-code-haha", "value": "MED", "risk": "LOW", "filters": ["F6"], "note": "Resilience when Ink can't render (CI/headless)." },
       { "finding": "SSE resume (Last-Event-ID) + SerialBatchEventUploader (backpressure, Retry-After)", "repo": "leaked-claude-code", "value": "MED", "risk": "MED", "filters": ["F6"], "note": "Gateway event-delivery robustness — verify vs Argo's gateway first." },
       { "finding": "Native-module fault tolerance (try/catch → safe default)", "repo": "claude-code-haha", "value": "MED", "risk": "LOW", "filters": ["F6"], "note": "Optional native deps should degrade, never break the input loop." },
       { "finding": "Bun coupling (bun:bundle macro in 197 files)", "repo": "claude-code-haha", "value": "—", "risk": "—", "filters": [], "note": "ANTI-FINDING — do not lift the entrypoint to Node/tsx without stubbing." },
@@ -109,7 +158,7 @@
     ]
   },
   "docsTakeaways": {
-    "hermes": "Pending — fetch hermes-agent.nousresearch.com/docs/user-stories.",
-    "goose": "Pending — fetch goose-docs.ai/docs/category/guides."
+    "hermes": "262 documented user stories. Primary personas: Developers/Technical (65), Personal Assistants (44), Business Ops (16), Content Creators (11), Researchers (9). CRUCIALLY, Hermes DOES have an accessibility/ND thread — but as edge cases, not the spine: voice-first interface ('can't type well, voice is huge' — motor accessibility), ADHD morning/evening standup workflows, proactive unprompted reminders (self-initiation support), memory persistence framed as cognitive-load reduction, and an NVDA screen-reader addon built by a blind user. Tagline 'an agent that grows with you' gestures at democratization beyond developers. TAKEAWAY: the ND/exec-function demand is real and latent in Hermes's own userbase — Hermes treats it as edge, Argo's wedge is to make it THE spine. Validates the nudges / voice / memory / clarify PULLs.",
+    "goose": "Guides cover purely technical infrastructure: sessions, context engineering, recipes, tools, projects, CLI, providers, config, MCP servers, logging, file management, task execution. Explicitly developer-centric ('enhanced code editing', 'codebase analysis', 'terminal integration'); assumes CLI/YAML/API fluency. Secondary enterprise/institutional framing (custom distributions, extension allowlist, sandbox). ZERO accessibility/neurodivergence/executive-function/everyday-assistance framing. Overlap with Argo's ND vision: near-zero — correct and expected. Goose is the contrast case that sharpens Argo's positioning."
   }
 }
