@@ -40,5 +40,10 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
 export const SLASH_HELP = [
   "  Commands:",
   ...SLASH_COMMANDS.map((c) => `    /${c.name}${c.arg ? ` ${c.arg}` : ""}`.padEnd(24) + c.desc),
+  "",
+  "  Prefixes (no slash needed):",
+  "    ! <cmd>".padEnd(24) + "run a kernel-gated shell command inline",
+  "    # <text>".padEnd(24) + "save a note to memory (brain → semantic region)",
+  "",
   "  Anything else is sent to the agent (history persists across the session).",
 ].join("\n");

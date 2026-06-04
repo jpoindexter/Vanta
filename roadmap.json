@@ -725,7 +725,7 @@
       "id": "TUI-SHORTCUTS",
       "track": "TUI parity",
       "title": "Prefix shortcuts: bash (!) + memory (#)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Claude Code: '!' runs a shell command inline (output into context), '#' appends a line to memory without a full command. Argo has shell_cmd as a tool + /memory as a command but no fast prefixes. Add composer prefixes: leading ! \u2192 shell (kernel-gated), leading # \u2192 brain/memory append. ND fit F1 (lower friction for the two most common quick actions).",
       "done": "Typing '! <cmd>' runs a kernel-gated shell command; '# <note>' appends to the brain \u2014 no slash command needed.",

@@ -19,6 +19,7 @@ import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
 import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
+import { parseShortcut, runBashShortcut, runMemoryShortcut } from "../repl/shortcuts.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -141,6 +142,19 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     if (!line || pending) return;
     const firstToken = line.slice(1).split(/\s/)[0] ?? "";
     if (line.startsWith("/") && !firstToken.includes("/")) { handleSlash(line); return; }
+    const shortcut = parseShortcut(line);
+    if (shortcut) {
+      if (shortcut.type === "bash") {
+        void runBashShortcut(shortcut.cmd, setup.safety, repoRoot)
+          .then((out) => dispatch({ t: "note", text: out }))
+          .catch((e: unknown) => dispatch({ t: "note", text: `error: ${e instanceof Error ? e.message : String(e)}` }));
+      } else {
+        void runMemoryShortcut(shortcut.text, process.env)
+          .then((out) => dispatch({ t: "note", text: out }))
+          .catch((e: unknown) => dispatch({ t: "note", text: `error: ${e instanceof Error ? e.message : String(e)}` }));
+      }
+      return;
+    }
     if (state.busy) { dispatch({ t: "enqueue", text: line }); return; }
     void (async () => {
       const dropped = await maybeDroppedImage(line);
