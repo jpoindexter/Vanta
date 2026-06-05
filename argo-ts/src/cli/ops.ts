@@ -180,6 +180,17 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
   console.log(`  → opened ${htmlPath}`);
 }
 
+export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
+  const port = Number(rest[0] ?? process.env.ARGO_DESKTOP_PORT) || 7790;
+  const { serveDesktop } = await import("../desktop/server.js");
+  setTimeout(() => {
+    void import("node:child_process").then(({ execSync }) => {
+      try { execSync(`open "http://127.0.0.1:${port}"`); } catch {}
+    });
+  }, 300);
+  await serveDesktop(repoRoot, port);
+}
+
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
   const { runCycle, formatCycleLog, resolveAutonomyLevel } = await import("../factory/run.js");
   const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
