@@ -152,7 +152,7 @@ export async function writeRunMemory(
   goals: Goal[],
   instruction: string,
   finalText: string,
-  opts: { now?: string } = {},
+  opts: { now?: string; sessionId?: string; turnIndex?: number } = {},
 ): Promise<void> {
   const goal = goals.find((g) => g.status === "active");
   if (!goal) return;
@@ -167,9 +167,12 @@ export async function writeRunMemory(
       ],
       [],
     );
-    // MEM-TIMESTAMPS: pass the turn start time so filed_at reflects when the
-    // conversation happened, not when the memory was mined.
-    await appendMemory(goal.id, text, { now: opts.now });
+    // MEM-STRUCT: include session + turn context in the memory block so the
+    // 3-tier hierarchy (goal > session > turn) is implicit in each entry.
+    const structHeader = opts.sessionId
+      ? `session:${opts.sessionId} turn:${opts.turnIndex ?? 0}\n`
+      : "";
+    await appendMemory(goal.id, `${structHeader}${text}`, { now: opts.now });
   } catch (err: unknown) {
     console.warn(
       `warn: could not write memory: ${err instanceof Error ? err.message : String(err)}`,
