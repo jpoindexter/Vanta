@@ -53,8 +53,9 @@ SECTIONS = [
 # External pages (already self-contained HTML elsewhere in the repo).
 LINKS = [
     ("Interactive boards", [
-        ("../roadmap.html", "Roadmap kanban (200 items)"),
-        ("../design-system-skills/index.html", "Design system skills (17)"),
+        ("../roadmap.html", "Roadmap kanban"),
+        ("../design-system-skills/index.html", "Design system skills (27)"),
+        ("../ai-engineering-skills/index.html", "AI engineering skills (13)"),
     ]),
 ]
 
