@@ -698,6 +698,78 @@
       "done": "'argo plugins' lists capabilities + where each one's deps/state live; 'argo plugins install browser' fetches Chromium into the OS cache (never the repo); 'argo doctor' confirms no plugin files in the project tree."
     },
     {
+      "id": "MSG-REGISTRY",
+      "track": "Autonomy + Reach",
+      "title": "Messaging platform registry (graceful multi-platform wiring)",
+      "status": "next",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Messaging platform registry (steal Hermes platform_registry.py): each adapter self-registers {id, factory, required_env, check_fn (usable?), install_hint}. The gateway + MSG-WIZARD + argo doctor read it so unconfigured/unavailable platforms show a graceful 'needs X' instead of a crash, and a new adapter drops in without editing the central wiring in gateway/run.ts. Generalizes today's single-Telegram path. Detail: docs/messaging-gateways.md.",
+      "done": "Adding a platform = registering one entry; 'argo gateway'/doctor report each platform's availability + missing prereqs from the registry, with no central if/elif edit."
+    },
+    {
+      "id": "MSG-WIZARD",
+      "track": "Models + Setup",
+      "title": "Messaging setup wizard (Telegram/iMessage/WhatsApp/Signal)",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Extend setup.ts (today: LLM provider only) with a messaging step / 'argo setup messaging': pick platforms, write each one's env (upsertEnv, idempotent), check prerequisites via MSG-REGISTRY, and print exact setup/pairing steps -- BotFather link (Telegram), the Full-Disk-Access + Automation walkthrough (iMessage), QR scan + Node check (WhatsApp), signal-cli link (Signal). Mirrors PROVIDER_CATALOG/renderProviderMenu/runSetup. No crash on missing prereqs -- explain them.",
+      "done": "'argo setup messaging' lists platforms with availability, writes the chosen env, and prints each one's exact setup/pairing steps; re-running is idempotent."
+    },
+    {
+      "id": "MSG-PAIRING",
+      "track": "Reliability (ND trust)",
+      "title": "Code-based DM pairing (consent over allowlists)",
+      "status": "next",
+      "size": "S",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Code-based DM approval (steal Hermes pairing.py), platform-agnostic: an unknown sender gets a one-time short code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, stored 0600 in ~/.argo/pairing/); the owner approves via CLI/TUI. Replaces the static ARGO_TELEGRAM_ALLOW allowlist with a real consent flow across ALL messaging adapters. Security-hardened; pure code-gen/verify tested offline.",
+      "done": "An inbound message from an unknown chatId triggers a one-time pairing code; only after the owner approves does that sender reach the agent; expired/over-limit codes are refused."
+    },
+    {
+      "id": "MSG-IMESSAGE",
+      "track": "Autonomy + Reach",
+      "title": "Native macOS iMessage adapter (osascript send + chat.db receive)",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Native macOS iMessage PlatformAdapter: SEND via AppleScript/osascript ('tell application Messages to send'), RECEIVE by polling the local Messages SQLite DB ~/Library/Messages/chat.db (read-only, since-last-rowid). Cleaner than Hermes's BlueBubbles for the local case (no third-party server); optional BlueBubbles REST+webhook mode for cross-machine. Needs macOS Full Disk Access (chat.db) + Automation (osascript) -- surfaced by MSG-WIZARD + argo doctor, walked through, not headless. Mirrors telegram.ts; pure parseChatDbRows tested offline.",
+      "done": "With Full Disk Access granted, 'argo gateway' receives an inbound iMessage (chat.db poll) and replies via osascript; parse/send shaping unit-tested without the live DB."
+    },
+    {
+      "id": "MSG-SIGNAL",
+      "track": "Autonomy + Reach",
+      "title": "Signal adapter (signal-cli daemon, JSON-RPC + SSE)",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Signal PlatformAdapter via signal-cli in daemon HTTP mode (Hermes's approach): JSON-RPC 2.0 send + SSE /api/v1/events receive over localhost. Argo does NOT handle device linking/registration (the user does that in signal-cli). Pure JSON-RPC shaping tested offline. Low-risk official-ish path; lower priority than iMessage.",
+      "done": "With a running signal-cli daemon, 'argo gateway' receives a Signal message (SSE) and replies (JSON-RPC); shaping unit-tested without the daemon."
+    },
+    {
+      "id": "MSG-WHATSAPP",
+      "track": "Autonomy + Reach",
+      "title": "WhatsApp adapter (Node subprocess bridge; Business-API alt)",
+      "status": "next",
+      "size": "L",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "WhatsApp PlatformAdapter via a Node subprocess bridge (Hermes pattern): Argo spawns a small Baileys/whatsapp-web.js worker, pairs by QR (creds in ~/.argo/whatsapp/, gitignored), talks over localhost HTTP (GET /messages poll, POST send), health-checks + restarts the bridge. UNOFFICIAL -> account ban risk + breaks on protocol changes; WhatsApp Business API (Meta-verified) is the ToS-safe alternative (captured as 'official' mode). Bridge dep installs to ~/.argo, never the repo (PLUGIN-SYSTEM). Build last.",
+      "done": "After a QR pair, 'argo gateway' receives a WhatsApp message via the Node bridge and replies; bridge spawn/health/restart handled; pure parse tested offline; risk + Business-API alt documented."
+    },
+    {
       "id": "COMMAND-CENTER",
       "track": "Operator",
       "title": "Full life/world command center (all dashboards)",
