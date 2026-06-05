@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { installSkillLibrary, libraryDir } from "./library.js";
+import { installSkillLibrary, libraryDir, librarySources } from "./library.js";
 import { listSkills } from "./store.js";
 
 const SKILL = (name: string) =>
@@ -71,5 +71,19 @@ describe("installSkillLibrary", () => {
     const r = await installSkillLibrary();
     expect(r.installed.length + r.skipped.length).toBeGreaterThanOrEqual(10);
     expect([...r.installed, ...r.skipped]).toContain("systematic-debugging");
+  });
+
+  it("installs the design-system-skills source too (multi-source)", async () => {
+    const r = await installSkillLibrary();
+    const all = [...r.installed, ...r.skipped];
+    // a skill that only exists in design-system-skills/, not skills-library/
+    expect(all).toContain("atomic-design");
+    expect(all).toContain("usability-heuristics");
+  });
+
+  it("librarySources lists both the bundled library and the design skills", () => {
+    const srcs = librarySources();
+    expect(srcs.some((s) => s.endsWith("skills-library"))).toBe(true);
+    expect(srcs.some((s) => s.endsWith("design-system-skills"))).toBe(true);
   });
 });
