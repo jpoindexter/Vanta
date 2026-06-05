@@ -74,8 +74,16 @@ export async function brainDigest(
   perRegion = 600,
 ): Promise<string> {
   await ensureBrain(env);
+  // MEM-LAYERS: iterate ALL regions so nothing written is dark-memory.
+  // BRAIN-SALIENCE: inject salience + executive first — attention allocation
+  // should modulate all subsequent processing.
+  const PRIORITY_FIRST = ["salience", "executive"];
+  const ordered = [
+    ...BRAIN_REGIONS.filter((r) => PRIORITY_FIRST.includes(r.name)),
+    ...BRAIN_REGIONS.filter((r) => !PRIORITY_FIRST.includes(r.name)),
+  ];
   const parts: string[] = [];
-  for (const r of BRAIN_REGIONS) {
+  for (const r of ordered) {
     const raw = (await readRegion(r.name, env))?.trim();
     if (!raw) continue;
     const body = raw.length > perRegion ? `${raw.slice(0, perRegion)}…` : raw;

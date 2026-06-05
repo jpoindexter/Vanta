@@ -21,6 +21,10 @@ export type AgentDeps = {
   /** Extended thinking / reasoning text returned by the provider (e.g. Anthropic
    * extended thinking). Called once per turn when the provider returns thinking. */
   onThinking?: (text: string) => void;
+  /** UX-STREAM: typed event emitter — a superset of the individual callbacks above.
+   * Surfaces emit both the typed event AND the legacy callback so existing surfaces
+   * continue to work; new surfaces can subscribe only to onEvent. */
+  onEvent?: (event: StreamEvent) => void;
   /** Live token deltas as the model streams. When set (and the provider supports
    * streaming), the loop streams instead of waiting for the full completion. */
   onTextDelta?: (delta: string) => void;
@@ -37,6 +41,20 @@ export type AgentDeps = {
 };
 
 export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted";
+
+/**
+ * UX-STREAM: Typed stream-event vocabulary — names what happened so each
+ * surface (TUI / REPL / webhook / voice) can render or suppress per its
+ * capability without pattern-matching raw strings.
+ */
+export type StreamEvent =
+  | { type: "text_delta"; delta: string }
+  | { type: "text_complete"; text: string }
+  | { type: "thinking"; text: string }
+  | { type: "tool_start"; name: string; args: Record<string, unknown> }
+  | { type: "tool_end"; name: string; ok: boolean; output: string }
+  | { type: "note"; text: string }
+  | { type: "turn_end"; finalText: string; usage?: { inputTokens: number; outputTokens: number } };
 
 export type AgentOutcome = {
   finalText: string;
@@ -165,8 +183,14 @@ async function runTurn(
       continue;
     }
 
-    if (result.thinking) deps.onThinking?.(result.thinking);
-    if (result.text.trim()) deps.onText?.(result.text);
+    if (result.thinking) {
+      deps.onThinking?.(result.thinking);
+      deps.onEvent?.({ type: "thinking", text: result.thinking });
+    }
+    if (result.text.trim()) {
+      deps.onText?.(result.text);
+      deps.onEvent?.({ type: "text_complete", text: result.text });
+    }
     messages.push({
       role: "assistant",
       content: result.text,
@@ -262,6 +286,7 @@ async function dispatchTool(
   ctx: ToolContext,
 ): Promise<DispatchOutcome> {
   deps.onToolCall?.(call.name, call.arguments);
+  deps.onEvent?.({ type: "tool_start", name: call.name, args: call.arguments });
   const tool = deps.registry.get(call.name);
   if (!tool) {
     return { executed: false, empty: false, ok: false, output: `unknown tool: ${call.name}` };
@@ -295,5 +320,6 @@ async function dispatchTool(
   } catch { /* best-effort — never block */ }
   const res = await tool.execute(call.arguments, ctx);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
+  deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   return { executed: true, empty: res.output.trim().length === 0, ok: res.ok, output: res.output };
 }

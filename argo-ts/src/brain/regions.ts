@@ -68,6 +68,22 @@ export const BRAIN_REGIONS: readonly BrainRegion[] = [
     description: "Argo's current affective and operating state — kept brief.",
     seed: "# Mood\n\nSteady and ready.\n",
   },
+  // BRAIN-SALIENCE: Salience Network (frontal insula, anterior cingulate, amygdala)
+  // Determines attention allocation — what enters active processing this session.
+  {
+    name: "salience",
+    title: "Salience (what matters right now)",
+    description: "High-priority signals, urgent concerns, or context shifts that should modulate current attention — updated per session when something important surfaces.",
+    seed: "# Salience\n\nNothing currently elevated — all signals nominal.\n",
+  },
+  // BRAIN-SALIENCE: Executive Control Network (DLPFC, parietal, basal ganglia)
+  // Planning, working memory constraints, inhibition targets, active task stack.
+  {
+    name: "executive",
+    title: "Executive Control (active plans / inhibition)",
+    description: "Active plans being tracked, things to actively inhibit or defer (anti-goals), and constraints on the current task stack.",
+    seed: "# Executive control\n\nNo active plans tracked. No inhibition targets.\n",
+  },
 ];
 
 export const BRAIN_REGION_NAMES: readonly string[] = BRAIN_REGIONS.map((r) => r.name);
