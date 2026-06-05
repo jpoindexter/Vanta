@@ -73,17 +73,19 @@ describe("installSkillLibrary", () => {
     expect([...r.installed, ...r.skipped]).toContain("systematic-debugging");
   });
 
-  it("installs the design-system-skills source too (multi-source)", async () => {
+  it("installs the design + ai-engineering sources too (multi-source)", async () => {
     const r = await installSkillLibrary();
     const all = [...r.installed, ...r.skipped];
-    // a skill that only exists in design-system-skills/, not skills-library/
-    expect(all).toContain("atomic-design");
-    expect(all).toContain("usability-heuristics");
+    // skills that only exist in the extra sources, not skills-library/
+    expect(all).toContain("atomic-design"); // design-system-skills
+    expect(all).toContain("usability-heuristics"); // design-system-skills
+    expect(all).toContain("rag-architecture"); // ai-engineering-skills
   });
 
-  it("librarySources lists both the bundled library and the design skills", () => {
+  it("librarySources lists the bundled library + design + ai-engineering skills", () => {
     const srcs = librarySources();
     expect(srcs.some((s) => s.endsWith("skills-library"))).toBe(true);
     expect(srcs.some((s) => s.endsWith("design-system-skills"))).toBe(true);
+    expect(srcs.some((s) => s.endsWith("ai-engineering-skills"))).toBe(true);
   });
 });

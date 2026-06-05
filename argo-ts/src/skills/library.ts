@@ -28,6 +28,7 @@ export function librarySources(): string[] {
   return [
     join(base, "..", "..", "skills-library"),
     join(base, "..", "..", "..", "design-system-skills"),
+    join(base, "..", "..", "..", "ai-engineering-skills"),
   ];
 }
 
