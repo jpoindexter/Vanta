@@ -27,6 +27,7 @@ import {
 import { runChat } from "./interactive.js";
 import { runTui } from "./tui/launch.js";
 import { runSetup } from "./setup.js";
+import { runMessagingSetup } from "./setup-messaging.js";
 import { runStatus } from "./status.js";
 import { resolveProvider } from "./providers/index.js";
 import {
@@ -37,6 +38,7 @@ import {
   runMcpCommand,
   runRoadmapCommand,
   runFactoryCommand,
+  runDesktopCommand,
 } from "./cli/ops.js";
 
 function findRepoRoot(): string {
@@ -62,6 +64,7 @@ function usage(): void {
       "Usage: argo                              start an interactive session",
       "       argo sessions | resume <id>       list past sessions, or resume one",
       "       argo setup                        first-run wizard: pick a model backend",
+      "       argo setup messaging              configure a messaging gateway (Telegram, …)",
       "       argo status | doctor              health check (kernel, provider, keys, store)",
       '       argo run "<instruction>"          run one instruction and exit',
       "       argo skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
@@ -77,6 +80,7 @@ function usage(): void {
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
       "       argo roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
+      "       argo desktop [port]                start local desktop command center",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
       "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via ARGO_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -352,7 +356,10 @@ async function main(): Promise<void> {
   if (cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "sessions") return runSessionsList();
   if (cmd === "help" || cmd === "-h" || cmd === "--help") return usage();
-  if (cmd === "setup") return void (await runSetup(repoRoot));
+  if (cmd === "setup") {
+    if (rest[0] === "messaging") return void (await runMessagingSetup(repoRoot));
+    return void (await runSetup(repoRoot));
+  }
   if (cmd === "status" || cmd === "doctor") return runStatus();
   if (cmd === "schedule") {
     const code = await runScheduleCommand(dataDirFor(repoRoot), rest);
@@ -374,6 +381,7 @@ async function main(): Promise<void> {
   if (cmd === "hooks") return runHooksCommand(rest);
   if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
+  if (cmd === "desktop") return runDesktopCommand(repoRoot, rest);
   if (cmd === "memory") return runMemoryCommand(rest);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");

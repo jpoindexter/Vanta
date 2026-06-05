@@ -59,7 +59,7 @@ export function buildEnvUpdates(
 }
 
 /** Read a secret without echoing it to the terminal. Falls back to plain prompt. */
-async function promptSecret(rl: Readline, query: string): Promise<string> {
+export async function promptSecret(rl: Readline, query: string): Promise<string> {
   // readline's Interface writes echoed input via _writeToOutput; muting it while
   // the answer is typed hides the key. Typed-cast with a comment per house rules.
   const muted = rl as unknown as { _writeToOutput?: (s: string) => void };
