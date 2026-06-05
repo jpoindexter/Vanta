@@ -32,6 +32,8 @@ import {
   gitCheckoutTool,
 } from "./git.js";
 import { delegateTool } from "./delegate.js";
+import { workflowTool } from "./workflow.js";
+import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import {
   gmailSearchTool,
@@ -78,6 +80,8 @@ const ALL_TOOLS: readonly Tool[] = [
   watchVideoTool,
   speakTool,
   swarmTool,
+  workflowTool,
+  graphQueryTool,
   transcribeTool,
   runCodeTool,
   lspDiagnosticsTool,
