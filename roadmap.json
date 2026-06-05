@@ -2328,6 +2328,42 @@
       "tier": "pebble",
       "model": "haiku",
       "effort": "medium"
+    },
+    {
+      "id": "SELF-UPDATE",
+      "track": "Hermes Parity",
+      "title": "argo update — safe self-updater with rollback",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Pattern lifted from `hermes update` (adapt, don't copy): one command keeps a running Argo current and recoverable. Steps worth stealing — fetch upstream; autostash local changes before pull; write a NAMED pre-update snapshot for rollback; pull; offer to restore local changes with a clear warning; clear stale caches; refresh deps + rebuild kernel/cockpit; refresh live backends (MCP mounts, providers) reporting which changed; sync bundled skills reporting updated / user-modified-kept / removed-from-manifest; check config for new options (additive .env migration, preserves user keys); restart the gateway service; discard noise like lockfile churn so a clean re-run reports 'already up to date'. Argo today only has install.sh + run.sh self-bootstrap — no updater, no snapshot, no rollback.",
+      "done": "`argo update` fetches, writes a pre-update snapshot, refreshes deps + skills + config additively, restarts the service, and reports a clean diff; `argo update --rollback` restores the last snapshot."
+    },
+    {
+      "id": "MODEL-CMD",
+      "track": "Hermes Parity",
+      "title": "argo model — CLI provider/model pulldown",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes closes `hermes update` with a tip: `hermes model` — a standalone CLI provider+model selector (the pulldown). Argo has the TUI ModelPicker overlay (`/model`) but no standalone `argo model` command and no post-setup discoverability tip. Add a CLI selector that lists resolvable providers (key present) + their models, persists the pick to .env via upsertEnv, and surfaces the tip after setup/update. Pairs with UX-MODEL-FIX (the model-persistence regression): the CLI pick must actually stick across restart.",
+      "done": "`argo model` lists available providers/models, persists the choice to .env, the choice survives restart, and setup/update surface the tip."
+    },
+    {
+      "id": "SKILL-UMBRELLA",
+      "track": "Skills",
+      "title": "Curator umbrella consolidation + pin",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Hermes' curator does an umbrella-building pass Argo's doesn't: it groups many overlapping/related skills under CLASS-LEVEL umbrella skills (e.g. apple-services, github-operations, research-workflows), archives the children (69 in one observed run), prunes stale ones, then shows a once-per-run digest with `curator status` (view anytime) and `curator pin <umbrella>` (freeze a good umbrella so the next pass won't churn it). Argo's curate() is non-destructive archive of stale LEARNED skills only — it reports overlaps but never consolidates them. Add an LLM consolidation pass that proposes umbrellas from overlap clusters, archives children reversibly, supports pin, and emits a once-per-run digest. Reversible + approval-gated (Rule zero).",
+      "done": "`argo curator` proposes class-level umbrellas from overlapping skills, archives children reversibly with pin support, prunes stale, and surfaces a once-per-run digest viewable via `argo curator status`."
     }
   ]
 }
