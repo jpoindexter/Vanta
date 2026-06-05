@@ -5,6 +5,7 @@ import { execute } from "./executor.js";
 import { verify, listPreExistingFiles } from "./verifier.js";
 import { autonomyCapForFiles } from "./compartments.js";
 import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
+import { shouldClarify, buildPrefightNote } from "./preflight.js";
 import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 
 // --- Pure helpers ---
@@ -187,6 +188,12 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     if (!item) return { status: "nothing-to-do" };
     log(`factory: [${item.category}] ${item.description}`);
 
+    // FAC-PREFLIGHT: gate on ambiguity before branching or touching the tree.
+    if (shouldClarify(item, process.env)) {
+      log(buildPrefightNote(item));
+      return { status: "aborted", reason: "item too vague — add context then re-run" };
+    }
+
     const plan = buildPlan(item, config.argoRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
@@ -203,19 +210,28 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const branch = await createBranch(config.argoRoot);
     log(`factory: branched → ${branch}`);
 
-    // FAC-STALL: bounded retry when verify fails (ARGO_FACTORY_MAX_RETRIES, default 1).
+    // FAC-STALL + FAC-ESCALATE: bounded retry; escalates to a stronger model after
+    // ARGO_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
     const maxRetries = Math.max(0, parseInt(process.env.ARGO_FACTORY_MAX_RETRIES ?? "1", 10));
+    const escalateAfter = Math.max(1, parseInt(process.env.ARGO_FACTORY_ESCALATE_AFTER ?? "1", 10));
     let artifact = await execute(config.argoRoot, plan, config.budgetTokens);
     log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
     let verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+    let totalTokens = artifact.tokenSpend;
     for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
-      log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})…`);
+      const escalate = retry >= escalateAfter && process.env.ARGO_MODEL_EXPENSIVE;
+      const escalateNote = escalate ? ` [escalating to ${process.env.ARGO_MODEL_EXPENSIVE}]` : "";
+      log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})${escalateNote}…`);
       await discardSlice(config.argoRoot);
       const retryBranch = await createBranch(config.argoRoot);
       log(`factory: branched → ${retryBranch}`);
       const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
+      // FAC-ESCALATE: override ARGO_MODEL to the expensive model when stalled.
+      if (escalate) process.env.ARGO_MODEL = process.env.ARGO_MODEL_EXPENSIVE!;
       artifact = await execute(config.argoRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
-      log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens`);
+      if (escalate) delete process.env.ARGO_MODEL; // restore default after retry
+      totalTokens += artifact.tokenSpend;
+      log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
       verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
     }
     if (!verifyResult.ok) {

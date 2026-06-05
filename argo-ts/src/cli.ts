@@ -243,6 +243,19 @@ async function runSkillsCommand(rest: string[]): Promise<void> {
   }
 }
 
+async function runVoiceCommand(repoRoot: string): Promise<void> {
+  const setup = await prepareRun(repoRoot, "voice session");
+  const { runVoiceLoop } = await import("./voice/loop.js");
+  await runVoiceLoop({
+    provider: setup.provider,
+    safety: setup.safety,
+    registry: setup.registry,
+    root: repoRoot,
+    systemPrompt: setup.systemPrompt,
+    durationSec: parseInt(process.env.ARGO_VOICE_DURATION ?? "5", 10) || 5,
+  });
+}
+
 async function runHooksCommand(rest: string[]): Promise<void> {
   const { homedir } = await import("node:os");
   const { readFile, writeFile, mkdir } = await import("node:fs/promises");
@@ -343,6 +356,7 @@ async function main(): Promise<void> {
   if (cmd === "modes") return runModes(process.env, rest[0]);
   if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "voice") return runVoiceCommand(repoRoot);
   if (cmd === "hooks") return runHooksCommand(rest);
   if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
