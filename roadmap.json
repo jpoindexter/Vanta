@@ -986,6 +986,30 @@
       "done": "Opening docs-site/index.html browses every canonical Argo doc with nav + search, no server; regenerates from docs/ via one script."
     },
     {
+      "id": "TUI-KEYS",
+      "track": "TUI parity",
+      "title": "Full composer keybindings (readline/Emacs + macOS Cmd)",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Build every known line-editing shortcut in the composer (tui/composer.tsx). Shipped: Ctrl+U/W, Esc, up/down history, Shift+Enter. To build: cursor movement (Ctrl+A/E start/end, Ctrl+B/F char, Alt+B/F + Ctrl+arrows word, Cmd+arrows line, Cmd+up/down top/bottom, Alt+up/down move-line), deletion/kill (Ctrl+D/Delete forward, Alt+Backspace/Ctrl+Backspace word-before, Alt+D word-after, Ctrl+K kill-to-end, Cmd+Backspace/Delete to line start/end), edit/kill-ring (Ctrl+Y yank, Alt+Y yank-pop, Ctrl+T/Alt+T transpose, Alt+U/L/C case, Ctrl+_/Cmd+Z undo, redo), control (Ctrl+L clear, Ctrl+R reverse-history-search, Ctrl+G cancel). Full matrix + status in docs/tui-keybindings.md. Detect terminal capability + degrade gracefully (some chords need kitty-keyboard/Cmd forwarding).",
+      "done": "The composer supports the full readline/Emacs editing set + macOS Cmd conventions per docs/tui-keybindings.md, verified against a capable terminal; unsupported-chord terminals degrade without breaking."
+    },
+    {
+      "id": "TUI-SELECT",
+      "track": "TUI parity",
+      "title": "Shift-select + clipboard ops in the composer",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "A selection model (anchor+cursor) + the shift-select shortcuts: Shift+arrows (char/line), Shift+Alt+arrows (word), Shift+Cmd+arrows (to line start/end), Shift+Home/End, Cmd+A select-all; typing/cut replaces the selection; copy (Cmd+C) reads it, cut (Cmd+X), paste (Cmd+V). Prerequisite for the selection-based shortcuts in TUI-KEYS. Builds on the existing /copy + /paste. docs/tui-keybindings.md.",
+      "done": "Shift+arrow/word/line extends a visible selection in the composer; Cmd+A selects all; Cmd+C/X/V copy/cut/paste operate on the selection; typing over a selection replaces it."
+    },
+    {
       "id": "DESKTOP-P12",
       "track": "Platform",
       "title": "Desktop P12 — native Electron packaging",
