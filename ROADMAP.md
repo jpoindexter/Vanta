@@ -210,7 +210,7 @@ Two goal-dumps this session. UI bugs (width fill · slash palette 8-item cap · 
 **Hermes parity miss — auxiliary tasks (the real gap):** Hermes `dashboard → auxiliary tasks` lets you bind each *function* (vision, summarization, title-gen, embeddings) to its own model, independent of the main agent model. Argo regressed past this: `describe_image` + `look_at_screen` both resolve `resolveProvider(process.env)` (the ACTIVE model), so a non-vision main model (DeepSeek V4 Flash, local text-only Ollama) silently breaks vision — "returned no description." The old `ARGO_VISION_MODEL` path was removed in the "route through active provider" refactor; this re-introduces it, generalized.
 - [x] **AUX-VISION** (S) — ✅ SHIPPED 2026-06-05. `routing/vision.ts` (`visionEnv` pure + `resolveVisionProvider`); all 3 image tools (`describe_image`, `look_at_screen`, `look_at_camera`) route to `ARGO_VISION_MODEL` (+ optional `ARGO_VISION_PROVIDER`) when set, else the active provider (prior behavior). Fixes vision silently breaking on a text-only main model. 4 unit tests, full suite green (1067 TS), `.env.example` + both `CLAUDE.md` updated. *The explicit "delegate those vision tasks today" ask.*
 - [x] **UI-READABILITY** (S) — ✅ SHIPPED 2026-06-05. TUI fills terminal width (removed 100-col cap, `tui/app.tsx`) · slash palette capped to 8 + fixed command column + width-clipped descriptions (`tui/transcript.tsx`, was unbounded ragged `space-between` → typing `/` dumped all 37) · `/skills` aligns names + clips to one line (`repl/handlers.ts`) · skill INDEX clipped per-line in the prompt (`prompt.ts` `trimSkillDesc`) so weak models stop parroting the library. 310 TUI/repl tests green.
-- [ ] **SCRUB-AI** (M) — before going public, strip Hermes/OpenClaw/Nexarion/Claude/other-AI-agent mentions from the **published surface** (source comments, README, user-facing strings); **keep research docs** (`docs/_hermes-recon`, `docs/hermes-*`). Open scoping (needs Jason): (1) does the `claude-code` provider — a real feature — stay? (2) rename branch `feat/v1-hermes-parity`? (3) rewrite commit history + `Co-Authored-By`, or scrub going-forward only? Today: ~73 hermes / 15 openclaw / 9 nexarion files. **Done =** published code + user text carry no other-agent references; research docs retained; history-rewrite scope decided.
+- [ ] **SCRUB-AI** (M) — before going public, strip Hermes/OpenClaw/Nexarion/Claude/other-AI-agent mentions from the **published surface** (source comments, README, user-facing strings); **keep research docs** (`docs/_hermes-recon`, `docs/hermes-*`). Decisions logged (DECISIONS 2026-06-05): keep the `claude-code` provider (rename its user-facing *label* only) · rename the branch `feat/v1-hermes-parity` → neutral · rewrite history including `Co-Authored-By` (force-push — **gated on a final explicit go**, backup tag first). Today: ~73 hermes / 15 openclaw / 9 nexarion files. **Done =** published code + user text carry no other-agent references; research docs retained; history rewritten + branch renamed. *Run LAST so the rewrite captures all other work below.*
 - [ ] **AUX-MAP** (M) — generalize AUX-VISION into a per-function aux-task → model/provider map (vision · summarize · title · embed), one resolver extending `routing/model-router.ts`. Surfaced in `/status` + a `/aux` command + setup wizard. Full Hermes auxiliary-tasks parity.
 - [ ] **UX-MODEL-FIX** (S) — *regression.* `UX-MODEL` is marked shipped (picker persists to `.env`, survives relaunch) but model choice is not sticking. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. **Done =** pick a model → still active next launch, proven by relaunch.
 - [ ] **GOAL→ACTION** (S) — strengthen the headline ask: turn any vague goal into one safe, concrete, verified next action. Infra exists (`repl/next.ts`, `clarify` tool, nd-task-initiation) but is manual; gap = **auto-fire** a `/next`-style single-micro-step prompt on goal-set / vague input. Don't duplicate `next.ts` — trigger it.
@@ -218,3 +218,46 @@ Two goal-dumps this session. UI bugs (width fill · slash palette 8-item cap · 
 **Operator-polish cluster (v2 — mostly strengthen existing infra, not greenfield):** verification discipline (never "done" without tool output) · richer auto-recall of past decisions · lower-friction safe autonomy · clean interrupt + state-preserve + pivot · operator personality (calm/direct, low social tax) · born-small composable artifacts · proactive drift self-monitoring · unified calendar/email/drive/code/web context. Each maps to a partial subsystem (EF gates, brain, comms tools); promote individually when one becomes the bottleneck.
 
 - [ ] **DESKTOP** (XL → PARKED) — a desktop app to interact with Argo (Tauri shell over the kernel HTTP API + a chat surface). Large; parked until the CLI/TUI operator loop is solid. See `PARKED.md`.
+
+## 2026-06-05 — Operator upgrade backlog (prioritized · "go deep")
+
+Two improvement dumps + the Hermes 262-use-case set + the Argo Brand Style Guide, synthesized. **Key truth: most of these already have infrastructure — the work is usually wire / surface / auto-fire, not greenfield.** v1 was full Hermes-parity (105 shipped), so raw *capability* coverage of the Hermes user stories is already high. The real gap is **operator feel**: initiative, EF scaffolding, memory relevance, visual taste — behaving like a trusted operator, not a capable chatbot.
+
+**Improvement → what Argo already has → the real gap:**
+- **Initiative** → `repl/next.ts` (`/next`), `clarify` tool, nd-task-initiation, EF gates → **auto-fire** on vague/goal-set + stalled-goal detection.
+- **Memory** → brain regions (identity/semantic/episodic/user_model/…), capped+pruned `memory/store`, `recall`, curator → **relevance-gated surfacing** + durable-vs-noise classification.
+- **Executive function** → EF gates (inhibit/set-shift/self-monitor/closure/research), `/wm` `/where` `/plan` todo store → **persistent task stack** (in-progress/blocked/parked/done) + **loop-closing**.
+- **Autonomy** → gateway (cron+webhook+platform poll), factory L1–L4, launchd → **change-watchers** (repos/issues/email/cal) that draft + await approval.
+- **Multimodal** → describe_image / look_at_screen / look_at_camera (now aux-routed), transcribe, watch_video → **aesthetic direction** + **compare visual options** (taste, not generic feedback).
+- **Code op** → LSP, git tools, run_code, kernel protected-paths → mostly **discipline** (verify-before-claim, smaller patches) → prompt/SOUL.
+- **Modes** → `modes/builtin.ts` (6 modes), `/planmode` → the named **build/debug/design/planning/body-double** modes + fast switching.
+- **Communication** → SOUL + prompt rules + brand guide voice → **enforce** the direct/literal/operator register.
+- **Tool reliability** → EF-ERRORDETECT, errors-as-values → **early fail-detect + safe retry + honest report**.
+- **Operator dashboard** → kernel cockpit :7788, status bar, `/goals` `/plan` `/where` → a **unified live dashboard** in the brand dossier aesthetic (left-rail mission-control: goals · plan · blockers · recent · approvals · next move · memory).
+
+### Prioritized sequence (rocks first; Jason's stated biggest = initiative · memory · visual · EF)
+
+**Quick wins (now):**
+- [ ] **RESTART** (S·sand) — `/restart` slash command: tear down Ink cleanly + re-exec via a launcher loop (exit-code 75 → `run.sh` relaunches), optional kernel respawn. Unblocks the dogfood loop (reload tsx without manually quitting). *(asked explicitly)*
+- [ ] **TOOL-RETRY** (S·sand) — detect failed tool calls early; retry only when safe (idempotent reads); report exactly what happened. Extends EF-ERRORDETECT.
+- [ ] **BEHAVIOR-VOICE** (S·sand) — tune `SOUL.md`/prompt to the brand voice (direct, literal, structured, fewer caveats) + harden verify-before-claim. Covers comms (#8) + code discipline (#6).
+
+**Rocks (operator-feel — Jason's stated biggest):**
+- [ ] **GOAL-ACTION** (S) — auto vague-goal → one concrete next action. *(tracked)*
+- [ ] **STALL-UNBLOCK** (S·pebble) — detect a stalled active goal → propose the smallest unblocker, unprompted.
+- [ ] **EF-TASKSTACK** (M·rock) — persistent operator task stack (in-progress/blocked/parked/done) + loop-closing ("I said I'd do X — did X happen?"). Builds on todo store + closure-gate + `/wm`.
+- [ ] **MEM-RELEVANCE** (M·rock) — classify durable facts vs session noise; surface memory only when relevant, never clutter. Builds on brain + `memory/store` + `recall`.
+- [ ] **OPERATOR-DASHBOARD** (L·rock) — live surface: goals · plan · blockers · recent actions · pending approvals · suggested next move · memory highlights, in the brand-guide dossier aesthetic (status rail, operation cards, signal colors). Subsumes brand-TUI; the seed for DESKTOP.
+- [ ] **VISION-COMPARE** (M·pebble) — aesthetic/design direction using operator taste; compare visual options side-by-side, not generic feedback. Builds on the aux-routed vision.
+
+**Parity + modes:**
+- [ ] **MODES-v2** (M·pebble) — build / debug / design / planning / body-double modes + one-key switching. Extends `modes/builtin.ts`.
+- [ ] **AUTO-WATCH** (M·pebble) — watchers (repos/issues/email/calendar) → draft action, await approval on risk. Extends gateway/webhook.
+- [ ] **AUX-MAP** (M) — per-function aux model map. *(tracked)* · **UX-MODEL-FIX** (S) — model-persistence regression. *(tracked)*
+
+**Research (verify before building — expect high existing coverage):**
+- [ ] **USE-CASE-AUDIT** (S) — map the 262 Hermes user stories → Argo's 45 tools → coverage matrix; surface only genuine gaps.
+- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (Hermes already mined for v1 — see `docs/parity-audit.md`, `hermes-map.html`).
+- [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard).
+
+**Gated:** SCRUB-AI (run last, force-push gated) · DESKTOP (horizon; OPERATOR-DASHBOARD is its seed).
