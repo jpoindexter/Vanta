@@ -506,6 +506,18 @@
       "done": "A scheduled daily review emits the top-3/money/blocker/risk block, and the monthly review triggers a MEM-CURATOR prune pass."
     },
     {
+      "id": "MODE-DETECT",
+      "track": "Operator",
+      "title": "Auto mode-selection (silent-executor / collaborator / critic / researcher / debugger)",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "wants1 #19 'fewer mode errors': much AI annoyance is the wrong MODE, not wrong intelligence. Auto-DETECT and switch conversational stance -- silent executor, collaborator, critic, researcher, assistant, debugger -- from the request + context. Distinct from MODES-v2 (build/debug/design/planning/body-double, which Jason sets); this is Argo picking the stance itself. Pairs with VOICE-NATURAL.",
+      "done": "A 'just do it' request gets silent-executor mode and a 'what do you think' gets collaborator/critic mode, switched automatically without Jason naming the mode."
+    },
+    {
       "id": "COMMAND-CENTER",
       "track": "Operator",
       "title": "Full life/world command center (all dashboards)",
