@@ -1010,6 +1010,18 @@
       "done": "Shift+arrow/word/line extends a visible selection in the composer; Cmd+A selects all; Cmd+C/X/V copy/cut/paste operate on the selection; typing over a selection replaces it."
     },
     {
+      "id": "TUI-PASTE",
+      "track": "TUI parity",
+      "title": "Collapse long pastes to [Pasted text #N] (Claude-CLI style)",
+      "status": "shipped",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "SHIPPED 2026-06-05 (core). tui/paste.ts (pure: shouldCollapse/pasteRef/collapse/expandPastes + PasteStore) + composer.tsx wiring: a large pasted block (>=200 chars or >=4 lines, delivered as one input event) is replaced in the composer with a compact '[Pasted text #N +L lines]' reference and stashed; expanded back to the full text on submit; store resets on clear. Stops a long paste from flooding the TUI (the wall-of-text Jason hit). 9 unit tests, full suite 1101 green, tsc clean. CAVEAT: collapse fires only when the terminal delivers the paste as one event (bracketed paste); char-by-char terminals fall back to normal insert. Interactive feel needs a real-terminal paste to confirm. Spec: docs/tui-keybindings.md.",
+      "done": "Pasting a long block shows a one-line [Pasted text #N +L lines] in the composer instead of flooding it; submitting sends the full expanded text. Pure core unit-tested; interactive verification on a real terminal pending."
+    },
+    {
       "id": "DESKTOP-P12",
       "track": "Platform",
       "title": "Desktop P12 — native Electron packaging",
