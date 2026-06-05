@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run          # 512 tests (from argo-ts/)
+npx vitest run          # 1075 tests (from argo-ts/)
 npx tsc --noEmit        # must be clean before any commit
 ```
 
@@ -21,7 +21,7 @@ npx tsc --noEmit        # must be clean before any commit
 | `argo` (readline fallback) | `src/interactive.ts` |
 | `argo run "<instr>"` | `src/cli.ts` → `src/session.ts` → `src/agent.ts` |
 | `argo gateway` | `src/gateway/run.ts` |
-| `argo improve` | `src/factory/run.ts` (O9 — not yet built) |
+| `argo improve` / `argo factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
 ## Critical files for new work
 
@@ -40,14 +40,15 @@ npx tsc --noEmit        # must be clean before any commit
 
 **Readline REPL** (`src/interactive.ts`):
 - Calls `runUserTurn(line)` → `maybeDroppedImage` inside `runUserTurn`.
-- BUT: the `line.startsWith("/")` guard at line 167 intercepts dropped absolute paths before `runUserTurn` → **known bug** (see `HANDOFF.md`).
+- Slash handlers live in `repl/handlers.ts` (`HANDLERS` registry); `repl-commands.ts` re-exports `executeSlash`/`SLASH_COMMANDS`. The slash *execution* path is verified end-to-end (`tui/app.test.tsx` drives `/help`+Enter).
 
-## Known bugs pending fix (see HANDOFF.md for full root-cause)
+## Open bugs / in-flight (roadmap.json)
 
-1. Readline REPL: dropped `/`-prefixed file paths treated as slash commands.
-2. `maybeDroppedImage` only handles image extensions — video drops (`.mov|.mp4`) not handled.
-3. `look_at_screen`: wrong error message on first-run Screen Recording permission denial.
-4. Agent incorrectly tells user "file access is scoped" when drag-drop bypasses scope.
+- **UX-MODEL-FIX** — `/model` choice not persisting across relaunch (regression; `UX-MODEL` marked shipped). Diagnose `setup.ts upsertEnv` + write path + launcher env precedence.
+- **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map.
+- **GOAL-ACTION** — auto-fire `repl/next.ts` micro-step on vague goals.
+- **SCRUB-AI** — strip Hermes/Claude/other-agent mentions from the published surface before going public (keep research docs).
+- *(The four 2026-06-04 drag-drop / vision-permission bugs are fixed — see ROADMAP.md.)*
 
 ## Adding a tool (checklist)
 
@@ -62,6 +63,6 @@ npx tsc --noEmit        # must be clean before any commit
 
 ## Env vars (key ones)
 
-`ARGO_PROVIDER` · `ARGO_MODEL` · `ARGO_KERNEL_URL` · `ARGO_HOME` · `ARGO_SELF_IMPROVE` · `ARGO_FACTORY_BUDGET` (O9, once built) · `ARGO_FACTORY_DISABLED` (O9 kill switch)
+`ARGO_PROVIDER` · `ARGO_MODEL` · `ARGO_KERNEL_URL` · `ARGO_HOME` · `ARGO_SELF_IMPROVE` · `ARGO_VISION_MODEL` / `ARGO_VISION_PROVIDER` (auxiliary vision routing) · `ARGO_FACTORY_BUDGET` · `ARGO_FACTORY_DISABLED` (factory kill switch)
 
 Full env list: `CLAUDE.md §Env`.

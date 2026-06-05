@@ -3,7 +3,7 @@ import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveInScope } from "../scope.js";
-import { resolveProvider } from "../providers/index.js";
+import { resolveVisionProvider } from "../routing/vision.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -76,16 +76,16 @@ export const describeImageTool: Tool = {
 
     try {
       const buf = await readFile(abs);
-      // Use the ACTIVE provider's vision (Gemini/Codex/OpenAI/Anthropic) via the
-      // multimodal message pipeline — no hardcoded OpenAI key.
-      const provider = resolveProvider(process.env);
+      // Route through the auxiliary vision model (ARGO_VISION_MODEL) when set, else
+      // the active provider — so a text-only main model doesn't break sight.
+      const provider = resolveVisionProvider(process.env);
       const result = await provider.complete(
         [{ role: "user", content: prompt ?? DEFAULT_PROMPT, images: [{ mime, dataBase64: buf.toString("base64") }] }],
         [],
       );
       return result.text?.trim()
         ? { ok: true, output: result.text.trim() }
-        : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
+        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set ARGO_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
     } catch (err) {
       return {
         ok: false,

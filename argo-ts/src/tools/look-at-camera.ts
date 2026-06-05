@@ -1,9 +1,10 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveProvider } from "../providers/index.js";
+import { resolveVisionProvider } from "../routing/vision.js";
 
-// Camera eyes: capture a webcam frame and describe it with the active vision
-// model. macOS via `imagesnap` (brew install imagesnap). Mirrors look_at_screen.
+// Camera eyes: capture a webcam frame and describe it with the vision model
+// (ARGO_VISION_MODEL when set, else the active provider). macOS via `imagesnap`
+// (brew install imagesnap). Mirrors look_at_screen.
 
 const Args = z.object({ prompt: z.string().optional() });
 const DEFAULT_PROMPT = "Describe what the camera sees.";
@@ -23,7 +24,7 @@ export const lookAtCameraTool: Tool = {
     const prompt = parsed.success ? parsed.data.prompt : undefined;
     let provider;
     try {
-      provider = resolveProvider(process.env);
+      provider = resolveVisionProvider(process.env);
     } catch (err) {
       return { ok: false, output: `look_at_camera needs a model: ${(err as Error).message}` };
     }
@@ -46,7 +47,7 @@ export const lookAtCameraTool: Tool = {
       );
       return result.text?.trim()
         ? { ok: true, output: result.text.trim() }
-        : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
+        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set ARGO_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
     } catch (err) {
       const msg = (err as Error).message;
       return { ok: false, output: /ENOENT|imagesnap/i.test(msg) ? "look_at_camera needs imagesnap (brew install imagesnap)" : `look_at_camera failed: ${msg}` };

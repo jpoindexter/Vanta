@@ -1,6 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { buildSystemPrompt, splitStableVolatile, TIER_SEP } from "./prompt.js";
+import { buildSystemPrompt, splitStableVolatile, TIER_SEP, trimSkillDesc } from "./prompt.js";
 import type { Goal } from "./types.js";
+
+describe("trimSkillDesc", () => {
+  it("leaves a short single-line description unchanged", () => {
+    expect(trimSkillDesc("Quick web search.")).toBe("Quick web search.");
+  });
+
+  it("keeps only the first line of a multi-line description", () => {
+    expect(trimSkillDesc("First line.\nSecond line.\nThird.")).toBe("First line.");
+  });
+
+  it("clips a long description to 100 chars including the ellipsis", () => {
+    const long = "x".repeat(200);
+    const out = trimSkillDesc(long);
+    expect(out.length).toBe(100);
+    expect(out.endsWith("…")).toBe(true);
+  });
+});
 
 describe("buildSystemPrompt", () => {
   const tools = [

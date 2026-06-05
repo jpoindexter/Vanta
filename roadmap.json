@@ -1,6 +1,90 @@
 {
-  "updated": "2026-06-04",
+  "updated": "2026-06-05",
   "items": [
+    {
+      "id": "AUX-VISION",
+      "track": "Auxiliary tasks",
+      "title": "Vision routes to a dedicated model",
+      "status": "shipped",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "SHIPPED 2026-06-05. routing/vision.ts (visionEnv + resolveVisionProvider); all 3 image tools (describe_image, look_at_screen, look_at_camera) route to ARGO_VISION_MODEL (+ optional ARGO_VISION_PROVIDER) when set, else the active provider. Fixes vision silently breaking on a text-only main model (DeepSeek V4 Flash, local Ollama). 4 unit tests, full suite green, .env.example + CLAUDE.md updated.",
+      "done": "Vision works while the main model is non-vision (text-only ARGO_PROVIDER + ARGO_VISION_MODEL=gpt-4o-mini)."
+    },
+    {
+      "id": "UI-READABILITY",
+      "track": "Core UX",
+      "title": "TUI + slash-list readability",
+      "status": "shipped",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "summary": "SHIPPED 2026-06-05. TUI fills terminal width (removed 100-col cap); slash palette capped to 8 matches with a fixed command column + width-clipped descriptions (was unbounded + ragged space-between, so typing / dumped all 37 commands); /skills aligns names + clips to one line; skill INDEX in the system prompt clips each description (~100 chars) so weak models stop parroting the library. 310 TUI/repl tests green.",
+      "done": "Slash palette and /skills read like Claude CLI; typing / no longer floods the screen."
+    },
+    {
+      "id": "SCRUB-AI",
+      "track": "Release hygiene",
+      "title": "Strip Hermes/Claude/agent mentions from published code",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Before going public: remove Hermes/OpenClaw/Nexarion/Claude/other-AI-agent mentions from the published surface (source comments, README, user-facing strings). KEEP research docs (docs/_hermes-recon, docs/hermes-*). Open scoping questions: does the claude-code provider (a real feature) stay? rename branch feat/v1-hermes-parity? rewrite commit history + Co-Authored-By, or scrub going forward only? ~73 hermes / 15 openclaw / 9 nexarion files today.",
+      "done": "Published code + user-facing text carry no other-AI-agent references; research docs retained; scope of history rewrite decided with the user."
+    },
+    {
+      "id": "AUX-MAP",
+      "track": "Auxiliary tasks",
+      "title": "Per-function aux-task model map",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Generalize AUX-VISION into a function->model/provider map (vision, summarize, title, embed), one resolver extending routing/model-router.ts, surfaced in /status + a /aux command + the setup wizard. Full Hermes 'auxiliary tasks' dashboard parity.",
+      "done": "Each auxiliary function can be bound to its own model independent of the main agent model."
+    },
+    {
+      "id": "UX-MODEL-FIX",
+      "track": "Core UX",
+      "title": "Fix model-persistence regression",
+      "status": "next",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "UX-MODEL is marked shipped (picker persists to .env, survives relaunch) but the model choice is not sticking. Diagnose setup.ts upsertEnv + the /model write path + launcher env precedence.",
+      "done": "Pick a model -> it is still active next launch, proven by a relaunch."
+    },
+    {
+      "id": "GOAL-ACTION",
+      "track": "Operator",
+      "title": "Auto vague-goal to next action",
+      "status": "next",
+      "size": "S",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Turn any vague goal into one safe, concrete, verified next action. Infra exists (repl/next.ts, clarify tool, nd-task-initiation) but is manual; auto-fire a /next-style single-micro-step prompt on goal-set / vague input. Trigger the existing path, do not duplicate it.",
+      "done": "Setting a vague goal surfaces one concrete named next action without the user typing /next."
+    },
+    {
+      "id": "DESKTOP",
+      "track": "Platform",
+      "title": "Desktop app for Argo",
+      "status": "horizon",
+      "size": "XL",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "summary": "A desktop app to interact with Argo (Tauri shell over the kernel HTTP API + chat surface). Parked until the CLI/TUI operator loop is solid.",
+      "done": "Launch a desktop window, chat with Argo, approvals + goals visible."
+    },
     {
       "id": "TUI",
       "track": "Core UX",

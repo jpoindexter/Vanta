@@ -82,4 +82,19 @@ describe("App render", () => {
     expect(frame).toContain("fake-model");
     unmount();
   });
+
+  // Proves the slash EXECUTION path end-to-end (type → Enter → handler output
+  // renders), not just that handlers are wired. Settles "slash commands don't
+  // work" with evidence rather than code-reading.
+  it("executes a slash command: typing /help and pressing Enter renders the command list", async () => {
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 30));
+    const { lastFrame, stdin, unmount } = render(<App setup={setup} repoRoot="/x" />);
+    stdin.write("/help");
+    await tick();
+    stdin.write("\r"); // Enter
+    await tick();
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("Commands:"); // first line of SLASH_HELP
+    unmount();
+  });
 });
