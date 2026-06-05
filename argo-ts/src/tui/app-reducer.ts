@@ -1,18 +1,19 @@
 import type { Entry } from "./transcript.js";
 import type { DiffLine } from "../util/diff.js";
 
-export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[] };
+export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean };
 
 export type Action =
   | { t: "user"; text: string }
   | { t: "delta"; d: string }
   | { t: "toolCall"; name: string; icon: string; verb: string; detail: string }
-  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; diff?: DiffLine[] }
+  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[] }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
   | { t: "thinking"; text: string }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
+  | { t: "toggleExpand" }
   | { t: "clear" };
 
 function commitStreaming(entries: Entry[], streaming: string): Entry[] {
@@ -40,7 +41,7 @@ export function reduce(s: State, a: Action): State {
       for (let i = entries.length - 1; i >= 0; i--) {
         const e = entries[i];
         if (e && e.kind === "tool" && e.name === a.name && e.ok === undefined) {
-          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine, diff: a.diff };
+          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff };
           break;
         }
       }
@@ -59,7 +60,9 @@ export function reduce(s: State, a: Action): State {
       return { ...s, entries: [...s.entries, { kind: "note", text: `⏎ queued: ${a.text}` }], queued: [...s.queued, a.text] };
     case "dequeue":
       return { ...s, queued: s.queued.slice(1) };
+    case "toggleExpand":
+      return { ...s, expanded: !s.expanded };
     case "clear":
-      return { entries: [], streaming: "", busy: false, status: "idle", queued: [] };
+      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false };
   }
 }

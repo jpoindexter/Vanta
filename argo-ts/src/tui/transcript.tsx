@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { partitionBlocks } from "./tool-display.js";
+import { diffStat } from "./tool-result.js";
 import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
 import type { DiffLine } from "../util/diff.js";
@@ -20,7 +21,9 @@ export type ToolEntry = {
   ok?: boolean;
   /** First line of a FAILED result only — successes show nothing (output → model). */
   errorLine?: string;
-  /** Diff lines for write_file results — shown inline after the tool line. */
+  /** Magnitude of the result (`254 lines`) computed at dispatch — never the raw body. */
+  summary?: string;
+  /** Diff lines for write_file results — folded behind the expand toggle. */
   diff?: DiffLine[];
 };
 
@@ -37,7 +40,7 @@ export const firstLine = (t: string): string => {
   return l.length > 80 ? `${l.slice(0, 77)}...` : l;
 };
 
-export function Transcript(props: { entries: Entry[]; streaming: string }): ReactElement {
+export function Transcript(props: { entries: Entry[]; streaming: string; expanded?: boolean }): ReactElement {
   const blocks = partitionBlocks(props.entries);
   return (
     <Box flexDirection="column">
@@ -45,7 +48,7 @@ export function Transcript(props: { entries: Entry[]; streaming: string }): Reac
         b.type === "tools" ? (
           <Box key={i} flexDirection="column" marginLeft={1}>
             {b.items.map((t, j) => (
-              <ToolLine key={j} entry={t} />
+              <ToolLine key={j} entry={t} expanded={props.expanded ?? false} />
             ))}
           </Box>
         ) : (
@@ -71,19 +74,25 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
   return <Text dimColor>  {e.text}</Text>;
 }
 
-/** One clean activity line: `<mark> <icon> <verb> <detail>` (+ error tail + diff). */
-function ToolLine(props: { entry: ToolEntry }): ReactElement {
+/**
+ * One clean activity line: `<mark> <icon> <verb> <detail> · <meta>` (+ error
+ * tail). The result magnitude (`254 lines` / `+12/-3`) shows by default; the full
+ * diff is folded behind the expand toggle (Ctrl+O) so it never floods the feed.
+ */
+function ToolLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement {
   const e = props.entry;
   const mark = e.ok === undefined ? "·" : e.ok ? "✓" : "✗";
   const tail = e.detail ? ` ${e.detail}` : "";
+  const meta = e.ok ? diffStat(e.diff) || e.summary || "" : "";
   return (
     <Box flexDirection="column">
       <Text dimColor>
         {mark} {e.icon} {e.verb}
         {tail}
+        {meta ? <Text dimColor> · {meta}</Text> : null}
         {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
       </Text>
-      {e.ok && e.diff?.length ? <DiffView lines={e.diff} /> : null}
+      {props.expanded && e.ok && e.diff?.length ? <DiffView lines={e.diff} /> : null}
     </Box>
   );
 }
