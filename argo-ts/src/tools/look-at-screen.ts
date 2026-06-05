@@ -1,11 +1,13 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveProvider } from "../providers/index.js";
+import { resolveVisionProvider } from "../routing/vision.js";
 
-// Argo's "eyes": capture the user's screen and describe it with the ACTIVE vision
-// model (Gemini/Codex/OpenAI — whatever's configured), via the multimodal message
-// pipeline. Captures to a temp file Argo owns, so it works regardless of the
-// filesystem scope. macOS only (screencapture); needs Screen Recording permission.
+// Argo's "eyes": capture the user's screen and describe it with a vision model,
+// via the multimodal message pipeline. Vision routes through the dedicated
+// auxiliary vision model (ARGO_VISION_MODEL) when set, else the active provider —
+// so a text-only main model (DeepSeek, local Ollama) doesn't blind Argo.
+// Captures to a temp file Argo owns, so it works regardless of the filesystem
+// scope. macOS only (screencapture); needs Screen Recording permission.
 
 const Args = z.object({ prompt: z.string().optional() });
 const DEFAULT_PROMPT = "Describe what is currently on the screen, including any visible text and UI state.";
@@ -31,7 +33,7 @@ export const lookAtScreenTool: Tool = {
     // if no backend is configured.
     let provider;
     try {
-      provider = resolveProvider(process.env);
+      provider = resolveVisionProvider(process.env);
     } catch (err) {
       return { ok: false, output: `look_at_screen needs a model: ${(err as Error).message}` };
     }
@@ -50,14 +52,14 @@ export const lookAtScreenTool: Tool = {
         return { ok: false, output: "screen capture failed (macOS only; grant Screen Recording permission to the terminal)" };
       }
 
-      // Use the ACTIVE provider's vision (Gemini/Codex/OpenAI) via the multimodal pipeline.
+      // Route through the auxiliary vision model (ARGO_VISION_MODEL) or the active provider.
       const result = await provider.complete(
         [{ role: "user", content: prompt ?? DEFAULT_PROMPT, images: [{ mime: "image/png", dataBase64: buf.toString("base64") }] }],
         [],
       );
       return result.text?.trim()
         ? { ok: true, output: result.text.trim() }
-        : { ok: false, output: "vision model returned no description (is the active model vision-capable?)" };
+        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set ARGO_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
     } catch (err) {
       const msg = (err as Error).message;
       if (/could not create image/i.test(msg)) {

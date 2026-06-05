@@ -63,9 +63,17 @@ function brainTier(digest?: string): string {
   return `Your brain (durable self — read/grow it with the \`brain\` tool):\n${digest}`;
 }
 
+/** One short line per skill — the index advertises *what exists*, not full docs.
+ *  Untrimmed multi-sentence descriptions (e.g. the nd-* skills) bloat the prompt
+ *  and weak models parrot the whole list back; the body loads via `recall`. */
+export function trimSkillDesc(d: string): string {
+  const line = (d.split("\n")[0] ?? "").trim();
+  return line.length > 100 ? `${line.slice(0, 99)}…` : line;
+}
+
 function skillsTier(skills?: SkillIndexEntry[]): string {
   if (!skills?.length) return "";
-  const index = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
+  const index = skills.map((s) => `- ${s.name}: ${trimSkillDesc(s.description)}`).join("\n");
   return `Your learned skills — call \`recall\` to load the full body of one before applying it:\n${index}`;
 }
 

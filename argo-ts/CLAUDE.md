@@ -64,6 +64,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `modes/builtin.ts` | Phase 7 — 6 operator modes as real skills (`OPERATOR_MODES`, `installModes`). Run via `argo skill <mode> "<instr>"` |
 | `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.argo/usage.tsv`) |
 | `routing/model-router.ts` | Phase 7 — `classifyTask` (cheap/expensive) + `resolveRoutedProvider` (`ARGO_MODEL_CHEAP`/`_EXPENSIVE`; no-op when unset) |
+| `routing/vision.ts` | AUX-VISION — `visionEnv` (pure) + `resolveVisionProvider`: image tools resolve a dedicated vision model via `ARGO_VISION_MODEL` (+ optional `ARGO_VISION_PROVIDER`), else the active provider. Used by `describe_image`/`look_at_screen`/`look_at_camera` so a text-only main model doesn't break sight. The auxiliary-task pattern, scoped to vision |
 | `google/auth.ts` | Phase 5 — one-time OAuth (`runGoogleAuth`, loopback) + token store `~/.argo/google-tokens.json` (0600), `getAccessToken` (auto-refresh) |
 | `google/client.ts` | Phase 5 — `googleFetch` (Bearer + 401-retry) + pure `buildUrl` |
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
@@ -74,8 +75,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
 | `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |
-| `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.argo/skills` (idempotent, skips existing unless `--force`). `argo skills install` |
-| `../skills-library/` | 10 high-value skills ported from Hermes/OpenClaw (coupling stripped), shipped with Argo. Add more `<slug>/SKILL.md` dirs to grow the bundle |
+| `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.argo/skills` (idempotent, skips existing unless `--force`). `libraryDir()` resolves to `argo-ts/skills-library/`. Called by `argo skills install` **and auto-run in `prepareRun`** every session, so newly-bundled skills appear without a manual install |
+| `skills-library/` | **26** shipped skills at `argo-ts/skills-library/<slug>/SKILL.md`: ~10 ported from references + `agent-orchestration-workflows`, `build-mcp-server`, and the **14 `nd-*` executive-function skills**. Add a `<slug>/SKILL.md` dir to grow the bundle; it auto-installs on next session |
 | `skills/recall.ts` | pure `searchSkills(query, skills)` — weighted substring ranking |
 | `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `argo-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
 | `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `argo-learned`. Best-effort. Env: `ARGO_SELF_IMPROVE`/`ARGO_REVIEW_MIN_TOOLS`/`ARGO_REVIEW_EVERY` |
@@ -174,7 +175,7 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 
 **Providers:** `ARGO_PROVIDER` now also: `gemini` · `openrouter` · `codex` (alias `openai-codex`, ChatGPT-subscription OAuth via `~/.codex/auth.json`, Responses API — `providers/codex.ts`+`codex-auth.ts`) · `claude-code` (Claude sub OAuth). Catalog: `providers/catalog.ts`.
 
-**Multimodal:** user `Message` carries optional `images:[{mime,dataBase64}]` (`types.ts`), mapped natively by every provider. Attach via `/image <path>`, `/paste` (clipboard, macOS), drag-drop (`maybeDroppedImage`), or `/attachments [clear]`. Vision tools `describe_image` + `look_at_screen` (Argo's eyes — `screencapture`) route through the ACTIVE provider (no hardcoded OpenAI; `ARGO_VISION_MODEL` no longer used).
+**Multimodal:** user `Message` carries optional `images:[{mime,dataBase64}]` (`types.ts`), mapped natively by every provider. Attach via `/image <path>`, `/paste` (clipboard, macOS), drag-drop (`maybeDroppedImage`), or `/attachments [clear]`. Vision tools `describe_image` + `look_at_screen`/`look_at_camera` (Argo's eyes) route through `resolveVisionProvider` (`routing/vision.ts`): a dedicated vision model via `ARGO_VISION_MODEL` (+ optional `ARGO_VISION_PROVIDER`) when set, else the active provider. This is the **auxiliary-task** pattern — image work runs on a vision-capable model even when the main model is text-only (DeepSeek, local Ollama). Unset = active provider (prior behavior).
 
 **Brain (selfhood):** `brain/regions.ts` + `brain/store.ts` → `~/.argo/brain/<region>.md` (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. `brain` tool (list/read/append/replace). `brainDigest` injected as a prompt tier — Argo reads its brain each session.
 
@@ -193,3 +194,11 @@ Phase 5 (comms): `ARGO_GOOGLE_CLIENT_ID` + `ARGO_GOOGLE_CLIENT_SECRET` (one-time
 **Env added:** `ARGO_MEMORY_MAX_BLOCKS` · `ARGO_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
 
 **Docs:** `MANIFESTO.md` (north star) · `docs/parity-audit.md` · `docs/claude-cli-gaps.md` · `docs/hermes-issues-map.md` · `ROADMAP.md` v1.1–v1.5 (parity + UX + autonomy/senses + selfhood + efficiency).
+
+## Session additions (2026-06-05) — keep current
+
+**AUX-VISION (auxiliary-task vision routing):** `routing/vision.ts` — `visionEnv` (pure) + `resolveVisionProvider`. All three image tools (`describe_image`, `look_at_screen`, `look_at_camera`) now resolve via it: a dedicated vision model from `ARGO_VISION_MODEL` (+ optional `ARGO_VISION_PROVIDER`) when set, else the active provider (prior behavior). Fixes vision silently breaking when the main model is text-only (DeepSeek V4 Flash, local Ollama). The removed `ARGO_VISION_MODEL` is **back**, with new opt-in aux-routing semantics. Next: `AUX-MAP` generalizes this to a per-function model map (vision · summarize · title · embed).
+
+**TUI readability fixes:** terminal width now fills (removed the 100-col cap in `tui/app.tsx`) · slash palette capped to 8 matches (`app.tsx`, was unbounded → typing `/` dumped all 37) · palette rewritten to a fixed command column + width-clipped one-line descriptions (`tui/transcript.tsx` `Palette` + `clip`) instead of ragged `space-between` · `/skills` output aligns names + clips descriptions to one line (`repl/handlers.ts`) · skill INDEX in the system prompt clips each description to ~100 chars (`prompt.ts` `trimSkillDesc`) so weak models stop parroting the whole library.
+
+**Env added:** `ARGO_VISION_MODEL` · `ARGO_VISION_PROVIDER` (auxiliary vision routing; documented in `.env.example`).

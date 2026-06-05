@@ -88,23 +88,35 @@ function ToolLine(props: { entry: ToolEntry }): ReactElement {
   );
 }
 
+/** Truncate to a max width with an ellipsis — keeps rows on one line. */
+export function clip(s: string, max: number): string {
+  if (max <= 0) return "";
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+}
+
 export function Palette(props: {
   matches: ReadonlyArray<{ name: string; arg?: string; desc: string }>;
   sel: number;
   width: number;
 }): ReactElement {
+  // Fixed command column (Claude-CLI style): the command name padded to a shared
+  // width, then a single-line, width-clipped description. No space-between — that
+  // floats descriptions to ragged right edges and reads as broken.
+  const labels = props.matches.map((c) => `/${c.name}${c.arg ? ` ${c.arg}` : ""}`);
+  const cmdCol = Math.min(22, Math.max(2, ...labels.map((l) => l.length)) + 2);
+  const descCol = Math.max(8, props.width - cmdCol - 4); // 4 = border + gutter + marker
   return (
     <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} width={props.width}>
       {props.matches.map((c, i) => {
         const active = i === props.sel;
-        const label = `/${c.name}${c.arg ? ` ${c.arg}` : ""}`;
+        const label = clip(labels[i] ?? "", cmdCol).padEnd(cmdCol);
         return (
-          <Box key={c.name} justifyContent="space-between">
-            <Text color={active ? "cyan" : undefined} bold={active}>
+          <Box key={c.name}>
+            <Text color={active ? "cyan" : "white"} bold={active}>
               {active ? "› " : "  "}
               {label}
             </Text>
-            <Text dimColor>{c.desc}</Text>
+            <Text dimColor>{clip(c.desc, descCol)}</Text>
           </Box>
         );
       })}

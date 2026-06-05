@@ -70,7 +70,12 @@ const undo: SlashHandler = (_arg, ctx) => {
 
 const skills: SlashHandler = async (_arg, ctx) => {
   const s = await listSkills(ctx.env);
-  return { output: lines(s.map((x) => `  ${x.meta.name} — ${x.meta.description}`), "  (no skills yet — `argo skills install`)") };
+  if (!s.length) return { output: "  (no skills yet — `argo skills install`)" };
+  // Aligned name column + one-line clipped description (Claude-CLI style) — full
+  // multi-sentence descriptions wrap into an unreadable wall otherwise.
+  const w = Math.min(24, Math.max(...s.map((x) => x.meta.name.length)) + 2);
+  const rows = s.map((x) => `  ${x.meta.name.padEnd(w)}${oneLine(x.meta.description, 72)}`);
+  return { output: `  ${s.length} skill(s):\n${rows.join("\n")}` };
 };
 
 const tools: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.registry.schemas().map((s) => s.name).join(", ")}` });

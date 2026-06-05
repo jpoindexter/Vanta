@@ -67,7 +67,9 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**All roadmap items complete — 105 shipped, 0 horizon.** Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. **45 tools** (+ compose_workflow + graph_query) · **1063 TS + 27 Rust = 1090 tests green.**
+**v1 complete; new dogfooding backlog opened 2026-06-05.** Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. **45 tools** (+ compose_workflow + graph_query) · **1067 TS + 27 Rust = 1094 tests green.**
+
+**In flight (2026-06-05 — from live use):** shipped — TUI readability (full-width, slash palette 8-cap + column layout, `/skills` + skill-index clipping) and **AUX-VISION** (image tools route to a dedicated `ARGO_VISION_MODEL` so a text-only main model doesn't break sight). Open in `roadmap.json` (`next`): `AUX-MAP` (per-function aux-task model map) · `UX-MODEL-FIX` (model-persistence regression — `/model` choice not sticking) · `GOAL-ACTION` (auto vague-goal→next-step) · `SCRUB-AI` (strip Hermes/Claude/other-agent mentions from published code, keep research docs). `horizon`: `DESKTOP` (Tauri app).
 
 Key capabilities added this session: TUI (help overlay, themes, vim mode, shortcuts, thinking display), EF Phase 3 (scope-delta, wm-manip), Memory (verbatim archive, compression, working memory, versioning, graph, 5D/12-axis brain), Factory (preflight, escalation, holdout, stall recovery, auto-close), Platform (voice loop, checkpoints, user commands), Brain (salience+executive networks, v2 scaffold), Infrastructure (canonical project ID, worktree detection, Claude Code hooks, typed stream events).
 

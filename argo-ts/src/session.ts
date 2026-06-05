@@ -96,6 +96,12 @@ export async function prepareRun(
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
   const memory = await recentMemory(activeIds);
+  // Ensure the bundled skill library is installed (idempotent: new slugs are
+  // added, the user's existing/edited skills are kept). This is what makes
+  // shipped skills — including the nd-* executive-function set — appear without
+  // a manual `argo skills install`. Best-effort: never block startup.
+  const { installSkillLibrary } = await import("./skills/library.js");
+  await installSkillLibrary({ env: process.env }).catch(() => {});
   // Inject the learned-skill INDEX (names+descriptions) so the agent knows what
   // it can recall; bodies are loaded on demand via the `recall` tool.
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({

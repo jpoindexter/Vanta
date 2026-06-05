@@ -85,7 +85,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   // Slash palette — suggest matching commands while typing a bare `/word`.
   const slashHead = !pending && !overlay && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
-  const matches = slashHead !== null ? SLASH_COMMANDS.filter((c) => c.name.startsWith(slashHead)) : [];
+  const matches = slashHead !== null ? SLASH_COMMANDS.filter((c) => c.name.startsWith(slashHead)).slice(0, 8) : [];
   const showPalette = matches.length > 0;
   useEffect(() => setSel(0), [slashHead]);
   useInput((_in, key) => {
@@ -177,7 +177,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   };
 
   const cols = process.stdout.columns ?? 80;
-  const w = Math.max(24, Math.min(cols - 2, 100));
+  const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : "/help  /clear  ?  /exit";
