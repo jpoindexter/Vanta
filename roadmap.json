@@ -638,16 +638,40 @@
       "done": "A 'just do it' request gets silent-executor mode and a 'what do you think' gets collaborator/critic mode, switched automatically without Jason naming the mode."
     },
     {
-      "id": "MODEL-SPINUP",
-      "track": "Auxiliary tasks",
-      "title": "Ephemeral per-task model workers (spin up local model -> run -> tear down)",
+      "id": "AUTO-ROUTER",
+      "track": "Models + Setup",
+      "title": "Automatic per-task model routing + ephemeral subagents",
       "status": "next",
       "size": "M",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Main brain stays hot (e.g. gpt-5.5) while Argo spins up a SEPARATE model per subtask -- pick a cheap local model (e.g. Ollama qwen) for a bounded job, run it, capture the output, then UNLOAD it to free RAM/VRAM. Composes O1 (agent-chosen model on delegate) + O2 (swarms) + E-eff2 (prefer-local) + AUX-MAP (function->model map) and adds the missing piece: dynamic per-task routing + local-model LIFECYCLE. Ollama unloads via keep_alive:'0s' (or 'ollama stop <model>') after the call; cloud workers are stateless (nothing to tear down). A small/local classifier picks local-vs-cloud per subtask; the worker is kernel-bounded and reports back to the coordinator.",
-      "done": "Argo routes a bounded subtask to a spun-up local model (e.g. qwen via Ollama), returns its output to the main brain, then unloads the local model -- proven by a VRAM/process check before vs after."
+      "summary": "Keep the main brain on the selected premium model (e.g. codex/gpt-5.5) while Argo automatically spins up scoped subagents on local/cloud models for bounded tasks -- summarize, classify, research, verify, memory compression, first-pass code inspection -- then tears the worker down (local Ollama unloads via keep_alive:'0s'). A ROUTER LAYER on top of delegate/swarm, not a new agent system: classifyTaskKind + resolveTaskRoute(env) + routeEnv, per-kind ARGO_ROUTE_* config, fail-soft to main, high-risk tasks (security/financial/irreversible/commits/kernel) forced to main. Adds an auto_delegate tool + /routes status + setup-wizard aux config; absorbs AUX-MAP as a slice. Full 4-slice build plan: docs/auto-router.md.",
+      "done": "With the main model active, Argo auto_delegates a low-risk subtask to a configured local/cloud worker (e.g. ollama/qwen2.5:14b), returns the output, unloads the local model, and synthesizes through the main brain; /routes shows the routing table + availability."
+    },
+    {
+      "id": "THINK-FOLD",
+      "track": "TUI parity",
+      "title": "Collapsible 'think out loud' (accordion, no wall of text)",
+      "status": "next",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Argo thinks out loud, but long reasoning/design output should FOLD by default and expand on a keypress (cmd/ctrl+O or an accordion) so it never floods the screen with a wall of text. Extends TUI-THINK (collapsible thinking, shipped) + UI-READABILITY + TUI-SMOOTH: apply the fold to ALL verbose output (long tool reasoning, multi-section design dumps like the argo ability design), default-collapsed with a one-line summary + expand affordance. Pairs with nd-sensory-load (compressed by default).",
+      "done": "A long reasoning/design block renders as a one-line collapsed summary with a keybind/accordion to expand; the screen is not flooded by default."
+    },
+    {
+      "id": "CODE-SIZE-GATE",
+      "track": "Reliability (ND trust)",
+      "title": "Built-in code-size gate (industry-standard, always on)",
+      "status": "next",
+      "size": "S",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Enforce industry-standard size limits inside Argo, always on: file <=300 lines, function <=50, cyclomatic complexity <=10, params <=4 (warn at file 200 / function 30). Extends the factory's existing born-small 300-gate (verifier.ts checkNewFilesUnderLineLimit) to functions + complexity + params, exposes 'argo lint'/size-check, and wires it into the git pre-commit hook (today only gitleaks) so human + agent + factory code all pass the same gate. Mirrors the enforcing-code-size Claude Code skill.",
+      "done": "A commit or factory cycle with an oversized file/function/complexity is flagged by Argo's own gate (not just the factory), reporting file:line + limit + fix; passing code commits clean."
     },
     {
       "id": "COMMAND-CENTER",
