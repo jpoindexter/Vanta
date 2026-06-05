@@ -147,6 +147,27 @@ under the kernel's hard lines (non-destructive, verified, approval-before-risk).
 - [~] **S4 · Skill authorship discipline** — PARTIAL. Curator uses `LEARNED_TAG` + never-auto-deletes. Versioning/merge on `write_skill` deferred.
 - [ ] **S5 · Heartbeat** — steady tick driving S2/S3 selfhood updates + factory loop. Gateway daemon exists (E1); wiring the selfhood updates onto it is the remaining piece.
 
+## v2 — Living operator & JARVIS arc (requested 2026-06-05)
+> Status source: `roadmap.json` (29 new items). Synthesis + build order + the not-evil charter:
+> [`docs/living-operator.md`](docs/living-operator.md). Direction locked in `DECISIONS.md` (2026-06-05).
+
+From three captures (`argo wants.rtf`, `argowants2.rtf`, `agro wants 3.md`) + two live goals (natural
+voice; sentience-like continuity). **Sentience as a direction, not a claim.** Most of `argowants2`'s
+"brain architecture" is already shipped (BRAIN-*, EF-*, MEM-*, senses O3–O7) — the new work is
+connective tissue + a few organs, not a new brain.
+
+- **Arc A — Living operator (spine, near-term).** Continuity/honesty/learning that makes Argo
+  trustworthy + alive-like. Rocks: `MEM-CURATOR` (the named first slice — compress sessions →
+  durable notes), `MEM-FORGET`, `TRUST-LABELS`, `SCAFFOLD`, `VOICE-NATURAL`, `CHARTER`. Pebbles/sand:
+  `REFLECT-CORRECT`, `TASTE-ENGINE`, `ANTI-SLOP`, `SELF-EVAL`, `PROJECT-RADAR`, `ENERGY-PLAN`,
+  `COMMS-TRIAGE`, `PROTOCOLS`, `RESEARCH-LOOP`, `BETTER-ENDINGS`, `ACTION-PROOF`, `COST-VISIBLE`,
+  `DECISION-GUARD`. Horizon: `WORLD-MODEL`, `LIFE-SEARCH`, `AMBIENT`.
+- **Arc B — JARVIS / command center (breadth, build small, later).** Omni-capable, non-evil,
+  human-aligned life/world partner; business is *one facet*, not the identity. `LIFE-OS-SCHEMA`,
+  `AGENT-COUNCIL` (15 bounded roles), `PROTECTION-AGENT`, `BRIEF-CMD` (`argo today`/`brief`),
+  `MONEY-OS` (`argo money` + escape-the-9-to-5), `REVIEW-LOOPS`; horizon `COMMAND-CENTER`.
+  Jason's own rule: *do not build full JARVIS at once.*
+
 ## SHIPPED in the 2026-06-02/03 build marathon (all committed + pushed)
 **501 TS + 21 Rust tests green, tsc clean.** Across v1.1–v1.5:
 - **Providers:** Codex ChatGPT-OAuth, claude-code; agent-chosen model on `delegate` (O1/O6) + workers get skill index + brain.
