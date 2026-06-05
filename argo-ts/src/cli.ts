@@ -243,6 +243,20 @@ async function runSkillsCommand(rest: string[]): Promise<void> {
   }
 }
 
+async function runMemoryCommand(rest: string[]): Promise<void> {
+  const sub = rest[0];
+  if (sub === "search") {
+    const query = rest.slice(1).join(" ").trim();
+    if (!query) { console.log("usage: argo memory search <query>"); return; }
+    const { searchArchive } = await import("./memory/archive.js");
+    const results = await searchArchive(query, { maxResults: 20 });
+    if (!results.length) { console.log(`(no archive matches for "${query}")`); return; }
+    for (const r of results) console.log(`[${r.sessionId}] ${r.role}: ${r.excerpt}`);
+    return;
+  }
+  console.log("usage: argo memory search <query>");
+}
+
 async function runVoiceCommand(repoRoot: string): Promise<void> {
   const setup = await prepareRun(repoRoot, "voice session");
   const { runVoiceLoop } = await import("./voice/loop.js");
@@ -360,6 +374,7 @@ async function main(): Promise<void> {
   if (cmd === "hooks") return runHooksCommand(rest);
   if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
+  if (cmd === "memory") return runMemoryCommand(rest);
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 

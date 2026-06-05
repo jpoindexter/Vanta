@@ -25,6 +25,7 @@ import {
   type WmManipState,
 } from "./session.js";
 import { SessionWorkingMemory } from "./memory/working.js";
+import { archiveSession } from "./memory/archive.js";
 import { loadUserCommands, type UserCommand } from "./commands/loader.js";
 import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
@@ -192,7 +193,11 @@ export async function runChat(
       console.log(`  · ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens`);
     }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
-    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, { now: turnStart });
+    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, {
+      now: turnStart,
+      sessionId: state.sessionId,
+      turnIndex: state.turnIndex,
+    });
     await suggestSkillFromRun(text, process.env);
     await reviewAfterTurn({
       provider: setup.provider,
@@ -281,6 +286,8 @@ export async function runChat(
     }
   } finally {
     rl.close();
+    // MEM-VERBATIM: archive session messages on exit (best-effort, background).
+    archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
   }
   console.log("\nbye.");
 }
