@@ -674,6 +674,30 @@
       "done": "A commit or factory cycle with an oversized file/function/complexity is flagged by Argo's own gate (not just the factory), reporting file:line + limit + fix; passing code commits clean."
     },
     {
+      "id": "AUTH-BROWSER",
+      "track": "Autonomy + Reach",
+      "title": "Authenticated browser profile for logged-in sites",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Opt-in persistent Playwright profile so Argo browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'argo browser auth <site>' opens a headed window in a dedicated profile under ~/.argo/browser-profiles/<site>/ (outside the repo) -> you log in manually (Argo never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Argo's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
+      "done": "'argo browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.argo/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak."
+    },
+    {
+      "id": "PLUGIN-SYSTEM",
+      "track": "Models + Setup",
+      "title": "Clean industry-standard plugin/capability install (no repo pollution)",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Optional capabilities (browser/Playwright, AUTH-BROWSER, future add-ons) install CLEANLY, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.argo (gitignored, 0700), source-only in the repo, deps lazy-loaded + degrade gracefully. Add 'argo plugins' (list/install/remove/where) + surface install locations in 'argo doctor' so 'is it polluting the folder?' is answerable in one command. A capability = {tools + optional skill + lazy deps}; MCP/mount_mcp (shipped) is the runtime-extension half. Verified clean 2026-06-05: browsers in OS cache, repo tree clean. Detail: docs/plugins-and-auth-browser.md.",
+      "done": "'argo plugins' lists capabilities + where each one's deps/state live; 'argo plugins install browser' fetches Chromium into the OS cache (never the repo); 'argo doctor' confirms no plugin files in the project tree."
+    },
+    {
       "id": "COMMAND-CENTER",
       "track": "Operator",
       "title": "Full life/world command center (all dashboards)",
