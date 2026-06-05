@@ -694,7 +694,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Optional capabilities (browser/Playwright, AUTH-BROWSER, future add-ons) install CLEANLY, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.argo (gitignored, 0700), source-only in the repo, deps lazy-loaded + degrade gracefully. Add 'argo plugins' (list/install/remove/where) + surface install locations in 'argo doctor' so 'is it polluting the folder?' is answerable in one command. A capability = {tools + optional skill + lazy deps}; MCP/mount_mcp (shipped) is the runtime-extension half. Verified clean 2026-06-05: browsers in OS cache, repo tree clean. Detail: docs/plugins-and-auth-browser.md.",
+      "summary": "The INSTALL-HYGIENE half of Argo's plugin story (pairs with PLUGIN-FRAMEWORK, the code-extension half). Optional capabilities install cleanly, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.argo (gitignored, 0700), source-only in the repo, deps lazy-loaded. 'argo plugins' (list/install/remove/where) + 'argo doctor' surface where everything lives. Verified clean 2026-06-05. Detail: docs/plugins-and-auth-browser.md.",
       "done": "'argo plugins' lists capabilities + where each one's deps/state live; 'argo plugins install browser' fetches Chromium into the OS cache (never the repo); 'argo doctor' confirms no plugin files in the project tree."
     },
     {
@@ -912,6 +912,66 @@
       "effort": "medium",
       "summary": "Phase 11: functional composer chips — @file, image paste/drag, url, and the voice loop (ND6) — wired end to end.",
       "done": "Each composer chip (@file/image/url/voice) attaches real context into the turn."
+    },
+    {
+      "id": "TUI-V2",
+      "track": "Core UX",
+      "title": "TUI v2 — mission-control surface (non-destructive)",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "3-column operator/mission-control TUI from the mockup Argo built (docs/hermes-model-v2.html): left durable-state rail, center goal+risk-tagged transcript, right safety-rail + working-memory + live telemetry. CRITICAL constraint: build WITHOUT overwriting the working v1 TUI — new tui/v2/ module, opt-in via ARGO_TUI=v2 (default stays v1), reuse the shared engine read-only, promote only after Jason confirms. Mostly a surface over already-built state. Detail: docs/tui-v2.md.",
+      "done": "ARGO_TUI=v2 launches the 3-column mission-control TUI while the default v1 TUI is byte-for-byte unchanged and still default; v2 is a separate module, zero v1 files edited."
+    },
+    {
+      "id": "TUI-V2-PALETTE",
+      "track": "TUI parity",
+      "title": "TUI v2 — risk-labeled categorized fuzzy palette",
+      "status": "next",
+      "size": "S",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "v2 slash palette: categorized + fuzzy-searchable, each command row shows its risk/purpose (local vs kernel-gated vs approval-gated, e.g. /commit approval-gated, /status local). Reduces hidden state + choice load; pairs with EF-CHOICEREDUCE + CC-TRANSCRIPT.",
+      "done": "The v2 palette fuzzy-filters commands and labels each with its risk tier (local/kernel-gated/approval-gated)."
+    },
+    {
+      "id": "TUI-V2-RAILS",
+      "track": "TUI parity",
+      "title": "TUI v2 — state / safety / working-memory / telemetry rails",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "v2 rails: left durable-state (goal/model/scope/context-budget meter), right safety-rail (live ALLOW/ASK/BLOCK for current context) + working-memory panel + live telemetry (tokens/cost/time). Composes COST-VISIBLE + EF-WORKINGMEM + AUTO-ROUTER + THINK-FOLD — makes already-built state visible.",
+      "done": "The v2 surface shows the durable-state rail, a live safety ALLOW/ASK/BLOCK rail, the working-memory panel, and tokens/cost/time telemetry, all from real session state."
+    },
+    {
+      "id": "PLUGIN-FRAMEWORK",
+      "track": "Models + Setup",
+      "title": "Plugin framework (register(ctx) + PluginContext, like Claude/Codex/Hermes)",
+      "status": "next",
+      "size": "L",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "A unified plugin framework so Argo extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.argo/plugins/) -> project(.argo/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Argo already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Argo's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Argo's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'argo plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
+      "done": "A third-party plugin dropped in ~/.argo/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load."
+    },
+    {
+      "id": "PLUGIN-HOOKS",
+      "track": "Self-improvement",
+      "title": "Plugin lifecycle hooks (pre/post tool + LLM + session)",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "The lifecycle hook bus plugins attach to: pre_tool_call/post_tool_call, pre_llm_call/post_llm_call, on_session_start/end/finalize/reset, subagent_stop, pre_gateway_dispatch (skip/rewrite/allow). Folds the existing Claude Code hooks into the plugin framework's hook API (PLUGIN-FRAMEWORK).",
+      "done": "A plugin can register a post_tool_call hook that fires after each tool with (name, params, result), and a pre_gateway_dispatch hook that can skip/rewrite an inbound message."
     },
     {
       "id": "DESKTOP-P12",
