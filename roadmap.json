@@ -974,6 +974,18 @@
       "done": "A plugin can register a post_tool_call hook that fires after each tool with (name, params, result), and a pre_gateway_dispatch hook that can skip/rewrite an inbound message."
     },
     {
+      "id": "DOCS-SITE",
+      "track": "Docs + Tooling",
+      "title": "Working docs site (renders every doc)",
+      "status": "shipped",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "summary": "SHIPPED 2026-06-05. docs-site/index.html — a self-contained, file://-safe documentation site (sidebar nav grouped Start/Vision/Architecture/Capabilities/Roadmap, single-doc view, filter, links to roadmap.html + design-system-skills). Renders 24 canonical docs (README/PRD/DECISIONS/CLAUDE maps/all docs/*.md/ROADMAP) via scripts/build-docs-site.py (mistune). 'Document as we go' = write a doc per feature, then regenerate. Hermes-docs-style site that has everything.",
+      "done": "Opening docs-site/index.html browses every canonical Argo doc with nav + search, no server; regenerates from docs/ via one script."
+    },
+    {
       "id": "DESKTOP-P12",
       "track": "Platform",
       "title": "Desktop P12 — native Electron packaging",
