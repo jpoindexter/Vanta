@@ -15,6 +15,7 @@ import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { Transcript, Palette, firstLine, type Entry } from "./transcript.js";
 import { toolDisplay } from "./tool-display.js";
+import { summarizeResult } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
@@ -41,7 +42,7 @@ const VIM_ENABLED = !!process.env.ARGO_VIM;
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
   const app = useApp();
-  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [] });
+  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [atFiles, setAtFiles] = useState<string[]>([]);
@@ -67,7 +68,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       onThinking: (text) => dispatch({ t: "thinking", text }),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
-      onToolResult: (name, ok, output, diff) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), diff }),
+      onToolResult: (name, ok, output, diff) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff }),
       requestApproval,
     });
   }
@@ -108,6 +109,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       if (chosen) setInput(input.replace(/@[\w./\-]*$/, `@${chosen} `));
     }
   }, { isActive: showAtPalette });
+
+  // Ctrl+O folds/unfolds tool detail (full diffs) across the whole transcript —
+  // collapsed by default so the feed never floods (CC-TRANSCRIPT).
+  useInput((input, key) => {
+    if (key.ctrl && input === "o") dispatch({ t: "toggleExpand" });
+  });
 
   // Shift+tab cycles the approval mode. Keep modeRef in sync so requestApproval
   // always reads the latest value without closing over stale state.
@@ -180,12 +187,14 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
-  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : "/help  /clear  ?  /exit";
+  const hasFoldable = state.entries.some((e) => e.kind === "tool" && !!e.diff?.length);
+  const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
+  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${foldHint}/help  ?  /exit`;
 
   return (
     <Box flexDirection="column" paddingX={1}>
       <Static items={banner ? [banner] : []}>{(d) => <Banner key="banner" data={d} />}</Static>
-      <Transcript entries={state.entries} streaming={state.streaming} />
+      <Transcript entries={state.entries} streaming={state.streaming} expanded={state.expanded} />
       {pending ? (
         <Box flexDirection="column" marginTop={1}>
           <ApprovalPrompt action={pending.action} reason={pending.reason} toolName={pending.toolName} width={w} onChoose={chooseApproval} />

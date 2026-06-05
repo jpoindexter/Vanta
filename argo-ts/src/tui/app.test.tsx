@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render } from "ink-testing-library";
 import { App, reduce, type State } from "./app.js";
+import { Transcript, type Entry } from "./transcript.js";
 import type { RunSetup } from "../session.js";
 
-const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [] };
+const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false };
 
 describe("tui reduce", () => {
   it("user submit adds an entry and goes busy/thinking", () => {
@@ -40,7 +41,19 @@ describe("tui reduce", () => {
   it("a tool result fills ok on success (no error line) on the matching open tool entry", () => {
     let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "" });
     s = reduce(s, { t: "toolResult", name: "read_file", ok: true });
-    expect(s.entries[0]).toEqual({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "", ok: true, errorLine: undefined });
+    expect(s.entries[0]).toEqual({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "", ok: true, errorLine: undefined, summary: undefined });
+  });
+
+  it("a tool result stores the result summary for the collapsed one-liner", () => {
+    let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
+    s = reduce(s, { t: "toolResult", name: "read_file", ok: true, summary: "254 lines" });
+    const e = s.entries[0];
+    expect(e?.kind === "tool" && e.summary).toBe("254 lines");
+  });
+
+  it("toggleExpand flips the transcript fold state", () => {
+    expect(reduce(base, { t: "toggleExpand" }).expanded).toBe(true);
+    expect(reduce(reduce(base, { t: "toggleExpand" }), { t: "toggleExpand" }).expanded).toBe(false);
   });
 
   it("a failed tool result records the error line", () => {
@@ -61,8 +74,8 @@ describe("tui reduce", () => {
   });
 
   it("clear empties the transcript", () => {
-    const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true }, { t: "clear" });
-    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [] });
+    const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true, expanded: true }, { t: "clear" });
+    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false });
   });
 });
 
@@ -95,6 +108,28 @@ describe("App render", () => {
     await tick();
     const frame = lastFrame() ?? "";
     expect(frame).toContain("Commands:"); // first line of SLASH_HELP
+    unmount();
+  });
+});
+
+describe("Transcript fold (CC-TRANSCRIPT)", () => {
+  const wrote: Entry = {
+    kind: "tool", name: "write_file", icon: "✎", verb: "wrote", detail: "x.ts",
+    ok: true, diff: [{ type: "add", text: "hello world" }, { type: "remove", text: "old line" }],
+  };
+
+  it("collapses the diff to a +/- count by default, hiding the body", () => {
+    const { lastFrame, unmount } = render(<Transcript entries={[wrote]} streaming="" expanded={false} />);
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("+1/-1"); // diffStat one-liner
+    expect(frame).not.toContain("hello world"); // body folded
+    unmount();
+  });
+
+  it("reveals the full diff when expanded", () => {
+    const { lastFrame, unmount } = render(<Transcript entries={[wrote]} streaming="" expanded />);
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("hello world");
     unmount();
   });
 });
