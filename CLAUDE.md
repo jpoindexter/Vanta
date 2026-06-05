@@ -67,7 +67,9 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**All 7 PRD phases done + interactive agent shell + full MCP triad (use · make · serve) + Phase 2 EF pebbles (6 items).** `argo` (no args) launches a banner (logo, model, goals, all tools, skills) + a chat REPL holding one persistent conversation — the "straight-up agent" experience. 5: Gmail/Calendar/Drive (10 tools, every outbound approval-gated) via one-click `argo auth google` (per-user OAuth, tokens local). **MCP:** Argo consumes MCP servers (`.mcp.json`/`mcpServers` discovery), mounts them at runtime (`mount_mcp` tool, kernel-gated), and serves its own tools over stdio (`argo mcp serve`, read-only allowlist + kernel gate, live-verified via reciprocal client). **EF gates (Phase 2):** `/where` breadcrumb, goal re-injection post-compaction, inhibit drift counter (3-turn), set-shift stuck-loop detector, ERRORS.md auto-read, self-monitor pre-action heuristic, consecutive-failure detector, closure gate on topic shift. **43 tools · 935 TS + 27 Rust = 962 tests green.**
+**All roadmap items complete — 105 shipped, 0 horizon.** Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. **45 tools** (+ compose_workflow + graph_query) · **1063 TS + 27 Rust = 1090 tests green.**
+
+Key capabilities added this session: TUI (help overlay, themes, vim mode, shortcuts, thinking display), EF Phase 3 (scope-delta, wm-manip), Memory (verbatim archive, compression, working memory, versioning, graph, 5D/12-axis brain), Factory (preflight, escalation, holdout, stall recovery, auto-close), Platform (voice loop, checkpoints, user commands), Brain (salience+executive networks, v2 scaffold), Infrastructure (canonical project ID, worktree detection, Claude Code hooks, typed stream events).
 
 Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`ARGO_GOOGLE_CLIENT_ID/SECRET`, one-time) + `argo auth google`; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
 
