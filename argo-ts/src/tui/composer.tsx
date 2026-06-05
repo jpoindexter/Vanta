@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Text, useInput } from "ink";
+import { newPasteStore, shouldCollapse, collapse, expandPastes } from "./paste.js";
 
 export type VimMode = "normal" | "insert";
 
@@ -48,6 +49,8 @@ export function Composer(props: ComposerProps): ReactElement {
   const [cursor, setCursor] = useState(value.length);
   const [vimMode, setVimModeState] = useState<VimMode>("insert");
   const histRef = useRef<HistState>({ histIdx: -1, draft: "", value: "" });
+  // Large pastes collapse to a [Pasted text #N …] ref here, expanded on submit.
+  const pasteStore = useRef(newPasteStore());
 
   const setVimMode = (m: VimMode): void => {
     setVimModeState(m);
@@ -58,7 +61,10 @@ export function Composer(props: ComposerProps): ReactElement {
   // submit, or tab-completes a slash command). Also reset history navigation on clear.
   useEffect(() => {
     setCursor((c) => Math.min(c, value.length));
-    if (value === "") histRef.current = { histIdx: -1, draft: "", value: "" };
+    if (value === "") {
+      histRef.current = { histIdx: -1, draft: "", value: "" };
+      pasteStore.current = newPasteStore();
+    }
   }, [value]);
 
   useInput(
@@ -77,7 +83,7 @@ export function Composer(props: ComposerProps): ReactElement {
           if (cursor < value.length) { onChange(value.slice(0, cursor) + value.slice(cursor + 1)); }
           return;
         }
-        if (key.return) return onSubmit(value); // Enter submits even in normal mode
+        if (key.return) return onSubmit(expandPastes(value, pasteStore.current)); // Enter submits even in normal mode
         return; // ignore all other keys in normal mode
       }
       // Insert mode: Esc exits to normal when vim enabled.
@@ -90,8 +96,8 @@ export function Composer(props: ComposerProps): ReactElement {
         return;
       }
 
-      // Submit (plain enter — shift+enter handled above).
-      if (key.return) return onSubmit(value);
+      // Submit (plain enter — shift+enter handled above). Expand collapsed pastes.
+      if (key.return) return onSubmit(expandPastes(value, pasteStore.current));
 
       // History navigation — only when the slash palette is not open.
       if (isHistoryActive && key.upArrow) {
@@ -141,9 +147,11 @@ export function Composer(props: ComposerProps): ReactElement {
       // Ignore remaining control/navigation keys.
       if (!input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape) return;
 
-      // Insert printable text at the cursor.
-      onChange(value.slice(0, cursor) + input + value.slice(cursor));
-      setCursor((c) => c + input.length);
+      // Insert printable text at the cursor. A large block (a paste delivered as
+      // one event) collapses to a [Pasted text #N …] ref, expanded on submit.
+      const insert = shouldCollapse(input) ? collapse(pasteStore.current, input) : input;
+      onChange(value.slice(0, cursor) + insert + value.slice(cursor));
+      setCursor((c) => c + insert.length);
     },
     { isActive },
   );
