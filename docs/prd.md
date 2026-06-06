@@ -134,7 +134,7 @@ Delivers:
 - OpenAI + Ollama provider (one adapter, baseURL swap)
 - Anthropic provider stub
 - Tool registry: `read-file`, `write-file`, `shell-cmd`, `inspect-state`
-- Three-tier system prompt (SOUL.md + ARGO.md/AGENTS.md/CLAUDE.md discovery + active goals)
+- Three-tier system prompt (SOUL.md + VANTA.md/AGENTS.md/CLAUDE.md discovery + active goals)
 - Agent loop: messages[], goal injection, tool dispatch, pause-on-ask approval
 - Context trimmer (protect first 3 + last 6, 75% trigger)
 - Kernel auto-start from CLI
@@ -208,7 +208,7 @@ Delivers:
 - `git-status`, `git-diff` — always `risk: allow` (read-only)
 - `git-commit`, `git-push` — always `risk: ask`, require explicit approval
 - `git-branch`, `git-checkout` — `risk: ask`
-- Project context auto-detection — reads `ARGO.md`, `CLAUDE.md`, `README.md`, `AGENTS.md` from cwd, injects into context tier
+- Project context auto-detection — reads `VANTA.md`, `CLAUDE.md`, `README.md`, `AGENTS.md` from cwd, injects into context tier
 - Code skill library: `~/.vanta/skills/code/` — debug, refactor, test-write, PR-review patterns
 - Anthropic adapter (full) — implement in this phase; Claude is significantly better at code than GPT-4o-mini
 
