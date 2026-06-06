@@ -37,7 +37,7 @@ const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!pro
 
 const SPINNER = spinnerFrames();
 const THEME = resolveTheme(process.env);
-const VIM_ENABLED = !!process.env.ARGO_VIM;
+const VIM_ENABLED = !!process.env.VANTA_VIM;
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
@@ -63,7 +63,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   if (convoRef.current === null) {
     convoRef.current = createConversation(setup.systemPrompt, {
       provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
-      maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       onThinking: (text) => dispatch({ t: "thinking", text }),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
@@ -207,7 +207,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         </Box>
       ) : overlay === "model" ? (
         <Box flexDirection="column" marginTop={1}>
-          <ModelPicker providers={PROVIDER_CATALOG} currentProviderId={process.env.ARGO_PROVIDER ?? "openai"} currentModel={activeProvider.modelId()} hasKey={hasKey} width={w} onSelect={selectModel} onCancel={() => setOverlay(null)} />
+          <ModelPicker providers={PROVIDER_CATALOG} currentProviderId={process.env.VANTA_PROVIDER ?? "openai"} currentModel={activeProvider.modelId()} hasKey={hasKey} width={w} onSelect={selectModel} onCancel={() => setOverlay(null)} />
           <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}><Text dimColor>{"› "}picking model…</Text></Box>
         </Box>
       ) : (

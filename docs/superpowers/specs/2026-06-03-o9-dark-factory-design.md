@@ -76,7 +76,7 @@ to `swarm`/`delegate` workers (existing). `run.ts` sequences, gates, and verifie
 
 1. **Backlog check** — triage runs only if the priority stack has a concrete item. Empty → exit ~0 cost. Prevents invented busywork (a token *and* safety failure mode).
 2. **Cheap triage** — selection uses the local Ollama model on the M4 Pro (prefer-local routing, existing). Near-zero cost; frontier model only spins up for actual code generation.
-3. **Hard ceiling** — `ARGO_FACTORY_BUDGET` (default 80_000 output tokens/cycle). On hit: commit whatever is verified-complete, log `budget reached`, stop clean. Spend reported in the commit message.
+3. **Hard ceiling** — `VANTA_FACTORY_BUDGET` (default 80_000 output tokens/cycle). On hit: commit whatever is verified-complete, log `budget reached`, stop clean. Spend reported in the commit message.
 
 ## 6. Safety model (the heart)
 
@@ -148,7 +148,7 @@ every cycle a reviewable PR. The human merges deliberately.
 
 ### 6.6 Bail conditions (stoppability — constraint 4)
 
-- **Kill switch:** `ARGO_FACTORY_DISABLED` checked **kernel-side** at the top of every cycle —
+- **Kill switch:** `VANTA_FACTORY_DISABLED` checked **kernel-side** at the top of every cycle —
   covers the unattended 3am path where there's no Ctrl+C. (Interactive runs also honor SIGINT
   via the existing AbortSignal.)
 - **Dirty tree / active session → bail.** The lockfile only covers factory-vs-factory; an
@@ -177,7 +177,7 @@ auto-approved at 3am. The factory does only what is auto-safe.
 ## 7. One cycle, end to end
 
 ```
-1. GATE      kernel: ARGO_FACTORY_DISABLED? · lockfile free? · tree clean / no active session?  — else bail
+1. GATE      kernel: VANTA_FACTORY_DISABLED? · lockfile free? · tree clean / no active session?  — else bail
 2. SNAPSHOT  pin factory's own source + kernel hash for the cycle
 3. TRIAGE    local model reads vitest --reporter=json, tsc stderr, ROADMAP, PARKED → WorkItem | null;  null → exit clean (~0 cost)
 4. BRANCH    git checkout -b factory/auto-<ts>

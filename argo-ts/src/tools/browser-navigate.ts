@@ -119,7 +119,7 @@ export const browserNavigateTool: Tool = {
     if (!isAllowedDomain(url)) {
       const approved = await ctx.requestApproval(
         `Navigate the browser to ${url}`,
-        "domain is not in ARGO_ALLOWED_DOMAINS — visiting it loads remote content",
+        "domain is not in VANTA_ALLOWED_DOMAINS — visiting it loads remote content",
       );
       if (!approved) {
         return { ok: false, output: "denied by user" };

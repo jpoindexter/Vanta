@@ -63,8 +63,8 @@ describe("browserNavigateTool argument validation", () => {
 describe("browserNavigateTool safety gate", () => {
   it("denies and skips launch when the domain is disallowed and the user declines", async () => {
     // Empty allowlist => domain not pre-approved => approval requested.
-    const prev = process.env.ARGO_ALLOWED_DOMAINS;
-    process.env.ARGO_ALLOWED_DOMAINS = "";
+    const prev = process.env.VANTA_ALLOWED_DOMAINS;
+    process.env.VANTA_ALLOWED_DOMAINS = "";
     try {
       const ctx = makeCtx(false);
       const result = await browserNavigateTool.execute(
@@ -76,8 +76,8 @@ describe("browserNavigateTool safety gate", () => {
       expect(result.ok).toBe(false);
       expect(result.output).toBe("denied by user");
     } finally {
-      if (prev === undefined) delete process.env.ARGO_ALLOWED_DOMAINS;
-      else process.env.ARGO_ALLOWED_DOMAINS = prev;
+      if (prev === undefined) delete process.env.VANTA_ALLOWED_DOMAINS;
+      else process.env.VANTA_ALLOWED_DOMAINS = prev;
     }
   });
 });

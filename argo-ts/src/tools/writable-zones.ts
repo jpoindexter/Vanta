@@ -10,7 +10,7 @@ import { dirname, resolve, sep } from "node:path";
 //   read_file  → READABLE zones (broader: reads don't mutate; default includes the
 //                project's parent so sibling repos in the same workspace are readable)
 //
-// Override with ARGO_WRITABLE_DIRS / ARGO_READABLE_DIRS (comma-separated; replaces
+// Override with VANTA_WRITABLE_DIRS / VANTA_READABLE_DIRS (comma-separated; replaces
 // the defaults). `~` expands to home.
 
 const DEFAULT_WRITABLE = ["~/Desktop", "~/Downloads"] as const;
@@ -28,7 +28,7 @@ function parseDirs(raw: string): string[] {
 
 /** Resolve the configured writable zones to absolute dir paths. */
 export function resolveWritableZones(env: NodeJS.ProcessEnv): string[] {
-  const raw = env.ARGO_WRITABLE_DIRS?.trim();
+  const raw = env.VANTA_WRITABLE_DIRS?.trim();
   return raw ? parseDirs(raw) : [...DEFAULT_WRITABLE].map((s) => resolve(expandHome(s)));
 }
 
@@ -38,7 +38,7 @@ export function resolveWritableZones(env: NodeJS.ProcessEnv): string[] {
  * readable) plus the writable zones. Reads are kernel-Asked per out-of-root path.
  */
 export function resolveReadableZones(env: NodeJS.ProcessEnv, root: string): string[] {
-  const raw = env.ARGO_READABLE_DIRS?.trim();
+  const raw = env.VANTA_READABLE_DIRS?.trim();
   if (raw) return parseDirs(raw);
   return [dirname(resolve(root)), ...resolveWritableZones(env)];
 }

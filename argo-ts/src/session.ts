@@ -83,7 +83,7 @@ export async function prepareRun(
   instruction: string,
   skillBody?: string,
 ): Promise<RunSetup> {
-  const baseUrl = process.env.ARGO_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const kernelBin = join(repoRoot, "target", "debug", "argo-kernel");
   await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
@@ -270,7 +270,7 @@ export async function reviewAfterTurn(opts: {
 
 /**
  * After-turn gentle nudge. When the turn index hits a multiple of
- * ARGO_NUDGE_EVERY (default 5), reads active goals and calls onNote with a
+ * VANTA_NUDGE_EVERY (default 5), reads active goals and calls onNote with a
  * short reminder. No-op when disabled (every=0) or no active goals. Best-effort.
  */
 export async function nudgeAfterTurn(
@@ -280,7 +280,7 @@ export async function nudgeAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
   try {
-    const raw = parseInt(env.ARGO_NUDGE_EVERY ?? "", 10);
+    const raw = parseInt(env.VANTA_NUDGE_EVERY ?? "", 10);
     const every = isNaN(raw) || raw < 0 ? DEFAULT_NUDGE_EVERY : raw;
     if (!shouldNudge(turnIndex, every)) return;
     const goals = await safety.getGoals().catch(() => []);
@@ -293,7 +293,7 @@ export async function nudgeAfterTurn(
 
 /**
  * After-turn research-spiral gate. Tracks consecutive non-output turns; at
- * ARGO_RESEARCH_GATE_TURNS (default 8), fires a gentle note asking whether to
+ * VANTA_RESEARCH_GATE_TURNS (default 8), fires a gentle note asking whether to
  * switch from exploration to execution. Returns the updated state for the caller
  * to persist. Best-effort — never throws.
  */
@@ -305,7 +305,7 @@ export async function researchGateAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<ResearchGateState> {
   try {
-    const raw = parseInt(env.ARGO_RESEARCH_GATE_TURNS ?? "", 10);
+    const raw = parseInt(env.VANTA_RESEARCH_GATE_TURNS ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_RESEARCH_GATE_TURNS : raw;
     if (threshold === 0) return state;
     const toolNames = extractLastTurnToolNames(messages);
@@ -329,7 +329,7 @@ export async function inhibitAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<InhibitState> {
   try {
-    const raw = parseInt(env.ARGO_INHIBIT_THRESHOLD ?? "", 10);
+    const raw = parseInt(env.VANTA_INHIBIT_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_INHIBIT_THRESHOLD : raw;
     if (threshold === 0) return state;
     const toolNames = extractLastTurnToolNames(messages);
@@ -352,7 +352,7 @@ export async function setShiftAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<SetShiftState> {
   try {
-    const raw = parseInt(env.ARGO_SETSHIFT_THRESHOLD ?? "", 10);
+    const raw = parseInt(env.VANTA_SETSHIFT_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_SETSHIFT_THRESHOLD : raw;
     if (threshold === 0) return state;
     const toolNames = extractLastTurnToolNames(messages);
@@ -368,7 +368,7 @@ export async function setShiftAfterTurn(
 
 /**
  * After-turn scope delta annotation. Counts distinct topics/files/tools touched
- * in the last turn; when the count exceeds ARGO_SCOPE_DELTA_THRESHOLD (default 3)
+ * in the last turn; when the count exceeds VANTA_SCOPE_DELTA_THRESHOLD (default 3)
  * emits a dim ambient note and increments the session accumulator.
  * Non-alarming — just visible. Best-effort.
  */
@@ -379,7 +379,7 @@ export async function scopeDeltaAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<ScopeDeltaState> {
   try {
-    const raw = parseInt(env.ARGO_SCOPE_DELTA_THRESHOLD ?? "", 10);
+    const raw = parseInt(env.VANTA_SCOPE_DELTA_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_SCOPE_DELTA_THRESHOLD : raw;
     if (threshold === 0) return state;
     const count = countTopicsInLastTurn(messages);
@@ -403,7 +403,7 @@ export async function wmManipAfterTurn(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<WmManipState> {
   try {
-    const raw = parseInt(env.ARGO_WM_MANIP_THRESHOLD ?? "", 10);
+    const raw = parseInt(env.VANTA_WM_MANIP_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_MANIP_THRESHOLD : raw;
     if (threshold === 0) return state;
     const mode = detectWmMode(messages);

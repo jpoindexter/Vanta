@@ -35,25 +35,25 @@ type TaskKind = "tiny" | "summarize" | "classify" | "research" | "code"
 
 classifyTaskKind(instruction): TaskKind
 resolveTaskRoute(env, task): ModelRoute        // { provider, model, maxIterations?, reason }
-routeEnv(env, route): NodeJS.ProcessEnv         // overlays ARGO_PROVIDER/ARGO_MODEL
+routeEnv(env, route): NodeJS.ProcessEnv         // overlays VANTA_PROVIDER/VANTA_MODEL
 ```
 
 Config by env (mirrors the AUX-VISION pattern), e.g.:
 
 ```
-ARGO_MAIN_PROVIDER=codex      ARGO_MAIN_MODEL=gpt-5.5
-ARGO_ROUTE_SUMMARIZE=ollama:qwen2.5:14b
-ARGO_ROUTE_CLASSIFY=ollama:qwen2.5:7b
-ARGO_ROUTE_RESEARCH=gemini:gemini-2.5-flash
-ARGO_ROUTE_VERIFY=ollama:deepseek-r1:14b
-ARGO_ROUTE_MEMORY=ollama:qwen2.5:14b           # pairs with MEM-CURATOR
+VANTA_MAIN_PROVIDER=codex      VANTA_MAIN_MODEL=gpt-5.5
+VANTA_ROUTE_SUMMARIZE=ollama:qwen2.5:14b
+VANTA_ROUTE_CLASSIFY=ollama:qwen2.5:7b
+VANTA_ROUTE_RESEARCH=gemini:gemini-2.5-flash
+VANTA_ROUTE_VERIFY=ollama:deepseek-r1:14b
+VANTA_ROUTE_MEMORY=ollama:qwen2.5:14b           # pairs with MEM-CURATOR
 ```
 
 ## Hard rules
 
 - **Fail soft.** Route unavailable (Ollama down, missing key/model) → fall back to the
   main model with a one-line note. No task dies because a cheap route failed, unless
-  `ARGO_ROUTE_STRICT=true`.
+  `VANTA_ROUTE_STRICT=true`.
 - **Cheaper, not freer.** Every worker uses the same kernel, root scope, approval gates,
   and tool registry — usually with `delegate` excluded (no recursive runaway). Already
   enforced in `delegate.ts`/`swarm.ts`.

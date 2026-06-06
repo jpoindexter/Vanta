@@ -23,7 +23,7 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase. On
 ## Autonomy ladder (O10)
 
 `config.autonomyLevel: 1|2|3|4` controls how far a cycle proceeds after a clean verify
-(`resolveAutonomyLevel(sub, env)` maps CLI + `ARGO_AUTONOMY_LEVEL` → level):
+(`resolveAutonomyLevel(sub, env)` maps CLI + `VANTA_AUTONOMY_LEVEL` → level):
 
 | L | name | stops after | CycleResult |
 |---|------|-------------|-------------|
@@ -34,7 +34,7 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase. On
 | 5 | merge | + auto-merge low-risk slice (gated) | `merged` |
 
 The kernel's `is_protected_path` blocks skeleton/brainstem edits at EVERY level — the ladder
-governs reach over writable code only. `improve`/review = L1; `approve` = `ARGO_AUTONOMY_LEVEL`
+governs reach over writable code only. `improve`/review = L1; `approve` = `VANTA_AUTONOMY_LEVEL`
 (default 4).
 
 ### L5 auto-merge (O10b — `merge.ts`)
@@ -44,8 +44,8 @@ kernel `assess()` gate. A merge adds no new content (the verifier already vetted
 so the **entire** safety story at merge time is `assessMergeRisk` — pure, exhaustively tested,
 fails closed. Three independent gates must ALL pass or the cycle stays at L4 push:
 
-1. **armed** — `ARGO_AUTONOMY_ALLOW_MERGE` set (default OFF; L5 silently lands at L4 otherwise)
-2. **safe target** — `resolveMergeTarget` (`ARGO_FACTORY_MERGE_TARGET`, default `factory/integration`); never `main`/`master`; merge is `--no-ff`, never force; target must already exist (a missing/conflicting merge aborts and restores HEAD)
+1. **armed** — `VANTA_AUTONOMY_ALLOW_MERGE` set (default OFF; L5 silently lands at L4 otherwise)
+2. **safe target** — `resolveMergeTarget` (`VANTA_FACTORY_MERGE_TARGET`, default `factory/integration`); never `main`/`master`; merge is `--no-ff`, never force; target must already exist (a missing/conflicting merge aborts and restores HEAD)
 3. **low-risk** — limbs/reflexes/memory only (via O11 `autonomyCapForFiles`), no dep/env/config/migration file, ≤`MAX_MERGE_FILES` files & ≤`MAX_MERGE_DIFF_LINES` lines
 
 ## Compartments (O11)
@@ -62,13 +62,13 @@ compartment among the files the slice **actually touched** (`compartments.ts:aut
 | limbs | `tools/` + all other app code (default) | 5 | freely improvable |
 
 A mixed slice takes the **minimum** cap (a tool + `agent.ts` → L2). So a brainstem fix
-can't auto-commit even when `ARGO_AUTONOMY_LEVEL=4`; only limbs/reflexes/memory reach the
+can't auto-commit even when `VANTA_AUTONOMY_LEVEL=4`; only limbs/reflexes/memory reach the
 full ladder. This is the soft policy the kernel can't express; `is_protected_path` is still
 the hard boundary (skeleton would fail verify before the clamp ever runs).
 
 ## Entry points
 
 - `argo improve` → `runCycle` at **L1** (suggest — prints plan, exits)
-- `argo factory approve` → `runCycle` at **L4** by default; `ARGO_AUTONOMY_LEVEL=2|3` stops earlier
+- `argo factory approve` → `runCycle` at **L4** by default; `VANTA_AUTONOMY_LEVEL=2|3` stops earlier
 - `argo factory status` → shows lockfile + last log entry
 - gateway cron `__factory__` → gateway spawns `argo factory approve` as detached child

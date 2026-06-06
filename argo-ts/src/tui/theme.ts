@@ -12,9 +12,9 @@ const THEMES: Readonly<Record<string, Theme>> = {
   dyslexia: { primary: "green", accent: "yellow", border: "green", dimText: false },
 };
 
-/** Reads ARGO_THEME env var; falls back to "default" for unknown names. */
+/** Reads VANTA_THEME env var; falls back to "default" for unknown names. */
 export function resolveTheme(env: NodeJS.ProcessEnv = process.env): Theme {
-  const name = (env.ARGO_THEME ?? "default").toLowerCase();
+  const name = (env.VANTA_THEME ?? "default").toLowerCase();
   return THEMES[name] ?? THEMES.default!;
 }
 

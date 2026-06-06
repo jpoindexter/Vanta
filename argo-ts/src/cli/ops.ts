@@ -24,7 +24,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       registry: setup.registry,
       root: repoRoot,
       requestApproval: async () => false,
-      maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
     });
     await writeRunMemory(setup.provider, setup.goals, instruction, outcome.finalText);
@@ -36,25 +36,25 @@ export function buildCronRunTask(repoRoot: string): RunTask {
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
   const runTask = buildCronRunTask(repoRoot);
-  const token = process.env.ARGO_TELEGRAM_TOKEN;
+  const token = process.env.VANTA_TELEGRAM_TOKEN;
   const platform = token
-    ? new TelegramAdapter({ token, allow: parseAllowlist(process.env.ARGO_TELEGRAM_ALLOW) })
+    ? new TelegramAdapter({ token, allow: parseAllowlist(process.env.VANTA_TELEGRAM_ALLOW) })
     : undefined;
   const handle = async (text: string): Promise<string> => (await runTask(text)).finalText;
 
-  const port = Number(process.env.ARGO_WEBHOOK_PORT);
+  const port = Number(process.env.VANTA_WEBHOOK_PORT);
   const webhook = port
     ? {
         port,
-        secret: process.env.ARGO_WEBHOOK_SECRET,
+        secret: process.env.VANTA_WEBHOOK_SECRET,
         prompt: (body: string) =>
-          (process.env.ARGO_WEBHOOK_PROMPT ??
+          (process.env.VANTA_WEBHOOK_PROMPT ??
             "Handle this inbound webhook event and summarize what happened:\n{body}").replace(
             "{body}",
             body.slice(0, 4000),
           ),
         deliver: resolveDeliver(
-          process.env.ARGO_WEBHOOK_DELIVER ?? "local",
+          process.env.VANTA_WEBHOOK_DELIVER ?? "local",
           platform ? (chatId, text) => platform.send({ chatId, text }) : undefined,
         ),
       }
@@ -66,7 +66,7 @@ export async function runGatewayCommand(repoRoot: string): Promise<void> {
     platform,
     handle,
     webhook,
-    tickMs: Number(process.env.ARGO_GATEWAY_TICK_MS) || undefined,
+    tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,
   });
 }
 
@@ -111,7 +111,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const { buildRegistry } = await import("../tools/index.js");
     const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("../mcp/server.js");
 
-    const baseUrl = process.env.ARGO_KERNEL_URL ?? "http://127.0.0.1:7788";
+    const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
     const kernelBin = join(repoRoot, "target", "debug", "argo-kernel");
     await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
@@ -130,7 +130,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
   const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));
   const names = Object.keys(cfg.servers);
   if (names.length === 0) {
-    console.log("  (no MCP servers — set ARGO_MCP_SERVERS, ./.mcp.json, or ~/.argo/mcp.json)");
+    console.log("  (no MCP servers — set VANTA_MCP_SERVERS, ./.mcp.json, or ~/.argo/mcp.json)");
   } else {
     for (const n of names) console.log(`  ${n}`);
   }
@@ -138,7 +138,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
 
 export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
   if (args[0] === "serve") {
-    const port = Number(process.env.ARGO_ROADMAP_PORT) || 7789;
+    const port = Number(process.env.VANTA_ROADMAP_PORT) || 7789;
     const [{ serveRoadmap }, { buildRoadmap }, { execSync }] = await Promise.all([
       import("../roadmap/server.js"),
       import("../roadmap/build.js"),
@@ -181,7 +181,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
 }
 
 export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const port = Number(rest[0] ?? process.env.ARGO_DESKTOP_PORT) || 7790;
+  const port = Number(rest[0] ?? process.env.VANTA_DESKTOP_PORT) || 7790;
   const { serveDesktop } = await import("../desktop/server.js");
   setTimeout(() => {
     void import("node:child_process").then(({ execSync }) => {
@@ -193,11 +193,11 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
 
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
   const { runCycle, formatCycleLog, resolveAutonomyLevel } = await import("../factory/run.js");
-  const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
+  const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
   const dataDir = resolveArgoHome(process.env);
 
   if (sub === "approve") {
-    // L4 by default (commit + push); ARGO_AUTONOMY_LEVEL=2|3 stops earlier.
+    // L4 by default (commit + push); VANTA_AUTONOMY_LEVEL=2|3 stops earlier.
     const autonomyLevel = resolveAutonomyLevel("approve", process.env);
     const result = await runCycle(
       { argoRoot: repoRoot, dataDir, autonomyLevel, budgetTokens: budget, interactive: true },

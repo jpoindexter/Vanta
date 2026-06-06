@@ -11,12 +11,12 @@ const SKILL = (name: string) =>
 describe("installSkillLibrary", () => {
   let home: string;
   let source: string;
-  const prev = process.env.ARGO_HOME;
+  const prev = process.env.VANTA_HOME;
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "argo-lib-home-"));
     source = await mkdtemp(join(tmpdir(), "argo-lib-src-"));
-    process.env.ARGO_HOME = home;
+    process.env.VANTA_HOME = home;
     // seed a fake bundled library
     for (const slug of ["alpha-skill", "beta-skill"]) {
       await mkdir(join(source, slug), { recursive: true });
@@ -25,8 +25,8 @@ describe("installSkillLibrary", () => {
   });
 
   afterEach(async () => {
-    if (prev === undefined) delete process.env.ARGO_HOME;
-    else process.env.ARGO_HOME = prev;
+    if (prev === undefined) delete process.env.VANTA_HOME;
+    else process.env.VANTA_HOME = prev;
     await rm(home, { recursive: true, force: true });
     await rm(source, { recursive: true, force: true });
   });

@@ -1175,7 +1175,7 @@ const baseConfig: FactoryConfig = {
 };
 
 describe("checkGate", () => {
-  it("bails when ARGO_FACTORY_DISABLED is set", () => {
+  it("bails when VANTA_FACTORY_DISABLED is set", () => {
     const reason = checkGate({ ...baseConfig }, { disabled: true, lockExists: false, treeDirty: false });
     expect(reason).toMatch(/disabled/i);
   });
@@ -1252,7 +1252,7 @@ import type { FactoryConfig, CycleResult, CycleGate } from "./types.js";
 export type GateInputs = { disabled: boolean; lockExists: boolean; treeDirty: boolean };
 
 export function checkGate(_config: FactoryConfig, inputs: GateInputs): string | null {
-  if (inputs.disabled) return "factory disabled (ARGO_FACTORY_DISABLED is set)";
+  if (inputs.disabled) return "factory disabled (VANTA_FACTORY_DISABLED is set)";
   if (inputs.lockExists) return "another factory cycle is already running (lockfile exists)";
   if (inputs.treeDirty) return "working tree has uncommitted changes — will not run alongside a live session";
   return null;
@@ -1339,7 +1339,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
   // GATE
   const treeDirty = await isTreeDirty(config.argoRoot);
   const lockExists = !(await acquireLock(config.dataDir));
-  const disabled = Boolean(process.env.ARGO_FACTORY_DISABLED);
+  const disabled = Boolean(process.env.VANTA_FACTORY_DISABLED);
 
   const bail = checkGate(config, { disabled, lockExists, treeDirty });
   if (bail) {
@@ -1530,7 +1530,7 @@ case "improve": {
   const { runCycle } = await import("./factory/run.js");
   const { resolveArgoHome } = await import("./store/home.js");
   const dataDir = resolveArgoHome(process.env);
-  const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
+  const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
   const result = await runCycle(
     { argoRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
     console.log,
@@ -1545,7 +1545,7 @@ case "factory": {
   const { resolveArgoHome } = await import("./store/home.js");
   const { formatCycleLog } = await import("./factory/run.js");
   const dataDir = resolveArgoHome(process.env);
-  const budget = Number(process.env.ARGO_FACTORY_BUDGET) || 80_000;
+  const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
 
   if (sub === "approve") {
     // Run in auto mode (no approval gate)

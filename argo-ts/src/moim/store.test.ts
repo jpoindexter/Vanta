@@ -6,7 +6,7 @@ import { readMoim, writeMoim, clearMoim } from "./store.js";
 
 async function makeEnv(): Promise<{ env: NodeJS.ProcessEnv; dir: string }> {
   const dir = await mkdtemp(join(tmpdir(), "argo-moim-"));
-  return { env: { ARGO_HOME: dir }, dir };
+  return { env: { VANTA_HOME: dir }, dir };
 }
 
 describe("readMoim", () => {

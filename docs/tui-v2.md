@@ -9,10 +9,10 @@
 The shipped v1 TUI (`tui/app.tsx`, `app-reducer.ts`, `transcript.tsx`, …) works and stays the
 default. v2 ships as a **separate, opt-in surface**:
 - New module `tui/v2/` (own `app-v2.tsx` etc.) — v1 files are not edited.
-- Launch via `ARGO_TUI=v2` (env) or a `/tui v2` toggle; default remains v1.
+- Launch via `VANTA_TUI=v2` (env) or a `/tui v2` toggle; default remains v1.
 - Reuse the shared layer (reducer state shape, stream events, slash catalog) read-only; v2 is a
   new *view*, not a rewrite of the engine.
-- Promote v2 to default only after Jason confirms it; v1 stays as fallback (`ARGO_TUI=v1`).
+- Promote v2 to default only after Jason confirms it; v1 stays as fallback (`VANTA_TUI=v1`).
 
 This means zero regression risk: a broken v2 never touches the working path.
 
@@ -41,6 +41,6 @@ calls). v2 is mostly a *surface* that makes already-built state visible.
 
 ## Done
 
-`TUI-V2`: `ARGO_TUI=v2` launches the 3-column mission-control TUI (state / transcript /
+`TUI-V2`: `VANTA_TUI=v2` launches the 3-column mission-control TUI (state / transcript /
 safety+working-memory, risk-labeled palette, visible routing, live telemetry) while the default v1
 TUI is byte-for-byte unchanged and still launches by default.

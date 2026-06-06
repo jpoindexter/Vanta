@@ -27,12 +27,12 @@ describe("classifyTask", () => {
 });
 
 describe("resolveRoutedProvider", () => {
-  const baseEnv: NodeJS.ProcessEnv = { ARGO_PROVIDER: "ollama" };
+  const baseEnv: NodeJS.ProcessEnv = { VANTA_PROVIDER: "ollama" };
 
   it("uses the expensive override for an expensive task", () => {
     const env: NodeJS.ProcessEnv = {
       ...baseEnv,
-      ARGO_MODEL_EXPENSIVE: "qwen2.5:72b",
+      VANTA_MODEL_EXPENSIVE: "qwen2.5:72b",
     };
     const provider = resolveRoutedProvider(env, "implement the parser");
     expect(provider.modelId()).toBe("qwen2.5:72b");
@@ -41,7 +41,7 @@ describe("resolveRoutedProvider", () => {
   it("uses the cheap override for a cheap task", () => {
     const env: NodeJS.ProcessEnv = {
       ...baseEnv,
-      ARGO_MODEL_CHEAP: "qwen2.5:7b",
+      VANTA_MODEL_CHEAP: "qwen2.5:7b",
     };
     const provider = resolveRoutedProvider(env, "list my goals");
     expect(provider.modelId()).toBe("qwen2.5:7b");
@@ -55,7 +55,7 @@ describe("resolveRoutedProvider", () => {
   it("ignores the cheap override for an expensive task", () => {
     const env: NodeJS.ProcessEnv = {
       ...baseEnv,
-      ARGO_MODEL_CHEAP: "qwen2.5:7b",
+      VANTA_MODEL_CHEAP: "qwen2.5:7b",
     };
     // Expensive task with only a cheap override → no relevant override → default.
     const provider = resolveRoutedProvider(env, "refactor the loop");

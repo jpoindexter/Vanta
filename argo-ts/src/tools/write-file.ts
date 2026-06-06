@@ -22,7 +22,7 @@ export const writeFileTool: Tool = {
     name: "write_file",
     description:
       "Write a UTF-8 text file. Inside the project: new files write directly. Outside the project: " +
-      "allowed only in a writable zone (~/Desktop, ~/Downloads, or ARGO_WRITABLE_DIRS) and always " +
+      "allowed only in a writable zone (~/Desktop, ~/Downloads, or VANTA_WRITABLE_DIRS) and always " +
       "approval-gated. Overwriting an existing file requires approval. To put a file on the user's " +
       "Desktop, write directly to ~/Desktop/<name> — don't write in the repo and copy.",
     parameters: {
@@ -53,7 +53,7 @@ export const writeFileTool: Tool = {
     if (!ok && !isInZone(abs, resolveWritableZones(process.env))) {
       return {
         ok: false,
-        output: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set ARGO_WRITABLE_DIRS)`,
+        output: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set VANTA_WRITABLE_DIRS)`,
       };
     }
 

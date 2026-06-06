@@ -13,7 +13,7 @@ import type { ModelSelection } from "./model-picker.js";
 /** The env the selection implies, layered over the current process env. */
 export function mergedEnv(sel: ModelSelection, env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const entry = providerById(sel.providerId);
-  const merged: NodeJS.ProcessEnv = { ...env, ARGO_PROVIDER: sel.providerId, ARGO_MODEL: sel.model };
+  const merged: NodeJS.ProcessEnv = { ...env, VANTA_PROVIDER: sel.providerId, VANTA_MODEL: sel.model };
   if (entry?.envVar && sel.apiKey) merged[entry.envVar] = sel.apiKey;
   return merged;
 }

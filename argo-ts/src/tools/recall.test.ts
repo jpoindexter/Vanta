@@ -7,11 +7,11 @@ import { skillsDir, slugifySkillName } from "../store/home.js";
 import type { ToolContext } from "./types.js";
 
 // Deterministic temp home derived from the suite name, not time/randomness.
-const ARGO_HOME = join(tmpdir(), "argo-recall-test-store");
+const VANTA_HOME = join(tmpdir(), "argo-recall-test-store");
 const SKILL_NAME = "web-research";
 const SKILL_DESC = "How to research a topic with web search and verify sources.";
 
-const ctx = {} as ToolContext; // recall.execute ignores ctx — reads ARGO_HOME via env.
+const ctx = {} as ToolContext; // recall.execute ignores ctx — reads VANTA_HOME via env.
 
 async function writeSkill(): Promise<void> {
   const dir = join(skillsDir(), slugifySkillName(SKILL_NAME));
@@ -32,12 +32,12 @@ async function writeSkill(): Promise<void> {
 
 describe("recallTool", () => {
   beforeEach(() => {
-    process.env.ARGO_HOME = ARGO_HOME;
+    process.env.VANTA_HOME = VANTA_HOME;
   });
 
   afterEach(async () => {
-    delete process.env.ARGO_HOME;
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    delete process.env.VANTA_HOME;
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
 
   it("returns ok:false when query is empty", async () => {

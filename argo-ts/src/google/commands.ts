@@ -3,7 +3,7 @@ import { runGoogleAuth } from "./auth.js";
 /**
  * `argo auth google` — run the one-time interactive OAuth consent flow and
  * persist the refresh token. On missing client credentials (the actionable
- * "set ARGO_GOOGLE_CLIENT_ID/SECRET" error), print the message and exit 1.
+ * "set VANTA_GOOGLE_CLIENT_ID/SECRET" error), print the message and exit 1.
  * Returns the intended process exit code; never throws across the boundary.
  */
 export async function runAuthCommand(

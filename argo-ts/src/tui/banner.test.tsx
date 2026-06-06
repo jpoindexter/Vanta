@@ -41,7 +41,7 @@ describe("gatherBannerData", () => {
       systemPrompt: "x".repeat(120),
     } as unknown as RunSetup;
 
-    const out = await gatherBannerData(setup, "sess-1", { ARGO_HOME: "/nonexistent-xyz" } as NodeJS.ProcessEnv);
+    const out = await gatherBannerData(setup, "sess-1", { VANTA_HOME: "/nonexistent-xyz" } as NodeJS.ProcessEnv);
     expect(out.model).toBe("fake-model");
     expect(out.toolNames).toEqual(["read_file", "ls"]);
     expect(out.promptChars).toBe(120);

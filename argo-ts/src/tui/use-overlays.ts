@@ -84,8 +84,8 @@ export function useOverlays(deps: {
   const selectModel = (sel: ModelSelection): void => {
     try {
       const provider = buildProviderForSelection(sel, process.env);
-      process.env.ARGO_PROVIDER = sel.providerId;
-      process.env.ARGO_MODEL = sel.model;
+      process.env.VANTA_PROVIDER = sel.providerId;
+      process.env.VANTA_MODEL = sel.model;
       const entry = providerById(sel.providerId);
       if (entry?.envVar && sel.apiKey) process.env[entry.envVar] = sel.apiKey;
       convoRef.current?.setProvider(provider, buildSummarizer(provider));

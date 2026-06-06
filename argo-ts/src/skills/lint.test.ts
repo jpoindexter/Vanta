@@ -4,9 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lintSkills, formatLint } from "./lint.js";
 
-const ARGO_HOME = join(tmpdir(), "argo-skills-lint-test");
-const env = { ...process.env, ARGO_HOME };
-const skillsRoot = join(ARGO_HOME, "skills");
+const VANTA_HOME = join(tmpdir(), "argo-skills-lint-test");
+const env = { ...process.env, VANTA_HOME };
+const skillsRoot = join(VANTA_HOME, "skills");
 
 async function writeSkill(dir: string, frontmatter: string, body = "do the thing") {
   await mkdir(join(skillsRoot, dir), { recursive: true });
@@ -14,8 +14,8 @@ async function writeSkill(dir: string, frontmatter: string, body = "do the thing
 }
 
 describe("lintSkills", () => {
-  beforeEach(async () => { await rm(ARGO_HOME, { recursive: true, force: true }); });
-  afterEach(async () => { await rm(ARGO_HOME, { recursive: true, force: true }); });
+  beforeEach(async () => { await rm(VANTA_HOME, { recursive: true, force: true }); });
+  afterEach(async () => { await rm(VANTA_HOME, { recursive: true, force: true }); });
 
   it("passes a well-formed skill", async () => {
     await writeSkill("web-research", "name: web-research\ndescription: research the web\ncreated: 2026-06-01T00:00:00.000Z\nupdated: 2026-06-01T00:00:00.000Z\ntags: [web]");

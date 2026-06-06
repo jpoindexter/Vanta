@@ -6,7 +6,7 @@ import { loadAlwaysAllow, addAlwaysAllow } from "./approvals-store.js";
 
 async function tmpEnv(): Promise<NodeJS.ProcessEnv> {
   const dir = await mkdtemp(join(tmpdir(), "argo-approvals-"));
-  return { ARGO_HOME: dir } as NodeJS.ProcessEnv;
+  return { VANTA_HOME: dir } as NodeJS.ProcessEnv;
 }
 
 describe("approvals-store", () => {

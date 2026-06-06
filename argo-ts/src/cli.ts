@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { createConversation } from "./agent.js";
+import { mirrorLegacyEnv } from "./env-compat.js";
 import { ensureArgoStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { installSkillLibrary } from "./skills/library.js";
@@ -56,6 +57,7 @@ function loadEnv(repoRoot: string): void {
   } catch {
     // no .env file — rely on the ambient environment
   }
+  mirrorLegacyEnv(); // back-compat: existing ARGO_* configs → VANTA_*
 }
 
 function usage(): void {
@@ -82,7 +84,7 @@ function usage(): void {
       "       argo roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       argo desktop [port]                start local desktop command center",
       "       argo improve                      run one factory cycle (review mode — prints plan)",
-      "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via ARGO_AUTONOMY_LEVEL)",
+      "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
   );
 }
@@ -116,12 +118,12 @@ async function startInteractive(
     loadEnv(repoRoot); // pick up the freshly written .env
   }
   // The Ink TUI is the default interactive surface; fall back to the readline
-  // REPL for resume (TUI v1 doesn't rehydrate), --no-tui, ARGO_NO_TUI, or no TTY.
+  // REPL for resume (TUI v1 doesn't rehydrate), --no-tui, VANTA_NO_TUI, or no TTY.
   const useTui =
     Boolean(process.stdin.isTTY) &&
     !opts.resumeId &&
     !opts.noTui &&
-    !process.env.ARGO_NO_TUI;
+    !process.env.VANTA_NO_TUI;
   if (!useTui) return runChat(repoRoot, opts);
   // REL3: wrap TUI launch in a try-catch; fall back to readline REPL if Ink
   // fails to render (bad TERM, missing native deps, restricted environment).
@@ -129,7 +131,7 @@ async function startInteractive(
     return await runTui(repoRoot);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`\nTUI unavailable (${msg.split("\n")[0]}); falling back to readline REPL.\nSet ARGO_NO_TUI=1 to suppress this warning.\n`);
+    console.warn(`\nTUI unavailable (${msg.split("\n")[0]}); falling back to readline REPL.\nSet VANTA_NO_TUI=1 to suppress this warning.\n`);
     return runChat(repoRoot, opts);
   }
 }
@@ -182,7 +184,7 @@ async function runInstruction(
       registry: setup.registry,
       root,
       requestApproval: approver(rl),
-      maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       signal: controller.signal,
@@ -270,7 +272,7 @@ async function runVoiceCommand(repoRoot: string): Promise<void> {
     registry: setup.registry,
     root: repoRoot,
     systemPrompt: setup.systemPrompt,
-    durationSec: parseInt(process.env.ARGO_VOICE_DURATION ?? "5", 10) || 5,
+    durationSec: parseInt(process.env.VANTA_VOICE_DURATION ?? "5", 10) || 5,
   });
 }
 

@@ -5,7 +5,7 @@ import { SafetyClient } from "./safety-client.js";
 
 /**
  * Ensure the Rust kernel sidecar is running. If not, spawn it detached with an
- * explicit ARGO_ROOT so its scope matches the agent's, then poll until ready.
+ * explicit VANTA_ROOT so its scope matches the agent's, then poll until ready.
  */
 export async function ensureKernel(opts: {
   baseUrl: string;
@@ -26,7 +26,7 @@ export async function ensureKernel(opts: {
     detached: true,
     stdio: "ignore",
     cwd: opts.root,
-    env: { ...process.env, ARGO_ROOT: opts.root },
+    env: { ...process.env, VANTA_ROOT: opts.root },
   });
   child.unref();
 
@@ -36,6 +36,6 @@ export async function ensureKernel(opts: {
   }
   throw new Error(
     `argo-kernel did not become ready on ${opts.baseUrl}. ` +
-      `Run it manually: ARGO_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}`,
+      `Run it manually: VANTA_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}`,
   );
 }

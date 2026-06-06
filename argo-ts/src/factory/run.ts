@@ -13,25 +13,25 @@ import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 export type GateInputs = { disabled: boolean; lockExists: boolean; treeDirty: boolean };
 
 export function checkGate(_config: FactoryConfig, inputs: GateInputs): string | null {
-  if (inputs.disabled) return "factory disabled (ARGO_FACTORY_DISABLED is set)";
+  if (inputs.disabled) return "factory disabled (VANTA_FACTORY_DISABLED is set)";
   if (inputs.lockExists) return "another factory cycle is already running (lockfile exists)";
   if (inputs.treeDirty) return "working tree has uncommitted changes — will not run alongside a live session";
   return null;
 }
 
-/** Highest ladder rung implemented (L5 auto-merge — gated by ARGO_AUTONOMY_ALLOW_MERGE). */
+/** Highest ladder rung implemented (L5 auto-merge — gated by VANTA_AUTONOMY_ALLOW_MERGE). */
 export const MAX_AUTONOMY_LEVEL = 5;
 
 /**
  * Resolve the factory autonomy level (1–5) from the CLI subcommand + env.
- * `improve`/review is always suggest-only (L1). `approve` reads ARGO_AUTONOMY_LEVEL
+ * `improve`/review is always suggest-only (L1). `approve` reads VANTA_AUTONOMY_LEVEL
  * (default 4 = commit+push, preserving prior behavior); out-of-range clamps into 1–5.
- * Note: requesting L5 only auto-merges when ARGO_AUTONOMY_ALLOW_MERGE is also set and
+ * Note: requesting L5 only auto-merges when VANTA_AUTONOMY_ALLOW_MERGE is also set and
  * the slice passes the low-risk gate (merge.ts) — otherwise it lands at L4 push.
  */
 export function resolveAutonomyLevel(sub: string, env: NodeJS.ProcessEnv): AutonomyLevel {
   if (sub === "review" || sub === "") return 1;
-  const raw = Number(env.ARGO_AUTONOMY_LEVEL);
+  const raw = Number(env.VANTA_AUTONOMY_LEVEL);
   if (!Number.isInteger(raw) || raw < 1) return 4;
   return Math.min(raw, MAX_AUTONOMY_LEVEL) as AutonomyLevel;
 }
@@ -174,7 +174,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
   const treeDirty = await isTreeDirty(config.argoRoot);
   const acquired = await acquireLock(config.dataDir);
   const lockExists = !acquired;
-  const disabled = Boolean(process.env.ARGO_FACTORY_DISABLED);
+  const disabled = Boolean(process.env.VANTA_FACTORY_DISABLED);
 
   const bail = checkGate(config, { disabled, lockExists, treeDirty });
   if (bail) {
@@ -211,25 +211,25 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     log(`factory: branched → ${branch}`);
 
     // FAC-STALL + FAC-ESCALATE: bounded retry; escalates to a stronger model after
-    // ARGO_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
-    const maxRetries = Math.max(0, parseInt(process.env.ARGO_FACTORY_MAX_RETRIES ?? "1", 10));
-    const escalateAfter = Math.max(1, parseInt(process.env.ARGO_FACTORY_ESCALATE_AFTER ?? "1", 10));
+    // VANTA_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
+    const maxRetries = Math.max(0, parseInt(process.env.VANTA_FACTORY_MAX_RETRIES ?? "1", 10));
+    const escalateAfter = Math.max(1, parseInt(process.env.VANTA_FACTORY_ESCALATE_AFTER ?? "1", 10));
     let artifact = await execute(config.argoRoot, plan, config.budgetTokens);
     log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
     let verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
     let totalTokens = artifact.tokenSpend;
     for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
-      const escalate = retry >= escalateAfter && process.env.ARGO_MODEL_EXPENSIVE;
-      const escalateNote = escalate ? ` [escalating to ${process.env.ARGO_MODEL_EXPENSIVE}]` : "";
+      const escalate = retry >= escalateAfter && process.env.VANTA_MODEL_EXPENSIVE;
+      const escalateNote = escalate ? ` [escalating to ${process.env.VANTA_MODEL_EXPENSIVE}]` : "";
       log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})${escalateNote}…`);
       await discardSlice(config.argoRoot);
       const retryBranch = await createBranch(config.argoRoot);
       log(`factory: branched → ${retryBranch}`);
       const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
-      // FAC-ESCALATE: override ARGO_MODEL to the expensive model when stalled.
-      if (escalate) process.env.ARGO_MODEL = process.env.ARGO_MODEL_EXPENSIVE!;
+      // FAC-ESCALATE: override VANTA_MODEL to the expensive model when stalled.
+      if (escalate) process.env.VANTA_MODEL = process.env.VANTA_MODEL_EXPENSIVE!;
       artifact = await execute(config.argoRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
-      if (escalate) delete process.env.ARGO_MODEL; // restore default after retry
+      if (escalate) delete process.env.VANTA_MODEL; // restore default after retry
       totalTokens += artifact.tokenSpend;
       log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
       verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
@@ -285,7 +285,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const decision = assessMergeRisk({
       touchedFiles: artifact.touchedFiles,
       diffLineCount: await lastCommitLineCount(config.argoRoot),
-      allowMerge: Boolean(process.env.ARGO_AUTONOMY_ALLOW_MERGE),
+      allowMerge: Boolean(process.env.VANTA_AUTONOMY_ALLOW_MERGE),
       mergeTarget,
     });
     if (!decision.merge) {

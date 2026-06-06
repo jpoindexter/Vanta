@@ -19,8 +19,8 @@ export function delegateEnv(
   model?: string,
 ): NodeJS.ProcessEnv {
   const merged: NodeJS.ProcessEnv = { ...env };
-  if (provider) merged.ARGO_PROVIDER = provider;
-  if (model) merged.ARGO_MODEL = model;
+  if (provider) merged.VANTA_PROVIDER = provider;
+  if (model) merged.VANTA_MODEL = model;
   return merged;
 }
 

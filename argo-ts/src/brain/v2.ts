@@ -1,6 +1,6 @@
 // B-v2: Emergent self-designed brain substrate.
 // This module is the bootstrap scaffold — the v1.4 .md brain is the seed.
-// When ARGO_BRAIN_V2=1, Argo can read/write this module to design its own
+// When VANTA_BRAIN_V2=1, Argo can read/write this module to design its own
 // brain representation (its own format, its own code). The kernel's
 // is_protected_path does NOT protect this file — the agent can evolve it.
 //

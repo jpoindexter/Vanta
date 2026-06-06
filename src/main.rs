@@ -9,9 +9,10 @@ mod server;
 use std::{env, process};
 
 fn main() {
-    // ARGO_ROOT lets the kernel operate on an explicit project dir instead of
+    // VANTA_ROOT lets the kernel operate on an explicit project dir instead of
     // cwd — needed for multi-project use and for launchers that cannot control cwd.
-    let root = match env::var("ARGO_ROOT") {
+    // ARGO_ROOT is accepted as a legacy fallback (Argo→Vanta rename back-compat).
+    let root = match env::var("VANTA_ROOT").or_else(|_| env::var("ARGO_ROOT")) {
         Ok(path) if !path.trim().is_empty() => std::path::PathBuf::from(path),
         _ => env::current_dir().unwrap_or_else(|err| {
             eprintln!("failed to read cwd: {err}");

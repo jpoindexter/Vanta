@@ -20,7 +20,7 @@ describe("assessMergeRisk", () => {
     expect(d.merge).toBe(true);
   });
 
-  it("refuses when not armed (ARGO_AUTONOMY_ALLOW_MERGE unset)", () => {
+  it("refuses when not armed (VANTA_AUTONOMY_ALLOW_MERGE unset)", () => {
     const d = assessMergeRisk({ ...armed, allowMerge: false });
     expect(d.merge).toBe(false);
     expect(d.reason).toMatch(/arm|allow_merge/i);
@@ -64,8 +64,8 @@ describe("resolveMergeTarget", () => {
   it("defaults to factory/integration", () => {
     expect(resolveMergeTarget({} as NodeJS.ProcessEnv)).toBe("factory/integration");
   });
-  it("honors ARGO_FACTORY_MERGE_TARGET", () => {
-    expect(resolveMergeTarget({ ARGO_FACTORY_MERGE_TARGET: "dev" } as NodeJS.ProcessEnv)).toBe("dev");
+  it("honors VANTA_FACTORY_MERGE_TARGET", () => {
+    expect(resolveMergeTarget({ VANTA_FACTORY_MERGE_TARGET: "dev" } as NodeJS.ProcessEnv)).toBe("dev");
   });
 });
 

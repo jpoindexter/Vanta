@@ -13,24 +13,24 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1";
 
 /**
  * Resolve an LLM provider from environment.
- *   ARGO_PROVIDER=openai     → api.openai.com (needs OPENAI_API_KEY)
- *   ARGO_PROVIDER=ollama     → local Ollama, OpenAI-compatible
- *   ARGO_PROVIDER=anthropic  → api.anthropic.com (needs ANTHROPIC_API_KEY)
- *   ARGO_PROVIDER=gemini      → Google Gemini via OpenAI-compat (needs GEMINI_API_KEY)
- *   ARGO_PROVIDER=openrouter  → OpenRouter (needs OPENROUTER_API_KEY)
- *   ARGO_PROVIDER=claude-code → Claude via your Pro/Max subscription token (grey area)
- *   ARGO_PROVIDER=codex       → OpenAI Codex via your ChatGPT subscription (OAuth, `codex login`)
+ *   VANTA_PROVIDER=openai     → api.openai.com (needs OPENAI_API_KEY)
+ *   VANTA_PROVIDER=ollama     → local Ollama, OpenAI-compatible
+ *   VANTA_PROVIDER=anthropic  → api.anthropic.com (needs ANTHROPIC_API_KEY)
+ *   VANTA_PROVIDER=gemini      → Google Gemini via OpenAI-compat (needs GEMINI_API_KEY)
+ *   VANTA_PROVIDER=openrouter  → OpenRouter (needs OPENROUTER_API_KEY)
+ *   VANTA_PROVIDER=claude-code → Claude via your Pro/Max subscription token (grey area)
+ *   VANTA_PROVIDER=codex       → OpenAI Codex via your ChatGPT subscription (OAuth, `codex login`)
  */
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
-  const provider = (env.ARGO_PROVIDER ?? "openai").toLowerCase();
-  const model = env.ARGO_MODEL;
+  const provider = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
+  const model = env.VANTA_MODEL;
 
   switch (provider) {
     case "openai": {
       const apiKey = env.OPENAI_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "OPENAI_API_KEY is not set. Run `argo setup`, or set it in argo-ts/.env, or use ARGO_PROVIDER=ollama for local models.",
+          "OPENAI_API_KEY is not set. Run `argo setup`, or set it in argo-ts/.env, or use VANTA_PROVIDER=ollama for local models.",
         );
       }
       return new OpenAIProvider({ apiKey, model: model ?? "gpt-4o-mini" });
@@ -38,14 +38,14 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
     case "ollama":
       return new OpenAIProvider({
         apiKey: "ollama",
-        baseURL: env.ARGO_OLLAMA_URL ?? DEFAULT_OLLAMA_URL,
+        baseURL: env.VANTA_OLLAMA_URL ?? DEFAULT_OLLAMA_URL,
         model: model ?? "qwen2.5:14b",
       });
     case "anthropic": {
       const apiKey = env.ANTHROPIC_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "ANTHROPIC_API_KEY is not set. Run `argo setup`, set it in argo-ts/.env, use ARGO_PROVIDER=claude-code for a Claude subscription, or ARGO_PROVIDER=openai|ollama.",
+          "ANTHROPIC_API_KEY is not set. Run `argo setup`, set it in argo-ts/.env, use VANTA_PROVIDER=claude-code for a Claude subscription, or VANTA_PROVIDER=openai|ollama.",
         );
       }
       return new AnthropicProvider({
@@ -98,7 +98,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
     }
     default:
       throw new Error(
-        `Unknown ARGO_PROVIDER "${provider}". Use openai, ollama, anthropic, gemini, openrouter, codex, or claude-code.`,
+        `Unknown VANTA_PROVIDER "${provider}". Use openai, ollama, anthropic, gemini, openrouter, codex, or claude-code.`,
       );
   }
 }

@@ -60,7 +60,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Gotchas (will waste your time if you don't know)
 
-- **`ARGO_ROOT` env var** overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.
+- **`VANTA_ROOT` env var** overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.
 - **Stale `nexarion-agent` binary** may hold port 7788 from before the rename. If a new kernel won't bind, `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill the PID.
 - **A leftover empty `../Nexarion Agent/` dir** exists (harness artifact, only an empty `.claude/`). The real repo is `Vanta/`. Don't work in the old path.
 - Kernel must be reachable before the agent runs (launcher auto-starts it; needs `target/debug/argo-kernel` built).
@@ -69,11 +69,11 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 **v1 complete; new dogfooding backlog opened 2026-06-05.** Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. **45 tools** (+ compose_workflow + graph_query) · **1067 TS + 27 Rust = 1094 tests green.**
 
-**In flight (2026-06-05 — from live use):** shipped — TUI readability (full-width, slash palette 8-cap + column layout, `/skills` + skill-index clipping) and **AUX-VISION** (image tools route to a dedicated `ARGO_VISION_MODEL` so a text-only main model doesn't break sight). Open in `roadmap.json` (`next`): `AUX-MAP` (per-function aux-task model map) · `UX-MODEL-FIX` (model-persistence regression — `/model` choice not sticking) · `GOAL-ACTION` (auto vague-goal→next-step) · `SCRUB-AI` (strip Hermes/Claude/other-agent mentions from published code, keep research docs). `horizon`: `DESKTOP` (Tauri app).
+**In flight (2026-06-05 — from live use):** shipped — TUI readability (full-width, slash palette 8-cap + column layout, `/skills` + skill-index clipping) and **AUX-VISION** (image tools route to a dedicated `VANTA_VISION_MODEL` so a text-only main model doesn't break sight). Open in `roadmap.json` (`next`): `AUX-MAP` (per-function aux-task model map) · `UX-MODEL-FIX` (model-persistence regression — `/model` choice not sticking) · `GOAL-ACTION` (auto vague-goal→next-step) · `SCRUB-AI` (strip Hermes/Claude/other-agent mentions from published code, keep research docs). `horizon`: `DESKTOP` (Tauri app).
 
 Key capabilities added this session: TUI (help overlay, themes, vim mode, shortcuts, thinking display), EF Phase 3 (scope-delta, wm-manip), Memory (verbatim archive, compression, working memory, versioning, graph, 5D/12-axis brain), Factory (preflight, escalation, holdout, stall recovery, auto-close), Platform (voice loop, checkpoints, user commands), Brain (salience+executive networks, v2 scaffold), Infrastructure (canonical project ID, worktree detection, Claude Code hooks, typed stream events).
 
-Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`ARGO_GOOGLE_CLIENT_ID/SECRET`, one-time) + `argo auth google`; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
+Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`, one-time) + `argo auth google`; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
 
 ## Rule zero
 

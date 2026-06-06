@@ -13,8 +13,8 @@ const DAY_MS = 86_400_000;
 
 // Unique, stable temp home derived from the suite name (not time/randomness),
 // per the parallel-build determinism rule.
-const ARGO_HOME = join(tmpdir(), "argo-curator-test");
-const SKILLS = join(ARGO_HOME, "skills");
+const VANTA_HOME = join(tmpdir(), "argo-curator-test");
+const SKILLS = join(VANTA_HOME, "skills");
 const ARCHIVE = join(SKILLS, "_archive");
 
 function daysAgo(days: number): string {
@@ -47,12 +47,12 @@ body for ${args.name}
 
 describe("curate", () => {
   beforeEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
     await mkdir(SKILLS, { recursive: true });
   });
 
   afterEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
 
   it("archives a stale LEARNED skill (reversible move to _archive)", async () => {
@@ -65,7 +65,7 @@ describe("curate", () => {
       tags: [LEARNED_TAG],
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.archived).toContain("stale-learned");
     expect(existsSync(join(SKILLS, "stale-learned"))).toBe(false);
@@ -81,7 +81,7 @@ describe("curate", () => {
       updated: daysAgo(40), // stale, but no LEARNED_TAG
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.staleUnowned).toContain("stale-user");
     expect(result.archived).not.toContain("stale-user");
@@ -97,7 +97,7 @@ describe("curate", () => {
       updated: daysAgo(100),
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.prunable).toContain("dead-skill");
     expect(existsSync(join(ARCHIVE, "dead-skill", "SKILL.md"))).toBe(true); // preserved
@@ -119,7 +119,7 @@ describe("curate", () => {
       updated: daysAgo(1),
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.overlaps).toContainEqual(["web-search-helper", "web-search-tool"]);
     expect(result.overlaps).toHaveLength(1);
@@ -135,7 +135,7 @@ describe("curate", () => {
       tags: [LEARNED_TAG],
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.archived).not.toContain("fresh-skill");
     expect(result.staleUnowned).not.toContain("fresh-skill");
@@ -152,7 +152,7 @@ describe("curate", () => {
       tags: [LEARNED_TAG],
     });
 
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result.archived).not.toContain("malformed-skill");
     expect(result.staleUnowned).not.toContain("malformed-skill");
@@ -160,7 +160,7 @@ describe("curate", () => {
   });
 
   it("returns empty results on an empty library", async () => {
-    const result = await curate({ env: { ARGO_HOME }, now: NOW });
+    const result = await curate({ env: { VANTA_HOME }, now: NOW });
 
     expect(result).toEqual({ archived: [], staleUnowned: [], prunable: [], overlaps: [] });
     const names = await readdir(SKILLS);

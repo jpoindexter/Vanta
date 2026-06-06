@@ -9,7 +9,7 @@ import type { Tool, ToolContext } from "../tools/types.js";
 //
 // Two layers of control:
 //   1. Allowlist (exposure) — only allowlisted tools appear in tools/list and are
-//      callable. Defaults to a read-only safe set; override via ARGO_MCP_SERVE_TOOLS.
+//      callable. Defaults to a read-only safe set; override via VANTA_MCP_SERVE_TOOLS.
 //   2. Kernel gate (enforcement) — assess() classifies each call. `block` and
 //      `ask` are refused (a headless stdio server has no human to prompt); only
 //      `allow` executes. The kernel is the real boundary; the allowlist is not.
@@ -33,7 +33,7 @@ const DEFAULT_SERVE_TOOLS = [
 
 /** Resolve the set of tool names exposed over MCP serve. Env overrides the default. */
 export function resolveServeAllowlist(env: NodeJS.ProcessEnv): Set<string> {
-  const raw = env.ARGO_MCP_SERVE_TOOLS?.trim();
+  const raw = env.VANTA_MCP_SERVE_TOOLS?.trim();
   if (raw) return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean));
   return new Set(DEFAULT_SERVE_TOOLS);
 }

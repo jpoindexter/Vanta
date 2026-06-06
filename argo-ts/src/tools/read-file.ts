@@ -12,7 +12,7 @@ export const readFileTool: Tool = {
     description:
       "Read a UTF-8 text file. Reads inside the project freely; outside the project, reads are " +
       "allowed in a readable zone — by default the project's parent dir (so sibling repos in the " +
-      "same workspace are readable) plus ~/Desktop and ~/Downloads. Override with ARGO_READABLE_DIRS. " +
+      "same workspace are readable) plus ~/Desktop and ~/Downloads. Override with VANTA_READABLE_DIRS. " +
       "Use an absolute or ~-prefixed path for files outside the repo.",
     parameters: {
       type: "object",
@@ -38,7 +38,7 @@ export const readFileTool: Tool = {
     if (!ok && !isInZone(abs, resolveReadableZones(process.env, ctx.root))) {
       return {
         ok: false,
-        output: `refused: ${path} is outside the project and not in a readable zone (set ARGO_READABLE_DIRS to allow more)`,
+        output: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
       };
     }
     try {

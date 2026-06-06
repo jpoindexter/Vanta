@@ -9,18 +9,18 @@ import type { LLMProvider } from "../providers/interface.js";
 
 /**
  * Pure: the env that vision/image tasks should resolve their provider from.
- *   ARGO_VISION_MODEL set    → swap ARGO_MODEL to it (and ARGO_PROVIDER too when
- *                              ARGO_VISION_PROVIDER is set, for a model that needs
+ *   VANTA_VISION_MODEL set    → swap VANTA_MODEL to it (and VANTA_PROVIDER too when
+ *                              VANTA_VISION_PROVIDER is set, for a model that needs
  *                              a different backend, e.g. gpt-4o-mini on OpenAI).
- *   ARGO_VISION_MODEL unset  → env unchanged — vision uses the active provider,
+ *   VANTA_VISION_MODEL unset  → env unchanged — vision uses the active provider,
  *                              preserving prior behavior exactly (opt-in override).
  * Never mutates the input.
  */
 export function visionEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  const model = env.ARGO_VISION_MODEL;
+  const model = env.VANTA_VISION_MODEL;
   if (!model) return env;
-  const next: NodeJS.ProcessEnv = { ...env, ARGO_MODEL: model };
-  if (env.ARGO_VISION_PROVIDER) next.ARGO_PROVIDER = env.ARGO_VISION_PROVIDER;
+  const next: NodeJS.ProcessEnv = { ...env, VANTA_MODEL: model };
+  if (env.VANTA_VISION_PROVIDER) next.VANTA_PROVIDER = env.VANTA_VISION_PROVIDER;
   return next;
 }
 

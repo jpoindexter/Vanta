@@ -379,7 +379,7 @@ const data = {
     desc: "Thread-safe iteration counter. Parent agents get 90, subagents get 50. execute_code calls are refunded — they don't eat the budget. Hard ceiling prevents runaway loops.",
     fns: ["consume()", "refund()", "remaining", "used"],
     argo: "agent.ts (inline)",
-    argoNote: "ARGO_MAX_ITER env var (default 50). Steal the refund pattern for shell-cmd tool calls.",
+    argoNote: "VANTA_MAX_ITER env var (default 50). Steal the refund pattern for shell-cmd tool calls.",
     why: null
   },
   retry_utils: {
@@ -712,7 +712,7 @@ const data = {
     desc: "API key resolution chain: env vars → keychain → config file → interactive prompt. 22 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Vanta reads from .env. ARGO_PROVIDER, OPENAI_API_KEY, ARGO_MODEL.",
+    argoNote: "Vanta reads from .env. VANTA_PROVIDER, OPENAI_API_KEY, VANTA_MODEL.",
     why: null
   },
   google_oauth: {

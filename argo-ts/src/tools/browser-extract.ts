@@ -95,7 +95,7 @@ export const browserExtractTool: Tool = {
     if (!isAllowedDomain(url)) {
       const approved = await ctx.requestApproval(
         `Load ${url} in a headless browser`,
-        "domain is not in the ARGO_ALLOWED_DOMAINS allowlist",
+        "domain is not in the VANTA_ALLOWED_DOMAINS allowlist",
       );
       if (!approved) {
         return { ok: false, output: "denied by user" };

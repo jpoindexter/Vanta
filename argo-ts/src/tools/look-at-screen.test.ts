@@ -6,16 +6,16 @@ import type { ToolContext } from "./types.js";
 const ctx = {} as ToolContext;
 
 describe("lookAtScreenTool", () => {
-  const saved = { provider: process.env.ARGO_PROVIDER, key: process.env.OPENAI_API_KEY };
+  const saved = { provider: process.env.VANTA_PROVIDER, key: process.env.OPENAI_API_KEY };
   afterEach(() => {
-    if (saved.provider === undefined) delete process.env.ARGO_PROVIDER;
-    else process.env.ARGO_PROVIDER = saved.provider;
+    if (saved.provider === undefined) delete process.env.VANTA_PROVIDER;
+    else process.env.VANTA_PROVIDER = saved.provider;
     if (saved.key === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = saved.key;
   });
 
   it("fails fast (no screen capture) when no model is configured", async () => {
-    process.env.ARGO_PROVIDER = "openai";
+    process.env.VANTA_PROVIDER = "openai";
     delete process.env.OPENAI_API_KEY; // openai with no key → resolveProvider throws
     const r = await lookAtScreenTool.execute({}, ctx);
     expect(r.ok).toBe(false);

@@ -14,7 +14,7 @@ Branch: feat/v1-hermes-parity
 
 3. **TUI-MODE** — Shift+tab cycles `review ↔ auto` approval mode. `ApprovalMode` type + `nextMode` pure cycle (`tui/approval-mode.ts`). `useApproval` accepts `modeRef` — when `mode="auto"` the `requestApproval` Promise resolves `true` immediately (kernel `block` verdict is UNCHANGED — hard floor holds). StatusBar shows `⚡auto` indicator when active. Mode change dispatches a note. 4 tests.
 
-4. **ND5** — Gentle goal nudge every N turns. `shouldNudge` + `buildNudgeText` pure fns in `repl/nudge.ts`. `nudgeAfterTurn` in `session.ts` reads active kernel goals and calls `onNote` at `ARGO_NUDGE_EVERY` intervals (default 5, `0`=disabled). Wired into TUI via `useAgentSend`. 11 tests.
+4. **ND5** — Gentle goal nudge every N turns. `shouldNudge` + `buildNudgeText` pure fns in `repl/nudge.ts`. `nudgeAfterTurn` in `session.ts` reads active kernel goals and calls `onNote` at `VANTA_NUDGE_EVERY` intervals (default 5, `0`=disabled). Wired into TUI via `useAgentSend`. 11 tests.
 
 5. **FAC-INTENT** — LLM-as-judge intent-satisfaction gate added as step 7 in `factory/verifier.ts`. `checkIntentSatisfied` (factory/intent-judge.ts) sends work item + touched-file list to LLM judge after all deterministic gates pass. **Fails OPEN on LLM error** — deterministic gates remain the hard floor. `parseJudgeResponse` pure helper. `run.ts` passes `workItem: item` to `verify()`. 11 tests.
 
@@ -127,7 +127,7 @@ These can be done in any order but this sequence builds the most momentum:
 
 3. [ ] **EF-RESEARCH-GATE** — Gentle pattern interrupt after N research turns.
    - Needs a turn-type classifier: is this turn research/analysis, or concrete output?
-   - After `ARGO_RESEARCH_GATE_TURNS` (default 8) consecutive non-output turns, dispatch a note: "8 research turns since last commit. Original goal: X. Want to pick one finding to build?"
+   - After `VANTA_RESEARCH_GATE_TURNS` (default 8) consecutive non-output turns, dispatch a note: "8 research turns since last commit. Original goal: X. Want to pick one finding to build?"
    - Why third: literally fires on the pattern from today.
 
 4. [ ] **EF-COMPLEXITY-GATE** — Lightweight complexity classifier auto-suggests `/planmode`.
@@ -182,7 +182,7 @@ These are meatier but all well-specified:
 14. [ ] **PROJ-IDENTITY** — git remote URL for canonical project identity.
     - `git remote get-url origin` as the memory namespace key.
     - Falls back to directory name for non-git roots.
-    - `ARGO_PROJECT_ID` env override.
+    - `VANTA_PROJECT_ID` env override.
 
 15. [ ] **MEM-TIMESTAMPS** — Conversation timestamps in memory (not ingest time).
     - Add `timestamp` to `Message` type (record at send time).
@@ -190,7 +190,7 @@ These are meatier but all well-specified:
     - Enables: `argo memory search --since 7d`.
 
 16. [ ] **MEM-WORKINGMEM** — Session-scoped working memory hot cache.
-    - `ARGO_WORKING_MEM_TOKENS` env (default 2k).
+    - `VANTA_WORKING_MEM_TOKENS` env (default 2k).
     - Auto-populated from current-session tool results.
     - Injected as volatile prompt tier.
 
@@ -227,7 +227,7 @@ These are meatier but all well-specified:
 
 - **The salience network is SEPARATE from executive control** (PMC4455841, critical) — BRAIN-SALIENCE must implement both as distinct subsystems. The salience network determines WHAT MATTERS; the executive control network determines HOW TO ACT. Don't merge them.
 
-- **`ARGO_NUDGE_EVERY=0` disables ND5 nudges** — default is 5 turns. Users who find the nudge annoying can set it to 0.
+- **`VANTA_NUDGE_EVERY=0` disables ND5 nudges** — default is 5 turns. Users who find the nudge annoying can set it to 0.
 
 ---
 
@@ -242,7 +242,7 @@ Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent lay
 - KANBAN-S3: WIP limit (cap 2) on building column — 409 from server, badge in board HTML
 - TUI-DIFF: LCS diff in write_file results, green/red inline in transcript
 - TUI-MODE: shift+tab cycles review ↔ auto approval, ⚡auto badge in status bar
-- ND5: goal nudge every 5 turns (ARGO_NUDGE_EVERY), 💡 /next reminder
+- ND5: goal nudge every 5 turns (VANTA_NUDGE_EVERY), 💡 /next reminder
 - FAC-INTENT: LLM-as-judge intent gate in factory verifier (fails open on LLM error)
 - Research sprint: 28 new horizon roadmap items from MemPalace + AgentMemory + PMC4455841 (EF paper)
 - Design docs: docs/executive-dysfunction-brain-design.md + docs/ef-network-analysis.md

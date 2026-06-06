@@ -3,8 +3,8 @@ import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js
 
 // Telegram Bot API adapter — long-poll getUpdates for inbound, sendMessage for
 // outbound. Pure fetch, no SDK. Get a token from @BotFather and set
-// ARGO_TELEGRAM_TOKEN. Offline-tested (parseUpdates is pure); live use needs the
-// token. Optional ARGO_TELEGRAM_ALLOW = comma-list of chat ids to accept.
+// VANTA_TELEGRAM_TOKEN. Offline-tested (parseUpdates is pure); live use needs the
+// token. Optional VANTA_TELEGRAM_ALLOW = comma-list of chat ids to accept.
 
 const UpdatesResponse = z.object({
   ok: z.boolean(),
@@ -47,7 +47,7 @@ export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpd
   return { messages, nextOffset: maxId + 1 };
 }
 
-/** Parse the ARGO_TELEGRAM_ALLOW chat-id allowlist (empty = allow all). Pure. */
+/** Parse the VANTA_TELEGRAM_ALLOW chat-id allowlist (empty = allow all). Pure. */
 export function parseAllowlist(raw: string | undefined): Set<string> {
   return new Set((raw ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 }

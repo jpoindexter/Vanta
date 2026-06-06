@@ -10,7 +10,7 @@ describe("project rooms", () => {
 
   beforeEach(async () => {
     base = await mkdtemp(join(tmpdir(), "argo-rooms-test-"));
-    env = { ...process.env, ARGO_PROJECTS_DIR: base };
+    env = { ...process.env, VANTA_PROJECTS_DIR: base };
   });
 
   afterEach(async () => {
@@ -43,7 +43,7 @@ describe("project rooms", () => {
 
   it("returns [] when the base dir is absent", async () => {
     const missing = join(base, "does-not-exist");
-    const absentEnv = { ...process.env, ARGO_PROJECTS_DIR: missing };
+    const absentEnv = { ...process.env, VANTA_PROJECTS_DIR: missing };
 
     expect(await listRooms(absentEnv)).toEqual([]);
     expect(await resolveRoom("anything", absentEnv)).toBeNull();
@@ -51,7 +51,7 @@ describe("project rooms", () => {
 
   it("defaults the base dir to ~/Documents/GitHub/_active", () => {
     const noOverride = { ...process.env };
-    delete noOverride.ARGO_PROJECTS_DIR;
+    delete noOverride.VANTA_PROJECTS_DIR;
 
     expect(projectsBaseDir(noOverride).endsWith(join("Documents", "GitHub", "_active"))).toBe(true);
   });

@@ -45,7 +45,7 @@ describe("token file persistence", () => {
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "argo-auth-"));
-    env = { ARGO_HOME: home };
+    env = { VANTA_HOME: home };
   });
 
   afterEach(async () => {

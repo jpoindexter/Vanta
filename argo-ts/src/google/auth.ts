@@ -9,7 +9,7 @@ import { resolveArgoHome, ensureArgoStore } from "../store/home.js";
 
 /**
  * One-time Google OAuth (loopback redirect consent) and token persistence.
- * Tokens live at <ARGO_HOME>/google-tokens.json and carry the refresh_token so
+ * Tokens live at <VANTA_HOME>/google-tokens.json and carry the refresh_token so
  * getAccessToken can mint fresh access tokens forever without re-consent.
  */
 
@@ -74,13 +74,13 @@ function readClientCreds(env: NodeJS.ProcessEnv): {
   clientId: string;
   clientSecret: string;
 } {
-  const clientId = env.ARGO_GOOGLE_CLIENT_ID?.trim();
-  const clientSecret = env.ARGO_GOOGLE_CLIENT_SECRET?.trim();
+  const clientId = env.VANTA_GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = env.VANTA_GOOGLE_CLIENT_SECRET?.trim();
   if (!clientId || !clientSecret) {
     throw new Error(
       "Google client credentials missing. One-time setup: create an OAuth " +
         "client (type: Desktop app) in Google Cloud Console, then set " +
-        "ARGO_GOOGLE_CLIENT_ID and ARGO_GOOGLE_CLIENT_SECRET in your env.",
+        "VANTA_GOOGLE_CLIENT_ID and VANTA_GOOGLE_CLIENT_SECRET in your env.",
     );
   }
   return { clientId, clientSecret };

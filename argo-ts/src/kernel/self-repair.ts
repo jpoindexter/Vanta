@@ -61,7 +61,7 @@ export async function verifyKernelConformance(
     const { stdout, stderr } = await execAsync(
       "cargo",
       ["test", "--bin", "argo-kernel", "--", "--test-output=immediate"],
-      { cwd: repoRoot, timeout: 120_000, env: { ...process.env, ARGO_KERNEL_CANDIDATE: candidateBinPath } },
+      { cwd: repoRoot, timeout: 120_000, env: { ...process.env, VANTA_KERNEL_CANDIDATE: candidateBinPath } },
     );
     const output = (stdout + stderr).toLowerCase();
     if (output.includes("test result: ok")) return { passes: true, reason: "all safety tests pass" };

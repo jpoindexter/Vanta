@@ -5,15 +5,15 @@ import { join } from "node:path";
 import { readMcpConfig, mcpToolToArgoTool } from "./mount.js";
 
 describe("readMcpConfig", () => {
-  const prev = process.env.ARGO_MCP_SERVERS;
+  const prev = process.env.VANTA_MCP_SERVERS;
   afterEach(() => {
-    if (prev === undefined) delete process.env.ARGO_MCP_SERVERS;
-    else process.env.ARGO_MCP_SERVERS = prev;
+    if (prev === undefined) delete process.env.VANTA_MCP_SERVERS;
+    else process.env.VANTA_MCP_SERVERS = prev;
   });
 
-  it("parses inline ARGO_MCP_SERVERS JSON", async () => {
+  it("parses inline VANTA_MCP_SERVERS JSON", async () => {
     const cfg = await readMcpConfig({
-      ARGO_MCP_SERVERS: JSON.stringify({
+      VANTA_MCP_SERVERS: JSON.stringify({
         servers: { files: { command: "mcp-fs", args: ["/tmp"] } },
       }),
     } as NodeJS.ProcessEnv);
@@ -21,18 +21,18 @@ describe("readMcpConfig", () => {
   });
 
   it("returns empty servers on malformed config", async () => {
-    const cfg = await readMcpConfig({ ARGO_MCP_SERVERS: "{not json" } as NodeJS.ProcessEnv);
+    const cfg = await readMcpConfig({ VANTA_MCP_SERVERS: "{not json" } as NodeJS.ProcessEnv);
     expect(cfg.servers).toEqual({});
   });
 
   it("returns empty when no config is present", async () => {
-    const cfg = await readMcpConfig({ ARGO_HOME: "/nonexistent-argo-home-xyz" } as NodeJS.ProcessEnv);
+    const cfg = await readMcpConfig({ VANTA_HOME: "/nonexistent-argo-home-xyz" } as NodeJS.ProcessEnv);
     expect(cfg.servers).toEqual({});
   });
 
   it("accepts mcpServers key in inline config (Claude Code convention)", async () => {
     const cfg = await readMcpConfig({
-      ARGO_MCP_SERVERS: JSON.stringify({
+      VANTA_MCP_SERVERS: JSON.stringify({
         mcpServers: { myserver: { command: "mcp-tool", args: ["--flag"] } },
       }),
     } as NodeJS.ProcessEnv);
@@ -41,7 +41,7 @@ describe("readMcpConfig", () => {
 
   it("merges servers and mcpServers with servers winning on conflict", async () => {
     const cfg = await readMcpConfig({
-      ARGO_MCP_SERVERS: JSON.stringify({
+      VANTA_MCP_SERVERS: JSON.stringify({
         mcpServers: { a: { command: "from-mcp-servers" }, b: { command: "only-in-mcp" } },
         servers: { a: { command: "from-servers" } },
       }),
@@ -58,7 +58,7 @@ describe("readMcpConfig", () => {
         JSON.stringify({ mcpServers: { local: { command: "local-server" } } }),
         "utf8",
       );
-      const cfg = await readMcpConfig({ ARGO_HOME: "/nonexistent" } as NodeJS.ProcessEnv, dir);
+      const cfg = await readMcpConfig({ VANTA_HOME: "/nonexistent" } as NodeJS.ProcessEnv, dir);
       expect(cfg.servers.local).toEqual({ command: "local-server" });
     } finally {
       await rm(dir, { recursive: true });
@@ -79,7 +79,7 @@ describe("readMcpConfig", () => {
         JSON.stringify({ servers: { shared: { command: "user-cmd" }, only_user: { command: "u" } } }),
         "utf8",
       );
-      const cfg = await readMcpConfig({ ARGO_HOME: home } as NodeJS.ProcessEnv, dir);
+      const cfg = await readMcpConfig({ VANTA_HOME: home } as NodeJS.ProcessEnv, dir);
       expect(cfg.servers.shared?.command).toBe("project-cmd");
       expect(cfg.servers.only_user?.command).toBe("u");
     } finally {

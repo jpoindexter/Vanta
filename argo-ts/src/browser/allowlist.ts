@@ -12,7 +12,7 @@ export function extractDomain(url: string): string | null {
 
 /**
  * Whether `url`'s domain is exactly, or a subdomain of, any host listed in
- * ARGO_ALLOWED_DOMAINS (comma-separated). A missing/empty list pre-approves
+ * VANTA_ALLOWED_DOMAINS (comma-separated). A missing/empty list pre-approves
  * nothing, so this returns false — callers must opt domains in explicitly.
  */
 export function isAllowedDomain(
@@ -22,7 +22,7 @@ export function isAllowedDomain(
   const domain = extractDomain(url);
   if (domain === null) return false;
 
-  const allowed = (env.ARGO_ALLOWED_DOMAINS ?? "")
+  const allowed = (env.VANTA_ALLOWED_DOMAINS ?? "")
     .split(",")
     .map((d) => d.trim().toLowerCase())
     .filter((d) => d.length > 0);

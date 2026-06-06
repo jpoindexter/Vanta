@@ -198,7 +198,7 @@ const mcp: SlashHandler = async (_arg, ctx) => {
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(ctx.env).catch(() => ({ servers: {} as Record<string, unknown> }));
   const names = Object.keys(cfg.servers ?? {});
-  return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set ARGO_MCP_SERVERS or ~/.argo/mcp.json)") };
+  return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set VANTA_MCP_SERVERS or ~/.argo/mcp.json)") };
 };
 
 const usage: SlashHandler = (_arg, ctx) => {

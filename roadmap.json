@@ -130,8 +130,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "SHIPPED 2026-06-05. routing/vision.ts (visionEnv + resolveVisionProvider); all 3 image tools (describe_image, look_at_screen, look_at_camera) route to ARGO_VISION_MODEL (+ optional ARGO_VISION_PROVIDER) when set, else the active provider. Fixes vision silently breaking on a text-only main model (DeepSeek V4 Flash, local Ollama). 4 unit tests, full suite green, .env.example + CLAUDE.md updated.",
-      "done": "Vision works while the main model is non-vision (text-only ARGO_PROVIDER + ARGO_VISION_MODEL=gpt-4o-mini)."
+      "summary": "SHIPPED 2026-06-05. routing/vision.ts (visionEnv + resolveVisionProvider); all 3 image tools (describe_image, look_at_screen, look_at_camera) route to VANTA_VISION_MODEL (+ optional VANTA_VISION_PROVIDER) when set, else the active provider. Fixes vision silently breaking on a text-only main model (DeepSeek V4 Flash, local Ollama). 4 unit tests, full suite green, .env.example + CLAUDE.md updated.",
+      "done": "Vision works while the main model is non-vision (text-only VANTA_PROVIDER + VANTA_VISION_MODEL=gpt-4o-mini)."
     },
     {
       "id": "UI-READABILITY",
@@ -646,7 +646,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Keep the main brain on the selected premium model (e.g. codex/gpt-5.5) while Argo automatically spins up scoped subagents on local/cloud models for bounded tasks -- summarize, classify, research, verify, memory compression, first-pass code inspection -- then tears the worker down (local Ollama unloads via keep_alive:'0s'). A ROUTER LAYER on top of delegate/swarm, not a new agent system: classifyTaskKind + resolveTaskRoute(env) + routeEnv, per-kind ARGO_ROUTE_* config, fail-soft to main, high-risk tasks (security/financial/irreversible/commits/kernel) forced to main. Adds an auto_delegate tool + /routes status + setup-wizard aux config; absorbs AUX-MAP as a slice. Full 4-slice build plan: docs/auto-router.md.",
+      "summary": "Keep the main brain on the selected premium model (e.g. codex/gpt-5.5) while Argo automatically spins up scoped subagents on local/cloud models for bounded tasks -- summarize, classify, research, verify, memory compression, first-pass code inspection -- then tears the worker down (local Ollama unloads via keep_alive:'0s'). A ROUTER LAYER on top of delegate/swarm, not a new agent system: classifyTaskKind + resolveTaskRoute(env) + routeEnv, per-kind VANTA_ROUTE_* config, fail-soft to main, high-risk tasks (security/financial/irreversible/commits/kernel) forced to main. Adds an auto_delegate tool + /routes status + setup-wizard aux config; absorbs AUX-MAP as a slice. Full 4-slice build plan: docs/auto-router.md.",
       "done": "With the main model active, Argo auto_delegates a low-risk subtask to a configured local/cloud worker (e.g. ollama/qwen2.5:14b), returns the output, unloads the local model, and synthesizes through the main brain; /routes shows the routing table + availability."
     },
     {
@@ -718,7 +718,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "SHIPPED 2026-06-05. 'argo setup messaging' — registry-driven wizard (setup-messaging.ts). Configures Telegram for real (writes ARGO_TELEGRAM_TOKEN via the shared upsertEnv, other keys preserved); previews planned iMessage/WhatsApp/Signal with exact setup steps + prerequisites + risk warnings; honest [available/configured/planned] status per platform. 7 tests; full suite 1090 green; tsc clean.",
+      "summary": "SHIPPED 2026-06-05. 'argo setup messaging' — registry-driven wizard (setup-messaging.ts). Configures Telegram for real (writes VANTA_TELEGRAM_TOKEN via the shared upsertEnv, other keys preserved); previews planned iMessage/WhatsApp/Signal with exact setup steps + prerequisites + risk warnings; honest [available/configured/planned] status per platform. 7 tests; full suite 1090 green; tsc clean.",
       "done": "'argo setup messaging' lists platforms with availability, writes the chosen env, and prints each one's exact setup/pairing steps; re-running is idempotent."
     },
     {
@@ -730,7 +730,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Code-based DM approval (steal Hermes pairing.py), platform-agnostic: an unknown sender gets a one-time short code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, stored 0600 in ~/.argo/pairing/); the owner approves via CLI/TUI. Replaces the static ARGO_TELEGRAM_ALLOW allowlist with a real consent flow across ALL messaging adapters. Security-hardened; pure code-gen/verify tested offline.",
+      "summary": "Code-based DM approval (steal Hermes pairing.py), platform-agnostic: an unknown sender gets a one-time short code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, stored 0600 in ~/.argo/pairing/); the owner approves via CLI/TUI. Replaces the static VANTA_TELEGRAM_ALLOW allowlist with a real consent flow across ALL messaging adapters. Security-hardened; pure code-gen/verify tested offline.",
       "done": "An inbound message from an unknown chatId triggers a one-time pairing code; only after the owner approves does that sender reach the agent; expired/over-limit codes are refused."
     },
     {
@@ -922,8 +922,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "3-column operator/mission-control TUI from the mockup Argo built (docs/hermes-model-v2.html): left durable-state rail, center goal+risk-tagged transcript, right safety-rail + working-memory + live telemetry. CRITICAL constraint: build WITHOUT overwriting the working v1 TUI — new tui/v2/ module, opt-in via ARGO_TUI=v2 (default stays v1), reuse the shared engine read-only, promote only after Jason confirms. Mostly a surface over already-built state. Detail: docs/tui-v2.md.",
-      "done": "ARGO_TUI=v2 launches the 3-column mission-control TUI while the default v1 TUI is byte-for-byte unchanged and still default; v2 is a separate module, zero v1 files edited."
+      "summary": "3-column operator/mission-control TUI from the mockup Argo built (docs/hermes-model-v2.html): left durable-state rail, center goal+risk-tagged transcript, right safety-rail + working-memory + live telemetry. CRITICAL constraint: build WITHOUT overwriting the working v1 TUI — new tui/v2/ module, opt-in via VANTA_TUI=v2 (default stays v1), reuse the shared engine read-only, promote only after Jason confirms. Mostly a surface over already-built state. Detail: docs/tui-v2.md.",
+      "done": "VANTA_TUI=v2 launches the 3-column mission-control TUI while the default v1 TUI is byte-for-byte unchanged and still default; v2 is a separate module, zero v1 files edited."
     },
     {
       "id": "TUI-V2-PALETTE",
@@ -1244,7 +1244,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "Google OpenAI-compatible endpoint, GEMINI_API_KEY.",
-      "done": "ARGO_PROVIDER=gemini argo run returns on gemini-2.5-flash."
+      "done": "VANTA_PROVIDER=gemini argo run returns on gemini-2.5-flash."
     },
     {
       "id": "A3",
@@ -1288,7 +1288,7 @@
       "title": "Claude subscription provider",
       "status": "shipped",
       "size": "S",
-      "summary": "ARGO_PROVIDER=claude-code uses Claude Pro/Max OAuth token.",
+      "summary": "VANTA_PROVIDER=claude-code uses Claude Pro/Max OAuth token.",
       "done": "claude-code provider authenticates."
     },
     {
@@ -1297,7 +1297,7 @@
       "title": "ChatGPT-Codex OAuth",
       "status": "shipped",
       "size": "S",
-      "summary": "ARGO_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.",
+      "summary": "VANTA_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.",
       "done": "Live-verified end-to-end."
     },
     {
@@ -1342,8 +1342,8 @@
       "title": "Autonomy ladder (L1–L4, kernel-bounded)",
       "status": "shipped",
       "size": "M",
-      "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=ARGO_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
-      "done": "argo factory approve with ARGO_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
+      "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=VANTA_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
+      "done": "argo factory approve with VANTA_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
     },
     {
       "id": "O10b",
@@ -1351,7 +1351,7 @@
       "title": "Autonomy L5 (auto-merge low-risk)",
       "status": "shipped",
       "size": "M",
-      "summary": "factory/merge.ts: assessMergeRisk fails-closed through 3 gates — armed (ARGO_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, ≤20 files & ≤400 diff lines). MAX_AUTONOMY_LEVEL 4→5. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target → stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).",
+      "summary": "factory/merge.ts: assessMergeRisk fails-closed through 3 gates — armed (VANTA_AUTONOMY_ALLOW_MERGE, default OFF), safe target (resolveMergeTarget default factory/integration, never main/master, --no-ff never force), low-risk (limbs/reflexes/memory only via O11, no dep/env/config/migration file, ≤20 files & ≤400 diff lines). MAX_AUTONOMY_LEVEL 4→5. run.ts: after L4 push, an armed+low-risk slice merges into the integration branch (mergeIntoTarget restores HEAD, aborts on conflict/missing target → stays L4). The git lifecycle runs outside the kernel assess() gate, so the classifier is the whole safety story; it's pure + 11 merge.test.ts. Merge git sequence smoke-verified (clean + conflict-abort + missing-target).",
       "done": "A low-risk verified slice auto-merges when armed; anything failing the classifier stops at L4 push. Default OFF (riskiest rung — opt-in)."
     },
     {
@@ -1447,7 +1447,7 @@
       "title": "Writable zones beyond the repo",
       "status": "shipped",
       "size": "S",
-      "summary": "write_file now writes outside the repo into bounded, approval-gated writable zones (default ~/Desktop+~/Downloads, ARGO_WRITABLE_DIRS override) instead of hard-refusing. TS-only: the kernel already returned Ask for out-of-root paths; the tool was stricter than the boundary. ~-expansion + prefix-collision-safe zone check. Out-of-zone still refused (backstop vs yes-fatigue).",
+      "summary": "write_file now writes outside the repo into bounded, approval-gated writable zones (default ~/Desktop+~/Downloads, VANTA_WRITABLE_DIRS override) instead of hard-refusing. TS-only: the kernel already returned Ask for out-of-root paths; the tool was stricter than the boundary. ~-expansion + prefix-collision-safe zone check. Out-of-zone still refused (backstop vs yes-fatigue).",
       "done": "Live-verified: write_file wrote directly to ~/Desktop in one step — no repo pollution, no shell copy."
     },
     {
@@ -1456,7 +1456,7 @@
       "title": "Readable zones (read across the workspace)",
       "status": "shipped",
       "size": "S",
-      "summary": "read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones — default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; ARGO_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.",
+      "summary": "read_file hard-refused out-of-repo reads, so Argo couldn't read sibling-repo skills (e.g. ~/Documents/GitHub/theft-kit). Mirror of SCOPE-1: read_file now reads from readable zones — default = the project's PARENT dir (sibling repos in the same workspace) + the writable zones; VANTA_READABLE_DIRS override. Shared isInZone/expandHome helper. Follow-up: secret-filename read-guard (.env/keys) even in-zone.",
       "done": "Live-verified: read theft-kit/design-html/SKILL.md (64KB); ~/.ssh/id_rsa still refused."
     },
     {
@@ -1567,7 +1567,7 @@
       "title": "One-line curl install",
       "status": "shipped",
       "size": "S",
-      "summary": "bootstrap.sh clones Argo into ~/argo (ARGO_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
+      "summary": "bootstrap.sh clones Argo into ~/argo (VANTA_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
       "done": "Clone+install logic verified via local clone smoke; curl-pipe one-liner activates when the repo flips public."
     },
     {
@@ -1604,7 +1604,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "Auto-route simple work to local Ollama on M4 Pro.",
-      "done": "Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override.",
+      "done": "Simple tasks dispatch to Ollama without manual VANTA_PROVIDER override.",
       "tier": "sand",
       "model": "haiku",
       "effort": "medium"
@@ -1724,7 +1724,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "From the Claude Code survey (claude-code-haha localRecoveryCli): a plain readline fallback behind a flag for when Ink can't render (CI, bad TERM, native-dep failure). Argo's readline REPL partly covers this; formalize it as a guaranteed degraded mode. ND fit F6 (reliability — always reachable).",
-      "done": "ARGO_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start.",
+      "done": "VANTA_FORCE_RECOVERY_CLI (or auto-detect) runs a minimal readline agent loop when the Ink TUI can't start.",
       "tier": "sand",
       "model": "haiku",
       "effort": "medium"
@@ -1951,8 +1951,8 @@
       "title": "Themes incl. accessibility (high-contrast / dyslexia)",
       "status": "shipped",
       "size": "S",
-      "summary": "Gemini ships selectable themes. For an ND product this is accessibility, not decoration: a high-contrast theme, a low-arousal muted theme, and a dyslexia-friendly option (spacing/weight). Token-drive the TUI colors + ARGO_THEME. ND fit F3 (sensory regulation — let the user tune arousal/contrast).",
-      "done": "ARGO_THEME selects among calm / high-contrast / dyslexia-friendly palettes; persists like the model choice.",
+      "summary": "Gemini ships selectable themes. For an ND product this is accessibility, not decoration: a high-contrast theme, a low-arousal muted theme, and a dyslexia-friendly option (spacing/weight). Token-drive the TUI colors + VANTA_THEME. ND fit F3 (sensory regulation — let the user tune arousal/contrast).",
+      "done": "VANTA_THEME selects among calm / high-contrast / dyslexia-friendly palettes; persists like the model choice.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
@@ -1975,8 +1975,8 @@
       "title": "Vim-mode composer editing",
       "status": "shipped",
       "size": "S",
-      "summary": "Gemini + Claude Code offer vim-mode line editing. Lower priority but cheap given the custom composer already owns key handling (composer.tsx). Add an opt-in modal (normal/insert) editing mode behind ARGO_VIM. ND fit F1 (muscle-memory for vim users = lower friction).",
-      "done": "ARGO_VIM enables modal editing in the composer (normal/insert, basic motions); off by default.",
+      "summary": "Gemini + Claude Code offer vim-mode line editing. Lower priority but cheap given the custom composer already owns key handling (composer.tsx). Add an opt-in modal (normal/insert) editing mode behind VANTA_VIM. ND fit F1 (muscle-memory for vim users = lower friction).",
+      "done": "VANTA_VIM enables modal editing in the composer (normal/insert, basic motions); off by default.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
@@ -2011,7 +2011,7 @@
       "title": "Claude Code Stop/PreCompact hooks for Argo memory",
       "status": "shipped",
       "size": "S",
-      "summary": "MemPalace-inspired: install Claude Code Stop + PreCompact hooks (scripts/argo-memhook.sh) that fire when Claude Code stops or compacts context. Stop hook runs argo memory mine in the background every N turns (ARGO_MEMHOOK_INTERVAL, default 10); PreCompact hook runs synchronously before context is lost. Closes the loop: Argo preserves its own working memory across Claude Code sessions. Zero tokens in chat.",
+      "summary": "MemPalace-inspired: install Claude Code Stop + PreCompact hooks (scripts/argo-memhook.sh) that fire when Claude Code stops or compacts context. Stop hook runs argo memory mine in the background every N turns (VANTA_MEMHOOK_INTERVAL, default 10); PreCompact hook runs synchronously before context is lost. Closes the loop: Argo preserves its own working memory across Claude Code sessions. Zero tokens in chat.",
       "done": "Claude Code Stop hook mines the Argo transcript into memory every 10 turns, in background, zero tokens in chat. PreCompact hook runs synchronously.",
       "tier": "pebble",
       "model": "haiku",
@@ -2071,7 +2071,7 @@
       "title": "Working memory (hot session cache + injection)",
       "status": "shipped",
       "size": "S",
-      "summary": "AgentMemory-inspired working memory: a session-scoped cache of the most relevant observations from the current session (vs long-term memory which is cross-session). Injected into the prompt as a volatile tier above the stable brain digest, below MOIM. Size-capped (ARGO_WORKING_MEM_TOKENS, default 2k). Auto-populated from current-session tool results and user prompts. ND fit F2+F3 (Argo tracks what just happened without re-reading the full brain).",
+      "summary": "AgentMemory-inspired working memory: a session-scoped cache of the most relevant observations from the current session (vs long-term memory which is cross-session). Injected into the prompt as a volatile tier above the stable brain digest, below MOIM. Size-capped (VANTA_WORKING_MEM_TOKENS, default 2k). Auto-populated from current-session tool results and user prompts. ND fit F2+F3 (Argo tracks what just happened without re-reading the full brain).",
       "done": "A working-memory block appears in the system prompt for active sessions; it reflects the last N tool calls and decisions without hitting long-term memory.",
       "tier": "pebble",
       "model": "haiku",
@@ -2143,7 +2143,7 @@
       "title": "Canonical project identity from git remote URL",
       "status": "shipped",
       "size": "S",
-      "summary": "AgentMemory issues #716/#733: projects named by directory basename collide across machines and clones (~/work/foo vs ~/dev/foo = same project, different memory silos). Fix: resolve project identity from git remote get-url origin (e.g., github.com/jpoindexter/Argo) and use that as the memory namespace key. Fall back to directory name for non-git roots. Enables memory portability: clone the repo on a new machine and existing memories surface. ARGO_PROJECT_ID env override for non-git use.",
+      "summary": "AgentMemory issues #716/#733: projects named by directory basename collide across machines and clones (~/work/foo vs ~/dev/foo = same project, different memory silos). Fix: resolve project identity from git remote get-url origin (e.g., github.com/jpoindexter/Argo) and use that as the memory namespace key. Fall back to directory name for non-git roots. Enables memory portability: clone the repo on a new machine and existing memories surface. VANTA_PROJECT_ID env override for non-git use.",
       "done": "Memory scoping uses the git remote URL; cloning to a new path preserves memory continuity.",
       "tier": "sand",
       "model": "haiku",
@@ -2275,7 +2275,7 @@
       "title": "Research convergence gate (pattern: research spiral)",
       "status": "shipped",
       "size": "S",
-      "summary": "Real pattern from sessions: research spiral. Started implementation sprint, pivoted to 6+ research threads with no convergence. Inhibition failure: new discoveries reinforce continuation (reward loop). Counter-measure: after N consecutive research/analysis turns without an actionable commit or shipped item, surface a gentle gate: the turn count since last concrete output, the original stated goal, one question: want to pick one finding to build now? Not a block. A pattern interrupt that fires at the right moment. ARGO_RESEARCH_GATE_TURNS env (default 8). ND fit F1 (task initiation when stuck in exploration mode).",
+      "summary": "Real pattern from sessions: research spiral. Started implementation sprint, pivoted to 6+ research threads with no convergence. Inhibition failure: new discoveries reinforce continuation (reward loop). Counter-measure: after N consecutive research/analysis turns without an actionable commit or shipped item, surface a gentle gate: the turn count since last concrete output, the original stated goal, one question: want to pick one finding to build now? Not a block. A pattern interrupt that fires at the right moment. VANTA_RESEARCH_GATE_TURNS env (default 8). ND fit F1 (task initiation when stuck in exploration mode).",
       "done": "After 8 research turns without actionable output, Argo surfaces the spiral pattern and offers a one-question redirect to execution.",
       "tier": "pebble",
       "model": "haiku",
@@ -2374,7 +2374,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes `fallback` (add/list/remove/test): when the primary model errors/rate-limits/times-out, it transparently retries the next provider in a configured chain. Argo has task ROUTING (cheap/expensive via ARGO_MODEL_CHEAP/_EXPENSIVE) but NO failure-fallback — a dead provider just fails the turn. Add an ordered fallback chain (env or config), tried on retryable errors (429/5xx/timeout/circuit-break), with a one-line note in the transcript when it switches. Complements AUX-MAP (per-function model map). Manifesto-aligned: keeps the operator working when one backend is down.",
+      "summary": "Hermes `fallback` (add/list/remove/test): when the primary model errors/rate-limits/times-out, it transparently retries the next provider in a configured chain. Argo has task ROUTING (cheap/expensive via VANTA_MODEL_CHEAP/_EXPENSIVE) but NO failure-fallback — a dead provider just fails the turn. Add an ordered fallback chain (env or config), tried on retryable errors (429/5xx/timeout/circuit-break), with a one-line note in the transcript when it switches. Complements AUX-MAP (per-function model map). Manifesto-aligned: keeps the operator working when one backend is down.",
       "done": "`argo fallback` configures an ordered provider chain; a retryable primary failure transparently falls through to the next, surfaced as a transcript note, and the choice survives restart."
     },
     {
@@ -2566,8 +2566,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Task routing (cheap/expensive). Argo: ARGO_MODEL_CHEAP/_EXPENSIVE + classifyTask.",
-      "done": "Argo has parity: ARGO_MODEL_CHEAP/_EXPENSIVE + classifyTask."
+      "summary": "Parity (have): Task routing (cheap/expensive). Argo: VANTA_MODEL_CHEAP/_EXPENSIVE + classifyTask.",
+      "done": "Argo has parity: VANTA_MODEL_CHEAP/_EXPENSIVE + classifyTask."
     },
     {
       "id": "HP-AUX-TASK-MODEL",
@@ -2578,8 +2578,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Aux-task model (vision/summarize). Argo: AUX-VISION (ARGO_VISION_MODEL). AUX-MAP generalizes to a per-function map",
-      "done": "Argo has parity: AUX-VISION (ARGO_VISION_MODEL)."
+      "summary": "Parity (have): Aux-task model (vision/summarize). Argo: AUX-VISION (VANTA_VISION_MODEL). AUX-MAP generalizes to a per-function map",
+      "done": "Argo has parity: AUX-VISION (VANTA_VISION_MODEL)."
     },
     {
       "id": "HP-GATEWAY-DAEMON",

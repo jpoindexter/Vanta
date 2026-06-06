@@ -27,8 +27,8 @@ describe("resolveWritableZones", () => {
     expect(zones).toContain(join(homedir(), "Downloads"));
   });
 
-  it("ARGO_WRITABLE_DIRS replaces the defaults", () => {
-    const zones = resolveWritableZones({ ARGO_WRITABLE_DIRS: "~/work, /tmp/out" } as NodeJS.ProcessEnv);
+  it("VANTA_WRITABLE_DIRS replaces the defaults", () => {
+    const zones = resolveWritableZones({ VANTA_WRITABLE_DIRS: "~/work, /tmp/out" } as NodeJS.ProcessEnv);
     expect(zones).toEqual([join(homedir(), "work"), "/tmp/out"]);
   });
 });
@@ -47,8 +47,8 @@ describe("resolveReadableZones", () => {
     expect(isInZone("/Users/x/Documents/GitHub/theft-kit/design-html/SKILL.md", zones)).toBe(true);
   });
 
-  it("ARGO_READABLE_DIRS replaces the defaults", () => {
-    const zones = resolveReadableZones({ ARGO_READABLE_DIRS: "/srv/data" } as NodeJS.ProcessEnv, "/any/root");
+  it("VANTA_READABLE_DIRS replaces the defaults", () => {
+    const zones = resolveReadableZones({ VANTA_READABLE_DIRS: "/srv/data" } as NodeJS.ProcessEnv, "/any/root");
     expect(zones).toEqual(["/srv/data"]);
   });
 });

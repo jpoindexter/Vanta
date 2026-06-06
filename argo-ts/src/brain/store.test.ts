@@ -5,15 +5,15 @@ import { join } from "node:path";
 import { ensureBrain, readRegion, writeRegion, brainDigest } from "./store.js";
 import { isBrainRegion } from "./regions.js";
 
-const ARGO_HOME = join(tmpdir(), "argo-brain-store-test");
-const env = { ...process.env, ARGO_HOME };
+const VANTA_HOME = join(tmpdir(), "argo-brain-store-test");
+const env = { ...process.env, VANTA_HOME };
 
 describe("brain store", () => {
   beforeEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
   afterEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
 
   it("seeds all regions on ensureBrain", async () => {

@@ -6,7 +6,7 @@ import { resolveArgoHome } from "../store/home.js";
 // BRAIN-5D: Replaces flat .md brain regions with a typed, timestamped,
 // strength-scored, cross-referenced, decay-aware entry model. 5 dimensions per entry:
 // (1) type/region, (2) temporal, (3) strength 0-1, (4) relatedIds, (5) forgetAfter decay.
-// Enabled when ARGO_BRAIN_V2=1; flat .md regions remain the default.
+// Enabled when VANTA_BRAIN_V2=1; flat .md regions remain the default.
 
 export type BrainEntryType =
   | "fact" | "skill" | "preference" | "pattern" | "insight" | "plan" | "emotion";

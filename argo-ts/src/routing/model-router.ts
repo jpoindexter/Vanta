@@ -53,9 +53,9 @@ export function classifyTask(instruction: string): Tier {
 /**
  * Resolve an LLM provider routed by task tier. Classifies the instruction, then
  * applies a tier-specific model override if one is configured:
- *   cheap     → ARGO_MODEL_CHEAP
- *   expensive → ARGO_MODEL_EXPENSIVE
- * The override only swaps ARGO_MODEL; the provider stays ARGO_PROVIDER. When the
+ *   cheap     → VANTA_MODEL_CHEAP
+ *   expensive → VANTA_MODEL_EXPENSIVE
+ * The override only swaps VANTA_MODEL; the provider stays VANTA_PROVIDER. When the
  * relevant override is absent, routing is a no-op — resolveProvider(env) runs
  * unchanged, so an unconfigured deployment never breaks the default.
  */
@@ -65,7 +65,7 @@ export function resolveRoutedProvider(
 ): LLMProvider {
   const tier = classifyTask(instruction);
   const override =
-    tier === "cheap" ? env.ARGO_MODEL_CHEAP : env.ARGO_MODEL_EXPENSIVE;
+    tier === "cheap" ? env.VANTA_MODEL_CHEAP : env.VANTA_MODEL_EXPENSIVE;
   if (!override) return resolveProvider(env);
-  return resolveProvider({ ...env, ARGO_MODEL: override });
+  return resolveProvider({ ...env, VANTA_MODEL: override });
 }

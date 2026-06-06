@@ -4,16 +4,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { appendMemory, readMemory, recentMemory } from "./store.js";
 
-const ARGO_HOME = join(tmpdir(), "argo-memory-store-test");
-const env = { ...process.env, ARGO_HOME };
+const VANTA_HOME = join(tmpdir(), "argo-memory-store-test");
+const env = { ...process.env, VANTA_HOME };
 
 describe("memory store", () => {
   beforeEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
 
   afterEach(async () => {
-    await rm(ARGO_HOME, { recursive: true, force: true });
+    await rm(VANTA_HOME, { recursive: true, force: true });
   });
 
   it("readMemory contains both summaries after two appends", async () => {
@@ -28,8 +28,8 @@ describe("memory store", () => {
     expect(content).toContain("## 2026-06-02T11:00:00.000Z");
   });
 
-  it("caps the stored file at ARGO_MEMORY_MAX_BLOCKS, keeping the most recent", async () => {
-    const capped = { ...env, ARGO_MEMORY_MAX_BLOCKS: "3" };
+  it("caps the stored file at VANTA_MEMORY_MAX_BLOCKS, keeping the most recent", async () => {
+    const capped = { ...env, VANTA_MEMORY_MAX_BLOCKS: "3" };
     for (let i = 1; i <= 5; i++) {
       await appendMemory(7, `summary ${i}`, { env: capped, now: `2026-06-02T1${i}:00:00.000Z` });
     }

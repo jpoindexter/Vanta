@@ -39,7 +39,7 @@ Branch: `main` (working tree clean, everything committed)
   `echo 'export PATH="$HOME/.hermes/node/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc`
   Until then, run from the repo: `./argo` or `./run.sh`.
 - **Skill/memory kernel-Allow classification** — flagged for veto in `DECISIONS.md` (not a bypass; `assess` still runs, returns Allow because describeForSafety is an internal-op constant).
-- **Comms live use** — needs a one-time Google OAuth client (`ARGO_GOOGLE_CLIENT_ID/SECRET`) then `argo auth google`. I can't provision the OAuth app (no Google account access). Code is real + offline-tested.
+- **Comms live use** — needs a one-time Google OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`) then `argo auth google`. I can't provision the OAuth app (no Google account access). Code is real + offline-tested.
 
 ## Key Decisions Made (and Why)
 1. **Built phase-by-phase via parallel workflows**, each: write contracts → fan-out build agents → serial integrate → verify-and-repair gate → commit + update both CLAUDE.md. Kept quality high and context low.
@@ -58,7 +58,7 @@ Branch: `main` (working tree clean, everything committed)
 Items 1–3 are small + high-impact on the "feels like a real agent" axis. Recommended next slice.
 
 ## Context That's Easy to Lose
-- **Harness pins spawned cwd to the OLD `Nexarion Agent` path** (empty leftover dir). The real repo is `~/Documents/GitHub/Vanta`. `cli.ts findRepoRoot()` resolves via `import.meta.url` (not cwd), so the launchers work regardless. `ARGO_ROOT` exists for the same reason.
+- **Harness pins spawned cwd to the OLD `Nexarion Agent` path** (empty leftover dir). The real repo is `~/Documents/GitHub/Vanta`. `cli.ts findRepoRoot()` resolves via `import.meta.url` (not cwd), so the launchers work regardless. `VANTA_ROOT` exists for the same reason.
 - **Stale binary on :7788** — if the kernel won't bind: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID.
 - **Workflow tool gotcha:** scripts reject the literal tokens `Date.now()`/`new Date()`/`Math.random()` even inside prompt strings — phrase around them.
 - **Live-use caveats** (real code, offline-tested only): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → OAuth client + consent; LSP is .ts/.tsx only; `argo cron` needs an OS scheduler trigger. All in `PARKED.md`.

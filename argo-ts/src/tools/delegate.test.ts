@@ -47,24 +47,24 @@ describe("delegateTool", () => {
 describe("delegateEnv", () => {
   it("overlays the worker's chosen provider + model over the parent env", () => {
     const out = delegateEnv(
-      { ARGO_PROVIDER: "gemini", ARGO_MODEL: "gemini-2.5-flash", OPENAI_API_KEY: "k" },
+      { VANTA_PROVIDER: "gemini", VANTA_MODEL: "gemini-2.5-flash", OPENAI_API_KEY: "k" },
       "ollama",
       "qwen2.5:14b",
     );
-    expect(out.ARGO_PROVIDER).toBe("ollama");
-    expect(out.ARGO_MODEL).toBe("qwen2.5:14b");
+    expect(out.VANTA_PROVIDER).toBe("ollama");
+    expect(out.VANTA_MODEL).toBe("qwen2.5:14b");
     expect(out.OPENAI_API_KEY).toBe("k"); // other env (keys) preserved
   });
 
   it("falls back to the parent's provider/model when none chosen", () => {
-    const out = delegateEnv({ ARGO_PROVIDER: "openai", ARGO_MODEL: "gpt-4o" });
-    expect(out.ARGO_PROVIDER).toBe("openai");
-    expect(out.ARGO_MODEL).toBe("gpt-4o");
+    const out = delegateEnv({ VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o" });
+    expect(out.VANTA_PROVIDER).toBe("openai");
+    expect(out.VANTA_MODEL).toBe("gpt-4o");
   });
 
   it("applies only the provider when model is omitted", () => {
-    const out = delegateEnv({ ARGO_PROVIDER: "openai" }, "ollama");
-    expect(out.ARGO_PROVIDER).toBe("ollama");
-    expect(out.ARGO_MODEL).toBeUndefined();
+    const out = delegateEnv({ VANTA_PROVIDER: "openai" }, "ollama");
+    expect(out.VANTA_PROVIDER).toBe("ollama");
+    expect(out.VANTA_MODEL).toBeUndefined();
   });
 });
