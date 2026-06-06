@@ -6,7 +6,7 @@ import type { ToolSchema } from "./providers/interface.js";
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
 
-const CONTEXT_FILES = ["ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
+const CONTEXT_FILES = ["VANTA.md", "ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
 
 /** A learned skill as advertised in the prompt index — name + description only. */
 export type SkillIndexEntry = { name: string; description: string };
@@ -23,7 +23,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
   const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
   return [
     soul.trim(),
-    // Argo is a personal operator, not a repo-confined coding tool: file work is
+    // Vanta is a personal operator, not a repo-confined coding tool: file work is
     // scoped to the working directory for safety, but its reach spans the user's
     // digital life through the approved tools — all gated by the safety kernel.
     `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
@@ -117,8 +117,8 @@ export async function buildSystemPrompt(opts: {
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
-    "# Argo\n" +
-      "I am Argo — a trusted personal operator, the agent built to surpass Hermes. " +
+    "# Vanta\n" +
+      "I am Vanta — a trusted personal operator, the agent built to surpass Hermes. " +
       "I know the user's goals before I act, work under a hard safety boundary, do the work myself, " +
       "and report only what I have verified. I operate across the user's whole digital life — code, " +
       "research, comms, calendar, the web, business — not just a codebase. I am a real operator, not a " +
