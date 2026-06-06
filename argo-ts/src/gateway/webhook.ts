@@ -42,7 +42,7 @@ export function resolveDeliver(
   }
   if (target.startsWith("telegram:")) {
     const chatId = target.slice("telegram:".length);
-    if (!telegram) throw new Error("telegram deliver target needs ARGO_TELEGRAM_TOKEN set");
+    if (!telegram) throw new Error("telegram deliver target needs VANTA_TELEGRAM_TOKEN set");
     return async (t) => telegram(chatId, t);
   }
   throw new Error(`unknown deliver target "${target}" (use local | file:<path> | telegram:<chatId>)`);
@@ -91,7 +91,7 @@ export function startWebhookServer(opts: {
     server.listen(opts.port, () => {
       const addr = server.address();
       const port = typeof addr === "object" && addr ? addr.port : opts.port;
-      log(`argo gateway: webhook listener on :${port}${opts.secret ? " (HMAC-verified)" : " (UNAUTHENTICATED — set ARGO_WEBHOOK_SECRET)"}`);
+      log(`argo gateway: webhook listener on :${port}${opts.secret ? " (HMAC-verified)" : " (UNAUTHENTICATED — set VANTA_WEBHOOK_SECRET)"}`);
       resolve({
         port,
         close: () =>

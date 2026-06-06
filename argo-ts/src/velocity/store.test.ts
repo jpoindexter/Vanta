@@ -83,7 +83,7 @@ describe("appendVelocityEvent / readVelocityEvents", () => {
 
   beforeEach(async () => {
     tmpDir = await mkdtemp(join(tmpdir(), "argo-velocity-test-"));
-    env = { ARGO_HOME: tmpDir };
+    env = { VANTA_HOME: tmpDir };
   });
 
   afterEach(async () => {

@@ -11,14 +11,14 @@ const ctx = {} as ToolContext;
 // Deterministic temp home derived from the suite name (not time/random) so
 // parallel suites stay isolated and cleanup is predictable.
 const HOME = join(tmpdir(), "argo-write-skill-test");
-const prevHome = process.env.ARGO_HOME;
+const prevHome = process.env.VANTA_HOME;
 
 afterEach(async () => {
   await rm(HOME, { recursive: true, force: true });
   if (prevHome === undefined) {
-    delete process.env.ARGO_HOME;
+    delete process.env.VANTA_HOME;
   } else {
-    process.env.ARGO_HOME = prevHome;
+    process.env.VANTA_HOME = prevHome;
   }
 });
 
@@ -45,7 +45,7 @@ describe("writeSkillTool", () => {
   });
 
   it("saves a valid skill and reports its name and path", async () => {
-    process.env.ARGO_HOME = HOME;
+    process.env.VANTA_HOME = HOME;
 
     const result = await writeSkillTool.execute(
       {

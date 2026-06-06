@@ -11,7 +11,7 @@ Branch: feat/v1-hermes-parity
 
 2. **EF-INHIBIT** — Session-scoped drift counter (3 consecutive non-output turns → alert). `repl/inhibit.ts` pure state machine; `session.ts inhibitAfterTurn`; wired in `interactive.ts` + `use-agent-send.ts`.
 
-3. **EF-SETSHIFT** — Stuck-loop detector (same primary tool 3 consecutive turns → "different angle?" alert). `repl/set-shift.ts`. **Also:** ERRORS.md auto-read in `prepareRun` → `errorsLogTier` in `buildSystemPrompt` (capped 3k chars). `ARGO_SETSHIFT_THRESHOLD` env override.
+3. **EF-SETSHIFT** — Stuck-loop detector (same primary tool 3 consecutive turns → "different angle?" alert). `repl/set-shift.ts`. **Also:** ERRORS.md auto-read in `prepareRun` → `errorsLogTier` in `buildSystemPrompt` (capped 3k chars). `VANTA_SETSHIFT_THRESHOLD` env override.
 
 4. **EF-SELFMONITOR** — Zero-latency pre-execution heuristic in `agent.ts dispatchTool`: if action is destructive AND goal is additive → one-line `onText` warning before `tool.execute`. `repl/self-monitor.ts`.
 

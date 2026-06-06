@@ -72,17 +72,17 @@ async function countMemories(env: NodeJS.ProcessEnv): Promise<number> {
 
 /** Gather the live health report. Best-effort: any probe failure degrades to a flag, never throws. */
 export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport> {
-  const url = env.ARGO_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const url = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const client = new SafetyClient(url);
   const up = await client.status();
 
   let provider: StatusReport["provider"];
   try {
     const p = resolveProvider(env);
-    provider = { id: env.ARGO_PROVIDER ?? "openai", ok: true, model: p.modelId(), contextWindow: p.contextWindow() };
+    provider = { id: env.VANTA_PROVIDER ?? "openai", ok: true, model: p.modelId(), contextWindow: p.contextWindow() };
   } catch (err: unknown) {
     provider = {
-      id: env.ARGO_PROVIDER ?? "openai",
+      id: env.VANTA_PROVIDER ?? "openai",
       ok: false,
       error: err instanceof Error ? err.message.split(".")[0] : String(err),
     };

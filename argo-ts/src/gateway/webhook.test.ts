@@ -55,7 +55,7 @@ describe("resolveDeliver", () => {
   });
 
   it("throws on a telegram target with no sender, and on unknown targets", () => {
-    expect(() => resolveDeliver("telegram:1")).toThrow(/ARGO_TELEGRAM_TOKEN/);
+    expect(() => resolveDeliver("telegram:1")).toThrow(/VANTA_TELEGRAM_TOKEN/);
     expect(() => resolveDeliver("carrier-pigeon")).toThrow(/unknown deliver target/);
   });
 });

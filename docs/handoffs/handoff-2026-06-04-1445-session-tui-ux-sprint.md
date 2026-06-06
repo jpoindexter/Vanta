@@ -10,7 +10,7 @@ Branch: feat/v1-hermes-parity
    - `GET /roadmap/board` serves `roadmap.html` fresh from disk on every request
    - `POST /roadmap/move` → `moveRoadmapItem` directly (no subprocess)
    - `render.ts`: `data-id` on cards, `data-status` on columns, drag-and-drop JS + CSS
-   - `cli/ops.ts`: `argo roadmap serve` — builds HTML, opens browser, starts server on port 7789 (env: `ARGO_ROADMAP_PORT`)
+   - `cli/ops.ts`: `argo roadmap serve` — builds HTML, opens browser, starts server on port 7789 (env: `VANTA_ROADMAP_PORT`)
    - 8 tests
 
 2. **TUI-INPUT — Composer history + multiline**
@@ -130,7 +130,7 @@ The roadmap is now all `shipped` or `horizon` — no `next`/`building` items. Ch
 
 ## Context That's Easy to Lose
 
-- **`argo roadmap serve` defaults to port 7789** (`ARGO_ROADMAP_PORT` overrides). Kernel is on 7788. Both can run simultaneously.
+- **`argo roadmap serve` defaults to port 7789** (`VANTA_ROADMAP_PORT` overrides). Kernel is on 7788. Both can run simultaneously.
 
 - **`handlers.ts` is at exactly 300 lines** — adding any handler inline will bust the hard limit. New handlers go in their own file (like `repl/next.ts`, `repl/plan-mode.ts`) and get imported.
 

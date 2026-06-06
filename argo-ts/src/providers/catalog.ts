@@ -7,7 +7,7 @@
  * format or the ~6th provider forces it.
  */
 export type ProviderEntry = {
-  /** ARGO_PROVIDER value. */
+  /** VANTA_PROVIDER value. */
   id: string;
   /** Human label for the picker. */
   label: string;

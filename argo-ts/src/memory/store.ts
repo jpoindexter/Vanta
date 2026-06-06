@@ -9,7 +9,7 @@ import {
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
 // blocks are pruned from the live file but remain in git history (capped, not
-// lost). Override with ARGO_MEMORY_MAX_BLOCKS.
+// lost). Override with VANTA_MEMORY_MAX_BLOCKS.
 const DEFAULT_MAX_STORED_BLOCKS = 50;
 const BLOCK_DELIM = "## ";
 
@@ -38,7 +38,7 @@ export async function appendMemory(
   await appendFile(file, block, "utf8");
   // Bound the stored file (Hermes-style capped memory): keep the most recent
   // blocks; older ones are pruned from the live file but preserved in git below.
-  const cap = Number(env?.ARGO_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
+  const cap = Number(env?.VANTA_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
   const blocks = splitBlocks(await readFile(file, "utf8").catch(() => ""));
   if (blocks.length > cap) {
     await writeFile(file, `${blocks.slice(-cap).join("\n\n")}\n\n`, "utf8");

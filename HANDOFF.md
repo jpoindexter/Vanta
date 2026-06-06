@@ -10,7 +10,7 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 - **Branch:** `feat/v1-hermes-parity` — **synced with origin, clean tree.**
 - **Tests:** 554 TS (vitest) + 27 Rust = **581 green**; `tsc --noEmit` clean.
   - Run: `cd argo-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
-- **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Vanta/`. `ARGO_ROOT` env var is the fix.
+- **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Vanta/`. `VANTA_ROOT` env var is the fix.
 
 ## Source-of-truth docs
 

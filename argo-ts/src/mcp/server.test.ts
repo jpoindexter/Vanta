@@ -42,8 +42,8 @@ describe("resolveServeAllowlist", () => {
     expect(set.has("shell_cmd")).toBe(false);
   });
 
-  it("is overridable via ARGO_MCP_SERVE_TOOLS", () => {
-    const set = resolveServeAllowlist({ ARGO_MCP_SERVE_TOOLS: "read_file, web_search" } as NodeJS.ProcessEnv);
+  it("is overridable via VANTA_MCP_SERVE_TOOLS", () => {
+    const set = resolveServeAllowlist({ VANTA_MCP_SERVE_TOOLS: "read_file, web_search" } as NodeJS.ProcessEnv);
     expect(set.has("read_file")).toBe(true);
     expect(set.has("web_search")).toBe(true);
     expect(set.has("inspect_state")).toBe(false);

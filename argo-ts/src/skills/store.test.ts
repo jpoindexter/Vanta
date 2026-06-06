@@ -6,7 +6,7 @@ import { skillsDir } from "../store/home.js";
 import { writeSkill, readSkill, listSkills } from "./store.js";
 
 const HOME = join(tmpdir(), "argo-skills-store-test");
-const env = { ...process.env, ARGO_HOME: HOME };
+const env = { ...process.env, VANTA_HOME: HOME };
 
 const T1 = "2026-06-02T10:00:00.000Z";
 const T2 = "2026-06-02T12:30:00.000Z";

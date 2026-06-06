@@ -42,7 +42,7 @@ function parseClaudeOauth(raw: string): ClaudeCodeAuth | null {
 /** Default keychain source: the macOS login keychain item Claude Code writes. No-op off macOS. */
 function macKeychainBlob(env: NodeJS.ProcessEnv): string | null {
   if (process.platform !== "darwin") return null;
-  const service = env.ARGO_CLAUDE_KEYCHAIN_SERVICE?.trim() || "Claude Code-credentials";
+  const service = env.VANTA_CLAUDE_KEYCHAIN_SERVICE?.trim() || "Claude Code-credentials";
   try {
     const out = execFileSync("security", ["find-generic-password", "-s", service, "-w"], {
       encoding: "utf8",

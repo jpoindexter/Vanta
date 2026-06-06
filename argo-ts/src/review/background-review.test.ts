@@ -23,14 +23,14 @@ describe("shouldReview", () => {
     expect(shouldReview(1, 3, on)).toBe(false);
   });
 
-  it("is fully disabled by ARGO_SELF_IMPROVE=0", () => {
-    expect(shouldReview(50, 8, { ARGO_SELF_IMPROVE: "0" })).toBe(false);
-    expect(shouldReview(50, 8, { ARGO_SELF_IMPROVE: "false" })).toBe(false);
+  it("is fully disabled by VANTA_SELF_IMPROVE=0", () => {
+    expect(shouldReview(50, 8, { VANTA_SELF_IMPROVE: "0" })).toBe(false);
+    expect(shouldReview(50, 8, { VANTA_SELF_IMPROVE: "false" })).toBe(false);
   });
 
   it("honors custom thresholds", () => {
-    expect(shouldReview(3, 1, { ARGO_REVIEW_MIN_TOOLS: "3" })).toBe(true);
-    expect(shouldReview(0, 5, { ARGO_REVIEW_EVERY: "5" })).toBe(true);
+    expect(shouldReview(3, 1, { VANTA_REVIEW_MIN_TOOLS: "3" })).toBe(true);
+    expect(shouldReview(0, 5, { VANTA_REVIEW_EVERY: "5" })).toBe(true);
   });
 });
 
@@ -73,16 +73,16 @@ const fakeSafety = {
 
 describe("reviewTurn", () => {
   let home: string;
-  const prev = process.env.ARGO_HOME;
+  const prev = process.env.VANTA_HOME;
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "argo-review-"));
-    process.env.ARGO_HOME = home;
+    process.env.VANTA_HOME = home;
   });
 
   afterEach(async () => {
-    if (prev === undefined) delete process.env.ARGO_HOME;
-    else process.env.ARGO_HOME = prev;
+    if (prev === undefined) delete process.env.VANTA_HOME;
+    else process.env.VANTA_HOME = prev;
     await rm(home, { recursive: true, force: true });
   });
 

@@ -137,7 +137,7 @@ export async function runChat(
       registry: setup.registry,
       root: repoRoot,
       requestApproval: approver(rl),
-      maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       ...consoleCallbacks(),

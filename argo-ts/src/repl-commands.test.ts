@@ -18,7 +18,7 @@ function makeCtx(home: string, messages: Message[]): ReplCtx {
     },
     dataDir: join(home, ".argo-data"),
     state: { sessionId: "s1", started: "t0", turnIndex: 5 },
-    env: { ARGO_HOME: home } as NodeJS.ProcessEnv,
+    env: { VANTA_HOME: home } as NodeJS.ProcessEnv,
     now: () => new Date("2026-06-02T00:00:00.000Z"),
   } as unknown as ReplCtx;
 }
@@ -74,7 +74,7 @@ describe("runSlashCommand", () => {
       { role: "assistant", content: "reply" },
       { role: "user", content: "second" },
     ];
-    await saveSession("20260601-101010", saved, { env: { ARGO_HOME: home } as NodeJS.ProcessEnv });
+    await saveSession("20260601-101010", saved, { env: { VANTA_HOME: home } as NodeJS.ProcessEnv });
 
     const live: Message[] = [{ role: "system", content: "sys" }];
     const ctx = makeCtx(home, live);

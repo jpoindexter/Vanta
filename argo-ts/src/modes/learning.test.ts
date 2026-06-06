@@ -6,7 +6,7 @@ import { resolveArgoHome } from "../store/home.js";
 import { normalizePattern, recordRun, shouldProposeSkill } from "./learning.js";
 
 const HOME = join(tmpdir(), "argo-modes-learning-test");
-const env = { ...process.env, ARGO_HOME: HOME };
+const env = { ...process.env, VANTA_HOME: HOME };
 
 describe("normalizePattern", () => {
   it("maps two phrasings of the same task to the same key", () => {

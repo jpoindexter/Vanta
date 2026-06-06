@@ -75,7 +75,7 @@ export class AnthropicProvider implements LLMProvider {
       system = converted.system;
     }
 
-    const thinkingBudget = parseInt(process.env.ARGO_THINKING_BUDGET ?? "", 10);
+    const thinkingBudget = parseInt(process.env.VANTA_THINKING_BUDGET ?? "", 10);
     const thinkingParam = !isNaN(thinkingBudget) && thinkingBudget > 0
       ? { type: "enabled" as const, budget_tokens: thinkingBudget }
       : undefined;

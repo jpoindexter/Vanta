@@ -8,10 +8,10 @@ export type Room = { name: string; path: string };
 /**
  * Where Argo looks for project rooms. Each subdir is one project, and the
  * kernel's per-dir `.argo` gives it an isolated goal stream. Override with
- * ARGO_PROJECTS_DIR (tests point this at a temp dir).
+ * VANTA_PROJECTS_DIR (tests point this at a temp dir).
  */
 export function projectsBaseDir(env: NodeJS.ProcessEnv = process.env): string {
-  const override = env.ARGO_PROJECTS_DIR?.trim();
+  const override = env.VANTA_PROJECTS_DIR?.trim();
   return override
     ? override
     : join(homedir(), "Documents", "GitHub", "_active");

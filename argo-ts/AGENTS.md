@@ -63,6 +63,6 @@ npx tsc --noEmit        # must be clean before any commit
 
 ## Env vars (key ones)
 
-`ARGO_PROVIDER` · `ARGO_MODEL` · `ARGO_KERNEL_URL` · `ARGO_HOME` · `ARGO_SELF_IMPROVE` · `ARGO_VISION_MODEL` / `ARGO_VISION_PROVIDER` (auxiliary vision routing) · `ARGO_FACTORY_BUDGET` · `ARGO_FACTORY_DISABLED` (factory kill switch)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch)
 
 Full env list: `CLAUDE.md §Env`.

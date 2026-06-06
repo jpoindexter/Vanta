@@ -4,7 +4,7 @@ import { SafetyClient } from "./safety-client.js";
 import { buildRegistry } from "./tools/index.js";
 import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 
-const KERNEL_URL = process.env.ARGO_KERNEL_URL ?? "http://127.0.0.1:7788";
+const KERNEL_URL = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
 
 /** A provider that replays scripted turns — removes model nondeterminism. */
 class FakeProvider implements LLMProvider {

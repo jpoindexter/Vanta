@@ -28,7 +28,7 @@ Do NOT capture: one-off task narratives ("fixed bug #1234"), environment-specifi
 Name skills by their class (e.g. "debug-failing-vitest", not "fix-the-login-test"). Keep the body a concise markdown how-to.`;
 
 function isDisabled(env: NodeJS.ProcessEnv): boolean {
-  const v = (env.ARGO_SELF_IMPROVE ?? "").trim().toLowerCase();
+  const v = (env.VANTA_SELF_IMPROVE ?? "").trim().toLowerCase();
   return v === "0" || v === "false" || v === "off" || v === "no";
 }
 
@@ -39,8 +39,8 @@ function numEnv(raw: string | undefined, fallback: number): number {
 
 /**
  * Should the post-turn review run for this turn? Pure. Fires on a busy turn
- * (>= ARGO_REVIEW_MIN_TOOLS tool calls) or periodically (every ARGO_REVIEW_EVERY
- * turns). Off entirely when ARGO_SELF_IMPROVE is 0/false/off/no.
+ * (>= VANTA_REVIEW_MIN_TOOLS tool calls) or periodically (every VANTA_REVIEW_EVERY
+ * turns). Off entirely when VANTA_SELF_IMPROVE is 0/false/off/no.
  */
 export function shouldReview(
   toolIterations: number,
@@ -48,10 +48,10 @@ export function shouldReview(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   if (isDisabled(env)) return false;
-  if (toolIterations >= numEnv(env.ARGO_REVIEW_MIN_TOOLS, DEFAULT_REVIEW_MIN_TOOLS)) {
+  if (toolIterations >= numEnv(env.VANTA_REVIEW_MIN_TOOLS, DEFAULT_REVIEW_MIN_TOOLS)) {
     return true;
   }
-  const every = numEnv(env.ARGO_REVIEW_EVERY, DEFAULT_REVIEW_EVERY);
+  const every = numEnv(env.VANTA_REVIEW_EVERY, DEFAULT_REVIEW_EVERY);
   return turnIndex > 0 && turnIndex % every === 0;
 }
 

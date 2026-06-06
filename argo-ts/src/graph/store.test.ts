@@ -26,7 +26,7 @@ describe("graph/store", () => {
   it("appendGraph + graphQuery round-trip", async () => {
     const dir = await mkdtemp(join(tmpdir(), "argo-test-graph-"));
     try {
-      const env = { ARGO_HOME: dir };
+      const env = { VANTA_HOME: dir };
       const proj = makeEntity("my-project", "project");
       const tool = makeEntity("vitest-xyz", "tool");
       const rel = makeRelation(proj, tool, "uses", 0.9);
@@ -43,7 +43,7 @@ describe("graph/store", () => {
   });
 
   it("returns empty array when graph file is absent", async () => {
-    const results = await graphQuery("anything", { env: { ARGO_HOME: "/tmp/no-graph-dir-xyz" } });
+    const results = await graphQuery("anything", { env: { VANTA_HOME: "/tmp/no-graph-dir-xyz" } });
     expect(results).toEqual([]);
   });
 });

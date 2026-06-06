@@ -24,7 +24,7 @@ cd argo-ts && npx vitest run && npx tsc --noEmit  # TS agent (1075 tests + typec
 argo                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-05):** v1 complete; live-dogfooding backlog open. Shipped today: TUI readability + AUX-VISION (`ARGO_VISION_MODEL` routes image tools to a dedicated vision model) + auto-install of the bundled skill library (incl. 14 `nd-*` skills) in `prepareRun`. Open in `roadmap.json`: AUX-MAP, UX-MODEL-FIX, GOAL-ACTION, SCRUB-AI; horizon: DESKTOP.
+> **Status (2026-06-05):** v1 complete; live-dogfooding backlog open. Shipped today: TUI readability + AUX-VISION (`VANTA_VISION_MODEL` routes image tools to a dedicated vision model) + auto-install of the bundled skill library (incl. 14 `nd-*` skills) in `prepareRun`. Open in `roadmap.json`: AUX-MAP, UX-MODEL-FIX, GOAL-ACTION, SCRUB-AI; horizon: DESKTOP.
 
 ## Key files
 

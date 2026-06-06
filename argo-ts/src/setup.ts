@@ -51,8 +51,8 @@ export function buildEnvUpdates(
   model: string,
 ): Record<string, string> {
   const updates: Record<string, string> = {
-    ARGO_PROVIDER: entry.id,
-    ARGO_MODEL: model,
+    VANTA_PROVIDER: entry.id,
+    VANTA_MODEL: model,
   };
   if (entry.envVar && apiKey) updates[entry.envVar] = apiKey;
   return updates;

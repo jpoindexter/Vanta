@@ -3,7 +3,7 @@ import type { Tool } from "./types.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 
 // Camera eyes: capture a webcam frame and describe it with the vision model
-// (ARGO_VISION_MODEL when set, else the active provider). macOS via `imagesnap`
+// (VANTA_VISION_MODEL when set, else the active provider). macOS via `imagesnap`
 // (brew install imagesnap). Mirrors look_at_screen.
 
 const Args = z.object({ prompt: z.string().optional() });
@@ -47,7 +47,7 @@ export const lookAtCameraTool: Tool = {
       );
       return result.text?.trim()
         ? { ok: true, output: result.text.trim() }
-        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set ARGO_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
+        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set VANTA_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
     } catch (err) {
       const msg = (err as Error).message;
       return { ok: false, output: /ENOENT|imagesnap/i.test(msg) ? "look_at_camera needs imagesnap (brew install imagesnap)" : `look_at_camera failed: ${msg}` };

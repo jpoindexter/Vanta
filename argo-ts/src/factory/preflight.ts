@@ -17,10 +17,10 @@ export function scoreAmbiguity(item: WorkItem): number {
 /**
  * Returns true when the item is too vague to run — skip it and surface the gap
  * rather than executing and producing a bad slice.
- * Threshold is configurable via ARGO_PREFLIGHT_THRESHOLD (0–1, default 0.5).
+ * Threshold is configurable via VANTA_PREFLIGHT_THRESHOLD (0–1, default 0.5).
  */
 export function shouldClarify(item: WorkItem, env: NodeJS.ProcessEnv = process.env): boolean {
-  const raw = parseFloat(env.ARGO_PREFLIGHT_THRESHOLD ?? "");
+  const raw = parseFloat(env.VANTA_PREFLIGHT_THRESHOLD ?? "");
   const threshold = isNaN(raw) ? DEFAULT_AMBIGUITY_THRESHOLD : Math.max(0, Math.min(1, raw));
   if (threshold === 0) return false;
   return scoreAmbiguity(item) >= threshold;

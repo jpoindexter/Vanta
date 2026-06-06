@@ -26,13 +26,13 @@ describe("messaging registry", () => {
   it("reports telegram configured only when the token env is set", () => {
     const tg = messagingPlatformById("telegram")!;
     expect(platformAvailability(tg, {}).configured).toBe(false);
-    expect(platformAvailability(tg, {}).missing).toEqual(["ARGO_TELEGRAM_TOKEN"]);
-    expect(platformAvailability(tg, { ARGO_TELEGRAM_TOKEN: "123:abc" }).configured).toBe(true);
+    expect(platformAvailability(tg, {}).missing).toEqual(["VANTA_TELEGRAM_TOKEN"]);
+    expect(platformAvailability(tg, { VANTA_TELEGRAM_TOKEN: "123:abc" }).configured).toBe(true);
   });
 
   it("treats a blank env value as missing", () => {
     const tg = messagingPlatformById("telegram")!;
-    expect(platformAvailability(tg, { ARGO_TELEGRAM_TOKEN: "   " }).configured).toBe(false);
+    expect(platformAvailability(tg, { VANTA_TELEGRAM_TOKEN: "   " }).configured).toBe(false);
   });
 
   it("warns on whatsapp (unofficial)", () => {

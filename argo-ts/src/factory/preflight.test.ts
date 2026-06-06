@@ -34,7 +34,7 @@ describe("shouldClarify", () => {
   });
 
   it("disabled when threshold is 0", () => {
-    expect(shouldClarify(item("x"), { ARGO_PREFLIGHT_THRESHOLD: "0" })).toBe(false);
+    expect(shouldClarify(item("x"), { VANTA_PREFLIGHT_THRESHOLD: "0" })).toBe(false);
   });
 });
 

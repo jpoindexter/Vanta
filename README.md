@@ -18,7 +18,7 @@ One command on a fresh machine — clones Vanta into `~/argo`, builds the kernel
 curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
 ```
 
-> The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `ARGO_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.
+> The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `VANTA_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.
 
 Then: `argo setup` (pick a model backend) → `argo` (interactive session) → `argo doctor` (health check).
 
@@ -44,7 +44,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 
 ## What works now (all 7 PRD phases — 32 tools, 290 tests green)
 
-**Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `ARGO_ROOT` scoping.
+**Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
 - Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic providers; 4 core tools (read/write/shell/inspect)

@@ -86,13 +86,13 @@ Column map: `building → Now`, `next → Next`, `horizon → Later`, `shipped �
 [
   {"id":"TUI","track":"Core UX","title":"Ink TUI + streaming","status":"shipped","size":"M","summary":"React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.","done":"open argo → full TUI with streaming tokens."},
   {"id":"REPL","track":"Core UX","title":"Full REPL + install","status":"shipped","size":"S","summary":"install.sh global argo command + full slash set.","done":"argo works from anywhere."},
-  {"id":"A1","track":"Models + Setup","title":"Gemini provider","status":"shipped","size":"S","summary":"Google OpenAI-compatible endpoint, GEMINI_API_KEY.","done":"ARGO_PROVIDER=gemini argo run returns on gemini-2.5-flash."},
+  {"id":"A1","track":"Models + Setup","title":"Gemini provider","status":"shipped","size":"S","summary":"Google OpenAI-compatible endpoint, GEMINI_API_KEY.","done":"VANTA_PROVIDER=gemini argo run returns on gemini-2.5-flash."},
   {"id":"A3","track":"Models + Setup","title":"OpenRouter provider","status":"shipped","size":"S","summary":"One key, 200+ models.","done":"OPENROUTER_API_KEY works."},
   {"id":"A4","track":"Models + Setup","title":"argo setup wizard","status":"shipped","size":"M","summary":"Provider picker, hidden key prompt, merge into .env.","done":"First-run wizard configures any backend."},
   {"id":"A5","track":"Models + Setup","title":"First-run detection","status":"shipped","size":"S","summary":"No backend on launch → auto-run argo setup.","done":"Clean install self-configures."},
   {"id":"A6","track":"Models + Setup","title":"argo status / doctor","status":"shipped","size":"S","summary":"Boxed health: kernel ping, provider, key presence, counts.","done":"argo status shows green health."},
-  {"id":"G1","track":"Models + Setup","title":"Claude subscription provider","status":"shipped","size":"S","summary":"ARGO_PROVIDER=claude-code uses Claude Pro/Max OAuth token.","done":"claude-code provider authenticates."},
-  {"id":"G2","track":"Models + Setup","title":"ChatGPT-Codex OAuth","status":"shipped","size":"S","summary":"ARGO_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.","done":"Live-verified end-to-end."},
+  {"id":"G1","track":"Models + Setup","title":"Claude subscription provider","status":"shipped","size":"S","summary":"VANTA_PROVIDER=claude-code uses Claude Pro/Max OAuth token.","done":"claude-code provider authenticates."},
+  {"id":"G2","track":"Models + Setup","title":"ChatGPT-Codex OAuth","status":"shipped","size":"S","summary":"VANTA_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.","done":"Live-verified end-to-end."},
   {"id":"B2","track":"Self-improvement","title":"Post-turn nudge counters","status":"shipped","size":"S","summary":"shouldReview: busy turn or periodic interval triggers background review.","done":"Review fires automatically."},
   {"id":"B3","track":"Self-improvement","title":"Background-review fork","status":"shipped","size":"M","summary":"Post-turn tool-restricted agent replays transcript, writes skills.","done":"Live-verified: judged no skill on trivial turn."},
   {"id":"B4","track":"Self-improvement","title":"Skill provenance + safe curator","status":"shipped","size":"M","summary":"argo-learned tag, curator archives only learned-stale skills, 7d interval.","done":"Curator runs at session start without breaking anything."},
@@ -116,7 +116,7 @@ Column map: `building → Now`, `next → Next`, `horizon → Later`, `shipped �
   {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. argo mcp list.","done":"argo mcp list shows a server's tools; Vanta calls one live."},
   {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"horizon","size":"M","summary":"mount_mcp tool (live runtime mount) + build-mcp-server skill (scaffold on demand).","done":"Vanta builds a trivial MCP, mounts it, calls its tool; and mounts an existing server on command."},
   {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"argo mcp serve — expose Vanta tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Vanta executes through the kernel gate."},
-  {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override."},
+  {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual VANTA_PROVIDER override."},
   {"id":"D2","track":"Skills","title":"Skill bundles","status":"horizon","size":"S","summary":"YAML bundle schema for composite slash commands.","done":"One /slash loads several skills."},
   {"id":"S5","track":"Selfhood","title":"Heartbeat selfhood updates","status":"horizon","size":"S","summary":"Wire brain writes onto the gateway tick.","done":"Identity evolves continuously via daemon."},
   {"id":"B-v2","track":"Self-improvement","title":"Emergent self-designed brain","status":"horizon","size":"L","summary":"Let Vanta design its own brain substrate (its own format/code).","done":"Open research — no fixed done line."},
@@ -172,7 +172,7 @@ const ConfigSchema = z.object({
 2. **Discover `.mcp.json` in cwd** before falling back to `~/.argo/mcp.json`:
 ```typescript
 export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {
-  const inline = env.ARGO_MCP_SERVERS?.trim();
+  const inline = env.VANTA_MCP_SERVERS?.trim();
   if (inline) return parseOrEmpty(inline);
   // project-level first (Claude-compat), then user-level
   const projectCfg = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");

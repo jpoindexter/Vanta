@@ -45,7 +45,7 @@ Branch: feat/v1-hermes-parity (NOT pushed)
 5. [ ] Then P3 banner → P4 status bar → P5 sessions/lifecycle → P6 HITL prompts → P7 transcript scrolling (the one hard problem: stock Ink has no ScrollBox).
 
 ## Context That's Easy to Lose
-- **Project path gotcha:** the harness pins spawned cwd to the OLD `Nexarion Agent` path (an almost-empty dir with only `.claude/`). The REAL repo is `~/Documents/GitHub/Vanta`. Always `cd` there first. `ARGO_ROOT` exists for this reason.
+- **Project path gotcha:** the harness pins spawned cwd to the OLD `Nexarion Agent` path (an almost-empty dir with only `.claude/`). The REAL repo is `~/Documents/GitHub/Vanta`. Always `cd` there first. `VANTA_ROOT` exists for this reason.
 - **Agent code is in `argo-ts/`**, not repo root. Tests: `cd argo-ts && npx vitest run`. Typecheck: `npx tsc --noEmit`.
 - **Hermes reference (read-only):** `~/Documents/GitHub/_active/hermes-reference`. TUI at `ui-tui/`; forked Ink at `ui-tui/packages/hermes-ink/`; Python backend has the command registry + banner (`hermes_cli/banner.py`).
 - **Leaked Claude Code source** is in Jason's private GitHub repos (`leaked-claude-code`, `claude-code-haha`, `openclaude`, `claurst`). Study patterns only — do NOT copy verbatim (IP). Hermes is the cleaner, license-safe TS+Ink reference for the TUI.

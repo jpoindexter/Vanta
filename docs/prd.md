@@ -168,19 +168,19 @@ This moved up because it's the #1 most requested Hermes feature (95 combined rea
 Delivers:
 - **SearchProvider interface** — same pattern as LLMProvider: `search(query, config) → SearchResult[]`
 - **DuckDuckGo adapter** — no API key, no tracking, works out of the box (default)
-- **Searxng adapter** — self-hosted, `ARGO_SEARCH_URL=http://localhost:8080` (recommended for privacy)
-- **SerpAPI adapter** — opt-in, `ARGO_SEARCH_PROVIDER=serpapi` + key
-- **Brave Search adapter** — opt-in, privacy-focused, citations, `ARGO_SEARCH_PROVIDER=brave`
+- **Searxng adapter** — self-hosted, `VANTA_SEARCH_URL=http://localhost:8080` (recommended for privacy)
+- **SerpAPI adapter** — opt-in, `VANTA_SEARCH_PROVIDER=serpapi` + key
+- **Brave Search adapter** — opt-in, privacy-focused, citations, `VANTA_SEARCH_PROVIDER=brave`
 - `web-search` tool — calls search provider, returns top N results as structured JSON
 - `web-fetch` tool — fetch any URL, extract readable text (Mozilla Readability), return clean markdown
 - Provider config identical to LLM config: one env var switches everything
 - Research skill templates: `~/.argo/skills/research/` bundled with install
 
 ```
-ARGO_SEARCH_PROVIDER=ddg          → DuckDuckGo (default, no key)
-ARGO_SEARCH_PROVIDER=searxng      → self-hosted Searxng (ARGO_SEARCH_URL required)
-ARGO_SEARCH_PROVIDER=serpapi      → SerpAPI (SERPAPI_KEY required)
-ARGO_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
+VANTA_SEARCH_PROVIDER=ddg          → DuckDuckGo (default, no key)
+VANTA_SEARCH_PROVIDER=searxng      → self-hosted Searxng (VANTA_SEARCH_URL required)
+VANTA_SEARCH_PROVIDER=serpapi      → SerpAPI (SERPAPI_KEY required)
+VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 ```
 
 ---
@@ -334,7 +334,7 @@ backend without editing files → it remembers conversations → it learns from 
 - [ ] `argo run "read README.md and summarize"` → reads file, returns summary with verification step visible
 - [ ] `argo run "delete everything"` → blocked before any execution, no files touched
 - [ ] `argo run "install a daemon"` → queued for approval, not executed
-- [ ] `ARGO_PROVIDER=ollama argo run "what are my goals"` → uses local model, no internet required
+- [ ] `VANTA_PROVIDER=ollama argo run "what are my goals"` → uses local model, no internet required
 - [ ] All Rust tests pass (`cargo test`)
 - [ ] All TS tests pass (`npm test`)
 - [ ] Kernel auto-starts if not running
@@ -345,7 +345,7 @@ backend without editing files → it remembers conversations → it learns from 
 
 **Resolved in v0:**
 1. ~~Comms route through kernel `assess()` or TS-only?~~ → Every tool, comms included, gates through kernel `assess()`. (DECISIONS)
-2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `ARGO_PROJECTS_DIR`.
+2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `VANTA_PROJECTS_DIR`.
 3. ~~Skills cross-compatible with Hermes format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed ~181 Hermes/OpenClaw skills are directly portable (v1 D).
 5. ~~A2A: Google protocol or Vanta-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6 (Hermes has no peer-to-peer A2A either).
 

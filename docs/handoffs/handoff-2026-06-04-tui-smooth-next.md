@@ -7,9 +7,9 @@ Branch: `feat/v1-hermes-parity` (all work pushed) · **636 tests green (609 TS +
 - **MCP-3 serve** — Vanta as a kernel-gated MCP server (`mcp/server.ts`, `argo mcp serve`), live-verified.
 - **Model persistence** — `/model` picker now writes `.env` by default (^g = session-only). `model-picker.tsx`.
 - **Installer** — `bootstrap.sh` → clones to `~/argo` → `install.sh`; README one-liner (activates when repo goes public).
-- **SCOPE-1 writable zones** — `write_file` writes outside repo into approval-gated zones (default `~/Desktop`+`~/Downloads`, `ARGO_WRITABLE_DIRS`). `tools/writable-zones.ts`.
-- **SCOPE-2 readable zones** — `read_file` reads sibling repos (default = project parent dir + writable zones, `ARGO_READABLE_DIRS`). Same file.
-- **O10 autonomy ladder L1–L4** — `factory/run.ts`: `resolveAutonomyLevel(sub,env)`; L1 suggest / L2 implement+stop / L3 commit / L4 push. `ARGO_AUTONOMY_LEVEL` (default 4). Kernel `is_protected_path` still blocks skeleton/brainstem at every level.
+- **SCOPE-1 writable zones** — `write_file` writes outside repo into approval-gated zones (default `~/Desktop`+`~/Downloads`, `VANTA_WRITABLE_DIRS`). `tools/writable-zones.ts`.
+- **SCOPE-2 readable zones** — `read_file` reads sibling repos (default = project parent dir + writable zones, `VANTA_READABLE_DIRS`). Same file.
+- **O10 autonomy ladder L1–L4** — `factory/run.ts`: `resolveAutonomyLevel(sub,env)`; L1 suggest / L2 implement+stop / L3 commit / L4 push. `VANTA_AUTONOMY_LEVEL` (default 4). Kernel `is_protected_path` still blocks skeleton/brainstem at every level.
 
 ## NEXT TASK — TUI-SMOOTH (Core UX, captured in roadmap, NOT built)
 The TUI is a firehose: `src/tui/transcript.tsx` renders every tool call AND result as its own dim row; `shortArgs`/`firstLine` only truncate, so busy turns = wall of text and raw junk (e.g. `/var/folders/.../NSIRD_screencaptureui_.../Screenshot.png`, JSON args) prints verbatim.

@@ -12,7 +12,7 @@ describe("extractDomain", () => {
 });
 
 describe("isAllowedDomain", () => {
-  const env = { ARGO_ALLOWED_DOMAINS: "example.com, github.com" };
+  const env = { VANTA_ALLOWED_DOMAINS: "example.com, github.com" };
 
   it("allows an exact domain match", () => {
     expect(isAllowedDomain("https://example.com/page", env)).toBe(true);
@@ -31,7 +31,7 @@ describe("isAllowedDomain", () => {
   });
 
   it("rejects everything when the env list is empty", () => {
-    expect(isAllowedDomain("https://example.com", { ARGO_ALLOWED_DOMAINS: "" })).toBe(
+    expect(isAllowedDomain("https://example.com", { VANTA_ALLOWED_DOMAINS: "" })).toBe(
       false,
     );
   });

@@ -27,7 +27,7 @@ The sandbox has no TTY. These need your eyes (`cd ~/Documents/GitHub/Vanta/argo-
 
 1. **Banner** renders correctly (ASCII art alignment, colors, MCP list) and scrolls away after the first turn.
 2. **`/model`** → pick a provider → pick/typed model → status bar model updates → **next message actually uses the new model** (the live hot-swap; needs a real key for the target provider).
-3. **`^g`** toggles persist; choosing global writes `ARGO_PROVIDER`/`ARGO_MODEL` (+ key) into `argo-ts/.env` without clobbering other lines.
+3. **`^g`** toggles persist; choosing global writes `VANTA_PROVIDER`/`VANTA_MODEL` (+ key) into `argo-ts/.env` without clobbering other lines.
 4. **`/sessions`** → resume a real saved session loads its context; `d` deletes the file.
 5. **Approval**: trigger a gated tool (e.g. ask it to `git commit`), confirm the 4-option prompt; "Always allow" then never re-prompts that tool (this session and next launch).
 6. Colors/glyphs/focus match the mockup on your terminal + font.

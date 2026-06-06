@@ -9,12 +9,12 @@ import {
 describe("buildMessagingEnv", () => {
   it("writes the secret env for telegram", () => {
     const tg = messagingPlatformById("telegram")!;
-    expect(buildMessagingEnv(tg, "123:abc")).toEqual({ ARGO_TELEGRAM_TOKEN: "123:abc" });
+    expect(buildMessagingEnv(tg, "123:abc")).toEqual({ VANTA_TELEGRAM_TOKEN: "123:abc" });
   });
 
   it("writes the enable flag (no secret) for whatsapp", () => {
     const wa = messagingPlatformById("whatsapp")!;
-    expect(buildMessagingEnv(wa)).toEqual({ ARGO_WHATSAPP_ENABLE: "1" });
+    expect(buildMessagingEnv(wa)).toEqual({ VANTA_WHATSAPP_ENABLE: "1" });
   });
 
   it("omits the secret key when no secret is given", () => {
@@ -25,7 +25,7 @@ describe("buildMessagingEnv", () => {
 
 describe("renderMessagingMenu", () => {
   it("tags telegram configured when its token is present, available when not", () => {
-    expect(renderMessagingMenu({ ARGO_TELEGRAM_TOKEN: "x" })).toMatch(/Telegram\s+\[configured\]/);
+    expect(renderMessagingMenu({ VANTA_TELEGRAM_TOKEN: "x" })).toMatch(/Telegram\s+\[configured\]/);
     expect(renderMessagingMenu({})).toMatch(/Telegram\s+\[available\]/);
   });
 

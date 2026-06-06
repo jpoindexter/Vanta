@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readTodos, writeTodos, formatTodos } from "./store.js";
 
-const ARGO_HOME = join(tmpdir(), "argo-todo-test");
-const env = { ...process.env, ARGO_HOME };
+const VANTA_HOME = join(tmpdir(), "argo-todo-test");
+const env = { ...process.env, VANTA_HOME };
 
 describe("todo store", () => {
-  beforeEach(async () => { await rm(ARGO_HOME, { recursive: true, force: true }); });
-  afterEach(async () => { await rm(ARGO_HOME, { recursive: true, force: true }); });
+  beforeEach(async () => { await rm(VANTA_HOME, { recursive: true, force: true }); });
+  afterEach(async () => { await rm(VANTA_HOME, { recursive: true, force: true }); });
 
   it("round-trips and renders the plan", async () => {
     await writeTodos([{ text: "spike", status: "done" }, { text: "build", status: "in_progress" }, { text: "ship", status: "pending" }], env);

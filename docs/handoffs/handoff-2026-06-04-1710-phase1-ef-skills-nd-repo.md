@@ -21,14 +21,14 @@ Branch: feat/v1-hermes-parity
 
 3. **EF-RESEARCH-GATE** — Research spiral pattern interrupt.
    - New `repl/research-gate.ts`: `isOutputTurn`, `nextGateState`, `shouldFireGate`, `extractLastTurnToolNames`, `buildGateText`
-   - `session.ts`: new `researchGateAfterTurn()` — returns updated state, fires note at `ARGO_RESEARCH_GATE_TURNS` (default 8) consecutive non-output turns
+   - `session.ts`: new `researchGateAfterTurn()` — returns updated state, fires note at `VANTA_RESEARCH_GATE_TURNS` (default 8) consecutive non-output turns
    - Wired into REPL (`interactive.ts`) and TUI (`use-agent-send.ts`)
    - Output tools (reset counter): `write_file`, `roadmap_move`, `shell_cmd`
 
 4. **EF-COMPLEXITY-GATE** — Heuristic complexity classifier suggests `/planmode`.
    - New `repl/complexity-gate.ts`: `scoreComplexity` (pure, regex, 0–10), `shouldSuggestPlanMode`, `buildComplexityNote`
    - Fires before `convo.send()` in both REPL and TUI when score ≥ 5 and plan mode not active
-   - `ARGO_COMPLEXITY_GATE_THRESHOLD` env to override (0 = disabled)
+   - `VANTA_COMPLEXITY_GATE_THRESHOLD` env to override (0 = disabled)
 
 5. **EF-CHOICEREDUCE** — Top-3 backlog filter on `/next`.
    - New `repl/choice-reduce.ts`: `topNextItems` (ranks by tier sand < pebble < rock, then size, then position), `wasReduced`
@@ -120,7 +120,7 @@ None.
 
 1. **PROMPT-STABILITY uses TIER_SEP split, not a custom marker** — the last `\n\n---\n\n` in the prompt is always the stable/volatile boundary. `plan-mode.ts` appends AFTER the volatile tier so it stays in the volatile portion naturally. No interface changes needed.
 
-2. **EF gates are all best-effort / non-blocking** — every gate fires a note and auto-continues. User is never blocked. Threshold env vars are the override path (e.g. `ARGO_RESEARCH_GATE_TURNS=0` disables).
+2. **EF gates are all best-effort / non-blocking** — every gate fires a note and auto-continues. User is never blocked. Threshold env vars are the override path (e.g. `VANTA_RESEARCH_GATE_TURNS=0` disables).
 
 3. **`/boundary` doesn't clear history** — unlike `/clear`, it injects a `BOUNDARY_MARKER` message so the prior context is preserved but the cognitive set transition is explicit.
 
@@ -128,7 +128,7 @@ None.
 
 5. **ND skills repo has no personal references** — skills are framed for any ND developer. Science basis cites published research (PMC4455841, Barkley, Sweller etc.) without attributing patterns to specific individuals.
 
-6. **Topic shift threshold is 0.15 Jaccard** — hard-coded, not configurable. For an S item this is appropriate. If it generates too many false positives in practice, a follow-on item can add `ARGO_TOPIC_SHIFT_THRESHOLD` env.
+6. **Topic shift threshold is 0.15 Jaccard** — hard-coded, not configurable. For an S item this is appropriate. If it generates too many false positives in practice, a follow-on item can add `VANTA_TOPIC_SHIFT_THRESHOLD` env.
 
 ---
 

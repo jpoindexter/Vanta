@@ -15,15 +15,15 @@ const TRANSCRIPT: Message[] = [
 
 describe("session store", () => {
   let home: string;
-  const prev = process.env.ARGO_HOME;
-  const env = () => ({ ARGO_HOME: home }) as NodeJS.ProcessEnv;
+  const prev = process.env.VANTA_HOME;
+  const env = () => ({ VANTA_HOME: home }) as NodeJS.ProcessEnv;
 
   beforeEach(async () => {
     home = await mkdtemp(join(tmpdir(), "argo-sessions-"));
   });
   afterEach(async () => {
-    if (prev === undefined) delete process.env.ARGO_HOME;
-    else process.env.ARGO_HOME = prev;
+    if (prev === undefined) delete process.env.VANTA_HOME;
+    else process.env.VANTA_HOME = prev;
     await rm(home, { recursive: true, force: true });
   });
 

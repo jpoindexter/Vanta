@@ -29,14 +29,14 @@ export function isPlanModeActive(messages: Message[]): boolean {
 
 /**
  * True when complexity is above the threshold and plan mode is not already on.
- * Set ARGO_COMPLEXITY_GATE_THRESHOLD to a number to override; 0 disables.
+ * Set VANTA_COMPLEXITY_GATE_THRESHOLD to a number to override; 0 disables.
  */
 export function shouldSuggestPlanMode(
   score: number,
   messages: Message[],
   env: NodeJS.ProcessEnv,
 ): boolean {
-  const raw = parseInt(env.ARGO_COMPLEXITY_GATE_THRESHOLD ?? "", 10);
+  const raw = parseInt(env.VANTA_COMPLEXITY_GATE_THRESHOLD ?? "", 10);
   const threshold = isNaN(raw) || raw < 0 ? DEFAULT_COMPLEXITY_THRESHOLD : raw;
   return threshold > 0 && score >= threshold && !isPlanModeActive(messages);
 }

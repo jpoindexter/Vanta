@@ -76,7 +76,7 @@ export const describeImageTool: Tool = {
 
     try {
       const buf = await readFile(abs);
-      // Route through the auxiliary vision model (ARGO_VISION_MODEL) when set, else
+      // Route through the auxiliary vision model (VANTA_VISION_MODEL) when set, else
       // the active provider — so a text-only main model doesn't break sight.
       const provider = resolveVisionProvider(process.env);
       const result = await provider.complete(
@@ -85,7 +85,7 @@ export const describeImageTool: Tool = {
       );
       return result.text?.trim()
         ? { ok: true, output: result.text.trim() }
-        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set ARGO_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
+        : { ok: false, output: "vision model returned no description — the model is not vision-capable. Set VANTA_VISION_MODEL (e.g. gpt-4o-mini) to delegate sight to a dedicated vision model." };
     } catch (err) {
       return {
         ok: false,

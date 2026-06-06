@@ -24,7 +24,7 @@ describe("brain v2 scaffold", () => {
   });
 
   it("brainV2Digest returns empty string when no entries", async () => {
-    const digest = await brainV2Digest({ ARGO_HOME: "/tmp/no-brain-v2-dir" });
+    const digest = await brainV2Digest({ VANTA_HOME: "/tmp/no-brain-v2-dir" });
     expect(typeof digest).toBe("string");
   });
 });

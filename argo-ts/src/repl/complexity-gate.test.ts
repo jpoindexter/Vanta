@@ -69,12 +69,12 @@ describe("shouldSuggestPlanMode", () => {
   });
 
   it("does not fire when threshold is 0 (disabled)", () => {
-    expect(shouldSuggestPlanMode(9, noplan, { ARGO_COMPLEXITY_GATE_THRESHOLD: "0" })).toBe(false);
+    expect(shouldSuggestPlanMode(9, noplan, { VANTA_COMPLEXITY_GATE_THRESHOLD: "0" })).toBe(false);
   });
 
-  it("respects ARGO_COMPLEXITY_GATE_THRESHOLD override", () => {
-    expect(shouldSuggestPlanMode(3, noplan, { ARGO_COMPLEXITY_GATE_THRESHOLD: "3" })).toBe(true);
-    expect(shouldSuggestPlanMode(2, noplan, { ARGO_COMPLEXITY_GATE_THRESHOLD: "3" })).toBe(false);
+  it("respects VANTA_COMPLEXITY_GATE_THRESHOLD override", () => {
+    expect(shouldSuggestPlanMode(3, noplan, { VANTA_COMPLEXITY_GATE_THRESHOLD: "3" })).toBe(true);
+    expect(shouldSuggestPlanMode(2, noplan, { VANTA_COMPLEXITY_GATE_THRESHOLD: "3" })).toBe(false);
   });
 });
 

@@ -8,7 +8,7 @@ import type { Tool } from "../tools/types.js";
 
 // Mount external MCP servers as Argo tools.
 // Config sources (first wins for inline; files are merged with project winning on conflict):
-//   1. ARGO_MCP_SERVERS env (JSON, inline)
+//   1. VANTA_MCP_SERVERS env (JSON, inline)
 //   2. ./.mcp.json in cwd — Claude-compatible format (mcpServers key)
 //   3. ~/.argo/mcp.json — user-level fallback (servers key)
 // Accepts both "mcpServers" (Claude Code convention) and "servers" (Argo convention).
@@ -41,12 +41,12 @@ function parseOrEmpty(raw: string): McpConfig {
 }
 
 /**
- * Read MCP server config. Checks ARGO_MCP_SERVERS first, then merges
+ * Read MCP server config. Checks VANTA_MCP_SERVERS first, then merges
  * ./.mcp.json (project-level, Claude-compat) with ~/.argo/mcp.json (user-level).
  * Project-level wins on conflict.
  */
 export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {
-  const inline = env.ARGO_MCP_SERVERS?.trim();
+  const inline = env.VANTA_MCP_SERVERS?.trim();
   if (inline) return parseOrEmpty(inline);
 
   const projectRaw = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");

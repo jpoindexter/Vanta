@@ -6,7 +6,7 @@ Branch: feat/v1-hermes-parity (all pushed; tag v0.1.0 pushed)
 ## What Was Accomplished
 **Shipped features (code, tested):**
 - **O11** compartments — `factory/compartments.ts`: body-model autonomy tiers (skeleton/brainstem/limbs/reflexes/memory) cap how far the factory proceeds; run.ts clamps to the touched files' most-restrictive tier.
-- **O10b** autonomy L5 auto-merge — `factory/merge.ts`: `assessMergeRisk` fails-closed through 3 gates (armed via `ARGO_AUTONOMY_ALLOW_MERGE` default OFF · safe target never main/master · low-risk limbs-only+no-dep/env+small-diff). MAX_AUTONOMY_LEVEL 4→5.
+- **O10b** autonomy L5 auto-merge — `factory/merge.ts`: `assessMergeRisk` fails-closed through 3 gates (armed via `VANTA_AUTONOMY_ALLOW_MERGE` default OFF · safe target never main/master · low-risk limbs-only+no-dep/env+small-diff). MAX_AUTONOMY_LEVEL 4→5.
 - **TUI-SMOOTH** — `tui/tool-display.ts`: per-tool clean verbs + `abbrevPath` (kills NSIRD temp-path/JSON firehose) + `partitionBlocks` grouping. Detail from ARGS not raw output.
 - **Refactor (this session):** `repl-commands.ts` 486→38 (handler registry under `repl/{types,catalog,format,handlers}.ts`); `cli.ts` 460→286 (ops handlers → `cli/ops.ts`).
 

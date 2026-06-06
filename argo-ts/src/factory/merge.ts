@@ -6,7 +6,7 @@
 // (the slice was already vetted by the verifier) — so the entire safety story at
 // merge time is THIS classifier. It is therefore pure, exhaustively tested, and
 // fails closed. Three independent gates must all pass to merge:
-//   1. armed       — ARGO_AUTONOMY_ALLOW_MERGE explicitly set (default OFF)
+//   1. armed       — VANTA_AUTONOMY_ALLOW_MERGE explicitly set (default OFF)
 //   2. safe target — never the default branch (main/master); never force
 //   3. low-risk    — limbs/reflexes/memory only, no dep/env/config/migration
 //                    change, diff under a bound
@@ -37,7 +37,7 @@ export type MergeRiskInputs = {
   touchedFiles: string[];
   /** Changed lines (added + deleted) in the slice. */
   diffLineCount: number;
-  /** True when ARGO_AUTONOMY_ALLOW_MERGE is set. */
+  /** True when VANTA_AUTONOMY_ALLOW_MERGE is set. */
   allowMerge: boolean;
   /** The branch the slice would merge into. */
   mergeTarget: string;
@@ -47,7 +47,7 @@ export type MergeDecision = { merge: boolean; reason: string };
 
 /** Resolve where an L5 slice lands. Never the default branch by default. */
 export function resolveMergeTarget(env: NodeJS.ProcessEnv): string {
-  return env.ARGO_FACTORY_MERGE_TARGET?.trim() || "factory/integration";
+  return env.VANTA_FACTORY_MERGE_TARGET?.trim() || "factory/integration";
 }
 
 /** Branches the factory must never auto-merge into. */
@@ -58,7 +58,7 @@ export function isDefaultBranch(b: string): boolean {
 /** The L5 low-risk gate. Fails closed — any failing check blocks the merge. */
 export function assessMergeRisk(inputs: MergeRiskInputs): MergeDecision {
   if (!inputs.allowMerge) {
-    return { merge: false, reason: "L5 merge not armed — set ARGO_AUTONOMY_ALLOW_MERGE to enable" };
+    return { merge: false, reason: "L5 merge not armed — set VANTA_AUTONOMY_ALLOW_MERGE to enable" };
   }
   if (isDefaultBranch(inputs.mergeTarget)) {
     return { merge: false, reason: `refusing to auto-merge into the default branch '${inputs.mergeTarget}'` };

@@ -15,8 +15,8 @@ const sel = (over: Partial<ModelSelection> = {}): ModelSelection => ({
 describe("mergedEnv", () => {
   it("layers provider + model over the base env", () => {
     const out = mergedEnv(sel(), { FOO: "bar" } as NodeJS.ProcessEnv);
-    expect(out.ARGO_PROVIDER).toBe("ollama");
-    expect(out.ARGO_MODEL).toBe("llama3.3");
+    expect(out.VANTA_PROVIDER).toBe("ollama");
+    expect(out.VANTA_MODEL).toBe("llama3.3");
     expect(out.FOO).toBe("bar");
   });
 
@@ -46,18 +46,18 @@ describe("buildProviderForSelection", () => {
 });
 
 describe("persistSelectionGlobal", () => {
-  it("writes ARGO_PROVIDER/ARGO_MODEL + key into argo-ts/.env, preserving other lines", async () => {
+  it("writes VANTA_PROVIDER/VANTA_MODEL + key into argo-ts/.env, preserving other lines", async () => {
     const root = await mkdtemp(join(tmpdir(), "argo-switch-"));
     await mkdir(join(root, "argo-ts"), { recursive: true });
     const envFile = join(root, "argo-ts", ".env");
-    await writeFile(envFile, "GOOGLE_OAUTH=keep-me\nARGO_PROVIDER=openai\n", "utf8");
+    await writeFile(envFile, "GOOGLE_OAUTH=keep-me\nVANTA_PROVIDER=openai\n", "utf8");
 
     await persistSelectionGlobal(sel({ providerId: "gemini", model: "gemini-2.5-pro", apiKey: "k-9" }), root);
 
     const out = await readFile(envFile, "utf8");
     expect(out).toContain("GOOGLE_OAUTH=keep-me");
-    expect(out).toContain("ARGO_PROVIDER=gemini");
-    expect(out).toContain("ARGO_MODEL=gemini-2.5-pro");
+    expect(out).toContain("VANTA_PROVIDER=gemini");
+    expect(out).toContain("VANTA_MODEL=gemini-2.5-pro");
     expect(out).toContain("GEMINI_API_KEY=k-9");
   });
 });

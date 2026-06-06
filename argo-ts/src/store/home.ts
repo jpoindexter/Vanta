@@ -9,11 +9,11 @@ const run = promisify(execFile);
 
 /**
  * The Argo home store — global across projects, not the per-project kernel
- * `.argo/` data dir. Holds skills and memories. Override with ARGO_HOME (tests
+ * `.argo/` data dir. Holds skills and memories. Override with VANTA_HOME (tests
  * point this at a temp dir). Default: ~/.argo.
  */
 export function resolveArgoHome(env: NodeJS.ProcessEnv = process.env): string {
-  const override = env.ARGO_HOME?.trim();
+  const override = env.VANTA_HOME?.trim();
   return override ? override : join(homedir(), ".argo");
 }
 

@@ -113,24 +113,24 @@ describe("formatCycleLog", () => {
 describe("resolveAutonomyLevel", () => {
   it("review / improve is always L1 (suggest)", () => {
     expect(resolveAutonomyLevel("review", {} as NodeJS.ProcessEnv)).toBe(1);
-    expect(resolveAutonomyLevel("", { ARGO_AUTONOMY_LEVEL: "4" } as NodeJS.ProcessEnv)).toBe(1);
+    expect(resolveAutonomyLevel("", { VANTA_AUTONOMY_LEVEL: "4" } as NodeJS.ProcessEnv)).toBe(1);
   });
 
   it("approve defaults to L4 (commit + push) when unset", () => {
     expect(resolveAutonomyLevel("approve", {} as NodeJS.ProcessEnv)).toBe(4);
   });
 
-  it("approve honors ARGO_AUTONOMY_LEVEL 2 and 3", () => {
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "2" } as NodeJS.ProcessEnv)).toBe(2);
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "3" } as NodeJS.ProcessEnv)).toBe(3);
+  it("approve honors VANTA_AUTONOMY_LEVEL 2 and 3", () => {
+    expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "2" } as NodeJS.ProcessEnv)).toBe(2);
+    expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "3" } as NodeJS.ProcessEnv)).toBe(3);
   });
 
   it("allows L5 (merge) and clamps above it to the max implemented level (5)", () => {
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "5" } as NodeJS.ProcessEnv)).toBe(5);
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "99" } as NodeJS.ProcessEnv)).toBe(5);
+    expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "5" } as NodeJS.ProcessEnv)).toBe(5);
+    expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "99" } as NodeJS.ProcessEnv)).toBe(5);
   });
 
   it("falls back to L4 on garbage input", () => {
-    expect(resolveAutonomyLevel("approve", { ARGO_AUTONOMY_LEVEL: "abc" } as NodeJS.ProcessEnv)).toBe(4);
+    expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "abc" } as NodeJS.ProcessEnv)).toBe(4);
   });
 });

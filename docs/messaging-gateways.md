@@ -16,7 +16,7 @@ file + registration** — no core changes. Hermes confirms the same shape
 
 | Platform | Approach | Send | Receive | Setup / risk |
 |----------|----------|------|---------|--------------|
-| **Telegram** ✅ | Official Bot API (shipped) | `sendMessage` | `getUpdates` long-poll | `ARGO_TELEGRAM_TOKEN` from @BotFather |
+| **Telegram** ✅ | Official Bot API (shipped) | `sendMessage` | `getUpdates` long-poll | `VANTA_TELEGRAM_TOKEN` from @BotFather |
 | **iMessage** | **Native macOS** (cleaner than Hermes's BlueBubbles for the local case) | AppleScript `osascript` (`tell application "Messages" to send`) | poll `~/Library/Messages/chat.db` SQLite (read-only, since-last-rowid) | **Full Disk Access** (chat.db) + **Automation** (osascript) perms. Optional **BlueBubbles** REST+webhook mode for cross-machine. |
 | **WhatsApp** | **Node subprocess bridge** (Hermes pattern) — spawn Baileys/whatsapp-web.js, talk over `localhost:PORT` (GET `/messages`, POST send) | bridge POST | bridge poll | **QR pair** (creds in `~/.argo/whatsapp/`). **Unofficial → ban risk + protocol breakage**; health-check + restart the bridge. **Business API** (Meta-verified) = ToS-safe alt. Bridge dep installs to `~/.argo`, never the repo (see `PLUGIN-SYSTEM`). |
 | **Signal** | `signal-cli` daemon, JSON-RPC over localhost | JSON-RPC `send` | SSE `/api/v1/events` | User runs + links `signal-cli` (Vanta doesn't do device registration). |
@@ -39,7 +39,7 @@ Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explai
 ## Steal from Hermes
 
 - **Code-based pairing (`MSG-PAIRING`, from `pairing.py`).** Replace the static
-  `ARGO_TELEGRAM_ALLOW` allowlist with a real consent flow: unknown sender → one-time short
+  `VANTA_TELEGRAM_ALLOW` allowlist with a real consent flow: unknown sender → one-time short
   code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, `0600` in
   `~/.argo/pairing/`); owner approves via CLI/TUI. Platform-agnostic — covers every adapter.
 - **Platform registry (`MSG-REGISTRY`, from `platform_registry.py`).** Each adapter

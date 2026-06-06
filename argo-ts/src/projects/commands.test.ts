@@ -14,7 +14,7 @@ describe("projects/commands", () => {
   beforeEach(async () => {
     projectsDir = await mkdtemp(join(tmpdir(), "argo-pcmd-rooms-"));
     home = await mkdtemp(join(tmpdir(), "argo-pcmd-home-"));
-    env = { ...process.env, ARGO_PROJECTS_DIR: projectsDir, ARGO_HOME: home };
+    env = { ...process.env, VANTA_PROJECTS_DIR: projectsDir, VANTA_HOME: home };
     log = vi.spyOn(console, "log").mockImplementation(() => undefined);
   });
 

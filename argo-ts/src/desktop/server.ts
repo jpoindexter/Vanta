@@ -63,7 +63,7 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     registry: setup.registry,
     root: state.root,
     requestApproval: (action, reason, toolName) => requestWebApproval(state, action, reason, toolName),
-    maxIterations: Number(process.env.ARGO_MAX_ITER) || undefined,
+    maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onEvent: (event) => {
@@ -96,7 +96,7 @@ async function handleStatus(state: DesktopState, res: http.ServerResponse): Prom
   sendJson(res, 200, {
     kernel: "online",
     model: live.setup.provider.modelId(),
-    provider: process.env.ARGO_PROVIDER ?? "openai",
+    provider: process.env.VANTA_PROVIDER ?? "openai",
     tools: live.setup.registry.list().length,
     sessionId: live.sessionId,
     goals: goals.filter((g) => g.status === "active"),
@@ -146,7 +146,7 @@ async function handleModels(res: http.ServerResponse): Promise<void> {
     short: p.short,
     defaultModel: p.defaultModel,
     models: p.models,
-    current: p.id === (process.env.ARGO_PROVIDER ?? "openai"),
+    current: p.id === (process.env.VANTA_PROVIDER ?? "openai"),
   })));
 }
 
@@ -155,11 +155,11 @@ async function handleSetModel(state: DesktopState, req: http.IncomingMessage, re
   const provider = typeof body.provider === "string" ? body.provider : "";
   const model = typeof body.model === "string" ? body.model : "";
   if (!provider || !model) return sendJson(res, 400, { error: "provider and model are required" });
-  process.env.ARGO_PROVIDER = provider;
-  process.env.ARGO_MODEL = model;
+  process.env.VANTA_PROVIDER = provider;
+  process.env.VANTA_MODEL = model;
   try {
     const existing = existsSync(envPath(state.root)) ? await readFile(envPath(state.root), "utf8") : "";
-    await writeFile(envPath(state.root), upsertEnv(existing, { ARGO_PROVIDER: provider, ARGO_MODEL: model }), { mode: 0o600 });
+    await writeFile(envPath(state.root), upsertEnv(existing, { VANTA_PROVIDER: provider, VANTA_MODEL: model }), { mode: 0o600 });
     const next = resolveProvider(process.env);
     state.convo?.setProvider(next, buildSummarizer(next));
     sendJson(res, 200, { provider, model });
