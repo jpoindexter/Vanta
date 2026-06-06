@@ -11,9 +11,9 @@ A local trusted-operator agent: knows the goal before it picks a tool, enforces 
 | Path | Layer | Language | Role |
 |------|-------|----------|------|
 | `src/` | `vanta-kernel` | Rust, zero deps | **Enforced** security boundary: risk classifier, approvals, goals, events, HTTP sidecar |
-| `argo-ts/` | `vanta` | TypeScript, Node 22 | Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel |
+| `vanta-ts/` | `vanta` | TypeScript, Node 22 | Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel |
 
-The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: `argo-ts/CLAUDE.md`.
+The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: `vanta-ts/CLAUDE.md`.
 
 ## Commands
 
@@ -34,7 +34,7 @@ cargo run -- serve 7788                   # cockpit + JSON API
 ./run.sh run "<instruction>"              # or ./vanta run "..." ; one-shot, kernel auto-starts
 ./run.sh help                              # list all subcommands
 
-# Agent (TypeScript) — from argo-ts/ (direct)
+# Agent (TypeScript) — from vanta-ts/ (direct)
 npm install
 npm run vanta                              # interactive session (no args)
 npm run vanta -- run "<instruction>"       # one-shot; kernel auto-starts if down

@@ -1,6 +1,6 @@
 # Handoff — O9 Dark Factory: Mid-Implementation
 Generated: 2026-06-03 15:15
-Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `argo-ts/`)
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `vanta-ts/`)
 Branch: feat/v1-hermes-parity (5 commits ahead of origin — NOT pushed)
 
 ## What Was Accomplished This Session
@@ -15,27 +15,27 @@ Branch: feat/v1-hermes-parity (5 commits ahead of origin — NOT pushed)
 
 3. **Implemented O9 Tasks 1–4** (all committed):
    - **Task 1** (`0fd0299`): `src/safety.rs` — `is_protected_path` + `extract_write_path` + integration into `assess_action`. 27 Rust tests pass.
-   - **Task 2** (`9a1c7a8`): `argo-ts/src/factory/types.ts` — all factory types.
-   - **Task 3** (`bbbe8be`): `argo-ts/src/factory/triage.ts` + `triage.test.ts` — pure parsers + `selectWorkItem`. 12 tests.
-   - **Task 4** (`ed7939c`): `argo-ts/src/factory/verifier.ts` + `verifier.test.ts` — trust gate (protected paths, existing-test guard, new-test-fails-on-old-code, full suite, tsc). 10 tests.
+   - **Task 2** (`9a1c7a8`): `vanta-ts/src/factory/types.ts` — all factory types.
+   - **Task 3** (`bbbe8be`): `vanta-ts/src/factory/triage.ts` + `triage.test.ts` — pure parsers + `selectWorkItem`. 12 tests.
+   - **Task 4** (`ed7939c`): `vanta-ts/src/factory/verifier.ts` + `verifier.test.ts` — trust gate (protected paths, existing-test guard, new-test-fails-on-old-code, full suite, tsc). 10 tests.
 
 ## Files Changed (this session)
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/interactive.ts` | Modified | Slash guard fix (Bug 1) + video routing (Bug 2) |
-| `argo-ts/src/repl-commands.ts` | Modified | `maybeDroppedVideo` added |
-| `argo-ts/src/repl-commands.test.ts` | Modified | `maybeDroppedVideo` test added |
-| `argo-ts/src/tools/look-at-screen.ts` | Modified | Permission error hint (Bug 3) |
-| `argo-ts/src/tools/look-at-screen.test.ts` | Modified | Minor |
-| `argo-ts/src/prompt.ts` | Modified | Image path scope clarification (Bug 4) |
-| `argo-ts/src/tui/app.tsx` | Modified | Slash guard fix (Bug 1) + video routing (Bug 2) |
+| `vanta-ts/src/interactive.ts` | Modified | Slash guard fix (Bug 1) + video routing (Bug 2) |
+| `vanta-ts/src/repl-commands.ts` | Modified | `maybeDroppedVideo` added |
+| `vanta-ts/src/repl-commands.test.ts` | Modified | `maybeDroppedVideo` test added |
+| `vanta-ts/src/tools/look-at-screen.ts` | Modified | Permission error hint (Bug 3) |
+| `vanta-ts/src/tools/look-at-screen.test.ts` | Modified | Minor |
+| `vanta-ts/src/prompt.ts` | Modified | Image path scope clarification (Bug 4) |
+| `vanta-ts/src/tui/app.tsx` | Modified | Slash guard fix (Bug 1) + video routing (Bug 2) |
 | `src/safety.rs` | Modified | `is_protected_path` + `extract_write_path` + integration (Task 1) |
-| `argo-ts/src/factory/types.ts` | Created | All factory types (Task 2) |
-| `argo-ts/src/factory/triage.ts` | Created | Triage module (Task 3) |
-| `argo-ts/src/factory/triage.test.ts` | Created | Triage tests (Task 3) |
-| `argo-ts/src/factory/verifier.ts` | Created | Verifier trust gate (Task 4) |
-| `argo-ts/src/factory/verifier.test.ts` | Created | Verifier tests (Task 4) |
+| `vanta-ts/src/factory/types.ts` | Created | All factory types (Task 2) |
+| `vanta-ts/src/factory/triage.ts` | Created | Triage module (Task 3) |
+| `vanta-ts/src/factory/triage.test.ts` | Created | Triage tests (Task 3) |
+| `vanta-ts/src/factory/verifier.ts` | Created | Verifier trust gate (Task 4) |
+| `vanta-ts/src/factory/verifier.test.ts` | Created | Verifier tests (Task 4) |
 | `docs/superpowers/plans/2026-06-03-o9-dark-factory-plan.md` | Created | Full 11-task implementation plan (UNTRACKED) |
 
 ## Current State
@@ -55,9 +55,9 @@ Branch: feat/v1-hermes-parity (5 commits ahead of origin — NOT pushed)
 | 6 | `factory/planner.ts` + `planner.test.ts` | PENDING |
 | 7 | `factory/run.ts` + `run.test.ts` | PENDING |
 | 8 | `AGENT-MANIFESTO.md` | PENDING |
-| 9 | `argo-ts/src/cli.ts` (add `vanta improve` + `vanta factory`) | PENDING |
-| 10 | `argo-ts/src/gateway/run.ts` (spawn factory as detached child) | PENDING |
-| 11 | `argo-ts/src/factory/CLAUDE.md` + `AGENTS.md` | PENDING |
+| 9 | `vanta-ts/src/cli.ts` (add `vanta improve` + `vanta factory`) | PENDING |
+| 10 | `vanta-ts/src/gateway/run.ts` (spawn factory as detached child) | PENDING |
+| 11 | `vanta-ts/src/factory/CLAUDE.md` + `AGENTS.md` | PENDING |
 
 Where left off: **Task 5 was just starting** (`TaskUpdate` to in_progress was the last action).
 
@@ -89,24 +89,24 @@ Where left off: **Task 5 was just starting** (`TaskUpdate` to in_progress was th
 - **gateway/run.ts** currently imports `loadCron` from `schedule/cron.ts` inside `gatewayTick` via the `load?` injection. Task 10 intercepts before the existing `runDueTasks` call — don't refactor the existing tick logic, just add the factory-entry detection before it.
 - **535 TS tests pass** right now — any regression is a bug in the new code.
 - **Model guidance:** Sonnet 4.6 for mechanical implementation (all remaining tasks). Switch to Opus only for a new debugging session.
-- **Gotcha:** `argo-ts/src/tools/tools.test.ts` has a sorted tool-name list — if you add a new tool, add its name there. The factory doesn't add new tools, so this doesn't apply here.
+- **Gotcha:** `vanta-ts/src/tools/tools.test.ts` has a sorted tool-name list — if you add a new tool, add its name there. The factory doesn't add new tools, so this doesn't apply here.
 
 ## Continuation Prompt
 
 Paste this into a new Claude session to resume:
 
 ---
-Resume Vanta O9 dark-factory implementation. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (agent code in `argo-ts/`, branch `feat/v1-hermes-parity`, 5 commits ahead of origin — NOT pushed).
+Resume Vanta O9 dark-factory implementation. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (agent code in `vanta-ts/`, branch `feat/v1-hermes-parity`, 5 commits ahead of origin — NOT pushed).
 
 **First:** commit the plan file: `git add docs/superpowers/plans/ && git commit -m "docs(o9): implementation plan"`
 
-**Context:** The O9 dark-factory feature gives Vanta an autonomous loop that improves its own codebase — one reviewable slice per cycle. The Rust kernel enforces that the factory can never edit `src/*.rs`, `argo-ts/src/factory/*.ts`, or `MANIFESTO.md` (via `is_protected_path` in `src/safety.rs`).
+**Context:** The O9 dark-factory feature gives Vanta an autonomous loop that improves its own codebase — one reviewable slice per cycle. The Rust kernel enforces that the factory can never edit `src/*.rs`, `vanta-ts/src/factory/*.ts`, or `MANIFESTO.md` (via `is_protected_path` in `src/safety.rs`).
 
 **Tasks 1–4 are DONE and committed:**
 - Task 1: `src/safety.rs` — `is_protected_path` + write-assessor integration (27 Rust tests)
-- Task 2: `argo-ts/src/factory/types.ts` — all types
-- Task 3: `argo-ts/src/factory/triage.ts` + tests — reads vitest JSON/tsc stderr/ROADMAP/PARKED → WorkItem
-- Task 4: `argo-ts/src/factory/verifier.ts` + tests — trust gate (protected paths, new-test-fails-on-old-code, full suite, tsc)
+- Task 2: `vanta-ts/src/factory/types.ts` — all types
+- Task 3: `vanta-ts/src/factory/triage.ts` + tests — reads vitest JSON/tsc stderr/ROADMAP/PARKED → WorkItem
+- Task 4: `vanta-ts/src/factory/verifier.ts` + tests — trust gate (protected paths, new-test-fails-on-old-code, full suite, tsc)
 
 **535 TS + 27 Rust tests pass, tsc clean.**
 

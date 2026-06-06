@@ -49,7 +49,7 @@ Branch: feat/v1-hermes-parity
    - `re-export { reduce, State, Action }` from `app.tsx` for `app.test.tsx` compat
 
 8. **Docs sync**
-   - `argo-ts/CLAUDE.md`: 8 new file map entries; TUI/REPL commands updated; session additions updated
+   - `vanta-ts/CLAUDE.md`: 8 new file map entries; TUI/REPL commands updated; session additions updated
    - `ROADMAP.md`: `## SHIPPED 2026-06-04 (session 2)` added; U2 ticked `[x]`; Polish tier updated
    - `CLAUDE.md`: counts correct (43 tools · 724 TS + 27 Rust = 751 tests)
    - `roadmap.json`: all 6 items → `shipped`
@@ -58,30 +58,30 @@ Branch: feat/v1-hermes-parity
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/roadmap/server.ts` | Created | KANBAN-S2 HTTP server |
-| `argo-ts/src/roadmap/server.test.ts` | Created | 8 server route tests |
-| `argo-ts/src/roadmap/render.ts` | Modified | `data-id`/`data-status` attrs, drag JS + CSS |
-| `argo-ts/src/tui/composer.tsx` | Modified | `navigateHistory`, `history`/`isHistoryActive` props, shift+enter |
-| `argo-ts/src/tui/composer.test.ts` | Created | 8 navigateHistory tests |
-| `argo-ts/src/tui/app.tsx` | Modified | 398→178L; `inputHistory`, `atFiles`, @ palette, `handleSlash`+`submit` split |
-| `argo-ts/src/tui/app-reducer.ts` | Created | `State`/`Action`/`reduce` extracted |
-| `argo-ts/src/tui/use-agent-send.ts` | Created | `useAgentSend` hook |
-| `argo-ts/src/tui/markdown.tsx` | Created | Markdown renderer |
-| `argo-ts/src/tui/markdown.test.ts` | Created | 15 tokenize/parse tests |
-| `argo-ts/src/tui/transcript.tsx` | Modified | Assistant entries → `renderMarkdown` |
-| `argo-ts/src/tui/at-context.ts` | Created | @-ref parsing + file listing |
-| `argo-ts/src/tui/at-context.test.ts` | Created | 16 at-context tests |
-| `argo-ts/src/repl/next.ts` | Created | `/next` handler |
-| `argo-ts/src/repl/next.test.ts` | Created | 5 next handler tests |
-| `argo-ts/src/repl/plan-mode.ts` | Created | `/planmode` handler |
-| `argo-ts/src/repl/plan-mode.test.ts` | Created | 7 planmode tests |
-| `argo-ts/src/repl/handlers.ts` | Modified | `next` + `planMode` imported + registered |
-| `argo-ts/src/repl/catalog.ts` | Modified | `/next` + `/planmode` in SLASH_COMMANDS |
-| `argo-ts/src/cli/ops.ts` | Modified | `vanta roadmap serve` subcommand |
-| `argo-ts/src/cli.ts` | Modified | Usage string updated |
+| `vanta-ts/src/roadmap/server.ts` | Created | KANBAN-S2 HTTP server |
+| `vanta-ts/src/roadmap/server.test.ts` | Created | 8 server route tests |
+| `vanta-ts/src/roadmap/render.ts` | Modified | `data-id`/`data-status` attrs, drag JS + CSS |
+| `vanta-ts/src/tui/composer.tsx` | Modified | `navigateHistory`, `history`/`isHistoryActive` props, shift+enter |
+| `vanta-ts/src/tui/composer.test.ts` | Created | 8 navigateHistory tests |
+| `vanta-ts/src/tui/app.tsx` | Modified | 398→178L; `inputHistory`, `atFiles`, @ palette, `handleSlash`+`submit` split |
+| `vanta-ts/src/tui/app-reducer.ts` | Created | `State`/`Action`/`reduce` extracted |
+| `vanta-ts/src/tui/use-agent-send.ts` | Created | `useAgentSend` hook |
+| `vanta-ts/src/tui/markdown.tsx` | Created | Markdown renderer |
+| `vanta-ts/src/tui/markdown.test.ts` | Created | 15 tokenize/parse tests |
+| `vanta-ts/src/tui/transcript.tsx` | Modified | Assistant entries → `renderMarkdown` |
+| `vanta-ts/src/tui/at-context.ts` | Created | @-ref parsing + file listing |
+| `vanta-ts/src/tui/at-context.test.ts` | Created | 16 at-context tests |
+| `vanta-ts/src/repl/next.ts` | Created | `/next` handler |
+| `vanta-ts/src/repl/next.test.ts` | Created | 5 next handler tests |
+| `vanta-ts/src/repl/plan-mode.ts` | Created | `/planmode` handler |
+| `vanta-ts/src/repl/plan-mode.test.ts` | Created | 7 planmode tests |
+| `vanta-ts/src/repl/handlers.ts` | Modified | `next` + `planMode` imported + registered |
+| `vanta-ts/src/repl/catalog.ts` | Modified | `/next` + `/planmode` in SLASH_COMMANDS |
+| `vanta-ts/src/cli/ops.ts` | Modified | `vanta roadmap serve` subcommand |
+| `vanta-ts/src/cli.ts` | Modified | Usage string updated |
 | `roadmap.json` | Modified | 6 items shipped, U2→shipped |
 | `CLAUDE.md` | Modified | Test counts updated |
-| `argo-ts/CLAUDE.md` | Modified | File map + session additions updated |
+| `vanta-ts/CLAUDE.md` | Modified | File map + session additions updated |
 | `ROADMAP.md` | Modified | Session 2 shipped section + U2 tick |
 
 ## Current State
@@ -151,7 +151,7 @@ The roadmap is now all `shipped` or `horizon` — no `next`/`building` items. Ch
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 751 TS + 27 Rust = 778 total tests green, tsc clean, all committed and pushed).
 
-Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` + 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `vanta-ts/CLAUDE.md` + 5 planning docs first.
 
 **This session shipped (in order):**
 1. KANBAN-S2 — drag-and-drop roadmap board (`vanta roadmap serve` → `http://localhost:7789/roadmap/board`)

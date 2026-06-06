@@ -14,7 +14,7 @@ Branch: feat/v1-hermes-parity (all pushed; tag v0.1.0 pushed)
 - **4-way agent audit** → `audit.json`/`audit.html` (Vanta vs Hermes vs Goose vs Claude Code) + live issue triage + ND-vision filter (F1–F6).
 - **Vision reframe** (DECISIONS.md + audit): full-capability operator, **executive-function-first, inclusive** (curb-cut effect) — not "an agent for ND people." Moat = follow-through. Brain identity already `neurodivergent-first`.
 - **Self-repair architecture** → `docs/self-repair-architecture.md` + `SR` roadmap item (propose→differential-conformance→blue-green-swap→human-promote; immutable trust root).
-- **Dynamic-workflows** skill → `argo-ts/skills-library/agent-orchestration-workflows/` (from Thariq article).
+- **Dynamic-workflows** skill → `vanta-ts/skills-library/agent-orchestration-workflows/` (from Thariq article).
 - **Factory-evolution research** → `docs/factory-evolution.md` + 7 `FAC-*` items (studied OctopusGarden/StrongDM/Willison/Ouroboros/Five-Levels; adapt-not-copy).
 - **TUI parity** → 12 `TUI-*` items (Claude Code/Codex/Gemini/Hermes gaps).
 - **Kanban research** → `docs/kanban-roadmap-research.md` + `KANBAN` item.
@@ -40,7 +40,7 @@ None. Every thread was committed + pushed. This session was ~14 user goals, most
 
 ## Exact Next Steps (in order)
 1. [ ] Decide the ONE next build (see Blocked). Put one card in "building" — dogfood the WIP limit.
-2. [ ] If `FAC-BORNSMALL`: follow `docs/factory-evolution.md` Slice 1 — pure `checkNewFilesUnderLineLimit` (NEW files only) in `factory/verifier.ts` + `argo-ts/CONVENTIONS.md`. Test-first (`verifier.test.ts`), tsc, full suite green, commit+push.
+2. [ ] If `FAC-BORNSMALL`: follow `docs/factory-evolution.md` Slice 1 — pure `checkNewFilesUnderLineLimit` (NEW files only) in `factory/verifier.ts` + `vanta-ts/CONVENTIONS.md`. Test-first (`verifier.test.ts`), tsc, full suite green, commit+push.
 3. [ ] Set the live model — still on the ollama/qwen seed; `vanta setup` → claude-code/sonnet for real runs.
 
 ## Context That's Easy to Lose
@@ -55,7 +55,7 @@ None. Every thread was committed + pushed. This session was ~14 user goals, most
 Paste into a new session to resume:
 
 ---
-Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, pushed, tag v0.1.0). Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, pushed, tag v0.1.0). Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root CLAUDE.md + vanta-ts/CLAUDE.md + the 5 planning docs first.
 
 Last session shipped O11 (compartment autonomy tiers), O10b (L5 auto-merge, off by default), TUI-SMOOTH (clean activity feed), refactored repl-commands.ts→registry + cli.ts→cli/ops.ts, did a 4-way agent audit (audit.html), reframed the vision (executive-function-first/inclusive — see DECISIONS.md), and captured a large research backlog into roadmap.json (77 items): FAC-* (factory hardening — see docs/factory-evolution.md), TUI-* (TUI parity), ND1-6 (executive-function spine), SR (self-repair), KANBAN. Nothing from the research was built — it's a capture backlog by design.
 

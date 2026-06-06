@@ -42,33 +42,33 @@ Examined 3 external sources and added 28 new horizon roadmap items + 3 design do
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/roadmap/wip.ts` | Created | KANBAN-S3: WipLimitError + checkWipLimit |
-| `argo-ts/src/roadmap/wip.test.ts` | Created | 8 wip tests |
-| `argo-ts/src/roadmap/move.ts` | Modified | Wire checkWipLimit, re-export WipLimitError |
-| `argo-ts/src/roadmap/server.ts` | Modified | 409 for WipLimitError, WIP_LIMIT import |
-| `argo-ts/src/roadmap/server.test.ts` | Modified | +4 WIP limit server tests |
-| `argo-ts/src/roadmap/render.ts` | Modified | WIP count badge on Now column header |
-| `argo-ts/src/util/diff.ts` | Created | LCS diff pure fn |
-| `argo-ts/src/util/diff.test.ts` | Created | 8 diff tests |
-| `argo-ts/src/tui/diff-view.tsx` | Created | Ink diff rendering component |
-| `argo-ts/src/tools/types.ts` | Modified | DiffLine + diff? on ToolResult |
-| `argo-ts/src/tools/write-file.ts` | Modified | Read old content, compute diff, include in result |
-| `argo-ts/src/agent.ts` | Modified | Thread diff through onToolResult callback |
-| `argo-ts/src/tui/app-reducer.ts` | Modified | diff? on toolResult Action + ToolEntry |
-| `argo-ts/src/tui/transcript.tsx` | Modified | diff? on ToolEntry, DiffView render |
-| `argo-ts/src/tui/app.tsx` | Modified | Pass diff to dispatch; mode state; shift+tab |
-| `argo-ts/src/tui/approval-mode.ts` | Created | ApprovalMode + nextMode |
-| `argo-ts/src/tui/approval-mode.test.ts` | Created | 4 mode tests |
-| `argo-ts/src/tui/use-approval.ts` | Modified | Accept modeRef, auto-approve in auto mode |
-| `argo-ts/src/tui/status-bar.tsx` | Modified | mode? prop → ⚡auto indicator |
-| `argo-ts/src/repl/nudge.ts` | Created | shouldNudge + buildNudgeText |
-| `argo-ts/src/repl/nudge.test.ts` | Created | 11 nudge tests |
-| `argo-ts/src/session.ts` | Modified | nudgeAfterTurn function |
-| `argo-ts/src/tui/use-agent-send.ts` | Modified | Accept safety, call nudgeAfterTurn |
-| `argo-ts/src/factory/intent-judge.ts` | Created | parseJudgeResponse + checkIntentSatisfied |
-| `argo-ts/src/factory/intent-judge.test.ts` | Created | 11 intent judge tests |
-| `argo-ts/src/factory/verifier.ts` | Modified | Step 7: intent judge gate + VerifyOpts |
-| `argo-ts/src/factory/run.ts` | Modified | Pass workItem: item to verify() |
+| `vanta-ts/src/roadmap/wip.ts` | Created | KANBAN-S3: WipLimitError + checkWipLimit |
+| `vanta-ts/src/roadmap/wip.test.ts` | Created | 8 wip tests |
+| `vanta-ts/src/roadmap/move.ts` | Modified | Wire checkWipLimit, re-export WipLimitError |
+| `vanta-ts/src/roadmap/server.ts` | Modified | 409 for WipLimitError, WIP_LIMIT import |
+| `vanta-ts/src/roadmap/server.test.ts` | Modified | +4 WIP limit server tests |
+| `vanta-ts/src/roadmap/render.ts` | Modified | WIP count badge on Now column header |
+| `vanta-ts/src/util/diff.ts` | Created | LCS diff pure fn |
+| `vanta-ts/src/util/diff.test.ts` | Created | 8 diff tests |
+| `vanta-ts/src/tui/diff-view.tsx` | Created | Ink diff rendering component |
+| `vanta-ts/src/tools/types.ts` | Modified | DiffLine + diff? on ToolResult |
+| `vanta-ts/src/tools/write-file.ts` | Modified | Read old content, compute diff, include in result |
+| `vanta-ts/src/agent.ts` | Modified | Thread diff through onToolResult callback |
+| `vanta-ts/src/tui/app-reducer.ts` | Modified | diff? on toolResult Action + ToolEntry |
+| `vanta-ts/src/tui/transcript.tsx` | Modified | diff? on ToolEntry, DiffView render |
+| `vanta-ts/src/tui/app.tsx` | Modified | Pass diff to dispatch; mode state; shift+tab |
+| `vanta-ts/src/tui/approval-mode.ts` | Created | ApprovalMode + nextMode |
+| `vanta-ts/src/tui/approval-mode.test.ts` | Created | 4 mode tests |
+| `vanta-ts/src/tui/use-approval.ts` | Modified | Accept modeRef, auto-approve in auto mode |
+| `vanta-ts/src/tui/status-bar.tsx` | Modified | mode? prop → ⚡auto indicator |
+| `vanta-ts/src/repl/nudge.ts` | Created | shouldNudge + buildNudgeText |
+| `vanta-ts/src/repl/nudge.test.ts` | Created | 11 nudge tests |
+| `vanta-ts/src/session.ts` | Modified | nudgeAfterTurn function |
+| `vanta-ts/src/tui/use-agent-send.ts` | Modified | Accept safety, call nudgeAfterTurn |
+| `vanta-ts/src/factory/intent-judge.ts` | Created | parseJudgeResponse + checkIntentSatisfied |
+| `vanta-ts/src/factory/intent-judge.test.ts` | Created | 11 intent judge tests |
+| `vanta-ts/src/factory/verifier.ts` | Modified | Step 7: intent judge gate + VerifyOpts |
+| `vanta-ts/src/factory/run.ts` | Modified | Pass workItem: item to verify() |
 | `docs/executive-dysfunction-brain-design.md` | Created | Full EF→Vanta design spec |
 | `docs/ef-network-analysis.md` | Created | Real session EF pattern analysis |
 | `roadmap.json` | Modified | 105 total items (+28 new horizon items) |
@@ -118,7 +118,7 @@ These can be done in any order but this sequence builds the most momentum:
 1. [ ] **PROMPT-STABILITY** — Freeze the stable prompt prefix for LLM cache hit rate.
    - `prompt.ts`: compute the stable tier (SOUL + tools + rules + skills index) once per session as a constant. Only inject goals/time/moim in the trailing volatile section.
    - Why first: saves money on every single turn, zero new concepts, 1hr.
-   - File: `argo-ts/src/prompt.ts` (look at `buildSystemPrompt()`)
+   - File: `vanta-ts/src/prompt.ts` (look at `buildSystemPrompt()`)
 
 2. [ ] **EF-VELOCITY** — Rolling capture:ship ratio in `/status`.
    - `~/.vanta/velocity.json`: append on every roadmap item creation (capture) + every `roadmap_move` to `shipped` (ship). Read in `/status` output.
@@ -236,7 +236,7 @@ These are meatier but all well-specified:
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 798 tests green, tsc clean, all committed and pushed).
 
-Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `vanta-ts/CLAUDE.md` first.
 
 **Last session shipped:**
 - KANBAN-S3: WIP limit (cap 2) on building column — 409 from server, badge in board HTML

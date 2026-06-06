@@ -228,8 +228,8 @@ suspending Ink.
 
 ## 5. Vanta-port note (what Hermes has that Vanta's `vanta setup` lacks)
 
-Vanta already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
-`argo-ts/src/providers/catalog.ts`):
+Vanta already has (`vanta-ts/src/setup.ts`, `vanta-ts/src/cli.ts`,
+`vanta-ts/src/providers/catalog.ts`):
 - `runSetup()` interactive wizard: provider menu → hidden API-key prompt →
   model prompt → `upsertEnv()` writes to `.env` (mode `0o600`).
 - `isConfigured(env)` gate (`cli.ts:78`) + `process.stdin.isTTY` check

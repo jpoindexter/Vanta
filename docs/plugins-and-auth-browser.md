@@ -10,7 +10,7 @@ The fear was that installing Playwright/Chromium polluted the repo. It did not.
 | Thing | Where it lives | In repo? |
 |-------|----------------|----------|
 | Playwright Chromium binary | `~/Library/Caches/ms-playwright/chromium-1223` (OS cache) | No |
-| `playwright-core` package | `argo-ts/node_modules/` (lazy-required) | No (gitignored) |
+| `playwright-core` package | `vanta-ts/node_modules/` (lazy-required) | No (gitignored) |
 | Rust build | `target/` | No (gitignored) |
 | Runtime state | `~/.vanta/` (global) + repo `.vanta/` (gitignored) | No |
 | Audit clones | `reference/` (812M) | No (gitignored) |
@@ -82,10 +82,10 @@ browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPer
 6. Visible indicator — say "Using authenticated profile: x.com" on every authed use.
 
 ### Files
-- `argo-ts/src/browser/profile.ts` — `browserProfileRoot(env)`, `sanitizeProfileId`
+- `vanta-ts/src/browser/profile.ts` — `browserProfileRoot(env)`, `sanitizeProfileId`
   (reject `../`), `profilePath` (`mkdir 0700` under `~/.vanta/browser-profiles`),
   `profileAllowsUrl(profile, url)`.
-- `argo-ts/src/tools/browser-auth.ts`, `browser-extract-auth.ts` — registered in
+- `vanta-ts/src/tools/browser-auth.ts`, `browser-extract-auth.ts` — registered in
   `tools/index.ts`.
 - Tests (mostly pure, no live browser): id sanitization rejects `../../secrets`; path
   stays under `~/.vanta/browser-profiles`; `x.com` allows `x.com/search`, refuses

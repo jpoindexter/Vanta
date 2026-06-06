@@ -24,9 +24,9 @@ if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
   echo -e "${CYAN}→${NC} building the Rust safety kernel (first run)…"
   cargo build
 fi
-if [ ! -d "$SCRIPT_DIR/argo-ts/node_modules" ]; then
+if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
   echo -e "${CYAN}→${NC} installing agent dependencies (first run)…"
-  (cd "$SCRIPT_DIR/argo-ts" && npm install)
+  (cd "$SCRIPT_DIR/vanta-ts" && npm install)
 fi
 echo -e "${GREEN}✓${NC} kernel + deps ready"
 

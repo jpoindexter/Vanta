@@ -55,7 +55,7 @@ roadmap.json   ← single source of truth (agent-ready)
   collapsed "Shipped" lane`.
 - Zod schema validates at the boundary (rejects bad status / missing fields).
 
-### Modules — `argo-ts/src/roadmap/`
+### Modules — `vanta-ts/src/roadmap/`
 
 | File | Kind | Role |
 |------|------|------|

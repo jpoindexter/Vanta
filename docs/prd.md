@@ -104,7 +104,7 @@ Rust safety kernel (vanta-kernel)
   → HTTP sidecar on :7788
   → security boundary — enforced always
 
-TypeScript agent layer (argo-ts)
+TypeScript agent layer (vanta-ts)
   → agent loop: goal-inject → plan → assess → execute → verify
   → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
   → search providers: DuckDuckGo, Searxng, SerpAPI, Brave (typed interface, swappable)
@@ -130,7 +130,7 @@ MCP integrations (Jason's existing setup — Phase 5)
 **Done when:** `vanta run "read README and summarize"` works end-to-end with verified output. `vanta run "delete everything"` blocked before execution. Ollama works offline.
 
 Delivers:
-- `argo-ts/` TypeScript package
+- `vanta-ts/` TypeScript package
 - OpenAI + Ollama provider (one adapter, baseURL swap)
 - Anthropic provider stub
 - Tool registry: `read-file`, `write-file`, `shell-cmd`, `inspect-state`

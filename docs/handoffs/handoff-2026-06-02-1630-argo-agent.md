@@ -10,18 +10,18 @@ Branch: `main` (working tree clean, everything committed)
 - **Interactive agent shell** (the big one this session): `vanta` with no args launches a banner (logo, model, goals, all 32 tools, skills) + a chat REPL with persistent conversation — the Hermes/OpenClaw "straight-up agent" experience. Verified: banner renders, loop runs, `vanta run "list my goals"` works live on Ollama.
 - **Launchers:** `./run.sh` (download-&-run: bootstraps kernel + deps on first run) and `./vanta` alias. Global `vanta` via `npm link` (symlink at `~/.hermes/node/bin/vanta`).
 - **Flow map:** `docs/vanta-flow.md` — Hermes runtime flow as a Mermaid flowchart, mapped 1:1 to Vanta modules + a gap list.
-- Docs kept current: root `CLAUDE.md`, `argo-ts/CLAUDE.md`, `DECISIONS.md`, `PARKED.md`, `HANDOFF.md`, project memory.
+- Docs kept current: root `CLAUDE.md`, `vanta-ts/CLAUDE.md`, `DECISIONS.md`, `PARKED.md`, `HANDOFF.md`, project memory.
 
 ## Files Changed (this session, beyond the 7 phase commits)
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/agent.ts` | Modified | Extracted `runTurn`; added `createConversation` (history persists across turns); `runAgent` now wraps it (behavior identical) |
-| `argo-ts/src/session.ts` | Created | Shared run setup pulled out of cli.ts: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver` |
-| `argo-ts/src/interactive.ts` | Created | `renderBanner` + `runChat` (the REPL) |
-| `argo-ts/src/cli.ts` | Rewritten | `vanta` (no args) → `runChat`; imports from session.ts; slimmer |
-| `argo-ts/bin/vanta.mjs` | Created | Global bin shim (spawns local tsx on cli.ts, inherits TTY) |
-| `argo-ts/package.json` | Modified | Added `"bin": { "vanta": "bin/vanta.mjs" }` |
-| `argo-ts/vitest.config.ts` | Created (Phase 6) | 20s testTimeout for TS-compiler LSP tests (flake fix) |
+| `vanta-ts/src/agent.ts` | Modified | Extracted `runTurn`; added `createConversation` (history persists across turns); `runAgent` now wraps it (behavior identical) |
+| `vanta-ts/src/session.ts` | Created | Shared run setup pulled out of cli.ts: `prepareRun`, `buildSummarizer`, `writeRunMemory`, `consoleCallbacks`, `approver` |
+| `vanta-ts/src/interactive.ts` | Created | `renderBanner` + `runChat` (the REPL) |
+| `vanta-ts/src/cli.ts` | Rewritten | `vanta` (no args) → `runChat`; imports from session.ts; slimmer |
+| `vanta-ts/bin/vanta.mjs` | Created | Global bin shim (spawns local tsx on cli.ts, inherits TTY) |
+| `vanta-ts/package.json` | Modified | Added `"bin": { "vanta": "bin/vanta.mjs" }` |
+| `vanta-ts/vitest.config.ts` | Created (Phase 6) | 20s testTimeout for TS-compiler LSP tests (flake fix) |
 | `run.sh`, `vanta` | Created | Repo-root launchers |
 | `docs/vanta-flow.md` | Created | Runtime flow map + gap list |
 
@@ -68,11 +68,11 @@ Items 1–3 are small + high-impact on the "feels like a real agent" axis. Recom
 Paste into a new Claude session to resume:
 
 ---
-Resume work on **Vanta** at `/Users/jasonpoindexter/Documents/GitHub/Vanta` (branch `main`, clean tree). Vanta is a local trusted-operator agent: Rust safety kernel (`src/`, enforced boundary on :7788) + TypeScript agent layer (`argo-ts/`). Read `CLAUDE.md` (root) + `argo-ts/CLAUDE.md` + `docs/vanta-flow.md` first — they're the source of truth (file maps, env, the runtime flow, gaps).
+Resume work on **Vanta** at `/Users/jasonpoindexter/Documents/GitHub/Vanta` (branch `main`, clean tree). Vanta is a local trusted-operator agent: Rust safety kernel (`src/`, enforced boundary on :7788) + TypeScript agent layer (`vanta-ts/`). Read `CLAUDE.md` (root) + `vanta-ts/CLAUDE.md` + `docs/vanta-flow.md` first — they're the source of truth (file maps, env, the runtime flow, gaps).
 
 State: **all 7 PRD phases done, 290 tests green** (16 Rust + 274 TS), typecheck clean. `vanta` (no args) launches an interactive banner + chat REPL — the agent works live on Ollama qwen2.5:14b. Run it with `./vanta` or `./run.sh` from the repo (global `vanta` needs `~/.hermes/node/bin` on PATH).
 
-Verify baseline: `cargo test && (cd argo-ts && npm test && npm run typecheck)`.
+Verify baseline: `cargo test && (cd vanta-ts && npm test && npm run typecheck)`.
 
 Next slice (from `docs/vanta-flow.md` gap list, in order): (1) `vanta setup` first-run wizard, (2) `vanta status`/`doctor` on the TS side, (3) wire `skills/curator.ts curate()` into the loop's post-turn step, then (4) conversation sessions persist/resume. Items 1–3 are small + high-impact.
 

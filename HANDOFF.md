@@ -6,10 +6,10 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 
 ## Where things are
 
-- **Repo:** `~/Documents/GitHub/Vanta` (Rust kernel `src/*.rs`; TS agent `argo-ts/`).
+- **Repo:** `~/Documents/GitHub/Vanta` (Rust kernel `src/*.rs`; TS agent `vanta-ts/`).
 - **Branch:** `feat/v1-hermes-parity` — **synced with origin, clean tree.**
 - **Tests:** 554 TS (vitest) + 27 Rust = **581 green**; `tsc --noEmit` clean.
-  - Run: `cd argo-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
+  - Run: `cd vanta-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
 - **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Vanta/`. `VANTA_ROOT` env var is the fix.
 
 ## Source-of-truth docs
@@ -17,8 +17,8 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 - `MANIFESTO.md` — north star, 8 hard lines, non-negotiable.
 - `ROADMAP.md` — **fully updated this session** — all shipped items ticked, residual section current.
 - `DECISIONS.md` — locked choices (append-only).
-- `argo-ts/CLAUDE.md` + `argo-ts/AGENTS.md` — file map + env + tool-add checklist.
-- `argo-ts/src/factory/CLAUDE.md` — factory module map + safety invariants.
+- `vanta-ts/CLAUDE.md` + `vanta-ts/AGENTS.md` — file map + env + tool-add checklist.
+- `vanta-ts/src/factory/CLAUDE.md` — factory module map + safety invariants.
 
 ---
 
@@ -27,8 +27,8 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 **4 bug fixes** — dropped paths, video routing, screen permission hint, scope message (all committed, pushed).
 
 **O9 dark factory — complete:**
-- `src/safety.rs` — `is_protected_path` blocks writes to `src/*.rs`, `argo-ts/src/factory/*.ts`, `MANIFESTO.md`
-- `argo-ts/src/factory/` — triage, planner, executor, verifier, run + tests
+- `src/safety.rs` — `is_protected_path` blocks writes to `src/*.rs`, `vanta-ts/src/factory/*.ts`, `MANIFESTO.md`
+- `vanta-ts/src/factory/` — triage, planner, executor, verifier, run + tests
 - `AGENT-MANIFESTO.md` at repo root (writable, not kernel-protected)
 - `vanta improve` + `vanta factory [approve|status]` CLI
 - Gateway: `__factory__` cron entries spawn detached child
@@ -77,7 +77,7 @@ Start with source code (safe), ask about docs before deleting.
 ## Continuation prompt
 
 ```
-Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in argo-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
+Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in vanta-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
 
 Status: v1 complete. O9 dark factory shipped and live-verified. ROADMAP fully updated.
 

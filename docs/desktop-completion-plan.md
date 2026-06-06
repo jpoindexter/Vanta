@@ -11,18 +11,18 @@ Repo:
 Current rough desktop files:
 
 ```text
-argo-ts/src/desktop/page.ts
-argo-ts/src/desktop/server.ts
-argo-ts/src/desktop/server.test.ts
-argo-ts/src/desktop/native-shell.md
-argo-ts/src/desktop/AGENTS.md
-argo-ts/src/desktop/CLAUDE.md
+vanta-ts/src/desktop/page.ts
+vanta-ts/src/desktop/server.ts
+vanta-ts/src/desktop/server.test.ts
+vanta-ts/src/desktop/native-shell.md
+vanta-ts/src/desktop/AGENTS.md
+vanta-ts/src/desktop/CLAUDE.md
 ```
 
 Current run command:
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts
 npm run vanta -- desktop
 ```
 
@@ -130,7 +130,7 @@ Vanta is not Hermes. Vanta has a Rust safety kernel and every action must respec
 - Verify before claiming done:
 
 ```bash
-cd argo-ts
+cd vanta-ts
 npx vitest run
 npx tsc --noEmit
 ```
@@ -150,8 +150,8 @@ vanta desktop [port]
 Wired in:
 
 ```text
-argo-ts/src/cli.ts
-argo-ts/src/cli/ops.ts
+vanta-ts/src/cli.ts
+vanta-ts/src/cli/ops.ts
 ```
 
 Current desktop backend endpoints:
@@ -222,53 +222,53 @@ Tauri can be revisited later if size/performance matters more than speed.
 Add a real desktop app under:
 
 ```text
-argo-ts/desktop-app/
+vanta-ts/desktop-app/
 ```
 
 Suggested structure:
 
 ```text
-argo-ts/desktop-app/package.json
-argo-ts/desktop-app/vite.config.ts
-argo-ts/desktop-app/tsconfig.json
-argo-ts/desktop-app/electron/main.cjs
-argo-ts/desktop-app/electron/preload.cjs
-argo-ts/desktop-app/src/main.tsx
-argo-ts/desktop-app/src/app.tsx
-argo-ts/desktop-app/src/api/client.ts
-argo-ts/desktop-app/src/state/session-store.ts
-argo-ts/desktop-app/src/components/AppShell.tsx
-argo-ts/desktop-app/src/components/SessionSidebar.tsx
-argo-ts/desktop-app/src/components/ChatThread.tsx
-argo-ts/desktop-app/src/components/Composer.tsx
-argo-ts/desktop-app/src/components/RightRail.tsx
-argo-ts/desktop-app/src/components/FileTree.tsx
-argo-ts/desktop-app/src/components/TerminalRail.tsx
-argo-ts/desktop-app/src/components/PreviewRail.tsx
-argo-ts/desktop-app/src/components/CommandPalette.tsx
-argo-ts/desktop-app/src/components/CommandCenter.tsx
-argo-ts/desktop-app/src/components/ModelPicker.tsx
-argo-ts/desktop-app/src/components/ApprovalModal.tsx
-argo-ts/desktop-app/src/styles.css
+vanta-ts/desktop-app/package.json
+vanta-ts/desktop-app/vite.config.ts
+vanta-ts/desktop-app/tsconfig.json
+vanta-ts/desktop-app/electron/main.cjs
+vanta-ts/desktop-app/electron/preload.cjs
+vanta-ts/desktop-app/src/main.tsx
+vanta-ts/desktop-app/src/app.tsx
+vanta-ts/desktop-app/src/api/client.ts
+vanta-ts/desktop-app/src/state/session-store.ts
+vanta-ts/desktop-app/src/components/AppShell.tsx
+vanta-ts/desktop-app/src/components/SessionSidebar.tsx
+vanta-ts/desktop-app/src/components/ChatThread.tsx
+vanta-ts/desktop-app/src/components/Composer.tsx
+vanta-ts/desktop-app/src/components/RightRail.tsx
+vanta-ts/desktop-app/src/components/FileTree.tsx
+vanta-ts/desktop-app/src/components/TerminalRail.tsx
+vanta-ts/desktop-app/src/components/PreviewRail.tsx
+vanta-ts/desktop-app/src/components/CommandPalette.tsx
+vanta-ts/desktop-app/src/components/CommandCenter.tsx
+vanta-ts/desktop-app/src/components/ModelPicker.tsx
+vanta-ts/desktop-app/src/components/ApprovalModal.tsx
+vanta-ts/desktop-app/src/styles.css
 ```
 
-Keep the existing `argo-ts/src/desktop/server.ts` as the local backend initially, but refactor it into smaller modules.
+Keep the existing `vanta-ts/src/desktop/server.ts` as the local backend initially, but refactor it into smaller modules.
 
 Suggested backend structure:
 
 ```text
-argo-ts/src/desktop/server.ts              # route wiring only
-argo-ts/src/desktop/state.ts               # DesktopState, session maps
-argo-ts/src/desktop/routes/status.ts
-argo-ts/src/desktop/routes/chat.ts
-argo-ts/src/desktop/routes/sessions.ts
-argo-ts/src/desktop/routes/models.ts
-argo-ts/src/desktop/routes/files.ts
-argo-ts/src/desktop/routes/terminal.ts
-argo-ts/src/desktop/routes/approval.ts
-argo-ts/src/desktop/events.ts              # SSE/WebSocket stream
-argo-ts/src/desktop/terminal.ts            # PTY or command bridge
-argo-ts/src/desktop/native.ts              # shell launch helpers if needed
+vanta-ts/src/desktop/server.ts              # route wiring only
+vanta-ts/src/desktop/state.ts               # DesktopState, session maps
+vanta-ts/src/desktop/routes/status.ts
+vanta-ts/src/desktop/routes/chat.ts
+vanta-ts/src/desktop/routes/sessions.ts
+vanta-ts/src/desktop/routes/models.ts
+vanta-ts/src/desktop/routes/files.ts
+vanta-ts/src/desktop/routes/terminal.ts
+vanta-ts/src/desktop/routes/approval.ts
+vanta-ts/src/desktop/events.ts              # SSE/WebSocket stream
+vanta-ts/src/desktop/terminal.ts            # PTY or command bridge
+vanta-ts/src/desktop/native.ts              # shell launch helpers if needed
 ```
 
 ---
@@ -308,7 +308,7 @@ Goal: make the current desktop code maintainable before adding more.
 Current file:
 
 ```text
-argo-ts/src/desktop/page.ts
+vanta-ts/src/desktop/page.ts
 ```
 
 Problem: giant string with HTML/CSS/JS.
@@ -316,10 +316,10 @@ Problem: giant string with HTML/CSS/JS.
 If keeping local web shell temporarily, split into:
 
 ```text
-argo-ts/src/desktop/page/html.ts
-argo-ts/src/desktop/page/styles.ts
-argo-ts/src/desktop/page/client.ts
-argo-ts/src/desktop/page.ts
+vanta-ts/src/desktop/page/html.ts
+vanta-ts/src/desktop/page/styles.ts
+vanta-ts/src/desktop/page/client.ts
+vanta-ts/src/desktop/page.ts
 ```
 
 Better: move frontend into real React app under `desktop-app` and make `page.ts` only redirect or serve built assets.
@@ -335,7 +335,7 @@ Acceptance:
 Current file:
 
 ```text
-argo-ts/src/desktop/server.ts
+vanta-ts/src/desktop/server.ts
 ```
 
 Problem: route handling, state, approvals, terminal, sessions all in one file.
@@ -364,7 +364,7 @@ Do not need full browser tests yet.
 Acceptance:
 
 ```bash
-cd argo-ts
+cd vanta-ts
 npx vitest run src/desktop
 npx tsc --noEmit
 ```
@@ -610,10 +610,10 @@ Goal: model selection should work reliably and persist.
 Existing relevant files:
 
 ```text
-argo-ts/src/providers/catalog.ts
-argo-ts/src/providers/index.ts
-argo-ts/src/setup.ts
-argo-ts/src/status.ts
+vanta-ts/src/providers/catalog.ts
+vanta-ts/src/providers/index.ts
+vanta-ts/src/setup.ts
+vanta-ts/src/status.ts
 ```
 
 Known roadmap bug:
@@ -670,7 +670,7 @@ Goal: real file/context rail, not flat list.
 Existing helper:
 
 ```text
-argo-ts/src/tui/at-context.ts
+vanta-ts/src/tui/at-context.ts
 ```
 
 Current endpoint:
@@ -914,9 +914,9 @@ Sections:
 Existing useful files:
 
 ```text
-argo-ts/src/status.ts
-argo-ts/src/sessions/store.ts
-argo-ts/src/velocity/store.ts
+vanta-ts/src/status.ts
+vanta-ts/src/sessions/store.ts
+vanta-ts/src/velocity/store.ts
 ```
 
 Acceptance:
@@ -981,8 +981,8 @@ Goal: real desktop app.
 Add:
 
 ```text
-argo-ts/desktop-app/electron/main.cjs
-argo-ts/desktop-app/electron/preload.cjs
+vanta-ts/desktop-app/electron/main.cjs
+vanta-ts/desktop-app/electron/preload.cjs
 ```
 
 Main process responsibilities:
@@ -1040,7 +1040,7 @@ Do this top-down.
 Done when:
 
 ```bash
-cd argo-ts
+cd vanta-ts
 npx vitest run src/desktop
 npx tsc --noEmit
 ```
@@ -1125,7 +1125,7 @@ Only after Jason confirms UX is good.
 Minimum verification each slice:
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts
 npx vitest run
 npx tsc --noEmit
 ```

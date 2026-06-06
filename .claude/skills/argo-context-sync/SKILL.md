@@ -25,7 +25,7 @@ Keep Vanta's context files true to the code after every meaningful change. Stale
 
 1. **Verify reality first.** `ls` the changed directories and `grep` the actual exports, routes, and commands. Update docs from what *is*, never from memory. A file map listing a deleted file is worse than none.
 
-2. **Nearest-level CLAUDE.md.** Update the file map, decisions, and gotchas for the layer you touched — `argo-ts/CLAUDE.md` for agent work, root `CLAUDE.md` for kernel work. One line per file/fact.
+2. **Nearest-level CLAUDE.md.** Update the file map, decisions, and gotchas for the layer you touched — `vanta-ts/CLAUDE.md` for agent work, root `CLAUDE.md` for kernel work. One line per file/fact.
 
 3. **New directory level → new CLAUDE.md.** If you created a new layer or package, add a `CLAUDE.md` there: one-line role, file map, key decisions, how-to-extend, commands. Link up to the parent.
 

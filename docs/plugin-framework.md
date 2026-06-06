@@ -32,7 +32,7 @@ A plugin = a self-contained module that extends the agent **without modifying co
 | `llm.complete()` | borrow the user's active model for a one-shot |
 | `dispatch_tool()` / `inject_message()` | invoke a tool / feed a message |
 
-**Discovery precedence** (later overrides earlier by name): bundled (`argo-ts/plugins/`) → user
+**Discovery precedence** (later overrides earlier by name): bundled (`vanta-ts/plugins/`) → user
 (`~/.vanta/plugins/`) → project (`.vanta/plugins/`, gated by `VANTA_ENABLE_PROJECT_PLUGINS=true`) →
 npm package entry points.
 

@@ -31,7 +31,7 @@ while the trust model is proven.
 Two entry points, one implementation (`factory/run.ts`):
 
 - **Scheduled** — a cron entry in `~/.vanta/crons/`; the existing `vanta gateway` daemon
-  (`argo-ts/src/gateway/run.ts`, already ticking every 60s) fires it. The gateway does **not**
+  (`vanta-ts/src/gateway/run.ts`, already ticking every 60s) fires it. The gateway does **not**
   run the cycle inline — it **spawns `vanta factory` as a detached child process** so a
   multi-hour cycle never blocks the gateway tick. (Hybrid of approach 1's module + approach
   2's process isolation.)
@@ -56,7 +56,7 @@ parse. Deterministic inputs, LLM only to rank/select among real candidates.
 ## 5. Architecture
 
 ```
-argo-ts/src/factory/
+vanta-ts/src/factory/
   run.ts        orchestrator: gate → snapshot → triage → branch → plan → execute → verify → commit. Owns lock + budget (too small to split).
   triage.ts     reads concrete inputs (vitest json, tsc stderr, ROADMAP, PARKED) → WorkItem | null
   planner.ts    builds factory.plan.json (one slice); renders to TUI when interactive; gates on approval in review mode
@@ -67,7 +67,7 @@ argo-ts/src/factory/
 
 Entry wiring:
 - `vanta improve` → CLI command → `factory/run.ts` (`interactive: true`).
-- gateway cron → spawns `vanta factory` (`argo-ts/src/cli/factory.ts`) as a **detached child** → `factory/run.ts` (`interactive: false`).
+- gateway cron → spawns `vanta factory` (`vanta-ts/src/cli/factory.ts`) as a **detached child** → `factory/run.ts` (`interactive: false`).
 
 The factory loop is an **orchestrator**, not a monolith: actual code generation is delegated
 to `swarm`/`delegate` workers (existing). `run.ts` sequences, gates, and verifies.
@@ -100,8 +100,8 @@ self-approve.
 
 Protected set (in-root, forbidden to autonomous writes):
 - Kernel `src/*.rs` + `Cargo.toml` / `Cargo.lock` / build files — the safety boundary itself.
-- `argo-ts/src/factory/*.ts` — the driver loop can't rewrite its own guardrails.
-- The kernel safety tests (`src/safety.rs` tests, `argo-ts/src/factory/*.test.ts`).
+- `vanta-ts/src/factory/*.ts` — the driver loop can't rewrite its own guardrails.
+- The kernel safety tests (`src/safety.rs` tests, `vanta-ts/src/factory/*.test.ts`).
 - `MANIFESTO.md` — the human north star (see 6.2).
 - The protected-list definition itself.
 

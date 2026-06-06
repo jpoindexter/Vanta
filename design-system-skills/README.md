@@ -32,7 +32,7 @@ filter box; collapsible cards.
 ## Install as skills
 
 These are standard `SKILL.md` files. To use them in Claude Code, copy/symlink a skill dir
-into `~/.claude/skills/`. To bundle into Vanta, drop a dir into `argo-ts/skills-library/`
+into `~/.claude/skills/`. To bundle into Vanta, drop a dir into `vanta-ts/skills-library/`
 (auto-installed next session). Each `name:` matches its folder.
 
 ## Regenerate the viewer

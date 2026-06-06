@@ -9,7 +9,7 @@ turned out to be a web app with a VS-Code-style nav bar — not transferable.
 `transcript.tsx` already collapses a tool's call+result into ONE patched row
 (`→ name(args)` → `✓ name: output`). The noise is the **content**, not the row count:
 
-1. **Raw JSON args** — `read_file({"path":"/Users/…/argo-ts/src/tools/x.ts"})`.
+1. **Raw JSON args** — `read_file({"path":"/Users/…/vanta-ts/src/tools/x.ts"})`.
 2. **Raw temp paths in output** — `look_at_screen` → first output line is an
    `/var/folders/…/NSIRD_…/screenshot.png` temp path, printed verbatim.
 3. **No clean verbs** — bare tool names + JSON, no scannable hierarchy.

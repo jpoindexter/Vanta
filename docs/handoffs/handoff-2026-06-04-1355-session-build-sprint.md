@@ -38,28 +38,28 @@ Branch: feat/v1-hermes-parity
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/tools/clarify.ts` | Created | clarify tool |
-| `argo-ts/src/tools/clarify.test.ts` | Created | 5 tests |
-| `argo-ts/src/roadmap/move.ts` | Created | moveRoadmapItem pure fn |
-| `argo-ts/src/roadmap/move.test.ts` | Created | 6 tests |
-| `argo-ts/src/tools/roadmap-move.ts` | Created | roadmap_move tool |
-| `argo-ts/src/providers/catalog.ts` | Modified | ModelCapability + modelSupports() |
-| `argo-ts/src/providers/catalog.test.ts` | Created | 9 tests |
-| `argo-ts/src/agent.ts` | Modified | per-turn signal on send() + runTurn() |
-| `argo-ts/src/tui/app.tsx` | Modified | abortRef + Esc useInput handler |
-| `argo-ts/src/factory/verifier.ts` | Modified | checkNewFilesUnderLineLimit() + wired in verify() |
-| `argo-ts/src/factory/verifier.test.ts` | Modified | 4 new tests |
-| `argo-ts/src/factory/planner.ts` | Modified | PROVEN_PATTERNS block |
-| `argo-ts/src/factory/planner.test.ts` | Modified | 3 new tests |
-| `argo-ts/src/factory/executor.ts` | Modified | readDirContexts() + wired into execute() |
-| `argo-ts/src/factory/executor.test.ts` | Modified | 3 new tests |
-| `argo-ts/src/tools/index.ts` | Modified | registered clarify + roadmap_move |
-| `argo-ts/src/tools/tools.test.ts` | Modified | added clarify + roadmap_move to registry list |
-| `argo-ts/src/cli/ops.ts` | Modified | runRoadmapCommand now accepts args[] + move dispatch |
-| `argo-ts/src/cli.ts` | Modified | pass rest to runRoadmapCommand; updated usage string |
+| `vanta-ts/src/tools/clarify.ts` | Created | clarify tool |
+| `vanta-ts/src/tools/clarify.test.ts` | Created | 5 tests |
+| `vanta-ts/src/roadmap/move.ts` | Created | moveRoadmapItem pure fn |
+| `vanta-ts/src/roadmap/move.test.ts` | Created | 6 tests |
+| `vanta-ts/src/tools/roadmap-move.ts` | Created | roadmap_move tool |
+| `vanta-ts/src/providers/catalog.ts` | Modified | ModelCapability + modelSupports() |
+| `vanta-ts/src/providers/catalog.test.ts` | Created | 9 tests |
+| `vanta-ts/src/agent.ts` | Modified | per-turn signal on send() + runTurn() |
+| `vanta-ts/src/tui/app.tsx` | Modified | abortRef + Esc useInput handler |
+| `vanta-ts/src/factory/verifier.ts` | Modified | checkNewFilesUnderLineLimit() + wired in verify() |
+| `vanta-ts/src/factory/verifier.test.ts` | Modified | 4 new tests |
+| `vanta-ts/src/factory/planner.ts` | Modified | PROVEN_PATTERNS block |
+| `vanta-ts/src/factory/planner.test.ts` | Modified | 3 new tests |
+| `vanta-ts/src/factory/executor.ts` | Modified | readDirContexts() + wired into execute() |
+| `vanta-ts/src/factory/executor.test.ts` | Modified | 3 new tests |
+| `vanta-ts/src/tools/index.ts` | Modified | registered clarify + roadmap_move |
+| `vanta-ts/src/tools/tools.test.ts` | Modified | added clarify + roadmap_move to registry list |
+| `vanta-ts/src/cli/ops.ts` | Modified | runRoadmapCommand now accepts args[] + move dispatch |
+| `vanta-ts/src/cli.ts` | Modified | pass rest to runRoadmapCommand; updated usage string |
 | `roadmap.json` | Modified | ND2/ND4/KANBAN/REL1/TUI-INTERRUPT/FAC-BORNSMALL → shipped; TUI-INPUT → building |
 | `CLAUDE.md` | Modified | 43 tools · 692 TS + 27 Rust = 719 tests |
-| `argo-ts/CLAUDE.md` | Modified | clarify.ts + roadmap-move.ts + move.ts added to file map |
+| `vanta-ts/CLAUDE.md` | Modified | clarify.ts + roadmap-move.ts + move.ts added to file map |
 | `docs/superpowers/specs/2026-06-04-kanban-slice1-design.md` | Created | KANBAN spec |
 | `docs/superpowers/plans/2026-06-04-kanban-slice1.md` | Created | KANBAN plan |
 
@@ -74,7 +74,7 @@ Branch: feat/v1-hermes-parity
 
 **TUI-INPUT** — marked `building` in roadmap.json, not started yet.
 - What remains: input history (up/down arrows cycles prior messages) + multiline input (shift+enter)
-- Where to start: `argo-ts/src/tui/composer.tsx` (the custom readline composer) + `argo-ts/src/tui/app.tsx`
+- Where to start: `vanta-ts/src/tui/composer.tsx` (the custom readline composer) + `vanta-ts/src/tui/app.tsx`
 
 ## Key Decisions Made
 
@@ -90,7 +90,7 @@ Branch: feat/v1-hermes-parity
 
 ## Exact Next Steps (in order)
 
-1. [ ] **TUI-INPUT** (`pebble·sonnet·medium`) — input history (up/down) + multiline (shift+enter). Start at `argo-ts/src/tui/composer.tsx`. Done: up arrow cycles history; shift+enter inserts newline in the composer.
+1. [ ] **TUI-INPUT** (`pebble·sonnet·medium`) — input history (up/down) + multiline (shift+enter). Start at `vanta-ts/src/tui/composer.tsx`. Done: up arrow cycles history; shift+enter inserts newline in the composer.
 2. [ ] **TUI-MARKDOWN** (`pebble·sonnet·medium`) — Markdown + syntax-highlight rendering in the transcript. Done: agent replies render with headers/bold/code blocks instead of raw markdown.
 3. [ ] **ND1** (`pebble·sonnet·medium`) — task-initiation affordance: given a goal, surface ONE concrete next micro-step. `/next` slash command or `vanta next`. Done: user types `/next` → Vanta surfaces one tiny action.
 4. [ ] **ND3** (`pebble·sonnet·medium`) — plan-first / converse mode: `/plan` makes Vanta clarify → lay out steps → confirm → act. Done: toggleable; step list confirmed before any tool runs.
@@ -101,7 +101,7 @@ Branch: feat/v1-hermes-parity
 ## Context That's Easy to Lose
 
 - **roadmap.json vs ROADMAP.md**: `roadmap.json` is the agent/HTML source; `ROADMAP.md` is what the factory triage reads (`[ ]` checkboxes). Both must be kept in sync when marking items shipped.
-- **TUI-INPUT lives in `composer.tsx`**: The TUI uses a custom composer component at `argo-ts/src/tui/composer.tsx` (not standard Ink TextInput) — that's where input history and multiline belong.
+- **TUI-INPUT lives in `composer.tsx`**: The TUI uses a custom composer component at `vanta-ts/src/tui/composer.tsx` (not standard Ink TextInput) — that's where input history and multiline belong.
 - **agent-kanban URL**: `https://github.com/saltbo/agent-kanban.git` — parked for FAC multi-agent work, not the roadmap board.
 - **Kernel goals 1, 2, 4 are stale** (all shipped) — kernel `/api/goals` has no completion endpoint, so they remain active. Goals 5–9 are the live queue (FAC-BORNSMALL done = goal 5 complete mentally).
 - **16 commits unpushed** — all on `feat/v1-hermes-parity`, need a `git push` before this branch is backed up remotely.
@@ -112,7 +112,7 @@ Branch: feat/v1-hermes-parity
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, 692 TS + 27 Rust = 719 tests green, tsc clean). 16 commits ahead of origin — push when ready.
 
-Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (vanta-ts/, Node22/ESM/tsx). Read root CLAUDE.md + vanta-ts/CLAUDE.md + the 5 planning docs first.
 
 **This session shipped (in order):**
 1. ND2 — clarify tool (end-of-turn design, no ToolContext changes)
@@ -124,7 +124,7 @@ Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer
 **Key decision this session:** agent-kanban (https://github.com/saltbo/agent-kanban.git) rejected for the roadmap board — wrong data model (it's for multi-agent task hand-off, not Vanta's tier/track/done roadmap format). KANBAN slice 2 (native drag-to-move HTML endpoint) is the right path, still parked.
 
 **Next task: TUI-INPUT** (`pebble·sonnet·medium`)
-Input history (up/down arrows cycles prior messages) + multiline input (shift+enter inserts newline). Start at `argo-ts/src/tui/composer.tsx` — that's the custom readline composer the TUI uses. Done criteria: up arrow in the composer cycles message history; shift+enter inserts a newline instead of submitting.
+Input history (up/down arrows cycles prior messages) + multiline input (shift+enter inserts newline). Start at `vanta-ts/src/tui/composer.tsx` — that's the custom readline composer the TUI uses. Done criteria: up arrow in the composer cycles message history; shift+enter inserts a newline instead of submitting.
 
 **After TUI-INPUT:** TUI-MARKDOWN → ND1 → ND3 → U2 → KANBAN slice 2.
 

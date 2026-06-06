@@ -11,15 +11,15 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `argo-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 45 tools, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 45 tools, TUI, REPL |
 
-The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `argo-ts/AGENTS.md`.
+The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
 ## Build + test
 
 ```bash
 cargo build && cargo test                     # Rust kernel (27 tests)
-cd argo-ts && npx vitest run && npx tsc --noEmit  # TS agent (1075 tests + typecheck)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1075 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
@@ -43,16 +43,16 @@ vanta                                          # launch TUI (TTY) or readline RE
 ## Safety rules (non-negotiable)
 
 - Kernel `src/*.rs` — never edit autonomously. Human approval required.
-- `argo-ts/src/factory/*.ts` — same (once factory module exists).
+- `vanta-ts/src/factory/*.ts` — same (once factory module exists).
 - `MANIFESTO.md` — human-only, never modify.
 - Never commit secrets, never `rm -rf`, never `git push --force` shared branches.
 
 ## Adding a TS tool
 
-1. New file `argo-ts/src/tools/<name>.ts`, export a `Tool`.
+1. New file `vanta-ts/src/tools/<name>.ts`, export a `Tool`.
 2. Zod-parse args (`safeParse`) — it's an LLM boundary.
 3. Path args → `resolveInScope`; return `{ok:false}` if outside.
-4. Register in `argo-ts/src/tools/index.ts` AND add the name to the sorted list in `tools/tools.test.ts`.
+4. Register in `vanta-ts/src/tools/index.ts` AND add the name to the sorted list in `tools/tools.test.ts`.
 5. Watch for import cycles with `tools/index.ts` (lazy-import `buildRegistry` if needed — see `swarm.ts`).
 
 ## Docs discipline

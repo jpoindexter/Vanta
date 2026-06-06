@@ -24,18 +24,18 @@ Branch: feat/v1-hermes-parity
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/roadmap/schema.ts` | Modified | Added optional `tier`, `model`, `effort` fields + exported types/consts |
-| `argo-ts/src/roadmap/render.ts` | Modified | Tier-grouped columns (Rocks→Pebbles→Sand), model·effort badge, JS filter fix |
-| `argo-ts/src/roadmap/render.test.ts` | Modified | 3 new tests: badge render, tier grouping, untagged item |
-| `argo-ts/src/roadmap/schema.test.ts` | Modified | 3 new tests: optional fields present/absent, invalid tier/model rejection |
+| `vanta-ts/src/roadmap/schema.ts` | Modified | Added optional `tier`, `model`, `effort` fields + exported types/consts |
+| `vanta-ts/src/roadmap/render.ts` | Modified | Tier-grouped columns (Rocks→Pebbles→Sand), model·effort badge, JS filter fix |
+| `vanta-ts/src/roadmap/render.test.ts` | Modified | 3 new tests: badge render, tier grouping, untagged item |
+| `vanta-ts/src/roadmap/schema.test.ts` | Modified | 3 new tests: optional fields present/absent, invalid tier/model rejection |
 | `roadmap.json` | Modified | 37 open items tagged with tier/model/effort; updated `updated` field |
-| `argo-ts/src/moim/store.ts` | Created | `readMoim` / `writeMoim` / `clearMoim` — `~/.vanta/moim.md` persistence |
-| `argo-ts/src/moim/store.test.ts` | Created | 6 tests covering read/write/clear |
-| `argo-ts/src/prompt.ts` | Modified | `moimNote?` opt in `buildSystemPrompt`; injected top of volatile tier |
-| `argo-ts/src/prompt.test.ts` | Modified | 2 new tests: MOIM injected before goals; absent when unset |
-| `argo-ts/src/session.ts` | Modified | `prepareRun` reads MOIM note and passes it to `buildSystemPrompt` |
-| `argo-ts/src/repl/handlers.ts` | Modified | `moim` slash handler (show/set/clear) + HANDLERS entry |
-| `argo-ts/src/repl/catalog.ts` | Modified | `/moim [text|clear]` added to SLASH_COMMANDS |
+| `vanta-ts/src/moim/store.ts` | Created | `readMoim` / `writeMoim` / `clearMoim` — `~/.vanta/moim.md` persistence |
+| `vanta-ts/src/moim/store.test.ts` | Created | 6 tests covering read/write/clear |
+| `vanta-ts/src/prompt.ts` | Modified | `moimNote?` opt in `buildSystemPrompt`; injected top of volatile tier |
+| `vanta-ts/src/prompt.test.ts` | Modified | 2 new tests: MOIM injected before goals; absent when unset |
+| `vanta-ts/src/session.ts` | Modified | `prepareRun` reads MOIM note and passes it to `buildSystemPrompt` |
+| `vanta-ts/src/repl/handlers.ts` | Modified | `moim` slash handler (show/set/clear) + HANDLERS entry |
+| `vanta-ts/src/repl/catalog.ts` | Modified | `/moim [text|clear]` added to SLASH_COMMANDS |
 
 ## Current State
 
@@ -73,14 +73,14 @@ Nothing — both slices fully shipped and committed.
 - **ND2 clarify tool is a new Vanta tool** (not a slash command): it lives in `tools/clarify.ts`, registered in `tools/index.ts`, kernel-assessed via `describeForSafety`. Pattern: `tools/inspect-state.ts` is a good reference for a simple non-destructive tool.
 - **Model tagging is Sonnet 4.6 session** — the roadmap restructure and ND4 were built on Sonnet 4.6 (user switched from Opus at session start). ND2 and KANBAN are also `sonnet·medium`.
 - **662 TS + 27 Rust = 689 total tests green** at handoff. Rust test count unchanged.
-- **`roadmap.html` is gitignored** — regenerate with `vanta roadmap` or `cd argo-ts && npx tsx src/roadmap/build.ts` from the repo root.
+- **`roadmap.html` is gitignored** — regenerate with `vanta roadmap` or `cd vanta-ts && npx tsx src/roadmap/build.ts` from the repo root.
 
 ## Continuation Prompt
 
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, 662 TS + 27 Rust tests green, tsc clean).
 
-Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (vanta-ts/, Node22/ESM/tsx). Read root CLAUDE.md + vanta-ts/CLAUDE.md + the 5 planning docs first.
 
 **This session shipped:**
 1. Roadmap restructure — optional tier (rock/pebble/sand) / model (haiku/sonnet/opus) / effort fields in schema + render; 37 open items tagged; Rocks→Pebbles→Sand grouping in each board column; model·effort badge per card. Tags are advisory (build-session guide), not factory routing — triage reads ROADMAP.md, not roadmap.json.

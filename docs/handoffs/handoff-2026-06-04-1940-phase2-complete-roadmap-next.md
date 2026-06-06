@@ -19,7 +19,7 @@ Branch: feat/v1-hermes-parity
 
 6. **EF-CLOSUREGATE** — On topic shift: scans `convo.messages` for `write_file` calls without a subsequent `git commit` in messages → surfaces list. `repl/closure-gate.ts`; wired pre-turn in `interactive.ts` + `use-agent-send.ts`.
 
-7. **Context sync** — `argo-ts/CLAUDE.md` and root `CLAUDE.md` updated; project memory written.
+7. **Context sync** — `vanta-ts/CLAUDE.md` and root `CLAUDE.md` updated; project memory written.
 
 ---
 
@@ -27,32 +27,32 @@ Branch: feat/v1-hermes-parity
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/repl/where.ts` | Created | `/where` handler — `lastIntent`, `lastToolCalls` |
-| `argo-ts/src/repl/where.test.ts` | Created | 10 tests |
-| `argo-ts/src/repl/inhibit.ts` | Created | `InhibitState` drift state machine |
-| `argo-ts/src/repl/inhibit.test.ts` | Created | 11 tests |
-| `argo-ts/src/repl/set-shift.ts` | Created | `SetShiftState` stuck-loop detector |
-| `argo-ts/src/repl/set-shift.test.ts` | Created | 15 tests |
-| `argo-ts/src/repl/self-monitor.ts` | Created | `shouldWarn`, `isDestructiveAction`, `isAdditiveGoal` |
-| `argo-ts/src/repl/self-monitor.test.ts` | Created | 11 tests |
-| `argo-ts/src/repl/error-detect.ts` | Created | `isErrorResult`, `buildErrorDetectText` |
-| `argo-ts/src/repl/error-detect.test.ts` | Created | 7 tests |
-| `argo-ts/src/repl/closure-gate.ts` | Created | `extractWrittenFiles`, `hasCommitAfterIndex`, `getInProgressItems` |
-| `argo-ts/src/repl/closure-gate.test.ts` | Created | 10 tests |
-| `argo-ts/src/repl/handlers.ts` | Modified | Import + register `/where`; STILL 300 lines |
-| `argo-ts/src/repl/catalog.ts` | Modified | Added `/where` entry |
-| `argo-ts/src/context.ts` | Modified | `TrimOptions.activeGoalText?`; goal note injected in `compressMessages` |
-| `argo-ts/src/context.test.ts` | Modified | 2 new tests for goal injection |
-| `argo-ts/src/agent.ts` | Modified | `AgentDeps`: `activeGoalText?`, `onIterationCheck?`; `DispatchOutcome.ok`; self-monitor + error-detect wired |
-| `argo-ts/src/prompt.ts` | Modified | `errorsLogTier` + `errorsLog?` param to `buildSystemPrompt` |
-| `argo-ts/src/prompt.test.ts` | Modified | 2 new tests for errorsLog |
-| `argo-ts/src/session.ts` | Modified | `inhibitAfterTurn`, `setShiftAfterTurn` exported; `prepareRun` reads ERRORS.md |
-| `argo-ts/src/interactive.ts` | Modified | `inhibitState`, `setShiftState` refs; closure gate wired pre-turn |
-| `argo-ts/src/tui/use-agent-send.ts` | Modified | `inhibitRef`, `setShiftRef`; closure gate wired |
-| `argo-ts/src/cli.ts` | Modified | `activeGoalText` wired into `AgentDeps` |
+| `vanta-ts/src/repl/where.ts` | Created | `/where` handler — `lastIntent`, `lastToolCalls` |
+| `vanta-ts/src/repl/where.test.ts` | Created | 10 tests |
+| `vanta-ts/src/repl/inhibit.ts` | Created | `InhibitState` drift state machine |
+| `vanta-ts/src/repl/inhibit.test.ts` | Created | 11 tests |
+| `vanta-ts/src/repl/set-shift.ts` | Created | `SetShiftState` stuck-loop detector |
+| `vanta-ts/src/repl/set-shift.test.ts` | Created | 15 tests |
+| `vanta-ts/src/repl/self-monitor.ts` | Created | `shouldWarn`, `isDestructiveAction`, `isAdditiveGoal` |
+| `vanta-ts/src/repl/self-monitor.test.ts` | Created | 11 tests |
+| `vanta-ts/src/repl/error-detect.ts` | Created | `isErrorResult`, `buildErrorDetectText` |
+| `vanta-ts/src/repl/error-detect.test.ts` | Created | 7 tests |
+| `vanta-ts/src/repl/closure-gate.ts` | Created | `extractWrittenFiles`, `hasCommitAfterIndex`, `getInProgressItems` |
+| `vanta-ts/src/repl/closure-gate.test.ts` | Created | 10 tests |
+| `vanta-ts/src/repl/handlers.ts` | Modified | Import + register `/where`; STILL 300 lines |
+| `vanta-ts/src/repl/catalog.ts` | Modified | Added `/where` entry |
+| `vanta-ts/src/context.ts` | Modified | `TrimOptions.activeGoalText?`; goal note injected in `compressMessages` |
+| `vanta-ts/src/context.test.ts` | Modified | 2 new tests for goal injection |
+| `vanta-ts/src/agent.ts` | Modified | `AgentDeps`: `activeGoalText?`, `onIterationCheck?`; `DispatchOutcome.ok`; self-monitor + error-detect wired |
+| `vanta-ts/src/prompt.ts` | Modified | `errorsLogTier` + `errorsLog?` param to `buildSystemPrompt` |
+| `vanta-ts/src/prompt.test.ts` | Modified | 2 new tests for errorsLog |
+| `vanta-ts/src/session.ts` | Modified | `inhibitAfterTurn`, `setShiftAfterTurn` exported; `prepareRun` reads ERRORS.md |
+| `vanta-ts/src/interactive.ts` | Modified | `inhibitState`, `setShiftState` refs; closure gate wired pre-turn |
+| `vanta-ts/src/tui/use-agent-send.ts` | Modified | `inhibitRef`, `setShiftRef`; closure gate wired |
+| `vanta-ts/src/cli.ts` | Modified | `activeGoalText` wired into `AgentDeps` |
 | `roadmap.json` | Modified | EF-WORKINGMEM/INHIBIT/SETSHIFT/SELFMONITOR/ERRORDETECT/CLOSUREGATE → shipped |
 | `CLAUDE.md` | Modified | Status line updated; Phase 2 EF listed |
-| `argo-ts/CLAUDE.md` | Modified | File map for 6 new repl/ modules; agent/context/prompt/session rows updated |
+| `vanta-ts/CLAUDE.md` | Modified | File map for 6 new repl/ modules; agent/context/prompt/session rows updated |
 
 ---
 
@@ -160,7 +160,7 @@ Nothing. Clean slate.
 - **Phase 2 EF pattern** — post-turn gates: session-scoped state ref in `interactive.ts` + `use-agent-send.ts`, exported `*AfterTurn` fn in `session.ts`. Pre-turn gates: fire before `convo.send()`. In-loop gates: in `agent.ts dispatchTool` / `runTurn`.
 - **Roadmap HTML regen:**
   ```bash
-  cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"
+  cd vanta-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"
   ```
 - **Test-first, commit per item.** `npm test` (935+), `npm run typecheck` (clean) before each commit.
 
@@ -171,7 +171,7 @@ Nothing. Clean slate.
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 935 TS tests green, tsc clean, all committed and pushed).
 
-Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `vanta-ts/CLAUDE.md` first.
 
 **Last session:** Phase 2 EF pebbles complete (6 items: EF-WORKINGMEM, EF-INHIBIT, EF-SETSHIFT, EF-SELFMONITOR, EF-ERRORDETECT, EF-CLOSUREGATE). Full context in `docs/handoffs/handoff-2026-06-04-1940-phase2-complete-roadmap-next.md`.
 
@@ -187,7 +187,7 @@ Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`ar
 - `handlers.ts` MUST stay at 300 lines — new slash commands in own files, trade a blank line for the import
 - KANBAN WIP = 2; move to `building` before starting, `shipped` when done
 - All EF gates non-blocking, wrapped in try/catch
-- Regenerate roadmap HTML after each status change: `cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
+- Regenerate roadmap HTML after each status change: `cd vanta-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
 - Test-first, commit per item, `npm test` (935+) + `npm run typecheck` (clean) before each commit
 - Kernel goal to set:
   ```bash
