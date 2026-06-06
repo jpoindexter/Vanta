@@ -1,4 +1,4 @@
-# Executive Dysfunction → Argo Brain Design
+# Executive Dysfunction → Vanta Brain Design
 
 Source: Rabinovici GD, Stephens ML, Possin KL. "Executive Dysfunction."  
 Continuum (Minneap Minn). 2015 Jun;21(3 Behavioral Neurology and Neuropsychiatry):646–659.  
@@ -21,26 +21,26 @@ The article explicitly distinguishes two intrinsic connectivity networks:
 - Specifically targeted EARLY in frontotemporal dementia
 - Determines WHAT MATTERS — which inputs deserve attention
 
-**For Argo's brain**: These must be two separate systems. The salience network decides what deserves attention; the executive control network determines how to act on it. Conflating them causes: trying to plan while not knowing what matters, or tracking what matters without being able to act.
+**For Vanta's brain**: These must be two separate systems. The salience network decides what deserves attention; the executive control network determines how to act on it. Conflating them causes: trying to plan while not knowing what matters, or tracking what matters without being able to act.
 
 ### Two modes of working memory (from neuroanatomy section)
 - **Maintenance mode** (ventrolateral PFC): hold information without transformation — "don't lose this"
 - **Manipulation mode** (dorsolateral PFC): actively transform, update, or reason about held information — "compute with this"
 
-Current Argo MOIM is maintenance only. The gap: when given complex information that requires active reasoning (not just holding), there's no manipulation mode.
+Current Vanta MOIM is maintenance only. The gap: when given complex information that requires active reasoning (not just holding), there's no manipulation mode.
 
 ### Anterior cingulate = real-time error detection
-The anterior cingulate cortex "plays a critical role in error detection." This is different from post-hoc review — it fires DURING execution when an error is being made. Argo's background review (reviewAfterTurn) is a post-hoc reviewer, not a real-time error detector.
+The anterior cingulate cortex "plays a critical role in error detection." This is different from post-hoc review — it fires DURING execution when an error is being made. Vanta's background review (reviewAfterTurn) is a post-hoc reviewer, not a real-time error detector.
 
 ### Pre-supplementary motor area = response selection gate
-"Engaged during response selection" — the moment between deciding what to do and doing it. In Argo terms: the gap between "tool chosen" and "tool executed." This is where inhibition and self-monitoring interact.
+"Engaged during response selection" — the moment between deciding what to do and doing it. In Vanta terms: the gap between "tool chosen" and "tool executed." This is where inhibition and self-monitoring interact.
 
 ### Orbitofrontal cortex = reward/punishment updating
-"Particularly critical for assessing shifting reward-punishment contingencies." In Argo terms: updating the agent's model of which approaches are working vs failing in the current context. Not just memory of past failures — active updating of the reward landscape.
+"Particularly critical for assessing shifting reward-punishment contingencies." In Vanta terms: updating the agent's model of which approaches are working vs failing in the current context. Not just memory of past failures — active updating of the reward landscape.
 
 ### Clinical case insights (from full case readings)
 
-**Case 4-1 (depression → EF deficit)**: A 74-year-old scored 30/30 on MoCA (seemingly perfect) but was below average on backward digit span and letter fluency. Depression was the cause — not cognitive decline. Key lesson: **EF failure can be caused by mood state, not cognitive capability**. Argo's mood region should affect EF availability. A "stressed" or "confused" mood state should reduce ambition of planned actions.
+**Case 4-1 (depression → EF deficit)**: A 74-year-old scored 30/30 on MoCA (seemingly perfect) but was below average on backward digit span and letter fluency. Depression was the cause — not cognitive decline. Key lesson: **EF failure can be caused by mood state, not cognitive capability**. Vanta's mood region should affect EF availability. A "stressed" or "confused" mood state should reduce ambition of planned actions.
 
 **Case 4-2 (Alzheimer's via EF, not memory)**: A 54-year-old scored 28/30 on MMSE (seemingly fine) but had profound functional impairment. She "felt paralyzed when faced with multifaceted problems" and "was unable to get things together." Key lessons:
 1. Surface metrics (test scores) mask functional impairment — `/status green` ≠ ability to execute complex tasks
@@ -52,16 +52,16 @@ The anterior cingulate cortex "plays a critical role in error detection." This i
 ### MoCA vs MMSE insight (clinically critical)
 "MoCA is more sensitive than MMSE for detecting executive dysfunction." The MMSE is a simple pass/fail (28/30 looks fine). MoCA tests actual executive sub-components.
 
-For Argo: **Argo's own `/status` is MMSE-level (structural health check). We need a MoCA-level functional assessment** — can Argo actually complete a multi-step task correctly? This is distinct from "does the kernel respond" or "does the provider work."
+For Vanta: **Vanta's own `/status` is MMSE-level (structural health check). We need a MoCA-level functional assessment** — can Vanta actually complete a multi-step task correctly? This is distinct from "does the kernel respond" or "does the provider work."
 
 ### Tower of London = the factory planner problem
-The Tower of London test (moving colored beads across pegs to reproduce a target design in as few moves as possible) is the canonical planning test. For Argo: implementing a feature is Tower of London — minimum tool calls, correct sequencing, target state. The factory planner is solving this problem. The BRAIN-NEURO architecture should include a planning substrate that explicitly models goal states and transition sequences.
+The Tower of London test (moving colored beads across pegs to reproduce a target design in as few moves as possible) is the canonical planning test. For Vanta: implementing a feature is Tower of London — minimum tool calls, correct sequencing, target state. The factory planner is solving this problem. The BRAIN-NEURO architecture should include a planning substrate that explicitly models goal states and transition sequences.
 
 ---
 
 ---
 
-## The Four Core EF Components (and what Argo must counteract)
+## The Four Core EF Components (and what Vanta must counteract)
 
 ### 1. Working Memory
 **Definition:** Temporarily processes, stores, and manipulates information in conscious awareness.  
@@ -73,12 +73,12 @@ Subdivides into phonologic loop (verbal) and visuospatial sketchpad (visual).
 - Multi-step tasks collapsing to the most recently remembered step
 - Context compaction silently deleting goal context
 
-**Current Argo mitigations:**
+**Current Vanta mitigations:**
 - `/moim` — volatile top-of-mind note injected every turn ✓
 - `/next` — surfaces the next micro-step from active goals ✓
 - Session persistence + resume ✓
 
-**Gaps — requirements for Argo:**
+**Gaps — requirements for Vanta:**
 - **Active task stack** that persists through context compaction (not just MOIM string)
 - **Breadcrumb trail** before entering a subtask: "returning from [subtask] → back to [parent]"
 - **Goal re-injection** after compaction: re-assert the active goal at the top of the next turn
@@ -96,13 +96,13 @@ Failures: impulsivity, stimulus-bound behavior, utilization behavior, perseverat
 - Repeating the same failed approach (perseveration)
 - "Automatic" tool calls that aren't justified by the stated goal
 
-**Current Argo mitigations:**
+**Current Vanta mitigations:**
 - Anti-drift rules in CLAUDE.md ✓
 - "No while-we're-at-it" rule ✓
 - `MAX_IDENTICAL_CALLS = 3` loop guard in agent.ts ✓
 - Kernel `assess()` gate ✓
 
-**Gaps — requirements for Argo:**
+**Gaps — requirements for Vanta:**
 - **Pre-action goal check**: before each tool call, soft-verify "does this serve the active goal?" — surface as a note when it doesn't
 - **Scope boundary logging**: log when a tool call is adjacent-to (but not directly serving) the stated goal
 - **Perseveration detector**: track approach diversity, not just identical calls — flag when 3+ consecutive tool calls follow the same pattern without progress
@@ -118,12 +118,12 @@ Failures: perseverative thoughts/behaviors, mental rigidity, multitasking diffic
 - Context pollution: residue from previous task bleeds into current
 - Inability to fully reset when `/clear` is called
 
-**Current Argo mitigations:**
+**Current Vanta mitigations:**
 - ERRORS.md (append-only failure log) — but human-checked only ✓ (partial)
 - "Two failed attempts → stop, surface options" rule ✓
 - `/clear` context restart ✓
 
-**Gaps — requirements for Argo:**
+**Gaps — requirements for Vanta:**
 - **Auto-read ERRORS.md** before similar tasks: detect if current task matches a prior failure pattern and surface the lesson
 - **Automatic strategy rotation** after N non-progressing iterations: detect stall, switch approach without being asked
 - **Explicit task boundary**: when topic shifts mid-session, insert a marker that clears "set" so prior approach doesn't contaminate
@@ -138,20 +138,20 @@ Three types: category (semantic), letter (phonemic), design fluency.
 - Formulaic/monotonous responses
 - Failing to generate multiple candidate approaches before picking one
 
-**Current Argo mitigations:**
+**Current Vanta mitigations:**
 - `/planmode` — plan-first toggle ✓
 - Brainstorming skill ✓
 
-**Gaps — requirements for Argo:**
+**Gaps — requirements for Vanta:**
 - **Multi-approach generation** for non-trivial tasks: when asked to solve X, generate 2-3 approaches before committing
 - **Response diversity tracking**: detect when answers are becoming formulaic and vary style/angle
 - **Semantic fluency for search**: when one search query fails, try a category-shifted reformulation automatically
 
 ---
 
-## Full Clinical Symptom → Argo Design Matrix
+## Full Clinical Symptom → Vanta Design Matrix
 
-| ED Symptom | Argo analogy | Current mitigation | Required feature |
+| ED Symptom | Vanta analogy | Current mitigation | Required feature |
 |---|---|---|---|
 | Difficulty planning/organization | Jumping to code without a plan | /planmode, PRD files | Complexity gate: auto-prompt to plan when request is complex |
 | Multitasking problems | Goal drift across a long session | KANBAN WIP limit | Incomplete-thread detector at session start |
@@ -165,11 +165,11 @@ Three types: category (semantic), letter (phonemic), design fluency.
 
 ---
 
-## Treatment Approaches → Argo Architecture
+## Treatment Approaches → Vanta Architecture
 
 From the paper's treatment section:
 
-| Therapeutic approach | Argo equivalent |
+| Therapeutic approach | Vanta equivalent |
 |---|---|
 | External memory aids (planners, smartphones) | MOIM, /next, session persist, brain store |
 | Environmental manipulation | System prompt structure, kernel gates, WIP limits |
@@ -182,52 +182,52 @@ From the paper's treatment section:
 
 ---
 
-## The EF Architecture Requirements for Argo's Brain
+## The EF Architecture Requirements for Vanta's Brain
 
-Translating EF science into concrete Argo brain dimensions (extending BRAIN-5D → BRAIN-NEURO):
+Translating EF science into concrete Vanta brain dimensions (extending BRAIN-5D → BRAIN-NEURO):
 
 ### Dimension: Activation State
 Human: prefrontal working memory buffer vs long-term store vs archive  
-Argo: `active` (in current prompt) → `warm` (retrievable this session) → `cold` (requires explicit recall)
+Vanta: `active` (in current prompt) → `warm` (retrievable this session) → `cold` (requires explicit recall)
 
 ### Dimension: Inhibition Weight
 Human: prefrontal cortex suppresses prepotent responses  
-Argo: each memory node carries a `salience_decay` — recently activated nodes suppress older ones of the same type (recency-based inhibition)
+Vanta: each memory node carries a `salience_decay` — recently activated nodes suppress older ones of the same type (recency-based inhibition)
 
 ### Dimension: Set / Task Context
 Human: dorsolateral PFC maintains current "set" (context frame)  
-Argo: explicit `task_context_id` field on working memory entries; switching tasks invalidates the current set; prior set entries are archived, not deleted
+Vanta: explicit `task_context_id` field on working memory entries; switching tasks invalidates the current set; prior set entries are archived, not deleted
 
 ### Dimension: Confidence / Epistemic State
 Human: prefrontal mediates uncertainty tracking, meta-cognition  
-Argo: `epistemic_state` on memory nodes: `known` / `believed` / `uncertain` / `inferred` / `forgotten`
+Vanta: `epistemic_state` on memory nodes: `known` / `believed` / `uncertain` / `inferred` / `forgotten`
 
 ### Dimension: Prospective Memory
 Human: remembering to do something in the future (intention-in-the-future)  
-Argo: `intent` memory type with `trigger_condition` — fires when condition is met (e.g., "next time we touch session.ts, remember X")
+Vanta: `intent` memory type with `trigger_condition` — fires when condition is met (e.g., "next time we touch session.ts, remember X")
 
 ### Dimension: Affective Valence
 Human: amygdala + OFC track reward/punishment associations  
-Argo: `valence` on experiences: `positive` (worked) / `negative` (failed) / `neutral` — drives which approach to inhibit next time
+Vanta: `valence` on experiences: `positive` (worked) / `negative` (failed) / `neutral` — drives which approach to inhibit next time
 
 ### Dimension: Source Monitoring
 Human: hippocampal-frontal circuit tracks WHERE a memory came from  
-Argo: `provenance` (already in BRAIN-5D): session_id + tool_call_id + user utterance index — prevents confabulation, enables "how do you know that?"
+Vanta: `provenance` (already in BRAIN-5D): session_id + tool_call_id + user utterance index — prevents confabulation, enables "how do you know that?"
 
 ---
 
 ## Key Design Principles (from the EF research)
 
-1. **Never destroy context silently.** Working memory failures are catastrophic because the information is simply gone. In Argo: compaction must explicitly signal what was dropped; goal state must survive compaction.
+1. **Never destroy context silently.** Working memory failures are catastrophic because the information is simply gone. In Vanta: compaction must explicitly signal what was dropped; goal state must survive compaction.
 
-2. **Inhibition is a gate, not a wall.** The healthy brain inhibits prepotent responses, it doesn't remove the ability to act — it adds a check. Argo's pre-action goal check should be a soft annotation, not a hard block (hard blocks are for the kernel's Rule Zero).
+2. **Inhibition is a gate, not a wall.** The healthy brain inhibits prepotent responses, it doesn't remove the ability to act — it adds a check. Vanta's pre-action goal check should be a soft annotation, not a hard block (hard blocks are for the kernel's Rule Zero).
 
-3. **Set shifting requires an explicit trigger.** The prefrontal cortex doesn't shift sets automatically — it responds to signals. Argo needs explicit task-boundary events, not implicit drift.
+3. **Set shifting requires an explicit trigger.** The prefrontal cortex doesn't shift sets automatically — it responds to signals. Vanta needs explicit task-boundary events, not implicit drift.
 
-4. **Fluency is about diversity, not volume.** The clinical test measures unique responses, not raw count. Argo's solution generation should track semantic coverage, not just number of attempts.
+4. **Fluency is about diversity, not volume.** The clinical test measures unique responses, not raw count. Vanta's solution generation should track semantic coverage, not just number of attempts.
 
-5. **Self-monitoring is a right-hemisphere specialty.** Right PFC watches for errors and inconsistencies. Argo's background review is the equivalent — but it runs post-turn, not pre-action. A pre-action self-monitor ("does this make sense?") would be the architectural completion.
+5. **Self-monitoring is a right-hemisphere specialty.** Right PFC watches for errors and inconsistencies. Vanta's background review is the equivalent — but it runs post-turn, not pre-action. A pre-action self-monitor ("does this make sense?") would be the architectural completion.
 
-6. **Executive functions are load-sensitive.** They degrade under cognitive load (stress, time pressure, complexity). For Argo: long context = degraded EF = more drift. The WIP limit and /next are load-management tools, not just productivity tools.
+6. **Executive functions are load-sensitive.** They degrade under cognitive load (stress, time pressure, complexity). For Vanta: long context = degraded EF = more drift. The WIP limit and /next are load-management tools, not just productivity tools.
 
-7. **Neuroanatomy is distributed, not localized.** No single region = all EF. Argo's brain similarly cannot be a single file — it must be a network where different regions are active for different task types.
+7. **Neuroanatomy is distributed, not localized.** No single region = all EF. Vanta's brain similarly cannot be a single file — it must be a network where different regions are active for different task types.

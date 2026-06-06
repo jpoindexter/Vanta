@@ -1,18 +1,18 @@
 # Handoff — Build Sprint: ND2 + KANBAN + REL1 + TUI-INTERRUPT + FAC-BORNSMALL
 Generated: 2026-06-04 13:55
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ## What Was Accomplished
 
-1. **ND2 — clarify tool** (new Argo tool)
+1. **ND2 — clarify tool** (new Vanta tool)
    - `tools/clarify.ts`: agent calls `clarify({question, options?})` when intent is ambiguous
    - End-of-turn design: returns formatted question as output; no ToolContext changes; works in TUI + REPL + headless
    - 5 tests
 
 2. **KANBAN slice 1 — roadmap_move tool + CLI**
    - `roadmap/move.ts`: pure `moveRoadmapItem(repoRoot, id, toStatus)` — patches roadmap.json + regenerates HTML
-   - `tools/roadmap-move.ts`: `roadmap_move` Argo tool, kernel-gated
+   - `tools/roadmap-move.ts`: `roadmap_move` Vanta tool, kernel-gated
    - `argo roadmap move <id> <status>` CLI subcommand wired in `cli/ops.ts` + `cli.ts`
    - 6 + registry tests
 
@@ -82,7 +82,7 @@ Branch: feat/v1-hermes-parity
 
 2. **roadmap_move lazy-imports moveRoadmapItem** — `await import("../roadmap/move.js")` inside execute() avoids circular dep issues and keeps the tool thin.
 
-3. **agent-kanban rejected for roadmap board** — it's designed for multi-agent task hand-off (agents/PRs/comms), not for Argo's roadmap format (tiers/tracks/done criteria). Native KANBAN slice 2 (drag-to-move HTML endpoint) is the right path. agent-kanban is parked for FAC territory (dark factory multi-agent orchestration).
+3. **agent-kanban rejected for roadmap board** — it's designed for multi-agent task hand-off (agents/PRs/comms), not for Vanta's roadmap format (tiers/tracks/done criteria). Native KANBAN slice 2 (drag-to-move HTML endpoint) is the right path. agent-kanban is parked for FAC territory (dark factory multi-agent orchestration).
 
 4. **KANBAN slices 2+3 still parked** — slice 2 = drag-to-move HTML endpoint; slice 3 = WIP limit enforcement. Per anti-drift, only slice 1 was in scope.
 
@@ -92,8 +92,8 @@ Branch: feat/v1-hermes-parity
 
 1. [ ] **TUI-INPUT** (`pebble·sonnet·medium`) — input history (up/down) + multiline (shift+enter). Start at `argo-ts/src/tui/composer.tsx`. Done: up arrow cycles history; shift+enter inserts newline in the composer.
 2. [ ] **TUI-MARKDOWN** (`pebble·sonnet·medium`) — Markdown + syntax-highlight rendering in the transcript. Done: agent replies render with headers/bold/code blocks instead of raw markdown.
-3. [ ] **ND1** (`pebble·sonnet·medium`) — task-initiation affordance: given a goal, surface ONE concrete next micro-step. `/next` slash command or `argo next`. Done: user types `/next` → Argo surfaces one tiny action.
-4. [ ] **ND3** (`pebble·sonnet·medium`) — plan-first / converse mode: `/plan` makes Argo clarify → lay out steps → confirm → act. Done: toggleable; step list confirmed before any tool runs.
+3. [ ] **ND1** (`pebble·sonnet·medium`) — task-initiation affordance: given a goal, surface ONE concrete next micro-step. `/next` slash command or `argo next`. Done: user types `/next` → Vanta surfaces one tiny action.
+4. [ ] **ND3** (`pebble·sonnet·medium`) — plan-first / converse mode: `/plan` makes Vanta clarify → lay out steps → confirm → act. Done: toggleable; step list confirmed before any tool runs.
 5. [ ] **U2** (`pebble·sonnet·medium`) — @-context references in TUI composer: @file/@diff/@url autocomplete inlines context. Done: type @ → autocomplete suggestions → selected item attached as context.
 6. [ ] **KANBAN slice 2** — drag-to-move HTML endpoint: POST /roadmap/move + drag-and-drop board UI. Park until after TUI items.
 7. [ ] **Push to remote**: `git push` when ready.
@@ -110,9 +110,9 @@ Branch: feat/v1-hermes-parity
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch feat/v1-hermes-parity (clean, 692 TS + 27 Rust = 719 tests green, tsc clean). 16 commits ahead of origin — push when ready.
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, 692 TS + 27 Rust = 719 tests green, tsc clean). 16 commits ahead of origin — push when ready.
 
-Argo = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
 
 **This session shipped (in order):**
 1. ND2 — clarify tool (end-of-turn design, no ToolContext changes)
@@ -121,7 +121,7 @@ Argo = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer 
 4. TUI-INTERRUPT — Esc aborts running turn (per-turn AbortController in app.tsx)
 5. FAC-BORNSMALL — 3 factory slices: verifier 300-line gate + planner PROVEN_PATTERNS + executor CLAUDE.md injection
 
-**Key decision this session:** agent-kanban (https://github.com/saltbo/agent-kanban.git) rejected for the roadmap board — wrong data model (it's for multi-agent task hand-off, not Argo's tier/track/done roadmap format). KANBAN slice 2 (native drag-to-move HTML endpoint) is the right path, still parked.
+**Key decision this session:** agent-kanban (https://github.com/saltbo/agent-kanban.git) rejected for the roadmap board — wrong data model (it's for multi-agent task hand-off, not Vanta's tier/track/done roadmap format). KANBAN slice 2 (native drag-to-move HTML endpoint) is the right path, still parked.
 
 **Next task: TUI-INPUT** (`pebble·sonnet·medium`)
 Input history (up/down arrows cycles prior messages) + multiline input (shift+enter inserts newline). Start at `argo-ts/src/tui/composer.tsx` — that's the custom readline composer the TUI uses. Done criteria: up arrow in the composer cycles message history; shift+enter inserts a newline instead of submitting.

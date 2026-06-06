@@ -1,6 +1,6 @@
 # Handoff — O9 Dark Factory: Mid-Implementation
 Generated: 2026-06-03 15:15
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo (agent code in `argo-ts/`)
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `argo-ts/`)
 Branch: feat/v1-hermes-parity (5 commits ahead of origin — NOT pushed)
 
 ## What Was Accomplished This Session
@@ -96,11 +96,11 @@ Where left off: **Task 5 was just starting** (`TaskUpdate` to in_progress was th
 Paste this into a new Claude session to resume:
 
 ---
-Resume Argo O9 dark-factory implementation. Repo: `/Users/jasonpoindexter/Documents/GitHub/Argo` (agent code in `argo-ts/`, branch `feat/v1-hermes-parity`, 5 commits ahead of origin — NOT pushed).
+Resume Vanta O9 dark-factory implementation. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (agent code in `argo-ts/`, branch `feat/v1-hermes-parity`, 5 commits ahead of origin — NOT pushed).
 
 **First:** commit the plan file: `git add docs/superpowers/plans/ && git commit -m "docs(o9): implementation plan"`
 
-**Context:** The O9 dark-factory feature gives Argo an autonomous loop that improves its own codebase — one reviewable slice per cycle. The Rust kernel enforces that the factory can never edit `src/*.rs`, `argo-ts/src/factory/*.ts`, or `MANIFESTO.md` (via `is_protected_path` in `src/safety.rs`).
+**Context:** The O9 dark-factory feature gives Vanta an autonomous loop that improves its own codebase — one reviewable slice per cycle. The Rust kernel enforces that the factory can never edit `src/*.rs`, `argo-ts/src/factory/*.ts`, or `MANIFESTO.md` (via `is_protected_path` in `src/safety.rs`).
 
 **Tasks 1–4 are DONE and committed:**
 - Task 1: `src/safety.rs` — `is_protected_path` + write-assessor integration (27 Rust tests)

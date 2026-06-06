@@ -1,6 +1,6 @@
 # CLAUDE.md — argo-ts/src/factory/
 
-Dark factory: the bounded autonomous loop that improves Argo's own codebase. One reviewable slice per cycle, kernel-enforced safety.
+Dark factory: the bounded autonomous loop that improves Vanta's own codebase. One reviewable slice per cycle, kernel-enforced safety.
 
 ## Module map
 
@@ -56,7 +56,7 @@ compartment among the files the slice **actually touched** (`compartments.ts:aut
 | Tier | Files | Max L | Rationale |
 |------|-------|-------|-----------|
 | skeleton | kernel `src/*.rs`, `Cargo.*`, `factory/*.ts`, `MANIFESTO.md` | 0 | never autonomous (also hard-blocked by the kernel) |
-| brainstem | `agent.ts`, `providers/`, `prompt.ts`, `context.ts`, `session.ts`, `safety-client.ts`, `kernel-launcher.ts`, `scope.ts` | 2 | changes how Argo decides → implement, then STOP for review |
+| brainstem | `agent.ts`, `providers/`, `prompt.ts`, `context.ts`, `session.ts`, `safety-client.ts`, `kernel-launcher.ts`, `scope.ts` | 2 | changes how Vanta decides → implement, then STOP for review |
 | reflexes | `skills/`, `skills-library/` | 5 | self-evolving skill data |
 | memory | `brain/`, `memory/` | 5 | self-knowledge |
 | limbs | `tools/` + all other app code (default) | 5 | freely improvable |

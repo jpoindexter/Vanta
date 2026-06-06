@@ -1,6 +1,6 @@
-# Self-repair architecture — how Argo improves itself without breaking itself
+# Self-repair architecture — how Vanta improves itself without breaking itself
 
-**Goal:** Argo can repair and improve any part of itself — "fix a broken leg without breaking the
+**Goal:** Vanta can repair and improve any part of itself — "fix a broken leg without breaking the
 whole app" — down to the kernel and core, **without** (a) breaking the running system or (b) editing
 out its own safety guardrails.
 
@@ -34,7 +34,7 @@ So "fix the leg" is DONE. The rest of this doc is the protocol for the skeleton 
 A kernel change is the dangerous case. It is allowed, but only through a protocol where the **old,
 trusted kernel proves the new one is at least as safe before the new one ever runs live.**
 
-1. **Propose, never apply in place.** Argo may author a *proposed* kernel change on an isolated
+1. **Propose, never apply in place.** Vanta may author a *proposed* kernel change on an isolated
    branch and build it as a SEPARATE candidate binary (`argo-kernel.candidate`). The live kernel
    binary is never overwritten by the agent. `is_protected_path` stays absolute for the running
    process — the agent writes a proposal, not the live boundary.
@@ -68,7 +68,7 @@ trusted kernel proves the new one is at least as safe before the new one ever ru
    - the **safety-invariant spec** (the frozen `action→verdict` cases = the executable form of
      `MANIFESTO.md`'s Rule Zero).
 
-   Argo can improve *every other part of itself, including the kernel body* — but it cannot edit the
+   Vanta can improve *every other part of itself, including the kernel body* — but it cannot edit the
    rule that decides whether a kernel change is safe, nor the gate that enforces it. Immune-system
    analogy: the body rebuilds any cell, but "don't attack self" is not itself rewritable by the cells.
    `MANIFESTO.md` is already kernel-protected; the invariant spec is its machine-checkable twin.

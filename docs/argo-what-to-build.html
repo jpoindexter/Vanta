@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Argo — What To Actually Build (evidence-grounded)</title>
+<title>Vanta — What To Actually Build (evidence-grounded)</title>
 <style>
   :root{
     --bg:#0b0d10;--panel:#14181d;--panel2:#1b2026;--line:#272d35;
@@ -50,11 +50,11 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Argo — What To Actually Build</h1>
+  <h1>Vanta — What To Actually Build</h1>
   <p class="sub">Grounded in <b>~10,000+ of Jason's real Claude + Codex messages</b> (1.6 GB Claude / 110 projects · 2.8 GB Codex / 493 sessions), mined bottom-up across 4 passes · 2026-06-06. Companion to <code>hermes-parity-map.html</code>. The question wasn't "what does Hermes have" — it was "how does Jason actually work, and what would help."</p>
 
   <div class="verdict">
-    <b>The headline:</b> three independent derivations — my curated parity list, Argo's own Desktop recommendation doc, and now <b>10k messages of real usage</b> — converge on the same answer. <b>Don't clone Hermes.</b> Argo's thesis isn't aspirational, it's the <b>#1 measured pain</b>: the single most common friction is the agent acting <i>beside</i> the instruction (<span class="ex">"I didn't say move, I said rename"; "push" ≠ open a PR; "make a v3" ≠ overwrite v1</span>) — which is exactly what the Rust kernel's <code>assess()</code> gate exists to stop. The scrape didn't re-decide the roadmap; it <b>proved the thesis</b> and surfaced 3 net-new needs Hermes doesn't have.
+    <b>The headline:</b> three independent derivations — my curated parity list, Vanta's own Desktop recommendation doc, and now <b>10k messages of real usage</b> — converge on the same answer. <b>Don't clone Hermes.</b> Vanta's thesis isn't aspirational, it's the <b>#1 measured pain</b>: the single most common friction is the agent acting <i>beside</i> the instruction (<span class="ex">"I didn't say move, I said rename"; "push" ≠ open a PR; "make a v3" ≠ overwrite v1</span>) — which is exactly what the Rust kernel's <code>assess()</code> gate exists to stop. The scrape didn't re-decide the roadmap; it <b>proved the thesis</b> and surfaced 3 net-new needs Hermes doesn't have.
   </div>
 
   <div class="cards" id="stats"></div>
@@ -99,7 +99,7 @@
 
   <h2>8 · Bottom line</h2>
   <div class="verdict">
-    Argo should be <b>the local trusted operator that remembers, recovers, and doesn't act outside the line</b> — a general life-operator where coding is one tool. Don't chase Hermes' surface. Build <b>continuity</b> (<span class="rid new">AUTO-HANDOFF</span> <span class="rid">SESSION-SEARCH</span>), <b>reliability</b> (<span class="rid new">RUN-RESUME</span> <span class="rid">MODEL-FALLBACK</span> <span class="rid">UX-MODEL-FIX</span>), the <b>reference loop</b> (<span class="rid new">REF-INGEST</span>), and <b>autonomy-with-verification</b> — and keep the kernel sacred, because it's the thing the data says Jason needs most and Hermes doesn't have. <b>Smaller than Hermes in surface, stronger in trust.</b>
+    Vanta should be <b>the local trusted operator that remembers, recovers, and doesn't act outside the line</b> — a general life-operator where coding is one tool. Don't chase Hermes' surface. Build <b>continuity</b> (<span class="rid new">AUTO-HANDOFF</span> <span class="rid">SESSION-SEARCH</span>), <b>reliability</b> (<span class="rid new">RUN-RESUME</span> <span class="rid">MODEL-FALLBACK</span> <span class="rid">UX-MODEL-FIX</span>), the <b>reference loop</b> (<span class="rid new">REF-INGEST</span>), and <b>autonomy-with-verification</b> — and keep the kernel sacred, because it's the thing the data says Jason needs most and Hermes doesn't have. <b>Smaller than Hermes in surface, stronger in trust.</b>
   </div>
 
   <footer>Source of truth: this file's <code>#data</code> JSON island (parse it). Mining method: bottom-up theme extraction over user-authored messages only; counts are approximate, exemplars short + non-sensitive. New roadmap cards: <code>AUTO-HANDOFF</code>, <code>REF-INGEST</code>, <code>RUN-RESUME</code>.</footer>
@@ -119,7 +119,7 @@
     ["1","Agent acts beside / beyond the instruction (scope over-action)","~10+ explicit 'I didn't say X, I said Y'; 21 hand-fenced Workers","validate","Proves the Rust kernel assess() gate is the crown jewel — the #1 measured pain is exactly what it stops. Pair with ACTION-PROOF."],
     ["2","Context / token economy is a constant chore","138 compaction events + 48 manual handoffs (one project); 'give me a handoff' = most-repeated action","build","Drives net-new AUTO-HANDOFF; validates MEM-CURATOR + EF-TASKSTACK. His biggest recurring manual cost."],
     ["3","Reference → build loop, all manual","~165 'look at this' · 144 URLs · 130 file drops · 94 'clone this repo'","build","Drives net-new REF-INGEST — make pasted/cloned references durable project context, not re-pasted every session."],
-    ["4","Verify-before-report gap (claims done, reality differs)","35 'are you broken / where is it'; 151 'still / again'; output ≠ reference image","validate","Validates BEHAVIOR-VOICE / SELF-EVAL / ACTION-PROOF + AUX-VISION visual-verify. Argo's 'report only verified output' rule is the fix."],
+    ["4","Verify-before-report gap (claims done, reality differs)","35 'are you broken / where is it'; 151 'still / again'; output ≠ reference image","validate","Validates BEHAVIOR-VOICE / SELF-EVAL / ACTION-PROOF + AUX-VISION visual-verify. Vanta's 'report only verified output' rule is the fix."],
     ["5","Long autonomous runs die mid-flight","'don't stop until done' (34+) but 'stream disconnected before completion'; manual pipeline babysitting (~20)","build","Drives net-new RUN-RESUME — auto-resume from checkpoint after a drop; builds on checkpoints + STALL-UNBLOCK."],
     ["6","Cost-aware model routing + persistence","'stop spamming opus' · 'you're pricey' · 'doesn't remember the model I selected' · 'launch lower models for sub-work'","validate","Makes UX-MODEL-FIX urgent (trust bug); validates AUX-MAP + MODEL-FALLBACK. He wants the agent to OWN the opus/sonnet decision."],
     ["7","Destructive-action fear","'was it pushed before you deleted shit'; 'organize my desktop — do not delete anything'","validate","Validates the kernel's block/ask on destructive ops + ACTION-PROOF post-action receipts."],
@@ -136,7 +136,7 @@
     ["SKILL-UMBRELLA","Tier 3 — low","Skills are UNDER-used ('use the skills bro'), not sprawling — governance matters less than the evidence first suggested. Keep, deprioritize."],
     ["CLI-DX-PACK","Tier 3 — low","Boring conveniences; prompt-size + recap have mild support, the rest are nice-to-have."],
     ["ACP-SERVE","Park — no demand","Zero editor-integration asks in 10k messages. He uses Codex-in-VSCode but never requests ACP. Park until real demand."],
-    ["PROXY-ENDPOINT","Park — no demand","No proxy/bridge demand surfaced. Argo's own doc already flagged it as commercial-adjacent. Park behind reliability + continuity."]
+    ["PROXY-ENDPOINT","Park — no demand","No proxy/bridge demand surfaced. Vanta's own doc already flagged it as commercial-adjacent. Park behind reliability + continuity."]
   ],
   "netnew": [
     {"id":"AUTO-HANDOFF","new":true,"t":"Auto-handoff on context pressure + reload on restart","w":"His #1 manual chore. Detect context pressure → auto-emit a durable resume block → reload it next launch. No more 'give me a handoff'. (rock)"},
@@ -156,7 +156,7 @@
     "UX-MODEL-FIX, AUX-MAP, MODEL-BENCH — cost-aware model routing (the #6 pain)",
     "GOAL-ACTION, STALL-UNBLOCK, the autonomy ladder (O10/O10b/O11) — delegate-the-backlog autonomy",
     "BEHAVIOR-VOICE, SELF-EVAL, ACTION-PROOF, TRUST-LABELS — verify-before-report + trust",
-    "The Rust kernel + EF gates + Brain — Argo's whole not-Hermes thesis, now empirically the #1 need"
+    "The Rust kernel + EF gates + Brain — Vanta's whole not-Hermes thesis, now empirically the #1 need"
   ],
   "order": [
     "AUTO-HANDOFF + SESSION-SEARCH — kill the continuity tax (pains #2, the biggest recurring cost)",
@@ -187,7 +187,7 @@
   document.getElementById('lose').innerHTML=D.lose.map(l=>`<li><b>${l[0]}</b> — ${l[1]}</li>`).join('');
   document.getElementById('validated').innerHTML=D.validated.map(v=>`<li>${v}</li>`).join('');
   document.getElementById('order').innerHTML=D.order.map(o=>`<li>${o}</li>`).join('');
-  document.getElementById('messagingflag').innerHTML='<b>⚑ Honest flag — messaging.</b> You said "we want to match messaging." But 10k messages show <b>~zero messaging-platform usage</b> — email/calendar/drive matter, channel-chat doesn\'t (yet). My read: keep the connector registry, build the <b>one</b> platform you actually adopt, and don\'t clone Hermes\' 21. If you know a channel is coming (e.g. you\'ll run Argo over iMessage), name it and I\'ll card that single adapter. Your call — I\'m flagging the evidence, not overriding you.';
+  document.getElementById('messagingflag').innerHTML='<b>⚑ Honest flag — messaging.</b> You said "we want to match messaging." But 10k messages show <b>~zero messaging-platform usage</b> — email/calendar/drive matter, channel-chat doesn\'t (yet). My read: keep the connector registry, build the <b>one</b> platform you actually adopt, and don\'t clone Hermes\' 21. If you know a channel is coming (e.g. you\'ll run Vanta over iMessage), name it and I\'ll card that single adapter. Your call — I\'m flagging the evidence, not overriding you.';
 })();
 </script>
 </body>

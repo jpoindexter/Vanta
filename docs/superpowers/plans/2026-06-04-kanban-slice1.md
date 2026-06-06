@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `roadmap_move` Argo tool and `argo roadmap move <id> <status>` CLI command that update roadmap.json and regenerate roadmap.html.
+**Goal:** Add a `roadmap_move` Vanta tool and `argo roadmap move <id> <status>` CLI command that update roadmap.json and regenerate roadmap.html.
 
 **Architecture:** Pure `moveRoadmapItem(repoRoot, id, toStatus)` function in `roadmap/move.ts` → thin tool wrapper in `tools/roadmap-move.ts` → thin CLI dispatch in `cli/ops.ts`. Each layer is independently testable. No existing file is restructured.
 
@@ -16,7 +16,7 @@
 |--------|------|----------------|
 | Create | `argo-ts/src/roadmap/move.ts` | Pure fn: read → validate → patch → write → rebuild |
 | Create | `argo-ts/src/roadmap/move.test.ts` | Unit tests for moveRoadmapItem |
-| Create | `argo-ts/src/tools/roadmap-move.ts` | Argo tool wrapping moveRoadmapItem |
+| Create | `argo-ts/src/tools/roadmap-move.ts` | Vanta tool wrapping moveRoadmapItem |
 | Modify | `argo-ts/src/tools/index.ts` | Register roadmapMoveTool in ALL_TOOLS |
 | Modify | `argo-ts/src/tools/tools.test.ts` | Add "roadmap_move" to sorted registry list |
 | Modify | `argo-ts/src/cli/ops.ts` | Add move subcommand to runRoadmapCommand |
@@ -196,7 +196,7 @@ git commit -m "feat(KANBAN): moveRoadmapItem — pure fn, 6 tests green"
 
 ---
 
-## Task 2: roadmap_move Argo tool
+## Task 2: roadmap_move Vanta tool
 
 **Files:**
 - Create: `argo-ts/src/tools/roadmap-move.ts`
@@ -415,7 +415,7 @@ Expected: no errors
 - [ ] **Step 5: End-to-end smoke test**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta
 node argo-ts/src/cli.ts roadmap move ND2 building 2>&1
 ```
 

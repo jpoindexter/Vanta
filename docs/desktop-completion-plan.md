@@ -1,11 +1,11 @@
-# Argo Desktop App Completion Plan
+# Vanta Desktop App Completion Plan
 
-Purpose: give Claude/Cursor a clear implementation plan to turn Argo’s rough Hermes-shaped local web shell into a real, functional desktop app.
+Purpose: give Claude/Cursor a clear implementation plan to turn Vanta’s rough Hermes-shaped local web shell into a real, functional desktop app.
 
 Repo:
 
 ```text
-/Users/jasonpoindexter/Documents/GitHub/Argo
+/Users/jasonpoindexter/Documents/GitHub/Vanta
 ```
 
 Current rough desktop files:
@@ -22,7 +22,7 @@ argo-ts/src/desktop/CLAUDE.md
 Current run command:
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
 npm run argo -- desktop
 ```
 
@@ -36,9 +36,9 @@ http://127.0.0.1:7790
 
 ## Executive summary
 
-The current desktop implementation is only a rough local web shell. It has some real Argo wiring, but it is not a complete desktop app.
+The current desktop implementation is only a rough local web shell. It has some real Vanta wiring, but it is not a complete desktop app.
 
-The target is a real Argo desktop interface inspired by Hermes desktop, but better aligned with Argo’s identity:
+The target is a real Vanta desktop interface inspired by Hermes desktop, but better aligned with Vanta’s identity:
 
 - native desktop shell
 - session sidebar
@@ -51,9 +51,9 @@ The target is a real Argo desktop interface inspired by Hermes desktop, but bett
 - command palette
 - command center
 - memory/goals/plan visibility
-- Argo safety kernel enforced everywhere
+- Vanta safety kernel enforced everywhere
 
-Important: do **not** make a generic dashboard. Jason specifically rejected that. Match Hermes’ actual interaction model first, then improve it with Argo’s operator/dossier aesthetic and stronger safety.
+Important: do **not** make a generic dashboard. Jason specifically rejected that. Match Hermes’ actual interaction model first, then improve it with Vanta’s operator/dossier aesthetic and stronger safety.
 
 ---
 
@@ -99,13 +99,13 @@ Hermes desktop shape:
 
 ---
 
-## Non-negotiable Argo constraints
+## Non-negotiable Vanta constraints
 
-Argo is not Hermes. Argo has a Rust safety kernel and every action must respect it.
+Vanta is not Hermes. Vanta has a Rust safety kernel and every action must respect it.
 
 ### Safety rules
 
-1. All tool actions must go through the existing Argo agent/tool dispatch or explicit kernel assessment.
+1. All tool actions must go through the existing Vanta agent/tool dispatch or explicit kernel assessment.
 2. No destructive shell commands.
 3. No direct filesystem writes outside approved scope.
 4. Approval-required actions must show a clear approval UI before execution.
@@ -279,7 +279,7 @@ The desktop app should be a **surface**, not a second agent runtime.
 
 Do not duplicate agent logic in the desktop app.
 
-Use existing Argo primitives:
+Use existing Vanta primitives:
 
 ```text
 prepareRun
@@ -375,7 +375,7 @@ passes.
 
 # Phase 1 — Streaming event channel
 
-Goal: desktop chat must update live while Argo is working.
+Goal: desktop chat must update live while Vanta is working.
 
 Current problem:
 
@@ -533,7 +533,7 @@ Match Hermes:
 └──────────────┴───────────────────────────────┴──────────────┘
 ```
 
-### Argo styling direction
+### Vanta styling direction
 
 Use Jason’s preferred technical/operator style:
 
@@ -563,7 +563,7 @@ Goal: make desktop approval flow reliable and safe.
 
 ## Requirements
 
-When Argo tries an `ask` action:
+When Vanta tries an `ask` action:
 
 1. backend pauses the tool execution
 2. emits `approval_request`
@@ -724,7 +724,7 @@ Tests:
 
 # Phase 7 — Terminal rail / PTY
 
-Goal: real terminal rail like Hermes, but Argo-safe.
+Goal: real terminal rail like Hermes, but Vanta-safe.
 
 Current terminal:
 
@@ -761,15 +761,15 @@ Safety model:
   - keep command runner, not full shell
   - add live streaming output
 - Later version:
-  - full PTY but clearly mark as direct user terminal, not autonomous Argo tool
-  - Argo cannot drive PTY without approval
+  - full PTY but clearly mark as direct user terminal, not autonomous Vanta tool
+  - Vanta cannot drive PTY without approval
 
 Recommended phases:
 
 1. live command output runner
 2. persistent shell for user only
 3. allow “add selection to chat”
-4. allow Argo-suggested command with approval
+4. allow Vanta-suggested command with approval
 
 Acceptance phase 1:
 
@@ -794,7 +794,7 @@ Target:
 - console panel
 - reload controls
 - devtools button if Electron
-- “Ask Argo to restart preview server”
+- “Ask Vanta to restart preview server”
 
 With Electron:
 
@@ -812,8 +812,8 @@ GET  /api/preview/state
 Restart flow:
 
 1. preview fails to load
-2. UI offers “Ask Argo to restart server”
-3. backend starts an Argo background task:
+2. UI offers “Ask Vanta to restart server”
+3. backend starts an Vanta background task:
    - inspect project
    - identify dev server command
    - run safe command or ask approval
@@ -856,7 +856,7 @@ Target groups:
   - appearance
 - Tools
   - list/search tools
-- Argo actions
+- Vanta actions
   - show goals
   - show plan
   - next action
@@ -901,7 +901,7 @@ Sections:
 - approvals
 - logs
 - restart desktop backend
-- update Argo command, approval-gated if needed
+- update Vanta command, approval-gated if needed
 
 ## Usage
 
@@ -921,7 +921,7 @@ argo-ts/src/velocity/store.ts
 
 Acceptance:
 
-- command center gives a real overview of Argo’s state
+- command center gives a real overview of Vanta’s state
 - no fake metrics
 - missing data is labeled missing, not invented
 
@@ -931,7 +931,7 @@ Acceptance:
 
 Goal: make composer function like a real multimodal agent interface.
 
-Existing Argo capabilities:
+Existing Vanta capabilities:
 
 - `/image <path>`
 - `/paste`
@@ -987,7 +987,7 @@ argo-ts/desktop-app/electron/preload.cjs
 
 Main process responsibilities:
 
-- start/stop Argo desktop backend
+- start/stop Vanta desktop backend
 - create BrowserWindow
 - app menu
 - native file pickers
@@ -1125,7 +1125,7 @@ Only after Jason confirms UX is good.
 Minimum verification each slice:
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
 npx vitest run
 npx tsc --noEmit
 ```
@@ -1159,8 +1159,8 @@ Jason should be able to say:
 
 - “This feels like a real app, not a webpage.”
 - “It works like Hermes structurally.”
-- “It looks like Argo, not generic SaaS.”
-- “I can see what Argo is doing.”
+- “It looks like Vanta, not generic SaaS.”
+- “I can see what Vanta is doing.”
 - “Risky actions clearly ask me.”
 - “Sessions and context are easy.”
 - “The terminal/files/preview rails are useful.”
@@ -1186,10 +1186,10 @@ Do not:
 
 ## Final desired outcome
 
-A native Argo desktop app with:
+A native Vanta desktop app with:
 
 - Hermes-like interaction model
-- Argo operator/dossier aesthetic
+- Vanta operator/dossier aesthetic
 - safe approval-first action flow
 - session continuity
 - live streaming
@@ -1198,4 +1198,4 @@ A native Argo desktop app with:
 - terminal and preview rails
 - command palette
 - command center
-- enough polish that Jason can use it as the main way to work with Argo.
+- enough polish that Jason can use it as the main way to work with Vanta.

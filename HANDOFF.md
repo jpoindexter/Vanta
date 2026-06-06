@@ -1,4 +1,4 @@
-# Argo — Session Handoff (2026-06-03 v3)
+# Vanta — Session Handoff (2026-06-03 v3)
 
 Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md` first.
 
@@ -6,11 +6,11 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 
 ## Where things are
 
-- **Repo:** `~/Documents/GitHub/Argo` (Rust kernel `src/*.rs`; TS agent `argo-ts/`).
+- **Repo:** `~/Documents/GitHub/Vanta` (Rust kernel `src/*.rs`; TS agent `argo-ts/`).
 - **Branch:** `feat/v1-hermes-parity` — **synced with origin, clean tree.**
 - **Tests:** 554 TS (vitest) + 27 Rust = **581 green**; `tsc --noEmit` clean.
   - Run: `cd argo-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
-- **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Argo/`. `ARGO_ROOT` env var is the fix.
+- **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Vanta/`. `ARGO_ROOT` env var is the fix.
 
 ## Source-of-truth docs
 
@@ -66,7 +66,7 @@ Start with source code (safe), ask about docs before deleting.
 
 ## Gotchas
 
-- Harness pins cwd to `Nexarion Agent` (empty artifact). Real repo: `~/Documents/GitHub/Argo`.
+- Harness pins cwd to `Nexarion Agent` (empty artifact). Real repo: `~/Documents/GitHub/Vanta`.
 - Stale binary on :7788 — `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill.
 - `tools/tools.test.ts` has a sorted tool-name list — new tools must be added there.
 - Factory needs a frontier model for `argo factory approve` to produce correct code. qwen2.5:14b ran but broke a test. Gemini 2.5 Flash hit 429 during testing.
@@ -77,11 +77,11 @@ Start with source code (safe), ask about docs before deleting.
 ## Continuation prompt
 
 ```
-Resume Argo. Repo: ~/Documents/GitHub/Argo (TS agent in argo-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
+Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in argo-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
 
 Status: v1 complete. O9 dark factory shipped and live-verified. ROADMAP fully updated.
 
 Pending: strip all Hermes mentions from the codebase (user request). Before starting, confirm scope — does this include docs/hermes-* files and docs/_hermes-recon/? Or just source code and ROADMAP/DECISIONS inline references?
 
-Gotcha: harness may start in ~/Documents/GitHub/Nexarion Agent (empty artifact dir). Real repo is ~/Documents/GitHub/Argo.
+Gotcha: harness may start in ~/Documents/GitHub/Nexarion Agent (empty artifact dir). Real repo is ~/Documents/GitHub/Vanta.
 ```

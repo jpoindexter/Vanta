@@ -1,6 +1,6 @@
 # Handoff — Research Sprint: MemPalace + AgentMemory + EF Architecture
 Generated: 2026-06-04 16:20
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ---
@@ -32,9 +32,9 @@ Examined 3 external sources and added 28 new horizon roadmap items + 3 design do
 - PMC4455841 — Rabinovici et al., "Executive Dysfunction" (UCSF Memory and Aging Center, 2015) — COMPLETE article including all 3 clinical cases, full neuroanatomy section, all references, treatment section
 
 **New design docs:**
-- `docs/executive-dysfunction-brain-design.md` — full mapping from EF science to Argo requirements. Covers 4 EF components, 9 clinical symptoms, treatment→architecture translation, 7 extended brain dimensions (activation state, inhibition weight, set/task context, epistemic state, prospective memory, affective valence, source monitoring), two-network brain architecture (salience network DISTINCT from executive control), two working memory modes (maintenance vs manipulation), Tower of London = factory planner problem.
+- `docs/executive-dysfunction-brain-design.md` — full mapping from EF science to Vanta requirements. Covers 4 EF components, 9 clinical symptoms, treatment→architecture translation, 7 extended brain dimensions (activation state, inhibition weight, set/task context, epistemic state, prospective memory, affective valence, source monitoring), two-network brain architecture (salience network DISTINCT from executive control), two working memory modes (maintenance vs manipulation), Tower of London = factory planner problem.
 
-- `docs/ef-network-analysis.md` — 6 real EF failure patterns from actual Argo sessions (handoffs + today's conversation), mapped to clinical EF components + counter-measures. Includes the full EF network diagram (cause → effect → counter-measure) and gap analysis for 5 new items not yet on the roadmap.
+- `docs/ef-network-analysis.md` — 6 real EF failure patterns from actual Vanta sessions (handoffs + today's conversation), mapped to clinical EF components + counter-measures. Includes the full EF network diagram (cause → effect → counter-measure) and gap analysis for 5 new items not yet on the roadmap.
 
 ---
 
@@ -69,7 +69,7 @@ Examined 3 external sources and added 28 new horizon roadmap items + 3 design do
 | `argo-ts/src/factory/intent-judge.test.ts` | Created | 11 intent judge tests |
 | `argo-ts/src/factory/verifier.ts` | Modified | Step 7: intent judge gate + VerifyOpts |
 | `argo-ts/src/factory/run.ts` | Modified | Pass workItem: item to verify() |
-| `docs/executive-dysfunction-brain-design.md` | Created | Full EF→Argo design spec |
+| `docs/executive-dysfunction-brain-design.md` | Created | Full EF→Vanta design spec |
 | `docs/ef-network-analysis.md` | Created | Real session EF pattern analysis |
 | `roadmap.json` | Modified | 105 total items (+28 new horizon items) |
 | `CLAUDE.md` | Modified | Test counts: 43 tools · 771 TS + 27 Rust = 798 |
@@ -234,9 +234,9 @@ These are meatier but all well-specified:
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch `feat/v1-hermes-parity` (clean, 798 tests green, tsc clean, all committed and pushed).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 798 tests green, tsc clean, all committed and pushed).
 
-Argo = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
 
 **Last session shipped:**
 - KANBAN-S3: WIP limit (cap 2) on building column — 409 from server, badge in board HTML

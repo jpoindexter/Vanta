@@ -1,4 +1,4 @@
-# Parity Audit — Customized Hermes vs Argo vs Manifesto (2026-06-02)
+# Parity Audit — Customized Hermes vs Vanta vs Manifesto (2026-06-02)
 
 Reference: Jason's customized install `~/.hermes/hermes-agent/`. Verdicts traced to code.
 
@@ -17,7 +17,7 @@ Reference: Jason's customized install `~/.hermes/hermes-agent/`. Verdicts traced
 
 ## Capability parity vs customized Hermes
 
-| Capability | Hermes (customized) | Argo | Verdict |
+| Capability | Hermes (customized) | Vanta | Verdict |
 |---|---|---|---|
 | LLM providers | many | openai · ollama · anthropic · gemini · openrouter · **codex** · **claude-code** | ✅ parity |
 | Subscription OAuth | codex + claude | **codex (live-verified)** + claude-code | ✅ |
@@ -35,12 +35,12 @@ Reference: Jason's customized install `~/.hermes/hermes-agent/`. Verdicts traced
 
 ## Remaining gaps (logged, not closed — by priority)
 
-- **Session search** (Hermes has FTS over past sessions). Argo lists + resumes by id. → next candidate.
-- **More messaging platforms** (Hermes: Discord/Slack/Matrix/etc; Argo: Telegram). → PARKED, demand-driven.
+- **Session search** (Hermes has FTS over past sessions). Vanta lists + resumes by id. → next candidate.
+- **More messaging platforms** (Hermes: Discord/Slack/Matrix/etc; Vanta: Telegram). → PARKED, demand-driven.
 - **Desktop/Web UI** — TUI-first decision stands; desktop is hashmark's lane. → PARKED.
 - **Skill breadth** — management beats count (Nemotron insight); curate a small high-value set on demand. → PARKED.
-- **Memory compression** (Hermes LLM-compresses; Argo caps + git-retains). → optional, PARKED.
+- **Memory compression** (Hermes LLM-compresses; Vanta caps + git-retains). → optional, PARKED.
 
 ## Verdict
 
-Every manifesto hard line is real in code. Core agent parity with the customized Hermes is **met** (providers, subscription OAuth, streaming, sessions, memory, self-improvement, skill injection, commands, identity, banner). Remaining deltas are breadth/surface (session search, platforms, desktop, skill count) — parked by design, not blocking the mandate. **Argo is, by the measures that define it, the better agent: same capability spine + a hard safety kernel Hermes doesn't have.**
+Every manifesto hard line is real in code. Core agent parity with the customized Hermes is **met** (providers, subscription OAuth, streaming, sessions, memory, self-improvement, skill injection, commands, identity, banner). Remaining deltas are breadth/surface (session search, platforms, desktop, skill count) — parked by design, not blocking the mandate. **Vanta is, by the measures that define it, the better agent: same capability spine + a hard safety kernel Hermes doesn't have.**

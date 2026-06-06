@@ -1,6 +1,6 @@
 # CLAUDE.md — desktop interface
 
-First slice of the Argo desktop experience, modeled structurally after the Hermes desktop app: session sidebar, central chat, right preview/files/terminal rail, command palette, and command-center overlay.
+First slice of the Vanta desktop experience, modeled structurally after the Hermes desktop app: session sidebar, central chat, right preview/files/terminal rail, command palette, and command-center overlay.
 
 ## Run
 
@@ -15,10 +15,10 @@ npm run argo -- desktop 7791   # custom port
 - `server.ts` starts a localhost HTTP server with:
   - `GET /` static command-center UI
   - `GET /api/status` kernel/model/tool/goal snapshot
-  - `GET /api/sessions` saved Argo sessions
+  - `GET /api/sessions` saved Vanta sessions
   - `GET /api/tools` tool catalog for the right rail
-  - `POST /api/chat` persistent in-process Argo conversation
-- `page.ts` is dependency-free static HTML/CSS/JS using the Argo dossier/operator visual language.
+  - `POST /api/chat` persistent in-process Vanta conversation
+- `page.ts` is dependency-free static HTML/CSS/JS using the Vanta dossier/operator visual language.
 - This is not packaged Electron/Tauri yet. It is the seed surface; native shell, streaming, true session resume/sidebar selection, file preview/PTY, and approval prompts are next.
 
 ## Safety

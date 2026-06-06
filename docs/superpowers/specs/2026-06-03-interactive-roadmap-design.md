@@ -6,10 +6,10 @@
 jumbled version sections. Two needs aren't met:
 
 1. **Jason** can't see "shipped / building / on the horizon" at a glance.
-2. **Argo** can't read its own roadmap as structured data — to know its status, or
+2. **Vanta** can't read its own roadmap as structured data — to know its status, or
    (later) for the factory to pick the next item.
 
-Standing directive from this session: **all Argo documentation must be agent-ready** —
+Standing directive from this session: **all Vanta documentation must be agent-ready** —
 a structured, parseable source with human views *generated from it*, never the reverse.
 
 ## Done (v1)
@@ -17,7 +17,7 @@ a structured, parseable source with human views *generated from it*, never the r
 - [ ] `roadmap.json` exists at repo root, seeded from the current `ROADMAP.md`, holding every track item.
 - [ ] `roadmap.html` is generated from it — a Now / Next / Later product roadmap, filterable, opens in a browser.
 - [ ] `argo roadmap` builds + opens the HTML.
-- [ ] Argo reads `roadmap.json` natively (agent-ready) — verified by the agent answering "what's on your roadmap" from the file.
+- [ ] Vanta reads `roadmap.json` natively (agent-ready) — verified by the agent answering "what's on your roadmap" from the file.
 - [ ] Generator is pure + unit-tested; `tsc` clean.
 
 ## Architecture
@@ -28,7 +28,7 @@ Single source → two consumers:
 roadmap.json   ← single source of truth (agent-ready)
    │
    ├─▶ roadmap.html   (generated; human view — Jason)
-   └─▶ Argo reads it directly (agent view — already agent-ready JSON)
+   └─▶ Vanta reads it directly (agent view — already agent-ready JSON)
 ```
 
 ### Data model — `roadmap.json`
@@ -44,7 +44,7 @@ roadmap.json   ← single source of truth (agent-ready)
       "status": "building",
       "size": "S",
       "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + argo mcp list.",
-      "done": "argo mcp list shows a server's tools; Argo calls one live."
+      "done": "argo mcp list shows a server's tools; Vanta calls one live."
     }
   ]
 }
@@ -67,9 +67,9 @@ CLI: `argo roadmap` → `build.ts` then `open roadmap.html` (macOS `open`).
 
 ### Agent-ready
 
-`roadmap.json` is plain structured JSON at repo root → Argo reads it with its existing
+`roadmap.json` is plain structured JSON at repo root → Vanta reads it with its existing
 read tool. No special tool needed for v1. (Future, parked: surface a roadmap digest into
-the system prompt so Argo always knows its status; let the factory pick the next
+the system prompt so Vanta always knows its status; let the factory pick the next
 `next`-status item.)
 
 ## Why json-as-source (not parse the md)
