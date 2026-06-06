@@ -1,10 +1,10 @@
-# CLAUDE.md — Argo (repo root)
+# CLAUDE.md — Vanta (repo root)
 
-Read this first. Global `~/.claude/CLAUDE.md` conventions apply; only Argo-specific facts are here. Don't re-derive what's below — it's the source of truth.
+Read this first. Global `~/.claude/CLAUDE.md` conventions apply; only Vanta-specific facts are here. Don't re-derive what's below — it's the source of truth.
 
-## What Argo is
+## What Vanta is
 
-A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Lineage: OpenClaw → Hermes → Argo. Full vision + roadmap in `docs/prd.md`. Hermes architecture reference (what to steal/improve/replace) in `docs/hermes-map.html`.
+A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Lineage: OpenClaw → Hermes → Vanta. Full vision + roadmap in `docs/prd.md`. Hermes architecture reference (what to steal/improve/replace) in `docs/hermes-map.html`.
 
 ## Two layers
 
@@ -62,7 +62,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 - **`ARGO_ROOT` env var** overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.
 - **Stale `nexarion-agent` binary** may hold port 7788 from before the rename. If a new kernel won't bind, `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill the PID.
-- **A leftover empty `../Nexarion Agent/` dir** exists (harness artifact, only an empty `.claude/`). The real repo is `Argo/`. Don't work in the old path.
+- **A leftover empty `../Nexarion Agent/` dir** exists (harness artifact, only an empty `.claude/`). The real repo is `Vanta/`. Don't work in the old path.
 - Kernel must be reachable before the agent runs (launcher auto-starts it; needs `target/debug/argo-kernel` built).
 
 ## Status

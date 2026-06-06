@@ -1,11 +1,11 @@
-# Argo Plugin Framework — "plugins like Claude/Codex/Hermes"
+# Vanta Plugin Framework — "plugins like Claude/Codex/Hermes"
 
 > Roadmap: `PLUGIN-FRAMEWORK` + `PLUGIN-HOOKS` (build on `PLUGIN-SYSTEM` install hygiene +
 > `AUTH-BROWSER`). Source: the plugins goal + Hermes plugin docs extraction (2026-06-05).
 
-## What Argo already has (don't rebuild)
+## What Vanta already has (don't rebuild)
 
-Argo has most of the *pieces* — it lacks the unifying framework:
+Vanta has most of the *pieces* — it lacks the unifying framework:
 - **Tool registry** (`tools/registry.ts`, `buildRegistry`) — register tools.
 - **MCP** (`mount_mcp`, MCP-1/2/3) — external tools at runtime (the "external server" plugin half).
 - **Claude Code hooks** (shipped) — lifecycle hooks.
@@ -38,7 +38,7 @@ npm package entry points.
 
 **Opt-in allow-list** (the security model): general plugins are **disabled by default**; the user
 adds names to `plugins.enabled` in config before they load — "stops third-party code running
-without your explicit consent." Argo adds its kernel on top: **every plugin tool still routes
+without your explicit consent." Vanta adds its kernel on top: **every plugin tool still routes
 through `assess()`** (a hard boundary Hermes lacks — Hermes plugins run unsandboxed in-process).
 
 **Categories:** general (multi-select) · memory provider (single-select) · context engine

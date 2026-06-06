@@ -1,10 +1,10 @@
-# AGENTS.md — Argo (repo root)
+# AGENTS.md — Vanta (repo root)
 
 Cross-tool agent context (Codex, Cursor, etc.). Pairs with `CLAUDE.md`. Read both. `CLAUDE.md` has deeper detail; this file has the essentials any agent needs to operate.
 
 ## What this repo is
 
-Argo is a local trusted-operator agent: Rust safety kernel + TypeScript agent loop. It knows its goals before picking tools, enforces scope on every action, and reports only verified output.
+Vanta is a local trusted-operator agent: Rust safety kernel + TypeScript agent loop. It knows its goals before picking tools, enforces scope on every action, and reports only verified output.
 
 Two layers:
 

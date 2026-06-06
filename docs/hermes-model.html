@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Argo TUI — flow model</title>
+<title>Vanta TUI — flow model</title>
 <style>
   :root{
     --bg:#0c0f14; --panel:#11151c; --term:#0a0d12; --line:#1d242e;
@@ -112,15 +112,15 @@
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="anchor">⚓</span> Argo TUI — flow model</h1>
-  <p class="sub">Target shape for Argo, structurally faithful to Hermes. Click the tabs to step each flow. Spec: <code>docs/hermes-flows.md</code></p>
+  <h1><span class="anchor">⚓</span> Vanta TUI — flow model</h1>
+  <p class="sub">Target shape for Vanta, structurally faithful to Hermes. Click the tabs to step each flow. Spec: <code>docs/hermes-flows.md</code></p>
 
   <div class="tabs" id="tabs"></div>
 
   <div class="term">
     <div class="chrome">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <span class="title">argo — ~/Documents/GitHub/Argo</span>
+      <span class="title">argo — ~/Documents/GitHub/Vanta</span>
     </div>
 
     <!-- 1. STARTUP -->
@@ -134,7 +134,7 @@
       <pre class="dm">⚓ Trusted operator · Rust safety kernel + TypeScript agent</pre>
 
       <div class="card">
-        <div class="hd">⚓  <span class="c b">Argo</span>  ·  gemini-2.5-flash  ·  Nexarion → Argo  ·  <span class="dm">Session: 20260602-200419</span></div>
+        <div class="hd">⚓  <span class="c b">Vanta</span>  ·  gemini-2.5-flash  ·  Nexarion → Vanta  ·  <span class="dm">Session: 20260602-200419</span></div>
 
         <div class="sectn"><span class="ft">▾</span> <span class="t">Available Tools</span> <span class="dm">(32)</span>
 <pre class="ink">    read_file  write_file  edit_file  shell_cmd  run_code  ls  grep
@@ -151,10 +151,10 @@
         <div class="footer-line">32 tools · 10 skills · 3 MCP servers · <span class="c">/help</span> for commands</div>
       </div>
 
-      <pre class="dm" style="margin-top:12px">Welcome to Argo. Type your message or <span class="c">/help</span> for commands.</pre>
+      <pre class="dm" style="margin-top:12px">Welcome to Vanta. Type your message or <span class="c">/help</span> for commands.</pre>
 
       <div class="composer">
-        <div class="box"><span class="pr">❯</span><span class="ph">Ask Argo anything — /help for commands</span><span class="caret">.</span></div>
+        <div class="box"><span class="pr">❯</span><span class="ph">Ask Vanta anything — /help for commands</span><span class="caret">.</span></div>
       </div>
       <div class="status">
         <div><span class="on">● ready</span><span class="seg sp">gemini-2.5-flash</span><span class="seg sp">0 / 1.0M</span></div>
@@ -180,7 +180,7 @@
         <div><span class="on">● ready</span><span class="seg sp">gemini-2.5-flash</span></div>
         <div><span class="seg">↑↓ select · tab complete · ⏎ run</span></div>
       </div>
-      <p class="note"><b>Status today:</b> shipped — the palette + full slash set are wired into Argo's TUI. <b>Next:</b> make the displayed commands <i>do</i> things (tab 3).</p>
+      <p class="note"><b>Status today:</b> shipped — the palette + full slash set are wired into Vanta's TUI. <b>Next:</b> make the displayed commands <i>do</i> things (tab 3).</p>
     </section>
 
     <!-- 3. MODEL PICKER -->
@@ -222,9 +222,9 @@
       </div>
       <div class="status">
         <div><span class="on">⠹ generating</span><span class="seg sp">gemini-2.5-flash</span><span class="seg sp">38k / 1.0M</span><span class="seg sp"><span class="bar">[███░░░░░]</span> 4%</span><span class="seg sp">0:09</span><span class="seg sp">$0.0021</span></div>
-        <div><span class="seg">~/Argo  feat/v1</span></div>
+        <div><span class="seg">~/Vanta  feat/v1</span></div>
       </div>
-      <p class="note"><b>Already works in Argo:</b> these are the existing streaming callbacks (<b>onTextDelta / onToolCall / onToolResult</b>). The status-bar segments (tokens · cost · duration) are the port — <b>Phase P4</b>.</p>
+      <p class="note"><b>Already works in Vanta:</b> these are the existing streaming callbacks (<b>onTextDelta / onToolCall / onToolResult</b>). The status-bar segments (tokens · cost · duration) are the port — <b>Phase P4</b>.</p>
     </section>
 
     <!-- 5. SESSIONS -->
@@ -268,12 +268,12 @@
         <div><span class="seg" style="color:var(--yellow)">⚠ blocked — approval required</span><span class="seg sp">gemini-2.5-flash</span></div>
         <div><span class="seg">Esc = deny</span></div>
       </div>
-      <p class="note"><b>Argo has</b> inline y/n approval today. <b>Upgrade</b> to the 4-option prompt (once / session / always / deny) — wired to the Rust kernel's approve/deny. <b>→ Phase P6.</b></p>
+      <p class="note"><b>Vanta has</b> inline y/n approval today. <b>Upgrade</b> to the 4-option prompt (once / session / always / deny) — wired to the Rust kernel's approve/deny. <b>→ Phase P6.</b></p>
     </section>
 
   </div>
 
-  <p class="legend">Mockup · not live · glyphs and layout match the target render. Argo-only flows (/goal · /snapshot · /rollback) keep it more than a Hermes clone.</p>
+  <p class="legend">Mockup · not live · glyphs and layout match the target render. Vanta-only flows (/goal · /snapshot · /rollback) keep it more than a Hermes clone.</p>
 </div>
 
 <script>

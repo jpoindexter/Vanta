@@ -1,10 +1,10 @@
-# EF Network Analysis — Real Patterns from Argo Sessions
+# EF Network Analysis — Real Patterns from Vanta Sessions
 
 Sources: PMC4455841 (Rabinovici et al.), session handoffs 2026-06-02 through 2026-06-04,
 today's conversation, Claude Code project transcripts.
 
 This document maps OBSERVED EF failure patterns from real sessions to clinical EF components,
-then specifies the Argo counter-measure for each. Jason's sessions are the calibration dataset.
+then specifies the Vanta counter-measure for each. Jason's sessions are the calibration dataset.
 
 ---
 
@@ -26,7 +26,7 @@ Each discovery generates more research items. No convergence gate fires. The sti
 - Set Shifting: each new topic requires a full context switch before the prior one is complete
 - Working Memory: the original 5-item plan is displaced by new working memory contents
 
-**Argo counter-measure needed**: 
+**Vanta counter-measure needed**: 
 - EF-INHIBIT (pre-action check: "does this serve the original goal?")
 - EF-TASKBOUNDARY (explicit marker when shifting from build to research mode)
 - **NEW**: Research convergence gate — after N research turns without an actionable output, surface "you've been researching for X turns, want to pick one item to build?"
@@ -43,7 +43,7 @@ From handoff: "Decide the ONE next build. Put one card in building — dogfood t
 - The 11-item backlog IS the multifaceted problem — too many options → paralysis
 - MMSE analog: the backlog looks productive (lots of items!) but functional output = 0
 
-**Argo counter-measure needed**:
+**Vanta counter-measure needed**:
 - ND1 /next (SHIPPED) — converts the 11-item paralysis into ONE micro-step ✓
 - KANBAN WIP limit (SHIPPED) — prevents adding more cards while paralyzed ✓
 - EF-COMPLEXITY-GATE (planned) — auto-prompt to plan before accumulating more items
@@ -64,7 +64,7 @@ The sessions show: morning sprint → afternoon research → evening sprint → 
 - Set Shifting: moving from "build mode" to "research mode" fails to preserve the build thread
 - The functional impairment is hidden: each session looks productive in isolation
 
-**Argo counter-measure needed**:
+**Vanta counter-measure needed**:
 - MEM-VERBATIM (planned) — verbatim session archive so "what did morning-session do" is answerable
 - EF-WORKINGMEM (planned) — active task stack that survives session boundaries
 - /moim (SHIPPED) — preserves one top-of-mind note ✓
@@ -82,7 +82,7 @@ From handoff-2026-06-04-1145: "Nothing from the research was built — it's a ca
 - Planning: the ability to SEQUENCE the options (identify, prioritize, properly sequence steps) is impaired
 - The paradox: high verbal fluency masks planning deficits (same as Case 4-2: MMSE 28/30 but non-functional)
 
-**Argo counter-measure needed**:
+**Vanta counter-measure needed**:
 - FAC-INTENT (SHIPPED) — factory gate that rejects output not addressing the work item ✓
 - KANBAN WIP limit (SHIPPED) — hard limit on ideas-in-progress ✓
 - **NEW**: Velocity tracker — ratio of (items captured) to (items shipped) over rolling 7 days. Surface as a note when ratio > 5:1: "You've captured 20 items and shipped 2 this week. Want to clear the queue before adding more?"
@@ -99,7 +99,7 @@ During today's session: while implementing FAC-INTENT, I also checked MemPalace 
 - Utilization behavior analog: picking up and using every interesting object encountered
 - Stimulus-bound: each new discovery triggers engagement regardless of current goal
 
-**Argo counter-measure needed**:
+**Vanta counter-measure needed**:
 - EF-INHIBIT (planned) — soft pre-action goal check ✓
 - **NEW**: Scope delta tracker — at the end of each turn, compute how many distinct topics were touched. If > 3 distinct topics in one turn, flag it. Not a block — a visible annotation.
 
@@ -115,7 +115,7 @@ From today: KANBAN-S3 → TUI-DIFF → TUI-MODE → ND5 → FAC-INTENT → MemPa
 - Working memory: the "I need to document FAC-INTENT properly" intention was displaced
 - Multitasking difficulty: each thread is "almost done" but none gets closure
 
-**Argo counter-measure needed**:
+**Vanta counter-measure needed**:
 - MEM-SESSION-RECOVER (planned from AgentMemory #737) ✓
 - EF-TASKBOUNDARY (planned) ✓
 - **NEW**: Closure gate — before starting a new major thread, check for incomplete items from the current session that are >50% done. Surface: "You have 2 items in-progress this session. Finish one before starting a new thread?"
@@ -153,7 +153,7 @@ From today: KANBAN-S3 → TUI-DIFF → TUI-MODE → ND5 → FAC-INTENT → MemPa
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
-│  SHIPPED COUNTER-MEASURES (already in Argo)                     │
+│  SHIPPED COUNTER-MEASURES (already in Vanta)                     │
 │                                                                 │
 │  Working Memory:  MOIM, /next, session persist, /where (planned)│
 │  Inhibition:      anti-drift rules, CLAUDE.md "park or commit" │
@@ -184,7 +184,7 @@ Generic productivity tools (Notion, Linear, Todoist) address NONE of these patte
 3. They don't understand the context (can't tell if a tool call is off-goal)
 4. They don't adapt to cognitive load (same UX whether you've been working 1 hour or 8 hours)
 
-Argo as an EF prosthetic works because:
+Vanta as an EF prosthetic works because:
 1. **It's in the loop** — every tool call, every turn, every session start is an opportunity to check
 2. **It has context** — it knows the active goal, the tool call history, the session history
 3. **It can intervene gently** — not blocking, but noting (inhibition support, not wall)

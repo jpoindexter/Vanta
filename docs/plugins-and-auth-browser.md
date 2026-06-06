@@ -1,7 +1,7 @@
 # Plugins + AUTH-BROWSER — clean, industry-standard capability install
 
 > Roadmap: `PLUGIN-SYSTEM` (clean install model) + `AUTH-BROWSER` (first plugin).
-> Sources: the "clean plugin setup" goal + Argo's own design (`argo skill 4.rtf`), 2026-06-05.
+> Sources: the "clean plugin setup" goal + Vanta's own design (`argo skill 4.rtf`), 2026-06-05.
 
 ## Current state: already clean (verified 2026-06-05)
 
@@ -21,7 +21,7 @@ correct. The danger to avoid is `PLAYWRIGHT_BROWSERS_PATH=0`, which forces brows
 
 ## The plugin model (industry standard)
 
-A **plugin** = an optional Argo capability = `{ tools + optional skill + lazy deps }`.
+A **plugin** = an optional Vanta capability = `{ tools + optional skill + lazy deps }`.
 The rule, so nothing pollutes the project:
 
 1. **Source only in the repo.** Tools/skills are TS + Markdown, committed.
@@ -50,13 +50,13 @@ stealing cookies from your real browser.**
 
 ### Why a dedicated profile, not cookie import
 Reading Chrome/Safari's cookie DB to inject sessions is malware-shaped: keychain/OS
-encryption, high secret-handling risk, easy to leak auth cookies. Instead Argo gets its
+encryption, high secret-handling risk, easy to leak auth cookies. Instead Vanta gets its
 **own** persistent Playwright profile you log into manually once.
 
 ### Flow
 ```
 argo browser auth x.com         # opens a HEADED Chromium in ~/.argo/browser-profiles/x.com/
-                                # you log in manually — Argo never sees password/2FA
+                                # you log in manually — Vanta never sees password/2FA
                                 # close the window → session stays in that profile
 browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPersistentContext, read-only
 ```
@@ -99,8 +99,8 @@ reads X search results from the profile; cookies stay confined; tests prove it.
 
 ## "Universal" — three layers
 The same capability ships at three reuse levels:
-1. **Tools** (code) — the `browser_*_auth` tools inside Argo.
-2. **Skill** (portable doc) — an `authenticated-browsing` SKILL.md (Argo skills-library +
+1. **Tools** (code) — the `browser_*_auth` tools inside Vanta.
+2. **Skill** (portable doc) — an `authenticated-browsing` SKILL.md (Vanta skills-library +
    Claude Code) teaching the safe pattern, so any agent uses it consistently.
 3. **Plugin** (install bundle) — tools + skill + lazy Playwright dep, installed via
    `argo plugins install browser`, deps in OS cache. This is the "universal add-on" form.

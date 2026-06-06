@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hermes Architecture Map — Argo Reference</title>
+<title>Hermes Architecture Map — Vanta Reference</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#e8e8e2;font:14px/1.5 -apple-system,BlinkMacSystemFont,'Inter',monospace;min-height:100vh}
@@ -51,7 +51,7 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
 <header>
   <div style="display:flex;align-items:center;gap:12px">
     <h1>Hermes Architecture Map</h1>
-    <span>Argo reference — click any module</span>
+    <span>Vanta reference — click any module</span>
   </div>
   <div class="legend">
     <div class="legend-item"><span class="dot steal"></span>Steal pattern</div>
@@ -276,7 +276,7 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
 </div>
 
 <div class="layer">
-  <div class="layer-label">Credentials &amp; Auth (skip for Argo)</div>
+  <div class="layer-label">Credentials &amp; Auth (skip for Vanta)</div>
   <div class="nodes">
     <div class="node skip" data-id="credential_pool" onclick="show('credential_pool')">
       <div class="name">credential_pool.py</div>
@@ -298,7 +298,7 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
 </div>
 
 <div class="layer">
-  <div class="layer-label">Media Providers (skip for Argo)</div>
+  <div class="layer-label">Media Providers (skip for Vanta)</div>
   <div class="nodes">
     <div class="node skip" data-id="browser_provider" onclick="show('browser_provider')">
       <div class="name">browser_provider.py</div>
@@ -322,7 +322,7 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
 </div>
 
 <div class="panel" id="panel">
-  <div class="empty">← Click any module to see details,<br>Argo equivalent, and build notes.</div>
+  <div class="empty">← Click any module to see details,<br>Vanta equivalent, and build notes.</div>
 </div>
 </div>
 
@@ -334,8 +334,8 @@ const data = {
     desc: "The AIAgent class — the central orchestrator. Owns the conversation loop, spawns subagents, manages profile state, handles scheduling. 4,575 lines. The biggest file.",
     fns: ["run_conversation()", "chat()", "delegate_task()", "spawn_subagent()"],
     argo: "agent.ts",
-    argoNote: "Argo's agent loop. Same responsibility, TS. No profile management — one user only. Goal injection happens here.",
-    why: "Improve: the pattern is right, but there's no goal-first check before any tool call. Argo injects active goals into every session before the first LLM call."
+    argoNote: "Vanta's agent loop. Same responsibility, TS. No profile management — one user only. Goal injection happens here.",
+    why: "Improve: the pattern is right, but there's no goal-first check before any tool call. Vanta injects active goals into every session before the first LLM call."
   },
   cli: {
     label: "cli.py",
@@ -343,8 +343,8 @@ const data = {
     desc: "Interactive CLI built on prompt_toolkit. Handles multiline editing, command history, slash commands, streaming output. The primary user interface.",
     fns: ["main()", "process_command()", "_handle_background_command()", "display_stream()"],
     argo: "cli.ts",
-    argoNote: "Argo's CLI entry. Simpler — no TUI framework needed for v0. Just stdin/stdout with streaming tool output.",
-    why: "Improve: prompt_toolkit is heavy. Argo starts with minimal CLI, adds TUI later if needed."
+    argoNote: "Vanta's CLI entry. Simpler — no TUI framework needed for v0. Just stdin/stdout with streaming tool output.",
+    why: "Improve: prompt_toolkit is heavy. Vanta starts with minimal CLI, adds TUI later if needed."
   },
   gateway: {
     label: "gateway/",
@@ -352,7 +352,7 @@ const data = {
     desc: "Messaging platform adapters: Telegram, Discord, Slack, WhatsApp, Signal, email. Each implements a base adapter pattern. Not relevant for a local operator agent.",
     fns: [],
     argo: null,
-    argoNote: "Not built in Argo v0. Local operator only.",
+    argoNote: "Not built in Vanta v0. Local operator only.",
     why: null
   },
   acp_adapter: {
@@ -361,7 +361,7 @@ const data = {
     desc: "ACP (Agent Communication Protocol) adapter. Enables Hermes to speak the ACP standard for cross-agent communication. Not relevant for v0.",
     fns: [],
     argo: null,
-    argoNote: "Not built in Argo v0.",
+    argoNote: "Not built in Vanta v0.",
     why: null
   },
   conversation_loop: {
@@ -397,8 +397,8 @@ const data = {
     desc: "Classifies API errors into categories: billing, auth, rate-limit, context-too-large, malformed. Drives retry/fallback decisions in the loop.",
     fns: ["classify_error()", "is_retryable()", "is_fatal()"],
     argo: "providers/interface.ts",
-    argoNote: "Argo surfaces errors directly with clear messages. Simplified — no multi-provider fallback in v0.",
-    why: "Improve: good pattern. Argo implements a simpler version focused on the OpenAI error surface."
+    argoNote: "Vanta surfaces errors directly with clear messages. Simplified — no multi-provider fallback in v0.",
+    why: "Improve: good pattern. Vanta implements a simpler version focused on the OpenAI error surface."
   },
   message_sanitization: {
     label: "message_sanitization.py",
@@ -406,7 +406,7 @@ const data = {
     desc: "Strips malformed Unicode surrogates, orphaned tool_result messages, and non-ASCII before each API call. Prevents silent 400 errors from garbage in the message history.",
     fns: ["sanitize_messages()", "strip_surrogates()", "remove_orphan_results()"],
     argo: "agent.ts",
-    argoNote: "Include in Argo's message pipeline. Easy 20-line addition that prevents hard-to-debug failures.",
+    argoNote: "Include in Vanta's message pipeline. Easy 20-line addition that prevents hard-to-debug failures.",
     why: null
   },
   system_prompt: {
@@ -433,7 +433,7 @@ const data = {
     desc: "The agent's identity file. Plain markdown. Defines personality, values, and operating principles. Loaded as the first block of the stable prompt tier. Editable, version-controlled, not hardcoded.",
     fns: [],
     argo: "SOUL.md (already written)",
-    argoNote: "Already exists at /Argo/SOUL.md. 'I know the goal before I pick a tool. I verify output before I claim success. I do not drift.'",
+    argoNote: "Already exists at /Vanta/SOUL.md. 'I know the goal before I pick a tool. I verify output before I claim success. I do not drift.'",
     why: null
   },
   prompt_caching: {
@@ -460,7 +460,7 @@ const data = {
     desc: "MemoryManager orchestrates multiple memory providers. Pre-turn: prefetch relevant context, inject as <memory-context> blocks. Post-turn: sync completed exchange to providers. Only ONE external plugin provider allowed at a time.",
     fns: ["prefetch_all()", "sync_all()", "handle_tool_call()", "queue_prefetch_all()"],
     argo: "memory.ts (v1)",
-    argoNote: "Not in v0. Architecture is worth replicating: provider interface + pre/post hooks. Argo's memory will be goal-linked (what did I do toward goal X).",
+    argoNote: "Not in v0. Architecture is worth replicating: provider interface + pre/post hooks. Vanta's memory will be goal-linked (what did I do toward goal X).",
     why: null
   },
   memory_provider: {
@@ -469,7 +469,7 @@ const data = {
     desc: "MemoryProvider interface. Exposes: system_prompt(), tool_schemas(), on_turn_start(), on_session_switch(), on_pre_compress(). Allows plug-in memory backends (file, vector DB, etc.).",
     fns: ["system_prompt()", "tool_schemas()", "on_turn_start()", "on_pre_compress()"],
     argo: "memory.ts (v1)",
-    argoNote: "Same interface pattern for Argo's memory module. First implementation: flat file summary per goal.",
+    argoNote: "Same interface pattern for Vanta's memory module. First implementation: flat file summary per goal.",
     why: null
   },
   context_engine: {
@@ -505,7 +505,7 @@ const data = {
     desc: "Handles @ file reference syntax in user messages (e.g. @src/app.ts). Loads file content and injects it into the message. 41 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Not in Argo v0. File reads go through the read-file tool with safety gating.",
+    argoNote: "Not in Vanta v0. File reads go through the read-file tool with safety gating.",
     why: null
   },
   tool_executor: {
@@ -515,7 +515,7 @@ const data = {
     fns: ["execute_tool()", "execute_concurrent()", "execute_sequential()"],
     argo: "tools/registry.ts",
     argoNote: "Same dispatch pattern. Key addition: every tool call goes through assess() on the Rust kernel before execution. No tool runs without a safety verdict.",
-    why: "Improve: dispatch pattern is right. Missing safety gate — tools execute if the model says so, not if Argo says it's safe."
+    why: "Improve: dispatch pattern is right. Missing safety gate — tools execute if the model says so, not if Vanta says it's safe."
   },
   tool_guardrails: {
     label: "tool_guardrails.py",
@@ -523,8 +523,8 @@ const data = {
     desc: "Loop safety only — not content safety. Blocks: same tool+args failing 5 times, same tool failing 8 times per turn, idempotent tool returning same result 5 times. Separate policy (decision) from enforcement (action).",
     fns: ["before_call()", "after_call()", "ToolCallSignature", "ToolGuardrailDecision"],
     argo: "agent.ts (inline)",
-    argoNote: "Steal the loop-safety pattern (consecutive failure detection). Add to agent.ts. Argo's content safety is the Rust kernel — separate concern.",
-    why: "Improve: loop safety is good, but not the same as content/scope safety. Argo needs both."
+    argoNote: "Steal the loop-safety pattern (consecutive failure detection). Add to agent.ts. Vanta's content safety is the Rust kernel — separate concern.",
+    why: "Improve: loop safety is good, but not the same as content/scope safety. Vanta needs both."
   },
   tool_dispatch_helpers: {
     label: "tool_dispatch_helpers.py",
@@ -532,7 +532,7 @@ const data = {
     desc: "Toolset scope enforcement, schema collection, tool availability checking. Toolsets control which tools are exposed to which agent contexts. 32 symbols.",
     fns: ["collect_schemas()", "check_availability()", "enforce_scope()"],
     argo: "tools/registry.ts",
-    argoNote: "Argo's tool registry. register(), lookup(), toJsonSchema(). Toolset concept not needed for v0 — one context.",
+    argoNote: "Vanta's tool registry. register(), lookup(), toJsonSchema(). Toolset concept not needed for v0 — one context.",
     why: null
   },
   file_safety: {
@@ -542,7 +542,7 @@ const data = {
     fns: ["check_write()", "check_read()", "is_blocked_path()"],
     argo: "Rust safety kernel (safety.rs)",
     argoNote: "The Rust kernel IS the security boundary. assess() returns block/ask/allow — the agent cannot bypass it. No 'HERMES_WRITE_SAFE_ROOT' opt-in needed.",
-    why: "Replace: advisory safety is not safety. Argo enforces scope via the kernel on every single tool call."
+    why: "Replace: advisory safety is not safety. Vanta enforces scope via the kernel on every single tool call."
   },
   tool_result_classification: {
     label: "tool_result_classification.py",
@@ -550,7 +550,7 @@ const data = {
     desc: "Classifies tool output type (text, image, error, empty). Drives decisions about retry and what to include in the next API call. 5 symbols.",
     fns: ["classify_result()"],
     argo: "agent.ts",
-    argoNote: "Needed for Argo's consecutive-failure detection. If result is empty or error 3 times → stop loop.",
+    argoNote: "Needed for Vanta's consecutive-failure detection. If result is empty or error 3 times → stop loop.",
     why: null
   },
   skill_commands: {
@@ -604,7 +604,7 @@ const data = {
     desc: "Abstract Transport base class. Defines the interface all LLM transports implement. 13 symbols.",
     fns: ["complete()", "stream()", "tool_use_format()"],
     argo: "providers/interface.ts",
-    argoNote: "LLMProvider interface in Argo. complete(messages, tools, config) → AsyncIterable<Chunk>. Same abstraction.",
+    argoNote: "LLMProvider interface in Vanta. complete(messages, tools, config) → AsyncIterable<Chunk>. Same abstraction.",
     why: null
   },
   transports_chat: {
@@ -623,7 +623,7 @@ const data = {
     fns: ["complete()", "stream_response()", "add_cache_headers()", "format_tool_use()"],
     argo: "providers/anthropic.ts",
     argoNote: "Interface stubbed in v0. Implement when Claude is needed. Will add prompt caching and extended thinking support.",
-    why: "Improve: wrap in the typed LLMProvider interface so the rest of Argo never talks to Anthropic directly."
+    why: "Improve: wrap in the typed LLMProvider interface so the rest of Vanta never talks to Anthropic directly."
   },
   bedrock_adapter: {
     label: "bedrock_adapter.py",
@@ -631,7 +631,7 @@ const data = {
     desc: "AWS Bedrock adapter. Claude via AWS. Handles SigV4 auth, Bedrock-specific message format. 50 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Not in Argo scope.",
+    argoNote: "Not in Vanta scope.",
     why: null
   },
   gemini_adapter: {
@@ -640,7 +640,7 @@ const data = {
     desc: "Google Gemini native adapter. Handles Gemini's message format, function calling schema, and safety settings. 61 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Not in Argo scope for v0.",
+    argoNote: "Not in Vanta scope for v0.",
     why: null
   },
   model_metadata: {
@@ -676,7 +676,7 @@ const data = {
     desc: "Terminal streaming display. Handles streaming text chunks, tool call display, progress indicators, ANSI formatting. 66 symbols.",
     fns: ["stream_chunk()", "show_tool_call()", "show_approval_request()", "clear_line()"],
     argo: "cli.ts",
-    argoNote: "Argo v0: plain process.stdout.write() for streaming. Add rich display in v1.",
+    argoNote: "Vanta v0: plain process.stdout.write() for streaming. Add rich display in v1.",
     why: null
   },
   trajectory: {
@@ -685,8 +685,8 @@ const data = {
     desc: "Records agent action trajectory — what tools were called, what they returned, what the model decided. Used for debugging and batch generation. 9 symbols.",
     fns: ["record_action()", "record_tool_result()", "to_jsonl()"],
     argo: "Rust kernel events.jsonl",
-    argoNote: "Argo logs every tool call to .argo/events.jsonl via the kernel logEvent() API. Same purpose, different implementation.",
-    why: "Improve: Argo's event log is the trajectory. Already built in the Rust kernel."
+    argoNote: "Vanta logs every tool call to .argo/events.jsonl via the kernel logEvent() API. Same purpose, different implementation.",
+    why: "Improve: Vanta's event log is the trajectory. Already built in the Rust kernel."
   },
   agent_runtime_helpers: {
     label: "agent_runtime_helpers.py",
@@ -703,7 +703,7 @@ const data = {
     desc: "Multi-profile credential management. Each profile gets isolated API keys. 95 symbols. Complex multi-tenant auth system.",
     fns: [],
     argo: null,
-    argoNote: "Not relevant — Argo is single-user, single-profile. API key from .env.",
+    argoNote: "Not relevant — Vanta is single-user, single-profile. API key from .env.",
     why: null
   },
   credential_sources: {
@@ -712,7 +712,7 @@ const data = {
     desc: "API key resolution chain: env vars → keychain → config file → interactive prompt. 22 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Argo reads from .env. ARGO_PROVIDER, OPENAI_API_KEY, ARGO_MODEL.",
+    argoNote: "Vanta reads from .env. ARGO_PROVIDER, OPENAI_API_KEY, ARGO_MODEL.",
     why: null
   },
   google_oauth: {
@@ -730,7 +730,7 @@ const data = {
     desc: "First-run setup wizard. API key entry, model selection, profile creation. 18 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Argo: run `cargo run -- doctor` to initialize. No wizard.",
+    argoNote: "Vanta: run `cargo run -- doctor` to initialize. No wizard.",
     why: null
   },
   browser_provider: {
@@ -739,7 +739,7 @@ const data = {
     desc: "Playwright browser automation. Allows the agent to navigate, click, screenshot. 13 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Not in Argo v0. Parked for v2+.",
+    argoNote: "Not in Vanta v0. Parked for v2+.",
     why: null
   },
   image_gen: {
@@ -766,7 +766,7 @@ const data = {
     desc: "Web search provider registry. Pluggable search backends. 17 symbols.",
     fns: [],
     argo: null,
-    argoNote: "Not in Argo v0. Parked for v1 — useful for research tasks.",
+    argoNote: "Not in Vanta v0. Parked for v1 — useful for research tasks.",
     why: null
   }
 };
@@ -777,16 +777,16 @@ function show(id) {
   if (el) el.classList.add('active');
   const d = data[id];
   if (!d) return;
-  const catLabel = {steal:'Steal this pattern',improve:'Improve on this',replace:'Replace entirely',skip:'Skip for Argo'};
+  const catLabel = {steal:'Steal this pattern',improve:'Improve on this',replace:'Replace entirely',skip:'Skip for Vanta'};
   let html = `<h2>${d.label}</h2><span class="badge ${d.cat}">${catLabel[d.cat]}</span>`;
   html += `<section><h3>What it does</h3><p>${d.desc}</p></section>`;
   if (d.fns && d.fns.length) {
     html += `<section><h3>Key symbols</h3><div class="functions">${d.fns.map(f=>`<span class="fn-tag">${f}</span>`).join('')}</div></section>`;
   }
   if (d.argo) {
-    html += `<hr><section><h3>Argo equivalent</h3><div class="argo-box"><div class="file">${d.argo}</div>${d.argoNote?`<div class="note">${d.argoNote}</div>`:''}</div></section>`;
+    html += `<hr><section><h3>Vanta equivalent</h3><div class="argo-box"><div class="file">${d.argo}</div>${d.argoNote?`<div class="note">${d.argoNote}</div>`:''}</div></section>`;
   } else if (d.argoNote) {
-    html += `<hr><section><h3>Argo note</h3><p class="skip-note">${d.argoNote}</p></section>`;
+    html += `<hr><section><h3>Vanta note</h3><p class="skip-note">${d.argoNote}</p></section>`;
   }
   if (d.why) {
     html += `<section><div class="why-box">${d.why}</div></section>`;

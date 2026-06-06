@@ -1,8 +1,8 @@
-# Argo
+# Vanta
 
 A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.
 
-OpenClaw gave agents a body. Hermes gave agents a personal runtime. Argo starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.
+OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.
 
 Two layers:
 - **`src/` — Rust safety kernel** (`argo-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
@@ -12,10 +12,10 @@ See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes
 
 ## Install
 
-One command on a fresh machine — clones Argo into `~/argo`, builds the kernel, and puts a global `argo` on your PATH:
+One command on a fresh machine — clones Vanta into `~/argo`, builds the kernel, and puts a global `argo` on your PATH:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jpoindexter/Argo/main/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
 ```
 
 > The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `ARGO_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.

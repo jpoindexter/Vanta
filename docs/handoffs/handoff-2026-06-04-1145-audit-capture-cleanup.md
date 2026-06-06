@@ -1,6 +1,6 @@
 # Handoff — audit, vision reframe, research capture, refactor + repo cleanup
 Generated: 2026-06-04 11:45
-Project: Argo · /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta · /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity (all pushed; tag v0.1.0 pushed)
 
 ## What Was Accomplished
@@ -11,7 +11,7 @@ Branch: feat/v1-hermes-parity (all pushed; tag v0.1.0 pushed)
 - **Refactor (this session):** `repl-commands.ts` 486→38 (handler registry under `repl/{types,catalog,format,handlers}.ts`); `cli.ts` 460→286 (ops handlers → `cli/ops.ts`).
 
 **Research + capture (docs + roadmap, NOT built — per Jason's capture-now/build-later pattern):**
-- **4-way agent audit** → `audit.json`/`audit.html` (Argo vs Hermes vs Goose vs Claude Code) + live issue triage + ND-vision filter (F1–F6).
+- **4-way agent audit** → `audit.json`/`audit.html` (Vanta vs Hermes vs Goose vs Claude Code) + live issue triage + ND-vision filter (F1–F6).
 - **Vision reframe** (DECISIONS.md + audit): full-capability operator, **executive-function-first, inclusive** (curb-cut effect) — not "an agent for ND people." Moat = follow-through. Brain identity already `neurodivergent-first`.
 - **Self-repair architecture** → `docs/self-repair-architecture.md` + `SR` roadmap item (propose→differential-conformance→blue-green-swap→human-promote; immutable trust root).
 - **Dynamic-workflows** skill → `argo-ts/skills-library/agent-orchestration-workflows/` (from Thariq article).
@@ -48,14 +48,14 @@ None. Every thread was committed + pushed. This session was ~14 user goals, most
 - **`roadmap.html`/`audit.html` are gitignored** generated views; `roadmap.json`/`audit.json` are the committed agent-ready source. Regenerate html locally; not on GitHub.
 - **`factory/*.ts` is kernel-protected (skeleton)** — the factory can't edit itself; those slices are human-authored. The kernel (`src/safety.rs`) and `MANIFESTO.md` are also protected.
 - **Generators hardcode repoRoot** — don't move `roadmap/audit .json+.html` out of root.
-- **Memory written this session:** `external-refs-and-capture` (own analysis of external refs + capture-backlog preference). Index: `~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Argo/memory/MEMORY.md`.
+- **Memory written this session:** `external-refs-and-capture` (own analysis of external refs + capture-backlog preference). Index: `~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Vanta/memory/MEMORY.md`.
 - Commit cadence: every slice committed + pushed; gitleaks pre-commit hook runs.
 
 ## Continuation Prompt
 Paste into a new session to resume:
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch feat/v1-hermes-parity (clean, pushed, tag v0.1.0). Argo = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, pushed, tag v0.1.0). Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
 
 Last session shipped O11 (compartment autonomy tiers), O10b (L5 auto-merge, off by default), TUI-SMOOTH (clean activity feed), refactored repl-commands.ts→registry + cli.ts→cli/ops.ts, did a 4-way agent audit (audit.html), reframed the vision (executive-function-first/inclusive — see DECISIONS.md), and captured a large research backlog into roadmap.json (77 items): FAC-* (factory hardening — see docs/factory-evolution.md), TUI-* (TUI parity), ND1-6 (executive-function spine), SR (self-repair), KANBAN. Nothing from the research was built — it's a capture backlog by design.
 

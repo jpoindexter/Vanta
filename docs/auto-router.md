@@ -1,18 +1,18 @@
 # AUTO-ROUTER — automatic per-task model routing + ephemeral subagents
 
-> Roadmap item `AUTO-ROUTER` (Models + Setup, rock). Source: Argo's own design pass
+> Roadmap item `AUTO-ROUTER` (Models + Setup, rock). Source: Vanta's own design pass
 > (`argo ability.rtf`, 2026-06-05). Supersedes the `MODEL-SPINUP` placeholder.
 
 ## The idea
 
 Keep the main brain on the chosen premium model (e.g. `codex/gpt-5.5`) as the
 commander. For **bounded** subtasks — summarize, classify, research, verify, memory
-compression, first-pass code search — Argo automatically spins up a scoped subagent on
+compression, first-pass code search — Vanta automatically spins up a scoped subagent on
 a cheaper local/cloud model, uses its output, then tears it down (local Ollama unloads
 via `keep_alive:"0s"`; cloud workers are stateless). The main brain reviews the result
 before Jason sees or acts on it.
 
-**Argo already has ~60% of this.** `delegate`/`swarm` (`tools/delegate.ts`,
+**Vanta already has ~60% of this.** `delegate`/`swarm` (`tools/delegate.ts`,
 `tools/swarm.ts`) can already run a subagent on an explicit provider/model;
 `routing/model-router.ts` only does crude cheap/expensive same-provider routing;
 `routing/vision.ts` (AUX-VISION) is the aux-task pattern already shipped. So this is a

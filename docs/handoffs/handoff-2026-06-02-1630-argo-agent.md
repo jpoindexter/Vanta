@@ -1,6 +1,6 @@
-# Handoff — Argo: all 7 PRD phases + interactive agent shell
+# Handoff — Vanta: all 7 PRD phases + interactive agent shell
 Generated: 2026-06-02 ~16:30
-Project: Argo — `/Users/jasonpoindexter/Documents/GitHub/Argo`
+Project: Vanta — `/Users/jasonpoindexter/Documents/GitHub/Vanta`
 Branch: `main` (working tree clean, everything committed)
 
 ## What Was Accomplished
@@ -9,7 +9,7 @@ Branch: `main` (working tree clean, everything committed)
 - **32 tools** registered; **290 tests** (16 Rust + 274 TS); typecheck clean.
 - **Interactive agent shell** (the big one this session): `argo` with no args launches a banner (logo, model, goals, all 32 tools, skills) + a chat REPL with persistent conversation — the Hermes/OpenClaw "straight-up agent" experience. Verified: banner renders, loop runs, `argo run "list my goals"` works live on Ollama.
 - **Launchers:** `./run.sh` (download-&-run: bootstraps kernel + deps on first run) and `./argo` alias. Global `argo` via `npm link` (symlink at `~/.hermes/node/bin/argo`).
-- **Flow map:** `docs/argo-flow.md` — Hermes runtime flow as a Mermaid flowchart, mapped 1:1 to Argo modules + a gap list.
+- **Flow map:** `docs/argo-flow.md` — Hermes runtime flow as a Mermaid flowchart, mapped 1:1 to Vanta modules + a gap list.
 - Docs kept current: root `CLAUDE.md`, `argo-ts/CLAUDE.md`, `DECISIONS.md`, `PARKED.md`, `HANDOFF.md`, project memory.
 
 ## Files Changed (this session, beyond the 7 phase commits)
@@ -58,7 +58,7 @@ Branch: `main` (working tree clean, everything committed)
 Items 1–3 are small + high-impact on the "feels like a real agent" axis. Recommended next slice.
 
 ## Context That's Easy to Lose
-- **Harness pins spawned cwd to the OLD `Nexarion Agent` path** (empty leftover dir). The real repo is `~/Documents/GitHub/Argo`. `cli.ts findRepoRoot()` resolves via `import.meta.url` (not cwd), so the launchers work regardless. `ARGO_ROOT` exists for the same reason.
+- **Harness pins spawned cwd to the OLD `Nexarion Agent` path** (empty leftover dir). The real repo is `~/Documents/GitHub/Vanta`. `cli.ts findRepoRoot()` resolves via `import.meta.url` (not cwd), so the launchers work regardless. `ARGO_ROOT` exists for the same reason.
 - **Stale binary on :7788** — if the kernel won't bind: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID.
 - **Workflow tool gotcha:** scripts reject the literal tokens `Date.now()`/`new Date()`/`Math.random()` even inside prompt strings — phrase around them.
 - **Live-use caveats** (real code, offline-tested only): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → OAuth client + consent; LSP is .ts/.tsx only; `argo cron` needs an OS scheduler trigger. All in `PARKED.md`.
@@ -68,7 +68,7 @@ Items 1–3 are small + high-impact on the "feels like a real agent" axis. Recom
 Paste into a new Claude session to resume:
 
 ---
-Resume work on **Argo** at `/Users/jasonpoindexter/Documents/GitHub/Argo` (branch `main`, clean tree). Argo is a local trusted-operator agent: Rust safety kernel (`src/`, enforced boundary on :7788) + TypeScript agent layer (`argo-ts/`). Read `CLAUDE.md` (root) + `argo-ts/CLAUDE.md` + `docs/argo-flow.md` first — they're the source of truth (file maps, env, the runtime flow, gaps).
+Resume work on **Vanta** at `/Users/jasonpoindexter/Documents/GitHub/Vanta` (branch `main`, clean tree). Vanta is a local trusted-operator agent: Rust safety kernel (`src/`, enforced boundary on :7788) + TypeScript agent layer (`argo-ts/`). Read `CLAUDE.md` (root) + `argo-ts/CLAUDE.md` + `docs/argo-flow.md` first — they're the source of truth (file maps, env, the runtime flow, gaps).
 
 State: **all 7 PRD phases done, 290 tests green** (16 Rust + 274 TS), typecheck clean. `argo` (no args) launches an interactive banner + chat REPL — the agent works live on Ollama qwen2.5:14b. Run it with `./argo` or `./run.sh` from the repo (global `argo` needs `~/.hermes/node/bin` on PATH).
 
@@ -79,4 +79,4 @@ Next slice (from `docs/argo-flow.md` gap list, in order): (1) `argo setup` first
 Build discipline (respect these): work per `docs/prd.md` + `DECISIONS.md` (don't re-litigate locked choices); each slice = real code + co-located vitest + `tsc --noEmit` clean + commit; files <300 lines, fns <50, zod at boundaries, errors-as-values in tools, ESM `.js` imports; every tool gated through the kernel `assess()`; never fabricate — flag what needs external setup (keys/OAuth/browser binaries) rather than fake it. Don't edit `~/.zshrc` or other shell profiles without explicit per-action approval. Promote deferred items from `PARKED.md`.
 ---
 
-Saved: `/Users/jasonpoindexter/Documents/GitHub/Argo/handoff-2026-06-02-1630-argo-agent.md`
+Saved: `/Users/jasonpoindexter/Documents/GitHub/Vanta/handoff-2026-06-02-1630-argo-agent.md`

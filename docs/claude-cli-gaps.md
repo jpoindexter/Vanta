@@ -1,12 +1,12 @@
-# Claude CLI gaps — non-coding features Argo lacks (2026-06-02)
+# Claude CLI gaps — non-coding features Vanta lacks (2026-06-02)
 
 Source: Claude Code 2.1.156 (installed). Excludes coding-specific features (/init,
-/review, /pr-comments, LSP, /hooks, /terminal-setup, /bug). Argo side verified
+/review, /pr-comments, LSP, /hooks, /terminal-setup, /bug). Vanta side verified
 against the repo, not assumed.
 
-## Verified gaps (Argo does NOT have these)
+## Verified gaps (Vanta does NOT have these)
 
-| Feature | Claude Code | Argo today | Priority |
+| Feature | Claude Code | Vanta today | Priority |
 |---|---|---|---|
 | **Queued input while busy** | type during a turn → queued for next | `submit` doesn't queue; no type-ahead | ★★★ foundational UX |
 | **@-file mentions** | `@path` autocomplete to reference files | none in composer | ★★★ |
@@ -32,6 +32,6 @@ Slash palette, `/model` picker, `/clear /resume /sessions /history /retry /undo 
 3. **Notifications** — terminal bell + optional `osascript` desktop ping on turn-complete / approval-needed. Essential for a leave-it-running operator.
 4. **Real usage/cost** — capture `usage` from provider responses (OpenAI/Anthropic/Gemini return it; Codex SSE `response.completed` carries it) → exact tokens + cost in `/usage` and the status bar.
 5. **/context + /compact** — visual budget + manual compaction.
-6. **/memory # quick-add** — teach Argo mid-conversation.
+6. **/memory # quick-add** — teach Vanta mid-conversation.
 
 Then the ★ tier (export, mcp command, multi-dir, themes) as demand-driven.

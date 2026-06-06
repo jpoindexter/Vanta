@@ -1,11 +1,11 @@
 ---
 name: argo-context-sync
-description: Use after completing any Argo build slice, phase, or structural change (new module, layer, tool, provider, command, env var, API route, or locked decision). Keeps the per-level CLAUDE.md context files, README, PRD checkboxes, and project memory accurate and dense so future sessions and subagents don't re-derive context or burn tokens trusting stale docs.
+description: Use after completing any Vanta build slice, phase, or structural change (new module, layer, tool, provider, command, env var, API route, or locked decision). Keeps the per-level CLAUDE.md context files, README, PRD checkboxes, and project memory accurate and dense so future sessions and subagents don't re-derive context or burn tokens trusting stale docs.
 ---
 
-# Argo Context Sync
+# Vanta Context Sync
 
-Keep Argo's context files true to the code after every meaningful change. Stale docs cost more tokens than no docs — a subagent that trusts a wrong file map wastes a whole round-trip. This skill is the discipline that stops drift between what the code does and what the docs claim.
+Keep Vanta's context files true to the code after every meaningful change. Stale docs cost more tokens than no docs — a subagent that trusts a wrong file map wastes a whole round-trip. This skill is the discipline that stops drift between what the code does and what the docs claim.
 
 ## When to run
 

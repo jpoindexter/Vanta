@@ -1,6 +1,6 @@
 # Handoff — ND Skills Always-On + Phase 2 Ready to Build
 Generated: 2026-06-04 17:50
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ---
@@ -49,7 +49,7 @@ Nothing — clean slate. Ready for Phase 2.
 
 **"Ship Phase 2 EF pebbles in order, test-first, one commit per item, all tests green before moving to next."**
 
-Set this as an Argo kernel goal:
+Set this as an Vanta kernel goal:
 ```bash
 cargo run -- goals add "Ship Phase 2 EF pebbles in order: EF-WORKINGMEM → EF-INHIBIT → EF-SETSHIFT → EF-SELFMONITOR → EF-ERRORDETECT → EF-CLOSUREGATE. Test-first, commit per item, 869+ tests green throughout."
 ```
@@ -82,7 +82,7 @@ Design:
 **Key decision needed:** Where to pass the active goal into `agent.ts`? Cleanest: add `activeGoal?: Goal` to `AgentDeps` in `agent.ts`. Populated in `session.ts` `prepareRun()` from `goals.find(g => g.status === 'active')`.
 
 ### 3. EF-SETSHIFT (M, pebble, medium)
-**Done criteria:** Argo checks ERRORS.md before similar tasks; after 3 non-progressing same-direction attempts → proposes strategy switch.
+**Done criteria:** Vanta checks ERRORS.md before similar tasks; after 3 non-progressing same-direction attempts → proposes strategy switch.
 
 Two parts:
 - ERRORS.md auto-read at task start: in `prepareRun()` or session start, read `<repoRoot>/ERRORS.md` if it exists, inject summary into the volatile prompt tier
@@ -99,7 +99,7 @@ Design:
 - If conflict detected: emit one line before execution — "⚠ Self-monitor: action looks destructive but goal is additive. Proceeding — verify this is correct."
 
 ### 5. EF-ERRORDETECT (S, pebble, low)
-**Done criteria:** Mid-execution drift detected between tool calls; after N non-converging calls → Argo surfaces interrupt opportunity.
+**Done criteria:** Mid-execution drift detected between tool calls; after N non-converging calls → Vanta surfaces interrupt opportunity.
 
 Design:
 - In `runTurn()` loop in `agent.ts`: after each tool result, check if the last 3 results all contain error/failure signals
@@ -108,7 +108,7 @@ Design:
 - Add optional `onIterationCheck?: (failures: number) => void` to `AgentDeps` — caller wires the interrupt; agent loop calls it
 
 ### 6. EF-CLOSUREGATE (S, pebble, medium)
-**Done criteria:** Before major thread switches, Argo surfaces in-progress items; user can close or explicitly defer with one action.
+**Done criteria:** Before major thread switches, Vanta surfaces in-progress items; user can close or explicitly defer with one action.
 
 Design:
 - Detect "new major thread" signal: same heuristic as `nd-taskboundary` (topic shift detected)
@@ -122,7 +122,7 @@ Design:
 
 - **`handlers.ts` is EXACTLY 300 lines** — every new `/` command goes in its own file. Trade a blank line for the import. This constraint is real and must be respected.
 
-- **KANBAN WIP limit = 2 on `building`** — move item to `building` before starting. Regenerate HTML after status changes with: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Argo'); console.log('done');"`
+- **KANBAN WIP limit = 2 on `building`** — move item to `building` before starting. Regenerate HTML after status changes with: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
 
 - **EF-INHIBIT + EF-ERRORDETECT both need `agent.ts` hooks** — cleanest path is adding optional callbacks to `AgentDeps`: `activeGoal?: Goal` for inhibit, `onIterationCheck?` for error detect. Don't hardcode logic in `agent.ts` — keep it injectable.
 
@@ -141,9 +141,9 @@ Design:
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
 
-Argo = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
 
 **Active goal:** Ship Phase 2 EF pebbles in order — test-first, commit per item, 869+ tests green throughout.
 
@@ -183,7 +183,7 @@ Argo = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`arg
 - EF-INHIBIT/ERRORDETECT: inject via optional AgentDeps callbacks, not hardcoded in agent.ts
 - EF-SELFMONITOR: heuristic only, zero LLM calls, zero latency
 - After each: `npm test` (869+), `npm run typecheck` (clean), commit + push, update CLAUDE.md counts
-- Regenerate roadmap HTML: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Argo'); console.log('done');"`
+- Regenerate roadmap HTML: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
 
 **Architecture reminders:**
 - Session state pattern for new counters: `useRef<StateType>` in TUI, `let state` in REPL

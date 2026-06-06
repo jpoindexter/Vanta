@@ -2,7 +2,7 @@
 
 Maps the Hermes startup screen (ASCII hero/logo, version line, Available Tools,
 MCP Servers, Available Skills, counts, "N commits behind") to its source code,
-then notes the Argo-port path.
+then notes the Vanta-port path.
 
 Reference (READ-ONLY): `/Users/jasonpoindexter/Documents/GitHub/_active/hermes-reference`
 
@@ -118,32 +118,32 @@ prompt emitted separately (skin_engine / cli.py), not by `build_welcome_banner`.
 
 ---
 
-## 4. Argo-port note
+## 4. Vanta-port note
 
-Argo banner regions vs. existing calls (`argo-ts/src`):
+Vanta banner regions vs. existing calls (`argo-ts/src`):
 
-| Banner region | Argo feed | Status |
+| Banner region | Vanta feed | Status |
 |---|---|---|
 | Available Tools (names) | `setup.registry.schemas()` → `ToolSchema[]` (each has `.name`). `ToolRegistry.list()`/`schemas()` in `tools/registry.ts`. | **Available.** Flat list of names. |
-| Tool→toolset grouping | — | **Missing.** Argo has no toolset concept or `get_toolset_for_tool`. Tools are a flat registry. Either skip grouping or add a `toolset?` field to `Tool`/`ToolSchema`. |
+| Tool→toolset grouping | — | **Missing.** Vanta has no toolset concept or `get_toolset_for_tool`. Tools are a flat registry. Either skip grouping or add a `toolset?` field to `Tool`/`ToolSchema`. |
 | Tool availability coloring (red/yellow) | — | **Missing.** No `check_tool_availability` / lazy-init / disabled-tool notion. |
 | Tool count | `setup.registry.schemas().length` | **Available.** |
-| MCP Servers status rows | `mountMcpServers()` → `MountResult { servers: string[]; toolCount }` (`mcp/mount.ts`). Config via `readMcpConfig`. | **Partial.** `MountResult.servers` lists only *succeeded* servers; `toolCount` is a total, not per-server. **Missing:** failed-server rows, transport, per-server tool counts, connected flag. To match Hermes need an Argo equivalent of `get_mcp_status()` returning `{name, transport, tools, connected}` per *configured* server (mount.ts currently only logs failures via the `log` callback, doesn't return them). |
+| MCP Servers status rows | `mountMcpServers()` → `MountResult { servers: string[]; toolCount }` (`mcp/mount.ts`). Config via `readMcpConfig`. | **Partial.** `MountResult.servers` lists only *succeeded* servers; `toolCount` is a total, not per-server. **Missing:** failed-server rows, transport, per-server tool counts, connected flag. To match Hermes need an Vanta equivalent of `get_mcp_status()` returning `{name, transport, tools, connected}` per *configured* server (mount.ts currently only logs failures via the `log` callback, doesn't return them). |
 | MCP count (footer) | `MountResult.servers.length` (connected) | **Available** (connected count). |
 | Available Skills (names) | `listSkills(env)` (`skills/store.ts`) → `Skill[]` | **Available** for names + total. `status.ts::gatherStatus` already calls `listSkills(env).then(s => s.length)` for `store.skills`. |
-| Skill **categories** | — | **Missing.** Argo `SkillMeta` (skills/types.ts) has `name/description/created/updated/tags[]` — **no `category`**, and the skills store is flat (no `<category>/<skill>/` nesting like Hermes). To group, either derive from `tags[]` or add path-based categorization. As-is, all skills are effectively one bucket. |
+| Skill **categories** | — | **Missing.** Vanta `SkillMeta` (skills/types.ts) has `name/description/created/updated/tags[]` — **no `category`**, and the skills store is flat (no `<category>/<skill>/` nesting like Hermes). To group, either derive from `tags[]` or add path-based categorization. As-is, all skills are effectively one bucket. |
 | Skill count | `listSkills(env).length` | **Available.** |
 | Version title (`vX.Y.Z (date)`) | — | **Missing.** Only `argo-ts/package.json` `version: "0.1.0"`; no `__release_date__`, no banner const. |
 | `· upstream <sha>` / `local` / `+N carried` | — | **Missing.** No `get_git_banner_state` equivalent (no git rev-parse plumbing). |
 | **N commits behind** | — | **Missing entirely.** No `check_for_updates`, no PyPI/ls-remote/rev-list logic, no `.update_check` cache, no `prefetch_update_check` thread. |
-| ASCII hero/logo | partial — `formatStatus` uses `⚕ Argo Status` glyph only | **Missing.** No multi-row ASCII logo/caduceus, no skin/`GatewaySkin` equivalent, no gradient coloring. |
+| ASCII hero/logo | partial — `formatStatus` uses `⚕ Vanta Status` glyph only | **Missing.** No multi-row ASCII logo/caduceus, no skin/`GatewaySkin` equivalent, no gradient coloring. |
 | "Unknown toolsets" warning | — | **Missing** (no toolset validation; ties to the missing toolset concept). |
 
-**Summary of Argo gaps to build a Hermes-style banner:** (1) toolset grouping + per-tool
+**Summary of Vanta gaps to build a Hermes-style banner:** (1) toolset grouping + per-tool
 availability/coloring; (2) richer MCP status (failed rows, transport, per-server counts, connected flag —
 extend `MountResult` or add `getMcpStatus()`); (3) skill categories (add field or path nesting); (4) the
 **entire** version / upstream-sha / commits-behind subsystem (version const + release date + git/PyPI
-update check); (5) the ASCII art + skin layer. Argo's `gatherStatus()`/`formatStatus()` (status.ts) is the
+update check); (5) the ASCII art + skin layer. Vanta's `gatherStatus()`/`formatStatus()` (status.ts) is the
 closest existing surface and already wires `listSkills` and provider/context-window — it's the natural host
 to extend, but it currently renders a `✓/✗` health box, not the inventory banner.
 
@@ -158,4 +158,4 @@ to extend, but it currently renders a `✓/✗` health box, not the inventory ba
 - `model_tools.py::get_toolset_for_tool :1050`, `check_tool_availability :1065`.
 - `cli.py` unknown-toolsets warning `:3147`.
 - `ui-tui/src/banner.ts` (TS gateway art), `ui-tui/src/gatewayTypes.ts::GatewaySkin :3`.
-- Argo: `argo-ts/src/status.ts`, `tools/registry.ts`, `skills/store.ts`+`skills/types.ts`, `mcp/mount.ts`.
+- Vanta: `argo-ts/src/status.ts`, `tools/registry.ts`, `skills/store.ts`+`skills/types.ts`, `mcp/mount.ts`.

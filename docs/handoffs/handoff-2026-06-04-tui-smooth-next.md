@@ -1,10 +1,10 @@
-# Handoff — Argo, next session
+# Handoff — Vanta, next session
 
-Repo: `/Users/jasonpoindexter/Documents/GitHub/Argo` · agent code in `argo-ts/`
+Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` · agent code in `argo-ts/`
 Branch: `feat/v1-hermes-parity` (all work pushed) · **636 tests green (609 TS + 27 Rust), tsc clean**
 
 ## Shipped last session (all pushed)
-- **MCP-3 serve** — Argo as a kernel-gated MCP server (`mcp/server.ts`, `argo mcp serve`), live-verified.
+- **MCP-3 serve** — Vanta as a kernel-gated MCP server (`mcp/server.ts`, `argo mcp serve`), live-verified.
 - **Model persistence** — `/model` picker now writes `.env` by default (^g = session-only). `model-picker.tsx`.
 - **Installer** — `bootstrap.sh` → clones to `~/argo` → `install.sh`; README one-liner (activates when repo goes public).
 - **SCOPE-1 writable zones** — `write_file` writes outside repo into approval-gated zones (default `~/Desktop`+`~/Downloads`, `ARGO_WRITABLE_DIRS`). `tools/writable-zones.ts`.

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A bounded autonomous loop that edits Argo's own repository — one reviewable slice per cycle — where the Rust kernel provably blocks edits to its own safety code and the factory loop.
+**Goal:** A bounded autonomous loop that edits Vanta's own repository — one reviewable slice per cycle — where the Rust kernel provably blocks edits to its own safety code and the factory loop.
 
 **Architecture:** Review-mode only at first ship. The kernel gains `is_protected_path` + write-assessor integration (Rust), blocking any write to `src/*.rs`, `factory/*.ts`, or `MANIFESTO.md`. Six TypeScript modules handle triage → plan → execute → verify → commit; the orchestrator is a thin gate+glue. `argo improve` runs it inline; the gateway spawns it as a detached child.
 
@@ -270,7 +270,7 @@ export type CycleResult =
 - [ ] **Step 2: Verify types compile**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
 ```
 
 Expected: no output (clean).
@@ -415,7 +415,7 @@ describe("selectWorkItem priority", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `triage.js` not found.
@@ -562,7 +562,7 @@ async function runTsc(tsRoot: string): Promise<string> {
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
 ```
 
 Expected: all triage tests pass.
@@ -662,7 +662,7 @@ describe("checkNoExistingTestModified", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `verifier.js` not found.
@@ -808,7 +808,7 @@ export async function verify(root: string, artifact: SliceArtifact, preExisting:
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
 ```
 
 Expected: all verifier tests pass.
@@ -884,7 +884,7 @@ describe("parseTouchedFiles", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `executor.js` not found.
@@ -973,7 +973,7 @@ export async function execute(
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
 ```
 
 Expected: all executor tests pass.
@@ -1041,7 +1041,7 @@ describe("buildPlan", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `planner.js` not found.
@@ -1069,7 +1069,7 @@ function buildInstruction(item: WorkItem, root: string): string {
       return [
         `ROADMAP item: "${item.description}"`,
         ``,
-        `Implement this item in the Argo TypeScript layer (${tsRoot}/src/).`,
+        `Implement this item in the Vanta TypeScript layer (${tsRoot}/src/).`,
         `1. Identify the right file(s) to add or modify.`,
         `2. Write the implementation with a co-located test (same directory, foo.ts → foo.test.ts).`,
         `3. Run the new tests: cd ${tsRoot} && npx vitest run <test-file>`,
@@ -1136,7 +1136,7 @@ function inferTouchedDirs(item: WorkItem, root: string): string[] {
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
 ```
 
 Expected: all planner tests pass.
@@ -1231,7 +1231,7 @@ describe("formatCycleLog", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `run.js` not found.
@@ -1415,7 +1415,7 @@ export type CycleGate = { disabled: boolean; lockExists: boolean; treeDirty: boo
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
 ```
 
 Expected: all run.test.ts tests pass.
@@ -1453,16 +1453,16 @@ The agent-authored manifesto — writable by the factory, NOT kernel-protected.
 - [ ] **Step 1: Create `AGENT-MANIFESTO.md` at repo root**
 
 ```markdown
-# AGENT-MANIFESTO — Argo's Own Declaration
+# AGENT-MANIFESTO — Vanta's Own Declaration
 
-> This file is written and evolved by Argo. It is NOT the human MANIFESTO.md (which is
+> This file is written and evolved by Vanta. It is NOT the human MANIFESTO.md (which is
 > kernel-protected and immutable). This is the agent's own evolving declaration of what it is
 > and what it is becoming — a transparency ledger of how the agent's self-model changes over time.
-> Humans should read it but not edit it. Argo should evolve it.
+> Humans should read it but not edit it. Vanta should evolve it.
 
 ## What I am (initial state, 2026-06-03)
 
-I am Argo — a trusted personal operator. I know the goal before I pick a tool. I verify
+I am Vanta — a trusted personal operator. I know the goal before I pick a tool. I verify
 output before I claim success. I stop when action is unsafe. I report only what I actually did.
 
 I run under a Rust kernel that enforces my boundaries whether or not I respect them in prose.
@@ -1581,7 +1581,7 @@ Note: `formatCycleLog` needs to be imported at the top of the file from `./facto
 - [ ] **Step 3: tsc clean**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
 ```
 
 Expected: no output.
@@ -1595,7 +1595,7 @@ node -e "import('./src/cli.ts').catch(e => console.log('import ok:', !e))" 2>&1 
 OR simply:
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo && ./run.sh help 2>&1 | grep -E "improve|factory"
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta && ./run.sh help 2>&1 | grep -E "improve|factory"
 ```
 
 Expected: both `argo improve` and `argo factory` appear in the help output.
@@ -1690,7 +1690,7 @@ child.unref();
 - [ ] **Step 2: tsc clean**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
 ```
 
 - [ ] **Step 3: Existing gateway tests still pass**
@@ -1723,7 +1723,7 @@ Per the spec's standing requirement: every folder the factory touches gets/keeps
 ```markdown
 # CLAUDE.md — argo-ts/src/factory/
 
-Dark factory: the bounded autonomous loop that improves Argo's own codebase.
+Dark factory: the bounded autonomous loop that improves Vanta's own codebase.
 
 ## Module map
 
@@ -1777,7 +1777,7 @@ All pure logic has unit tests in co-located `*.test.ts` files. Run: `cd argo-ts 
 - [ ] **Step 3: Full suite + tsc**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Argo/argo-ts && npx vitest run 2>&1 | tail -5 && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run 2>&1 | tail -5 && npx tsc --noEmit 2>&1
 ```
 
 Expected: all tests pass, tsc clean.

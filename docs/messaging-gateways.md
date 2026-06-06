@@ -3,7 +3,7 @@
 > Roadmap: `MSG-IMESSAGE` · `MSG-WHATSAPP` · `MSG-SIGNAL` · `MSG-WIZARD` · `MSG-PAIRING`
 > · `MSG-REGISTRY`. Sources: the messaging-gateway goal + Hermes recon (2026-06-05).
 
-## What Argo already has
+## What Vanta already has
 
 The abstraction is done. `gateway/platforms/base.ts` defines `PlatformAdapter`:
 `{ id, connect(), disconnect(), send(OutboundMessage), poll(): InboundMessage[] }`.
@@ -19,7 +19,7 @@ file + registration** — no core changes. Hermes confirms the same shape
 | **Telegram** ✅ | Official Bot API (shipped) | `sendMessage` | `getUpdates` long-poll | `ARGO_TELEGRAM_TOKEN` from @BotFather |
 | **iMessage** | **Native macOS** (cleaner than Hermes's BlueBubbles for the local case) | AppleScript `osascript` (`tell application "Messages" to send`) | poll `~/Library/Messages/chat.db` SQLite (read-only, since-last-rowid) | **Full Disk Access** (chat.db) + **Automation** (osascript) perms. Optional **BlueBubbles** REST+webhook mode for cross-machine. |
 | **WhatsApp** | **Node subprocess bridge** (Hermes pattern) — spawn Baileys/whatsapp-web.js, talk over `localhost:PORT` (GET `/messages`, POST send) | bridge POST | bridge poll | **QR pair** (creds in `~/.argo/whatsapp/`). **Unofficial → ban risk + protocol breakage**; health-check + restart the bridge. **Business API** (Meta-verified) = ToS-safe alt. Bridge dep installs to `~/.argo`, never the repo (see `PLUGIN-SYSTEM`). |
-| **Signal** | `signal-cli` daemon, JSON-RPC over localhost | JSON-RPC `send` | SSE `/api/v1/events` | User runs + links `signal-cli` (Argo doesn't do device registration). |
+| **Signal** | `signal-cli` daemon, JSON-RPC over localhost | JSON-RPC `send` | SSE `/api/v1/events` | User runs + links `signal-cli` (Vanta doesn't do device registration). |
 
 Each is a `PlatformAdapter` mirroring `telegram.ts`; keep the parse/shape logic in a pure
 exported fn (`parseChatDbRows`, `parseWhatsappMessages`, …) and unit-test it offline — no
@@ -47,7 +47,7 @@ Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explai
   wizard, and `argo doctor` read it → graceful "needs X" instead of a central if/elif and
   hard failures. New adapter = drop in an entry.
 - **Adapter owns its transport.** poll / webhook / SSE / subprocess-bridge all hide behind
-  `connect()` — no central poller assumption (Argo's tick-poll already fits pull adapters;
+  `connect()` — no central poller assumption (Vanta's tick-poll already fits pull adapters;
   push adapters start their own listener in `connect()`).
 
 ## Honest risk read

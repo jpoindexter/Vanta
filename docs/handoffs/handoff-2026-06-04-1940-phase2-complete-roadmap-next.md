@@ -1,6 +1,6 @@
 # Handoff — Phase 2 EF Complete → Continuing Roadmap
 Generated: 2026-06-04 19:40
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ---
@@ -99,7 +99,7 @@ Nothing. Clean slate.
 | ID | Size | Title |
 |----|------|-------|
 | PROJ-IDENTITY | S | Canonical project identity from git remote URL |
-| MEM-HOOKS | S | Claude Code Stop/PreCompact hooks for Argo memory |
+| MEM-HOOKS | S | Claude Code Stop/PreCompact hooks for Vanta memory |
 | MEM-WORKINGMEM | S | Working memory (hot session cache + injection) |
 | MEM-VERSIONING | S | Memory versioning (supersedes chain, no data loss) |
 | MEM-WORKTREE | S | Worktree-aware project identity for memory scoping |
@@ -146,7 +146,7 @@ Nothing. Clean slate.
 2. **TUI-SHORTCUTS** (S) — `!cmd` runs shell, `#text` saves to memory; well-scoped, no schema touch
 3. **TUI-STATUS** (S) — status bar injection in TUI; no new types
 4. **PROJ-IDENTITY** (S) — git remote URL → canonical project ID; unlocks MEM-WORKTREE and others
-5. **MEM-HOOKS** (S) — Claude Code Stop/PreCompact hooks for Argo memory; `update-config` skill handles it
+5. **MEM-HOOKS** (S) — Claude Code Stop/PreCompact hooks for Vanta memory; `update-config` skill handles it
 
 **If wanting a deeper architectural slice:** pick up Memory Cluster C — start with S items (PROJ-IDENTITY → MEM-WORKINGMEM → MEM-VERSIONING) and build up.
 
@@ -160,7 +160,7 @@ Nothing. Clean slate.
 - **Phase 2 EF pattern** — post-turn gates: session-scoped state ref in `interactive.ts` + `use-agent-send.ts`, exported `*AfterTurn` fn in `session.ts`. Pre-turn gates: fire before `convo.send()`. In-loop gates: in `agent.ts dispatchTool` / `runTurn`.
 - **Roadmap HTML regen:**
   ```bash
-  cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Argo'); console.log('done');"
+  cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"
   ```
 - **Test-first, commit per item.** `npm test` (935+), `npm run typecheck` (clean) before each commit.
 
@@ -169,9 +169,9 @@ Nothing. Clean slate.
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch `feat/v1-hermes-parity` (clean, 935 TS tests green, tsc clean, all committed and pushed).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 935 TS tests green, tsc clean, all committed and pushed).
 
-Argo = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
 
 **Last session:** Phase 2 EF pebbles complete (6 items: EF-WORKINGMEM, EF-INHIBIT, EF-SETSHIFT, EF-SELFMONITOR, EF-ERRORDETECT, EF-CLOSUREGATE). Full context in `docs/handoffs/handoff-2026-06-04-1940-phase2-complete-roadmap-next.md`.
 
@@ -187,10 +187,10 @@ Argo = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`arg
 - `handlers.ts` MUST stay at 300 lines — new slash commands in own files, trade a blank line for the import
 - KANBAN WIP = 2; move to `building` before starting, `shipped` when done
 - All EF gates non-blocking, wrapped in try/catch
-- Regenerate roadmap HTML after each status change: `cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Argo'); console.log('done');"`
+- Regenerate roadmap HTML after each status change: `cd argo-ts && node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
 - Test-first, commit per item, `npm test` (935+) + `npm run typecheck` (clean) before each commit
 - Kernel goal to set:
   ```bash
-  cargo run -- goals add "Continue Argo roadmap: EF-SCOPEDELTA → TUI-SHORTCUTS → TUI-STATUS → PROJ-IDENTITY. Test-first, commit per item, 935+ tests green throughout."
+  cargo run -- goals add "Continue Vanta roadmap: EF-SCOPEDELTA → TUI-SHORTCUTS → TUI-STATUS → PROJ-IDENTITY. Test-first, commit per item, 935+ tests green throughout."
   ```
 ---

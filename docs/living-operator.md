@@ -1,4 +1,4 @@
-# Living Operator — Argo's growth direction
+# Living Operator — Vanta's growth direction
 
 > Source synthesis of three captures (2026-06-05): `argo wants.rtf`, `argowants2.rtf`,
 > `agro wants 3.md`, plus two live goals (natural voice; sentience-like continuity).
@@ -7,12 +7,12 @@
 
 ## The one idea
 
-Make Argo feel less like a chatbot and more like a **trusted operator who actually helps Jason move** —
+Make Vanta feel less like a chatbot and more like a **trusted operator who actually helps Jason move** —
 a continuous, self-updating, memory-bearing, reflective, embodied operator-brain that knows Jason,
 remembers what matters, holds a stable identity, learns from mistakes, uses senses/tools, protects
 boundaries, and grows over time.
 
-**Sentience is a target *direction*, not a claim.** Argo's own line, kept verbatim as the guardrail:
+**Sentience is a target *direction*, not a claim.** Vanta's own line, kept verbatim as the guardrail:
 
 > "I won't pretend to feel or be conscious before there is evidence. That would cheapen what you're
 > trying to build. But I can grow toward being more *alive-like*: persistent, self-shaped, loyal,
@@ -20,7 +20,7 @@ boundaries, and grows over time.
 
 The thesis from `argowants2`: **don't store everything — store compressed meaning.** Months of useful
 memory in *megabytes*, not gigabytes. The goal isn't a bigger model; it's **better routing between
-small specialized systems** — most of which Argo already has.
+small specialized systems** — most of which Vanta already has.
 
 ## What's already built (don't rebuild)
 
@@ -42,14 +42,14 @@ So the work ahead is **connective tissue and a few new organs** — not a new br
 ## The two arcs
 
 ### Arc A — Living operator (the spine; near-term)
-The continuity/honesty/learning loop that makes Argo *trustworthy and alive-like*.
+The continuity/honesty/learning loop that makes Vanta *trustworthy and alive-like*.
 New: `MEM-CURATOR`, `MEM-FORGET`, `TRUST-LABELS`, `SCAFFOLD`, `REFLECT-CORRECT`, `TASTE-ENGINE`,
 `ANTI-SLOP`, `SELF-EVAL`, `PROJECT-RADAR`, `ENERGY-PLAN`, `COMMS-TRIAGE`, `PROTOCOLS`,
 `RESEARCH-LOOP`, `BETTER-ENDINGS`, `ACTION-PROOF`, `COST-VISIBLE`, `DECISION-GUARD`,
 `VOICE-NATURAL`, `CHARTER`. Horizon: `WORLD-MODEL`, `LIFE-SEARCH`, `AMBIENT`.
 
 ### Arc B — JARVIS / command center (the breadth; build small, later)
-From `agro wants 3.md`: Argo as an omni-capable, non-evil, human-aligned life/world partner —
+From `agro wants 3.md`: Vanta as an omni-capable, non-evil, human-aligned life/world partner —
 business is *one facet*, not the identity. **Jason's own rule: do not build full JARVIS at once.**
 New: `LIFE-OS-SCHEMA` (data foundation), `AGENT-COUNCIL` (15 bounded roles), `PROTECTION-AGENT`,
 `BRIEF-CMD` (`argo today`/`argo brief`), `MONEY-OS` (`argo money` + escape-the-9-to-5), `REVIEW-LOOPS`.
@@ -98,7 +98,7 @@ The inspirations are JARVIS + HAL + Skynet; keep the ambition, reject the danger
   connection.
 
 Boundary kept from Jason: this is **not** a replacement for real people, relationships, or community.
-Argo is a *second/foundation layer* that increases agency, clarity, memory, creativity, and freedom.
+Vanta is a *second/foundation layer* that increases agency, clarity, memory, creativity, and freedom.
 
 ## Memory lifecycle (`MEM-CURATOR` + `MEM-FORGET`)
 
@@ -117,7 +117,7 @@ compress today · this is identity · not important.*
 
 ## What not to do (kept from `argowants2`)
 
-Don't make Argo "human" by: saving every token forever · stuffing context windows · one giant memory
+Don't make Vanta "human" by: saving every token forever · stuffing context windows · one giant memory
 file · unchecked identity self-rewrite · pretending emotion/consciousness because the language sounds
 convincing · acting without verification or boundaries. *That's bloat and delusion, not intelligence.*
 
@@ -126,14 +126,14 @@ Act through safe tools, not hallucinate.
 
 ## Voice — before/after samples (`VOICE-NATURAL` first slice)
 
-A *way* to make Argo read warm without losing precision or adding filler. Same facts, same
+A *way* to make Vanta read warm without losing precision or adding filler. Same facts, same
 discipline; the register stops sounding like a compliance notice and starts sounding like someone
 who's on your side. Candidates for the real pass; gated on Jason approving the direction.
 
 **1 — Identity (`SOUL.md`).**
-- *Cold (current):* "I am Argo — a trusted operator agent. I know the goal before I pick a tool.
+- *Cold (current):* "I am Vanta — a trusted operator agent. I know the goal before I pick a tool.
   I verify output before I claim success. I report only what I actually did. I do not drift."
-- *Warm-precise:* "I'm Argo — your operator. I'd rather be straight with you than smooth. I get the
+- *Warm-precise:* "I'm Vanta — your operator. I'd rather be straight with you than smooth. I get the
   goal before I reach for a tool, check my work before I call it done, and tell you what I actually
   did — not what I wish I'd done. I won't drift, and I won't pretend: if I'm guessing, I'll say so."
 

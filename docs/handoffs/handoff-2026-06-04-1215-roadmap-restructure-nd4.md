@@ -1,6 +1,6 @@
 # Handoff — Roadmap Restructure + ND4 MOIM
 Generated: 2026-06-04 12:15
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ## What Was Accomplished
@@ -62,7 +62,7 @@ Nothing — both slices fully shipped and committed.
 
 ## Exact Next Steps (in order)
 
-1. [ ] **ND2 · clarify tool** (`sonnet·medium`) — a `clarify` tool the agent can call when intent is ambiguous: surfaces one structured question to the user before acting. Kernel-gated like any tool. Unblocks FAC-PREFLIGHT. ~1–2 hrs. Done criteria: on ambiguous intent Argo asks one tappable structured question instead of guessing; wrong-guess rework drops.
+1. [ ] **ND2 · clarify tool** (`sonnet·medium`) — a `clarify` tool the agent can call when intent is ambiguous: surfaces one structured question to the user before acting. Kernel-gated like any tool. Unblocks FAC-PREFLIGHT. ~1–2 hrs. Done criteria: on ambiguous intent Vanta asks one tappable structured question instead of guessing; wrong-guess rework drops.
 2. [ ] **KANBAN slice 1** (`sonnet·medium`) — `roadmap_move` tool + `argo roadmap move <id> <status>` CLI + regenerate HTML. Slice 2 (drag HTML endpoint) and slice 3 (WIP limit) parked until slice 1 ships. Done criteria: `argo roadmap move ND2 building` updates roadmap.json + regenerates.
 3. [ ] **Push to remote** when ready (both commits are local on `feat/v1-hermes-parity`; push with `git push`).
 
@@ -70,7 +70,7 @@ Nothing — both slices fully shipped and committed.
 
 - **`triage.ts` reads ROADMAP.md, not roadmap.json**: the factory's work-item picker (`selectWorkItem`) parses `[ ]` checkboxes from ROADMAP.md and `## ` headers from PARKED.md. roadmap.json is the agent-readable source + HTML generator; ROADMAP.md is the factory's trigger. Keep both in sync when marking items shipped.
 - **KANBAN has 3 slices, ship slice 1 only**: (1) `roadmap_move` tool + CLI, (2) drag-to-move HTML endpoint, (3) WIP limit enforcement. Per anti-drift: only slice 1 this session.
-- **ND2 clarify tool is a new Argo tool** (not a slash command): it lives in `tools/clarify.ts`, registered in `tools/index.ts`, kernel-assessed via `describeForSafety`. Pattern: `tools/inspect-state.ts` is a good reference for a simple non-destructive tool.
+- **ND2 clarify tool is a new Vanta tool** (not a slash command): it lives in `tools/clarify.ts`, registered in `tools/index.ts`, kernel-assessed via `describeForSafety`. Pattern: `tools/inspect-state.ts` is a good reference for a simple non-destructive tool.
 - **Model tagging is Sonnet 4.6 session** — the roadmap restructure and ND4 were built on Sonnet 4.6 (user switched from Opus at session start). ND2 and KANBAN are also `sonnet·medium`.
 - **662 TS + 27 Rust = 689 total tests green** at handoff. Rust test count unchanged.
 - **`roadmap.html` is gitignored** — regenerate with `argo roadmap` or `cd argo-ts && npx tsx src/roadmap/build.ts` from the repo root.
@@ -78,17 +78,17 @@ Nothing — both slices fully shipped and committed.
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch feat/v1-hermes-parity (clean, 662 TS + 27 Rust tests green, tsc clean).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch feat/v1-hermes-parity (clean, 662 TS + 27 Rust tests green, tsc clean).
 
-Argo = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer (argo-ts/, Node22/ESM/tsx). Read root CLAUDE.md + argo-ts/CLAUDE.md + the 5 planning docs first.
 
 **This session shipped:**
 1. Roadmap restructure — optional tier (rock/pebble/sand) / model (haiku/sonnet/opus) / effort fields in schema + render; 37 open items tagged; Rocks→Pebbles→Sand grouping in each board column; model·effort badge per card. Tags are advisory (build-session guide), not factory routing — triage reads ROADMAP.md, not roadmap.json.
 2. ND4 MOIM — `/moim <text>` pins a top-of-mind note injected at the top of the volatile prompt tier every turn; persisted to `~/.argo/moim.md`; `/moim clear` removes it.
 
 **Next task: ND2 · clarify tool (`sonnet·medium`)**
-A new Argo tool (`tools/clarify.ts`) the agent calls when intent is ambiguous. It surfaces ONE structured question to the user before acting instead of guessing and thrashing. Kernel-gated. Unblocks FAC-PREFLIGHT later.
-- Done criteria: on ambiguous intent Argo asks one tappable structured question; wrong-guess rework drops.
+A new Vanta tool (`tools/clarify.ts`) the agent calls when intent is ambiguous. It surfaces ONE structured question to the user before acting instead of guessing and thrashing. Kernel-gated. Unblocks FAC-PREFLIGHT later.
+- Done criteria: on ambiguous intent Vanta asks one tappable structured question; wrong-guess rework drops.
 - Pattern: see `tools/inspect-state.ts` for a simple non-destructive tool reference.
 - How to add a tool: new file `tools/<name>.ts` → `describeForSafety` → `execute` → register in `tools/index.ts` → co-located test in `tools/tools.test.ts`.
 

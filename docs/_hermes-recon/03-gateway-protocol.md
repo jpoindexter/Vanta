@@ -201,35 +201,35 @@ For ordinary registry commands that just produce text output, the TUI calls `sla
 
 ---
 
-## Argo-port note
+## Vanta-port note
 
-Argo is **in-process**: the TUI calls `createConversation()` directly with `onTextDelta` / `onToolCall` / `onToolResult` callbacks. There is no Python child, no JSON-RPC, no wire. Every protocol message falls into one of three buckets.
+Vanta is **in-process**: the TUI calls `createConversation()` directly with `onTextDelta` / `onToolCall` / `onToolResult` callbacks. There is no Python child, no JSON-RPC, no wire. Every protocol message falls into one of three buckets.
 
 ### Bucket 1 — Skip entirely (gateway-only overhead)
 None of this is real functionality; it exists only because Hermes splits TUI from backend across a process boundary.
-- **All transport machinery:** spawn/attach/sidecar, `gateway.ready`, `gateway.stderr`, `gateway.protocol_error`, `gateway.start_timeout`, the JSON-RPC `id` + pending-map + timeout plumbing, `terminal.resize`. Argo's function-call boundary replaces all of it.
-- **Session-as-remote-resource surface:** `session.create/list/resume/activate/delete/title/save/close/branch/most_recent/active_list/history/cwd.set`. Argo has one in-process conversation; multi-session lifecycle over a wire is pure framing. (If Argo ever wants persistence/resume, that's a *local DB* feature, not a protocol one.)
-- **Config/model/tool plumbing as RPCs:** `config.get/set/show`, `setup.status/runtime_check`, `model.options/save_key/disconnect`, `tools.list/show/configure`, `toolsets.list`, `reload.mcp/env`, `plugins.list`, `agents.list`, `cron.manage`. Argo reads/writes these in-process — no request/response.
-- **Attachment/clipboard RPCs:** `clipboard.paste`, `paste.collapse`, `image.attach/detach`, `input.detect_drop` — Argo can compute attachment metadata locally if needed; no round-trip.
+- **All transport machinery:** spawn/attach/sidecar, `gateway.ready`, `gateway.stderr`, `gateway.protocol_error`, `gateway.start_timeout`, the JSON-RPC `id` + pending-map + timeout plumbing, `terminal.resize`. Vanta's function-call boundary replaces all of it.
+- **Session-as-remote-resource surface:** `session.create/list/resume/activate/delete/title/save/close/branch/most_recent/active_list/history/cwd.set`. Vanta has one in-process conversation; multi-session lifecycle over a wire is pure framing. (If Vanta ever wants persistence/resume, that's a *local DB* feature, not a protocol one.)
+- **Config/model/tool plumbing as RPCs:** `config.get/set/show`, `setup.status/runtime_check`, `model.options/save_key/disconnect`, `tools.list/show/configure`, `toolsets.list`, `reload.mcp/env`, `plugins.list`, `agents.list`, `cron.manage`. Vanta reads/writes these in-process — no request/response.
+- **Attachment/clipboard RPCs:** `clipboard.paste`, `paste.collapse`, `image.attach/detach`, `input.detect_drop` — Vanta can compute attachment metadata locally if needed; no round-trip.
 
 ### Bucket 2 — Already have in-process (the named callbacks)
-These map 1:1 to Argo's existing `createConversation` callbacks. Direct equivalents, no work:
+These map 1:1 to Vanta's existing `createConversation` callbacks. Direct equivalents, no work:
 - `message.delta` → **`onTextDelta`**
 - `tool.start` → **`onToolCall`**
 - `tool.complete` → **`onToolResult`**
 - `message.complete` → turn-end callback (return value of the conversation turn)
-- `thinking.delta` / `reasoning.delta` / `status.update` / `tool.generating` / `tool.progress` → additional optional callbacks Argo can add to the same signature if it wants the richer activity feed. (Cheap — same in-process channel.)
+- `thinking.delta` / `reasoning.delta` / `status.update` / `tool.generating` / `tool.progress` → additional optional callbacks Vanta can add to the same signature if it wants the richer activity feed. (Cheap — same in-process channel.)
 
-### Bucket 3 — Genuine functionality Argo lacks (build only if wanted)
-This is the real payload — features Hermes has that Argo would need to build *as in-process logic*, regardless of transport:
-- **HITL blocking prompts:** clarify / approval / sudo / secret. These are agent-loop callbacks that *block waiting for user input*. Argo needs an in-process equivalent: a callback that returns a Promise the UI resolves (no `request_id`/`_block` Event dance — just `await`).
+### Bucket 3 — Genuine functionality Vanta lacks (build only if wanted)
+This is the real payload — features Hermes has that Vanta would need to build *as in-process logic*, regardless of transport:
+- **HITL blocking prompts:** clarify / approval / sudo / secret. These are agent-loop callbacks that *block waiting for user input*. Vanta needs an in-process equivalent: a callback that returns a Promise the UI resolves (no `request_id`/`_block` Event dance — just `await`).
 - **Turn control:** `interrupt` (cancel an in-flight run — needs an `AbortController` through the agent loop) and `steer` (queue a mid-turn message).
-- **Slash completion + command system:** `complete.slash`/`complete.path`, `commands.catalog`, `command.dispatch`'s `exec/alias/skill/send/prefill/plugin` dispatch, `slash.exec`. Real UX surface; Argo would implement it as a local command registry + completer.
-- **Subagent / delegation:** `subagent.*` events, `delegation.status/pause`, `subagent.interrupt`, `spawn_tree.*`. Only relevant if Argo's agent delegates.
+- **Slash completion + command system:** `complete.slash`/`complete.path`, `commands.catalog`, `command.dispatch`'s `exec/alias/skill/send/prefill/plugin` dispatch, `slash.exec`. Real UX surface; Vanta would implement it as a local command registry + completer.
+- **Subagent / delegation:** `subagent.*` events, `delegation.status/pause`, `subagent.interrupt`, `spawn_tree.*`. Only relevant if Vanta's agent delegates.
 - **Accounting & context management:** `session.usage` (token/cost/context tracking), `session.compress` (auto-compaction). Genuine logic, not plumbing.
 - **Rollback:** `rollback.list/diff/restore` (git checkpointing of agent file edits).
 - **Background tasks:** `prompt.background` + the completion-queue poller that chains a follow-up turn.
 - **Voice:** `voice.toggle/record/tts`.
-- **Shell / CLI passthrough:** `shell.exec`, `cli.exec`, `browser.manage`, `skills.manage` — feature surfaces, in-process for Argo.
+- **Shell / CLI passthrough:** `shell.exec`, `cli.exec`, `browser.manage`, `skills.manage` — feature surfaces, in-process for Vanta.
 
-**Bottom line:** roughly half the protocol (Buckets 1 + 2) is either wire overhead Argo deletes or callbacks Argo already has. Bucket 3 is the genuine feature backlog — and none of it requires a gateway; it's in-process logic Hermes happened to expose over RPC.
+**Bottom line:** roughly half the protocol (Buckets 1 + 2) is either wire overhead Vanta deletes or callbacks Vanta already has. Bucket 3 is the genuine feature backlog — and none of it requires a gateway; it's in-process logic Hermes happened to expose over RPC.

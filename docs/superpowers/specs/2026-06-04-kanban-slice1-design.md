@@ -6,7 +6,7 @@ Status: approved
 
 ## Goal
 
-Allow Argo (agent and user) to move roadmap items between statuses.
+Allow Vanta (agent and user) to move roadmap items between statuses.
 Updates `roadmap.json` and regenerates `roadmap.html`.
 
 Done criteria: `argo roadmap move ND2 building` updates roadmap.json + regenerates HTML.
@@ -22,7 +22,7 @@ Pure function → thin tool wrapper → thin CLI wrapper. Matches existing patte
 
 ```
 roadmap/move.ts          pure moveRoadmapItem() — read/validate/patch/write/rebuild
-tools/roadmap-move.ts    Argo tool wrapping moveRoadmapItem
+tools/roadmap-move.ts    Vanta tool wrapping moveRoadmapItem
 cli/ops.ts               runRoadmapCommand updated to dispatch move subcommand
 cli.ts                   pass rest[] to runRoadmapCommand
 ```

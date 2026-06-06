@@ -1,6 +1,6 @@
 # Handoff — Phase 1 EF Sprint Complete + ND Skills Repo Published
 Generated: 2026-06-04 17:10
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ---
@@ -182,7 +182,7 @@ MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS → MEM-WORKINGMEM → BRAIN-5D
 
 - **Velocity events are fire-and-forget** — `appendVelocityEvent` is called with `.catch(() => {})` after roadmap moves. Velocity.json lives at `~/.argo/velocity.json`. Currently only `ship` (moved to shipped) and `capture` (promoted from horizon) are tracked.
 
-- **`repl/research-gate.ts` output tools** — `write_file`, `roadmap_move`, `shell_cmd`. These are the only three that reset the research turn counter. If a new "output" tool is added to Argo, it should be added to `OUTPUT_TOOL_NAMES` in that file.
+- **`repl/research-gate.ts` output tools** — `write_file`, `roadmap_move`, `shell_cmd`. These are the only three that reset the research turn counter. If a new "output" tool is added to Vanta, it should be added to `OUTPUT_TOOL_NAMES` in that file.
 
 - **`splitStableVolatile` splits on LAST occurrence** — `plan-mode.ts` appends to the system message string after the volatile tier. The last `---` is always before the volatile tier content, so plan-mode injection always ends up in the volatile split. Verified by code path inspection.
 
@@ -199,9 +199,9 @@ MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS → MEM-WORKINGMEM → BRAIN-5D
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
 
-Argo = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
 
 **Last session shipped (Phase 1 — all done):**
 - PROMPT-STABILITY: Anthropic ephemeral cache_control on stable prompt prefix (splitStableVolatile in prompt.ts, AnthropicTextBlock array in anthropic.ts)
@@ -226,7 +226,7 @@ Then Phase 3 (memory foundation): MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS
 
 **Key constraints:**
 - handlers.ts is EXACTLY 300 lines — new slash handlers go in own file; must trade a blank line for the import
-- KANBAN WIP limit = 2. Move item to `building` before starting, `shipped` when done. Edit roadmap.json + regenerate HTML via: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Argo'); console.log('done');"`
+- KANBAN WIP limit = 2. Move item to `building` before starting, `shipped` when done. Edit roadmap.json + regenerate HTML via: `node --import tsx/esm -e "import { buildRoadmap } from './src/roadmap/build.js'; await buildRoadmap('/Users/jasonpoindexter/Documents/GitHub/Vanta'); console.log('done');"`
 - BRAIN-5D prerequisite for all Phase 3/4 memory work
 - EF-INHIBIT + EF-ERRORDETECT need hooks inside agent.ts loop — use optional AgentDeps callbacks, not hardcoded logic
 - After each item: npm test (must stay 869+), tsc clean, commit + push, update CLAUDE.md counts

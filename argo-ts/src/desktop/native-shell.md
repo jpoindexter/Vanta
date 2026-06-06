@@ -1,4 +1,4 @@
-# Argo Desktop native shell path
+# Vanta Desktop native shell path
 
 Current command:
 

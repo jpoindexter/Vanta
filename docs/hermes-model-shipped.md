@@ -1,4 +1,4 @@
-# Argo TUI — hermes-model.html: shipped
+# Vanta TUI — hermes-model.html: shipped
 
 Date: 2026-06-02
 Branch: `feat/v1-hermes-parity` (local commits; **no remote configured** — nothing pushed)
@@ -23,7 +23,7 @@ Interactive overlays are covered by **keypress-driven** tests (ink-testing-libra
 
 ## What the tests CANNOT prove — verify in a real terminal
 
-The sandbox has no TTY. These need your eyes (`cd ~/Documents/GitHub/Argo/argo-ts && npx tsx src/cli.ts`):
+The sandbox has no TTY. These need your eyes (`cd ~/Documents/GitHub/Vanta/argo-ts && npx tsx src/cli.ts`):
 
 1. **Banner** renders correctly (ASCII art alignment, colors, MCP list) and scrolls away after the first turn.
 2. **`/model`** → pick a provider → pick/typed model → status bar model updates → **next message actually uses the new model** (the live hot-swap; needs a real key for the target provider).

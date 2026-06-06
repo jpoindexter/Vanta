@@ -127,9 +127,9 @@ Shape: **input → (busy-mode routing) → agent loop → tool calls → respons
 
 ---
 
-## Argo-port note
+## Vanta-port note
 
-Argo's model (`argo-ts/src/sessions/store.ts`, `repl-commands.ts`, `agent.ts`):
+Vanta's model (`argo-ts/src/sessions/store.ts`, `repl-commands.ts`, `agent.ts`):
 - **Storage:** JSON file per session at `~/.argo/sessions/<id>.json`
   (`{id, title, started, updated, messages}`, Zod-validated). Id = `YYYYMMDD-HHMMSS`.
   Title auto-derived from first user message. No `parent_session_id`, no
@@ -140,22 +140,22 @@ Argo's model (`argo-ts/src/sessions/store.ts`, `repl-commands.ts`, `agent.ts`):
 
 **Already supported (parity):**
 - `/clear` + `/new` — both implemented (splice history to keep system msg, mint
-  new id). Argo already treats `new` as an alias of `clear`. Matches Hermes intent
-  (rotate, don't delete), though Argo doesn't persist an end-marker on the old file.
+  new id). Vanta already treats `new` as an alias of `clear`. Matches Hermes intent
+  (rotate, don't delete), though Vanta doesn't persist an end-marker on the old file.
 - `/resume <id>` — loads a session's messages into the live convo. Matches Hermes.
 - `/sessions`, `/history`-equivalent (via `/sessions`), `/help`, `/status`, `/model`.
 
 **Need new logic:**
-| Command | Difficulty in Argo | Notes |
+| Command | Difficulty in Vanta | Notes |
 |---|---|---|
 | `/title [name]` | **Easy** | `Session.title` already exists; today it's auto-derived. Add a setter + a `pending` slot for pre-first-message; persist on save. |
-| `/save` | **Easy** | Already persisting JSON per session; `/save` = copy current convo to a `saved/` snapshot, or no-op (Argo auto-persists). Could alias to "force flush now". |
+| `/save` | **Easy** | Already persisting JSON per session; `/save` = copy current convo to a `saved/` snapshot, or no-op (Vanta auto-persists). Could alias to "force flush now". |
 | `/history` | **Easy** | Print `convo.messages` truncated; fall back to `listSessions`. |
 | `/retry` | **Easy** | Truncate `convo.messages` to before last user msg, re-send. Pure in-memory; no DB soft-delete concept needed. |
-| `/undo [N]` | **Medium** | Argo has **no `active`/soft-delete column** — JSON files are flat arrays. Either (a) truncate-and-rewrite the file (lossy, no audit trail) or (b) add an archived/inactive marker per message (schema change to `MessageSchema`/`SessionSchema`). Hermes keeps rows for audit; Argo would lose that unless schema grows. Prefill-composer needs TUI support. |
+| `/undo [N]` | **Medium** | Vanta has **no `active`/soft-delete column** — JSON files are flat arrays. Either (a) truncate-and-rewrite the file (lossy, no audit trail) or (b) add an archived/inactive marker per message (schema change to `MessageSchema`/`SessionSchema`). Hermes keeps rows for audit; Vanta would lose that unless schema grows. Prefill-composer needs TUI support. |
 | `/branch` + `/fork` | **Medium** | No `parent_session_id` field. Copy is trivial (deep-copy `messages` to a new id + `saveSession`), but lineage tracking needs a `parentId` field added to `SessionSchema`. Without it, branches are just independent copies (acceptable for v0). |
-| `/handoff` | **Hard / likely N/A** | Hermes hands off to a running **gateway** + messaging platforms (Telegram/Discord) via a `handoff_state` polling protocol. Argo has no gateway/platform layer, so this is out of scope until/unless Argo grows multi-surface delivery. Do **not** confuse with the continuation-prompt `handoff` skill. |
-| Turn lifecycle (`/queue` `/steer` `/bg`, busy modes, Ctrl+C) | **Medium–Hard** | Argo's REPL/TUI would need a `_pending_input`-style queue + a running-turn flag + an interrupt channel. `/queue` and Ctrl+C are the cheap wins; `/steer` (mid-run injection after a tool call) and `/bg` (separate agent + thread) are heavier and depend on Argo's loop architecture. |
+| `/handoff` | **Hard / likely N/A** | Hermes hands off to a running **gateway** + messaging platforms (Telegram/Discord) via a `handoff_state` polling protocol. Vanta has no gateway/platform layer, so this is out of scope until/unless Vanta grows multi-surface delivery. Do **not** confuse with the continuation-prompt `handoff` skill. |
+| Turn lifecycle (`/queue` `/steer` `/bg`, busy modes, Ctrl+C) | **Medium–Hard** | Vanta's REPL/TUI would need a `_pending_input`-style queue + a running-turn flag + an interrupt channel. `/queue` and Ctrl+C are the cheap wins; `/steer` (mid-run injection after a tool call) and `/bg` (separate agent + thread) are heavier and depend on Vanta's loop architecture. |
 
 **Lowest-effort parity path:** `/title`, `/save`, `/history`, `/retry` first
 (no schema change). Then add `parentId` to `SessionSchema` to unlock `/branch`

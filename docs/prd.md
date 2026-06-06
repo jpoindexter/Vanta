@@ -1,12 +1,12 @@
-# Argo PRD
+# Vanta PRD
 
 ## One-line thesis
 
-Argo is a personal AI operator — a real digital person that knows your goals, acts safely, learns from experience, and can do everything a smart operator would do across code, research, comms, calendar, and business work.
+Vanta is a personal AI operator — a real digital person that knows your goals, acts safely, learns from experience, and can do everything a smart operator would do across code, research, comms, calendar, and business work.
 
 > **Status (2026-06-02): v0 complete → building v1 (Full Hermes Parity).**
 > All 7 original phases below are **done** (32 tools, 290 tests green) — that's v0,
-> "has all the parts." v1 makes Argo *feel and work* like a full personal agent:
+> "has all the parts." v1 makes Vanta *feel and work* like a full personal agent:
 > hook to any model (ChatGPT/Claude/Gemini/local/OpenRouter) via a first-run wizard,
 > remember conversations across sessions, learn from what it does (self-improvement
 > loop), borrow Hermes's skill library, and run as a service you can text.
@@ -15,16 +15,16 @@ Argo is a personal AI operator — a real digital person that knows your goals, 
 
 ---
 
-## What Argo is
+## What Vanta is
 
-Argo is not a chatbot. Not a dashboard. Not a wrapper.
+Vanta is not a chatbot. Not a dashboard. Not a wrapper.
 
-Argo is a full-capability personal operator agent with one structural advantage over everything that came before: it knows the goal before it picks a tool, enforces scope on every action, and reports only what it actually verified.
+Vanta is a full-capability personal operator agent with one structural advantage over everything that came before: it knows the goal before it picks a tool, enforces scope on every action, and reports only what it actually verified.
 
 **The lineage:**
 - OpenClaw → gave agents a body (tool execution)
 - Hermes → gave agents a personal runtime (chat + tools + memory, reactive)
-- Argo → a real digital person (goal-aware, scope-enforced, fully capable, trusted)
+- Vanta → a real digital person (goal-aware, scope-enforced, fully capable, trusted)
 
 **What Hermes users are asking for** (from open issues, by demand):
 - Better web search with privacy options — SerpAPI, Searxng, Brave (95 combined reactions)
@@ -33,13 +33,13 @@ Argo is a full-capability personal operator agent with one structural advantage 
 - Versioned backups for memory and skills (17 reactions)
 - Claude subscription auth instead of API keys (14 reactions)
 
-Argo is designed to address all of these natively — privacy-first search, git-versioned skills/memory, better architecture throughout.
+Vanta is designed to address all of these natively — privacy-first search, git-versioned skills/memory, better architecture throughout.
 
 ---
 
 ## What a real digital person can do
 
-Argo's full capability target — every phase owned:
+Vanta's full capability target — every phase owned:
 
 | Capability | Phase |
 |---|---|
@@ -86,13 +86,13 @@ Every file operation, shell command, and external call is gated through the safe
 Risky operations enter the approval queue before execution. Jason approves interactively or async via the cockpit.
 
 ### 6. Learns from experience
-After completing complex tasks, Argo creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. This also solves the Hermes backup problem: version control is built in.
+After completing complex tasks, Vanta creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. This also solves the Hermes backup problem: version control is built in.
 
 ### 7. Privacy-first by default
 Web search defaults to DuckDuckGo (no API key, no tracking). Self-hosted Searxng is the recommended power-user option. Cloud providers (SerpAPI, Brave) are opt-in.
 
 ### 8. Honest about limits
-When a task is outside scope, unsupported, or uncertain — Argo stops and says so. Stopping is always better than faking.
+When a task is outside scope, unsupported, or uncertain — Vanta stops and says so. Stopping is always better than faking.
 
 ---
 
@@ -145,7 +145,7 @@ Out of scope: memory persistence, skills, web search, browser.
 ---
 
 ### Phase 2A — Skills & Memory
-**Done when:** Argo remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.
+**Done when:** Vanta remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.
 
 Delivers:
 - **Skills system** — `~/.argo/skills/<name>/SKILL.md` (markdown + YAML frontmatter, cross-compatible with Hermes format)
@@ -163,7 +163,7 @@ Delivers:
 ### Phase 2B — Web Search ← moved up from Phase 3
 **Done when:** `argo run "research the latest on X and summarize"` returns a cited report using web results, with no API key required by default.
 
-This moved up because it's the #1 most requested Hermes feature (95 combined reactions across 3 issues). It unlocks research tasks that make Argo genuinely useful for business operator work.
+This moved up because it's the #1 most requested Hermes feature (95 combined reactions across 3 issues). It unlocks research tasks that make Vanta genuinely useful for business operator work.
 
 Delivers:
 - **SearchProvider interface** — same pattern as LLMProvider: `search(query, config) → SearchResult[]`
@@ -186,7 +186,7 @@ ARGO_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 ---
 
 ### Phase 3 — Browser & Vision
-**Done when:** Argo can open a URL, take a screenshot, understand what it sees, and extract structured data — all from a single instruction.
+**Done when:** Vanta can open a URL, take a screenshot, understand what it sees, and extract structured data — all from a single instruction.
 
 Delivers:
 - `screenshot` tool — Playwright headless screenshot of any approved URL
@@ -199,7 +199,7 @@ Delivers:
 ---
 
 ### Phase 4 — Code & Dev
-**Done when:** Argo can take a GitHub issue, write a fix, run tests, and propose a PR — with every step approval-gated and every result verified.
+**Done when:** Vanta can take a GitHub issue, write a fix, run tests, and propose a PR — with every step approval-gated and every result verified.
 
 Delivers:
 - `run-code` tool — execute Python/Node/Rust in a scoped subprocess with timeout, capture stdout/stderr
@@ -215,7 +215,7 @@ Delivers:
 ---
 
 ### Phase 5 — Communications & Calendar
-**Done when:** Argo can draft and send an email, schedule a meeting, and create a Drive doc — all from a single instruction, with approval before every outbound action.
+**Done when:** Vanta can draft and send an email, schedule a meeting, and create a Drive doc — all from a single instruction, with approval before every outbound action.
 
 All comms tools route through the MCP infrastructure already connected to Jason's account.
 
@@ -236,7 +236,7 @@ Delivers:
 ---
 
 ### Phase 6 — Autonomous Operation
-**Done when:** Argo runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.
+**Done when:** Vanta runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.
 
 Delivers:
 - Cron scheduler — `argo schedule "daily briefing" --cron "0 8 * * *"`, stored in `.argo/cron.tsv`
@@ -251,10 +251,10 @@ Delivers:
 ---
 
 ### Phase 7 — Digital Person
-**Done when:** Argo can run a full "weekly operator review" — checks every active project, summarizes status, flags blockers, drafts updates, proposes next actions — and delivers it as a structured brief ready to act on.
+**Done when:** Vanta can run a full "weekly operator review" — checks every active project, summarizes status, flags blockers, drafts updates, proposes next actions — and delivers it as a structured brief ready to act on.
 
 Delivers:
-- **Project rooms** — Argo knows each `~/Documents/GitHub/_active/` project, can load context per project, track separate goal streams
+- **Project rooms** — Vanta knows each `~/Documents/GitHub/_active/` project, can load context per project, track separate goal streams
 - **Business operator modes** (encoded as skills — Jason can customize):
   - `build-product-slice` — PRD → code → test → PR
   - `research-to-offer` — research topic → synthesize → draft proposal → queue for send
@@ -263,7 +263,7 @@ Delivers:
   - `pre-ship-review` — run checks, review diff, propose go/no-go
   - `inspect-opportunity` — research market, score idea, draft one-pager
 - **Multi-model routing** — classify task → cheap model (gpt-4o-mini, llama3.2) for tool calls and summaries, expensive model (gpt-4o, claude-opus) for planning, synthesis, and code
-- **Mode learning** — after running a workflow 3 times, Argo proposes encoding it as a skill
+- **Mode learning** — after running a workflow 3 times, Vanta proposes encoding it as a skill
 
 ---
 
@@ -287,7 +287,7 @@ backend without editing files → it remembers conversations → it learns from 
 
 ---
 
-## What Argo does NOT do (ever)
+## What Vanta does NOT do (ever)
 
 - Delete or overwrite files without explicit approval
 - Send any message (email, Slack, social) without explicit approval
@@ -300,9 +300,9 @@ backend without editing files → it remembers conversations → it learns from 
 
 ---
 
-## Argo vs Hermes — the real difference
+## Vanta vs Hermes — the real difference
 
-| | Hermes | Argo |
+| | Hermes | Vanta |
 |---|---|---|
 | Safety | Advisory — "NOT a security boundary" | Enforced — Rust kernel is the boundary |
 | Goal awareness | None — reactive | First-class — loaded before every session |
@@ -347,10 +347,10 @@ backend without editing files → it remembers conversations → it learns from 
 1. ~~Comms route through kernel `assess()` or TS-only?~~ → Every tool, comms included, gates through kernel `assess()`. (DECISIONS)
 2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `ARGO_PROJECTS_DIR`.
 3. ~~Skills cross-compatible with Hermes format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed ~181 Hermes/OpenClaw skills are directly portable (v1 D).
-5. ~~A2A: Google protocol or Argo-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6 (Hermes has no peer-to-peer A2A either).
+5. ~~A2A: Google protocol or Vanta-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6 (Hermes has no peer-to-peer A2A either).
 
 **Live for v1:**
-- **MCP client vs own each integration** (v1 E5) — Hermes mounts MCP servers (stdio + HTTP); Argo went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
-- **Curator delete policy** — Hermes **never auto-deletes** (archive only, recoverable). Argo's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
+- **MCP client vs own each integration** (v1 E5) — Hermes mounts MCP servers (stdio + HTTP); Vanta went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
+- **Curator delete policy** — Hermes **never auto-deletes** (archive only, recoverable). Vanta's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
 - **Setup config format** — write provider/model to `.env` (current) or a `config.yaml` like Hermes? Leaning: `.env` merge for v1 (no new parser), revisit if config grows.
 - **Desktop app** (Tauri, consistent with indx) vs CLI + cockpit — still deferred (PARKED).

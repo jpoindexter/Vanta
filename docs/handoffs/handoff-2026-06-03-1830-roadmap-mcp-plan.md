@@ -1,19 +1,19 @@
 # Handoff — Roadmap + MCP Build Plan
 Generated: 2026-06-03 18:30
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo (agent code in `argo-ts/`)
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `argo-ts/`)
 Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 
 ## What Was Accomplished This Session
 
 1. **O9 dark factory confirmed complete** — all tasks 1–11 were already done and pushed from the prior session. 554 TS + 27 Rust tests pass, tsc clean. The handoff doc `handoff-2026-06-03-1515-o9-factory-mid-impl.md` was stale; work had finished.
 
-2. **MCP discussion + design** — Argo needs to use MCPs, make MCPs, and be an MCP server. The MCP client is already built (`argo-ts/src/mcp/client.ts` + `mount.ts`, tested, wired in `session.ts`). The only gap is config discovery (format + location mismatch with Claude's `.mcp.json`).
+2. **MCP discussion + design** — Vanta needs to use MCPs, make MCPs, and be an MCP server. The MCP client is already built (`argo-ts/src/mcp/client.ts` + `mount.ts`, tested, wired in `session.ts`). The only gap is config discovery (format + location mismatch with Claude's `.mcp.json`).
 
 3. **ROADMAP.md updated** — new `v1.6 — MCP: use · make · serve` section (3 phases, done-criteria each, sized). New `SEC · Secret-hygiene hardening` item. Both committed.
 
 4. **Design doc written** — `docs/superpowers/specs/2026-06-03-interactive-roadmap-design.md` (roadmap.json → roadmap.html, Now/Next/Later, agent-ready source).
 
-5. **DECISIONS.md updated** — "All Argo documentation must be agent-ready" principle appended. Committed.
+5. **DECISIONS.md updated** — "All Vanta documentation must be agent-ready" principle appended. Committed.
 
 6. **Security false alarm resolved** — cosmos `.mcp.json` had a live token but was NEVER committed (full git history scan clean). No rotation needed. SEC item added to roadmap to wire gitleaks hook so this never requires a freakout again.
 
@@ -38,11 +38,11 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 
 | # | Slice | Size | Done criteria | Model |
 |---|-------|------|--------------|-------|
-| 1 | Interactive roadmap | S | `argo roadmap` opens Now/Next/Later HTML; Argo reads json natively | Sonnet |
+| 1 | Interactive roadmap | S | `argo roadmap` opens Now/Next/Later HTML; Vanta reads json natively | Sonnet |
 | 2 | SEC gitleaks hook | S | secret-shaped strings can't be committed | Sonnet |
-| 3 | MCP-1 consume | S | `argo mcp list` shows Cosmos tools; Argo calls one | Sonnet |
-| 4 | MCP-2 make + hook | M | Argo builds trivial MCP, mounts it, calls it; and mounts existing | Sonnet |
-| 5 | MCP-3 serve | M/L | Claude Code calls an Argo tool through the kernel gate | **Opus** |
+| 3 | MCP-1 consume | S | `argo mcp list` shows Cosmos tools; Vanta calls one | Sonnet |
+| 4 | MCP-2 make + hook | M | Vanta builds trivial MCP, mounts it, calls it; and mounts existing | Sonnet |
+| 5 | MCP-3 serve | M/L | Claude Code calls an Vanta tool through the kernel gate | **Opus** |
 
 ---
 
@@ -71,7 +71,7 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
       "status": "building",
       "size": "S",
       "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + argo mcp list.",
-      "done": "argo mcp list shows a server's tools; Argo calls one live."
+      "done": "argo mcp list shows a server's tools; Vanta calls one live."
     }
   ]
 }
@@ -109,17 +109,17 @@ Column map: `building → Now`, `next → Next`, `horizon → Later`, `shipped �
   {"id":"O4","track":"Senses + Autonomy","title":"Camera (look_at_camera)","status":"shipped","size":"S","summary":"Webcam frame → vision model.","done":"Shipped."},
   {"id":"O5","track":"Senses + Autonomy","title":"Video (watch_video)","status":"shipped","size":"S","summary":"ffmpeg frame extraction → vision model.","done":"Shipped."},
   {"id":"O7","track":"Senses + Autonomy","title":"Speech + audio","status":"shipped","size":"S","summary":"speak TTS + transcribe STT.","done":"Shipped."},
-  {"id":"S1","track":"Selfhood","title":"Self-authored identity files","status":"shipped","size":"M","summary":"Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.","done":"Argo has a persistent identity."},
+  {"id":"S1","track":"Selfhood","title":"Self-authored identity files","status":"shipped","size":"M","summary":"Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.","done":"Vanta has a persistent identity."},
   {"id":"P1","track":"Hermes Parity","title":"Slash-command parity","status":"shipped","size":"M","summary":"/history /retry /undo /reset /title /fork.","done":"Full slash parity readline + TUI."},
-  {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"building","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Argo reads roadmap.json natively."},
+  {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"building","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Vanta reads roadmap.json natively."},
   {"id":"SEC","track":"Docs + Tooling","title":"Secret-hygiene hardening","status":"next","size":"S","summary":"gitleaks pre-commit hook + .example twins + pre-push check.","done":"A secret-shaped string can't be committed."},
-  {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. argo mcp list.","done":"argo mcp list shows a server's tools; Argo calls one live."},
-  {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"horizon","size":"M","summary":"mount_mcp tool (live runtime mount) + build-mcp-server skill (scaffold on demand).","done":"Argo builds a trivial MCP, mounts it, calls its tool; and mounts an existing server on command."},
-  {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"argo mcp serve — expose Argo tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Argo executes through the kernel gate."},
+  {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. argo mcp list.","done":"argo mcp list shows a server's tools; Vanta calls one live."},
+  {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"horizon","size":"M","summary":"mount_mcp tool (live runtime mount) + build-mcp-server skill (scaffold on demand).","done":"Vanta builds a trivial MCP, mounts it, calls its tool; and mounts an existing server on command."},
+  {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"argo mcp serve — expose Vanta tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Vanta executes through the kernel gate."},
   {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual ARGO_PROVIDER override."},
   {"id":"D2","track":"Skills","title":"Skill bundles","status":"horizon","size":"S","summary":"YAML bundle schema for composite slash commands.","done":"One /slash loads several skills."},
   {"id":"S5","track":"Selfhood","title":"Heartbeat selfhood updates","status":"horizon","size":"S","summary":"Wire brain writes onto the gateway tick.","done":"Identity evolves continuously via daemon."},
-  {"id":"B-v2","track":"Self-improvement","title":"Emergent self-designed brain","status":"horizon","size":"L","summary":"Let Argo design its own brain substrate (its own format/code).","done":"Open research — no fixed done line."},
+  {"id":"B-v2","track":"Self-improvement","title":"Emergent self-designed brain","status":"horizon","size":"L","summary":"Let Vanta design its own brain substrate (its own format/code).","done":"Open research — no fixed done line."},
   {"id":"U2","track":"Core UX","title":"@-file mentions","status":"horizon","size":"M","summary":"Composer path autocomplete for file attachment.","done":"Type @ in TUI → path autocomplete."}
 ]
 ```
@@ -201,7 +201,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 - Add name to sorted list in `argo-ts/src/tools/tools.test.ts`
 
 **Part B — `build-mcp-server` skill** (`argo-ts/skills-library/build-mcp-server.md`):
-- Teaches Argo to scaffold a new MCP server from a description: create a TS project with `@modelcontextprotocol/sdk`, wire one tool, `npm run build`, then call `mount_mcp` to hook it in.
+- Teaches Vanta to scaffold a new MCP server from a description: create a TS project with `@modelcontextprotocol/sdk`, wire one tool, `npm run build`, then call `mount_mcp` to hook it in.
 - This is a skill (markdown), not code.
 
 ---
@@ -233,7 +233,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 Paste this into a new Claude session on **Sonnet 4.6** to resume:
 
 ---
-Resume Argo. Repo: `/Users/jasonpoindexter/Documents/GitHub/Argo` (TS agent in `argo-ts/`, branch `feat/v1-hermes-parity`, 2 commits ahead of origin — NOT pushed). 581 tests green (27 Rust + 554 TS), tsc clean.
+Resume Vanta. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (TS agent in `argo-ts/`, branch `feat/v1-hermes-parity`, 2 commits ahead of origin — NOT pushed). 581 tests green (27 Rust + 554 TS), tsc clean.
 
 **Your job:** Build slices 1–4 in order. STOP after slice 4. Do NOT start slice 5 (MCP-3 serve) — that's for an Opus session.
 

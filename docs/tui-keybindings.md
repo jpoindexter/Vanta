@@ -1,4 +1,4 @@
-# Argo TUI composer — complete keybinding spec
+# Vanta TUI composer — complete keybinding spec
 
 > Roadmap: `TUI-KEYS` (line editing) + `TUI-SELECT` (selection + clipboard). The "build every
 > known shortcut" spec. **Shipped today:** `Ctrl+U`, `Ctrl+W`, `Esc` (abort), `↑/↓` history,

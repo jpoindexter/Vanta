@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Argo ↔ Hermes — Full Parity Map &amp; Delta</title>
+<title>Vanta ↔ Hermes — Full Parity Map &amp; Delta</title>
 <style>
   :root{
     --bg:#0b0d10; --panel:#14181d; --panel2:#1b2026; --line:#272d35;
@@ -60,11 +60,11 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Argo ↔ Hermes — Full Parity Map &amp; Delta</h1>
-  <p class="sub">Grounded in the installed <code>~/.hermes/hermes-agent</code> <b>v0.15.1</b> (read, not guessed) vs Argo <code>feat/v1-hermes-parity</code> · 2026-06-06 · Lineage: OpenClaw → Hermes → Argo. Recommendations are mine — override freely.</p>
+  <h1>Vanta ↔ Hermes — Full Parity Map &amp; Delta</h1>
+  <p class="sub">Grounded in the installed <code>~/.hermes/hermes-agent</code> <b>v0.15.1</b> (read, not guessed) vs Vanta <code>feat/v1-hermes-parity</code> · 2026-06-06 · Lineage: OpenClaw → Hermes → Vanta. Recommendations are mine — override freely.</p>
 
   <div class="verdict">
-    <b>Verdict:</b> Argo has the full <b>agent spine</b> (providers + subscription OAuth, streaming, sessions, memory/brain, self-improvement, skills, MCP use+serve, gateway, cron, voice, checkpoints, kanban, goals) <b>plus a hard Rust safety kernel Hermes has no equivalent for.</b> The delta is <b>breadth &amp; ops surface</b>, not core capability: provider fallback, session search, supply-chain audit, the <code>update</code>/<code>model</code>/<code>proxy</code> CLI commands, ACP, and card-decomposition. Most of Hermes' <i>size</i> (21 platforms, 169 skills, Nous Portal, profiles, i18n, RL datagen) is <b>off-thesis for a local trusted operator</b> — captured below as <span class="pill r-forget">forget</span> with reasons, not gaps to chase.
+    <b>Verdict:</b> Vanta has the full <b>agent spine</b> (providers + subscription OAuth, streaming, sessions, memory/brain, self-improvement, skills, MCP use+serve, gateway, cron, voice, checkpoints, kanban, goals) <b>plus a hard Rust safety kernel Hermes has no equivalent for.</b> The delta is <b>breadth &amp; ops surface</b>, not core capability: provider fallback, session search, supply-chain audit, the <code>update</code>/<code>model</code>/<code>proxy</code> CLI commands, ACP, and card-decomposition. Most of Hermes' <i>size</i> (21 platforms, 169 skills, Nous Portal, profiles, i18n, RL datagen) is <b>off-thesis for a local trusted operator</b> — captured below as <span class="pill r-forget">forget</span> with reasons, not gaps to chase.
   </div>
 
   <div class="cards" id="stats"></div>
@@ -73,7 +73,7 @@
   <div class="legend">
     <span><span class="pill s-have">have</span> parity</span>
     <span><span class="pill s-partial">partial</span> close / weaker</span>
-    <span><span class="pill s-missing">missing</span> not in Argo</span>
+    <span><span class="pill s-missing">missing</span> not in Vanta</span>
     &nbsp;·&nbsp;
     <span><span class="pill r-copy">copy</span> build it (→ roadmap id)</span>
     <span><span class="pill r-adapt">adapt</span> have an analogue</span>
@@ -95,7 +95,7 @@
     </div>
   </div>
   <table>
-    <thead><tr><th style="width:22%">Hermes capability</th><th style="width:30%">Argo today</th><th style="width:9%">Status</th><th style="width:11%">Recommend</th><th>Note</th></tr></thead>
+    <thead><tr><th style="width:22%">Hermes capability</th><th style="width:30%">Vanta today</th><th style="width:9%">Status</th><th style="width:11%">Recommend</th><th>Note</th></tr></thead>
     <tbody id="rows"></tbody>
   </table>
 
@@ -104,24 +104,24 @@
   <ul class="tight" id="copylist"></ul>
 
   <h2>3 · What to forget — and why</h2>
-  <p class="lede">Deliberately not chasing these. Each is a recommendation Jason can override; the reason ties to Argo's thesis (a local, trusted, single-operator agent) and the anti-drift rules (no platform-thinking / multi-tenancy / i18n before real users).</p>
+  <p class="lede">Deliberately not chasing these. Each is a recommendation Jason can override; the reason ties to Vanta's thesis (a local, trusted, single-operator agent) and the anti-drift rules (no platform-thinking / multi-tenancy / i18n before real users).</p>
   <ul class="tight" id="forgetlist"></ul>
 
   <div class="two">
     <div>
       <h2>4 · Architecture lessons to keep</h2>
       <ul class="tight">
-        <li><b>One scheduler, not two</b> — Hermes' swarm writes onto the kanban kernel rather than a second scheduler. Argo's factory should fan out onto <code>roadmap.json</code>, not a parallel queue.</li>
-        <li><b>Aux-LLM for meta-work</b> — Hermes uses a cheap aux model for decompose/specify/profile-describe. Mirrors Argo's AUX-VISION; generalize via AUX-MAP.</li>
+        <li><b>One scheduler, not two</b> — Hermes' swarm writes onto the kanban kernel rather than a second scheduler. Vanta's factory should fan out onto <code>roadmap.json</code>, not a parallel queue.</li>
+        <li><b>Aux-LLM for meta-work</b> — Hermes uses a cheap aux model for decompose/specify/profile-describe. Mirrors Vanta's AUX-VISION; generalize via AUX-MAP.</li>
         <li><b>Fallback as a chain, not a flag</b> — ordered providers tried on failure beats a single primary. → MODEL-FALLBACK.</li>
         <li><b>Curator as a daemon with pin</b> — maintenance that consolidates + lets you freeze a good state. → SKILL-UMBRELLA.</li>
         <li><b>Update with a rollback snapshot</b> — never mutate a running install without a labelled way back. → SELF-UPDATE.</li>
       </ul>
     </div>
     <div>
-      <h2>5 · Where Argo already wins</h2>
+      <h2>5 · Where Vanta already wins</h2>
       <ul class="tight">
-        <li><b>Enforced safety kernel</b> (Rust <code>assess()</code>) — Hermes gates nothing at a boundary; this is Argo's whole reason to exist.</li>
+        <li><b>Enforced safety kernel</b> (Rust <code>assess()</code>) — Hermes gates nothing at a boundary; this is Vanta's whole reason to exist.</li>
         <li><b>Executive-function gates</b> (inhibit, set-shift, closure, research-gate, self-monitor) — an ND-first operator layer Hermes has no analogue for.</li>
         <li><b>Brain / selfhood</b> (5D/12-axis, git-versioned) vs Hermes' flat memory provider.</li>
         <li><b>Goal-before-tool, enforced</b> by the kernel ledger, not a prompt rule.</li>
@@ -132,7 +132,7 @@
 
   <h2>6 · Bottom line</h2>
   <div class="verdict">
-    Core agent parity with the customized Hermes is <b>met</b>, and Argo adds a safety + executive-function spine Hermes lacks. Close the <b>seven copy-cards</b> (fallback, session-search, dep-audit, update, model-cmd, proxy, ACP + the DX pack + curator umbrellas + kanban-decompose) and Argo is at <b>full functional parity on everything that serves a single trusted operator</b> — while deliberately declining the platform/commercial surface (Nous Portal, 21 platforms, profiles, i18n, RL datagen) that pulls against the thesis. <b>Breadth is Hermes' moat; the kernel is Argo's.</b>
+    Core agent parity with the customized Hermes is <b>met</b>, and Vanta adds a safety + executive-function spine Hermes lacks. Close the <b>seven copy-cards</b> (fallback, session-search, dep-audit, update, model-cmd, proxy, ACP + the DX pack + curator umbrellas + kanban-decompose) and Vanta is at <b>full functional parity on everything that serves a single trusted operator</b> — while deliberately declining the platform/commercial surface (Nous Portal, 21 platforms, profiles, i18n, RL datagen) that pulls against the thesis. <b>Breadth is Hermes' moat; the kernel is Vanta's.</b>
   </div>
 
   <footer>
@@ -143,38 +143,38 @@
 <script type="application/json" id="data">
 {
   "copy": [
-    {"id":"SELF-UPDATE","t":"argo update + rollback","w":"hermes update — snapshot, autostash/restore, dep/skill/config refresh, restart. Argo only has install.sh."},
-    {"id":"MODEL-CMD","t":"argo model (CLI pulldown)","w":"hermes model — standalone provider/model selector. Argo has the TUI picker but no CLI command."},
-    {"id":"SKILL-UMBRELLA","t":"Curator umbrella consolidation + pin","w":"hermes curator groups overlapping skills under class-level umbrellas; Argo only archives stale."},
-    {"id":"MODEL-FALLBACK","t":"Provider fallback chain on failure","w":"hermes fallback — primary dies → next provider. Argo routes but never falls through. Reliability."},
-    {"id":"SESSION-SEARCH","t":"Full-text search over sessions","w":"hermes sessions browse/search. Argo lists+resumes by id only. Top continuity gap."},
-    {"id":"DEP-AUDIT","t":"argo security audit (supply chain)","w":"hermes security audit (OSV) caught a PyPI worm. Argo gates actions but never audits its npm deps."},
-    {"id":"KANBAN-DECOMPOSE","t":"Card → spec → child tasks","w":"hermes kanban specify/decompose/swarm. Argo has the board + delegate but no decomposition. Factory."},
-    {"id":"ACP-SERVE","t":"Argo as an ACP server (Zed)","w":"hermes acp — in-editor agent. Argo serves MCP but not ACP. Reach, kernel still gates."},
-    {"id":"PROXY-ENDPOINT","t":"Local OpenAI proxy over OAuth","w":"hermes proxy exposes subscription tokens as an OpenAI API. Argo resolves codex/claude-code OAuth — monetize it."},
-    {"id":"CLI-DX-PACK","t":"prompt-size · completion · backup · send · recap","w":"Small Hermes CLI conveniences Argo lacks, bundled as one sand card."}
+    {"id":"SELF-UPDATE","t":"argo update + rollback","w":"hermes update — snapshot, autostash/restore, dep/skill/config refresh, restart. Vanta only has install.sh."},
+    {"id":"MODEL-CMD","t":"argo model (CLI pulldown)","w":"hermes model — standalone provider/model selector. Vanta has the TUI picker but no CLI command."},
+    {"id":"SKILL-UMBRELLA","t":"Curator umbrella consolidation + pin","w":"hermes curator groups overlapping skills under class-level umbrellas; Vanta only archives stale."},
+    {"id":"MODEL-FALLBACK","t":"Provider fallback chain on failure","w":"hermes fallback — primary dies → next provider. Vanta routes but never falls through. Reliability."},
+    {"id":"SESSION-SEARCH","t":"Full-text search over sessions","w":"hermes sessions browse/search. Vanta lists+resumes by id only. Top continuity gap."},
+    {"id":"DEP-AUDIT","t":"argo security audit (supply chain)","w":"hermes security audit (OSV) caught a PyPI worm. Vanta gates actions but never audits its npm deps."},
+    {"id":"KANBAN-DECOMPOSE","t":"Card → spec → child tasks","w":"hermes kanban specify/decompose/swarm. Vanta has the board + delegate but no decomposition. Factory."},
+    {"id":"ACP-SERVE","t":"Vanta as an ACP server (Zed)","w":"hermes acp — in-editor agent. Vanta serves MCP but not ACP. Reach, kernel still gates."},
+    {"id":"PROXY-ENDPOINT","t":"Local OpenAI proxy over OAuth","w":"hermes proxy exposes subscription tokens as an OpenAI API. Vanta resolves codex/claude-code OAuth — monetize it."},
+    {"id":"CLI-DX-PACK","t":"prompt-size · completion · backup · send · recap","w":"Small Hermes CLI conveniences Vanta lacks, bundled as one sand card."}
   ],
   "forget": [
-    {"t":"Nous Portal (hosted inference + Tool Gateway + subscriptions)","w":"Commercial backbone. Against the local-trusted-operator thesis — Argo runs on your own keys/box."},
-    {"t":"21 messaging platforms wholesale","w":"MSG-REGISTRY already exists; add Discord/Slack/iMessage on real demand. Breadth-for-breadth is Hermes' moat, not Argo's."},
-    {"t":"Isolated profiles (full HERMES_HOME each)","w":"Multi-tenancy / platform-thinking before users. Argo's rooms cover ~80% (per-project goal streams)."},
-    {"t":"169 bundled skills","w":"'Management beats count' (Nemotron). Argo injects an index + recalls on demand; curate a small high-value set, don't pad."},
-    {"t":"RL datagen pipeline (batch_runner, mini-swe, trajectory_compressor)","w":"Hermes is also a training-data harvester. Argo is an operator, not a dataset factory — off-thesis."},
+    {"t":"Nous Portal (hosted inference + Tool Gateway + subscriptions)","w":"Commercial backbone. Against the local-trusted-operator thesis — Vanta runs on your own keys/box."},
+    {"t":"21 messaging platforms wholesale","w":"MSG-REGISTRY already exists; add Discord/Slack/iMessage on real demand. Breadth-for-breadth is Hermes' moat, not Vanta's."},
+    {"t":"Isolated profiles (full HERMES_HOME each)","w":"Multi-tenancy / platform-thinking before users. Vanta's rooms cover ~80% (per-project goal streams)."},
+    {"t":"169 bundled skills","w":"'Management beats count' (Nemotron). Vanta injects an index + recalls on demand; curate a small high-value set, don't pad."},
+    {"t":"RL datagen pipeline (batch_runner, mini-swe, trajectory_compressor)","w":"Hermes is also a training-data harvester. Vanta is an operator, not a dataset factory — off-thesis."},
     {"t":"i18n (16 locales)","w":"No internationalization before real users (anti-drift). English-only until there's demand."},
     {"t":"Bitwarden / external secret sources","w":".env + gitleaks pre-commit suffices for a single operator; external secret managers = platform-thinking."},
-    {"t":"OpenClaw migration (hermes claw)","w":"N/A — Argo is the post-OpenClaw lineage, nothing to migrate from."},
+    {"t":"OpenClaw migration (hermes claw)","w":"N/A — Vanta is the post-OpenClaw lineage, nothing to migrate from."},
     {"t":"Plugin git-framework","w":"MCP mounts + skills cover extensibility; plugin-framework.md already parks this until post-users."},
     {"t":"Insights/analytics · skin-engine extras · infographic · dump/debug bundles","w":"Low local value or already covered (TUI themes, per-turn usage). Polish, post-launch."}
   ],
   "rows": [
     ["Setup / Models","Setup wizard (hermes setup)","argo setup first-run wizard","have","-",""],
     ["Setup / Models","Doctor / status","argo doctor + kernel doctor, argo status","have","-",""],
-    ["Setup / Models","Provider auth (pooled creds, login/logout)","env keys + OAuth: codex, claude-code","have","-","Argo also has subscription OAuth (live-verified codex)"],
+    ["Setup / Models","Provider auth (pooled creds, login/logout)","env keys + OAuth: codex, claude-code","have","-","Vanta also has subscription OAuth (live-verified codex)"],
     ["Setup / Models","Config show/edit/migrate (hermes config)","`.env` + upsertEnv (merge, preserve)","partial","adapt","config-migrate folded into SELF-UPDATE"],
     ["Setup / Models","Shell completion (bash/zsh/fish)","none","missing","copy","→ CLI-DX-PACK"],
     ["Setup / Models","Secrets (Bitwarden Secrets Manager)","`.env` + gitleaks pre-commit","missing","forget","External secret source = platform-thinking"],
     ["Setup / Models","Model select (hermes model)","TUI ModelPicker only","partial","copy","→ MODEL-CMD (CLI pulldown)"],
-    ["Setup / Models","Providers (models.dev catalog, 109+)","7 providers (openai/ollama/anthropic/gemini/openrouter/codex/claude-code)","partial","adapt","Argo covers the ones that matter; curated > catalog"],
+    ["Setup / Models","Providers (models.dev catalog, 109+)","7 providers (openai/ollama/anthropic/gemini/openrouter/codex/claude-code)","partial","adapt","Vanta covers the ones that matter; curated > catalog"],
     ["Model routing & fallback","Task routing (cheap/expensive)","ARGO_MODEL_CHEAP/_EXPENSIVE + classifyTask","have","-",""],
     ["Model routing & fallback","Aux-task model (vision/summarize)","AUX-VISION (ARGO_VISION_MODEL)","have","adapt","AUX-MAP generalizes to a per-function map"],
     ["Model routing & fallback","Fallback chain on failure (hermes fallback)","none — a dead provider fails the turn","missing","copy","→ MODEL-FALLBACK"],
@@ -200,22 +200,22 @@
     ["Memory / Continuity","Sessions save/resume/rename/export/prune","save/resume/fork/title (json store)","have","-",""],
     ["Memory / Continuity","Session search / browse (FTS)","list + resume by id only","missing","copy","→ SESSION-SEARCH"],
     ["Memory / Continuity","Session recap (/recap)","/where + EF gates","partial","copy","→ CLI-DX-PACK (argo recap)"],
-    ["Memory / Continuity","External memory provider","per-goal memory + Brain (5D/12-axis, git)","have","adapt","Argo's brain is richer than a flat provider"],
+    ["Memory / Continuity","External memory provider","per-goal memory + Brain (5D/12-axis, git)","have","adapt","Vanta's brain is richer than a flat provider"],
     ["Memory / Continuity","Checkpoints (fs store)","checkpoints (shipped)","have","-",""],
     ["Memory / Continuity","Backup / import (zip ~/.hermes)","~/.argo git-init'd (free versioning)","partial","copy","→ CLI-DX-PACK (argo backup)"],
     ["Memory / Continuity","Insights / analytics","per-turn usage tokens","partial","forget","Low local value"],
-    ["Kanban / Planning","Kanban board (SQLite, cross-profile)","roadmap.json board + move + drag-serve","have","adapt","Argo's is file-based + a drag board"],
+    ["Kanban / Planning","Kanban board (SQLite, cross-profile)","roadmap.json board + move + drag-serve","have","adapt","Vanta's is file-based + a drag board"],
     ["Kanban / Planning","Decompose / specify (card→spec→subtasks)","none","missing","copy","→ KANBAN-DECOMPOSE"],
     ["Kanban / Planning","Swarm (root→workers→verifier graph)","swarm tool + delegate + compose_workflow","partial","adapt","Graph layer = KANBAN-DECOMPOSE"],
     ["Kanban / Planning","Diagnostics (distress signals)","EF gates (error-detect / stall recovery)","partial","adapt","EF covers much of it"],
-    ["Kanban / Planning","Goals","kernel GoalLedger (ENFORCED)","have","-","Argo stronger: kernel-enforced, not prompt"],
-    ["Security","Action safety gating","Rust kernel assess() (ENFORCED boundary)","have","-","Argo-distinctive — Hermes has NO equivalent"],
-    ["Security","Approval before risk","kernel ApprovalQueue (persisted)","have","-","Argo-distinctive"],
+    ["Kanban / Planning","Goals","kernel GoalLedger (ENFORCED)","have","-","Vanta stronger: kernel-enforced, not prompt"],
+    ["Security","Action safety gating","Rust kernel assess() (ENFORCED boundary)","have","-","Vanta-distinctive — Hermes has NO equivalent"],
+    ["Security","Approval before risk","kernel ApprovalQueue (persisted)","have","-","Vanta-distinctive"],
     ["Security","Supply-chain audit (OSV, hermes security audit)","none","missing","copy","→ DEP-AUDIT (npm audit + advisory feed)"],
     ["Security","Compromised-package advisories","gitleaks pre-commit only","partial","copy","→ DEP-AUDIT"],
     ["Plugins / Extensibility","ACP server (Zed editor integration)","none (MCP server only)","missing","copy","→ ACP-SERVE"],
     ["Plugins / Extensibility","MCP client (use servers)","mcp/client + mount.ts","have","-",""],
-    ["Plugins / Extensibility","MCP server (serve Argo, gated)","mcp/server.ts — every call assess()-gated","have","-","Argo gates; Hermes doesn't"],
+    ["Plugins / Extensibility","MCP server (serve Vanta, gated)","mcp/server.ts — every call assess()-gated","have","-","Vanta gates; Hermes doesn't"],
     ["Plugins / Extensibility","MCP catalog / picker","mount config (project + user merge)","partial","adapt","Catalog/picker = nice-to-have"],
     ["Plugins / Extensibility","Plugin framework (git install)","skills + MCP mount","partial","forget","MCP+skills cover it; parked post-users"],
     ["Voice / Multimodal","Voice loop (whisper + TTS)","voice loop (shipped)","have","-",""],
@@ -229,7 +229,7 @@
     ["Portal / Commercial","Nous Portal (hosted inference + Tool Gateway + subs)","local-first, none","missing","forget","Against the local-trusted-operator thesis"],
     ["Portal / Commercial","Web dashboard (FastAPI + Vite)","TUI + desktop scaffold","partial","forget","Horizon → DESKTOP"],
     ["Portal / Commercial","Desktop app (Electron)","Tauri scaffold (DESKTOP, horizon)","partial","adapt","Already on the roadmap (horizon)"],
-    ["Comms (Google)","Gmail / Calendar / Drive (via skills)","gmail / calendar / drive tools (approval-gated)","have","-","Argo has these as first-class gated tools"],
+    ["Comms (Google)","Gmail / Calendar / Drive (via skills)","gmail / calendar / drive tools (approval-gated)","have","-","Vanta has these as first-class gated tools"],
     ["Misc","i18n (16 locales)","English only","missing","forget","No i18n before real users"],
     ["Misc","Skin engine (YAML themes)","TUI themes (resolveTheme)","have","forget","Covered; extra theming = polish"],
     ["Misc","Tips (startup feature discovery)","domain-grouped banner","partial","forget","Fold into the banner"],

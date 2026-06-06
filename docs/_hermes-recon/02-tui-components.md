@@ -292,9 +292,9 @@ running, a status tone (dim/warn/error for ok/interrupted/failed), and a rollup 
 
 ---
 
-## Argo-port notes
+## Vanta-port notes
 
-Argo uses **stock Ink + stock `ink-text-input`, in-process (no gateway)**. Mapping difficulty:
+Vanta uses **stock Ink + stock `ink-text-input`, in-process (no gateway)**. Mapping difficulty:
 
 **Easy ports (stock-Ink primitives, sync local data):**
 - Status bar (`StatusRule`) — pure layout/`Box`/`Text`; just feed it local model/usage/cwd. The
@@ -311,7 +311,7 @@ Argo uses **stock Ink + stock `ink-text-input`, in-process (no gateway)**. Mappi
 - Completion dropdown — logic is fine, but it's an **RPC** (`complete.slash`/`complete.path`).
   Replace with a local synchronous command/path matcher; render layer ports cleanly.
 - Model picker / skills hub / session switcher — UI/key-handling ports, but every data source is an
-  RPC (`model.options`, `skills.manage`, `session.active_list`). Argo must supply in-process
+  RPC (`model.options`, `skills.manage`, `session.active_list`). Vanta must supply in-process
   equivalents. The two-step wizard + fuzzy filter UX is reusable as-is.
 - Composer multiline + history + slash dropdown — stock `ink-text-input` is single-line and has no
   mouse/multiline/paste-collapse. To match Hermes you'd wrap it or accept single-line-ish behavior.
@@ -320,7 +320,7 @@ Argo uses **stock Ink + stock `ink-text-input`, in-process (no gateway)**. Mappi
 
 **Hard / needs custom component (forked-Ink-dependent):**
 - `ScrollBox` + virtualization + `stickyScroll` + `TranscriptScrollbar` + mouse-wheel accel +
-  `StickyPromptTracker` — **stock Ink has no ScrollBox**. This is the single biggest gap. Argo
+  `StickyPromptTracker` — **stock Ink has no ScrollBox**. This is the single biggest gap. Vanta
   needs either a custom scroll component or to lean on terminal-native scrollback (inline mode).
 - `AlternateScreen`, `NoSelect`, mouse drag-select, `Ansi`, OSC52 clipboard, `withInkSuspended`,
   hyperlink-click — all forked-Ink features absent from stock Ink. Drag-to-select composer text,

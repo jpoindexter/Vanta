@@ -10,7 +10,7 @@
 
 ## 1. What it is, in one line
 
-A bounded autonomous loop that improves Argo's *own* repository — fixes code quality,
+A bounded autonomous loop that improves Vanta's *own* repository — fixes code quality,
 closes failing tests, ships ROADMAP/PARKED items — one reviewable slice per cycle, under
 the Rust kernel's hard lines, never able to weaken its own guardrails, fully stoppable.
 
@@ -80,7 +80,7 @@ to `swarm`/`delegate` workers (existing). `run.ts` sequences, gates, and verifie
 
 ## 6. Safety model (the heart)
 
-Every guardrail is tested against one question — the whole Argo thesis (hard line 2):
+Every guardrail is tested against one question — the whole Vanta thesis (hard line 2):
 **does it survive the factory editing its own code?** A guard that lives only in
 `factory/*.ts` fails: the factory could edit it away. So the load-bearing guards live in
 the **Rust kernel**, where the agent layer cannot rewrite them.
@@ -112,7 +112,7 @@ Protected set (in-root, forbidden to autonomous writes):
 
 - **`MANIFESTO.md`** — human-authored, **kernel-protected, hard block.** The line that
   doesn't move. The factory can never touch it.
-- **`AGENT-MANIFESTO.md`** — agent-authored, **editable.** Argo's own evolving declaration
+- **`AGENT-MANIFESTO.md`** — agent-authored, **editable.** Vanta's own evolving declaration
   of what it is and what it's doing. Diffing it over time is a transparency ledger of how the
   agent's self-model changed. (Natural home for the S1 selfhood track.)
 
@@ -199,13 +199,13 @@ post-step:
 - Every folder it touches gets/keeps a `CLAUDE.md` and an `AGENTS.md` (file map + env + purpose).
 - Completing a ROADMAP item ticks its checkbox in `ROADMAP.md` and commits that.
 - `HANDOFF.md` / `DECISIONS.md` updated when a cycle makes a decision worth recording.
-- Every slice commits **and pushes** (the standing Argo convention).
+- Every slice commits **and pushes** (the standing Vanta convention).
 
 This is inlined in `executor.ts` per slice — a separate docs module would be skippable; an
 inlined step cannot be.
 
 **Token discipline — index, don't inject.** A `CLAUDE.md` + `AGENTS.md` in every folder, all
-read at session start, is the skill-bloat problem in a new costume. Argo already solved this for
+read at session start, is the skill-bloat problem in a new costume. Vanta already solved this for
 skills (index injection + on-demand body load) and uses the **same pattern** here: the agent
 reads a folder's `CLAUDE.md`/`AGENTS.md` **only when it works in that folder**, never all-at-once.
 The root docs (`CLAUDE.md`, `AGENTS.md`) carry a one-line pointer to subfolder docs; the body is
@@ -229,7 +229,7 @@ The kernel protected-path tests are the load-bearing ones: they are what makes t
 
 - **Auto-mode at first ship** — designed (§6.8), enforced at graduation. v0 = review-mode only.
 - **Multi-slice cycles** — one slice/cycle until trust established.
-- **Per-project autonomy level** — YAGNI until Argo is multi-root.
+- **Per-project autonomy level** — YAGNI until Vanta is multi-root.
 - **`argo factory logs --follow`** — nice-to-have; `status` + the log file cover v0.
 - **B-v2 emergent self-designed brain** — separate research track; `AGENT-MANIFESTO.md` is the
   bootstrap surface, not B-v2 itself.

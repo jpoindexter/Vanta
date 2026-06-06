@@ -1,6 +1,6 @@
 # Handoff — TUI/UX Sprint: KANBAN-S2 + TUI-INPUT + TUI-MARKDOWN + ND1 + ND3 + U2
 Generated: 2026-06-04 14:45
-Project: Argo — /Users/jasonpoindexter/Documents/GitHub/Argo
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta
 Branch: feat/v1-hermes-parity
 
 ## What Was Accomplished
@@ -122,7 +122,7 @@ The roadmap is now all `shipped` or `horizon` — no `next`/`building` items. Ch
 
 3. [ ] **TUI-MODE** (`pebble`) — In-TUI mode/approval toggle (shift+tab cycles modes). Would reuse the `planMode` injection pattern.
 
-4. [ ] **ND5** (`pebble`) — Proactive nudge cadence. After N idle turns with an active goal, Argo surfaces a reminder. Uses `/next` prompt logic + a counter in `replState`.
+4. [ ] **ND5** (`pebble`) — Proactive nudge cadence. After N idle turns with an active goal, Vanta surfaces a reminder. Uses `/next` prompt logic + a counter in `replState`.
 
 5. [ ] **FAC-INTENT** (`pebble`) — LLM-judge gate on factory cycle output: verify the output satisfies the original intent before commit. Extends `factory/verifier.ts`.
 
@@ -149,9 +149,9 @@ The roadmap is now all `shipped` or `horizon` — no `next`/`building` items. Ch
 ## Continuation Prompt
 
 ---
-Resuming Argo — /Users/jasonpoindexter/Documents/GitHub/Argo, branch `feat/v1-hermes-parity` (clean, 751 TS + 27 Rust = 778 total tests green, tsc clean, all committed and pushed).
+Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 751 TS + 27 Rust = 778 total tests green, tsc clean, all committed and pushed).
 
-Argo = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` + 5 planning docs first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` + 5 planning docs first.
 
 **This session shipped (in order):**
 1. KANBAN-S2 — drag-and-drop roadmap board (`argo roadmap serve` → `http://localhost:7789/roadmap/board`)

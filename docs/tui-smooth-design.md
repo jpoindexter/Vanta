@@ -1,6 +1,6 @@
 # TUI-SMOOTH — calmer activity feed (design note)
 
-Source-of-truth render rules for the transcript. Built from Argo's concrete
+Source-of-truth render rules for the transcript. Built from Vanta's concrete
 firehose + Claude Code activity-feed conventions. Hashmark (the named reference)
 turned out to be a web app with a VS-Code-style nav bar — not transferable.
 

@@ -226,9 +226,9 @@ suspending Ink.
 
 ---
 
-## 5. Argo-port note (what Hermes has that Argo's `argo setup` lacks)
+## 5. Vanta-port note (what Hermes has that Vanta's `argo setup` lacks)
 
-Argo already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
+Vanta already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
 `argo-ts/src/providers/catalog.ts`):
 - `runSetup()` interactive wizard: provider menu → hidden API-key prompt →
   model prompt → `upsertEnv()` writes to `.env` (mode `0o600`).
@@ -240,7 +240,7 @@ Argo already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
 
 **Gaps vs Hermes — things to consider porting (or deliberately not):**
 
-| Capability | Hermes | Argo | Port? |
+| Capability | Hermes | Vanta | Port? |
 |---|---|---|---|
 | Provider count | 34, with `transport` + `base_url_override` overlays | 6 | Grow catalog as needed; Hermes' `transport` field (openai_chat / anthropic_messages / codex_responses) is the key abstraction worth stealing |
 | OAuth / device-code login | Yes (Nous Portal, xai, qwen, minimax, gemini-cli, copilot) | No — key-paste only | Real gap if you want keyless providers |
@@ -250,14 +250,14 @@ Argo already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
 | Curated per-provider model manifests w/ fallback | Yes (`model_catalog.py`) | Single `defaultModel` per provider | Richer model picker is the biggest UX delta |
 | Config backup before write | Yes (`.yaml.bak.<ts>`) | No (just upserts `.env`) | Cheap safety win |
 | Migration import (OpenClaw) | Yes | N/A | Skip |
-| Messaging-gateway setup | Yes (Telegram/Discord/Slack/Matrix/…) | No | Only if Argo grows a gateway |
+| Messaging-gateway setup | Yes (Telegram/Discord/Slack/Matrix/…) | No | Only if Vanta grows a gateway |
 | Non-interactive guidance instead of crash | Yes (`print_noninteractive_setup_guidance`) | TTY-gated (cli.ts:97) — bails | Roughly parity |
-| `/dev/tty` open-based probe in installer | Yes (regression-tested) | N/A (no install.sh) | Skip unless Argo ships a curl-pipe installer |
+| `/dev/tty` open-based probe in installer | Yes (regression-tested) | N/A (no install.sh) | Skip unless Vanta ships a curl-pipe installer |
 | **In-TUI `/setup` (skill-driven, conversational)** | **Does NOT exist** — `/setup` just shells out to the CLI wizard | N/A | **Nothing to port** — the brief's premise was wrong |
 
 **Bottom line:** the two real Hermes advantages worth porting are (a) **OAuth /
 device-code login** for keyless providers and (b) a **richer curated
 model-picker per provider** (`model_catalog.py` manifest + fallback). The
 "skill-driven in-TUI setup" is a non-feature. Hermes' in-TUI setup is exactly
-Argo's model would be: suspend the UI, run the same CLI wizard, verify config,
+Vanta's model would be: suspend the UI, run the same CLI wizard, verify config,
 restart the session.
