@@ -2448,6 +2448,42 @@
       "effort": "low",
       "summary": "Bundle of small, low-risk Hermes CLI conveniences Argo lacks, each a quick win (build independently, check off): `argo prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `argo completion` (bash/zsh/fish shell completion) · `argo backup` / `argo import` (zip + restore ~/.argo; today it's only git-init'd) · `argo send <text>` (pipe text from cron/CI to a configured platform) · `argo recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
       "done": "At least `argo prompt-size`, `argo completion`, and `argo backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
+    },
+    {
+      "id": "AUTO-HANDOFF",
+      "track": "Memory + Continuity",
+      "title": "Auto-handoff on context pressure + reload on restart",
+      "status": "next",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "TOP net-new need from mining ~10k real user messages: context/token economy is Jason's #1 recurring chore. Evidence — 138 auto-compaction events + 48 hand-written handoff prompts in one project sample; 'give me a handoff' is his single most-repeated manual action; proactive 'init codegraph + a CLAUDE.md in every folder so we don't burn tokens'; recurring 'doesn't remember on launch'. HANDOFF-PACKET captures the manual artifact; this is the AUTO trigger: when context crosses a threshold, Argo emits a durable resume block (active goal + state + next steps + open files) on its own and RELOADS it on the next launch — no manual ritual. Pairs with MEM-CURATOR + EF-TASKSTACK.",
+      "done": "When context crosses a threshold Argo auto-writes a durable resume block and reloads it on next launch; Jason never has to type 'give me a handoff' or re-explain state."
+    },
+    {
+      "id": "REF-INGEST",
+      "track": "Memory + Continuity",
+      "title": "Durable reference ingestion (URL / repo / screenshot / transcript)",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Net-new CAPABILITY (not in Hermes) surfaced by usage mining: 'reference → build → iterate' is Jason's dominant input loop — ~165 'look at this', ~144 pasted URLs, ~130 local-file drag-ins, ~94 'clone/use this repo' in one project sample, plus research-synthesis-from-media (YouTube transcripts + PDFs) across nearly every project. Today @-context inlines a file PER MESSAGE and is re-pasted every session. Make references DURABLE: `argo ref add <url|path|repo|image|transcript>` ingests into project-scoped context (extracted + indexed), recallable across sessions without re-pasting. Kernel-gated fetch; local-first store.",
+      "done": "`argo ref add <src>` ingests a URL/repo/screenshot/transcript/file into durable project context; later sessions recall it via @-context and recall without the user re-pasting."
+    },
+    {
+      "id": "RUN-RESUME",
+      "track": "Reliability",
+      "title": "Long-run resilience — resume an unattended run after a mid-flight drop",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Jason's #1 reliability pain on the autonomous path (Codex mining): he demands 'don't stop until they're all done / don't ask permission' (34+ delegations) but long runs die mid-flight — 'u keep bugging out › continue ■ Error: stream disconnected before completion'. He also hand-babysits long data pipelines (~20 near-identical 'check progress, if 600+ done queue X, if finished commit/push' messages) — manually playing the supervisor loop the agent should own. Argo has checkpoints; this is auto-resume: a run that crashes/disconnects resumes from its last checkpoint without a manual 'continue', with progress + stall surfaced. Builds on checkpoints + STALL-UNBLOCK + the autonomy ladder.",
+      "done": "An unattended run that dies mid-flight (crash/stream drop) auto-resumes from its last checkpoint and finishes the backlog without the user typing 'continue'; progress and any true stall are surfaced."
     }
   ]
 }
