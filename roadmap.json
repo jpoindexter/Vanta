@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-05",
+  "updated": "2026-06-06",
   "items": [
     {
       "id": "NOW-QUEUE",
@@ -2364,6 +2364,90 @@
       "effort": "high",
       "summary": "Hermes' curator does an umbrella-building pass Argo's doesn't: it groups many overlapping/related skills under CLASS-LEVEL umbrella skills (e.g. apple-services, github-operations, research-workflows), archives the children (69 in one observed run), prunes stale ones, then shows a once-per-run digest with `curator status` (view anytime) and `curator pin <umbrella>` (freeze a good umbrella so the next pass won't churn it). Argo's curate() is non-destructive archive of stale LEARNED skills only — it reports overlaps but never consolidates them. Add an LLM consolidation pass that proposes umbrellas from overlap clusters, archives children reversibly, supports pin, and emits a once-per-run digest. Reversible + approval-gated (Rule zero).",
       "done": "`argo curator` proposes class-level umbrellas from overlapping skills, archives children reversibly with pin support, prunes stale, and surfaces a once-per-run digest viewable via `argo curator status`."
+    },
+    {
+      "id": "MODEL-FALLBACK",
+      "track": "Reliability",
+      "title": "Provider fallback chain on failure",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes `fallback` (add/list/remove/test): when the primary model errors/rate-limits/times-out, it transparently retries the next provider in a configured chain. Argo has task ROUTING (cheap/expensive via ARGO_MODEL_CHEAP/_EXPENSIVE) but NO failure-fallback — a dead provider just fails the turn. Add an ordered fallback chain (env or config), tried on retryable errors (429/5xx/timeout/circuit-break), with a one-line note in the transcript when it switches. Complements AUX-MAP (per-function model map). Manifesto-aligned: keeps the operator working when one backend is down.",
+      "done": "`argo fallback` configures an ordered provider chain; a retryable primary failure transparently falls through to the next, surfaced as a transcript note, and the choice survives restart."
+    },
+    {
+      "id": "SESSION-SEARCH",
+      "track": "Memory + Continuity",
+      "title": "Full-text search over past sessions",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes `sessions browse` + search gives FTS over session history. Argo persists sessions (`~/.argo/sessions/<id>.json`, save/resume/fork/title) but can only list + resume by id — no search. Add `/sessions search <q>` (TUI) + `argo sessions search` (CLI): index session message text, return ranked hits with a snippet + session id, resume from a hit. Long-flagged as the top continuity gap in parity-audit.md. Pure ranking fn unit-tested; mirrors the existing recall/searchSkills weighting.",
+      "done": "`argo sessions search <q>` returns ranked past sessions with snippets and resumes from a hit; `/sessions` gains an inline search filter."
+    },
+    {
+      "id": "DEP-AUDIT",
+      "track": "Reliability",
+      "title": "argo security audit — dependency/supply-chain scan",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes `security audit` scans the venv against OSV.dev advisories and flags known-compromised packages (it caught the Shai-Hulud PyPI worm). Argo has a hard SAFETY kernel for ACTIONS but zero visibility into its own DEPENDENCY supply chain (npm). Add `argo security audit`: run `npm audit --json` + check installed versions against an advisory feed, report severity-ranked findings, fail-loud on critical. Manifesto-aligned (safety is the differentiator) and cheap — Argo already pins versions and runs gitleaks pre-commit. Folds the security posture from action-time to install-time.",
+      "done": "`argo security audit` reports severity-ranked dependency advisories from npm audit + an advisory feed and exits non-zero on a critical finding."
+    },
+    {
+      "id": "KANBAN-DECOMPOSE",
+      "track": "Factory evolution",
+      "title": "Auto-spec + fan-out a roadmap card into child tasks",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "summary": "Hermes' kanban planning layer: `kanban specify` fleshes a one-line triage card into a real spec via an aux LLM, `kanban decompose` fans a task out into a child-task graph, `kanban swarm` writes a planning-root → parallel-workers → verifier graph onto the board, `kanban diagnostics` emits machine-readable distress signals (hallucinated id, spawn crash-loop, stuck-blocked). Argo has the roadmap board (roadmap.json/move) + delegate + swarm tool + compose_workflow but no card→spec→subtask decomposition. Add `argo roadmap decompose <id>`: aux LLM expands a card's `summary`/`done` into ordered child cards (with deps), written back to roadmap.json, approval-gated. Pairs with the factory + SHIP-MODE.",
+      "done": "`argo roadmap decompose <id>` proposes ordered child cards with dependencies from a parent card's done-criteria, writes them to roadmap.json on approval, and regenerates the board."
+    },
+    {
+      "id": "ACP-SERVE",
+      "track": "MCP: use · make · serve",
+      "title": "Expose Argo as an Agent Client Protocol server (Zed)",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes runs as an ACP (Agent Client Protocol) server (`hermes acp`, registry agent.json) for in-editor agent integration — distinct from MCP. Argo already runs as an MCP server (`argo mcp serve`, every call gated by assess()) but has no editor-native agent surface. ACP would let Zed (and ACP-speaking editors) drive Argo as the in-editor agent, with the kernel still gating every action — a reach multiplier that keeps the safety boundary. Mirror the existing mcp/server.ts pattern: a JSON-RPC ACP transport + handlers, allowlist-bounded, assess()-gated. Reach, not core — sequence after the higher-value reliability items.",
+      "done": "`argo acp` serves the Agent Client Protocol so an ACP editor (Zed) drives Argo as its agent, every action still gated by the kernel."
+    },
+    {
+      "id": "PROXY-ENDPOINT",
+      "track": "Models + Setup",
+      "title": "Local OpenAI-compatible proxy over OAuth providers",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "summary": "Hermes `proxy` exposes a local OpenAI-compatible endpoint backed by OAuth-only providers, so any OpenAI-API tool can use a Claude-Pro/ChatGPT subscription without an API key. Argo already resolves claude-code + codex OAuth tokens (providers/claude-code-auth.ts, codex-auth.ts) but only for its own loop. A `argo proxy` would let other local tools (and Argo subagents/MCP clients) reuse those subscription tokens through a standard `/v1/chat/completions` shim — a high-leverage way to monetize the OAuth work Argo already did. Local-only bind, kernel-logged. Frugality-aligned (rule 8): reuse a paid sub instead of paying per-token API.",
+      "done": "`argo proxy` serves a local OpenAI-compatible endpoint backed by Argo's resolved OAuth providers; a standard client completes a request through it without an API key."
+    },
+    {
+      "id": "CLI-DX-PACK",
+      "track": "Core UX",
+      "title": "CLI DX parity pack (small Hermes commands)",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "summary": "Bundle of small, low-risk Hermes CLI conveniences Argo lacks, each a quick win (build independently, check off): `argo prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `argo completion` (bash/zsh/fish shell completion) · `argo backup` / `argo import` (zip + restore ~/.argo; today it's only git-init'd) · `argo send <text>` (pipe text from cron/CI to a configured platform) · `argo recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
+      "done": "At least `argo prompt-size`, `argo completion`, and `argo backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
     }
   ]
 }
