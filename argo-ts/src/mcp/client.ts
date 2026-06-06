@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 
 // Minimal MCP (Model Context Protocol) client — stdio transport, JSON-RPC 2.0,
-// newline-delimited. No SDK dependency (keeps Argo lean). Lets Argo mount
+// newline-delimited. No SDK dependency (keeps Vanta lean). Lets Vanta mount
 // external MCP servers and call their tools. The transport is injectable so the
 // request/response protocol is unit-testable without spawning a process.
 

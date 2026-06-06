@@ -102,7 +102,7 @@ export const browserExtractTool: Tool = {
       }
     }
 
-    // Lazy so Argo loads even when playwright-core is absent/uninstalled.
+    // Lazy so Vanta loads even when playwright-core is absent/uninstalled.
     let chromium: typeof import("playwright-core").chromium;
     try {
       ({ chromium } = await import("playwright-core"));

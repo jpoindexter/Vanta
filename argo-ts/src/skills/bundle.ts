@@ -1,6 +1,6 @@
 import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
 import { join, basename } from "node:path";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 export type BundleConfig = {
   name: string;
@@ -33,7 +33,7 @@ export function parseBundle(content: string): BundleConfig | null {
 }
 
 function bundlesDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "skill-bundles");
+  return join(resolveVantaHome(env), "skill-bundles");
 }
 
 export async function listBundles(env?: NodeJS.ProcessEnv): Promise<BundleConfig[]> {

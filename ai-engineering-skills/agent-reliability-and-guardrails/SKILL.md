@@ -163,7 +163,7 @@ The most important layer — this is where an agent stops being a chatbot. Gate 
 | Medium | write in-scope file, in-scope shell, create branch | confirm / log |
 | High | delete, overwrite, deploy, migrate, send msg, pay, write out-of-scope | **human approval** |
 
-> Argo models this directly: the Rust kernel's `assess()` returns `Allow / Ask / Block`, the TS agent layer *cannot bypass it*, and Rule Zero — no deletes, overwrites, out-of-scope writes, or secret handling without explicit approval — is enforced on every tool call. That separation (enforced boundary in one layer, orchestration in another) is the pattern: put action guardrails somewhere the agent can't reach to disable them.
+> Vanta models this directly: the Rust kernel's `assess()` returns `Allow / Ask / Block`, the TS agent layer *cannot bypass it*, and Rule Zero — no deletes, overwrites, out-of-scope writes, or secret handling without explicit approval — is enforced on every tool call. That separation (enforced boundary in one layer, orchestration in another) is the pattern: put action guardrails somewhere the agent can't reach to disable them.
 
 ---
 
@@ -214,7 +214,7 @@ Rule of thumb: the LLM should make the *fuzzy* decisions; everything downstream 
 ## 10. State, checkpointing, resume
 
 Long agents will be interrupted (timeout, crash, kill switch, budget). Make them resumable so an interruption costs minutes, not the whole run.
-- **Externalize state.** Persist goal, step history, accumulated results, and budget counters outside the process — append-only event log (cf. Argo's `events.jsonl`) or a state store. The transcript in memory is volatile; the durable log is truth.
+- **Externalize state.** Persist goal, step history, accumulated results, and budget counters outside the process — append-only event log (cf. Vanta's `events.jsonl`) or a state store. The transcript in memory is volatile; the durable log is truth.
 - **Checkpoint at milestones**, not every token — after each completed sub-goal or significant side effect.
 - **Resume = replay-then-continue.** Reconstruct state from the log, restore *remaining* budget (resuming must not reset budgets to full — that's how a resumed runaway escapes its cap), continue.
 - **Idempotent replay.** Tie to §9 idempotency: re-running from a checkpoint must not re-execute already-applied side effects.

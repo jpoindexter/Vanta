@@ -41,7 +41,7 @@ describe("isPlanModeActive", () => {
   });
 
   it("returns false when system does not contain PLAN_MARKER", () => {
-    const msgs: Message[] = [{ role: "system", content: "You are Argo." }];
+    const msgs: Message[] = [{ role: "system", content: "You are Vanta." }];
     expect(isPlanModeActive(msgs)).toBe(false);
   });
 
@@ -52,7 +52,7 @@ describe("isPlanModeActive", () => {
 });
 
 describe("shouldSuggestPlanMode", () => {
-  const noplan: Message[] = [{ role: "system", content: "You are Argo." }];
+  const noplan: Message[] = [{ role: "system", content: "You are Vanta." }];
   const env = {};
 
   it("fires when score >= threshold and plan mode is off", () => {

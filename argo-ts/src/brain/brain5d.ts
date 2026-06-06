@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 // BRAIN-5D: Replaces flat .md brain regions with a typed, timestamped,
 // strength-scored, cross-referenced, decay-aware entry model. 5 dimensions per entry:
@@ -27,7 +27,7 @@ export type BrainEntry5D = {
 type Brain5DStore = { entries: BrainEntry5D[] };
 
 function brain5dFile(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "brain5d.json");
+  return join(resolveVantaHome(env), "brain5d.json");
 }
 
 function entryId(region: string, content: string): string {
@@ -43,7 +43,7 @@ async function loadStore(env?: NodeJS.ProcessEnv): Promise<Brain5DStore> {
 }
 
 async function saveStore(store: Brain5DStore, env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveArgoHome(env), { recursive: true });
+  await mkdir(resolveVantaHome(env), { recursive: true });
   await writeFile(brain5dFile(env), JSON.stringify(store, null, 2), "utf8");
 }
 

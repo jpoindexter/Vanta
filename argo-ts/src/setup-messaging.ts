@@ -53,7 +53,7 @@ export function renderSetupSteps(platform: MessagingPlatform): string {
 export async function runMessagingSetup(repoRoot: string, rl?: Readline): Promise<boolean> {
   const ownRl = rl ?? createInterface({ input: process.stdin, output: process.stdout });
   try {
-    console.log("\n  Argo messaging setup — pick a gateway.\n");
+    console.log("\n  Vanta messaging setup — pick a gateway.\n");
     console.log(renderMessagingMenu(process.env));
 
     const pick = (await ownRl.question(`\n  Platform [1-${MESSAGING_CATALOG.length}]: `)).trim();

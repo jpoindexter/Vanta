@@ -1,5 +1,5 @@
 #!/bin/sh
-# Argo — download & run.
+# Vanta — download & run.
 # First run bootstraps (builds the Rust safety kernel, installs agent deps);
 # every run after is instant. The kernel auto-starts when the agent needs it.
 #
@@ -23,7 +23,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 # --- one-time bootstrap ------------------------------------------------------
-if [ ! -x "$DIR/target/debug/argo-kernel" ]; then
+if [ ! -x "$DIR/target/debug/vanta-kernel" ]; then
   echo "argo: building the safety kernel (first run only)…" >&2
   (cd "$DIR" && cargo build)
 fi

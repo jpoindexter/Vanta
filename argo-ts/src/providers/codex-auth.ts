@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-// OAuth for the OpenAI Codex (ChatGPT subscription) backend. Argo treats the
+// OAuth for the OpenAI Codex (ChatGPT subscription) backend. Vanta treats the
 // Codex CLI's own ~/.codex/auth.json as the shared, canonical token store:
 // it reads the access_token, and — only when expiring — refreshes via the
 // OpenAI token endpoint and writes the rotated tokens BACK to that file. The

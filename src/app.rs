@@ -21,7 +21,7 @@ pub fn doctor(state: &State) -> Result<(), String> {
     fs::create_dir_all(&state.data_dir).map_err(|e| e.to_string())?;
     migrate_legacy_data(state);
     println!("{{");
-    println!("  \"name\": \"Argo\",");
+    println!("  \"name\": \"Vanta\",");
     println!("  \"status\": \"ready\",");
     println!(
         "  \"root\": \"{}\",",

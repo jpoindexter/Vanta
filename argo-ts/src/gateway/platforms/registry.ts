@@ -19,7 +19,7 @@ export type MessagingPlatform = {
   secretEnv?: string;
   /** Non-secret env keys written when the platform is enabled. */
   enableEnv?: Record<string, string>;
-  /** Runtime/OS prerequisite the user satisfies outside Argo. */
+  /** Runtime/OS prerequisite the user satisfies outside Vanta. */
   prerequisite?: string;
   /** Risk warning shown before enabling (e.g. WhatsApp ban risk). */
   warning?: string;
@@ -53,7 +53,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     prerequisite:
       "macOS Full Disk Access (read ~/Library/Messages/chat.db) + Automation permission (control Messages).",
     setupSteps: [
-      "System Settings → Privacy & Security → Full Disk Access → enable your terminal/Argo.",
+      "System Settings → Privacy & Security → Full Disk Access → enable your terminal/Vanta.",
       "System Settings → Privacy & Security → Automation → allow control of Messages.",
       "Be signed into iMessage in the Messages app on this Mac.",
     ],

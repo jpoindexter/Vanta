@@ -179,11 +179,11 @@ export function renderRoadmap(data: Roadmap): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Argo Roadmap · ${esc(data.updated)}</title>
+<title>Vanta Roadmap · ${esc(data.updated)}</title>
 <style>${CSS}</style>
 </head>
 <body>
-<h1>Argo Roadmap</h1>
+<h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
 <div class="filters">
 <button class="active" data-filter="all">All tracks</button>

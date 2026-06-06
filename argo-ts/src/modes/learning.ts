@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveArgoHome, ensureArgoStore } from "../store/home.js";
+import { resolveVantaHome, ensureVantaStore } from "../store/home.js";
 
 /** Recurrences before we suggest encoding a pattern as a skill. */
 const DEFAULT_THRESHOLD = 3;
@@ -22,7 +22,7 @@ const STOPWORDS = new Set([
 ]);
 
 function usagePath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), USAGE_FILE);
+  return join(resolveVantaHome(env), USAGE_FILE);
 }
 
 /**
@@ -82,7 +82,7 @@ export async function recordRun(
 ): Promise<{ pattern: string; count: number }> {
   const env = opts.env;
   const pattern = normalizePattern(instruction);
-  await ensureArgoStore(env);
+  await ensureVantaStore(env);
 
   const counts = await loadUsage(env);
   const count = (counts.get(pattern) ?? 0) + 1;

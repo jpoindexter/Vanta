@@ -10,7 +10,7 @@ import { resolveRoutedProvider } from "./routing/model-router.js";
 import { curate } from "./skills/curator.js";
 import { listSkills } from "./skills/store.js";
 import { brainDigest } from "./brain/store.js";
-import { resolveArgoHome } from "./store/home.js";
+import { resolveVantaHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
 import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "./repl/nudge.js";
 import {
@@ -84,7 +84,7 @@ export async function prepareRun(
   skillBody?: string,
 ): Promise<RunSetup> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const kernelBin = join(repoRoot, "target", "debug", "argo-kernel");
+  const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
   await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
   const safety = new SafetyClient(baseUrl);
@@ -108,7 +108,7 @@ export async function prepareRun(
     name: s.meta.name,
     description: s.meta.description,
   }));
-  // Argo reads its own brain (durable self) each session.
+  // Vanta reads its own brain (durable self) each session.
   const brain = await brainDigest(process.env).catch(() => "");
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
@@ -218,7 +218,7 @@ const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days, matching Hermes
  */
 export async function maybeCurate(env: NodeJS.ProcessEnv = process.env): Promise<void> {
   try {
-    const statePath = join(resolveArgoHome(env), ".curator_state.json");
+    const statePath = join(resolveVantaHome(env), ".curator_state.json");
     const now = Date.now();
     let lastRunMs = 0;
     try {

@@ -1,9 +1,9 @@
 import { join } from "node:path";
 import { readFile, writeFile, rm } from "node:fs/promises";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 function moimPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "moim.md");
+  return join(resolveVantaHome(env), "moim.md");
 }
 
 /** Return the pinned top-of-mind note, or undefined if none is set. */

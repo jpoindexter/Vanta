@@ -8,7 +8,7 @@ import type { RunSetup } from "../session.js";
 // Startup banner — the first thing a session prints: an ASCII wordmark plus a
 // one-card readout of what the agent is wired with (tools, skills, system
 // prompt size, MCP servers). Modeled on the Hermes/Claude-Code startup card but
-// fed entirely from Argo's own subsystems — no fabricated numbers. Rendered
+// fed entirely from Vanta's own subsystems — no fabricated numbers. Rendered
 // inside Ink's <Static> by the App so it commits once and scrolls into the
 // terminal's native scrollback instead of re-painting every frame.
 
@@ -88,7 +88,7 @@ export function Banner(props: { data: BannerData }): ReactElement {
       <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} marginTop={1}>
         <Text>
           <Text color="cyan" bold>
-            ⚓ Argo
+            ⚓ Vanta
           </Text>
           <Text dimColor>{`  ·  ${d.model}  ·  Session: ${d.sessionId}`}</Text>
         </Text>
@@ -130,7 +130,7 @@ export function Banner(props: { data: BannerData }): ReactElement {
       </Box>
 
       <Text dimColor>
-        {"\n"}Welcome to Argo. Type your message or <Text color="cyan">/help</Text> for commands.
+        {"\n"}Welcome to Vanta. Type your message or <Text color="cyan">/help</Text> for commands.
       </Text>
     </Box>
   );

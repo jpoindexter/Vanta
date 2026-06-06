@@ -126,7 +126,7 @@ export const browserNavigateTool: Tool = {
       }
     }
 
-    // Lazy import keeps Argo bootable when playwright-core isn't installed.
+    // Lazy import keeps Vanta bootable when playwright-core isn't installed.
     let chromium: typeof import("playwright-core").chromium;
     try {
       ({ chromium } = await import("playwright-core"));

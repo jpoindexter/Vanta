@@ -100,7 +100,7 @@ describe("buildGateText", () => {
     expect(text).toContain("build now");
   });
   it("includes the active goal text when provided", () => {
-    const text = buildGateText(8, { id: 1, text: "Ship Argo v1", status: "active" });
-    expect(text).toContain("Ship Argo v1");
+    const text = buildGateText(8, { id: 1, text: "Ship Vanta v1", status: "active" });
+    expect(text).toContain("Ship Vanta v1");
   });
 });

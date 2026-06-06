@@ -4,7 +4,7 @@ import { runGateway } from "../gateway/run.js";
 import { TelegramAdapter, parseAllowlist } from "../gateway/platforms/telegram.js";
 import { resolveDeliver } from "../gateway/webhook.js";
 import { installService, uninstallService, serviceStatus } from "../service/manager.js";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import { prepareRun, buildSummarizer, writeRunMemory } from "../session.js";
 import type { RunTask } from "../schedule/runner.js";
 
@@ -77,7 +77,7 @@ export async function runServiceCommand(repoRoot: string, rest: string[]): Promi
     if (sub === "install") {
       const path = await installService(repoRoot);
       console.log(`Service installed and loaded: ${path}`);
-      console.log(`Logs: ${join(resolveArgoHome(), "gateway.log")}`);
+      console.log(`Logs: ${join(resolveVantaHome(), "gateway.log")}`);
       return;
     }
     if (sub === "uninstall") {
@@ -112,7 +112,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("../mcp/server.js");
 
     const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-    const kernelBin = join(repoRoot, "target", "debug", "argo-kernel");
+    const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
     await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
     const safety = new SafetyClient(baseUrl);
@@ -125,7 +125,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     return;
   }
 
-  // default: list configured MCP servers Argo would consume (MCP-1 side)
+  // default: list configured MCP servers Vanta would consume (MCP-1 side)
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));
   const names = Object.keys(cfg.servers);
@@ -194,7 +194,7 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
   const { runCycle, formatCycleLog, resolveAutonomyLevel } = await import("../factory/run.js");
   const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
-  const dataDir = resolveArgoHome(process.env);
+  const dataDir = resolveVantaHome(process.env);
 
   if (sub === "approve") {
     // L4 by default (commit + push); VANTA_AUTONOMY_LEVEL=2|3 stops earlier.

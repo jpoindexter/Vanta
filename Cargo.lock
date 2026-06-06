@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "argo-kernel"
+name = "vanta-kernel"
 version = "0.1.0"

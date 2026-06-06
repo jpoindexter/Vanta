@@ -17,7 +17,7 @@ export async function runAuthCommand(
   try {
     await runGoogleAuth(env);
     console.log(
-      "\nGoogle authorized. Argo can now use gmail_*, calendar_*, and drive_* tools.",
+      "\nGoogle authorized. Vanta can now use gmail_*, calendar_*, and drive_* tools.",
     );
     return 0;
   } catch (err: unknown) {

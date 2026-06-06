@@ -11,7 +11,7 @@ const SKILL_FILE = "SKILL.md";
 // candidate; a learned skill is archived (reversible move to _archive), a
 // hand-authored one is only REPORTED. A long-archived skill (90 days) is
 // reported as prunable but NEVER auto-deleted — auto-delete is irreversible data
-// loss the reference design (and Argo's Rule Zero) forbid. Overlap >= 0.6
+// loss the reference design (and Vanta's Rule Zero) forbid. Overlap >= 0.6
 // Jaccard is reported, never auto-merged.
 const STALE_DAYS = 30;
 const PRUNE_REPORT_DAYS = 90;

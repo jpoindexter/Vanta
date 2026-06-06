@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { z } from "zod";
 import type { AddressInfo } from "node:net";
 import type { OAuth2Client, Credentials } from "google-auth-library";
-import { resolveArgoHome, ensureArgoStore } from "../store/home.js";
+import { resolveVantaHome, ensureVantaStore } from "../store/home.js";
 
 /**
  * One-time Google OAuth (loopback redirect consent) and token persistence.
@@ -34,7 +34,7 @@ const TokenSchema = z
 type StoredTokens = z.infer<typeof TokenSchema>;
 
 function tokenPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), TOKEN_FILE);
+  return join(resolveVantaHome(env), TOKEN_FILE);
 }
 
 /**
@@ -62,7 +62,7 @@ async function saveTokens(
   tokens: StoredTokens,
   env: NodeJS.ProcessEnv,
 ): Promise<void> {
-  await ensureArgoStore(env);
+  await ensureVantaStore(env);
   // 0o600 — the file holds a refresh_token (a long-lived secret).
   await writeFile(tokenPath(env), JSON.stringify(tokens, null, 2), {
     encoding: "utf8",
@@ -123,7 +123,7 @@ function awaitLoopbackCode(): Promise<{
       res.end(
         err || !got
           ? `Authorization failed: ${err ?? "no code"}. You can close this tab.`
-          : "Argo is authorized. You can close this tab.",
+          : "Vanta is authorized. You can close this tab.",
       );
       server.close();
       if (err) rejectCode(new Error(`OAuth error: ${err}`));
@@ -157,13 +157,13 @@ export async function runGoogleAuth(
     redirect_uri: redirectUri,
   });
   // eslint-disable-next-line no-console -- interactive CLI consent step
-  console.log(`\nOpen this URL to authorize Argo with Google:\n\n${authUrl}\n`);
+  console.log(`\nOpen this URL to authorize Vanta with Google:\n\n${authUrl}\n`);
 
   const { tokens } = await client.getToken(await code);
   const parsed = parseTokenFile(tokens as unknown);
   if (!parsed?.refresh_token) {
     throw new Error(
-      "Google did not return a refresh_token. Revoke Argo's access at " +
+      "Google did not return a refresh_token. Revoke Vanta's access at " +
         "myaccount.google.com/permissions and run: argo auth google",
     );
   }

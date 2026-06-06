@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, basename } from "node:path";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 export type UserCommand = {
   name: string;
@@ -16,7 +16,7 @@ export type UserCommand = {
  * Returns [] when the directory doesn't exist (no-op on unconfigured installs).
  */
 export async function loadUserCommands(env?: NodeJS.ProcessEnv): Promise<UserCommand[]> {
-  const dir = join(resolveArgoHome(env), "commands");
+  const dir = join(resolveVantaHome(env), "commands");
   let files: string[] = [];
   try {
     files = (await readdir(dir)).filter((f) => f.endsWith(".md"));

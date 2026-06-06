@@ -1,17 +1,17 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import { McpClient, stdioTransport, type McpToolDef } from "./client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 
-// Mount external MCP servers as Argo tools.
+// Mount external MCP servers as Vanta tools.
 // Config sources (first wins for inline; files are merged with project winning on conflict):
 //   1. VANTA_MCP_SERVERS env (JSON, inline)
 //   2. ./.mcp.json in cwd — Claude-compatible format (mcpServers key)
 //   3. ~/.vanta/mcp.json — user-level fallback (servers key)
-// Accepts both "mcpServers" (Claude Code convention) and "servers" (Argo convention).
+// Accepts both "mcpServers" (Claude Code convention) and "servers" (Vanta convention).
 // No config → no-op (zero overhead). Each server is best-effort: one that fails
 // to start doesn't block the others or the session. MCP tools go through the
 // kernel `assess()` like every other tool.
@@ -22,7 +22,7 @@ const ServerSchema = z.object({
   env: z.record(z.string()).optional(),
 });
 
-// Accept both "servers" (Argo) and "mcpServers" (Claude Code) keys; merge with servers winning.
+// Accept both "servers" (Vanta) and "mcpServers" (Claude Code) keys; merge with servers winning.
 const ConfigSchema = z
   .object({
     servers: z.record(ServerSchema).optional(),
@@ -50,7 +50,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
   if (inline) return parseOrEmpty(inline);
 
   const projectRaw = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");
-  const userRaw = await readFile(join(resolveArgoHome(env), "mcp.json"), "utf8").catch(() => "");
+  const userRaw = await readFile(join(resolveVantaHome(env), "mcp.json"), "utf8").catch(() => "");
 
   const project = projectRaw ? parseOrEmpty(projectRaw) : { servers: {} };
   const user = userRaw ? parseOrEmpty(userRaw) : { servers: {} };
@@ -63,8 +63,8 @@ function toolName(server: string, tool: string): string {
   return `mcp_${server}_${tool}`.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-/** Build an Argo Tool that proxies to an MCP server tool. */
-export function mcpToolToArgoTool(
+/** Build an Vanta Tool that proxies to an MCP server tool. */
+export function mcpToolToVantaTool(
   client: Pick<McpClient, "callTool">,
   server: string,
   def: McpToolDef,
@@ -122,7 +122,7 @@ export async function mountMcpServers(
       await client.initialize();
       const defs = await client.listTools();
       for (const def of defs) {
-        registry.register(mcpToolToArgoTool(client, name, def));
+        registry.register(mcpToolToVantaTool(client, name, def));
         toolCount++;
       }
       mounted.push(name);

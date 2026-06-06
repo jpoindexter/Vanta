@@ -4,7 +4,7 @@
 context engineering through inference serving, caching, RAG, evals, observability, and
 safety. For AI engineers shipping at scale, not prompt-tip lists.
 
-Each skill is a self-contained `SKILL.md` (Claude Code / Argo format), depth over fluff:
+Each skill is a self-contained `SKILL.md` (Claude Code / Vanta format), depth over fluff:
 real numbers, formulas, pseudocode, comparison tables, do/don't, named production failure
 modes, and attributions to the actual systems and papers (vLLM/PagedAttention,
 FlashAttention, AWQ/GPTQ/SmoothQuant, RAGAS, OWASP LLM Top 10, OpenTelemetry GenAI).
@@ -32,7 +32,7 @@ feature/tenant/user) · `llm-safety-and-multitenancy` (prompt injection, leakage
 
 ## Install as skills
 
-Standard `SKILL.md` files. Claude Code: copy a `<slug>/` into `~/.claude/skills/`. Argo:
+Standard `SKILL.md` files. Claude Code: copy a `<slug>/` into `~/.claude/skills/`. Vanta:
 auto-installed via `librarySources()` (this folder is a bundled source). Each `name:`
 matches its folder.
 

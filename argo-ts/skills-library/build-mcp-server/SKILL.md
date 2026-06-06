@@ -1,11 +1,11 @@
 ---
 name: build-mcp-server
-description: "Scaffold a new MCP server from a tool description, build it, and mount it into the active Argo session."
+description: "Scaffold a new MCP server from a tool description, build it, and mount it into the active Vanta session."
 ---
 
 # Build MCP Server
 
-Use this skill when the user wants to expose a capability as an MCP tool — something Argo or Claude Code can call. The output is a working TypeScript MCP server, built and mounted in one shot.
+Use this skill when the user wants to expose a capability as an MCP tool — something Vanta or Claude Code can call. The output is a working TypeScript MCP server, built and mounted in one shot.
 
 Trigger phrases: "make a tool for X", "build an MCP that does Y", "expose Z as an MCP", "create an MCP server", "I need a tool that".
 
@@ -89,7 +89,7 @@ Fix any TypeScript errors before proceeding. Common issues:
 
 ---
 
-## Step 5 — Mount into Argo
+## Step 5 — Mount into Vanta
 
 Use the `mount_mcp` tool:
 
@@ -121,4 +121,4 @@ Call one of the newly mounted tools with a simple test case. Confirm the output 
 - **All inputs validated with Zod** — MCP inputs are external, treat them as untrusted.
 - **Return `{ content: [{ type: "text", text: "..." }] }`** — the standard MCP text response shape.
 - **Errors as text, not throws** — catch errors inside the tool handler and return them as content, so the caller gets a useful message instead of a protocol error.
-- **stdio transport only** — that's what Argo's `mount_mcp` and `stdioTransport` speak.
+- **stdio transport only** — that's what Vanta's `mount_mcp` and `stdioTransport` speak.

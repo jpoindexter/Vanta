@@ -10,7 +10,7 @@ A local trusted-operator agent: knows the goal before it picks a tool, enforces 
 
 | Path | Layer | Language | Role |
 |------|-------|----------|------|
-| `src/` | `argo-kernel` | Rust, zero deps | **Enforced** security boundary: risk classifier, approvals, goals, events, HTTP sidecar |
+| `src/` | `vanta-kernel` | Rust, zero deps | **Enforced** security boundary: risk classifier, approvals, goals, events, HTTP sidecar |
 | `argo-ts/` | `argo` | TypeScript, Node 22 | Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel |
 
 The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: `argo-ts/CLAUDE.md`.
@@ -63,7 +63,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 - **`VANTA_ROOT` env var** overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.
 - **Stale `nexarion-agent` binary** may hold port 7788 from before the rename. If a new kernel won't bind, `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill the PID.
 - **A leftover empty `../Nexarion Agent/` dir** exists (harness artifact, only an empty `.claude/`). The real repo is `Vanta/`. Don't work in the old path.
-- Kernel must be reachable before the agent runs (launcher auto-starts it; needs `target/debug/argo-kernel` built).
+- Kernel must be reachable before the agent runs (launcher auto-starts it; needs `target/debug/vanta-kernel` built).
 
 ## Status
 

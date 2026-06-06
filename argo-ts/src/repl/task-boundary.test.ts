@@ -76,8 +76,8 @@ describe("buildTopicShiftNote", () => {
 
 describe("buildBoundaryConfirmation", () => {
   it("includes the previous goal when provided", () => {
-    const text = buildBoundaryConfirmation("Ship Argo v1");
-    expect(text).toContain("Ship Argo v1");
+    const text = buildBoundaryConfirmation("Ship Vanta v1");
+    expect(text).toContain("Ship Vanta v1");
     expect(text).toContain("boundary marked");
   });
   it("works without a previous goal", () => {

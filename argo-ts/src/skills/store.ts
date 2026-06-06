@@ -3,7 +3,7 @@ import { join } from "node:path";
 import {
   skillsDir,
   slugifySkillName,
-  ensureArgoStore,
+  ensureVantaStore,
   commitInHome,
 } from "../store/home.js";
 import { parseSkill, serializeSkill } from "./frontmatter.js";
@@ -53,7 +53,7 @@ export async function writeSkill(
 ): Promise<{ skill: Skill; path: string }> {
   const env = opts.env;
   const now = opts.now ?? new Date().toISOString();
-  await ensureArgoStore(env);
+  await ensureVantaStore(env);
 
   const slug = slugifySkillName(input.name);
   const path = skillPath(slug, env);
@@ -93,7 +93,7 @@ export async function readSkill(
  * subdir lacking a SKILL.md (e.g. a stray file or in-progress write).
  */
 export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
-  await ensureArgoStore(env);
+  await ensureVantaStore(env);
   const dir = skillsDir(env);
 
   let entries;

@@ -1,4 +1,4 @@
-// Pure launchd plist generation for the macOS Argo gateway service. Kept
+// Pure launchd plist generation for the macOS Vanta gateway service. Kept
 // separate from the launchctl side effects (manager.ts) so it's unit-testable.
 
 export type PlistOptions = {

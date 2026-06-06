@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { createConversation } from "./agent.js";
 import { mirrorLegacyEnv } from "./env-compat.js";
-import { ensureArgoStore } from "./store/home.js";
+import { ensureVantaStore } from "./store/home.js";
 import { listSkills, readSkill } from "./skills/store.js";
 import { installSkillLibrary } from "./skills/library.js";
 import { listSessions } from "./sessions/store.js";
@@ -78,7 +78,7 @@ function usage(): void {
       "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
       "       argo modes [list|install]         operator modes",
       "       argo auth google                  one-time Google OAuth",
-      "       argo mcp [list|serve]             list MCP servers Argo consumes, or serve Argo's tools over MCP stdio",
+      "       argo mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
       "       argo roadmap                      build roadmap.html from roadmap.json and open it",
       "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
       "       argo roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
@@ -345,7 +345,7 @@ async function runRoomCommand(repoRoot: string, rest: string[]): Promise<void> {
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
-  await ensureArgoStore();
+  await ensureVantaStore();
 
   const [cmd, ...rest] = process.argv.slice(2);
 

@@ -80,7 +80,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120);
     return () => clearInterval(id);
   }, [state.busy]);
-  useEffect(() => { if (pending) notify({ title: "Argo", message: "needs your approval" }); }, [pending]);
+  useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
 
   const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety, setup.goals);
 
@@ -215,7 +215,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {showHelp && <HelpOverlay width={w} vimEnabled={VIM_ENABLED} />}
           <Box borderStyle="round" borderColor={state.busy ? "gray" : THEME.border} paddingX={1} width={w}>
             <Text color={state.busy ? "gray" : THEME.primary}>{"› "}</Text>
-            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "Ask Argo anything — /help for commands"} history={inputHistory} isHistoryActive={!showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
+            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "Ask Vanta anything — /help for commands"} history={inputHistory} isHistoryActive={!showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}

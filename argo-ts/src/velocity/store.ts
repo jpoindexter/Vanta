@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 export type VelocityEvent = {
   type: "capture" | "ship";
@@ -9,7 +9,7 @@ export type VelocityEvent = {
 };
 
 function velocityPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "velocity.json");
+  return join(resolveVantaHome(env), "velocity.json");
 }
 
 /** Append a single event to ~/.vanta/velocity.json. Creates the file if absent. */

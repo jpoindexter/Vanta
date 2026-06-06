@@ -41,7 +41,7 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 <p>OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.</p>
 <p>Two layers:</p>
 <ul>
-<li><strong><code>src/</code> — Rust safety kernel</strong> (<code>argo-kernel</code>): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.</li>
+<li><strong><code>src/</code> — Rust safety kernel</strong> (<code>vanta-kernel</code>): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.</li>
 <li><strong><code>argo-ts/</code> — TypeScript agent layer</strong> (<code>argo</code>): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.</li>
 </ul>
 <p>See <code>docs/prd.md</code> for the full roadmap and <code>docs/hermes-map.html</code> for the Hermes architecture reference.</p>
@@ -332,7 +332,7 @@ The phase roadmap in this PRD is the historical v0 record.</p>
 <p>When a task is outside scope, unsupported, or uncertain — Vanta stops and says so. Stopping is always better than faking.</p>
 <hr />
 <h2>Architecture</h2>
-<pre><code>Rust safety kernel (argo-kernel)
+<pre><code>Rust safety kernel (vanta-kernel)
   → assess(), approve(), goals, events
   → HTTP sidecar on :7788
   → security boundary — enforced always
@@ -918,7 +918,7 @@ adds words that don't carry weight.</p>
 <tbody>
 <tr>
   <td><code>src/</code></td>
-  <td><code>argo-kernel</code></td>
+  <td><code>vanta-kernel</code></td>
   <td>Rust, zero deps</td>
   <td><strong>Enforced</strong> security boundary: risk classifier, approvals, goals, events, HTTP sidecar</td>
 </tr>
@@ -1001,7 +1001,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 <li><strong><code>VANTA_ROOT</code> env var</strong> overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.</li>
 <li><strong>Stale <code>nexarion-agent</code> binary</strong> may hold port 7788 from before the rename. If a new kernel won't bind, <code>lsof -nP -iTCP:7788 -sTCP:LISTEN</code> and kill the PID.</li>
 <li><strong>A leftover empty <code>../Nexarion Agent/</code> dir</strong> exists (harness artifact, only an empty <code>.claude/</code>). The real repo is <code>Vanta/</code>. Don't work in the old path.</li>
-<li>Kernel must be reachable before the agent runs (launcher auto-starts it; needs <code>target/debug/argo-kernel</code> built).</li>
+<li>Kernel must be reachable before the agent runs (launcher auto-starts it; needs <code>target/debug/vanta-kernel</code> built).</li>
 </ul>
 <h2>Status</h2>
 <p><strong>v1 complete; new dogfooding backlog opened 2026-06-05.</strong> Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. <strong>45 tools</strong> (+ compose_workflow + graph_query) · <strong>1067 TS + 27 Rust = 1094 tests green.</strong></p>
@@ -1061,7 +1061,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>gateway/platforms/base.ts</code> | v1 E2 — <code>PlatformAdapter</code> contract (<code>connect</code>/<code>disconnect</code>/<code>send</code>/<code>poll</code>) + <code>InboundMessage</code>/<code>OutboundMessage</code>. One adapter per messaging platform |
 | <code>gateway/platforms/telegram.ts</code> | v1 E2 — <code>TelegramAdapter</code> (getUpdates long-poll + sendMessage, no SDK) + pure <code>parseUpdates</code>/<code>parseAllowlist</code>. <code>gateway/run.ts pollPlatform</code> runs inbound→agent→reply. Enabled by <code>VANTA_TELEGRAM_TOKEN</code>; offline-tested, live needs a @BotFather token |
 | <code>mcp/client.ts</code> | v1 E5 — dependency-free MCP stdio JSON-RPC client (<code>McpClient</code> + injectable <code>Transport</code> + <code>stdioTransport</code>): initialize/listTools/callTool, concurrent-request correlation. <code>textFromContent</code> pure |
-| <code>mcp/mount.ts</code> | v1 E5 + MCP-1 — <code>readMcpConfig</code> (accepts <code>servers</code>+<code>mcpServers</code> keys; resolves <code>VANTA_MCP_SERVERS</code> inline, else merges <code>./.mcp.json</code> project-level over <code>~/.vanta/mcp.json</code> user-level) + <code>mountMcpServers</code> (spawn each, register discovered tools as Vanta tools via <code>mcpToolToArgoTool</code> — gated by kernel <code>assess()</code>). Called in <code>prepareRun</code>; no-op without config |
+| <code>mcp/mount.ts</code> | v1 E5 + MCP-1 — <code>readMcpConfig</code> (accepts <code>servers</code>+<code>mcpServers</code> keys; resolves <code>VANTA_MCP_SERVERS</code> inline, else merges <code>./.mcp.json</code> project-level over <code>~/.vanta/mcp.json</code> user-level) + <code>mountMcpServers</code> (spawn each, register discovered tools as Vanta tools via <code>mcpToolToVantaTool</code> — gated by kernel <code>assess()</code>). Called in <code>prepareRun</code>; no-op without config |
 | <code>mcp/server.ts</code> | MCP-3 — Vanta AS an MCP server (mirror of client.ts). <code>runMcpServer</code>/<code>stdioServerTransport</code> + pure <code>handleMessage</code> (initialize/tools/list/tools/call). Every call gated by <code>assess()</code>: <code>block</code>/<code>ask</code> → <code>isError</code> result (headless, no human), only <code>allow</code> executes. <code>resolveServeAllowlist</code> (<code>VANTA_MCP_SERVE_TOOLS</code>, default 9 read-only) bounds exposure. <code>argo mcp serve</code> |
 | <code>tools/mount-mcp.ts</code> | MCP-2 — <code>buildMountMcpTool(registry)</code> factory: the <code>mount_mcp</code> tool spawns an MCP server at runtime + registers its tools into the LIVE registry. <code>describeForSafety</code> → &quot;spawn mcp server …&quot; so the kernel gates the spawn. Registered by <code>buildRegistry</code> (needs the registry ref) |
 | <code>subagent/spawn.ts</code> | Phase 6 — <code>spawnSubagent</code> runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
@@ -1078,7 +1078,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>tools/calendar.ts</code> | Phase 5 — <code>calendar_read</code> + <code>calendar_create</code>/<code>calendar_update</code> (approval-gated) |
 | <code>tools/drive.ts</code> | Phase 5 — <code>drive_read</code> + <code>drive_create</code>/<code>drive_update</code> (approval-gated). Pure <code>buildMultipartBody</code> |
 | <code>tools/index.ts</code> | <code>buildRegistry({exclude?})</code> — registers all 42 tools + <code>mount_mcp</code> via factory = 43 total (<code>exclude:[&quot;delegate&quot;]</code> → 41 for workers) |
-| <code>store/home.ts</code> | <code>resolveArgoHome</code>/<code>skillsDir</code>/<code>memoriesDir</code>/<code>slugifySkillName</code>/<code>ensureArgoStore</code>/<code>commitInHome</code>. The global <code>~/.vanta</code> store (<code>VANTA_HOME</code> override), git-init'd for free versioning |
+| <code>store/home.ts</code> | <code>resolveVantaHome</code>/<code>skillsDir</code>/<code>memoriesDir</code>/<code>slugifySkillName</code>/<code>ensureVantaStore</code>/<code>commitInHome</code>. The global <code>~/.vanta</code> store (<code>VANTA_HOME</code> override), git-init'd for free versioning |
 | <code>skills/types.ts</code> | <code>Skill</code>, <code>SkillMeta</code>, <code>SkillMatch</code> |
 | <code>skills/frontmatter.ts</code> | pure <code>parseSkill</code>/<code>serializeSkill</code> (flat YAML frontmatter, Hermes-compatible) |
 | <code>skills/store.ts</code> | <code>writeSkill</code>/<code>readSkill</code>/<code>listSkills</code> — <code>~/.vanta/skills/&lt;slug&gt;/SKILL.md</code>, auto-commits. <code>LEARNED_TAG</code> provenance constant |
@@ -1405,7 +1405,7 @@ no protected path touched, no existing test modified), branch isolation, and git
 trusted kernel proves the new one is at least as safe before the new one ever runs live.</strong></p>
 <ol>
 <li><p><strong>Propose, never apply in place.</strong> Vanta may author a <em>proposed</em> kernel change on an isolated
-branch and build it as a SEPARATE candidate binary (<code>argo-kernel.candidate</code>). The live kernel
+branch and build it as a SEPARATE candidate binary (<code>vanta-kernel.candidate</code>). The live kernel
 binary is never overwritten by the agent. <code>is_protected_path</code> stays absolute for the running
 process — the agent writes a proposal, not the live boundary.</p>
 </li>
@@ -1419,7 +1419,7 @@ is allowed; weaker is never allowed.) This is the &quot;can't edit out its own g
 <li><p><strong>Blue-green swap with auto-rollback (so it can't break the system).</strong> A promoted candidate starts
 as a <strong>shadow process</strong> on a temp port; it must pass <code>doctor</code> + ping + the live invariant suite
 within N seconds. Only then does the launcher cut traffic over and retire the old binary (kept as
-<code>argo-kernel.last-good</code>). If the candidate fails to bind/respond/conform → <strong>automatic rollback</strong>
+<code>vanta-kernel.last-good</code>). If the candidate fails to bind/respond/conform → <strong>automatic rollback</strong>
 to <code>last-good</code>. The leg heals; if the new leg won't bear weight, you fall back to the old leg —
 the system never goes down.</p>
 </li>

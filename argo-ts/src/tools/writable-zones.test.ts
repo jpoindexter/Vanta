@@ -35,14 +35,14 @@ describe("resolveWritableZones", () => {
 
 describe("resolveReadableZones", () => {
   it("defaults to the project's parent dir plus the writable zones", () => {
-    const root = "/Users/x/Documents/GitHub/Argo";
+    const root = "/Users/x/Documents/GitHub/Vanta";
     const zones = resolveReadableZones({} as NodeJS.ProcessEnv, root);
     expect(zones).toContain(dirname(resolve(root))); // ~/Documents/GitHub → sibling repos readable
     expect(zones).toContain(join(homedir(), "Desktop"));
   });
 
   it("makes a sibling repo readable by default", () => {
-    const root = "/Users/x/Documents/GitHub/Argo";
+    const root = "/Users/x/Documents/GitHub/Vanta";
     const zones = resolveReadableZones({} as NodeJS.ProcessEnv, root);
     expect(isInZone("/Users/x/Documents/GitHub/theft-kit/design-html/SKILL.md", zones)).toBe(true);
   });

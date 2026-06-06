@@ -1528,8 +1528,8 @@ Find the `switch (cmd)` block (or the args parsing section). Add:
 ```typescript
 case "improve": {
   const { runCycle } = await import("./factory/run.js");
-  const { resolveArgoHome } = await import("./store/home.js");
-  const dataDir = resolveArgoHome(process.env);
+  const { resolveVantaHome } = await import("./store/home.js");
+  const dataDir = resolveVantaHome(process.env);
   const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
   const result = await runCycle(
     { argoRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
@@ -1542,9 +1542,9 @@ case "improve": {
 case "factory": {
   const sub = args[1] ?? "";
   const { runCycle } = await import("./factory/run.js");
-  const { resolveArgoHome } = await import("./store/home.js");
+  const { resolveVantaHome } = await import("./store/home.js");
   const { formatCycleLog } = await import("./factory/run.js");
-  const dataDir = resolveArgoHome(process.env);
+  const dataDir = resolveVantaHome(process.env);
   const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
 
   if (sub === "approve") {

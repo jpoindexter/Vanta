@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a self-contained docs site for Argo — every canonical doc rendered
+"""Generate a self-contained docs site for Vanta — every canonical doc rendered
 into one browsable, file://-safe page (sidebar nav, single-doc view, search).
 No runtime fetch. Re-run after editing docs:
 
@@ -132,7 +132,7 @@ def main():
                    "".join(f'<a class="lnk" href="{href}">{html.escape(t)} ↗</a>' for href, t in entries))
 
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Argo Docs</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Vanta Docs</title>
 <style>{CSS}</style></head><body><div class="wrap">
 <nav><h1>ARGO DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
 <input id="q" placeholder="Filter docs…" autocomplete="off">{''.join(nav)}</nav>

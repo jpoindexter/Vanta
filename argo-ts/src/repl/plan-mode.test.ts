@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { planMode, PLAN_MARKER } from "./plan-mode.js";
 import type { ReplCtx } from "./types.js";
 
-function makeCtx(systemContent = "You are Argo."): { ctx: ReplCtx; sys: { role: string; content: string } } {
+function makeCtx(systemContent = "You are Vanta."): { ctx: ReplCtx; sys: { role: string; content: string } } {
   const sys = { role: "system", content: systemContent };
   const ctx = {
     convo: { messages: [sys] },

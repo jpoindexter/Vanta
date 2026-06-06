@@ -72,7 +72,7 @@ export function formatExport(messages: Message[]): string {
     if (m.role === "user") out.push(`## You\n\n${m.content}`);
     else if (m.role === "assistant") {
       const calls = m.toolCalls?.length ? `\n\n${m.toolCalls.map((tc) => `- \`${tc.name}(${JSON.stringify(tc.arguments)})\``).join("\n")}` : "";
-      if (m.content.trim() || calls) out.push(`## Argo\n\n${m.content}${calls}`);
+      if (m.content.trim() || calls) out.push(`## Vanta\n\n${m.content}${calls}`);
     } else if (m.role === "tool") out.push(`### ⚙ ${m.name}\n\n\`\`\`\n${m.content}\n\`\`\``);
   }
   return out.join("\n\n");

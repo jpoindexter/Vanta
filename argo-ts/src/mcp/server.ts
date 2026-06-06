@@ -3,7 +3,7 @@ import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool, ToolContext } from "../tools/types.js";
 
 // Minimal MCP (Model Context Protocol) SERVER — the mirror of client.ts. Exposes
-// Argo's own tools over stdio JSON-RPC so an external host (e.g. Claude Code) can
+// Vanta's own tools over stdio JSON-RPC so an external host (e.g. Claude Code) can
 // call them. EVERY call passes through the kernel `assess()` gate, exactly like
 // the agent loop's dispatchTool. No SDK dependency.
 //
@@ -66,7 +66,7 @@ export function buildInitializeResult(): {
   };
 }
 
-/** Map an Argo Tool to an MCP tool definition. */
+/** Map an Vanta Tool to an MCP tool definition. */
 export function buildToolDef(tool: Tool): {
   name: string;
   description: string;

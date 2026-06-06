@@ -1,4 +1,4 @@
-// Group Argo's tools into capability DOMAINS for the startup banner, so the
+// Group Vanta's tools into capability DOMAINS for the startup banner, so the
 // breadth reads like a personal operator (comms, research, dev, …) rather than a
 // flat tool dump — the Hermes banner pattern. Pure + data-driven: add a tool and
 // it lands in the right domain by name, or in "Other" if it matches nothing.

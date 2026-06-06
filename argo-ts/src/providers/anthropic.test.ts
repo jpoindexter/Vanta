@@ -35,7 +35,7 @@ describe("parseResponse", () => {
 describe("toAnthropicMessages", () => {
   it("extracts system, builds tool_use and tool_result blocks for a full sequence", () => {
     const messages: Message[] = [
-      { role: "system", content: "You are Argo." },
+      { role: "system", content: "You are Vanta." },
       { role: "user", content: "List the files." },
       {
         role: "assistant",
@@ -49,7 +49,7 @@ describe("toAnthropicMessages", () => {
 
     const result = toAnthropicMessages(messages);
 
-    expect(result.system).toBe("You are Argo.");
+    expect(result.system).toBe("You are Vanta.");
     expect(result.messages).toEqual([
       { role: "user", content: "List the files." },
       {
@@ -112,10 +112,10 @@ describe("toAnthropicMessages", () => {
   });
 
   it("returns system as plain string when there is no tier separator", () => {
-    const messages: Message[] = [{ role: "system", content: "You are Argo." }];
+    const messages: Message[] = [{ role: "system", content: "You are Vanta." }];
     const result = toAnthropicMessages(messages);
     expect(typeof result.system).toBe("string");
-    expect(result.system).toBe("You are Argo.");
+    expect(result.system).toBe("You are Vanta.");
   });
 
   it("applies cache_control to the stable prefix when system contains the tier separator", () => {

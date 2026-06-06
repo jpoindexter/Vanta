@@ -1,4 +1,4 @@
-1	Ship Argo v0 agent loop	active
+1	Ship Vanta v0 agent loop	active
 2	Ship O9 dark-factory: kernel-enforced autonomous self-improvement loop (review-mode v0)	active
 3	Read argo_log.rtf, diagnose + fix: image errors at startup, image copy-paste into CLI failing, video compression failing	active
 4	KANBAN slice 1: build roadmap/move.ts (moveRoadmapItem pure fn) + tools/roadmap-move.ts (roadmap_move tool, kernel-gated) + update cli/ops.ts for argo roadmap move <id> <status>. Tests co-located. Done: argo roadmap move ND2 building updates roadmap.json + regenerates HTML. Slice 1 ONLY — no drag endpoint, no WIP limit.	active

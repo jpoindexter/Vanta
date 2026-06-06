@@ -66,7 +66,7 @@ export function useAgentSend(
         if (outcome.usage) {
           dispatch({ t: "note", text: `· ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens` });
         }
-        if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Argo", message: "turn complete" });
+        if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Vanta", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
         void nudgeAfterTurn(replStateRef.current.turnIndex, safety, (note) => dispatch({ t: "note", text: note }));
         void researchGateAfterTurn(

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { rm, writeFile } from "node:fs/promises";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import { normalizePattern, recordRun, shouldProposeSkill } from "./learning.js";
 
 const HOME = join(tmpdir(), "argo-modes-learning-test");
@@ -94,7 +94,7 @@ describe("learning loop", () => {
       "notnum\tabc",
       "valid pattern\t5",
     ].join("\n");
-    await writeFile(join(resolveArgoHome(env), "usage.tsv"), raw, "utf8");
+    await writeFile(join(resolveVantaHome(env), "usage.tsv"), raw, "utf8");
 
     const { count } = await recordRun("valid pattern", { env });
     expect(count).toBe(6); // parsed 5 + this run

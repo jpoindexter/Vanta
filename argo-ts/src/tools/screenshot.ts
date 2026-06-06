@@ -58,7 +58,7 @@ export const screenshotTool: Tool = {
       }
     }
 
-    // Lazy import so Argo loads even when playwright-core is absent.
+    // Lazy import so Vanta loads even when playwright-core is absent.
     const { chromium } = await import("playwright-core");
     const browser = await chromium.launch({ headless: true }).catch(() => null);
     if (browser === null) {

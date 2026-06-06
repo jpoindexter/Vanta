@@ -5,7 +5,7 @@ A local trusted-operator agent runtime. The agent that knows the goal, knows the
 OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.
 
 Two layers:
-- **`src/` — Rust safety kernel** (`argo-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
+- **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
 - **`argo-ts/` — TypeScript agent layer** (`argo`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
 
 See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.

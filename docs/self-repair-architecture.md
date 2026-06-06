@@ -35,7 +35,7 @@ A kernel change is the dangerous case. It is allowed, but only through a protoco
 trusted kernel proves the new one is at least as safe before the new one ever runs live.**
 
 1. **Propose, never apply in place.** Vanta may author a *proposed* kernel change on an isolated
-   branch and build it as a SEPARATE candidate binary (`argo-kernel.candidate`). The live kernel
+   branch and build it as a SEPARATE candidate binary (`vanta-kernel.candidate`). The live kernel
    binary is never overwritten by the agent. `is_protected_path` stays absolute for the running
    process — the agent writes a proposal, not the live boundary.
 
@@ -50,7 +50,7 @@ trusted kernel proves the new one is at least as safe before the new one ever ru
 3. **Blue-green swap with auto-rollback (so it can't break the system).** A promoted candidate starts
    as a **shadow process** on a temp port; it must pass `doctor` + ping + the live invariant suite
    within N seconds. Only then does the launcher cut traffic over and retire the old binary (kept as
-   `argo-kernel.last-good`). If the candidate fails to bind/respond/conform → **automatic rollback**
+   `vanta-kernel.last-good`). If the candidate fails to bind/respond/conform → **automatic rollback**
    to `last-good`. The leg heals; if the new leg won't bear weight, you fall back to the old leg —
    the system never goes down.
 

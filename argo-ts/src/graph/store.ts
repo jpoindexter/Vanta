@@ -1,7 +1,7 @@
 import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 // MEM-GRAPH: Temporal entity-relationship graph — entity × relationship model
 // stored as append-only JSONL. Enables cross-session queries: what goals mention
@@ -20,7 +20,7 @@ export type QueryResult = {
 };
 
 function graphFile(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "graph.jsonl");
+  return join(resolveVantaHome(env), "graph.jsonl");
 }
 
 function entityId(name: string, type: EntityType): string {
@@ -29,7 +29,7 @@ function entityId(name: string, type: EntityType): string {
 
 /** Append one or more graph records. Creates the file if absent. */
 export async function appendGraph(records: GraphRecord[], env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveArgoHome(env), { recursive: true });
+  await mkdir(resolveVantaHome(env), { recursive: true });
   const lines = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
   await appendFile(graphFile(env), lines, "utf8");
 }

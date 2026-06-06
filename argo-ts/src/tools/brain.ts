@@ -3,7 +3,7 @@ import type { Tool } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
 import { readRegion, writeRegion } from "../brain/store.js";
 
-// The `brain` tool: Argo reads and grows its own brain (~/.vanta/brain/). A digest
+// The `brain` tool: Vanta reads and grows its own brain (~/.vanta/brain/). A digest
 // of every region is already in the system prompt; use this to read a region in
 // full, or to write/append what it learns about itself, the user, or the world.
 

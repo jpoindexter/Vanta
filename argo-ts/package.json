@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "description": "Argo agent layer — goal-aware, scope-enforced operator runtime",
+  "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",
   "bin": {
     "argo": "bin/argo.mjs"
   },

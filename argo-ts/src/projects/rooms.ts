@@ -6,7 +6,7 @@ import { join } from "node:path";
 export type Room = { name: string; path: string };
 
 /**
- * Where Argo looks for project rooms. Each subdir is one project, and the
+ * Where Vanta looks for project rooms. Each subdir is one project, and the
  * kernel's per-dir `.vanta` gives it an isolated goal stream. Override with
  * VANTA_PROJECTS_DIR (tests point this at a temp dir).
  */

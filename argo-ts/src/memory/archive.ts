@@ -1,10 +1,10 @@
 import { readdir, readFile, appendFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 
 function archiveDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), "archive");
+  return join(resolveVantaHome(env), "archive");
 }
 
 type ArchiveLine = {
