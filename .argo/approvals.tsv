@@ -242,3 +242,5 @@
 242	run shell command: brew install cowsay	ask	true	denied	machine/config/credential change requires explicit approval
 243	run shell command: brew install cowsay	ask	true	denied	machine/config/credential change requires explicit approval
 244	run shell command: brew install cowsay	ask	true	denied	machine/config/credential change requires explicit approval
+245	run shell command: brew install cowsay	ask	true	denied	machine/config/credential change requires explicit approval
+246	run shell command: brew install cowsay	ask	true	denied	machine/config/credential change requires explicit approval

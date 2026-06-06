@@ -34,7 +34,7 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 .crumb{font:.72rem ui-monospace,monospace;color:var(--ink3);margin-bottom:.6rem}
 @media(max-width:880px){.wrap{grid-template-columns:1fr}nav{position:static;height:auto}main{padding:1.4rem}}
 </style></head><body><div class="wrap">
-<nav><h1>ARGO DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
+<nav><h1>VANTA DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
 <input id="q" placeholder="Filter docs…" autocomplete="off"><div class="grp">Start here</div><a class="lnk" data-doc="readme-md">README</a><a class="lnk" data-doc="manifesto-md">Manifesto</a><a class="lnk" data-doc="soul-md">Soul (identity)</a><a class="lnk" data-doc="agent-manifesto-md">Agent manifesto</a><div class="grp">Vision &amp; direction</div><a class="lnk" data-doc="docs-prd-md">PRD — product vision</a><a class="lnk" data-doc="docs-living-operator-md">Living operator (sentience direction)</a><a class="lnk" data-doc="decisions-md">Decisions (locked choices)</a><div class="grp">Architecture</div><a class="lnk" data-doc="claude-md">Repo overview</a><a class="lnk" data-doc="vanta-ts-claude-md">Agent layer (vanta-ts)</a><a class="lnk" data-doc="docs-vanta-flow-md">Runtime flow</a><a class="lnk" data-doc="docs-self-repair-architecture-md">Self-repair</a><a class="lnk" data-doc="docs-factory-evolution-md">Factory evolution</a><a class="lnk" data-doc="docs-executive-dysfunction-brain-design-md">EF brain design</a><a class="lnk" data-doc="docs-ef-network-analysis-md">EF network analysis</a><div class="grp">Capabilities</div><a class="lnk" data-doc="docs-auto-router-md">Auto-router (per-task models)</a><a class="lnk" data-doc="docs-messaging-gateways-md">Messaging gateways</a><a class="lnk" data-doc="docs-plugin-framework-md">Plugin framework</a><a class="lnk" data-doc="docs-plugins-and-auth-browser-md">Plugins &amp; auth browser</a><a class="lnk" data-doc="docs-tui-v2-md">TUI v2 (mission control)</a><a class="lnk" data-doc="docs-claude-code-parity-and-case-study-md">Claude Code parity + case study</a><a class="lnk" data-doc="docs-desktop-completion-plan-md">Desktop completion plan</a><div class="grp">Roadmap &amp; planning</div><a class="lnk" data-doc="roadmap-md">Roadmap (narrative)</a><a class="lnk" data-doc="parked-md">Parked ideas</a><a class="lnk" data-doc="handoff-md">Handoff</a><div class="grp">Interactive boards</div><a class="lnk" href="../roadmap.html">Roadmap kanban ↗</a><a class="lnk" href="../design-system-skills/index.html">Design system skills (27) ↗</a><a class="lnk" href="../ai-engineering-skills/index.html">AI engineering skills (13) ↗</a></nav>
 <main><div class="doc" id="readme-md"><div class="crumb">Start here · README.md</div><h1>Vanta</h1>
 <p>A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.</p>
@@ -365,7 +365,7 @@ The forward build list is <a href="../ROADMAP.md"><code>../ROADMAP.md</code></a>
 <li>OpenAI + Ollama provider (one adapter, baseURL swap)</li>
 <li>Anthropic provider stub</li>
 <li>Tool registry: <code>read-file</code>, <code>write-file</code>, <code>shell-cmd</code>, <code>inspect-state</code></li>
-<li>Three-tier system prompt (SOUL.md + ARGO.md/AGENTS.md/CLAUDE.md discovery + active goals)</li>
+<li>Three-tier system prompt (SOUL.md + VANTA.md/AGENTS.md/CLAUDE.md discovery + active goals)</li>
 <li>Agent loop: messages[], goal injection, tool dispatch, pause-on-ask approval</li>
 <li>Context trimmer (protect first 3 + last 6, 75% trigger)</li>
 <li>Kernel auto-start from CLI</li>
@@ -431,7 +431,7 @@ VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 <li><code>git-status</code>, <code>git-diff</code> — always <code>risk: allow</code> (read-only)</li>
 <li><code>git-commit</code>, <code>git-push</code> — always <code>risk: ask</code>, require explicit approval</li>
 <li><code>git-branch</code>, <code>git-checkout</code> — <code>risk: ask</code></li>
-<li>Project context auto-detection — reads <code>ARGO.md</code>, <code>CLAUDE.md</code>, <code>README.md</code>, <code>AGENTS.md</code> from cwd, injects into context tier</li>
+<li>Project context auto-detection — reads <code>VANTA.md</code>, <code>CLAUDE.md</code>, <code>README.md</code>, <code>AGENTS.md</code> from cwd, injects into context tier</li>
 <li>Code skill library: <code>~/.vanta/skills/code/</code> — debug, refactor, test-write, PR-review patterns</li>
 <li>Anthropic adapter (full) — implement in this phase; Claude is significantly better at code than GPT-4o-mini</li>
 </ul>

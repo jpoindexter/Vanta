@@ -134,7 +134,7 @@ def main():
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Vanta Docs</title>
 <style>{CSS}</style></head><body><div class="wrap">
-<nav><h1>ARGO DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
+<nav><h1>VANTA DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
 <input id="q" placeholder="Filter docs…" autocomplete="off">{''.join(nav)}</nav>
 <main>{''.join(docs)}</main></div>
 <script>{JS}
