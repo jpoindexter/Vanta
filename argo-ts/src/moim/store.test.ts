@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { readMoim, writeMoim, clearMoim } from "./store.js";
 
 async function makeEnv(): Promise<{ env: NodeJS.ProcessEnv; dir: string }> {
-  const dir = await mkdtemp(join(tmpdir(), "argo-moim-"));
+  const dir = await mkdtemp(join(tmpdir(), "vanta-moim-"));
   return { env: { VANTA_HOME: dir }, dir };
 }
 

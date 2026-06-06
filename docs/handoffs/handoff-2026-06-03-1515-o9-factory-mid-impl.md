@@ -55,7 +55,7 @@ Branch: feat/v1-hermes-parity (5 commits ahead of origin — NOT pushed)
 | 6 | `factory/planner.ts` + `planner.test.ts` | PENDING |
 | 7 | `factory/run.ts` + `run.test.ts` | PENDING |
 | 8 | `AGENT-MANIFESTO.md` | PENDING |
-| 9 | `argo-ts/src/cli.ts` (add `argo improve` + `argo factory`) | PENDING |
+| 9 | `argo-ts/src/cli.ts` (add `vanta improve` + `vanta factory`) | PENDING |
 | 10 | `argo-ts/src/gateway/run.ts` (spawn factory as detached child) | PENDING |
 | 11 | `argo-ts/src/factory/CLAUDE.md` + `AGENTS.md` | PENDING |
 
@@ -63,7 +63,7 @@ Where left off: **Task 5 was just starting** (`TaskUpdate` to in_progress was th
 
 ## Key Decisions (don't re-litigate)
 
-1. **Review-mode only at first ship** — v0 ships with `autonomy: "review"`. `argo improve` prints the plan and exits, requiring `argo factory approve` to execute. Auto-mode requires an explicit `--promote` command (not silence = approval).
+1. **Review-mode only at first ship** — v0 ships with `autonomy: "review"`. `vanta improve` prints the plan and exits, requiring `vanta factory approve` to execute. Auto-mode requires an explicit `--promote` command (not silence = approval).
 2. **`is_protected_path` mirrors in both layers** — `verifier.ts:checkNoProtectedPaths` duplicates the Rust logic in TS (intentional: verifier must not depend on a network call to the kernel for its own safety check).
 3. **Executor uses `runAgent` for v0** — single agent, not swarm. Swarm is for v1 after trust is established.
 4. **`__factory__` prefix on cron entries** — gateway detects factory cron entries by instruction prefix and spawns detached child instead of running inline.
@@ -76,8 +76,8 @@ Where left off: **Task 5 was just starting** (`TaskUpdate` to in_progress was th
 3. [ ] **Task 6: planner** — `buildPlan(item, root) → FactoryPlan`. Pure. Tests per WorkItem category.
 4. [ ] **Task 7: run.ts** — orchestrator. Pure `checkGate` + `formatCycleLog` tested; I/O cycle is glue. Note: `CycleGate` type is defined locally in `run.ts` as `GateInputs` (not exported from `types.ts` — that addition to types.ts in the plan is optional).
 5. [ ] **Task 8: AGENT-MANIFESTO.md** — create at repo root.
-6. [ ] **Task 9: CLI** — add `argo improve` and `argo factory [approve|status]` to `cli.ts`.
-7. [ ] **Task 10: Gateway** — detect `__factory__` cron entries in `gatewayTick`, spawn `argo factory approve` as detached child.
+6. [ ] **Task 9: CLI** — add `vanta improve` and `vanta factory [approve|status]` to `cli.ts`.
+7. [ ] **Task 10: Gateway** — detect `__factory__` cron entries in `gatewayTick`, spawn `vanta factory approve` as detached child.
 8. [ ] **Task 11: docs** — `factory/CLAUDE.md` + `factory/AGENTS.md`.
 9. [ ] Push everything: `git push`.
 
@@ -115,10 +115,10 @@ Resume Vanta O9 dark-factory implementation. Repo: `/Users/jasonpoindexter/Docum
 **Pick up at Task 5 (executor).** Use the `superpowers:executing-plans` skill with that plan file to execute tasks 5–11 in order. After Task 11, push the branch.
 
 **Key constraints:**
-- v0 = review-mode only (`autonomy: "review"` default). `argo improve` prints the plan and exits; `argo factory approve` actually runs it.
+- v0 = review-mode only (`autonomy: "review"` default). `vanta improve` prints the plan and exits; `vanta factory approve` actually runs it.
 - `executor.ts execute()` uses `runAgent` (single agent, not swarm) for v0.
 - `verifier.ts:checkNoProtectedPaths` must mirror `src/safety.rs:is_protected_path` — they duplicate logic intentionally (no network dep on the kernel for the verifier's own checks).
-- Gateway wiring: detect `__factory__`-prefixed cron instructions in `gatewayTick`, spawn `argo factory approve` as a detached child (never inline). Don't refactor the existing tick logic.
+- Gateway wiring: detect `__factory__`-prefixed cron instructions in `gatewayTick`, spawn `vanta factory approve` as a detached child (never inline). Don't refactor the existing tick logic.
 - All new code uses ESM dynamic `import()` — no `require()`.
 - Model: Sonnet 4.6 is correct for the remaining mechanical tasks.
 ---

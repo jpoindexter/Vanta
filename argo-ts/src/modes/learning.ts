@@ -114,6 +114,6 @@ export async function shouldProposeSkill(
   if (count < threshold) return null;
   return (
     `You've run a task like "${pattern}" ${count} times. ` +
-    "Consider: argo skill ... or write_skill to capture it."
+    "Consider: vanta skill ... or write_skill to capture it."
   );
 }

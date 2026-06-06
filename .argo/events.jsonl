@@ -290,7 +290,7 @@
 {"ts":1780462156,"event":"web_search: web search failed: DuckDuckGo returned HTTP 403 for \"Hermes news latest AI agent runtime\""}
 {"ts":1780462157,"event":"web_search: web search failed: DuckDuckGo returned HTTP 403 for \"Hermes agent runtime news\""}
 {"ts":1780462158,"event":"web_search: web search failed: DuckDuckGo returned HTTP 403 for \"Hermes AI latest updates\""}
-{"ts":1780474764,"event":"look_at_screen: look_at_screen failed: Command failed: screencapture -x /var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/argo-screen-590"}
+{"ts":1780474764,"event":"look_at_screen: look_at_screen failed: Command failed: screencapture -x /var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-screen-590"}
 {"ts":1780474825,"event":"look_at_screen: The main image is a monochrome, technical-character portrait for **“Operator: Vanta”** with a strong AI-systems / field-o"}
 {"ts":1780475060,"event":"look_at_screen: The updated image is still a monochrome anime-style technical dossier for **“Operator: Vanta.”** It shows a youthful, and"}
 {"ts":1780475406,"event":"look_at_screen: ## Comparison\n\n### 1 — Left image\n\n**Style**\n- More cinematic and character-forward.\n- Strong “hero identity poster” ene"}
@@ -402,7 +402,7 @@
 {"ts":1780552418,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
 {"ts":1780552418,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
 {"ts":1780552418,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Ship"}
-{"ts":1780552462,"event":"write_file: wrote 14525 bytes to ~/Desktop/argo-hermes-full-view.html (new file)"}
+{"ts":1780552462,"event":"write_file: wrote 14525 bytes to ~/Desktop/vanta-hermes-full-view.html (new file)"}
 {"ts":1780552467,"event":"todo: plan updated (4 task(s))\n  ✓ Inspect local Vanta/Hermes reference docs for current capabilities and Hermes baseline\n  ✓ S"}
 {"ts":1780553862,"event":"todo: plan updated (4 task(s))\n  ▸ Inspect TUI docs/source/tests to find a high-value low-risk improvement\n  ○ Implement one f"}
 {"ts":1780553868,"event":"read_file: # CLAUDE.md — argo-ts (agent layer)\n\nThe TypeScript agent loop. Read root `../CLAUDE.md` for the kernel + project overvi"}
@@ -672,7 +672,7 @@
 {"ts":1780646498,"event":"read_file: import { z } from \"zod\";\nimport type { Tool } from \"./types.js\";\nimport { spawnSubagent } from \"../subagent/spawn.js\";\ni"}
 {"ts":1780646498,"event":"read_file: import { z } from \"zod\";\nimport type { Tool } from \"./types.js\";\nimport { spawnSubagent } from \"../subagent/spawn.js\";\ni"}
 {"ts":1780646504,"event":"read_file: import { OpenAIProvider } from \"./openai.js\";\nimport { AnthropicProvider } from \"./anthropic.js\";\nimport { CodexProvider"}
-{"ts":1780646504,"event":"read_file: /**\n * Small shared catalog of the provider backends the setup wizard offers and\n * `argo doctor` reports on. This is in"}
+{"ts":1780646504,"event":"read_file: /**\n * Small shared catalog of the provider backends the setup wizard offers and\n * `vanta doctor` reports on. This is in"}
 {"ts":1780646504,"event":"read_file: import { resolveProvider } from \"../providers/index.js\";\nimport type { LLMProvider } from \"../providers/interface.js\";"}
 {"ts":1780646504,"event":"read_file: could not read argo-ts/src/tools/compose-workflow.ts: ENOENT: no such file or directory, open '/Users/jasonpoindexter/Do"}
 {"ts":1780646859,"event":"web_search: web search failed: DuckDuckGo returned HTTP 403 for \"site:x.com Hermes workflows agent workflow AI\""}
@@ -692,7 +692,7 @@
 {"ts":1780647623,"event":"shell_cmd: AGENTS.md\nCLAUDE.md\nCargo.toml\nargo-ts/AGENTS.md\nargo-ts/CLAUDE.md\nargo-ts/package.json\nreference/goose/AGENTS.md\nrefere"}
 {"ts":1780647623,"event":"read_file: # Vanta Roadmap — v0 (done) → v1 (Full Hermes Parity)\n\nSource of truth for build order. One line moves between `[ ]`/`[~]"}
 {"ts":1780647623,"event":"read_file: # PARKED — Vanta\n\nDeferred ideas. Promote, never delete. These are honest deferrals — the code that exists is real and te"}
-{"ts":1780647628,"event":"read_file: {\n  \"name\": \"argo\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"private\": true,\n  \"description\": \"Vanta agent layer — go"}
+{"ts":1780647628,"event":"read_file: {\n  \"name\": \"vanta\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"private\": true,\n  \"description\": \"Vanta agent layer — go"}
 {"ts":1780647628,"event":"read_file: # AGENTS.md — argo-ts (agent layer)\n\nCross-tool agent context. Pairs with `CLAUDE.md` (deeper detail). Read root `../AGE"}
 {"ts":1780647628,"event":"read_file: # CLAUDE.md — argo-ts (agent layer)\n\nThe TypeScript agent loop. Read root `../CLAUDE.md` for the kernel + project overvi"}
 {"ts":1780647637,"event":"todo: plan updated (4 task(s))\n  ▸ Define a safe first desktop-interface slice that can live in this repo\n  ○ Scaffold the int"}
@@ -703,7 +703,7 @@
 {"ts":1780647652,"event":"read_file: {\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"Bundler\",\n    \"jsx\": \""}
 {"ts":1780647658,"event":"read_file: import { join } from \"node:path\";\nimport { runAgent } from \"../agent.js\";\nimport { runGateway } from \"../gateway/run.js\""}
 {"ts":1780647736,"event":"shell_cmd: (command produced no output)"}
-{"ts":1780647749,"event":"shell_cmd: argo-ts/src/cli.ts:40:  runDesktopCommand,\nargo-ts/src/cli.ts:81:      \"       argo desktop [port]                start"}
+{"ts":1780647749,"event":"shell_cmd: argo-ts/src/cli.ts:40:  runDesktopCommand,\nargo-ts/src/cli.ts:81:      \"       vanta desktop [port]                start"}
 {"ts":1780647761,"event":"shell_cmd: RUN  v2.1.9 /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts\n\n ✓ src/desktop/server.test.ts (2 tests) 1ms\n\n Test Fil"}
 {"ts":1780647767,"event":"shell_cmd: typecheck clean"}
 {"ts":1780647776,"event":"shell_cmd: (command produced no output)"}
@@ -711,7 +711,7 @@
 {"ts":1780647810,"event":"shell_cmd: RUN  v2.1.9 /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts\n\n ✓ src/desktop/server.test.ts (2 tests) 1ms\n\n Test Fil"}
 {"ts":1780647818,"event":"git_status: ## feat/v1-hermes-parity...origin/feat/v1-hermes-parity\n M argo-ts/src/cli.ts\n M argo-ts/src/cli/ops.ts\n?? argo-ts/src/c"}
 {"ts":1780647818,"event":"git_diff: (no output)"}
-{"ts":1780647818,"event":"git_diff: diff --git a/argo-ts/src/cli.ts b/argo-ts/src/cli.ts\nindex 0c70c02..15789e5 100644\n--- a/argo-ts/src/cli.ts\n+++ b/argo-t"}
+{"ts":1780647818,"event":"git_diff: diff --git a/argo-ts/src/cli.ts b/argo-ts/src/cli.ts\nindex 0c70c02..15789e5 100644\n--- a/argo-ts/src/cli.ts\n+++ b/vanta-t"}
 {"ts":1780647818,"event":"git_diff: diff --git a/argo-ts/src/cli/ops.ts b/argo-ts/src/cli/ops.ts\nindex 65894db..63becf2 100644\n--- a/argo-ts/src/cli/ops.ts"}
 {"ts":1780647823,"event":"shell_cmd: 65 argo-ts/src/desktop/page.ts\n      15 argo-ts/src/desktop/server.test.ts\n     107 argo-ts/src/desktop/server.ts"}
 {"ts":1780647830,"event":"todo: plan updated (4 task(s))\n  ✓ Define a safe first desktop-interface slice that can live in this repo\n  ✓ Scaffold the int"}
@@ -740,7 +740,7 @@
 {"ts":1780648122,"event":"shell_cmd: docs-and-typecheck-ok\n argo-ts/src/cli.ts     |  3 +++\n argo-ts/src/cli/ops.ts | 11 +++++++++++\n 2 files changed, 14 ins"}
 {"ts":1780648129,"event":"brain: brain.user_model updated (appended)"}
 {"ts":1780648237,"event":"todo: plan updated (4 task(s))\n  ▸ Add desktop APIs for sessions, model choices, files, terminal commands, approvals, and prev"}
-{"ts":1780648243,"event":"read_file: /**\n * Small shared catalog of the provider backends the setup wizard offers and\n * `argo doctor` reports on. This is in"}
+{"ts":1780648243,"event":"read_file: /**\n * Small shared catalog of the provider backends the setup wizard offers and\n * `vanta doctor` reports on. This is in"}
 {"ts":1780648243,"event":"read_file: import { OpenAIProvider } from \"./openai.js\";\nimport { AnthropicProvider } from \"./anthropic.js\";\nimport { CodexProvider"}
 {"ts":1780648243,"event":"read_file: import { execFile } from \"node:child_process\";\nimport { promisify } from \"node:util\";\nimport { z } from \"zod\";\nimport ty"}
 {"ts":1780648244,"event":"read_file: import { readFile, readdir } from \"node:fs/promises\";\nimport { join, relative } from \"node:path\";\n\n// U2 — @-context ref"}
@@ -782,7 +782,7 @@
 {"ts":1780695297,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Ship"}
 {"ts":1780727288,"event":"read_file: <!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, init"}
 {"ts":1780727359,"event":"write_file: wrote 13308 bytes to /Users/jasonpoindexter/Desktop/Vanta Hermes Parity Plus Recommendations.md (new file)"}
-{"ts":1780755568,"event":"gmail_search: Google not authorized — run: argo auth google"}
+{"ts":1780755568,"event":"gmail_search: Google not authorized — run: vanta auth google"}
 {"ts":1780755797,"event":"look_at_screen: look_at_screen needs Screen Recording permission — open System Settings → Privacy & Security → Screen Recording and enab"}
 {"ts":1780755915,"event":"look_at_screen: The main visible content is a browser image result showing a large photo of a red apple with a bite taken out of its lef"}
 {"ts":1780760850,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
@@ -816,3 +816,15 @@
 {"ts":1780768137,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
 {"ts":1780768137,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
 {"ts":1780768137,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780771031,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780771031,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780771031,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780771072,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780771072,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780771072,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780771087,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780771087,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780771087,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780771170,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780771170,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780771170,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}

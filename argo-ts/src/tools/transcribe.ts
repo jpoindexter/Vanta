@@ -31,7 +31,7 @@ export const transcribeTool: Tool = {
       const { mkdtemp, readdir, readFile, rm } = await import("node:fs/promises");
 
       const abs = p.data.path.startsWith("~") ? join(homedir(), p.data.path.slice(1)) : p.data.path;
-      const dir = await mkdtemp(join(tmpdir(), "argo-stt-"));
+      const dir = await mkdtemp(join(tmpdir(), "vanta-stt-"));
       try {
         await promisify(execFile)("whisper", [abs, "--output_format", "txt", "--output_dir", dir, "--model", p.data.model ?? "base", "--fp16", "False"]);
         const txt = (await readdir(dir)).find((f) => f.endsWith(".txt"));

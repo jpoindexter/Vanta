@@ -81,6 +81,6 @@ Three slices (all human-authored — `factory/*.ts` is kernel-protected skeleton
 
 ## Verification
 Per slice: `cd argo-ts && npx vitest run src/factory/<file>.test.ts` + `npx tsc --noEmit` + full suite
-green. Slice-1 gate is a pure unit test (301-line new file → `ok:false`). End-to-end: `argo improve`
+green. Slice-1 gate is a pure unit test (301-line new file → `ok:false`). End-to-end: `vanta improve`
 (L1 suggest, zero writes) on a roadmap/parked item → confirm the printed instruction carries the
 born-small guidance + injected per-dir CLAUDE.md. Commit + push each slice.

@@ -11,7 +11,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "Pick the next 1-2 roadmap cards to move into Now using WIP limit, blockers, dependencies, size, time-since-touched, and Jason's current energy. This closes the gap where Now can be empty while Next is huge.",
-      "done": "`argo now` proposes 1-2 cards for building with a short reason and one-keystroke accept, without exceeding the WIP limit."
+      "done": "`vanta now` proposes 1-2 cards for building with a short reason and one-keystroke accept, without exceeding the WIP limit."
     },
     {
       "id": "ROADMAP-PRUNE",
@@ -23,7 +23,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "Anti-bloat loop for the roadmap: find duplicates, stale items, vague cards, overlarge cards, and cards that should be merged, parked, or split. Suggests cleanup; does not mutate without approval.",
-      "done": "`argo roadmap prune` lists duplicate/stale/vague cards and proposes merge/park/rewrite actions; approved changes update roadmap.json and regenerate roadmap.html."
+      "done": "`vanta roadmap prune` lists duplicate/stale/vague cards and proposes merge/park/rewrite actions; approved changes update roadmap.json and regenerate roadmap.html."
     },
     {
       "id": "SHIP-MODE",
@@ -83,7 +83,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "When something fails, assemble a clean redacted diagnostic packet: git status, relevant logs, package/tool versions, current provider/model, recent changes, and a concise failure summary. Safe to paste into another agent or issue.",
-      "done": "`argo repro` emits a redacted repro bundle plus summary; secrets are excluded and the bundle includes enough context to reproduce the failure."
+      "done": "`vanta repro` emits a redacted repro bundle plus summary; secrets are excluded and the bundle includes enough context to reproduce the failure."
     },
     {
       "id": "MODEL-BENCH",
@@ -95,7 +95,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "Benchmark available models on Jason's real task types: coding, vision, summarizing, planning, tool-use reliability, latency, and cost. Feeds AUX-MAP and model-routing choices with observed data instead of vibes.",
-      "done": "`argo models bench` records latency, cost, and quality notes per model/task type, then recommends routing defaults for main and auxiliary functions."
+      "done": "`vanta models bench` records latency, cost, and quality notes per model/task type, then recommends routing defaults for main and auxiliary functions."
     },
     {
       "id": "HANDOFF-PACKET",
@@ -442,7 +442,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Summarize what matters, detect commitments hidden in emails, surface 'you probably need to answer this', draft replies (wants1 #6). A behavioral layer on the shipped Google/Gmail/Calendar comms (E-series + argo auth google) -- triage intelligence, not new plumbing.",
+      "summary": "Summarize what matters, detect commitments hidden in emails, surface 'you probably need to answer this', draft replies (wants1 #6). A behavioral layer on the shipped Google/Gmail/Calendar comms (E-series + vanta auth google) -- triage intelligence, not new plumbing.",
       "done": "Given an inbox, Vanta lists the messages that imply a commitment or need a reply and drafts one reply, with the source message cited."
     },
     {
@@ -574,8 +574,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "wants3 Phase 2. A reusable library of named, bounded agent roles on top of O2 swarms + O1 agent-chosen-model + WORKFLOWS: Coordinator + CEO/CTO/COO/CFO/Sales/Marketing/Product/Research/Creative-Director/Personal-Life/Learning/Protection/Home/Reflection. Each role carries a fixed brief -- role, limited context, allowed tools, output format, memory boundary, success condition, report-back, and NO risky action without approval (kernel-gated). Adds 'argo agents run \"goal\"' that routes a goal to the right roles and synthesizes. Creative-Director pairs with TASTE-ENGINE; Reflection with MEM-CURATOR; Protection with PROTECTION-AGENT.",
-      "done": "'argo agents run' spawns 2+ named role-agents with enforced tool/memory boundaries and returns a synthesized, kernel-approved plan."
+      "summary": "wants3 Phase 2. A reusable library of named, bounded agent roles on top of O2 swarms + O1 agent-chosen-model + WORKFLOWS: Coordinator + CEO/CTO/COO/CFO/Sales/Marketing/Product/Research/Creative-Director/Personal-Life/Learning/Protection/Home/Reflection. Each role carries a fixed brief -- role, limited context, allowed tools, output format, memory boundary, success condition, report-back, and NO risky action without approval (kernel-gated). Adds 'vanta agents run \"goal\"' that routes a goal to the right roles and synthesizes. Creative-Director pairs with TASTE-ENGINE; Reflection with MEM-CURATOR; Protection with PROTECTION-AGENT.",
+      "done": "'vanta agents run' spawns 2+ named role-agents with enforced tool/memory boundaries and returns a synthesized, kernel-approved plan."
     },
     {
       "id": "PROTECTION-AGENT",
@@ -592,14 +592,14 @@
     {
       "id": "BRIEF-CMD",
       "track": "Operator",
-      "title": "argo today / argo brief (JARVIS-like 'what matters now')",
+      "title": "vanta today / vanta brief (JARVIS-like 'what matters now')",
       "status": "next",
       "size": "M",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "wants3 min-useful-version, the smallest slice of the command center: 'argo brief' / 'argo today' = a compact summary of what matters now -- top 3 actions, appointments, urgent messages, blockers, energy level. Sits on LIFE-OS-SCHEMA + PROJECT-RADAR + ENERGY-PLAN + COMMS-TRIAGE. One command, real data, no dashboards yet.",
-      "done": "'argo brief' prints top-3 actions, today's appointments, flagged messages, and current blockers from real goal/calendar/project data."
+      "summary": "wants3 min-useful-version, the smallest slice of the command center: 'vanta brief' / 'vanta today' = a compact summary of what matters now -- top 3 actions, appointments, urgent messages, blockers, energy level. Sits on LIFE-OS-SCHEMA + PROJECT-RADAR + ENERGY-PLAN + COMMS-TRIAGE. One command, real data, no dashboards yet.",
+      "done": "'vanta brief' prints top-3 actions, today's appointments, flagged messages, and current blockers from real goal/calendar/project data."
     },
     {
       "id": "MONEY-OS",
@@ -610,8 +610,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "wants3 CFO/Sales facet + money paths, scoped small. 'argo money' = income vs monthly target, active opportunities, pipeline value, expenses to watch, and the escape-the-9-to-5 ladder (first $1k/mo -> $5k/mo -> replace job income). One file + one command, not a CRM. Pairs with LIFE-OS-SCHEMA (revenue/expenses/opportunities entities) + the Sales/CFO council roles. Business is one facet, not Vanta's identity.",
-      "done": "'argo money' shows current vs target income, opportunities ranked by profit/effort, and the next single money action."
+      "summary": "wants3 CFO/Sales facet + money paths, scoped small. 'vanta money' = income vs monthly target, active opportunities, pipeline value, expenses to watch, and the escape-the-9-to-5 ladder (first $1k/mo -> $5k/mo -> replace job income). One file + one command, not a CRM. Pairs with LIFE-OS-SCHEMA (revenue/expenses/opportunities entities) + the Sales/CFO council roles. Business is one facet, not Vanta's identity.",
+      "done": "'vanta money' shows current vs target income, opportunities ranked by profit/effort, and the next single money action."
     },
     {
       "id": "REVIEW-LOOPS",
@@ -658,7 +658,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Vanta thinks out loud, but long reasoning/design output should FOLD by default and expand on a keypress (cmd/ctrl+O or an accordion) so it never floods the screen with a wall of text. Extends TUI-THINK (collapsible thinking, shipped) + UI-READABILITY + TUI-SMOOTH: apply the fold to ALL verbose output (long tool reasoning, multi-section design dumps like the argo ability design), default-collapsed with a one-line summary + expand affordance. Pairs with nd-sensory-load (compressed by default).",
+      "summary": "Vanta thinks out loud, but long reasoning/design output should FOLD by default and expand on a keypress (cmd/ctrl+O or an accordion) so it never floods the screen with a wall of text. Extends TUI-THINK (collapsible thinking, shipped) + UI-READABILITY + TUI-SMOOTH: apply the fold to ALL verbose output (long tool reasoning, multi-section design dumps like the vanta ability design), default-collapsed with a one-line summary + expand affordance. Pairs with nd-sensory-load (compressed by default).",
       "done": "A long reasoning/design block renders as a one-line collapsed summary with a keybind/accordion to expand; the screen is not flooded by default."
     },
     {
@@ -670,7 +670,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Enforce industry-standard size limits inside Vanta, always on: file <=300 lines, function <=50, cyclomatic complexity <=10, params <=4 (warn at file 200 / function 30). Extends the factory's existing born-small 300-gate (verifier.ts checkNewFilesUnderLineLimit) to functions + complexity + params, exposes 'argo lint'/size-check, and wires it into the git pre-commit hook (today only gitleaks) so human + agent + factory code all pass the same gate. Mirrors the enforcing-code-size Claude Code skill.",
+      "summary": "Enforce industry-standard size limits inside Vanta, always on: file <=300 lines, function <=50, cyclomatic complexity <=10, params <=4 (warn at file 200 / function 30). Extends the factory's existing born-small 300-gate (verifier.ts checkNewFilesUnderLineLimit) to functions + complexity + params, exposes 'vanta lint'/size-check, and wires it into the git pre-commit hook (today only gitleaks) so human + agent + factory code all pass the same gate. Mirrors the enforcing-code-size Claude Code skill.",
       "done": "A commit or factory cycle with an oversized file/function/complexity is flagged by Vanta's own gate (not just the factory), reporting file:line + limit + fix; passing code commits clean."
     },
     {
@@ -682,8 +682,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Opt-in persistent Playwright profile so Vanta browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'argo browser auth <site>' opens a headed window in a dedicated profile under ~/.vanta/browser-profiles/<site>/ (outside the repo) -> you log in manually (Vanta never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Vanta's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
-      "done": "'argo browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.vanta/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak."
+      "summary": "Opt-in persistent Playwright profile so Vanta browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'vanta browser auth <site>' opens a headed window in a dedicated profile under ~/.vanta/browser-profiles/<site>/ (outside the repo) -> you log in manually (Vanta never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Vanta's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
+      "done": "'vanta browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.vanta/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak."
     },
     {
       "id": "PLUGIN-SYSTEM",
@@ -694,8 +694,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "The INSTALL-HYGIENE half of Vanta's plugin story (pairs with PLUGIN-FRAMEWORK, the code-extension half). Optional capabilities install cleanly, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.vanta (gitignored, 0700), source-only in the repo, deps lazy-loaded. 'argo plugins' (list/install/remove/where) + 'argo doctor' surface where everything lives. Verified clean 2026-06-05. Detail: docs/plugins-and-auth-browser.md.",
-      "done": "'argo plugins' lists capabilities + where each one's deps/state live; 'argo plugins install browser' fetches Chromium into the OS cache (never the repo); 'argo doctor' confirms no plugin files in the project tree."
+      "summary": "The INSTALL-HYGIENE half of Vanta's plugin story (pairs with PLUGIN-FRAMEWORK, the code-extension half). Optional capabilities install cleanly, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.vanta (gitignored, 0700), source-only in the repo, deps lazy-loaded. 'vanta plugins' (list/install/remove/where) + 'vanta doctor' surface where everything lives. Verified clean 2026-06-05. Detail: docs/plugins-and-auth-browser.md.",
+      "done": "'vanta plugins' lists capabilities + where each one's deps/state live; 'vanta plugins install browser' fetches Chromium into the OS cache (never the repo); 'vanta doctor' confirms no plugin files in the project tree."
     },
     {
       "id": "MSG-REGISTRY",
@@ -707,7 +707,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "SHIPPED 2026-06-05. gateway/platforms/registry.ts — MESSAGING_CATALOG (telegram implemented; imessage/signal/whatsapp planned) + platformAvailability + messagingPlatformById. Each entry carries requiredEnv/secretEnv/enableEnv/prerequisite/warning/setupSteps. Read by MSG-WIZARD now; ready for the gateway + doctor. 6 tests.",
-      "done": "Adding a platform = registering one entry; 'argo gateway'/doctor report each platform's availability + missing prereqs from the registry, with no central if/elif edit."
+      "done": "Adding a platform = registering one entry; 'vanta gateway'/doctor report each platform's availability + missing prereqs from the registry, with no central if/elif edit."
     },
     {
       "id": "MSG-WIZARD",
@@ -718,8 +718,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "SHIPPED 2026-06-05. 'argo setup messaging' — registry-driven wizard (setup-messaging.ts). Configures Telegram for real (writes VANTA_TELEGRAM_TOKEN via the shared upsertEnv, other keys preserved); previews planned iMessage/WhatsApp/Signal with exact setup steps + prerequisites + risk warnings; honest [available/configured/planned] status per platform. 7 tests; full suite 1090 green; tsc clean.",
-      "done": "'argo setup messaging' lists platforms with availability, writes the chosen env, and prints each one's exact setup/pairing steps; re-running is idempotent."
+      "summary": "SHIPPED 2026-06-05. 'vanta setup messaging' — registry-driven wizard (setup-messaging.ts). Configures Telegram for real (writes VANTA_TELEGRAM_TOKEN via the shared upsertEnv, other keys preserved); previews planned iMessage/WhatsApp/Signal with exact setup steps + prerequisites + risk warnings; honest [available/configured/planned] status per platform. 7 tests; full suite 1090 green; tsc clean.",
+      "done": "'vanta setup messaging' lists platforms with availability, writes the chosen env, and prints each one's exact setup/pairing steps; re-running is idempotent."
     },
     {
       "id": "MSG-PAIRING",
@@ -742,8 +742,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Native macOS iMessage PlatformAdapter: SEND via AppleScript/osascript ('tell application Messages to send'), RECEIVE by polling the local Messages SQLite DB ~/Library/Messages/chat.db (read-only, since-last-rowid). Cleaner than Hermes's BlueBubbles for the local case (no third-party server); optional BlueBubbles REST+webhook mode for cross-machine. Needs macOS Full Disk Access (chat.db) + Automation (osascript) -- surfaced by MSG-WIZARD + argo doctor, walked through, not headless. Mirrors telegram.ts; pure parseChatDbRows tested offline.",
-      "done": "With Full Disk Access granted, 'argo gateway' receives an inbound iMessage (chat.db poll) and replies via osascript; parse/send shaping unit-tested without the live DB."
+      "summary": "Native macOS iMessage PlatformAdapter: SEND via AppleScript/osascript ('tell application Messages to send'), RECEIVE by polling the local Messages SQLite DB ~/Library/Messages/chat.db (read-only, since-last-rowid). Cleaner than Hermes's BlueBubbles for the local case (no third-party server); optional BlueBubbles REST+webhook mode for cross-machine. Needs macOS Full Disk Access (chat.db) + Automation (osascript) -- surfaced by MSG-WIZARD + vanta doctor, walked through, not headless. Mirrors telegram.ts; pure parseChatDbRows tested offline.",
+      "done": "With Full Disk Access granted, 'vanta gateway' receives an inbound iMessage (chat.db poll) and replies via osascript; parse/send shaping unit-tested without the live DB."
     },
     {
       "id": "MSG-SIGNAL",
@@ -755,7 +755,7 @@
       "model": "sonnet",
       "effort": "high",
       "summary": "Signal PlatformAdapter via signal-cli in daemon HTTP mode (Hermes's approach): JSON-RPC 2.0 send + SSE /api/v1/events receive over localhost. Vanta does NOT handle device linking/registration (the user does that in signal-cli). Pure JSON-RPC shaping tested offline. Low-risk official-ish path; lower priority than iMessage.",
-      "done": "With a running signal-cli daemon, 'argo gateway' receives a Signal message (SSE) and replies (JSON-RPC); shaping unit-tested without the daemon."
+      "done": "With a running signal-cli daemon, 'vanta gateway' receives a Signal message (SSE) and replies (JSON-RPC); shaping unit-tested without the daemon."
     },
     {
       "id": "MSG-WHATSAPP",
@@ -767,7 +767,7 @@
       "model": "sonnet",
       "effort": "high",
       "summary": "WhatsApp PlatformAdapter via a Node subprocess bridge (Hermes pattern): Vanta spawns a small Baileys/whatsapp-web.js worker, pairs by QR (creds in ~/.vanta/whatsapp/, gitignored), talks over localhost HTTP (GET /messages poll, POST send), health-checks + restarts the bridge. UNOFFICIAL -> account ban risk + breaks on protocol changes; WhatsApp Business API (Meta-verified) is the ToS-safe alternative (captured as 'official' mode). Bridge dep installs to ~/.vanta, never the repo (PLUGIN-SYSTEM). Build last.",
-      "done": "After a QR pair, 'argo gateway' receives a WhatsApp message via the Node bridge and replies; bridge spawn/health/restart handled; pure parse tested offline; risk + Business-API alt documented."
+      "done": "After a QR pair, 'vanta gateway' receives a WhatsApp message via the Node bridge and replies; bridge spawn/health/restart handled; pure parse tested offline; risk + Business-API alt documented."
     },
     {
       "id": "DESKTOP-P0",
@@ -958,7 +958,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "A unified plugin framework so Vanta extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Vanta already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Vanta's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Vanta's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'argo plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
+      "summary": "A unified plugin framework so Vanta extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Vanta already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Vanta's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Vanta's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'vanta plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
       "done": "A third-party plugin dropped in ~/.vanta/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load."
     },
     {
@@ -1078,7 +1078,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Claude Code parity: open a referenced file:line in the user's editor ($EDITOR / 'code -g' / an `argo open` command; native in the desktop). Vanta has LSP tools but no open-in-editor bridge.",
+      "summary": "Claude Code parity: open a referenced file:line in the user's editor ($EDITOR / 'code -g' / an `vanta open` command; native in the desktop). Vanta has LSP tools but no open-in-editor bridge.",
       "done": "Clicking/invoking a file:line opens it at that line in the configured editor."
     },
     {
@@ -1186,7 +1186,7 @@
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
-      "summary": "Umbrella for the native Vanta desktop app. The rough localhost web shell exists (argo desktop); the full build is DESKTOP-P0..P12 (Electron-first Hermes parity, kernel-enforced) per docs/desktop-completion-plan.md. NOT a generic dashboard — match Hermes's interaction model first, then Vanta's operator/dossier aesthetic.",
+      "summary": "Umbrella for the native Vanta desktop app. The rough localhost web shell exists (vanta desktop); the full build is DESKTOP-P0..P12 (Electron-first Hermes parity, kernel-enforced) per docs/desktop-completion-plan.md. NOT a generic dashboard — match Hermes's interaction model first, then Vanta's operator/dossier aesthetic.",
       "done": "Closes when DESKTOP-P0..P12 ship: a native Electron Vanta app with streaming chat, sessions, approval-first actions, model control, file/terminal/preview rails, palette + command center."
     },
     {
@@ -1196,7 +1196,7 @@
       "status": "shipped",
       "size": "M",
       "summary": "React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.",
-      "done": "open argo → full TUI with streaming tokens."
+      "done": "open vanta → full TUI with streaming tokens."
     },
     {
       "id": "REPL",
@@ -1204,8 +1204,8 @@
       "title": "Full REPL + install",
       "status": "shipped",
       "size": "S",
-      "summary": "install.sh global argo command + full slash set.",
-      "done": "argo works from anywhere."
+      "summary": "install.sh global vanta command + full slash set.",
+      "done": "vanta works from anywhere."
     },
     {
       "id": "UX-MODEL",
@@ -1244,7 +1244,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "Google OpenAI-compatible endpoint, GEMINI_API_KEY.",
-      "done": "VANTA_PROVIDER=gemini argo run returns on gemini-2.5-flash."
+      "done": "VANTA_PROVIDER=gemini vanta run returns on gemini-2.5-flash."
     },
     {
       "id": "A3",
@@ -1258,7 +1258,7 @@
     {
       "id": "A4",
       "track": "Models + Setup",
-      "title": "argo setup wizard",
+      "title": "vanta setup wizard",
       "status": "shipped",
       "size": "M",
       "summary": "Provider picker, hidden key prompt, merge into .env.",
@@ -1270,17 +1270,17 @@
       "title": "First-run detection",
       "status": "shipped",
       "size": "S",
-      "summary": "No backend on launch → auto-run argo setup.",
+      "summary": "No backend on launch → auto-run vanta setup.",
       "done": "Clean install self-configures."
     },
     {
       "id": "A6",
       "track": "Models + Setup",
-      "title": "argo status / doctor",
+      "title": "vanta status / doctor",
       "status": "shipped",
       "size": "S",
       "summary": "Boxed health: kernel ping, provider, key presence, counts.",
-      "done": "argo status shows green health."
+      "done": "vanta status shows green health."
     },
     {
       "id": "G1",
@@ -1324,7 +1324,7 @@
       "title": "Skill provenance + safe curator",
       "status": "shipped",
       "size": "M",
-      "summary": "argo-learned tag, curator archives only learned-stale skills, 7d interval.",
+      "summary": "vanta-learned tag, curator archives only learned-stale skills, 7d interval.",
       "done": "Curator runs at session start without breaking anything."
     },
     {
@@ -1333,7 +1333,7 @@
       "title": "Dark factory (self-improving codebase)",
       "status": "shipped",
       "size": "L",
-      "summary": "factory/ module: triage→plan→execute→verify→commit. argo improve + argo factory approve.",
+      "summary": "factory/ module: triage→plan→execute→verify→commit. vanta improve + vanta factory approve.",
       "done": "Live end-to-end: verifier correctly rejected bad model output."
     },
     {
@@ -1343,7 +1343,7 @@
       "status": "shipped",
       "size": "M",
       "summary": "factory/run.ts now runs at a configurable autonomy level: L1 suggest (plan, no branch) · L2 implement (branch+execute+verify, stop for review) · L3 commit (no push) · L4 push. resolveAutonomyLevel(sub,env): improve=L1, approve=VANTA_AUTONOMY_LEVEL (default 4). Split commitAndPush→commitSlice+pushBranch; new CycleResult statuses implemented + committed{pushed}. Kernel is_protected_path still blocks skeleton/brainstem at every level. L5 auto-merge + low-risk classifier deferred (riskiest rung).",
-      "done": "argo factory approve with VANTA_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
+      "done": "vanta factory approve with VANTA_AUTONOMY_LEVEL=2|3|4 stops exactly at implement/commit/push; 15 run.test.ts incl. resolveAutonomyLevel."
     },
     {
       "id": "O10b",
@@ -1381,7 +1381,7 @@
       "title": "Session persist + resume",
       "status": "shipped",
       "size": "M",
-      "summary": "File-based sessions, argo sessions list, argo resume <id>.",
+      "summary": "File-based sessions, vanta sessions list, vanta resume <id>.",
       "done": "Resume rehydrates a prior conversation."
     },
     {
@@ -1390,7 +1390,7 @@
       "title": "Port skills library",
       "status": "shipped",
       "size": "M",
-      "summary": "10 high-value skills ported, argo skills install.",
+      "summary": "10 high-value skills ported, vanta skills install.",
       "done": "10/10 installed live."
     },
     {
@@ -1411,7 +1411,7 @@
       "title": "Daemon / service mode",
       "status": "shipped",
       "size": "M",
-      "summary": "argo gateway foreground daemon + launchd service manager.",
+      "summary": "vanta gateway foreground daemon + launchd service manager.",
       "done": "Foreground daemon starts/ticks/stops."
     },
     {
@@ -1549,8 +1549,8 @@
       "title": "Interactive product roadmap",
       "status": "shipped",
       "size": "S",
-      "summary": "roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.",
-      "done": "argo roadmap opens the view; Vanta reads roadmap.json natively."
+      "summary": "roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). vanta roadmap command.",
+      "done": "vanta roadmap opens the view; Vanta reads roadmap.json natively."
     },
     {
       "id": "SEC",
@@ -1567,7 +1567,7 @@
       "title": "One-line curl install",
       "status": "shipped",
       "size": "S",
-      "summary": "bootstrap.sh clones Vanta into ~/argo (VANTA_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
+      "summary": "bootstrap.sh clones Vanta into ~/vanta (VANTA_DIR override, default branch — no pin) then runs install.sh. install.sh has no interactive prompts so piped installs can't crash (no /dev/tty probe needed). Documented in README.",
       "done": "Clone+install logic verified via local clone smoke; curl-pipe one-liner activates when the repo flips public."
     },
     {
@@ -1576,7 +1576,7 @@
       "title": "Use any MCP (consume)",
       "status": "shipped",
       "size": "S",
-      "summary": "readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.vanta/mcp.json (user). argo mcp list.",
+      "summary": "readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.vanta/mcp.json (user). vanta mcp list.",
       "done": "Config discovery shipped; live consume needs a real server."
     },
     {
@@ -1594,8 +1594,8 @@
       "title": "Be a server (serve)",
       "status": "shipped",
       "size": "L",
-      "summary": "argo mcp serve — exposes Vanta tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.",
-      "done": "Live-verified: real McpClient drove argo mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."
+      "summary": "vanta mcp serve — exposes Vanta tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.",
+      "done": "Live-verified: real McpClient drove vanta mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested."
     },
     {
       "id": "E-eff2",
@@ -1735,7 +1735,7 @@
       "title": "Live roadmap kanban (you + Vanta control) + WIP limit",
       "status": "shipped",
       "size": "M",
-      "summary": "The roadmap IS already a kanban (status enum = columns; render.ts renders Now/Next/Later). Make it bi-directionally LIVE, source of truth stays roadmap.json (agent-ready, git-versioned). (1) Vanta control: roadmap_move tool + `argo roadmap move <id> <status>` (kernel-gated write→regenerate); the dark factory moves cards next→building on start, building→shipped on verified-commit. (2) Human control: roadmap.html drag-to-move POSTs to a tiny local endpoint (argo roadmap serve / kernel /api/roadmap/move) that rewrites roadmap.json. (3) THE EF FEATURE — a hard WIP limit on Now(building)=1-2: moving a 3rd card in refuses and asks you to finish or park one. WIP limit = the anti-bounce/finish-what-you-start prosthesis (targets the documented ideas-rich/finish-poor pattern + this session’s live 8-goal bounce). Ship #1 first (smallest slice). Research: docs/kanban-roadmap-research.md. ND fit F2+F4+F5+F6.",
+      "summary": "The roadmap IS already a kanban (status enum = columns; render.ts renders Now/Next/Later). Make it bi-directionally LIVE, source of truth stays roadmap.json (agent-ready, git-versioned). (1) Vanta control: roadmap_move tool + `vanta roadmap move <id> <status>` (kernel-gated write→regenerate); the dark factory moves cards next→building on start, building→shipped on verified-commit. (2) Human control: roadmap.html drag-to-move POSTs to a tiny local endpoint (vanta roadmap serve / kernel /api/roadmap/move) that rewrites roadmap.json. (3) THE EF FEATURE — a hard WIP limit on Now(building)=1-2: moving a 3rd card in refuses and asks you to finish or park one. WIP limit = the anti-bounce/finish-what-you-start prosthesis (targets the documented ideas-rich/finish-poor pattern + this session’s live 8-goal bounce). Ship #1 first (smallest slice). Research: docs/kanban-roadmap-research.md. ND fit F2+F4+F5+F6.",
       "done": "Both you and Vanta move cards on one live board (roadmap.json source); Now is WIP-limited and refuses a 3rd card until one is finished or parked.",
       "tier": "rock",
       "model": "sonnet",
@@ -1999,8 +1999,8 @@
       "title": "Verbatim session archive + semantic search",
       "status": "shipped",
       "size": "M",
-      "summary": "MemPalace-inspired: store session transcripts verbatim in ~/.vanta/archive/ (JSONL). Add argo memory search <query> — keyword retrieval across all past sessions. Replace LLM-summary-only memory with a verbatim layer (summaries become an optional index tier). Recall quality: exact words vs paraphrased summaries. ND fit F2+F6.",
-      "done": "argo memory search returns the verbatim exchange matching the query; sessions are archived verbatim on close.",
+      "summary": "MemPalace-inspired: store session transcripts verbatim in ~/.vanta/archive/ (JSONL). Add vanta memory search <query> — keyword retrieval across all past sessions. Replace LLM-summary-only memory with a verbatim layer (summaries become an optional index tier). Recall quality: exact words vs paraphrased summaries. ND fit F2+F6.",
+      "done": "vanta memory search returns the verbatim exchange matching the query; sessions are archived verbatim on close.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
@@ -2011,7 +2011,7 @@
       "title": "Claude Code Stop/PreCompact hooks for Vanta memory",
       "status": "shipped",
       "size": "S",
-      "summary": "MemPalace-inspired: install Claude Code Stop + PreCompact hooks (scripts/argo-memhook.sh) that fire when Claude Code stops or compacts context. Stop hook runs argo memory mine in the background every N turns (VANTA_MEMHOOK_INTERVAL, default 10); PreCompact hook runs synchronously before context is lost. Closes the loop: Vanta preserves its own working memory across Claude Code sessions. Zero tokens in chat.",
+      "summary": "MemPalace-inspired: install Claude Code Stop + PreCompact hooks (scripts/vanta-memhook.sh) that fire when Claude Code stops or compacts context. Stop hook runs vanta memory mine in the background every N turns (VANTA_MEMHOOK_INTERVAL, default 10); PreCompact hook runs synchronously before context is lost. Closes the loop: Vanta preserves its own working memory across Claude Code sessions. Zero tokens in chat.",
       "done": "Claude Code Stop hook mines the Vanta transcript into memory every 10 turns, in background, zero tokens in chat. PreCompact hook runs synchronously.",
       "tier": "pebble",
       "model": "haiku",
@@ -2036,7 +2036,7 @@
       "status": "shipped",
       "size": "L",
       "summary": "MemPalace knowledge_graph.py adapted for Vanta: temporal entity-relationship graph in ~/.vanta/graph.db. Entities=people/projects/tools, relationships=worked-on/decided/depends-on with timestamps. Enables cross-session queries: what goals mention tool X, what did we decide about Y last week. Ties MEM-VERBATIM + MEM-STRUCT together. ND fit F2+F5.",
-      "done": "argo graph query returns goals/sessions/decisions connected to an entity; graph updates on session close.",
+      "done": "vanta graph query returns goals/sessions/decisions connected to an entity; graph updates on session close.",
       "tier": "rock",
       "model": "opus",
       "effort": "high"
@@ -2083,8 +2083,8 @@
       "title": "Memory versioning (supersedes chain, no data loss)",
       "status": "shipped",
       "size": "S",
-      "summary": "AgentMemory-inspired version chain: when a belief is updated (e.g., preferred provider changed), the old entry is archived with a supersedes pointer rather than overwritten. Brain writes use version+parentId. Enables: argo brain history <entry> to see how a belief evolved; auto-detection of conflicting beliefs (two entries with same concept but different content). ND fit F6 (trust - Vanta cant accidentally forget something important by overwriting).",
-      "done": "Updating a brain entry creates a new version; argo brain history shows the chain; conflicting entries are flagged, not silently dropped.",
+      "summary": "AgentMemory-inspired version chain: when a belief is updated (e.g., preferred provider changed), the old entry is archived with a supersedes pointer rather than overwritten. Brain writes use version+parentId. Enables: vanta brain history <entry> to see how a belief evolved; auto-detection of conflicting beliefs (two entries with same concept but different content). ND fit F6 (trust - Vanta cant accidentally forget something important by overwriting).",
+      "done": "Updating a brain entry creates a new version; vanta brain history shows the chain; conflicting entries are flagged, not silently dropped.",
       "tier": "pebble",
       "model": "haiku",
       "effort": "medium"
@@ -2131,7 +2131,7 @@
       "title": "Conversation timestamps in memory (not ingest time)",
       "status": "shipped",
       "size": "S",
-      "summary": "MemPalace issue #1649: the miner writes filed_at (ingest time) but the transcript already carries per-message timestamps. A session from 3 weeks ago mined today shows filed_at=today, breaking time-based recall. Vanta sessions store messages as Message[] with no timestamp. Fix: add timestamp to the Message type (record at send time); propagate to memory store entries. Enables: argo memory search --since 7d, temporal graph queries, correct time anchoring for what-did-we-do-last-Tuesday recall.",
+      "summary": "MemPalace issue #1649: the miner writes filed_at (ingest time) but the transcript already carries per-message timestamps. A session from 3 weeks ago mined today shows filed_at=today, breaking time-based recall. Vanta sessions store messages as Message[] with no timestamp. Fix: add timestamp to the Message type (record at send time); propagate to memory store entries. Enables: vanta memory search --since 7d, temporal graph queries, correct time anchoring for what-did-we-do-last-Tuesday recall.",
       "done": "Every memory entry carries the conversation timestamp (not ingest time); time-scoped search works.",
       "tier": "sand",
       "model": "haiku",
@@ -2332,26 +2332,26 @@
     {
       "id": "SELF-UPDATE",
       "track": "Hermes Parity",
-      "title": "argo update — safe self-updater with rollback",
+      "title": "vanta update — safe self-updater with rollback",
       "status": "next",
       "size": "M",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "summary": "Pattern lifted from `hermes update` (adapt, don't copy): one command keeps a running Vanta current and recoverable. Steps worth stealing — fetch upstream; autostash local changes before pull; write a NAMED pre-update snapshot for rollback; pull; offer to restore local changes with a clear warning; clear stale caches; refresh deps + rebuild kernel/cockpit; refresh live backends (MCP mounts, providers) reporting which changed; sync bundled skills reporting updated / user-modified-kept / removed-from-manifest; check config for new options (additive .env migration, preserves user keys); restart the gateway service; discard noise like lockfile churn so a clean re-run reports 'already up to date'. Vanta today only has install.sh + run.sh self-bootstrap — no updater, no snapshot, no rollback.",
-      "done": "`argo update` fetches, writes a pre-update snapshot, refreshes deps + skills + config additively, restarts the service, and reports a clean diff; `argo update --rollback` restores the last snapshot."
+      "done": "`vanta update` fetches, writes a pre-update snapshot, refreshes deps + skills + config additively, restarts the service, and reports a clean diff; `vanta update --rollback` restores the last snapshot."
     },
     {
       "id": "MODEL-CMD",
       "track": "Hermes Parity",
-      "title": "argo model — CLI provider/model pulldown",
+      "title": "vanta model — CLI provider/model pulldown",
       "status": "next",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes closes `hermes update` with a tip: `hermes model` — a standalone CLI provider+model selector (the pulldown). Vanta has the TUI ModelPicker overlay (`/model`) but no standalone `argo model` command and no post-setup discoverability tip. Add a CLI selector that lists resolvable providers (key present) + their models, persists the pick to .env via upsertEnv, and surfaces the tip after setup/update. Pairs with UX-MODEL-FIX (the model-persistence regression): the CLI pick must actually stick across restart.",
-      "done": "`argo model` lists available providers/models, persists the choice to .env, the choice survives restart, and setup/update surface the tip."
+      "summary": "Hermes closes `hermes update` with a tip: `hermes model` — a standalone CLI provider+model selector (the pulldown). Vanta has the TUI ModelPicker overlay (`/model`) but no standalone `vanta model` command and no post-setup discoverability tip. Add a CLI selector that lists resolvable providers (key present) + their models, persists the pick to .env via upsertEnv, and surfaces the tip after setup/update. Pairs with UX-MODEL-FIX (the model-persistence regression): the CLI pick must actually stick across restart.",
+      "done": "`vanta model` lists available providers/models, persists the choice to .env, the choice survives restart, and setup/update surface the tip."
     },
     {
       "id": "SKILL-UMBRELLA",
@@ -2363,7 +2363,7 @@
       "model": "sonnet",
       "effort": "high",
       "summary": "Hermes' curator does an umbrella-building pass Vanta's doesn't: it groups many overlapping/related skills under CLASS-LEVEL umbrella skills (e.g. apple-services, github-operations, research-workflows), archives the children (69 in one observed run), prunes stale ones, then shows a once-per-run digest with `curator status` (view anytime) and `curator pin <umbrella>` (freeze a good umbrella so the next pass won't churn it). Vanta's curate() is non-destructive archive of stale LEARNED skills only — it reports overlaps but never consolidates them. Add an LLM consolidation pass that proposes umbrellas from overlap clusters, archives children reversibly, supports pin, and emits a once-per-run digest. Reversible + approval-gated (Rule zero).",
-      "done": "`argo curator` proposes class-level umbrellas from overlapping skills, archives children reversibly with pin support, prunes stale, and surfaces a once-per-run digest viewable via `argo curator status`."
+      "done": "`vanta curator` proposes class-level umbrellas from overlapping skills, archives children reversibly with pin support, prunes stale, and surfaces a once-per-run digest viewable via `vanta curator status`."
     },
     {
       "id": "MODEL-FALLBACK",
@@ -2375,7 +2375,7 @@
       "model": "sonnet",
       "effort": "medium",
       "summary": "Hermes `fallback` (add/list/remove/test): when the primary model errors/rate-limits/times-out, it transparently retries the next provider in a configured chain. Vanta has task ROUTING (cheap/expensive via VANTA_MODEL_CHEAP/_EXPENSIVE) but NO failure-fallback — a dead provider just fails the turn. Add an ordered fallback chain (env or config), tried on retryable errors (429/5xx/timeout/circuit-break), with a one-line note in the transcript when it switches. Complements AUX-MAP (per-function model map). Manifesto-aligned: keeps the operator working when one backend is down.",
-      "done": "`argo fallback` configures an ordered provider chain; a retryable primary failure transparently falls through to the next, surfaced as a transcript note, and the choice survives restart."
+      "done": "`vanta fallback` configures an ordered provider chain; a retryable primary failure transparently falls through to the next, surfaced as a transcript note, and the choice survives restart."
     },
     {
       "id": "SESSION-SEARCH",
@@ -2386,20 +2386,20 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes `sessions browse` + search gives FTS over session history. Vanta persists sessions (`~/.vanta/sessions/<id>.json`, save/resume/fork/title) but can only list + resume by id — no search. Add `/sessions search <q>` (TUI) + `argo sessions search` (CLI): index session message text, return ranked hits with a snippet + session id, resume from a hit. Long-flagged as the top continuity gap in parity-audit.md. Pure ranking fn unit-tested; mirrors the existing recall/searchSkills weighting.",
-      "done": "`argo sessions search <q>` returns ranked past sessions with snippets and resumes from a hit; `/sessions` gains an inline search filter."
+      "summary": "Hermes `sessions browse` + search gives FTS over session history. Vanta persists sessions (`~/.vanta/sessions/<id>.json`, save/resume/fork/title) but can only list + resume by id — no search. Add `/sessions search <q>` (TUI) + `vanta sessions search` (CLI): index session message text, return ranked hits with a snippet + session id, resume from a hit. Long-flagged as the top continuity gap in parity-audit.md. Pure ranking fn unit-tested; mirrors the existing recall/searchSkills weighting.",
+      "done": "`vanta sessions search <q>` returns ranked past sessions with snippets and resumes from a hit; `/sessions` gains an inline search filter."
     },
     {
       "id": "DEP-AUDIT",
       "track": "Reliability",
-      "title": "argo security audit — dependency/supply-chain scan",
+      "title": "vanta security audit — dependency/supply-chain scan",
       "status": "next",
       "size": "M",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes `security audit` scans the venv against OSV.dev advisories and flags known-compromised packages (it caught the Shai-Hulud PyPI worm). Vanta has a hard SAFETY kernel for ACTIONS but zero visibility into its own DEPENDENCY supply chain (npm). Add `argo security audit`: run `npm audit --json` + check installed versions against an advisory feed, report severity-ranked findings, fail-loud on critical. Manifesto-aligned (safety is the differentiator) and cheap — Vanta already pins versions and runs gitleaks pre-commit. Folds the security posture from action-time to install-time.",
-      "done": "`argo security audit` reports severity-ranked dependency advisories from npm audit + an advisory feed and exits non-zero on a critical finding."
+      "summary": "Hermes `security audit` scans the venv against OSV.dev advisories and flags known-compromised packages (it caught the Shai-Hulud PyPI worm). Vanta has a hard SAFETY kernel for ACTIONS but zero visibility into its own DEPENDENCY supply chain (npm). Add `vanta security audit`: run `npm audit --json` + check installed versions against an advisory feed, report severity-ranked findings, fail-loud on critical. Manifesto-aligned (safety is the differentiator) and cheap — Vanta already pins versions and runs gitleaks pre-commit. Folds the security posture from action-time to install-time.",
+      "done": "`vanta security audit` reports severity-ranked dependency advisories from npm audit + an advisory feed and exits non-zero on a critical finding."
     },
     {
       "id": "KANBAN-DECOMPOSE",
@@ -2410,8 +2410,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Hermes' kanban planning layer: `kanban specify` fleshes a one-line triage card into a real spec via an aux LLM, `kanban decompose` fans a task out into a child-task graph, `kanban swarm` writes a planning-root → parallel-workers → verifier graph onto the board, `kanban diagnostics` emits machine-readable distress signals (hallucinated id, spawn crash-loop, stuck-blocked). Vanta has the roadmap board (roadmap.json/move) + delegate + swarm tool + compose_workflow but no card→spec→subtask decomposition. Add `argo roadmap decompose <id>`: aux LLM expands a card's `summary`/`done` into ordered child cards (with deps), written back to roadmap.json, approval-gated. Pairs with the factory + SHIP-MODE.",
-      "done": "`argo roadmap decompose <id>` proposes ordered child cards with dependencies from a parent card's done-criteria, writes them to roadmap.json on approval, and regenerates the board."
+      "summary": "Hermes' kanban planning layer: `kanban specify` fleshes a one-line triage card into a real spec via an aux LLM, `kanban decompose` fans a task out into a child-task graph, `kanban swarm` writes a planning-root → parallel-workers → verifier graph onto the board, `kanban diagnostics` emits machine-readable distress signals (hallucinated id, spawn crash-loop, stuck-blocked). Vanta has the roadmap board (roadmap.json/move) + delegate + swarm tool + compose_workflow but no card→spec→subtask decomposition. Add `vanta roadmap decompose <id>`: aux LLM expands a card's `summary`/`done` into ordered child cards (with deps), written back to roadmap.json, approval-gated. Pairs with the factory + SHIP-MODE.",
+      "done": "`vanta roadmap decompose <id>` proposes ordered child cards with dependencies from a parent card's done-criteria, writes them to roadmap.json on approval, and regenerates the board."
     },
     {
       "id": "ACP-SERVE",
@@ -2422,8 +2422,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes runs as an ACP (Agent Client Protocol) server (`hermes acp`, registry agent.json) for in-editor agent integration — distinct from MCP. Vanta already runs as an MCP server (`argo mcp serve`, every call gated by assess()) but has no editor-native agent surface. ACP would let Zed (and ACP-speaking editors) drive Vanta as the in-editor agent, with the kernel still gating every action — a reach multiplier that keeps the safety boundary. Mirror the existing mcp/server.ts pattern: a JSON-RPC ACP transport + handlers, allowlist-bounded, assess()-gated. Reach, not core — sequence after the higher-value reliability items.",
-      "done": "`argo acp` serves the Agent Client Protocol so an ACP editor (Zed) drives Vanta as its agent, every action still gated by the kernel."
+      "summary": "Hermes runs as an ACP (Agent Client Protocol) server (`hermes acp`, registry agent.json) for in-editor agent integration — distinct from MCP. Vanta already runs as an MCP server (`vanta mcp serve`, every call gated by assess()) but has no editor-native agent surface. ACP would let Zed (and ACP-speaking editors) drive Vanta as the in-editor agent, with the kernel still gating every action — a reach multiplier that keeps the safety boundary. Mirror the existing mcp/server.ts pattern: a JSON-RPC ACP transport + handlers, allowlist-bounded, assess()-gated. Reach, not core — sequence after the higher-value reliability items.",
+      "done": "`vanta acp` serves the Agent Client Protocol so an ACP editor (Zed) drives Vanta as its agent, every action still gated by the kernel."
     },
     {
       "id": "PROXY-ENDPOINT",
@@ -2434,8 +2434,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes `proxy` exposes a local OpenAI-compatible endpoint backed by OAuth-only providers, so any OpenAI-API tool can use a Claude-Pro/ChatGPT subscription without an API key. Vanta already resolves claude-code + codex OAuth tokens (providers/claude-code-auth.ts, codex-auth.ts) but only for its own loop. A `argo proxy` would let other local tools (and Vanta subagents/MCP clients) reuse those subscription tokens through a standard `/v1/chat/completions` shim — a high-leverage way to monetize the OAuth work Vanta already did. Local-only bind, kernel-logged. Frugality-aligned (rule 8): reuse a paid sub instead of paying per-token API.",
-      "done": "`argo proxy` serves a local OpenAI-compatible endpoint backed by Vanta's resolved OAuth providers; a standard client completes a request through it without an API key."
+      "summary": "Hermes `proxy` exposes a local OpenAI-compatible endpoint backed by OAuth-only providers, so any OpenAI-API tool can use a Claude-Pro/ChatGPT subscription without an API key. Vanta already resolves claude-code + codex OAuth tokens (providers/claude-code-auth.ts, codex-auth.ts) but only for its own loop. A `vanta proxy` would let other local tools (and Vanta subagents/MCP clients) reuse those subscription tokens through a standard `/v1/chat/completions` shim — a high-leverage way to monetize the OAuth work Vanta already did. Local-only bind, kernel-logged. Frugality-aligned (rule 8): reuse a paid sub instead of paying per-token API.",
+      "done": "`vanta proxy` serves a local OpenAI-compatible endpoint backed by Vanta's resolved OAuth providers; a standard client completes a request through it without an API key."
     },
     {
       "id": "CLI-DX-PACK",
@@ -2446,8 +2446,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Bundle of small, low-risk Hermes CLI conveniences Vanta lacks, each a quick win (build independently, check off): `argo prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `argo completion` (bash/zsh/fish shell completion) · `argo backup` / `argo import` (zip + restore ~/.vanta; today it's only git-init'd) · `argo send <text>` (pipe text from cron/CI to a configured platform) · `argo recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
-      "done": "At least `argo prompt-size`, `argo completion`, and `argo backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
+      "summary": "Bundle of small, low-risk Hermes CLI conveniences Vanta lacks, each a quick win (build independently, check off): `vanta prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `vanta completion` (bash/zsh/fish shell completion) · `vanta backup` / `vanta import` (zip + restore ~/.vanta; today it's only git-init'd) · `vanta send <text>` (pipe text from cron/CI to a configured platform) · `vanta recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
+      "done": "At least `vanta prompt-size`, `vanta completion`, and `vanta backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
     },
     {
       "id": "AUTO-HANDOFF",
@@ -2470,8 +2470,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Net-new CAPABILITY (not in Hermes) surfaced by usage mining: 'reference → build → iterate' is Jason's dominant input loop — ~165 'look at this', ~144 pasted URLs, ~130 local-file drag-ins, ~94 'clone/use this repo' in one project sample, plus research-synthesis-from-media (YouTube transcripts + PDFs) across nearly every project. Today @-context inlines a file PER MESSAGE and is re-pasted every session. Make references DURABLE: `argo ref add <url|path|repo|image|transcript>` ingests into project-scoped context (extracted + indexed), recallable across sessions without re-pasting. Kernel-gated fetch; local-first store.",
-      "done": "`argo ref add <src>` ingests a URL/repo/screenshot/transcript/file into durable project context; later sessions recall it via @-context and recall without the user re-pasting."
+      "summary": "Net-new CAPABILITY (not in Hermes) surfaced by usage mining: 'reference → build → iterate' is Jason's dominant input loop — ~165 'look at this', ~144 pasted URLs, ~130 local-file drag-ins, ~94 'clone/use this repo' in one project sample, plus research-synthesis-from-media (YouTube transcripts + PDFs) across nearly every project. Today @-context inlines a file PER MESSAGE and is re-pasted every session. Make references DURABLE: `vanta ref add <url|path|repo|image|transcript>` ingests into project-scoped context (extracted + indexed), recallable across sessions without re-pasting. Kernel-gated fetch; local-first store.",
+      "done": "`vanta ref add <src>` ingests a URL/repo/screenshot/transcript/file into durable project context; later sessions recall it via @-context and recall without the user re-pasting."
     },
     {
       "id": "RUN-RESUME",
@@ -2494,8 +2494,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Setup wizard (hermes setup). Vanta: argo setup first-run wizard.",
-      "done": "Vanta has parity: argo setup first-run wizard."
+      "summary": "Parity (have): Setup wizard (hermes setup). Vanta: vanta setup first-run wizard.",
+      "done": "Vanta has parity: vanta setup first-run wizard."
     },
     {
       "id": "HP-DOCTOR-STATUS",
@@ -2506,8 +2506,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Doctor / status. Vanta: argo doctor + kernel doctor, argo status.",
-      "done": "Vanta has parity: argo doctor + kernel doctor, argo status."
+      "summary": "Parity (have): Doctor / status. Vanta: vanta doctor + kernel doctor, vanta status.",
+      "done": "Vanta has parity: vanta doctor + kernel doctor, vanta status."
     },
     {
       "id": "HP-PROVIDER-AUTH",
@@ -2542,7 +2542,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Secrets (Bitwarden Secrets Manager). Vanta: `.env` + gitleaks pre-commit. External secret source = platform-thinking. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Secrets (Bitwarden Secrets Manager). Vanta: `.env` + gitleaks pre-commit. External secret source = platform-thinking. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — External secret source = platform-thinking."
     },
     {
@@ -2590,8 +2590,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Gateway daemon (run/start/stop/install). Vanta: argo gateway + launchd service (E1).",
-      "done": "Vanta has parity: argo gateway + launchd service (E1)."
+      "summary": "Parity (have): Gateway daemon (run/start/stop/install). Vanta: vanta gateway + launchd service (E1).",
+      "done": "Vanta has parity: vanta gateway + launchd service (E1)."
     },
     {
       "id": "HP-21-PLATFORMS",
@@ -2626,7 +2626,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Pairing codes (hermes pairing). Vanta: telegram allowlist. Allowlist suffices until demand. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Pairing codes (hermes pairing). Vanta: telegram allowlist. Allowlist suffices until demand. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Allowlist suffices until demand."
     },
     {
@@ -2638,8 +2638,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Interactive chat / oneshot. Vanta: argo REPL+TUI / argo run.",
-      "done": "Vanta has parity: argo REPL+TUI / argo run."
+      "summary": "Parity (have): Interactive chat / oneshot. Vanta: vanta REPL+TUI / vanta run.",
+      "done": "Vanta has parity: vanta REPL+TUI / vanta run."
     },
     {
       "id": "HP-TOOLSETS",
@@ -2662,7 +2662,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Computer-use (cua-driver, desktop control). Vanta: browser tools + screenshot/vision. Horizon; browser covers web. Big lift.. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Computer-use (cua-driver, desktop control). Vanta: browser tools + screenshot/vision. Horizon; browser covers web. Big lift.. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Horizon; browser covers web. Big lift.."
     },
     {
@@ -2686,8 +2686,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Parity (have): Cron / scheduled jobs. Vanta: argo cron + schedule runner.",
-      "done": "Vanta has parity: argo cron + schedule runner."
+      "summary": "Parity (have): Cron / scheduled jobs. Vanta: vanta cron + schedule runner.",
+      "done": "Vanta has parity: vanta cron + schedule runner."
     },
     {
       "id": "HP-HOOKS",
@@ -2698,7 +2698,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Hooks (shell-script, list/test/revoke). Vanta: Claude Code hooks integration. Revoke-able user hooks = later. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Hooks (shell-script, list/test/revoke). Vanta: Claude Code hooks integration. Revoke-able user hooks = later. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Revoke-able user hooks = later."
     },
     {
@@ -2710,7 +2710,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Batch/SWE/trajectory/datagen (RL pipeline). Vanta: none. Operator, not a training harvester — off-thesis. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Batch/SWE/trajectory/datagen (RL pipeline). Vanta: none. Operator, not a training harvester — off-thesis. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Operator, not a training harvester — off-thesis."
     },
     {
@@ -2746,7 +2746,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Bundles (skill aliases). Vanta: modes (skill groups). modes ≈ bundles. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Bundles (skill aliases). Vanta: modes (skill groups). modes ≈ bundles. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — modes ≈ bundles."
     },
     {
@@ -2758,7 +2758,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): 169 bundled skills (74 + 95 optional). Vanta: ~26 bundled + design/ai libraries. 'Management beats count' — curate on demand. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): 169 bundled skills (74 + 95 optional). Vanta: ~26 bundled + design/ai libraries. 'Management beats count' — curate on demand. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — 'Management beats count' — curate on demand."
     },
     {
@@ -2806,7 +2806,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Insights / analytics. Vanta: per-turn usage tokens. Low local value. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Insights / analytics. Vanta: per-turn usage tokens. Low local value. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Low local value."
     },
     {
@@ -2926,7 +2926,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Plugin framework (git install). Vanta: skills + MCP mount. MCP+skills cover it; parked post-users. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Plugin framework (git install). Vanta: skills + MCP mount. MCP+skills cover it; parked post-users. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — MCP+skills cover it; parked post-users."
     },
     {
@@ -2962,7 +2962,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Infographic (C2PA-signed assets). Vanta: none. Niche. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Infographic (C2PA-signed assets). Vanta: none. Niche. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Niche."
     },
     {
@@ -2998,7 +2998,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Isolated profiles (full HERMES_HOME each). Vanta: rooms (per-project goal streams). Multi-tenancy before users; rooms = 80%. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Isolated profiles (full HERMES_HOME each). Vanta: rooms (per-project goal streams). Multi-tenancy before users; rooms = 80%. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Multi-tenancy before users; rooms = 80%."
     },
     {
@@ -3010,7 +3010,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Profile describe / distribute (git share). Vanta: none. Off-thesis (sharing/distribution). See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Profile describe / distribute (git share). Vanta: none. Off-thesis (sharing/distribution). See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Off-thesis (sharing/distribution)."
     },
     {
@@ -3022,7 +3022,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Nous Portal (hosted inference + Tool Gateway + subs). Vanta: local-first, none. Against the local-trusted-operator thesis. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Nous Portal (hosted inference + Tool Gateway + subs). Vanta: local-first, none. Against the local-trusted-operator thesis. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Against the local-trusted-operator thesis."
     },
     {
@@ -3034,7 +3034,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Web dashboard (FastAPI + Vite). Vanta: TUI + desktop scaffold. Horizon → DESKTOP. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Web dashboard (FastAPI + Vite). Vanta: TUI + desktop scaffold. Horizon → DESKTOP. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Horizon → DESKTOP."
     },
     {
@@ -3070,7 +3070,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): i18n (16 locales). Vanta: English only. No i18n before real users. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): i18n (16 locales). Vanta: English only. No i18n before real users. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — No i18n before real users."
     },
     {
@@ -3082,7 +3082,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Skin engine (YAML themes). Vanta: TUI themes (resolveTheme). Covered; extra theming = polish. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Skin engine (YAML themes). Vanta: TUI themes (resolveTheme). Covered; extra theming = polish. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Covered; extra theming = polish."
     },
     {
@@ -3094,7 +3094,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Tips (startup feature discovery). Vanta: domain-grouped banner. Fold into the banner. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Tips (startup feature discovery). Vanta: domain-grouped banner. Fold into the banner. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Fold into the banner."
     },
     {
@@ -3106,7 +3106,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "DECLINED (evidence/thesis): Claw (OpenClaw migration). Vanta: N/A — post-OpenClaw lineage. Nothing to migrate from. See docs/argo-what-to-build.html for why this is parked, not built.",
+      "summary": "DECLINED (evidence/thesis): Claw (OpenClaw migration). Vanta: N/A — post-OpenClaw lineage. Nothing to migrate from. See docs/vanta-what-to-build.html for why this is parked, not built.",
       "done": "Not built unless real demand proves otherwise — Nothing to migrate from."
     }
   ]

@@ -27,7 +27,7 @@ export const recallTool: Tool = {
     },
   },
   // Constant: never echo the raw query — it can contain words that trip safety triggers.
-  describeForSafety: () => "search argo's skill library",
+  describeForSafety: () => "search vanta's skill library",
   async execute(raw) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {

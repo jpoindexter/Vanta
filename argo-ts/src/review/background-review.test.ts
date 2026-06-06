@@ -76,7 +76,7 @@ describe("reviewTurn", () => {
   const prev = process.env.VANTA_HOME;
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-review-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-review-"));
     process.env.VANTA_HOME = home;
   });
 

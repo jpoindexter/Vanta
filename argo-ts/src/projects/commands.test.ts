@@ -12,8 +12,8 @@ describe("projects/commands", () => {
   let log: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
-    projectsDir = await mkdtemp(join(tmpdir(), "argo-pcmd-rooms-"));
-    home = await mkdtemp(join(tmpdir(), "argo-pcmd-home-"));
+    projectsDir = await mkdtemp(join(tmpdir(), "vanta-pcmd-rooms-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-pcmd-home-"));
     env = { ...process.env, VANTA_PROJECTS_DIR: projectsDir, VANTA_HOME: home };
     log = vi.spyOn(console, "log").mockImplementation(() => undefined);
   });
@@ -38,9 +38,9 @@ describe("projects/commands", () => {
 
     it("prints each room as '<name>  <path>'", async () => {
       await mkdir(join(projectsDir, "brutal"));
-      await mkdir(join(projectsDir, "argo"));
+      await mkdir(join(projectsDir, "vanta"));
       await runRoomsList(env);
-      expect(output()).toContain(`argo  ${join(projectsDir, "argo")}`);
+      expect(output()).toContain(`vanta  ${join(projectsDir, "vanta")}`);
       expect(output()).toContain(`brutal  ${join(projectsDir, "brutal")}`);
     });
   });
@@ -66,7 +66,7 @@ describe("projects/commands", () => {
       for (const mode of OPERATOR_MODES) {
         expect(out).toContain(`[not installed] ${mode.name}`);
       }
-      expect(out).toContain("argo modes install");
+      expect(out).toContain("vanta modes install");
     });
 
     it("installs all modes and reports the count", async () => {
@@ -89,7 +89,7 @@ describe("projects/commands", () => {
 
     it("prints usage for an unknown subcommand", async () => {
       await runModes(env, "frobnicate");
-      expect(output()).toContain("Usage: argo modes [list|install]");
+      expect(output()).toContain("Usage: vanta modes [list|install]");
     });
   });
 });

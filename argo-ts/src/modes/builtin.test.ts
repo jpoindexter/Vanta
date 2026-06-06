@@ -5,7 +5,7 @@ import { rm } from "node:fs/promises";
 import { listSkills } from "../skills/store.js";
 import { OPERATOR_MODES, installModes } from "./builtin.js";
 
-const HOME = join(tmpdir(), "argo-modes-builtin-test");
+const HOME = join(tmpdir(), "vanta-modes-builtin-test");
 const env = { ...process.env, VANTA_HOME: HOME };
 
 const NOW = "2026-06-02T10:00:00.000Z";

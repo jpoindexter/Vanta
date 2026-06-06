@@ -22,7 +22,7 @@ describe("webSearchTool argument validation", () => {
 
   it("rejects max_results above the allowed range", async () => {
     const result = await webSearchTool.execute(
-      { query: "argo", max_results: 11 },
+      { query: "vanta", max_results: 11 },
       ctx,
     );
 
@@ -31,8 +31,8 @@ describe("webSearchTool argument validation", () => {
   });
 
   it("describes the safety-relevant query without touching the network", () => {
-    const description = webSearchTool.describeForSafety?.({ query: "argo ts" });
+    const description = webSearchTool.describeForSafety?.({ query: "vanta ts" });
 
-    expect(description).toBe("web search: argo ts");
+    expect(description).toBe("web search: vanta ts");
   });
 });

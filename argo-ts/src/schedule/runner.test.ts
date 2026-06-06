@@ -13,7 +13,7 @@ import type { CronEntry } from "./cron.js";
 const ALWAYS = "* * * * *";
 const NEVER = "0 0 30 2 *";
 
-const DATA_DIR = "/tmp/argo-cron-runner-fixture";
+const DATA_DIR = "/tmp/vanta-cron-runner-fixture";
 // Value is irrelevant: the cron expressions never depend on it.
 const now = new Date("2026-06-01T08:00:00.000Z");
 

@@ -28,7 +28,7 @@ live device/DB/daemon in tests (same discipline as `parseUpdates`).
 ## Setup wizard (`MSG-WIZARD`)
 
 `setup.ts` today picks an LLM provider only (`PROVIDER_CATALOG` + `runSetup` + `upsertEnv`).
-Extend with a messaging step / `argo setup messaging`:
+Extend with a messaging step / `vanta setup messaging`:
 1. List platforms with **availability** from the registry (configured? prereqs present?).
 2. For the chosen ones, write env (`upsertEnv`, idempotent).
 3. Print **exact setup/pairing steps**: BotFather link (Telegram); the Full-Disk-Access +
@@ -44,7 +44,7 @@ Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explai
   `~/.vanta/pairing/`); owner approves via CLI/TUI. Platform-agnostic — covers every adapter.
 - **Platform registry (`MSG-REGISTRY`, from `platform_registry.py`).** Each adapter
   self-registers `{id, factory, required_env, check_fn, install_hint}`. The gateway, the
-  wizard, and `argo doctor` read it → graceful "needs X" instead of a central if/elif and
+  wizard, and `vanta doctor` read it → graceful "needs X" instead of a central if/elif and
   hard failures. New adapter = drop in an entry.
 - **Adapter owns its transport.** poll / webhook / SSE / subprocess-bridge all hide behind
   `connect()` — no central poller assumption (Vanta's tick-poll already fits pull adapters;

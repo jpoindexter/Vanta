@@ -42,7 +42,7 @@ Branch: feat/v1-hermes-parity
 - **Tests**: 662 passing, 0 failing (98 test files)
 - **Typecheck**: tsc clean
 - **Uncommitted changes**: NO — both commits pushed to `feat/v1-hermes-parity`
-- **Roadmap HTML**: regenerated (gitignored — run `argo roadmap` to rebuild)
+- **Roadmap HTML**: regenerated (gitignored — run `vanta roadmap` to rebuild)
 
 ## In Progress
 
@@ -63,7 +63,7 @@ Nothing — both slices fully shipped and committed.
 ## Exact Next Steps (in order)
 
 1. [ ] **ND2 · clarify tool** (`sonnet·medium`) — a `clarify` tool the agent can call when intent is ambiguous: surfaces one structured question to the user before acting. Kernel-gated like any tool. Unblocks FAC-PREFLIGHT. ~1–2 hrs. Done criteria: on ambiguous intent Vanta asks one tappable structured question instead of guessing; wrong-guess rework drops.
-2. [ ] **KANBAN slice 1** (`sonnet·medium`) — `roadmap_move` tool + `argo roadmap move <id> <status>` CLI + regenerate HTML. Slice 2 (drag HTML endpoint) and slice 3 (WIP limit) parked until slice 1 ships. Done criteria: `argo roadmap move ND2 building` updates roadmap.json + regenerates.
+2. [ ] **KANBAN slice 1** (`sonnet·medium`) — `roadmap_move` tool + `vanta roadmap move <id> <status>` CLI + regenerate HTML. Slice 2 (drag HTML endpoint) and slice 3 (WIP limit) parked until slice 1 ships. Done criteria: `vanta roadmap move ND2 building` updates roadmap.json + regenerates.
 3. [ ] **Push to remote** when ready (both commits are local on `feat/v1-hermes-parity`; push with `git push`).
 
 ## Context That's Easy to Lose
@@ -73,7 +73,7 @@ Nothing — both slices fully shipped and committed.
 - **ND2 clarify tool is a new Vanta tool** (not a slash command): it lives in `tools/clarify.ts`, registered in `tools/index.ts`, kernel-assessed via `describeForSafety`. Pattern: `tools/inspect-state.ts` is a good reference for a simple non-destructive tool.
 - **Model tagging is Sonnet 4.6 session** — the roadmap restructure and ND4 were built on Sonnet 4.6 (user switched from Opus at session start). ND2 and KANBAN are also `sonnet·medium`.
 - **662 TS + 27 Rust = 689 total tests green** at handoff. Rust test count unchanged.
-- **`roadmap.html` is gitignored** — regenerate with `argo roadmap` or `cd argo-ts && npx tsx src/roadmap/build.ts` from the repo root.
+- **`roadmap.html` is gitignored** — regenerate with `vanta roadmap` or `cd argo-ts && npx tsx src/roadmap/build.ts` from the repo root.
 
 ## Continuation Prompt
 
@@ -92,7 +92,7 @@ A new Vanta tool (`tools/clarify.ts`) the agent calls when intent is ambiguous. 
 - Pattern: see `tools/inspect-state.ts` for a simple non-destructive tool reference.
 - How to add a tool: new file `tools/<name>.ts` → `describeForSafety` → `execute` → register in `tools/index.ts` → co-located test in `tools/tools.test.ts`.
 
-**After ND2: KANBAN slice 1 only** — `roadmap_move` tool + `argo roadmap move <id> <status>` CLI + regenerate. Slices 2 (drag HTML) and 3 (WIP limit) are parked; ship slice 1 only per anti-drift.
+**After ND2: KANBAN slice 1 only** — `roadmap_move` tool + `vanta roadmap move <id> <status>` CLI + regenerate. Slices 2 (drag HTML) and 3 (WIP limit) are parked; ship slice 1 only per anti-drift.
 
 Respect anti-drift: one feature end-to-end, test-first, commit+push. Push back if scope creeps.
 ---

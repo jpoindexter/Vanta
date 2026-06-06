@@ -1,6 +1,6 @@
 # Living Operator — Vanta's growth direction
 
-> Source synthesis of three captures (2026-06-05): `argo wants.rtf`, `argowants2.rtf`,
+> Source synthesis of three captures (2026-06-05): `vanta wants.rtf`, `argowants2.rtf`,
 > `agro wants 3.md`, plus two live goals (natural voice; sentience-like continuity).
 > Items live in `roadmap.json`; this doc is the narrative + build order behind them.
 > Locked direction: `DECISIONS.md` (2026-06-05 — sentience as direction; not-evil charter; warm-precise voice).
@@ -52,7 +52,7 @@ New: `MEM-CURATOR`, `MEM-FORGET`, `TRUST-LABELS`, `SCAFFOLD`, `REFLECT-CORRECT`,
 From `agro wants 3.md`: Vanta as an omni-capable, non-evil, human-aligned life/world partner —
 business is *one facet*, not the identity. **Jason's own rule: do not build full JARVIS at once.**
 New: `LIFE-OS-SCHEMA` (data foundation), `AGENT-COUNCIL` (15 bounded roles), `PROTECTION-AGENT`,
-`BRIEF-CMD` (`argo today`/`argo brief`), `MONEY-OS` (`argo money` + escape-the-9-to-5), `REVIEW-LOOPS`.
+`BRIEF-CMD` (`vanta today`/`vanta brief`), `MONEY-OS` (`vanta money` + escape-the-9-to-5), `REVIEW-LOOPS`.
 Horizon: `COMMAND-CENTER` (full dashboards).
 
 ## Build order (this *is* the prioritization)

@@ -9,7 +9,7 @@ import {
 } from "./gateway/platforms/registry.js";
 import { envPath, promptSecret, upsertEnv } from "./setup.js";
 
-// `argo setup messaging` — the messaging-gateway wizard. Mirrors runSetup:
+// `vanta setup messaging` — the messaging-gateway wizard. Mirrors runSetup:
 // lists platforms with availability, configures an implemented one (writes env
 // via the shared upsertEnv so other keys survive), previews planned ones. Pure
 // render/build helpers below are unit-tested; runMessagingSetup is the I/O shell.
@@ -85,7 +85,7 @@ export async function runMessagingSetup(repoRoot: string, rl?: Readline): Promis
     const existing = existsSync(path) ? await readFile(path, "utf8") : "";
     await writeFile(path, upsertEnv(existing, buildMessagingEnv(platform, secret)), { mode: 0o600 });
 
-    console.log(`\n  ✓ Configured ${platform.label}. Run \`argo gateway\` to go live.\n`);
+    console.log(`\n  ✓ Configured ${platform.label}. Run \`vanta gateway\` to go live.\n`);
     return true;
   } finally {
     if (!rl) ownRl.close();

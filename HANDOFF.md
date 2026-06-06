@@ -30,9 +30,9 @@ Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md`
 - `src/safety.rs` — `is_protected_path` blocks writes to `src/*.rs`, `argo-ts/src/factory/*.ts`, `MANIFESTO.md`
 - `argo-ts/src/factory/` — triage, planner, executor, verifier, run + tests
 - `AGENT-MANIFESTO.md` at repo root (writable, not kernel-protected)
-- `argo improve` + `argo factory [approve|status]` CLI
+- `vanta improve` + `vanta factory [approve|status]` CLI
 - Gateway: `__factory__` cron entries spawn detached child
-- **Live verified:** `argo improve` triages → prints plan → exits clean. `argo factory approve` ran full cycle — verifier caught a bad model output and discarded it cleanly.
+- **Live verified:** `vanta improve` triages → prints plan → exits clean. `vanta factory approve` ran full cycle — verifier caught a bad model output and discarded it cleanly.
 
 **ROADMAP** — all shipped items ticked, residual section current.
 
@@ -69,7 +69,7 @@ Start with source code (safe), ask about docs before deleting.
 - Harness pins cwd to `Nexarion Agent` (empty artifact). Real repo: `~/Documents/GitHub/Vanta`.
 - Stale binary on :7788 — `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill.
 - `tools/tools.test.ts` has a sorted tool-name list — new tools must be added there.
-- Factory needs a frontier model for `argo factory approve` to produce correct code. qwen2.5:14b ran but broke a test. Gemini 2.5 Flash hit 429 during testing.
+- Factory needs a frontier model for `vanta factory approve` to produce correct code. qwen2.5:14b ran but broke a test. Gemini 2.5 Flash hit 429 during testing.
 - `isTreeDirty` uses `--untracked-files=no` — untracked files don't block the factory.
 
 ---

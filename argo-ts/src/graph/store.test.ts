@@ -6,15 +6,15 @@ import { join } from "node:path";
 
 describe("graph/store", () => {
   it("makeEntity creates a deterministic ID", () => {
-    const e1 = makeEntity("argo", "project");
-    const e2 = makeEntity("ARGO", "project");
+    const e1 = makeEntity("vanta", "project");
+    const e2 = makeEntity("VANTA", "project");
     // Case-normalized → same ID
     expect(e1.id).toBe(e2.id);
     expect(e1.kind).toBe("entity");
   });
 
   it("makeRelation creates a relation record", () => {
-    const proj = makeEntity("argo", "project");
+    const proj = makeEntity("vanta", "project");
     const tool = makeEntity("vitest", "tool");
     const rel = makeRelation(proj, tool, "uses");
     expect(rel.kind).toBe("relation");
@@ -24,7 +24,7 @@ describe("graph/store", () => {
   });
 
   it("appendGraph + graphQuery round-trip", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-test-graph-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-test-graph-"));
     try {
       const env = { VANTA_HOME: dir };
       const proj = makeEntity("my-project", "project");

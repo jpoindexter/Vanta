@@ -19,7 +19,7 @@ export function parseCronFlag(args: string[]): {
 }
 
 /**
- * `argo schedule "<instruction>" --cron "<expr>"` adds a task; `argo schedule
+ * `vanta schedule "<instruction>" --cron "<expr>"` adds a task; `vanta schedule
  * list` prints stored tasks. Returns an exit code — non-zero on bad usage so
  * the CLI can print usage and exit accordingly.
  */
@@ -56,7 +56,7 @@ function firstLine(text: string): string {
 }
 
 /**
- * `argo cron` — run every task due at `now` via the injected `run` task, then
+ * `vanta cron` — run every task due at `now` via the injected `run` task, then
  * print a one-line result per task. Meant to be invoked by the OS scheduler
  * (launchd/cron) every minute.
  */
@@ -67,7 +67,7 @@ export async function runCron(
 ): Promise<void> {
   const results = await runDueTasks({ dataDir, now, run });
   if (results.length === 0) {
-    console.log("argo cron: no tasks due");
+    console.log("vanta cron: no tasks due");
     return;
   }
   for (const r of results) {

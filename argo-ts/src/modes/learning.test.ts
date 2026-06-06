@@ -5,7 +5,7 @@ import { rm, writeFile } from "node:fs/promises";
 import { resolveVantaHome } from "../store/home.js";
 import { normalizePattern, recordRun, shouldProposeSkill } from "./learning.js";
 
-const HOME = join(tmpdir(), "argo-modes-learning-test");
+const HOME = join(tmpdir(), "vanta-modes-learning-test");
 const env = { ...process.env, VANTA_HOME: HOME };
 
 describe("normalizePattern", () => {

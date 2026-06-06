@@ -105,7 +105,7 @@ export const runCodeTool: Tool = {
     }
 
     const runner = RUNNERS[language];
-    const dir = await mkdtemp(join(tmpdir(), "argo-run-code-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-run-code-"));
     try {
       await writeFile(join(dir, runner.file), code, "utf8");
       if (runner.compile) {

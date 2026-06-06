@@ -38,9 +38,9 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 
 | # | Slice | Size | Done criteria | Model |
 |---|-------|------|--------------|-------|
-| 1 | Interactive roadmap | S | `argo roadmap` opens Now/Next/Later HTML; Vanta reads json natively | Sonnet |
+| 1 | Interactive roadmap | S | `vanta roadmap` opens Now/Next/Later HTML; Vanta reads json natively | Sonnet |
 | 2 | SEC gitleaks hook | S | secret-shaped strings can't be committed | Sonnet |
-| 3 | MCP-1 consume | S | `argo mcp list` shows Cosmos tools; Vanta calls one | Sonnet |
+| 3 | MCP-1 consume | S | `vanta mcp list` shows Cosmos tools; Vanta calls one | Sonnet |
 | 4 | MCP-2 make + hook | M | Vanta builds trivial MCP, mounts it, calls it; and mounts existing | Sonnet |
 | 5 | MCP-3 serve | M/L | Claude Code calls an Vanta tool through the kernel gate | **Opus** |
 
@@ -56,7 +56,7 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 - `argo-ts/src/roadmap/render.ts` — **pure** `renderRoadmap(data) → string` (inline CSS/JS, no deps, Now/Next/Later cols, track groups, status cards, click-to-expand done criteria, filter by track/status). Unit-tested.
 - `argo-ts/src/roadmap/build.ts` — I/O: read `roadmap.json` → validate → write `roadmap.html`
 - `argo-ts/src/roadmap/schema.test.ts` + `render.test.ts` + `build.test.ts`
-- Wire `argo roadmap` in `cli.ts` (same pattern as other commands: `if (cmd === "roadmap")`)
+- Wire `vanta roadmap` in `cli.ts` (same pattern as other commands: `if (cmd === "roadmap")`)
 - Add to `usage()` printout
 
 **Data model (roadmap.json):**
@@ -70,8 +70,8 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
       "title": "Use any MCP (consume)",
       "status": "building",
       "size": "S",
-      "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + argo mcp list.",
-      "done": "argo mcp list shows a server's tools; Vanta calls one live."
+      "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + vanta mcp list.",
+      "done": "vanta mcp list shows a server's tools; Vanta calls one live."
     }
   ]
 }
@@ -84,22 +84,22 @@ Column map: `building → Now`, `next → Next`, `horizon → Later`, `shipped �
 
 ```json
 [
-  {"id":"TUI","track":"Core UX","title":"Ink TUI + streaming","status":"shipped","size":"M","summary":"React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.","done":"open argo → full TUI with streaming tokens."},
-  {"id":"REPL","track":"Core UX","title":"Full REPL + install","status":"shipped","size":"S","summary":"install.sh global argo command + full slash set.","done":"argo works from anywhere."},
-  {"id":"A1","track":"Models + Setup","title":"Gemini provider","status":"shipped","size":"S","summary":"Google OpenAI-compatible endpoint, GEMINI_API_KEY.","done":"VANTA_PROVIDER=gemini argo run returns on gemini-2.5-flash."},
+  {"id":"TUI","track":"Core UX","title":"Ink TUI + streaming","status":"shipped","size":"M","summary":"React/Ink 7 app — streaming transcript, tool activity, spinner, inline approvals, slash commands.","done":"open vanta → full TUI with streaming tokens."},
+  {"id":"REPL","track":"Core UX","title":"Full REPL + install","status":"shipped","size":"S","summary":"install.sh global vanta command + full slash set.","done":"vanta works from anywhere."},
+  {"id":"A1","track":"Models + Setup","title":"Gemini provider","status":"shipped","size":"S","summary":"Google OpenAI-compatible endpoint, GEMINI_API_KEY.","done":"VANTA_PROVIDER=gemini vanta run returns on gemini-2.5-flash."},
   {"id":"A3","track":"Models + Setup","title":"OpenRouter provider","status":"shipped","size":"S","summary":"One key, 200+ models.","done":"OPENROUTER_API_KEY works."},
-  {"id":"A4","track":"Models + Setup","title":"argo setup wizard","status":"shipped","size":"M","summary":"Provider picker, hidden key prompt, merge into .env.","done":"First-run wizard configures any backend."},
-  {"id":"A5","track":"Models + Setup","title":"First-run detection","status":"shipped","size":"S","summary":"No backend on launch → auto-run argo setup.","done":"Clean install self-configures."},
-  {"id":"A6","track":"Models + Setup","title":"argo status / doctor","status":"shipped","size":"S","summary":"Boxed health: kernel ping, provider, key presence, counts.","done":"argo status shows green health."},
+  {"id":"A4","track":"Models + Setup","title":"vanta setup wizard","status":"shipped","size":"M","summary":"Provider picker, hidden key prompt, merge into .env.","done":"First-run wizard configures any backend."},
+  {"id":"A5","track":"Models + Setup","title":"First-run detection","status":"shipped","size":"S","summary":"No backend on launch → auto-run vanta setup.","done":"Clean install self-configures."},
+  {"id":"A6","track":"Models + Setup","title":"vanta status / doctor","status":"shipped","size":"S","summary":"Boxed health: kernel ping, provider, key presence, counts.","done":"vanta status shows green health."},
   {"id":"G1","track":"Models + Setup","title":"Claude subscription provider","status":"shipped","size":"S","summary":"VANTA_PROVIDER=claude-code uses Claude Pro/Max OAuth token.","done":"claude-code provider authenticates."},
   {"id":"G2","track":"Models + Setup","title":"ChatGPT-Codex OAuth","status":"shipped","size":"S","summary":"VANTA_PROVIDER=codex, Responses API, shared ~/.codex/auth.json.","done":"Live-verified end-to-end."},
   {"id":"B2","track":"Self-improvement","title":"Post-turn nudge counters","status":"shipped","size":"S","summary":"shouldReview: busy turn or periodic interval triggers background review.","done":"Review fires automatically."},
   {"id":"B3","track":"Self-improvement","title":"Background-review fork","status":"shipped","size":"M","summary":"Post-turn tool-restricted agent replays transcript, writes skills.","done":"Live-verified: judged no skill on trivial turn."},
-  {"id":"B4","track":"Self-improvement","title":"Skill provenance + safe curator","status":"shipped","size":"M","summary":"argo-learned tag, curator archives only learned-stale skills, 7d interval.","done":"Curator runs at session start without breaking anything."},
-  {"id":"O9","track":"Self-improvement","title":"Dark factory (self-improving codebase)","status":"shipped","size":"L","summary":"factory/ module: triage→plan→execute→verify→commit. argo improve + argo factory approve.","done":"Live end-to-end: verifier correctly rejected bad model output."},
-  {"id":"C1","track":"Continuity","title":"Session persist + resume","status":"shipped","size":"M","summary":"File-based sessions, argo sessions list, argo resume <id>.","done":"Resume rehydrates a prior conversation."},
-  {"id":"D1","track":"Skills","title":"Port skills library","status":"shipped","size":"M","summary":"10 high-value skills ported, argo skills install.","done":"10/10 installed live."},
-  {"id":"E1","track":"Autonomy + Reach","title":"Daemon / service mode","status":"shipped","size":"M","summary":"argo gateway foreground daemon + launchd service manager.","done":"Foreground daemon starts/ticks/stops."},
+  {"id":"B4","track":"Self-improvement","title":"Skill provenance + safe curator","status":"shipped","size":"M","summary":"vanta-learned tag, curator archives only learned-stale skills, 7d interval.","done":"Curator runs at session start without breaking anything."},
+  {"id":"O9","track":"Self-improvement","title":"Dark factory (self-improving codebase)","status":"shipped","size":"L","summary":"factory/ module: triage→plan→execute→verify→commit. vanta improve + vanta factory approve.","done":"Live end-to-end: verifier correctly rejected bad model output."},
+  {"id":"C1","track":"Continuity","title":"Session persist + resume","status":"shipped","size":"M","summary":"File-based sessions, vanta sessions list, vanta resume <id>.","done":"Resume rehydrates a prior conversation."},
+  {"id":"D1","track":"Skills","title":"Port skills library","status":"shipped","size":"M","summary":"10 high-value skills ported, vanta skills install.","done":"10/10 installed live."},
+  {"id":"E1","track":"Autonomy + Reach","title":"Daemon / service mode","status":"shipped","size":"M","summary":"vanta gateway foreground daemon + launchd service manager.","done":"Foreground daemon starts/ticks/stops."},
   {"id":"E2","track":"Autonomy + Reach","title":"Telegram gateway","status":"shipped","size":"M","summary":"Long-poll + allowlist, wired into gateway.","done":"Offline-tested; live needs bot token."},
   {"id":"E3","track":"Autonomy + Reach","title":"Webhook triggers","status":"shipped","size":"M","summary":"HMAC-gated webhook server, resolveDeliver, background agent run.","done":"Real localhost requests: 200 signed / 401 unsigned."},
   {"id":"E5","track":"Autonomy + Reach","title":"MCP client","status":"shipped","size":"M","summary":"Dependency-free stdio JSON-RPC client + mount.ts. Mounted in prepareRun.","done":"Protocol unit-tested; live needs a real server + config fix (MCP-1)."},
@@ -111,11 +111,11 @@ Column map: `building → Now`, `next → Next`, `horizon → Later`, `shipped �
   {"id":"O7","track":"Senses + Autonomy","title":"Speech + audio","status":"shipped","size":"S","summary":"speak TTS + transcribe STT.","done":"Shipped."},
   {"id":"S1","track":"Selfhood","title":"Self-authored identity files","status":"shipped","size":"M","summary":"Brain regions, brain tool, SOUL.md, AGENT-MANIFESTO.md.","done":"Vanta has a persistent identity."},
   {"id":"P1","track":"Hermes Parity","title":"Slash-command parity","status":"shipped","size":"M","summary":"/history /retry /undo /reset /title /fork.","done":"Full slash parity readline + TUI."},
-  {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"building","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). argo roadmap command.","done":"argo roadmap opens the view; Vanta reads roadmap.json natively."},
+  {"id":"ROADMAP","track":"Docs + Tooling","title":"Interactive product roadmap","status":"building","size":"S","summary":"roadmap.json (agent-ready) → roadmap.html (Now/Next/Later view). vanta roadmap command.","done":"vanta roadmap opens the view; Vanta reads roadmap.json natively."},
   {"id":"SEC","track":"Docs + Tooling","title":"Secret-hygiene hardening","status":"next","size":"S","summary":"gitleaks pre-commit hook + .example twins + pre-push check.","done":"A secret-shaped string can't be committed."},
-  {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. argo mcp list.","done":"argo mcp list shows a server's tools; Vanta calls one live."},
+  {"id":"MCP-1","track":"MCP: use · make · serve","title":"Use any MCP (consume)","status":"next","size":"S","summary":"Accept mcpServers key + discover ./.mcp.json. vanta mcp list.","done":"vanta mcp list shows a server's tools; Vanta calls one live."},
   {"id":"MCP-2","track":"MCP: use · make · serve","title":"Make + hook in at runtime","status":"horizon","size":"M","summary":"mount_mcp tool (live runtime mount) + build-mcp-server skill (scaffold on demand).","done":"Vanta builds a trivial MCP, mounts it, calls its tool; and mounts an existing server on command."},
-  {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"argo mcp serve — expose Vanta tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Vanta executes through the kernel gate."},
+  {"id":"MCP-3","track":"MCP: use · make · serve","title":"Be a server (serve)","status":"horizon","size":"L","summary":"vanta mcp serve — expose Vanta tools over MCP stdio, callable from Claude Code. Kernel-gated + allowlist.","done":"A tool call from Claude Code into Vanta executes through the kernel gate."},
   {"id":"E-eff2","track":"Efficiency","title":"Prefer-local routing","status":"horizon","size":"S","summary":"Auto-route simple work to local Ollama on M4 Pro.","done":"Simple tasks dispatch to Ollama without manual VANTA_PROVIDER override."},
   {"id":"D2","track":"Skills","title":"Skill bundles","status":"horizon","size":"S","summary":"YAML bundle schema for composite slash commands.","done":"One /slash loads several skills."},
   {"id":"S5","track":"Selfhood","title":"Heartbeat selfhood updates","status":"horizon","size":"S","summary":"Wire brain writes onto the gateway tick.","done":"Identity evolves continuously via daemon."},
@@ -184,7 +184,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 }
 ```
 
-3. **`argo mcp list` already exists** in `repl-commands.ts` (case "mcp", line 388). It currently only reads from the old config locations. After the config change it will automatically show discovered servers. Verify it works end-to-end.
+3. **`vanta mcp list` already exists** in `repl-commands.ts` (case "mcp", line 388). It currently only reads from the old config locations. After the config change it will automatically show discovered servers. Verify it works end-to-end.
 
 ---
 
@@ -240,7 +240,7 @@ Resume Vanta. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (TS agent in
 The build plan and all context is in `handoff-2026-06-03-1830-roadmap-mcp-plan.md` at the repo root. Read the FULL file before writing any code. It has exact file shapes, data structures, seeded JSON, and constraints for every slice.
 
 **Slice order:**
-1. Interactive roadmap — `roadmap.json` + `argo-ts/src/roadmap/` (schema/render/build) + `argo roadmap` CLI
+1. Interactive roadmap — `roadmap.json` + `argo-ts/src/roadmap/` (schema/render/build) + `vanta roadmap` CLI
 2. SEC gitleaks hook — `.gitleaks.toml` + pre-commit hook + `.mcp.json.example`
 3. MCP-1 consume — extend `readMcpConfig` in `mount.ts` to accept `mcpServers` key + `./.mcp.json` discovery
 4. MCP-2 make/hook-in — `mount_mcp` tool + `build-mcp-server` skill

@@ -3,7 +3,7 @@ import { writeSkill } from "../skills/store.js";
 /**
  * A built-in business-operator mode: a named, installable skill whose body is a
  * real multi-step how-to an agent can follow. Installed into the skill store so
- * the existing `argo skill <name> "<instr>"` path can run it.
+ * the existing `vanta skill <name> "<instr>"` path can run it.
  */
 export type OperatorMode = {
   name: string;
@@ -134,7 +134,7 @@ export const OPERATOR_MODES: OperatorMode[] = [
 
 /**
  * Install every operator mode into the skill store. Each becomes a runnable
- * skill via `argo skill <name> "<instr>"`. Returns the installed skill names.
+ * skill via `vanta skill <name> "<instr>"`. Returns the installed skill names.
  */
 export async function installModes(
   opts: { env?: NodeJS.ProcessEnv; now?: string } = {},

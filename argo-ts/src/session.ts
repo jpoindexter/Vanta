@@ -62,8 +62,8 @@ import type { Summarizer } from "./context.js";
 import type { AgentDeps } from "./agent.js";
 import type { Message, Goal } from "./types.js";
 
-// Shared run setup used by both the one-shot CLI (`argo run`) and the
-// interactive session (`argo` / `argo chat`). Kept here so neither imports the
+// Shared run setup used by both the one-shot CLI (`vanta run`) and the
+// interactive session (`vanta` / `vanta chat`). Kept here so neither imports the
 // other's module (cli.ts self-executes main()).
 
 export type RunSetup = {
@@ -99,7 +99,7 @@ export async function prepareRun(
   // Ensure the bundled skill library is installed (idempotent: new slugs are
   // added, the user's existing/edited skills are kept). This is what makes
   // shipped skills — including the nd-* executive-function set — appear without
-  // a manual `argo skills install`. Best-effort: never block startup.
+  // a manual `vanta skills install`. Best-effort: never block startup.
   const { installSkillLibrary } = await import("./skills/library.js");
   await installSkillLibrary({ env: process.env }).catch(() => {});
   // Inject the learned-skill INDEX (names+descriptions) so the agent knows what

@@ -9,7 +9,7 @@ Status: approved
 Allow Vanta (agent and user) to move roadmap items between statuses.
 Updates `roadmap.json` and regenerates `roadmap.html`.
 
-Done criteria: `argo roadmap move ND2 building` updates roadmap.json + regenerates HTML.
+Done criteria: `vanta roadmap move ND2 building` updates roadmap.json + regenerates HTML.
 
 ## Out of scope (slices 2 & 3)
 
@@ -68,13 +68,13 @@ Steps:
 `runRoadmapCommand(repoRoot: string, args: string[] = [])`:
 
 ```
-argo roadmap                     → build + open (existing behaviour)
-argo roadmap move <id> <status>  → move item, print result
+vanta roadmap                     → build + open (existing behaviour)
+vanta roadmap move <id> <status>  → move item, print result
 ```
 
 `cli.ts` line 276 changes from `runRoadmapCommand(repoRoot)` to `runRoadmapCommand(repoRoot, rest)`.
 
-Missing args (`argo roadmap move` with no id/status): print usage, exit 1.
+Missing args (`vanta roadmap move` with no id/status): print usage, exit 1.
 
 ## Tests
 

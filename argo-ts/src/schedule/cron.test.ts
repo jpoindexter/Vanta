@@ -63,12 +63,12 @@ describe("cron persistence", () => {
   });
 
   it("returns [] when no cron.tsv exists", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-cron-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-cron-"));
     expect(await loadCron(dir)).toEqual([]);
   });
 
   it("round-trips entries via addCron then loadCron", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-cron-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-cron-"));
     const first = await addCron(dir, "*/15 * * * *", "sweep inbox");
     const second = await addCron(dir, "0 8 * * *", "daily standup");
 
@@ -85,7 +85,7 @@ describe("cron persistence", () => {
   });
 
   it("saveCron rewrites the file and skips malformed lines on load", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-cron-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-cron-"));
     const entries: CronEntry[] = [
       { id: 1, cron: "0 8 * * *", instruction: "a", status: "active" },
       { id: 2, cron: "0 9 * * *", instruction: "b", status: "paused" },
@@ -95,7 +95,7 @@ describe("cron persistence", () => {
   });
 
   it("saveCron with [] yields an empty load", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-cron-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-cron-"));
     await saveCron(dir, []);
     expect(await loadCron(dir)).toEqual([]);
   });

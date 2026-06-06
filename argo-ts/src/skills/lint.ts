@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { skillsDir, slugifySkillName } from "../store/home.js";
 import { parseSkill } from "./frontmatter.js";
 
-// `argo skills lint` — structural validation of SKILL.md files so rot (name↔dir
+// `vanta skills lint` — structural validation of SKILL.md files so rot (name↔dir
 // drift, missing fields, empty bodies, unparseable frontmatter) is caught early
 // instead of by a downstream curator pass. Pure read; reports, never mutates.
 

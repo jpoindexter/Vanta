@@ -70,7 +70,7 @@ const undo: SlashHandler = (_arg, ctx) => {
 
 const skills: SlashHandler = async (_arg, ctx) => {
   const s = await listSkills(ctx.env);
-  if (!s.length) return { output: "  (no skills yet — `argo skills install`)" };
+  if (!s.length) return { output: "  (no skills yet — `vanta skills install`)" };
   // Aligned name column + one-line clipped description (Claude-CLI style) — full
   // multi-sentence descriptions wrap into an unreadable wall otherwise.
   const w = Math.min(24, Math.max(...s.map((x) => x.meta.name.length)) + 2);
@@ -253,7 +253,7 @@ const paste: SlashHandler = async (_arg, ctx) => {
     const { execFile } = await import("node:child_process");
     const { promisify } = await import("node:util");
     const { readFile, rm } = await import("node:fs/promises");
-    const tmp = join(tmpdir(), `argo-paste-${ctx.now().getTime()}.png`);
+    const tmp = join(tmpdir(), `vanta-paste-${ctx.now().getTime()}.png`);
     // macOS: dump the clipboard image to a file via AppleScript.
     const script = `set f to (open for access (POSIX file "${tmp}") with write permission)\ntry\nwrite (the clipboard as «class PNGf») to f\nend try\nclose access f`;
     await promisify(execFile)("osascript", ["-e", script]);

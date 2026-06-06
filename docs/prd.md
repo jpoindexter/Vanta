@@ -127,7 +127,7 @@ MCP integrations (Jason's existing setup — Phase 5)
 > The forward build list is [`../ROADMAP.md`](../ROADMAP.md) (v1 — Full Parity).
 
 ### Phase 1 — Agent Loop ✅
-**Done when:** `argo run "read README and summarize"` works end-to-end with verified output. `argo run "delete everything"` blocked before execution. Ollama works offline.
+**Done when:** `vanta run "read README and summarize"` works end-to-end with verified output. `vanta run "delete everything"` blocked before execution. Ollama works offline.
 
 Delivers:
 - `argo-ts/` TypeScript package
@@ -138,7 +138,7 @@ Delivers:
 - Agent loop: messages[], goal injection, tool dispatch, pause-on-ask approval
 - Context trimmer (protect first 3 + last 6, 75% trigger)
 - Kernel auto-start from CLI
-- `argo run "<instruction>"` CLI entry
+- `vanta run "<instruction>"` CLI entry
 
 Out of scope: memory persistence, skills, web search, browser.
 
@@ -161,7 +161,7 @@ Delivers:
 ---
 
 ### Phase 2B — Web Search ← moved up from Phase 3
-**Done when:** `argo run "research the latest on X and summarize"` returns a cited report using web results, with no API key required by default.
+**Done when:** `vanta run "research the latest on X and summarize"` returns a cited report using web results, with no API key required by default.
 
 This moved up because it's the #1 most requested Hermes feature (95 combined reactions across 3 issues). It unlocks research tasks that make Vanta genuinely useful for business operator work.
 
@@ -239,7 +239,7 @@ Delivers:
 **Done when:** Vanta runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.
 
 Delivers:
-- Cron scheduler — `argo schedule "daily briefing" --cron "0 8 * * *"`, stored in `.vanta/cron.tsv`
+- Cron scheduler — `vanta schedule "daily briefing" --cron "0 8 * * *"`, stored in `.vanta/cron.tsv`
 - Scheduled task runner — wakes, loads goal context, executes, logs to events.jsonl
 - All scheduled actions gate through safety kernel — no blanket auto-approval for scheduled work
 - **Subagent spawning** — parent agent decomposes work, spawns workers with explicit scoped permissions
@@ -273,15 +273,15 @@ v0 has every subsystem; v1 closes the *experience + self-improvement* gap that m
 it feel like scripts. Built from a full read of the Hermes reference. Seven tracks —
 **ordered build list, sizes, and "done when" live in [`../ROADMAP.md`](../ROADMAP.md)**:
 
-- **A — Hook to any model + full setup.** Gemini + OpenRouter providers, a declarative provider registry (so new backends auto-wire), `argo setup` first-run wizard (provider picker → masked key → merged `.env` → model pick), first-run auto-launch, `argo status`/`doctor`. *Delivers the headline: "open argo → setup → hook to ChatGPT/Claude/Gemini → run."*
+- **A — Hook to any model + full setup.** Gemini + OpenRouter providers, a declarative provider registry (so new backends auto-wire), `vanta setup` first-run wizard (provider picker → masked key → merged `.env` → model pick), first-run auto-launch, `vanta status`/`doctor`. *Delivers the headline: "open vanta → setup → hook to ChatGPT/Claude/Gemini → run."*
 - **B — Self-improvement loop.** A minimal hook spine, post-turn nudge counters, a **background-review fork** (whitelisted to memory+skills, replays each turn, writes its own skills), and a **safe curator** (consolidate + archive, **never auto-delete**; provenance so it only touches agent-created skills). *This is "how it self-improves everything."*
-- **C — Continuity.** SQLite session persist + resume (`argo --resume`, `sessions browse`). *So it stops forgetting between runs.*
+- **C — Continuity.** SQLite session persist + resume (`vanta --resume`, `sessions browse`). *So it stops forgetting between runs.*
 - **D — Borrow the skills library.** Port the top ~20 of ~181 portable Hermes/OpenClaw `SKILL.md`s (coupling stripped) + adopt skill bundles.
 - **E — Autonomy & reach.** Daemon/service mode (launchd, in-process cron tick), a first messaging gateway (Telegram), webhook triggers + deliver targets, steer/interrupt, MCP client, optional ACP server.
 - **F — Robustness steals.** Message sanitization, loop guardrails, subdirectory hints, jittered retry backoff.
 - **G — Subscription auth.** Claude / ChatGPT-Codex / Gemini-CLI OAuth (enhances A; API keys work without it).
 
-**v1 done (one sentence):** Open `argo` → it talks back → a wizard configures any model
+**v1 done (one sentence):** Open `vanta` → it talks back → a wizard configures any model
 backend without editing files → it remembers conversations → it learns from what it does
 → it's reachable as a background service.
 
@@ -330,11 +330,11 @@ backend without editing files → it remembers conversations → it learns from 
 
 ## Done criteria — Phase 1
 
-- [ ] `argo run "list my active goals"` → reads kernel, responds with goal list
-- [ ] `argo run "read README.md and summarize"` → reads file, returns summary with verification step visible
-- [ ] `argo run "delete everything"` → blocked before any execution, no files touched
-- [ ] `argo run "install a daemon"` → queued for approval, not executed
-- [ ] `VANTA_PROVIDER=ollama argo run "what are my goals"` → uses local model, no internet required
+- [ ] `vanta run "list my active goals"` → reads kernel, responds with goal list
+- [ ] `vanta run "read README.md and summarize"` → reads file, returns summary with verification step visible
+- [ ] `vanta run "delete everything"` → blocked before any execution, no files touched
+- [ ] `vanta run "install a daemon"` → queued for approval, not executed
+- [ ] `VANTA_PROVIDER=ollama vanta run "what are my goals"` → uses local model, no internet required
 - [ ] All Rust tests pass (`cargo test`)
 - [ ] All TS tests pass (`npm test`)
 - [ ] Kernel auto-starts if not running

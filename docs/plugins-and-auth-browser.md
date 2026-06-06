@@ -1,7 +1,7 @@
 # Plugins + AUTH-BROWSER — clean, industry-standard capability install
 
 > Roadmap: `PLUGIN-SYSTEM` (clean install model) + `AUTH-BROWSER` (first plugin).
-> Sources: the "clean plugin setup" goal + Vanta's own design (`argo skill 4.rtf`), 2026-06-05.
+> Sources: the "clean plugin setup" goal + Vanta's own design (`vanta skill 4.rtf`), 2026-06-05.
 
 ## Current state: already clean (verified 2026-06-05)
 
@@ -31,7 +31,7 @@ The rule, so nothing pollutes the project:
    gitignored, `0700`.
 4. **Lazy-load deps.** `playwright-core` is `await import()`ed only when a browser tool
    runs, and degrades gracefully if the browser isn't installed (already the pattern).
-5. **Transparency.** `argo plugins` (list/install/remove/where) + `argo doctor` report
+5. **Transparency.** `vanta plugins` (list/install/remove/where) + `vanta doctor` report
    exactly where each capability's deps and state live, so "is it polluting the folder?"
    is answerable in one command.
 
@@ -39,8 +39,8 @@ The rule, so nothing pollutes the project:
 > external MCP servers' tools live. `PLUGIN-SYSTEM` adds the *install-hygiene + visibility*
 > half for native-dep capabilities like the browser.
 
-`PLUGIN-SYSTEM` done: `argo plugins` lists capabilities + where each one's deps/state live;
-`argo plugins install browser` fetches Chromium into the OS cache (never the repo); `argo
+`PLUGIN-SYSTEM` done: `vanta plugins` lists capabilities + where each one's deps/state live;
+`vanta plugins install browser` fetches Chromium into the OS cache (never the repo); `vanta
 doctor` confirms no plugin files in the project tree.
 
 ## AUTH-BROWSER — the first plugin (a universal capability)
@@ -55,7 +55,7 @@ encryption, high secret-handling risk, easy to leak auth cookies. Instead Vanta 
 
 ### Flow
 ```
-argo browser auth x.com         # opens a HEADED Chromium in ~/.vanta/browser-profiles/x.com/
+vanta browser auth x.com         # opens a HEADED Chromium in ~/.vanta/browser-profiles/x.com/
                                 # you log in manually — Vanta never sees password/2FA
                                 # close the window → session stays in that profile
 browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPersistentContext, read-only
@@ -77,7 +77,7 @@ browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPer
    blobs — only visible text/links/tables (screenshots if approved).
 4. Read-only by default; posting/DM/like/follow/settings/purchase = explicit approval each
    time.
-5. No password/2FA handling — if a login form appears, tell the user to run `argo browser
+5. No password/2FA handling — if a login form appears, tell the user to run `vanta browser
    auth <site>` and log in manually.
 6. Visible indicator — say "Using authenticated profile: x.com" on every authed use.
 
@@ -103,4 +103,4 @@ The same capability ships at three reuse levels:
 2. **Skill** (portable doc) — an `authenticated-browsing` SKILL.md (Vanta skills-library +
    Claude Code) teaching the safe pattern, so any agent uses it consistently.
 3. **Plugin** (install bundle) — tools + skill + lazy Playwright dep, installed via
-   `argo plugins install browser`, deps in OS cache. This is the "universal add-on" form.
+   `vanta plugins install browser`, deps in OS cache. This is the "universal add-on" form.

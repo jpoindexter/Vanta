@@ -50,7 +50,7 @@ export const watchVideoTool: Tool = {
       const { mkdtemp, readdir, readFile, rm } = await import("node:fs/promises");
 
       const abs = path.startsWith("~") ? join(homedir(), path.slice(1)) : path;
-      const dir = await mkdtemp(join(tmpdir(), "argo-video-"));
+      const dir = await mkdtemp(join(tmpdir(), "vanta-video-"));
       try {
         // ~1 fps sampling, capped at `frames` — robust without probing duration.
         await promisify(execFile)("ffmpeg", ["-i", abs, "-vf", "fps=1", "-frames:v", String(frames), "-y", join(dir, "f%03d.png")]);

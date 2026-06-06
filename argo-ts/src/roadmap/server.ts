@@ -15,7 +15,7 @@ export function createRoadmapServer(repoRoot: string): Server {
         res.end(html);
       } catch {
         res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("roadmap.html not found — run `argo roadmap` first");
+        res.end("roadmap.html not found — run `vanta roadmap` first");
       }
       return;
     }

@@ -35,7 +35,7 @@ export const lookAtCameraTool: Tool = {
       const { promisify } = await import("node:util");
       const { readFile, rm } = await import("node:fs/promises");
 
-      const tmp = join(tmpdir(), `argo-cam-${process.pid}-${Date.now()}.jpg`);
+      const tmp = join(tmpdir(), `vanta-cam-${process.pid}-${Date.now()}.jpg`);
       await promisify(execFile)("imagesnap", ["-q", tmp]);
       const buf = await readFile(tmp).catch(() => Buffer.alloc(0));
       await rm(tmp, { force: true }).catch(() => {});

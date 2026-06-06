@@ -91,7 +91,7 @@ export function startWebhookServer(opts: {
     server.listen(opts.port, () => {
       const addr = server.address();
       const port = typeof addr === "object" && addr ? addr.port : opts.port;
-      log(`argo gateway: webhook listener on :${port}${opts.secret ? " (HMAC-verified)" : " (UNAUTHENTICATED — set VANTA_WEBHOOK_SECRET)"}`);
+      log(`vanta gateway: webhook listener on :${port}${opts.secret ? " (HMAC-verified)" : " (UNAUTHENTICATED — set VANTA_WEBHOOK_SECRET)"}`);
       resolve({
         port,
         close: () =>

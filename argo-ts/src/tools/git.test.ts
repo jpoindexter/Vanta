@@ -22,7 +22,7 @@ describe("git tools", () => {
   let repo: string;
 
   beforeEach(async () => {
-    repo = await mkdtemp(join(tmpdir(), "argo-git-"));
+    repo = await mkdtemp(join(tmpdir(), "vanta-git-"));
     await run("git", ["init"], { cwd: repo });
   });
 

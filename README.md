@@ -6,13 +6,13 @@ OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts
 
 Two layers:
 - **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
-- **`argo-ts/` — TypeScript agent layer** (`argo`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
+- **`argo-ts/` — TypeScript agent layer** (`vanta`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
 
 See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.
 
 ## Install
 
-One command on a fresh machine — clones Vanta into `~/argo`, builds the kernel, and puts a global `argo` on your PATH:
+One command on a fresh machine — clones Vanta into `~/vanta`, builds the kernel, and puts a global `vanta` on your PATH:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh
 
 > The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `VANTA_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.
 
-Then: `argo setup` (pick a model backend) → `argo` (interactive session) → `argo doctor` (health check).
+Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) → `vanta doctor` (health check).
 
 ## Quickstart
 
@@ -40,7 +40,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 ./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
 ```
 
-(`./argo` is an alias for `./run.sh`. Prereqs: Rust + Node 22.)
+(`./vanta` is an alias for `./run.sh`. Prereqs: Rust + Node 22.)
 
 ## What works now (all 7 PRD phases — 32 tools, 290 tests green)
 

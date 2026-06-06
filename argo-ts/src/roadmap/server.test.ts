@@ -18,7 +18,7 @@ let server: Server;
 let baseUrl: string;
 
 async function startServer(): Promise<void> {
-  dir = await mkdtemp(join(tmpdir(), "argo-board-"));
+  dir = await mkdtemp(join(tmpdir(), "vanta-board-"));
   server = createRoadmapServer(dir);
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject);

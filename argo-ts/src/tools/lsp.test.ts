@@ -42,7 +42,7 @@ describe("lspDiagnosticsTool", () => {
   });
 
   it("returns diagnostics for a clean in-scope .ts file", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-lsp-test-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-lsp-test-"));
     try {
       const file = join(dir, "clean.ts");
       await writeFile(file, "export const answer: number = 42;\n", "utf8");

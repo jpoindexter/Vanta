@@ -26,7 +26,7 @@ A plugin = a self-contained module that extends the agent **without modifying co
 | `register_tool()` | an LLM-callable tool (schema + handler) |
 | `register_hook()` | a lifecycle callback |
 | `register_command()` | a `/slash` command |
-| `register_cli_command()` | an `argo <plugin> <sub>` subcommand |
+| `register_cli_command()` | an `vanta <plugin> <sub>` subcommand |
 | `register_skill()` | bundled knowledge |
 | `register_provider()` / `register_platform()` | a model backend / messaging channel |
 | `llm.complete()` | borrow the user's active model for a one-shot |
@@ -48,7 +48,7 @@ through `assess()`** (a hard boundary Hermes lacks — Hermes plugins run unsand
 `on_session_start/end/finalize/reset` · `subagent_stop` · `pre_gateway_dispatch`
 (returns skip/rewrite/allow — auth/filtering).
 
-**Management:** `argo plugins` (interactive) · `install <owner/repo>` · `enable/disable <name>` ·
+**Management:** `vanta plugins` (interactive) · `install <owner/repo>` · `enable/disable <name>` ·
 `update` · `remove`. Manifest = a small `plugin.yaml`/`plugin.json` (name, version, requires_env).
 
 ## Plugin vs MCP vs skill vs slash command (keep distinct)
@@ -63,7 +63,7 @@ A plugin can bundle skills, register commands, and dispatch tools/MCP.
 ## Build order
 
 1. **`PLUGIN-FRAMEWORK`** — `plugins/context.ts` (`PluginContext`) + `register(ctx)` loader +
-   discovery precedence + `plugins.enabled` allow-list + `argo plugins` CLI. Wrap the existing
+   discovery precedence + `plugins.enabled` allow-list + `vanta plugins` CLI. Wrap the existing
    registry/MCP/skills so a plugin can register a kernel-gated tool. Manifest schema (zod).
 2. **`PLUGIN-HOOKS`** — the lifecycle hook bus (pre/post tool, pre/post LLM, session events,
    subagent_stop) plugins attach to; fold the existing Claude Code hooks into it.

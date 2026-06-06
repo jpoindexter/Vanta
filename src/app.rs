@@ -37,9 +37,9 @@ pub fn doctor(state: &State) -> Result<(), String> {
 }
 
 fn migrate_legacy_data(state: &State) {
-    // Lineage: .nexarion → .argo → .vanta. Copy any legacy data dir's records
+    // Lineage: .nexarion → .vanta → .vanta. Copy any legacy data dir's records
     // into .vanta on first run; old dirs are preserved (copy, not move).
-    for legacy_name in [".nexarion", ".argo"] {
+    for legacy_name in [".nexarion", ".vanta"] {
         let legacy = state.root.join(legacy_name);
         if !legacy.exists() || legacy == state.data_dir {
             continue;

@@ -7,7 +7,7 @@ import { skillsDir, slugifySkillName } from "../store/home.js";
 import type { ToolContext } from "./types.js";
 
 // Deterministic temp home derived from the suite name, not time/randomness.
-const VANTA_HOME = join(tmpdir(), "argo-recall-test-store");
+const VANTA_HOME = join(tmpdir(), "vanta-recall-test-store");
 const SKILL_NAME = "web-research";
 const SKILL_DESC = "How to research a topic with web search and verify sources.";
 
@@ -72,6 +72,6 @@ describe("recallTool", () => {
 
   it("never leaks the raw query in describeForSafety", () => {
     const label = recallTool.describeForSafety?.({ query: "rm -rf danger" });
-    expect(label).toBe("search argo's skill library");
+    expect(label).toBe("search vanta's skill library");
   });
 });

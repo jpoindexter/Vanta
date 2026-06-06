@@ -47,7 +47,7 @@ describe("buildProviderForSelection", () => {
 
 describe("persistSelectionGlobal", () => {
   it("writes VANTA_PROVIDER/VANTA_MODEL + key into argo-ts/.env, preserving other lines", async () => {
-    const root = await mkdtemp(join(tmpdir(), "argo-switch-"));
+    const root = await mkdtemp(join(tmpdir(), "vanta-switch-"));
     await mkdir(join(root, "argo-ts"), { recursive: true });
     const envFile = join(root, "argo-ts", ".env");
     await writeFile(envFile, "GOOGLE_OAUTH=keep-me\nVANTA_PROVIDER=openai\n", "utf8");

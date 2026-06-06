@@ -168,10 +168,10 @@ async function discardSlice(root: string): Promise<void> {
 
 /**
  * Run one complete factory cycle: gate → triage → branch → plan → execute → verify → commit.
- * In review mode, prints the plan and exits for human approval (run `argo factory approve` to proceed).
+ * In review mode, prints the plan and exits for human approval (run `vanta factory approve` to proceed).
  */
 export async function runCycle(config: FactoryConfig, log: (msg: string) => void = console.log): Promise<CycleResult> {
-  const treeDirty = await isTreeDirty(config.argoRoot);
+  const treeDirty = await isTreeDirty(config.vantaRoot);
   const acquired = await acquireLock(config.dataDir);
   const lockExists = !acquired;
   const disabled = Boolean(process.env.VANTA_FACTORY_DISABLED);
@@ -184,7 +184,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
 
   try {
     log("factory: triaging backlog…");
-    const item = await triage(config.argoRoot);
+    const item = await triage(config.vantaRoot);
     if (!item) return { status: "nothing-to-do" };
     log(`factory: [${item.category}] ${item.description}`);
 
@@ -194,49 +194,49 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "aborted", reason: "item too vague — add context then re-run" };
     }
 
-    const plan = buildPlan(item, config.argoRoot);
+    const plan = buildPlan(item, config.vantaRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
     const level = config.autonomyLevel;
 
     if (level <= 1) {
       // L1 suggest — print the plan, change nothing (no branch).
-      log(`[L1 suggest] Run 'argo factory approve' to implement this plan.`);
-      return { status: "aborted", reason: "suggest mode (L1) — awaiting approval (run: argo factory approve)" };
+      log(`[L1 suggest] Run 'vanta factory approve' to implement this plan.`);
+      return { status: "aborted", reason: "suggest mode (L1) — awaiting approval (run: vanta factory approve)" };
     }
 
-    const preExisting = await listPreExistingFiles(config.argoRoot);
-    const startBranch = await currentBranch(config.argoRoot);
-    const branch = await createBranch(config.argoRoot);
+    const preExisting = await listPreExistingFiles(config.vantaRoot);
+    const startBranch = await currentBranch(config.vantaRoot);
+    const branch = await createBranch(config.vantaRoot);
     log(`factory: branched → ${branch}`);
 
     // FAC-STALL + FAC-ESCALATE: bounded retry; escalates to a stronger model after
     // VANTA_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
     const maxRetries = Math.max(0, parseInt(process.env.VANTA_FACTORY_MAX_RETRIES ?? "1", 10));
     const escalateAfter = Math.max(1, parseInt(process.env.VANTA_FACTORY_ESCALATE_AFTER ?? "1", 10));
-    let artifact = await execute(config.argoRoot, plan, config.budgetTokens);
+    let artifact = await execute(config.vantaRoot, plan, config.budgetTokens);
     log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
-    let verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+    let verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     let totalTokens = artifact.tokenSpend;
     for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
       const escalate = retry >= escalateAfter && process.env.VANTA_MODEL_EXPENSIVE;
       const escalateNote = escalate ? ` [escalating to ${process.env.VANTA_MODEL_EXPENSIVE}]` : "";
       log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})${escalateNote}…`);
-      await discardSlice(config.argoRoot);
-      const retryBranch = await createBranch(config.argoRoot);
+      await discardSlice(config.vantaRoot);
+      const retryBranch = await createBranch(config.vantaRoot);
       log(`factory: branched → ${retryBranch}`);
       const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
       // FAC-ESCALATE: override VANTA_MODEL to the expensive model when stalled.
       if (escalate) process.env.VANTA_MODEL = process.env.VANTA_MODEL_EXPENSIVE!;
-      artifact = await execute(config.argoRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
+      artifact = await execute(config.vantaRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
       if (escalate) delete process.env.VANTA_MODEL; // restore default after retry
       totalTokens += artifact.tokenSpend;
       log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
-      verifyResult = await verify(config.argoRoot, artifact, preExisting, { workItem: item });
+      verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     }
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
-      await discardSlice(config.argoRoot);
+      await discardSlice(config.vantaRoot);
       return { status: "verify-failed", workItem: item, reason: verifyResult.reason ?? "unknown" };
     }
 
@@ -256,12 +256,12 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     const msg = `factory(auto): ${item.description}\n\ncategory: ${item.category}\ntokens: ${artifact.tokenSpend.toLocaleString()}\nbranch: ${branch}`;
-    const sha = await commitSlice(config.argoRoot, msg);
+    const sha = await commitSlice(config.vantaRoot, msg);
     log(`factory: committed ${sha}`);
     // FAC-CLOSE: mark the roadmap item shipped so the KANBAN reflects the close.
     if (item.roadmapId && item.category === "roadmap") {
       const { moveRoadmapItem } = await import("../roadmap/move.js");
-      await moveRoadmapItem(config.argoRoot, item.roadmapId, "shipped").catch(() => {});
+      await moveRoadmapItem(config.vantaRoot, item.roadmapId, "shipped").catch(() => {});
       log(`factory: closed roadmap item ${item.roadmapId}`);
     }
 
@@ -271,7 +271,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     // L4 push — publish the branch.
-    await pushBranch(config.argoRoot);
+    await pushBranch(config.vantaRoot);
     log(`factory: pushed ${branch}`);
 
     if (effectiveLevel <= 4) {
@@ -284,7 +284,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const mergeTarget = resolveMergeTarget(process.env);
     const decision = assessMergeRisk({
       touchedFiles: artifact.touchedFiles,
-      diffLineCount: await lastCommitLineCount(config.argoRoot),
+      diffLineCount: await lastCommitLineCount(config.vantaRoot),
       allowMerge: Boolean(process.env.VANTA_AUTONOMY_ALLOW_MERGE),
       mergeTarget,
     });
@@ -293,7 +293,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
     }
 
-    const merged = await mergeIntoTarget(config.argoRoot, mergeTarget, branch, startBranch);
+    const merged = await mergeIntoTarget(config.vantaRoot, mergeTarget, branch, startBranch);
     if (!merged) {
       log(`factory: [L5] merge into ${mergeTarget} failed (conflict or missing target) — left at L4 push on ${branch}`);
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };

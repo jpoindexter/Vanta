@@ -23,7 +23,7 @@ Current run command:
 
 ```bash
 cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
-npm run argo -- desktop
+npm run vanta -- desktop
 ```
 
 Current local URL:
@@ -144,7 +144,7 @@ If Rust changes are needed, stop and ask Jason first.
 Current command added:
 
 ```bash
-argo desktop [port]
+vanta desktop [port]
 ```
 
 Wired in:
@@ -1133,7 +1133,7 @@ npx tsc --noEmit
 If CLI wiring changed, also manually run:
 
 ```bash
-npm run argo -- desktop
+npm run vanta -- desktop
 ```
 
 Manual smoke tests:

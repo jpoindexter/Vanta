@@ -41,7 +41,7 @@ export const writeSkillTool: Tool = {
   // Constant string by design: a skill write is an internal memory op touching
   // no user files. Echoing name/description/body/tags here would let their
   // content (e.g. the word "delete") false-trigger the kernel safety classifier.
-  describeForSafety: () => "record a learned skill in argo's memory",
+  describeForSafety: () => "record a learned skill in vanta's memory",
   async execute(raw) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { resolveInScope } from "./scope.js";
 
-const ROOT = "/Users/jason/projects/argo";
+const ROOT = "/Users/jason/projects/vanta";
 
 describe("resolveInScope", () => {
   it("allows a relative path inside root", () => {
@@ -23,6 +23,6 @@ describe("resolveInScope", () => {
   });
 
   it("rejects a sibling dir sharing a name prefix", () => {
-    expect(resolveInScope("/Users/jason/projects/argo-evil", ROOT).ok).toBe(false);
+    expect(resolveInScope("/Users/jason/projects/vanta-evil", ROOT).ok).toBe(false);
   });
 });

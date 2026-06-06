@@ -109,12 +109,12 @@ details[open]>summary::before{content:"▾ "}
 
 const DRAG_JS = `(function(){
 // Drag-to-move persists via POST /roadmap/move, which only exists when the board
-// is SERVED (argo roadmap serve). Opened as a file:// it has no origin, so the fetch
+// is SERVED (vanta roadmap serve). Opened as a file:// it has no origin, so the fetch
 // fails CORS. Detect that, skip the fetch entirely, and show a read-only banner.
 var served=location.protocol==='http:'||location.protocol==='https:';
 if(!served){
 var b=document.createElement('div');
-b.textContent='Read-only view. To drag cards between columns, run  argo roadmap serve  then open  http://localhost:7789/roadmap/board';
+b.textContent='Read-only view. To drag cards between columns, run  vanta roadmap serve  then open  http://localhost:7789/roadmap/board';
 b.style.cssText='position:sticky;top:0;z-index:99;background:#1e293b;border:1px solid #334155;border-left:3px solid #fbbf24;color:#cbd5e1;font:.75rem/1.5 ui-monospace,monospace;padding:.5rem .75rem;margin-bottom:.75rem;border-radius:4px';
 document.body.insertBefore(b,document.body.firstChild);
 return;

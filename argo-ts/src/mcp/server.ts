@@ -15,7 +15,7 @@ import type { Tool, ToolContext } from "../tools/types.js";
 //      `allow` executes. The kernel is the real boundary; the allowlist is not.
 
 const PROTOCOL_VERSION = "2024-11-05";
-const SERVER_INFO = { name: "argo", version: "0.1.0" } as const;
+const SERVER_INFO = { name: "vanta", version: "0.1.0" } as const;
 
 // Read-only tools safe to expose out of the box. The kernel still gates each call
 // (a read_file outside scope is still asked/blocked); this just bounds visibility.

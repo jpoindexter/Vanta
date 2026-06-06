@@ -4,7 +4,7 @@ import { recordRun, shouldProposeSkill } from "../modes/learning.js";
 import { listSkills } from "../skills/store.js";
 import type { Room } from "./rooms.js";
 
-/** `argo rooms` — print every project room as "<name>  <path>". */
+/** `vanta rooms` — print every project room as "<name>  <path>". */
 export async function runRoomsList(env: NodeJS.ProcessEnv): Promise<void> {
   const rooms = await listRooms(env);
   if (rooms.length === 0) {
@@ -26,7 +26,7 @@ export async function resolveRoomOrExit(
   if (!room) {
     console.log(
       `No project named "${name}" under ${projectsBaseDir(env)}. ` +
-        "Run `argo rooms` to list available projects.",
+        "Run `vanta rooms` to list available projects.",
     );
     return null;
   }
@@ -37,8 +37,8 @@ export async function resolveRoomOrExit(
 const MODE_NAMES = new Set(OPERATOR_MODES.map((mode) => mode.name));
 
 /**
- * `argo modes` / `argo modes list` lists which operator modes are installed in
- * the skill store; `argo modes install` installs them all. Other subcommands
+ * `vanta modes` / `vanta modes list` lists which operator modes are installed in
+ * the skill store; `vanta modes install` installs them all. Other subcommands
  * print usage guidance. "Installed" is read from the store, not the catalog, so
  * the list reflects reality.
  */
@@ -54,7 +54,7 @@ export async function runModes(
   }
 
   if (sub && sub !== "list") {
-    console.log('Usage: argo modes [list|install]');
+    console.log('Usage: vanta modes [list|install]');
     return;
   }
 
@@ -68,7 +68,7 @@ export async function runModes(
     console.log(`${mark} ${mode.name} — ${mode.description}`);
   }
   if (installed.size === 0) {
-    console.log("\nRun `argo modes install` to install them.");
+    console.log("\nRun `vanta modes install` to install them.");
   }
 }
 

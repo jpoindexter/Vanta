@@ -175,7 +175,7 @@ These are meatier but all well-specified:
 ### Phase 3 — Memory foundation (enables all BRAIN-NEURO work)
 
 13. [ ] **MEM-HOOKS** — Claude Code Stop/PreCompact hooks.
-    - `scripts/argo-memhook.sh`: Stop hook mines transcript every 10 turns (background).
+    - `scripts/vanta-memhook.sh`: Stop hook mines transcript every 10 turns (background).
     - PreCompact hook runs synchronously.
     - Zero tokens in chat. Install instructions in README.
 
@@ -187,7 +187,7 @@ These are meatier but all well-specified:
 15. [ ] **MEM-TIMESTAMPS** — Conversation timestamps in memory (not ingest time).
     - Add `timestamp` to `Message` type (record at send time).
     - Propagate to memory store entries.
-    - Enables: `argo memory search --since 7d`.
+    - Enables: `vanta memory search --since 7d`.
 
 16. [ ] **MEM-WORKINGMEM** — Session-scoped working memory hot cache.
     - `VANTA_WORKING_MEM_TOKENS` env (default 2k).

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { appendMemory, readMemory, recentMemory } from "./store.js";
 
-const VANTA_HOME = join(tmpdir(), "argo-memory-store-test");
+const VANTA_HOME = join(tmpdir(), "vanta-memory-store-test");
 const env = { ...process.env, VANTA_HOME };
 
 describe("memory store", () => {

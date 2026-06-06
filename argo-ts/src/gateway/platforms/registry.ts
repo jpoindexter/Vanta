@@ -1,5 +1,5 @@
 // Messaging platform registry — the catalog the setup wizard, gateway, and
-// `argo doctor` read to know which messaging gateways exist, what each needs,
+// `vanta doctor` read to know which messaging gateways exist, what each needs,
 // and whether it's configured. Mirrors providers/catalog.ts. Adding a platform
 // = one entry here + its PlatformAdapter file; nothing central to edit.
 //

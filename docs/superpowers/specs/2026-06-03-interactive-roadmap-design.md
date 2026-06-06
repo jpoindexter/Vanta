@@ -16,7 +16,7 @@ a structured, parseable source with human views *generated from it*, never the r
 
 - [ ] `roadmap.json` exists at repo root, seeded from the current `ROADMAP.md`, holding every track item.
 - [ ] `roadmap.html` is generated from it — a Now / Next / Later product roadmap, filterable, opens in a browser.
-- [ ] `argo roadmap` builds + opens the HTML.
+- [ ] `vanta roadmap` builds + opens the HTML.
 - [ ] Vanta reads `roadmap.json` natively (agent-ready) — verified by the agent answering "what's on your roadmap" from the file.
 - [ ] Generator is pure + unit-tested; `tsc` clean.
 
@@ -43,8 +43,8 @@ roadmap.json   ← single source of truth (agent-ready)
       "title": "Use any MCP (consume)",
       "status": "building",
       "size": "S",
-      "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + argo mcp list.",
-      "done": "argo mcp list shows a server's tools; Vanta calls one live."
+      "summary": "Fix config discovery: accept mcpServers key + ./.mcp.json + vanta mcp list.",
+      "done": "vanta mcp list shows a server's tools; Vanta calls one live."
     }
   ]
 }
@@ -63,7 +63,7 @@ roadmap.json   ← single source of truth (agent-ready)
 | `render.ts` | pure | `renderRoadmap(data) → string` — self-contained HTML (inline CSS/JS, no deps). Now/Next/Later columns, track grouping, status-colored cards, click-to-expand `done`, filter by track/status. Unit-tested. |
 | `build.ts` | I/O | read `roadmap.json` (repo root) → validate → write `roadmap.html` |
 
-CLI: `argo roadmap` → `build.ts` then `open roadmap.html` (macOS `open`).
+CLI: `vanta roadmap` → `build.ts` then `open roadmap.html` (macOS `open`).
 
 ### Agent-ready
 

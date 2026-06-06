@@ -14,7 +14,7 @@ import type { RunTask } from "../schedule/runner.js";
 
 export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta");
 
-// Non-interactive task runner for `argo cron` / gateway: approvals denied (no TTY).
+// Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
   return async (instruction) => {
     const setup = await prepareRun(repoRoot, instruction);
@@ -32,7 +32,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
   };
 }
 
-// `argo gateway` — run the cron scheduler as a foreground daemon (the long-lived
+// `vanta gateway` — run the cron scheduler as a foreground daemon (the long-lived
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
   const runTask = buildCronRunTask(repoRoot);
@@ -70,7 +70,7 @@ export async function runGatewayCommand(repoRoot: string): Promise<void> {
   });
 }
 
-// `argo service install|uninstall|status` — manage the background launchd agent.
+// `vanta service install|uninstall|status` — manage the background launchd agent.
 export async function runServiceCommand(repoRoot: string, rest: string[]): Promise<void> {
   const sub = rest[0] ?? "status";
   try {
@@ -91,7 +91,7 @@ export async function runServiceCommand(repoRoot: string, rest: string[]): Promi
       );
       return void console.log(s.plistPath);
     }
-    console.log("Usage: argo service install | uninstall | status");
+    console.log("Usage: vanta service install | uninstall | status");
   } catch (err: unknown) {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
@@ -120,7 +120,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const allowlist = resolveServeAllowlist(process.env);
     // Headless: no human to prompt, so self-checks (overwrite, new domain) deny.
     const ctx = { root: repoRoot, safety, requestApproval: async () => false };
-    console.error(`argo mcp serve — ${allowlist.size} tool(s) exposed, kernel-gated`);
+    console.error(`vanta mcp serve — ${allowlist.size} tool(s) exposed, kernel-gated`);
     await runMcpServer(stdioServerTransport(), { registry, safety, ctx, allowlist });
     return;
   }
@@ -158,7 +158,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
     const id = args[1];
     const status = args[2];
     if (!id || !status) {
-      console.error("Usage: argo roadmap move <id> <status>");
+      console.error("Usage: vanta roadmap move <id> <status>");
       console.error("  status: shipped | building | next | horizon");
       process.exit(1);
     }
@@ -200,7 +200,7 @@ export async function runFactoryCommand(repoRoot: string, sub: string): Promise<
     // L4 by default (commit + push); VANTA_AUTONOMY_LEVEL=2|3 stops earlier.
     const autonomyLevel = resolveAutonomyLevel("approve", process.env);
     const result = await runCycle(
-      { argoRoot: repoRoot, dataDir, autonomyLevel, budgetTokens: budget, interactive: true },
+      { vantaRoot: repoRoot, dataDir, autonomyLevel, budgetTokens: budget, interactive: true },
       console.log,
     );
     console.log(`\n${formatCycleLog(result)}`);
@@ -224,14 +224,14 @@ export async function runFactoryCommand(repoRoot: string, sub: string): Promise<
   }
 
   if (sub === "review" || sub === "") {
-    // argo improve or argo factory (no sub): L1 suggest — print plan, don't execute
+    // vanta improve or vanta factory (no sub): L1 suggest — print plan, don't execute
     const result = await runCycle(
-      { argoRoot: repoRoot, dataDir, autonomyLevel: 1, budgetTokens: budget, interactive: true },
+      { vantaRoot: repoRoot, dataDir, autonomyLevel: 1, budgetTokens: budget, interactive: true },
       console.log,
     );
     console.log(`\n${formatCycleLog(result)}`);
     return;
   }
 
-  console.log("Usage: argo factory [approve|status]");
+  console.log("Usage: vanta factory [approve|status]");
 }

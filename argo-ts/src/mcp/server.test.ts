@@ -55,7 +55,7 @@ describe("buildInitializeResult", () => {
     const r = buildInitializeResult();
     expect(r.protocolVersion).toBe("2024-11-05");
     expect(r.capabilities).toEqual({ tools: {} });
-    expect(r.serverInfo).toEqual({ name: "argo", version: "0.1.0" });
+    expect(r.serverInfo).toEqual({ name: "vanta", version: "0.1.0" });
   });
 });
 
@@ -156,14 +156,14 @@ function linkedTransports(): { clientT: Transport; serverT: ServerTransport } {
 describe("reciprocal: real McpClient drives the server through the kernel gate", () => {
   let root: string;
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), "argo-serve-"));
+    root = await mkdtemp(join(tmpdir(), "vanta-serve-"));
   });
   afterEach(async () => {
     await rm(root, { recursive: true, force: true });
   });
 
   it("allow verdict → read_file executes end-to-end via tools/list + tools/call", async () => {
-    await writeFile(join(root, "hello.txt"), "from argo serve", "utf8");
+    await writeFile(join(root, "hello.txt"), "from vanta serve", "utf8");
     const safety = fakeSafety("allow");
     const { clientT, serverT } = linkedTransports();
     const serverDeps = deps({
@@ -178,7 +178,7 @@ describe("reciprocal: real McpClient drives the server through the kernel gate",
     expect(tools.map((t) => t.name)).toContain("read_file");
 
     const out = await client.callTool("read_file", { path: "hello.txt" });
-    expect(out).toContain("from argo serve");
+    expect(out).toContain("from vanta serve");
   });
 
   it("block verdict → the gate refusal is surfaced to the client", async () => {

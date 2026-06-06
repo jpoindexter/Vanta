@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { createInterface, type Interface as Readline } from "node:readline/promises";
 import { PROVIDER_CATALOG, type ProviderEntry } from "./providers/catalog.js";
 
-// `argo setup` — first-run wizard. Picks a provider, takes a key (if needed) and
+// `vanta setup` — first-run wizard. Picks a provider, takes a key (if needed) and
 // a model, and MERGES the result into argo-ts/.env without disturbing any other
 // keys (Google OAuth, search keys, etc.). No config file, no .env regeneration.
 
@@ -125,7 +125,7 @@ export async function runSetup(
     await writeFile(path, merged, { mode: 0o600 });
 
     console.log(`\n  ✓ Wrote ${entry.label} · ${model} to ${path}`);
-    console.log("  Run `argo` to start, or `argo doctor` to check health.\n");
+    console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
     return true;
   } finally {
     if (!rl) ownRl.close();

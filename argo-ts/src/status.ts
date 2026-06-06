@@ -6,7 +6,7 @@ import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
 
-// `argo status` / `argo doctor` — read-only health. Pings the kernel (never
+// `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
 // resolves the provider in a try/catch, and reports key PRESENCE only (never the
 // value). Mirrors hermes_cli/status.py + doctor.py.

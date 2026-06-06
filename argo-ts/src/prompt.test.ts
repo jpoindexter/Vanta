@@ -30,7 +30,7 @@ describe("buildSystemPrompt", () => {
       { id: 2, text: "Old goal", status: "done" },
     ];
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals,
       tools,
@@ -39,13 +39,13 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Ship Vanta v0");
     expect(prompt).not.toContain("Old goal");
     expect(prompt).toContain("read_file");
-    expect(prompt).toContain("/tmp/argo");
+    expect(prompt).toContain("/tmp/vanta");
     expect(prompt).toContain("Never declare a task complete without verified");
   });
 
   it("frames Vanta as a personal operator across digital life, not a repo-confined coding tool", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools,
@@ -54,14 +54,14 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("personal operator");
     expect(prompt).toMatch(/digital life/i);
     // File work is scoped (safety), but the agent is not described as confined.
-    expect(prompt).toContain("File writes stay within /tmp/argo");
+    expect(prompt).toContain("File writes stay within /tmp/vanta");
     expect(prompt).not.toContain("Never write outside"); // old coding-confinement wording is gone
     expect(prompt).toMatch(/honest about limits/i);
   });
 
   it("notes when there are no active goals", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools,
@@ -72,7 +72,7 @@ describe("buildSystemPrompt", () => {
 
   it("injects the skill index (names + descriptions) when skills are provided", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools,
@@ -90,7 +90,7 @@ describe("buildSystemPrompt", () => {
 
   it("omits the skills section when there are none", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools,
@@ -101,7 +101,7 @@ describe("buildSystemPrompt", () => {
 
   it("injects memory into the volatile tier when provided", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [{ id: 1, text: "Ship Vanta v0", status: "active" }],
       tools,
@@ -114,7 +114,7 @@ describe("buildSystemPrompt", () => {
 
   it("injects the MOIM note at the top of the volatile tier when provided", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [{ id: 1, text: "Ship Vanta v0", status: "active" }],
       tools,
@@ -129,7 +129,7 @@ describe("buildSystemPrompt", () => {
 
   it("omits the MOIM block when no note is set", async () => {
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools,
@@ -163,7 +163,7 @@ describe("splitStableVolatile", () => {
   it("buildSystemPrompt volatile tier (after split) contains goals and session time, not stable rules", async () => {
     const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [{ id: 1, text: "Ship v1", status: "active" }],
       tools: sampleTools,
@@ -179,7 +179,7 @@ describe("splitStableVolatile", () => {
   it("injects errorsLog when provided", async () => {
     const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools: sampleTools,
@@ -193,7 +193,7 @@ describe("splitStableVolatile", () => {
   it("omits errors tier when errorsLog is absent", async () => {
     const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
     const prompt = await buildSystemPrompt({
-      root: "/tmp/argo",
+      root: "/tmp/vanta",
       soulPath: "/nonexistent/SOUL.md",
       goals: [],
       tools: sampleTools,

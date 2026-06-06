@@ -31,7 +31,7 @@ const FIXTURE = {
 let dir: string;
 
 async function makeRoadmap(data = FIXTURE): Promise<string> {
-  dir = await mkdtemp(join(tmpdir(), "argo-move-"));
+  dir = await mkdtemp(join(tmpdir(), "vanta-move-"));
   await writeFile(join(dir, "roadmap.json"), JSON.stringify(data, null, 2), "utf8");
   return dir;
 }

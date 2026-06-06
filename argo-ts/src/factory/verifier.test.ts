@@ -6,7 +6,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModified, checkNewFilesUnderLineLimit } from "./verifier.js";
 
 let tmp: string;
-beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "argo-verifier-")); });
+beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "vanta-verifier-")); });
 afterEach(async () => { await rm(tmp, { recursive: true, force: true }); });
 
 describe("classifyTouchedFiles", () => {

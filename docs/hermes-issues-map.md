@@ -40,7 +40,7 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
 - **#36656 Volatile skills (load for one turn only)** — Vanta injects the skill index +
   `recall` loads a body into history (persists → context bloat). Add a `volatile` frontmatter
   flag so a recalled body is dropped after the turn. Manifesto: learns + lean context. ★★
-- **#37352 `argo skills lint`** — validate SKILL.md frontmatter, `related_skills`, name↔dir.
+- **#37352 `vanta skills lint`** — validate SKILL.md frontmatter, `related_skills`, name↔dir.
   Vanta's curator archives stale skills; a lint catches structural rot. ★ self-contained.
 - **#37227 Category-aware skill indexing + lazy load** — refine Vanta's index (group by
   category, surface fewer at once). Builds on the P3 index work. ★

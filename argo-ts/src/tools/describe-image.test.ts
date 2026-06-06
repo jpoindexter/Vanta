@@ -17,14 +17,14 @@ const makeCtx = (root: string): ToolContext => ({
 
 describe("describeImageTool", () => {
   it("returns ok:false when path is missing", async () => {
-    const res = await describeImageTool.execute({}, makeCtx("/tmp/argo-scope"));
+    const res = await describeImageTool.execute({}, makeCtx("/tmp/vanta-scope"));
     expect(res.ok).toBe(false);
   });
 
   it("returns ok:false when path is not a string", async () => {
     const res = await describeImageTool.execute(
       { path: 123 },
-      makeCtx("/tmp/argo-scope"),
+      makeCtx("/tmp/vanta-scope"),
     );
     expect(res.ok).toBe(false);
   });
@@ -32,7 +32,7 @@ describe("describeImageTool", () => {
   it("returns ok:false for a path outside project scope", async () => {
     const res = await describeImageTool.execute(
       { path: "../escape.png" },
-      makeCtx("/tmp/argo-scope"),
+      makeCtx("/tmp/vanta-scope"),
     );
     expect(res.ok).toBe(false);
     expect(res.output).toContain("outside project scope");
@@ -44,7 +44,7 @@ describe("describeImageTool", () => {
     const savedProvider = process.env.VANTA_PROVIDER;
 
     beforeEach(async () => {
-      dir = await mkdtemp(join(tmpdir(), "argo-img-"));
+      dir = await mkdtemp(join(tmpdir(), "vanta-img-"));
       // 1x1 transparent PNG — real bytes so readFile + base64 succeed.
       const png = Buffer.from(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC",

@@ -48,11 +48,11 @@ export async function ensureVantaStore(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
   const home = resolveVantaHome(env);
-  // One-time migration: the default home moved ~/.argo → ~/.vanta (Argo→Vanta
+  // One-time migration: the default home moved ~/.vanta → ~/.vanta (Argo→Vanta
   // rename). Move it whole — preserves skills/memories/brain + the .git history.
   // Skipped when VANTA_HOME points elsewhere (tests, custom installs).
   if (!env.VANTA_HOME?.trim()) {
-    const legacy = join(homedir(), ".argo");
+    const legacy = join(homedir(), ".vanta");
     if (!existsSync(home) && existsSync(legacy)) {
       try {
         await rename(legacy, home);
@@ -66,7 +66,7 @@ export async function ensureVantaStore(
   if (!existsSync(join(home, ".git"))) {
     try {
       await run("git", ["init", "-q"], { cwd: home });
-      await run("git", ["config", "user.email", "argo@local"], { cwd: home });
+      await run("git", ["config", "user.email", "vanta@local"], { cwd: home });
       await run("git", ["config", "user.name", "Vanta"], { cwd: home });
     } catch {
       // git unavailable — versioning is optional, store still works

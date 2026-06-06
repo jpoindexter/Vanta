@@ -18,7 +18,7 @@ const SKILL_FILE = "SKILL.md";
  * provenance: the curator only auto-archives stale skills carrying this tag, so
  * hand-authored skills are never moved without the user's say-so.
  */
-export const LEARNED_TAG = "argo-learned";
+export const LEARNED_TAG = "vanta-learned";
 
 type StoreOpts = { env?: NodeJS.ProcessEnv; now?: string };
 

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { lintSkills, formatLint } from "./lint.js";
 
-const VANTA_HOME = join(tmpdir(), "argo-skills-lint-test");
+const VANTA_HOME = join(tmpdir(), "vanta-skills-lint-test");
 const env = { ...process.env, VANTA_HOME };
 const skillsRoot = join(VANTA_HOME, "skills");
 

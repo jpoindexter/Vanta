@@ -31,7 +31,7 @@ describe("runScheduleCommand", () => {
   let log: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
-    dataDir = await mkdtemp(join(tmpdir(), "argo-cmd-"));
+    dataDir = await mkdtemp(join(tmpdir(), "vanta-cmd-"));
     log = vi.spyOn(console, "log").mockImplementation(() => undefined);
   });
 
@@ -75,7 +75,7 @@ describe("runCron", () => {
   const NOW = new Date(2024, 0, 3, 9, 0, 0);
 
   beforeEach(async () => {
-    dataDir = await mkdtemp(join(tmpdir(), "argo-cron-"));
+    dataDir = await mkdtemp(join(tmpdir(), "vanta-cron-"));
     log = vi.spyOn(console, "log").mockImplementation(() => undefined);
   });
 
@@ -98,6 +98,6 @@ describe("runCron", () => {
     const offHour = new Date(2024, 0, 3, 10, 0, 0);
     const run: RunTask = async () => ({ finalText: "unused" });
     await runCron(dataDir, offHour, run);
-    expect(log).toHaveBeenCalledWith("argo cron: no tasks due");
+    expect(log).toHaveBeenCalledWith("vanta cron: no tasks due");
   });
 });

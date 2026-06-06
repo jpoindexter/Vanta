@@ -55,12 +55,12 @@ export type AutonomyLevel = 1 | 2 | 3 | 4 | 5;
 
 /** Configuration for one factory cycle. */
 export type FactoryConfig = {
-  argoRoot: string;
+  vantaRoot: string;
   dataDir: string;
   autonomyLevel: AutonomyLevel;
   /** Hard ceiling on output tokens per cycle. Default: 80_000. */
   budgetTokens: number;
-  /** True when launched via `argo improve` (streams to TUI). False for gateway child. */
+  /** True when launched via `vanta improve` (streams to TUI). False for gateway child. */
   interactive: boolean;
 };
 

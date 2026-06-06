@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readTodos, writeTodos, formatTodos } from "./store.js";
 
-const VANTA_HOME = join(tmpdir(), "argo-todo-test");
+const VANTA_HOME = join(tmpdir(), "vanta-todo-test");
 const env = { ...process.env, VANTA_HOME };
 
 describe("todo store", () => {

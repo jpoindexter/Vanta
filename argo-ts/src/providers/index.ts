@@ -30,7 +30,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
       const apiKey = env.OPENAI_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "OPENAI_API_KEY is not set. Run `argo setup`, or set it in argo-ts/.env, or use VANTA_PROVIDER=ollama for local models.",
+          "OPENAI_API_KEY is not set. Run `vanta setup`, or set it in argo-ts/.env, or use VANTA_PROVIDER=ollama for local models.",
         );
       }
       return new OpenAIProvider({ apiKey, model: model ?? "gpt-4o-mini" });
@@ -45,7 +45,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
       const apiKey = env.ANTHROPIC_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "ANTHROPIC_API_KEY is not set. Run `argo setup`, set it in argo-ts/.env, use VANTA_PROVIDER=claude-code for a Claude subscription, or VANTA_PROVIDER=openai|ollama.",
+          "ANTHROPIC_API_KEY is not set. Run `vanta setup`, set it in argo-ts/.env, use VANTA_PROVIDER=claude-code for a Claude subscription, or VANTA_PROVIDER=openai|ollama.",
         );
       }
       return new AnthropicProvider({
@@ -74,7 +74,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
       const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "GEMINI_API_KEY is not set. Run `argo setup`, or get a key at https://aistudio.google.com/apikey and set GEMINI_API_KEY in argo-ts/.env.",
+          "GEMINI_API_KEY is not set. Run `vanta setup`, or get a key at https://aistudio.google.com/apikey and set GEMINI_API_KEY in argo-ts/.env.",
         );
       }
       return new OpenAIProvider({
@@ -87,7 +87,7 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
       const apiKey = env.OPENROUTER_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "OPENROUTER_API_KEY is not set. Run `argo setup`, or get a key at https://openrouter.ai/keys and set OPENROUTER_API_KEY in argo-ts/.env.",
+          "OPENROUTER_API_KEY is not set. Run `vanta setup`, or get a key at https://openrouter.ai/keys and set OPENROUTER_API_KEY in argo-ts/.env.",
         );
       }
       return new OpenAIProvider({

@@ -51,13 +51,13 @@ describe("activeAtRef", () => {
 
 describe("buildContextBlock", () => {
   it("returns empty string when no refs", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     const result = await buildContextBlock([], dir);
     expect(result).toBe("");
   });
 
   it("wraps file content in a <file> block", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     await writeFile(join(dir, "hello.txt"), "hello world", "utf8");
     const result = await buildContextBlock(["hello.txt"], dir);
     expect(result).toContain('<file path="hello.txt">');
@@ -66,13 +66,13 @@ describe("buildContextBlock", () => {
   });
 
   it("skips missing files silently", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     const result = await buildContextBlock(["nope.ts"], dir);
     expect(result).toBe("");
   });
 
   it("joins multiple files", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     await writeFile(join(dir, "a.ts"), "A", "utf8");
     await writeFile(join(dir, "b.ts"), "B", "utf8");
     const result = await buildContextBlock(["a.ts", "b.ts"], dir);
@@ -83,14 +83,14 @@ describe("buildContextBlock", () => {
 
 describe("listRepoFiles", () => {
   it("lists files in the root", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     await writeFile(join(dir, "foo.ts"), "", "utf8");
     const files = await listRepoFiles(dir);
     expect(files).toContain("foo.ts");
   });
 
   it("recurses into subdirectories", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     await mkdir(join(dir, "src"));
     await writeFile(join(dir, "src", "bar.ts"), "", "utf8");
     const files = await listRepoFiles(dir);
@@ -98,7 +98,7 @@ describe("listRepoFiles", () => {
   });
 
   it("skips node_modules", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-at-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
     await mkdir(join(dir, "node_modules"));
     await writeFile(join(dir, "node_modules", "pkg.js"), "", "utf8");
     const files = await listRepoFiles(dir);

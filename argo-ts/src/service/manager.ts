@@ -9,7 +9,7 @@ import { buildLaunchdPlist } from "./launchd.js";
 
 const run = promisify(execFile);
 
-// launchctl side effects for the macOS gateway service. Foreground `argo
+// launchctl side effects for the macOS gateway service. Foreground `vanta
 // gateway` works everywhere; this just keeps it alive in the background. Linux
 // (systemd) is a future addition — install() errors clearly off macOS.
 
@@ -22,7 +22,7 @@ function plistPath(): string {
 function assertMac(): void {
   if (process.platform !== "darwin") {
     throw new Error(
-      "Service install supports macOS (launchd) only for now. Run `argo gateway` in the foreground, or add a systemd unit on Linux.",
+      "Service install supports macOS (launchd) only for now. Run `vanta gateway` in the foreground, or add a systemd unit on Linux.",
     );
   }
 }
