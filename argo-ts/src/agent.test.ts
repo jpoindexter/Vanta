@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi } from "vitest";
-import { runAgent } from "./agent.js";
+import { runAgent, createConversation } from "./agent.js";
 import { SafetyClient } from "./safety-client.js";
 import { buildRegistry } from "./tools/index.js";
 import type { LLMProvider, CompletionResult } from "./providers/interface.js";
@@ -118,5 +118,33 @@ describe("agent dispatch against the live kernel", () => {
     });
 
     expect(ok).toBe(true);
+  });
+});
+
+// The /model hot-swap mechanism, proven without the kernel (no tools → no
+// safety calls). This is the half the picker's selectModel relies on:
+// setProvider must change which provider the NEXT send actually calls.
+describe("setProvider hot-swap", () => {
+  it("the next send uses the swapped-in provider, not the original", async () => {
+    const original: LLMProvider = {
+      complete: async () => {
+        throw new Error("original provider must NOT be called after setProvider");
+      },
+      modelId: () => "original",
+      contextWindow: () => 100_000,
+    };
+    const swapped = new FakeProvider([{ text: "from-swapped", toolCalls: [], finishReason: "stop" }]);
+
+    const convo = createConversation("system", {
+      provider: original,
+      safety: new SafetyClient(KERNEL_URL), // constructed, never called (no tools)
+      registry: buildRegistry(),
+      root: process.cwd(),
+      requestApproval: async () => true,
+    });
+    convo.setProvider(swapped);
+    const out = await convo.send("hello");
+
+    expect(out.finalText).toBe("from-swapped"); // proves the swap took effect
   });
 });
