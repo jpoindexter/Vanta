@@ -18,4 +18,4 @@ export function resolveTheme(env: NodeJS.ProcessEnv = process.env): Theme {
   return THEMES[name] ?? THEMES.default!;
 }
 
-export type { Theme as ArgoTheme };
+export type { Theme as VantaTheme };

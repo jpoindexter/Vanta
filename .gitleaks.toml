@@ -1,4 +1,4 @@
-# gitleaks config — Argo
+# gitleaks config — Vanta
 # Runs in pre-commit via scripts/pre-commit (install: ./install.sh or symlink manually)
 title = "argo-gitleaks"
 

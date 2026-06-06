@@ -28,11 +28,11 @@ export const planMode: SlashHandler = (arg, ctx) => {
 
   if (wantsOff && isOn) {
     sys.content = sys.content.replace(INSTRUCTION, "");
-    return { output: "  · plan-first mode OFF — Argo acts immediately again" };
+    return { output: "  · plan-first mode OFF — Vanta acts immediately again" };
   }
   if (wantsOn && !isOn) {
     sys.content += INSTRUCTION;
-    return { output: "  ⚡ plan-first mode ON — Argo will plan + confirm before acting" };
+    return { output: "  ⚡ plan-first mode ON — Vanta will plan + confirm before acting" };
   }
   // Already in the desired state
   return { output: isOn ? "  ⚡ plan-first mode is already ON (use /planmode off to disable)" : "  · plan-first mode is already OFF (use /planmode on to enable)" };

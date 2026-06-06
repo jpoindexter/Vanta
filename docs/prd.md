@@ -99,7 +99,7 @@ When a task is outside scope, unsupported, or uncertain — Vanta stops and says
 ## Architecture
 
 ```
-Rust safety kernel (argo-kernel)
+Rust safety kernel (vanta-kernel)
   → assess(), approve(), goals, events
   → HTTP sidecar on :7788
   → security boundary — enforced always

@@ -1,12 +1,12 @@
 // B-v2: Emergent self-designed brain substrate.
 // This module is the bootstrap scaffold — the v1.4 .md brain is the seed.
-// When VANTA_BRAIN_V2=1, Argo can read/write this module to design its own
+// When VANTA_BRAIN_V2=1, Vanta can read/write this module to design its own
 // brain representation (its own format, its own code). The kernel's
 // is_protected_path does NOT protect this file — the agent can evolve it.
 //
 // Design intent:
 // - v1.4 .md brain = human-readable seed (safety: humans can audit)
-// - v2 brain = whatever Argo designs, constrained only by:
+// - v2 brain = whatever Vanta designs, constrained only by:
 //     (a) must produce a string digest for prompt injection
 //     (b) must round-trip to disk (read = recall; write = update)
 //     (c) kernel still gates every write through assess()
@@ -16,9 +16,9 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
-/** The self-designed brain spec — Argo writes this. Initially a stub. */
+/** The self-designed brain spec — Vanta writes this. Initially a stub. */
 export type BrainV2Spec = {
   version: number;
   description: string;
@@ -30,13 +30,13 @@ export type BrainV2Spec = {
 
 const SPEC_FILE = "brain-v2-spec.json";
 
-/** Bootstrap spec — a JSON key-value store. Argo replaces this. */
+/** Bootstrap spec — a JSON key-value store. Vanta replaces this. */
 const BOOTSTRAP_SPEC: BrainV2Spec = {
   version: 1,
-  description: "Bootstrap v2 brain — simple JSON key-value. Argo evolves this.",
+  description: "Bootstrap v2 brain — simple JSON key-value. Vanta evolves this.",
   substrate: "jsonl",
   async digest(env) {
-    const file = join(resolveArgoHome(env), "brain-v2.json");
+    const file = join(resolveVantaHome(env), "brain-v2.json");
     try {
       const raw: Record<string, string> = JSON.parse(await readFile(file, "utf8"));
       const entries = Object.entries(raw).slice(0, 10);
@@ -44,15 +44,15 @@ const BOOTSTRAP_SPEC: BrainV2Spec = {
     } catch { return ""; }
   },
   async read(key, env) {
-    const file = join(resolveArgoHome(env), "brain-v2.json");
+    const file = join(resolveVantaHome(env), "brain-v2.json");
     try {
       const raw: Record<string, string> = JSON.parse(await readFile(file, "utf8"));
       return raw[key] ?? null;
     } catch { return null; }
   },
   async write(key, value, env) {
-    const file = join(resolveArgoHome(env), "brain-v2.json");
-    await mkdir(resolveArgoHome(env), { recursive: true });
+    const file = join(resolveVantaHome(env), "brain-v2.json");
+    await mkdir(resolveVantaHome(env), { recursive: true });
     let raw: Record<string, string> = {};
     try { raw = JSON.parse(await readFile(file, "utf8")); } catch { /* new */ }
     raw[key] = value;
@@ -60,7 +60,7 @@ const BOOTSTRAP_SPEC: BrainV2Spec = {
   },
 };
 
-/** The active spec — Argo can replace this at runtime by calling evolveSpec(). */
+/** The active spec — Vanta can replace this at runtime by calling evolveSpec(). */
 let activeSpec: BrainV2Spec = BOOTSTRAP_SPEC;
 
 /** Returns the active brain v2 spec. */
@@ -68,7 +68,7 @@ export function getActiveSpec(): BrainV2Spec {
   return activeSpec;
 }
 
-/** Argo calls this to replace the brain substrate with a new design. */
+/** Vanta calls this to replace the brain substrate with a new design. */
 export function evolveSpec(newSpec: BrainV2Spec): void {
   activeSpec = newSpec;
 }

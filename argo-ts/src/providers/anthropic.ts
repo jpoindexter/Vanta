@@ -51,7 +51,7 @@ export class AnthropicProvider implements LLMProvider {
     tools: ToolSchema[],
     config?: CompletionConfig,
   ): Promise<CompletionResult> {
-    // Lazy so Argo loads even when the SDK isn't installed.
+    // Lazy so Vanta loads even when the SDK isn't installed.
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
     const oauth = Boolean(this.authToken);
     const client = oauth
@@ -108,7 +108,7 @@ export class AnthropicProvider implements LLMProvider {
 }
 
 /**
- * Convert Argo messages to Anthropic's shape. System messages are concatenated
+ * Convert Vanta messages to Anthropic's shape. System messages are concatenated
  * and split at the stable/volatile boundary; the stable prefix gets
  * cache_control so Anthropic's ephemeral cache can reuse it across turns.
  * Pure — no SDK import — so the conversion can be unit-tested.
@@ -165,7 +165,7 @@ export function toAnthropicMessages(messages: Message[]): {
 
 /**
  * Apply Anthropic ephemeral cache_control to the stable prefix. When the
- * prompt has a stable/volatile split (all real Argo prompts do), returns a
+ * prompt has a stable/volatile split (all real Vanta prompts do), returns a
  * two-block array so Anthropic caches the stable part across sessions.
  * Falls back to a plain string for prompts without a tier separator.
  */

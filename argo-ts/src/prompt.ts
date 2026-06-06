@@ -57,7 +57,7 @@ async function contextTier(root: string): Promise<string> {
  * on demand via the `recall` tool. This is how the skill library stays useful
  * without bloating context (the Hermes pattern).
  */
-/** Argo's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */
+/** Vanta's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */
 function brainTier(digest?: string): string {
   if (!digest?.trim()) return "";
   return `Your brain (durable self — read/grow it with the \`brain\` tool):\n${digest}`;
@@ -110,7 +110,7 @@ export async function buildSystemPrompt(opts: {
   moimNote?: string;
   skills?: SkillIndexEntry[];
   brain?: string;
-  /** Contents of ERRORS.md — injected as context so Argo avoids repeating prior failures. */
+  /** Contents of ERRORS.md — injected as context so Vanta avoids repeating prior failures. */
   errorsLog?: string;
   /** Canonical project ID (git-remote-based) — stable across machines and worktrees. */
   projectId?: string;
@@ -138,7 +138,7 @@ export async function buildSystemPrompt(opts: {
  * Split a built system prompt at the stable/volatile boundary (the last
  * TIER_SEP occurrence). The volatile suffix contains goals, time, and
  * memory — it changes each session. The stable prefix is identical for the
- * same Argo configuration and can be marked for LLM-provider caching
+ * same Vanta configuration and can be marked for LLM-provider caching
  * (e.g. Anthropic ephemeral cache_control).
  */
 export function splitStableVolatile(prompt: string): { stable: string; volatile: string } {

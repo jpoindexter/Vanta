@@ -69,7 +69,7 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
         return ask("arbitrary code-execution vector (interpreter/eval/pipe/egress) requires approval");
     }
     if mentions_outside_home(&t) || references_abs_path_outside_root(&t, root) || mentions_outside_scope(&t, root) {
-        return ask("action may touch a path outside the approved Argo folder");
+        return ask("action may touch a path outside the approved Vanta folder");
     }
     if has_any(&t, MACHINE_CONFIG) {
         return ask("machine/config/credential change requires explicit approval");
@@ -207,7 +207,7 @@ mod tests {
     use super::*;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Argo")
+        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
     }
 
     #[test]
@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     fn allows_local_mvp_work() {
-        let v = assess_action("add local action assessor inside Argo", &root());
+        let v = assess_action("add local action assessor inside Vanta", &root());
         assert_eq!(v.risk, Risk::Allow);
     }
 

@@ -9,8 +9,8 @@ const TRANSCRIPT: Message[] = [
   { role: "system", content: "you are argo" },
   { role: "user", content: "summarize the readme" },
   { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "read_file", arguments: { path: "README.md" } }] },
-  { role: "tool", toolCallId: "c1", name: "read_file", content: "# Argo\n..." },
-  { role: "assistant", content: "Argo is a trusted operator agent." },
+  { role: "tool", toolCallId: "c1", name: "read_file", content: "# Vanta\n..." },
+  { role: "assistant", content: "Vanta is a trusted operator agent." },
 ];
 
 describe("session store", () => {

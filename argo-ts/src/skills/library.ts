@@ -2,12 +2,12 @@ import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { skillsDir, ensureArgoStore, commitInHome } from "../store/home.js";
+import { skillsDir, ensureVantaStore, commitInHome } from "../store/home.js";
 
 const SKILL_FILE = "SKILL.md";
 
 /**
- * The bundled skill library shipped with Argo — high-value skills ported from
+ * The bundled skill library shipped with Vanta — high-value skills ported from
  * the Hermes/OpenClaw references (coupling stripped). Lives at
  * argo-ts/skills-library/<slug>/SKILL.md, resolved from this module's path so it
  * works under tsx regardless of cwd (same approach as cli.ts findRepoRoot).
@@ -63,7 +63,7 @@ export async function installSkillLibrary(
 ): Promise<InstallResult> {
   const sources = opts.from ? [opts.from] : librarySources();
   const dest = skillsDir(opts.env);
-  await ensureArgoStore(opts.env);
+  await ensureVantaStore(opts.env);
 
   const installed: string[] = [];
   const skipped: string[] = [];

@@ -2,7 +2,7 @@ import { readFile, appendFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   memoriesDir,
-  ensureArgoStore,
+  ensureVantaStore,
   commitInHome,
 } from "../store/home.js";
 
@@ -22,7 +22,7 @@ function memoryFile(goalId: number, env?: NodeJS.ProcessEnv): string {
 
 /**
  * Append a timestamped summary block to a goal's memory file, then commit it
- * in the Argo home. `now` is injected for deterministic tests; defaults to the
+ * in the Vanta home. `now` is injected for deterministic tests; defaults to the
  * current ISO 8601 timestamp at runtime.
  */
 export async function appendMemory(
@@ -31,7 +31,7 @@ export async function appendMemory(
   opts: AppendOptions = {},
 ): Promise<void> {
   const env = opts.env;
-  await ensureArgoStore(env);
+  await ensureVantaStore(env);
   const now = opts.now ?? new Date().toISOString();
   const file = memoryFile(goalId, env);
   const block = `${BLOCK_DELIM}${now}\n${summary.trim()}\n\n`;

@@ -65,7 +65,7 @@ export function renderBanner(d: BannerData): string {
   return [
     LOGO,
     "",
-    "  Argo — trusted operator. Knows the goal, gates every action, reports only verified output.",
+    "  Vanta — trusted operator. Knows the goal, gates every action, reports only verified output.",
     `  model   ${d.modelId}`,
     `  root    ${d.root}`,
     "",

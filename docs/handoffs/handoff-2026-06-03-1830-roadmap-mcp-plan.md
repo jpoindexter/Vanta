@@ -176,7 +176,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
   if (inline) return parseOrEmpty(inline);
   // project-level first (Claude-compat), then user-level
   const projectCfg = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");
-  const userCfg = await readFile(join(resolveArgoHome(env), "mcp.json"), "utf8").catch(() => "");
+  const userCfg = await readFile(join(resolveVantaHome(env), "mcp.json"), "utf8").catch(() => "");
   // merge: user-level fills gaps, project-level wins on conflict
   const project = projectCfg ? parseOrEmpty(projectCfg) : { servers: {} };
   const user = userCfg ? parseOrEmpty(userCfg) : { servers: {} };

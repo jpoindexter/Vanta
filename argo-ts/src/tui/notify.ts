@@ -1,4 +1,4 @@
-// Lightweight notifications so you can leave Argo running and know when it needs
+// Lightweight notifications so you can leave Vanta running and know when it needs
 // you: a terminal bell (always) + an optional macOS desktop notification (opt-in
 // via VANTA_NOTIFY=1). Pure surface (injectable writer/env) for testing.
 

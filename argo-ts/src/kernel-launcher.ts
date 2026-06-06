@@ -35,7 +35,7 @@ export async function ensureKernel(opts: {
     if (await client.status()) return;
   }
   throw new Error(
-    `argo-kernel did not become ready on ${opts.baseUrl}. ` +
+    `vanta-kernel did not become ready on ${opts.baseUrl}. ` +
       `Run it manually: VANTA_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}`,
   );
 }

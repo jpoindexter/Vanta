@@ -7,7 +7,7 @@ export const inspectStateTool: Tool = {
   schema: {
     name: "inspect_state",
     description:
-      "Inspect Argo operating state: active goals or the approval queue. Use this to know what you are working toward.",
+      "Inspect Vanta operating state: active goals or the approval queue. Use this to know what you are working toward.",
     parameters: {
       type: "object",
       properties: {

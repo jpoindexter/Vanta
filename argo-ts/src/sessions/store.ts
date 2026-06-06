@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 
 // File-based session persistence: one JSON file per session under
@@ -49,7 +49,7 @@ export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated"> 
 };
 
 function sessionsDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveArgoHome(env), SESSIONS_SUBDIR);
+  return join(resolveVantaHome(env), SESSIONS_SUBDIR);
 }
 
 /** Timestamp-based id `YYYYMMDD-HHMMSS`. `now` injectable for tests. */

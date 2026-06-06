@@ -6,7 +6,7 @@ description: "Orchestrate sub-agents (delegate/swarm) to beat agentic laziness, 
 # Agent Orchestration Workflows
 
 Extracted from Anthropic's "A harness for every task: dynamic workflows in Claude Code"
-(Thariq Shihipar & Sid Bidasaria) and mapped to Argo's `delegate` + `swarm` tools.
+(Thariq Shihipar & Sid Bidasaria) and mapped to Vanta's `delegate` + `swarm` tools.
 
 ## Why orchestrate (the failure modes you are fighting)
 
@@ -17,7 +17,7 @@ tasks. Three named failure modes — watch for them in yourself:
 - **Self-preferential bias** — preferring your own results/findings when asked to verify or judge them.
 - **Goal drift** — losing fidelity to the original objective over many turns, especially after context compaction (edge-case requirements and "don't do X" constraints get summarized away).
 
-The fix: give separate sub-agents their **own clean context window and one focused, isolated goal**, then combine. In Argo: `delegate` (one scoped subtask, choose provider/model) and `swarm` (parallel fan-out + synthesize).
+The fix: give separate sub-agents their **own clean context window and one focused, isolated goal**, then combine. In Vanta: `delegate` (one scoped subtask, choose provider/model) and `swarm` (parallel fan-out + synthesize).
 
 ## When to use — and when NOT to
 
@@ -34,13 +34,13 @@ Use when the task is **large, parallelizable, or needs independent verification*
 
 For sorting/ranking many items by a qualitative measure: don't sort 1000 rows in one prompt — run a tournament / pairwise-comparison pipeline or bucket-rank in parallel; the deterministic loop holds the bracket so only the running order stays in context.
 
-## Argo-specific application
+## Vanta-specific application
 
 - Build from `delegate` (scoped subtask, can pick provider/model — route cheap classify work to local Ollama, hard judging to a stronger model) and `swarm` (parallel + synthesize).
 - Pair with **`/goal`** (a hard completion requirement — kills agentic laziness) and a repeat trigger for recurring work (triage, research, verification).
-- Quarantine pattern: agents that read untrusted public content must not take high-privilege actions — those go to a separate acting agent. (Argo's kernel `assess()` is the backstop, but separate the roles too.)
-- This is the seed of the roadmap `WORKFLOWS` item: Argo writing its own JS orchestration harness on the fly. Until that ships, apply these patterns manually via `delegate`/`swarm`.
-- Self-improvement tie-in: "mine recent sessions for corrections you keep making → distil into rules/skills" is exactly Argo's background-review loop (B3/B4) — orchestration is how you do it at scale.
+- Quarantine pattern: agents that read untrusted public content must not take high-privilege actions — those go to a separate acting agent. (Vanta's kernel `assess()` is the backstop, but separate the roles too.)
+- This is the seed of the roadmap `WORKFLOWS` item: Vanta writing its own JS orchestration harness on the fly. Until that ships, apply these patterns manually via `delegate`/`swarm`.
+- Self-improvement tie-in: "mine recent sessions for corrections you keep making → distil into rules/skills" is exactly Vanta's background-review loop (B3/B4) — orchestration is how you do it at scale.
 
 ## Checklist before orchestrating
 

@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 
 // A simple in-session plan (todo list) the agent maintains for multi-step work,
 // stored at ~/.vanta/todo.json and viewable with /plan. TodoWrite-style: the
@@ -15,7 +15,7 @@ export type TodoItem = z.infer<typeof TodoItemSchema>;
 const TodoFileSchema = z.array(TodoItemSchema);
 
 function todoPath(env: NodeJS.ProcessEnv = process.env): string {
-  return join(resolveArgoHome(env), "todo.json");
+  return join(resolveVantaHome(env), "todo.json");
 }
 
 export async function readTodos(env: NodeJS.ProcessEnv = process.env): Promise<TodoItem[]> {
@@ -27,7 +27,7 @@ export async function readTodos(env: NodeJS.ProcessEnv = process.env): Promise<T
 }
 
 export async function writeTodos(items: TodoItem[], env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveArgoHome(env), { recursive: true });
+  await mkdir(resolveVantaHome(env), { recursive: true });
   await writeFile(todoPath(env), JSON.stringify(items, null, 2), "utf8");
 }
 

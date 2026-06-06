@@ -57,7 +57,7 @@ fn run_allowed_native(root: &Path, instruction: &str) -> RuntimeResult {
         return executed(
             "native.status",
             &format!(
-                "Argo native runtime ready; root={}; Hermes fallback not used",
+                "Vanta native runtime ready; root={}; Hermes fallback not used",
                 root.display()
             ),
         );
@@ -107,7 +107,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Argo")
+        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
     }
 
     #[test]
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(result.decision, RuntimeDecision::Executed);
         assert!(result.executed);
         assert_eq!(result.tool, "native.status");
-        assert!(result.output.contains("Argo native runtime ready"));
+        assert!(result.output.contains("Vanta native runtime ready"));
     }
 
     #[test]

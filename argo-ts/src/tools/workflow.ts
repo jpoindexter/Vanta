@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolContext } from "./types.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness.
-// Argo can compose and run structured multi-agent workflows on the fly.
+// Vanta can compose and run structured multi-agent workflows on the fly.
 // Patterns: fan-out/synthesize, adversarial-verify, tournament, loop-until-done.
 // Extends the existing delegate+swarm with typed step sequences + token budgets.
 

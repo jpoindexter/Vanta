@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import { SafetyClient } from "./safety-client.js";
 import { resolveProvider } from "./providers/index.js";
 import { PROVIDER_CATALOG } from "./providers/catalog.js";
-import { resolveArgoHome, memoriesDir } from "./store/home.js";
+import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
 
@@ -24,7 +24,7 @@ const mark = (ok: boolean): string => (ok ? "✓" : "✗");
 
 /** Render a report to a boxed terminal block. Pure. */
 export function formatStatus(r: StatusReport): string {
-  const lines: string[] = ["", "  ⚕ Argo Status", ""];
+  const lines: string[] = ["", "  ⚕ Vanta Status", ""];
 
   lines.push(`  ${mark(r.kernel.up)} kernel    ${r.kernel.up ? "up" : "down"}  (${r.kernel.url})`);
 
@@ -117,7 +117,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
     kernel: { url, up },
     provider,
     keys,
-    store: { home: resolveArgoHome(env), skills, memories },
+    store: { home: resolveVantaHome(env), skills, memories },
     goals,
     velocity,
   };

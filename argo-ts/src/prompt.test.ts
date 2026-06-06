@@ -26,7 +26,7 @@ describe("buildSystemPrompt", () => {
 
   it("includes goals, tools, scope, and verification rules", async () => {
     const goals: Goal[] = [
-      { id: 1, text: "Ship Argo v0", status: "active" },
+      { id: 1, text: "Ship Vanta v0", status: "active" },
       { id: 2, text: "Old goal", status: "done" },
     ];
     const prompt = await buildSystemPrompt({
@@ -36,14 +36,14 @@ describe("buildSystemPrompt", () => {
       tools,
       now: "2026-06-02T00:00:00Z",
     });
-    expect(prompt).toContain("Ship Argo v0");
+    expect(prompt).toContain("Ship Vanta v0");
     expect(prompt).not.toContain("Old goal");
     expect(prompt).toContain("read_file");
     expect(prompt).toContain("/tmp/argo");
     expect(prompt).toContain("Never declare a task complete without verified");
   });
 
-  it("frames Argo as a personal operator across digital life, not a repo-confined coding tool", async () => {
+  it("frames Vanta as a personal operator across digital life, not a repo-confined coding tool", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/argo",
       soulPath: "/nonexistent/SOUL.md",
@@ -103,7 +103,7 @@ describe("buildSystemPrompt", () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/argo",
       soulPath: "/nonexistent/SOUL.md",
-      goals: [{ id: 1, text: "Ship Argo v0", status: "active" }],
+      goals: [{ id: 1, text: "Ship Vanta v0", status: "active" }],
       tools,
       now: "2026-06-02T00:00:00Z",
       memory: "Earlier I learned the build runs with `npm test`.",
@@ -116,7 +116,7 @@ describe("buildSystemPrompt", () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/argo",
       soulPath: "/nonexistent/SOUL.md",
-      goals: [{ id: 1, text: "Ship Argo v0", status: "active" }],
+      goals: [{ id: 1, text: "Ship Vanta v0", status: "active" }],
       tools,
       now: "2026-06-02T00:00:00Z",
       moimNote: "debugging the auth flow",

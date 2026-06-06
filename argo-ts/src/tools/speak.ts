@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
 
-// Text-to-speech: Argo speaks aloud via the macOS `say` command. (STT / audio-file
+// Text-to-speech: Vanta speaks aloud via the macOS `say` command. (STT / audio-file
 // understanding need whisper or provider audio input — tracked separately.)
 
 const Args = z.object({ text: z.string().min(1), voice: z.string().optional() });

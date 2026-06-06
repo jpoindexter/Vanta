@@ -14,7 +14,7 @@ export type OperatorMode = {
 
 /**
  * The six operator modes. Each body is a numbered procedure that names real
- * Argo tools (read_file, web_search, web_fetch, run_code, git_status, git_diff,
+ * Vanta tools (read_file, web_search, web_fetch, run_code, git_status, git_diff,
  * lsp_diagnostics, write_skill) and enforces the two house rules: state the goal
  * before reaching for a tool, and verify the result before declaring done.
  */

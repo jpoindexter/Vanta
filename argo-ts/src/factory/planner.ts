@@ -28,7 +28,7 @@ function buildInstruction(item: WorkItem, root: string): string {
         ``,
         `ROADMAP item: "${item.description}"`,
         ``,
-        `Implement this item in the Argo TypeScript layer (${tsRoot}/src/).`,
+        `Implement this item in the Vanta TypeScript layer (${tsRoot}/src/).`,
         `1. Identify the right file(s) to add or modify.`,
         `2. Write the implementation with a co-located test (same directory, foo.ts → foo.test.ts).`,
         `3. Run the new tests: cd ${tsRoot} && npx vitest run <test-file>`,

@@ -116,7 +116,7 @@ export class CodexProvider implements LLMProvider {
   }
 }
 
-/** Map Argo messages onto the Responses API `instructions` + `input` items. */
+/** Map Vanta messages onto the Responses API `instructions` + `input` items. */
 export function toCodexInput(messages: Message[]): { instructions: string; input: unknown[] } {
   const system: string[] = [];
   const input: unknown[] = [];
@@ -151,7 +151,7 @@ export function toCodexInput(messages: Message[]): { instructions: string; input
   return { instructions: system.join("\n\n"), input };
 }
 
-/** Map Argo tool schemas onto Responses API (flat) function tools, sanitized. */
+/** Map Vanta tool schemas onto Responses API (flat) function tools, sanitized. */
 export function toCodexTools(tools: ToolSchema[]): unknown[] {
   return tools.map((t) => ({
     type: "function",

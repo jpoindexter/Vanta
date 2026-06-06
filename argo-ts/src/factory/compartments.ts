@@ -16,7 +16,7 @@
 
 export type Compartment = "skeleton" | "brainstem" | "limbs" | "reflexes" | "memory";
 
-/** Agent-loop files whose change alters how Argo decides — review required. */
+/** Agent-loop files whose change alters how Vanta decides — review required. */
 const BRAINSTEM = [
   "argo-ts/src/agent.ts",
   "argo-ts/src/providers/",

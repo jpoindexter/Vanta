@@ -140,7 +140,7 @@ def main():
 <nav><h1>{html.escape(cfg['title'])}</h1><div class="sub">{html.escape(cfg['subtitle'])}</div>
 <input id="q" placeholder="Filter skills…" autocomplete="off">{''.join(nav)}</nav>
 <main><div class="lede"><h1>{html.escape(cfg['title'])}</h1>
-<p>{len(ordered)} reference-grade, self-contained skills (the same <code>SKILL.md</code> files installable into Claude Code / Argo). Click a card to expand.</p>
+<p>{len(ordered)} reference-grade, self-contained skills (the same <code>SKILL.md</code> files installable into Claude Code / Vanta). Click a card to expand.</p>
 <div class="bar"><button id="xall">Expand all</button><button id="call">Collapse all</button></div></div>
 {''.join(sections)}</main></div><script>{JS}</script></body></html>"""
     out = base / "index.html"

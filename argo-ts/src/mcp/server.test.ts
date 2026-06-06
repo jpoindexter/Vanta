@@ -60,7 +60,7 @@ describe("buildInitializeResult", () => {
 });
 
 describe("buildToolDef", () => {
-  it("maps an Argo tool to the MCP tool-def shape", () => {
+  it("maps an Vanta tool to the MCP tool-def shape", () => {
     const tool = buildRegistry().get("read_file")!;
     const def = buildToolDef(tool);
     expect(def.name).toBe("read_file");

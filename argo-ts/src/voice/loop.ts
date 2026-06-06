@@ -40,7 +40,7 @@ export async function runVoiceLoop(deps: VoiceDeps): Promise<void> {
     registry: deps.registry,
     root: deps.root,
     requestApproval: async () => false, // voice mode auto-denies risky ops
-    onText: (text) => log(`Argo: ${text}`),
+    onText: (text) => log(`Vanta: ${text}`),
   });
 
   log(`Voice mode active — ${duration}s per turn, Ctrl+C to exit.`);

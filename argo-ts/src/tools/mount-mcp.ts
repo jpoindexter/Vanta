@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { stdioTransport, McpClient } from "../mcp/client.js";
-import { mcpToolToArgoTool } from "../mcp/mount.js";
+import { mcpToolToVantaTool } from "../mcp/mount.js";
 import type { Tool, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
 
@@ -73,7 +73,7 @@ export function buildMountMcpTool(registry: ToolRegistry): Tool {
         const defs = await client.listTools();
         const names: string[] = [];
         for (const def of defs) {
-          const tool = mcpToolToArgoTool(client, name, def);
+          const tool = mcpToolToVantaTool(client, name, def);
           registry.register(tool);
           names.push(tool.schema.name);
         }

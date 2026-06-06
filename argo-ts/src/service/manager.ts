@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { resolveArgoHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
 import { buildLaunchdPlist } from "./launchd.js";
 
 const run = promisify(execFile);
@@ -42,7 +42,7 @@ export type ServiceStatus = {
 export async function installService(repoRoot: string): Promise<string> {
   assertMac();
   const path = plistPath();
-  const logPath = join(resolveArgoHome(), "gateway.log");
+  const logPath = join(resolveVantaHome(), "gateway.log");
   const plist = buildLaunchdPlist({
     label: SERVICE_LABEL,
     programArgs: [join(repoRoot, "run.sh"), "gateway"],

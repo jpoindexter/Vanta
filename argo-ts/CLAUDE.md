@@ -54,7 +54,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `gateway/platforms/base.ts` | v1 E2 — `PlatformAdapter` contract (`connect`/`disconnect`/`send`/`poll`) + `InboundMessage`/`OutboundMessage`. One adapter per messaging platform |
 | `gateway/platforms/telegram.ts` | v1 E2 — `TelegramAdapter` (getUpdates long-poll + sendMessage, no SDK) + pure `parseUpdates`/`parseAllowlist`. `gateway/run.ts pollPlatform` runs inbound→agent→reply. Enabled by `VANTA_TELEGRAM_TOKEN`; offline-tested, live needs a @BotFather token |
 | `mcp/client.ts` | v1 E5 — dependency-free MCP stdio JSON-RPC client (`McpClient` + injectable `Transport` + `stdioTransport`): initialize/listTools/callTool, concurrent-request correlation. `textFromContent` pure |
-| `mcp/mount.ts` | v1 E5 + MCP-1 — `readMcpConfig` (accepts `servers`+`mcpServers` keys; resolves `VANTA_MCP_SERVERS` inline, else merges `./.mcp.json` project-level over `~/.vanta/mcp.json` user-level) + `mountMcpServers` (spawn each, register discovered tools as Vanta tools via `mcpToolToArgoTool` — gated by kernel `assess()`). Called in `prepareRun`; no-op without config |
+| `mcp/mount.ts` | v1 E5 + MCP-1 — `readMcpConfig` (accepts `servers`+`mcpServers` keys; resolves `VANTA_MCP_SERVERS` inline, else merges `./.mcp.json` project-level over `~/.vanta/mcp.json` user-level) + `mountMcpServers` (spawn each, register discovered tools as Vanta tools via `mcpToolToVantaTool` — gated by kernel `assess()`). Called in `prepareRun`; no-op without config |
 | `mcp/server.ts` | MCP-3 — Vanta AS an MCP server (mirror of client.ts). `runMcpServer`/`stdioServerTransport` + pure `handleMessage` (initialize/tools/list/tools/call). Every call gated by `assess()`: `block`/`ask` → `isError` result (headless, no human), only `allow` executes. `resolveServeAllowlist` (`VANTA_MCP_SERVE_TOOLS`, default 9 read-only) bounds exposure. `argo mcp serve` |
 | `tools/mount-mcp.ts` | MCP-2 — `buildMountMcpTool(registry)` factory: the `mount_mcp` tool spawns an MCP server at runtime + registers its tools into the LIVE registry. `describeForSafety` → "spawn mcp server …" so the kernel gates the spawn. Registered by `buildRegistry` (needs the registry ref) |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
@@ -71,7 +71,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
 | `tools/index.ts` | `buildRegistry({exclude?})` — registers all 42 tools + `mount_mcp` via factory = 43 total (`exclude:["delegate"]` → 41 for workers) |
-| `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
+| `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
 | `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.vanta/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |

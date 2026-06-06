@@ -145,14 +145,14 @@ def main():
 
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Argo Design System Skills</title><style>{CSS}</style></head><body>
+<title>Vanta Design System Skills</title><style>{CSS}</style></head><body>
 <div class="wrap">
 <nav><h1>Design Skills</h1><div class="sub">{len(ordered)} reference-grade skills · atomic design, tokens, type, grid, color, motion, a11y, UX laws · web · mobile · desktop · any screen.</div>
 <input id="q" placeholder="Filter skills…" autocomplete="off">
 {''.join(nav)}</nav>
 <main>
-<div class="lede"><h1>Argo Design System Skills</h1>
-<p>A complete, modern design knowledge base — atomic design and standard design-system practice through to UX heuristics and the cognitive laws behind them. Each card is a deep, self-contained skill (the same <code>SKILL.md</code> files installable into Claude Code / Argo). Click a card to expand.</p>
+<div class="lede"><h1>Vanta Design System Skills</h1>
+<p>A complete, modern design knowledge base — atomic design and standard design-system practice through to UX heuristics and the cognitive laws behind them. Each card is a deep, self-contained skill (the same <code>SKILL.md</code> files installable into Claude Code / Vanta). Click a card to expand.</p>
 <div class="bar"><button id="xall">Expand all</button><button id="call">Collapse all</button></div></div>
 {''.join(sections)}
 </main></div>

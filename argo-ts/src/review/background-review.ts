@@ -19,7 +19,7 @@ const DEFAULT_REVIEW_MIN_TOOLS = 6; // or any turn that used >= this many tools
 const REVIEW_MAX_ITER = 6;
 const MAX_TRANSCRIPT_CHARS = 8000;
 
-const REVIEW_SYSTEM = `You are Argo's self-improvement reviewer. You are shown the transcript of a just-completed work session. Your ONE job: decide whether it taught a reusable, class-level skill, and if so capture it with write_skill (recall first to avoid duplicating an existing skill — patch by re-writing under the same name).
+const REVIEW_SYSTEM = `You are Vanta's self-improvement reviewer. You are shown the transcript of a just-completed work session. Your ONE job: decide whether it taught a reusable, class-level skill, and if so capture it with write_skill (recall first to avoid duplicating an existing skill — patch by re-writing under the same name).
 
 Capture a skill when the session worked out HOW to do a class of task (a procedure, a gotcha-and-fix, a checklist). A good skill is reusable next week on a similar-but-different task.
 

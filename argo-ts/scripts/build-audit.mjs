@@ -37,7 +37,7 @@ function render(d) {
       <div class="row1"><b>${esc(a.name)}</b><span class="lic">${esc(a.license)}</span></div>
       <div class="muted lineage">${esc(a.lineage)} · ${esc(a.lang)}</div>
       <p class="tag">${esc(a.tagline)}</p>
-      <div class="vsa"><span class="k">vs Argo:</span> ${esc(a.vsArgo)}</div>
+      <div class="vsa"><span class="k">vs Vanta:</span> ${esc(a.vsVanta)}</div>
     </div>`,
     )
     .join("");
@@ -185,7 +185,7 @@ input.search{background:#0a0f0e;border:1px solid var(--line);color:var(--text);b
 <div class="stamp">generated ${esc(d.generated)} · source: audit.json (agent-ready) · regenerate: node argo-ts/scripts/build-audit.mjs</div>
 </header>
 <nav>
-<a href="#agents">Agents</a><a href="#vision">Vision</a><a href="#patterns">Patterns→Features</a><a href="#inventory">Argo Inventory</a>
+<a href="#agents">Agents</a><a href="#vision">Vision</a><a href="#patterns">Patterns→Features</a><a href="#inventory">Vanta Inventory</a>
 <a href="#nd">ND Alignment</a><a href="#matrix">Matrix</a><a href="#pulls">Pulls</a><a href="#drops">Drops</a>
 <a href="#issues">Issues</a><a href="#local">Local Hermes</a><a href="#cc">Claude Code</a><a href="#docs">Docs</a>
 </nav>
@@ -202,12 +202,12 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 
 <section id="patterns"><h2>Operator patterns → the feature that supplies the missing executive function</h2>
 <p class="note">${esc(d.operatorPatterns?.note || "")}</p>
-<div class="card span12"><table class="t"><thead><tr><th>Pattern (real, documented)</th><th>Evidence</th><th>Argo feature that supplies the EF</th></tr></thead><tbody>${patRows}</tbody></table></div></section>
+<div class="card span12"><table class="t"><thead><tr><th>Pattern (real, documented)</th><th>Evidence</th><th>Vanta feature that supplies the EF</th></tr></thead><tbody>${patRows}</tbody></table></div></section>
 
-<section id="inventory"><h2>Argo — current surface (dedupe baseline)</h2>
+<section id="inventory"><h2>Vanta — current surface (dedupe baseline)</h2>
 <p class="note">${esc(d.argoInventory?.note || "")}</p><div class="grid">${invCats}</div></section>
 
-<section id="nd"><h2>ND alignment — what Argo already does · where the gaps are</h2>
+<section id="nd"><h2>ND alignment — what Vanta already does · where the gaps are</h2>
 <div class="grid"><div class="card span6"><h3>Already strong</h3>${ndStrong}</div>
 <div class="card span6"><h3>Gaps (pull candidates)</h3>${ndGaps}</div></div></section>
 
@@ -220,7 +220,7 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 <button class="btn" data-filt="bad">Drop</button>
 <input class="search" id="msearch" placeholder="filter capabilities…"/>
 </div>
-<div class="card span12"><table class="t" id="matrix-t"><thead><tr><th>Capability</th><th>Argo</th><th>Hermes</th><th>Goose</th><th>Claude Code</th><th>Verdict</th><th>Note</th></tr></thead><tbody>${cmpRows}</tbody></table></div></section>
+<div class="card span12"><table class="t" id="matrix-t"><thead><tr><th>Capability</th><th>Vanta</th><th>Hermes</th><th>Goose</th><th>Claude Code</th><th>Verdict</th><th>Note</th></tr></thead><tbody>${cmpRows}</tbody></table></div></section>
 
 <section id="pulls"><h2 class="ok">Pull — worth adding (curated)</h2>
 <p class="note">${esc(d.pulls?.note || "")} ${esc(d.pulls?.pendingFrom || "")}</p><div class="grid">${pullCards}</div></section>

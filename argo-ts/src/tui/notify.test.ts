@@ -10,13 +10,13 @@ describe("notify", () => {
 
   it("rings the terminal bell via the injected writer", () => {
     const write = vi.fn();
-    notify({ title: "Argo", message: "done", env: {} as NodeJS.ProcessEnv, write });
+    notify({ title: "Vanta", message: "done", env: {} as NodeJS.ProcessEnv, write });
     expect(write).toHaveBeenCalledWith("\x07");
   });
 
   it("can suppress the bell", () => {
     const write = vi.fn();
-    notify({ title: "Argo", message: "done", bell: false, env: {} as NodeJS.ProcessEnv, write });
+    notify({ title: "Vanta", message: "done", bell: false, env: {} as NodeJS.ProcessEnv, write });
     expect(write).not.toHaveBeenCalled();
   });
 });

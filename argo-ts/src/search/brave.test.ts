@@ -5,7 +5,7 @@ const FIXTURE = JSON.stringify({
   web: {
     results: [
       {
-        title: "Argo project",
+        title: "Vanta project",
         url: "https://example.com/argo",
         description: "An agent kernel and TypeScript layer.",
       },
@@ -29,7 +29,7 @@ describe("mapBraveJson", () => {
 
     expect(out).toHaveLength(3);
     expect(out[0]).toEqual({
-      title: "Argo project",
+      title: "Vanta project",
       url: "https://example.com/argo",
       snippet: "An agent kernel and TypeScript layer.",
     });

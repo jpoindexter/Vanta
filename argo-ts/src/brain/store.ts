@@ -1,7 +1,7 @@
 import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { resolveArgoHome, commitInHome } from "../store/home.js";
+import { resolveVantaHome, commitInHome } from "../store/home.js";
 import { BRAIN_REGIONS } from "./regions.js";
 
 // File-backed brain store under ~/.vanta/brain/<region>.md — git-versioned (like
@@ -10,7 +10,7 @@ import { BRAIN_REGIONS } from "./regions.js";
 // via the `brain` tool.
 
 export function brainDir(env: NodeJS.ProcessEnv = process.env): string {
-  return join(resolveArgoHome(env), "brain");
+  return join(resolveVantaHome(env), "brain");
 }
 
 function regionFile(name: string, env?: NodeJS.ProcessEnv): string {
@@ -35,7 +35,7 @@ export async function readRegion(name: string, env: NodeJS.ProcessEnv = process.
   }
 }
 
-/** Replace or append a region's content, then git-commit it in the Argo home. */
+/** Replace or append a region's content, then git-commit it in the Vanta home. */
 export async function writeRegion(
   name: string,
   content: string,

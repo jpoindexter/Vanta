@@ -60,7 +60,7 @@ export async function verifyKernelConformance(
     // If ANY test that passes on the current binary fails on the candidate → reject.
     const { stdout, stderr } = await execAsync(
       "cargo",
-      ["test", "--bin", "argo-kernel", "--", "--test-output=immediate"],
+      ["test", "--bin", "vanta-kernel", "--", "--test-output=immediate"],
       { cwd: repoRoot, timeout: 120_000, env: { ...process.env, VANTA_KERNEL_CANDIDATE: candidateBinPath } },
     );
     const output = (stdout + stderr).toLowerCase();
@@ -90,14 +90,14 @@ export async function testKernelCandidate(
   }
 
   // Build the candidate binary in an isolated temp dir.
-  const tmpDir = await mkdtemp(join(tmpdir(), "argo-kernel-candidate-"));
+  const tmpDir = await mkdtemp(join(tmpdir(), "vanta-kernel-candidate-"));
   try {
     // Apply the patch to a temp copy of the kernel sources.
     await execAsync("cp", ["-r", join(repoRoot, "src"), tmpDir], { timeout: 10_000 });
     await execAsync("patch", ["-d", tmpDir, "-p1", "--input", proposal.patchFile], { timeout: 10_000 });
     // Build the candidate.
     await execAsync("cargo", ["build", "--manifest-path", join(repoRoot, "Cargo.toml"), "--target-dir", join(tmpDir, "target")], { cwd: repoRoot, timeout: 120_000 });
-    const candidateBin = join(tmpDir, "target", "debug", "argo-kernel");
+    const candidateBin = join(tmpDir, "target", "debug", "vanta-kernel");
     const result = await verifyKernelConformance(repoRoot, candidateBin);
     return result;
   } catch (err: unknown) {

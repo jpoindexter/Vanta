@@ -1,4 +1,4 @@
-// Core types shared across the Argo agent layer.
+// Core types shared across the Vanta agent layer.
 
 export type ToolCall = {
   id: string;

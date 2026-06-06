@@ -16,7 +16,7 @@ describe("Banner", () => {
   it("renders the wordmark, model, tool count and footer", () => {
     const { lastFrame, unmount } = render(<Banner data={data} />);
     const frame = lastFrame() ?? "";
-    expect(frame).toContain("Argo");
+    expect(frame).toContain("Vanta");
     expect(frame).toContain("gemini-2.5-flash");
     expect(frame).toContain("Capabilities");
     expect(frame).toContain("Files"); // domain-grouped

@@ -4,7 +4,7 @@ import { mapSerpapiJson } from "./serpapi.js";
 const FIXTURE = JSON.stringify({
   organic_results: [
     {
-      title: "Argo project",
+      title: "Vanta project",
       link: "https://example.com/argo",
       snippet: "An agent runtime.",
     },
@@ -27,7 +27,7 @@ describe("mapSerpapiJson", () => {
 
     expect(out).toHaveLength(3);
     expect(out[0]).toEqual({
-      title: "Argo project",
+      title: "Vanta project",
       url: "https://example.com/argo",
       snippet: "An agent runtime.",
     });
@@ -38,7 +38,7 @@ describe("mapSerpapiJson", () => {
     const out = mapSerpapiJson(JSON.parse(FIXTURE), 2);
 
     expect(out).toHaveLength(2);
-    expect(out.map((r) => r.title)).toEqual(["Argo project", "SerpAPI docs"]);
+    expect(out.map((r) => r.title)).toEqual(["Vanta project", "SerpAPI docs"]);
   });
 
   it("skips entries missing title or link", () => {

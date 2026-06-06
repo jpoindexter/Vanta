@@ -2,11 +2,11 @@ import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 
-// Argo's "eyes": capture the user's screen and describe it with a vision model,
+// Vanta's "eyes": capture the user's screen and describe it with a vision model,
 // via the multimodal message pipeline. Vision routes through the dedicated
 // auxiliary vision model (VANTA_VISION_MODEL) when set, else the active provider —
-// so a text-only main model (DeepSeek, local Ollama) doesn't blind Argo.
-// Captures to a temp file Argo owns, so it works regardless of the filesystem
+// so a text-only main model (DeepSeek, local Ollama) doesn't blind Vanta.
+// Captures to a temp file Vanta owns, so it works regardless of the filesystem
 // scope. macOS only (screencapture); needs Screen Recording permission.
 
 const Args = z.object({ prompt: z.string().optional() });
@@ -16,7 +16,7 @@ export const lookAtScreenTool: Tool = {
   schema: {
     name: "look_at_screen",
     description:
-      "Capture the user's current screen and describe it with a vision model — Argo's eyes. Use to see " +
+      "Capture the user's current screen and describe it with a vision model — Vanta's eyes. Use to see " +
       "what the user is looking at, read on-screen content, or check the state of an app or UI.",
     parameters: {
       type: "object",

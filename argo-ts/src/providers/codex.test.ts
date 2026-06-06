@@ -60,7 +60,7 @@ describe("toCodexInput", () => {
     ]);
   });
 
-  it("maps each Argo role onto the right Responses item", () => {
+  it("maps each Vanta role onto the right Responses item", () => {
     const messages: Message[] = [
       { role: "system", content: "be terse" },
       { role: "user", content: "hi" },

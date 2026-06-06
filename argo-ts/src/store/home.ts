@@ -8,21 +8,21 @@ import { promisify } from "node:util";
 const run = promisify(execFile);
 
 /**
- * The Argo home store — global across projects, not the per-project kernel
+ * The Vanta home store — global across projects, not the per-project kernel
  * `.vanta/` data dir. Holds skills and memories. Override with VANTA_HOME (tests
  * point this at a temp dir). Default: ~/.vanta.
  */
-export function resolveArgoHome(env: NodeJS.ProcessEnv = process.env): string {
+export function resolveVantaHome(env: NodeJS.ProcessEnv = process.env): string {
   const override = env.VANTA_HOME?.trim();
   return override ? override : join(homedir(), ".vanta");
 }
 
 export function skillsDir(env: NodeJS.ProcessEnv = process.env): string {
-  return join(resolveArgoHome(env), "skills");
+  return join(resolveVantaHome(env), "skills");
 }
 
 export function memoriesDir(env: NodeJS.ProcessEnv = process.env): string {
-  return join(resolveArgoHome(env), "memories");
+  return join(resolveVantaHome(env), "memories");
 }
 
 /**
@@ -44,10 +44,10 @@ export function slugifySkillName(name: string): string {
  * Create the store dirs and git-init the home for free versioning. Idempotent.
  * Git is best-effort — versioning never blocks the learning loop.
  */
-export async function ensureArgoStore(
+export async function ensureVantaStore(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
-  const home = resolveArgoHome(env);
+  const home = resolveVantaHome(env);
   // One-time migration: the default home moved ~/.argo → ~/.vanta (Argo→Vanta
   // rename). Move it whole — preserves skills/memories/brain + the .git history.
   // Skipped when VANTA_HOME points elsewhere (tests, custom installs).
@@ -67,7 +67,7 @@ export async function ensureArgoStore(
     try {
       await run("git", ["init", "-q"], { cwd: home });
       await run("git", ["config", "user.email", "argo@local"], { cwd: home });
-      await run("git", ["config", "user.name", "Argo"], { cwd: home });
+      await run("git", ["config", "user.name", "Vanta"], { cwd: home });
     } catch {
       // git unavailable — versioning is optional, store still works
     }
@@ -76,7 +76,7 @@ export async function ensureArgoStore(
 }
 
 /**
- * Best-effort commit of a changed path in the Argo home. Never throws — a
+ * Best-effort commit of a changed path in the Vanta home. Never throws — a
  * failed commit (nothing staged, no git) must not break a skill/memory write.
  */
 export async function commitInHome(
@@ -84,7 +84,7 @@ export async function commitInHome(
   message: string,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  const home = resolveArgoHome(env);
+  const home = resolveVantaHome(env);
   try {
     await run("git", ["add", relPath], { cwd: home });
     await run("git", ["commit", "-q", "-m", message], { cwd: home });

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readMcpConfig, mcpToolToArgoTool } from "./mount.js";
+import { readMcpConfig, mcpToolToVantaTool } from "./mount.js";
 
 describe("readMcpConfig", () => {
   const prev = process.env.VANTA_MCP_SERVERS;
@@ -89,11 +89,11 @@ describe("readMcpConfig", () => {
   });
 });
 
-describe("mcpToolToArgoTool", () => {
+describe("mcpToolToVantaTool", () => {
   const fakeClient = { callTool: async (_n: string, a: Record<string, unknown>) => `ran with ${JSON.stringify(a)}` };
 
-  it("maps an MCP tool def to an OpenAI-safe-named Argo tool", () => {
-    const tool = mcpToolToArgoTool(fakeClient, "files", {
+  it("maps an MCP tool def to an OpenAI-safe-named Vanta tool", () => {
+    const tool = mcpToolToVantaTool(fakeClient, "files", {
       name: "read_file",
       description: "read a file",
       inputSchema: { type: "object", properties: { path: { type: "string" } } },
@@ -105,13 +105,13 @@ describe("mcpToolToArgoTool", () => {
   });
 
   it("surfaces server/tool/args to the kernel via describeForSafety", () => {
-    const tool = mcpToolToArgoTool(fakeClient, "files", { name: "write" });
+    const tool = mcpToolToVantaTool(fakeClient, "files", { name: "write" });
     expect(tool.describeForSafety?.({ path: "/etc/x" })).toContain("mcp files write");
     expect(tool.describeForSafety?.({ path: "/etc/x" })).toContain("/etc/x");
   });
 
   it("executes by proxying to the MCP client", async () => {
-    const tool = mcpToolToArgoTool(fakeClient, "files", { name: "read" });
+    const tool = mcpToolToVantaTool(fakeClient, "files", { name: "read" });
     const res = await tool.execute({ path: "a.txt" }, {} as never);
     expect(res).toEqual({ ok: true, output: 'ran with {"path":"a.txt"}' });
   });
@@ -122,7 +122,7 @@ describe("mcpToolToArgoTool", () => {
         throw new Error("server gone");
       },
     };
-    const tool = mcpToolToArgoTool(failing, "files", { name: "read" });
+    const tool = mcpToolToVantaTool(failing, "files", { name: "read" });
     const res = await tool.execute({}, {} as never);
     expect(res.ok).toBe(false);
     expect(res.output).toContain("server gone");

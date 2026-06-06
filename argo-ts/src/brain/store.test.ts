@@ -18,7 +18,7 @@ describe("brain store", () => {
 
   it("seeds all regions on ensureBrain", async () => {
     await ensureBrain(env);
-    expect((await readRegion("identity", env)) ?? "").toContain("I am Argo");
+    expect((await readRegion("identity", env)) ?? "").toContain("I am Vanta");
     expect(await readRegion("user_model", env)).not.toBeNull();
     expect(await readRegion("mood", env)).not.toBeNull();
   });
