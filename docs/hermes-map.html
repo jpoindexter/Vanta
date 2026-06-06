@@ -37,9 +37,9 @@ header h1{font-size:15px;font-weight:700;letter-spacing:.02em}header span{color:
 .panel section{margin-bottom:18px}
 .panel section h3{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#555;margin-bottom:6px}
 .panel section p{font-size:13px;color:#bbb;line-height:1.6}
-.panel .argo-box{background:#0f1a14;border:1px solid #1e4d2b;border-radius:8px;padding:10px 12px}
-.panel .argo-box .file{font-family:monospace;font-size:12px;color:#4ade80}
-.panel .argo-box .note{font-size:12px;color:#888;margin-top:4px}
+.panel .vanta-box{background:#0f1a14;border:1px solid #1e4d2b;border-radius:8px;padding:10px 12px}
+.panel .vanta-box .file{font-family:monospace;font-size:12px;color:#4ade80}
+.panel .vanta-box .note{font-size:12px;color:#888;margin-top:4px}
 .panel .functions{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
 .fn-tag{background:#161616;border:1px solid #2a2a2a;border-radius:5px;padding:2px 7px;font-size:11px;font-family:monospace;color:#aaa}
 .panel .why-box{background:#1a1200;border:1px solid #4d3800;border-radius:8px;padding:10px 12px;font-size:12px;color:#fbbf24;line-height:1.6}
@@ -558,8 +558,8 @@ const data = {
     cat: "steal",
     desc: "Skills are markdown files with YAML frontmatter at ~/.hermes/skills/<name>/SKILL.md. Slash commands mapped to skill slugs. Inline shell expansion and template variable substitution. 24 symbols.",
     fns: ["load_skill()", "list_skills()", "skill_view()", "resolve_command_key()"],
-    argo: "~/.argo/skills/ (v1)",
-    argoNote: "Same pattern. ~/.argo/skills/<name>/SKILL.md. Same YAML frontmatter. Builds on Hermes's format — cross-compatible.",
+    argo: "~/.vanta/skills/ (v1)",
+    argoNote: "Same pattern. ~/.vanta/skills/<name>/SKILL.md. Same YAML frontmatter. Builds on Hermes's format — cross-compatible.",
     why: null
   },
   skill_bundles: {
@@ -567,7 +567,7 @@ const data = {
     cat: "steal",
     desc: "Groups skills into named bundles via YAML files at ~/.hermes/skill-bundles/*.yaml. Bundle wins over individual skill on name conflict. Cheap disk-change-aware caching. 28 symbols.",
     fns: ["get_skill_bundles()", "resolve_bundle_command_key()", "build_bundle_invocation_message()"],
-    argo: "~/.argo/skill-bundles/ (v1)",
+    argo: "~/.vanta/skill-bundles/ (v1)",
     argoNote: "Same format. Cross-compatible bundles with Hermes.",
     why: null
   },
@@ -576,7 +576,7 @@ const data = {
     cat: "steal",
     desc: "Background skill maintenance — NOT skill creation. Fires when idle AND last run >7 days ago. Consolidates narrow skills into umbrella skills. Archives stale (30 days) and removes after 90 days. Never deletes — archives are recoverable.",
     fns: ["run_curator()", "consolidate()", "archive_stale()", "demote_to_support()"],
-    argo: "~/.argo/curator (v1)",
+    argo: "~/.vanta/curator (v1)",
     argoNote: "Same pattern. Note: the 'closed learning loop' claim is about this curator + agent writing skill files via tools. Not magic — just markdown file management.",
     why: null
   },
@@ -585,7 +585,7 @@ const data = {
     cat: "steal",
     desc: "Skill file system helpers. Path resolution, config injection, skill directory scanning. 33 symbols.",
     fns: ["skill_path()", "get_config()", "scan_skills_dir()"],
-    argo: "~/.argo/skills/ (v1)",
+    argo: "~/.vanta/skills/ (v1)",
     argoNote: null,
     why: null
   },
@@ -594,7 +594,7 @@ const data = {
     cat: "steal",
     desc: "Template variable substitution and inline shell expansion in skill markdown files. Allows dynamic skill content. 14 symbols.",
     fns: ["preprocess_skill()", "expand_shell()", "substitute_vars()"],
-    argo: "~/.argo/skills/ (v1)",
+    argo: "~/.vanta/skills/ (v1)",
     argoNote: null,
     why: null
   },
@@ -685,7 +685,7 @@ const data = {
     desc: "Records agent action trajectory — what tools were called, what they returned, what the model decided. Used for debugging and batch generation. 9 symbols.",
     fns: ["record_action()", "record_tool_result()", "to_jsonl()"],
     argo: "Rust kernel events.jsonl",
-    argoNote: "Vanta logs every tool call to .argo/events.jsonl via the kernel logEvent() API. Same purpose, different implementation.",
+    argoNote: "Vanta logs every tool call to .vanta/events.jsonl via the kernel logEvent() API. Same purpose, different implementation.",
     why: "Improve: Vanta's event log is the trajectory. Already built in the Rust kernel."
   },
   agent_runtime_helpers: {
@@ -783,8 +783,8 @@ function show(id) {
   if (d.fns && d.fns.length) {
     html += `<section><h3>Key symbols</h3><div class="functions">${d.fns.map(f=>`<span class="fn-tag">${f}</span>`).join('')}</div></section>`;
   }
-  if (d.argo) {
-    html += `<hr><section><h3>Vanta equivalent</h3><div class="argo-box"><div class="file">${d.argo}</div>${d.argoNote?`<div class="note">${d.argoNote}</div>`:''}</div></section>`;
+  if (d.vanta) {
+    html += `<hr><section><h3>Vanta equivalent</h3><div class="argo-box"><div class="file">${d.vanta}</div>${d.argoNote?`<div class="note">${d.argoNote}</div>`:''}</div></section>`;
   } else if (d.argoNote) {
     html += `<hr><section><h3>Vanta note</h3><p class="skip-note">${d.argoNote}</p></section>`;
   }

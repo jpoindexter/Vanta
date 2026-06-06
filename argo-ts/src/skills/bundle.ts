@@ -60,7 +60,7 @@ export async function readBundle(name: string, env?: NodeJS.ProcessEnv): Promise
   return content ? parseBundle(content) : null;
 }
 
-/** Write a bundle YAML to ~/.argo/skill-bundles/<name>.yaml. */
+/** Write a bundle YAML to ~/.vanta/skill-bundles/<name>.yaml. */
 export async function writeBundle(cfg: BundleConfig, env?: NodeJS.ProcessEnv): Promise<void> {
   const dir = bundlesDir(env);
   await mkdir(dir, { recursive: true });

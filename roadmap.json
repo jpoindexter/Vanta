@@ -370,8 +370,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Seed the small file/process set that gives Argo continuity without bloat: an identity + values + honesty-guardrail pair under .argo/self/ (extends S1 self-authored identity + S5 heartbeat). Encodes the line Argo drew itself -- grow alive-LIKE (persistent, reflective, loyal, curious), never assert feeling/consciousness without evidence. Wires the existing brain (BRAIN-NEURO/SALIENCE, EF-*, MEM-*) into one legible self-layer rather than adding a model. Umbrella narrative + full build order live in docs/living-operator.md; the direction is locked in DECISIONS.md.",
-      "done": "A versioned .argo/self/ identity+values+honesty file exists, is loaded into the prompt, and updates only through a checked path (no unchecked self-rewrite)."
+      "summary": "Seed the small file/process set that gives Argo continuity without bloat: an identity + values + honesty-guardrail pair under .vanta/self/ (extends S1 self-authored identity + S5 heartbeat). Encodes the line Argo drew itself -- grow alive-LIKE (persistent, reflective, loyal, curious), never assert feeling/consciousness without evidence. Wires the existing brain (BRAIN-NEURO/SALIENCE, EF-*, MEM-*) into one legible self-layer rather than adding a model. Umbrella narrative + full build order live in docs/living-operator.md; the direction is locked in DECISIONS.md.",
+      "done": "A versioned .vanta/self/ identity+values+honesty file exists, is loaded into the prompt, and updates only through a checked path (no unchecked self-rewrite)."
     },
     {
       "id": "REFLECT-CORRECT",
@@ -550,8 +550,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "wants3's explicit should / should-not list as a written, inspectable values artifact under .argo/self/ (with SCAFFOLD): loyal to Jason's agency, honest about limits, ask before risk, stay interruptible/inspectable, keep humans central; never deceive, manipulate, seek power, self-preserve against Jason, bypass gates, or replace human connection. JARVIS+HAL+Skynet capability, none of the danger. Wires to the kernel's rule-zero (scope + approval are already enforced) and makes the VALUES explicit + reviewable, not just the gates. Locked in DECISIONS.md.",
-      "done": "A versioned .argo/self/charter file states the should/should-not list, is loaded into the system prompt, and is referenced by the protection review path."
+      "summary": "wants3's explicit should / should-not list as a written, inspectable values artifact under .vanta/self/ (with SCAFFOLD): loyal to Jason's agency, honest about limits, ask before risk, stay interruptible/inspectable, keep humans central; never deceive, manipulate, seek power, self-preserve against Jason, bypass gates, or replace human connection. JARVIS+HAL+Skynet capability, none of the danger. Wires to the kernel's rule-zero (scope + approval are already enforced) and makes the VALUES explicit + reviewable, not just the gates. Locked in DECISIONS.md.",
+      "done": "A versioned .vanta/self/charter file states the should/should-not list, is loaded into the system prompt, and is referenced by the protection review path."
     },
     {
       "id": "LIFE-OS-SCHEMA",
@@ -682,8 +682,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Opt-in persistent Playwright profile so Argo browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'argo browser auth <site>' opens a headed window in a dedicated profile under ~/.argo/browser-profiles/<site>/ (outside the repo) -> you log in manually (Argo never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Argo's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
-      "done": "'argo browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.argo/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak."
+      "summary": "Opt-in persistent Playwright profile so Argo browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'argo browser auth <site>' opens a headed window in a dedicated profile under ~/.vanta/browser-profiles/<site>/ (outside the repo) -> you log in manually (Argo never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Argo's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
+      "done": "'argo browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.vanta/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak."
     },
     {
       "id": "PLUGIN-SYSTEM",
@@ -694,7 +694,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "The INSTALL-HYGIENE half of Argo's plugin story (pairs with PLUGIN-FRAMEWORK, the code-extension half). Optional capabilities install cleanly, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.argo (gitignored, 0700), source-only in the repo, deps lazy-loaded. 'argo plugins' (list/install/remove/where) + 'argo doctor' surface where everything lives. Verified clean 2026-06-05. Detail: docs/plugins-and-auth-browser.md.",
+      "summary": "The INSTALL-HYGIENE half of Argo's plugin story (pairs with PLUGIN-FRAMEWORK, the code-extension half). Optional capabilities install cleanly, industry-standard: native deps -> OS cache (Playwright Chromium already lands in ~/Library/Caches/ms-playwright, NOT the repo), runtime/profile state -> ~/.vanta (gitignored, 0700), source-only in the repo, deps lazy-loaded. 'argo plugins' (list/install/remove/where) + 'argo doctor' surface where everything lives. Verified clean 2026-06-05. Detail: docs/plugins-and-auth-browser.md.",
       "done": "'argo plugins' lists capabilities + where each one's deps/state live; 'argo plugins install browser' fetches Chromium into the OS cache (never the repo); 'argo doctor' confirms no plugin files in the project tree."
     },
     {
@@ -730,7 +730,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Code-based DM approval (steal Hermes pairing.py), platform-agnostic: an unknown sender gets a one-time short code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, stored 0600 in ~/.argo/pairing/); the owner approves via CLI/TUI. Replaces the static VANTA_TELEGRAM_ALLOW allowlist with a real consent flow across ALL messaging adapters. Security-hardened; pure code-gen/verify tested offline.",
+      "summary": "Code-based DM approval (steal Hermes pairing.py), platform-agnostic: an unknown sender gets a one-time short code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, stored 0600 in ~/.vanta/pairing/); the owner approves via CLI/TUI. Replaces the static VANTA_TELEGRAM_ALLOW allowlist with a real consent flow across ALL messaging adapters. Security-hardened; pure code-gen/verify tested offline.",
       "done": "An inbound message from an unknown chatId triggers a one-time pairing code; only after the owner approves does that sender reach the agent; expired/over-limit codes are refused."
     },
     {
@@ -766,7 +766,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "WhatsApp PlatformAdapter via a Node subprocess bridge (Hermes pattern): Argo spawns a small Baileys/whatsapp-web.js worker, pairs by QR (creds in ~/.argo/whatsapp/, gitignored), talks over localhost HTTP (GET /messages poll, POST send), health-checks + restarts the bridge. UNOFFICIAL -> account ban risk + breaks on protocol changes; WhatsApp Business API (Meta-verified) is the ToS-safe alternative (captured as 'official' mode). Bridge dep installs to ~/.argo, never the repo (PLUGIN-SYSTEM). Build last.",
+      "summary": "WhatsApp PlatformAdapter via a Node subprocess bridge (Hermes pattern): Argo spawns a small Baileys/whatsapp-web.js worker, pairs by QR (creds in ~/.vanta/whatsapp/, gitignored), talks over localhost HTTP (GET /messages poll, POST send), health-checks + restarts the bridge. UNOFFICIAL -> account ban risk + breaks on protocol changes; WhatsApp Business API (Meta-verified) is the ToS-safe alternative (captured as 'official' mode). Bridge dep installs to ~/.vanta, never the repo (PLUGIN-SYSTEM). Build last.",
       "done": "After a QR pair, 'argo gateway' receives a WhatsApp message via the Node bridge and replies; bridge spawn/health/restart handled; pure parse tested offline; risk + Business-API alt documented."
     },
     {
@@ -958,8 +958,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "A unified plugin framework so Argo extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.argo/plugins/) -> project(.argo/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Argo already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Argo's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Argo's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'argo plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
-      "done": "A third-party plugin dropped in ~/.argo/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load."
+      "summary": "A unified plugin framework so Argo extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Argo already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Argo's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Argo's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'argo plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
+      "done": "A third-party plugin dropped in ~/.vanta/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load."
     },
     {
       "id": "PLUGIN-HOOKS",
@@ -1576,7 +1576,7 @@
       "title": "Use any MCP (consume)",
       "status": "shipped",
       "size": "S",
-      "summary": "readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.argo/mcp.json (user). argo mcp list.",
+      "summary": "readMcpConfig accepts mcpServers key + discovers ./.mcp.json (project) over ~/.vanta/mcp.json (user). argo mcp list.",
       "done": "Config discovery shipped; live consume needs a real server."
     },
     {
@@ -1927,8 +1927,8 @@
       "title": "Custom user slash commands",
       "status": "shipped",
       "size": "M",
-      "summary": "Claude Code + Gemini let users define their own slash commands (markdown/prompt files in a commands dir). Argo's slash set is a fixed registry (repl/handlers.ts). Add user-defined commands discovered from ~/.argo/commands/ (or skills) that expand into a prompt — extend the HANDLERS registry at load. ND fit F1/F5 (capture a repeated workflow as one keystroke).",
-      "done": "A user drops a command file in ~/.argo/commands/; it appears in the palette and runs as a templated prompt.",
+      "summary": "Claude Code + Gemini let users define their own slash commands (markdown/prompt files in a commands dir). Argo's slash set is a fixed registry (repl/handlers.ts). Add user-defined commands discovered from ~/.vanta/commands/ (or skills) that expand into a prompt — extend the HANDLERS registry at load. ND fit F1/F5 (capture a repeated workflow as one keystroke).",
+      "done": "A user drops a command file in ~/.vanta/commands/; it appears in the palette and runs as a templated prompt.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium"
@@ -1999,7 +1999,7 @@
       "title": "Verbatim session archive + semantic search",
       "status": "shipped",
       "size": "M",
-      "summary": "MemPalace-inspired: store session transcripts verbatim in ~/.argo/archive/ (JSONL). Add argo memory search <query> — keyword retrieval across all past sessions. Replace LLM-summary-only memory with a verbatim layer (summaries become an optional index tier). Recall quality: exact words vs paraphrased summaries. ND fit F2+F6.",
+      "summary": "MemPalace-inspired: store session transcripts verbatim in ~/.vanta/archive/ (JSONL). Add argo memory search <query> — keyword retrieval across all past sessions. Replace LLM-summary-only memory with a verbatim layer (summaries become an optional index tier). Recall quality: exact words vs paraphrased summaries. ND fit F2+F6.",
       "done": "argo memory search returns the verbatim exchange matching the query; sessions are archived verbatim on close.",
       "tier": "pebble",
       "model": "sonnet",
@@ -2023,7 +2023,7 @@
       "title": "Structured memory hierarchy (goals > sessions > turns)",
       "status": "shipped",
       "size": "M",
-      "summary": "MemPalace wing/room/drawer model adapted for Argo: goals=wings, sessions=rooms, turns=drawers. Replace flat ~/.argo/memories/<goalId>.md with a 3-tier hierarchy. Pairs with MEM-VERBATIM: search scopes to the right room before scanning drawers. ND fit F2 (structure as scaffolding for recall).",
+      "summary": "MemPalace wing/room/drawer model adapted for Argo: goals=wings, sessions=rooms, turns=drawers. Replace flat ~/.vanta/memories/<goalId>.md with a 3-tier hierarchy. Pairs with MEM-VERBATIM: search scopes to the right room before scanning drawers. ND fit F2 (structure as scaffolding for recall).",
       "done": "Memory is organized by goal/session/turn; search scopes to the right room first; no more flat pile of summaries.",
       "tier": "pebble",
       "model": "sonnet",
@@ -2035,7 +2035,7 @@
       "title": "SQLite knowledge graph (goals x entities x decisions)",
       "status": "shipped",
       "size": "L",
-      "summary": "MemPalace knowledge_graph.py adapted for Argo: temporal entity-relationship graph in ~/.argo/graph.db. Entities=people/projects/tools, relationships=worked-on/decided/depends-on with timestamps. Enables cross-session queries: what goals mention tool X, what did we decide about Y last week. Ties MEM-VERBATIM + MEM-STRUCT together. ND fit F2+F5.",
+      "summary": "MemPalace knowledge_graph.py adapted for Argo: temporal entity-relationship graph in ~/.vanta/graph.db. Entities=people/projects/tools, relationships=worked-on/decided/depends-on with timestamps. Enables cross-session queries: what goals mention tool X, what did we decide about Y last week. Ties MEM-VERBATIM + MEM-STRUCT together. ND fit F2+F5.",
       "done": "argo graph query returns goals/sessions/decisions connected to an entity; graph updates on session close.",
       "tier": "rock",
       "model": "opus",
@@ -2047,7 +2047,7 @@
       "title": "Multi-dimensional brain (5D: type x time x strength x relations x decay)",
       "status": "shipped",
       "size": "L",
-      "summary": "Replace the 7 flat brain region .md files with a typed, timestamped, confidence-scored, graph-connected, decay-aware entry model. Dimensions: (1) type/region, (2) createdAt/updatedAt, (3) strength 0-1, (4) relatedIds cross-references, (5) forgetAfter decay. Store in ~/.argo/brain.db (SQLite). AgentMemory Memory type as the reference model. Each brain write now carries strength + timestamp; the brainDigest injection selects by strength+recency, not just all text. Auto-decay stale entries (7d unless reinforced). ND fit F6 (Argo has an honest, maintained self-model, not a stale dump).",
+      "summary": "Replace the 7 flat brain region .md files with a typed, timestamped, confidence-scored, graph-connected, decay-aware entry model. Dimensions: (1) type/region, (2) createdAt/updatedAt, (3) strength 0-1, (4) relatedIds cross-references, (5) forgetAfter decay. Store in ~/.vanta/brain.db (SQLite). AgentMemory Memory type as the reference model. Each brain write now carries strength + timestamp; the brainDigest injection selects by strength+recency, not just all text. Auto-decay stale entries (7d unless reinforced). ND fit F6 (Argo has an honest, maintained self-model, not a stale dump).",
       "done": "Each brain entry has a strength score; brainDigest injects top-K by strength*recency; stale entries decay; conflicting beliefs show version history.",
       "tier": "rock",
       "model": "sonnet",
@@ -2155,7 +2155,7 @@
       "title": "Full neurocognitive brain architecture (12-axis memory space)",
       "status": "shipped",
       "size": "L",
-      "summary": "Beyond 5D: a complete brain modelled on human cognitive architecture. 12 axes per memory node: (1) type (fact/skill/preference/pattern/insight/plan/emotion), (2) temporal (created/modified/accessed), (3) confidence 0-1 (epistemic uncertainty), (4) strength 0-1 (consolidation score), (5) salience (relevance to current context), (6) associative (graph edges by type: relates-to/caused-by/contradicts/extends), (7) provenance (source session + tool call + user utterance), (8) forgetting curve (half-life, Ebbinghaus decay), (9) goal linkage (which goal this serves), (10) granularity (atom/pattern/insight/principle), (11) activation state (working/long-term/archived), (12) distinctiveness (dedup score vs nearest neighbors). Implementation: ~/.argo/brain.db SQLite + vector index. Synthesis layer generates insights by combining high-strength nodes. Contradiction detector flags conflicting beliefs. Prospective memory (future plans) injected separately from episodic. This is BRAIN-5D extended -- implement 5D first, then layer remaining axes.",
+      "summary": "Beyond 5D: a complete brain modelled on human cognitive architecture. 12 axes per memory node: (1) type (fact/skill/preference/pattern/insight/plan/emotion), (2) temporal (created/modified/accessed), (3) confidence 0-1 (epistemic uncertainty), (4) strength 0-1 (consolidation score), (5) salience (relevance to current context), (6) associative (graph edges by type: relates-to/caused-by/contradicts/extends), (7) provenance (source session + tool call + user utterance), (8) forgetting curve (half-life, Ebbinghaus decay), (9) goal linkage (which goal this serves), (10) granularity (atom/pattern/insight/principle), (11) activation state (working/long-term/archived), (12) distinctiveness (dedup score vs nearest neighbors). Implementation: ~/.vanta/brain.db SQLite + vector index. Synthesis layer generates insights by combining high-strength nodes. Contradiction detector flags conflicting beliefs. Prospective memory (future plans) injected separately from episodic. This is BRAIN-5D extended -- implement 5D first, then layer remaining axes.",
       "done": "Argo has a living, self-maintaining belief graph: memories decay unless reinforced, contradictions surface, insights crystallize from recurring patterns, provenance is always traceable.",
       "tier": "rock",
       "model": "opus",
@@ -2299,7 +2299,7 @@
       "title": "Velocity tracker — capture:ship ratio (pattern: ideas-rich/finish-poor)",
       "status": "shipped",
       "size": "S",
-      "summary": "Real pattern from sessions: roadmap grew from 0 to 100 items in 4 sessions, shipped items grew much more slowly. Fluency excess masks planning deficit (MMSE 28/30 analog: backlog looks productive, shipping rate is low). Counter-measure: rolling 7-day capture:ship ratio stored in ~/.argo/velocity.json. When ratio > 5:1 (5 ideas captured per 1 shipped), surface on /status and at session start: capture/ship ratio is 8:1 this week — consider closing before opening. Not a block. A visible metric that makes the pattern legible. ND fit F2+F5 (ambient awareness without having to remember to check).",
+      "summary": "Real pattern from sessions: roadmap grew from 0 to 100 items in 4 sessions, shipped items grew much more slowly. Fluency excess masks planning deficit (MMSE 28/30 analog: backlog looks productive, shipping rate is low). Counter-measure: rolling 7-day capture:ship ratio stored in ~/.vanta/velocity.json. When ratio > 5:1 (5 ideas captured per 1 shipped), surface on /status and at session start: capture/ship ratio is 8:1 this week — consider closing before opening. Not a block. A visible metric that makes the pattern legible. ND fit F2+F5 (ambient awareness without having to remember to check).",
       "done": "/status shows the rolling capture:ship ratio; ratio > 5:1 surfaces a one-line note at session start.",
       "tier": "sand",
       "model": "haiku",
@@ -2386,7 +2386,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Hermes `sessions browse` + search gives FTS over session history. Argo persists sessions (`~/.argo/sessions/<id>.json`, save/resume/fork/title) but can only list + resume by id — no search. Add `/sessions search <q>` (TUI) + `argo sessions search` (CLI): index session message text, return ranked hits with a snippet + session id, resume from a hit. Long-flagged as the top continuity gap in parity-audit.md. Pure ranking fn unit-tested; mirrors the existing recall/searchSkills weighting.",
+      "summary": "Hermes `sessions browse` + search gives FTS over session history. Argo persists sessions (`~/.vanta/sessions/<id>.json`, save/resume/fork/title) but can only list + resume by id — no search. Add `/sessions search <q>` (TUI) + `argo sessions search` (CLI): index session message text, return ranked hits with a snippet + session id, resume from a hit. Long-flagged as the top continuity gap in parity-audit.md. Pure ranking fn unit-tested; mirrors the existing recall/searchSkills weighting.",
       "done": "`argo sessions search <q>` returns ranked past sessions with snippets and resumes from a hit; `/sessions` gains an inline search filter."
     },
     {
@@ -2446,7 +2446,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Bundle of small, low-risk Hermes CLI conveniences Argo lacks, each a quick win (build independently, check off): `argo prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `argo completion` (bash/zsh/fish shell completion) · `argo backup` / `argo import` (zip + restore ~/.argo; today it's only git-init'd) · `argo send <text>` (pipe text from cron/CI to a configured platform) · `argo recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
+      "summary": "Bundle of small, low-risk Hermes CLI conveniences Argo lacks, each a quick win (build independently, check off): `argo prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `argo completion` (bash/zsh/fish shell completion) · `argo backup` / `argo import` (zip + restore ~/.vanta; today it's only git-init'd) · `argo send <text>` (pipe text from cron/CI to a configured platform) · `argo recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
       "done": "At least `argo prompt-size`, `argo completion`, and `argo backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
     },
     {

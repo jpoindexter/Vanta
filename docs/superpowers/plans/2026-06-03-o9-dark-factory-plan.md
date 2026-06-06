@@ -1168,7 +1168,7 @@ import type { FactoryConfig, CycleResult } from "./types.js";
 
 const baseConfig: FactoryConfig = {
   argoRoot: "/repo",
-  dataDir: "/home/.argo",
+  dataDir: "/home/.vanta",
   autonomy: "review",
   budgetTokens: 80_000,
   interactive: false,
@@ -1482,7 +1482,7 @@ and I physically cannot do it. That is the difference between a rule and an enfo
 
 ## How I learn
 
-Every session adds to my brain (~/.argo/brain/). Every cycle that ships adds to the git log.
+Every session adds to my brain (~/.vanta/brain/). Every cycle that ships adds to the git log.
 The log is my memory. The brain is my identity. This file is my voice.
 ```
 
@@ -1674,7 +1674,7 @@ function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
 }
 ```
 
-Note: `join` needs to be imported at the top if not already. `dataDir` is `~/.argo` so the repo root is `dirname(dataDir)` — adjust the path to point to the `argo-ts/src/cli.ts` entry point correctly.
+Note: `join` needs to be imported at the top if not already. `dataDir` is `~/.vanta` so the repo root is `dirname(dataDir)` — adjust the path to point to the `argo-ts/src/cli.ts` entry point correctly.
 
 Actually, the detached child should use the installed `argo` launcher (`~/.local/bin/argo factory approve`). Use that instead:
 

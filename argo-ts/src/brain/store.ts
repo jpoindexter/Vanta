@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { resolveArgoHome, commitInHome } from "../store/home.js";
 import { BRAIN_REGIONS } from "./regions.js";
 
-// File-backed brain store under ~/.argo/brain/<region>.md — git-versioned (like
+// File-backed brain store under ~/.vanta/brain/<region>.md — git-versioned (like
 // skills/memory) so the brain's growth is durable and reversible (never silently
 // lost). One file per region; the agent reads a digest each session and writes
 // via the `brain` tool.

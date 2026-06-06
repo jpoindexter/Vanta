@@ -13,7 +13,7 @@ const run = promisify(execFile);
 // gateway` works everywhere; this just keeps it alive in the background. Linux
 // (systemd) is a future addition — install() errors clearly off macOS.
 
-export const SERVICE_LABEL = "studio.theft.argo.gateway";
+export const SERVICE_LABEL = "studio.theft.vanta.gateway";
 
 function plistPath(): string {
   return join(homedir(), "Library", "LaunchAgents", `${SERVICE_LABEL}.plist`);

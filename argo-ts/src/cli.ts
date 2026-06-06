@@ -216,7 +216,7 @@ async function runSkillsList(): Promise<void> {
 }
 
 // `argo skills` → list; `argo skills install [--force]` → copy the bundled
-// library into ~/.argo/skills (skips existing unless --force).
+// library into ~/.vanta/skills (skips existing unless --force).
 async function runSkillsCommand(rest: string[]): Promise<void> {
   if (rest[0] === "lint") {
     const { lintSkills, formatLint } = await import("./skills/lint.js");
@@ -230,7 +230,7 @@ async function runSkillsCommand(rest: string[]): Promise<void> {
     const name = rest[1];
     if (!name) {
       const bundles = await listBundles();
-      if (!bundles.length) return void console.log("(no bundles yet — create ~/.argo/skill-bundles/<name>.yaml)");
+      if (!bundles.length) return void console.log("(no bundles yet — create ~/.vanta/skill-bundles/<name>.yaml)");
       for (const b of bundles) console.log(`${b.name} — ${b.description} [${b.skills.join(", ")}]`);
       return;
     }

@@ -45,7 +45,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `browser/allowlist.ts` | `isAllowedDomain`/`extractDomain` — `VANTA_ALLOWED_DOMAINS` gate for browser tools |
 | `providers/anthropic.ts` | Phase 4 full Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). Pure `toAnthropicMessages` |
 | `tools/delegate.ts` | Phase 6 — spawns a scoped subagent. Child registry excludes `delegate` (no runaway recursion) |
-| `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.argo/cron.tsv` load/add/save |
+| `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.vanta/cron.tsv` load/add/save |
 | `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks; one failure doesn't abort the batch |
 | `schedule/commands.ts` | Phase 6 — `argo schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
 | `gateway/run.ts` | v1 E1/E2/E3 — `argo gateway` daemon: `gatewayTick` (cron) + `pollPlatform` (messaging) + webhook listener, in one `runGateway` loop (SIGINT/SIGTERM-clean). `VANTA_GATEWAY_TICK_MS` |
@@ -54,7 +54,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `gateway/platforms/base.ts` | v1 E2 — `PlatformAdapter` contract (`connect`/`disconnect`/`send`/`poll`) + `InboundMessage`/`OutboundMessage`. One adapter per messaging platform |
 | `gateway/platforms/telegram.ts` | v1 E2 — `TelegramAdapter` (getUpdates long-poll + sendMessage, no SDK) + pure `parseUpdates`/`parseAllowlist`. `gateway/run.ts pollPlatform` runs inbound→agent→reply. Enabled by `VANTA_TELEGRAM_TOKEN`; offline-tested, live needs a @BotFather token |
 | `mcp/client.ts` | v1 E5 — dependency-free MCP stdio JSON-RPC client (`McpClient` + injectable `Transport` + `stdioTransport`): initialize/listTools/callTool, concurrent-request correlation. `textFromContent` pure |
-| `mcp/mount.ts` | v1 E5 + MCP-1 — `readMcpConfig` (accepts `servers`+`mcpServers` keys; resolves `VANTA_MCP_SERVERS` inline, else merges `./.mcp.json` project-level over `~/.argo/mcp.json` user-level) + `mountMcpServers` (spawn each, register discovered tools as Vanta tools via `mcpToolToArgoTool` — gated by kernel `assess()`). Called in `prepareRun`; no-op without config |
+| `mcp/mount.ts` | v1 E5 + MCP-1 — `readMcpConfig` (accepts `servers`+`mcpServers` keys; resolves `VANTA_MCP_SERVERS` inline, else merges `./.mcp.json` project-level over `~/.vanta/mcp.json` user-level) + `mountMcpServers` (spawn each, register discovered tools as Vanta tools via `mcpToolToArgoTool` — gated by kernel `assess()`). Called in `prepareRun`; no-op without config |
 | `mcp/server.ts` | MCP-3 — Vanta AS an MCP server (mirror of client.ts). `runMcpServer`/`stdioServerTransport` + pure `handleMessage` (initialize/tools/list/tools/call). Every call gated by `assess()`: `block`/`ask` → `isError` result (headless, no human), only `allow` executes. `resolveServeAllowlist` (`VANTA_MCP_SERVE_TOOLS`, default 9 read-only) bounds exposure. `argo mcp serve` |
 | `tools/mount-mcp.ts` | MCP-2 — `buildMountMcpTool(registry)` factory: the `mount_mcp` tool spawns an MCP server at runtime + registers its tools into the LIVE registry. `describeForSafety` → "spawn mcp server …" so the kernel gates the spawn. Registered by `buildRegistry` (needs the registry ref) |
 | `subagent/spawn.ts` | Phase 6 — `spawnSubagent` runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
@@ -62,26 +62,26 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `VANTA_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `argo room <name>` runs rooted there → per-project goal stream |
 | `projects/commands.ts` | Phase 7 — `argo rooms`/`room`/`modes` CLI handlers + learning suggestion (keeps cli.ts ≤300) |
 | `modes/builtin.ts` | Phase 7 — 6 operator modes as real skills (`OPERATOR_MODES`, `installModes`). Run via `argo skill <mode> "<instr>"` |
-| `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.argo/usage.tsv`) |
+| `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.vanta/usage.tsv`) |
 | `routing/model-router.ts` | Phase 7 — `classifyTask` (cheap/expensive) + `resolveRoutedProvider` (`VANTA_MODEL_CHEAP`/`_EXPENSIVE`; no-op when unset) |
 | `routing/vision.ts` | AUX-VISION — `visionEnv` (pure) + `resolveVisionProvider`: image tools resolve a dedicated vision model via `VANTA_VISION_MODEL` (+ optional `VANTA_VISION_PROVIDER`), else the active provider. Used by `describe_image`/`look_at_screen`/`look_at_camera` so a text-only main model doesn't break sight. The auxiliary-task pattern, scoped to vision |
-| `google/auth.ts` | Phase 5 — one-time OAuth (`runGoogleAuth`, loopback) + token store `~/.argo/google-tokens.json` (0600), `getAccessToken` (auto-refresh) |
+| `google/auth.ts` | Phase 5 — one-time OAuth (`runGoogleAuth`, loopback) + token store `~/.vanta/google-tokens.json` (0600), `getAccessToken` (auto-refresh) |
 | `google/client.ts` | Phase 5 — `googleFetch` (Bearer + 401-retry) + pure `buildUrl` |
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
 | `tools/index.ts` | `buildRegistry({exclude?})` — registers all 42 tools + `mount_mcp` via factory = 43 total (`exclude:["delegate"]` → 41 for workers) |
-| `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.argo` store (`VANTA_HOME` override), git-init'd for free versioning |
+| `store/home.ts` | `resolveArgoHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureArgoStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
-| `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.argo/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |
-| `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.argo/skills` (idempotent, skips existing unless `--force`). `libraryDir()` resolves to `argo-ts/skills-library/`. Called by `argo skills install` **and auto-run in `prepareRun`** every session, so newly-bundled skills appear without a manual install |
+| `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.vanta/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |
+| `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.vanta/skills` (idempotent, skips existing unless `--force`). `libraryDir()` resolves to `argo-ts/skills-library/`. Called by `argo skills install` **and auto-run in `prepareRun`** every session, so newly-bundled skills appear without a manual install |
 | `skills-library/` | **26** shipped skills at `argo-ts/skills-library/<slug>/SKILL.md`: ~10 ported from references + `agent-orchestration-workflows`, `build-mcp-server`, and the **14 `nd-*` executive-function skills**. Add a `<slug>/SKILL.md` dir to grow the bundle; it auto-installs on next session |
 | `skills/recall.ts` | pure `searchSkills(query, skills)` — weighted substring ranking |
 | `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `argo-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
 | `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `argo-learned`. Best-effort. Env: `VANTA_SELF_IMPROVE`/`VANTA_REVIEW_MIN_TOOLS`/`VANTA_REVIEW_EVERY` |
-| `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.argo/memories/<goalId>.md` |
-| `sessions/store.ts` | Session persist/resume: `saveSession`/`loadSession`/`listSessions`/`newSessionId`. JSON files `~/.argo/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `argo sessions`/`resume <id>`/`--resume`. `createConversation(...,{history})` seeds resumed turns |
+| `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.vanta/memories/<goalId>.md` |
+| `sessions/store.ts` | Session persist/resume: `saveSession`/`loadSession`/`listSessions`/`newSessionId`. JSON files `~/.vanta/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `argo sessions`/`resume <id>`/`--resume`. `createConversation(...,{history})` seeds resumed turns |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `VANTA_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
@@ -157,13 +157,13 @@ ESM `.js` imports · zod at every LLM/HTTP boundary · errors-as-values in tools
 
 Search (Phase 2B): `VANTA_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default ddg) · `VANTA_SEARCH_URL` (searxng) · `SERPAPI_KEY` · `BRAVE_KEY`.
 
-Store (Phase 2A): `VANTA_HOME` overrides the global store dir (default `~/.argo`). Holds `skills/` + `memories/`, git-init'd; writes auto-commit (best-effort). Tests point `VANTA_HOME` at a temp dir.
+Store (Phase 2A): `VANTA_HOME` overrides the global store dir (default `~/.vanta`). Holds `skills/` + `memories/`, git-init'd; writes auto-commit (best-effort). Tests point `VANTA_HOME` at a temp dir.
 
 Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `VANTA_VISION_MODEL` (describe_image, default gpt-4o-mini) · `VANTA_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
 
 Phase 7: `VANTA_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` (task-routed models; unset = no routing).
 
-Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-time OAuth client — provision once in Google Cloud Console, then `argo auth google` is one click per user). Tokens stored per-user in `~/.argo/google-tokens.json`. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.
+Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-time OAuth client — provision once in Google Cloud Console, then `argo auth google` is one click per user). Tokens stored per-user in `~/.vanta/google-tokens.json`. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.
 
 ## Gotchas
 
@@ -177,7 +177,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Multimodal:** user `Message` carries optional `images:[{mime,dataBase64}]` (`types.ts`), mapped natively by every provider. Attach via `/image <path>`, `/paste` (clipboard, macOS), drag-drop (`maybeDroppedImage`), or `/attachments [clear]`. Vision tools `describe_image` + `look_at_screen`/`look_at_camera` (Vanta's eyes) route through `resolveVisionProvider` (`routing/vision.ts`): a dedicated vision model via `VANTA_VISION_MODEL` (+ optional `VANTA_VISION_PROVIDER`) when set, else the active provider. This is the **auxiliary-task** pattern — image work runs on a vision-capable model even when the main model is text-only (DeepSeek, local Ollama). Unset = active provider (prior behavior).
 
-**Brain (selfhood):** `brain/regions.ts` + `brain/store.ts` → `~/.argo/brain/<region>.md` (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. `brain` tool (list/read/append/replace). `brainDigest` injected as a prompt tier — Vanta reads its brain each session.
+**Brain (selfhood):** `brain/regions.ts` + `brain/store.ts` → `~/.vanta/brain/<region>.md` (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. `brain` tool (list/read/append/replace). `brainDigest` injected as a prompt tier — Vanta reads its brain each session.
 
 **Skills:** skill INDEX injected into the prompt (`prompt.ts` skillsTier); `recall` loads the full body on demand.
 
@@ -205,4 +205,4 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Messaging setup wizard (MSG-WIZARD + MSG-REGISTRY):** `gateway/platforms/registry.ts` — `MESSAGING_CATALOG` (the messaging analogue of `providers/catalog.ts`): `{id,label,implemented,requiredEnv,secretEnv?,enableEnv?,prerequisite?,warning?,setupSteps,signupUrl?}` + `platformAvailability(p,env)` + `messagingPlatformById`. **Only Telegram is `implemented`** (live adapter); iMessage/Signal/WhatsApp are `planned` (preview-only — the wizard never writes a fake enable flag for a missing adapter). `setup-messaging.ts` — `argo setup messaging`: registry-driven menu with `[available|configured|planned]` status, `renderSetupSteps` (prereq + ⚠ warning + numbered steps), configures Telegram for real (`VANTA_TELEGRAM_TOKEN` via the shared `upsertEnv`, exported `promptSecret` from `setup.ts`). Wired in `cli.ts` (`setup` → `messaging` subcommand). Future adapters (iMessage osascript+chat.db, Signal signal-cli, WhatsApp Node bridge) flip `implemented:true` + add their adapter. Design: `docs/messaging-gateways.md`.
 
-**Multi-source skill install:** `skills/library.ts` installs from `librarySources()` = **three** bundled dirs: `argo-ts/skills-library/` (Hermes-ported + nd-*), the repo-root `design-system-skills/` (27 design skills + viewer), and `ai-engineering-skills/` (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into `~/.argo/skills` each session via `installSkillLibrary()`. `installOne()` helper keeps the fn small; `from` still overrides to a single source (tests). Adding a skill source = one entry in `librarySources()`. Each library's `index.html` regenerates via `scripts/build-skills-index.py <folder>` (mistune); they're also installed into `~/.claude/skills` for Claude Code.
+**Multi-source skill install:** `skills/library.ts` installs from `librarySources()` = **three** bundled dirs: `argo-ts/skills-library/` (Hermes-ported + nd-*), the repo-root `design-system-skills/` (27 design skills + viewer), and `ai-engineering-skills/` (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into `~/.vanta/skills` each session via `installSkillLibrary()`. `installOne()` helper keeps the fn small; `from` still overrides to a single source (tests). Adding a skill source = one entry in `librarySources()`. Each library's `index.html` regenerates via `scripts/build-skills-index.py <folder>` (mistune); they're also installed into `~/.claude/skills` for Claude Code.

@@ -5,7 +5,7 @@ import { join, relative } from "node:path";
 // them to file content, and builds a context block prepended to the message.
 // File listing is used to power autocomplete in the TUI palette.
 
-const SKIP_DIRS = new Set([".git", "node_modules", "target", "dist", ".argo", "__pycache__", ".next", "coverage"]);
+const SKIP_DIRS = new Set([".git", "node_modules", "target", "dist", ".vanta", "__pycache__", ".next", "coverage"]);
 
 /** Extract all @path tokens from a message string. */
 export function parseAtRefs(input: string): string[] {

@@ -12,7 +12,7 @@ pub struct State {
 
 impl State {
     pub fn new(root: PathBuf) -> Self {
-        let data_dir = root.join(".argo");
+        let data_dir = root.join(".vanta");
         Self { root, data_dir }
     }
 }
@@ -37,18 +37,26 @@ pub fn doctor(state: &State) -> Result<(), String> {
 }
 
 fn migrate_legacy_data(state: &State) {
-    let legacy = state.root.join(".nexarion");
-    if !legacy.exists() {
-        return;
-    }
-    for entry in ["approvals.tsv", "goals.tsv", "events.jsonl"] {
-        let src = legacy.join(entry);
-        let dst = state.data_dir.join(entry);
-        if src.exists() && !dst.exists() {
-            let _ = fs::copy(&src, &dst);
+    // Lineage: .nexarion → .argo → .vanta. Copy any legacy data dir's records
+    // into .vanta on first run; old dirs are preserved (copy, not move).
+    for legacy_name in [".nexarion", ".argo"] {
+        let legacy = state.root.join(legacy_name);
+        if !legacy.exists() || legacy == state.data_dir {
+            continue;
+        }
+        let mut migrated = false;
+        for entry in ["approvals.tsv", "goals.tsv", "events.jsonl"] {
+            let src = legacy.join(entry);
+            let dst = state.data_dir.join(entry);
+            if src.exists() && !dst.exists() {
+                let _ = fs::copy(&src, &dst);
+                migrated = true;
+            }
+        }
+        if migrated {
+            eprintln!("note: migrated {legacy_name}/ data to .vanta/ (old dir preserved)");
         }
     }
-    eprintln!("note: migrated .nexarion/ data to .argo/ (old dir preserved)");
 }
 
 pub fn assess(state: &State, text: &str) -> Result<(), String> {

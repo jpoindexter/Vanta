@@ -69,7 +69,7 @@ abort (E4); steer/bg/queue are new.
 
 ### Vanta-distinctive (kernel-backed, Hermes has no equivalent)
 `/goal`, `/subgoal`, `/rollback`, `/snapshot` — map onto Vanta's goal/approval
-kernel and `~/.argo` state. **These are Vanta's differentiator; keep them.**
+kernel and `~/.vanta` state. **These are Vanta's differentiator; keep them.**
 
 ### Skip for Vanta (gateway/platform-only)
 `/handoff`, `/start`, `/topic`, `/approve`, `/deny`, `/sethome`, `/restart`,

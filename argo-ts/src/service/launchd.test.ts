@@ -3,21 +3,21 @@ import { buildLaunchdPlist } from "./launchd.js";
 
 describe("buildLaunchdPlist", () => {
   const base = {
-    label: "studio.theft.argo.gateway",
+    label: "studio.theft.vanta.gateway",
     programArgs: ["/repo/run.sh", "gateway"],
     workingDir: "/repo",
-    logPath: "/home/.argo/gateway.log",
+    logPath: "/home/.vanta/gateway.log",
   };
 
   it("produces a valid plist with the label, args, and keep-alive", () => {
     const plist = buildLaunchdPlist(base);
     expect(plist).toContain("<plist version=\"1.0\">");
-    expect(plist).toContain("<string>studio.theft.argo.gateway</string>");
+    expect(plist).toContain("<string>studio.theft.vanta.gateway</string>");
     expect(plist).toContain("<string>/repo/run.sh</string>");
     expect(plist).toContain("<string>gateway</string>");
     expect(plist).toContain("<key>RunAtLoad</key>\n    <true/>");
     expect(plist).toContain("<key>KeepAlive</key>\n    <true/>");
-    expect(plist).toContain("<string>/home/.argo/gateway.log</string>");
+    expect(plist).toContain("<string>/home/.vanta/gateway.log</string>");
   });
 
   it("includes a PATH environment block when pathDirs are given", () => {

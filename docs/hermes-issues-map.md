@@ -24,7 +24,7 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
   Honest note: true containment needs a sandbox (Hermes' answer is OpenShell); the
   kernel hardening reduces the trivial-bypass surface and shifts power ops to approval.
 - **#37617 (prompt-injected writes to inactive-profile credential files)** — Vanta writes
-  `~/.codex/auth.json` (0600) and `~/.argo`. → verify no tool can write to credential
+  `~/.codex/auth.json` (0600) and `~/.vanta`. → verify no tool can write to credential
   paths without approval (the kernel's `credential`/`token` → ask helps; confirm it
   covers `auth.json`/`.credentials`).
 - **#37258 harden browser subprocess env**, **#36646 archive extracted w/o path validation**

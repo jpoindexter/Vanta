@@ -4,7 +4,7 @@ import { z } from "zod";
 import { resolveArgoHome } from "../store/home.js";
 
 // A simple in-session plan (todo list) the agent maintains for multi-step work,
-// stored at ~/.argo/todo.json and viewable with /plan. TodoWrite-style: the
+// stored at ~/.vanta/todo.json and viewable with /plan. TodoWrite-style: the
 // agent rewrites the whole list each update.
 
 export const TodoItemSchema = z.object({

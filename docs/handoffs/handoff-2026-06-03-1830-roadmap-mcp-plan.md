@@ -169,7 +169,7 @@ const ConfigSchema = z.object({
 }));
 ```
 
-2. **Discover `.mcp.json` in cwd** before falling back to `~/.argo/mcp.json`:
+2. **Discover `.mcp.json` in cwd** before falling back to `~/.vanta/mcp.json`:
 ```typescript
 export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {
   const inline = env.VANTA_MCP_SERVERS?.trim();

@@ -12,7 +12,7 @@ The fear was that installing Playwright/Chromium polluted the repo. It did not.
 | Playwright Chromium binary | `~/Library/Caches/ms-playwright/chromium-1223` (OS cache) | No |
 | `playwright-core` package | `argo-ts/node_modules/` (lazy-required) | No (gitignored) |
 | Rust build | `target/` | No (gitignored) |
-| Runtime state | `~/.argo/` (global) + repo `.argo/` (gitignored) | No |
+| Runtime state | `~/.vanta/` (global) + repo `.vanta/` (gitignored) | No |
 | Audit clones | `reference/` (812M) | No (gitignored) |
 
 `PLAYWRIGHT_BROWSERS_PATH` is **unset** → Playwright uses its standard OS cache, which is
@@ -27,7 +27,7 @@ The rule, so nothing pollutes the project:
 1. **Source only in the repo.** Tools/skills are TS + Markdown, committed.
 2. **Native deps → OS cache.** Browser binaries, models, etc. download to the platform
    cache (`~/Library/Caches/...`, XDG `~/.cache/...`), never the repo or `node_modules`.
-3. **Runtime/secret state → `~/.argo/`.** Profiles, tokens, downloads — outside the repo,
+3. **Runtime/secret state → `~/.vanta/`.** Profiles, tokens, downloads — outside the repo,
    gitignored, `0700`.
 4. **Lazy-load deps.** `playwright-core` is `await import()`ed only when a browser tool
    runs, and degrades gracefully if the browser isn't installed (already the pattern).
@@ -55,7 +55,7 @@ encryption, high secret-handling risk, easy to leak auth cookies. Instead Vanta 
 
 ### Flow
 ```
-argo browser auth x.com         # opens a HEADED Chromium in ~/.argo/browser-profiles/x.com/
+argo browser auth x.com         # opens a HEADED Chromium in ~/.vanta/browser-profiles/x.com/
                                 # you log in manually — Vanta never sees password/2FA
                                 # close the window → session stays in that profile
 browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPersistentContext, read-only
@@ -83,12 +83,12 @@ browser_extract_auth({url, profile:"x.com", what:"text"})   # headless launchPer
 
 ### Files
 - `argo-ts/src/browser/profile.ts` — `browserProfileRoot(env)`, `sanitizeProfileId`
-  (reject `../`), `profilePath` (`mkdir 0700` under `~/.argo/browser-profiles`),
+  (reject `../`), `profilePath` (`mkdir 0700` under `~/.vanta/browser-profiles`),
   `profileAllowsUrl(profile, url)`.
 - `argo-ts/src/tools/browser-auth.ts`, `browser-extract-auth.ts` — registered in
   `tools/index.ts`.
 - Tests (mostly pure, no live browser): id sanitization rejects `../../secrets`; path
-  stays under `~/.argo/browser-profiles`; `x.com` allows `x.com/search`, refuses
+  stays under `~/.vanta/browser-profiles`; `x.com` allows `x.com/search`, refuses
   `evil.com`; authed extract output never contains cookies; missing profile → actionable
   error.
 

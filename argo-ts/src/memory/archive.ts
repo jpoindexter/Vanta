@@ -16,7 +16,7 @@ type ArchiveLine = {
 };
 
 /**
- * MEM-VERBATIM: Archive a session's messages as JSONL to ~/.argo/archive/<sessionId>.jsonl.
+ * MEM-VERBATIM: Archive a session's messages as JSONL to ~/.vanta/archive/<sessionId>.jsonl.
  * Verbatim archive (not summaries) — enables retroactive search and replay.
  */
 export async function archiveSession(

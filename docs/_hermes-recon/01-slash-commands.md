@@ -37,7 +37,7 @@ When the user types `/x`, the TUI resolves it in this order:
 
 Vanta has **no gateway**. The port = collapse the fallthrough into in-process dispatch:
 - Keep a single local command table (like the TS registry) — there is no step 3/4 round-trip.
-- Every `ctx.gateway.rpc('session.*' | 'config.*' | …)` becomes a **direct call** into Vanta's sessions store (`~/.argo/sessions`), provider abstraction, tool registry, or kernel.
+- Every `ctx.gateway.rpc('session.*' | 'config.*' | …)` becomes a **direct call** into Vanta's sessions store (`~/.vanta/sessions`), provider abstraction, tool registry, or kernel.
 - The `skill`/`send`/`prefill` distinction still matters: `send` = enqueue a real turn; `prefill` = populate the composer; `skill` = inject a skill-invocation prompt. Vanta's composer + turn loop already model these.
 - Commands marked **gateway_only** below (messaging-platform plumbing) are **Vanta N/A** — skip them.
 
@@ -57,13 +57,13 @@ These are the ones that matter most for the TUI port. All open via `patchOverlay
   4. **Disconnect stage:** `y/Enter` confirm → `model.disconnect`, `n/Esc` cancel.
 - **Selection emits:** `<model> --provider <slug>` + (` --global` if persistGlobal else the internal `TUI_SESSION_MODEL_FLAG`) back through the `/model` handler → `config.set`.
 - **Backend:** `model.options` (list), `model.save_key`, `model.disconnect`, `config.set key=model`.
-- **Vanta port:** Provider list comes from Vanta's **provider abstraction**; render the same 2-stage picker. Stage 1 lists configured providers (+auth state), stage 2 lists each provider's model IDs. Key entry writes to Vanta's env/credential store. Switch = update active model on the current session in `~/.argo/sessions`. Drop the `--global` vs session flag down to "persist to config" vs "this session only".
+- **Vanta port:** Provider list comes from Vanta's **provider abstraction**; render the same 2-stage picker. Stage 1 lists configured providers (+auth state), stage 2 lists each provider's model IDs. Key entry writes to Vanta's env/credential store. Switch = update active model on the current session in `~/.vanta/sessions`. Drop the `--global` vs session flag down to "persist to config" vs "this session only".
 
 ### `/sessions`  (aliases `switch`, `session`, `resume`) — `browse, switch, or resume`
 - **Category:** Session. **DOES:** Bare → opens **Sessions overlay** (`components/activeSessionSwitcher.tsx`). `/sessions new` → spins a new *live* session (keeps current running). `/sessions <id|title>` or `/resume <x>` → loads a cold session and **closes the current one** (guarded while a turn is in-flight).
 - **UI surface:** Merged list ordered `[+ new][live…][history…]`. `↑/↓` move, `Enter` activate (live) or resume (history), `d`-then-`d` (two-press) to delete a history session (`session.delete`), `Esc/q` close. Live rows show status glyph (`✓`idle `▶`working `?`waiting `…`starting). Embeds the ModelPicker for per-session model on new.
 - **Backend:** `session.active.list`, `session.list`, `session.activate`, `session.resume`, `session.close`, `session.delete`.
-- **Vanta port:** Read `~/.argo/sessions` for the list; "activate/resume" loads that session's transcript into the TUI; "new" creates a session row; delete removes the dir/row. Vanta likely runs one active session in-process — "live vs cold" can collapse to "currently loaded vs on disk" unless Vanta supports concurrent sessions.
+- **Vanta port:** Read `~/.vanta/sessions` for the list; "activate/resume" loads that session's transcript into the TUI; "new" creates a session row; delete removes the dir/row. Vanta likely runs one active session in-process — "live vs cold" can collapse to "currently loaded vs on disk" unless Vanta supports concurrent sessions.
 
 ### `/agents`  (alias `tasks`) — `spawn-tree dashboard`
 - **Category:** Session. **DOES:** Bare → opens **AgentsOverlay** (`components/agentsOverlay.tsx`), a live audit of delegated subagents with kill/pause controls. Subcommands skip the overlay: `/agents pause|resume` → `delegation.pause`; `/agents status` → prints `delegation · active/paused · caps dN/M`.
@@ -79,11 +79,11 @@ These are the ones that matter most for the TUI port. All open via `patchOverlay
 
 ### `/setup`  — `run full setup wizard`
 - **Category:** (TS-only). **DOES:** Suspends the Ink TUI (`withInkSuspended`), shells out to `hermes setup …` as an **external child process** (`runExternalSetup` in `app/setupHandoff.ts`), then on exit 0 checks `setup.status` and starts a fresh session. Not an overlay — a full-screen handoff to an external CLI.
-- **Vanta port:** Vanta can run its own setup as an in-process wizard screen OR suspend Ink and run a setup subcommand. Simpler in-process: a dedicated setup overlay that writes provider creds to `~/.argo` config, then `setup.status`-equivalent check.
+- **Vanta port:** Vanta can run its own setup as an in-process wizard screen OR suspend Ink and run a setup subcommand. Simpler in-process: a dedicated setup overlay that writes provider creds to `~/.vanta` config, then `setup.status`-equivalent check.
 
 ### `/clear` + `/new`  (alias `reset` on the Python side) — `start a new session`
 - One handler (`core.ts`); `cmd.startsWith('/new')` distinguishes (`/new [title]` can name the session). **DOES:** Ends the current conversation, clears transcript, forges a new session ID. Shows a **danger confirm overlay** (`patchOverlayState({confirm:{…}})`) unless `NO_CONFIRM_DESTRUCTIVE` env is set.
-- **Vanta port:** New session row in `~/.argo/sessions`, clear in-memory transcript, keep the confirm overlay (it's a destructive op).
+- **Vanta port:** New session row in `~/.vanta/sessions`, clear in-memory transcript, keep the confirm overlay (it's a destructive op).
 
 ---
 
@@ -95,13 +95,13 @@ These run in-process in the TUI today; they're the natural Vanta in-process set.
 |---|---|---|---|---|
 | `/redraw` | | Session | `forceRedraw(stdout)` — full UI repaint, recovers terminal drift. | none (pure Ink) → keep as-is |
 | `/history` | | Session | Renders the TUI's **own** in-memory transcript (user+assistant) in a pager. `[N]` = char preview length. Note: deliberately does NOT call the worker `/history` (which only sees pre-process persisted turns). | none → read Vanta transcript |
-| `/save` | | Session | Saves transcript to JSON. | `session.save` → write to `~/.argo/sessions/<id>` |
+| `/save` | | Session | Saves transcript to JSON. | `session.save` → write to `~/.vanta/sessions/<id>` |
 | `/title` | | Session | Bare shows current title; arg sets it. | `session.title` → session store |
 | `/status` | | Session | Live session info pager. | `session.status` |
 | `/usage` | | Info | Token/cost/context table; updates UI usage state. | `session.usage` |
 | `/undo` | | Session | `session.undo` then trims last exchange from visible transcript; prints `undid N messages`. **NB:** the *gateway* `/undo` returns `prefill` (composer-fill); the TUI's local handler overrides that with the undo-and-trim behavior. | `session.undo` → kernel/session truncate |
 | `/retry` | | Session | `session.undo` (strip last exchange) **then re-send the last user message**. Not a plain resend. | `session.undo` + resend |
-| `/branch` | `fork` | Session | Branches the session, then **closes the previous live session and switches to the branch** (you do NOT stay beside the original). Prints `branched → <title>`. | `session.branch` + `session.close` → clone session row in `~/.argo/sessions`, switch active |
+| `/branch` | `fork` | Session | Branches the session, then **closes the previous live session and switches to the branch** (you do NOT stay beside the original). Prints `branched → <title>`. | `session.branch` + `session.close` → clone session row in `~/.vanta/sessions`, switch active |
 | `/compress` | | Session | Compresses transcript context; optional `focus topic`. Rewrites visible history from returned messages, updates usage. | `session.compress` → kernel summarizer |
 | `/background` | `bg`, `btw` | Session | Launches a prompt as a background task; tracks `task_id`. | `prompt.background` → kernel async run |
 | `/queue` | `q` | Session | Bare = count queued; arg = enqueue message for next turn (no interrupt). | local composer queue |
@@ -152,7 +152,7 @@ These are in Python `COMMAND_REGISTRY` but have **no local TS handler** — they
 | `/goal` | | Session | | Set/pause/resume/clear/status a standing goal worked across turns. Returns `exec`/`send`. | **Maps directly to Vanta kernel goals.** High value. |
 | `/subgoal` | | Session | | Add/remove/clear criteria on the active goal. | Vanta kernel goals. |
 | `/commands` | | Info | gateway_only | Paginated browse of all commands+skills. | N/A (TUI uses `/help`) |
-| `/snapshot` | `snap` | Session | cli_only | Create/restore/prune config+state snapshots. | Vanta `~/.argo` state snapshot |
+| `/snapshot` | `snap` | Session | cli_only | Create/restore/prune config+state snapshots. | Vanta `~/.vanta` state snapshot |
 | `/curator` | | Tools | | Background skill maintenance (status/run/pin/archive…). | Optional — Vanta skill maintenance |
 | `/cron` | | Tools | cli_only | Manage scheduled tasks (list/add/edit/pause/run/remove). | Vanta scheduler (future) |
 | `/kanban` | | Tools | | Multi-profile collaboration board. | N/A early — multi-agent feature |
@@ -184,7 +184,7 @@ These are in Python `COMMAND_REGISTRY` but have **no local TS handler** — they
 
 **Tier 2 (config/quality of life):** `/reasoning`, `/yolo`, `/details`, `/compact`, `/verbose`, `/tools`, `/skills`, `/stop`, `/queue`, `/steer`, `/background`, `/copy`, `/image`.
 
-**Tier 3 (Vanta-distinctive, kernel-backed):** `/goal`, `/subgoal`, `/agents`, `/rollback`, `/snapshot` — these map onto Vanta's goal/approval kernel and `~/.argo` state and are where Vanta can differentiate.
+**Tier 3 (Vanta-distinctive, kernel-backed):** `/goal`, `/subgoal`, `/agents`, `/rollback`, `/snapshot` — these map onto Vanta's goal/approval kernel and `~/.vanta` state and are where Vanta can differentiate.
 
 **Skip (gateway/messaging only):** `/handoff`, `/start`, `/topic`, `/approve`, `/deny`, `/sethome`, `/restart`, `/platforms`, `/platform`, `/commands`, `/kanban`.
 

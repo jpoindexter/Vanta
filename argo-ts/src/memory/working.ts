@@ -1,5 +1,5 @@
 /** Session-scoped working memory — resets each session, accumulates during.
- * Not persisted to disk; different from ~/.argo/memories (cross-session) and
+ * Not persisted to disk; different from ~/.vanta/memories (cross-session) and
  * the brain (long-term selfhood). This is the hot volatile cache for a single
  * conversation: things the agent should keep in mind for the next few turns.
  */

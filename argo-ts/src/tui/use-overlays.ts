@@ -44,7 +44,7 @@ export function useOverlays(deps: {
   const buildCtx = (): ReplCtx => ({
     convo: convoRef.current!,
     setup: { ...setup, provider: activeProvider },
-    dataDir: join(repoRoot, ".argo"),
+    dataDir: join(repoRoot, ".vanta"),
     state: replStateRef.current,
     env: process.env,
     now: () => new Date(),

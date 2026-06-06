@@ -17,7 +17,7 @@ Branch: feat/v1-hermes-parity
    - `/moim <text>` pins a note; injected at the top of the volatile prompt tier every turn
    - Patches the live system message immediately (same session sees it without restart)
    - `/moim` shows current note; `/moim clear` removes it
-   - Persisted to `~/.argo/moim.md` — survives across sessions
+   - Persisted to `~/.vanta/moim.md` — survives across sessions
    - 8 new tests (6 store + 2 prompt)
 
 ## Files Changed
@@ -29,7 +29,7 @@ Branch: feat/v1-hermes-parity
 | `argo-ts/src/roadmap/render.test.ts` | Modified | 3 new tests: badge render, tier grouping, untagged item |
 | `argo-ts/src/roadmap/schema.test.ts` | Modified | 3 new tests: optional fields present/absent, invalid tier/model rejection |
 | `roadmap.json` | Modified | 37 open items tagged with tier/model/effort; updated `updated` field |
-| `argo-ts/src/moim/store.ts` | Created | `readMoim` / `writeMoim` / `clearMoim` — `~/.argo/moim.md` persistence |
+| `argo-ts/src/moim/store.ts` | Created | `readMoim` / `writeMoim` / `clearMoim` — `~/.vanta/moim.md` persistence |
 | `argo-ts/src/moim/store.test.ts` | Created | 6 tests covering read/write/clear |
 | `argo-ts/src/prompt.ts` | Modified | `moimNote?` opt in `buildSystemPrompt`; injected top of volatile tier |
 | `argo-ts/src/prompt.test.ts` | Modified | 2 new tests: MOIM injected before goals; absent when unset |
@@ -56,7 +56,7 @@ Nothing — both slices fully shipped and committed.
 
 3. **MOIM patches the live system message inline** (same pattern as `/goal`): so `/moim` mid-session takes effect immediately without a restart. `/moim clear` removes from storage; the current session's patched system message isn't un-patched (noted in the output).
 
-4. **MOIM stored as plain text** (`~/.argo/moim.md`, no YAML frontmatter, no git auto-commit): it's working memory, not identity. Contrast with brain regions which are git-versioned.
+4. **MOIM stored as plain text** (`~/.vanta/moim.md`, no YAML frontmatter, no git auto-commit): it's working memory, not identity. Contrast with brain regions which are git-versioned.
 
 5. **Layer on top, not replace**: Pickle-jar tiers added as a layer within the existing Now/Next/Later columns — not a new axis. Preserves the live kanban the product itself uses (KANBAN + FAC-CLOSE both treat `status` as the columns).
 
@@ -84,7 +84,7 @@ Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer
 
 **This session shipped:**
 1. Roadmap restructure — optional tier (rock/pebble/sand) / model (haiku/sonnet/opus) / effort fields in schema + render; 37 open items tagged; Rocks→Pebbles→Sand grouping in each board column; model·effort badge per card. Tags are advisory (build-session guide), not factory routing — triage reads ROADMAP.md, not roadmap.json.
-2. ND4 MOIM — `/moim <text>` pins a top-of-mind note injected at the top of the volatile prompt tier every turn; persisted to `~/.argo/moim.md`; `/moim clear` removes it.
+2. ND4 MOIM — `/moim <text>` pins a top-of-mind note injected at the top of the volatile prompt tier every turn; persisted to `~/.vanta/moim.md`; `/moim clear` removes it.
 
 **Next task: ND2 · clarify tool (`sonnet·medium`)**
 A new Vanta tool (`tools/clarify.ts`) the agent calls when intent is ambiguous. It surfaces ONE structured question to the user before acting instead of guessing and thrashing. Kernel-gated. Unblocks FAC-PREFLIGHT later.

@@ -48,7 +48,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 
 **Agent (TypeScript):**
 - Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic providers; 4 core tools (read/write/shell/inspect)
-- **Skills & memory** — learned `~/.argo/skills`, per-goal memory, curator, LLM context compression (git-versioned)
+- **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
 - **Browser & vision** — screenshot / navigate / extract (Playwright) + image understanding
 - **Code & dev** — `run_code`, LSP diagnostics/definition (TS), git tools

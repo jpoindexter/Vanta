@@ -12,7 +12,7 @@ import type { RunTask } from "../schedule/runner.js";
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
 // cli.ts owns the interactive + run/skill/room paths and the main() dispatch.
 
-export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".argo");
+export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta");
 
 // Non-interactive task runner for `argo cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
@@ -130,7 +130,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
   const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));
   const names = Object.keys(cfg.servers);
   if (names.length === 0) {
-    console.log("  (no MCP servers — set VANTA_MCP_SERVERS, ./.mcp.json, or ~/.argo/mcp.json)");
+    console.log("  (no MCP servers — set VANTA_MCP_SERVERS, ./.mcp.json, or ~/.vanta/mcp.json)");
   } else {
     for (const n of names) console.log(`  ${n}`);
   }

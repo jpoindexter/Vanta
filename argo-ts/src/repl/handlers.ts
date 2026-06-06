@@ -198,7 +198,7 @@ const mcp: SlashHandler = async (_arg, ctx) => {
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(ctx.env).catch(() => ({ servers: {} as Record<string, unknown> }));
   const names = Object.keys(cfg.servers ?? {});
-  return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set VANTA_MCP_SERVERS or ~/.argo/mcp.json)") };
+  return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set VANTA_MCP_SERVERS or ~/.vanta/mcp.json)") };
 };
 
 const usage: SlashHandler = (_arg, ctx) => {
@@ -223,7 +223,7 @@ const copy: SlashHandler = async (_arg, ctx) => {
 };
 
 const update: SlashHandler = async (_arg, ctx) => {
-  const repoRoot = dirname(ctx.dataDir); // dataDir is <repoRoot>/.argo
+  const repoRoot = dirname(ctx.dataDir); // dataDir is <repoRoot>/.vanta
   try {
     const { execFile } = await import("node:child_process");
     const { promisify } = await import("node:util");

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================================
 # Argo installer — mirrors how Hermes/OpenClaw install.
-# Builds the kernel + agent deps, seeds the ~/.argo home, and installs a global
+# Builds the kernel + agent deps, seeds the ~/.vanta home, and installs a global
 # `argo` command into ~/.local/bin so you can start it from anywhere by typing
 # `argo`. Re-run any time (idempotent).
 # ============================================================================
@@ -58,9 +58,9 @@ case ":$PATH:" in
     ;;
 esac
 
-# --- seed the bundled skill library into ~/.argo/skills ----------------------
+# --- seed the bundled skill library into ~/.vanta/skills ----------------------
 if "$SCRIPT_DIR/run.sh" skills install >/dev/null 2>&1; then
-  echo -e "${GREEN}✓${NC} bundled skills seeded into ~/.argo/skills"
+  echo -e "${GREEN}✓${NC} bundled skills seeded into ~/.vanta/skills"
 fi
 
 # --- dev: install git pre-commit hook (gitleaks secret scan) -----------------

@@ -65,7 +65,7 @@ describe("readMcpConfig", () => {
     }
   });
 
-  it("project-level .mcp.json wins over user-level ~/.argo/mcp.json on conflict", async () => {
+  it("project-level .mcp.json wins over user-level ~/.vanta/mcp.json on conflict", async () => {
     const dir = await mkdtemp(join(tmpdir(), "argo-mcp-"));
     const home = await mkdtemp(join(tmpdir(), "argo-home-"));
     try {

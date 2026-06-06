@@ -33,7 +33,7 @@ A plugin = a self-contained module that extends the agent **without modifying co
 | `dispatch_tool()` / `inject_message()` | invoke a tool / feed a message |
 
 **Discovery precedence** (later overrides earlier by name): bundled (`argo-ts/plugins/`) → user
-(`~/.argo/plugins/`) → project (`.argo/plugins/`, gated by `VANTA_ENABLE_PROJECT_PLUGINS=true`) →
+(`~/.vanta/plugins/`) → project (`.vanta/plugins/`, gated by `VANTA_ENABLE_PROJECT_PLUGINS=true`) →
 npm package entry points.
 
 **Opt-in allow-list** (the security model): general plugins are **disabled by default**; the user

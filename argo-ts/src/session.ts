@@ -214,7 +214,7 @@ const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days, matching Hermes
 /**
  * Run the skill curator at most once per interval, at session start. Best-effort
  * and non-destructive (see curator.ts): a failure here never affects the session.
- * State (last-run time) lives in ~/.argo/.curator_state.json.
+ * State (last-run time) lives in ~/.vanta/.curator_state.json.
  */
 export async function maybeCurate(env: NodeJS.ProcessEnv = process.env): Promise<void> {
   try {

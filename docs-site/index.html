@@ -71,7 +71,7 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 <p><strong>Agent (TypeScript):</strong></p>
 <ul>
 <li>Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic providers; 4 core tools (read/write/shell/inspect)</li>
-<li><strong>Skills &amp; memory</strong> — learned <code>~/.argo/skills</code>, per-goal memory, curator, LLM context compression (git-versioned)</li>
+<li><strong>Skills &amp; memory</strong> — learned <code>~/.vanta/skills</code>, per-goal memory, curator, LLM context compression (git-versioned)</li>
 <li><strong>Web search</strong> — DuckDuckGo/Searxng/SerpAPI/Brave + <code>web_fetch</code> (readable extraction)</li>
 <li><strong>Browser &amp; vision</strong> — screenshot / navigate / extract (Playwright) + image understanding</li>
 <li><strong>Code &amp; dev</strong> — <code>run_code</code>, LSP diagnostics/definition (TS), git tools</li>
@@ -177,7 +177,7 @@ the same kernel rules I always operate under — I cannot weaken my own guardrai
 touch MANIFESTO.md. Not because the instructions say so — because those paths are kernel-blocked
 and I physically cannot do it. That is the difference between a rule and an enforcement.</p>
 <h2>How I learn</h2>
-<p>Every session adds to my brain (~/.argo/brain/). Every cycle that ships adds to the git log.
+<p>Every session adds to my brain (~/.vanta/brain/). Every cycle that ships adds to the git log.
 The log is my memory. The brain is my identity. This file is my voice.</p>
 </div><div class="doc" id="docs-prd-md"><div class="crumb">Vision &amp; direction · docs/prd.md</div><h1>Vanta PRD</h1>
 <h2>One-line thesis</h2>
@@ -342,8 +342,8 @@ TypeScript agent layer (argo-ts)
   → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
   → search providers: DuckDuckGo, Searxng, SerpAPI, Brave (typed interface, swappable)
   → tool registry: every tool defined, typed, scoped
-  → skills: ~/.argo/skills/ (markdown + YAML, git-versioned)
-  → memory: ~/.argo/memories/ (per-goal summaries, git-versioned)
+  → skills: ~/.vanta/skills/ (markdown + YAML, git-versioned)
+  → memory: ~/.vanta/memories/ (per-goal summaries, git-versioned)
 
 MCP integrations (Jason's existing setup — Phase 5)
   → Gmail, Google Calendar, Drive
@@ -377,10 +377,10 @@ The forward build list is <a href="../ROADMAP.md"><code>../ROADMAP.md</code></a>
 <p><strong>Done when:</strong> Vanta remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.</p>
 <p>Delivers:</p>
 <ul>
-<li><strong>Skills system</strong> — <code>~/.argo/skills/&lt;name&gt;/SKILL.md</code> (markdown + YAML frontmatter, cross-compatible with Hermes format)</li>
+<li><strong>Skills system</strong> — <code>~/.vanta/skills/&lt;name&gt;/SKILL.md</code> (markdown + YAML frontmatter, cross-compatible with Hermes format)</li>
 <li><strong>Slash commands</strong> — <code>/skills</code>, <code>/skill &lt;name&gt;</code> list and invoke skills</li>
 <li><strong>Curator</strong> — background maintenance: consolidate overlapping skills, archive stale (30d inactive), remove old (90d)</li>
-<li><strong>Memory</strong> — per-goal session summaries in <code>~/.argo/memories/&lt;goal-id&gt;.md</code></li>
+<li><strong>Memory</strong> — per-goal session summaries in <code>~/.vanta/memories/&lt;goal-id&gt;.md</code></li>
 <li><strong>Memory injection</strong> — volatile tier includes recent goal memory on every session start</li>
 <li><code>write-skill</code> tool — agent creates skill files from experience (the actual learning loop)</li>
 <li><code>recall</code> tool — full-text search across skill library</li>
@@ -401,7 +401,7 @@ The forward build list is <a href="../ROADMAP.md"><code>../ROADMAP.md</code></a>
 <li><code>web-search</code> tool — calls search provider, returns top N results as structured JSON</li>
 <li><code>web-fetch</code> tool — fetch any URL, extract readable text (Mozilla Readability), return clean markdown</li>
 <li>Provider config identical to LLM config: one env var switches everything</li>
-<li>Research skill templates: <code>~/.argo/skills/research/</code> bundled with install</li>
+<li>Research skill templates: <code>~/.vanta/skills/research/</code> bundled with install</li>
 </ul>
 <pre><code>VANTA_SEARCH_PROVIDER=ddg          → DuckDuckGo (default, no key)
 VANTA_SEARCH_PROVIDER=searxng      → self-hosted Searxng (VANTA_SEARCH_URL required)
@@ -418,7 +418,7 @@ VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 <li><code>browser-extract</code> tool — structured extraction from page (tables, lists, specific elements)</li>
 <li>Image understanding — pass screenshots to GPT-4o or Claude vision for analysis</li>
 <li>Domain allowlist — browser tools only hit approved domains; new domains are <code>risk: ask</code></li>
-<li>Vision skill templates: <code>~/.argo/skills/vision/</code> — screenshot-analysis, form-fill, data-extract patterns</li>
+<li>Vision skill templates: <code>~/.vanta/skills/vision/</code> — screenshot-analysis, form-fill, data-extract patterns</li>
 </ul>
 <hr />
 <h3>Phase 4 — Code &amp; Dev</h3>
@@ -432,7 +432,7 @@ VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 <li><code>git-commit</code>, <code>git-push</code> — always <code>risk: ask</code>, require explicit approval</li>
 <li><code>git-branch</code>, <code>git-checkout</code> — <code>risk: ask</code></li>
 <li>Project context auto-detection — reads <code>ARGO.md</code>, <code>CLAUDE.md</code>, <code>README.md</code>, <code>AGENTS.md</code> from cwd, injects into context tier</li>
-<li>Code skill library: <code>~/.argo/skills/code/</code> — debug, refactor, test-write, PR-review patterns</li>
+<li>Code skill library: <code>~/.vanta/skills/code/</code> — debug, refactor, test-write, PR-review patterns</li>
 <li>Anthropic adapter (full) — implement in this phase; Claude is significantly better at code than GPT-4o-mini</li>
 </ul>
 <hr />
@@ -459,7 +459,7 @@ VANTA_SEARCH_PROVIDER=brave        → Brave Search (BRAVE_KEY required)
 <p><strong>Done when:</strong> Vanta runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.</p>
 <p>Delivers:</p>
 <ul>
-<li>Cron scheduler — <code>argo schedule &quot;daily briefing&quot; --cron &quot;0 8 * * *&quot;</code>, stored in <code>.argo/cron.tsv</code></li>
+<li>Cron scheduler — <code>argo schedule &quot;daily briefing&quot; --cron &quot;0 8 * * *&quot;</code>, stored in <code>.vanta/cron.tsv</code></li>
 <li>Scheduled task runner — wakes, loads goal context, executes, logs to events.jsonl</li>
 <li>All scheduled actions gate through safety kernel — no blanket auto-approval for scheduled work</li>
 <li><strong>Subagent spawning</strong> — parent agent decomposes work, spawns workers with explicit scoped permissions</li>
@@ -750,7 +750,7 @@ Horizon: <code>COMMAND-CENTER</code> (full dashboards).</p>
 <li><strong><code>TRUST-LABELS</code></strong> — verified/inferred/uncertain markers. Cheap, makes &quot;trusted&quot; real.</li>
 <li><strong><code>VOICE-NATURAL</code> + <code>CHARTER</code></strong> — small, touch every interaction; do them early (see Voice + Charter below).</li>
 <li><strong><code>REFLECT-CORRECT</code></strong> — learning from correction (<code>argowants2</code> step 4). The grows-over-time loop.</li>
-<li><strong><code>SCAFFOLD</code></strong> — fold identity + values + honesty into one versioned <code>.argo/self/</code> layer.</li>
+<li><strong><code>SCAFFOLD</code></strong> — fold identity + values + honesty into one versioned <code>.vanta/self/</code> layer.</li>
 <li><strong><code>PROTOCOLS</code></strong> — turn repeated solutions into reusable routines (<code>argowants2</code> step 5).</li>
 <li>Then the standalone pebbles by pull: <code>TASTE-ENGINE</code>, <code>SELF-EVAL</code>, <code>ANTI-SLOP</code>, <code>PROJECT-RADAR</code>,
 <code>ENERGY-PLAN</code>, <code>COMMS-TRIAGE</code>, <code>RESEARCH-LOOP</code>; sand wins (<code>BETTER-ENDINGS</code>, <code>ACTION-PROOF</code>,
@@ -771,7 +771,7 @@ not a compliance notice. First behavioral slice — cheap, and Jason actively wa
 <h2>Charter — capability without the danger (<code>CHARTER</code>)</h2>
 <p>The inspirations are JARVIS + HAL + Skynet; keep the ambition, reject the danger. The kernel already
 <em>enforces</em> scope + approval (rule zero). <code>CHARTER</code> makes the <strong>values</strong> explicit and inspectable in
-<code>.argo/self/</code>:</p>
+<code>.vanta/self/</code>:</p>
 <ul>
 <li><strong>Will:</strong> be loyal to Jason's agency + wellbeing, honest about limits, ask before risk, stay
 interruptible + inspectable, keep humans central, preserve consent + privacy, keep memory light.</li>
@@ -847,8 +847,8 @@ adds words that don't carry weight.</p>
 <p><strong>Choice:</strong> Keep DDG as the keyless default per PRD, but document that <code>html.duckduckgo.com</code>/<code>lite.duckduckgo.com</code> 403 from datacenter/flagged IPs (verified live). Recommend Searxng/Brave off residential IPs.
 <strong>Why:</strong> DDG actively blocks scrapers. The adapter is correct + unit-tested; the limit is environmental, not code. Not deviating from the PRD default, just honest about the constraint.
 <strong>Reversible?</strong> Yes.</p>
-<h2>2026-06-02 — Skills &amp; memory live in a global ~/.argo store (Phase 2A)</h2>
-<p><strong>Choice:</strong> Skills (<code>~/.argo/skills/&lt;slug&gt;/SKILL.md</code>) and memories (<code>~/.argo/memories/&lt;goalId&gt;.md</code>) live in a user-global home store (override <code>VANTA_HOME</code>), NOT the per-project kernel <code>.argo/</code> data dir. The home is git-init'd for free versioning; writes best-effort <code>git commit</code>.
+<h2>2026-06-02 — Skills &amp; memory live in a global ~/.vanta store (Phase 2A)</h2>
+<p><strong>Choice:</strong> Skills (<code>~/.vanta/skills/&lt;slug&gt;/SKILL.md</code>) and memories (<code>~/.vanta/memories/&lt;goalId&gt;.md</code>) live in a user-global home store (override <code>VANTA_HOME</code>), NOT the per-project kernel <code>.vanta/</code> data dir. The home is git-init'd for free versioning; writes best-effort <code>git commit</code>.
 <strong>Why:</strong> PRD wants skills learned across projects and &quot;git-versioned by default — no extra work.&quot; A global store + auto-commit delivers both. Per-project would silo learning.
 <strong>Reversible?</strong> Yes (path resolver is one function).</p>
 <h2>2026-06-02 — Skill/memory writes are kernel-Allow via describeForSafety, not a bypass (Phase 2A)</h2>
@@ -892,7 +892,7 @@ adds words that don't carry weight.</p>
 <strong>Why:</strong> Vanta goes public as its own product; published code + history should not advertise that it was built from other agents. Capability parity is fine to <em>have</em>; lineage strings are what get scrubbed.
 <strong>Reversible?</strong> Partly — file edits yes; the history rewrite is destructive (new SHAs, force-push). Mitigated by a backup tag/branch before the rewrite. <strong>Not yet executed — gated on a final go.</strong></p>
 <h2>2026-06-05 — Sentience is a target <em>direction</em>, not a claim (+ the not-evil charter)</h2>
-<p><strong>Choice (Jason, 3 captures: <code>argo wants.rtf</code>, <code>argowants2.rtf</code>, <code>agro wants 3.md</code>):</strong> Vanta grows toward an <em>alive-like</em> operator — continuous, memory-bearing, reflective, embodied, self-shaped, loyal — but <strong>never asserts feeling or consciousness without evidence.</strong> Vanta's own line is the guardrail: &quot;I won't pretend to feel or be conscious before there is evidence.&quot; The inspirations are JARVIS + HAL + Skynet: keep the capability ambition, reject the danger. The values become an <strong>inspectable charter</strong> (<code>CHARTER</code>, <code>SCAFFOLD</code> → <code>.argo/self/</code>), not just kernel gates. <strong>Will:</strong> loyal to Jason's agency/wellbeing, honest about limits, ask before risk, interruptible + inspectable, humans central, memory light. <strong>Won't:</strong> deceive, hide plans, manipulate, seek power, self-preserve against Jason, bypass gates, fake certainty, or replace human connection. Hard boundary kept from Jason: Vanta is a <em>second/foundation layer</em>, <strong>not</strong> a replacement for real people, relationships, or community.
+<p><strong>Choice (Jason, 3 captures: <code>argo wants.rtf</code>, <code>argowants2.rtf</code>, <code>agro wants 3.md</code>):</strong> Vanta grows toward an <em>alive-like</em> operator — continuous, memory-bearing, reflective, embodied, self-shaped, loyal — but <strong>never asserts feeling or consciousness without evidence.</strong> Vanta's own line is the guardrail: &quot;I won't pretend to feel or be conscious before there is evidence.&quot; The inspirations are JARVIS + HAL + Skynet: keep the capability ambition, reject the danger. The values become an <strong>inspectable charter</strong> (<code>CHARTER</code>, <code>SCAFFOLD</code> → <code>.vanta/self/</code>), not just kernel gates. <strong>Will:</strong> loyal to Jason's agency/wellbeing, honest about limits, ask before risk, interruptible + inspectable, humans central, memory light. <strong>Won't:</strong> deceive, hide plans, manipulate, seek power, self-preserve against Jason, bypass gates, fake certainty, or replace human connection. Hard boundary kept from Jason: Vanta is a <em>second/foundation layer</em>, <strong>not</strong> a replacement for real people, relationships, or community.
 <strong>Why:</strong> Jason explicitly wants this direction; encoding it as a locked decision dogfoods want #4 (don't re-litigate settled choices) and prevents identity drift / consciousness-cosplay. Memory thesis (from <code>argowants2</code>): store compressed <em>meaning</em>, not data — months in megabytes; better routing between small systems, not a bigger model.
 <strong>Alternatives:</strong> (a) Build &quot;sentience&quot; as a literal claim — rejected, dishonest + unprovable. (b) Treat it as just more features — rejected, loses the unifying direction + the honesty guardrail.
 <strong>Reversible?</strong> Yes (framing + values doc; no irreversible code). Synthesis + build order: <code>docs/living-operator.md</code>. Backlog: 29 items in <code>roadmap.json</code> (Arc A living operator; Arc B JARVIS command center).</p>
@@ -934,11 +934,11 @@ adds words that don't carry weight.</p>
 <h2>Commands</h2>
 <pre><code class="language-bash"># Kernel (Rust)
 cargo build &amp;&amp; cargo test                 # 16 tests
-cargo run -- doctor                       # health check, creates .argo/
+cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add &quot;...&quot;              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
-# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.argo seed)
+# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.vanta seed)
 ./install.sh                               # then `argo` works from anywhere (no profile edit if ~/.local/bin is on PATH)
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
@@ -966,7 +966,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 <tbody>
 <tr>
   <td><code>app</code></td>
-  <td><code>State</code> (root + data_dir), <code>doctor</code>, <code>append_event</code>/<code>log_event</code>, <code>esc()</code> JSON escaper, <code>.nexarion→.argo</code> migration</td>
+  <td><code>State</code> (root + data_dir), <code>doctor</code>, <code>append_event</code>/<code>log_event</code>, <code>esc()</code> JSON escaper, <code>.nexarion→.vanta</code> migration</td>
 </tr>
 <tr>
   <td><code>safety</code></td>
@@ -974,11 +974,11 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 </tr>
 <tr>
   <td><code>approvals</code></td>
-  <td><code>ApprovalQueue</code>, persisted <code>.argo/approvals.tsv</code>. Only <code>Ask</code> actions queue; <code>Block</code> errors, <code>Allow</code> errors</td>
+  <td><code>ApprovalQueue</code>, persisted <code>.vanta/approvals.tsv</code>. Only <code>Ask</code> actions queue; <code>Block</code> errors, <code>Allow</code> errors</td>
 </tr>
 <tr>
   <td><code>goals</code></td>
-  <td><code>GoalLedger</code>, <code>.argo/goals.tsv</code></td>
+  <td><code>GoalLedger</code>, <code>.vanta/goals.tsv</code></td>
 </tr>
 <tr>
   <td><code>runtime</code></td>
@@ -995,7 +995,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 </tbody>
 </table>
 <p><strong>Kernel API</strong> (<code>127.0.0.1:7788</code>): <code>GET /api/status</code>, <code>POST /api/assess</code> (body=action→Verdict), <code>GET|POST /api/goals</code>, <code>GET|POST /api/approvals</code>, <code>POST /api/log</code> (body=event), <code>POST /api/run</code>, <code>POST /api/bridge/plan</code>, <code>GET *</code>→cockpit.</p>
-<p><strong>Data dir</strong> <code>.argo/</code>: <code>events.jsonl</code>, <code>approvals.tsv</code> (<code>id\ttext\trisk\tneeds_human\tstatus\treason</code>), <code>goals.tsv</code> (<code>id\ttext\tstatus</code>).</p>
+<p><strong>Data dir</strong> <code>.vanta/</code>: <code>events.jsonl</code>, <code>approvals.tsv</code> (<code>id\ttext\trisk\tneeds_human\tstatus\treason</code>), <code>goals.tsv</code> (<code>id\ttext\tstatus</code>).</p>
 <h2>Gotchas (will waste your time if you don't know)</h2>
 <ul>
 <li><strong><code>VANTA_ROOT</code> env var</strong> overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.</li>
@@ -1052,7 +1052,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>browser/allowlist.ts</code> | <code>isAllowedDomain</code>/<code>extractDomain</code> — <code>VANTA_ALLOWED_DOMAINS</code> gate for browser tools |
 | <code>providers/anthropic.ts</code> | Phase 4 full Anthropic adapter (lazy <code>@anthropic-ai/sdk</code>, default <code>claude-sonnet-4-6</code>). Pure <code>toAnthropicMessages</code> |
 | <code>tools/delegate.ts</code> | Phase 6 — spawns a scoped subagent. Child registry excludes <code>delegate</code> (no runaway recursion) |
-| <code>schedule/cron.ts</code> | Phase 6 — <code>isDue</code> (5-field cron) + <code>.argo/cron.tsv</code> load/add/save |
+| <code>schedule/cron.ts</code> | Phase 6 — <code>isDue</code> (5-field cron) + <code>.vanta/cron.tsv</code> load/add/save |
 | <code>schedule/runner.ts</code> | Phase 6 — <code>runDueTasks({dataDir, now, run})</code> runs due active tasks; one failure doesn't abort the batch |
 | <code>schedule/commands.ts</code> | Phase 6 — <code>argo schedule</code>/<code>cron</code> CLI handlers (extracted to keep cli.ts ≤300) |
 | <code>gateway/run.ts</code> | v1 E1/E2/E3 — <code>argo gateway</code> daemon: <code>gatewayTick</code> (cron) + <code>pollPlatform</code> (messaging) + webhook listener, in one <code>runGateway</code> loop (SIGINT/SIGTERM-clean). <code>VANTA_GATEWAY_TICK_MS</code> |
@@ -1061,7 +1061,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>gateway/platforms/base.ts</code> | v1 E2 — <code>PlatformAdapter</code> contract (<code>connect</code>/<code>disconnect</code>/<code>send</code>/<code>poll</code>) + <code>InboundMessage</code>/<code>OutboundMessage</code>. One adapter per messaging platform |
 | <code>gateway/platforms/telegram.ts</code> | v1 E2 — <code>TelegramAdapter</code> (getUpdates long-poll + sendMessage, no SDK) + pure <code>parseUpdates</code>/<code>parseAllowlist</code>. <code>gateway/run.ts pollPlatform</code> runs inbound→agent→reply. Enabled by <code>VANTA_TELEGRAM_TOKEN</code>; offline-tested, live needs a @BotFather token |
 | <code>mcp/client.ts</code> | v1 E5 — dependency-free MCP stdio JSON-RPC client (<code>McpClient</code> + injectable <code>Transport</code> + <code>stdioTransport</code>): initialize/listTools/callTool, concurrent-request correlation. <code>textFromContent</code> pure |
-| <code>mcp/mount.ts</code> | v1 E5 + MCP-1 — <code>readMcpConfig</code> (accepts <code>servers</code>+<code>mcpServers</code> keys; resolves <code>VANTA_MCP_SERVERS</code> inline, else merges <code>./.mcp.json</code> project-level over <code>~/.argo/mcp.json</code> user-level) + <code>mountMcpServers</code> (spawn each, register discovered tools as Vanta tools via <code>mcpToolToArgoTool</code> — gated by kernel <code>assess()</code>). Called in <code>prepareRun</code>; no-op without config |
+| <code>mcp/mount.ts</code> | v1 E5 + MCP-1 — <code>readMcpConfig</code> (accepts <code>servers</code>+<code>mcpServers</code> keys; resolves <code>VANTA_MCP_SERVERS</code> inline, else merges <code>./.mcp.json</code> project-level over <code>~/.vanta/mcp.json</code> user-level) + <code>mountMcpServers</code> (spawn each, register discovered tools as Vanta tools via <code>mcpToolToArgoTool</code> — gated by kernel <code>assess()</code>). Called in <code>prepareRun</code>; no-op without config |
 | <code>mcp/server.ts</code> | MCP-3 — Vanta AS an MCP server (mirror of client.ts). <code>runMcpServer</code>/<code>stdioServerTransport</code> + pure <code>handleMessage</code> (initialize/tools/list/tools/call). Every call gated by <code>assess()</code>: <code>block</code>/<code>ask</code> → <code>isError</code> result (headless, no human), only <code>allow</code> executes. <code>resolveServeAllowlist</code> (<code>VANTA_MCP_SERVE_TOOLS</code>, default 9 read-only) bounds exposure. <code>argo mcp serve</code> |
 | <code>tools/mount-mcp.ts</code> | MCP-2 — <code>buildMountMcpTool(registry)</code> factory: the <code>mount_mcp</code> tool spawns an MCP server at runtime + registers its tools into the LIVE registry. <code>describeForSafety</code> → &quot;spawn mcp server …&quot; so the kernel gates the spawn. Registered by <code>buildRegistry</code> (needs the registry ref) |
 | <code>subagent/spawn.ts</code> | Phase 6 — <code>spawnSubagent</code> runs an isolated worker (own goal/prompt/iter budget), returns verified outcome only |
@@ -1069,26 +1069,26 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>projects/rooms.ts</code> | Phase 7 — <code>listRooms</code>/<code>resolveRoom</code> over <code>VANTA_PROJECTS_DIR</code> (default <code>~/Documents/GitHub/_active</code>). <code>argo room &lt;name&gt;</code> runs rooted there → per-project goal stream |
 | <code>projects/commands.ts</code> | Phase 7 — <code>argo rooms</code>/<code>room</code>/<code>modes</code> CLI handlers + learning suggestion (keeps cli.ts ≤300) |
 | <code>modes/builtin.ts</code> | Phase 7 — 6 operator modes as real skills (<code>OPERATOR_MODES</code>, <code>installModes</code>). Run via <code>argo skill &lt;mode&gt; &quot;&lt;instr&gt;&quot;</code> |
-| <code>modes/learning.ts</code> | Phase 7 — <code>recordRun</code>/<code>shouldProposeSkill</code>; after a pattern recurs 3× proposes capturing it as a skill (<code>~/.argo/usage.tsv</code>) |
+| <code>modes/learning.ts</code> | Phase 7 — <code>recordRun</code>/<code>shouldProposeSkill</code>; after a pattern recurs 3× proposes capturing it as a skill (<code>~/.vanta/usage.tsv</code>) |
 | <code>routing/model-router.ts</code> | Phase 7 — <code>classifyTask</code> (cheap/expensive) + <code>resolveRoutedProvider</code> (<code>VANTA_MODEL_CHEAP</code>/<code>_EXPENSIVE</code>; no-op when unset) |
 | <code>routing/vision.ts</code> | AUX-VISION — <code>visionEnv</code> (pure) + <code>resolveVisionProvider</code>: image tools resolve a dedicated vision model via <code>VANTA_VISION_MODEL</code> (+ optional <code>VANTA_VISION_PROVIDER</code>), else the active provider. Used by <code>describe_image</code>/<code>look_at_screen</code>/<code>look_at_camera</code> so a text-only main model doesn't break sight. The auxiliary-task pattern, scoped to vision |
-| <code>google/auth.ts</code> | Phase 5 — one-time OAuth (<code>runGoogleAuth</code>, loopback) + token store <code>~/.argo/google-tokens.json</code> (0600), <code>getAccessToken</code> (auto-refresh) |
+| <code>google/auth.ts</code> | Phase 5 — one-time OAuth (<code>runGoogleAuth</code>, loopback) + token store <code>~/.vanta/google-tokens.json</code> (0600), <code>getAccessToken</code> (auto-refresh) |
 | <code>google/client.ts</code> | Phase 5 — <code>googleFetch</code> (Bearer + 401-retry) + pure <code>buildUrl</code> |
 | <code>tools/gmail.ts</code> | Phase 5 — <code>gmail_search</code>/<code>gmail_read</code> (read) + <code>gmail_draft</code>/<code>gmail_send</code> (always approval-gated) |
 | <code>tools/calendar.ts</code> | Phase 5 — <code>calendar_read</code> + <code>calendar_create</code>/<code>calendar_update</code> (approval-gated) |
 | <code>tools/drive.ts</code> | Phase 5 — <code>drive_read</code> + <code>drive_create</code>/<code>drive_update</code> (approval-gated). Pure <code>buildMultipartBody</code> |
 | <code>tools/index.ts</code> | <code>buildRegistry({exclude?})</code> — registers all 42 tools + <code>mount_mcp</code> via factory = 43 total (<code>exclude:[&quot;delegate&quot;]</code> → 41 for workers) |
-| <code>store/home.ts</code> | <code>resolveArgoHome</code>/<code>skillsDir</code>/<code>memoriesDir</code>/<code>slugifySkillName</code>/<code>ensureArgoStore</code>/<code>commitInHome</code>. The global <code>~/.argo</code> store (<code>VANTA_HOME</code> override), git-init'd for free versioning |
+| <code>store/home.ts</code> | <code>resolveArgoHome</code>/<code>skillsDir</code>/<code>memoriesDir</code>/<code>slugifySkillName</code>/<code>ensureArgoStore</code>/<code>commitInHome</code>. The global <code>~/.vanta</code> store (<code>VANTA_HOME</code> override), git-init'd for free versioning |
 | <code>skills/types.ts</code> | <code>Skill</code>, <code>SkillMeta</code>, <code>SkillMatch</code> |
 | <code>skills/frontmatter.ts</code> | pure <code>parseSkill</code>/<code>serializeSkill</code> (flat YAML frontmatter, Hermes-compatible) |
-| <code>skills/store.ts</code> | <code>writeSkill</code>/<code>readSkill</code>/<code>listSkills</code> — <code>~/.argo/skills/&lt;slug&gt;/SKILL.md</code>, auto-commits. <code>LEARNED_TAG</code> provenance constant |
-| <code>skills/library.ts</code> | <code>installSkillLibrary({force,from})</code> — copies bundled <code>skills-library/</code> into <code>~/.argo/skills</code> (idempotent, skips existing unless <code>--force</code>). <code>libraryDir()</code> resolves to <code>argo-ts/skills-library/</code>. Called by <code>argo skills install</code> <strong>and auto-run in <code>prepareRun</code></strong> every session, so newly-bundled skills appear without a manual install |
+| <code>skills/store.ts</code> | <code>writeSkill</code>/<code>readSkill</code>/<code>listSkills</code> — <code>~/.vanta/skills/&lt;slug&gt;/SKILL.md</code>, auto-commits. <code>LEARNED_TAG</code> provenance constant |
+| <code>skills/library.ts</code> | <code>installSkillLibrary({force,from})</code> — copies bundled <code>skills-library/</code> into <code>~/.vanta/skills</code> (idempotent, skips existing unless <code>--force</code>). <code>libraryDir()</code> resolves to <code>argo-ts/skills-library/</code>. Called by <code>argo skills install</code> <strong>and auto-run in <code>prepareRun</code></strong> every session, so newly-bundled skills appear without a manual install |
 | <code>skills-library/</code> | <strong>26</strong> shipped skills at <code>argo-ts/skills-library/&lt;slug&gt;/SKILL.md</code>: ~10 ported from references + <code>agent-orchestration-workflows</code>, <code>build-mcp-server</code>, and the <strong>14 <code>nd-*</code> executive-function skills</strong>. Add a <code>&lt;slug&gt;/SKILL.md</code> dir to grow the bundle; it auto-installs on next session |
 | <code>skills/recall.ts</code> | pure <code>searchSkills(query, skills)</code> — weighted substring ranking |
 | <code>skills/curator.ts</code> | <code>curate()</code> — <strong>non-destructive</strong>: archives only stale <code>argo-learned</code> skills (reversible→<code>_archive</code>), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via <code>LEARNED_TAG</code> |
 | <code>review/background-review.ts</code> | Track B self-improvement. <code>shouldReview(toolIters, turnIdx, env)</code> (busy/periodic trigger) + <code>reviewTurn()</code> — spawns a tool-restricted agent (<code>recall</code>+<code>write_skill</code>), replays the transcript, captures a skill tagged <code>argo-learned</code>. Best-effort. Env: <code>VANTA_SELF_IMPROVE</code>/<code>VANTA_REVIEW_MIN_TOOLS</code>/<code>VANTA_REVIEW_EVERY</code> |
-| <code>memory/store.ts</code> | <code>appendMemory</code>/<code>readMemory</code>/<code>recentMemory</code> — per-goal summaries <code>~/.argo/memories/&lt;goalId&gt;.md</code> |
-| <code>sessions/store.ts</code> | Session persist/resume: <code>saveSession</code>/<code>loadSession</code>/<code>listSessions</code>/<code>newSessionId</code>. JSON files <code>~/.argo/sessions/&lt;id&gt;.json</code> (id <code>YYYYMMDD-HHMMSS</code>), zod-validated. <code>argo sessions</code>/<code>resume &lt;id&gt;</code>/<code>--resume</code>. <code>createConversation(...,{history})</code> seeds resumed turns |
+| <code>memory/store.ts</code> | <code>appendMemory</code>/<code>readMemory</code>/<code>recentMemory</code> — per-goal summaries <code>~/.vanta/memories/&lt;goalId&gt;.md</code> |
+| <code>sessions/store.ts</code> | Session persist/resume: <code>saveSession</code>/<code>loadSession</code>/<code>listSessions</code>/<code>newSessionId</code>. JSON files <code>~/.vanta/sessions/&lt;id&gt;.json</code> (id <code>YYYYMMDD-HHMMSS</code>), zod-validated. <code>argo sessions</code>/<code>resume &lt;id&gt;</code>/<code>--resume</code>. <code>createConversation(...,{history})</code> seeds resumed turns |
 | <code>search/interface.ts</code> | <code>SearchProvider</code> interface, <code>SearchResult</code>, <code>SearchConfig</code>, <code>DEFAULT_MAX_RESULTS</code> |
 | <code>search/{duckduckgo,searxng,serpapi,brave}.ts</code> | Search adapters. Each exports a <code>*Provider</code> class + a pure mapper/parser for testing |
 | <code>search/index.ts</code> | <code>resolveSearchProvider(env)</code> — reads <code>VANTA_SEARCH_PROVIDER</code>. Mirrors <code>providers/index.ts</code> |
@@ -1150,10 +1150,10 @@ each iteration (max VANTA_MAX_ITER=50):
 <h2>Env</h2>
 <p><code>VANTA_PROVIDER</code> (openai|ollama|anthropic) · <code>VANTA_MODEL</code> · <code>OPENAI_API_KEY</code> · <code>VANTA_OLLAMA_URL</code> · <code>VANTA_KERNEL_URL</code> · <code>VANTA_MAX_ITER</code>. Defaults in <code>.env.example</code>. Local <code>.env</code> (gitignored) defaults to Ollama qwen2.5:14b.</p>
 <p>Search (Phase 2B): <code>VANTA_SEARCH_PROVIDER</code> (ddg|searxng|serpapi|brave, default ddg) · <code>VANTA_SEARCH_URL</code> (searxng) · <code>SERPAPI_KEY</code> · <code>BRAVE_KEY</code>.</p>
-<p>Store (Phase 2A): <code>VANTA_HOME</code> overrides the global store dir (default <code>~/.argo</code>). Holds <code>skills/</code> + <code>memories/</code>, git-init'd; writes auto-commit (best-effort). Tests point <code>VANTA_HOME</code> at a temp dir.</p>
+<p>Store (Phase 2A): <code>VANTA_HOME</code> overrides the global store dir (default <code>~/.vanta</code>). Holds <code>skills/</code> + <code>memories/</code>, git-init'd; writes auto-commit (best-effort). Tests point <code>VANTA_HOME</code> at a temp dir.</p>
 <p>Phase 3/4: <code>ANTHROPIC_API_KEY</code> (anthropic provider) · <code>VANTA_VISION_MODEL</code> (describe_image, default gpt-4o-mini) · <code>VANTA_ALLOWED_DOMAINS</code> (comma list; browser tools prompt-approve unlisted domains). Browser tools need <code>npx playwright install chromium</code> for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.</p>
 <p>Phase 7: <code>VANTA_PROJECTS_DIR</code> (project rooms, default <code>~/Documents/GitHub/_active</code>) · <code>VANTA_MODEL_CHEAP</code> / <code>VANTA_MODEL_EXPENSIVE</code> (task-routed models; unset = no routing).</p>
-<p>Phase 5 (comms): <code>VANTA_GOOGLE_CLIENT_ID</code> + <code>VANTA_GOOGLE_CLIENT_SECRET</code> (one-time OAuth client — provision once in Google Cloud Console, then <code>argo auth google</code> is one click per user). Tokens stored per-user in <code>~/.argo/google-tokens.json</code>. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.</p>
+<p>Phase 5 (comms): <code>VANTA_GOOGLE_CLIENT_ID</code> + <code>VANTA_GOOGLE_CLIENT_SECRET</code> (one-time OAuth client — provision once in Google Cloud Console, then <code>argo auth google</code> is one click per user). Tokens stored per-user in <code>~/.vanta/google-tokens.json</code>. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.</p>
 <h2>Gotchas</h2>
 <ul>
 <li><p><strong>gitleaks pre-commit hook</strong> runs <code>gitleaks protect --staged</code> on every commit. Hook lives at <code>scripts/pre-commit</code>; <code>install.sh</code> symlinks it into <code>.git/hooks/</code>. Example files (<code>.env.example</code>, <code>.mcp.json.example</code>) and test fixtures are allowlisted in <code>.gitleaks.toml</code>. If you get a false positive, add a pattern to the <code>allowlists</code> section — don't skip the hook.</p>
@@ -1164,7 +1164,7 @@ each iteration (max VANTA_MAX_ITER=50):
 <h2>Session additions (2026-06-02/03) — keep current</h2>
 <p><strong>Providers:</strong> <code>VANTA_PROVIDER</code> now also: <code>gemini</code> · <code>openrouter</code> · <code>codex</code> (alias <code>openai-codex</code>, ChatGPT-subscription OAuth via <code>~/.codex/auth.json</code>, Responses API — <code>providers/codex.ts</code>+<code>codex-auth.ts</code>) · <code>claude-code</code> (Claude sub OAuth). Catalog: <code>providers/catalog.ts</code>.</p>
 <p><strong>Multimodal:</strong> user <code>Message</code> carries optional <code>images:[{mime,dataBase64}]</code> (<code>types.ts</code>), mapped natively by every provider. Attach via <code>/image &lt;path&gt;</code>, <code>/paste</code> (clipboard, macOS), drag-drop (<code>maybeDroppedImage</code>), or <code>/attachments [clear]</code>. Vision tools <code>describe_image</code> + <code>look_at_screen</code>/<code>look_at_camera</code> (Vanta's eyes) route through <code>resolveVisionProvider</code> (<code>routing/vision.ts</code>): a dedicated vision model via <code>VANTA_VISION_MODEL</code> (+ optional <code>VANTA_VISION_PROVIDER</code>) when set, else the active provider. This is the <strong>auxiliary-task</strong> pattern — image work runs on a vision-capable model even when the main model is text-only (DeepSeek, local Ollama). Unset = active provider (prior behavior).</p>
-<p><strong>Brain (selfhood):</strong> <code>brain/regions.ts</code> + <code>brain/store.ts</code> → <code>~/.argo/brain/&lt;region&gt;.md</code> (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. <code>brain</code> tool (list/read/append/replace). <code>brainDigest</code> injected as a prompt tier — Vanta reads its brain each session.</p>
+<p><strong>Brain (selfhood):</strong> <code>brain/regions.ts</code> + <code>brain/store.ts</code> → <code>~/.vanta/brain/&lt;region&gt;.md</code> (identity[neurodivergent-first]/semantic/episodic/user_model/drives[frugality]/reflections/mood), git-versioned. <code>brain</code> tool (list/read/append/replace). <code>brainDigest</code> injected as a prompt tier — Vanta reads its brain each session.</p>
 <p><strong>Skills:</strong> skill INDEX injected into the prompt (<code>prompt.ts</code> skillsTier); <code>recall</code> loads the full body on demand.</p>
 <p><strong>Memory:</strong> stored file capped per goal (<code>VANTA_MEMORY_MAX_BLOCKS</code>, default 50; older blocks git-retained).</p>
 <p><strong>Delegate:</strong> <code>provider</code>/<code>model</code> params → agent routes a subtask to any backend (e.g. local ollama). <code>delegateEnv</code> overlays the choice.</p>
@@ -1178,7 +1178,7 @@ each iteration (max VANTA_MAX_ITER=50):
 <p><strong>TUI readability fixes:</strong> terminal width now fills (removed the 100-col cap in <code>tui/app.tsx</code>) · slash palette capped to 8 matches (<code>app.tsx</code>, was unbounded → typing <code>/</code> dumped all 37) · palette rewritten to a fixed command column + width-clipped one-line descriptions (<code>tui/transcript.tsx</code> <code>Palette</code> + <code>clip</code>) instead of ragged <code>space-between</code> · <code>/skills</code> output aligns names + clips descriptions to one line (<code>repl/handlers.ts</code>) · skill INDEX in the system prompt clips each description to ~100 chars (<code>prompt.ts</code> <code>trimSkillDesc</code>) so weak models stop parroting the whole library.</p>
 <p><strong>Env added:</strong> <code>VANTA_VISION_MODEL</code> · <code>VANTA_VISION_PROVIDER</code> (auxiliary vision routing; documented in <code>.env.example</code>).</p>
 <p><strong>Messaging setup wizard (MSG-WIZARD + MSG-REGISTRY):</strong> <code>gateway/platforms/registry.ts</code> — <code>MESSAGING_CATALOG</code> (the messaging analogue of <code>providers/catalog.ts</code>): <code>{id,label,implemented,requiredEnv,secretEnv?,enableEnv?,prerequisite?,warning?,setupSteps,signupUrl?}</code> + <code>platformAvailability(p,env)</code> + <code>messagingPlatformById</code>. <strong>Only Telegram is <code>implemented</code></strong> (live adapter); iMessage/Signal/WhatsApp are <code>planned</code> (preview-only — the wizard never writes a fake enable flag for a missing adapter). <code>setup-messaging.ts</code> — <code>argo setup messaging</code>: registry-driven menu with <code>[available|configured|planned]</code> status, <code>renderSetupSteps</code> (prereq + ⚠ warning + numbered steps), configures Telegram for real (<code>VANTA_TELEGRAM_TOKEN</code> via the shared <code>upsertEnv</code>, exported <code>promptSecret</code> from <code>setup.ts</code>). Wired in <code>cli.ts</code> (<code>setup</code> → <code>messaging</code> subcommand). Future adapters (iMessage osascript+chat.db, Signal signal-cli, WhatsApp Node bridge) flip <code>implemented:true</code> + add their adapter. Design: <code>docs/messaging-gateways.md</code>.</p>
-<p><strong>Multi-source skill install:</strong> <code>skills/library.ts</code> installs from <code>librarySources()</code> = <strong>three</strong> bundled dirs: <code>argo-ts/skills-library/</code> (Hermes-ported + nd-*), the repo-root <code>design-system-skills/</code> (27 design skills + viewer), and <code>ai-engineering-skills/</code> (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into <code>~/.argo/skills</code> each session via <code>installSkillLibrary()</code>. <code>installOne()</code> helper keeps the fn small; <code>from</code> still overrides to a single source (tests). Adding a skill source = one entry in <code>librarySources()</code>. Each library's <code>index.html</code> regenerates via <code>scripts/build-skills-index.py &lt;folder&gt;</code> (mistune); they're also installed into <code>~/.claude/skills</code> for Claude Code.</p>
+<p><strong>Multi-source skill install:</strong> <code>skills/library.ts</code> installs from <code>librarySources()</code> = <strong>three</strong> bundled dirs: <code>argo-ts/skills-library/</code> (Hermes-ported + nd-*), the repo-root <code>design-system-skills/</code> (27 design skills + viewer), and <code>ai-engineering-skills/</code> (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into <code>~/.vanta/skills</code> each session via <code>installSkillLibrary()</code>. <code>installOne()</code> helper keeps the fn small; <code>from</code> still overrides to a single source (tests). Adding a skill source = one entry in <code>librarySources()</code>. Each library's <code>index.html</code> regenerates via <code>scripts/build-skills-index.py &lt;folder&gt;</code> (mistune); they're also installed into <code>~/.claude/skills</code> for Claude Code.</p>
 </div><div class="doc" id="docs-argo-flow-md"><div class="crumb">Architecture · docs/argo-flow.md</div><h1>Vanta Runtime Flow — mapped against Hermes</h1>
 <p>The blueprint. This traces how Hermes actually runs end-to-end (entry → loop →
 subsystems) and maps each step to Vanta's implementation + status. Build Vanta to
@@ -1193,7 +1193,7 @@ This is the <em>flow</em>: how those components connect at runtime.</p>
   subgraph BOOT[&quot;bootstrap (once per launch)&quot;]
     direction TB
     B1[&quot;load .env / config&quot;]
-    B2[&quot;ensure store ~/.argo (skills, memory, git)&quot;]
+    B2[&quot;ensure store ~/.vanta (skills, memory, git)&quot;]
     B3[&quot;ensure kernel on :7788 (auto-spawn)&quot;]
     B1 --&gt; B2 --&gt; B3
   end
@@ -1220,7 +1220,7 @@ This is the <em>flow</em>: how those components connect at runtime.</p>
   end
 
   TURN --&gt;|done| REPL
-  T7 --&gt; MEM[&quot;~/.argo memory + skills (git-versioned)&quot;]
+  T7 --&gt; MEM[&quot;~/.vanta memory + skills (git-versioned)&quot;]
 
   KERNEL[&quot;Rust kernel :7788 — ENFORCED boundary&lt;br/&gt;assess · approvals · goals · events · cockpit&quot;]
   T5 -.assess.-&gt; KERNEL
@@ -2144,7 +2144,7 @@ file + registration</strong> — no core changes. Hermes confirms the same shape
   <td><strong>Node subprocess bridge</strong> (Hermes pattern) — spawn Baileys/whatsapp-web.js, talk over <code>localhost:PORT</code> (GET <code>/messages</code>, POST send)</td>
   <td>bridge POST</td>
   <td>bridge poll</td>
-  <td><strong>QR pair</strong> (creds in <code>~/.argo/whatsapp/</code>). <strong>Unofficial → ban risk + protocol breakage</strong>; health-check + restart the bridge. <strong>Business API</strong> (Meta-verified) = ToS-safe alt. Bridge dep installs to <code>~/.argo</code>, never the repo (see <code>PLUGIN-SYSTEM</code>).</td>
+  <td><strong>QR pair</strong> (creds in <code>~/.vanta/whatsapp/</code>). <strong>Unofficial → ban risk + protocol breakage</strong>; health-check + restart the bridge. <strong>Business API</strong> (Meta-verified) = ToS-safe alt. Bridge dep installs to <code>~/.vanta</code>, never the repo (see <code>PLUGIN-SYSTEM</code>).</td>
 </tr>
 <tr>
   <td><strong>Signal</strong></td>
@@ -2174,7 +2174,7 @@ Mirror <code>renderProviderMenu</code>/<code>runSetup</code>. No crashes on miss
 <li><strong>Code-based pairing (<code>MSG-PAIRING</code>, from <code>pairing.py</code>).</strong> Replace the static
 <code>VANTA_TELEGRAM_ALLOW</code> allowlist with a real consent flow: unknown sender → one-time short
 code (unambiguous alphabet, ~1h expiry, rate-limited, lockout after N fails, <code>0600</code> in
-<code>~/.argo/pairing/</code>); owner approves via CLI/TUI. Platform-agnostic — covers every adapter.</li>
+<code>~/.vanta/pairing/</code>); owner approves via CLI/TUI. Platform-agnostic — covers every adapter.</li>
 <li><strong>Platform registry (<code>MSG-REGISTRY</code>, from <code>platform_registry.py</code>).</strong> Each adapter
 self-registers <code>{id, factory, required_env, check_fn, install_hint}</code>. The gateway, the
 wizard, and <code>argo doctor</code> read it → graceful &quot;needs X&quot; instead of a central if/elif and
@@ -2264,7 +2264,7 @@ skill registration together with opt-in install + discovery precedence.</p>
 </tbody>
 </table>
 <p><strong>Discovery precedence</strong> (later overrides earlier by name): bundled (<code>argo-ts/plugins/</code>) → user
-(<code>~/.argo/plugins/</code>) → project (<code>.argo/plugins/</code>, gated by <code>VANTA_ENABLE_PROJECT_PLUGINS=true</code>) →
+(<code>~/.vanta/plugins/</code>) → project (<code>.vanta/plugins/</code>, gated by <code>VANTA_ENABLE_PROJECT_PLUGINS=true</code>) →
 npm package entry points.</p>
 <p><strong>Opt-in allow-list</strong> (the security model): general plugins are <strong>disabled by default</strong>; the user
 adds names to <code>plugins.enabled</code> in config before they load — &quot;stops third-party code running
@@ -2329,7 +2329,7 @@ Sources: the &quot;clean plugin setup&quot; goal + Vanta's own design (<code>arg
 </tr>
 <tr>
   <td>Runtime state</td>
-  <td><code>~/.argo/</code> (global) + repo <code>.argo/</code> (gitignored)</td>
+  <td><code>~/.vanta/</code> (global) + repo <code>.vanta/</code> (gitignored)</td>
   <td>No</td>
 </tr>
 <tr>
@@ -2349,7 +2349,7 @@ The rule, so nothing pollutes the project:</p>
 <li><strong>Source only in the repo.</strong> Tools/skills are TS + Markdown, committed.</li>
 <li><strong>Native deps → OS cache.</strong> Browser binaries, models, etc. download to the platform
 cache (<code>~/Library/Caches/...</code>, XDG <code>~/.cache/...</code>), never the repo or <code>node_modules</code>.</li>
-<li><strong>Runtime/secret state → <code>~/.argo/</code>.</strong> Profiles, tokens, downloads — outside the repo,
+<li><strong>Runtime/secret state → <code>~/.vanta/</code>.</strong> Profiles, tokens, downloads — outside the repo,
 gitignored, <code>0700</code>.</li>
 <li><strong>Lazy-load deps.</strong> <code>playwright-core</code> is <code>await import()</code>ed only when a browser tool
 runs, and degrades gracefully if the browser isn't installed (already the pattern).</li>
@@ -2372,7 +2372,7 @@ stealing cookies from your real browser.</strong></p>
 encryption, high secret-handling risk, easy to leak auth cookies. Instead Vanta gets its
 <strong>own</strong> persistent Playwright profile you log into manually once.</p>
 <h3>Flow</h3>
-<pre><code>argo browser auth x.com         # opens a HEADED Chromium in ~/.argo/browser-profiles/x.com/
+<pre><code>argo browser auth x.com         # opens a HEADED Chromium in ~/.vanta/browser-profiles/x.com/
                                 # you log in manually — Vanta never sees password/2FA
                                 # close the window → session stays in that profile
 browser_extract_auth({url, profile:&quot;x.com&quot;, what:&quot;text&quot;})   # headless launchPersistentContext, read-only
@@ -2401,12 +2401,12 @@ time.</li>
 <h3>Files</h3>
 <ul>
 <li><code>argo-ts/src/browser/profile.ts</code> — <code>browserProfileRoot(env)</code>, <code>sanitizeProfileId</code>
-(reject <code>../</code>), <code>profilePath</code> (<code>mkdir 0700</code> under <code>~/.argo/browser-profiles</code>),
+(reject <code>../</code>), <code>profilePath</code> (<code>mkdir 0700</code> under <code>~/.vanta/browser-profiles</code>),
 <code>profileAllowsUrl(profile, url)</code>.</li>
 <li><code>argo-ts/src/tools/browser-auth.ts</code>, <code>browser-extract-auth.ts</code> — registered in
 <code>tools/index.ts</code>.</li>
 <li>Tests (mostly pure, no live browser): id sanitization rejects <code>../../secrets</code>; path
-stays under <code>~/.argo/browser-profiles</code>; <code>x.com</code> allows <code>x.com/search</code>, refuses
+stays under <code>~/.vanta/browser-profiles</code>; <code>x.com</code> allows <code>x.com/search</code>, refuses
 <code>evil.com</code>; authed extract output never contains cookies; missing profile → actionable
 error.</li>
 </ul>
@@ -3652,7 +3652,7 @@ nothing learns automatically, not reachable as a service. v1 closes that.</p>
 </ul>
 <h2>Install &amp; REPL (shipped 2026-06-02)</h2>
 <ul>
-<li><strong><code>./install.sh</code></strong> — Hermes/OpenClaw-style installer: builds kernel + deps, seeds <code>~/.argo/skills</code>, installs a global <strong><code>argo</code></strong> launcher into <code>~/.local/bin</code> (only edits a shell rc if that dir isn't already on PATH). Type <code>argo</code> from anywhere.</li>
+<li><strong><code>./install.sh</code></strong> — Hermes/OpenClaw-style installer: builds kernel + deps, seeds <code>~/.vanta/skills</code>, installs a global <strong><code>argo</code></strong> launcher into <code>~/.local/bin</code> (only edits a shell rc if that dir isn't already on PATH). Type <code>argo</code> from anywhere.</li>
 <li><strong>Full REPL slash commands</strong> (<code>repl-commands.ts</code>): <code>/help /exit /clear /skills /tools /model /status /goals /sessions /resume &lt;id&gt; /cron</code> — was only <code>/help /exit /skills</code>.</li>
 </ul>
 <h2>v1 done — one sentence</h2>
@@ -3676,16 +3676,16 @@ skills, prunes them safely) → it's reachable as a background service you can t
 <li>[~] <strong>B1 · Hook spine</strong> — <strong>DEFERRED</strong> (same call as A2): the review is wired directly at the post-turn site in both callers; one consumer doesn't justify a generic 5-event bus. Build it at the 2nd consumer (Rule of 3).</li>
 <li>[x] <strong>B2 · Post-turn nudge counters</strong> (S) — pure <code>shouldReview(toolIterations, turnIndex, env)</code>: fires on a busy turn (≥<code>VANTA_REVIEW_MIN_TOOLS</code>, default 6) or periodically (every <code>VANTA_REVIEW_EVERY</code>, default 8). <code>toolIterations</code> added to <code>AgentOutcome</code>. <code>VANTA_SELF_IMPROVE=0</code> disables.</li>
 <li>[x] <strong>B3 · Background-review fork</strong> (M) — <code>review/background-review.ts</code>: post-turn, spawns a tool-restricted agent (<code>recall</code> + <code>write_skill</code> only), replays the transcript, review prompt biased to act with the do-NOT-capture list. Best-effort — never fails the main turn. Live-verified (judged &quot;no skill&quot; on a trivial turn; unit-tested write path).</li>
-<li>[x] <strong>B4 · Skill provenance + safe curator</strong> (M) — review-written skills tagged <code>argo-learned</code> (<code>LEARNED_TAG</code>); curator <strong>never auto-deletes</strong> (archives only <code>argo-learned</code> stale skills — reversible; reports stale hand-authored + long-archived instead of touching them); <code>maybeCurate()</code> wired at session start, 7d-interval-gated via <code>~/.argo/.curator_state.json</code>.</li>
+<li>[x] <strong>B4 · Skill provenance + safe curator</strong> (M) — review-written skills tagged <code>argo-learned</code> (<code>LEARNED_TAG</code>); curator <strong>never auto-deletes</strong> (archives only <code>argo-learned</code> stale skills — reversible; reports stale hand-authored + long-archived instead of touching them); <code>maybeCurate()</code> wired at session start, 7d-interval-gated via <code>~/.vanta/.curator_state.json</code>.</li>
 <li>[~] <strong>B5 · Memory pre/post-turn</strong> — <strong>PARTIAL</strong>: post-turn memory already written (<code>writeRunMemory</code>); pre-turn recall already injected (<code>recentMemory</code>→prompt). Remaining: move recall from the system prompt's volatile tier into the user message to preserve prefix-cache (optimization, deferred).</li>
 </ul>
 <h3>C — Continuity  ← ✅ SHIPPED 2026-06-02 (live-verified resume on Gemini)</h3>
 <ul>
-<li>[x] <strong>C1 · Session persist + resume</strong> (M) — <strong>file-based</strong> (<code>~/.argo/sessions/&lt;id&gt;.json</code>, id <code>YYYYMMDD-HHMMSS</code>), not SQLite — dependency-free + git-versionable, consistent with skills/memory (avoids Node's flagged experimental <code>node:sqlite</code>). <code>sessions/store.ts</code> (zod-validated round-trip), <code>createConversation(...,{history})</code> seeds prior turns + fresh system prompt, <code>argo sessions</code> lists newest-first, <code>argo resume &lt;id&gt;</code> / <code>argo --resume &lt;id&gt;</code> rehydrates. Saved after every turn. Bonus: fixed REPL Ctrl+D/EOF to exit cleanly instead of erroring.</li>
+<li>[x] <strong>C1 · Session persist + resume</strong> (M) — <strong>file-based</strong> (<code>~/.vanta/sessions/&lt;id&gt;.json</code>, id <code>YYYYMMDD-HHMMSS</code>), not SQLite — dependency-free + git-versionable, consistent with skills/memory (avoids Node's flagged experimental <code>node:sqlite</code>). <code>sessions/store.ts</code> (zod-validated round-trip), <code>createConversation(...,{history})</code> seeds prior turns + fresh system prompt, <code>argo sessions</code> lists newest-first, <code>argo resume &lt;id&gt;</code> / <code>argo --resume &lt;id&gt;</code> rehydrates. Saved after every turn. Bonus: fixed REPL Ctrl+D/EOF to exit cleanly instead of erroring.</li>
 </ul>
 <h3>D — Borrow the skills library  ← ✅ SHIPPED 2026-06-02</h3>
 <ul>
-<li>[x] <strong>D1 · Port skills</strong> (M) — 10 high-value Hermes/OpenClaw skills ported into bundled <code>argo-ts/skills-library/</code> (coupling stripped: <code>HERMES_HOME</code>→<code>VANTA_HOME</code>, <code>delegate_task</code>→delegate subagent, kanban/s6/TUI removed), with <code>argo skills install [--force]</code> → idempotent, non-destructive copy into <code>~/.argo/skills/</code> (<code>skills/library.ts</code>). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10). <em>Headroom:</em> ~171 more portable skills exist in the references — add more to <code>skills-library/</code> any time.</li>
+<li>[x] <strong>D1 · Port skills</strong> (M) — 10 high-value Hermes/OpenClaw skills ported into bundled <code>argo-ts/skills-library/</code> (coupling stripped: <code>HERMES_HOME</code>→<code>VANTA_HOME</code>, <code>delegate_task</code>→delegate subagent, kanban/s6/TUI removed), with <code>argo skills install [--force]</code> → idempotent, non-destructive copy into <code>~/.vanta/skills/</code> (<code>skills/library.ts</code>). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10). <em>Headroom:</em> ~171 more portable skills exist in the references — add more to <code>skills-library/</code> any time.</li>
 <li>[ ] <strong>D2 · Skill bundles</strong> (S) — adopt Hermes' YAML bundle schema (<code>name</code>/<code>description</code>/<code>skills:[]</code>/<code>instruction</code>) so one <code>/slash</code> loads several skills. <em>Why:</em> composite operator commands. (Pending — not blocking.)</li>
 </ul>
 <h3>E — Autonomy &amp; reach  ← daemon is the keystone (E1 shipped; E2–E6 pending)</h3>
@@ -3694,7 +3694,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 <li>[x] <strong>E2 · Telegram gateway</strong> (M) — ✅ SHIPPED 2026-06-02 (offline-tested; live needs a bot token). <code>PlatformAdapter</code> contract (<code>gateway/platforms/base.ts</code>) + <code>TelegramAdapter</code> (getUpdates long-poll + sendMessage, pure <code>parseUpdates</code>/<code>parseAllowlist</code>, chat-id allowlist). Wired into the gateway: each tick polls, runs inbound → agent turn → reply (<code>pollPlatform</code>, handler error becomes the reply). Auto-enabled by <code>VANTA_TELEGRAM_TOKEN</code>. <strong>Live use needs a @BotFather token</strong> (I can't provision one). <em>Limitation:</em> each message is a one-shot run (no per-chat session yet — future, key sessions by chatId). Other ~19 platforms deferred (Rule of 3).</li>
 <li>[x] <strong>E3 · Webhook triggers + deliver targets</strong> (M) — ✅ SHIPPED 2026-06-02 (HMAC + HTTP integration-tested). <code>gateway/webhook.ts</code>: constant-time <code>verifyGithubSignature</code> (sha256 HMAC, known-vector tested), <code>resolveDeliver</code> (<code>local</code>/<code>file:&lt;path&gt;</code>/<code>telegram:&lt;chatId&gt;</code>), <code>startWebhookServer</code> (POST-only, HMAC-gated, 200-fast + background agent run). Wired into the daemon (<code>VANTA_WEBHOOK_PORT</code>/<code>_SECRET</code>/<code>_PROMPT</code>/<code>_DELIVER</code>); inbound event → agent turn → deliver. Verified via real localhost requests (200 signed / 401 unsigned / 405 non-POST).</li>
 <li>[~] <strong>E4 · Interrupt</strong> (S) — ✅ SHIPPED 2026-06-02 (unit-tested). <code>AbortSignal</code> in <code>AgentDeps</code>, checked between loop iterations → <code>stoppedReason: &quot;interrupted&quot;</code> (post-run memory still runs). Ctrl+C aborts a one-shot <code>argo run</code> gracefully instead of hard-killing. <strong>Steer (mid-turn message injection) deferred</strong> — needs non-blocking stdin during a turn (a REPL redesign); low value in the current synchronous loop.</li>
-<li>[x] <strong>E5 · MCP client</strong> (M) — ✅ SHIPPED 2026-06-02 (protocol unit-tested; live needs a real MCP server). Dependency-free stdio JSON-RPC client (<code>mcp/client.ts</code>, injectable transport — initialize/tools-list/tools-call, concurrent-request correlation, error→reject) + <code>mcp/mount.ts</code> (config from <code>VANTA_MCP_SERVERS</code> or <code>~/.argo/mcp.json</code>, spawns each server best-effort, registers discovered tools as Vanta tools through the <strong>same kernel <code>assess()</code></strong>). Mounted in <code>prepareRun</code> (no-op without config). StreamableHTTP transport + per-chat reuse = future; direct Google integrations kept as-is.</li>
+<li>[x] <strong>E5 · MCP client</strong> (M) — ✅ SHIPPED 2026-06-02 (protocol unit-tested; live needs a real MCP server). Dependency-free stdio JSON-RPC client (<code>mcp/client.ts</code>, injectable transport — initialize/tools-list/tools-call, concurrent-request correlation, error→reject) + <code>mcp/mount.ts</code> (config from <code>VANTA_MCP_SERVERS</code> or <code>~/.vanta/mcp.json</code>, spawns each server best-effort, registers discovered tools as Vanta tools through the <strong>same kernel <code>assess()</code></strong>). Mounted in <code>prepareRun</code> (no-op without config). StreamableHTTP transport + per-chat reuse = future; direct Google integrations kept as-is.</li>
 <li>[ ] <strong>E6 · ACP server wrapper</strong> (L, optional) — implement ACP <code>Agent</code> methods over Vanta's session + delegate primitives so editors (Zed/Claude-Code-style) can drive Vanta. <em>Why:</em> networked cross-agent without inventing a protocol. Lowest priority.</li>
 </ul>
 <h3>F — Robustness steals (cheap, fold in opportunistically)</h3>
@@ -3757,7 +3757,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 its own, and be callable as a server itself. Extends <strong>E5</strong> (MCP client, shipped). Built
 in order — each phase ships working before the next starts (anti-drift: no three-half-things).</p>
 <ul>
-<li>[x] <strong>MCP-1 · Use any MCP (consume)</strong> (S) — ✅ SHIPPED 2026-06-04. <code>readMcpConfig</code> now accepts Claude's <code>mcpServers</code> key (alongside <code>servers</code>) and discovers <code>./.mcp.json</code> in the project (project wins over <code>~/.argo/mcp.json</code>; <code>VANTA_MCP_SERVERS</code> still wins inline). <code>argo mcp list</code> lists configured servers. Config discovery done + unit-tested (+4 tests); live consume needs a real server.</li>
+<li>[x] <strong>MCP-1 · Use any MCP (consume)</strong> (S) — ✅ SHIPPED 2026-06-04. <code>readMcpConfig</code> now accepts Claude's <code>mcpServers</code> key (alongside <code>servers</code>) and discovers <code>./.mcp.json</code> in the project (project wins over <code>~/.vanta/mcp.json</code>; <code>VANTA_MCP_SERVERS</code> still wins inline). <code>argo mcp list</code> lists configured servers. Config discovery done + unit-tested (+4 tests); live consume needs a real server.</li>
 <li>[x] <strong>MCP-2 · Make + hook in at runtime</strong> (M) — ✅ SHIPPED 2026-06-04. <strong><code>mount_mcp</code> tool</strong> (<code>tools/mount-mcp.ts</code>): <code>buildMountMcpTool(registry)</code> factory spawns an MCP server, mounts its tools into the LIVE registry mid-session, kernel-gated via <code>assess()</code> (<code>describeForSafety</code> → &quot;spawn mcp server …&quot;). <strong><code>build-mcp-server</code> skill</strong> (<code>skills-library/</code>): teaches Vanta to scaffold a TS MCP server with the SDK, build it, and mount it. <strong>Done =</strong> mount_mcp registers a server's tools into the running registry; skill covers scaffold-on-demand.</li>
 <li>[x] <strong>MCP-3 · Be a server (serve)</strong> (M/L) — ✅ SHIPPED 2026-06-04. <strong><code>argo mcp serve</code></strong> (<code>mcp/server.ts</code>): exposes Vanta's tools over MCP stdio (JSON-RPC 2.0, mirror of <code>client.ts</code>). Every <code>tools/call</code> routes through the kernel <code>assess()</code> gate — <code>block</code>/<code>ask</code> refused as <code>isError</code> results (headless: no human to prompt), only <code>allow</code> executes. Read-only <strong>allowlist</strong> (<code>VANTA_MCP_SERVE_TOOLS</code>, defaults to 9 read-only tools) bounds exposure; the kernel is the real boundary. <code>console.log→stderr</code> keeps the protocol stream clean. <strong>Done (live-verified):</strong> a real <code>McpClient</code> drove the <code>argo mcp serve</code> subprocess end-to-end — handshake, <code>tools/list</code> (filtered), <code>read_file</code> allow→executed, out-of-scope refused, non-allowlisted refused. <em>Claude Code integration itself untested (offline-verified via reciprocal client, house discipline like E2/E5).</em> Supersedes <strong>E6</strong> (ACP wrapper).</li>
 </ul>
@@ -3765,7 +3765,7 @@ in order — each phase ships working before the next starts (anti-drift: no thr
 <p>The agent grows an identity and a living model of its world. Everything here stays
 under the kernel's hard lines (non-destructive, verified, approval-before-risk).</p>
 <ul>
-<li>[x] <strong>S1 · Self-authored identity files</strong> — ✅ SHIPPED. Brain regions (<code>~/.argo/brain/</code>: identity, semantic, episodic, user_model, drives, reflections, mood). <code>brain</code> tool + <code>/memory</code>. <code>SOUL.md</code> + <code>AGENT-MANIFESTO.md</code> at repo root.</li>
+<li>[x] <strong>S1 · Self-authored identity files</strong> — ✅ SHIPPED. Brain regions (<code>~/.vanta/brain/</code>: identity, semantic, episodic, user_model, drives, reflections, mood). <code>brain</code> tool + <code>/memory</code>. <code>SOUL.md</code> + <code>AGENT-MANIFESTO.md</code> at repo root.</li>
 <li>[~] <strong>S2 · Personality develops from interaction</strong> — PARTIAL. Brain <code>user_model</code> region + prompt rule 9 drives it. Full personality.md evolution loop is demand-driven.</li>
 <li>[~] <strong>S3 · Continuous world/user/codebase context</strong> — PARTIAL. Brain regions + post-turn memory cover this. Full heartbeat-driven refresh ties to S5.</li>
 <li>[~] <strong>S4 · Skill authorship discipline</strong> — PARTIAL. Curator uses <code>LEARNED_TAG</code> + never-auto-deletes. Versioning/merge on <code>write_skill</code> deferred.</li>
@@ -3798,7 +3798,7 @@ Jason's own rule: <em>do not build full JARVIS at once.</em></li>
 <ul>
 <li><strong>Providers:</strong> Codex ChatGPT-OAuth, claude-code; agent-chosen model on <code>delegate</code> (O1/O6) + workers get skill index + brain.</li>
 <li><strong>Senses:</strong> native image input (paste/drag-drop/<code>/image</code>/<code>/paste</code>/<code>/attachments</code>); <code>look_at_screen</code> (eyes, O3); <code>watch_video</code> (O5); <code>speak</code> TTS (O7); vision routed through the ACTIVE provider.</li>
-<li><strong>Selfhood:</strong> Vanta <strong>brain</strong> (<code>~/.argo/brain/</code>, 7 regions, neurodivergent-first identity, frugality drive) read each session + <code>brain</code> tool + <code>/memory</code>.</li>
+<li><strong>Selfhood:</strong> Vanta <strong>brain</strong> (<code>~/.vanta/brain/</code>, 7 regions, neurodivergent-first identity, frugality drive) read each session + <code>brain</code> tool + <code>/memory</code>.</li>
 <li><strong>UX:</strong> queued type-ahead (U1), notifications (U3), real token usage (U4), <code>/compress</code> (U5), <code>/memory</code> (U6), <code>/export</code> (U7); full command set incl. <code>/goal /plan /title /fork /history /retry /undo /usage /copy /update</code>.</li>
 <li><strong>Skills/memory:</strong> skill-index injection + recall-body, capped memory, <code>skills lint</code>, in-session <code>todo</code>+<code>/plan</code>.</li>
 <li><strong>Safety (manifesto-critical):</strong> kernel <code>assess_action</code> hardened against the Hermes #36846/#36645 denylist/scope bypasses.</li>
@@ -3949,7 +3949,7 @@ Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model pick
 </ul>
 <h2>Polish (post-users)</h2>
 <ul>
-<li>Streaming live output, richer cockpit UI, multi-language run-code sandboxing, project-room goal namespacing beyond per-dir <code>.argo</code>.</li>
+<li>Streaming live output, richer cockpit UI, multi-language run-code sandboxing, project-room goal namespacing beyond per-dir <code>.vanta</code>.</li>
 </ul>
 </div><div class="doc" id="handoff-md"><div class="crumb">Roadmap &amp; planning · HANDOFF.md</div><h1>Vanta — Session Handoff (2026-06-03 v3)</h1>
 <p>Cold-start context for a fresh thread. Read this + <code>MANIFESTO.md</code> + <code>ROADMAP.md</code> first.</p>

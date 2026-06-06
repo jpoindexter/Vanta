@@ -83,7 +83,7 @@ function render(d) {
     .map(
       (r) => `<tr data-verdict="${esc(verdictClass(r.verdict))}">
       <td class="cap">${esc(r.capability)} ${fchips(r.ndFit, F)}</td>
-      <td>${esc(r.argo)}</td><td>${esc(r.hermes)}</td><td>${esc(r.goose)}</td><td>${esc(r.claudeCode)}</td>
+      <td>${esc(r.vanta)}</td><td>${esc(r.hermes)}</td><td>${esc(r.goose)}</td><td>${esc(r.claudeCode)}</td>
       <td class="${verdictClass(r.verdict)}">${esc(r.verdict)}</td>
       <td class="muted">${esc(r.note)}</td></tr>`,
     )

@@ -149,7 +149,7 @@ export async function runChat(
   const ctx = {
     convo,
     setup,
-    dataDir: join(repoRoot, ".argo"),
+    dataDir: join(repoRoot, ".vanta"),
     state,
     env: process.env,
     now: () => new Date(),

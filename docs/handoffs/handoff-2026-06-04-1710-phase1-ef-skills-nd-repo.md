@@ -180,7 +180,7 @@ MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS → MEM-WORKINGMEM → BRAIN-5D
 
 - **KANBAN WIP limit = 2 on `building`** — move one item to `building` before starting, `shipped` when done. The `checkWipLimit` in `wip.ts` enforces this via `roadmap/move.ts`. Direct JSON edits bypass it; use the tool or edit carefully.
 
-- **Velocity events are fire-and-forget** — `appendVelocityEvent` is called with `.catch(() => {})` after roadmap moves. Velocity.json lives at `~/.argo/velocity.json`. Currently only `ship` (moved to shipped) and `capture` (promoted from horizon) are tracked.
+- **Velocity events are fire-and-forget** — `appendVelocityEvent` is called with `.catch(() => {})` after roadmap moves. Velocity.json lives at `~/.vanta/velocity.json`. Currently only `ship` (moved to shipped) and `capture` (promoted from horizon) are tracked.
 
 - **`repl/research-gate.ts` output tools** — `write_file`, `roadmap_move`, `shell_cmd`. These are the only three that reset the research turn counter. If a new "output" tool is added to Vanta, it should be added to `OUTPUT_TOOL_NAMES` in that file.
 
@@ -190,7 +190,7 @@ MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS → MEM-WORKINGMEM → BRAIN-5D
 
 - **ND skills repo** — `~/Documents/GitHub/neurodivergent-agent-skills/`. Install script: `bash install.sh`. Reinstall after updates to the repo. Skills in `~/.claude/skills/nd-*` are live in Claude Code now.
 
-- **`BRAIN-5D` is the prerequisite for all Phase 3+ memory work** — don't build MEM-COMPRESS, MEM-VERBATIM, or BRAIN-NEURO before BRAIN-5D ships the SQLite store at `~/.argo/brain.db`.
+- **`BRAIN-5D` is the prerequisite for all Phase 3+ memory work** — don't build MEM-COMPRESS, MEM-VERBATIM, or BRAIN-NEURO before BRAIN-5D ships the SQLite store at `~/.vanta/brain.db`.
 
 - **Phase 2 EF pebbles require careful `agent.ts` wiring** — EF-INHIBIT and EF-ERRORDETECT both need hooks inside the agent loop (`dispatchTool` and `runTurn`). The loop is in `agent.ts` which has no EF awareness currently. The cleanest path is adding optional `AgentDeps` callbacks (`onToolCallCheck?`, `onIterationCheck?`) rather than hardcoding logic there.
 
@@ -205,7 +205,7 @@ Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent lay
 
 **Last session shipped (Phase 1 — all done):**
 - PROMPT-STABILITY: Anthropic ephemeral cache_control on stable prompt prefix (splitStableVolatile in prompt.ts, AnthropicTextBlock array in anthropic.ts)
-- EF-VELOCITY: capture:ship ratio in ~/.argo/velocity.json + /status display (velocity/store.ts)
+- EF-VELOCITY: capture:ship ratio in ~/.vanta/velocity.json + /status display (velocity/store.ts)
 - EF-RESEARCH-GATE: research spiral interrupt after 8 non-output turns (repl/research-gate.ts + session.ts + REPL/TUI wiring)
 - EF-COMPLEXITY-GATE: heuristic complexity scorer suggests /planmode (repl/complexity-gate.ts)
 - EF-CHOICEREDUCE: /next shows top-3 roadmap items when backlog > 3 (repl/choice-reduce.ts + next.ts rewrite)

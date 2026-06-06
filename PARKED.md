@@ -31,4 +31,4 @@ Deferred ideas. Promote, never delete. These are honest deferrals — the code t
 - **Non-streaming providers** — the loop waits for full tool calls; streaming fits behind `LLMProvider` later (locked decision, Phase 1).
 
 ## Polish (post-users)
-- Streaming live output, richer cockpit UI, multi-language run-code sandboxing, project-room goal namespacing beyond per-dir `.argo`.
+- Streaming live output, richer cockpit UI, multi-language run-code sandboxing, project-room goal namespacing beyond per-dir `.vanta`.
