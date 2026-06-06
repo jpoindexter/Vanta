@@ -20,7 +20,7 @@ function ctx(overrides: Partial<ToolContext> = {}): ToolContext {
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), "argo-test-"));
+  root = await mkdtemp(join(tmpdir(), "vanta-test-"));
 });
 
 afterEach(async () => {
@@ -96,7 +96,7 @@ describe("read_file", () => {
   });
 
   it("reads a file from a configured readable zone outside the project", async () => {
-    const zone = await mkdtemp(join(tmpdir(), "argo-rzone-"));
+    const zone = await mkdtemp(join(tmpdir(), "vanta-rzone-"));
     const prev = process.env.VANTA_READABLE_DIRS;
     process.env.VANTA_READABLE_DIRS = zone;
     try {
@@ -157,7 +157,7 @@ describe("write_file", () => {
   });
 
   it("writes outside the project into a configured writable zone", async () => {
-    const zone = await mkdtemp(join(tmpdir(), "argo-zone-"));
+    const zone = await mkdtemp(join(tmpdir(), "vanta-zone-"));
     const prev = process.env.VANTA_WRITABLE_DIRS;
     process.env.VANTA_WRITABLE_DIRS = zone;
     try {
@@ -173,7 +173,7 @@ describe("write_file", () => {
   });
 
   it("refuses a path outside the project and outside every writable zone", async () => {
-    const outside = await mkdtemp(join(tmpdir(), "argo-outside-"));
+    const outside = await mkdtemp(join(tmpdir(), "vanta-outside-"));
     const prev = process.env.VANTA_WRITABLE_DIRS;
     process.env.VANTA_WRITABLE_DIRS = "/some/allowed/zone";
     try {

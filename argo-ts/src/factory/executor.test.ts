@@ -53,7 +53,7 @@ describe("readDirContexts", () => {
   let tmp: string;
 
   it("returns CLAUDE.md content for dirs that have one", async () => {
-    tmp = await (await import("node:fs/promises")).mkdtemp(join(tmpdir(), "argo-exec-"));
+    tmp = await (await import("node:fs/promises")).mkdtemp(join(tmpdir(), "vanta-exec-"));
     try {
       const dir = join(tmp, "src", "tools");
       await mkdir(dir, { recursive: true });
@@ -67,7 +67,7 @@ describe("readDirContexts", () => {
   });
 
   it("skips dirs without a CLAUDE.md", async () => {
-    tmp = await (await import("node:fs/promises")).mkdtemp(join(tmpdir(), "argo-exec-"));
+    tmp = await (await import("node:fs/promises")).mkdtemp(join(tmpdir(), "vanta-exec-"));
     try {
       const dir = join(tmp, "src", "empty");
       await mkdir(dir, { recursive: true });

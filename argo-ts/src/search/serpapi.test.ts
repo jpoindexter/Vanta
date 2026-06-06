@@ -5,7 +5,7 @@ const FIXTURE = JSON.stringify({
   organic_results: [
     {
       title: "Vanta project",
-      link: "https://example.com/argo",
+      link: "https://example.com/vanta",
       snippet: "An agent runtime.",
     },
     {
@@ -28,7 +28,7 @@ describe("mapSerpapiJson", () => {
     expect(out).toHaveLength(3);
     expect(out[0]).toEqual({
       title: "Vanta project",
-      url: "https://example.com/argo",
+      url: "https://example.com/vanta",
       snippet: "An agent runtime.",
     });
     expect(out[1]!.url).toBe("https://serpapi.com/search-api");

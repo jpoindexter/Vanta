@@ -28,7 +28,7 @@ describe("runSlashCommand", () => {
   let log: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-repl-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-repl-"));
     log = vi.spyOn(console, "log").mockImplementation(() => {});
   });
   afterEach(async () => {
@@ -104,7 +104,7 @@ describe("conversation commands (history / retry / undo / reset)", () => {
   ];
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-repl-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-repl-"));
   });
   afterEach(async () => {
     await rm(home, { recursive: true, force: true });
@@ -113,7 +113,7 @@ describe("conversation commands (history / retry / undo / reset)", () => {
   it("/history renders the transcript without the system message", async () => {
     const r = await executeSlash("/history", makeCtx(home, convo()));
     expect(r.output).toContain("you  › first");
-    expect(r.output).toContain("argo › reply one");
+    expect(r.output).toContain("vanta › reply one");
     expect(r.output).toContain("you  › second");
     expect(r.output).not.toContain("sys");
   });

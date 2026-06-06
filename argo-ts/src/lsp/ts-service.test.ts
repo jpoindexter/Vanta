@@ -7,7 +7,7 @@ import { getDiagnostics, getDefinition } from "./ts-service.js";
 let dir: string;
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), "argo-lsp-"));
+  dir = await mkdtemp(join(tmpdir(), "vanta-lsp-"));
 });
 
 afterEach(async () => {

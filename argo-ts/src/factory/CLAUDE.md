@@ -68,7 +68,7 @@ the hard boundary (skeleton would fail verify before the clamp ever runs).
 
 ## Entry points
 
-- `argo improve` → `runCycle` at **L1** (suggest — prints plan, exits)
-- `argo factory approve` → `runCycle` at **L4** by default; `VANTA_AUTONOMY_LEVEL=2|3` stops earlier
-- `argo factory status` → shows lockfile + last log entry
-- gateway cron `__factory__` → gateway spawns `argo factory approve` as detached child
+- `vanta improve` → `runCycle` at **L1** (suggest — prints plan, exits)
+- `vanta factory approve` → `runCycle` at **L4** by default; `VANTA_AUTONOMY_LEVEL=2|3` stops earlier
+- `vanta factory status` → shows lockfile + last log entry
+- gateway cron `__factory__` → gateway spawns `vanta factory approve` as detached child

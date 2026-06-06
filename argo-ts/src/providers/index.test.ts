@@ -24,7 +24,7 @@ describe("resolveProvider", () => {
 
   it("throws an actionable error when the gemini key is missing", () => {
     expect(() => resolveProvider({ VANTA_PROVIDER: "gemini" })).toThrow(
-      /GEMINI_API_KEY is not set.*argo setup/s,
+      /GEMINI_API_KEY is not set.*vanta setup/s,
     );
   });
 
@@ -38,7 +38,7 @@ describe("resolveProvider", () => {
 
   it("throws an actionable error when the openrouter key is missing", () => {
     expect(() => resolveProvider({ VANTA_PROVIDER: "openrouter" })).toThrow(
-      /OPENROUTER_API_KEY is not set.*argo setup/s,
+      /OPENROUTER_API_KEY is not set.*vanta setup/s,
     );
   });
 

@@ -66,7 +66,7 @@ const LearnedArgs = z.object({
 function learnedSkillTool(written: string[]): Tool {
   return {
     schema: writeSkillTool.schema,
-    describeForSafety: () => "record a learned skill in argo's memory",
+    describeForSafety: () => "record a learned skill in vanta's memory",
     async execute(raw) {
       const parsed = LearnedArgs.safeParse(raw);
       if (!parsed.success) {

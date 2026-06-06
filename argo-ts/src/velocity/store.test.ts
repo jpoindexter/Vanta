@@ -82,7 +82,7 @@ describe("appendVelocityEvent / readVelocityEvents", () => {
   let env: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), "argo-velocity-test-"));
+    tmpDir = await mkdtemp(join(tmpdir(), "vanta-velocity-test-"));
     env = { VANTA_HOME: tmpDir };
   });
 

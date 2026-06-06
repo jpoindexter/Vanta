@@ -226,7 +226,7 @@ suspending Ink.
 
 ---
 
-## 5. Vanta-port note (what Hermes has that Vanta's `argo setup` lacks)
+## 5. Vanta-port note (what Hermes has that Vanta's `vanta setup` lacks)
 
 Vanta already has (`argo-ts/src/setup.ts`, `argo-ts/src/cli.ts`,
 `argo-ts/src/providers/catalog.ts`):

@@ -11,7 +11,7 @@ A local trusted-operator agent: knows the goal before it picks a tool, enforces 
 | Path | Layer | Language | Role |
 |------|-------|----------|------|
 | `src/` | `vanta-kernel` | Rust, zero deps | **Enforced** security boundary: risk classifier, approvals, goals, events, HTTP sidecar |
-| `argo-ts/` | `argo` | TypeScript, Node 22 | Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel |
+| `argo-ts/` | `vanta` | TypeScript, Node 22 | Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel |
 
 The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: `argo-ts/CLAUDE.md`.
 
@@ -24,20 +24,20 @@ cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
-# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.vanta seed)
-./install.sh                               # then `argo` works from anywhere (no profile edit if ~/.local/bin is on PATH)
+# Install the global `vanta` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.vanta seed)
+./install.sh                               # then `vanta` works from anywhere (no profile edit if ~/.local/bin is on PATH)
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
 ./run.sh                                   # interactive session (runs first-run setup wizard if unconfigured)
 ./run.sh setup                             # pick a model backend: openai | gemini | anthropic | openrouter | ollama
 ./run.sh doctor                            # agent-side health: kernel ping, provider, key presence, store, goals
-./run.sh run "<instruction>"              # or ./argo run "..." ; one-shot, kernel auto-starts
+./run.sh run "<instruction>"              # or ./vanta run "..." ; one-shot, kernel auto-starts
 ./run.sh help                              # list all subcommands
 
 # Agent (TypeScript) — from argo-ts/ (direct)
 npm install
-npm run argo                              # interactive session (no args)
-npm run argo -- run "<instruction>"       # one-shot; kernel auto-starts if down
+npm run vanta                              # interactive session (no args)
+npm run vanta -- run "<instruction>"       # one-shot; kernel auto-starts if down
 npm test                                  # 274 vitest tests
 npm run typecheck                         # tsc --noEmit (must be clean)
 ```
@@ -73,7 +73,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 Key capabilities added this session: TUI (help overlay, themes, vim mode, shortcuts, thinking display), EF Phase 3 (scope-delta, wm-manip), Memory (verbatim archive, compression, working memory, versioning, graph, 5D/12-axis brain), Factory (preflight, escalation, holdout, stall recovery, auto-close), Platform (voice loop, checkpoints, user commands), Brain (salience+executive networks, v2 scaffold), Infrastructure (canonical project ID, worktree detection, Claude Code hooks, typed stream events).
 
-Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`, one-time) + `argo auth google`; LSP .ts/.tsx only; `argo cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
+Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`, one-time) + `vanta auth google`; LSP .ts/.tsx only; `vanta cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
 
 ## Rule zero
 

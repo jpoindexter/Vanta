@@ -44,7 +44,7 @@ export const lookAtScreenTool: Tool = {
       const { promisify } = await import("node:util");
       const { readFile, rm } = await import("node:fs/promises");
 
-      const tmp = join(tmpdir(), `argo-screen-${process.pid}-${Date.now()}.png`);
+      const tmp = join(tmpdir(), `vanta-screen-${process.pid}-${Date.now()}.png`);
       await promisify(execFile)("screencapture", ["-x", tmp]); // -x = silent
       const buf = await readFile(tmp).catch(() => Buffer.alloc(0));
       await rm(tmp, { force: true }).catch(() => {});

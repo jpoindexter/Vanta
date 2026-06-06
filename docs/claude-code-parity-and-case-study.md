@@ -61,7 +61,7 @@ links, files, etc — Vanta can't"):
 - **`CC-LINKS`** — emit terminal **OSC-8 hyperlinks** for URLs + `file:line` in the TUI, and
   real anchors in the desktop, so they're clickable.
 - **`CC-EDITOR`** — open a `file:line` in the user's editor (`$EDITOR` / `code -g` / an
-  `argo open` command; the desktop app does it natively). Vanta has LSP tools but no
+  `vanta open` command; the desktop app does it natively). Vanta has LSP tools but no
   open-in-editor bridge.
 - **`CC-TRANSCRIPT`** — collapse each tool call to a one-line summary (tool + key arg +
   status), expandable; stop flooding the screen. The structural fix behind the "verbose"

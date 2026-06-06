@@ -84,7 +84,7 @@ export function formatHistory(messages: Message[]): string {
   for (const m of messages) {
     if (m.role === "user") out.push(`  you  › ${oneLine(m.content)}`);
     else if (m.role === "assistant") {
-      if (m.content.trim()) out.push(`  argo › ${oneLine(m.content)}`);
+      if (m.content.trim()) out.push(`  vanta › ${oneLine(m.content)}`);
       for (const tc of m.toolCalls ?? []) out.push(`    ⚙ ${tc.name}(${oneLine(JSON.stringify(tc.arguments), 80)})`);
     } else if (m.role === "tool") out.push(`    ↳ ${m.name}: ${oneLine(m.content, 120)}`);
   }

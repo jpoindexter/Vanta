@@ -8,7 +8,7 @@ const validItem = {
   status: "next" as const,
   size: "S",
   summary: "Fix config discovery.",
-  done: "argo mcp list shows tools.",
+  done: "vanta mcp list shows tools.",
 };
 
 describe("RoadmapItemSchema", () => {

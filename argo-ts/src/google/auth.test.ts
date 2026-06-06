@@ -8,7 +8,7 @@ import {
   getAccessToken,
 } from "./auth.js";
 
-const NOT_AUTH = "Google not authorized — run: argo auth google";
+const NOT_AUTH = "Google not authorized — run: vanta auth google";
 
 describe("parseTokenFile", () => {
   it("accepts a well-formed token object", () => {
@@ -44,7 +44,7 @@ describe("token file persistence", () => {
   let env: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-auth-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-auth-"));
     env = { VANTA_HOME: home };
   });
 

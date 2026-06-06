@@ -39,7 +39,7 @@ describe("resolveDeliver", () => {
   });
 
   it("appends to a file target", async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-deliver-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-deliver-"));
     const path = join(dir, "out.log");
     const deliver = resolveDeliver(`file:${path}`);
     await deliver("line one");

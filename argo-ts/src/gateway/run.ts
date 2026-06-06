@@ -10,7 +10,7 @@ import type { PlatformAdapter } from "./platforms/base.js";
 import { startWebhookServer, type Deliver, type WebhookServer } from "./webhook.js";
 
 // The gateway daemon: a long-lived process that ticks the cron scheduler on an
-// interval, so scheduled tasks fire without an external OS trigger. `argo
+// interval, so scheduled tasks fire without an external OS trigger. `vanta
 // gateway` runs it in the foreground; the launchd service (service/) keeps it
 // alive in the background. This is the keystone for unattended operation.
 
@@ -44,7 +44,7 @@ function firstLine(text: string): string {
 }
 
 /**
- * Spawn `argo factory approve` as a detached child process for a factory cron entry.
+ * Spawn `vanta factory approve` as a detached child process for a factory cron entry.
  * A detached child ensures a multi-hour cycle never blocks the 60s gateway tick.
  * Checks the lockfile before spawning to prevent double-runs.
  */
@@ -53,7 +53,7 @@ function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
     log("factory: already running (lockfile present) — skipping gateway spawn");
     return;
   }
-  const child = spawn("argo", ["factory", "approve"], {
+  const child = spawn("vanta", ["factory", "approve"], {
     detached: true,
     stdio: "ignore",
     env: process.env,
@@ -163,13 +163,13 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
         await deliver(reply);
       },
     }).catch((err: unknown) => {
-      log(`argo gateway: webhook listener failed — ${err instanceof Error ? err.message : String(err)}`);
+      log(`vanta gateway: webhook listener failed — ${err instanceof Error ? err.message : String(err)}`);
       return undefined;
     });
   }
 
   log(
-    `argo gateway: ticking every ${Math.round(tickMs / 1000)}s` +
+    `vanta gateway: ticking every ${Math.round(tickMs / 1000)}s` +
       (deps.platform ? ` · ${deps.platform.id} gateway live` : "") +
       " — Ctrl+C to stop.",
   );
@@ -178,7 +178,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
       await gatewayTick(deps);
       await pollPlatform(deps);
     } catch (err) {
-      log(`argo gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
+      log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }
     for (let waited = 0; running && waited < tickMs; waited += 1000) {
       await sleep(Math.min(1000, tickMs - waited));
@@ -186,5 +186,5 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   }
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
   if (webhookServer) await webhookServer.close().catch(() => {});
-  log("argo gateway: stopped.");
+  log("vanta gateway: stopped.");
 }

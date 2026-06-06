@@ -22,7 +22,7 @@ const DEFAULT_MAX_TOKENS = 4096;
 // claude-code User-Agent, and a system prompt that opens with the Claude Code
 // identity line — otherwise it 400s. (See DECISIONS 2026-06-02.)
 const OAUTH_BETA = "oauth-2025-04-20";
-const OAUTH_USER_AGENT = "claude-cli/1.0.0 (external, argo)";
+const OAUTH_USER_AGENT = "claude-cli/1.0.0 (external, vanta)";
 const CLAUDE_CODE_SPOOF = "You are Claude Code, Anthropic's official CLI for Claude.";
 
 /** Anthropic Messages API provider. SDK is lazy-imported in complete(). */

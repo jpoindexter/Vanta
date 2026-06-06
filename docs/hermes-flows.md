@@ -129,7 +129,7 @@ and let the terminal scroll).
   exist in the snapshot).
 - 34 providers in `providers.py`; selection via `select_provider_and_model`;
   model manifests in `model_catalog.py`.
-- **Vanta already has** `argo setup` (wizard → `.env` via `upsertEnv`),
+- **Vanta already has** `vanta setup` (wizard → `.env` via `upsertEnv`),
   `isConfigured()`, TTY-gating, `providers/catalog.ts`. **Worth porting:** device-
   code/OAuth login + a richer per-provider model picker. The shell-out `/setup`
   pattern is a clean match for Vanta.

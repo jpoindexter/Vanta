@@ -4,7 +4,7 @@
 
 **Goal:** A bounded autonomous loop that edits Vanta's own repository — one reviewable slice per cycle — where the Rust kernel provably blocks edits to its own safety code and the factory loop.
 
-**Architecture:** Review-mode only at first ship. The kernel gains `is_protected_path` + write-assessor integration (Rust), blocking any write to `src/*.rs`, `factory/*.ts`, or `MANIFESTO.md`. Six TypeScript modules handle triage → plan → execute → verify → commit; the orchestrator is a thin gate+glue. `argo improve` runs it inline; the gateway spawns it as a detached child.
+**Architecture:** Review-mode only at first ship. The kernel gains `is_protected_path` + write-assessor integration (Rust), blocking any write to `src/*.rs`, `factory/*.ts`, or `MANIFESTO.md`. Six TypeScript modules handle triage → plan → execute → verify → commit; the orchestrator is a thin gate+glue. `vanta improve` runs it inline; the gateway spawns it as a detached child.
 
 **Tech Stack:** Rust (kernel), TypeScript + Node 22 ESM (factory modules), `execFile`/`promisify` for subprocess, `vitest --reporter=json` for test results, `git` for branching/stashing/committing, Zod for all structured inputs.
 
@@ -28,8 +28,8 @@
 | Create | `argo-ts/src/factory/run.test.ts` | Gate logic (disabled/dirty/locked all bail); budget ceiling |
 | Create | `argo-ts/src/factory/CLAUDE.md` | One-line purpose + module map for subagents entering this folder |
 | Create | `argo-ts/src/factory/AGENTS.md` | Same, for non-Claude agents |
-| Modify | `argo-ts/src/cli.ts` | Add `argo improve` + `argo factory [approve|status]` commands |
-| Modify | `argo-ts/src/gateway/run.ts` | Detect factory cron entries, spawn `argo factory` as detached child |
+| Modify | `argo-ts/src/cli.ts` | Add `vanta improve` + `vanta factory [approve|status]` commands |
+| Modify | `argo-ts/src/gateway/run.ts` | Detect factory cron entries, spawn `vanta factory` as detached child |
 | Create | `AGENT-MANIFESTO.md` | Agent-authored declaration; writable, kernel-NOT-protected |
 
 ---
@@ -250,12 +250,12 @@ export type AutonomyLevel = "review" | "auto";
 
 /** Configuration for one factory cycle. */
 export type FactoryConfig = {
-  argoRoot: string;
+  vantaRoot: string;
   dataDir: string;
   autonomy: AutonomyLevel;
   /** Hard ceiling on output tokens per cycle. Default: 80_000. */
   budgetTokens: number;
-  /** True when launched via `argo improve` (streams to TUI). False for gateway child. */
+  /** True when launched via `vanta improve` (streams to TUI). False for gateway child. */
   interactive: boolean;
 };
 
@@ -604,7 +604,7 @@ import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModifie
 
 // These tests use real temp dirs and real file checks — no mocking.
 let tmp: string;
-beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "argo-verifier-")); });
+beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "vanta-verifier-")); });
 afterEach(async () => { await rm(tmp, { recursive: true, force: true }); });
 
 describe("classifyTouchedFiles", () => {
@@ -989,7 +989,7 @@ git commit -m "feat(factory): executor — agent dispatch + budget cap + touched
 
 ## Task 6: Planner module
 
-Builds the agent instruction from a `WorkItem`. In review mode, prints the plan and waits for `argo factory approve`.
+Builds the agent instruction from a `WorkItem`. In review mode, prints the plan and waits for `vanta factory approve`.
 
 **Files:**
 - Create: `argo-ts/src/factory/planner.ts`
@@ -1167,7 +1167,7 @@ import { checkGate, formatCycleLog } from "./run.js";
 import type { FactoryConfig, CycleResult } from "./types.js";
 
 const baseConfig: FactoryConfig = {
-  argoRoot: "/repo",
+  vantaRoot: "/repo",
   dataDir: "/home/.vanta",
   autonomy: "review",
   budgetTokens: 80_000,
@@ -1337,7 +1337,7 @@ async function discardSlice(root: string): Promise<void> {
  */
 export async function runCycle(config: FactoryConfig, log: (msg: string) => void = console.log): Promise<CycleResult> {
   // GATE
-  const treeDirty = await isTreeDirty(config.argoRoot);
+  const treeDirty = await isTreeDirty(config.vantaRoot);
   const lockExists = !(await acquireLock(config.dataDir));
   const disabled = Boolean(process.env.VANTA_FACTORY_DISABLED);
 
@@ -1350,21 +1350,21 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
   try {
     // TRIAGE
     log("factory: triaging backlog…");
-    const item = await triage(config.argoRoot);
+    const item = await triage(config.vantaRoot);
     if (!item) {
       return { status: "nothing-to-do" };
     }
     log(`factory: found work item — [${item.category}] ${item.description}`);
 
     // SNAPSHOT pre-existing files (for verifier)
-    const preExisting = await listPreExistingFiles(config.argoRoot);
+    const preExisting = await listPreExistingFiles(config.vantaRoot);
 
     // BRANCH
-    const branch = await createBranch(config.argoRoot);
+    const branch = await createBranch(config.vantaRoot);
     log(`factory: branched → ${branch}`);
 
     // PLAN
-    const plan = buildPlan(item, config.argoRoot);
+    const plan = buildPlan(item, config.vantaRoot);
     if (config.interactive) {
       log(`\nFactory plan:\n${plan.instruction}\n`);
     }
@@ -1372,29 +1372,29 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       // In review mode: print plan + wait for approval signal from the caller.
       // The caller (CLI) reads stdin for "approve"; we signal back via a returned status.
       // For v0: the plan is printed and the CLI prompts for approval before calling runCycle again
-      // with autonomy:"auto". (Simplified: review mode exits here for human to run `argo factory approve`.)
-      log(`\n[review mode] Run 'argo factory approve' to execute this plan, or 'argo factory skip' to skip.\n`);
-      return { status: "aborted", reason: "review mode — awaiting approval (run: argo factory approve)" };
+      // with autonomy:"auto". (Simplified: review mode exits here for human to run `vanta factory approve`.)
+      log(`\n[review mode] Run 'vanta factory approve' to execute this plan, or 'vanta factory skip' to skip.\n`);
+      return { status: "aborted", reason: "review mode — awaiting approval (run: vanta factory approve)" };
     }
 
     // EXECUTE
     log("factory: executing plan…");
-    const artifact = await execute(config.argoRoot, plan, config.budgetTokens);
+    const artifact = await execute(config.vantaRoot, plan, config.budgetTokens);
     log(`factory: execution complete — ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
 
     // VERIFY
     log("factory: verifying slice…");
-    const verifyResult = await verify(config.argoRoot, artifact, preExisting);
+    const verifyResult = await verify(config.vantaRoot, artifact, preExisting);
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
-      await discardSlice(config.argoRoot);
+      await discardSlice(config.vantaRoot);
       return { status: "verify-failed", workItem: item, reason: verifyResult.reason ?? "unknown" };
     }
     log("factory: verification passed");
 
     // COMMIT
     const msg = `factory(auto): ${item.description}\n\ncategory: ${item.category}\ntokens: ${artifact.tokenSpend.toLocaleString()}\nbranch: ${branch}`;
-    const sha = await commitAndPush(config.argoRoot, msg);
+    const sha = await commitAndPush(config.vantaRoot, msg);
     log(`factory: committed ${sha}`);
 
     return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend };
@@ -1507,7 +1507,7 @@ git commit -m "docs: AGENT-MANIFESTO.md — agent-authored declaration (writable
 
 ## Task 9: CLI wiring
 
-Add `argo improve` and `argo factory [approve|status]` commands.
+Add `vanta improve` and `vanta factory [approve|status]` commands.
 
 **Files:**
 - Modify: `argo-ts/src/cli.ts`
@@ -1517,8 +1517,8 @@ Add `argo improve` and `argo factory [approve|status]` commands.
 Find the `usage()` function. Add two lines to the array:
 
 ```typescript
-"       argo improve                      run one factory cycle inline (review mode)",
-"       argo factory [approve|status]     manage the dark factory",
+"       vanta improve                      run one factory cycle inline (review mode)",
+"       vanta factory [approve|status]     manage the dark factory",
 ```
 
 - [ ] **Step 2: Add command handlers in `cli.ts` after the `'auth'` case block**
@@ -1532,7 +1532,7 @@ case "improve": {
   const dataDir = resolveVantaHome(process.env);
   const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
   const result = await runCycle(
-    { argoRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
+    { vantaRoot: repoRoot, dataDir, autonomy: "review", budgetTokens: budget, interactive: true },
     console.log,
   );
   console.log(`\n${formatCycleLog(result)}`);
@@ -1550,7 +1550,7 @@ case "factory": {
   if (sub === "approve") {
     // Run in auto mode (no approval gate)
     const result = await runCycle(
-      { argoRoot: repoRoot, dataDir, autonomy: "auto", budgetTokens: budget, interactive: true },
+      { vantaRoot: repoRoot, dataDir, autonomy: "auto", budgetTokens: budget, interactive: true },
       console.log,
     );
     console.log(`\n${formatCycleLog(result)}`);
@@ -1570,7 +1570,7 @@ case "factory": {
       }
     } catch { /* no logs yet */ }
   } else {
-    console.log("Usage: argo factory [approve|status]");
+    console.log("Usage: vanta factory [approve|status]");
   }
   break;
 }
@@ -1598,20 +1598,20 @@ OR simply:
 cd /Users/jasonpoindexter/Documents/GitHub/Vanta && ./run.sh help 2>&1 | grep -E "improve|factory"
 ```
 
-Expected: both `argo improve` and `argo factory` appear in the help output.
+Expected: both `vanta improve` and `vanta factory` appear in the help output.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add argo-ts/src/cli.ts
-git commit -m "feat(cli): argo improve + argo factory [approve|status] commands"
+git commit -m "feat(cli): vanta improve + vanta factory [approve|status] commands"
 ```
 
 ---
 
 ## Task 10: Gateway wiring
 
-The gateway daemon detects factory cron entries and spawns `argo factory approve` as a detached child instead of running inline — so a multi-hour cycle never blocks the 60s gateway tick.
+The gateway daemon detects factory cron entries and spawns `vanta factory approve` as a detached child instead of running inline — so a multi-hour cycle never blocks the 60s gateway tick.
 
 **Files:**
 - Modify: `argo-ts/src/gateway/run.ts`
@@ -1676,10 +1676,10 @@ function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
 
 Note: `join` needs to be imported at the top if not already. `dataDir` is `~/.vanta` so the repo root is `dirname(dataDir)` — adjust the path to point to the `argo-ts/src/cli.ts` entry point correctly.
 
-Actually, the detached child should use the installed `argo` launcher (`~/.local/bin/argo factory approve`). Use that instead:
+Actually, the detached child should use the installed `vanta` launcher (`~/.local/bin/vanta factory approve`). Use that instead:
 
 ```typescript
-const child = spawn("argo", ["factory", "approve"], {
+const child = spawn("vanta", ["factory", "approve"], {
   detached: true,
   stdio: ["ignore", "pipe", "pipe"],
   env: { ...process.env },
@@ -1705,7 +1705,7 @@ Expected: all gateway tests pass.
 
 ```bash
 git add argo-ts/src/gateway/run.ts
-git commit -m "feat(gateway): spawn argo factory as detached child for __factory__ cron entries"
+git commit -m "feat(gateway): spawn vanta factory as detached child for __factory__ cron entries"
 ```
 
 ---
@@ -1744,9 +1744,9 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase.
 
 ## Entry points
 
-- `argo improve` → `run.ts runCycle` (review mode, interactive)
-- `argo factory approve` → `run.ts runCycle` (auto mode)
-- gateway cron `__factory__` → spawns `argo factory approve` as a detached child
+- `vanta improve` → `run.ts runCycle` (review mode, interactive)
+- `vanta factory approve` → `run.ts runCycle` (auto mode)
+- gateway cron `__factory__` → spawns `vanta factory approve` as a detached child
 ```
 
 - [ ] **Step 2: Create `argo-ts/src/factory/AGENTS.md`**
@@ -1797,7 +1797,7 @@ git commit -m "docs(factory): CLAUDE.md + AGENTS.md — module map + safety inva
 
 | Spec section | Plan task |
 |---|---|
-| §3 Triggers (argo improve + gateway cron) | Task 9 + Task 10 |
+| §3 Triggers (vanta improve + gateway cron) | Task 9 + Task 10 |
 | §4 Scope: quality/test/roadmap/parked | Task 3 (triage) |
 | §5 Architecture (6 modules) | Tasks 2–7 |
 | §5 Token frugality (3 layers) | Task 3 (empty backlog), Task 6 (planner instr), Task 7 (budget in executor) |

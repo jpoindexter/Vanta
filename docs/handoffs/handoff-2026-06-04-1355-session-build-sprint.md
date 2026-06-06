@@ -13,7 +13,7 @@ Branch: feat/v1-hermes-parity
 2. **KANBAN slice 1 — roadmap_move tool + CLI**
    - `roadmap/move.ts`: pure `moveRoadmapItem(repoRoot, id, toStatus)` — patches roadmap.json + regenerates HTML
    - `tools/roadmap-move.ts`: `roadmap_move` Vanta tool, kernel-gated
-   - `argo roadmap move <id> <status>` CLI subcommand wired in `cli/ops.ts` + `cli.ts`
+   - `vanta roadmap move <id> <status>` CLI subcommand wired in `cli/ops.ts` + `cli.ts`
    - 6 + registry tests
 
 3. **REL1 — per-model capability matrix**
@@ -92,7 +92,7 @@ Branch: feat/v1-hermes-parity
 
 1. [ ] **TUI-INPUT** (`pebble·sonnet·medium`) — input history (up/down) + multiline (shift+enter). Start at `argo-ts/src/tui/composer.tsx`. Done: up arrow cycles history; shift+enter inserts newline in the composer.
 2. [ ] **TUI-MARKDOWN** (`pebble·sonnet·medium`) — Markdown + syntax-highlight rendering in the transcript. Done: agent replies render with headers/bold/code blocks instead of raw markdown.
-3. [ ] **ND1** (`pebble·sonnet·medium`) — task-initiation affordance: given a goal, surface ONE concrete next micro-step. `/next` slash command or `argo next`. Done: user types `/next` → Vanta surfaces one tiny action.
+3. [ ] **ND1** (`pebble·sonnet·medium`) — task-initiation affordance: given a goal, surface ONE concrete next micro-step. `/next` slash command or `vanta next`. Done: user types `/next` → Vanta surfaces one tiny action.
 4. [ ] **ND3** (`pebble·sonnet·medium`) — plan-first / converse mode: `/plan` makes Vanta clarify → lay out steps → confirm → act. Done: toggleable; step list confirmed before any tool runs.
 5. [ ] **U2** (`pebble·sonnet·medium`) — @-context references in TUI composer: @file/@diff/@url autocomplete inlines context. Done: type @ → autocomplete suggestions → selected item attached as context.
 6. [ ] **KANBAN slice 2** — drag-to-move HTML endpoint: POST /roadmap/move + drag-and-drop board UI. Park until after TUI items.
@@ -116,7 +116,7 @@ Vanta = local trusted-operator agent: Rust safety kernel (src/) + TS agent layer
 
 **This session shipped (in order):**
 1. ND2 — clarify tool (end-of-turn design, no ToolContext changes)
-2. KANBAN slice 1 — roadmap_move tool + `argo roadmap move <id> <status>` CLI
+2. KANBAN slice 1 — roadmap_move tool + `vanta roadmap move <id> <status>` CLI
 3. REL1 — modelSupports() capability matrix in providers/catalog.ts
 4. TUI-INTERRUPT — Esc aborts running turn (per-turn AbortController in app.tsx)
 5. FAC-BORNSMALL — 3 factory slices: verifier 300-line gate + planner PROVEN_PATTERNS + executor CLAUDE.md injection

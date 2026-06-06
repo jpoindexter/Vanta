@@ -11,7 +11,7 @@ import type { ToolContext } from "./types.js";
 // stubs proves the outbound tools touch nothing else on the deny path.
 function denyCtx(): ToolContext {
   return {
-    root: "/tmp/argo-test",
+    root: "/tmp/vanta-test",
     // safety isn't consulted by these tools directly (the loop does that).
     safety: undefined as unknown as ToolContext["safety"],
     requestApproval: vi.fn(async () => false),

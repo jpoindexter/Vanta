@@ -63,28 +63,28 @@ function loadEnv(repoRoot: string): void {
 function usage(): void {
   console.log(
     [
-      "Usage: argo                              start an interactive session",
-      "       argo sessions | resume <id>       list past sessions, or resume one",
-      "       argo setup                        first-run wizard: pick a model backend",
-      "       argo setup messaging              configure a messaging gateway (Telegram, …)",
-      "       argo status | doctor              health check (kernel, provider, keys, store)",
-      '       argo run "<instruction>"          run one instruction and exit',
-      "       argo skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
-      '       argo skill <name> ["<instruction>"]  print a skill, or run with it',
-      '       argo schedule "<instruction>" --cron "<expr>" | schedule list',
-      "       argo cron                         run due tasks once (for launchd/cron)",
-      "       argo gateway                      run the scheduler as a foreground daemon",
-      "       argo service [install|uninstall|status]   manage the background launchd agent",
-      "       argo rooms | room <name> [\"<instruction>\"]   project rooms",
-      "       argo modes [list|install]         operator modes",
-      "       argo auth google                  one-time Google OAuth",
-      "       argo mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
-      "       argo roadmap                      build roadmap.html from roadmap.json and open it",
-      "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
-      "       argo roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
-      "       argo desktop [port]                start local desktop command center",
-      "       argo improve                      run one factory cycle (review mode — prints plan)",
-      "       argo factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
+      "Usage: vanta                              start an interactive session",
+      "       vanta sessions | resume <id>       list past sessions, or resume one",
+      "       vanta setup                        first-run wizard: pick a model backend",
+      "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
+      "       vanta status | doctor              health check (kernel, provider, keys, store)",
+      '       vanta run "<instruction>"          run one instruction and exit',
+      "       vanta skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
+      '       vanta skill <name> ["<instruction>"]  print a skill, or run with it',
+      '       vanta schedule "<instruction>" --cron "<expr>" | schedule list',
+      "       vanta cron                         run due tasks once (for launchd/cron)",
+      "       vanta gateway                      run the scheduler as a foreground daemon",
+      "       vanta service [install|uninstall|status]   manage the background launchd agent",
+      "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
+      "       vanta modes [list|install]         operator modes",
+      "       vanta auth google                  one-time Google OAuth",
+      "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
+      "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
+      "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
+      "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
+      "       vanta desktop [port]                start local desktop command center",
+      "       vanta improve                      run one factory cycle (review mode — prints plan)",
+      "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
   );
 }
@@ -102,7 +102,7 @@ function isConfigured(env: NodeJS.ProcessEnv): boolean {
 /**
  * Launch the interactive session, running the first-run wizard first if no
  * backend is configured. The auto-launch is TTY-gated: a non-interactive caller
- * (piped/cron) is told to run `argo setup` rather than blocking on a prompt.
+ * (piped/cron) is told to run `vanta setup` rather than blocking on a prompt.
  */
 async function startInteractive(
   repoRoot: string,
@@ -110,7 +110,7 @@ async function startInteractive(
 ): Promise<void> {
   if (!isConfigured(process.env)) {
     if (!process.stdin.isTTY) {
-      console.log("No model backend configured. Run `argo setup` in a terminal first.");
+      console.log("No model backend configured. Run `vanta setup` in a terminal first.");
       process.exit(1);
     }
     const wrote = await runSetup(repoRoot);
@@ -150,7 +150,7 @@ async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Promise<vo
   for (const s of sessions) {
     console.log(`${s.id}  ${s.turns} turn(s)  ${s.title}`);
   }
-  console.log("\nResume with: argo resume <id>");
+  console.log("\nResume with: vanta resume <id>");
 }
 
 function usageExit(): never {
@@ -171,7 +171,7 @@ async function runInstruction(
   const activeGoals = setup.goals.filter((g) => g.status === "active").length;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
-  console.log(`argo · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
+  console.log(`vanta · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
   // Ctrl+C aborts the current run gracefully (between iterations) instead of
   // hard-killing — the loop returns "interrupted" and post-run memory still runs.
   const controller = new AbortController();
@@ -211,11 +211,11 @@ async function runInstruction(
 
 async function runSkillsList(): Promise<void> {
   const skills = await listSkills();
-  if (skills.length === 0) return void console.log("(no skills yet — `argo skills install` to add the bundled library)");
+  if (skills.length === 0) return void console.log("(no skills yet — `vanta skills install` to add the bundled library)");
   for (const s of skills) console.log(`${s.meta.name} — ${s.meta.description}`);
 }
 
-// `argo skills` → list; `argo skills install [--force]` → copy the bundled
+// `vanta skills` → list; `vanta skills install [--force]` → copy the bundled
 // library into ~/.vanta/skills (skips existing unless --force).
 async function runSkillsCommand(rest: string[]): Promise<void> {
   if (rest[0] === "lint") {
@@ -253,14 +253,14 @@ async function runMemoryCommand(rest: string[]): Promise<void> {
   const sub = rest[0];
   if (sub === "search") {
     const query = rest.slice(1).join(" ").trim();
-    if (!query) { console.log("usage: argo memory search <query>"); return; }
+    if (!query) { console.log("usage: vanta memory search <query>"); return; }
     const { searchArchive } = await import("./memory/archive.js");
     const results = await searchArchive(query, { maxResults: 20 });
     if (!results.length) { console.log(`(no archive matches for "${query}")`); return; }
     for (const r of results) console.log(`[${r.sessionId}] ${r.role}: ${r.excerpt}`);
     return;
   }
-  console.log("usage: argo memory search <query>");
+  console.log("usage: vanta memory search <query>");
 }
 
 async function runVoiceCommand(repoRoot: string): Promise<void> {
@@ -281,7 +281,7 @@ async function runHooksCommand(rest: string[]): Promise<void> {
   const { readFile, writeFile, mkdir } = await import("node:fs/promises");
   const { join } = await import("node:path");
   const settingsPath = join(homedir(), ".claude", "settings.json");
-  const argoCmd = join(homedir(), ".local", "bin", "argo");
+  const argoCmd = join(homedir(), ".local", "bin", "vanta");
   if (rest[0] === "run") {
     // Called by Claude Code Stop/PreCompact hooks — write a brain episodic note.
     const event = rest[1] ?? "stop";
@@ -318,7 +318,7 @@ async function runHooksCommand(rest: string[]): Promise<void> {
   settings.hooks = hooks;
   await writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
   console.log(`✓ hooks installed in ${settingsPath}`);
-  console.log("  Stop + PreCompact → argo hooks run <event>");
+  console.log("  Stop + PreCompact → vanta hooks run <event>");
 }
 
 async function runSkillCommand(repoRoot: string, rest: string[]): Promise<void> {

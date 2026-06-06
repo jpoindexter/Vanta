@@ -32,7 +32,7 @@ export async function recordAudio(
   if (!recorder) {
     throw new Error("No audio recorder found. Install sox (brew install sox) or ffmpeg.");
   }
-  const path = join(tmpdir(), `argo-voice-${Date.now()}.wav`);
+  const path = join(tmpdir(), `vanta-voice-${Date.now()}.wav`);
   if (recorder === "sox") {
     await execAsync("sox", ["-d", "-r", "16000", "-c", "1", path, "trim", "0", String(durationSec)], { timeout: (durationSec + 5) * 1000 });
   } else {

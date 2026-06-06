@@ -164,7 +164,7 @@ export async function runGoogleAuth(
   if (!parsed?.refresh_token) {
     throw new Error(
       "Google did not return a refresh_token. Revoke Vanta's access at " +
-        "myaccount.google.com/permissions and run: argo auth google",
+        "myaccount.google.com/permissions and run: vanta auth google",
     );
   }
   await saveTokens(parsed, env);
@@ -180,14 +180,14 @@ export async function getAccessToken(
 ): Promise<string> {
   const stored = await loadTokens(env);
   if (!stored?.refresh_token) {
-    throw new Error("Google not authorized — run: argo auth google");
+    throw new Error("Google not authorized — run: vanta auth google");
   }
   const client = await buildClient(undefined, env);
   client.setCredentials({ refresh_token: stored.refresh_token });
 
   const { token } = await client.getAccessToken();
   if (!token) {
-    throw new Error("Google token refresh failed — run: argo auth google");
+    throw new Error("Google token refresh failed — run: vanta auth google");
   }
   // getAccessToken() mutates client.credentials with the fresh access_token +
   // expiry_date; persist the merged set so the refresh_token is never lost.

@@ -13,7 +13,7 @@ This is the *flow*: how those components connect at runtime.
 
 ```mermaid
 flowchart TD
-  CLI["entry: argo (no args) | argo chat | argo run \"...\"<br/>Hermes: hermes_cli/main.py"] --> BOOT
+  CLI["entry: vanta (no args) | vanta chat | vanta run \"...\"<br/>Hermes: hermes_cli/main.py"] --> BOOT
 
   subgraph BOOT["bootstrap (once per launch)"]
     direction TB
@@ -24,7 +24,7 @@ flowchart TD
   end
 
   BOOT --> BANNER["banner + inventory: logo, model, goals, tools, skills<br/>Hermes: hermes_cli/banner.py + inventory.py · Vanta: interactive.ts renderBanner"]
-  BANNER --> REPL{"REPL prompt: argo ›<br/>(argo run skips straight to TURN)"}
+  BANNER --> REPL{"REPL prompt: vanta ›<br/>(vanta run skips straight to TURN)"}
 
   REPL -->|/exit| QUIT["quit"]
   REPL -->|/help /skills| REPL
@@ -77,7 +77,7 @@ hard gate every tool passes through.
 | `iteration_budget.py` | `maxIterations` in the loop | ✅ |
 | `display.py` (banner/spinner) | `interactive.ts` renderBanner | ✅ (no spinner) |
 | `hermes_cli/banner.py` + `inventory.py` | `interactive.ts` banner | ⚠️ no MCP row |
-| `hermes_cli/cron.py` + scheduler | `schedule/*` + `argo cron` | ✅ (needs OS trigger) |
+| `hermes_cli/cron.py` + scheduler | `schedule/*` + `vanta cron` | ✅ (needs OS trigger) |
 | `hermes_cli/goals.py` | kernel goals + `inspect_state` | ✅ |
 | subagents / swarm | `subagent/spawn.ts` + `delegate` | ✅ |
 | ACP / A2A | `a2a/*` (local) | ⚠️ local only |
@@ -89,13 +89,13 @@ hard gate every tool passes through.
 Vanta has the subsystems; the **flow/experience layer** is where it's thin (this
 is why it felt like "just scripts"). In priority order:
 
-1. **Interactive session** — `argo` with no args now launches a banner + chat REPL with persistent history (Hermes's default). **Just built (`interactive.ts`).**
-2. **First-run onboarding** — Hermes `setup` wizard configures provider/keys on first launch. Vanta makes you edit `.env`. → add `argo setup`.
-3. **`argo status` / `argo doctor` (TS side)** — Hermes surfaces component health. Vanta's kernel has `doctor`; the agent CLI doesn't surface it. → add.
+1. **Interactive session** — `vanta` with no args now launches a banner + chat REPL with persistent history (Hermes's default). **Just built (`interactive.ts`).**
+2. **First-run onboarding** — Hermes `setup` wizard configures provider/keys on first launch. Vanta makes you edit `.env`. → add `vanta setup`.
+3. **`vanta status` / `vanta doctor` (TS side)** — Hermes surfaces component health. Vanta's kernel has `doctor`; the agent CLI doesn't surface it. → add.
 4. **Post-turn background review** — Hermes nudges memory/skill curation *after each turn*; Vanta's `curate()` exists but nothing calls it in the loop. → wire into `runTurn` post-turn.
 5. **Sessions (persist/resume conversations)** — Hermes browses + resumes past sessions; Vanta keeps per-goal memory but not full transcripts. → add session store.
 6. **MCP client** — Hermes mounts MCP servers (the banner's "MCP Servers" row). Vanta went direct (googleapis-style); no MCP mount. → decide: add MCP client, or own each integration.
-7. **Gateway/service mode** — Hermes runs as a background service; Vanta has `cron` but no daemon. → maps to a future `argo gateway`.
+7. **Gateway/service mode** — Hermes runs as a background service; Vanta has `cron` but no daemon. → maps to a future `vanta gateway`.
 
 Items 1–4 are small and high-impact on "feels like an agent." 5–7 are larger.
 Tracked against `PARKED.md`.

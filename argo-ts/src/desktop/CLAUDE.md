@@ -6,8 +6,8 @@ First slice of the Vanta desktop experience, modeled structurally after the Herm
 
 ```bash
 cd argo-ts
-npm run argo -- desktop        # opens http://127.0.0.1:7790
-npm run argo -- desktop 7791   # custom port
+npm run vanta -- desktop        # opens http://127.0.0.1:7790
+npm run vanta -- desktop 7791   # custom port
 ```
 
 ## Shape

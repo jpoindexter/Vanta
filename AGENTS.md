@@ -20,8 +20,8 @@ The kernel is the enforced security boundary — `assess()` blocks, it doesn't a
 ```bash
 cargo build && cargo test                     # Rust kernel (27 tests)
 cd argo-ts && npx vitest run && npx tsc --noEmit  # TS agent (1075 tests + typecheck)
-./install.sh                                  # global `argo` in ~/.local/bin
-argo                                          # launch TUI (TTY) or readline REPL
+./install.sh                                  # global `vanta` in ~/.local/bin
+vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
 > **Status (2026-06-05):** v1 complete; live-dogfooding backlog open. Shipped today: TUI readability + AUX-VISION (`VANTA_VISION_MODEL` routes image tools to a dedicated vision model) + auto-install of the bundled skill library (incl. 14 `nd-*` skills) in `prepareRun`. Open in `roadmap.json`: AUX-MAP, UX-MODEL-FIX, GOAL-ACTION, SCRUB-AI; horizon: DESKTOP.

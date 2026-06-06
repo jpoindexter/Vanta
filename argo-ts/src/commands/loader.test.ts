@@ -3,7 +3,7 @@ import { loadUserCommands, type UserCommand } from "./loader.js";
 
 describe("loadUserCommands", () => {
   it("returns empty array when commands dir does not exist", async () => {
-    const cmds = await loadUserCommands({ VANTA_HOME: "/tmp/nonexistent-argo-home-xyz" });
+    const cmds = await loadUserCommands({ VANTA_HOME: "/tmp/nonexistent-vanta-home-xyz" });
     expect(cmds).toEqual([]);
   });
 

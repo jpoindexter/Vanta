@@ -26,7 +26,7 @@ describe("readMcpConfig", () => {
   });
 
   it("returns empty when no config is present", async () => {
-    const cfg = await readMcpConfig({ VANTA_HOME: "/nonexistent-argo-home-xyz" } as NodeJS.ProcessEnv);
+    const cfg = await readMcpConfig({ VANTA_HOME: "/nonexistent-vanta-home-xyz" } as NodeJS.ProcessEnv);
     expect(cfg.servers).toEqual({});
   });
 
@@ -51,7 +51,7 @@ describe("readMcpConfig", () => {
   });
 
   it("discovers .mcp.json in cwd", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-mcp-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-mcp-"));
     try {
       await writeFile(
         join(dir, ".mcp.json"),
@@ -66,8 +66,8 @@ describe("readMcpConfig", () => {
   });
 
   it("project-level .mcp.json wins over user-level ~/.vanta/mcp.json on conflict", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-mcp-"));
-    const home = await mkdtemp(join(tmpdir(), "argo-home-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-mcp-"));
+    const home = await mkdtemp(join(tmpdir(), "vanta-home-"));
     try {
       await writeFile(
         join(dir, ".mcp.json"),

@@ -1,5 +1,5 @@
 ---
-name: argo-context-sync
+name: vanta-context-sync
 description: Use after completing any Vanta build slice, phase, or structural change (new module, layer, tool, provider, command, env var, API route, or locked decision). Keeps the per-level CLAUDE.md context files, README, PRD checkboxes, and project memory accurate and dense so future sessions and subagents don't re-derive context or burn tokens trusting stale docs.
 ---
 

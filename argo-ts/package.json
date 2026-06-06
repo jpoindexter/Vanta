@@ -1,14 +1,14 @@
 {
-  "name": "argo",
+  "name": "vanta",
   "version": "0.1.0",
   "type": "module",
   "private": true,
   "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",
   "bin": {
-    "argo": "bin/argo.mjs"
+    "vanta": "bin/vanta.mjs"
   },
   "scripts": {
-    "argo": "tsx src/cli.ts",
+    "vanta": "tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

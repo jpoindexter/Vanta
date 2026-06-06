@@ -6,7 +6,7 @@ import { saveSession, loadSession, listSessions, newSessionId } from "./store.js
 import type { Message } from "../types.js";
 
 const TRANSCRIPT: Message[] = [
-  { role: "system", content: "you are argo" },
+  { role: "system", content: "you are vanta" },
   { role: "user", content: "summarize the readme" },
   { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "read_file", arguments: { path: "README.md" } }] },
   { role: "tool", toolCallId: "c1", name: "read_file", content: "# Vanta\n..." },
@@ -19,7 +19,7 @@ describe("session store", () => {
   const env = () => ({ VANTA_HOME: home }) as NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-sessions-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-sessions-"));
   });
   afterEach(async () => {
     if (prev === undefined) delete process.env.VANTA_HOME;

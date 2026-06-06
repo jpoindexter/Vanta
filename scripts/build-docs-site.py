@@ -28,7 +28,7 @@ SECTIONS = [
     ("Architecture", [
         ("CLAUDE.md", "Repo overview"),
         ("argo-ts/CLAUDE.md", "Agent layer (argo-ts)"),
-        ("docs/argo-flow.md", "Runtime flow"),
+        ("docs/vanta-flow.md", "Runtime flow"),
         ("docs/self-repair-architecture.md", "Self-repair"),
         ("docs/factory-evolution.md", "Factory evolution"),
         ("docs/executive-dysfunction-brain-design.md", "EF brain design"),

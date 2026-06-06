@@ -3,7 +3,7 @@ import { checkGate, formatCycleLog, resolveAutonomyLevel } from "./run.js";
 import type { FactoryConfig, CycleResult } from "./types.js";
 
 const baseConfig: FactoryConfig = {
-  argoRoot: "/repo",
+  vantaRoot: "/repo",
   dataDir: "/home/.vanta",
   autonomyLevel: 1,
   budgetTokens: 80_000,

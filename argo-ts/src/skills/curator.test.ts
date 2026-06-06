@@ -13,7 +13,7 @@ const DAY_MS = 86_400_000;
 
 // Unique, stable temp home derived from the suite name (not time/randomness),
 // per the parallel-build determinism rule.
-const VANTA_HOME = join(tmpdir(), "argo-curator-test");
+const VANTA_HOME = join(tmpdir(), "vanta-curator-test");
 const SKILLS = join(VANTA_HOME, "skills");
 const ARCHIVE = join(SKILLS, "_archive");
 

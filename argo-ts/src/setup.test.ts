@@ -77,7 +77,7 @@ describe("buildEnvUpdates", () => {
 
 describe("runSetup (integration)", () => {
   async function tempRepo(seedEnv?: string): Promise<string> {
-    const root = await mkdtemp(join(tmpdir(), "argo-setup-"));
+    const root = await mkdtemp(join(tmpdir(), "vanta-setup-"));
     await mkdir(join(root, "argo-ts"), { recursive: true });
     if (seedEnv !== undefined) await writeFile(join(root, "argo-ts", ".env"), seedEnv);
     return root;

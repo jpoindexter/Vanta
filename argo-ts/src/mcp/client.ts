@@ -88,7 +88,7 @@ export class McpClient {
   }
 
   /** Handshake: initialize then send the initialized notification. */
-  async initialize(clientName = "argo"): Promise<void> {
+  async initialize(clientName = "vanta"): Promise<void> {
     await this.request("initialize", {
       protocolVersion: PROTOCOL_VERSION,
       capabilities: {},

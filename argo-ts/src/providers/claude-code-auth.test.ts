@@ -55,7 +55,7 @@ describe("readClaudeCodeAuth", () => {
 describe("readClaudeCodeAuth from the credentials file", () => {
   let dir: string;
   beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), "argo-claude-"));
+    dir = await mkdtemp(join(tmpdir(), "vanta-claude-"));
   });
   afterEach(async () => {
     await rm(dir, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 # gitleaks config — Vanta
 # Runs in pre-commit via scripts/pre-commit (install: ./install.sh or symlink manually)
-title = "argo-gitleaks"
+title = "vanta-gitleaks"
 
 [extend]
 # Extend the built-in ruleset (gitleaks default rules cover API keys, tokens, etc.)

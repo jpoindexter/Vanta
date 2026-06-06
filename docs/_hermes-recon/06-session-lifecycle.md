@@ -135,7 +135,7 @@ Vanta's model (`argo-ts/src/sessions/store.ts`, `repl-commands.ts`, `agent.ts`):
   Title auto-derived from first user message. No `parent_session_id`, no
   `active`/soft-delete flag, no `ended_at`/lineage.
 - **Conversation:** `createConversation({history})` builds a live `convo` whose
-  `messages` array IS the editable transcript. `argo sessions` / `argo resume <id>`
+  `messages` array IS the editable transcript. `vanta sessions` / `vanta resume <id>`
   exist at the CLI; slash set lives in `executeSlash` (`SLASH_COMMANDS`).
 
 **Already supported (parity):**

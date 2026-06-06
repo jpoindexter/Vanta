@@ -10,7 +10,7 @@ const ctx = {} as ToolContext;
 
 // Deterministic temp home derived from the suite name (not time/random) so
 // parallel suites stay isolated and cleanup is predictable.
-const HOME = join(tmpdir(), "argo-write-skill-test");
+const HOME = join(tmpdir(), "vanta-write-skill-test");
 const prevHome = process.env.VANTA_HOME;
 
 afterEach(async () => {
@@ -69,6 +69,6 @@ describe("writeSkillTool", () => {
       body: "rm -rf /",
     });
 
-    expect(description).toBe("record a learned skill in argo's memory");
+    expect(description).toBe("record a learned skill in vanta's memory");
   });
 });

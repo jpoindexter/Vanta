@@ -9,7 +9,7 @@ const msg = (role: "user" | "assistant", content: string): Message => ({ role, c
 
 describe("archiveSession + searchArchive", () => {
   it("archives messages and finds them by keyword", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-test-archive-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-test-archive-"));
     try {
       const env = { VANTA_HOME: dir };
       await archiveSession("test-session-1", [msg("user", "hello zork world"), msg("assistant", "sure")], { env });
@@ -28,7 +28,7 @@ describe("archiveSession + searchArchive", () => {
   });
 
   it("skips system messages", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-test-archive-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-test-archive-"));
     try {
       const env = { VANTA_HOME: dir };
       await archiveSession("s1", [{ role: "system", content: "zork system" }, msg("user", "no match here")], { env });

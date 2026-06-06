@@ -12,7 +12,7 @@ import type { ToolContext } from "./types.js";
  * touched on the deny path, so a bare cast is enough for these offline tests.
  */
 const denyCtx = {
-  root: "/tmp/argo-test",
+  root: "/tmp/vanta-test",
   requestApproval: async () => false,
 } as unknown as ToolContext;
 

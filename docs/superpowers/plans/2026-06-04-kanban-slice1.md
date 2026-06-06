@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `roadmap_move` Vanta tool and `argo roadmap move <id> <status>` CLI command that update roadmap.json and regenerate roadmap.html.
+**Goal:** Add a `roadmap_move` Vanta tool and `vanta roadmap move <id> <status>` CLI command that update roadmap.json and regenerate roadmap.html.
 
 **Architecture:** Pure `moveRoadmapItem(repoRoot, id, toStatus)` function in `roadmap/move.ts` → thin tool wrapper in `tools/roadmap-move.ts` → thin CLI dispatch in `cli/ops.ts`. Each layer is independently testable. No existing file is restructured.
 
@@ -68,7 +68,7 @@ const FIXTURE = {
 let dir: string;
 
 async function makeRoadmap(data = FIXTURE): Promise<string> {
-  dir = await mkdtemp(join(tmpdir(), "argo-move-"));
+  dir = await mkdtemp(join(tmpdir(), "vanta-move-"));
   await writeFile(join(dir, "roadmap.json"), JSON.stringify(data, null, 2), "utf8");
   return dir;
 }
@@ -346,7 +346,7 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
     const id = args[1];
     const status = args[2];
     if (!id || !status) {
-      console.error("Usage: argo roadmap move <id> <status>");
+      console.error("Usage: vanta roadmap move <id> <status>");
       console.error("  status: shipped | building | next | horizon");
       process.exit(1);
     }
@@ -386,14 +386,14 @@ To:
 In the usage string, replace:
 
 ```typescript
-      "       argo roadmap                      build roadmap.html from roadmap.json and open it",
+      "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
 ```
 
 With:
 
 ```typescript
-      "       argo roadmap                      build roadmap.html from roadmap.json and open it",
-      "       argo roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
+      "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
+      "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
 ```
 
 - [ ] **Step 3: Full test suite — expect all pass**
@@ -433,7 +433,7 @@ Expected: `  ✓ Moved ND2 → shipped: clarify tool (ask before acting)`
 
 ```bash
 git add argo-ts/src/cli/ops.ts argo-ts/src/cli.ts
-git commit -m "feat(KANBAN): argo roadmap move <id> <status> CLI subcommand"
+git commit -m "feat(KANBAN): vanta roadmap move <id> <status> CLI subcommand"
 ```
 
 ---
@@ -443,11 +443,11 @@ git commit -m "feat(KANBAN): argo roadmap move <id> <status> CLI subcommand"
 **Spec coverage:**
 - ✓ `moveRoadmapItem` pure fn in `roadmap/move.ts`
 - ✓ `roadmap_move` tool, kernel-gated via `describeForSafety`
-- ✓ `argo roadmap move <id> <status>` CLI
+- ✓ `vanta roadmap move <id> <status>` CLI
 - ✓ Regenerates HTML after every move
 - ✓ Unknown id → clear error message
 - ✓ Invalid status → caught (Zod in tool; explicit check in CLI)
-- ✓ Existing `argo roadmap` (build+open) unchanged
+- ✓ Existing `vanta roadmap` (build+open) unchanged
 - ✓ Slices 2 & 3 explicitly out of scope
 
 **Placeholder scan:** None found.

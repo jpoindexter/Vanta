@@ -14,21 +14,21 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- prerequisites -----------------------------------------------------------
 if ! command -v cargo >/dev/null 2>&1; then
-  echo "argo: Rust toolchain not found. Install it: https://rustup.rs" >&2
+  echo "vanta: Rust toolchain not found. Install it: https://rustup.rs" >&2
   exit 1
 fi
 if ! command -v node >/dev/null 2>&1; then
-  echo "argo: Node.js not found (need 22+). Install it: https://nodejs.org" >&2
+  echo "vanta: Node.js not found (need 22+). Install it: https://nodejs.org" >&2
   exit 1
 fi
 
 # --- one-time bootstrap ------------------------------------------------------
 if [ ! -x "$DIR/target/debug/vanta-kernel" ]; then
-  echo "argo: building the safety kernel (first run only)…" >&2
+  echo "vanta: building the safety kernel (first run only)…" >&2
   (cd "$DIR" && cargo build)
 fi
 if [ ! -d "$DIR/argo-ts/node_modules" ]; then
-  echo "argo: installing agent dependencies (first run only)…" >&2
+  echo "vanta: installing agent dependencies (first run only)…" >&2
   (cd "$DIR/argo-ts" && npm install)
 fi
 

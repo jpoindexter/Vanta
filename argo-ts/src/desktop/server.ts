@@ -250,5 +250,5 @@ export function createDesktopServer(repoRoot: string): http.Server {
 export async function serveDesktop(repoRoot: string, port = 7790): Promise<void> {
   const server = createDesktopServer(repoRoot);
   await new Promise<void>((resolve) => server.listen(port, "127.0.0.1", resolve));
-  console.log(`argo desktop — http://127.0.0.1:${port}`);
+  console.log(`vanta desktop — http://127.0.0.1:${port}`);
 }

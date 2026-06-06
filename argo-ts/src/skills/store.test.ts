@@ -5,7 +5,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { skillsDir } from "../store/home.js";
 import { writeSkill, readSkill, listSkills } from "./store.js";
 
-const HOME = join(tmpdir(), "argo-skills-store-test");
+const HOME = join(tmpdir(), "vanta-skills-store-test");
 const env = { ...process.env, VANTA_HOME: HOME };
 
 const T1 = "2026-06-02T10:00:00.000Z";

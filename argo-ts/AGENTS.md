@@ -17,11 +17,11 @@ npx tsc --noEmit        # must be clean before any commit
 
 | Command | File |
 |---------|------|
-| `argo` (TUI) | `src/tui/launch.tsx` → `src/tui/app.tsx` |
-| `argo` (readline fallback) | `src/interactive.ts` |
-| `argo run "<instr>"` | `src/cli.ts` → `src/session.ts` → `src/agent.ts` |
-| `argo gateway` | `src/gateway/run.ts` |
-| `argo improve` / `argo factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
+| `vanta` (TUI) | `src/tui/launch.tsx` → `src/tui/app.tsx` |
+| `vanta` (readline fallback) | `src/interactive.ts` |
+| `vanta run "<instr>"` | `src/cli.ts` → `src/session.ts` → `src/agent.ts` |
+| `vanta gateway` | `src/gateway/run.ts` |
+| `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
 ## Critical files for new work
 

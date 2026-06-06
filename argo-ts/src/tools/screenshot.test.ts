@@ -6,7 +6,7 @@ import type { ToolContext } from "./types.js";
 // short-circuit (on bad args or out-of-scope path) before approval or any
 // browser launch is reached.
 const ctx: ToolContext = {
-  root: "/tmp/argo-scope",
+  root: "/tmp/vanta-scope",
   safety: {} as ToolContext["safety"],
   requestApproval: async () => {
     throw new Error("requestApproval must not be called in these tests");

@@ -29,7 +29,7 @@ Reference: Jason's customized install `~/.hermes/hermes-agent/`. Verdicts traced
 | Slash commands | rich session set | help/clear/reset/history/retry/undo/title/fork/model/tools/skills/status/goals/sessions/resume/cron | ✅ parity+ |
 | Identity | persona + rules of engagement | **personal-operator prompt** (P4) | ✅ |
 | Capability banner | domain-grouped | **domain-grouped** (P5) | ✅ |
-| Gateway/daemon | gateway + many platforms | `argo gateway` + telegram + webhook (E1/E2/E3) | 🟡 fewer platforms |
+| Gateway/daemon | gateway + many platforms | `vanta gateway` + telegram + webhook (E1/E2/E3) | 🟡 fewer platforms |
 | Skills count | 192 | ~10 + management (index/recall/curator) | 🟡 by design (mgmt > count) |
 | Desktop / Web UI | apps/desktop + webui | TUI only | ⬜ parked (TUI-first; hashmark = future desktop) |
 

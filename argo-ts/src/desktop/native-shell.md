@@ -3,7 +3,7 @@
 Current command:
 
 ```bash
-npm run argo -- desktop
+npm run vanta -- desktop
 ```
 
 This starts the Hermes-style local desktop surface at `http://127.0.0.1:7790`.
@@ -24,7 +24,7 @@ Preferred shell: Tauri if we want small/mac-native; Electron if we want Hermes p
 
 Minimal native wrapper requirements:
 
-1. launch `argo desktop --no-open` or equivalent child process
+1. launch `vanta desktop --no-open` or equivalent child process
 2. open a native window to the local URL
 3. forward close/restart events cleanly
 4. expose file picker, directory picker, clipboard image paste, and PTY bridge

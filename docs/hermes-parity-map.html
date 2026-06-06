@@ -9,17 +9,17 @@
     --bg:#0b0d10; --panel:#14181d; --panel2:#1b2026; --line:#272d35;
     --ink:#e7ecf2; --dim:#9aa6b2; --faint:#6b7682;
     --have:#3fb950; --partial:#d2a23a; --missing:#f06a5a; --na:#6b7682;
-    --copy:#5aa9ff; --adapt:#b07cff; --forget:#6b7682; --argo:#46c6a0;
+    --copy:#5aa9ff; --adapt:#b07cff; --forget:#6b7682; --vanta:#46c6a0;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;}
   .wrap{max-width:1180px;margin:0 auto;padding:32px 22px 80px}
   h1{font-size:26px;margin:0 0 4px;letter-spacing:-.4px}
   .sub{color:var(--dim);margin:0 0 22px;font-size:13px}
-  .sub code{color:var(--argo)}
+  .sub code{color:var(--vanta)}
   h2{font-size:17px;margin:34px 0 12px;letter-spacing:-.2px;border-bottom:1px solid var(--line);padding-bottom:7px}
   p.lede{color:var(--dim);max-width:74ch}
-  .verdict{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--argo);border-radius:10px;padding:16px 18px;margin:6px 0 8px}
+  .verdict{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--vanta);border-radius:10px;padding:16px 18px;margin:6px 0 8px}
   .verdict b{color:var(--ink)}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
@@ -28,7 +28,7 @@
   .controls{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px;align-items:center}
   .controls .g{display:flex;gap:5px}
   button.f{background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer}
-  button.f.on{color:var(--ink);border-color:var(--argo);background:#16241f}
+  button.f.on{color:var(--ink);border-color:var(--vanta);background:#16241f}
   table{width:100%;border-collapse:collapse;font-size:13px}
   thead th{position:sticky;top:0;background:var(--bg);text-align:left;color:var(--faint);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:1px solid var(--line)}
   tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -143,12 +143,12 @@
 <script type="application/json" id="data">
 {
   "copy": [
-    {"id":"SELF-UPDATE","t":"argo update + rollback","w":"hermes update — snapshot, autostash/restore, dep/skill/config refresh, restart. Vanta only has install.sh."},
-    {"id":"MODEL-CMD","t":"argo model (CLI pulldown)","w":"hermes model — standalone provider/model selector. Vanta has the TUI picker but no CLI command."},
+    {"id":"SELF-UPDATE","t":"vanta update + rollback","w":"hermes update — snapshot, autostash/restore, dep/skill/config refresh, restart. Vanta only has install.sh."},
+    {"id":"MODEL-CMD","t":"vanta model (CLI pulldown)","w":"hermes model — standalone provider/model selector. Vanta has the TUI picker but no CLI command."},
     {"id":"SKILL-UMBRELLA","t":"Curator umbrella consolidation + pin","w":"hermes curator groups overlapping skills under class-level umbrellas; Vanta only archives stale."},
     {"id":"MODEL-FALLBACK","t":"Provider fallback chain on failure","w":"hermes fallback — primary dies → next provider. Vanta routes but never falls through. Reliability."},
     {"id":"SESSION-SEARCH","t":"Full-text search over sessions","w":"hermes sessions browse/search. Vanta lists+resumes by id only. Top continuity gap."},
-    {"id":"DEP-AUDIT","t":"argo security audit (supply chain)","w":"hermes security audit (OSV) caught a PyPI worm. Vanta gates actions but never audits its npm deps."},
+    {"id":"DEP-AUDIT","t":"vanta security audit (supply chain)","w":"hermes security audit (OSV) caught a PyPI worm. Vanta gates actions but never audits its npm deps."},
     {"id":"KANBAN-DECOMPOSE","t":"Card → spec → child tasks","w":"hermes kanban specify/decompose/swarm. Vanta has the board + delegate but no decomposition. Factory."},
     {"id":"ACP-SERVE","t":"Vanta as an ACP server (Zed)","w":"hermes acp — in-editor agent. Vanta serves MCP but not ACP. Reach, kernel still gates."},
     {"id":"PROXY-ENDPOINT","t":"Local OpenAI proxy over OAuth","w":"hermes proxy exposes subscription tokens as an OpenAI API. Vanta resolves codex/claude-code OAuth — monetize it."},
@@ -167,8 +167,8 @@
     {"t":"Insights/analytics · skin-engine extras · infographic · dump/debug bundles","w":"Low local value or already covered (TUI themes, per-turn usage). Polish, post-launch."}
   ],
   "rows": [
-    ["Setup / Models","Setup wizard (hermes setup)","argo setup first-run wizard","have","-",""],
-    ["Setup / Models","Doctor / status","argo doctor + kernel doctor, argo status","have","-",""],
+    ["Setup / Models","Setup wizard (hermes setup)","vanta setup first-run wizard","have","-",""],
+    ["Setup / Models","Doctor / status","vanta doctor + kernel doctor, vanta status","have","-",""],
     ["Setup / Models","Provider auth (pooled creds, login/logout)","env keys + OAuth: codex, claude-code","have","-","Vanta also has subscription OAuth (live-verified codex)"],
     ["Setup / Models","Config show/edit/migrate (hermes config)","`.env` + upsertEnv (merge, preserve)","partial","adapt","config-migrate folded into SELF-UPDATE"],
     ["Setup / Models","Shell completion (bash/zsh/fish)","none","missing","copy","→ CLI-DX-PACK"],
@@ -179,16 +179,16 @@
     ["Model routing & fallback","Aux-task model (vision/summarize)","AUX-VISION (VANTA_VISION_MODEL)","have","adapt","AUX-MAP generalizes to a per-function map"],
     ["Model routing & fallback","Fallback chain on failure (hermes fallback)","none — a dead provider fails the turn","missing","copy","→ MODEL-FALLBACK"],
     ["Model routing & fallback","Local OpenAI-compat proxy (hermes proxy)","none","missing","copy","→ PROXY-ENDPOINT (reuse OAuth subs)"],
-    ["Gateway / Comms","Gateway daemon (run/start/stop/install)","argo gateway + launchd service (E1)","have","-",""],
+    ["Gateway / Comms","Gateway daemon (run/start/stop/install)","vanta gateway + launchd service (E1)","have","-",""],
     ["Gateway / Comms","21 platforms (discord/slack/whatsapp/signal/imessage/email/matrix/…)","telegram live + registry (iMessage/Signal/WhatsApp planned)","partial","adapt","Add on demand via MSG-REGISTRY; forget wholesale"],
     ["Gateway / Comms","Webhook subscriptions (hermes webhook)","webhook listener + HMAC verify (E3)","have","-",""],
-    ["Gateway / Comms","Send to platform (hermes send)","gateway reply only","partial","copy","→ CLI-DX-PACK (argo send)"],
+    ["Gateway / Comms","Send to platform (hermes send)","gateway reply only","partial","copy","→ CLI-DX-PACK (vanta send)"],
     ["Gateway / Comms","Pairing codes (hermes pairing)","telegram allowlist","partial","forget","Allowlist suffices until demand"],
-    ["Agent loop & runtime","Interactive chat / oneshot","argo REPL+TUI / argo run","have","-",""],
+    ["Agent loop & runtime","Interactive chat / oneshot","vanta REPL+TUI / vanta run","have","-",""],
     ["Agent loop & runtime","Toolsets (30 keys, per-platform config)","45 tools + registry exclude","have","adapt","Per-platform toolset config is gateway-multi-platform → forget"],
     ["Agent loop & runtime","Computer-use (cua-driver, desktop control)","browser tools + screenshot/vision","partial","forget","Horizon; browser covers web. Big lift."],
     ["Agent loop & runtime","LSP (status/list/install)","lsp tools (.ts/.tsx via TS compiler API)","have","-",""],
-    ["Agent loop & runtime","Cron / scheduled jobs","argo cron + schedule runner","have","-",""],
+    ["Agent loop & runtime","Cron / scheduled jobs","vanta cron + schedule runner","have","-",""],
     ["Agent loop & runtime","Hooks (shell-script, list/test/revoke)","Claude Code hooks integration","partial","forget","Revoke-able user hooks = later"],
     ["Agent loop & runtime","Prompt-size breakdown","prompt tiers, no breakdown cmd","missing","copy","→ CLI-DX-PACK (serves frugality rule)"],
     ["Agent loop & runtime","Batch/SWE/trajectory/datagen (RL pipeline)","none","missing","forget","Operator, not a training harvester — off-thesis"],
@@ -199,10 +199,10 @@
     ["Skills","169 bundled skills (74 + 95 optional)","~26 bundled + design/ai libraries","partial","forget","'Management beats count' — curate on demand"],
     ["Memory / Continuity","Sessions save/resume/rename/export/prune","save/resume/fork/title (json store)","have","-",""],
     ["Memory / Continuity","Session search / browse (FTS)","list + resume by id only","missing","copy","→ SESSION-SEARCH"],
-    ["Memory / Continuity","Session recap (/recap)","/where + EF gates","partial","copy","→ CLI-DX-PACK (argo recap)"],
+    ["Memory / Continuity","Session recap (/recap)","/where + EF gates","partial","copy","→ CLI-DX-PACK (vanta recap)"],
     ["Memory / Continuity","External memory provider","per-goal memory + Brain (5D/12-axis, git)","have","adapt","Vanta's brain is richer than a flat provider"],
     ["Memory / Continuity","Checkpoints (fs store)","checkpoints (shipped)","have","-",""],
-    ["Memory / Continuity","Backup / import (zip ~/.hermes)","~/.vanta git-init'd (free versioning)","partial","copy","→ CLI-DX-PACK (argo backup)"],
+    ["Memory / Continuity","Backup / import (zip ~/.hermes)","~/.vanta git-init'd (free versioning)","partial","copy","→ CLI-DX-PACK (vanta backup)"],
     ["Memory / Continuity","Insights / analytics","per-turn usage tokens","partial","forget","Low local value"],
     ["Kanban / Planning","Kanban board (SQLite, cross-profile)","roadmap.json board + move + drag-serve","have","adapt","Vanta's is file-based + a drag board"],
     ["Kanban / Planning","Decompose / specify (card→spec→subtasks)","none","missing","copy","→ KANBAN-DECOMPOSE"],
@@ -260,7 +260,7 @@
       const rid=/^→/.test(nt)?nt.replace('→','').trim():'';
       const noteHtml = rid ? `<span class="rid">${rid}</span>` : nt;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td class="hermes">${h}</td><td class="argo">${a}</td>`+
+      tr.innerHTML=`<td class="hermes">${h}</td><td class="vanta">${a}</td>`+
         `<td><span class="pill s-${st}">${SLBL[st]}</span></td>`+
         `<td>${rc==='-'?'':`<span class="pill r-${rc}">${RLBL[rc]}</span>`}</td>`+
         `<td class="note">${noteHtml}</td>`;

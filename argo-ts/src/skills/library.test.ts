@@ -14,8 +14,8 @@ describe("installSkillLibrary", () => {
   const prev = process.env.VANTA_HOME;
 
   beforeEach(async () => {
-    home = await mkdtemp(join(tmpdir(), "argo-lib-home-"));
-    source = await mkdtemp(join(tmpdir(), "argo-lib-src-"));
+    home = await mkdtemp(join(tmpdir(), "vanta-lib-home-"));
+    source = await mkdtemp(join(tmpdir(), "vanta-lib-src-"));
     process.env.VANTA_HOME = home;
     // seed a fake bundled library
     for (const slug of ["alpha-skill", "beta-skill"]) {

@@ -33,7 +33,7 @@ function makeDeps(): AgentDeps {
     provider: new FakeProvider(),
     safety,
     registry: new ToolRegistry(),
-    root: "/tmp/argo-test-root",
+    root: "/tmp/vanta-test-root",
     requestApproval: async () => true,
   };
 }

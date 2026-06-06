@@ -56,7 +56,7 @@ function render(d) {
     )
     .join("");
 
-  const invCats = (d.argoInventory?.categories || [])
+  const invCats = (d.vantaInventory?.categories || [])
     .map(
       (c) => `<div class="card span4 inv"><h3>${esc(c.name)}</h3><ul>${c.items
         .map((i) => `<li>${esc(i)}</li>`)
@@ -205,7 +205,7 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 <div class="card span12"><table class="t"><thead><tr><th>Pattern (real, documented)</th><th>Evidence</th><th>Vanta feature that supplies the EF</th></tr></thead><tbody>${patRows}</tbody></table></div></section>
 
 <section id="inventory"><h2>Vanta — current surface (dedupe baseline)</h2>
-<p class="note">${esc(d.argoInventory?.note || "")}</p><div class="grid">${invCats}</div></section>
+<p class="note">${esc(d.vantaInventory?.note || "")}</p><div class="grid">${invCats}</div></section>
 
 <section id="nd"><h2>ND alignment — what Vanta already does · where the gaps are</h2>
 <div class="grid"><div class="card span6"><h3>Already strong</h3>${ndStrong}</div>

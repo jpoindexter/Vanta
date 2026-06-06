@@ -6,7 +6,7 @@ import { buildRoadmap } from "./build.js";
 
 describe("buildRoadmap", () => {
   it("reads roadmap.json, renders HTML, and returns the output path", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-roadmap-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-roadmap-"));
     try {
       const roadmap = {
         updated: "2026-06-03",
@@ -35,7 +35,7 @@ describe("buildRoadmap", () => {
   });
 
   it("throws on invalid roadmap.json (empty items)", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-roadmap-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-roadmap-"));
     try {
       await writeFile(
         join(dir, "roadmap.json"),
@@ -49,7 +49,7 @@ describe("buildRoadmap", () => {
   });
 
   it("throws when roadmap.json is missing", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "argo-roadmap-"));
+    const dir = await mkdtemp(join(tmpdir(), "vanta-roadmap-"));
     try {
       await expect(buildRoadmap(dir)).rejects.toThrow();
     } finally {

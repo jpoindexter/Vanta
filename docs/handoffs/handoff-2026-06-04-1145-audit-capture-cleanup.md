@@ -23,7 +23,7 @@ Branch: feat/v1-hermes-parity (all pushed; tag v0.1.0 pushed)
 ## Current State
 - Build: tsc clean. Tests: **675 green** (648 TS + 27 Rust) — last full run before the doc-only commits.
 - Uncommitted changes: NONE. Working tree clean, all pushed.
-- Roadmap: 77 items. `roadmap.json` (source, committed) → `roadmap.html` (gitignored, regenerate via `argo roadmap` or the build).
+- Roadmap: 77 items. `roadmap.json` (source, committed) → `roadmap.html` (gitignored, regenerate via `vanta roadmap` or the build).
 
 ## In Progress
 None. Every thread was committed + pushed. This session was ~14 user goals, mostly research→capture.
@@ -41,7 +41,7 @@ None. Every thread was committed + pushed. This session was ~14 user goals, most
 ## Exact Next Steps (in order)
 1. [ ] Decide the ONE next build (see Blocked). Put one card in "building" — dogfood the WIP limit.
 2. [ ] If `FAC-BORNSMALL`: follow `docs/factory-evolution.md` Slice 1 — pure `checkNewFilesUnderLineLimit` (NEW files only) in `factory/verifier.ts` + `argo-ts/CONVENTIONS.md`. Test-first (`verifier.test.ts`), tsc, full suite green, commit+push.
-3. [ ] Set the live model — still on the ollama/qwen seed; `argo setup` → claude-code/sonnet for real runs.
+3. [ ] Set the live model — still on the ollama/qwen seed; `vanta setup` → claude-code/sonnet for real runs.
 
 ## Context That's Easy to Lose
 - **Jason's working style (in his CLAUDE.md):** over-engineers/doesn't-ship; anti-drift is rule #1; push back on his scope creep by name. This session had ~14 goal additions — that bounce IS the pattern the product (KANBAN WIP limit, ND items) is meant to fix. Capture is fine; building must stay one-at-a-time.

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { ensureBrain, readRegion, writeRegion, brainDigest } from "./store.js";
 import { isBrainRegion } from "./regions.js";
 
-const VANTA_HOME = join(tmpdir(), "argo-brain-store-test");
+const VANTA_HOME = join(tmpdir(), "vanta-brain-store-test");
 const env = { ...process.env, VANTA_HOME };
 
 describe("brain store", () => {

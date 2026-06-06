@@ -10,7 +10,7 @@ Branch: feat/v1-hermes-parity
    - `GET /roadmap/board` serves `roadmap.html` fresh from disk on every request
    - `POST /roadmap/move` → `moveRoadmapItem` directly (no subprocess)
    - `render.ts`: `data-id` on cards, `data-status` on columns, drag-and-drop JS + CSS
-   - `cli/ops.ts`: `argo roadmap serve` — builds HTML, opens browser, starts server on port 7789 (env: `VANTA_ROADMAP_PORT`)
+   - `cli/ops.ts`: `vanta roadmap serve` — builds HTML, opens browser, starts server on port 7789 (env: `VANTA_ROADMAP_PORT`)
    - 8 tests
 
 2. **TUI-INPUT — Composer history + multiline**
@@ -77,7 +77,7 @@ Branch: feat/v1-hermes-parity
 | `argo-ts/src/repl/plan-mode.test.ts` | Created | 7 planmode tests |
 | `argo-ts/src/repl/handlers.ts` | Modified | `next` + `planMode` imported + registered |
 | `argo-ts/src/repl/catalog.ts` | Modified | `/next` + `/planmode` in SLASH_COMMANDS |
-| `argo-ts/src/cli/ops.ts` | Modified | `argo roadmap serve` subcommand |
+| `argo-ts/src/cli/ops.ts` | Modified | `vanta roadmap serve` subcommand |
 | `argo-ts/src/cli.ts` | Modified | Usage string updated |
 | `roadmap.json` | Modified | 6 items shipped, U2→shipped |
 | `CLAUDE.md` | Modified | Test counts updated |
@@ -130,7 +130,7 @@ The roadmap is now all `shipped` or `horizon` — no `next`/`building` items. Ch
 
 ## Context That's Easy to Lose
 
-- **`argo roadmap serve` defaults to port 7789** (`VANTA_ROADMAP_PORT` overrides). Kernel is on 7788. Both can run simultaneously.
+- **`vanta roadmap serve` defaults to port 7789** (`VANTA_ROADMAP_PORT` overrides). Kernel is on 7788. Both can run simultaneously.
 
 - **`handlers.ts` is at exactly 300 lines** — adding any handler inline will bust the hard limit. New handlers go in their own file (like `repl/next.ts`, `repl/plan-mode.ts`) and get imported.
 
@@ -154,7 +154,7 @@ Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v
 Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` + 5 planning docs first.
 
 **This session shipped (in order):**
-1. KANBAN-S2 — drag-and-drop roadmap board (`argo roadmap serve` → `http://localhost:7789/roadmap/board`)
+1. KANBAN-S2 — drag-and-drop roadmap board (`vanta roadmap serve` → `http://localhost:7789/roadmap/board`)
 2. TUI-INPUT — up/down input history + shift+enter multiline in composer
 3. TUI-MARKDOWN — markdown rendering for committed assistant entries in TUI transcript
 4. ND1 — `/next` slash command: reads active kernel goals → sends agent a "one micro-step" prompt

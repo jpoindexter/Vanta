@@ -1,7 +1,7 @@
 # AUTO-ROUTER — automatic per-task model routing + ephemeral subagents
 
 > Roadmap item `AUTO-ROUTER` (Models + Setup, rock). Source: Vanta's own design pass
-> (`argo ability.rtf`, 2026-06-05). Supersedes the `MODEL-SPINUP` placeholder.
+> (`vanta ability.rtf`, 2026-06-05). Supersedes the `MODEL-SPINUP` placeholder.
 
 ## The idea
 
