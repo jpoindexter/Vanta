@@ -10,7 +10,7 @@ export type UserCommand = {
 };
 
 /**
- * Discover user-defined slash commands from ~/.argo/commands/<name>.md.
+ * Discover user-defined slash commands from ~/.vanta/commands/<name>.md.
  * The first heading in the file (if any) becomes the description. The file
  * body is the instruction template sent to the agent when the command fires.
  * Returns [] when the directory doesn't exist (no-op on unconfigured installs).

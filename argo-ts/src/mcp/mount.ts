@@ -10,7 +10,7 @@ import type { Tool } from "../tools/types.js";
 // Config sources (first wins for inline; files are merged with project winning on conflict):
 //   1. VANTA_MCP_SERVERS env (JSON, inline)
 //   2. ./.mcp.json in cwd — Claude-compatible format (mcpServers key)
-//   3. ~/.argo/mcp.json — user-level fallback (servers key)
+//   3. ~/.vanta/mcp.json — user-level fallback (servers key)
 // Accepts both "mcpServers" (Claude Code convention) and "servers" (Argo convention).
 // No config → no-op (zero overhead). Each server is best-effort: one that fails
 // to start doesn't block the others or the session. MCP tools go through the
@@ -42,7 +42,7 @@ function parseOrEmpty(raw: string): McpConfig {
 
 /**
  * Read MCP server config. Checks VANTA_MCP_SERVERS first, then merges
- * ./.mcp.json (project-level, Claude-compat) with ~/.argo/mcp.json (user-level).
+ * ./.mcp.json (project-level, Claude-compat) with ~/.vanta/mcp.json (user-level).
  * Project-level wins on conflict.
  */
 export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd()): Promise<McpConfig> {

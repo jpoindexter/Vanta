@@ -8,7 +8,7 @@ const base: StatusReport = {
     { envVar: "GEMINI_API_KEY", label: "Google Gemini", present: true },
     { envVar: "OPENAI_API_KEY", label: "OpenAI", present: false },
   ],
-  store: { home: "/home/.argo", skills: 3, memories: 5 },
+  store: { home: "/home/.vanta", skills: 3, memories: 5 },
   goals: { active: 2, total: 4 },
 };
 

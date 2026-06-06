@@ -37,7 +37,7 @@ Branch: feat/v1-hermes-parity
    - 7 tests
 
 6. **U2 — @-file context references**
-   - `tui/at-context.ts`: `parseAtRefs`, `activeAtRef`, `buildContextBlock`, `listRepoFiles` (depth-3 walk, skips `.git`/`node_modules`/`target`/`dist`/`.argo`)
+   - `tui/at-context.ts`: `parseAtRefs`, `activeAtRef`, `buildContextBlock`, `listRepoFiles` (depth-3 walk, skips `.git`/`node_modules`/`target`/`dist`/`.vanta`)
    - `tui/app.tsx`: `atFiles` loaded on mount; @ palette (↑↓ select, tab complete); `isActive: showAtPalette`; submit resolves `@refs` → prepends `<file path="...">` context blocks
    - 16 tests
 

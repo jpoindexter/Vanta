@@ -109,8 +109,8 @@ TypeScript agent layer (argo-ts)
   → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
   → search providers: DuckDuckGo, Searxng, SerpAPI, Brave (typed interface, swappable)
   → tool registry: every tool defined, typed, scoped
-  → skills: ~/.argo/skills/ (markdown + YAML, git-versioned)
-  → memory: ~/.argo/memories/ (per-goal summaries, git-versioned)
+  → skills: ~/.vanta/skills/ (markdown + YAML, git-versioned)
+  → memory: ~/.vanta/memories/ (per-goal summaries, git-versioned)
 
 MCP integrations (Jason's existing setup — Phase 5)
   → Gmail, Google Calendar, Drive
@@ -148,10 +148,10 @@ Out of scope: memory persistence, skills, web search, browser.
 **Done when:** Vanta remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.
 
 Delivers:
-- **Skills system** — `~/.argo/skills/<name>/SKILL.md` (markdown + YAML frontmatter, cross-compatible with Hermes format)
+- **Skills system** — `~/.vanta/skills/<name>/SKILL.md` (markdown + YAML frontmatter, cross-compatible with Hermes format)
 - **Slash commands** — `/skills`, `/skill <name>` list and invoke skills
 - **Curator** — background maintenance: consolidate overlapping skills, archive stale (30d inactive), remove old (90d)
-- **Memory** — per-goal session summaries in `~/.argo/memories/<goal-id>.md`
+- **Memory** — per-goal session summaries in `~/.vanta/memories/<goal-id>.md`
 - **Memory injection** — volatile tier includes recent goal memory on every session start
 - `write-skill` tool — agent creates skill files from experience (the actual learning loop)
 - `recall` tool — full-text search across skill library
@@ -174,7 +174,7 @@ Delivers:
 - `web-search` tool — calls search provider, returns top N results as structured JSON
 - `web-fetch` tool — fetch any URL, extract readable text (Mozilla Readability), return clean markdown
 - Provider config identical to LLM config: one env var switches everything
-- Research skill templates: `~/.argo/skills/research/` bundled with install
+- Research skill templates: `~/.vanta/skills/research/` bundled with install
 
 ```
 VANTA_SEARCH_PROVIDER=ddg          → DuckDuckGo (default, no key)
@@ -194,7 +194,7 @@ Delivers:
 - `browser-extract` tool — structured extraction from page (tables, lists, specific elements)
 - Image understanding — pass screenshots to GPT-4o or Claude vision for analysis
 - Domain allowlist — browser tools only hit approved domains; new domains are `risk: ask`
-- Vision skill templates: `~/.argo/skills/vision/` — screenshot-analysis, form-fill, data-extract patterns
+- Vision skill templates: `~/.vanta/skills/vision/` — screenshot-analysis, form-fill, data-extract patterns
 
 ---
 
@@ -209,7 +209,7 @@ Delivers:
 - `git-commit`, `git-push` — always `risk: ask`, require explicit approval
 - `git-branch`, `git-checkout` — `risk: ask`
 - Project context auto-detection — reads `ARGO.md`, `CLAUDE.md`, `README.md`, `AGENTS.md` from cwd, injects into context tier
-- Code skill library: `~/.argo/skills/code/` — debug, refactor, test-write, PR-review patterns
+- Code skill library: `~/.vanta/skills/code/` — debug, refactor, test-write, PR-review patterns
 - Anthropic adapter (full) — implement in this phase; Claude is significantly better at code than GPT-4o-mini
 
 ---
@@ -239,7 +239,7 @@ Delivers:
 **Done when:** Vanta runs a scheduled daily briefing at 8am without Jason doing anything — and every action in that briefing still goes through the approval queue before executing.
 
 Delivers:
-- Cron scheduler — `argo schedule "daily briefing" --cron "0 8 * * *"`, stored in `.argo/cron.tsv`
+- Cron scheduler — `argo schedule "daily briefing" --cron "0 8 * * *"`, stored in `.vanta/cron.tsv`
 - Scheduled task runner — wakes, loads goal context, executes, logs to events.jsonl
 - All scheduled actions gate through safety kernel — no blanket auto-approval for scheduled work
 - **Subagent spawning** — parent agent decomposes work, spawns workers with explicit scoped permissions

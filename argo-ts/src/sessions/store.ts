@@ -5,7 +5,7 @@ import { resolveArgoHome } from "../store/home.js";
 import type { Message } from "../types.js";
 
 // File-based session persistence: one JSON file per session under
-// ~/.argo/sessions/<id>.json. Plain files (not SQLite) — dependency-free,
+// ~/.vanta/sessions/<id>.json. Plain files (not SQLite) — dependency-free,
 // git-versionable, and consistent with how skills/memory are stored. Enough for
 // a single-user CLI; the value of SQLite (concurrency/queries) isn't needed.
 

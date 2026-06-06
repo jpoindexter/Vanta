@@ -13,7 +13,7 @@ Goal: implement every screen + workflow in `docs/hermes-model.html`, fully wired
 | 3. /model picker | `c414540` | `tui/model-picker.tsx` + `model-switch.ts` — two-step wizard (provider → model) + key-entry step, fuzzy filter doubling as free-text, `^g` global/session persist, live hot-swap. **The headline gap.** |
 | 4. Status bar | `0810ab0` | `tui/status-bar.tsx` — run state, model, est. context fill + bar, real elapsed time. No fabricated cost. |
 | 5. /sessions picker | `cd7112a` | `tui/sessions-picker.tsx` — live/new/saved rows, ⏎ resume/new, `d` delete, Esc close. |
-| 6. Approval prompt | `d8ff25f` | `tui/approval.tsx` + `use-approval.ts` — Allow once / session / always-allow `<tool>` / Deny; ↑↓ + 1–4 keys; persists "always" to `~/.argo/approvals.json`. |
+| 6. Approval prompt | `d8ff25f` | `tui/approval.tsx` + `use-approval.ts` — Allow once / session / always-allow `<tool>` / Deny; ↑↓ + 1–4 keys; persists "always" to `~/.vanta/approvals.json`. |
 
 Supporting: `tui/overlay.tsx` (shared shell), `use-overlays.ts` (overlay handlers), `agent.ts` `Conversation.setProvider` (hot-swap primitive).
 

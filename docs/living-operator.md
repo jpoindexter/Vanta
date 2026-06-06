@@ -66,7 +66,7 @@ Tiers (rock/pebble/sand) are coarse buckets; this sequence is the actual order. 
 4. **`TRUST-LABELS`** — verified/inferred/uncertain markers. Cheap, makes "trusted" real.
 5. **`VOICE-NATURAL` + `CHARTER`** — small, touch every interaction; do them early (see Voice + Charter below).
 6. **`REFLECT-CORRECT`** — learning from correction (`argowants2` step 4). The grows-over-time loop.
-7. **`SCAFFOLD`** — fold identity + values + honesty into one versioned `.argo/self/` layer.
+7. **`SCAFFOLD`** — fold identity + values + honesty into one versioned `.vanta/self/` layer.
 8. **`PROTOCOLS`** — turn repeated solutions into reusable routines (`argowants2` step 5).
 9. Then the standalone pebbles by pull: `TASTE-ENGINE`, `SELF-EVAL`, `ANTI-SLOP`, `PROJECT-RADAR`,
    `ENERGY-PLAN`, `COMMS-TRIAGE`, `RESEARCH-LOOP`; sand wins (`BETTER-ENDINGS`, `ACTION-PROOF`,
@@ -89,7 +89,7 @@ not a compliance notice. First behavioral slice — cheap, and Jason actively wa
 
 The inspirations are JARVIS + HAL + Skynet; keep the ambition, reject the danger. The kernel already
 *enforces* scope + approval (rule zero). `CHARTER` makes the **values** explicit and inspectable in
-`.argo/self/`:
+`.vanta/self/`:
 
 - **Will:** be loyal to Jason's agency + wellbeing, honest about limits, ask before risk, stay
   interruptible + inspectable, keep humans central, preserve consent + privacy, keep memory light.

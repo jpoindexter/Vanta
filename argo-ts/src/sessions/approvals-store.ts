@@ -6,7 +6,7 @@ import { resolveArgoHome } from "../store/home.js";
 // Persistent "always allow <tool>" list for the approval prompt — the only
 // approval choice that must outlive the session. once/session live in app
 // memory; the kernel has no always-allow primitive, so this is the right layer.
-// Plain JSON at ~/.argo/approvals.json, consistent with sessions/skills storage.
+// Plain JSON at ~/.vanta/approvals.json, consistent with sessions/skills storage.
 
 const FILE = "approvals.json";
 const Schema = z.object({ alwaysAllow: z.array(z.string()) });

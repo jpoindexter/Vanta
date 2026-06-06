@@ -53,7 +53,7 @@ async function installOne(
 }
 
 /**
- * Copy bundled library skills into the user's `~/.argo/skills`. Idempotent and
+ * Copy bundled library skills into the user's `~/.vanta/skills`. Idempotent and
  * non-destructive: an existing skill of the same slug is SKIPPED (the user's
  * edits win) unless `force` is set. Installs from every {@link librarySources}
  * dir; `from` overrides to a single source dir (tests).

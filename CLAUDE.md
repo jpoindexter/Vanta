@@ -20,11 +20,11 @@ The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS la
 ```bash
 # Kernel (Rust)
 cargo build && cargo test                 # 16 tests
-cargo run -- doctor                       # health check, creates .argo/
+cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
-# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.argo seed)
+# Install the global `argo` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.vanta seed)
 ./install.sh                               # then `argo` works from anywhere (no profile edit if ~/.local/bin is on PATH)
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
@@ -46,17 +46,17 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 | Module | Purpose |
 |--------|---------|
-| `app` | `State` (root + data_dir), `doctor`, `append_event`/`log_event`, `esc()` JSON escaper, `.nexarion→.argo` migration |
+| `app` | `State` (root + data_dir), `doctor`, `append_event`/`log_event`, `esc()` JSON escaper, `.nexarion→.vanta` migration |
 | `safety` | `assess_action() → Verdict{Risk::Allow/Ask/Block}`. Keyword blocklist (destructive/exfiltration=Block), scope check (outside root=Ask), system/credential keywords=Ask, else Allow |
-| `approvals` | `ApprovalQueue`, persisted `.argo/approvals.tsv`. Only `Ask` actions queue; `Block` errors, `Allow` errors |
-| `goals` | `GoalLedger`, `.argo/goals.tsv` |
+| `approvals` | `ApprovalQueue`, persisted `.vanta/approvals.tsv`. Only `Ask` actions queue; `Block` errors, `Allow` errors |
+| `goals` | `GoalLedger`, `.vanta/goals.tsv` |
 | `runtime` | `run_native()` — safety-gates then dispatches; returns `Unsupported` rather than silently falling back |
 | `bridge` | Detects Hermes CLI; `plan_prompt()` gates before building a hermes command (legacy, not core) |
 | `server` | Raw TCP HTTP/1.1; inlined cockpit HTML const; all `/api/*` return JSON |
 
 **Kernel API** (`127.0.0.1:7788`): `GET /api/status`, `POST /api/assess` (body=action→Verdict), `GET|POST /api/goals`, `GET|POST /api/approvals`, `POST /api/log` (body=event), `POST /api/run`, `POST /api/bridge/plan`, `GET *`→cockpit.
 
-**Data dir** `.argo/`: `events.jsonl`, `approvals.tsv` (`id\ttext\trisk\tneeds_human\tstatus\treason`), `goals.tsv` (`id\ttext\tstatus`).
+**Data dir** `.vanta/`: `events.jsonl`, `approvals.tsv` (`id\ttext\trisk\tneeds_human\tstatus\treason`), `goals.tsv` (`id\ttext\tstatus`).
 
 ## Gotchas (will waste your time if you don't know)
 

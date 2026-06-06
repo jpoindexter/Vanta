@@ -18,7 +18,7 @@ flowchart TD
   subgraph BOOT["bootstrap (once per launch)"]
     direction TB
     B1["load .env / config"]
-    B2["ensure store ~/.argo (skills, memory, git)"]
+    B2["ensure store ~/.vanta (skills, memory, git)"]
     B3["ensure kernel on :7788 (auto-spawn)"]
     B1 --> B2 --> B3
   end
@@ -45,7 +45,7 @@ flowchart TD
   end
 
   TURN -->|done| REPL
-  T7 --> MEM["~/.argo memory + skills (git-versioned)"]
+  T7 --> MEM["~/.vanta memory + skills (git-versioned)"]
 
   KERNEL["Rust kernel :7788 — ENFORCED boundary<br/>assess · approvals · goals · events · cockpit"]
   T5 -.assess.-> KERNEL

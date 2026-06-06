@@ -130,7 +130,7 @@ Shape: **input → (busy-mode routing) → agent loop → tool calls → respons
 ## Vanta-port note
 
 Vanta's model (`argo-ts/src/sessions/store.ts`, `repl-commands.ts`, `agent.ts`):
-- **Storage:** JSON file per session at `~/.argo/sessions/<id>.json`
+- **Storage:** JSON file per session at `~/.vanta/sessions/<id>.json`
   (`{id, title, started, updated, messages}`, Zod-validated). Id = `YYYYMMDD-HHMMSS`.
   Title auto-derived from first user message. No `parent_session_id`, no
   `active`/soft-delete flag, no `ended_at`/lineage.

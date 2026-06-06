@@ -16,7 +16,7 @@ function makeCtx(home: string, messages: Message[]): ReplCtx {
       goals: [],
       systemPrompt: "sys",
     },
-    dataDir: join(home, ".argo-data"),
+    dataDir: join(home, ".vanta-data"),
     state: { sessionId: "s1", started: "t0", turnIndex: 5 },
     env: { VANTA_HOME: home } as NodeJS.ProcessEnv,
     now: () => new Date("2026-06-02T00:00:00.000Z"),

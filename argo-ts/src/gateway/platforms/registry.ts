@@ -83,7 +83,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     setupSteps: [
       "Ensure Node is installed (the bridge runs as a subprocess).",
       "Start the gateway, then scan the QR shown in the logs from WhatsApp → Linked Devices.",
-      "Credentials are stored in ~/.argo/whatsapp/ (outside the repo).",
+      "Credentials are stored in ~/.vanta/whatsapp/ (outside the repo).",
     ],
   },
 ];

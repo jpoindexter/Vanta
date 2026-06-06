@@ -1,6 +1,6 @@
 // Argo's "brain" — a set of human-brain-inspired regions, each a markdown file
 // the agent reads at the start of a session and writes to over time (via the
-// `brain` tool + the self-improvement loop). Stored in ~/.argo/brain/, git-
+// `brain` tool + the self-improvement loop). Stored in ~/.vanta/brain/, git-
 // versioned. This is how Argo grows a durable self: identity, memory, a model of
 // its user and world, drives, and reflection. Bounded + extensible.
 

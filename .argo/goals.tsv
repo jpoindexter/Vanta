@@ -1,0 +1,11 @@
+1	Ship Argo v0 agent loop	active
+2	Ship O9 dark-factory: kernel-enforced autonomous self-improvement loop (review-mode v0)	active
+3	Read argo_log.rtf, diagnose + fix: image errors at startup, image copy-paste into CLI failing, video compression failing	active
+4	KANBAN slice 1: build roadmap/move.ts (moveRoadmapItem pure fn) + tools/roadmap-move.ts (roadmap_move tool, kernel-gated) + update cli/ops.ts for argo roadmap move <id> <status>. Tests co-located. Done: argo roadmap move ND2 building updates roadmap.json + regenerates HTML. Slice 1 ONLY — no drag endpoint, no WIP limit.	active
+5	FAC-BORNSMALL: make the dark factory generate born-small units by default — 300-line gate enforced, one-concern-per-file rule injected into codegen prompt, registry-by-default output shape. Done: factory cycle produces files <300 lines with independent tests.	active
+6	ND1: task-initiation affordance — given a goal, surface ONE concrete smallest next action + let user begin with a single keystroke. Done: argo next or /next shows one micro-step from the active goal.	active
+7	REL1: per-model capability matrix — small declarative map of which optional params each model accepts so free-typed OpenRouter/Ollama IDs do not get sent params they 400/500 on. Lives alongside providers/catalog.ts.	active
+8	TUI-INTERRUPT: Esc interrupts a running turn mid-flight. Done: pressing Esc during a busy turn stops the agent loop cleanly.	active
+9	TUI-INPUT: composer input history (up/down arrows) + multiline input support. Done: up arrow cycles prior messages; shift+enter inserts newline.	active
+10	Ship TUI-INPUT + TUI-MARKDOWN + ND1 — composer history, markdown rendering, /next affordance	active
+11	Ship Phase 2 EF pebbles in order: EF-WORKINGMEM → EF-INHIBIT → EF-SETSHIFT → EF-SELFMONITOR → EF-ERRORDETECT → EF-CLOSUREGATE. Test-first, commit per item, 869+ tests green throughout.	active

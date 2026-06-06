@@ -12,7 +12,7 @@ function velocityPath(env: NodeJS.ProcessEnv): string {
   return join(resolveArgoHome(env), "velocity.json");
 }
 
-/** Append a single event to ~/.argo/velocity.json. Creates the file if absent. */
+/** Append a single event to ~/.vanta/velocity.json. Creates the file if absent. */
 export async function appendVelocityEvent(
   env: NodeJS.ProcessEnv,
   event: VelocityEvent,

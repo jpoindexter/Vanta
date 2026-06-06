@@ -121,7 +121,7 @@ These can be done in any order but this sequence builds the most momentum:
    - File: `argo-ts/src/prompt.ts` (look at `buildSystemPrompt()`)
 
 2. [ ] **EF-VELOCITY** — Rolling capture:ship ratio in `/status`.
-   - `~/.argo/velocity.json`: append on every roadmap item creation (capture) + every `roadmap_move` to `shipped` (ship). Read in `/status` output.
+   - `~/.vanta/velocity.json`: append on every roadmap item creation (capture) + every `roadmap_move` to `shipped` (ship). Read in `/status` output.
    - Show: "capture/ship: 8:1 this week" as a dim line in status. Warn when > 5:1.
    - Why second: makes the exact pattern from today's session visible in the product.
 
@@ -195,7 +195,7 @@ These are meatier but all well-specified:
     - Injected as volatile prompt tier.
 
 17. [ ] **BRAIN-5D** — Replace 7 flat brain .md files with SQLite + 5-axis model.
-    - `~/.argo/brain.db` (SQLite): id, region, content, createdAt, updatedAt, strength, relatedIds[], forgetAfter.
+    - `~/.vanta/brain.db` (SQLite): id, region, content, createdAt, updatedAt, strength, relatedIds[], forgetAfter.
     - `brainDigest` selects top-K by strength × recency.
     - Auto-decay stale entries (7d without reinforcement).
     - This unlocks all subsequent BRAIN-NEURO work.

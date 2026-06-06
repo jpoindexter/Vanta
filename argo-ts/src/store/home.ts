@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, rename } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -9,12 +9,12 @@ const run = promisify(execFile);
 
 /**
  * The Argo home store — global across projects, not the per-project kernel
- * `.argo/` data dir. Holds skills and memories. Override with VANTA_HOME (tests
- * point this at a temp dir). Default: ~/.argo.
+ * `.vanta/` data dir. Holds skills and memories. Override with VANTA_HOME (tests
+ * point this at a temp dir). Default: ~/.vanta.
  */
 export function resolveArgoHome(env: NodeJS.ProcessEnv = process.env): string {
   const override = env.VANTA_HOME?.trim();
-  return override ? override : join(homedir(), ".argo");
+  return override ? override : join(homedir(), ".vanta");
 }
 
 export function skillsDir(env: NodeJS.ProcessEnv = process.env): string {
@@ -48,6 +48,19 @@ export async function ensureArgoStore(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
   const home = resolveArgoHome(env);
+  // One-time migration: the default home moved ~/.argo → ~/.vanta (Argo→Vanta
+  // rename). Move it whole — preserves skills/memories/brain + the .git history.
+  // Skipped when VANTA_HOME points elsewhere (tests, custom installs).
+  if (!env.VANTA_HOME?.trim()) {
+    const legacy = join(homedir(), ".argo");
+    if (!existsSync(home) && existsSync(legacy)) {
+      try {
+        await rename(legacy, home);
+      } catch {
+        // best-effort — a fresh store is created below if the move fails
+      }
+    }
+  }
   await mkdir(skillsDir(env), { recursive: true });
   await mkdir(memoriesDir(env), { recursive: true });
   if (!existsSync(join(home, ".git"))) {

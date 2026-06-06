@@ -30,7 +30,7 @@ while the trust model is proven.
 
 Two entry points, one implementation (`factory/run.ts`):
 
-- **Scheduled** — a cron entry in `~/.argo/crons/`; the existing `argo gateway` daemon
+- **Scheduled** — a cron entry in `~/.vanta/crons/`; the existing `argo gateway` daemon
   (`argo-ts/src/gateway/run.ts`, already ticking every 60s) fires it. The gateway does **not**
   run the cycle inline — it **spawns `argo factory` as a detached child process** so a
   multi-hour cycle never blocks the gateway tick. (Hybrid of approach 1's module + approach
@@ -38,7 +38,7 @@ Two entry points, one implementation (`factory/run.ts`):
 - **On-demand** — `argo improve` calls `factory/run.ts` inline and streams progress to the
   TUI. Same code path; `interactive: true`.
 
-A lockfile (`~/.argo/factory.lock`) prevents the gateway from double-spawning. `argo improve`
+A lockfile (`~/.vanta/factory.lock`) prevents the gateway from double-spawning. `argo improve`
 checks the lock and reports "factory already running" rather than racing.
 
 ## 4. Scope of work (decision D, priority-ordered)
@@ -186,7 +186,7 @@ auto-approved at 3am. The factory does only what is auto-safe.
 7. VERIFY    new test fails on pre-change code? · full prior suite passes? · tsc clean? · no protected path touched?  — ALL must hold
 8. COMMIT    pass → git commit + push to factory/auto-<ts>; tick ROADMAP box; commit + push that too
              fail → git checkout . (discard; nothing entered history); log; exit
-9. LOG       ~/.argo/logs/factory-<ts>.log · token spend in the commit message · `argo factory status` shows last result
+9. LOG       ~/.vanta/logs/factory-<ts>.log · token spend in the commit message · `argo factory status` shows last result
 ```
 
 **One slice per cycle** (decision) — one self-contained, reviewable commit. Multi-slice trades
