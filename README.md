@@ -6,7 +6,7 @@ OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts
 
 Two layers:
 - **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
-- **`argo-ts/` — TypeScript agent layer** (`vanta`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
+- **`vanta-ts/` — TypeScript agent layer** (`vanta`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
 
 See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.
 
@@ -28,7 +28,7 @@ Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) →
 ./run.sh run "read README.md and summarize it"
 ```
 
-First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `argo-ts/.env` to switch to OpenAI/Anthropic.
+First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `vanta-ts/.env` to switch to OpenAI/Anthropic.
 
 ```bash
 ./run.sh                                   # list all commands
@@ -56,7 +56,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 - **Digital person** — project rooms, operator modes, model routing, mode learning
 - **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 
-Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd argo-ts && npm test` (agent).
+Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).
 
 ## Rule zero
 

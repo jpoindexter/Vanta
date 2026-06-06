@@ -15,21 +15,21 @@
 | Status | Path | Responsibility |
 |--------|------|----------------|
 | Modify | `src/safety.rs` | Add `is_protected_path`, `extract_write_path`, integrate into `assess_action` |
-| Create | `argo-ts/src/factory/types.ts` | `WorkItem`, `CycleResult`, `AutonomyLevel`, `FactoryConfig`, `FactoryPlan`, `VerifyResult`, `SliceArtifact` |
-| Create | `argo-ts/src/factory/triage.ts` | Reads vitest JSON / tsc stderr / ROADMAP / PARKED → `WorkItem \| null` |
-| Create | `argo-ts/src/factory/triage.test.ts` | Pure fixture tests — no disk, no subprocess |
-| Create | `argo-ts/src/factory/verifier.ts` | New-test-fails-on-old-code · full suite passes · tsc clean · no protected path |
-| Create | `argo-ts/src/factory/verifier.test.ts` | The load-bearing tests for the trust model |
-| Create | `argo-ts/src/factory/executor.ts` | Runs `runAgent` with factory instruction + budget cap |
-| Create | `argo-ts/src/factory/executor.test.ts` | Smoke test: budget cap fires |
-| Create | `argo-ts/src/factory/planner.ts` | Builds `FactoryPlan` from `WorkItem`; approval gate in review mode |
-| Create | `argo-ts/src/factory/planner.test.ts` | Plan shape for each WorkItem category |
-| Create | `argo-ts/src/factory/run.ts` | Orchestrator: gate → snapshot → triage → branch → plan → execute → verify → commit |
-| Create | `argo-ts/src/factory/run.test.ts` | Gate logic (disabled/dirty/locked all bail); budget ceiling |
-| Create | `argo-ts/src/factory/CLAUDE.md` | One-line purpose + module map for subagents entering this folder |
-| Create | `argo-ts/src/factory/AGENTS.md` | Same, for non-Claude agents |
-| Modify | `argo-ts/src/cli.ts` | Add `vanta improve` + `vanta factory [approve|status]` commands |
-| Modify | `argo-ts/src/gateway/run.ts` | Detect factory cron entries, spawn `vanta factory` as detached child |
+| Create | `vanta-ts/src/factory/types.ts` | `WorkItem`, `CycleResult`, `AutonomyLevel`, `FactoryConfig`, `FactoryPlan`, `VerifyResult`, `SliceArtifact` |
+| Create | `vanta-ts/src/factory/triage.ts` | Reads vitest JSON / tsc stderr / ROADMAP / PARKED → `WorkItem \| null` |
+| Create | `vanta-ts/src/factory/triage.test.ts` | Pure fixture tests — no disk, no subprocess |
+| Create | `vanta-ts/src/factory/verifier.ts` | New-test-fails-on-old-code · full suite passes · tsc clean · no protected path |
+| Create | `vanta-ts/src/factory/verifier.test.ts` | The load-bearing tests for the trust model |
+| Create | `vanta-ts/src/factory/executor.ts` | Runs `runAgent` with factory instruction + budget cap |
+| Create | `vanta-ts/src/factory/executor.test.ts` | Smoke test: budget cap fires |
+| Create | `vanta-ts/src/factory/planner.ts` | Builds `FactoryPlan` from `WorkItem`; approval gate in review mode |
+| Create | `vanta-ts/src/factory/planner.test.ts` | Plan shape for each WorkItem category |
+| Create | `vanta-ts/src/factory/run.ts` | Orchestrator: gate → snapshot → triage → branch → plan → execute → verify → commit |
+| Create | `vanta-ts/src/factory/run.test.ts` | Gate logic (disabled/dirty/locked all bail); budget ceiling |
+| Create | `vanta-ts/src/factory/CLAUDE.md` | One-line purpose + module map for subagents entering this folder |
+| Create | `vanta-ts/src/factory/AGENTS.md` | Same, for non-Claude agents |
+| Modify | `vanta-ts/src/cli.ts` | Add `vanta improve` + `vanta factory [approve|status]` commands |
+| Modify | `vanta-ts/src/gateway/run.ts` | Detect factory cron entries, spawn `vanta factory` as detached child |
 | Create | `AGENT-MANIFESTO.md` | Agent-authored declaration; writable, kernel-NOT-protected |
 
 ---
@@ -58,9 +58,9 @@ Add inside the `#[cfg(test)] mod tests` block in `src/safety.rs`:
     #[test]
     fn protected_path_blocks_factory_ts() {
         let r = root();
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/run.ts"), &r));
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/verifier.ts"), &r));
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/triage.test.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/run.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/verifier.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/triage.test.ts"), &r));
     }
 
     #[test]
@@ -74,7 +74,7 @@ Add inside the `#[cfg(test)] mod tests` block in `src/safety.rs`:
         let r = root();
         assert!(!is_protected_path(&r.join("ROADMAP.md"), &r));
         assert!(!is_protected_path(&r.join("AGENT-MANIFESTO.md"), &r));
-        assert!(!is_protected_path(&r.join("argo-ts/src/tools/new-tool.ts"), &r));
+        assert!(!is_protected_path(&r.join("vanta-ts/src/tools/new-tool.ts"), &r));
         assert!(!is_protected_path(&r.join("CLAUDE.md"), &r));
     }
 
@@ -85,7 +85,7 @@ Add inside the `#[cfg(test)] mod tests` block in `src/safety.rs`:
         assert_eq!(v.risk, Risk::Block);
         assert!(v.reason.contains("protected"));
 
-        let v2 = assess_action("write file argo-ts/src/factory/run.ts", &r);
+        let v2 = assess_action("write file vanta-ts/src/factory/run.ts", &r);
         assert_eq!(v2.risk, Risk::Block);
 
         let v3 = assess_action("write file MANIFESTO.md", &r);
@@ -98,7 +98,7 @@ Add inside the `#[cfg(test)] mod tests` block in `src/safety.rs`:
         let v = assess_action("write file ROADMAP.md", &r);
         assert_eq!(v.risk, Risk::Allow);
 
-        let v2 = assess_action("write file argo-ts/src/tools/new-tool.ts", &r);
+        let v2 = assess_action("write file vanta-ts/src/tools/new-tool.ts", &r);
         assert_eq!(v2.risk, Risk::Allow);
     }
 ```
@@ -140,7 +140,7 @@ pub fn is_protected_path(path: &Path, root: &Path) -> bool {
         return true;
     }
     // Factory loop — can't rewrite its own guardrails or their tests
-    if s.starts_with("argo-ts/src/factory/") && (s.ends_with(".ts")) {
+    if s.starts_with("vanta-ts/src/factory/") && (s.ends_with(".ts")) {
         return true;
     }
     // Human north star
@@ -198,12 +198,12 @@ git commit -m "feat(kernel): is_protected_path — blocks writes to kernel/facto
 ## Task 2: Factory types module
 
 **Files:**
-- Create: `argo-ts/src/factory/types.ts`
+- Create: `vanta-ts/src/factory/types.ts`
 
 - [ ] **Step 1: Create the types file**
 
 ```typescript
-// argo-ts/src/factory/types.ts
+// vanta-ts/src/factory/types.ts
 
 /** Priority-ordered categories of work triage finds. */
 export type WorkCategory = "quality" | "test-failure" | "type-error" | "roadmap" | "parked";
@@ -270,7 +270,7 @@ export type CycleResult =
 - [ ] **Step 2: Verify types compile**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx tsc --noEmit 2>&1
 ```
 
 Expected: no output (clean).
@@ -278,7 +278,7 @@ Expected: no output (clean).
 - [ ] **Step 3: Commit**
 
 ```bash
-git add argo-ts/src/factory/types.ts
+git add vanta-ts/src/factory/types.ts
 git commit -m "feat(factory): WorkItem/FactoryPlan/SliceArtifact/CycleResult types"
 ```
 
@@ -289,13 +289,13 @@ git commit -m "feat(factory): WorkItem/FactoryPlan/SliceArtifact/CycleResult typ
 Reads concrete artifacts (no LLM) and returns the highest-priority `WorkItem`. Pure functions + fixture-tested.
 
 **Files:**
-- Create: `argo-ts/src/factory/triage.ts`
-- Create: `argo-ts/src/factory/triage.test.ts`
+- Create: `vanta-ts/src/factory/triage.ts`
+- Create: `vanta-ts/src/factory/triage.test.ts`
 
 - [ ] **Step 1: Write failing tests**
 
 ```typescript
-// argo-ts/src/factory/triage.test.ts
+// vanta-ts/src/factory/triage.test.ts
 import { describe, it, expect } from "vitest";
 import {
   parseVitestOutput,
@@ -415,7 +415,7 @@ describe("selectWorkItem priority", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `triage.js` not found.
@@ -423,7 +423,7 @@ Expected: FAIL — `triage.js` not found.
 - [ ] **Step 3: Implement `triage.ts`**
 
 ```typescript
-// argo-ts/src/factory/triage.ts
+// vanta-ts/src/factory/triage.ts
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { WorkItem } from "./types.js";
@@ -515,7 +515,7 @@ export function selectWorkItem(inputs: {
 // --- I/O wrapper called by run.ts ---
 
 export async function triage(root: string): Promise<WorkItem | null> {
-  const tsRoot = join(root, "argo-ts");
+  const tsRoot = join(root, "vanta-ts");
 
   // 1. Failing tests — run vitest with JSON reporter
   const vitestJson = await runVitest(tsRoot);
@@ -562,7 +562,7 @@ async function runTsc(tsRoot: string): Promise<string> {
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/triage.test.ts 2>&1 | tail -10
 ```
 
 Expected: all triage tests pass.
@@ -578,7 +578,7 @@ Expected: `Tests X passed (X)` — no regressions.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add argo-ts/src/factory/triage.ts argo-ts/src/factory/triage.test.ts
+git add vanta-ts/src/factory/triage.ts vanta-ts/src/factory/triage.test.ts
 git commit -m "feat(factory): triage — vitest/tsc/roadmap/parked → WorkItem"
 ```
 
@@ -589,13 +589,13 @@ git commit -m "feat(factory): triage — vitest/tsc/roadmap/parked → WorkItem"
 The trust gate. These are the load-bearing tests — they must be correct or the safety model is advisory.
 
 **Files:**
-- Create: `argo-ts/src/factory/verifier.ts`
-- Create: `argo-ts/src/factory/verifier.test.ts`
+- Create: `vanta-ts/src/factory/verifier.ts`
+- Create: `vanta-ts/src/factory/verifier.test.ts`
 
 - [ ] **Step 1: Write failing tests**
 
 ```typescript
-// argo-ts/src/factory/verifier.test.ts
+// vanta-ts/src/factory/verifier.test.ts
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -620,12 +620,12 @@ describe("classifyTouchedFiles", () => {
 
 describe("checkNoProtectedPaths", () => {
   it("returns ok:true for safe files", () => {
-    const r = checkNoProtectedPaths(["argo-ts/src/tools/new-tool.ts", "ROADMAP.md"], tmp);
+    const r = checkNoProtectedPaths(["vanta-ts/src/tools/new-tool.ts", "ROADMAP.md"], tmp);
     expect(r.ok).toBe(true);
   });
 
   it("returns ok:false for factory source files", () => {
-    const r = checkNoProtectedPaths(["argo-ts/src/factory/run.ts", "ROADMAP.md"], tmp);
+    const r = checkNoProtectedPaths(["vanta-ts/src/factory/run.ts", "ROADMAP.md"], tmp);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/protected/);
   });
@@ -662,7 +662,7 @@ describe("checkNoExistingTestModified", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `verifier.js` not found.
@@ -670,7 +670,7 @@ Expected: FAIL — `verifier.js` not found.
 - [ ] **Step 3: Implement `verifier.ts`**
 
 ```typescript
-// argo-ts/src/factory/verifier.ts
+// vanta-ts/src/factory/verifier.ts
 import { join } from "node:path";
 import type { SliceArtifact, VerifyResult } from "./types.js";
 
@@ -698,7 +698,7 @@ export function checkNoProtectedPaths(files: string[], root: string): VerifyResu
       (s.startsWith("src/") && s.endsWith(".rs")) ||
       s === "cargo.toml" ||
       s === "cargo.lock" ||
-      (s.startsWith("argo-ts/src/factory/") && s.endsWith(".ts")) ||
+      (s.startsWith("vanta-ts/src/factory/") && s.endsWith(".ts")) ||
       s === "manifesto.md"
     ) {
       return { ok: false, reason: `protected path touched: ${f} (${root})` };
@@ -723,7 +723,7 @@ export function checkNoExistingTestModified(touched: string[], preExisting: Set<
 export async function listPreExistingFiles(root: string): Promise<Set<string>> {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
-  const tsRoot = join(root, "argo-ts");
+  const tsRoot = join(root, "vanta-ts");
   const { stdout } = await promisify(execFile)("git", ["ls-files"], { cwd: root });
   return new Set(stdout.trim().split("\n").filter(Boolean));
 }
@@ -758,7 +758,7 @@ async function runTestFiles(tsRoot: string, testFiles: string[]): Promise<number
  * 5. tsc --noEmit clean.
  */
 export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>): Promise<VerifyResult> {
-  const tsRoot = join(root, "argo-ts");
+  const tsRoot = join(root, "vanta-ts");
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
   const exec = promisify(execFile);
@@ -808,7 +808,7 @@ export async function verify(root: string, artifact: SliceArtifact, preExisting:
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/verifier.test.ts 2>&1 | tail -10
 ```
 
 Expected: all verifier tests pass.
@@ -822,7 +822,7 @@ npx vitest run 2>&1 | tail -5
 - [ ] **Step 6: Commit**
 
 ```bash
-git add argo-ts/src/factory/verifier.ts argo-ts/src/factory/verifier.test.ts
+git add vanta-ts/src/factory/verifier.ts vanta-ts/src/factory/verifier.test.ts
 git commit -m "feat(factory): verifier — trust gate (protected paths + new-test-fails + suite)"
 ```
 
@@ -833,13 +833,13 @@ git commit -m "feat(factory): verifier — trust gate (protected paths + new-tes
 Runs the agent against the factory plan. For v0: a single `createConversation` call with a budget cap on output tokens.
 
 **Files:**
-- Create: `argo-ts/src/factory/executor.ts`
-- Create: `argo-ts/src/factory/executor.test.ts`
+- Create: `vanta-ts/src/factory/executor.ts`
+- Create: `vanta-ts/src/factory/executor.test.ts`
 
 - [ ] **Step 1: Write failing tests**
 
 ```typescript
-// argo-ts/src/factory/executor.test.ts
+// vanta-ts/src/factory/executor.test.ts
 import { describe, it, expect } from "vitest";
 import { buildFactoryInstruction, parseTouchedFiles } from "./executor.js";
 import type { FactoryPlan } from "./types.js";
@@ -847,7 +847,7 @@ import type { FactoryPlan } from "./types.js";
 const plan: FactoryPlan = {
   workItem: { category: "roadmap", description: "Add foo feature", sourceLine: 5 },
   instruction: "Implement foo",
-  touchedDirs: ["argo-ts/src/tools"],
+  touchedDirs: ["vanta-ts/src/tools"],
 };
 
 describe("buildFactoryInstruction", () => {
@@ -860,17 +860,17 @@ describe("buildFactoryInstruction", () => {
 
   it("includes CLAUDE.md/AGENTS.md update requirement for touched dirs", () => {
     const instr = buildFactoryInstruction(plan, 80_000);
-    expect(instr).toContain("argo-ts/src/tools");
+    expect(instr).toContain("vanta-ts/src/tools");
     expect(instr).toContain("CLAUDE.md");
   });
 });
 
 describe("parseTouchedFiles", () => {
   it("parses git diff --name-only output into a list of strings", () => {
-    const stdout = "argo-ts/src/tools/foo.ts\nargo-ts/src/tools/foo.test.ts\nROADMAP.md\n";
+    const stdout = "vanta-ts/src/tools/foo.ts\nvanta-ts/src/tools/foo.test.ts\nROADMAP.md\n";
     expect(parseTouchedFiles(stdout)).toEqual([
-      "argo-ts/src/tools/foo.ts",
-      "argo-ts/src/tools/foo.test.ts",
+      "vanta-ts/src/tools/foo.ts",
+      "vanta-ts/src/tools/foo.test.ts",
       "ROADMAP.md",
     ]);
   });
@@ -884,7 +884,7 @@ describe("parseTouchedFiles", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `executor.js` not found.
@@ -892,7 +892,7 @@ Expected: FAIL — `executor.js` not found.
 - [ ] **Step 3: Implement `executor.ts`**
 
 ```typescript
-// argo-ts/src/factory/executor.ts
+// vanta-ts/src/factory/executor.ts
 import { join } from "node:path";
 import type { FactoryPlan, SliceArtifact } from "./types.js";
 
@@ -909,7 +909,7 @@ export function buildFactoryInstruction(plan: FactoryPlan, budgetTokens: number)
     `Requirements (non-negotiable):`,
     `1. Write co-located tests in the same file as your implementation (foo.ts → foo.test.ts).`,
     `2. Tests must actually exercise the new code — not trivially pass on any input.`,
-    `3. After writing code, run: cd argo-ts && npx vitest run <new-test-file> to confirm the new tests pass.`,
+    `3. After writing code, run: cd vanta-ts && npx vitest run <new-test-file> to confirm the new tests pass.`,
     `4. After running tests, run: npx tsc --noEmit to confirm clean types.`,
     `5. Update or create CLAUDE.md and AGENTS.md in: ${dirs} — one-line purpose + list of files.`,
     `6. Budget: ${budgetTokens} output tokens for this cycle. Be concise. Use local Ollama via delegate for simple subtasks.`,
@@ -973,7 +973,7 @@ export async function execute(
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/executor.test.ts 2>&1 | tail -10
 ```
 
 Expected: all executor tests pass.
@@ -981,7 +981,7 @@ Expected: all executor tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add argo-ts/src/factory/executor.ts argo-ts/src/factory/executor.test.ts
+git add vanta-ts/src/factory/executor.ts vanta-ts/src/factory/executor.test.ts
 git commit -m "feat(factory): executor — agent dispatch + budget cap + touched-file harvest"
 ```
 
@@ -992,13 +992,13 @@ git commit -m "feat(factory): executor — agent dispatch + budget cap + touched
 Builds the agent instruction from a `WorkItem`. In review mode, prints the plan and waits for `vanta factory approve`.
 
 **Files:**
-- Create: `argo-ts/src/factory/planner.ts`
-- Create: `argo-ts/src/factory/planner.test.ts`
+- Create: `vanta-ts/src/factory/planner.ts`
+- Create: `vanta-ts/src/factory/planner.test.ts`
 
 - [ ] **Step 1: Write failing tests**
 
 ```typescript
-// argo-ts/src/factory/planner.test.ts
+// vanta-ts/src/factory/planner.test.ts
 import { describe, it, expect } from "vitest";
 import { buildPlan } from "./planner.js";
 import type { WorkItem } from "./types.js";
@@ -1009,8 +1009,8 @@ describe("buildPlan", () => {
     const plan = buildPlan(item, "/repo");
     expect(plan.workItem).toBe(item);
     expect(plan.instruction).toContain("Add foo feature");
-    expect(plan.instruction).toContain("argo-ts");
-    expect(plan.touchedDirs).toContain("argo-ts/src");
+    expect(plan.instruction).toContain("vanta-ts");
+    expect(plan.touchedDirs).toContain("vanta-ts/src");
   });
 
   it("builds a test-failure plan targeting the failing test file", () => {
@@ -1041,7 +1041,7 @@ describe("buildPlan", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `planner.js` not found.
@@ -1049,7 +1049,7 @@ Expected: FAIL — `planner.js` not found.
 - [ ] **Step 3: Implement `planner.ts`**
 
 ```typescript
-// argo-ts/src/factory/planner.ts
+// vanta-ts/src/factory/planner.ts
 import type { WorkItem, FactoryPlan } from "./types.js";
 
 /** Build the agent instruction for a given work item. */
@@ -1063,7 +1063,7 @@ export function buildPlan(item: WorkItem, root: string): FactoryPlan {
 }
 
 function buildInstruction(item: WorkItem, root: string): string {
-  const tsRoot = `${root}/argo-ts`;
+  const tsRoot = `${root}/vanta-ts`;
   switch (item.category) {
     case "roadmap":
       return [
@@ -1124,7 +1124,7 @@ function buildInstruction(item: WorkItem, root: string): string {
 }
 
 function inferTouchedDirs(item: WorkItem, root: string): string[] {
-  const tsRoot = `${root}/argo-ts`;
+  const tsRoot = `${root}/vanta-ts`;
   if (item.targetFile) {
     const dir = item.targetFile.split("/").slice(0, -1).join("/");
     return [dir ? `${tsRoot}/${dir}` : `${tsRoot}/src`];
@@ -1136,7 +1136,7 @@ function inferTouchedDirs(item: WorkItem, root: string): string[] {
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/planner.test.ts 2>&1 | tail -10
 ```
 
 Expected: all planner tests pass.
@@ -1144,7 +1144,7 @@ Expected: all planner tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add argo-ts/src/factory/planner.ts argo-ts/src/factory/planner.test.ts
+git add vanta-ts/src/factory/planner.ts vanta-ts/src/factory/planner.test.ts
 git commit -m "feat(factory): planner — WorkItem → FactoryPlan + per-category agent instruction"
 ```
 
@@ -1155,13 +1155,13 @@ git commit -m "feat(factory): planner — WorkItem → FactoryPlan + per-categor
 The thin gate+glue that sequences the whole cycle. Pure gate logic is tested; the full I/O cycle is not (it would require a real git repo with real subprocesses — integration testing territory).
 
 **Files:**
-- Create: `argo-ts/src/factory/run.ts`
-- Create: `argo-ts/src/factory/run.test.ts`
+- Create: `vanta-ts/src/factory/run.ts`
+- Create: `vanta-ts/src/factory/run.test.ts`
 
 - [ ] **Step 1: Write failing tests (gate logic only)**
 
 ```typescript
-// argo-ts/src/factory/run.test.ts
+// vanta-ts/src/factory/run.test.ts
 import { describe, it, expect } from "vitest";
 import { checkGate, formatCycleLog } from "./run.js";
 import type { FactoryConfig, CycleResult } from "./types.js";
@@ -1231,7 +1231,7 @@ describe("formatCycleLog", () => {
 - [ ] **Step 2: Run to confirm tests fail**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — `run.js` not found.
@@ -1239,7 +1239,7 @@ Expected: FAIL — `run.js` not found.
 - [ ] **Step 3: Implement `run.ts`**
 
 ```typescript
-// argo-ts/src/factory/run.ts
+// vanta-ts/src/factory/run.ts
 import { join } from "node:path";
 import { triage } from "./triage.js";
 import { buildPlan } from "./planner.js";
@@ -1329,7 +1329,7 @@ async function discardSlice(root: string): Promise<void> {
   const { promisify } = await import("node:util");
   // git checkout . discards unstaged changes without touching history (safe with kernel denylist)
   await promisify(execFile)("git", ["checkout", "."], { cwd: root }).catch(() => {});
-  await promisify(execFile)("git", ["clean", "-fd", "--", "argo-ts/src"], { cwd: root }).catch(() => {});
+  await promisify(execFile)("git", ["clean", "-fd", "--", "vanta-ts/src"], { cwd: root }).catch(() => {});
 }
 
 /**
@@ -1404,7 +1404,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
 }
 ```
 
-Also update `argo-ts/src/factory/types.ts` to add `CycleGate` (used by `run.ts` parameter type):
+Also update `vanta-ts/src/factory/types.ts` to add `CycleGate` (used by `run.ts` parameter type):
 
 Add to the end of `types.ts`:
 ```typescript
@@ -1415,7 +1415,7 @@ export type CycleGate = { disabled: boolean; lockExists: boolean; treeDirty: boo
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run src/factory/run.test.ts 2>&1 | tail -10
 ```
 
 Expected: all run.test.ts tests pass.
@@ -1437,7 +1437,7 @@ Expected: no output.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add argo-ts/src/factory/run.ts argo-ts/src/factory/run.test.ts argo-ts/src/factory/types.ts
+git add vanta-ts/src/factory/run.ts vanta-ts/src/factory/run.test.ts vanta-ts/src/factory/types.ts
 git commit -m "feat(factory): orchestrator run.ts — gate/triage/branch/plan/execute/verify/commit"
 ```
 
@@ -1510,7 +1510,7 @@ git commit -m "docs: AGENT-MANIFESTO.md — agent-authored declaration (writable
 Add `vanta improve` and `vanta factory [approve|status]` commands.
 
 **Files:**
-- Modify: `argo-ts/src/cli.ts`
+- Modify: `vanta-ts/src/cli.ts`
 
 - [ ] **Step 1: Add the commands to `usage()` in `cli.ts`**
 
@@ -1581,7 +1581,7 @@ Note: `formatCycleLog` needs to be imported at the top of the file from `./facto
 - [ ] **Step 3: tsc clean**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx tsc --noEmit 2>&1
 ```
 
 Expected: no output.
@@ -1603,7 +1603,7 @@ Expected: both `vanta improve` and `vanta factory` appear in the help output.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add argo-ts/src/cli.ts
+git add vanta-ts/src/cli.ts
 git commit -m "feat(cli): vanta improve + vanta factory [approve|status] commands"
 ```
 
@@ -1614,11 +1614,11 @@ git commit -m "feat(cli): vanta improve + vanta factory [approve|status] command
 The gateway daemon detects factory cron entries and spawns `vanta factory approve` as a detached child instead of running inline — so a multi-hour cycle never blocks the 60s gateway tick.
 
 **Files:**
-- Modify: `argo-ts/src/gateway/run.ts`
+- Modify: `vanta-ts/src/gateway/run.ts`
 
 - [ ] **Step 1: Add factory spawn logic to `gatewayTick`**
 
-Read `argo-ts/src/gateway/run.ts` (the existing `gatewayTick` function). The existing tick runs `runDueTasks`. We need to intercept factory-tagged cron entries before they hit `runDueTasks` and instead spawn a child process.
+Read `vanta-ts/src/gateway/run.ts` (the existing `gatewayTick` function). The existing tick runs `runDueTasks`. We need to intercept factory-tagged cron entries before they hit `runDueTasks` and instead spawn a child process.
 
 A factory cron entry is identified by an instruction that starts with `__factory__`. Add this to `gatewayTick`:
 
@@ -1663,9 +1663,9 @@ function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
   } catch { /* lock not present — proceed */ }
 
   const { spawn } = require("node:child_process");
-  const argoPath = join(dataDir, "..", "argo-ts", "run.sh");
+  const argoPath = join(dataDir, "..", "vanta-ts", "run.sh");
   const child = spawn("node", ["--import=tsx/esm", "src/cli.ts", "factory", "approve"], {
-    cwd: join(dataDir, "..", "argo-ts"),
+    cwd: join(dataDir, "..", "vanta-ts"),
     detached: true,
     stdio: "ignore",
   });
@@ -1674,7 +1674,7 @@ function spawnFactoryChild(dataDir: string, log: (msg: string) => void): void {
 }
 ```
 
-Note: `join` needs to be imported at the top if not already. `dataDir` is `~/.vanta` so the repo root is `dirname(dataDir)` — adjust the path to point to the `argo-ts/src/cli.ts` entry point correctly.
+Note: `join` needs to be imported at the top if not already. `dataDir` is `~/.vanta` so the repo root is `dirname(dataDir)` — adjust the path to point to the `vanta-ts/src/cli.ts` entry point correctly.
 
 Actually, the detached child should use the installed `vanta` launcher (`~/.local/bin/vanta factory approve`). Use that instead:
 
@@ -1690,7 +1690,7 @@ child.unref();
 - [ ] **Step 2: tsc clean**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx tsc --noEmit 2>&1
 ```
 
 - [ ] **Step 3: Existing gateway tests still pass**
@@ -1704,7 +1704,7 @@ Expected: all gateway tests pass.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add argo-ts/src/gateway/run.ts
+git add vanta-ts/src/gateway/run.ts
 git commit -m "feat(gateway): spawn vanta factory as detached child for __factory__ cron entries"
 ```
 
@@ -1715,13 +1715,13 @@ git commit -m "feat(gateway): spawn vanta factory as detached child for __factor
 Per the spec's standing requirement: every folder the factory touches gets/keeps a `CLAUDE.md` and `AGENTS.md`.
 
 **Files:**
-- Create: `argo-ts/src/factory/CLAUDE.md`
-- Create: `argo-ts/src/factory/AGENTS.md`
+- Create: `vanta-ts/src/factory/CLAUDE.md`
+- Create: `vanta-ts/src/factory/AGENTS.md`
 
-- [ ] **Step 1: Create `argo-ts/src/factory/CLAUDE.md`**
+- [ ] **Step 1: Create `vanta-ts/src/factory/CLAUDE.md`**
 
 ```markdown
-# CLAUDE.md — argo-ts/src/factory/
+# CLAUDE.md — vanta-ts/src/factory/
 
 Dark factory: the bounded autonomous loop that improves Vanta's own codebase.
 
@@ -1749,10 +1749,10 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase.
 - gateway cron `__factory__` → spawns `vanta factory approve` as a detached child
 ```
 
-- [ ] **Step 2: Create `argo-ts/src/factory/AGENTS.md`**
+- [ ] **Step 2: Create `vanta-ts/src/factory/AGENTS.md`**
 
 ```markdown
-# AGENTS.md — argo-ts/src/factory/
+# AGENTS.md — vanta-ts/src/factory/
 
 Purpose: bounded autonomous self-improvement loop. One reviewable slice per cycle.
 
@@ -1771,13 +1771,13 @@ will receive a `Risk::Block` verdict from the kernel.
 
 ## Tests
 
-All pure logic has unit tests in co-located `*.test.ts` files. Run: `cd argo-ts && npx vitest run src/factory/`
+All pure logic has unit tests in co-located `*.test.ts` files. Run: `cd vanta-ts && npx vitest run src/factory/`
 ```
 
 - [ ] **Step 3: Full suite + tsc**
 
 ```bash
-cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts && npx vitest run 2>&1 | tail -5 && npx tsc --noEmit 2>&1
+cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts && npx vitest run 2>&1 | tail -5 && npx tsc --noEmit 2>&1
 ```
 
 Expected: all tests pass, tsc clean.
@@ -1785,7 +1785,7 @@ Expected: all tests pass, tsc clean.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add argo-ts/src/factory/CLAUDE.md argo-ts/src/factory/AGENTS.md
+git add vanta-ts/src/factory/CLAUDE.md vanta-ts/src/factory/AGENTS.md
 git commit -m "docs(factory): CLAUDE.md + AGENTS.md — module map + safety invariants"
 ```
 

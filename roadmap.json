@@ -814,7 +814,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Phase 3: replace the giant-string UI with a real Vite+React app (AppShell/SessionSidebar/ChatThread/Composer/RightRail) under argo-ts/desktop-app/. Vanta operator/dossier aesthetic, not generic SaaS.",
+      "summary": "Phase 3: replace the giant-string UI with a real Vite+React app (AppShell/SessionSidebar/ChatThread/Composer/RightRail) under vanta-ts/desktop-app/. Vanta operator/dossier aesthetic, not generic SaaS.",
       "done": "No giant-string UI; current functionality preserved in real components; builds via Vite."
     },
     {
@@ -958,7 +958,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "summary": "A unified plugin framework so Vanta extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(argo-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Vanta already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Vanta's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Vanta's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'vanta plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
+      "summary": "A unified plugin framework so Vanta extends without core edits, like Claude/Codex/Hermes: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(vanta-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Vanta already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Vanta's kernel stays the boundary — every plugin tool routes through assess() (Hermes plugins run unsandboxed; Vanta's don't). Builds on PLUGIN-SYSTEM (install hygiene). 'vanta plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
       "done": "A third-party plugin dropped in ~/.vanta/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load."
     },
     {
@@ -1030,7 +1030,7 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "summary": "Phase 12: native Electron shell under argo-ts/desktop-app/ that launches the local Vanta server + opens a native window, clean lifecycle. Package/sign only after Jason approves the UX.",
+      "summary": "Phase 12: native Electron shell under vanta-ts/desktop-app/ that launches the local Vanta server + opens a native window, clean lifecycle. Package/sign only after Jason approves the UX.",
       "done": "A dev native window opens and drives Vanta with clean open/close/restart; signing deferred until UX is approved."
     },
     {
@@ -1771,7 +1771,7 @@
       "title": "Born-small codegen (registry-by-default + 300 gate)",
       "status": "shipped",
       "size": "M",
-      "summary": "Make the dark factory GENERATE small, independently-repairable units by default (the broken-leg property without later refactoring). Doc: docs/factory-evolution.md. 3 human-authored slices on factory/*.ts (skeleton): (1) verifier HARD GATE — pure checkNewFilesUnderLineLimit on NEW source files only (<=300; new-files-only is universally safe vs false-positiving bug fixes to pre-existing large files) + argo-ts/CONVENTIONS.md (3-tier taxonomy: HARD GATE/GUIDANCE/CONVENTION DOC + the Tools-registry template); (2) planner gene-transfusion — prepend a PROVEN-PATTERNS block (spec wins on conflict) to buildInstruction for roadmap+parked only; (3) executor wiring — inject per-dir CLAUDE.md from plan.touchedDirs (closes the loop: factory requires those docs but never reads them back). Canonical template = tools/index.ts ALL_TOOLS + buildRegistry; mirrored by repl/handlers HANDLERS.",
+      "summary": "Make the dark factory GENERATE small, independently-repairable units by default (the broken-leg property without later refactoring). Doc: docs/factory-evolution.md. 3 human-authored slices on factory/*.ts (skeleton): (1) verifier HARD GATE — pure checkNewFilesUnderLineLimit on NEW source files only (<=300; new-files-only is universally safe vs false-positiving bug fixes to pre-existing large files) + vanta-ts/CONVENTIONS.md (3-tier taxonomy: HARD GATE/GUIDANCE/CONVENTION DOC + the Tools-registry template); (2) planner gene-transfusion — prepend a PROVEN-PATTERNS block (spec wins on conflict) to buildInstruction for roadmap+parked only; (3) executor wiring — inject per-dir CLAUDE.md from plan.touchedDirs (closes the loop: factory requires those docs but never reads them back). Canonical template = tools/index.ts ALL_TOOLS + buildRegistry; mirrored by repl/handlers HANDLERS.",
       "done": "Factory refuses to birth a >300-line unit, instructs new-feature work to land as a registry unit (new file + one entry, no switch edit), and feeds each dir's own CLAUDE.md back to the agent.",
       "tier": "pebble",
       "model": "sonnet",

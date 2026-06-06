@@ -143,7 +143,7 @@ Design:
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
 
-Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `vanta-ts/CLAUDE.md` first.
 
 **Active goal:** Ship Phase 2 EF pebbles in order — test-first, commit per item, 869+ tests green throughout.
 

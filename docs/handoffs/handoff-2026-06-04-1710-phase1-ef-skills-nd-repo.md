@@ -61,30 +61,30 @@ Branch: feat/v1-hermes-parity
 
 | File | Status | What Changed |
 |------|--------|-------------|
-| `argo-ts/src/prompt.ts` | Modified | Export TIER_SEP + splitStableVolatile() |
-| `argo-ts/src/prompt.test.ts` | Modified | +4 splitStableVolatile tests |
-| `argo-ts/src/providers/anthropic.ts` | Modified | cache_control on stable prefix; toSystemBlocks helper |
-| `argo-ts/src/providers/anthropic.test.ts` | Modified | +4 cache_control tests |
-| `argo-ts/src/velocity/store.ts` | Created | VelocityEvent + appendVelocityEvent + readVelocityEvents + velocityStats |
-| `argo-ts/src/velocity/store.test.ts` | Created | 8 velocity tests |
-| `argo-ts/src/roadmap/move.ts` | Modified | Append ship/capture events after move |
-| `argo-ts/src/status.ts` | Modified | VelocityStats in StatusReport + formatStatus + gatherStatus |
-| `argo-ts/src/repl/research-gate.ts` | Created | Pure research gate functions |
-| `argo-ts/src/repl/research-gate.test.ts` | Created | 19 research gate tests |
-| `argo-ts/src/session.ts` | Modified | researchGateAfterTurn + ResearchGateState re-export |
-| `argo-ts/src/interactive.ts` | Modified | Wire research gate + complexity gate + topic shift |
-| `argo-ts/src/tui/use-agent-send.ts` | Modified | Wire all 3 gates; goals param; researchGateRef |
-| `argo-ts/src/repl/complexity-gate.ts` | Created | scoreComplexity + shouldSuggestPlanMode + buildComplexityNote |
-| `argo-ts/src/repl/complexity-gate.test.ts` | Created | 14 complexity gate tests |
-| `argo-ts/src/tui/app.tsx` | Modified | Pass setup.goals to useAgentSend |
-| `argo-ts/src/repl/choice-reduce.ts` | Created | topNextItems + wasReduced |
-| `argo-ts/src/repl/choice-reduce.test.ts` | Created | 8 choice reduce tests |
-| `argo-ts/src/repl/next.ts` | Modified | Roadmap-aware, top-3 filtered backlog in /next prompt |
-| `argo-ts/src/repl/task-boundary.ts` | Created | extractKeywords + topicOverlap + isTopicShift + builders |
-| `argo-ts/src/repl/task-boundary.test.ts` | Created | 15 task boundary tests |
-| `argo-ts/src/repl/boundary.ts` | Created | /boundary slash command handler |
-| `argo-ts/src/repl/handlers.ts` | Modified | Import + register boundary (stayed at 300 lines) |
-| `argo-ts/src/repl/catalog.ts` | Modified | /boundary entry |
+| `vanta-ts/src/prompt.ts` | Modified | Export TIER_SEP + splitStableVolatile() |
+| `vanta-ts/src/prompt.test.ts` | Modified | +4 splitStableVolatile tests |
+| `vanta-ts/src/providers/anthropic.ts` | Modified | cache_control on stable prefix; toSystemBlocks helper |
+| `vanta-ts/src/providers/anthropic.test.ts` | Modified | +4 cache_control tests |
+| `vanta-ts/src/velocity/store.ts` | Created | VelocityEvent + appendVelocityEvent + readVelocityEvents + velocityStats |
+| `vanta-ts/src/velocity/store.test.ts` | Created | 8 velocity tests |
+| `vanta-ts/src/roadmap/move.ts` | Modified | Append ship/capture events after move |
+| `vanta-ts/src/status.ts` | Modified | VelocityStats in StatusReport + formatStatus + gatherStatus |
+| `vanta-ts/src/repl/research-gate.ts` | Created | Pure research gate functions |
+| `vanta-ts/src/repl/research-gate.test.ts` | Created | 19 research gate tests |
+| `vanta-ts/src/session.ts` | Modified | researchGateAfterTurn + ResearchGateState re-export |
+| `vanta-ts/src/interactive.ts` | Modified | Wire research gate + complexity gate + topic shift |
+| `vanta-ts/src/tui/use-agent-send.ts` | Modified | Wire all 3 gates; goals param; researchGateRef |
+| `vanta-ts/src/repl/complexity-gate.ts` | Created | scoreComplexity + shouldSuggestPlanMode + buildComplexityNote |
+| `vanta-ts/src/repl/complexity-gate.test.ts` | Created | 14 complexity gate tests |
+| `vanta-ts/src/tui/app.tsx` | Modified | Pass setup.goals to useAgentSend |
+| `vanta-ts/src/repl/choice-reduce.ts` | Created | topNextItems + wasReduced |
+| `vanta-ts/src/repl/choice-reduce.test.ts` | Created | 8 choice reduce tests |
+| `vanta-ts/src/repl/next.ts` | Modified | Roadmap-aware, top-3 filtered backlog in /next prompt |
+| `vanta-ts/src/repl/task-boundary.ts` | Created | extractKeywords + topicOverlap + isTopicShift + builders |
+| `vanta-ts/src/repl/task-boundary.test.ts` | Created | 15 task boundary tests |
+| `vanta-ts/src/repl/boundary.ts` | Created | /boundary slash command handler |
+| `vanta-ts/src/repl/handlers.ts` | Modified | Import + register boundary (stayed at 300 lines) |
+| `vanta-ts/src/repl/catalog.ts` | Modified | /boundary entry |
 | `roadmap.json` | Modified | 6 items horizon→shipped |
 | `roadmap.html` | Modified | Regenerated after each ship |
 | `CLAUDE.md` | Modified | Test counts updated |
@@ -201,7 +201,7 @@ MEM-HOOKS → PROJ-IDENTITY → MEM-TIMESTAMPS → MEM-WORKINGMEM → BRAIN-5D
 ---
 Resuming Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta, branch `feat/v1-hermes-parity` (clean, 869 tests green, tsc clean, all committed and pushed).
 
-Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`argo-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `argo-ts/CLAUDE.md` first.
+Vanta = local trusted-operator agent: Rust safety kernel (`src/`) + TS agent layer (`vanta-ts/`, Node22/ESM/tsx). Read root `CLAUDE.md` + `vanta-ts/CLAUDE.md` first.
 
 **Last session shipped (Phase 1 — all done):**
 - PROMPT-STABILITY: Anthropic ephemeral cache_control on stable prompt prefix (splitStableVolatile in prompt.ts, AnthropicTextBlock array in anthropic.ts)

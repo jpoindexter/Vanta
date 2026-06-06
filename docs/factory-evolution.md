@@ -60,14 +60,14 @@ The others are unmanned, one-layer, greenfield. That trio is the moat — don't 
 
 Make the factory GENERATE small, independently-repairable units by default (the broken-leg property
 without later refactoring). The canonical template already exists: the **Tools registry**
-(`argo-ts/src/tools/index.ts` `ALL_TOOLS` + `buildRegistry()`), mirrored by the REPL `HANDLERS` registry.
+(`vanta-ts/src/tools/index.ts` `ALL_TOOLS` + `buildRegistry()`), mirrored by the REPL `HANDLERS` registry.
 
 > A new unit of capability is a NEW FILE implementing a shared interface, registered by adding ONE
 > entry to a flat list. Dispatch iterates the list; it is never edited to add a capability. One
 > concern per file · file ≤300 lines · function ≤50 · co-located `*.test.ts`.
 
 Three slices (all human-authored — `factory/*.ts` is kernel-protected skeleton):
-1. **Verifier HARD GATE + `argo-ts/CONVENTIONS.md`** — pure `checkNewFilesUnderLineLimit` (NEW source
+1. **Verifier HARD GATE + `vanta-ts/CONVENTIONS.md`** — pure `checkNewFilesUnderLineLimit` (NEW source
    files only — universally safe; scoping to all touched files would false-positive on bug fixes to
    pre-existing large files). Slot after the pure checks, before the git-stash block in `verify()`.
    Reject the "modified>new ratio" gate (false-positives). CONVENTIONS.md = the 3-tier taxonomy
@@ -80,7 +80,7 @@ Three slices (all human-authored — `factory/*.ts` is kernel-protected skeleton
    `plan.touchedDirs` into the factory instruction (pure `buildFactoryInstruction(plan, budget, dirContexts)`).
 
 ## Verification
-Per slice: `cd argo-ts && npx vitest run src/factory/<file>.test.ts` + `npx tsc --noEmit` + full suite
+Per slice: `cd vanta-ts && npx vitest run src/factory/<file>.test.ts` + `npx tsc --noEmit` + full suite
 green. Slice-1 gate is a pure unit test (301-line new file → `ok:false`). End-to-end: `vanta improve`
 (L1 suggest, zero writes) on a roadmap/parked item → confirm the printed instruction carries the
 born-small guidance + injected per-dir CLAUDE.md. Commit + push each slice.

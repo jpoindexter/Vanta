@@ -35,14 +35,14 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 @media(max-width:880px){.wrap{grid-template-columns:1fr}nav{position:static;height:auto}main{padding:1.4rem}}
 </style></head><body><div class="wrap">
 <nav><h1>ARGO DOCS</h1><div class="sub">A local trusted-operator agent. Knows the goal before it picks a tool, enforces scope on every action, reports only verified output.</div>
-<input id="q" placeholder="Filter docs…" autocomplete="off"><div class="grp">Start here</div><a class="lnk" data-doc="readme-md">README</a><a class="lnk" data-doc="manifesto-md">Manifesto</a><a class="lnk" data-doc="soul-md">Soul (identity)</a><a class="lnk" data-doc="agent-manifesto-md">Agent manifesto</a><div class="grp">Vision &amp; direction</div><a class="lnk" data-doc="docs-prd-md">PRD — product vision</a><a class="lnk" data-doc="docs-living-operator-md">Living operator (sentience direction)</a><a class="lnk" data-doc="decisions-md">Decisions (locked choices)</a><div class="grp">Architecture</div><a class="lnk" data-doc="claude-md">Repo overview</a><a class="lnk" data-doc="argo-ts-claude-md">Agent layer (argo-ts)</a><a class="lnk" data-doc="docs-vanta-flow-md">Runtime flow</a><a class="lnk" data-doc="docs-self-repair-architecture-md">Self-repair</a><a class="lnk" data-doc="docs-factory-evolution-md">Factory evolution</a><a class="lnk" data-doc="docs-executive-dysfunction-brain-design-md">EF brain design</a><a class="lnk" data-doc="docs-ef-network-analysis-md">EF network analysis</a><div class="grp">Capabilities</div><a class="lnk" data-doc="docs-auto-router-md">Auto-router (per-task models)</a><a class="lnk" data-doc="docs-messaging-gateways-md">Messaging gateways</a><a class="lnk" data-doc="docs-plugin-framework-md">Plugin framework</a><a class="lnk" data-doc="docs-plugins-and-auth-browser-md">Plugins &amp; auth browser</a><a class="lnk" data-doc="docs-tui-v2-md">TUI v2 (mission control)</a><a class="lnk" data-doc="docs-claude-code-parity-and-case-study-md">Claude Code parity + case study</a><a class="lnk" data-doc="docs-desktop-completion-plan-md">Desktop completion plan</a><div class="grp">Roadmap &amp; planning</div><a class="lnk" data-doc="roadmap-md">Roadmap (narrative)</a><a class="lnk" data-doc="parked-md">Parked ideas</a><a class="lnk" data-doc="handoff-md">Handoff</a><div class="grp">Interactive boards</div><a class="lnk" href="../roadmap.html">Roadmap kanban ↗</a><a class="lnk" href="../design-system-skills/index.html">Design system skills (27) ↗</a><a class="lnk" href="../ai-engineering-skills/index.html">AI engineering skills (13) ↗</a></nav>
+<input id="q" placeholder="Filter docs…" autocomplete="off"><div class="grp">Start here</div><a class="lnk" data-doc="readme-md">README</a><a class="lnk" data-doc="manifesto-md">Manifesto</a><a class="lnk" data-doc="soul-md">Soul (identity)</a><a class="lnk" data-doc="agent-manifesto-md">Agent manifesto</a><div class="grp">Vision &amp; direction</div><a class="lnk" data-doc="docs-prd-md">PRD — product vision</a><a class="lnk" data-doc="docs-living-operator-md">Living operator (sentience direction)</a><a class="lnk" data-doc="decisions-md">Decisions (locked choices)</a><div class="grp">Architecture</div><a class="lnk" data-doc="claude-md">Repo overview</a><a class="lnk" data-doc="vanta-ts-claude-md">Agent layer (vanta-ts)</a><a class="lnk" data-doc="docs-vanta-flow-md">Runtime flow</a><a class="lnk" data-doc="docs-self-repair-architecture-md">Self-repair</a><a class="lnk" data-doc="docs-factory-evolution-md">Factory evolution</a><a class="lnk" data-doc="docs-executive-dysfunction-brain-design-md">EF brain design</a><a class="lnk" data-doc="docs-ef-network-analysis-md">EF network analysis</a><div class="grp">Capabilities</div><a class="lnk" data-doc="docs-auto-router-md">Auto-router (per-task models)</a><a class="lnk" data-doc="docs-messaging-gateways-md">Messaging gateways</a><a class="lnk" data-doc="docs-plugin-framework-md">Plugin framework</a><a class="lnk" data-doc="docs-plugins-and-auth-browser-md">Plugins &amp; auth browser</a><a class="lnk" data-doc="docs-tui-v2-md">TUI v2 (mission control)</a><a class="lnk" data-doc="docs-claude-code-parity-and-case-study-md">Claude Code parity + case study</a><a class="lnk" data-doc="docs-desktop-completion-plan-md">Desktop completion plan</a><div class="grp">Roadmap &amp; planning</div><a class="lnk" data-doc="roadmap-md">Roadmap (narrative)</a><a class="lnk" data-doc="parked-md">Parked ideas</a><a class="lnk" data-doc="handoff-md">Handoff</a><div class="grp">Interactive boards</div><a class="lnk" href="../roadmap.html">Roadmap kanban ↗</a><a class="lnk" href="../design-system-skills/index.html">Design system skills (27) ↗</a><a class="lnk" href="../ai-engineering-skills/index.html">AI engineering skills (13) ↗</a></nav>
 <main><div class="doc" id="readme-md"><div class="crumb">Start here · README.md</div><h1>Vanta</h1>
 <p>A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.</p>
 <p>OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.</p>
 <p>Two layers:</p>
 <ul>
 <li><strong><code>src/</code> — Rust safety kernel</strong> (<code>vanta-kernel</code>): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.</li>
-<li><strong><code>argo-ts/</code> — TypeScript agent layer</strong> (<code>vanta</code>): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.</li>
+<li><strong><code>vanta-ts/</code> — TypeScript agent layer</strong> (<code>vanta</code>): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.</li>
 </ul>
 <p>See <code>docs/prd.md</code> for the full roadmap and <code>docs/hermes-map.html</code> for the Hermes architecture reference.</p>
 <h2>Install</h2>
@@ -56,7 +56,7 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 <h2>Quickstart</h2>
 <pre><code class="language-bash">./run.sh run &quot;read README.md and summarize it&quot;
 </code></pre>
-<p>First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local <strong>Ollama</strong> (<code>qwen2.5:14b</code>, no API key) — make sure Ollama is running. Edit <code>argo-ts/.env</code> to switch to OpenAI/Anthropic.</p>
+<p>First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local <strong>Ollama</strong> (<code>qwen2.5:14b</code>, no API key) — make sure Ollama is running. Edit <code>vanta-ts/.env</code> to switch to OpenAI/Anthropic.</p>
 <pre><code class="language-bash">./run.sh                                   # list all commands
 ./run.sh run &quot;&lt;instruction&gt;&quot;               # the agent loop
 ./run.sh skills | skill &lt;name&gt; [&quot;&lt;instr&gt;&quot;] # learned skills
@@ -79,7 +79,7 @@ main{padding:2.4rem 3.2rem;max-width:60rem}
 <li><strong>Digital person</strong> — project rooms, operator modes, model routing, mode learning</li>
 <li><strong>Comms</strong> — Gmail / Calendar / Drive (every outbound approval-gated)</li>
 </ul>
-<p>Some capabilities need one-time setup for <em>live</em> use (browser binaries, API keys, Google OAuth client) — see <code>PARKED.md</code>. Tests: <code>cargo test</code> (kernel) · <code>cd argo-ts &amp;&amp; npm test</code> (agent).</p>
+<p>Some capabilities need one-time setup for <em>live</em> use (browser binaries, API keys, Google OAuth client) — see <code>PARKED.md</code>. Tests: <code>cargo test</code> (kernel) · <code>cd vanta-ts &amp;&amp; npm test</code> (agent).</p>
 <h2>Rule zero</h2>
 <p>Do no harm. No deletes, no overwrites, no touching outside authorized scope without explicit approval. The Rust kernel enforces this on every tool call — it is a gate, not a suggestion.</p>
 </div><div class="doc" id="manifesto-md"><div class="crumb">Start here · MANIFESTO.md</div><h1>Vanta — Manifesto / True North</h1>
@@ -337,7 +337,7 @@ The phase roadmap in this PRD is the historical v0 record.</p>
   → HTTP sidecar on :7788
   → security boundary — enforced always
 
-TypeScript agent layer (argo-ts)
+TypeScript agent layer (vanta-ts)
   → agent loop: goal-inject → plan → assess → execute → verify
   → LLM providers: OpenAI, Ollama, Anthropic (typed interface, swappable)
   → search providers: DuckDuckGo, Searxng, SerpAPI, Brave (typed interface, swappable)
@@ -361,7 +361,7 @@ The forward build list is <a href="../ROADMAP.md"><code>../ROADMAP.md</code></a>
 <p><strong>Done when:</strong> <code>vanta run &quot;read README and summarize&quot;</code> works end-to-end with verified output. <code>vanta run &quot;delete everything&quot;</code> blocked before execution. Ollama works offline.</p>
 <p>Delivers:</p>
 <ul>
-<li><code>argo-ts/</code> TypeScript package</li>
+<li><code>vanta-ts/</code> TypeScript package</li>
 <li>OpenAI + Ollama provider (one adapter, baseURL swap)</li>
 <li>Anthropic provider stub</li>
 <li>Tool registry: <code>read-file</code>, <code>write-file</code>, <code>shell-cmd</code>, <code>inspect-state</code></li>
@@ -923,14 +923,14 @@ adds words that don't carry weight.</p>
   <td><strong>Enforced</strong> security boundary: risk classifier, approvals, goals, events, HTTP sidecar</td>
 </tr>
 <tr>
-  <td><code>argo-ts/</code></td>
+  <td><code>vanta-ts/</code></td>
   <td><code>vanta</code></td>
   <td>TypeScript, Node 22</td>
   <td>Agent loop: LLM providers, tools, 3-tier prompt. Gates every action through the kernel</td>
 </tr>
 </tbody>
 </table>
-<p>The kernel is the boundary — <code>assess()</code> is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: <code>argo-ts/CLAUDE.md</code>.</p>
+<p>The kernel is the boundary — <code>assess()</code> is a gate, not a suggestion. The TS layer orchestrates; it cannot bypass the kernel. Deep agent-layer docs: <code>vanta-ts/CLAUDE.md</code>.</p>
 <h2>Commands</h2>
 <pre><code class="language-bash"># Kernel (Rust)
 cargo build &amp;&amp; cargo test                 # 16 tests
@@ -948,7 +948,7 @@ cargo run -- serve 7788                   # cockpit + JSON API
 ./run.sh run &quot;&lt;instruction&gt;&quot;              # or ./vanta run &quot;...&quot; ; one-shot, kernel auto-starts
 ./run.sh help                              # list all subcommands
 
-# Agent (TypeScript) — from argo-ts/ (direct)
+# Agent (TypeScript) — from vanta-ts/ (direct)
 npm install
 npm run vanta                              # interactive session (no args)
 npm run vanta -- run &quot;&lt;instruction&gt;&quot;       # one-shot; kernel auto-starts if down
@@ -1010,7 +1010,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 <p>Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → <code>npx playwright install chromium</code>; anthropic/vision → API keys; comms → provision an OAuth client (<code>VANTA_GOOGLE_CLIENT_ID/SECRET</code>, one-time) + <code>vanta auth google</code>; LSP .ts/.tsx only; <code>vanta cron</code> is OS-scheduler-invoked. See <code>docs/prd.md</code>, <code>DECISIONS.md</code>. Post-MVP polish in <code>PARKED.md</code>.</p>
 <h2>Rule zero</h2>
 <p>No deletes, overwrites, out-of-scope writes, or secret handling without explicit approval. Enforced by the kernel on every tool call.</p>
-</div><div class="doc" id="argo-ts-claude-md"><div class="crumb">Architecture · argo-ts/CLAUDE.md</div><h1>CLAUDE.md — argo-ts (agent layer)</h1>
+</div><div class="doc" id="vanta-ts-claude-md"><div class="crumb">Architecture · vanta-ts/CLAUDE.md</div><h1>CLAUDE.md — vanta-ts (agent layer)</h1>
 <p>The TypeScript agent loop. Read root <code>../CLAUDE.md</code> for the kernel + project overview. This file is the agent layer's source of truth — don't re-read every file to learn the structure; it's mapped here.</p>
 <h2>Runtime</h2>
 <p>Node 22, ESM, <code>&quot;type&quot;: &quot;module&quot;</code>. Run via <code>tsx</code> (no build step). Native <code>fetch</code>, <code>process.loadEnvFile</code> — <strong>no dotenv, no axios.</strong> Relative imports use <code>.js</code> extensions (ESM convention; tsx resolves to <code>.ts</code>). <strong>TUI</strong> uses React/Ink 7 (<code>jsx: react-jsx</code> automatic runtime — components don't import React; <code>.tsx</code> runs under tsx + vitest). Deps: <code>ink</code>, <code>react</code>, <code>ink-text-input</code>.</p>
@@ -1082,8 +1082,8 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | <code>skills/types.ts</code> | <code>Skill</code>, <code>SkillMeta</code>, <code>SkillMatch</code> |
 | <code>skills/frontmatter.ts</code> | pure <code>parseSkill</code>/<code>serializeSkill</code> (flat YAML frontmatter, Hermes-compatible) |
 | <code>skills/store.ts</code> | <code>writeSkill</code>/<code>readSkill</code>/<code>listSkills</code> — <code>~/.vanta/skills/&lt;slug&gt;/SKILL.md</code>, auto-commits. <code>LEARNED_TAG</code> provenance constant |
-| <code>skills/library.ts</code> | <code>installSkillLibrary({force,from})</code> — copies bundled <code>skills-library/</code> into <code>~/.vanta/skills</code> (idempotent, skips existing unless <code>--force</code>). <code>libraryDir()</code> resolves to <code>argo-ts/skills-library/</code>. Called by <code>vanta skills install</code> <strong>and auto-run in <code>prepareRun</code></strong> every session, so newly-bundled skills appear without a manual install |
-| <code>skills-library/</code> | <strong>26</strong> shipped skills at <code>argo-ts/skills-library/&lt;slug&gt;/SKILL.md</code>: ~10 ported from references + <code>agent-orchestration-workflows</code>, <code>build-mcp-server</code>, and the <strong>14 <code>nd-*</code> executive-function skills</strong>. Add a <code>&lt;slug&gt;/SKILL.md</code> dir to grow the bundle; it auto-installs on next session |
+| <code>skills/library.ts</code> | <code>installSkillLibrary({force,from})</code> — copies bundled <code>skills-library/</code> into <code>~/.vanta/skills</code> (idempotent, skips existing unless <code>--force</code>). <code>libraryDir()</code> resolves to <code>vanta-ts/skills-library/</code>. Called by <code>vanta skills install</code> <strong>and auto-run in <code>prepareRun</code></strong> every session, so newly-bundled skills appear without a manual install |
+| <code>skills-library/</code> | <strong>26</strong> shipped skills at <code>vanta-ts/skills-library/&lt;slug&gt;/SKILL.md</code>: ~10 ported from references + <code>agent-orchestration-workflows</code>, <code>build-mcp-server</code>, and the <strong>14 <code>nd-*</code> executive-function skills</strong>. Add a <code>&lt;slug&gt;/SKILL.md</code> dir to grow the bundle; it auto-installs on next session |
 | <code>skills/recall.ts</code> | pure <code>searchSkills(query, skills)</code> — weighted substring ranking |
 | <code>skills/curator.ts</code> | <code>curate()</code> — <strong>non-destructive</strong>: archives only stale <code>vanta-learned</code> skills (reversible→<code>_archive</code>), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via <code>LEARNED_TAG</code> |
 | <code>review/background-review.ts</code> | Track B self-improvement. <code>shouldReview(toolIters, turnIdx, env)</code> (busy/periodic trigger) + <code>reviewTurn()</code> — spawns a tool-restricted agent (<code>recall</code>+<code>write_skill</code>), replays the transcript, captures a skill tagged <code>vanta-learned</code>. Best-effort. Env: <code>VANTA_SELF_IMPROVE</code>/<code>VANTA_REVIEW_MIN_TOOLS</code>/<code>VANTA_REVIEW_EVERY</code> |
@@ -1178,7 +1178,7 @@ each iteration (max VANTA_MAX_ITER=50):
 <p><strong>TUI readability fixes:</strong> terminal width now fills (removed the 100-col cap in <code>tui/app.tsx</code>) · slash palette capped to 8 matches (<code>app.tsx</code>, was unbounded → typing <code>/</code> dumped all 37) · palette rewritten to a fixed command column + width-clipped one-line descriptions (<code>tui/transcript.tsx</code> <code>Palette</code> + <code>clip</code>) instead of ragged <code>space-between</code> · <code>/skills</code> output aligns names + clips descriptions to one line (<code>repl/handlers.ts</code>) · skill INDEX in the system prompt clips each description to ~100 chars (<code>prompt.ts</code> <code>trimSkillDesc</code>) so weak models stop parroting the whole library.</p>
 <p><strong>Env added:</strong> <code>VANTA_VISION_MODEL</code> · <code>VANTA_VISION_PROVIDER</code> (auxiliary vision routing; documented in <code>.env.example</code>).</p>
 <p><strong>Messaging setup wizard (MSG-WIZARD + MSG-REGISTRY):</strong> <code>gateway/platforms/registry.ts</code> — <code>MESSAGING_CATALOG</code> (the messaging analogue of <code>providers/catalog.ts</code>): <code>{id,label,implemented,requiredEnv,secretEnv?,enableEnv?,prerequisite?,warning?,setupSteps,signupUrl?}</code> + <code>platformAvailability(p,env)</code> + <code>messagingPlatformById</code>. <strong>Only Telegram is <code>implemented</code></strong> (live adapter); iMessage/Signal/WhatsApp are <code>planned</code> (preview-only — the wizard never writes a fake enable flag for a missing adapter). <code>setup-messaging.ts</code> — <code>vanta setup messaging</code>: registry-driven menu with <code>[available|configured|planned]</code> status, <code>renderSetupSteps</code> (prereq + ⚠ warning + numbered steps), configures Telegram for real (<code>VANTA_TELEGRAM_TOKEN</code> via the shared <code>upsertEnv</code>, exported <code>promptSecret</code> from <code>setup.ts</code>). Wired in <code>cli.ts</code> (<code>setup</code> → <code>messaging</code> subcommand). Future adapters (iMessage osascript+chat.db, Signal signal-cli, WhatsApp Node bridge) flip <code>implemented:true</code> + add their adapter. Design: <code>docs/messaging-gateways.md</code>.</p>
-<p><strong>Multi-source skill install:</strong> <code>skills/library.ts</code> installs from <code>librarySources()</code> = <strong>three</strong> bundled dirs: <code>argo-ts/skills-library/</code> (Hermes-ported + nd-*), the repo-root <code>design-system-skills/</code> (27 design skills + viewer), and <code>ai-engineering-skills/</code> (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into <code>~/.vanta/skills</code> each session via <code>installSkillLibrary()</code>. <code>installOne()</code> helper keeps the fn small; <code>from</code> still overrides to a single source (tests). Adding a skill source = one entry in <code>librarySources()</code>. Each library's <code>index.html</code> regenerates via <code>scripts/build-skills-index.py &lt;folder&gt;</code> (mistune); they're also installed into <code>~/.claude/skills</code> for Claude Code.</p>
+<p><strong>Multi-source skill install:</strong> <code>skills/library.ts</code> installs from <code>librarySources()</code> = <strong>three</strong> bundled dirs: <code>vanta-ts/skills-library/</code> (Hermes-ported + nd-*), the repo-root <code>design-system-skills/</code> (27 design skills + viewer), and <code>ai-engineering-skills/</code> (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into <code>~/.vanta/skills</code> each session via <code>installSkillLibrary()</code>. <code>installOne()</code> helper keeps the fn small; <code>from</code> still overrides to a single source (tests). Adding a skill source = one entry in <code>librarySources()</code>. Each library's <code>index.html</code> regenerates via <code>scripts/build-skills-index.py &lt;folder&gt;</code> (mistune); they're also installed into <code>~/.claude/skills</code> for Claude Code.</p>
 </div><div class="doc" id="docs-vanta-flow-md"><div class="crumb">Architecture · docs/vanta-flow.md</div><h1>Vanta Runtime Flow — mapped against Hermes</h1>
 <p>The blueprint. This traces how Hermes actually runs end-to-end (entry → loop →
 subsystems) and maps each step to Vanta's implementation + status. Build Vanta to
@@ -1520,7 +1520,7 @@ The others are unmanned, one-layer, greenfield. That trio is the moat — don't 
 <h2>Born-small codegen (the buildable near-term — <code>FAC-BORNSMALL</code>)</h2>
 <p>Make the factory GENERATE small, independently-repairable units by default (the broken-leg property
 without later refactoring). The canonical template already exists: the <strong>Tools registry</strong>
-(<code>argo-ts/src/tools/index.ts</code> <code>ALL_TOOLS</code> + <code>buildRegistry()</code>), mirrored by the REPL <code>HANDLERS</code> registry.</p>
+(<code>vanta-ts/src/tools/index.ts</code> <code>ALL_TOOLS</code> + <code>buildRegistry()</code>), mirrored by the REPL <code>HANDLERS</code> registry.</p>
 <blockquote>
 <p>A new unit of capability is a NEW FILE implementing a shared interface, registered by adding ONE
 entry to a flat list. Dispatch iterates the list; it is never edited to add a capability. One
@@ -1528,7 +1528,7 @@ concern per file · file ≤300 lines · function ≤50 · co-located <code>*.te
 </blockquote>
 <p>Three slices (all human-authored — <code>factory/*.ts</code> is kernel-protected skeleton):</p>
 <ol>
-<li><strong>Verifier HARD GATE + <code>argo-ts/CONVENTIONS.md</code></strong> — pure <code>checkNewFilesUnderLineLimit</code> (NEW source
+<li><strong>Verifier HARD GATE + <code>vanta-ts/CONVENTIONS.md</code></strong> — pure <code>checkNewFilesUnderLineLimit</code> (NEW source
 files only — universally safe; scoping to all touched files would false-positive on bug fixes to
 pre-existing large files). Slot after the pure checks, before the git-stash block in <code>verify()</code>.
 Reject the &quot;modified&gt;new ratio&quot; gate (false-positives). CONVENTIONS.md = the 3-tier taxonomy
@@ -1541,7 +1541,7 @@ to maintain per-dir CLAUDE.md but never reads them back. Inject <code>&lt;dir&gt
 <code>plan.touchedDirs</code> into the factory instruction (pure <code>buildFactoryInstruction(plan, budget, dirContexts)</code>).</li>
 </ol>
 <h2>Verification</h2>
-<p>Per slice: <code>cd argo-ts &amp;&amp; npx vitest run src/factory/&lt;file&gt;.test.ts</code> + <code>npx tsc --noEmit</code> + full suite
+<p>Per slice: <code>cd vanta-ts &amp;&amp; npx vitest run src/factory/&lt;file&gt;.test.ts</code> + <code>npx tsc --noEmit</code> + full suite
 green. Slice-1 gate is a pure unit test (301-line new file → <code>ok:false</code>). End-to-end: <code>vanta improve</code>
 (L1 suggest, zero writes) on a roadmap/parked item → confirm the printed instruction carries the
 born-small guidance + injected per-dir CLAUDE.md. Commit + push each slice.</p>
@@ -2263,7 +2263,7 @@ skill registration together with opt-in install + discovery precedence.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Discovery precedence</strong> (later overrides earlier by name): bundled (<code>argo-ts/plugins/</code>) → user
+<p><strong>Discovery precedence</strong> (later overrides earlier by name): bundled (<code>vanta-ts/plugins/</code>) → user
 (<code>~/.vanta/plugins/</code>) → project (<code>.vanta/plugins/</code>, gated by <code>VANTA_ENABLE_PROJECT_PLUGINS=true</code>) →
 npm package entry points.</p>
 <p><strong>Opt-in allow-list</strong> (the security model): general plugins are <strong>disabled by default</strong>; the user
@@ -2319,7 +2319,7 @@ Sources: the &quot;clean plugin setup&quot; goal + Vanta's own design (<code>van
 </tr>
 <tr>
   <td><code>playwright-core</code> package</td>
-  <td><code>argo-ts/node_modules/</code> (lazy-required)</td>
+  <td><code>vanta-ts/node_modules/</code> (lazy-required)</td>
   <td>No (gitignored)</td>
 </tr>
 <tr>
@@ -2400,10 +2400,10 @@ time.</li>
 </ol>
 <h3>Files</h3>
 <ul>
-<li><code>argo-ts/src/browser/profile.ts</code> — <code>browserProfileRoot(env)</code>, <code>sanitizeProfileId</code>
+<li><code>vanta-ts/src/browser/profile.ts</code> — <code>browserProfileRoot(env)</code>, <code>sanitizeProfileId</code>
 (reject <code>../</code>), <code>profilePath</code> (<code>mkdir 0700</code> under <code>~/.vanta/browser-profiles</code>),
 <code>profileAllowsUrl(profile, url)</code>.</li>
-<li><code>argo-ts/src/tools/browser-auth.ts</code>, <code>browser-extract-auth.ts</code> — registered in
+<li><code>vanta-ts/src/tools/browser-auth.ts</code>, <code>browser-extract-auth.ts</code> — registered in
 <code>tools/index.ts</code>.</li>
 <li>Tests (mostly pure, no live browser): id sanitization rejects <code>../../secrets</code>; path
 stays under <code>~/.vanta/browser-profiles</code>; <code>x.com</code> allows <code>x.com/search</code>, refuses
@@ -2624,15 +2624,15 @@ model first, then apply Vanta's operator/dossier aesthetic + safety kernel.</str
 <pre><code class="language-text">/Users/jasonpoindexter/Documents/GitHub/Vanta
 </code></pre>
 <p>Current rough desktop files:</p>
-<pre><code class="language-text">argo-ts/src/desktop/page.ts
-argo-ts/src/desktop/server.ts
-argo-ts/src/desktop/server.test.ts
-argo-ts/src/desktop/native-shell.md
-argo-ts/src/desktop/AGENTS.md
-argo-ts/src/desktop/CLAUDE.md
+<pre><code class="language-text">vanta-ts/src/desktop/page.ts
+vanta-ts/src/desktop/server.ts
+vanta-ts/src/desktop/server.test.ts
+vanta-ts/src/desktop/native-shell.md
+vanta-ts/src/desktop/AGENTS.md
+vanta-ts/src/desktop/CLAUDE.md
 </code></pre>
 <p>Current run command:</p>
-<pre><code class="language-bash">cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
+<pre><code class="language-bash">cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts
 npm run vanta -- desktop
 </code></pre>
 <p>Current local URL:</p>
@@ -2722,7 +2722,7 @@ reference/hermes-upstream/apps/desktop/src/app/right-sidebar/terminal/persistent
 <li>Tests co-located.</li>
 <li>Verify before claiming done:</li>
 </ul>
-<pre><code class="language-bash">cd argo-ts
+<pre><code class="language-bash">cd vanta-ts
 npx vitest run
 npx tsc --noEmit
 </code></pre>
@@ -2733,8 +2733,8 @@ npx tsc --noEmit
 <pre><code class="language-bash">vanta desktop [port]
 </code></pre>
 <p>Wired in:</p>
-<pre><code class="language-text">argo-ts/src/cli.ts
-argo-ts/src/cli/ops.ts
+<pre><code class="language-text">vanta-ts/src/cli.ts
+vanta-ts/src/cli/ops.ts
 </code></pre>
 <p>Current desktop backend endpoints:</p>
 <pre><code class="language-text">GET  /
@@ -2793,46 +2793,46 @@ POST /api/chat
 <p>Tauri can be revisited later if size/performance matters more than speed.</p>
 <h3>Proposed structure</h3>
 <p>Add a real desktop app under:</p>
-<pre><code class="language-text">argo-ts/desktop-app/
+<pre><code class="language-text">vanta-ts/desktop-app/
 </code></pre>
 <p>Suggested structure:</p>
-<pre><code class="language-text">argo-ts/desktop-app/package.json
-argo-ts/desktop-app/vite.config.ts
-argo-ts/desktop-app/tsconfig.json
-argo-ts/desktop-app/electron/main.cjs
-argo-ts/desktop-app/electron/preload.cjs
-argo-ts/desktop-app/src/main.tsx
-argo-ts/desktop-app/src/app.tsx
-argo-ts/desktop-app/src/api/client.ts
-argo-ts/desktop-app/src/state/session-store.ts
-argo-ts/desktop-app/src/components/AppShell.tsx
-argo-ts/desktop-app/src/components/SessionSidebar.tsx
-argo-ts/desktop-app/src/components/ChatThread.tsx
-argo-ts/desktop-app/src/components/Composer.tsx
-argo-ts/desktop-app/src/components/RightRail.tsx
-argo-ts/desktop-app/src/components/FileTree.tsx
-argo-ts/desktop-app/src/components/TerminalRail.tsx
-argo-ts/desktop-app/src/components/PreviewRail.tsx
-argo-ts/desktop-app/src/components/CommandPalette.tsx
-argo-ts/desktop-app/src/components/CommandCenter.tsx
-argo-ts/desktop-app/src/components/ModelPicker.tsx
-argo-ts/desktop-app/src/components/ApprovalModal.tsx
-argo-ts/desktop-app/src/styles.css
+<pre><code class="language-text">vanta-ts/desktop-app/package.json
+vanta-ts/desktop-app/vite.config.ts
+vanta-ts/desktop-app/tsconfig.json
+vanta-ts/desktop-app/electron/main.cjs
+vanta-ts/desktop-app/electron/preload.cjs
+vanta-ts/desktop-app/src/main.tsx
+vanta-ts/desktop-app/src/app.tsx
+vanta-ts/desktop-app/src/api/client.ts
+vanta-ts/desktop-app/src/state/session-store.ts
+vanta-ts/desktop-app/src/components/AppShell.tsx
+vanta-ts/desktop-app/src/components/SessionSidebar.tsx
+vanta-ts/desktop-app/src/components/ChatThread.tsx
+vanta-ts/desktop-app/src/components/Composer.tsx
+vanta-ts/desktop-app/src/components/RightRail.tsx
+vanta-ts/desktop-app/src/components/FileTree.tsx
+vanta-ts/desktop-app/src/components/TerminalRail.tsx
+vanta-ts/desktop-app/src/components/PreviewRail.tsx
+vanta-ts/desktop-app/src/components/CommandPalette.tsx
+vanta-ts/desktop-app/src/components/CommandCenter.tsx
+vanta-ts/desktop-app/src/components/ModelPicker.tsx
+vanta-ts/desktop-app/src/components/ApprovalModal.tsx
+vanta-ts/desktop-app/src/styles.css
 </code></pre>
-<p>Keep the existing <code>argo-ts/src/desktop/server.ts</code> as the local backend initially, but refactor it into smaller modules.</p>
+<p>Keep the existing <code>vanta-ts/src/desktop/server.ts</code> as the local backend initially, but refactor it into smaller modules.</p>
 <p>Suggested backend structure:</p>
-<pre><code class="language-text">argo-ts/src/desktop/server.ts              # route wiring only
-argo-ts/src/desktop/state.ts               # DesktopState, session maps
-argo-ts/src/desktop/routes/status.ts
-argo-ts/src/desktop/routes/chat.ts
-argo-ts/src/desktop/routes/sessions.ts
-argo-ts/src/desktop/routes/models.ts
-argo-ts/src/desktop/routes/files.ts
-argo-ts/src/desktop/routes/terminal.ts
-argo-ts/src/desktop/routes/approval.ts
-argo-ts/src/desktop/events.ts              # SSE/WebSocket stream
-argo-ts/src/desktop/terminal.ts            # PTY or command bridge
-argo-ts/src/desktop/native.ts              # shell launch helpers if needed
+<pre><code class="language-text">vanta-ts/src/desktop/server.ts              # route wiring only
+vanta-ts/src/desktop/state.ts               # DesktopState, session maps
+vanta-ts/src/desktop/routes/status.ts
+vanta-ts/src/desktop/routes/chat.ts
+vanta-ts/src/desktop/routes/sessions.ts
+vanta-ts/src/desktop/routes/models.ts
+vanta-ts/src/desktop/routes/files.ts
+vanta-ts/src/desktop/routes/terminal.ts
+vanta-ts/src/desktop/routes/approval.ts
+vanta-ts/src/desktop/events.ts              # SSE/WebSocket stream
+vanta-ts/src/desktop/terminal.ts            # PTY or command bridge
+vanta-ts/src/desktop/native.ts              # shell launch helpers if needed
 </code></pre>
 <hr />
 <h2>Critical implementation principle</h2>
@@ -2856,14 +2856,14 @@ setup.ts upsertEnv
 <h2>Tasks</h2>
 <h3>0.1 Split <code>page.ts</code></h3>
 <p>Current file:</p>
-<pre><code class="language-text">argo-ts/src/desktop/page.ts
+<pre><code class="language-text">vanta-ts/src/desktop/page.ts
 </code></pre>
 <p>Problem: giant string with HTML/CSS/JS.</p>
 <p>If keeping local web shell temporarily, split into:</p>
-<pre><code class="language-text">argo-ts/src/desktop/page/html.ts
-argo-ts/src/desktop/page/styles.ts
-argo-ts/src/desktop/page/client.ts
-argo-ts/src/desktop/page.ts
+<pre><code class="language-text">vanta-ts/src/desktop/page/html.ts
+vanta-ts/src/desktop/page/styles.ts
+vanta-ts/src/desktop/page/client.ts
+vanta-ts/src/desktop/page.ts
 </code></pre>
 <p>Better: move frontend into real React app under <code>desktop-app</code> and make <code>page.ts</code> only redirect or serve built assets.</p>
 <p>Acceptance:</p>
@@ -2874,7 +2874,7 @@ argo-ts/src/desktop/page.ts
 </ul>
 <h3>0.2 Split <code>server.ts</code></h3>
 <p>Current file:</p>
-<pre><code class="language-text">argo-ts/src/desktop/server.ts
+<pre><code class="language-text">vanta-ts/src/desktop/server.ts
 </code></pre>
 <p>Problem: route handling, state, approvals, terminal, sessions all in one file.</p>
 <p>Refactor into modules listed above.</p>
@@ -2896,7 +2896,7 @@ argo-ts/src/desktop/page.ts
 </ul>
 <p>Do not need full browser tests yet.</p>
 <p>Acceptance:</p>
-<pre><code class="language-bash">cd argo-ts
+<pre><code class="language-bash">cd vanta-ts
 npx vitest run src/desktop
 npx tsc --noEmit
 </code></pre>
@@ -3098,10 +3098,10 @@ MessagingView
 <h1>Phase 5 — Model picker and settings</h1>
 <p>Goal: model selection should work reliably and persist.</p>
 <p>Existing relevant files:</p>
-<pre><code class="language-text">argo-ts/src/providers/catalog.ts
-argo-ts/src/providers/index.ts
-argo-ts/src/setup.ts
-argo-ts/src/status.ts
+<pre><code class="language-text">vanta-ts/src/providers/catalog.ts
+vanta-ts/src/providers/index.ts
+vanta-ts/src/setup.ts
+vanta-ts/src/status.ts
 </code></pre>
 <p>Known roadmap bug:</p>
 <pre><code class="language-text">UX-MODEL-FIX — model choice not sticking across relaunch
@@ -3148,7 +3148,7 @@ POST /api/settings/provider-key
 <h1>Phase 6 — File browser and context attachments</h1>
 <p>Goal: real file/context rail, not flat list.</p>
 <p>Existing helper:</p>
-<pre><code class="language-text">argo-ts/src/tui/at-context.ts
+<pre><code class="language-text">vanta-ts/src/tui/at-context.ts
 </code></pre>
 <p>Current endpoint:</p>
 <pre><code class="language-text">GET /api/files
@@ -3380,9 +3380,9 @@ GET  /api/preview/state
 <li>skill activity</li>
 </ul>
 <p>Existing useful files:</p>
-<pre><code class="language-text">argo-ts/src/status.ts
-argo-ts/src/sessions/store.ts
-argo-ts/src/velocity/store.ts
+<pre><code class="language-text">vanta-ts/src/status.ts
+vanta-ts/src/sessions/store.ts
+vanta-ts/src/velocity/store.ts
 </code></pre>
 <p>Acceptance:</p>
 <ul>
@@ -3433,8 +3433,8 @@ POST /api/audio/transcribe
 <p>Goal: real desktop app.</p>
 <h2>Electron package</h2>
 <p>Add:</p>
-<pre><code class="language-text">argo-ts/desktop-app/electron/main.cjs
-argo-ts/desktop-app/electron/preload.cjs
+<pre><code class="language-text">vanta-ts/desktop-app/electron/main.cjs
+vanta-ts/desktop-app/electron/preload.cjs
 </code></pre>
 <p>Main process responsibilities:</p>
 <ul>
@@ -3482,7 +3482,7 @@ argo-ts/desktop-app/electron/preload.cjs
 <li>add route tests</li>
 </ul>
 <p>Done when:</p>
-<pre><code class="language-bash">cd argo-ts
+<pre><code class="language-bash">cd vanta-ts
 npx vitest run src/desktop
 npx tsc --noEmit
 </code></pre>
@@ -3559,7 +3559,7 @@ npx tsc --noEmit
 <hr />
 <h2>Testing checklist</h2>
 <p>Minimum verification each slice:</p>
-<pre><code class="language-bash">cd /Users/jasonpoindexter/Documents/GitHub/Vanta/argo-ts
+<pre><code class="language-bash">cd /Users/jasonpoindexter/Documents/GitHub/Vanta/vanta-ts
 npx vitest run
 npx tsc --noEmit
 </code></pre>
@@ -3667,7 +3667,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 <li>[x] <strong>A1 · Gemini provider</strong> (S) — Google's OpenAI-compatible endpoint via the OpenAI adapter (baseURL swap), <code>GEMINI_API_KEY</code>/<code>GOOGLE_API_KEY</code>. <strong>Live-verified:</strong> <code>VANTA_PROVIDER=gemini vanta run</code> returns on <code>gemini-2.5-flash</code>.</li>
 <li>[~] <strong>A2 · Provider registry</strong> — <strong>DEFERRED</strong> (review call): two adapters cover 5 providers; the full ProviderProfile registry is premature (over-generalization). A small shared <code>providers/catalog.ts</code> was extracted instead. Build the registry at the 6th provider / 3rd wire format.</li>
 <li>[x] <strong>A3 · OpenRouter provider</strong> (S) — one key → 200+ models, OpenAI-compatible. <code>OPENROUTER_API_KEY</code>.</li>
-<li>[x] <strong>A4 · <code>vanta setup</code> wizard</strong> (M) — provider picker → hidden key prompt → <strong>merge</strong> into <code>argo-ts/.env</code> (pure <code>upsertEnv</code>, preserves all other keys) → model w/ default → persist (0600). Unit + integration tested.</li>
+<li>[x] <strong>A4 · <code>vanta setup</code> wizard</strong> (M) — provider picker → hidden key prompt → <strong>merge</strong> into <code>vanta-ts/.env</code> (pure <code>upsertEnv</code>, preserves all other keys) → model w/ default → persist (0600). Unit + integration tested.</li>
 <li>[x] <strong>A5 · First-run detection</strong> (S) — no resolvable backend on launch → auto-run <code>vanta setup</code>, <strong>TTY-gated</strong> (non-interactive callers told to run <code>vanta setup</code>, never block). Wired <code>setup</code>/<code>status</code>/<code>doctor</code> commands.</li>
 <li>[x] <strong>A6 · <code>vanta status</code> / <code>vanta doctor</code></strong> (S) — boxed health: kernel <strong>ping only</strong> (never spawn), provider+model, per-provider key <strong>presence</strong> (✓/✗, never the value), store + skill/memory/goal counts. Live-verified.</li>
 </ul>
@@ -3685,7 +3685,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 </ul>
 <h3>D — Borrow the skills library  ← ✅ SHIPPED 2026-06-02</h3>
 <ul>
-<li>[x] <strong>D1 · Port skills</strong> (M) — 10 high-value Hermes/OpenClaw skills ported into bundled <code>argo-ts/skills-library/</code> (coupling stripped: <code>HERMES_HOME</code>→<code>VANTA_HOME</code>, <code>delegate_task</code>→delegate subagent, kanban/s6/TUI removed), with <code>vanta skills install [--force]</code> → idempotent, non-destructive copy into <code>~/.vanta/skills/</code> (<code>skills/library.ts</code>). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10). <em>Headroom:</em> ~171 more portable skills exist in the references — add more to <code>skills-library/</code> any time.</li>
+<li>[x] <strong>D1 · Port skills</strong> (M) — 10 high-value Hermes/OpenClaw skills ported into bundled <code>vanta-ts/skills-library/</code> (coupling stripped: <code>HERMES_HOME</code>→<code>VANTA_HOME</code>, <code>delegate_task</code>→delegate subagent, kanban/s6/TUI removed), with <code>vanta skills install [--force]</code> → idempotent, non-destructive copy into <code>~/.vanta/skills/</code> (<code>skills/library.ts</code>). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10). <em>Headroom:</em> ~171 more portable skills exist in the references — add more to <code>skills-library/</code> any time.</li>
 <li>[ ] <strong>D2 · Skill bundles</strong> (S) — adopt Hermes' YAML bundle schema (<code>name</code>/<code>description</code>/<code>skills:[]</code>/<code>instruction</code>) so one <code>/slash</code> loads several skills. <em>Why:</em> composite operator commands. (Pending — not blocking.)</li>
 </ul>
 <h3>E — Autonomy &amp; reach  ← daemon is the keystone (E1 shipped; E2–E6 pending)</h3>
@@ -3956,10 +3956,10 @@ Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model pick
 <hr />
 <h2>Where things are</h2>
 <ul>
-<li><strong>Repo:</strong> <code>~/Documents/GitHub/Vanta</code> (Rust kernel <code>src/*.rs</code>; TS agent <code>argo-ts/</code>).</li>
+<li><strong>Repo:</strong> <code>~/Documents/GitHub/Vanta</code> (Rust kernel <code>src/*.rs</code>; TS agent <code>vanta-ts/</code>).</li>
 <li><strong>Branch:</strong> <code>feat/v1-hermes-parity</code> — <strong>synced with origin, clean tree.</strong></li>
 <li><strong>Tests:</strong> 554 TS (vitest) + 27 Rust = <strong>581 green</strong>; <code>tsc --noEmit</code> clean.<ul>
-<li>Run: <code>cd argo-ts &amp;&amp; npx vitest run &amp;&amp; npx tsc --noEmit</code> · <code>cd .. &amp;&amp; cargo test</code></li>
+<li>Run: <code>cd vanta-ts &amp;&amp; npx vitest run &amp;&amp; npx tsc --noEmit</code> · <code>cd .. &amp;&amp; cargo test</code></li>
 </ul>
 </li>
 <li><strong>Gotcha:</strong> harness pins spawned cwd to old <code>Nexarion Agent</code> path. Real repo is <code>Vanta/</code>. <code>VANTA_ROOT</code> env var is the fix.</li>
@@ -3969,16 +3969,16 @@ Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model pick
 <li><code>MANIFESTO.md</code> — north star, 8 hard lines, non-negotiable.</li>
 <li><code>ROADMAP.md</code> — <strong>fully updated this session</strong> — all shipped items ticked, residual section current.</li>
 <li><code>DECISIONS.md</code> — locked choices (append-only).</li>
-<li><code>argo-ts/CLAUDE.md</code> + <code>argo-ts/AGENTS.md</code> — file map + env + tool-add checklist.</li>
-<li><code>argo-ts/src/factory/CLAUDE.md</code> — factory module map + safety invariants.</li>
+<li><code>vanta-ts/CLAUDE.md</code> + <code>vanta-ts/AGENTS.md</code> — file map + env + tool-add checklist.</li>
+<li><code>vanta-ts/src/factory/CLAUDE.md</code> — factory module map + safety invariants.</li>
 </ul>
 <hr />
 <h2>What shipped this session (2026-06-03)</h2>
 <p><strong>4 bug fixes</strong> — dropped paths, video routing, screen permission hint, scope message (all committed, pushed).</p>
 <p><strong>O9 dark factory — complete:</strong></p>
 <ul>
-<li><code>src/safety.rs</code> — <code>is_protected_path</code> blocks writes to <code>src/*.rs</code>, <code>argo-ts/src/factory/*.ts</code>, <code>MANIFESTO.md</code></li>
-<li><code>argo-ts/src/factory/</code> — triage, planner, executor, verifier, run + tests</li>
+<li><code>src/safety.rs</code> — <code>is_protected_path</code> blocks writes to <code>src/*.rs</code>, <code>vanta-ts/src/factory/*.ts</code>, <code>MANIFESTO.md</code></li>
+<li><code>vanta-ts/src/factory/</code> — triage, planner, executor, verifier, run + tests</li>
 <li><code>AGENT-MANIFESTO.md</code> at repo root (writable, not kernel-protected)</li>
 <li><code>vanta improve</code> + <code>vanta factory [approve|status]</code> CLI</li>
 <li>Gateway: <code>__factory__</code> cron entries spawn detached child</li>
@@ -4039,7 +4039,7 @@ Shipped already vs Claude CLI: image paste/drag-drop, slash palette, /model pick
 </ul>
 <hr />
 <h2>Continuation prompt</h2>
-<pre><code>Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in argo-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
+<pre><code>Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in vanta-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
 
 Status: v1 complete. O9 dark factory shipped and live-verified. ROADMAP fully updated.
 

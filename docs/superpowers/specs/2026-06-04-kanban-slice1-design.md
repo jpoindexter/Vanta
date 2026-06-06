@@ -91,10 +91,10 @@ Missing args (`vanta roadmap move` with no id/status): print usage, exit 1.
 
 | File | Action |
 |------|--------|
-| `argo-ts/src/roadmap/move.ts` | create |
-| `argo-ts/src/roadmap/move.test.ts` | create |
-| `argo-ts/src/tools/roadmap-move.ts` | create |
-| `argo-ts/src/tools/index.ts` | register roadmapMoveTool |
-| `argo-ts/src/cli/ops.ts` | update runRoadmapCommand signature + move dispatch |
-| `argo-ts/src/cli.ts` | pass rest to runRoadmapCommand |
-| `argo-ts/src/tools/tools.test.ts` | add roadmap_move to registry list |
+| `vanta-ts/src/roadmap/move.ts` | create |
+| `vanta-ts/src/roadmap/move.test.ts` | create |
+| `vanta-ts/src/tools/roadmap-move.ts` | create |
+| `vanta-ts/src/tools/index.ts` | register roadmapMoveTool |
+| `vanta-ts/src/cli/ops.ts` | update runRoadmapCommand signature + move dispatch |
+| `vanta-ts/src/cli.ts` | pass rest to runRoadmapCommand |
+| `vanta-ts/src/tools/tools.test.ts` | add roadmap_move to registry list |

@@ -14,25 +14,25 @@
 
 | Action | Path | Responsibility |
 |--------|------|----------------|
-| Create | `argo-ts/src/roadmap/move.ts` | Pure fn: read → validate → patch → write → rebuild |
-| Create | `argo-ts/src/roadmap/move.test.ts` | Unit tests for moveRoadmapItem |
-| Create | `argo-ts/src/tools/roadmap-move.ts` | Vanta tool wrapping moveRoadmapItem |
-| Modify | `argo-ts/src/tools/index.ts` | Register roadmapMoveTool in ALL_TOOLS |
-| Modify | `argo-ts/src/tools/tools.test.ts` | Add "roadmap_move" to sorted registry list |
-| Modify | `argo-ts/src/cli/ops.ts` | Add move subcommand to runRoadmapCommand |
-| Modify | `argo-ts/src/cli.ts` | Pass rest[] to runRoadmapCommand; update usage string |
+| Create | `vanta-ts/src/roadmap/move.ts` | Pure fn: read → validate → patch → write → rebuild |
+| Create | `vanta-ts/src/roadmap/move.test.ts` | Unit tests for moveRoadmapItem |
+| Create | `vanta-ts/src/tools/roadmap-move.ts` | Vanta tool wrapping moveRoadmapItem |
+| Modify | `vanta-ts/src/tools/index.ts` | Register roadmapMoveTool in ALL_TOOLS |
+| Modify | `vanta-ts/src/tools/tools.test.ts` | Add "roadmap_move" to sorted registry list |
+| Modify | `vanta-ts/src/cli/ops.ts` | Add move subcommand to runRoadmapCommand |
+| Modify | `vanta-ts/src/cli.ts` | Pass rest[] to runRoadmapCommand; update usage string |
 
 ---
 
 ## Task 1: Pure move function + tests
 
 **Files:**
-- Create: `argo-ts/src/roadmap/move.ts`
-- Create: `argo-ts/src/roadmap/move.test.ts`
+- Create: `vanta-ts/src/roadmap/move.ts`
+- Create: `vanta-ts/src/roadmap/move.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `argo-ts/src/roadmap/move.test.ts`:
+Create `vanta-ts/src/roadmap/move.test.ts`:
 
 ```typescript
 import { describe, it, expect, afterEach } from "vitest";
@@ -131,14 +131,14 @@ describe("moveRoadmapItem", () => {
 - [ ] **Step 2: Run to confirm they fail**
 
 ```bash
-cd argo-ts && npx vitest run src/roadmap/move.test.ts 2>&1 | tail -10
+cd vanta-ts && npx vitest run src/roadmap/move.test.ts 2>&1 | tail -10
 ```
 
 Expected: fails with "Cannot find module './move.js'"
 
 - [ ] **Step 3: Implement `roadmap/move.ts`**
 
-Create `argo-ts/src/roadmap/move.ts`:
+Create `vanta-ts/src/roadmap/move.ts`:
 
 ```typescript
 import { readFile, writeFile } from "node:fs/promises";
@@ -174,7 +174,7 @@ export async function moveRoadmapItem(
 - [ ] **Step 4: Run tests — expect all 6 to pass**
 
 ```bash
-cd argo-ts && npx vitest run src/roadmap/move.test.ts 2>&1 | tail -15
+cd vanta-ts && npx vitest run src/roadmap/move.test.ts 2>&1 | tail -15
 ```
 
 Expected: 6 passed
@@ -182,7 +182,7 @@ Expected: 6 passed
 - [ ] **Step 5: Typecheck**
 
 ```bash
-cd argo-ts && npm run typecheck 2>&1
+cd vanta-ts && npm run typecheck 2>&1
 ```
 
 Expected: no errors
@@ -190,7 +190,7 @@ Expected: no errors
 - [ ] **Step 6: Commit**
 
 ```bash
-git add argo-ts/src/roadmap/move.ts argo-ts/src/roadmap/move.test.ts
+git add vanta-ts/src/roadmap/move.ts vanta-ts/src/roadmap/move.test.ts
 git commit -m "feat(KANBAN): moveRoadmapItem — pure fn, 6 tests green"
 ```
 
@@ -199,13 +199,13 @@ git commit -m "feat(KANBAN): moveRoadmapItem — pure fn, 6 tests green"
 ## Task 2: roadmap_move Vanta tool
 
 **Files:**
-- Create: `argo-ts/src/tools/roadmap-move.ts`
-- Modify: `argo-ts/src/tools/index.ts`
-- Modify: `argo-ts/src/tools/tools.test.ts`
+- Create: `vanta-ts/src/tools/roadmap-move.ts`
+- Modify: `vanta-ts/src/tools/index.ts`
+- Modify: `vanta-ts/src/tools/tools.test.ts`
 
 - [ ] **Step 1: Write the failing registry test**
 
-In `argo-ts/src/tools/tools.test.ts`, add `"roadmap_move"` to the sorted list between `"recall"` and `"run_code"`:
+In `vanta-ts/src/tools/tools.test.ts`, add `"roadmap_move"` to the sorted list between `"recall"` and `"run_code"`:
 
 ```typescript
       "read_file",
@@ -217,7 +217,7 @@ In `argo-ts/src/tools/tools.test.ts`, add `"roadmap_move"` to the sorted list be
 Run to confirm it fails:
 
 ```bash
-cd argo-ts && npx vitest run src/tools/tools.test.ts 2>&1 | tail -10
+cd vanta-ts && npx vitest run src/tools/tools.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL — registry missing "roadmap_move"
@@ -294,7 +294,7 @@ Add to `ALL_TOOLS` after `clarifyTool`:
 - [ ] **Step 4: Run registry test — expect pass**
 
 ```bash
-cd argo-ts && npx vitest run src/tools/tools.test.ts 2>&1 | tail -10
+cd vanta-ts && npx vitest run src/tools/tools.test.ts 2>&1 | tail -10
 ```
 
 Expected: all registry tests pass
@@ -302,7 +302,7 @@ Expected: all registry tests pass
 - [ ] **Step 5: Typecheck**
 
 ```bash
-cd argo-ts && npm run typecheck 2>&1
+cd vanta-ts && npm run typecheck 2>&1
 ```
 
 Expected: no errors
@@ -310,7 +310,7 @@ Expected: no errors
 - [ ] **Step 6: Commit**
 
 ```bash
-git add argo-ts/src/tools/roadmap-move.ts argo-ts/src/tools/index.ts argo-ts/src/tools/tools.test.ts
+git add vanta-ts/src/tools/roadmap-move.ts vanta-ts/src/tools/index.ts vanta-ts/src/tools/tools.test.ts
 git commit -m "feat(KANBAN): roadmap_move tool — kernel-gated, registered"
 ```
 
@@ -319,8 +319,8 @@ git commit -m "feat(KANBAN): roadmap_move tool — kernel-gated, registered"
 ## Task 3: CLI subcommand
 
 **Files:**
-- Modify: `argo-ts/src/cli/ops.ts`
-- Modify: `argo-ts/src/cli.ts`
+- Modify: `vanta-ts/src/cli/ops.ts`
+- Modify: `vanta-ts/src/cli.ts`
 
 - [ ] **Step 1: Update `runRoadmapCommand` in `cli/ops.ts`**
 
@@ -399,7 +399,7 @@ With:
 - [ ] **Step 3: Full test suite — expect all pass**
 
 ```bash
-cd argo-ts && npm test 2>&1 | tail -10
+cd vanta-ts && npm test 2>&1 | tail -10
 ```
 
 Expected: all tests pass (≥673 tests)
@@ -407,7 +407,7 @@ Expected: all tests pass (≥673 tests)
 - [ ] **Step 4: Typecheck**
 
 ```bash
-cd argo-ts && npm run typecheck 2>&1
+cd vanta-ts && npm run typecheck 2>&1
 ```
 
 Expected: no errors
@@ -416,7 +416,7 @@ Expected: no errors
 
 ```bash
 cd /Users/jasonpoindexter/Documents/GitHub/Vanta
-node argo-ts/src/cli.ts roadmap move ND2 building 2>&1
+node vanta-ts/src/cli.ts roadmap move ND2 building 2>&1
 ```
 
 Expected output: `  ✓ Moved ND2 → building: clarify tool (ask before acting)`
@@ -424,7 +424,7 @@ Expected output: `  ✓ Moved ND2 → building: clarify tool (ask before acting)
 Then restore:
 
 ```bash
-node argo-ts/src/cli.ts roadmap move ND2 shipped 2>&1
+node vanta-ts/src/cli.ts roadmap move ND2 shipped 2>&1
 ```
 
 Expected: `  ✓ Moved ND2 → shipped: clarify tool (ask before acting)`
@@ -432,7 +432,7 @@ Expected: `  ✓ Moved ND2 → shipped: clarify tool (ask before acting)`
 - [ ] **Step 6: Commit**
 
 ```bash
-git add argo-ts/src/cli/ops.ts argo-ts/src/cli.ts
+git add vanta-ts/src/cli/ops.ts vanta-ts/src/cli.ts
 git commit -m "feat(KANBAN): vanta roadmap move <id> <status> CLI subcommand"
 ```
 

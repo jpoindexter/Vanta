@@ -1,13 +1,13 @@
 # Handoff — Roadmap + MCP Build Plan
 Generated: 2026-06-03 18:30
-Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `argo-ts/`)
+Project: Vanta — /Users/jasonpoindexter/Documents/GitHub/Vanta (agent code in `vanta-ts/`)
 Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 
 ## What Was Accomplished This Session
 
 1. **O9 dark factory confirmed complete** — all tasks 1–11 were already done and pushed from the prior session. 554 TS + 27 Rust tests pass, tsc clean. The handoff doc `handoff-2026-06-03-1515-o9-factory-mid-impl.md` was stale; work had finished.
 
-2. **MCP discussion + design** — Vanta needs to use MCPs, make MCPs, and be an MCP server. The MCP client is already built (`argo-ts/src/mcp/client.ts` + `mount.ts`, tested, wired in `session.ts`). The only gap is config discovery (format + location mismatch with Claude's `.mcp.json`).
+2. **MCP discussion + design** — Vanta needs to use MCPs, make MCPs, and be an MCP server. The MCP client is already built (`vanta-ts/src/mcp/client.ts` + `mount.ts`, tested, wired in `session.ts`). The only gap is config discovery (format + location mismatch with Claude's `.mcp.json`).
 
 3. **ROADMAP.md updated** — new `v1.6 — MCP: use · make · serve` section (3 phases, done-criteria each, sized). New `SEC · Secret-hygiene hardening` item. Both committed.
 
@@ -52,10 +52,10 @@ Branch: feat/v1-hermes-parity (2 commits ahead of origin — NOT pushed)
 
 **What to build:**
 - `roadmap.json` at repo root — structured source of truth, seeded from ROADMAP.md
-- `argo-ts/src/roadmap/schema.ts` — Zod schema + types
-- `argo-ts/src/roadmap/render.ts` — **pure** `renderRoadmap(data) → string` (inline CSS/JS, no deps, Now/Next/Later cols, track groups, status cards, click-to-expand done criteria, filter by track/status). Unit-tested.
-- `argo-ts/src/roadmap/build.ts` — I/O: read `roadmap.json` → validate → write `roadmap.html`
-- `argo-ts/src/roadmap/schema.test.ts` + `render.test.ts` + `build.test.ts`
+- `vanta-ts/src/roadmap/schema.ts` — Zod schema + types
+- `vanta-ts/src/roadmap/render.ts` — **pure** `renderRoadmap(data) → string` (inline CSS/JS, no deps, Now/Next/Later cols, track groups, status cards, click-to-expand done criteria, filter by track/status). Unit-tested.
+- `vanta-ts/src/roadmap/build.ts` — I/O: read `roadmap.json` → validate → write `roadmap.html`
+- `vanta-ts/src/roadmap/schema.test.ts` + `render.test.ts` + `build.test.ts`
 - Wire `vanta roadmap` in `cli.ts` (same pattern as other commands: `if (cmd === "roadmap")`)
 - Add to `usage()` printout
 
@@ -149,7 +149,7 @@ async function runRoadmapCommand(repoRoot: string): Promise<void> {
 - `.husky/pre-commit` OR `.git/hooks/pre-commit` script that runs `gitleaks protect --staged`
 - Install gitleaks check in `bootstrap.sh` / `install.sh` with a note if missing
 - `.mcp.json.example` at repo root with placeholder values
-- Add `gitleaks` check note to `argo-ts/CLAUDE.md` gotchas
+- Add `gitleaks` check note to `vanta-ts/CLAUDE.md` gotchas
 
 **Check first:** does `gitleaks` exist? `which gitleaks`. If not, use `brew install gitleaks` in the install script.
 
@@ -157,7 +157,7 @@ async function runRoadmapCommand(repoRoot: string): Promise<void> {
 
 ## Slice 3 — MCP-1 Consume (config discovery)
 
-**What to change** (only `argo-ts/src/mcp/mount.ts` + `mount.test.ts`):
+**What to change** (only `vanta-ts/src/mcp/mount.ts` + `mount.test.ts`):
 
 1. **Accept `mcpServers` key** alongside `servers` in `readMcpConfig`:
 ```typescript
@@ -192,15 +192,15 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 
 **Two parts:**
 
-**Part A — `mount_mcp` tool** (`argo-ts/src/tools/mount-mcp.ts`):
+**Part A — `mount_mcp` tool** (`vanta-ts/src/tools/mount-mcp.ts`):
 - Args: `{ command: string, args?: string[], env?: Record<string,string>, name: string }`
 - `describeForSafety`: `"spawn mcp server ${name}: ${command}"` → kernel `assess()` gates it
 - `execute`: calls `stdioTransport` + `McpClient.initialize()` + `listTools()` → registers each tool in the registry → returns list of tool names
-- The registry must be injectable/accessible from the tool. Pass it via tool context (see how `delegate` accesses its provider — check `argo-ts/src/tools/delegate.ts`).
-- Add to `argo-ts/src/tools/index.ts`
-- Add name to sorted list in `argo-ts/src/tools/tools.test.ts`
+- The registry must be injectable/accessible from the tool. Pass it via tool context (see how `delegate` accesses its provider — check `vanta-ts/src/tools/delegate.ts`).
+- Add to `vanta-ts/src/tools/index.ts`
+- Add name to sorted list in `vanta-ts/src/tools/tools.test.ts`
 
-**Part B — `build-mcp-server` skill** (`argo-ts/skills-library/build-mcp-server.md`):
+**Part B — `build-mcp-server` skill** (`vanta-ts/skills-library/build-mcp-server.md`):
 - Teaches Vanta to scaffold a new MCP server from a description: create a TS project with `@modelcontextprotocol/sdk`, wire one tool, `npm run build`, then call `mount_mcp` to hook it in.
 - This is a skill (markdown), not code.
 
@@ -213,7 +213,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 3. **Kernel gate on every MCP spawn** — `describeForSafety` must return a string that lets `assess()` classify it correctly. Spawning a new process = `Ask` level.
 4. **554 TS + 27 Rust tests must stay green** after every slice. Run `npx vitest run && npx tsc --noEmit` after each.
 5. **File size limits** — 300 hard, 200 soft. `render.ts` will be longish (inline HTML template); keep the pure data-to-html logic separate from the template string.
-6. **Tools list test** — `argo-ts/src/tools/tools.test.ts` has a sorted tool-name list. If you add `mount_mcp` (slice 4), add its name there.
+6. **Tools list test** — `vanta-ts/src/tools/tools.test.ts` has a sorted tool-name list. If you add `mount_mcp` (slice 4), add its name there.
 7. **ROADMAP.md status** on each slice: update the corresponding item to `[x]` when done + add to the "SHIPPED" log.
 
 ---
@@ -222,7 +222,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 
 - `session.ts:50` calls `mountMcpServers(registry, process.env, ...)` — this is where slice 3's config changes take effect. No other wiring needed for consume.
 - The `/mcp` repl slash command already exists at `repl-commands.ts:388` — it calls `readMcpConfig`. After slice 3 changes that function, the slash command works too.
-- Slice 4's `mount_mcp` tool needs access to the live tool registry. Check `argo-ts/src/tools/delegate.ts` to see how delegate accesses its runtime deps (it uses an injected closure pattern). Mirror that.
+- Slice 4's `mount_mcp` tool needs access to the live tool registry. Check `vanta-ts/src/tools/delegate.ts` to see how delegate accesses its runtime deps (it uses an injected closure pattern). Mirror that.
 - The `roadmap.html` file should be gitignored (generated artifact). Add `roadmap.html` to `.gitignore`.
 - MCP-3 (serve) is intentionally left for Opus — don't start it in this session.
 
@@ -233,14 +233,14 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
 Paste this into a new Claude session on **Sonnet 4.6** to resume:
 
 ---
-Resume Vanta. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (TS agent in `argo-ts/`, branch `feat/v1-hermes-parity`, 2 commits ahead of origin — NOT pushed). 581 tests green (27 Rust + 554 TS), tsc clean.
+Resume Vanta. Repo: `/Users/jasonpoindexter/Documents/GitHub/Vanta` (TS agent in `vanta-ts/`, branch `feat/v1-hermes-parity`, 2 commits ahead of origin — NOT pushed). 581 tests green (27 Rust + 554 TS), tsc clean.
 
 **Your job:** Build slices 1–4 in order. STOP after slice 4. Do NOT start slice 5 (MCP-3 serve) — that's for an Opus session.
 
 The build plan and all context is in `handoff-2026-06-03-1830-roadmap-mcp-plan.md` at the repo root. Read the FULL file before writing any code. It has exact file shapes, data structures, seeded JSON, and constraints for every slice.
 
 **Slice order:**
-1. Interactive roadmap — `roadmap.json` + `argo-ts/src/roadmap/` (schema/render/build) + `vanta roadmap` CLI
+1. Interactive roadmap — `roadmap.json` + `vanta-ts/src/roadmap/` (schema/render/build) + `vanta roadmap` CLI
 2. SEC gitleaks hook — `.gitleaks.toml` + pre-commit hook + `.mcp.json.example`
 3. MCP-1 consume — extend `readMcpConfig` in `mount.ts` to accept `mcpServers` key + `./.mcp.json` discovery
 4. MCP-2 make/hook-in — `mount_mcp` tool + `build-mcp-server` skill
@@ -250,8 +250,8 @@ After all four slices: push the branch, then tell the user "Slices 1–4 complet
 **Hard constraints from handoff:**
 - ESM only (no require())
 - No new deps unless necessary
-- 554 TS + 27 Rust tests stay green after every slice (run `cd argo-ts && npx vitest run && npx tsc --noEmit` after each)
-- If you add `mount_mcp` tool in slice 4, add its name to `argo-ts/src/tools/tools.test.ts` sorted list
+- 554 TS + 27 Rust tests stay green after every slice (run `cd vanta-ts && npx vitest run && npx tsc --noEmit` after each)
+- If you add `mount_mcp` tool in slice 4, add its name to `vanta-ts/src/tools/tools.test.ts` sorted list
 - `roadmap.html` goes in `.gitignore`
 - STOP at slice 4 — no MCP-3
 ---

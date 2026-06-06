@@ -120,7 +120,7 @@ prompt emitted separately (skin_engine / cli.py), not by `build_welcome_banner`.
 
 ## 4. Vanta-port note
 
-Vanta banner regions vs. existing calls (`argo-ts/src`):
+Vanta banner regions vs. existing calls (`vanta-ts/src`):
 
 | Banner region | Vanta feed | Status |
 |---|---|---|
@@ -133,7 +133,7 @@ Vanta banner regions vs. existing calls (`argo-ts/src`):
 | Available Skills (names) | `listSkills(env)` (`skills/store.ts`) → `Skill[]` | **Available** for names + total. `status.ts::gatherStatus` already calls `listSkills(env).then(s => s.length)` for `store.skills`. |
 | Skill **categories** | — | **Missing.** Vanta `SkillMeta` (skills/types.ts) has `name/description/created/updated/tags[]` — **no `category`**, and the skills store is flat (no `<category>/<skill>/` nesting like Hermes). To group, either derive from `tags[]` or add path-based categorization. As-is, all skills are effectively one bucket. |
 | Skill count | `listSkills(env).length` | **Available.** |
-| Version title (`vX.Y.Z (date)`) | — | **Missing.** Only `argo-ts/package.json` `version: "0.1.0"`; no `__release_date__`, no banner const. |
+| Version title (`vX.Y.Z (date)`) | — | **Missing.** Only `vanta-ts/package.json` `version: "0.1.0"`; no `__release_date__`, no banner const. |
 | `· upstream <sha>` / `local` / `+N carried` | — | **Missing.** No `get_git_banner_state` equivalent (no git rev-parse plumbing). |
 | **N commits behind** | — | **Missing entirely.** No `check_for_updates`, no PyPI/ls-remote/rev-list logic, no `.update_check` cache, no `prefetch_update_check` thread. |
 | ASCII hero/logo | partial — `formatStatus` uses `⚕ Vanta Status` glyph only | **Missing.** No multi-row ASCII logo/caduceus, no skin/`GatewaySkin` equivalent, no gradient coloring. |
@@ -158,4 +158,4 @@ to extend, but it currently renders a `✓/✗` health box, not the inventory ba
 - `model_tools.py::get_toolset_for_tool :1050`, `check_tool_availability :1065`.
 - `cli.py` unknown-toolsets warning `:3147`.
 - `ui-tui/src/banner.ts` (TS gateway art), `ui-tui/src/gatewayTypes.ts::GatewaySkin :3`.
-- Vanta: `argo-ts/src/status.ts`, `tools/registry.ts`, `skills/store.ts`+`skills/types.ts`, `mcp/mount.ts`.
+- Vanta: `vanta-ts/src/status.ts`, `tools/registry.ts`, `skills/store.ts`+`skills/types.ts`, `mcp/mount.ts`.

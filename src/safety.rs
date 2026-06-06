@@ -162,7 +162,7 @@ pub fn is_protected_path(path: &Path, root: &Path) -> bool {
         return true;
     }
     // Factory loop — can't rewrite its own guardrails or their tests
-    if s.starts_with("argo-ts/src/factory/") && s.ends_with(".ts") {
+    if s.starts_with("vanta-ts/src/factory/") && s.ends_with(".ts") {
         return true;
     }
     // Human north star
@@ -271,9 +271,9 @@ mod tests {
     #[test]
     fn protected_path_blocks_factory_ts() {
         let r = root();
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/run.ts"), &r));
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/verifier.ts"), &r));
-        assert!(is_protected_path(&r.join("argo-ts/src/factory/triage.test.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/run.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/verifier.ts"), &r));
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/triage.test.ts"), &r));
     }
 
     #[test]
@@ -287,7 +287,7 @@ mod tests {
         let r = root();
         assert!(!is_protected_path(&r.join("ROADMAP.md"), &r));
         assert!(!is_protected_path(&r.join("AGENT-MANIFESTO.md"), &r));
-        assert!(!is_protected_path(&r.join("argo-ts/src/tools/new-tool.ts"), &r));
+        assert!(!is_protected_path(&r.join("vanta-ts/src/tools/new-tool.ts"), &r));
         assert!(!is_protected_path(&r.join("CLAUDE.md"), &r));
     }
 
@@ -298,7 +298,7 @@ mod tests {
         assert_eq!(v.risk, Risk::Block);
         assert!(v.reason.contains("protected"));
 
-        let v2 = assess_action("write file argo-ts/src/factory/run.ts", &r);
+        let v2 = assess_action("write file vanta-ts/src/factory/run.ts", &r);
         assert_eq!(v2.risk, Risk::Block);
 
         let v3 = assess_action("write file MANIFESTO.md", &r);
@@ -311,7 +311,7 @@ mod tests {
         let v = assess_action("write file ROADMAP.md", &r);
         assert_eq!(v.risk, Risk::Allow);
 
-        let v2 = assess_action("write file argo-ts/src/tools/new-tool.ts", &r);
+        let v2 = assess_action("write file vanta-ts/src/tools/new-tool.ts", &r);
         assert_eq!(v2.risk, Risk::Allow);
     }
 }
