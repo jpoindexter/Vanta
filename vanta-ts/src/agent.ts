@@ -8,6 +8,7 @@ import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
+import { shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -318,7 +319,15 @@ async function dispatchTool(
       deps.onText?.(buildSelfMonitorText(call.name, deps.activeGoalText!));
     }
   } catch { /* best-effort — never block */ }
-  const res = await tool.execute(call.arguments, ctx);
+  // TOOL-RETRY: re-run only idempotent reads on a transient failure; never a
+  // write/shell/spawn (re-running could double a side effect). Honest report —
+  // the final result is returned as-is, success is never faked.
+  let res = await tool.execute(call.arguments, ctx);
+  const budget = resolveToolRetries();
+  for (let attempt = 1; attempt <= budget && shouldRetryTool(call.name, res.ok, res.output); attempt++) {
+    deps.onText?.(`  ↻ ${call.name} hit a transient failure — retry ${attempt}/${budget}`);
+    res = await tool.execute(call.arguments, ctx);
+  }
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   return { executed: true, empty: res.output.trim().length === 0, ok: res.ok, output: res.output };

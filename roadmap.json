@@ -209,12 +209,12 @@
       "id": "TOOL-RETRY",
       "track": "Reliability",
       "title": "Early fail-detect + safe retry + honest report",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Detect failed tool calls early, retry only when safe (idempotent reads), report exactly what happened, never claim success on failure. Extends EF-ERRORDETECT.",
+      "summary": "SHIPPED 2026-06-07. tool-retry.ts: shouldRetryTool = isRetryableTool (a curated set of idempotent reads — read_file/web_*/git_status/gmail_read/vision/… ; writes/shell/commit/run_code/spawns excluded, unknown tools default off) AND isTransientFailure (network/timeout/rate-limit/5xx patterns; a deterministic ENOENT is NOT retried). Wired into agent.ts dispatchTool: a transient read failure re-runs up to resolveToolRetries() times (VANTA_TOOL_RETRIES, default 1, clamp 0..5), emitting a retry note; the final result is returned as-is so success is never faked. Early-detect + honest-report already existed via EF-ERRORDETECT (isErrorResult + consecutive-failure pause). 10 unit tests; agent suite green; tsc clean; .env.example documents the knob.",
       "done": "A failed tool call is surfaced immediately; only safe operations auto-retry; no false success claims."
     },
     {
