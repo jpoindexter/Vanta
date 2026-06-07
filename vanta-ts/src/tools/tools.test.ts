@@ -137,6 +137,16 @@ describe("write_file", () => {
     expect(await readFile(join(root, "new.txt"), "utf8")).toBe("data");
   });
 
+  it("ACTION-PROOF: reports a re-read verification readout after writing", async () => {
+    const res = await writeFileTool.execute(
+      { path: "proof.txt", content: "line1\nline2\nline3" },
+      ctx(),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("verified");
+    expect(res.output).toContain("bytes on disk");
+  });
+
   it("requires approval to overwrite, and respects denial", async () => {
     await writeFile(join(root, "exists.txt"), "original");
     const res = await writeFileTool.execute(

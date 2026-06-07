@@ -76,7 +76,19 @@ export const writeFileTool: Tool = {
       const bytes = Buffer.byteLength(content);
       const kind = isExisting ? "overwritten" : "new file";
       const diff = computeDiff(oldContent, content);
-      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})`, diff: diff.length ? diff : undefined };
+      // ACTION-PROOF: re-read the file and confirm the write actually landed —
+      // post-action proof, not an assumed success. The diff is the "before".
+      let proof: string;
+      try {
+        const after = await readFile(abs, "utf8");
+        proof =
+          after === content
+            ? ` · verified ${after.split("\n").length} lines, ${Buffer.byteLength(after)} bytes on disk`
+            : ` · ⚠ on-disk content differs from what was written`;
+      } catch (e) {
+        proof = ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`;
+      }
+      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})${proof}`, diff: diff.length ? diff : undefined };
     } catch (err) {
       return {
         ok: false,
