@@ -39,16 +39,15 @@ async function installOne(
   source: string,
   name: string,
   dest: string,
-  force: boolean,
-  env?: NodeJS.ProcessEnv,
+  opts: { force?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<"installed" | "skipped" | null> {
   const src = join(source, name, SKILL_FILE);
   if (!existsSync(src)) return null;
   const target = join(dest, name, SKILL_FILE);
-  if (existsSync(target) && !force) return "skipped";
+  if (existsSync(target) && !opts.force) return "skipped";
   await mkdir(join(dest, name), { recursive: true });
   await writeFile(target, await readFile(src, "utf8"), "utf8");
-  await commitInHome(join("skills", name, SKILL_FILE), `skill: install ${name}`, env);
+  await commitInHome(join("skills", name, SKILL_FILE), `skill: install ${name}`, opts.env);
   return "installed";
 }
 
@@ -77,7 +76,7 @@ export async function installSkillLibrary(
     }
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const r = await installOne(source, entry.name, dest, !!opts.force, opts.env);
+      const r = await installOne(source, entry.name, dest, { force: !!opts.force, env: opts.env });
       if (r === "installed") installed.push(entry.name);
       else if (r === "skipped") skipped.push(entry.name);
     }
