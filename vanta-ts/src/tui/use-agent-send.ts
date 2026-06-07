@@ -7,6 +7,7 @@ import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
+import { buildModeHint } from "../repl/mode-detect.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
@@ -61,8 +62,11 @@ export function useAgentSend(
     replStateRef.current.pendingImages = undefined;
     const ac = new AbortController();
     abortRef.current = ac;
+    // MODE-DETECT: prepend a one-line stance hint (display already shows clean text).
+    const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
+    const sendText = modeHint ? `${modeHint}\n\n${text}` : text;
     void convo
-      .send(text, images, ac.signal)
+      .send(sendText, images, ac.signal)
       .then((outcome) => {
         abortRef.current = null;
         dispatch({ t: "commit", finalText: outcome.finalText });
