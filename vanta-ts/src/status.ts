@@ -70,23 +70,24 @@ async function countMemories(env: NodeJS.ProcessEnv): Promise<number> {
   }
 }
 
+/** Resolve the active provider into a status entry. Failure degrades to a flag, never throws. */
+function resolveProviderStatus(env: NodeJS.ProcessEnv): StatusReport["provider"] {
+  const id = env.VANTA_PROVIDER ?? "openai";
+  try {
+    const p = resolveProvider(env);
+    return { id, ok: true, model: p.modelId(), contextWindow: p.contextWindow() };
+  } catch (err: unknown) {
+    return { id, ok: false, error: err instanceof Error ? err.message.split(".")[0] : String(err) };
+  }
+}
+
 /** Gather the live health report. Best-effort: any probe failure degrades to a flag, never throws. */
 export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport> {
   const url = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const client = new SafetyClient(url);
   const up = await client.status();
 
-  let provider: StatusReport["provider"];
-  try {
-    const p = resolveProvider(env);
-    provider = { id: env.VANTA_PROVIDER ?? "openai", ok: true, model: p.modelId(), contextWindow: p.contextWindow() };
-  } catch (err: unknown) {
-    provider = {
-      id: env.VANTA_PROVIDER ?? "openai",
-      ok: false,
-      error: err instanceof Error ? err.message.split(".")[0] : String(err),
-    };
-  }
+  const provider = resolveProviderStatus(env);
 
   const keys = PROVIDER_CATALOG.filter((p) => p.envVar).map((p) => ({
     envVar: p.envVar as string,
