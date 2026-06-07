@@ -39,28 +39,30 @@ function buildOps(a: string[], b: string[], common: [number, number][]): Op[] {
   return ops;
 }
 
-function withContext(ops: Op[], ctx: number): DiffLine[] {
+/** Indices to keep: every non-keep op + `ctx` lines of context around it. Pure. */
+function windowedKeep(ops: Op[], ctx: number): Set<number> {
   const keep = new Set<number>();
   for (let i = 0; i < ops.length; i++) {
-    if (ops[i]!.type !== "keep") {
-      for (let d = -ctx; d <= ctx; d++) {
-        const idx = i + d;
-        if (idx >= 0 && idx < ops.length) keep.add(idx);
-      }
+    if (ops[i]!.type === "keep") continue;
+    for (let d = -ctx; d <= ctx; d++) {
+      const idx = i + d;
+      if (idx >= 0 && idx < ops.length) keep.add(idx);
     }
   }
+  return keep;
+}
+
+function withContext(ops: Op[], ctx: number): DiffLine[] {
+  const keep = windowedKeep(ops, ctx);
   if (keep.size === 0) return [];
   const result: DiffLine[] = [];
   let skipped = false;
   for (let i = 0; i < ops.length; i++) {
-    if (keep.has(i)) {
-      if (skipped) result.push({ type: "context", text: "···" });
-      skipped = false;
-      const op = ops[i]!;
-      result.push({ type: op.type === "keep" ? "context" : op.type, text: op.line });
-    } else {
-      skipped = true;
-    }
+    if (!keep.has(i)) { skipped = true; continue; }
+    if (skipped) result.push({ type: "context", text: "···" });
+    skipped = false;
+    const op = ops[i]!;
+    result.push({ type: op.type === "keep" ? "context" : op.type, text: op.line });
   }
   return result;
 }

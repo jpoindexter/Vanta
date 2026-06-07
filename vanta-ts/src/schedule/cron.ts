@@ -26,25 +26,33 @@ const BOUNDS: readonly [number, number][] = [
  * (or "a-b/n") steps. Returns null on any malformed token so the caller can
  * reject the whole expression without throwing.
  */
+/** Parse the range portion of a cron part ("*" | "n" | "a-b") → [lo, hi] | null. */
+function parseRange(rangePart: string, min: number, max: number): [number, number] | null {
+  if (rangePart === "*") return [min, max];
+  const ends = rangePart.split("-").map(Number);
+  if (ends.some((n) => !Number.isInteger(n))) return null;
+  const start = ends[0];
+  if (start === undefined) return null;
+  return [start, ends.length === 1 ? start : (ends[1] ?? start)];
+}
+
+/** Parse one comma-part ("*", "n", "a-b", optional "/step") → [lo, hi, step] | null. */
+function parsePart(part: string, min: number, max: number): [number, number, number] | null {
+  const [rangePart, stepPart] = part.split("/");
+  const step = stepPart === undefined ? 1 : Number(stepPart);
+  if (!Number.isInteger(step) || step < 1 || rangePart === undefined) return null;
+  const range = parseRange(rangePart, min, max);
+  if (!range) return null;
+  const [lo, hi] = range;
+  return lo < min || hi > max || lo > hi ? null : [lo, hi, step];
+}
+
 function parseField(field: string, min: number, max: number): Set<number> | null {
   const values = new Set<number>();
   for (const part of field.split(",")) {
-    const [rangePart, stepPart] = part.split("/");
-    const step = stepPart === undefined ? 1 : Number(stepPart);
-    if (!Number.isInteger(step) || step < 1) return null;
-
-    let lo = min;
-    let hi = max;
-    if (rangePart === undefined) return null;
-    if (rangePart !== "*") {
-      const ends = rangePart.split("-").map(Number);
-      if (ends.some((n) => !Number.isInteger(n))) return null;
-      const start = ends[0];
-      if (start === undefined) return null;
-      lo = start;
-      hi = ends.length === 1 ? start : (ends[1] ?? start);
-    }
-    if (lo < min || hi > max || lo > hi) return null;
+    const parsed = parsePart(part, min, max);
+    if (!parsed) return null;
+    const [lo, hi, step] = parsed;
     for (let v = lo; v <= hi; v += step) values.add(v);
   }
   return values;
