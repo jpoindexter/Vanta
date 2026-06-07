@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolResult } from "./types.js";
 import { isAllowedDomain } from "../browser/allowlist.js";
 
 const ActionSchema = z.object({
@@ -67,6 +67,37 @@ async function applyAction(
   await page.fill(action.selector, action.value ?? "", {
     timeout: ACTION_TIMEOUT_MS,
   });
+}
+
+/** Launch chromium, navigate, run the actions, and return the page's visible text. */
+async function navigateAndExtract(
+  chromium: typeof import("playwright-core").chromium,
+  url: string,
+  actions: Action[],
+): Promise<ToolResult> {
+  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
+  try {
+    browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto(url, { timeout: GOTO_TIMEOUT_MS });
+    for (const action of actions) {
+      await applyAction(page, action);
+    }
+    const text = await page.innerText("body");
+    return { ok: true, output: cap(text) };
+  } catch (err) {
+    const message = (err as Error).message;
+    if (MISSING_BROWSER.test(message)) {
+      return {
+        ok: false,
+        output:
+          "No browser binary found. Run `npx playwright install chromium` to download it.",
+      };
+    }
+    return { ok: false, output: `browser_navigate failed: ${message}` };
+  } finally {
+    await browser?.close();
+  }
 }
 
 export const browserNavigateTool: Tool = {
@@ -138,28 +169,6 @@ export const browserNavigateTool: Tool = {
       };
     }
 
-    let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
-    try {
-      browser = await chromium.launch();
-      const page = await browser.newPage();
-      await page.goto(url, { timeout: GOTO_TIMEOUT_MS });
-      for (const action of actions) {
-        await applyAction(page, action);
-      }
-      const text = await page.innerText("body");
-      return { ok: true, output: cap(text) };
-    } catch (err) {
-      const message = (err as Error).message;
-      if (MISSING_BROWSER.test(message)) {
-        return {
-          ok: false,
-          output:
-            "No browser binary found. Run `npx playwright install chromium` to download it.",
-        };
-      }
-      return { ok: false, output: `browser_navigate failed: ${message}` };
-    } finally {
-      await browser?.close();
-    }
+    return navigateAndExtract(chromium, url, actions);
   },
 };
