@@ -7,7 +7,7 @@ import { loadCron } from "../schedule/cron.js";
 import { SLASH_HELP } from "./catalog.js";
 import { oneLine, lastUserIndex, formatExport, formatHistory, mimeFromPath, lines } from "./format.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
-import { next } from "./next.js";
+import { next, isVagueGoal, buildNextStepResend } from "./next.js";
 import { planMode } from "./plan-mode.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
@@ -138,11 +138,16 @@ const goal: SlashHandler = async (arg, ctx) => {
   // Anything else is new goal text. Persist to the kernel AND reflect it in the
   // live system prompt so the agent works on it this turn, not just next session.
   const ok = await safety.addGoal(arg);
-  if (ok) {
-    const sys = ctx.convo.messages[0];
-    if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
+  if (!ok) return { output: "  could not set goal (kernel unreachable?)" };
+  const sys = ctx.convo.messages[0];
+  if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
+  // GOAL-ACTION: a vague goal auto-fires the /next single-micro-step prompt so a
+  // concrete next action surfaces without the user typing /next. Opt-out via env.
+  if (ctx.env.VANTA_GOAL_ACTION !== "0" && isVagueGoal(arg)) {
+    const resend = await buildNextStepResend(ctx).catch(() => null);
+    if (resend) return { output: `  ◎ goal set: ${arg}\n  · vague goal — surfacing one concrete next step…`, resend };
   }
-  return { output: ok ? `  ◎ goal set: ${arg}` : "  could not set goal (kernel unreachable?)" };
+  return { output: `  ◎ goal set: ${arg}` };
 };
 
 const sessions: SlashHandler = async (_arg, ctx) => {

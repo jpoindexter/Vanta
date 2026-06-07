@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { next } from "./next.js";
+import { next, isVagueGoal } from "./next.js";
 import type { ReplCtx } from "./types.js";
 
 function makeCtx(goals: Array<{ id: number; text: string; status: string }>): ReplCtx {
@@ -46,5 +46,27 @@ describe("next handler", () => {
   it("asks for one concrete next step in the prompt", async () => {
     const result = await next("", makeCtx([{ id: 1, text: "build something", status: "active" }]));
     expect(result.resend).toMatch(/next micro-step|immediately actionable/i);
+  });
+});
+
+describe("isVagueGoal (GOAL-ACTION)", () => {
+  it("flags short goals as vague", () => {
+    expect(isVagueGoal("ship it")).toBe(true);
+    expect(isVagueGoal("improve things")).toBe(true);
+  });
+
+  it("flags abstract goals with no concrete anchor", () => {
+    expect(isVagueGoal("continue fixing items from roadmap until everything is complete")).toBe(true);
+    expect(isVagueGoal("clean up the codebase and make it better")).toBe(true);
+  });
+
+  it("leaves concrete goals alone (path / card-id / code anchor)", () => {
+    expect(isVagueGoal("fix the model bug in repl/handlers.ts line 83")).toBe(false);
+    expect(isVagueGoal("ship the OPERATOR-DASHBOARD card with tests")).toBe(false);
+    expect(isVagueGoal("rename the `mergedEnv` helper and update its callers")).toBe(false);
+  });
+
+  it("returns false for empty input", () => {
+    expect(isVagueGoal("   ")).toBe(false);
   });
 });
