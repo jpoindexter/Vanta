@@ -2453,12 +2453,12 @@
       "id": "AUTO-HANDOFF",
       "track": "Memory + Continuity",
       "title": "Auto-handoff on context pressure + reload on restart",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "TOP net-new need from mining ~10k real user messages: context/token economy is Jason's #1 recurring chore. Evidence — 138 auto-compaction events + 48 hand-written handoff prompts in one project sample; 'give me a handoff' is his single most-repeated manual action; proactive 'init codegraph + a CLAUDE.md in every folder so we don't burn tokens'; recurring 'doesn't remember on launch'. HANDOFF-PACKET captures the manual artifact; this is the AUTO trigger: when context crosses a threshold, Vanta emits a durable resume block (active goal + state + next steps + open files) on its own and RELOADS it on the next launch — no manual ritual. Pairs with MEM-CURATOR + EF-TASKSTACK.",
+      "summary": "SHIPPED 2026-06-07. Built on HANDOFF-PACKET: extracted assembleHandoff (shared by /handoff + auto). repl/auto-handoff.ts — shouldAutoHandoff (fill ≥ VANTA_AUTOHANDOFF_THRESHOLD, default 0.75) + maybeAutoHandoff writes a durable resume block to .vanta/handoff.md when context crosses the threshold (est = real last-prompt inputTokens, else chars/4). Both hosts call it post-turn and note once. RELOAD: prepareRun, gated to interactive launches (instruction === 'interactive session', so one-shot/factory/desktop are unaffected), injects a recent (≤7d) resume block into the system prompt and CONSUMES it (clearAutoHandoff) so it resumes once, not forever. Opt-out VANTA_AUTOHANDOFF=0. 11 unit tests (threshold, write/read/clear roundtrip incl. staleness, maybeAutoHandoff); full suite 1199 green; tsc clean.",
       "done": "When context crosses a threshold Vanta auto-writes a durable resume block and reloads it on next launch; Jason never has to type 'give me a handoff' or re-explain state."
     },
     {

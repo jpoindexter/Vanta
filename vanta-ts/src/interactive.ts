@@ -6,6 +6,7 @@ import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } fr
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { buildModeHint } from "./repl/mode-detect.js";
+import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -127,6 +128,7 @@ export async function runChat(
   let inhibitState: InhibitState = { consecutiveCalls: 0 };
   let setShiftState: SetShiftState = { repeatingTool: null, consecutiveRuns: 0 };
   let stallState: StallState = { stalledTurns: 0 };
+  let autoHandoffNoted = false;
   let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
   let wmManipState: WmManipState = { manipTurns: 0 };
   const workingMemory = new SessionWorkingMemory();
@@ -204,6 +206,22 @@ export async function runChat(
       const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
       console.log(`  ${formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - t0, cost)}`);
       state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost);
+    }
+    // AUTO-HANDOFF: write a resume block when context crosses the threshold (note once).
+    const ah = await maybeAutoHandoff({
+      estTokens: outcome.usage?.inputTokens ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4),
+      contextWindow: setup.provider.contextWindow(),
+      messages: convo.messages,
+      sessionId: state.sessionId,
+      provider: process.env.VANTA_PROVIDER ?? "unknown",
+      model: setup.provider.modelId(),
+      repoRoot,
+      safety: setup.safety,
+      now: new Date(),
+    });
+    if (ah.wrote && !autoHandoffNoted) {
+      console.log(`\n  ↻ context filling up — saved a resume block to ${ah.path} (auto-reloads next launch)`);
+      autoHandoffNoted = true;
     }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
     await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, {

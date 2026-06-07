@@ -139,6 +139,17 @@ export async function prepareRun(
     projectId,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
+  // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved
+  // resume block so a restart/fresh session continues without a manual handoff.
+  if (instruction === "interactive session") {
+    const { readAutoHandoff, clearAutoHandoff } = await import("./repl/auto-handoff.js");
+    const dataDir = join(repoRoot, ".vanta");
+    const resume = await readAutoHandoff(dataDir).catch(() => null);
+    if (resume) {
+      systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
+      await clearAutoHandoff(dataDir);
+    }
+  }
   return { safety, registry, provider, goals, systemPrompt };
 }
 
