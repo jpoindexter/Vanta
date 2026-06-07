@@ -17,6 +17,22 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
+// CODE-SIZE-GATE in the agent loop: a TS/TSX write that breaks the size limits
+// surfaces the violations in the tool result (file:line + limit + fix) so the
+// agent writes born-small or self-corrects next turn. Advisory — never blocks
+// the write. Tests + .d.ts are exempt (same rule as `vanta lint`).
+async function sizeNoteFor(displayPath: string, abs: string, content: string): Promise<string> {
+  if (!/\.tsx?$/.test(abs) || /\.(d|test)\.tsx?$/.test(abs)) return "";
+  try {
+    const { analyzeSource, formatViolation } = await import("../lint/size.js");
+    const violations = analyzeSource(displayPath, content);
+    if (!violations.length) return "";
+    return `\n⚠ size gate: ${violations.length} violation(s) — keep it born-small:\n${violations.map(formatViolation).join("\n")}`;
+  } catch {
+    return "";
+  }
+}
+
 export const writeFileTool: Tool = {
   schema: {
     name: "write_file",
@@ -88,7 +104,8 @@ export const writeFileTool: Tool = {
       } catch (e) {
         proof = ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`;
       }
-      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})${proof}`, diff: diff.length ? diff : undefined };
+      const sizeNote = await sizeNoteFor(path, abs, content);
+      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})${proof}${sizeNote}`, diff: diff.length ? diff : undefined };
     } catch (err) {
       return {
         ok: false,

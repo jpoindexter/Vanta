@@ -147,6 +147,21 @@ describe("write_file", () => {
     expect(res.output).toContain("bytes on disk");
   });
 
+  it("CODE-SIZE-GATE in-loop: flags an oversized TS write in the tool result (still writes)", async () => {
+    const tooLong = `function f(a:number,b:number,c:number,d:number,e:number){return a+b+c+d+e;}\n`;
+    const res = await writeFileTool.execute({ path: "big.ts", content: tooLong }, ctx());
+    expect(res.ok).toBe(true); // the write still succeeds
+    expect(res.output).toContain("size gate");
+    expect(res.output).toContain("params");
+  });
+
+  it("CODE-SIZE-GATE in-loop: a clean TS write gets no size note; non-TS is exempt", async () => {
+    const clean = await writeFileTool.execute({ path: "ok.ts", content: "export const x = 1;\n" }, ctx());
+    expect(clean.output).not.toContain("size gate");
+    const txt = await writeFileTool.execute({ path: "notes.txt", content: "a".repeat(5000) }, ctx());
+    expect(txt.output).not.toContain("size gate");
+  });
+
   it("requires approval to overwrite, and respects denial", async () => {
     await writeFile(join(root, "exists.txt"), "original");
     const res = await writeFileTool.execute(
