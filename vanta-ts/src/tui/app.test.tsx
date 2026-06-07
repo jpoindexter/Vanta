@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "ink-testing-library";
 import { App, reduce, type State } from "./app.js";
-import { Transcript, type Entry } from "./transcript.js";
+import { EntryRow, type Entry } from "./transcript.js";
 import type { RunSetup } from "../session.js";
 
 const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false };
@@ -119,7 +119,7 @@ describe("Transcript fold (CC-TRANSCRIPT)", () => {
   };
 
   it("collapses the diff to a +/- count by default, hiding the body", () => {
-    const { lastFrame, unmount } = render(<Transcript entries={[wrote]} streaming="" expanded={false} />);
+    const { lastFrame, unmount } = render(<EntryRow entry={wrote} expanded={false} />);
     const frame = lastFrame() ?? "";
     expect(frame).toContain("+1/-1"); // diffStat one-liner
     expect(frame).not.toContain("hello world"); // body folded
@@ -127,7 +127,7 @@ describe("Transcript fold (CC-TRANSCRIPT)", () => {
   });
 
   it("reveals the full diff when expanded", () => {
-    const { lastFrame, unmount } = render(<Transcript entries={[wrote]} streaming="" expanded />);
+    const { lastFrame, unmount } = render(<EntryRow entry={wrote} expanded />);
     const frame = lastFrame() ?? "";
     expect(frame).toContain("hello world");
     unmount();
