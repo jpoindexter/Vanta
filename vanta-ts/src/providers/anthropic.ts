@@ -208,6 +208,25 @@ function toAnthropicTool(t: ToolSchema): {
   };
 }
 
+type ParsedBlock = { text?: string; thinking?: string; toolCall?: ToolCall };
+
+function parseToolUse(block: Record<string, unknown>): ToolCall {
+  return {
+    id: typeof block.id === "string" ? block.id : "",
+    name: typeof block.name === "string" ? block.name : "",
+    arguments: isRecord(block.input) ? block.input : {},
+  };
+}
+
+/** Classify one Anthropic content block into text / thinking / tool-call (or nothing). */
+function parseBlock(block: unknown): ParsedBlock {
+  if (!isRecord(block)) return {};
+  if (block.type === "thinking" && typeof block.thinking === "string") return { thinking: block.thinking };
+  if (block.type === "text" && typeof block.text === "string") return { text: block.text };
+  if (block.type === "tool_use") return { toolCall: parseToolUse(block) };
+  return {};
+}
+
 /** Narrow Anthropic response content blocks into a CompletionResult. */
 export function parseResponse(content: unknown, finishReason: string): CompletionResult {
   const blocks = Array.isArray(content) ? content : [];
@@ -216,17 +235,10 @@ export function parseResponse(content: unknown, finishReason: string): Completio
   const toolCalls: ToolCall[] = [];
 
   for (const block of blocks) {
-    if (!isRecord(block)) continue;
-    if (block.type === "thinking" && typeof block.thinking === "string") {
-      thinkingParts.push(block.thinking);
-    } else if (block.type === "text" && typeof block.text === "string") {
-      textParts.push(block.text);
-    } else if (block.type === "tool_use") {
-      const id = typeof block.id === "string" ? block.id : "";
-      const name = typeof block.name === "string" ? block.name : "";
-      const args = isRecord(block.input) ? block.input : {};
-      toolCalls.push({ id, name, arguments: args });
-    }
+    const p = parseBlock(block);
+    if (p.text !== undefined) textParts.push(p.text);
+    if (p.thinking !== undefined) thinkingParts.push(p.thinking);
+    if (p.toolCall) toolCalls.push(p.toolCall);
   }
 
   const result: CompletionResult = { text: textParts.join(""), toolCalls, finishReason };
