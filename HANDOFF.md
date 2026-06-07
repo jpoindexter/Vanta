@@ -56,15 +56,23 @@ and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rul
 Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
 `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
 
-## SIZE-PAYDOWN — cli.ts + interactive.ts file-size DONE; 76 remain (next-session)
+## SIZE-PAYDOWN — 85→69 done; remainder is brainstem/REPL (next-session)
 
-`vanta lint` surfaced ~85 violations. **DONE 2026-06-07:** cli.ts (worst — 428→175L,
-`main` if-chain → `COMMANDS` table, handlers → `cli/commands.ts`; both gate-clean,
-routing live-verified) · interactive.ts file-size (335→286L; 6-gate post-turn block →
-tested `runPostTurnGates` in `repl/post-turn-gates.ts`, reusable by both hosts) ·
-`writeRunMemory` → options object. **Violations 85→76.** Proven pattern: lookup-table
-for dispatchers, extract-to-helper for long fns, options-object for >4 params, full
-suite per file.
+`vanta lint` surfaced ~85 violations. **DONE 2026-06-07 (→69):** cli.ts (worst —
+428→175L, `main` → `COMMANDS` table, handlers → `cli/commands.ts`) · interactive.ts
+file-size (335→286L; gates → tested `runPostTurnGates` in `repl/post-turn-gates.ts`) ·
+`writeRunMemory` → options object · plus safe pure-fn cx fixes (each extract-helper,
+behavior preserved, tested): `memory/compress` extractObservations, `schedule/cron`
+parseField, `util/diff` withContext, `skills/bundle` parseBundle, `repl/wm-manip`
+detectWmMode, `search/serpapi` mapSerpapiJson, `repl/closure-gate` hasCommitAfterIndex.
+
+**Remaining 69 — a focused pass (weak/no test nets or high blast radius):**
+- interactive.ts `runChat` (206L/cx29) + `runUserTurn` (78L) — un-live-smokeable readline path.
+- session.ts (473L file + `prepareRun` 64L) — split into modules.
+- **brainstem** (high blast radius): `providers/index.ts` `resolveProvider` cx24, `agent.ts` `runTurn` cx23.
+- `factory/run.ts` `runCycle`, `desktop/server.ts` cx27, `tools/{mount-mcp,browser-navigate,screenshot}` long fns, + a tail of param/cx.
+- Easy-safe leftovers if you want quick wins: `graph/store.ts` makeRelation (5 params), `skills/library.ts` installOne (5 params), `repl/plan-mode.ts` (cx12), `skills/lint.ts` lintSkills (cx13), `gateway/run.ts` runGateway, `status.ts` gatherStatus, `voice/loop.ts` runVoiceLoop, `review/background-review.ts` serializeTranscript.
+Proven pattern: lookup-table for dispatchers, extract-helper for long fns, options-object for >4 params, **full suite (gated on exit code) per file**. Then set `VANTA_LINT_BLOCK=1`.
 
 **Remaining (78), tackle incrementally — full suite + live smoke per file:**
 - **Limbs (lower risk, do first):** `interactive.ts` (335L; `runChat` 240L + nested
