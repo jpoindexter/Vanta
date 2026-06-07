@@ -509,12 +509,12 @@
       "id": "COST-VISIBLE",
       "track": "Efficiency",
       "title": "Visible cost + latency per call (local vs frontier)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Keep cost and latency visible so local-vs-frontier routing is legible (wants1 #12). Surfaces per-call model + tokens + latency + estimated cost in /status and the status line. Extends E-eff2 prefer-local + AUX-MAP + UX-STREAM events; the RTF's tokens footer ('10,726 in / 578 out') is the exact want.",
+      "summary": "SHIPPED 2026-06-07. pricing.ts (pure): estimateCostUsd (approx $/1M-token table, gpt-4o-mini-before-gpt-4o ordering, unknown/local→null), isLocalProvider, formatTurnCost (tokens + latency + cost, ~? when unpriced), addTurnCost + formatSessionCost (split local-free vs frontier-metered, with turn counts). Both hosts now print the cost/latency footer per turn and accumulate ReplState.sessionCost; /usage shows the session split. Prices are approximate-for-visibility (documented). 8 unit tests; full suite 1182 green; tsc clean.",
       "done": "Each turn shows model, token counts, and latency; /status shows session cost split by local vs frontier."
     },
     {
