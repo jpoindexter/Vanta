@@ -3,6 +3,7 @@ import type { ImageAttachment } from "../types.js";
 import type { RunSetup } from "../session.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { LLMProvider } from "../providers/interface.js";
+import type { SessionCost } from "../pricing.js";
 
 /** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork, /image). */
 export type ReplState = {
@@ -12,6 +13,8 @@ export type ReplState = {
   title?: string;
   /** Images attached via /image or /paste, consumed by the next user turn. */
   pendingImages?: ImageAttachment[];
+  /** COST-VISIBLE: running session cost split (local free vs frontier metered). */
+  sessionCost?: SessionCost;
 };
 
 export type ReplCtx = {

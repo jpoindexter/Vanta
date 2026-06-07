@@ -6,6 +6,7 @@ import { listSessions, loadSession, newSessionId, saveSession } from "../session
 import { loadCron } from "../schedule/cron.js";
 import { SLASH_HELP } from "./catalog.js";
 import { oneLine, lastUserIndex, formatExport, formatHistory, mimeFromPath, lines } from "./format.js";
+import { formatSessionCost } from "../pricing.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
 import { next, isVagueGoal, buildNextStepResend } from "./next.js";
 import { planMode } from "./plan-mode.js";
@@ -214,7 +215,11 @@ const usage: SlashHandler = (_arg, ctx) => {
   const est = Math.round(chars / 4); // ~4 chars/token, matches the status bar's estimate
   const ctxWin = ctx.setup.provider.contextWindow();
   const pct = ctxWin ? Math.round((est / ctxWin) * 100) : 0;
-  return { output: `  ~${est.toLocaleString()} tokens / ${ctxWin.toLocaleString()} ctx (${pct}%) · ${ctx.state.turnIndex} turn(s) · ${ctx.setup.provider.modelId()}` };
+  return {
+    output:
+      `  ~${est.toLocaleString()} tokens / ${ctxWin.toLocaleString()} ctx (${pct}%) · ${ctx.state.turnIndex} turn(s) · ${ctx.setup.provider.modelId()}\n` +
+      `  ${formatSessionCost(ctx.state.sessionCost)}`,
+  };
 };
 
 const copy: SlashHandler = async (_arg, ctx) => {

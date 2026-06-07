@@ -4,6 +4,7 @@ import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
+import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -188,13 +189,17 @@ export async function runChat(
       } catch { /* best-effort */ }
     }
     const turnStart = new Date().toISOString();
+    const t0 = Date.now();
     // Inject working memory as context prefix when the session has accumulated notes.
     const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
     const outcome = await convo.send(`${wmCtx}${text}`, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);
     if (outcome.usage) {
-      console.log(`  · ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens`);
+      // COST-VISIBLE: tokens + latency + cost per turn; accumulate the session split.
+      const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
+      console.log(`  ${formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - t0, cost)}`);
+      state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost);
     }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
     await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, {

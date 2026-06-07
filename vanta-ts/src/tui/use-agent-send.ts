@@ -6,6 +6,7 @@ import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
+import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
@@ -67,7 +68,10 @@ export function useAgentSend(
         dispatch({ t: "commit", finalText: outcome.finalText });
         pruneVolatileSkills(convo.messages);
         if (outcome.usage) {
-          dispatch({ t: "note", text: `· ${outcome.usage.inputTokens.toLocaleString()} in / ${outcome.usage.outputTokens.toLocaleString()} out tokens` });
+          // COST-VISIBLE: tokens + latency + cost; accumulate the session split on ReplState.
+          const cost = estimateCostUsd(process.env.VANTA_MODEL ?? "", outcome.usage.inputTokens, outcome.usage.outputTokens);
+          dispatch({ t: "note", text: formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - turnStartRef.current, cost) });
+          replStateRef.current.sessionCost = addTurnCost(replStateRef.current.sessionCost, process.env.VANTA_PROVIDER, cost);
         }
         if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Vanta", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
