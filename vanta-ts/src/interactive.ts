@@ -16,10 +16,9 @@ import {
   approver,
   writeRunMemory,
   reviewAfterTurn,
-  runPostTurnGates,
-  freshGateState,
   maybeCurate,
 } from "./session.js";
+import { runPostTurnGates, freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
 import { loadUserCommands, type UserCommand } from "./commands/loader.js";
