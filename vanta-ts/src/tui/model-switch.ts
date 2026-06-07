@@ -10,6 +10,29 @@ import type { ModelSelection } from "./model-picker.js";
 // and reuses the setup wizard's upsertEnv for the global-persist case so the
 // two writers can never diverge. No console output (would corrupt Ink).
 
+/**
+ * Parse a `/model <arg>` argument into a selection (the readline + TUI text path,
+ * the analogue of the visual picker). Forms:
+ *   "<provider> <model…>"  → that provider at that model
+ *   "<provider>"           → that provider at its default model
+ *   "<model…>"             → the current provider at that model
+ * The first whitespace token is treated as a provider only when it matches a
+ * catalog id (so "gpt-4o-mini" stays a model, "gemini" becomes a provider).
+ * `persistGlobal` is true — a typed switch should stick next launch, like the
+ * picker's default. Returns null for an empty arg. Pure.
+ */
+export function parseModelArg(arg: string, currentProviderId: string): ModelSelection | null {
+  const trimmed = arg.trim();
+  if (!trimmed) return null;
+  const tokens = trimmed.split(/\s+/);
+  const head = providerById((tokens[0] ?? "").toLowerCase());
+  if (head) {
+    const model = tokens.slice(1).join(" ").trim() || head.defaultModel;
+    return { providerId: head.id, model, persistGlobal: true };
+  }
+  return { providerId: currentProviderId, model: trimmed, persistGlobal: true };
+}
+
 /** The env the selection implies, layered over the current process env. */
 export function mergedEnv(sel: ModelSelection, env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const entry = providerById(sel.providerId);
