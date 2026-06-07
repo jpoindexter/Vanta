@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolResult } from "./types.js";
 import { resolveInScope } from "../scope.js";
 import { expandHome, resolveWritableZones, isInZone } from "./writable-zones.js";
 import { computeDiff } from "../util/diff.js";
@@ -30,6 +30,33 @@ async function sizeNoteFor(displayPath: string, abs: string, content: string): P
     return `\n⚠ size gate: ${violations.length} violation(s) — keep it born-small:\n${violations.map(formatViolation).join("\n")}`;
   } catch {
     return "";
+  }
+}
+
+/** ACTION-PROOF: re-read the file and confirm the write landed. */
+async function verifyWrite(abs: string, content: string): Promise<string> {
+  try {
+    const after = await readFile(abs, "utf8");
+    return after === content
+      ? ` · verified ${after.split("\n").length} lines, ${Buffer.byteLength(after)} bytes on disk`
+      : ` · ⚠ on-disk content differs from what was written`;
+  } catch (e) {
+    return ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`;
+  }
+}
+
+/** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
+async function writeAndReport(o: { abs: string; displayPath: string; content: string; isExisting: boolean; oldContent: string }): Promise<ToolResult> {
+  try {
+    await mkdir(dirname(o.abs), { recursive: true });
+    await writeFile(o.abs, o.content, "utf8");
+    const kind = o.isExisting ? "overwritten" : "new file";
+    const diff = computeDiff(o.oldContent, o.content);
+    const proof = await verifyWrite(o.abs, o.content);
+    const sizeNote = await sizeNoteFor(o.displayPath, o.abs, o.content);
+    return { ok: true, output: `wrote ${Buffer.byteLength(o.content)} bytes to ${o.displayPath} (${kind})${proof}${sizeNote}`, diff: diff.length ? diff : undefined };
+  } catch (err) {
+    return { ok: false, output: `could not write ${o.displayPath}: ${(err as Error).message}` };
   }
 }
 
@@ -86,31 +113,6 @@ export const writeFileTool: Tool = {
       }
     }
 
-    try {
-      await mkdir(dirname(abs), { recursive: true });
-      await writeFile(abs, content, "utf8");
-      const bytes = Buffer.byteLength(content);
-      const kind = isExisting ? "overwritten" : "new file";
-      const diff = computeDiff(oldContent, content);
-      // ACTION-PROOF: re-read the file and confirm the write actually landed —
-      // post-action proof, not an assumed success. The diff is the "before".
-      let proof: string;
-      try {
-        const after = await readFile(abs, "utf8");
-        proof =
-          after === content
-            ? ` · verified ${after.split("\n").length} lines, ${Buffer.byteLength(after)} bytes on disk`
-            : ` · ⚠ on-disk content differs from what was written`;
-      } catch (e) {
-        proof = ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`;
-      }
-      const sizeNote = await sizeNoteFor(path, abs, content);
-      return { ok: true, output: `wrote ${bytes} bytes to ${path} (${kind})${proof}${sizeNote}`, diff: diff.length ? diff : undefined };
-    } catch (err) {
-      return {
-        ok: false,
-        output: `could not write ${path}: ${(err as Error).message}`,
-      };
-    }
+    return writeAndReport({ abs, displayPath: path, content, isExisting, oldContent });
   },
 };
