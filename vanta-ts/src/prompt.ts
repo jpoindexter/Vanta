@@ -84,7 +84,12 @@ function errorsLogTier(errorsLog?: string): string {
   return `Prior failures log (ERRORS.md — consult before approaching similar tasks):\n${trimmed}`;
 }
 
-function volatileTier(goals: Goal[], now: string, memory?: string, moimNote?: string, projectId?: string): string {
+function volatileTier(
+  goals: Goal[],
+  now: string,
+  extra: { memory?: string; moimNote?: string; projectId?: string } = {},
+): string {
+  const { memory, moimNote, projectId } = extra;
   const active = goals.filter((g) => g.status === "active");
   const goalText = active.length
     ? active.map((g) => `- [${g.id}] ${g.text}`).join("\n")
@@ -130,7 +135,7 @@ export async function buildSystemPrompt(opts: {
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
-    volatileTier(opts.goals, opts.now, opts.memory, opts.moimNote, opts.projectId),
+    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId }),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
 }
