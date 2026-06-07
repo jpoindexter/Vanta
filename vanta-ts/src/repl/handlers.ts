@@ -12,6 +12,8 @@ import { planMode } from "./plan-mode.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
 import { wm } from "./wm.js";
+import { model } from "./model-cmd.js";
+import { moim } from "./moim-cmd.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -79,8 +81,6 @@ const skills: SlashHandler = async (_arg, ctx) => {
 };
 
 const tools: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.registry.schemas().map((s) => s.name).join(", ")}` });
-
-const model: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.provider.modelId()} · ${ctx.setup.provider.contextWindow().toLocaleString()} ctx` });
 
 const status: SlashHandler = async (_arg, ctx) => ({ output: formatStatus(await gatherStatus(ctx.env)) });
 
@@ -272,24 +272,6 @@ const cron: SlashHandler = async (_arg, ctx) => {
   return { output: lines(entries.map((e) => `  #${e.id} [${e.status}] ${e.cron} — ${e.instruction}`), "  (no scheduled tasks)") };
 };
 
-const moim: SlashHandler = async (arg, ctx) => {
-  const { readMoim, writeMoim, clearMoim } = await import("../moim/store.js");
-  if (!arg) {
-    const note = await readMoim(ctx.env);
-    return { output: note ? `  ⚑ ${note}` : "  (nothing pinned — /moim <text> to set, /moim clear to remove)" };
-  }
-  if (arg.toLowerCase() === "clear") {
-    await clearMoim(ctx.env);
-    return { output: "  · top-of-mind cleared (removed from future sessions)" };
-  }
-  await writeMoim(arg, ctx.env);
-  // Patch the live system prompt so the agent sees it in this session too.
-  const sys = ctx.convo.messages[0];
-  if (sys && sys.role === "system") {
-    sys.content = `⚑ Top of mind (pinned by user — keep this in focus):\n${arg}\n\n${sys.content}`;
-  }
-  return { output: `  ⚑ pinned: ${oneLine(arg, 80)}` };
-};
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { mergedEnv, buildProviderForSelection, persistSelectionGlobal } from "./model-switch.js";
+import { mergedEnv, buildProviderForSelection, persistSelectionGlobal, parseModelArg } from "./model-switch.js";
 import type { ModelSelection } from "./model-picker.js";
 
 const sel = (over: Partial<ModelSelection> = {}): ModelSelection => ({
@@ -42,6 +42,32 @@ describe("buildProviderForSelection", () => {
 
   it("throws actionably when a keyed provider has no key", () => {
     expect(() => buildProviderForSelection(sel({ providerId: "anthropic", model: "claude-sonnet-4-6" }), {} as NodeJS.ProcessEnv)).toThrow(/ANTHROPIC_API_KEY/);
+  });
+});
+
+describe("parseModelArg", () => {
+  it("treats a leading provider id as the provider, rest as the model", () => {
+    expect(parseModelArg("openai gpt-4o", "ollama")).toEqual({ providerId: "openai", model: "gpt-4o", persistGlobal: true });
+  });
+
+  it("uses the provider's default model when only a provider is given", () => {
+    expect(parseModelArg("gemini", "openai")).toEqual({ providerId: "gemini", model: "gemini-2.5-flash", persistGlobal: true });
+  });
+
+  it("keeps the current provider when the arg is just a model id", () => {
+    expect(parseModelArg("gpt-4o-mini", "openai")).toEqual({ providerId: "openai", model: "gpt-4o-mini", persistGlobal: true });
+  });
+
+  it("keeps slashed OpenRouter model ids intact under an explicit provider", () => {
+    expect(parseModelArg("openrouter anthropic/claude-sonnet-4.5", "ollama")).toEqual({
+      providerId: "openrouter",
+      model: "anthropic/claude-sonnet-4.5",
+      persistGlobal: true,
+    });
+  });
+
+  it("returns null for an empty arg", () => {
+    expect(parseModelArg("   ", "openai")).toBeNull();
   });
 });
 
