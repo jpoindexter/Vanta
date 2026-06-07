@@ -5,6 +5,7 @@ import { listSkills } from "./skills/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
+import { buildModeHint } from "./repl/mode-detect.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -192,7 +193,10 @@ export async function runChat(
     const t0 = Date.now();
     // Inject working memory as context prefix when the session has accumulated notes.
     const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
-    const outcome = await convo.send(`${wmCtx}${text}`, images);
+    // MODE-DETECT: prepend a one-line stance hint inferred from the request.
+    const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
+    const prefix = `${modeHint ? `${modeHint}\n\n` : ""}${wmCtx}`;
+    const outcome = await convo.send(`${prefix}${text}`, images);
     pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
     console.log(`\n${outcome.finalText}`);
     if (outcome.usage) {

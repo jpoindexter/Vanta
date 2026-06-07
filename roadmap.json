@@ -629,12 +629,12 @@
       "id": "MODE-DETECT",
       "track": "Operator",
       "title": "Auto mode-selection (silent-executor / collaborator / critic / researcher / debugger)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "wants1 #19 'fewer mode errors': much AI annoyance is the wrong MODE, not wrong intelligence. Auto-DETECT and switch conversational stance -- silent executor, collaborator, critic, researcher, assistant, debugger -- from the request + context. Distinct from MODES-v2 (build/debug/design/planning/body-double, which Jason sets); this is Vanta picking the stance itself. Pairs with VOICE-NATURAL.",
+      "summary": "SHIPPED 2026-06-07. repl/mode-detect.ts: pure detectMode classifies the request into silent-executor / collaborator / critic / researcher / debugger / assistant (specific stances win over the generic executor — e.g. 'failing, fix it' → debugger). buildModeHint returns a one-line stance directive (or null for the neutral default = no injection). Both hosts prepend the hint to the SENT message only (display stays clean); opt-out VANTA_MODE_DETECT=0. Distinct from MODES-v2 (user-set). 9 unit tests; tsc clean.",
       "done": "A 'just do it' request gets silent-executor mode and a 'what do you think' gets collaborator/critic mode, switched automatically without Jason naming the mode."
     },
     {
