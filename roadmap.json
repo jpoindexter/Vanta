@@ -497,12 +497,12 @@
       "id": "ACTION-PROOF",
       "track": "Reliability (ND trust)",
       "title": "Action previews + post-action proof",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Before a risky action show the exact intended change; after, show proof it happened -- so approval feels informed, not annoying (wants1 #15). Extends TUI-DIFF (pre-edit diff) + kernel approvals with the post-action proof step (the 'after' half currently missing).",
+      "summary": "SHIPPED 2026-06-07. The 'before' half already existed (write_file returns a computed diff → TUI-DIFF). Added the missing 'after' half: write_file now RE-READS the file post-write and confirms the bytes actually landed — 'verified N lines, M bytes on disk' (or a ⚠ if on-disk content differs / re-read fails), instead of reporting only the intended byte count. Real post-action proof, not assumed success. 1 added test (tools.test.ts); full suite 1201 green; tsc clean.",
       "done": "A file write shows the diff before and a verification readout (re-read / test result) after, both within the turn."
     },
     {
