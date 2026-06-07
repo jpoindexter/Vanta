@@ -11,6 +11,23 @@ export type SkillLintIssue = { skill: string; level: "error" | "warn"; message: 
 
 const ARCHIVE_DIR = ".archive";
 
+type ParsedSkill = ReturnType<typeof parseSkill>;
+
+/** Validate one parsed skill's metadata + body. Pure; returns issues for this slug. */
+function lintOneMeta(slug: string, skill: ParsedSkill): SkillLintIssue[] {
+  const out: SkillLintIssue[] = [];
+  const err = (message: string) => out.push({ skill: slug, level: "error", message });
+  const warn = (message: string) => out.push({ skill: slug, level: "warn", message });
+  const m = skill.meta;
+  if (!m.name?.trim()) err("missing name");
+  else if (slugifySkillName(m.name) !== slug) warn(`name "${m.name}" → "${slugifySkillName(m.name)}" ≠ directory "${slug}"`);
+  if (!m.description?.trim()) err("missing description");
+  if (!m.created || Number.isNaN(Date.parse(m.created))) warn("missing/invalid created date");
+  if (!m.updated || Number.isNaN(Date.parse(m.updated))) warn("missing/invalid updated date");
+  if (!skill.body?.trim()) warn("empty body");
+  return out;
+}
+
 export async function lintSkills(env: NodeJS.ProcessEnv = process.env): Promise<SkillLintIssue[]> {
   const dir = skillsDir(env);
   let slugs: string[];
@@ -23,7 +40,6 @@ export async function lintSkills(env: NodeJS.ProcessEnv = process.env): Promise<
 
   const issues: SkillLintIssue[] = [];
   const err = (skill: string, message: string) => issues.push({ skill, level: "error", message });
-  const warn = (skill: string, message: string) => issues.push({ skill, level: "warn", message });
 
   for (const slug of slugs) {
     let md: string;
@@ -40,13 +56,7 @@ export async function lintSkills(env: NodeJS.ProcessEnv = process.env): Promise<
       err(slug, `unparseable frontmatter: ${(e as Error).message}`);
       continue;
     }
-    const m = skill.meta;
-    if (!m.name?.trim()) err(slug, "missing name");
-    else if (slugifySkillName(m.name) !== slug) warn(slug, `name "${m.name}" → "${slugifySkillName(m.name)}" ≠ directory "${slug}"`);
-    if (!m.description?.trim()) err(slug, "missing description");
-    if (!m.created || Number.isNaN(Date.parse(m.created))) warn(slug, "missing/invalid created date");
-    if (!m.updated || Number.isNaN(Date.parse(m.updated))) warn(slug, "missing/invalid updated date");
-    if (!skill.body?.trim()) warn(slug, "empty body");
+    issues.push(...lintOneMeta(slug, skill));
   }
   return issues;
 }
