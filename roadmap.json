@@ -353,12 +353,12 @@
       "id": "TRUST-LABELS",
       "track": "Reliability (ND trust)",
       "title": "Trust calibration: verified / inferred / uncertain / needs-check",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "The trusted-operator honesty primitive (wants1 #13). Tag claims in replies by epistemic status -- verified (tool-backed), inferred, uncertain, needs-tool-check -- so it is obvious when Vanta knows vs guesses. Extends BEHAVIOR-VOICE (verify-before-claim) + TOOL-RETRY (honest report) into an explicit rendered label instead of prose hedging. Cheap, high-trust, ND-legible.",
+      "summary": "SHIPPED 2026-06-07. Folded into prompt.ts rule 7 (honesty) rather than appending a new rule: 'Label claims by epistemic status — verified (tool-backed) / inferred / uncertain — so it's clear when you know vs guess; show an unverifiable claim as uncertain, not as flat fact.' prompt test locks the clause. Behavioral rendering on real replies is model-driven (verified live, like BEHAVIOR-VOICE).",
       "done": "A factual reply renders explicit verified/inferred/uncertain markers, and an unverifiable claim is shown as uncertain rather than stated flat."
     },
     {
@@ -485,12 +485,12 @@
       "id": "BETTER-ENDINGS",
       "track": "Operator",
       "title": "Task-ending contract (changed / verified / remains / next)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Every task ends with: what changed, what was verified, what remains, suggested next move (wants1 #16). Codifies the global CLAUDE.md section-14 DONE block as an Vanta behavior + FAC-CLOSE closure parity. Small, high-trust.",
+      "summary": "SHIPPED 2026-06-07. Folded into prompt.ts rule 4 (completion): 'Close a multi-step task with: what changed · what was verified · what remains · next.' — codifies the global CLAUDE.md §14 DONE block as a prompt rule rather than a new rule. prompt test locks the clause. Emission is model-driven (verified live).",
       "done": "Completing any multi-step task auto-emits the four-line changed/verified/remains/next block."
     },
     {
@@ -538,7 +538,7 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Goal: Vanta sounds natural and human-legible, not clipped or cold. Jason flagged the safety/operator text as 'very hard and cold.' Resolves the tension with BEHAVIOR-VOICE (direct, literal, no AI-magic): operator-precise AND warm enough -- calm, loyal, plain-spoken, dry register, never fake-cheerful, never corporate, never robotic. Tunes SOUL.md + the prompt + TRUST-LABELS phrasing so honesty reads as care, not coldness. Rationale locked in DECISIONS.md (warm-precise reconciliation).",
+      "summary": "Goal: Vanta sounds natural and human-legible, not clipped or cold. Jason flagged the safety/operator text as 'very hard and cold.' Resolves the tension with BEHAVIOR-VOICE (direct, literal, no AI-magic): operator-precise AND warm enough -- calm, loyal, plain-spoken, dry register, never fake-cheerful, never corporate, never robotic. Tunes SOUL.md + the prompt + TRUST-LABELS phrasing so honesty reads as care, not coldness. Rationale locked in DECISIONS.md (warm-precise reconciliation). [2026-06-07] Substance is in place — prompt rule 10 carries 'warm enough to be human, never fake-cheerful or robotic' and SOUL.md is already warm-operator. BLOCKED on Jason: the done criterion is 3 before/after sample approvals, which only he can give. Stays next until then.",
       "done": "Side-by-side, a stock reply reads warmer and more natural than the current clipped voice while staying precise -- verified on 3 before/after samples Jason approves."
     },
     {
@@ -1037,24 +1037,24 @@
       "id": "REF-FIDELITY",
       "track": "Operator",
       "title": "Reference-first fidelity (\"like X but better\" → inspect X first)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Case-study lesson: when the user references an app/repo (\"like Hermes but better\"), inspect its ACTUAL structure/interaction model FIRST, reproduce it, THEN improve + brand. A generic dashboard/vibe pass reads as a miss. Encode as an operating rule + prompt behavior (Vanta's brain already saved it).",
+      "summary": "SHIPPED 2026-06-07. Folded into prompt.ts rule 1 (goal before tool): 'When the user references an app/repo (\"like X but better\"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.' prompt test locks the clause. Build approach is model-driven (verified live).",
       "done": "Given a 'like X' request, Vanta inspects X's real structure before building and its first pass matches the reference's interaction model, not a generic layout."
     },
     {
       "id": "VERIFY-RIGHT",
       "track": "Reliability (ND trust)",
       "title": "Verification must prove the actual claim (not a proxy)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Case-study lesson: 'typecheck + 2 tests pass' proves the code COMPILES, not that the UX works or matches the reference. Verification must target the actual claim; for UI/behavior, run it and observe. Extends TRUST-LABELS + verify-before-claim; blocks 'done' on proxy evidence.",
+      "summary": "SHIPPED 2026-06-07. Folded into prompt.ts rule 4 (completion): 'prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works)'. prompt test locks the clause. Pairs with the rule-4 cite-the-evidence hardening from BEHAVIOR-VOICE.",
       "done": "A 'done' claim cites evidence that matches the claim (UI verified by running/observing, not by tsc); proxy-only verification is flagged, not accepted."
     },
     {

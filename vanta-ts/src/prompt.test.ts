@@ -56,7 +56,19 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("no hype or AI-magic phrasing");
     // Hardened verify-before-claim: cite the proving evidence, not prose.
     expect(prompt).toContain("cite the command and its result");
-    expect(prompt).toContain('do not claim "done"');
+    expect(prompt).toContain('claim "done"');
+  });
+
+  it("folds in VERIFY-RIGHT, TRUST-LABELS, REF-FIDELITY, BETTER-ENDINGS without adding rules", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta", soulPath: "/nonexistent/SOUL.md", goals: [], tools, now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).toContain("prove the ACTUAL claim");          // VERIFY-RIGHT
+    expect(prompt).toContain("verified (tool-backed) / inferred / uncertain"); // TRUST-LABELS
+    expect(prompt).toContain("inspect X's real structure");      // REF-FIDELITY
+    expect(prompt).toContain("what changed · what was verified · what remains · next"); // BETTER-ENDINGS
+    // Folded into rules 1/4/7 — rule 10 (Voice) is still the last operating rule.
+    expect(prompt).toContain("10. Voice");
   });
 
   it("frames Vanta as a personal operator across digital life, not a repo-confined coding tool", async () => {
