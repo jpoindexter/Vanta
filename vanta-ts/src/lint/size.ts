@@ -39,30 +39,29 @@ function funcName(n: ts.Node): string {
   return "(anonymous)";
 }
 
+// A decision point adds 1 to cyclomatic complexity. Short-circuit/null-coalesce
+// operators count too. Kept as lookup sets so the walker stays flat + low-cx.
+const DECISION_KINDS = new Set<ts.SyntaxKind>([
+  ts.SyntaxKind.IfStatement, ts.SyntaxKind.ForStatement, ts.SyntaxKind.ForInStatement,
+  ts.SyntaxKind.ForOfStatement, ts.SyntaxKind.WhileStatement, ts.SyntaxKind.DoStatement,
+  ts.SyntaxKind.CaseClause, ts.SyntaxKind.CatchClause, ts.SyntaxKind.ConditionalExpression,
+]);
+const SHORT_CIRCUIT = new Set<ts.SyntaxKind>([
+  ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken, ts.SyntaxKind.QuestionQuestionToken,
+]);
+
+function isDecision(n: ts.Node): boolean {
+  if (DECISION_KINDS.has(n.kind)) return true;
+  return ts.isBinaryExpression(n) && SHORT_CIRCUIT.has(n.operatorToken.kind);
+}
+
 /** Cyclomatic complexity within a function body, not descending into nested
  *  functions (those are counted on their own). Base 1 + each decision point. */
 function complexity(fn: ts.Node): number {
   let count = 1;
   const walk = (n: ts.Node): void => {
     if (n !== fn && isFunctionLike(n)) return; // nested fn scored separately
-    switch (n.kind) {
-      case ts.SyntaxKind.IfStatement:
-      case ts.SyntaxKind.ForStatement:
-      case ts.SyntaxKind.ForInStatement:
-      case ts.SyntaxKind.ForOfStatement:
-      case ts.SyntaxKind.WhileStatement:
-      case ts.SyntaxKind.DoStatement:
-      case ts.SyntaxKind.CaseClause:
-      case ts.SyntaxKind.CatchClause:
-      case ts.SyntaxKind.ConditionalExpression:
-        count++;
-        break;
-      case ts.SyntaxKind.BinaryExpression: {
-        const op = (n as ts.BinaryExpression).operatorToken.kind;
-        if (op === ts.SyntaxKind.AmpersandAmpersandToken || op === ts.SyntaxKind.BarBarToken || op === ts.SyntaxKind.QuestionQuestionToken) count++;
-        break;
-      }
-    }
+    if (isDecision(n)) count++;
     ts.forEachChild(n, walk);
   };
   walk(fn);
