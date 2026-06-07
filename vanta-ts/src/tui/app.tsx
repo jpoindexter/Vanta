@@ -14,7 +14,7 @@ import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
-import { Transcript, Palette, firstLine, type Entry } from "./transcript.js";
+import { EntryRow, Palette, firstLine, type Entry } from "./transcript.js";
 import { toolDisplay } from "./tool-display.js";
 import { summarizeResult } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
@@ -194,10 +194,27 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${foldHint}/help  ?  /exit`;
 
+  // Banner + committed history live in ONE <Static>: each line commits to
+  // scrollback exactly once, so the dynamic region stays shorter than the
+  // terminal and Ink can clear it cleanly on resize (no ghost frames). The
+  // in-flight streaming buffer renders dynamically just below.
+  const staticItems: Array<{ kind: "banner"; data: BannerData } | { kind: "entry"; entry: Entry; i: number }> = [
+    ...(banner ? [{ kind: "banner" as const, data: banner }] : []),
+    ...state.entries.map((entry, i) => ({ kind: "entry" as const, entry, i })),
+  ];
+
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Static items={banner ? [banner] : []}>{(d) => <Banner key="banner" data={d} />}</Static>
-      <Transcript entries={state.entries} streaming={state.streaming} expanded={state.expanded} />
+      <Static items={staticItems}>
+        {(item) =>
+          item.kind === "banner" ? (
+            <Banner key="banner" data={item.data} />
+          ) : (
+            <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
+          )
+        }
+      </Static>
+      {state.streaming.trim() ? <Text>{state.streaming}</Text> : null}
       {pending ? (
         <Box flexDirection="column" marginTop={1}>
           <ApprovalPrompt action={pending.action} reason={pending.reason} toolName={pending.toolName} width={w} onChoose={chooseApproval} />

@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { partitionBlocks } from "./tool-display.js";
 import { diffStat } from "./tool-result.js";
 import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
@@ -40,26 +39,23 @@ export const firstLine = (t: string): string => {
   return l.length > 80 ? `${l.slice(0, 77)}...` : l;
 };
 
-export function Transcript(props: { entries: Entry[]; streaming: string; expanded?: boolean }): ReactElement {
-  const blocks = partitionBlocks(props.entries);
-  return (
-    <Box flexDirection="column">
-      {blocks.map((b, i) =>
-        b.type === "tools" ? (
-          <Box key={i} flexDirection="column" marginLeft={1}>
-            {b.items.map((t, j) => (
-              <ToolLine key={j} entry={t} expanded={props.expanded ?? false} />
-            ))}
-          </Box>
-        ) : (
-          <SingleLine key={i} entry={b.entry} />
-        ),
-      )}
-      {props.streaming.trim() ? <Text>{props.streaming}</Text> : null}
-      {/* Streaming is rendered as plain text (content is incomplete); committed
-          assistant entries get full markdown rendering above via SingleLine. */}
-    </Box>
-  );
+/**
+ * Render ONE committed transcript entry. The App renders these inside Ink's
+ * <Static> so finished history commits to scrollback exactly once. Ink can only
+ * clear lines still on screen, so a growing *dynamic* transcript leaves ghost
+ * frames when the terminal is resized — committing history to Static is the fix.
+ * Tool rows keep their one-space indent; everything else renders as before.
+ */
+export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElement {
+  const e = props.entry;
+  if (e.kind === "tool") {
+    return (
+      <Box marginLeft={1}>
+        <ToolLine entry={e} expanded={props.expanded ?? false} />
+      </Box>
+    );
+  }
+  return <SingleLine entry={e} />;
 }
 
 function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {

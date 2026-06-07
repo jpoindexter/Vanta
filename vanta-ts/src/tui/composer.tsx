@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { Text, useInput } from "ink";
+import { Text, useInput, usePaste } from "ink";
 import { newPasteStore, shouldCollapse, collapse, expandPastes } from "./paste.js";
 
 export type VimMode = "normal" | "insert";
@@ -150,6 +150,19 @@ export function Composer(props: ComposerProps): ReactElement {
       // Insert printable text at the cursor. A large block (a paste delivered as
       // one event) collapses to a [Pasted text #N …] ref, expanded on submit.
       const insert = shouldCollapse(input) ? collapse(pasteStore.current, input) : input;
+      onChange(value.slice(0, cursor) + insert + value.slice(cursor));
+      setCursor((c) => c + insert.length);
+    },
+    { isActive },
+  );
+
+  // Bracketed paste. Ink enables paste mode while this hook is active and
+  // delivers the WHOLE paste as one event on a separate channel — so a paste's
+  // embedded newlines can never be misread by useInput as Enter (the "repasted
+  // several times" multi-submit bug). Large pastes still collapse to a ref.
+  usePaste(
+    (pasted) => {
+      const insert = shouldCollapse(pasted) ? collapse(pasteStore.current, pasted) : pasted;
       onChange(value.slice(0, cursor) + insert + value.slice(cursor));
       setCursor((c) => c + insert.length);
     },
