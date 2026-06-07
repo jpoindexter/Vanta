@@ -1,87 +1,89 @@
-# Vanta — Session Handoff (2026-06-03 v3)
+# Vanta — Session Handoff (2026-06-07)
 
-Cold-start context for a fresh thread. Read this + `MANIFESTO.md` + `ROADMAP.md` first.
+Cold-start context for the next thread. Read this + `CLAUDE.md` + `ROADMAP.md` first.
 
 ---
 
-## Where things are
+## ⚑ DO THIS FIRST (offline — no Vanta session running)
 
-- **Repo:** `~/Documents/GitHub/Vanta` (Rust kernel `src/*.rs`; TS agent `vanta-ts/`).
-- **Branch:** `feat/v1-hermes-parity` — **synced with origin, clean tree.**
-- **Tests:** 554 TS (vitest) + 27 Rust = **581 green**; `tsc --noEmit` clean.
+You chose to rename the on-disk repo folder `Argo/ → Vanta/`. It's cosmetic (the
+code finds its root via `Cargo.toml`), but both global launchers hardcode the old
+path, so the folder mv + launcher fix must happen together, with nothing running.
+
+```sh
+# 1. Quit any Vanta session. Free port 7788 if a stale kernel holds it:
+lsof -nP -iTCP:7788 -sTCP:LISTEN        # note the PID, then: kill <PID>
+
+# 2. Rename the folder:
+mv ~/Documents/GitHub/Argo ~/Documents/GitHub/Vanta
+
+# 3. Re-register the launcher from the NEW location (regenerates ~/.local/bin/vanta
+#    with the correct path + symlinks the gitleaks/size pre-commit hook):
+cd ~/Documents/GitHub/Vanta && ./install.sh
+
+# 4. Drop the stale old launcher (vanta replaces it):
+rm -f ~/.local/bin/argo
+
+# 5. Verify:
+which vanta && vanta doctor
+```
+
+**Optional (carries this session's auto-memory to the new path):** Claude Code keys
+project memory by folder path, so a session in `Vanta/` starts a fresh memory dir.
+To keep the index:
+`mv ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Argo ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Vanta`
+
+**Note:** CodeGraph (`.codegraph/`) moves with the folder; if queries look stale after
+the mv, run `codegraph index` once from `~/Documents/GitHub/Vanta`.
+
+---
+
+## Where things are (2026-06-07)
+
+- **Repo:** currently `~/Documents/GitHub/Argo` (→ `Vanta/` after the mv above). Rust kernel `src/*.rs`; TS agent `vanta-ts/`.
+- **Branch:** `feat/v1-hermes-parity` — **all work pushed, clean tree.** Remote: `github.com/jpoindexter/Vanta`.
+- **Tests:** **1227 TS (vitest) + 27 Rust = 1254 green**; `tsc --noEmit` clean. 46 tools.
   - Run: `cd vanta-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
-- **Gotcha:** harness pins spawned cwd to old `Nexarion Agent` path. Real repo is `Vanta/`. `VANTA_ROOT` env var is the fix.
+  - **Always run `git` from the repo root** (tsx/test commands cd into `vanta-ts/` and the shell cwd persists).
+- **`vanta` command:** now works (`~/.local/bin/vanta` created this session; `argo` still works as a back-compat alias until step 4 above).
 
-## Source-of-truth docs
+## What shipped this session (20 roadmap cards — all in `roadmap.json`, status `shipped`)
 
-- `MANIFESTO.md` — north star, 8 hard lines, non-negotiable.
-- `ROADMAP.md` — **fully updated this session** — all shipped items ticked, residual section current.
-- `DECISIONS.md` — locked choices (append-only).
-- `vanta-ts/CLAUDE.md` + `vanta-ts/AGENTS.md` — file map + env + tool-add checklist.
-- `vanta-ts/src/factory/CLAUDE.md` — factory module map + safety invariants.
+UX-MODEL-FIX · RESTART · TOOL-RETRY · BEHAVIOR-VOICE · GOAL-ACTION · STALL-UNBLOCK ·
+ROADMAP-ADD · BUG-CAPTURE · HANDOFF-PACKET · COST-VISIBLE · MODE-DETECT · AUTO-HANDOFF ·
+ACTION-PROOF · CODE-SIZE-GATE (+ wired into `write_file`) · CC-EDITOR · CLI-DX-PACK ·
+and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rules 1/4/7.
+Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
+`vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
 
----
+## Next-session priority — SIZE-PAYDOWN (in progress, not started in code)
 
-## What shipped this session (2026-06-03)
+`vanta lint` (the code-size gate shipped this session) surfaced **~85 pre-existing
+violations**. Top target: **`cli.ts` (428 lines, `main` dispatch cx-42)** — it grows
+with every new command. Plan (verify with the full suite + live smoke of help/status/
+lint/completion/sessions, since `main` has no direct test):
+1. Convert `main`'s if-chain → a `COMMANDS` lookup table (collapses cx). Keep the
+   interactive entry points (`chat`/`--resume`/`resume`/`run`) as explicit pre-table
+   checks — they parse flags.
+2. Extract the inline `runX` handlers (`runSkillsCommand`/`runMemoryCommand`/
+   `runHooksCommand`/`runSkillCommand`/`runRoomCommand`/`runSessionsList`) → `cli/handlers.ts`
+   to drop the file under 300.
+3. Then `interactive.ts` (335L, `runChat` 240L), `providers/index.ts` (`resolveProvider` cx-24).
+Goal: `vanta lint` reports 0 on `src/`, then enable `VANTA_LINT_BLOCK=1`. Tracked as the
+`SIZE-PAYDOWN` card.
 
-**4 bug fixes** — dropped paths, video routing, screen permission hint, scope message (all committed, pushed).
+## Backlog shape (`roadmap.json` — 270 cards: 158 shipped · 86 next · 26 horizon)
 
-**O9 dark factory — complete:**
-- `src/safety.rs` — `is_protected_path` blocks writes to `src/*.rs`, `vanta-ts/src/factory/*.ts`, `MANIFESTO.md`
-- `vanta-ts/src/factory/` — triage, planner, executor, verifier, run + tests
-- `AGENT-MANIFESTO.md` at repo root (writable, not kernel-protected)
-- `vanta improve` + `vanta factory [approve|status]` CLI
-- Gateway: `__factory__` cron entries spawn detached child
-- **Live verified:** `vanta improve` triages → prints plan → exits clean. `vanta factory approve` ran full cycle — verifier caught a bad model output and discarded it cleanly.
+- **Gated on you:** SCRUB-AI (force-push history rewrite) · VOICE-NATURAL (3-sample approval).
+- **External setup:** COMMS-TRIAGE (OAuth) · AUTH-BROWSER (Playwright login) · MSG-* (daemons/perms).
+- **Big-design Rocks (brainstorm first):** EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD (L) · AGENT-COUNCIL (L) · AUTO-ROUTER · PROJECT-RADAR · the MEM-* / TASTE arc.
+- **Model-in-loop S cards:** SELF-EVAL · ANTI-SLOP · ENERGY-PLAN · DECISION-GUARD · CC-LINKS.
+- **Platform:** DESKTOP-P0…P11, TUI-V2* (12 cards).
 
-**ROADMAP** — all shipped items ticked, residual section current.
+## Discipline that worked (keep it)
 
----
-
-## Pending user request
-
-**Strip Hermes mentions from the codebase.** User: "remove all hermes mention and comparison from the code base and git repo — that was only reference on how to build."
-
-Before starting, confirm scope:
-- Source code comments/strings — yes, strip
-- `ROADMAP.md` / `DECISIONS.md` inline Hermes references — strip or redact
-- `docs/hermes-*` files (`hermes-flows.md`, `hermes-map.html`, `hermes-model.html`, `docs/_hermes-recon/`) — delete or keep as non-public history?
-- `docs/parity-audit.md` — redact or delete?
-
-Start with source code (safe), ask about docs before deleting.
-
----
-
-## Residual (non-blocking, demand-driven)
-
-| Item | Size |
-|------|------|
-| S5 · Heartbeat selfhood | Small |
-| E-eff2 · Prefer-local routing | Small |
-| D2 · Skill bundles | Small — factory can do this |
-| U2 · @-file mentions | Medium |
-| B-v2 · Emergent brain | Open research |
-
----
-
-## Gotchas
-
-- Harness pins cwd to `Nexarion Agent` (empty artifact). Real repo: `~/Documents/GitHub/Vanta`.
-- Stale binary on :7788 — `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill.
-- `tools/tools.test.ts` has a sorted tool-name list — new tools must be added there.
-- Factory needs a frontier model for `vanta factory approve` to produce correct code. qwen2.5:14b ran but broke a test. Gemini 2.5 Flash hit 429 during testing.
-- `isTreeDirty` uses `--untracked-files=no` — untracked files don't block the factory.
-
----
-
-## Continuation prompt
-
-```
-Resume Vanta. Repo: ~/Documents/GitHub/Vanta (TS agent in vanta-ts/, branch feat/v1-hermes-parity, synced with origin). 581 tests green (27 Rust + 554 TS), tsc clean.
-
-Status: v1 complete. O9 dark factory shipped and live-verified. ROADMAP fully updated.
-
-Pending: strip all Hermes mentions from the codebase (user request). Before starting, confirm scope — does this include docs/hermes-* files and docs/_hermes-recon/? Or just source code and ROADMAP/DECISIONS inline references?
-
-Gotcha: harness may start in ~/Documents/GitHub/Nexarion Agent (empty artifact dir). Real repo is ~/Documents/GitHub/Vanta.
-```
+- One card = real code + co-located test + `tsc` clean + full `vitest` run + `roadmap.json` marked + commit + push.
+- Fold related prompt cards into existing rules — don't append rules 11+ (prompt is per-turn).
+- Run the **full** suite on any host/shared-file change (pure-unit + tsc aren't enough for two-host wiring).
+- Honest bar: code-only/prompt-only cards are "wired + unit-tested, live-verify pending" — not "proven."
+- `roadmap.html` is gitignored — regenerate via `roadmap/build.ts buildRoadmap`, never `git add` it.
