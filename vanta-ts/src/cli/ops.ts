@@ -27,7 +27,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
     });
-    await writeRunMemory(setup.provider, setup.goals, instruction, outcome.finalText);
+    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
     return { finalText: outcome.finalText };
   };
 }

@@ -208,7 +208,11 @@ export async function runChat(
       autoHandoffNoted = true;
     }
     await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
-    await writeRunMemory(setup.provider, setup.goals, text, outcome.finalText, {
+    await writeRunMemory({
+      provider: setup.provider,
+      goals: setup.goals,
+      instruction: text,
+      finalText: outcome.finalText,
       now: turnStart,
       sessionId: state.sessionId,
       turnIndex: state.turnIndex,

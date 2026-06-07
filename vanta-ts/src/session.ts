@@ -175,19 +175,15 @@ export function buildSummarizer(provider: LLMProvider): Summarizer {
  * failure here must never fail the command.
  */
 export async function writeRunMemory(
-  provider: LLMProvider,
-  goals: Goal[],
-  instruction: string,
-  finalText: string,
-  opts: { now?: string; sessionId?: string; turnIndex?: number } = {},
+  o: { provider: LLMProvider; goals: Goal[]; instruction: string; finalText: string; now?: string; sessionId?: string; turnIndex?: number },
 ): Promise<void> {
-  const goal = goals.find((g) => g.status === "active");
+  const goal = o.goals.find((g) => g.status === "active");
   if (!goal) return;
   try {
     const sys =
       "In 2-3 sentences, summarize what was accomplished toward the goal. Be specific and terse.";
-    const user = `Goal: ${goal.text}\n\nInstruction: ${instruction}\n\nResult: ${finalText}`;
-    const { text } = await provider.complete(
+    const user = `Goal: ${goal.text}\n\nInstruction: ${o.instruction}\n\nResult: ${o.finalText}`;
+    const { text } = await o.provider.complete(
       [
         { role: "system", content: sys },
         { role: "user", content: user },
@@ -196,10 +192,10 @@ export async function writeRunMemory(
     );
     // MEM-STRUCT: include session + turn context in the memory block so the
     // 3-tier hierarchy (goal > session > turn) is implicit in each entry.
-    const structHeader = opts.sessionId
-      ? `session:${opts.sessionId} turn:${opts.turnIndex ?? 0}\n`
+    const structHeader = o.sessionId
+      ? `session:${o.sessionId} turn:${o.turnIndex ?? 0}\n`
       : "";
-    await appendMemory(goal.id, `${structHeader}${text}`, { now: opts.now });
+    await appendMemory(goal.id, `${structHeader}${text}`, { now: o.now });
   } catch (err: unknown) {
     console.warn(
       `warn: could not write memory: ${err instanceof Error ? err.message : String(err)}`,

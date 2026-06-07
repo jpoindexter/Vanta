@@ -212,7 +212,7 @@ async function handleChat(state: DesktopState, req: http.IncomingMessage, res: h
   state.currentEvents = events;
   try {
     const outcome = await live.convo.send(message, undefined, undefined);
-    await writeRunMemory(live.setup.provider, live.setup.goals, message, outcome.finalText);
+    await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction: message, finalText: outcome.finalText });
     await persistActiveSession(state);
     events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done" });
     sendJson(res, 200, { finalText: outcome.finalText, events, usage: outcome.usage, sessionId: state.sessionId });

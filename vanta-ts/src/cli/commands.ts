@@ -99,7 +99,7 @@ export async function runInstruction(
     const outcome = await convo.send(instruction);
     console.log(`\n${outcome.finalText}`);
     console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
-    await writeRunMemory(setup.provider, setup.goals, instruction, outcome.finalText);
+    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
     await suggestSkillFromRun(instruction, process.env);
     await reviewAfterTurn({
       provider: setup.provider,
