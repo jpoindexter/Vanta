@@ -51,8 +51,11 @@ describe("buildSystemPrompt", () => {
       tools,
       now: "2026-06-02T00:00:00Z",
     });
-    // Voice: direct/literal, no AI-magic phrasing.
-    expect(prompt).toContain("Voice: direct, literal, structured");
+    // Voice: direct/warm, no AI-magic phrasing.
+    expect(prompt).toContain("Voice: direct, warm, structured");
+    expect(prompt).toContain("do not sand off all human signal");
+    expect(prompt).toContain("Use contractions");
+    expect(prompt).toContain("Warmth is not glaze");
     expect(prompt).toContain("no hype or AI-magic phrasing");
     // Hardened verify-before-claim: cite the proving evidence, not prose.
     expect(prompt).toContain("cite the command and its result");
