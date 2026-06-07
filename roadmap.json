@@ -185,12 +185,12 @@
       "id": "GOAL-ACTION",
       "track": "Operator",
       "title": "Auto vague-goal to next action",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Turn any vague goal into one safe, concrete, verified next action. Infra exists (repl/next.ts, clarify tool, nd-task-initiation) but is manual; auto-fire a /next-style single-micro-step prompt on goal-set / vague input. Trigger the existing path, do not duplicate it.",
+      "summary": "SHIPPED 2026-06-07. Extracted buildNextStepResend + isVagueGoal from repl/next.ts (no duplication — /next and the auto-fire share the same prompt builder). The /goal handler now, after setting a goal, runs isVagueGoal (short, or abstract-marker + no concrete anchor like a path/CARD-ID/#issue/code) and if vague auto-returns the single-micro-step resend so a concrete next action surfaces WITHOUT the user typing /next. Opt-out via VANTA_GOAL_ACTION=0. Wired in both hosts via the existing SlashResult.resend path. 7 unit tests (isVagueGoal + goal auto-fire via HANDLERS); tsc clean; handlers.ts still under the 300-line cap.",
       "done": "Setting a vague goal surfaces one concrete named next action without the user typing /next."
     },
     {
