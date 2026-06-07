@@ -46,6 +46,13 @@ fi
 # picked up without quitting to the shell. Any other exit code passes through.
 # VANTA_RELAUNCH tells the agent the loop is active (so /restart is offered).
 export VANTA_RELAUNCH=1
+
+# V8 heap headroom: node's default old-space cap is ~4GB, and large extractions
+# or long sessions can exceed it (a default-heap node OOMs near 4GB — observed).
+# Raise the ceiling; override (MB) via VANTA_NODE_MAX_MB. Appends to any existing
+# NODE_OPTIONS rather than clobbering it. This raises the ceiling, not a leak fix.
+export NODE_OPTIONS="${NODE_OPTIONS:-} --max-old-space-size=${VANTA_NODE_MAX_MB:-8192}"
+
 while :; do
   if $TSX src/cli.ts "$@"; then code=0; else code=$?; fi
   [ "$code" = 75 ] || exit "$code"
