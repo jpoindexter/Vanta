@@ -9,24 +9,28 @@ export type BundleConfig = {
   instruction?: string;
 };
 
+// Parse YAML list items under `skills:` — lines starting with "  - ". Pure.
+function parseSkillsList(content: string): string[] {
+  const skills: string[] = [];
+  let inSkillsList = false;
+  for (const line of content.split("\n")) {
+    if (/^skills:/.test(line)) { inSkillsList = true; continue; }
+    if (inSkillsList && /^\s+-\s+/.test(line)) {
+      skills.push(line.replace(/^\s+-\s+/, "").replace(/["']/g, "").trim());
+    } else if (inSkillsList && line.trim() && !/^\s/.test(line)) {
+      inSkillsList = false;
+    }
+  }
+  return skills;
+}
+
 export function parseBundle(content: string): BundleConfig | null {
   try {
     const name = /^name:\s*["']?(.+?)["']?\s*$/m.exec(content)?.[1]?.trim();
     const description = /^description:\s*["']?(.+?)["']?\s*$/m.exec(content)?.[1]?.trim();
     const instruction = /^instruction:\s*["']?(.+?)["']?\s*$/m.exec(content)?.[1]?.trim();
     if (!name || !description) return null;
-    // Parse YAML list items: lines starting with "  - " or "- "
-    const skills: string[] = [];
-    let inSkillsList = false;
-    for (const line of content.split("\n")) {
-      if (/^skills:/.test(line)) { inSkillsList = true; continue; }
-      if (inSkillsList && /^\s+-\s+/.test(line)) {
-        skills.push(line.replace(/^\s+-\s+/, "").replace(/["']/g, "").trim());
-      } else if (inSkillsList && line.trim() && !/^\s/.test(line)) {
-        inSkillsList = false;
-      }
-    }
-    return { name, description, skills, instruction };
+    return { name, description, skills: parseSkillsList(content), instruction };
   } catch {
     return null;
   }
