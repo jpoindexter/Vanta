@@ -1073,12 +1073,12 @@
       "id": "CC-EDITOR",
       "track": "Core UX",
       "title": "Open file:line in the user's editor",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Claude Code parity: open a referenced file:line in the user's editor ($EDITOR / 'code -g' / an `vanta open` command; native in the desktop). Vanta has LSP tools but no open-in-editor bridge.",
+      "summary": "SHIPPED 2026-06-07. editor/open.ts (pure): parseFileLine (file / file:line / file:line:col), resolveEditor (VANTA_EDITOR > VISUAL > EDITOR, default code), editorCommand (VS Code-family → 'code -g file:line'; vim/nano/emacs → '+line file'; subl → 'file:line'; unknown → flags+file) + openInEditor (detached spawn). `vanta open <file[:line]>` CLI + `/open` slash (repl/open-cmd.ts). 6 unit tests; all new files pass the size gate; full suite 1216 green; tsc clean. (Desktop anchors = CC-LINKS, still open.)",
       "done": "Clicking/invoking a file:line opens it at that line in the configured editor."
     },
     {

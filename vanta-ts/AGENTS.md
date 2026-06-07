@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run          # 1201 tests (from vanta-ts/)
+npx vitest run          # 1216 tests (from vanta-ts/)
 npx tsc --noEmit        # must be clean before any commit
 ```
 

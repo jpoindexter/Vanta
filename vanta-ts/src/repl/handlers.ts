@@ -8,7 +8,8 @@ import { SLASH_HELP } from "./catalog.js";
 import { oneLine, lastUserIndex, formatExport, formatHistory, mimeFromPath, lines } from "./format.js";
 import { formatSessionCost } from "../pricing.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
-import { next, isVagueGoal, buildNextStepResend } from "./next.js";
+import { next } from "./next.js";
+import { goal } from "./goal-cmd.js";
 import { planMode } from "./plan-mode.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
@@ -18,6 +19,7 @@ import { moim } from "./moim-cmd.js";
 import { restart } from "./restart-cmd.js";
 import { bug } from "./bug-cmd.js";
 import { handoff } from "./handoff-cmd.js";
+import { open } from "./open-cmd.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -118,39 +120,6 @@ const goals: SlashHandler = async (_arg, ctx) => {
   const g = await ctx.setup.safety.getGoals().catch(() => []);
   const active = g.filter((x) => x.status === "active");
   return { output: lines(active.map((x) => `  [${x.id}] ${x.text}`), "  (no active goals)") };
-};
-
-const goal: SlashHandler = async (arg, ctx) => {
-  const safety = ctx.setup.safety;
-  const sub = arg.split(/\s+/)[0]?.toLowerCase() ?? "";
-  if (!arg || sub === "status") {
-    const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
-    return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals — /goal <text> to set one)") };
-  }
-  if (sub === "clear") {
-    const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
-    for (const g of active) await safety.completeGoal(g.id);
-    return { output: `  · cleared ${active.length} active goal(s)` };
-  }
-  if (sub === "done") {
-    const id = Number(arg.split(/\s+/)[1]);
-    if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
-    const ok = await safety.completeGoal(id);
-    return { output: ok ? `  ✓ completed goal ${id}` : `  could not complete goal ${id}` };
-  }
-  // Anything else is new goal text. Persist to the kernel AND reflect it in the
-  // live system prompt so the agent works on it this turn, not just next session.
-  const ok = await safety.addGoal(arg);
-  if (!ok) return { output: "  could not set goal (kernel unreachable?)" };
-  const sys = ctx.convo.messages[0];
-  if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
-  // GOAL-ACTION: a vague goal auto-fires the /next single-micro-step prompt so a
-  // concrete next action surfaces without the user typing /next. Opt-out via env.
-  if (ctx.env.VANTA_GOAL_ACTION !== "0" && isVagueGoal(arg)) {
-    const resend = await buildNextStepResend(ctx).catch(() => null);
-    if (resend) return { output: `  ◎ goal set: ${arg}\n  · vague goal — surfacing one concrete next step…`, resend };
-  }
-  return { output: `  ◎ goal set: ${arg}` };
 };
 
 const sessions: SlashHandler = async (_arg, ctx) => {
@@ -290,7 +259,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

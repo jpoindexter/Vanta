@@ -38,6 +38,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "restart", desc: "reload Vanta in place with fresh code (needs ./run.sh)" },
   { name: "bug", arg: "<what happened>", desc: "record a structured bug with session + git context" },
   { name: "handoff", desc: "copy-paste handoff packet (goals, git, files, next step)" },
+  { name: "open", arg: "<file[:line]>", desc: "open a file:line in your editor ($VANTA_EDITOR/code)" },
   { name: "exit", desc: "leave the session" },
 ];
 
