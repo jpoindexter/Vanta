@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolResult } from "./types.js";
 import { resolveInScope } from "../scope.js";
 import { extractDomain, isAllowedDomain } from "../browser/allowlist.js";
 
@@ -9,6 +9,27 @@ const Args = z.object({
 });
 
 const NAV_TIMEOUT_MS = 30_000;
+
+type LaunchedBrowser = Awaited<ReturnType<typeof import("playwright-core").chromium.launch>>;
+
+/** Capture a full-page PNG from an already-launched browser. Always closes it. */
+async function capturePage(
+  browser: LaunchedBrowser,
+  url: string,
+  abs: string,
+  displayPath: string,
+): Promise<ToolResult> {
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { timeout: NAV_TIMEOUT_MS, waitUntil: "load" });
+    await page.screenshot({ path: abs, fullPage: true });
+    return { ok: true, output: `saved screenshot to ${displayPath}` };
+  } catch (err) {
+    return { ok: false, output: `could not screenshot ${url}: ${(err as Error).message}` };
+  } finally {
+    await browser.close();
+  }
+}
 
 export const screenshotTool: Tool = {
   schema: {
@@ -67,18 +88,6 @@ export const screenshotTool: Tool = {
         output: "chromium not available — run: npx playwright install chromium",
       };
     }
-    try {
-      const page = await browser.newPage();
-      await page.goto(url, { timeout: NAV_TIMEOUT_MS, waitUntil: "load" });
-      await page.screenshot({ path: abs, fullPage: true });
-      return { ok: true, output: `saved screenshot to ${path}` };
-    } catch (err) {
-      return {
-        ok: false,
-        output: `could not screenshot ${url}: ${(err as Error).message}`,
-      };
-    } finally {
-      await browser.close();
-    }
+    return capturePage(browser, url, abs, path);
   },
 };
