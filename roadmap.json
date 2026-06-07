@@ -233,12 +233,12 @@
       "id": "STALL-UNBLOCK",
       "track": "Operator",
       "title": "Detect stalled goals, propose smallest unblocker",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Notice an active goal that has not progressed and proactively propose the single smallest unblocking action. Pairs with GOAL-ACTION. Builds on goal ledger + repl/next.ts.",
+      "summary": "SHIPPED 2026-06-07. repl/stall.ts: a post-turn gate (mirrors EF-INHIBIT/SET-SHIFT). nextStallState resets on a durable-progress tool (write_file/git_commit), else increments; shouldAlertStall fires at VANTA_STALL_THRESHOLD (default 4, 0 disables). buildStallText emits ONE line naming the stalled goal, the duration, and a CONCRETE unblocker — the top buildable backlog card (topNextItems of readNextItems) — falling back to /next. Distinct from inhibit: only fires WITH an active goal and proposes a specific action. Wired into both hosts (interactive.ts + tui/use-agent-send.ts via stallAfterTurn). 8 unit tests; full suite 1163 green; tsc clean; .env.example documents the knob.",
       "done": "A stalled goal triggers an unprompted one-line 'smallest next step' suggestion."
     },
     {
