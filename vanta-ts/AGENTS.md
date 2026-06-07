@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run          # 1075 tests (from vanta-ts/)
+npx vitest run          # 1201 tests (from vanta-ts/)
 npx tsc --noEmit        # must be clean before any commit
 ```
 
@@ -44,11 +44,10 @@ npx tsc --noEmit        # must be clean before any commit
 
 ## Open bugs / in-flight (roadmap.json)
 
-- **UX-MODEL-FIX** — `/model` choice not persisting across relaunch (regression; `UX-MODEL` marked shipped). Diagnose `setup.ts upsertEnv` + write path + launcher env precedence.
-- **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map.
-- **GOAL-ACTION** — auto-fire `repl/next.ts` micro-step on vague goals.
-- **SCRUB-AI** — strip Hermes/Claude/other-agent mentions from the published surface before going public (keep research docs).
-- *(The four 2026-06-04 drag-drop / vision-permission bugs are fixed — see ROADMAP.md.)*
+- **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map (vision · summarize · title · embed); AUTO-ROUTER absorbs it.
+- **SCRUB-AI** — strip Hermes/Claude/other-agent mentions from the published surface before going public (keep research docs). **Gated on Jason** (history rewrite + force-push) — run LAST.
+- **VOICE-NATURAL** — warmth substance is in prompt rule 10; **gated on Jason** (done = 3 before/after sample approvals).
+- *(Shipped 2026-06-07: UX-MODEL-FIX, GOAL-ACTION, RESTART, TOOL-RETRY, BEHAVIOR-VOICE, STALL-UNBLOCK, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, COST-VISIBLE, MODE-DETECT, AUTO-HANDOFF, ACTION-PROOF + VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folds — see roadmap.json + CLAUDE.md §"Session additions (2026-06-07)".)*
 
 ## Adding a tool (checklist)
 
@@ -63,6 +62,6 @@ npx tsc --noEmit        # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart)
 
 Full env list: `CLAUDE.md §Env`.
