@@ -49,6 +49,7 @@ describe("/model handler", () => {
     expect(written).toContain("VANTA_PROVIDER=ollama");
     expect(written).toContain("VANTA_MODEL=qwen2.5:14b");
     expect(r.output).toContain("qwen2.5:14b");
+    expect(r.provider?.modelId()).toBe("qwen2.5:14b"); // drives the TUI banner refresh
   });
 
   it("switches the model on the current provider when no provider prefix is given", async () => {

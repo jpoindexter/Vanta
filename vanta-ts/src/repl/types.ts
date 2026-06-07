@@ -2,6 +2,7 @@ import type { Conversation } from "../agent.js";
 import type { ImageAttachment } from "../types.js";
 import type { RunSetup } from "../session.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
+import type { LLMProvider } from "../providers/interface.js";
 
 /** Mutable per-session REPL state that some commands change (/clear, /resume, /title, /fork, /image). */
 export type ReplState = {
@@ -33,6 +34,8 @@ export type SlashResult = {
   unknown?: boolean;
   /** Text the host should send to the agent as a fresh turn (drives /retry). */
   resend?: string;
+  /** A hot-swapped provider (drives /model <arg>) so the TUI banner refreshes. */
+  provider?: LLMProvider;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */

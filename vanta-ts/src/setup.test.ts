@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Interface as Readline } from "node:readline/promises";
-import { upsertEnv, buildEnvUpdates, runSetup, envPath } from "./setup.js";
+import { upsertEnv, upsertEnvMigratingLegacy, removeEnvKeys, buildEnvUpdates, runSetup, envPath } from "./setup.js";
 import { providerById } from "./providers/catalog.js";
 
 /** A scripted readline stand-in: returns queued answers in order. */
@@ -51,6 +51,37 @@ describe("upsertEnv", () => {
   it("handles an empty starting file and ends with one newline", () => {
     const out = upsertEnv("", { VANTA_PROVIDER: "gemini", VANTA_MODEL: "gemini-2.5-flash" });
     expect(out).toBe("VANTA_PROVIDER=gemini\nVANTA_MODEL=gemini-2.5-flash\n");
+  });
+});
+
+describe("removeEnvKeys", () => {
+  it("removes uncommented lines for the given keys, preserving everything else", () => {
+    const out = removeEnvKeys("ARGO_PROVIDER=codex\nVANTA_MODEL=x\n# keep\n", ["ARGO_PROVIDER"]);
+    expect(out).not.toContain("ARGO_PROVIDER");
+    expect(out).toContain("VANTA_MODEL=x");
+    expect(out).toContain("# keep");
+  });
+
+  it("is a no-op for an empty key list or empty body", () => {
+    expect(removeEnvKeys("A=1\n", [])).toBe("A=1\n");
+    expect(removeEnvKeys("", ["A"])).toBe("");
+  });
+});
+
+describe("upsertEnvMigratingLegacy", () => {
+  it("strips the stale ARGO_ twin of an updated VANTA_ key (the stuck-on-codex fix)", () => {
+    const existing = "ARGO_PROVIDER=codex\nGOOGLE_OAUTH=keep\n";
+    const out = upsertEnvMigratingLegacy(existing, { VANTA_PROVIDER: "gemini", VANTA_MODEL: "gemini-2.5-flash" });
+    expect(out).not.toContain("ARGO_PROVIDER");
+    expect(out).toContain("VANTA_PROVIDER=gemini");
+    expect(out).toContain("VANTA_MODEL=gemini-2.5-flash");
+    expect(out).toContain("GOOGLE_OAUTH=keep");
+  });
+
+  it("leaves non-legacy keys (the provider key var) untouched", () => {
+    const out = upsertEnvMigratingLegacy("OPENAI_API_KEY=sk-1\n", { VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-4o" });
+    expect(out).toContain("OPENAI_API_KEY=sk-1");
+    expect(out).toContain("VANTA_PROVIDER=openai");
   });
 });
 

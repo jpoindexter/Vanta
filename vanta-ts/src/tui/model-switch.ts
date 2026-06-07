@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolveProvider } from "../providers/index.js";
 import { providerById } from "../providers/catalog.js";
-import { upsertEnv, envPath, buildEnvUpdates } from "../setup.js";
+import { upsertEnvMigratingLegacy, envPath, buildEnvUpdates } from "../setup.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { ModelSelection } from "./model-picker.js";
 
@@ -55,5 +55,5 @@ export async function persistSelectionGlobal(
   if (!entry) return;
   const path = envPath(repoRoot);
   const existing = await readFile(path, "utf8").catch(() => "");
-  await writeFile(path, upsertEnv(existing, buildEnvUpdates(entry, sel.apiKey, sel.model)), "utf8");
+  await writeFile(path, upsertEnvMigratingLegacy(existing, buildEnvUpdates(entry, sel.apiKey, sel.model)), "utf8");
 }

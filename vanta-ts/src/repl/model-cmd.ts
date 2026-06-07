@@ -33,5 +33,5 @@ export const model: SlashHandler = async (arg, ctx) => {
   const entry = providerById(sel.providerId);
   if (entry?.envVar && sel.apiKey) ctx.env[entry.envVar] = sel.apiKey;
   await persistSelectionGlobal(sel, dirname(ctx.dataDir)).catch(() => {});
-  return { output: `  ⚓ model → ${provider.modelId()} (saved to .env)` };
+  return { output: `  ⚓ model → ${provider.modelId()} (saved to .env)`, provider };
 };

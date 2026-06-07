@@ -173,12 +173,12 @@
       "id": "UX-MODEL-FIX",
       "track": "Core UX",
       "title": "Fix model-persistence regression",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "UX-MODEL is marked shipped (picker persists to .env, survives relaunch) but the model choice is not sticking. Diagnose setup.ts upsertEnv + the /model write path + launcher env precedence.",
+      "summary": "SHIPPED 2026-06-07. Root cause: the live .env still held the LEGACY ARGO_PROVIDER=codex, and the back-compat shim mirrors ARGO_*->VANTA_* when VANTA_* is unset — the stuck-on-codex symptom. Two fixes: (1) /model <arg> was a no-op print; now routes through the picker's switch path (parseModelArg + repl/model-cmd.ts) — hot-swaps the live convo + post-turn pipeline + persists. (2) upsertEnvMigratingLegacy strips the stale ARGO_ twin on any explicit model write (picker + setup wizard), so the choice is the single source of truth and codex can't shadow it. TUI banner refreshes on /model <arg> via SlashResult.provider. Proven by a clean fresh-process relaunch sim (resolves the picked model, ARGO_PROVIDER gone). +10 tests; full suite 1134 green; tsc clean.",
       "done": "Pick a model -> it is still active next launch, proven by a relaunch."
     },
     {
