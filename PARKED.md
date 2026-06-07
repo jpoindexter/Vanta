@@ -32,3 +32,6 @@ Deferred ideas. Promote, never delete. These are honest deferrals — the code t
 
 ## Polish (post-users)
 - Streaming live output, richer cockpit UI, multi-language run-code sandboxing, project-room goal namespacing beyond per-dir `.vanta`.
+
+## Claude Code parity — deliberately excluded (2026-06-07)
+Audited Claude Code's full feature set (~250 features) for the roadmap; 19 in-scope gaps → `roadmap.json` track "Claude Code parity". These ~45 are **out of scope** for a local, provider-agnostic, kernel-gated operator and were NOT carded — Anthropic-proprietary/cloud/account features: `/passes` `/stickers` `/radio` `/upgrade` `/login` `/logout` `/privacy-settings`, claude.ai teleport / remote-control / `/remote-env` / cloud VMs (`--remote`), Desktop/mobile/Chrome/web surfaces, Bedrock/Vertex setup wizards, GitHub-App / Slack-App installers, cloud reviews (`/ultrareview` `/ultraplan` `/autofix-pr`), `/powerup` `/team-onboarding` `/heapdump` `/release-notes` `/usage-credits` `/color` `/scroll-speed`, managed-agents-onboard. Cost to revisit: re-audit a single feature if Vanta ever grows that surface (e.g. a real desktop app → reopen the IDE/desktop class). (The bundled coding skills `/review` `/simplify` `/verify` `/run` are NOT parked — tracked as `CC-CODING-SKILLS` in `roadmap.json`.)
