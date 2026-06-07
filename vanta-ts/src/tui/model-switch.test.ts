@@ -86,4 +86,18 @@ describe("persistSelectionGlobal", () => {
     expect(out).toContain("VANTA_MODEL=gemini-2.5-pro");
     expect(out).toContain("GEMINI_API_KEY=k-9");
   });
+
+  it("strips a stale legacy ARGO_PROVIDER twin so the new choice can't be shadowed", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-switch-"));
+    await mkdir(join(root, "vanta-ts"), { recursive: true });
+    const envFile = join(root, "vanta-ts", ".env");
+    await writeFile(envFile, "ARGO_PROVIDER=codex\nGOOGLE_OAUTH=keep-me\n", "utf8");
+
+    await persistSelectionGlobal(sel({ providerId: "gemini", model: "gemini-2.5-pro", apiKey: "k-9" }), root);
+
+    const out = await readFile(envFile, "utf8");
+    expect(out).not.toContain("ARGO_PROVIDER");
+    expect(out).toContain("VANTA_PROVIDER=gemini");
+    expect(out).toContain("GOOGLE_OAUTH=keep-me");
+  });
 });

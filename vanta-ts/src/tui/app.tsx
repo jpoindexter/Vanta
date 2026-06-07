@@ -145,6 +145,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     void executeSlash(effective, buildCtx()).then((r) => {
       if (r.exit) return void app.exit();
       if (r.cleared) dispatch({ t: "clear" });
+      if (r.provider) setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
       if (r.output) dispatch({ t: "note", text: r.output });
       if (r.resend) sendToAgent(r.resend);
     });

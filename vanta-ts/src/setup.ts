@@ -44,6 +44,32 @@ export function upsertEnv(existing: string, updates: Record<string, string>): st
   return text.endsWith("\n") ? text : `${text}\n`;
 }
 
+/** Remove uncommented lines for the given keys from a .env body. Pure. */
+export function removeEnvKeys(existing: string, keys: readonly string[]): string {
+  if (!keys.length || !existing) return existing;
+  const drop = new Set(keys);
+  return existing
+    .split("\n")
+    .filter((line) => {
+      const m = KEY_LINE.exec(line);
+      return !(m && drop.has(m[2] as string));
+    })
+    .join("\n");
+}
+
+/**
+ * Upsert `updates` AND strip any stale legacy `ARGO_*` twin of each updated
+ * `VANTA_*` key, so an explicit model write becomes the single source of truth
+ * and can't be shadowed by a leftover ARGO_* config the back-compat shim mirrors
+ * (the "stuck on codex" bug: `.env` still held ARGO_PROVIDER=codex). Pure.
+ */
+export function upsertEnvMigratingLegacy(existing: string, updates: Record<string, string>): string {
+  const twins = Object.keys(updates)
+    .filter((k) => k.startsWith("VANTA_"))
+    .map((k) => `ARGO_${k.slice("VANTA_".length)}`);
+  return upsertEnv(removeEnvKeys(existing, twins), updates);
+}
+
 /** Build the env keys a chosen provider implies. Pure. */
 export function buildEnvUpdates(
   entry: ProviderEntry,
@@ -121,7 +147,7 @@ export async function runSetup(
 
     const path = envPath(repoRoot);
     const existing = existsSync(path) ? await readFile(path, "utf8") : "";
-    const merged = upsertEnv(existing, buildEnvUpdates(entry, apiKey, model));
+    const merged = upsertEnvMigratingLegacy(existing, buildEnvUpdates(entry, apiKey, model));
     await writeFile(path, merged, { mode: 0o600 });
 
     console.log(`\n  ✓ Wrote ${entry.label} · ${model} to ${path}`);
