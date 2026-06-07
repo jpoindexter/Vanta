@@ -8,6 +8,7 @@ import { notify, shouldNotify } from "./notify.js";
 import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
 import { buildModeHint } from "../repl/mode-detect.js";
+import { maybeAutoHandoff } from "../repl/auto-handoff.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
@@ -28,8 +29,10 @@ export function useAgentSend(
   safety: SafetyClient,
   goals: Goal[] = [],
   repoRoot = process.cwd(),
+  contextWindow = 0,
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
   const turnStartRef = useRef<number>(0);
+  const autoHandoffNotedRef = useRef<boolean>(false);
   const abortRef = useRef<AbortController | null>(null);
   const researchGateRef = useRef<ResearchGateState>({ consecutiveTurns: 0 });
   const inhibitRef = useRef<InhibitState>({ consecutiveCalls: 0 });
@@ -77,6 +80,23 @@ export function useAgentSend(
           dispatch({ t: "note", text: formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - turnStartRef.current, cost) });
           replStateRef.current.sessionCost = addTurnCost(replStateRef.current.sessionCost, process.env.VANTA_PROVIDER, cost);
         }
+        // AUTO-HANDOFF: write a resume block when context crosses the threshold (note once).
+        void maybeAutoHandoff({
+          estTokens: outcome.usage?.inputTokens ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4),
+          contextWindow,
+          messages: convo.messages,
+          sessionId: replStateRef.current.sessionId,
+          provider: process.env.VANTA_PROVIDER ?? "unknown",
+          model: process.env.VANTA_MODEL ?? "",
+          repoRoot,
+          safety,
+          now: new Date(),
+        }).then((ah) => {
+          if (ah.wrote && !autoHandoffNotedRef.current) {
+            dispatch({ t: "note", text: `↻ context filling up — saved a resume block (auto-reloads next launch)` });
+            autoHandoffNotedRef.current = true;
+          }
+        });
         if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Vanta", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
         void nudgeAfterTurn(replStateRef.current.turnIndex, safety, (note) => dispatch({ t: "note", text: note }));

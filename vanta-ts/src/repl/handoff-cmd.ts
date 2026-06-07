@@ -70,21 +70,42 @@ async function captureGit(repoRoot: string): Promise<{ branch: string; changed: 
   }
 }
 
-export const handoff: SlashHandler = async (_arg, ctx) => {
-  const repoRoot = dirname(ctx.dataDir);
-  const { branch, changed } = await captureGit(repoRoot);
-  const goals = await ctx.setup.safety.getGoals().catch(() => []);
-  const packet = formatHandoffPacket({
-    when: ctx.now().toISOString(),
-    sessionId: ctx.state.sessionId,
-    provider: ctx.env.VANTA_PROVIDER ?? "unknown",
-    model: ctx.setup.provider.modelId(),
+/** Assemble the handoff packet from raw session state. Shared by /handoff and
+ *  AUTO-HANDOFF so the manual + automatic artifacts are identical. */
+export async function assembleHandoff(opts: {
+  messages: Message[];
+  sessionId: string;
+  provider: string;
+  model: string;
+  repoRoot: string;
+  safety: { getGoals: () => Promise<Goal[]> };
+  now: Date;
+}): Promise<string> {
+  const { branch, changed } = await captureGit(opts.repoRoot);
+  const goals = await opts.safety.getGoals().catch(() => []);
+  return formatHandoffPacket({
+    when: opts.now.toISOString(),
+    sessionId: opts.sessionId,
+    provider: opts.provider,
+    model: opts.model,
     branch,
     changedFiles: changed,
     goals,
-    lastIntent: oneLine(lastByRole(ctx.convo.messages, "user"), 120),
-    lastResult: lastByRole(ctx.convo.messages, "assistant"),
-    recentTools: recentToolNames(ctx.convo.messages),
+    lastIntent: oneLine(lastByRole(opts.messages, "user"), 120),
+    lastResult: lastByRole(opts.messages, "assistant"),
+    recentTools: recentToolNames(opts.messages),
+  });
+}
+
+export const handoff: SlashHandler = async (_arg, ctx) => {
+  const packet = await assembleHandoff({
+    messages: ctx.convo.messages,
+    sessionId: ctx.state.sessionId,
+    provider: ctx.env.VANTA_PROVIDER ?? "unknown",
+    model: ctx.setup.provider.modelId(),
+    repoRoot: dirname(ctx.dataDir),
+    safety: ctx.setup.safety,
+    now: ctx.now(),
   });
   return { output: `\n${packet}\n` };
 };
