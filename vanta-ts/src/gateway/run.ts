@@ -131,6 +131,35 @@ export async function pollPlatform(deps: GatewayDeps): Promise<number> {
   return messages.length;
 }
 
+/** Start the webhook listener if both a webhook config and a handler are present. */
+async function startWebhookIfConfigured(
+  deps: GatewayDeps,
+  log: (m: string) => void,
+): Promise<WebhookServer | undefined> {
+  if (!deps.webhook || !deps.handle) return undefined;
+  const { prompt, deliver } = deps.webhook;
+  const handle = deps.handle;
+  return startWebhookServer({
+    port: deps.webhook.port,
+    secret: deps.webhook.secret,
+    log,
+    onEvent: async (body) => {
+      const reply = await handle(prompt(body));
+      await deliver(reply);
+    },
+  }).catch((err: unknown) => {
+    log(`vanta gateway: webhook listener failed — ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  });
+}
+
+/** Sleep one tick interval, polling the running flag each second for fast Ctrl+C exit. */
+async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promise<void> {
+  for (let waited = 0; stillRunning() && waited < tickMs; waited += 1000) {
+    await sleep(Math.min(1000, tickMs - waited));
+  }
+}
+
 /**
  * Foreground daemon loop: tick, then sleep one interval, until SIGINT/SIGTERM.
  * The sleep polls the stop flag each second so Ctrl+C exits within ~1s. A tick
@@ -150,23 +179,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
 
   if (deps.platform) await deps.platform.connect().catch(() => {});
 
-  let webhookServer: WebhookServer | undefined;
-  if (deps.webhook && deps.handle) {
-    const { prompt, deliver } = deps.webhook;
-    const handle = deps.handle;
-    webhookServer = await startWebhookServer({
-      port: deps.webhook.port,
-      secret: deps.webhook.secret,
-      log,
-      onEvent: async (body) => {
-        const reply = await handle(prompt(body));
-        await deliver(reply);
-      },
-    }).catch((err: unknown) => {
-      log(`vanta gateway: webhook listener failed — ${err instanceof Error ? err.message : String(err)}`);
-      return undefined;
-    });
-  }
+  const webhookServer = await startWebhookIfConfigured(deps, log);
 
   log(
     `vanta gateway: ticking every ${Math.round(tickMs / 1000)}s` +
@@ -180,9 +193,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
     } catch (err) {
       log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }
-    for (let waited = 0; running && waited < tickMs; waited += 1000) {
-      await sleep(Math.min(1000, tickMs - waited));
-    }
+    await sleepInterval(tickMs, () => running);
   }
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
   if (webhookServer) await webhookServer.close().catch(() => {});
