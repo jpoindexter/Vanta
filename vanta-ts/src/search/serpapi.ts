@@ -45,6 +45,17 @@ export class SerpapiProvider implements SearchProvider {
  * {@link SearchResult}[]. Defensive: skips entries missing title or link,
  * caps to `max`, returns [] for any non-conforming input.
  */
+/** One organic entry → SearchResult, or null when title/link are missing. Pure. */
+function toResult(entry: unknown): SearchResult | null {
+  if (typeof entry !== "object" || entry === null) return null;
+  const e = entry as Record<string, unknown>;
+  const title = typeof e.title === "string" ? e.title : "";
+  const url = typeof e.link === "string" ? e.link : "";
+  if (!title || !url) return null;
+  const snippet = typeof e.snippet === "string" ? e.snippet : "";
+  return { title, url, snippet };
+}
+
 export function mapSerpapiJson(json: unknown, max: number): SearchResult[] {
   if (typeof json !== "object" || json === null) return [];
   const organic = (json as { organic_results?: unknown }).organic_results;
@@ -53,13 +64,8 @@ export function mapSerpapiJson(json: unknown, max: number): SearchResult[] {
   const results: SearchResult[] = [];
   for (const entry of organic) {
     if (results.length >= max) break;
-    if (typeof entry !== "object" || entry === null) continue;
-    const e = entry as Record<string, unknown>;
-    const title = typeof e.title === "string" ? e.title : "";
-    const url = typeof e.link === "string" ? e.link : "";
-    if (!title || !url) continue;
-    const snippet = typeof e.snippet === "string" ? e.snippet : "";
-    results.push({ title, url, snippet });
+    const r = toResult(entry);
+    if (r) results.push(r);
   }
   return results;
 }

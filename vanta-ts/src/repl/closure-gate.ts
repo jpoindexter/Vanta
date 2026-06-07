@@ -20,20 +20,21 @@ export function extractWrittenFiles(messages: Message[]): WrittenFile[] {
  * True when a shell_cmd tool result mentioning "commit" appears after `afterIdx`.
  * Both the tool result content and the assistant call arguments are checked.
  */
+/** True when a message is a `shell_cmd` commit — as a tool result or an assistant call. */
+function isCommitSignal(m: Message): boolean {
+  if (m.role === "tool" && m.name === "shell_cmd" && m.content.toLowerCase().includes("commit")) return true;
+  if (m.role === "assistant" && m.toolCalls) {
+    return m.toolCalls.some(
+      (tc) => tc.name === "shell_cmd" && typeof tc.arguments.command === "string" && tc.arguments.command.toLowerCase().includes("commit"),
+    );
+  }
+  return false;
+}
+
 export function hasCommitAfterIndex(messages: Message[], afterIdx: number): boolean {
   for (let i = afterIdx + 1; i < messages.length; i++) {
     const m = messages[i];
-    if (!m) continue;
-    if (m.role === "tool" && m.name === "shell_cmd" && m.content.toLowerCase().includes("commit")) return true;
-    if (m.role === "assistant" && m.toolCalls) {
-      for (const tc of m.toolCalls) {
-        if (
-          tc.name === "shell_cmd" &&
-          typeof tc.arguments.command === "string" &&
-          tc.arguments.command.toLowerCase().includes("commit")
-        ) return true;
-      }
-    }
+    if (m && isCommitSignal(m)) return true;
   }
   return false;
 }
