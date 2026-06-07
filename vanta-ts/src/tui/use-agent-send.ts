@@ -103,14 +103,12 @@ export function useAgentSend(
         void researchGateAfterTurn(
           researchGateRef.current,
           convo.messages,
-          safety,
-          (note) => dispatch({ t: "note", text: note }),
+          { safety, onNote: (note) => dispatch({ t: "note", text: note }) },
         ).then((s) => { researchGateRef.current = s; });
         void inhibitAfterTurn(
           inhibitRef.current,
           convo.messages,
-          safety,
-          (note) => dispatch({ t: "note", text: note }),
+          { safety, onNote: (note) => dispatch({ t: "note", text: note }) },
         ).then((s) => { inhibitRef.current = s; });
         void setShiftAfterTurn(
           setShiftRef.current,
@@ -120,9 +118,7 @@ export function useAgentSend(
         void stallAfterTurn(
           stallRef.current,
           convo.messages,
-          safety,
-          join(repoRoot, ".vanta"),
-          (note) => dispatch({ t: "note", text: note }),
+          { safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => dispatch({ t: "note", text: note }) },
         ).then((s) => { stallRef.current = s; });
         void scopeDeltaAfterTurn(
           scopeDeltaRef.current,

@@ -49,10 +49,10 @@ export async function runPostTurnGates(
   const { messages, safety, dataDir, onNote } = o;
   const env = o.env ?? process.env;
   return {
-    research: await researchGateAfterTurn(g.research, messages, safety, onNote, env),
-    inhibit: await inhibitAfterTurn(g.inhibit, messages, safety, onNote, env),
+    research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
+    inhibit: await inhibitAfterTurn(g.inhibit, messages, { safety, onNote, env }),
     setShift: await setShiftAfterTurn(g.setShift, messages, onNote, env),
-    stall: await stallAfterTurn(g.stall, messages, safety, dataDir, onNote, env),
+    stall: await stallAfterTurn(g.stall, messages, { safety, dataDir, onNote, env }),
     scopeDelta: await scopeDeltaAfterTurn(g.scopeDelta, messages, onNote, env),
     wmManip: await wmManipAfterTurn(g.wmManip, messages, onNote, env),
   };
