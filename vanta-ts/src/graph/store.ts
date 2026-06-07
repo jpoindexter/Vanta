@@ -44,9 +44,10 @@ export function makeRelation(
   from: GraphEntity,
   to: GraphEntity,
   rel: RelationType,
-  strength = 0.5,
-  ts = new Date().toISOString(),
+  opts: { strength?: number; ts?: string } = {},
 ): GraphRelation {
+  const strength = opts.strength ?? 0.5;
+  const ts = opts.ts ?? new Date().toISOString();
   const id = createHash("sha256").update(`${from.id}:${rel}:${to.id}`).digest("hex").slice(0, 12);
   return { kind: "relation", id, from: from.id, to: to.id, rel, ts, strength };
 }

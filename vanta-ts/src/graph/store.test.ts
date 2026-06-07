@@ -29,7 +29,7 @@ describe("graph/store", () => {
       const env = { VANTA_HOME: dir };
       const proj = makeEntity("my-project", "project");
       const tool = makeEntity("vitest-xyz", "tool");
-      const rel = makeRelation(proj, tool, "uses", 0.9);
+      const rel = makeRelation(proj, tool, "uses", { strength: 0.9 });
       await appendGraph([proj, tool, rel], env);
 
       const results = await graphQuery("my-project", { env });
