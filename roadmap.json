@@ -101,12 +101,12 @@
       "id": "HANDOFF-PACKET",
       "track": "Operator",
       "title": "Copy-paste handoff for another agent",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Generate a compact state packet for moving work between Vanta, Claude Code, Codex, or a fresh session: goal, current state, files touched, decisions, gotchas, verification, and exact next step.",
+      "summary": "SHIPPED 2026-06-07. repl/handoff-cmd.ts: /handoff assembles a copy-paste packet from FACTUAL state (no model call) — date, branch, session, provider/model, active goals, git changed-files, recent tool calls, last intent, last result — via pure formatHandoffPacket, with a NEXT-ACTION slot. Wired into HANDLERS + catalog. The deterministic base AUTO-HANDOFF (auto-fire on context pressure) will build on. 3 tests; tsc clean; handlers.ts under cap.",
       "done": "`/handoff` outputs a copy-paste-ready packet with verified current task state, relevant files, decisions, and the next action."
     },
     {
