@@ -37,7 +37,17 @@ fi
 # the Ink TUI needs that, and the npx wrapper can interpose a non-TTY pipe.
 cd "$DIR/vanta-ts"
 if [ -x "node_modules/.bin/tsx" ]; then
-  exec node_modules/.bin/tsx src/cli.ts "$@"
+  TSX="node_modules/.bin/tsx"
 else
-  exec npx tsx src/cli.ts "$@"
+  TSX="npx tsx"
 fi
+
+# Relaunch loop: /restart exits with code 75 → re-run tsx so edited source is
+# picked up without quitting to the shell. Any other exit code passes through.
+# VANTA_RELAUNCH tells the agent the loop is active (so /restart is offered).
+export VANTA_RELAUNCH=1
+while :; do
+  if $TSX src/cli.ts "$@"; then code=0; else code=$?; fi
+  [ "$code" = 75 ] || exit "$code"
+  echo "vanta: reloading…" >&2
+done

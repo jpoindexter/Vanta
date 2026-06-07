@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } from "./repl-commands.js";
+import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -270,6 +271,7 @@ export async function runChat(
         const result = await executeSlash(line, ctx);
         if (result.output) console.log(result.output);
         if (result.exit) break;
+        if (result.restart) { process.exitCode = RESTART_EXIT_CODE; break; }
         if (result.resend) await runUserTurn(result.resend);
         continue;
       }
@@ -289,5 +291,8 @@ export async function runChat(
     // MEM-VERBATIM: archive session messages on exit (best-effort, background).
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
   }
+  // /restart: force a clean code-75 exit so run.sh's loop re-execs (per-turn
+  // saveSession already persisted state); skip the "bye." farewell.
+  if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
 }

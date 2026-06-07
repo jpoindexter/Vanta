@@ -7,6 +7,7 @@ import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { newSessionId } from "../sessions/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
+import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { Banner, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
@@ -144,6 +145,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     if (resolvedCmd === "model" && !resolvedArg) return void openModel();
     void executeSlash(effective, buildCtx()).then((r) => {
       if (r.exit) return void app.exit();
+      if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return void app.exit(); } // run.sh re-execs on 75
       if (r.cleared) dispatch({ t: "clear" });
       if (r.provider) setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
       if (r.output) dispatch({ t: "note", text: r.output });

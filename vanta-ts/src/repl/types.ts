@@ -36,6 +36,8 @@ export type SlashResult = {
   resend?: string;
   /** A hot-swapped provider (drives /model <arg>) so the TUI banner refreshes. */
   provider?: LLMProvider;
+  /** Reload the instance in place (drives /restart) — host exits with code 75. */
+  restart?: boolean;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */
