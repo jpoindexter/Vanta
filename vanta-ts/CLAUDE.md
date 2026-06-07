@@ -114,6 +114,11 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `pricing.ts` | COST-VISIBLE — `estimateCostUsd` (approx $/1M table) + `isLocalProvider` + `formatTurnCost` + `addTurnCost`/`formatSessionCost` (local-free vs frontier split on `ReplState.sessionCost`). Both hosts print the per-turn footer; `/usage` shows the split |
 | `roadmap/add.ts` | ROADMAP-ADD — `addRoadmapItem` (validate, refuse dup id, append, bump `updated`, rebuild HTML) — companion to `roadmap/move.ts` |
 | `tools/roadmap-add.ts` | `roadmap_add` tool (required id+title; defaults status=next/track=Backlog/size=M) → `addRoadmapItem` |
+| `repl/goal-cmd.ts` | `/goal` handler (extracted) — show/set/clear/done; `setNewGoal` persists + patches the live prompt + fires GOAL-ACTION on a vague goal |
+| `repl/open-cmd.ts` | CC-EDITOR — `/open <file[:line]>` → `openInEditor` |
+| `editor/open.ts` | CC-EDITOR — pure `parseFileLine` + `resolveEditor` (VANTA_EDITOR>VISUAL>EDITOR, default code) + `editorCommand` (code -g / +line / file:line) + `openInEditor` (detached spawn). `vanta open` CLI |
+| `lint/size.ts` | CODE-SIZE-GATE — pure `analyzeSource` (TS compiler API): file≤300, fn≤50, params≤4, cyclomatic≤10 → `Violation[]` (file:line+limit+fix). `LIMITS`, `formatViolation` |
+| `lint/run.ts` | `vanta lint [files\|--staged]` — `resolveTargets` (explicit=cwd-relative, git=root-relative), `lintFiles` (reports analyzed vs missing), `runLint` (exit 1 on violations/missing) |
 | `cli.ts` | `vanta` (no args)/`chat` → `startInteractive` (runs `setup` wizard first if no backend resolves, **TTY-gated**); `vanta setup\|status\|doctor\|run\|skills\|skill\|schedule\|cron\|rooms\|room <name> [instr]\|modes [list\|install]\|auth google`: env, kernel+store, **routed** provider, memory inject, run, post-run memory + learning suggestion. `cron` is OS-scheduler-invoked |
 
 ## The loop (`agent.ts`)
@@ -202,7 +207,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Phase 2 EF gates (2026-06-04):** All gates are best-effort, non-blocking, wrapped in try/catch. Post-turn gates (inhibit, set-shift) live as session-scoped state refs in `interactive.ts` + `tui/use-agent-send.ts`, mirroring the `researchGateRef` pattern. Pre-turn gate (closure-gate) fires inside `runUserTurn` / `sendToAgent` alongside complexity-gate and topic-shift check. In-loop gates (self-monitor, error-detect) live in `agent.ts dispatchTool` / `runTurn`. New env overrides: `VANTA_INHIBIT_THRESHOLD` · `VANTA_SETSHIFT_THRESHOLD`. `handlers.ts` MUST STAY at 300 lines — new slash handlers go in own files, trade a blank line for the import.
 
-**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments /next /planmode /where /wm /moim /restart /bug /handoff` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline). `@file` autocomplete in TUI → inlines file content as context on submit. Markdown rendering in transcript (`tui/markdown.tsx`). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `VANTA_SPINNER`). Drag-and-drop roadmap board: `vanta roadmap serve` → `http://localhost:7789/roadmap/board`.
+**TUI/REPL commands:** `/history /retry /undo /reset /title /fork /goal /usage /copy /update /image /paste /attachments /next /planmode /where /wm /moim /restart /bug /handoff /open` (+ prior model/tools/skills/status/goals/sessions/resume/cron). Composer = custom readline (`tui/composer.tsx`, Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline). `@file` autocomplete in TUI → inlines file content as context on submit. Markdown rendering in transcript (`tui/markdown.tsx`). Domain-grouped banner (`tui/capabilities.ts`). Braille spinners (`tui/spinners.ts`, `VANTA_SPINNER`). Drag-and-drop roadmap board: `vanta roadmap serve` → `http://localhost:7789/roadmap/board`.
 
 **Env added:** `VANTA_MEMORY_MAX_BLOCKS` · `VANTA_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
 
@@ -222,7 +227,10 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 ## Session additions (2026-06-07) — keep current
 
-Autonomous roadmap-grind session: 18 cards shipped (statuses + per-card notes in `roadmap.json`). **1201 TS + 27 Rust tests green; tsc clean; 46 registered tools.** New files are in the file-map table above. Highlights:
+Autonomous roadmap-grind session: 20 cards shipped (statuses + per-card notes in `roadmap.json`). **1216 TS + 27 Rust tests green; tsc clean; 46 registered tools.** New files are in the file-map table above. Highlights:
+
+- **Code-size discipline:** CODE-SIZE-GATE (`lint/size.ts` analyzeSource via TS compiler API: file≤300/fn≤50/params≤4/cx≤10) → `vanta lint [--staged]` + warn-only pre-commit (`VANTA_LINT_BLOCK=1` enforces) + **in-agent**: `write_file` runs the gate on every TS write and surfaces violations in the result so the agent born-small/self-corrects. Surfaced 85 pre-existing violations (debt for a paydown card). CC-EDITOR (`editor/open.ts` + `vanta open` + `/open`).
+- (earlier in the session):
 
 - **Continuity:** `repl/handoff-cmd.ts` (`/handoff` + shared `assembleHandoff`) + `repl/auto-handoff.ts` (AUTO-HANDOFF: writes `.vanta/handoff.md` at context fill ≥ threshold, `prepareRun` reloads + consumes it on interactive launches only — gated on `instruction === "interactive session"`).
 - **Operator:** GOAL-ACTION (vague goal auto-fires `/next` via `isVagueGoal`+`buildNextStepResend`), STALL-UNBLOCK (`repl/stall.ts` post-turn gate), MODE-DETECT (`repl/mode-detect.ts` auto stance, prepends a hint to the SENT message), `/restart` (`repl/restart-cmd.ts` exit 75 + `run.sh` relaunch loop), `/bug` (`repl/bug-cmd.ts`).
@@ -231,6 +239,6 @@ Autonomous roadmap-grind session: 18 cards shipped (statuses + per-card notes in
 - **Prompt rules:** rule 10 = Voice (BEHAVIOR-VOICE); rules 1/4/7 folded in REF-FIDELITY / VERIFY-RIGHT + BETTER-ENDINGS / TRUST-LABELS (no new rule numbers — folding avoids prompt bloat).
 - **Tooling:** `roadmap_add` tool + `roadmap/add.ts`.
 
-**Env added:** `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh). All documented in `.env.example`.
+**Env added:** `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh) · `VANTA_LINT_BLOCK` (pre-commit size enforce) · `VANTA_EDITOR` (CC-EDITOR). All documented in `.env.example`.
 
 **Gotcha:** run `git` from the repo ROOT — the `tsx`/test commands `cd` into `vanta-ts/` and the shell cwd persists. `roadmap.html` is gitignored (regenerate via `roadmap/build.ts buildRoadmap`).

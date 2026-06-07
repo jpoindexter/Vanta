@@ -84,6 +84,7 @@ function usage(): void {
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta desktop [port]                start local desktop command center",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
+      "       vanta open <file[:line]>           open a file:line in your editor",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -389,6 +390,12 @@ async function main(): Promise<void> {
   if (cmd === "lint") {
     const { runLint } = await import("./lint/run.js");
     process.exit(await runLint(repoRoot, rest));
+  }
+  if (cmd === "open") {
+    const { openInEditor } = await import("./editor/open.js");
+    const r = await openInEditor(rest.join(" "));
+    console.log(r.message);
+    process.exit(r.ok ? 0 : 1);
   }
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
