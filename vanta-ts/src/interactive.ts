@@ -16,19 +16,9 @@ import {
   approver,
   writeRunMemory,
   reviewAfterTurn,
-  researchGateAfterTurn,
-  inhibitAfterTurn,
-  setShiftAfterTurn,
-  stallAfterTurn,
-  scopeDeltaAfterTurn,
-  wmManipAfterTurn,
+  runPostTurnGates,
+  freshGateState,
   maybeCurate,
-  type ResearchGateState,
-  type InhibitState,
-  type SetShiftState,
-  type StallState,
-  type ScopeDeltaState,
-  type WmManipState,
 } from "./session.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
@@ -124,13 +114,8 @@ export async function runChat(
     console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
   }
 
-  let researchGateState: ResearchGateState = { consecutiveTurns: 0 };
-  let inhibitState: InhibitState = { consecutiveCalls: 0 };
-  let setShiftState: SetShiftState = { repeatingTool: null, consecutiveRuns: 0 };
-  let stallState: StallState = { stalledTurns: 0 };
+  let gates = freshGateState();
   let autoHandoffNoted = false;
-  let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
-  let wmManipState: WmManipState = { manipTurns: 0 };
   const workingMemory = new SessionWorkingMemory();
   const checkpoints = new CheckpointStore();
   const { checkpoint: checkpointHandler, rollback: rollbackHandler } = buildCheckpointHandlers(checkpoints);
@@ -238,40 +223,7 @@ export async function runChat(
       toolIterations: outcome.toolIterations,
       turnIndex: state.turnIndex,
     });
-    researchGateState = await researchGateAfterTurn(
-      researchGateState,
-      convo.messages,
-      setup.safety,
-      (note) => console.log(`\n${note}`),
-    );
-    inhibitState = await inhibitAfterTurn(
-      inhibitState,
-      convo.messages,
-      setup.safety,
-      (note) => console.log(`\n${note}`),
-    );
-    setShiftState = await setShiftAfterTurn(
-      setShiftState,
-      convo.messages,
-      (note) => console.log(`\n${note}`),
-    );
-    stallState = await stallAfterTurn(
-      stallState,
-      convo.messages,
-      setup.safety,
-      join(repoRoot, ".vanta"),
-      (note) => console.log(`\n${note}`),
-    );
-    scopeDeltaState = await scopeDeltaAfterTurn(
-      scopeDeltaState,
-      convo.messages,
-      (note) => console.log(`\n${note}`),
-    );
-    wmManipState = await wmManipAfterTurn(
-      wmManipState,
-      convo.messages,
-      (note) => console.log(`\n${note}`),
-    );
+    gates = await runPostTurnGates(gates, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
   };
 
   try {
