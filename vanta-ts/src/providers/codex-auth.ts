@@ -97,17 +97,32 @@ export type LoadCredsDeps = {
   write?: WriteFile;
 };
 
+/** Resolve LoadCredsDeps to concrete impls + timestamps (defaults applied). */
+function resolveLoadDeps(deps: LoadCredsDeps): {
+  path: string;
+  read: ReadFile;
+  write: WriteFile;
+  fetchImpl: typeof fetch;
+  nowMs: number;
+  nowSec: number;
+} {
+  const nowMs = deps.now ? deps.now() : Date.now();
+  return {
+    path: deps.authPath ?? defaultCodexAuthPath(),
+    read: deps.read ?? defaultRead,
+    write: deps.write ?? defaultWrite,
+    fetchImpl: deps.fetchImpl ?? fetch,
+    nowMs,
+    nowSec: Math.floor(nowMs / 1000),
+  };
+}
+
 /**
  * Resolve a usable access token + account id. Refreshes and writes the rotated
  * tokens back to the shared ~/.codex/auth.json only when the token is expiring.
  */
 export async function loadCodexCreds(deps: LoadCredsDeps = {}): Promise<CodexCreds> {
-  const path = deps.authPath ?? defaultCodexAuthPath();
-  const read = deps.read ?? defaultRead;
-  const write = deps.write ?? defaultWrite;
-  const fetchImpl = deps.fetchImpl ?? fetch;
-  const nowMs = deps.now ? deps.now() : Date.now();
-  const nowSec = Math.floor(nowMs / 1000);
+  const { path, read, write, fetchImpl, nowMs, nowSec } = resolveLoadDeps(deps);
 
   const auth = readCodexAuth(path, read);
   const tokens = auth.tokens;
