@@ -86,6 +86,8 @@ function usage(): void {
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta open <file[:line]>           open a file:line in your editor",
       "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
+      "       vanta completion [bash|zsh|fish]   print a shell completion script",
+      "       vanta backup [out.tgz] | import <in.tgz>   archive / restore ~/.vanta",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -401,6 +403,18 @@ async function main(): Promise<void> {
   if (cmd === "prompt-size") {
     const { runPromptSize } = await import("./cli-dx/prompt-size.js");
     process.exit(await runPromptSize(repoRoot));
+  }
+  if (cmd === "completion") {
+    const { runCompletion } = await import("./cli-dx/completion.js");
+    process.exit(runCompletion(rest));
+  }
+  if (cmd === "backup") {
+    const { runBackup } = await import("./cli-dx/backup.js");
+    process.exit(await runBackup(rest));
+  }
+  if (cmd === "import") {
+    const { runImport } = await import("./cli-dx/backup.js");
+    process.exit(await runImport(rest));
   }
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
