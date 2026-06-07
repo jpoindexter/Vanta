@@ -2446,7 +2446,7 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Bundle of small, low-risk Hermes CLI conveniences Vanta lacks, each a quick win (build independently, check off): `vanta prompt-size` (byte/token breakdown of the 3-tier prompt + tool schemas — serves the frugality rule) · `vanta completion` (bash/zsh/fish shell completion) · `vanta backup` / `vanta import` (zip + restore ~/.vanta; today it's only git-init'd) · `vanta send <text>` (pipe text from cron/CI to a configured platform) · `vanta recap` / `/recap` (summarize the current session, Claude-Code-style). Captured as one sand card to avoid flooding the board; promote any item to its own card if it grows.",
+      "summary": "Bundle of small, low-risk Hermes CLI conveniences Vanta lacks, each a quick win (build independently, check off). [2026-06-07] DONE: `vanta prompt-size` (cli-dx/prompt-size.ts — sorted byte/token breakdown of tool schemas + system prompt + brain + skill-index; live: tool schemas ~5.6k tok, prompt ~7k tok; serves the frugality rule; 2 tests). REMAINING: `vanta completion` (bash/zsh/fish) · `vanta backup`/`import` (tar ~/.vanta) · `vanta send <text>` · `vanta recap`/`/recap`. Card stays next until completion + backup/import also ship.",
       "done": "At least `vanta prompt-size`, `vanta completion`, and `vanta backup`/`import` ship and are documented; `send` + `recap` follow as checked-off sub-items."
     },
     {

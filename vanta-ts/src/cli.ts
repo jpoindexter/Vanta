@@ -85,6 +85,7 @@ function usage(): void {
       "       vanta desktop [port]                start local desktop command center",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta open <file[:line]>           open a file:line in your editor",
+      "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -396,6 +397,10 @@ async function main(): Promise<void> {
     const r = await openInEditor(rest.join(" "));
     console.log(r.message);
     process.exit(r.ok ? 0 : 1);
+  }
+  if (cmd === "prompt-size") {
+    const { runPromptSize } = await import("./cli-dx/prompt-size.js");
+    process.exit(await runPromptSize(repoRoot));
   }
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
