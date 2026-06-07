@@ -11,7 +11,7 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 45 tools, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 46 tools, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
@@ -19,12 +19,12 @@ The kernel is the enforced security boundary — `assess()` blocks, it doesn't a
 
 ```bash
 cargo build && cargo test                     # Rust kernel (27 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1075 tests + typecheck)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1201 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-05):** v1 complete; live-dogfooding backlog open. Shipped today: TUI readability + AUX-VISION (`VANTA_VISION_MODEL` routes image tools to a dedicated vision model) + auto-install of the bundled skill library (incl. 14 `nd-*` skills) in `prepareRun`. Open in `roadmap.json`: AUX-MAP, UX-MODEL-FIX, GOAL-ACTION, SCRUB-AI; horizon: DESKTOP.
+> **Status (2026-06-07):** v1 complete; roadmap-grind in progress on `feat/v1-hermes-parity`. 18 cards shipped this session (UX-MODEL-FIX, RESTART, TOOL-RETRY, GOAL-ACTION, STALL-UNBLOCK, AUTO-HANDOFF, COST-VISIBLE, MODE-DETECT, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, ACTION-PROOF, BEHAVIOR-VOICE + 4 prompt-rule folds). 1201 TS + 27 Rust tests green; 46 tools. Per-card detail in `roadmap.json` + `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)". Still open: AUX-MAP + the bigger Rocks (EF-TASKSTACK, MEM-RELEVANCE, OPERATOR-DASHBOARD). Gated on Jason: SCRUB-AI (force-push), VOICE-NATURAL (sample approval). Horizon: DESKTOP.
 
 ## Key files
 
