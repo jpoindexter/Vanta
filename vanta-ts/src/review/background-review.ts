@@ -84,21 +84,25 @@ function learnedSkillTool(written: string[]): Tool {
   };
 }
 
+/** Format one message as a transcript line, or null to skip it. */
+function formatMessageLine(m: Message): string | null {
+  if (m.role === "system") return null;
+  if (m.role === "assistant") {
+    const calls = m.toolCalls?.length
+      ? ` [called: ${m.toolCalls.map((c) => c.name).join(", ")}]`
+      : "";
+    return m.content || calls ? `ASSISTANT: ${m.content ?? ""}${calls}` : null;
+  }
+  if (m.role === "tool") return `TOOL(${m.name ?? "?"}): ${m.content.slice(0, 400)}`;
+  return `USER: ${m.content}`;
+}
+
 /** Render the turn's messages into a compact transcript for the reviewer. */
 function serializeTranscript(messages: Message[]): string {
   const lines: string[] = [];
   for (const m of messages) {
-    if (m.role === "system") continue;
-    if (m.role === "assistant") {
-      const calls = m.toolCalls?.length
-        ? ` [called: ${m.toolCalls.map((c) => c.name).join(", ")}]`
-        : "";
-      if (m.content || calls) lines.push(`ASSISTANT: ${m.content ?? ""}${calls}`);
-    } else if (m.role === "tool") {
-      lines.push(`TOOL(${m.name ?? "?"}): ${m.content.slice(0, 400)}`);
-    } else {
-      lines.push(`USER: ${m.content}`);
-    }
+    const line = formatMessageLine(m);
+    if (line !== null) lines.push(line);
   }
   const text = lines.join("\n");
   return text.length > MAX_TRANSCRIPT_CHARS
