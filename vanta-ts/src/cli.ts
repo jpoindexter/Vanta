@@ -83,6 +83,7 @@ function usage(): void {
       "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta desktop [port]                start local desktop command center",
+      "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
     ].join("\n"),
@@ -385,6 +386,10 @@ async function main(): Promise<void> {
   if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
   if (cmd === "desktop") return runDesktopCommand(repoRoot, rest);
   if (cmd === "memory") return runMemoryCommand(rest);
+  if (cmd === "lint") {
+    const { runLint } = await import("./lint/run.js");
+    process.exit(await runLint(repoRoot, rest));
+  }
   if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
   if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 

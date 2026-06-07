@@ -14,3 +14,17 @@ if ! gitleaks protect --staged --config .gitleaks.toml 2>&1; then
   echo "   Review the findings above, then rotate any real secrets before committing."
   exit 1
 fi
+
+# CODE-SIZE-GATE — flag oversized staged TS (file>300 / fn>50 / params>4 / cx>10).
+# Warn-only by default so pre-existing debt never blocks a commit; set
+# VANTA_LINT_BLOCK=1 to enforce. Skips cleanly when no TS is staged or tsx is absent.
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.tsx?$' | grep -vE '\.(d|test)\.tsx?$' || true)
+if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
+  if ! (cd vanta-ts && node_modules/.bin/tsx src/cli.ts lint --staged); then
+    if [ "${VANTA_LINT_BLOCK:-0}" = "1" ]; then
+      echo "✗  size violations above (VANTA_LINT_BLOCK=1 enforcing). Fix, or unset to warn-only."
+      exit 1
+    fi
+    echo "⚠  size violations above (warn-only; set VANTA_LINT_BLOCK=1 to enforce)."
+  fi
+fi
