@@ -65,12 +65,12 @@
       "id": "ROADMAP-ADD",
       "track": "Docs + Tooling",
       "title": "Agent-native add-card tool",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "A schema-safe companion to roadmap_move. Adds new roadmap cards without hand-editing JSON, enforcing unique IDs, valid status/tier/model/effort, and regeneration of the HTML board.",
+      "summary": "SHIPPED 2026-06-07. roadmap/add.ts addRoadmapItem (mirrors move.ts): validates the card via RoadmapItemSchema, refuses a duplicate id (case-insensitive), appends, bumps updated, regenerates roadmap.html. tools/roadmap-add.ts exposes the roadmap_add tool (required id+title; defaults status=next, track=Backlog, size=M; optional tier/model/effort) — kernel-Allow via describeForSafety. Registered in tools/index.ts (now 44 incl. mount_mcp); the exact-list registry test + CLAUDE.md count updated. 6 tests (3 add + registry list); tsc clean.",
       "done": "`roadmap_add` validates the card, refuses duplicate IDs, appends to roadmap.json, regenerates roadmap.html, and returns the created item."
     },
     {
