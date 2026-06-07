@@ -317,10 +317,9 @@ export async function nudgeAfterTurn(
 export async function researchGateAfterTurn(
   state: ResearchGateState,
   messages: Message[],
-  safety: SafetyClient,
-  onNote: (text: string) => void,
-  env: NodeJS.ProcessEnv = process.env,
+  deps: { safety: SafetyClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<ResearchGateState> {
+  const { safety, onNote, env = process.env } = deps;
   try {
     const raw = parseInt(env.VANTA_RESEARCH_GATE_TURNS ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_RESEARCH_GATE_TURNS : raw;
@@ -341,10 +340,9 @@ export async function researchGateAfterTurn(
 export async function inhibitAfterTurn(
   state: InhibitState,
   messages: Message[],
-  safety: SafetyClient,
-  onNote: (text: string) => void,
-  env: NodeJS.ProcessEnv = process.env,
+  deps: { safety: SafetyClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<InhibitState> {
+  const { safety, onNote, env = process.env } = deps;
   try {
     const raw = parseInt(env.VANTA_INHIBIT_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_INHIBIT_THRESHOLD : raw;
@@ -386,11 +384,9 @@ export async function setShiftAfterTurn(
 export async function stallAfterTurn(
   state: StallState,
   messages: Message[],
-  safety: SafetyClient,
-  dataDir: string,
-  onNote: (text: string) => void,
-  env: NodeJS.ProcessEnv = process.env,
+  deps: { safety: SafetyClient; dataDir: string; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<StallState> {
+  const { safety, dataDir, onNote, env = process.env } = deps;
   try {
     const raw = parseInt(env.VANTA_STALL_THRESHOLD ?? "", 10);
     const threshold = isNaN(raw) || raw < 0 ? DEFAULT_STALL_THRESHOLD : raw;
