@@ -665,12 +665,12 @@
       "id": "CODE-SIZE-GATE",
       "track": "Reliability (ND trust)",
       "title": "Built-in code-size gate (industry-standard, always on)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "summary": "Enforce industry-standard size limits inside Vanta, always on: file <=300 lines, function <=50, cyclomatic complexity <=10, params <=4 (warn at file 200 / function 30). Extends the factory's existing born-small 300-gate (verifier.ts checkNewFilesUnderLineLimit) to functions + complexity + params, exposes 'vanta lint'/size-check, and wires it into the git pre-commit hook (today only gitleaks) so human + agent + factory code all pass the same gate. Mirrors the enforcing-code-size Claude Code skill.",
+      "summary": "SHIPPED 2026-06-07. lint/size.ts: pure analyzeSource via the TS compiler API — file ≤300, function ≤50, params ≤4, cyclomatic complexity ≤10 (decision points incl. &&/||/??, not double-counting nested fns); each violation = file:line + metric + limit + fix. lint/run.ts + `vanta lint [files|--staged]` (default = all git-tracked .ts/.tsx; tests + .d.ts exempt). Pre-commit (scripts/pre-commit) now runs it on staged TS — WARN-ONLY by default (VANTA_LINT_BLOCK=1 to enforce) because a hard block would stop all commits: the gate surfaced 85 pre-existing violations (agent.ts 334L, cli.ts 401L, interactive.ts runChat 240L, providers/index.ts resolveProvider cx 24, …) — real debt for a follow-up 'size-debt paydown' card, not fixed here. 'Not just the factory' = the gate now serves human commits + `vanta lint`; the factory keeps its file-line born-small check. 7 unit tests; full suite 1208 green; tsc clean.",
       "done": "A commit or factory cycle with an oversized file/function/complexity is flagged by Vanta's own gate (not just the factory), reporting file:line + limit + fix; passing code commits clean."
     },
     {
