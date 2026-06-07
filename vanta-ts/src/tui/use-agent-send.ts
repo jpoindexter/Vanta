@@ -1,10 +1,11 @@
 import { useEffect, useRef, type Dispatch } from "react";
+import { join } from "node:path";
 import { useInput } from "ink";
 import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type ScopeDeltaState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "../repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "../repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "../repl/closure-gate.js";
@@ -24,12 +25,14 @@ export function useAgentSend(
   queued: string[],
   safety: SafetyClient,
   goals: Goal[] = [],
+  repoRoot = process.cwd(),
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
   const turnStartRef = useRef<number>(0);
   const abortRef = useRef<AbortController | null>(null);
   const researchGateRef = useRef<ResearchGateState>({ consecutiveTurns: 0 });
   const inhibitRef = useRef<InhibitState>({ consecutiveCalls: 0 });
   const setShiftRef = useRef<SetShiftState>({ repeatingTool: null, consecutiveRuns: 0 });
+  const stallRef = useRef<StallState>({ stalledTurns: 0 });
   const scopeDeltaRef = useRef<ScopeDeltaState>({ totalAnnotations: 0 });
 
   const sendToAgent = (text: string): void => {
@@ -86,6 +89,13 @@ export function useAgentSend(
           convo.messages,
           (note) => dispatch({ t: "note", text: note }),
         ).then((s) => { setShiftRef.current = s; });
+        void stallAfterTurn(
+          stallRef.current,
+          convo.messages,
+          safety,
+          join(repoRoot, ".vanta"),
+          (note) => dispatch({ t: "note", text: note }),
+        ).then((s) => { stallRef.current = s; });
         void scopeDeltaAfterTurn(
           scopeDeltaRef.current,
           convo.messages,

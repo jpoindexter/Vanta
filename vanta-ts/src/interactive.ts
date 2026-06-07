@@ -16,12 +16,14 @@ import {
   researchGateAfterTurn,
   inhibitAfterTurn,
   setShiftAfterTurn,
+  stallAfterTurn,
   scopeDeltaAfterTurn,
   wmManipAfterTurn,
   maybeCurate,
   type ResearchGateState,
   type InhibitState,
   type SetShiftState,
+  type StallState,
   type ScopeDeltaState,
   type WmManipState,
 } from "./session.js";
@@ -122,6 +124,7 @@ export async function runChat(
   let researchGateState: ResearchGateState = { consecutiveTurns: 0 };
   let inhibitState: InhibitState = { consecutiveCalls: 0 };
   let setShiftState: SetShiftState = { repeatingTool: null, consecutiveRuns: 0 };
+  let stallState: StallState = { stalledTurns: 0 };
   let scopeDeltaState: ScopeDeltaState = { totalAnnotations: 0 };
   let wmManipState: WmManipState = { manipTurns: 0 };
   const workingMemory = new SessionWorkingMemory();
@@ -223,6 +226,13 @@ export async function runChat(
     setShiftState = await setShiftAfterTurn(
       setShiftState,
       convo.messages,
+      (note) => console.log(`\n${note}`),
+    );
+    stallState = await stallAfterTurn(
+      stallState,
+      convo.messages,
+      setup.safety,
+      join(repoRoot, ".vanta"),
       (note) => console.log(`\n${note}`),
     );
     scopeDeltaState = await scopeDeltaAfterTurn(

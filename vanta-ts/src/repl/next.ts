@@ -15,7 +15,7 @@ import type { ReplCtx, SlashHandler } from "./types.js";
 // GOAL-ACTION reuses buildNextStepResend to auto-fire this same single-micro-step
 // prompt when a VAGUE goal is set — without the user typing /next.
 
-async function readNextItems(dataDir: string) {
+export async function readNextItems(dataDir: string) {
   try {
     const src = join(dirname(dataDir), "roadmap.json");
     const data = RoadmapSchema.parse(JSON.parse(await readFile(src, "utf8")));

@@ -39,6 +39,16 @@ import {
 } from "./repl/set-shift.js";
 export type { SetShiftState } from "./repl/set-shift.js";
 import {
+  nextStallState,
+  shouldAlertStall,
+  buildStallText,
+  DEFAULT_STALL_THRESHOLD,
+  type StallState,
+} from "./repl/stall.js";
+import { readNextItems } from "./repl/next.js";
+import { topNextItems } from "./repl/choice-reduce.js";
+export type { StallState } from "./repl/stall.js";
+import {
   countTopicsInLastTurn,
   shouldAnnotateScopeDelta,
   nextScopeDeltaState,
@@ -359,6 +369,32 @@ export async function setShiftAfterTurn(
     const newState = nextSetShiftState(state, toolNames);
     if (shouldAlertSetShift(newState, threshold)) {
       onNote(buildSetShiftText(newState.repeatingTool!, newState.consecutiveRuns));
+    }
+    return newState;
+  } catch {
+    return state;
+  }
+}
+
+export async function stallAfterTurn(
+  state: StallState,
+  messages: Message[],
+  safety: SafetyClient,
+  dataDir: string,
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<StallState> {
+  try {
+    const raw = parseInt(env.VANTA_STALL_THRESHOLD ?? "", 10);
+    const threshold = isNaN(raw) || raw < 0 ? DEFAULT_STALL_THRESHOLD : raw;
+    if (threshold === 0) return state;
+    const newState = nextStallState(state, extractLastTurnToolNames(messages));
+    if (shouldAlertStall(newState, threshold)) {
+      const goals = await safety.getGoals().catch(() => []);
+      const activeGoal = goals.find((g) => g.status === "active") ?? null;
+      if (!activeGoal) return newState; // stall only nags when a goal is actually open
+      const top = topNextItems(await readNextItems(dataDir))[0];
+      onNote(buildStallText(activeGoal, newState.stalledTurns, top));
     }
     return newState;
   } catch {
