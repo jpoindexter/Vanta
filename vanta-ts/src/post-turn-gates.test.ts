@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runPostTurnGates, freshGateState } from "./session.js";
+import { runPostTurnGates, freshGateState } from "./repl/post-turn-gates.js";
 import type { Message } from "./types.js";
 import type { SafetyClient } from "./safety-client.js";
 
