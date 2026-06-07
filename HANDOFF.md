@@ -56,21 +56,23 @@ and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rul
 Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
 `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
 
-## Next-session priority — SIZE-PAYDOWN (in progress, not started in code)
+## SIZE-PAYDOWN — cli.ts DONE; 78 violations remain (next-session)
 
-`vanta lint` (the code-size gate shipped this session) surfaced **~85 pre-existing
-violations**. Top target: **`cli.ts` (428 lines, `main` dispatch cx-42)** — it grows
-with every new command. Plan (verify with the full suite + live smoke of help/status/
-lint/completion/sessions, since `main` has no direct test):
-1. Convert `main`'s if-chain → a `COMMANDS` lookup table (collapses cx). Keep the
-   interactive entry points (`chat`/`--resume`/`resume`/`run`) as explicit pre-table
-   checks — they parse flags.
-2. Extract the inline `runX` handlers (`runSkillsCommand`/`runMemoryCommand`/
-   `runHooksCommand`/`runSkillCommand`/`runRoomCommand`/`runSessionsList`) → `cli/handlers.ts`
-   to drop the file under 300.
-3. Then `interactive.ts` (335L, `runChat` 240L), `providers/index.ts` (`resolveProvider` cx-24).
-Goal: `vanta lint` reports 0 on `src/`, then enable `VANTA_LINT_BLOCK=1`. Tracked as the
-`SIZE-PAYDOWN` card.
+`vanta lint` surfaced ~85 violations. **DONE 2026-06-07: cli.ts** (the worst — 428L,
+`main` cx-42, grew per command): `main`'s if-chain → a `COMMANDS` lookup table; handlers
+extracted to `cli/commands.ts`. cli.ts 428→175L, both gate-clean, routing live-verified.
+Violations 85→78.
+
+**Remaining (78), tackle incrementally — full suite + live smoke per file:**
+- **Limbs (lower risk, do first):** `interactive.ts` (335L; `runChat` 240L + nested
+  `runUserTurn` 107L — extract the post-turn-gate pipeline + the slash-dispatch block),
+  `desktop/server.ts`, `memory/compress.ts`.
+- **Brainstem (higher blast radius per the factory compartment map — do carefully,
+  not rushed):** `providers/index.ts` (`resolveProvider` cx-24 — a provider table like
+  cli's), `agent.ts` (`runTurn` 129L/cx-23), `factory/run.ts` (`runCycle` 134L).
+- Goal: `vanta lint` 0 on `src/`, then set `VANTA_LINT_BLOCK=1` so the gate stays green.
+Pattern proven on cli.ts: lookup-table for dispatchers, extract helpers for long fns,
+verify each file with the full suite. Tracked as the `SIZE-PAYDOWN` card.
 
 ## Backlog shape (`roadmap.json` — 270 cards: 158 shipped · 86 next · 26 horizon)
 
