@@ -1,30 +1,11 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createInterface } from "node:readline/promises";
-import { createConversation } from "./agent.js";
 import { mirrorLegacyEnv } from "./env-compat.js";
 import { ensureVantaStore } from "./store/home.js";
-import { listSkills, readSkill } from "./skills/store.js";
-import { installSkillLibrary } from "./skills/library.js";
-import { listSessions } from "./sessions/store.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
-import {
-  runRoomsList,
-  resolveRoomOrExit,
-  runModes,
-  suggestSkillFromRun,
-} from "./projects/commands.js";
+import { runRoomsList, runModes } from "./projects/commands.js";
 import { runAuthCommand } from "./google/commands.js";
-import {
-  prepareRun,
-  buildSummarizer,
-  writeRunMemory,
-  consoleCallbacks,
-  approver,
-  reviewAfterTurn,
-  maybeCurate,
-} from "./session.js";
 import { runChat } from "./interactive.js";
 import { runTui } from "./tui/launch.js";
 import { runSetup } from "./setup.js";
@@ -41,6 +22,18 @@ import {
   runFactoryCommand,
   runDesktopCommand,
 } from "./cli/ops.js";
+import {
+  usage,
+  usageExit,
+  runSessionsList,
+  runInstruction,
+  runSkillsCommand,
+  runMemoryCommand,
+  runVoiceCommand,
+  runHooksCommand,
+  runSkillCommand,
+  runRoomCommand,
+} from "./cli/commands.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -58,40 +51,6 @@ function loadEnv(repoRoot: string): void {
     // no .env file — rely on the ambient environment
   }
   mirrorLegacyEnv(); // back-compat: existing ARGO_* configs → VANTA_*
-}
-
-function usage(): void {
-  console.log(
-    [
-      "Usage: vanta                              start an interactive session",
-      "       vanta sessions | resume <id>       list past sessions, or resume one",
-      "       vanta setup                        first-run wizard: pick a model backend",
-      "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
-      "       vanta status | doctor              health check (kernel, provider, keys, store)",
-      '       vanta run "<instruction>"          run one instruction and exit',
-      "       vanta skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
-      '       vanta skill <name> ["<instruction>"]  print a skill, or run with it',
-      '       vanta schedule "<instruction>" --cron "<expr>" | schedule list',
-      "       vanta cron                         run due tasks once (for launchd/cron)",
-      "       vanta gateway                      run the scheduler as a foreground daemon",
-      "       vanta service [install|uninstall|status]   manage the background launchd agent",
-      "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
-      "       vanta modes [list|install]         operator modes",
-      "       vanta auth google                  one-time Google OAuth",
-      "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
-      "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
-      "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
-      "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
-      "       vanta desktop [port]                start local desktop command center",
-      "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
-      "       vanta open <file[:line]>           open a file:line in your editor",
-      "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
-      "       vanta completion [bash|zsh|fish]   print a shell completion script",
-      "       vanta backup [out.tgz] | import <in.tgz>   archive / restore ~/.vanta",
-      "       vanta improve                      run one factory cycle (review mode — prints plan)",
-      "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
-    ].join("\n"),
-  );
 }
 
 /** True when a model backend resolves from the current env (a usable config exists). */
@@ -125,10 +84,7 @@ async function startInteractive(
   // The Ink TUI is the default interactive surface; fall back to the readline
   // REPL for resume (TUI v1 doesn't rehydrate), --no-tui, VANTA_NO_TUI, or no TTY.
   const useTui =
-    Boolean(process.stdin.isTTY) &&
-    !opts.resumeId &&
-    !opts.noTui &&
-    !process.env.VANTA_NO_TUI;
+    Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
   if (!useTui) return runChat(repoRoot, opts);
   // REL3: wrap TUI launch in a try-catch; fall back to readline REPL if Ink
   // fails to render (bad TERM, missing native deps, restricted environment).
@@ -147,205 +103,52 @@ function resumeIdFrom(args: string[]): string | undefined {
   return i >= 0 ? args[i + 1] : undefined;
 }
 
-async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  const sessions = await listSessions(env);
-  if (sessions.length === 0) {
-    return void console.log("(no saved sessions yet)");
-  }
-  for (const s of sessions) {
-    console.log(`${s.id}  ${s.turns} turn(s)  ${s.title}`);
-  }
-  console.log("\nResume with: vanta resume <id>");
-}
+/** A subcommand handler. A returned number is used as the process exit code. */
+type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
 
-function usageExit(): never {
-  usage();
-  process.exit(1);
-}
-
-// Shared run path for run / skill / room. `skillBody` is appended to the prompt;
-// `root` is the room's path for a room run (its own kernel data dir + goals).
-async function runInstruction(
-  repoRoot: string,
-  instruction: string,
-  opts: { skillBody?: string; root?: string } = {},
-): Promise<void> {
-  const root = opts.root ?? repoRoot;
-  const setup = await prepareRun(root, instruction, opts.skillBody);
-  await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
-  const activeGoals = setup.goals.filter((g) => g.status === "active").length;
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-
-  console.log(`vanta · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
-  // Ctrl+C aborts the current run gracefully (between iterations) instead of
-  // hard-killing — the loop returns "interrupted" and post-run memory still runs.
-  const controller = new AbortController();
-  const onSigint = (): void => controller.abort();
-  process.once("SIGINT", onSigint);
-  try {
-    const convo = createConversation(setup.systemPrompt, {
-      provider: setup.provider,
-      safety: setup.safety,
-      registry: setup.registry,
-      root,
-      requestApproval: approver(rl),
-      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
-      summarize: buildSummarizer(setup.provider),
-      activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
-      signal: controller.signal,
-      ...consoleCallbacks(),
-    });
-    const outcome = await convo.send(instruction);
-    console.log(`\n${outcome.finalText}`);
-    console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
-    await writeRunMemory(setup.provider, setup.goals, instruction, outcome.finalText);
-    await suggestSkillFromRun(instruction, process.env);
-    await reviewAfterTurn({
-      provider: setup.provider,
-      safety: setup.safety,
-      root,
-      transcript: convo.messages,
-      toolIterations: outcome.toolIterations,
-      turnIndex: 1,
-    });
-  } finally {
-    process.removeListener("SIGINT", onSigint);
-    rl.close();
-  }
-}
-
-async function runSkillsList(): Promise<void> {
-  const skills = await listSkills();
-  if (skills.length === 0) return void console.log("(no skills yet — `vanta skills install` to add the bundled library)");
-  for (const s of skills) console.log(`${s.meta.name} — ${s.meta.description}`);
-}
-
-// `vanta skills` → list; `vanta skills install [--force]` → copy the bundled
-// library into ~/.vanta/skills (skips existing unless --force).
-async function runSkillsCommand(rest: string[]): Promise<void> {
-  if (rest[0] === "lint") {
-    const { lintSkills, formatLint } = await import("./skills/lint.js");
-    const issues = await lintSkills();
-    console.log(formatLint(issues));
-    if (issues.some((i) => i.level === "error")) process.exit(1);
-    return;
-  }
-  if (rest[0] === "bundle") {
-    const { listBundles, readBundle } = await import("./skills/bundle.js");
-    const name = rest[1];
-    if (!name) {
-      const bundles = await listBundles();
-      if (!bundles.length) return void console.log("(no bundles yet — create ~/.vanta/skill-bundles/<name>.yaml)");
-      for (const b of bundles) console.log(`${b.name} — ${b.description} [${b.skills.join(", ")}]`);
-      return;
-    }
-    const cfg = await readBundle(name);
-    if (!cfg) { console.log(`No bundle named "${name}".`); process.exit(1); }
-    console.log(`Bundle: ${cfg.name}\n  Skills: ${cfg.skills.join(", ")}\n${cfg.instruction ? `  Instruction: ${cfg.instruction}` : ""}`);
-    return;
-  }
-  if (rest[0] !== "install") return runSkillsList();
-  const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });
-  console.log(
-    `Installed ${installed.length} skill(s)${installed.length ? `: ${installed.join(", ")}` : ""}.`,
-  );
-  if (skipped.length) {
-    console.log(`Skipped ${skipped.length} already present (use --force to overwrite): ${skipped.join(", ")}.`);
-  }
-}
-
-async function runMemoryCommand(rest: string[]): Promise<void> {
-  const sub = rest[0];
-  if (sub === "search") {
-    const query = rest.slice(1).join(" ").trim();
-    if (!query) { console.log("usage: vanta memory search <query>"); return; }
-    const { searchArchive } = await import("./memory/archive.js");
-    const results = await searchArchive(query, { maxResults: 20 });
-    if (!results.length) { console.log(`(no archive matches for "${query}")`); return; }
-    for (const r of results) console.log(`[${r.sessionId}] ${r.role}: ${r.excerpt}`);
-    return;
-  }
-  console.log("usage: vanta memory search <query>");
-}
-
-async function runVoiceCommand(repoRoot: string): Promise<void> {
-  const setup = await prepareRun(repoRoot, "voice session");
-  const { runVoiceLoop } = await import("./voice/loop.js");
-  await runVoiceLoop({
-    provider: setup.provider,
-    safety: setup.safety,
-    registry: setup.registry,
-    root: repoRoot,
-    systemPrompt: setup.systemPrompt,
-    durationSec: parseInt(process.env.VANTA_VOICE_DURATION ?? "5", 10) || 5,
-  });
-}
-
-async function runHooksCommand(rest: string[]): Promise<void> {
-  const { homedir } = await import("node:os");
-  const { readFile, writeFile, mkdir } = await import("node:fs/promises");
-  const { join } = await import("node:path");
-  const settingsPath = join(homedir(), ".claude", "settings.json");
-  const argoCmd = join(homedir(), ".local", "bin", "vanta");
-  if (rest[0] === "run") {
-    // Called by Claude Code Stop/PreCompact hooks — write a brain episodic note.
-    const event = rest[1] ?? "stop";
-    try {
-      const { writeRegion } = await import("./brain/store.js");
-      const note = `\n- [${new Date().toISOString()}] Claude Code hook: ${event}`;
-      await writeRegion("episodic", note, { append: true });
-    } catch { /* best-effort */ }
-    return;
-  }
-  if (rest[0] === "status") {
-    try {
-      const raw = await readFile(settingsPath, "utf8");
-      const settings: Record<string, unknown> = JSON.parse(raw);
-      const hooks = settings.hooks as Record<string, unknown> | undefined;
-      console.log(`hooks.Stop:       ${hooks?.Stop ? "✓ configured" : "✗ not set"}`);
-      console.log(`hooks.PreCompact: ${hooks?.PreCompact ? "✓ configured" : "✗ not set"}`);
-    } catch {
-      console.log("(~/.claude/settings.json not found or not readable)");
-    }
-    return;
-  }
-  // install
-  await mkdir(join(homedir(), ".claude"), { recursive: true });
-  let settings: Record<string, unknown> = {};
-  try { settings = JSON.parse(await readFile(settingsPath, "utf8")); } catch { /* new file */ }
-  const makeHook = (event: string) => [{
-    matcher: "",
-    hooks: [{ type: "command", command: `${argoCmd} hooks run ${event} 2>/dev/null &` }],
-  }];
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  hooks.Stop = makeHook("stop");
-  hooks.PreCompact = makeHook("precompact");
-  settings.hooks = hooks;
-  await writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
-  console.log(`✓ hooks installed in ${settingsPath}`);
-  console.log("  Stop + PreCompact → vanta hooks run <event>");
-}
-
-async function runSkillCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const [name, ...instr] = rest;
-  if (!name) return usageExit();
-  const skill = await readSkill(name);
-  if (!skill) {
-    console.log(`No skill named "${name}".`);
-    process.exit(1);
-  }
-  if (instr.length === 0) return void console.log(`# ${skill.meta.name}\n\n${skill.body}`);
-  await runInstruction(repoRoot, instr.join(" "), { skillBody: skill.body });
-}
-
-async function runRoomCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const [name, ...instr] = rest;
-  if (!name) return usageExit();
-  const room = await resolveRoomOrExit(name, process.env);
-  if (!room) process.exit(1);
-  if (instr.length === 0) return void console.log(room.path);
-  await runInstruction(repoRoot, instr.join(" "), { root: room.path });
-}
+// `vanta <cmd>` dispatch table. The interactive entry points (chat/resume/run)
+// parse flags, so they stay as explicit checks in main(); everything else is here.
+const COMMANDS: Record<string, CommandFn> = {
+  sessions: () => runSessionsList(),
+  help: () => usage(),
+  "-h": () => usage(),
+  "--help": () => usage(),
+  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else await runSetup(root); },
+  status: () => runStatus(),
+  doctor: () => runStatus(),
+  schedule: async (root, rest) => {
+    const code = await runScheduleCommand(dataDirFor(root), rest);
+    if (code !== 0) usage();
+    return code;
+  },
+  cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
+  gateway: (root) => runGatewayCommand(root),
+  service: (root, rest) => runServiceCommand(root, rest),
+  skills: (_root, rest) => runSkillsCommand(rest),
+  skill: (root, rest) => runSkillCommand(root, rest),
+  rooms: () => runRoomsList(process.env),
+  room: (root, rest) => runRoomCommand(root, rest),
+  modes: (_root, rest) => runModes(process.env, rest[0]),
+  auth: (_root, rest) => runAuthCommand(rest[0]),
+  voice: (root) => runVoiceCommand(root),
+  hooks: (_root, rest) => runHooksCommand(rest),
+  mcp: (root, rest) => runMcpCommand(root, rest),
+  roadmap: (root, rest) => runRoadmapCommand(root, rest),
+  desktop: (root, rest) => runDesktopCommand(root, rest),
+  memory: (_root, rest) => runMemoryCommand(rest),
+  lint: async (root, rest) => (await import("./lint/run.js")).runLint(root, rest),
+  open: async (_root, rest) => {
+    const r = await (await import("./editor/open.js")).openInEditor(rest.join(" "));
+    console.log(r.message);
+    return r.ok ? 0 : 1;
+  },
+  "prompt-size": async (root) => (await import("./cli-dx/prompt-size.js")).runPromptSize(root),
+  completion: async (_root, rest) => (await import("./cli-dx/completion.js")).runCompletion(rest),
+  backup: async (_root, rest) => (await import("./cli-dx/backup.js")).runBackup(rest),
+  import: async (_root, rest) => (await import("./cli-dx/backup.js")).runImport(rest),
+  improve: (root) => runFactoryCommand(root, "review"),
+  factory: (root, rest) => runFactoryCommand(root, rest[0] ?? ""),
+};
 
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
@@ -354,75 +157,19 @@ async function main(): Promise<void> {
 
   const [cmd, ...rest] = process.argv.slice(2);
 
+  // Interactive entry points parse flags, so they stay explicit.
   if (cmd === undefined || cmd === "chat")
-    return startInteractive(repoRoot, {
-      resumeId: resumeIdFrom(rest),
-      noTui: rest.includes("--no-tui"),
-    });
-  if (cmd === "--resume") return startInteractive(repoRoot, { resumeId: rest[0] });
-  if (cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
-  if (cmd === "sessions") return runSessionsList();
-  if (cmd === "help" || cmd === "-h" || cmd === "--help") return usage();
-  if (cmd === "setup") {
-    if (rest[0] === "messaging") return void (await runMessagingSetup(repoRoot));
-    return void (await runSetup(repoRoot));
-  }
-  if (cmd === "status" || cmd === "doctor") return runStatus();
-  if (cmd === "schedule") {
-    const code = await runScheduleCommand(dataDirFor(repoRoot), rest);
-    if (code !== 0) usage();
-    process.exit(code);
-  }
-  if (cmd === "cron")
-    return runCron(dataDirFor(repoRoot), new Date(), buildCronRunTask(repoRoot));
-  if (cmd === "gateway") return runGatewayCommand(repoRoot);
-  if (cmd === "service") return runServiceCommand(repoRoot, rest);
-  if (cmd === "skills") return runSkillsCommand(rest);
-  if (cmd === "skill") return runSkillCommand(repoRoot, rest);
-  if (cmd === "rooms") return runRoomsList(process.env);
-  if (cmd === "room") return runRoomCommand(repoRoot, rest);
-  if (cmd === "modes") return runModes(process.env, rest[0]);
-  if (cmd === "auth") process.exit(await runAuthCommand(rest[0]));
+    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui") });
+  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
-  if (cmd === "voice") return runVoiceCommand(repoRoot);
-  if (cmd === "hooks") return runHooksCommand(rest);
-  if (cmd === "mcp") return runMcpCommand(repoRoot, rest);
-  if (cmd === "roadmap") return runRoadmapCommand(repoRoot, rest);
-  if (cmd === "desktop") return runDesktopCommand(repoRoot, rest);
-  if (cmd === "memory") return runMemoryCommand(rest);
-  if (cmd === "lint") {
-    const { runLint } = await import("./lint/run.js");
-    process.exit(await runLint(repoRoot, rest));
-  }
-  if (cmd === "open") {
-    const { openInEditor } = await import("./editor/open.js");
-    const r = await openInEditor(rest.join(" "));
-    console.log(r.message);
-    process.exit(r.ok ? 0 : 1);
-  }
-  if (cmd === "prompt-size") {
-    const { runPromptSize } = await import("./cli-dx/prompt-size.js");
-    process.exit(await runPromptSize(repoRoot));
-  }
-  if (cmd === "completion") {
-    const { runCompletion } = await import("./cli-dx/completion.js");
-    process.exit(runCompletion(rest));
-  }
-  if (cmd === "backup") {
-    const { runBackup } = await import("./cli-dx/backup.js");
-    process.exit(await runBackup(rest));
-  }
-  if (cmd === "import") {
-    const { runImport } = await import("./cli-dx/backup.js");
-    process.exit(await runImport(rest));
-  }
-  if (cmd === "improve") return runFactoryCommand(repoRoot, "review");
-  if (cmd === "factory") return runFactoryCommand(repoRoot, rest[0] ?? "");
 
-  usageExit();
+  const handler = COMMANDS[cmd];
+  if (!handler) return usageExit();
+  const code = await handler(repoRoot, rest);
+  if (typeof code === "number") process.exit(code);
 }
 
 main().catch((err: unknown) => {
-  console.error(`\nargo error: ${err instanceof Error ? err.message : String(err)}`);
+  console.error(`\nvanta error: ${err instanceof Error ? err.message : String(err)}`);
   process.exit(1);
 });

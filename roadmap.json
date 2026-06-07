@@ -3115,7 +3115,7 @@
       "title": "Pay down the 85 size-gate violations CODE-SIZE-GATE surfaced",
       "status": "next",
       "size": "M",
-      "summary": "CODE-SIZE-GATE (vanta lint) surfaced ~85 pre-existing violations. Top offenders: cli.ts (414L, main fn 62L/cx39 — grows with every new command; split the dispatch into a command table/module), interactive.ts (335L, runChat 240L), providers/index.ts (resolveProvider cx24), agent.ts (runTurn 129L/cx23), factory/run.ts (runCycle 134L). Pay down incrementally, verifying the full suite per file; enable VANTA_LINT_BLOCK=1 once clean so the gate stays green.",
+      "summary": "CODE-SIZE-GATE (vanta lint) surfaced ~85 pre-existing violations; paying down incrementally (full suite + live smoke per file). [2026-06-07] DONE cli.ts — the worst offender (428L, main cx-42, grew per command): main's if-chain → a COMMANDS lookup table (cx ~4); command handlers extracted to cli/commands.ts. cli.ts 428→175L, both files fully gate-clean; routing live-smoke-verified (help/status/sessions/completion/prompt-size/lint). Violations 85→78. REMAINING (78): interactive.ts (335L, runChat 240L), providers/index.ts (resolveProvider cx24), agent.ts (runTurn 129L/cx23), factory/run.ts (runCycle 134L), + others. Enable VANTA_LINT_BLOCK=1 once src/ is clean.",
       "done": "vanta lint reports 0 violations on src/ (tests excluded); VANTA_LINT_BLOCK=1 can be enabled without blocking normal commits.",
       "tier": "pebble",
       "model": "sonnet",
