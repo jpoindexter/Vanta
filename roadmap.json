@@ -221,12 +221,12 @@
       "id": "BEHAVIOR-VOICE",
       "track": "Operator",
       "title": "Operator voice + verify-before-claim discipline",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Tune SOUL.md/prompt to the Vanta brand voice (direct, literal, structured, fewer caveats, no AI-magic phrasing) and harden the verify-before-claiming-done rule. Covers communication + code-operation discipline.",
+      "summary": "SHIPPED 2026-06-07. prompt.ts stableTier: added rule 10 (Voice — direct/literal/structured, lead with the answer, no filler/hype/AI-magic phrasing, plain operator register, warm-not-robotic) and hardened rule 4 (done-claim must cite the command + its result; never claim done/fixed/working in prose alone). SOUL.md already on-voice (operator, honest, no-fake). Locks the framing with prompt tests asserting both rules present. NOTE: the aesthetic half of done ('reads like the brand guide examples') is Jason's to confirm on real replies; VOICE-NATURAL tunes warmth on top of this base, TRUST-LABELS renders the epistemic markers.",
       "done": "Vanta's replies read like the brand guide examples; success is never claimed without tool-output evidence."
     },
     {
