@@ -197,12 +197,12 @@
       "id": "RESTART",
       "track": "Core UX",
       "title": "/restart command (reload the instance)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "summary": "Slash command that tears down Ink cleanly and re-execs Vanta via a launcher loop (exit code 75 -> run.sh relaunches), optionally respawning the kernel. Unblocks the dogfood loop: reload tsx code changes without manually quitting and relaunching.",
+      "summary": "SHIPPED 2026-06-07. /restart (repl/restart-cmd.ts) exits with the sysexits sentinel 75; run.sh now wraps the launch in a relaunch loop (export VANTA_RELAUNCH=1; re-runs tsx on code 75, passes any other code through) so edited source reloads in place without quitting to the shell. Both hosts wired: readline (interactive.ts, process.exitCode=75 + forced exit after cleanup) and TUI (app.tsx app.exit() + launch.tsx forced 75 exit after waitUntilExit). Kernel reconnects via the existing ping/auto-start. Refuses with a hint when VANTA_RELAUNCH is unset (run via npm/old launcher) so it never surprise-quits. 3 unit tests; full suite green; tsc clean. The actual TTY relaunch is Jason's to confirm in a terminal (the loop is offline-reasoned + shell-syntax-checked, like the TUI streaming verify).",
       "done": "/restart relaunches Vanta in place with fresh code; the kernel reconnects."
     },
     {
