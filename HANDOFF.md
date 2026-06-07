@@ -56,12 +56,15 @@ and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rul
 Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
 `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
 
-## SIZE-PAYDOWN — cli.ts DONE; 78 violations remain (next-session)
+## SIZE-PAYDOWN — cli.ts + interactive.ts file-size DONE; 76 remain (next-session)
 
-`vanta lint` surfaced ~85 violations. **DONE 2026-06-07: cli.ts** (the worst — 428L,
-`main` cx-42, grew per command): `main`'s if-chain → a `COMMANDS` lookup table; handlers
-extracted to `cli/commands.ts`. cli.ts 428→175L, both gate-clean, routing live-verified.
-Violations 85→78.
+`vanta lint` surfaced ~85 violations. **DONE 2026-06-07:** cli.ts (worst — 428→175L,
+`main` if-chain → `COMMANDS` table, handlers → `cli/commands.ts`; both gate-clean,
+routing live-verified) · interactive.ts file-size (335→286L; 6-gate post-turn block →
+tested `runPostTurnGates` in `repl/post-turn-gates.ts`, reusable by both hosts) ·
+`writeRunMemory` → options object. **Violations 85→76.** Proven pattern: lookup-table
+for dispatchers, extract-to-helper for long fns, options-object for >4 params, full
+suite per file.
 
 **Remaining (78), tackle incrementally — full suite + live smoke per file:**
 - **Limbs (lower risk, do first):** `interactive.ts` (335L; `runChat` 240L + nested
