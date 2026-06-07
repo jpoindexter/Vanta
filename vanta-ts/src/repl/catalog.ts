@@ -36,6 +36,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
   { name: "wm", arg: "[note]", desc: "view or add to session working memory (cleared each session)" },
   { name: "restart", desc: "reload Vanta in place with fresh code (needs ./run.sh)" },
+  { name: "bug", arg: "<what happened>", desc: "record a structured bug with session + git context" },
   { name: "exit", desc: "leave the session" },
 ];
 

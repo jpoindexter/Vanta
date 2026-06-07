@@ -41,12 +41,12 @@
       "id": "BUG-CAPTURE",
       "track": "Reliability",
       "title": "Frictionless this-broke recorder",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "summary": "Dogfooding bug capture path: turn a live annoyance into a structured issue/card with current session context, recent tool calls, current model/provider, git state, and optional screenshot/log details.",
+      "summary": "SHIPPED 2026-06-07. repl/bug-cmd.ts: /bug <what happened> captures a structured record — description, timestamp, session id, provider/model, last user intent, recent tool calls (recentToolNames), and git state (branch + uncommitted count, best-effort) — via pure formatBugRecord, written to .vanta/bugs/bug-<session>-<ts>.md (durable + greppable). Output points to roadmap_add to promote it to a card on triage. Wired into HANDLERS + catalog. 5 tests; tsc clean; handlers.ts under the 300-line cap.",
       "done": "`/bug <what happened>` creates a structured bug record or roadmap card with repro steps, context, and source evidence when available."
     },
     {
