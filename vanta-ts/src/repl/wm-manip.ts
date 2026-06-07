@@ -16,21 +16,22 @@ const MEMORY_READ_TOOLS = new Set(["brain", "recall", "read_file"]);
  * - "maintenance": turn involved reading memory but no writes (holding without transforming)
  * - "none": no memory tool calls
  */
-export function detectWmMode(messages: Message[]): WmMode {
-  let hasWrite = false;
-  let hasRead = false;
+/** Tool-call names in the last assistant turn (back to the prior user message). */
+function lastTurnToolNames(messages: Message[]): string[] {
+  const names: string[] = [];
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
     if (!m) continue;
     if (m.role === "user") break;
-    if (m.role !== "assistant" || !m.toolCalls) continue;
-    for (const tc of m.toolCalls) {
-      if (MEMORY_WRITE_TOOLS.has(tc.name)) hasWrite = true;
-      if (MEMORY_READ_TOOLS.has(tc.name)) hasRead = true;
-    }
+    if (m.role === "assistant" && m.toolCalls) names.push(...m.toolCalls.map((tc) => tc.name));
   }
-  if (hasWrite) return "manipulation";
-  if (hasRead) return "maintenance";
+  return names;
+}
+
+export function detectWmMode(messages: Message[]): WmMode {
+  const names = lastTurnToolNames(messages);
+  if (names.some((n) => MEMORY_WRITE_TOOLS.has(n))) return "manipulation";
+  if (names.some((n) => MEMORY_READ_TOOLS.has(n))) return "maintenance";
   return "none";
 }
 
