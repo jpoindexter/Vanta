@@ -24,6 +24,7 @@ import {
   runPairingCommand,
 } from "./cli/ops.js";
 import { runModelCommand } from "./cli/model-cmd.js";
+import { runUpdateCommand } from "./cli/update.js";
 import {
   usage,
   usageExit,
@@ -167,6 +168,7 @@ const COMMANDS: Record<string, CommandFn> = {
   today: async (root, rest) => COMMANDS["brief"]!(root, rest),
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
+  update: (root, rest) => runUpdateCommand(root, rest),
 };
 
 async function main(): Promise<void> {
