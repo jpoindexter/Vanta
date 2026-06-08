@@ -30,6 +30,7 @@ import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
+import { reflectAfterTurn } from "./repl/reflect-correct.js";
 import type { Goal } from "./types.js";
 
 const LOGO = String.raw`
@@ -227,6 +228,10 @@ export async function runChat(
       turnIndex: state.turnIndex,
     });
     gates = await runPostTurnGates(gates, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
+    // REFLECT-CORRECT: extract correction rules from user messages and persist to brain.
+    const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
+    const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
+    await reflectAfterTurn(lastUserText, process.env);
   };
 
   try {

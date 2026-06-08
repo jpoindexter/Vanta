@@ -473,7 +473,7 @@
       "id": "RESEARCH-LOOP",
       "track": "Research",
       "title": "Autonomous research loops (overnight brief, tracked uncertainty)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Research a topic over time, compare sources, produce a short brief, track uncertainty instead of dumping links (wants1 #10). Composes cron (scheduled) + O2 swarms + the deep-research skill + MEM-CURATOR (store the brief, not the links). Senses/agency = wants2 build-order steps 6/8.",
       "done": "A scheduled research task produces a cited brief with an explicit confidence/uncertainty note, stored as one durable memory rather than a link dump.",
