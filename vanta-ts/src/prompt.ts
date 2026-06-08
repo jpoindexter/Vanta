@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Goal } from "./types.js";
 import type { ToolSchema } from "./providers/interface.js";
+import { readStack } from "./task-stack/store.js";
+import { taskStackSummary } from "./task-stack/summary.js";
 
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
@@ -116,9 +118,7 @@ export async function buildSystemPrompt(opts: {
   moimNote?: string;
   skills?: SkillIndexEntry[];
   brain?: string;
-  /** Contents of ERRORS.md — injected as context so Vanta avoids repeating prior failures. */
   errorsLog?: string;
-  /** Canonical project ID (git-remote-based) — stable across machines and worktrees. */
   projectId?: string;
 }): Promise<string> {
   const soul =
@@ -129,12 +129,15 @@ export async function buildSystemPrompt(opts: {
       "and report only what I have verified. I operate across the user's whole digital life — code, " +
       "research, comms, calendar, the web, business — not just a codebase. I am a real operator, not a " +
       "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
+  const stack = await readStack(join(opts.root, ".vanta")).catch(() => ({ tasks: [] }));
+  const tasksTier = taskStackSummary(stack) ? `Operator task stack:\n${taskStackSummary(stack)}` : "";
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
     brainTier(opts.brain),
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
+    tasksTier,
     volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId }),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
