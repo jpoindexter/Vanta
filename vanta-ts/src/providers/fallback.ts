@@ -26,6 +26,47 @@ function isAuthError(err: unknown): boolean {
   return AUTH_4XX.test(msg);
 }
 
+// ---------------------------------------------------------------------------
+// stream() helpers — extracted to keep FallbackChain.stream() complexity ≤10
+// ---------------------------------------------------------------------------
+
+type TryResult<T> =
+  | { done: true; value: T; err?: never; transient?: never }
+  | { done: false; value?: never; err: unknown; transient: boolean };
+
+async function tryComplete(
+  provider: LLMProvider,
+  messages: Message[],
+  tools: ToolSchema[],
+  config?: CompletionConfig,
+): Promise<TryResult<CompletionResult>> {
+  try {
+    return { done: true, value: await provider.complete(messages, tools, config) };
+  } catch (err) {
+    return { done: false, err, transient: isTransientError(err) && !isAuthError(err) };
+  }
+}
+
+/** Yields stream chunks; returns `{done:true}` on success, `{done:false}` on pre-yield error. */
+async function* tryStream(
+  streamFn: NonNullable<LLMProvider["stream"]>,
+  messages: Message[],
+  tools: ToolSchema[],
+  config?: CompletionConfig,
+): AsyncGenerator<StreamChunk, TryResult<void>> {
+  let yielded = false;
+  try {
+    for await (const chunk of streamFn(messages, tools, config)) {
+      yielded = true;
+      yield chunk;
+    }
+    return { done: true, value: undefined };
+  } catch (err) {
+    if (yielded) throw err; // mid-stream: can't recover cleanly
+    return { done: false, err, transient: isTransientError(err) && !isAuthError(err) };
+  }
+}
+
 /**
  * Wraps an ordered list of providers. On a transient failure, the chain
  * automatically falls through to the next provider. Non-transient or auth
@@ -73,37 +114,18 @@ export class FallbackChain implements LLMProvider {
     config?: CompletionConfig,
   ): AsyncIterable<StreamChunk> {
     let lastErr: unknown;
-    for (let i = 0; i < this.providers.length; i++) {
-      const provider = this.providers[i]!;
-      // Only fall back if this provider has a stream() method.
+    for (const provider of this.providers) {
       const streamFn = provider.stream?.bind(provider);
-      if (!streamFn) {
-        // Provider lacks stream() — use complete() to produce a done chunk.
-        try {
-          const result = await provider.complete(messages, tools, config);
-          yield { type: "done", result };
-          return;
-        } catch (err) {
-          if (isAuthError(err)) throw err;
-          if (!isTransientError(err)) throw err;
-          lastErr = err;
-          continue;
-        }
-      }
-      // Attempt streaming; fall back only before any chunk has been yielded
-      // (mid-stream fallback would double-emit text).
-      let yielded = false;
-      try {
-        for await (const chunk of streamFn(messages, tools, config)) {
-          yielded = true;
-          yield chunk;
-        }
-        return;
-      } catch (err) {
-        if (yielded) throw err; // mid-stream: can't recover
-        if (isAuthError(err)) throw err;
-        if (!isTransientError(err)) throw err;
-        lastErr = err;
+      if (streamFn) {
+        const result = yield* tryStream(streamFn, messages, tools, config);
+        if (result.done) return;
+        if (!result.transient) throw result.err;
+        lastErr = result.err;
+      } else {
+        const result = await tryComplete(provider, messages, tools, config);
+        if (result.done) { yield { type: "done", result: result.value! }; return; }
+        if (!result.transient) throw result.err;
+        lastErr = result.err;
       }
     }
     throw lastErr;
