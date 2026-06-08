@@ -50,6 +50,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "simplify", desc: "reuse/simplify/efficiency/altitude pass on changed code" },
   { name: "verify", desc: "run the app and confirm a change actually works" },
   { name: "run", desc: "launch and drive this project's app" },
+  { name: "add-dir", arg: "<path>", desc: "add a directory to this session's readable/writable scope" },
   { name: "exit", desc: "leave the session" },
 ];
 

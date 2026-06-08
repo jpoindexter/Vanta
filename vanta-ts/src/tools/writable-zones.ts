@@ -29,7 +29,9 @@ function parseDirs(raw: string): string[] {
 /** Resolve the configured writable zones to absolute dir paths. */
 export function resolveWritableZones(env: NodeJS.ProcessEnv): string[] {
   const raw = env.VANTA_WRITABLE_DIRS?.trim();
-  return raw ? parseDirs(raw) : [...DEFAULT_WRITABLE].map((s) => resolve(expandHome(s)));
+  const base = raw ? parseDirs(raw) : [...DEFAULT_WRITABLE].map((s) => resolve(expandHome(s)));
+  const extra = env.VANTA_EXTRA_DIRS?.trim() ? parseDirs(env.VANTA_EXTRA_DIRS) : [];
+  return [...base, ...extra];
 }
 
 /**
@@ -39,8 +41,26 @@ export function resolveWritableZones(env: NodeJS.ProcessEnv): string[] {
  */
 export function resolveReadableZones(env: NodeJS.ProcessEnv, root: string): string[] {
   const raw = env.VANTA_READABLE_DIRS?.trim();
-  if (raw) return parseDirs(raw);
-  return [dirname(resolve(root)), ...resolveWritableZones(env)];
+  const base = raw ? parseDirs(raw) : [dirname(resolve(root)), ...resolveWritableZones(env)];
+  const extra = env.VANTA_EXTRA_DIRS?.trim() ? parseDirs(env.VANTA_EXTRA_DIRS) : [];
+  return [...base, ...extra];
+}
+
+/**
+ * CC-ADD-DIR: add a directory to the session's extra dirs (readable + writable).
+ * Mutates process.env.VANTA_EXTRA_DIRS. The kernel still gates each access.
+ */
+export function addSessionDir(dir: string, env: NodeJS.ProcessEnv): void {
+  const abs = resolve(expandHome(dir));
+  const current = env.VANTA_EXTRA_DIRS?.trim() ? parseDirs(env.VANTA_EXTRA_DIRS) : [];
+  if (!current.includes(abs)) {
+    env.VANTA_EXTRA_DIRS = [...current, abs].join(",");
+  }
+}
+
+/** List currently active extra session dirs. */
+export function getSessionDirs(env: NodeJS.ProcessEnv): string[] {
+  return env.VANTA_EXTRA_DIRS?.trim() ? parseDirs(env.VANTA_EXTRA_DIRS) : [];
 }
 
 /** True if `abs` (an absolute path) is inside one of the zones. */
