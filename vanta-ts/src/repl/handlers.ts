@@ -24,6 +24,7 @@ import { tasks } from "./tasks-cmd.js";
 import { btw } from "./btw-cmd.js";
 import { diff } from "./diff-cmd.js";
 import { search } from "./search-cmd.js";
+import { dashboard } from "./dashboard-cmd.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -263,7 +264,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, tasks, btw, diff, search,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, tasks, btw, diff, search, dashboard,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

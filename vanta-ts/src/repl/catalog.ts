@@ -43,6 +43,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },
   { name: "search", arg: "<query>", desc: "search conversation history for a term" },
+  { name: "dashboard", desc: "live operator state — tasks, goals, repo, model" },
   { name: "exit", desc: "leave the session" },
 ];
 

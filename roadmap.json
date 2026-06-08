@@ -269,7 +269,7 @@
       "id": "OPERATOR-DASHBOARD",
       "track": "Core UX",
       "title": "Live operator dashboard (brand dossier aesthetic)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "A unified live surface: active goals, current plan, blockers, recent actions, pending approvals, suggested next move, memory highlights - rendered in the Vanta Brand Style Guide dossier/control-room aesthetic (left status rail, operation cards, signal colors). Subsumes brand-TUI; the seed for the DESKTOP app.",
       "done": "One glance shows goals, plan, blockers, approvals, next move, and memory in the brand aesthetic.",
