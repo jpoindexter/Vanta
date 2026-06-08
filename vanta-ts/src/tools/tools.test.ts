@@ -65,6 +65,7 @@ describe("registry", () => {
       "lsp_definition",
       "lsp_diagnostics",
       "mount_mcp",
+      "protect",
       "read_file",
       "recall",
       "ref_ingest",
