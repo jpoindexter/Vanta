@@ -47,7 +47,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
   {
     id: "imessage",
     label: "iMessage (native macOS)",
-    implemented: false,
+    implemented: true,
     requiredEnv: ["VANTA_IMESSAGE_ENABLE"],
     enableEnv: { VANTA_IMESSAGE_ENABLE: "1" },
     prerequisite:
@@ -61,7 +61,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
   {
     id: "signal",
     label: "Signal (signal-cli)",
-    implemented: false,
+    implemented: true,
     requiredEnv: ["VANTA_SIGNAL_URL"],
     prerequisite: "signal-cli installed, your number linked/registered, running in daemon http mode.",
     signupUrl: "https://github.com/AsamK/signal-cli",
