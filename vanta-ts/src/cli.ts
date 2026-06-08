@@ -169,6 +169,33 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  taste: async (_root, rest) => {
+    const { ingestAsset, loadAssets, formatAssets, searchAssets } = await import("./taste/asset-index.js");
+    const { evaluateTaste } = await import("./taste/engine.js");
+    const sub = rest[0] ?? "list";
+    if (sub === "add") {
+      const source = rest[1];
+      if (!source) { console.error("usage: vanta taste add <url|path> [tags...]"); return 1; }
+      const tags = rest.slice(2) as Parameters<typeof ingestAsset>[0]["tags"];
+      const a = await ingestAsset({ source, tags, env: process.env });
+      console.log(`✓ ingested ${a.id}: ${a.title}`);
+      return 0;
+    }
+    if (sub === "eval") {
+      const desc = rest.slice(1).join(" ").trim();
+      if (!desc) { console.error("usage: vanta taste eval <description>"); return 1; }
+      const v = await evaluateTaste(desc, process.env);
+      console.log(`[${v.recommendation}] ${v.reason}`);
+      return 0;
+    }
+    if (sub === "search") {
+      const results = await searchAssets(rest.slice(1).join(" "), process.env);
+      console.log(formatAssets(results));
+      return 0;
+    }
+    console.log(formatAssets(await loadAssets(process.env)));
+    return 0;
+  },
   models: async (_root, rest) => {
     const sub = rest[0] ?? "bench";
     if (sub === "bench") {
