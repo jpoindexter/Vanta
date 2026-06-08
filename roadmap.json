@@ -425,7 +425,7 @@
       "id": "ENERGY-PLAN",
       "track": "Executive Function (inclusive spine)",
       "title": "Energy-aware action menus (2-min / low-energy / deep-work / admin)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When executive function is the bottleneck (not knowledge), offer next actions binned by cognitive load: a 2-minute action, a low-energy action, a deep-work action, an admin action (wants1 #5). Extends ND1 task-initiation + GOAL-ACTION + EF-CHOICEREDUCE -- the same next-action infra, sliced by energy.",
       "done": "Asking 'what now' returns up to four concrete actions labelled by energy tier, each a real named step from the active goals.",
