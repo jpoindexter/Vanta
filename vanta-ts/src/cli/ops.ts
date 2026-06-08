@@ -174,6 +174,24 @@ export async function runRoadmapCommand(repoRoot: string, args: string[] = []): 
     return;
   }
 
+  if (args[1] === "decompose") {
+    const id = args[2];
+    if (!id) { console.error("Usage: vanta roadmap decompose <id> [--apply]"); process.exit(1); }
+    const { findCard, buildProposal, formatProposal, applyProposal } = await import("../roadmap/decompose.js");
+    const card = await findCard(repoRoot, id);
+    if (!card) { console.error(`Card not found: ${id}`); process.exit(1); }
+    const proposal = buildProposal(card);
+    console.log(formatProposal(proposal));
+    if (!args.includes("--apply")) {
+      console.log("\nRun with --apply to write these child cards to roadmap.json.");
+      return;
+    }
+    const { added, skipped } = await applyProposal(repoRoot, proposal);
+    if (added.length) console.log(`  ✓ added: ${added.join(", ")}`);
+    if (skipped.length) console.log(`  · skipped (already exist): ${skipped.join(", ")}`);
+    return;
+  }
+
   const { buildRoadmap } = await import("../roadmap/build.js");
   const { execSync } = await import("node:child_process");
   const htmlPath = await buildRoadmap(repoRoot);
