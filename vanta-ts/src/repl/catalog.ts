@@ -45,6 +45,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "search", arg: "<query>", desc: "search conversation history for a term" },
   { name: "repro", desc: "save a diagnostic repro bundle to .vanta/repro-*.md" },
   { name: "dashboard", desc: "live operator state — tasks, goals, repo, model" },
+  { name: "brief", desc: "JARVIS-style today brief — tasks, goals, calendar, episodic" },
   { name: "exit", desc: "leave the session" },
 ];
 

@@ -27,8 +27,8 @@ const TIER_LABELS: Record<EnergyTier, string> = {
 export function classifyEnergyTier(task: OperatorTask): EnergyTier {
   const text = (task.title + " " + (task.nextAction ?? "") + " " + (task.why ?? "")).toLowerCase();
 
-  // 2-min: tiny chores that need no context loading
-  if (/\b(update|rename|move|delete|add comment|bump|tag|label|close|mark)\b/.test(text) && task.size !== "L") {
+  // 2-min: tiny chores that need no context loading (low or no priority, short keywords)
+  if (/\b(update|rename|move|delete|add comment|bump|tag|label|close|mark)\b/.test(text) && task.priority !== "high") {
     return "2-min";
   }
 
@@ -40,8 +40,7 @@ export function classifyEnergyTier(task: OperatorTask): EnergyTier {
   // deep-work: architecture, design, implement, refactor — needs sustained focus
   if (
     /\b(implement|architect|design|refactor|migrate|build|write|debug|integrate)\b/.test(text) ||
-    task.priority === "high" ||
-    task.size === "L"
+    task.priority === "high"
   ) {
     return "deep-work";
   }

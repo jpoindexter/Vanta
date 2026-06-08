@@ -150,6 +150,19 @@ const COMMANDS: Record<string, CommandFn> = {
   import: async (_root, rest) => (await import("./cli-dx/backup.js")).runImport(rest),
   improve: (root) => runFactoryCommand(root, "review"),
   factory: (root, rest) => runFactoryCommand(root, rest[0] ?? ""),
+  brief: async (root) => {
+    const { buildBrief } = await import("./repl/brief-cmd.js");
+    const { ensureKernel } = await import("./kernel-launcher.js");
+    const { SafetyClient } = await import("./safety-client.js");
+    const { join: pathJoin } = await import("node:path");
+    const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+    const kernelBin = pathJoin(root, "target", "debug", "vanta-kernel");
+    await ensureKernel({ baseUrl, kernelBin, root }).catch(() => {});
+    const safety = new SafetyClient(baseUrl);
+    const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });
+    console.log(out);
+  },
+  today: async (root, rest) => COMMANDS["brief"]!(root, rest),
 };
 
 async function main(): Promise<void> {

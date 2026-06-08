@@ -1,4 +1,5 @@
 import { writeSkill } from "../skills/store.js";
+import { BODY_DOUBLE_SKILL } from "./body-double.js";
 
 /**
  * A built-in business-operator mode: a named, installable skill whose body is a
@@ -130,6 +131,7 @@ export const OPERATOR_MODES: OperatorMode[] = [
       "7. write_skill the scoring rubric so future opportunities are judged consistently.",
     ].join("\n"),
   },
+  BODY_DOUBLE_SKILL,
 ];
 
 /**
