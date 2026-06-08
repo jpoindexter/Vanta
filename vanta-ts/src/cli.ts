@@ -169,6 +169,42 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  plugins: async (root, rest) => {
+    const { PLUGIN_CATALOG, pluginById, formatPluginList, checkNoPluginFilesInRepo } = await import("./plugins/catalog.js");
+    const sub = rest[0] ?? "list";
+    if (sub === "list" || !rest[0]) {
+      const statuses = await Promise.all(PLUGIN_CATALOG.map(async (e) => ({ entry: e, installed: await e.checkInstalled() })));
+      console.log(formatPluginList(statuses));
+      return 0;
+    }
+    if (sub === "install") {
+      const id = rest[1];
+      if (!id) { console.error("usage: vanta plugins install <id>"); return 1; }
+      const plugin = pluginById(id);
+      if (!plugin) { console.error(`unknown plugin: ${id}`); return 1; }
+      console.log(`Installing ${plugin.label}…`);
+      await plugin.install();
+      console.log(`✓ installed: ${plugin.label}`);
+      return 0;
+    }
+    if (sub === "remove") {
+      const id = rest[1];
+      if (!id) { console.error("usage: vanta plugins remove <id>"); return 1; }
+      const plugin = pluginById(id);
+      if (!plugin) { console.error(`unknown plugin: ${id}`); return 1; }
+      await plugin.remove();
+      console.log(`✓ removed state for: ${plugin.label}`);
+      return 0;
+    }
+    if (sub === "check-repo") {
+      const polluted = await checkNoPluginFilesInRepo(root);
+      if (polluted.length) { console.error(`Plugin files found in repo:\n${polluted.join("\n")}`); return 1; }
+      console.log("✓ no plugin files in project tree");
+      return 0;
+    }
+    console.log("usage: vanta plugins [list | install <id> | remove <id> | check-repo]");
+    return 1;
+  },
   taste: async (_root, rest) => {
     const { ingestAsset, loadAssets, formatAssets, searchAssets } = await import("./taste/asset-index.js");
     const { evaluateTaste } = await import("./taste/engine.js");
