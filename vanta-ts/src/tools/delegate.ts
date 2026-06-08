@@ -10,6 +10,7 @@ const Args = z.object({
   max_iterations: z.number().int().min(1).max(50).optional(),
   provider: z.string().optional(),
   model: z.string().optional(),
+  isolation: z.enum(["worktree"]).optional(),
 });
 
 /** Env for the worker — overlay the agent's chosen provider/model over the parent's. */
@@ -58,6 +59,11 @@ export const delegateTool: Tool = {
           type: "string",
           description: "Optional model id for the worker (e.g. gpt-4o, qwen2.5:14b, gemini-2.5-flash).",
         },
+        isolation: {
+          type: "string",
+          enum: ["worktree"],
+          description: "Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict.",
+        },
       },
       required: ["goal", "instruction"],
     },
@@ -76,7 +82,7 @@ export const delegateTool: Tool = {
       };
     }
     try {
-      const { goal, instruction, max_iterations: maxIterations, provider: prov, model } = parsed.data;
+      const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = parsed.data;
       // The agent may route this worker to a different backend (Ollama, gpt-4o, …).
       let provider;
       try {
@@ -86,23 +92,39 @@ export const delegateTool: Tool = {
       }
       // Child cannot spawn further delegates — prevents runaway recursion.
       const registry = buildRegistry({ exclude: ["delegate"] });
-      const outcome = await spawnSubagent({
-        goal,
-        instruction,
-        deps: {
-          provider,
-          safety: ctx.safety,
-          registry,
-          root: ctx.root,
-          requestApproval: ctx.requestApproval,
+
+      // CC-WORKTREE-AGENTS: run the worker in an isolated git worktree.
+      let worktreeHandle: import("../worktree/manager.js").WorktreeHandle | undefined;
+      let workerRoot = ctx.root;
+      if (isolation === "worktree") {
+        const { createWorktree } = await import("../worktree/manager.js");
+        try {
+          worktreeHandle = await createWorktree(ctx.root, "agent/worktree");
+          workerRoot = worktreeHandle.path;
+        } catch (err) {
+          return { ok: false, output: `worktree creation failed: ${(err as Error).message}` };
+        }
+      }
+
+      try {
+        const outcome = await spawnSubagent({
+          goal,
+          instruction,
+          deps: {
+            provider,
+            safety: ctx.safety,
+            registry,
+            root: workerRoot,
+            requestApproval: ctx.requestApproval,
+            maxIterations,
+          },
           maxIterations,
-        },
-        maxIterations,
-      });
-      return {
-        ok: true,
-        output: `[worker:${outcome.stoppedReason}] ${outcome.finalText}`,
-      };
+        });
+        const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
+        return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
+      } finally {
+        if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
+      }
     } catch (err) {
       return { ok: false, output: (err as Error).message };
     }
