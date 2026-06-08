@@ -41,6 +41,7 @@ import { protectTool } from "./protect.js";
 import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
+import { retrieveOriginalTool } from "./retrieve-original.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -117,6 +118,7 @@ const ALL_TOOLS: readonly Tool[] = [
   refSearchTool,
   refListTool,
   protectTool,
+  retrieveOriginalTool,
 ];
 
 /**

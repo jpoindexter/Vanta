@@ -9,6 +9,8 @@ import type { Summarizer } from "./context.js";
 import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
+import { applyCompression, compressEnabled } from "./compress/apply.js";
+import { join } from "node:path";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -294,5 +296,14 @@ async function dispatchTool(
   }
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
-  return { executed: true, empty: res.output.trim().length === 0, ok: res.ok, output: res.output };
+  // Native context compression (the Headroom concept, in-house): shrink a fat
+  // tool output ONCE here, before it enters history. Never the system prefix,
+  // never re-compressed (history holds the frozen compressed form). Reversible
+  // via CCR — the agent can call retrieve_original. Skips own retrieval output.
+  let output = res.output;
+  if (res.ok && compressEnabled() && call.name !== "retrieve_original") {
+    const applied = await applyCompression(output, join(ctx.root, ".vanta"));
+    output = applied.output;
+  }
+  return { executed: true, empty: output.trim().length === 0, ok: res.ok, output };
 }
