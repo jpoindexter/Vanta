@@ -221,8 +221,13 @@ export function consoleCallbacks(): Pick<
   return {
     onText: (t) => console.log(t),
     onToolCall: (n, a) => console.log(`  → ${n}(${shortArgs(a)})`),
-    onToolResult: (n, ok, out) =>
-      console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`),
+    onToolResult: (n, ok, out) => {
+      console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`);
+      // CC-TODO: print the live checklist every time the agent updates it.
+      if (n === "todo" && ok && out.includes("done)")) {
+        console.log(out.split("\n").map((l) => `  ${l}`).join("\n"));
+      }
+    },
   };
 }
 

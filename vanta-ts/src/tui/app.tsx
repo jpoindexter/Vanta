@@ -73,6 +73,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         const MAX_RESULT = 500;
         const resultOutput = ok && output.trim() ? output.slice(0, MAX_RESULT).trimEnd() + (output.length > MAX_RESULT ? " …" : "") : undefined;
         dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput });
+        // CC-TODO: live checklist — surface the todo list as a note every time the agent writes it.
+        if (name === "todo" && ok && output.includes("done)")) {
+          dispatch({ t: "note", text: `  ☑ plan updated:\n${output.split("\n").map((l) => `  ${l}`).join("\n")}` });
+        }
       },
       requestApproval,
     });
