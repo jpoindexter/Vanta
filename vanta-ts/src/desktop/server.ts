@@ -3,14 +3,18 @@ import { createConversation, type StreamEvent } from "../agent.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import { desktopHtml } from "./page.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
-import { PROVIDER_CATALOG } from "../providers/catalog.js";
+import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
-import { upsertEnv, envPath } from "../setup.js";
+import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
 import { listRepoFiles } from "../tui/at-context.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
+import {
+  getSession, attachSse, pushSseEvent, sessionIdFromRequest,
+  type SessionMap, type SseClients,
+} from "./session-state.js";
 
 export type DesktopEvent = { label: string; ok?: boolean };
 export type PendingApproval = {
@@ -28,6 +32,9 @@ export type DesktopState = {
   sessionStarted?: string;
   currentEvents?: DesktopEvent[];
   pendingApproval?: PendingApproval;
+  // DESKTOP-P1: injected by the router to push events over SSE.
+  _sseSessionId?: string;
+  _sseClients?: SseClients;
 };
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
@@ -68,7 +75,13 @@ function attachConversation(state: DesktopState, setup: RunSetup, history?: Para
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
     onEvent: (event) => {
       const label = eventLabel(event);
-      if (label) state.currentEvents?.push(label);
+      if (label) {
+        state.currentEvents?.push(label);
+        // DESKTOP-P1: push to live SSE subscribers.
+        if (state._sseClients && state._sseSessionId) {
+          pushSseEvent(state._sseClients, state._sseSessionId, label);
+        }
+      }
     },
   }, history);
 }
@@ -159,12 +172,16 @@ async function handleSetModel(state: DesktopState, req: http.IncomingMessage, re
   process.env.VANTA_MODEL = model;
   try {
     const existing = existsSync(envPath(state.root)) ? await readFile(envPath(state.root), "utf8") : "";
-    await writeFile(envPath(state.root), upsertEnv(existing, { VANTA_PROVIDER: provider, VANTA_MODEL: model }), { mode: 0o600 });
+    // DESKTOP-P5: use upsertEnvMigratingLegacy so stale ARGO_* twins are removed.
+    const entry = providerById(provider);
+    const updates: Record<string, string> = { VANTA_PROVIDER: provider, VANTA_MODEL: model };
+    await writeFile(envPath(state.root), upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
     const next = resolveProvider(process.env);
     state.convo?.setProvider(next, buildSummarizer(next));
-    sendJson(res, 200, { provider, model });
+    sendJson(res, 200, { provider, model, label: entry?.label ?? provider });
   } catch (err: unknown) {
-    sendJson(res, 400, { error: err instanceof Error ? err.message : String(err) });
+    // DESKTOP-P5: unavailable provider shown as error (not crash).
+    sendJson(res, 400, { error: err instanceof Error ? err.message : String(err), provider, model });
   }
 }
 
@@ -222,13 +239,25 @@ async function handleChat(state: DesktopState, req: http.IncomingMessage, res: h
 }
 
 export function createDesktopServer(repoRoot: string): http.Server {
-  const state: DesktopState = { root: repoRoot };
+  // DESKTOP-P2: per-session state map (no global clobber between tabs).
+  const sessions: SessionMap = new Map();
+  // DESKTOP-P1: SSE clients per session.
+  const sseClients: SseClients = new Map();
+
   return http.createServer((req, res) => {
     void (async () => {
       const url = new URL(req.url ?? "/", "http://127.0.0.1");
+      const sid = sessionIdFromRequest(req);
+      const state = getSession(sessions, sid, repoRoot);
+
       if (req.method === "GET" && url.pathname === "/") {
         res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
         res.end(desktopHtml());
+        return;
+      }
+      // DESKTOP-P1: SSE event stream — live tool/text events during a run.
+      if (req.method === "GET" && url.pathname === "/api/events") {
+        attachSse(sseClients, sid, res);
         return;
       }
       if (req.method === "GET" && url.pathname === "/api/status") return handleStatus(state, res);
@@ -241,7 +270,12 @@ export function createDesktopServer(repoRoot: string): http.Server {
       if (req.method === "POST" && url.pathname === "/api/model") return handleSetModel(state, req, res);
       if ((req.method === "GET" || req.method === "POST") && url.pathname === "/api/approval") return handleApproval(state, req, res);
       if (req.method === "POST" && url.pathname === "/api/terminal") return handleTerminal(state, req, res);
-      if (req.method === "POST" && url.pathname === "/api/chat") return handleChat(state, req, res);
+      if (req.method === "POST" && url.pathname === "/api/chat") {
+        // Wire SSE push into the conversation events for DESKTOP-P1.
+        state._sseSessionId = sid;
+        state._sseClients = sseClients;
+        return handleChat(state, req, res);
+      }
       sendJson(res, 404, { error: "not found" });
     })().catch((err: unknown) => sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) }));
   });
