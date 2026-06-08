@@ -35,6 +35,7 @@ import {
 } from "./git.js";
 import { delegateTool } from "./delegate.js";
 import { workflowTool } from "./workflow.js";
+import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import {
@@ -107,6 +108,8 @@ const ALL_TOOLS: readonly Tool[] = [
   driveReadTool,
   driveCreateTool,
   driveUpdateTool,
+  bgListTool,
+  bgStatusTool,
 ];
 
 /**
