@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-08T13:05:19Z",
+  "updated": "2026-06-08",
   "items": [
     {
       "id": "NOW-QUEUE",
@@ -3911,6 +3911,66 @@
       "done": "User can type /edit and modify the last AI response inline without leaving the composer.",
       "tier": "pebble",
       "model": "sonnet",
+      "effort": "low"
+    },
+    {
+      "id": "COMPRESS-NATIVE",
+      "track": "Efficiency",
+      "title": "Native context compression (Headroom concept, zero-dep)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "SHIPPED 2026-06-08. Rewrote Headroom's idea in pure TS instead of bolting on its Python proxy (keeps local-trusted-operator thesis: no external service/API key/egress). src/compress/: pure content router (json|logs|text|binary) → compressors. binary detection elides base64/blobs to a pointer (top real-data win: 20k-token screenshot → 12 tokens); json-crush keeps head+tail of object arrays + truncates strings; log-squash collapses blank-line runs/dupes/deep stacks. CCR store stashes original under content hash; retrieve_original tool expands on demand. Wired into agent.ts dispatchTool: compress each tool output ONCE before history (never system prefix, never re-compress). VANTA_COMPRESS (default on), best-effort. Proven on REAL session payloads = 22% overall (dominated by binary elision). 28 tests; tsc+lint clean.",
+      "done": "Fat tool outputs (JSON/logs/binary) compress 50%+ before entering history, reversibly via retrieve_original, behind VANTA_COMPRESS — pure TS, zero new deps.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "COMPRESS-CODE-AST",
+      "track": "Efficiency",
+      "title": "AST code compressor (keep signatures, drop bodies)",
+      "status": "next",
+      "size": "M",
+      "summary": "Follow-up to COMPRESS-NATIVE. Headroom's CodeCompressor, native: for .ts/.tsx tool outputs (file reads), use the TS compiler API (already in lint/size.ts + lsp/ts-service.ts) to keep imports/signatures/types and elide function bodies → big shrink on large file reads while the agent keeps the shape. Reversible via the existing CCR store. Only fires on detected code; text stays untouched.",
+      "done": "Large .ts/.tsx tool outputs compress by eliding function bodies while preserving imports + signatures; reversible via retrieve_original.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "COMPRESS-STATS-FOOTER",
+      "track": "Efficiency",
+      "title": "Surface compression savings in the cost footer",
+      "status": "next",
+      "size": "S",
+      "summary": "applyCompression already returns tokensSaved per call. Thread it into the COST-VISIBLE per-turn footer (pricing.ts addTurnCost / formatTurnCost) + session split so the user sees cumulative tokens saved by compression, like cost. Makes the feature legible instead of silent.",
+      "done": "The per-turn + session footer shows tokens saved by native compression alongside cost.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
+      "id": "TUI-IMAGE-CLICKABLE",
+      "track": "TUI / UX",
+      "title": "TUI image paste + clickable links and file paths (CC-CLI parity)",
+      "status": "next",
+      "size": "M",
+      "summary": "Match Claude Code CLI ergonomics in the Ink TUI. Two parts: (1) paste an image directly into the composer (clipboard → ImageAttachment, like the existing /paste macOS path but on a paste keystroke) so vision works without a file path; (2) make links (http/https) and file paths (incl. file:line) in transcript output clickable — open the URL in the browser / the file in $VANTA_EDITOR (reuse editor/open.ts openInEditor + the file:line parser). OSC-8 hyperlinks where the terminal supports them, with a key-to-open fallback.",
+      "done": "Pasting an image into the TUI attaches it for vision; clicking a link opens the browser and clicking a file path (or file:line) opens it in the editor, matching Claude Code CLI.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    {
+      "id": "AGENT-TS-PAYDOWN",
+      "track": "Code health",
+      "title": "agent.ts size paydown (309 > 300 after COMPRESS-NATIVE)",
+      "status": "next",
+      "size": "S",
+      "summary": "COMPRESS-NATIVE wiring tipped agent.ts to 309 lines and dispatchTool to cx 15 / 60 lines (warn-only). Extract the dispatch helpers (safety gate, retry loop, compression step) into a small module so agent.ts is back under 300 and dispatchTool under the complexity cap. No behavior change; tests already cover dispatch.",
+      "done": "agent.ts ≤300 lines and dispatchTool within fn-size + complexity caps, with the full suite still green.",
+      "tier": "sand",
+      "model": "haiku",
       "effort": "low"
     }
   ]
