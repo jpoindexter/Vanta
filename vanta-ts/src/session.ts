@@ -123,6 +123,10 @@ export async function prepareRun(
   // SCAFFOLD: load the versioned identity/values/honesty layer from ~/.vanta/self/.
   const { selfDigest } = await import("./self/store.js");
   const selfContent = await selfDigest(process.env).catch(() => "");
+  // CC-SETTINGS: load layered settings.json and apply env overrides.
+  const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
+  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
+  applySettingsEnv(settings, process.env);
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
   const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
