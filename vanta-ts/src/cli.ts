@@ -169,6 +169,38 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  ref: async (_root, rest) => {
+    const { addRef, searchRefs, listRefs, formatRefs, formatRefForContext } = await import("./refs/store.js");
+    const sub = rest[0] ?? "list";
+    if (sub === "add") {
+      const source = rest[1];
+      if (!source) { console.error("usage: vanta ref add <url|path>"); return 1; }
+      let excerpt = "";
+      if (/^https?:\/\//.test(source)) {
+        try {
+          const { extractReadable } = await import("./tools/web-fetch.js");
+          const res = await fetch(source);
+          excerpt = extractReadable(await res.text(), source).text.slice(0, 2000);
+        } catch { excerpt = `(fetch failed)`; }
+      } else {
+        const { readFile } = await import("node:fs/promises");
+        excerpt = (await readFile(source, "utf8").catch(() => "")).slice(0, 2000);
+      }
+      const ref = await addRef({ source, excerpt });
+      console.log(`✓ ingested ${ref.id}: ${ref.title}`);
+      return 0;
+    }
+    if (sub === "search") {
+      const q = rest.slice(1).join(" ").trim();
+      if (!q) { console.error("usage: vanta ref search <query>"); return 1; }
+      const refs = await searchRefs(q);
+      if (!refs.length) { console.log(`(no refs matched "${q}")`); return 0; }
+      for (const r of refs.slice(0, 5)) console.log(`\n${formatRefForContext(r)}`);
+      return 0;
+    }
+    console.log(formatRefs(await listRefs()));
+    return 0;
+  },
   settings: async (root, rest) => {
     const { loadSettings, userSettingsPath, projectSettingsPath, localSettingsPath, formatSettings } = await import("./settings/store.js");
     const sub = rest[0] ?? "show";
