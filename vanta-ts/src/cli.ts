@@ -169,6 +169,14 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  money: async (_root, _rest) => {
+    const { loadLifeOs } = await import("./life-os/store.js");
+    const { buildMoneyBrief } = await import("./life-os/money.js");
+    const target = Number(process.env.VANTA_MONEY_TARGET) || 5_000;
+    const data = await loadLifeOs(process.env);
+    console.log(buildMoneyBrief(data, target));
+    return 0;
+  },
   ref: async (_root, rest) => {
     const { addRef, searchRefs, listRefs, formatRefs, formatRefForContext } = await import("./refs/store.js");
     const sub = rest[0] ?? "list";
