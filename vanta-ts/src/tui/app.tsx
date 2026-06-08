@@ -57,6 +57,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const modeRef = useRef<ApprovalMode>("review");
   const [showHelp, setShowHelp] = useState(false);
   const [vimMode, setVimMode] = useState<VimMode>("insert");
+  const [editMode, setEditMode] = useState({ active: false, messageIndex: -1 });
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
   const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
@@ -164,14 +165,31 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       if (r.provider) setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
       if (r.output) dispatch({ t: "note", text: r.output });
       if (r.resend) sendToAgent(r.resend);
+      if (r.loadIntoComposer !== undefined) {
+        setInput(r.loadIntoComposer);
+        setEditMode({ active: true, messageIndex: r.editMessageIndex ?? -1 });
+      }
     });
   };
 
   const submit = (raw: string): void => {
     const line = raw.trim();
     setInput("");
+    if (pending) return;
+    // Edit mode: replace the target message in place, then return to normal.
+    if (editMode.active) {
+      setEditMode({ active: false, messageIndex: -1 });
+      const convo = convoRef.current;
+      const msg = convo?.messages[editMode.messageIndex];
+      if (!line) { dispatch({ t: "note", text: "  · edit cancelled" }); return; }
+      if (msg && msg.role === "assistant") {
+        convo!.messages[editMode.messageIndex] = { ...msg, content: line };
+        dispatch({ t: "note", text: "  ✎ response updated" });
+      }
+      return;
+    }
     if (line) setInputHistory((h) => [...h, line]);
-    if (!line || pending) return;
+    if (!line) return;
     const firstToken = line.slice(1).split(/\s/)[0] ?? "";
     if (line.startsWith("/") && !firstToken.includes("/")) { handleSlash(line); return; }
     if (line === "?") { setShowHelp((h) => !h); return; }
@@ -247,9 +265,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       ) : (
         <Box flexDirection="column" marginTop={1}>
           {showHelp && <HelpOverlay width={w} vimEnabled={VIM_ENABLED} />}
-          <Box borderStyle="round" borderColor={state.busy ? "gray" : THEME.border} paddingX={1} width={w}>
-            <Text color={state.busy ? "gray" : THEME.primary}>{"› "}</Text>
-            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={state.busy ? "working…" : "Ask Vanta anything — /help for commands"} history={inputHistory} isHistoryActive={!showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
+          <Box borderStyle="round" borderColor={editMode.active ? "yellow" : state.busy ? "gray" : THEME.border} paddingX={1} width={w}>
+            <Text color={editMode.active ? "yellow" : state.busy ? "gray" : THEME.primary}>{"› "}</Text>
+            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={editMode.active ? "editing response — ⏎ confirm, clear + ⏎ cancel" : state.busy ? "working…" : "Ask Vanta anything — /help for commands"} history={inputHistory} isHistoryActive={!editMode.active && !showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
           </Box>
           {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}

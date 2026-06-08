@@ -237,15 +237,30 @@ export async function runChat(
     await reflectAfterTurn(lastUserText, process.env);
   };
 
+  let editPrefill: string | null = null;
+  let editMsgIdx: number | null = null;
   try {
     for (;;) {
       let line: string;
       try {
-        line = (await rl.question("\nargo › ")).trim();
+        const q = rl.question("\nvanta › ");
+        if (editPrefill !== null) { rl.write(editPrefill); editPrefill = null; }
+        line = (await q).trim();
       } catch {
         break; // stdin closed (Ctrl+D / EOF / piped input ended) → exit cleanly
       }
       if (!line) continue;
+      // Edit mode: user just confirmed their edit — replace the target message.
+      if (editMsgIdx !== null) {
+        const idx = editMsgIdx;
+        editMsgIdx = null;
+        const msg = convo.messages[idx];
+        if (msg && msg.role === "assistant") {
+          convo.messages[idx] = { ...msg, content: line };
+          console.log("  ✎ response updated");
+        }
+        continue;
+      }
       // Slash commands are /word — file paths dropped from Finder start with /Users/...
       // and have a nested slash in the first token. Route those to runUserTurn, not slash.
       const firstToken = line.slice(1).split(/\s/)[0] ?? "";
@@ -273,6 +288,10 @@ export async function runChat(
         if (result.exit) break;
         if (result.restart) { process.exitCode = RESTART_EXIT_CODE; break; }
         if (result.resend) await runUserTurn(result.resend);
+        if (result.loadIntoComposer !== undefined) {
+          editPrefill = result.loadIntoComposer;
+          editMsgIdx = result.editMessageIndex ?? -1;
+        }
         continue;
       }
       const shortcut = parseShortcut(line);

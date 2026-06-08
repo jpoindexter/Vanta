@@ -41,6 +41,10 @@ export type SlashResult = {
   provider?: LLMProvider;
   /** Reload the instance in place (drives /restart) — host exits with code 75. */
   restart?: boolean;
+  /** Pre-fill the composer/readline with this text for inline editing. */
+  loadIntoComposer?: string;
+  /** Index of the conversation message that loadIntoComposer came from. */
+  editMessageIndex?: number;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */
