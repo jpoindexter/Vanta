@@ -39,6 +39,7 @@ describe("registry", () => {
       "calendar_read",
       "calendar_update",
       "clarify",
+      "compare_vision",
       "compose_workflow",
       "delegate",
       "describe_image",

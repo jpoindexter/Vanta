@@ -33,6 +33,7 @@ import {
   runHooksCommand,
   runSkillCommand,
   runRoomCommand,
+  type OutputFormat,
 } from "./cli/commands.js";
 
 function findRepoRoot(): string {
@@ -161,7 +162,15 @@ async function main(): Promise<void> {
   if (cmd === undefined || cmd === "chat")
     return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui") });
   if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
-  if (cmd === "run" && rest.length > 0) return runInstruction(repoRoot, rest.join(" "));
+  if (cmd === "run" && rest.length > 0) {
+    const fmtIdx = rest.indexOf("--output-format");
+    const rawFmt = fmtIdx >= 0 ? rest[fmtIdx + 1] : undefined;
+    const outputFormat: OutputFormat =
+      rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
+    // Strip --output-format <value> from args before joining as the instruction.
+    const instrArgs = rest.filter((_, i) => i !== fmtIdx && i !== fmtIdx + 1);
+    return runInstruction(repoRoot, instrArgs.join(" "), { outputFormat });
+  }
 
   const handler = COMMANDS[cmd];
   if (!handler) return usageExit();

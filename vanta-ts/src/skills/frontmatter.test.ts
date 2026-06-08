@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { parseSkill, serializeSkill } from "./frontmatter.js";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { describe, expect, it, afterAll } from "vitest";
+import { parseSkill, serializeSkill, expandSkillArgs, expandAtImports } from "./frontmatter.js";
 import type { Skill } from "./types.js";
 
 describe("frontmatter", () => {
@@ -146,5 +149,53 @@ describe("frontmatter", () => {
         "body line",
       ].join("\n"),
     );
+  });
+});
+
+describe("expandSkillArgs", () => {
+  it("replaces $ARGUMENTS with the provided args string", () => {
+    expect(expandSkillArgs("Run $ARGUMENTS now.", "the task")).toBe("Run the task now.");
+  });
+
+  it("leaves \\$ARGUMENTS as a literal $ARGUMENTS (escape consumed)", () => {
+    expect(expandSkillArgs("Use \\$ARGUMENTS literally.", "irrelevant")).toBe(
+      "Use $ARGUMENTS literally.",
+    );
+  });
+
+  it("is a no-op when body has no $ARGUMENTS", () => {
+    expect(expandSkillArgs("No placeholder here.", "args")).toBe("No placeholder here.");
+  });
+
+  it("does not mangle an args string that itself contains $ARGUMENTS", () => {
+    // Single-pass: the replacement value is never re-scanned.
+    expect(expandSkillArgs("Do: $ARGUMENTS", "$ARGUMENTS")).toBe("Do: $ARGUMENTS");
+  });
+});
+
+describe("expandAtImports", () => {
+  let tmpDir: string;
+
+  afterAll(async () => {
+    if (tmpDir) await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("replaces an @file line with the file's contents", async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "vanta-test-"));
+    await writeFile(join(tmpDir, "import.md"), "imported content", "utf8");
+    const result = await expandAtImports("before\n@import.md\nafter", tmpDir);
+    expect(result).toBe("before\nimported content\nafter");
+  });
+
+  it("leaves an @file line unchanged when the file is unreadable", async () => {
+    tmpDir ??= await mkdtemp(join(tmpdir(), "vanta-test-"));
+    const result = await expandAtImports("@nonexistent.md", tmpDir);
+    expect(result).toBe("@nonexistent.md");
+  });
+
+  it("is a no-op on a body with no @-import lines", async () => {
+    tmpDir ??= await mkdtemp(join(tmpdir(), "vanta-test-"));
+    const body = "no imports here\njust text";
+    expect(await expandAtImports(body, tmpDir)).toBe(body);
   });
 });
