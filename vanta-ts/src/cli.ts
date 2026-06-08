@@ -169,6 +169,23 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  settings: async (root, rest) => {
+    const { loadSettings, userSettingsPath, projectSettingsPath, localSettingsPath, formatSettings } = await import("./settings/store.js");
+    const sub = rest[0] ?? "show";
+    if (sub === "show") {
+      const s = await loadSettings(root);
+      console.log(formatSettings(s, "merged"));
+      return 0;
+    }
+    if (sub === "paths") {
+      console.log(`  user:    ${userSettingsPath()}`);
+      console.log(`  project: ${projectSettingsPath(root)}`);
+      console.log(`  local:   ${localSettingsPath(root)}`);
+      return 0;
+    }
+    console.log("usage: vanta settings [show | paths]");
+    return 1;
+  },
 };
 
 async function main(): Promise<void> {
