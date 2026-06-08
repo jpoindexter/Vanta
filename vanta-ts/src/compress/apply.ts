@@ -13,6 +13,29 @@ export function compressEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return v !== "0" && v !== "false";
 }
 
+// Allow-list, NOT deny-list. Compression is LOSSY — applying it to a precision
+// read (read_file, grep, lsp, git_diff) silently corrupts the agent's view:
+// json-crush elides a JSON file's middle; log-squash collapses blank/duplicate
+// lines so line numbers shift, and the agent then edits/cites file:line against
+// a view that doesn't match disk. Read-fidelity is a contract. So we compress
+// ONLY voluminous-by-nature, advisory outputs (vision/media/web) — exactly where
+// the measured win (binary-blob elision) comes from — and leave every precision
+// tool, and every future tool, untouched by default.
+export const COMPRESS_TOOLS: ReadonlySet<string> = new Set([
+  "describe_image",
+  "screenshot",
+  "look_at_screen",
+  "look_at_camera",
+  "watch_video",
+  "web_fetch",
+  "web_search",
+]);
+
+/** Whether a tool's output may be compressed (allow-list, default-safe). Pure. */
+export function shouldCompressTool(name: string): boolean {
+  return COMPRESS_TOOLS.has(name);
+}
+
 export interface ApplyResult {
   output: string;
   tokensSaved: number;
