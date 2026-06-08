@@ -169,6 +169,17 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  models: async (_root, rest) => {
+    const sub = rest[0] ?? "bench";
+    if (sub === "bench") {
+      const { loadBenchResults, formatBenchScorecard } = await import("./bench/model-bench.js");
+      const results = await loadBenchResults(process.env);
+      console.log(formatBenchScorecard(results));
+      return 0;
+    }
+    console.log("usage: vanta models bench");
+    return 1;
+  },
   acp: async (root, rest) => {
     const port = Number(rest[0]) || 7792;
     const { startAcpServer, writeAgentJson } = await import("./acp/server.js");
