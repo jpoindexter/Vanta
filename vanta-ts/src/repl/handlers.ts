@@ -20,6 +20,7 @@ import { restart } from "./restart-cmd.js";
 import { bug } from "./bug-cmd.js";
 import { handoff } from "./handoff-cmd.js";
 import { open } from "./open-cmd.js";
+import { edit } from "./edit-cmd.js";
 import { tasks } from "./tasks-cmd.js";
 import { btw } from "./btw-cmd.js";
 import { diff } from "./diff-cmd.js";
@@ -273,7 +274,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
   "add-dir": addDir,
 };
 

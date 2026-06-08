@@ -65,6 +65,12 @@ export function lastUserIndex(messages: Message[]): number {
   return -1;
 }
 
+/** Index of the last assistant message, or -1 if there isn't one. */
+export function lastAssistantIndex(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) if (messages[i]!.role === "assistant") return i;
+  return -1;
+}
+
 /** Full-fidelity markdown export of a conversation (no truncation) for `/export`. */
 export function formatExport(messages: Message[]): string {
   const out: string[] = [];
