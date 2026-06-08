@@ -21,6 +21,7 @@ import {
   runRoadmapCommand,
   runFactoryCommand,
   runDesktopCommand,
+  runPairingCommand,
 } from "./cli/ops.js";
 import { runModelCommand } from "./cli/model-cmd.js";
 import {
@@ -165,6 +166,7 @@ const COMMANDS: Record<string, CommandFn> = {
   },
   today: async (root, rest) => COMMANDS["brief"]!(root, rest),
   model: (root, rest) => runModelCommand(root, rest),
+  pairing: (_root, rest) => runPairingCommand(rest),
 };
 
 async function main(): Promise<void> {

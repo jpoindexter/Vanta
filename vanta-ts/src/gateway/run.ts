@@ -36,6 +36,8 @@ export type GatewayDeps = {
     prompt: (body: string) => string;
     deliver: Deliver;
   };
+  /** Vanta home dir for the pairing store. When set, unknown senders get a code-based consent flow. */
+  home?: string;
 };
 
 function firstLine(text: string): string {
@@ -109,6 +111,48 @@ async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
 }
 
 /**
+ * Handle one inbound message with pairing gate. Returns the reply, or undefined
+ * when the message was handled as a pairing interaction (no agent turn needed).
+ */
+async function handleWithPairing(
+  m: import("./platforms/base.js").InboundMessage,
+  platform: PlatformAdapter,
+  handle: (text: string) => Promise<string>,
+  home: string,
+  log: (msg: string) => void,
+): Promise<void> {
+  const { isApproved, requestPairing, verifyCode, looksLikeCode } = await import("./pairing.js");
+
+  if (await isApproved(m.chatId, home)) {
+    let reply: string;
+    try { reply = await handle(m.text); }
+    catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
+    await platform.send({ chatId: m.chatId, text: reply });
+    return;
+  }
+
+  if (looksLikeCode(m.text)) {
+    const result = await verifyCode(m.chatId, m.text.trim().toUpperCase(), home);
+    const replies: Record<string, string> = {
+      approved: "✓ Paired. You can now send instructions.",
+      expired: "Code expired. Please send any message to get a new code.",
+      wrong: "Wrong code. Try again or wait for a new code.",
+      locked: "Too many attempts. Ask the owner to approve you directly.",
+    };
+    await platform.send({ chatId: m.chatId, text: replies[result] ?? "Try again." });
+    if (result === "approved") log(`  ✓ pairing approved: ${m.chatId} on ${platform.id}`);
+    return;
+  }
+
+  const code = await requestPairing(m.chatId, platform.id, home);
+  log(`  ⏳ pairing requested: ${m.chatId} on ${platform.id}`);
+  await platform.send({
+    chatId: m.chatId,
+    text: `Vanta requires pairing. Your code is: ${code}\n\nReply with this code to connect (valid 1 hour).`,
+  });
+}
+
+/**
  * Poll the configured messaging platform once: for each inbound message, run an
  * agent turn and send the reply. Returns the number of messages handled. A
  * handler error becomes the reply text (the user always hears back). No-op when
@@ -120,13 +164,16 @@ export async function pollPlatform(deps: GatewayDeps): Promise<number> {
   const messages = await deps.platform.poll();
   for (const m of messages) {
     log(`  ✉ ${deps.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
-    let reply: string;
-    try {
-      reply = await deps.handle(m.text);
-    } catch (err) {
-      reply = `error: ${err instanceof Error ? err.message : String(err)}`;
+    if (deps.home) {
+      await handleWithPairing(m, deps.platform, deps.handle, deps.home, log).catch((err) => {
+        log(`  pairing error: ${err instanceof Error ? err.message : String(err)}`);
+      });
+    } else {
+      let reply: string;
+      try { reply = await deps.handle(m.text); }
+      catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
+      await deps.platform.send({ chatId: m.chatId, text: reply });
     }
-    await deps.platform.send({ chatId: m.chatId, text: reply });
   }
   return messages.length;
 }
