@@ -41,6 +41,7 @@ export function usage(): void {
       "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta desktop [port]                start local desktop command center",
+      "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta open <file[:line]>           open a file:line in your editor",
       "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
