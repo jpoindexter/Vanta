@@ -56,14 +56,17 @@ export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElem
       </Box>
     );
   }
-  return <SingleLine entry={e} />;
+  return <SingleLine entry={e} expanded={props.expanded ?? false} />;
 }
 
-function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
+function SingleLine(props: { entry: Exclude<Entry, ToolEntry>; expanded?: boolean }): ReactElement {
   const e = props.entry;
   if (e.kind === "user") return <Text color="cyan">› {linkifyFilePaths(e.text, process.cwd())}</Text>;
   if (e.kind === "assistant") return renderMarkdown(e.text);
   if (e.kind === "thinking") {
+    if (props.expanded) {
+      return <Text dimColor>  ⚙ {e.text}</Text>;
+    }
     const preview = e.text.split("\n")[0] ?? "";
     const truncated = preview.length > 80 ? `${preview.slice(0, 77)}...` : preview;
     return <Text dimColor>  ⚙ {truncated}</Text>;
