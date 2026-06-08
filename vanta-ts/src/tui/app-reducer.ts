@@ -7,7 +7,7 @@ export type Action =
   | { t: "user"; text: string }
   | { t: "delta"; d: string }
   | { t: "toolCall"; name: string; icon: string; verb: string; detail: string }
-  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[] }
+  | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[]; resultOutput?: string }
   | { t: "commit"; finalText: string }
   | { t: "note"; text: string }
   | { t: "thinking"; text: string }
@@ -41,7 +41,7 @@ export function reduce(s: State, a: Action): State {
       for (let i = entries.length - 1; i >= 0; i--) {
         const e = entries[i];
         if (e && e.kind === "tool" && e.name === a.name && e.ok === undefined) {
-          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff };
+          entries[i] = { ...e, ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff, resultOutput: a.resultOutput };
           break;
         }
       }
