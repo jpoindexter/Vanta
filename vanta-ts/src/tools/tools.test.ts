@@ -75,6 +75,7 @@ describe("registry", () => {
       "speak",
       "swarm",
       "todo",
+      "tool_search",
       "transcribe",
       "watch_video",
       "web_fetch",

@@ -68,12 +68,19 @@ export function mcpToolToVantaTool(
   client: Pick<McpClient, "callTool">,
   server: string,
   def: McpToolDef,
+  opts: { deferred?: boolean } = {},
 ): Tool {
+  // CC-MCP-TOOLSEARCH: when deferred=true, strip the parameters from the schema.
+  // The tool still works but the LLM must call tool_search to get the full schema.
+  const parameters = opts.deferred
+    ? { type: "object" as const, properties: {}, description: "Use tool_search to fetch the full schema before calling." }
+    : (def.inputSchema ?? { type: "object", properties: {} });
   return {
     schema: {
       name: toolName(server, def.name),
-      description: def.description ?? `MCP tool ${def.name} from ${server}`,
-      parameters: def.inputSchema ?? { type: "object", properties: {} },
+      description: (def.description ?? `MCP tool ${def.name} from ${server}`) +
+        (opts.deferred ? " [schema deferred — call tool_search to expand]" : ""),
+      parameters,
     },
     // Surface server/tool/args so the kernel can assess (an MCP fs-write is gated
     // like any other). Truncated to keep content keywords from false-triggering.
@@ -121,8 +128,9 @@ export async function mountMcpServers(
       const client = new McpClient(transport);
       await client.initialize();
       const defs = await client.listTools();
+      const deferred = env.VANTA_MCP_DEFER === "1";
       for (const def of defs) {
-        registry.register(mcpToolToVantaTool(client, name, def));
+        registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
         toolCount++;
       }
       mounted.push(name);
