@@ -39,6 +39,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "bug", arg: "<what happened>", desc: "record a structured bug with session + git context" },
   { name: "handoff", desc: "copy-paste handoff packet (goals, git, files, next step)" },
   { name: "open", arg: "<file[:line]>", desc: "open a file:line in your editor ($VANTA_EDITOR/code)" },
+  { name: "edit", desc: "edit the last AI response in your editor ($VANTA_EDITOR/code)" },
   { name: "tasks", arg: "[add|close|block|park|reopen|next]", desc: "operator task stack — /tasks next for the best move" },
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },

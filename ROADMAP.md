@@ -18,11 +18,26 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 web search, browser+vision, code/dev, autonomy primitives, comms. Interactive banner+REPL.
 32 tools · 290 tests green (16 Rust + 274 TS) · typecheck clean.
 
-**v1 = done.** All v1.1–v1.5 tracks shipped. 581 tests green (27 Rust + 554 TS) · tsc clean · pushed.
+**v1 = done.** All v1.1–v1.5 tracks shipped. 1243 tests green (27 Rust + 1216 TS) · tsc clean · pushed.
 
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and
 self-improvement layer* is thin: no setup, no Gemini, no memory of past conversations,
 nothing learns automatically, not reachable as a service. v1 closes that.
+
+### Evolution ladder (2026-06-08 — full brief in `docs/evolution-brief.md`)
+
+The bottleneck is no longer raw capability. It is coherence — Vanta knowing what it is
+doing, what is blocked, and what closes loops before opening new ones.
+
+| Level | Name | Status |
+|-------|------|--------|
+| 1 | **Tool user** — reads, writes, runs, searches, gates through kernel | ✅ shipped |
+| 2 | **Trusted operator** — knows goal before tool use, verifies output, labels uncertainty, durable brain | ✅ shipped |
+| 3 | **Loop closer** — persistent task stack, context-switch detection, bias toward closure, "where do we stand?" | ✅ shipped |
+| 4 | **Command infrastructure** — ambient awareness, life-wide search, proactive triage, world model | 🔜 horizon |
+
+Level 3 shipped with EF-TASKSTACK, MEM-RELEVANCE, OPERATOR-DASHBOARD, AUTO-ROUTER, VISION-COMPARE.
+Level 4 target state maps to `COMMAND-CENTER`, `WORLD-MODEL`, `LIFE-SEARCH`, `AMBIENT` in the horizon bucket.
 
 ## TUI — real terminal UI (shipped 2026-06-02, modeled on Hermes ui-tui + Claude CLI)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family) yields token deltas; `agent.ts` emits them via `onTextDelta` (falls back to non-streaming `complete()` when unused — all prior paths unchanged). Pure `foldToolCallDeltas` assembles streamed tool calls.
@@ -259,26 +274,26 @@ Two improvement dumps + the Hermes 262-use-case set + the Vanta Brand Style Guid
 ### Prioritized sequence (rocks first; Jason's stated biggest = initiative · memory · visual · EF)
 
 **Quick wins (now):**
-- [ ] **RESTART** (S·sand) — `/restart` slash command: tear down Ink cleanly + re-exec via a launcher loop (exit-code 75 → `run.sh` relaunches), optional kernel respawn. Unblocks the dogfood loop (reload tsx without manually quitting). *(asked explicitly)*
-- [ ] **TOOL-RETRY** (S·sand) — detect failed tool calls early; retry only when safe (idempotent reads); report exactly what happened. Extends EF-ERRORDETECT.
-- [ ] **BEHAVIOR-VOICE** (S·sand) — tune `SOUL.md`/prompt to the brand voice (direct, literal, structured, fewer caveats) + harden verify-before-claim. Covers comms (#8) + code discipline (#6).
+- [x] **RESTART** (S·sand) — `/restart` slash command: tear down Ink cleanly + re-exec via a launcher loop (exit-code 75 → `run.sh` relaunches), optional kernel respawn. Unblocks the dogfood loop (reload tsx without manually quitting). *(asked explicitly)*
+- [x] **TOOL-RETRY** (S·sand) — detect failed tool calls early; retry only when safe (idempotent reads); report exactly what happened. Extends EF-ERRORDETECT.
+- [x] **BEHAVIOR-VOICE** (S·sand) — tune `SOUL.md`/prompt to the brand voice (direct, literal, structured, fewer caveats) + harden verify-before-claim. Covers comms (#8) + code discipline (#6).
 
 **Rocks (operator-feel — Jason's stated biggest):**
-- [ ] **GOAL-ACTION** (S) — auto vague-goal → one concrete next action. *(tracked)*
-- [ ] **STALL-UNBLOCK** (S·pebble) — detect a stalled active goal → propose the smallest unblocker, unprompted.
-- [ ] **EF-TASKSTACK** (M·rock) — persistent operator task stack (in-progress/blocked/parked/done) + loop-closing ("I said I'd do X — did X happen?"). Builds on todo store + closure-gate + `/wm`.
-- [ ] **MEM-RELEVANCE** (M·rock) — classify durable facts vs session noise; surface memory only when relevant, never clutter. Builds on brain + `memory/store` + `recall`.
-- [ ] **OPERATOR-DASHBOARD** (L·rock) — live surface: goals · plan · blockers · recent actions · pending approvals · suggested next move · memory highlights, in the brand-guide dossier aesthetic (status rail, operation cards, signal colors). Subsumes brand-TUI; the seed for DESKTOP.
-- [ ] **VISION-COMPARE** (M·pebble) — aesthetic/design direction using operator taste; compare visual options side-by-side, not generic feedback. Builds on the aux-routed vision.
+- [x] **GOAL-ACTION** (S) — auto vague-goal → one concrete next action. *(tracked)*
+- [x] **STALL-UNBLOCK** (S·pebble) — detect a stalled active goal → propose the smallest unblocker, unprompted.
+- [x] **EF-TASKSTACK** (M·rock) — persistent operator task stack (in-progress/blocked/parked/done) + loop-closing ("I said I'd do X — did X happen?"). Builds on todo store + closure-gate + `/wm`.
+- [x] **MEM-RELEVANCE** (M·rock) — classify durable facts vs session noise; surface memory only when relevant, never clutter. Builds on brain + `memory/store` + `recall`.
+- [x] **OPERATOR-DASHBOARD** (L·rock) — live surface: goals · plan · blockers · recent actions · pending approvals · suggested next move · memory highlights, in the brand-guide dossier aesthetic (status rail, operation cards, signal colors). Subsumes brand-TUI; the seed for DESKTOP.
+- [x] **VISION-COMPARE** (M·pebble) — aesthetic/design direction using operator taste; compare visual options side-by-side, not generic feedback. Builds on the aux-routed vision.
 
 **Parity + modes:**
-- [ ] **MODES-v2** (M·pebble) — build / debug / design / planning / body-double modes + one-key switching. Extends `modes/builtin.ts`.
+- [x] **MODES-v2** (M·pebble) — build / debug / design / planning / body-double modes + one-key switching. Extends `modes/builtin.ts`.
 - [ ] **AUTO-WATCH** (M·pebble) — watchers (repos/issues/email/calendar) → draft action, await approval on risk. Extends gateway/webhook.
-- [ ] **AUX-MAP** (M) — per-function aux model map. *(tracked)* · **UX-MODEL-FIX** (S) — model-persistence regression. *(tracked)*
+- [x] **AUX-MAP** (M) — per-function aux model map. *(tracked)* · **UX-MODEL-FIX** (S) — model-persistence regression. *(tracked)*
 
 **Research (verify before building — expect high existing coverage):**
-- [ ] **USE-CASE-AUDIT** (S) — map the 262 Hermes user stories → Vanta's 45 tools → coverage matrix; surface only genuine gaps.
-- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (Hermes already mined for v1 — see `docs/parity-audit.md`, `hermes-map.html`).
-- [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard).
+- [x] **USE-CASE-AUDIT** (S) — map the 262 Hermes user stories → Vanta's 45 tools → coverage matrix; surface only genuine gaps.
+- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (Hermes already mined for v1 — see `docs/parity-audit.md`, `hermes-map.html`). *(horizon)*
+- [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard). *(horizon)*
 
 **Gated:** SCRUB-AI (run last, force-push gated) · DESKTOP (horizon; OPERATOR-DASHBOARD is its seed).
