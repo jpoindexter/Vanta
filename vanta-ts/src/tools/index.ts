@@ -36,6 +36,7 @@ import {
 import { delegateTool } from "./delegate.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
+import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import {
@@ -126,6 +127,9 @@ export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
   }
   if (!exclude.has("mount_mcp")) {
     registry.register(buildMountMcpTool(registry));
+  }
+  if (!exclude.has("tool_search")) {
+    registry.register(buildToolSearchTool(registry));
   }
   return registry;
 }
