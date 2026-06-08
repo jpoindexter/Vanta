@@ -21,3 +21,4 @@ describe("clip", () => {
     expect(clip("anything", -3)).toBe("");
   });
 });
+

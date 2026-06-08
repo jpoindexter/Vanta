@@ -107,6 +107,7 @@ export const writeFileTool: Tool = {
       const approved = await ctx.requestApproval(
         `Overwrite existing file ${path}`,
         "file already exists — overwriting is destructive",
+        "write_file",
       );
       if (!approved) {
         return { ok: false, output: `write to ${path} denied — file left unchanged` };
