@@ -66,6 +66,7 @@ export async function runGatewayCommand(repoRoot: string): Promise<void> {
     platform,
     handle,
     webhook,
+    home: resolveVantaHome(),
     tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,
   });
 }
@@ -234,4 +235,28 @@ export async function runFactoryCommand(repoRoot: string, sub: string): Promise<
   }
 
   console.log("Usage: vanta factory [approve|status]");
+}
+
+/** `vanta pairing [list | approve <chatId>]` — manage messaging platform pairings. */
+export async function runPairingCommand(rest: string[]): Promise<void> {
+  const home = resolveVantaHome();
+  const { listPairings, approvePairing } = await import("../gateway/pairing.js");
+  const sub = rest[0] ?? "list";
+
+  if (sub === "approve") {
+    const chatId = rest[1];
+    if (!chatId) { console.error("usage: vanta pairing approve <chatId>"); process.exit(1); }
+    const ok = await approvePairing(chatId, "cli", home);
+    console.log(ok ? `✓ approved: ${chatId}` : `not found: ${chatId}`);
+    return;
+  }
+
+  const records = await listPairings(home);
+  if (!records.length) { console.log("(no pairing records)"); return; }
+  for (const r of records) {
+    const age = r.status === "approved"
+      ? `approved ${new Date(r.approvedAt ?? r.issuedAt).toISOString()}`
+      : `expires ${new Date(r.expiresAt).toISOString()} · ${r.attempts} attempt(s)`;
+    console.log(`${r.platform.padEnd(10)} ${r.chatId.padEnd(20)} [${r.status}]  ${age}`);
+  }
 }
