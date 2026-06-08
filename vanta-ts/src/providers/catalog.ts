@@ -128,6 +128,22 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     models: ["qwen2.5:14b", "llama3.3", "deepseek-r1:14b", "mistral-small"],
     note: "needs Ollama running locally",
   },
+  {
+    id: "nvidia",
+    label: "NVIDIA NIM (OpenAI-compatible inference)",
+    short: "NVIDIA",
+    envVar: "NVIDIA_API_KEY",
+    defaultModel: "meta/llama-3.1-70b-instruct",
+    models: [
+      "meta/llama-3.1-70b-instruct",
+      "meta/llama-3.1-8b-instruct",
+      "nvidia/llama-3.1-nemotron-70b-instruct",
+      "mistralai/mixtral-8x7b-instruct-v0.1",
+      "google/gemma-2-27b-it",
+    ],
+    signupUrl: "https://build.nvidia.com/settings/api-keys",
+    note: "NVIDIA NIM — cloud inference at integrate.api.nvidia.com",
+  },
 ];
 
 export function providerById(id: string): ProviderEntry | undefined {
