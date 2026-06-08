@@ -17,6 +17,7 @@ import {
   writeRunMemory,
   reviewAfterTurn,
   maybeCurate,
+  antiSlopAfterText,
 } from "./session.js";
 import { runPostTurnGates, freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";
@@ -219,6 +220,8 @@ export async function runChat(
       turnIndex: state.turnIndex,
     });
     await suggestSkillFromRun(text, process.env);
+    // ANTI-SLOP: flag AI-ish drift in the response.
+    await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
     await reviewAfterTurn({
       provider: setup.provider,
       safety: setup.safety,

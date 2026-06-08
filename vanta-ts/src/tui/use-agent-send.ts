@@ -5,7 +5,7 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, antiSlopAfterText, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
 import { buildModeHint } from "../repl/mode-detect.js";
 import { maybeAutoHandoff } from "../repl/auto-handoff.js";
@@ -99,6 +99,8 @@ export function useAgentSend(
         });
         if (shouldNotify(Date.now() - turnStartRef.current)) notify({ title: "Vanta", message: "turn complete" });
         void saveSession(replStateRef.current.sessionId, convo.messages, { started: replStateRef.current.started, title: replStateRef.current.title }).catch(() => {});
+        // ANTI-SLOP: flag AI-ish drift in the response.
+        void antiSlopAfterText(outcome.finalText, (note) => dispatch({ t: "note", text: note }));
         void nudgeAfterTurn(replStateRef.current.turnIndex, safety, (note) => dispatch({ t: "note", text: note }));
         void researchGateAfterTurn(
           researchGateRef.current,
