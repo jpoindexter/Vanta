@@ -32,7 +32,8 @@ describe("renderMessagingMenu", () => {
   it("tags unimplemented platforms as planned", () => {
     const menu = renderMessagingMenu({});
     expect(menu).toMatch(/WhatsApp.*\[planned\]/);
-    expect(menu).toMatch(/iMessage.*\[planned\]/);
+    // iMessage and Signal are now implemented (available or configured, not planned)
+    expect(menu).not.toMatch(/iMessage.*\[planned\]/);
   });
 });
 

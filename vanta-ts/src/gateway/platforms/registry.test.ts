@@ -6,9 +6,11 @@ import {
 } from "./registry.js";
 
 describe("messaging registry", () => {
-  it("includes telegram as the one implemented platform", () => {
+  it("includes telegram, imessage, signal as implemented platforms", () => {
     const implemented = MESSAGING_CATALOG.filter((p) => p.implemented).map((p) => p.id);
-    expect(implemented).toEqual(["telegram"]);
+    expect(implemented).toContain("telegram");
+    expect(implemented).toContain("imessage");
+    expect(implemented).toContain("signal");
   });
 
   it("every entry has required env + at least one setup step", () => {
