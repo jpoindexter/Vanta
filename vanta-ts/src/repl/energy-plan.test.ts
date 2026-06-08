@@ -29,12 +29,12 @@ describe("classifyEnergyTier", () => {
   });
 
   it("classifies 2-min tasks", () => {
-    expect(classifyEnergyTier(task({ title: "rename the variable", size: "S" }))).toBe("2-min");
-    expect(classifyEnergyTier(task({ title: "close the stale issue", size: "S" }))).toBe("2-min");
+    expect(classifyEnergyTier(task({ title: "rename the variable", priority: "low" }))).toBe("2-min");
+    expect(classifyEnergyTier(task({ title: "close the stale issue" }))).toBe("2-min");
   });
 
   it("defaults to low-energy", () => {
-    expect(classifyEnergyTier(task({ title: "read through the docs", size: "S" }))).toBe("low-energy");
+    expect(classifyEnergyTier(task({ title: "read through the docs" }))).toBe("low-energy");
   });
 });
 
@@ -48,7 +48,7 @@ describe("energyPlan", () => {
     const tasks = [
       task({ title: "review the PR", status: "active" }),
       task({ title: "implement auth", status: "active" }),
-      task({ title: "rename var", size: "S", status: "pending" }),
+      task({ title: "rename var", priority: "low", status: "pending" }),
       task({ title: "read docs", status: "pending" }),
       task({ title: "triage inbox", status: "pending" }), // second admin — skipped
     ];

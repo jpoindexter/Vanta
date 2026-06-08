@@ -17,6 +17,7 @@ const EXPECTED_NAMES = [
   "revenue-push",
   "pre-ship-review",
   "inspect-opportunity",
+  "body-double",
 ];
 
 describe("operator modes", () => {
@@ -28,18 +29,18 @@ describe("operator modes", () => {
     await rm(HOME, { recursive: true, force: true });
   });
 
-  it("defines exactly the six expected modes", () => {
+  it("defines exactly the seven expected modes", () => {
     expect(OPERATOR_MODES.map((m) => m.name).sort()).toEqual(
       [...EXPECTED_NAMES].sort(),
     );
   });
 
-  it("installs all six modes and returns their names", async () => {
+  it("installs all seven modes and returns their names", async () => {
     const installed = await installModes({ env, now: NOW });
     expect(installed.sort()).toEqual([...EXPECTED_NAMES].sort());
   });
 
-  it("writes six skills retrievable via listSkills", async () => {
+  it("writes seven skills retrievable via listSkills", async () => {
     await installModes({ env, now: NOW });
     const names = (await listSkills(env)).map((s) => s.meta.name);
     for (const expected of EXPECTED_NAMES) {
@@ -59,8 +60,10 @@ describe("operator modes", () => {
     expect(slice?.body).toContain("Goal first");
   });
 
-  it("every mode body references goal-before-tool and verify-before-done", () => {
-    for (const mode of OPERATOR_MODES) {
+  it("task modes reference goal-before-tool and verify-before-done", () => {
+    // body-double is a presence/posture mode — not a task mode — so it is excluded.
+    const taskModes = OPERATOR_MODES.filter((m) => m.name !== "body-double");
+    for (const mode of taskModes) {
       expect(mode.body).toContain("Goal first");
       expect(mode.body).toContain("Verify before done");
     }
