@@ -161,7 +161,7 @@
       "id": "AUX-MAP",
       "track": "Auxiliary tasks",
       "title": "Per-function aux-task model map",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Generalize AUX-VISION into a function->model/provider map (vision, summarize, title, embed), one resolver extending routing/model-router.ts, surfaced in /status + a /aux command + the setup wizard. Full Hermes 'auxiliary tasks' dashboard parity.",
       "done": "Each auxiliary function can be bound to its own model independent of the main agent model.",
