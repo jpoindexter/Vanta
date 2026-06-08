@@ -461,6 +461,23 @@ export async function wmManipAfterTurn(
   }
 }
 
+/**
+ * ANTI-SLOP: after a turn, check the final response text for AI-ish drift.
+ * Best-effort — opt-out via VANTA_ANTI_SLOP=0. Emits a note when slop is found.
+ */
+export async function antiSlopAfterText(
+  text: string,
+  onNote: (note: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<void> {
+  if (env.VANTA_ANTI_SLOP === "0" || !text.trim()) return;
+  try {
+    const { detectSlop, formatSlopNote } = await import("./repl/anti-slop.js");
+    const note = formatSlopNote(detectSlop(text));
+    if (note) onNote(note);
+  } catch { /* best-effort */ }
+}
+
 /** Interactive y/n approval bound to a readline interface. */
 export function approver(
   rl: Readline,
