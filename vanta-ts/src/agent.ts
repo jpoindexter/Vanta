@@ -9,7 +9,7 @@ import type { Summarizer } from "./context.js";
 import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
-import { applyCompression, compressEnabled } from "./compress/apply.js";
+import { applyCompression, compressEnabled, shouldCompressTool } from "./compress/apply.js";
 import { join } from "node:path";
 
 export type AgentDeps = {
@@ -298,10 +298,12 @@ async function dispatchTool(
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   // Native context compression (the Headroom concept, in-house): shrink a fat
   // tool output ONCE here, before it enters history. Never the system prefix,
-  // never re-compressed (history holds the frozen compressed form). Reversible
-  // via CCR — the agent can call retrieve_original. Skips own retrieval output.
+  // never re-compressed. Compression is LOSSY, so it's allow-listed to
+  // voluminous media/web outputs only (shouldCompressTool) — precision reads
+  // (read_file, grep, lsp, git_diff) keep byte-for-byte fidelity so the agent
+  // never edits/cites against a mangled view. Reversible via CCR. Best-effort.
   let output = res.output;
-  if (res.ok && compressEnabled() && call.name !== "retrieve_original") {
+  if (res.ok && compressEnabled() && shouldCompressTool(call.name)) {
     const applied = await applyCompression(output, join(ctx.root, ".vanta"));
     output = applied.output;
   }

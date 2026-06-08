@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { applyCompression, compressEnabled } from "./apply.js";
+import { applyCompression, compressEnabled, shouldCompressTool } from "./apply.js";
+import { compressText } from "./router.js";
 import { retrieveOriginal } from "./store.js";
 
 describe("applyCompression (CCR seam)", () => {
@@ -50,4 +51,42 @@ describe("compressEnabled", () => {
   it("off when VANTA_COMPRESS=0", () => expect(compressEnabled({ VANTA_COMPRESS: "0" })).toBe(false));
   it("off when VANTA_COMPRESS=false", () =>
     expect(compressEnabled({ VANTA_COMPRESS: "false" })).toBe(false));
+});
+
+describe("shouldCompressTool (read-fidelity allow-list)", () => {
+  // Precision reads the agent acts on EXACTLY — never compress (lossy view would
+  // shift line numbers / elide JSON, breaking file:line edits and citations).
+  it.each(["read_file", "inspect_state", "lsp_diagnostics", "lsp_definition", "git_diff", "grep"])(
+    "never compresses precision read %s",
+    (name) => expect(shouldCompressTool(name)).toBe(false),
+  );
+
+  // Voluminous, advisory media/web outputs — safe to compress (where the win is).
+  it.each(["describe_image", "screenshot", "look_at_screen", "watch_video", "web_fetch", "web_search"])(
+    "compresses voluminous output %s",
+    (name) => expect(shouldCompressTool(name)).toBe(true),
+  );
+
+  it("is default-safe for an unknown/future tool", () =>
+    expect(shouldCompressTool("some_new_tool")).toBe(false));
+});
+
+describe("read-fidelity: the router WOULD mangle real reads (proving why the allow-list matters)", () => {
+  it("json-crush elides a JSON data file's middle — must never hit read_file output", () => {
+    const rows = Array.from({ length: 200 }, (_, i) => ({ id: i, v: `row-${i}` }));
+    const jsonFile = JSON.stringify(rows, null, 2);
+    const r = compressText(jsonFile);
+    expect(r.compressed).toBe(true); // lossy: would corrupt a file read
+    expect(r.text).toContain("__elided__");
+    // The guarantee: read_file is NOT on the allow-list, so this transform never runs on it.
+    expect(shouldCompressTool("read_file")).toBe(false);
+  });
+
+  it("log-squash collapses blank-line runs — would shift line numbers in source", () => {
+    const py = "def a():\n    pass\n\n\n\ndef b():\n    pass\n";
+    const r = compressText(py.repeat(60)); // large enough to cross the floor
+    // If this ran on a file read, line numbers would shift; allow-list prevents it.
+    expect(shouldCompressTool("read_file")).toBe(false);
+    expect(shouldCompressTool("lsp_definition")).toBe(false);
+  });
 });
