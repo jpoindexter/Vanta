@@ -137,6 +137,7 @@ const COMMANDS: Record<string, CommandFn> = {
   roadmap: (root, rest) => runRoadmapCommand(root, rest),
   desktop: (root, rest) => runDesktopCommand(root, rest),
   memory: (_root, rest) => runMemoryCommand(rest),
+  audit: async (root) => (await import("./cli/audit.js")).runAudit(root),
   lint: async (root, rest) => (await import("./lint/run.js")).runLint(root, rest),
   open: async (_root, rest) => {
     const r = await (await import("./editor/open.js")).openInEditor(rest.join(" "));

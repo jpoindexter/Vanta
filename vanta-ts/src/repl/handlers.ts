@@ -25,6 +25,8 @@ import { btw } from "./btw-cmd.js";
 import { diff } from "./diff-cmd.js";
 import { search } from "./search-cmd.js";
 import { dashboard } from "./dashboard-cmd.js";
+import { sessionsSearch } from "./sessions-search-cmd.js";
+import { repro } from "./repro-cmd.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -127,7 +129,11 @@ const goals: SlashHandler = async (_arg, ctx) => {
   return { output: lines(active.map((x) => `  [${x.id}] ${x.text}`), "  (no active goals)") };
 };
 
-const sessions: SlashHandler = async (_arg, ctx) => {
+const sessions: SlashHandler = async (arg, ctx) => {
+  const trimmed = arg.trim();
+  if (trimmed.toLowerCase().startsWith("search")) {
+    return sessionsSearch(trimmed.slice("search".length).trimStart(), ctx);
+  }
   const ss = await listSessions(ctx.env);
   return { output: lines(ss.map((s) => `  ${s.id}  ${s.turns} turn(s)  ${s.title}`), "  (no saved sessions)") };
 };
@@ -264,7 +270,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
-  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, tasks, btw, diff, search, dashboard,
+  mcp, usage, copy, update, image, paste, cron, moim, next, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, tasks, btw, diff, search, dashboard, repro,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */
