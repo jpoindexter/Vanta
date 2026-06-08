@@ -7,6 +7,7 @@ import type { LLMProvider } from "./interface.js";
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
 const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1";
+const NVIDIA_NIM_URL = "https://integrate.api.nvidia.com/v1";
 
 function requireKey(env: NodeJS.ProcessEnv, key: string, hint: string): string {
   const val = env[key];
@@ -54,6 +55,12 @@ function makeOpenRouter(env: NodeJS.ProcessEnv): LLMProvider {
   return new OpenAIProvider({ apiKey, baseURL: OPENROUTER_URL, model: env.VANTA_MODEL ?? "anthropic/claude-sonnet-4.5" });
 }
 
+function makeNvidia(env: NodeJS.ProcessEnv): LLMProvider {
+  const apiKey = requireKey(env, "NVIDIA_API_KEY",
+    "Get a key at https://build.nvidia.com/settings/api-keys and set NVIDIA_API_KEY in vanta-ts/.env.");
+  return new OpenAIProvider({ apiKey, baseURL: NVIDIA_NIM_URL, model: env.VANTA_MODEL ?? "meta/llama-3.1-70b-instruct" });
+}
+
 const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   openai: makeOpenAI,
   ollama: makeOllama,
@@ -64,6 +71,8 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   "claude-cli": makeClaudeCode,
   gemini: makeGemini,
   openrouter: makeOpenRouter,
+  nvidia: makeNvidia,
+  nim: makeNvidia,
 };
 
 /**
@@ -79,7 +88,7 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const id = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
   const factory = PROVIDERS[id];
-  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Use openai, ollama, anthropic, gemini, openrouter, codex, or claude-code.`);
+  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Use openai, ollama, anthropic, gemini, openrouter, codex, claude-code, or nvidia.`);
   return factory(env);
 }
 
