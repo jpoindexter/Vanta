@@ -22,6 +22,7 @@ import {
   runFactoryCommand,
   runDesktopCommand,
   runPairingCommand,
+  runConfigCommand,
 } from "./cli/ops.js";
 import { runModelCommand } from "./cli/model-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
@@ -125,6 +126,7 @@ const COMMANDS: Record<string, CommandFn> = {
     if (code !== 0) usage();
     return code;
   },
+  config: (root, rest) => runConfigCommand(root, rest),
   cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
   gateway: (root) => runGatewayCommand(root),
   service: (root, rest) => runServiceCommand(root, rest),

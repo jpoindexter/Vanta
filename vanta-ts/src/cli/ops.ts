@@ -278,3 +278,29 @@ export async function runPairingCommand(rest: string[]): Promise<void> {
     console.log(`${r.platform.padEnd(10)} ${r.chatId.padEnd(20)} [${r.status}]  ${age}`);
   }
 }
+
+/** `vanta config [show | edit | migrate]` — manage Vanta configuration. */
+export async function runConfigCommand(repoRoot: string, rest: string[]): Promise<void> {
+  const sub = rest[0] ?? "show";
+  const { showConfig, editConfig, migrateConfig } = await import("../cli-dx/config.js");
+
+  try {
+    if (sub === "show") {
+      await showConfig(repoRoot);
+      return;
+    }
+    if (sub === "edit") {
+      await editConfig(repoRoot);
+      return;
+    }
+    if (sub === "migrate") {
+      await migrateConfig(repoRoot);
+      return;
+    }
+    console.error("Usage: vanta config [show | edit | migrate]");
+    process.exit(1);
+  } catch (err: unknown) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
+}
