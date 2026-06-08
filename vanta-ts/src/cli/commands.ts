@@ -64,22 +64,43 @@ export async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Pro
   console.log("\nResume with: vanta resume <id>");
 }
 
+export type OutputFormat = "text" | "json" | "stream-json";
+
+/** Emit the final result in the requested format. Pure: no side-effects besides stdout. */
+function emitOutput(format: OutputFormat, finalText: string, modelId: string): void {
+  if (format === "json") {
+    console.log(JSON.stringify({ text: finalText, model: modelId }));
+  } else if (format === "stream-json") {
+    console.log(JSON.stringify({ type: "done", text: finalText }));
+  } else {
+    console.log(`\n${finalText}`);
+  }
+}
+
+/** Build the callbacks object for a conversation, based on output format. */
+function buildCallbacks(format: OutputFormat): Partial<Parameters<typeof createConversation>[1]> {
+  if (format === "stream-json") {
+    return { onTextDelta: (d: string) => process.stdout.write(JSON.stringify({ type: "delta", text: d }) + "\n") };
+  }
+  if (format === "json") return {};
+  return consoleCallbacks();
+}
+
 // Shared run path for run / skill / room. `skillBody` is appended to the prompt;
 // `root` is the room's path for a room run (its own kernel data dir + goals).
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
-  opts: { skillBody?: string; root?: string } = {},
+  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat } = {},
 ): Promise<void> {
+  const format: OutputFormat = opts.outputFormat ?? "text";
+  const structured = format !== "text";
   const root = opts.root ?? repoRoot;
   const setup = await prepareRun(root, instruction, opts.skillBody);
   await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
   const activeGoals = setup.goals.filter((g) => g.status === "active").length;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-
-  console.log(`vanta · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
-  // Ctrl+C aborts the current run gracefully (between iterations) instead of
-  // hard-killing — the loop returns "interrupted" and post-run memory still runs.
+  if (!structured) console.log(`vanta · ${setup.provider.modelId()} · ${activeGoals} active goal(s)\n`);
   const controller = new AbortController();
   const onSigint = (): void => controller.abort();
   process.once("SIGINT", onSigint);
@@ -94,11 +115,11 @@ export async function runInstruction(
       summarize: buildSummarizer(setup.provider),
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       signal: controller.signal,
-      ...consoleCallbacks(),
+      ...buildCallbacks(format),
     });
     const outcome = await convo.send(instruction);
-    console.log(`\n${outcome.finalText}`);
-    console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
+    emitOutput(format, outcome.finalText, setup.provider.modelId());
+    if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
     await suggestSkillFromRun(instruction, process.env);
     await reviewAfterTurn({

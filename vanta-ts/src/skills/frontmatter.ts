@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { Skill, SkillMeta } from "./types.js";
 
 // Anchored at the start: opening fence, the frontmatter block, closing fence.
@@ -60,6 +62,40 @@ export function parseSkill(md: string): Skill {
     meta: parseMeta(match[1] ?? ""),
     body: md.slice(match[0].length).trim(),
   };
+}
+
+/**
+ * Replace `$ARGUMENTS` in `body` with `args`. Escaped `\$ARGUMENTS` is left
+ * as a literal `$ARGUMENTS` (the backslash is consumed). Single-pass to avoid
+ * mangling `args` strings that themselves contain `$ARGUMENTS`.
+ */
+export function expandSkillArgs(body: string, args: string): string {
+  return body.replace(/\\?\$ARGUMENTS/g, (m) => (m.startsWith("\\") ? "$ARGUMENTS" : args));
+}
+
+/** Regex matching a line that is solely an @-import reference. */
+const AT_IMPORT_RE = /^@([\w./\-]+)$/gm;
+
+/**
+ * Expand `@path/to/file` lines in `body` by reading each file relative to
+ * `root` and replacing the line with its contents. Unreadable files are silently
+ * skipped (best-effort). Async: uses parallel file reads for speed.
+ */
+export async function expandAtImports(body: string, root: string): Promise<string> {
+  const lines = body.split("\n");
+  const expanded = await Promise.all(
+    lines.map(async (line) => {
+      AT_IMPORT_RE.lastIndex = 0;
+      const m = AT_IMPORT_RE.exec(line);
+      if (!m) return line;
+      try {
+        return await readFile(join(root, m[1]!), "utf8");
+      } catch {
+        return line; // unreadable — leave as-is
+      }
+    }),
+  );
+  return expanded.join("\n");
 }
 
 /**
