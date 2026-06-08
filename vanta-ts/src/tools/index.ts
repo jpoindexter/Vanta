@@ -37,6 +37,7 @@ import { delegateTool } from "./delegate.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
+import { protectTool } from "./protect.js";
 import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
@@ -115,6 +116,7 @@ const ALL_TOOLS: readonly Tool[] = [
   refIngestTool,
   refSearchTool,
   refListTool,
+  protectTool,
 ];
 
 /**
