@@ -14,6 +14,7 @@ import { screenshotTool } from "./screenshot.js";
 import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
 import { describeImageTool } from "./describe-image.js";
+import { compareVisionTool } from "./compare-vision.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
 import { lookAtCameraTool } from "./look-at-camera.js";
 import { brainTool } from "./brain.js";
@@ -75,6 +76,7 @@ const ALL_TOOLS: readonly Tool[] = [
   browserNavigateTool,
   browserExtractTool,
   describeImageTool,
+  compareVisionTool,
   lookAtScreenTool,
   lookAtCameraTool,
   brainTool,
