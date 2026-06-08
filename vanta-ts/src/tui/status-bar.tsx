@@ -55,7 +55,10 @@ export function StatusBar(props: {
   const color = props.primaryColor ?? "cyan";
   const left = props.busy ? `${props.spinner} ${props.status}` : "● ready";
   const dur = props.busy ? ` · ${formatDuration(props.elapsedMs)}` : "";
-  const modeTag = props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> : null;
+  const modeTag =
+    props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> :
+    props.mode === "accept-edits" ? <Text color="cyan"> ✎edits</Text> :
+    null;
   const vimTag = props.vimMode ? <Text color={color}> [{props.vimMode === "normal" ? "N" : "I"}]</Text> : null;
   return (
     <Box width={props.width} justifyContent="space-between">

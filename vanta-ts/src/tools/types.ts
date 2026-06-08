@@ -9,8 +9,9 @@ export type ToolResult = { ok: boolean; output: string; diff?: DiffLine[] };
 export type ToolContext = {
   root: string;
   safety: SafetyClient;
-  /** Pause and ask the human y/n. Returns true if approved. */
-  requestApproval: (action: string, reason: string) => Promise<boolean>;
+  /** Pause and ask the human y/n. Returns true if approved. toolName lets the
+   *  host key session/always-allow and accept-edits auto-approve decisions. */
+  requestApproval: (action: string, reason: string, toolName?: string) => Promise<boolean>;
 };
 
 export type Tool = {

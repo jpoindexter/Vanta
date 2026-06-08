@@ -27,10 +27,16 @@ export function useApproval(
     void loadAlwaysAllow(process.env).then((tools) => tools.forEach((t) => allowRef.current.add(t)));
   }, []);
 
+  const ACCEPT_EDITS_TOOLS = new Set(["write_file", "read_file"]);
+
   const requestApproval = (action: string, reason: string, toolName?: string): Promise<boolean> =>
     new Promise<boolean>((resolve) => {
       if (toolName && allowRef.current.has(toolName)) return resolve(true);
       if (modeRef.current === "auto") { resolve(true); return; }
+      if (modeRef.current === "accept-edits" && toolName && ACCEPT_EDITS_TOOLS.has(toolName)) {
+        resolve(true);
+        return;
+      }
       resolveRef.current = resolve;
       setPending({ action, reason, toolName });
     });
