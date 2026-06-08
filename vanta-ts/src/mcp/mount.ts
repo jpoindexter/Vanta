@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
-import { McpClient, stdioTransport, type McpToolDef } from "./client.js";
+import { McpClient, stdioTransport, type McpToolDef, type Transport } from "./client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 
@@ -17,10 +17,14 @@ import type { Tool } from "../tools/types.js";
 // kernel `assess()` like every other tool.
 
 const ServerSchema = z.object({
-  command: z.string().min(1),
+  command: z.string().optional(),
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
-});
+  // CC-MCP-REMOTE: HTTP transport support
+  url: z.string().url().optional(),
+  token: z.string().optional(),
+  headers: z.record(z.string()).optional(),
+}).refine((s) => s.command || s.url, "either command or url is required");
 
 // Accept both "servers" (Vanta) and "mcpServers" (Claude Code) keys; merge with servers winning.
 const ConfigSchema = z
@@ -116,25 +120,34 @@ export async function mountMcpServers(
   const mounted: string[] = [];
   let toolCount = 0;
 
+  const deferred = env.VANTA_MCP_DEFER === "1";
   for (const name of names) {
     const spec = config.servers[name];
     if (!spec) continue;
     try {
-      const { transport, child } = stdioTransport(spec.command, spec.args ?? [], {
-        ...process.env,
-        ...spec.env,
-      });
-      children.push({ kill: () => child.kill() });
+      let transport!: Transport;
+      if (spec.url) {
+        // CC-MCP-REMOTE: HTTP transport
+        const { httpTransport, resolveToken } = await import("./http-transport.js");
+        const token = resolveToken(name, spec.token, env);
+        transport = httpTransport(spec.url, { token, headers: spec.headers });
+      } else if (spec.command) {
+        const t = stdioTransport(spec.command, spec.args ?? [], { ...process.env, ...spec.env });
+        children.push({ kill: () => t.child.kill() });
+        transport = t.transport;
+      } else {
+        log(`  · mcp: ${name} skipped — no command or url`);
+        continue;
+      }
       const client = new McpClient(transport);
       await client.initialize();
       const defs = await client.listTools();
-      const deferred = env.VANTA_MCP_DEFER === "1";
       for (const def of defs) {
         registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
         toolCount++;
       }
       mounted.push(name);
-      log(`  · mcp: mounted ${name} (${defs.length} tool(s))`);
+      log(`  · mcp: mounted ${name} (${defs.length} tool(s))${spec.url ? " [http]" : ""}`);
     } catch (err) {
       log(`  · mcp: ${name} failed — ${(err as Error).message}`);
     }
