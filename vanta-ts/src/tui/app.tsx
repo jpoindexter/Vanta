@@ -124,7 +124,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       setMode((prev) => {
         const next = nextMode(prev);
         modeRef.current = next;
-        dispatch({ t: "note", text: next === "auto" ? "⚡ auto-approve mode — ⇧⇥ to return to review" : "● review mode — approvals restored" });
+        const noteText =
+          next === "accept-edits"
+            ? "✎ accept-edits mode — file writes auto-approved · ⇧⇥ for auto"
+            : next === "auto"
+              ? "⚡ auto-approve mode — ⇧⇥ to return to review"
+              : "● review mode — approvals restored";
+        dispatch({ t: "note", text: noteText });
         return next;
       });
     }
