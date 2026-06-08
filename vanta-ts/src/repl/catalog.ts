@@ -46,6 +46,10 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "repro", desc: "save a diagnostic repro bundle to .vanta/repro-*.md" },
   { name: "dashboard", desc: "live operator state — tasks, goals, repo, model" },
   { name: "brief", desc: "JARVIS-style today brief — tasks, goals, calendar, episodic" },
+  { name: "review", arg: "[effort]", desc: "review changed code for bugs and cleanups (low|medium|high)" },
+  { name: "simplify", desc: "reuse/simplify/efficiency/altitude pass on changed code" },
+  { name: "verify", desc: "run the app and confirm a change actually works" },
+  { name: "run", desc: "launch and drive this project's app" },
   { name: "exit", desc: "leave the session" },
 ];
 
