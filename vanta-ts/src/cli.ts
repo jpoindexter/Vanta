@@ -169,6 +169,49 @@ const COMMANDS: Record<string, CommandFn> = {
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
+  acp: async (root, rest) => {
+    const port = Number(rest[0]) || 7792;
+    const { startAcpServer, writeAgentJson } = await import("./acp/server.js");
+    const { prepareRun, buildSummarizer } = await import("./session.js");
+    const { runAgent } = await import("./agent.js");
+    const { approver: _approver } = await import("./session.js");
+    const setup = await prepareRun(root, "acp session").catch(() => null);
+    if (!setup) { console.error("vanta acp: failed to initialize"); return 1; }
+    await writeAgentJson(root).catch(() => {});
+    const run = async (instruction: string): Promise<string> => {
+      const outcome = await runAgent(setup.systemPrompt, instruction, {
+        provider: setup.provider,
+        safety: setup.safety,
+        registry: setup.registry,
+        root,
+        requestApproval: async () => false,
+        summarize: buildSummarizer(setup.provider),
+      });
+      return outcome.finalText;
+    };
+    const srv = await startAcpServer({ port, repoRoot: root, run });
+    console.log(`vanta acp: ACP server on http://127.0.0.1:${srv.port}`);
+    console.log(`  agent.json at ${root}/agent.json`);
+    console.log("  Ctrl+C to stop.");
+    await new Promise<void>((resolve) => {
+      process.once("SIGINT", () => { srv.close(); resolve(); });
+      process.once("SIGTERM", () => { srv.close(); resolve(); });
+    });
+    return 0;
+  },
+  proxy: async (_root, rest) => {
+    const port = Number(rest[0]) || 7791;
+    const { startProxyServer } = await import("./proxy/server.js");
+    const srv = await startProxyServer(port, process.env);
+    console.log(`vanta proxy: OpenAI-compatible endpoint on http://127.0.0.1:${srv.port}`);
+    console.log(`  OPENAI_API_KEY=vanta OPENAI_BASE_URL=http://127.0.0.1:${srv.port}/v1`);
+    console.log("  Ctrl+C to stop.");
+    await new Promise<void>((resolve) => {
+      process.once("SIGINT", () => { srv.close(); resolve(); });
+      process.once("SIGTERM", () => { srv.close(); resolve(); });
+    });
+    return 0;
+  },
   money: async (_root, _rest) => {
     const { loadLifeOs } = await import("./life-os/store.js");
     const { buildMoneyBrief } = await import("./life-os/money.js");
