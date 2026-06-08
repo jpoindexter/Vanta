@@ -120,6 +120,9 @@ export async function prepareRun(
   }));
   // Vanta reads its own brain (durable self) each session.
   const brain = await brainDigest(process.env).catch(() => "");
+  // SCAFFOLD: load the versioned identity/values/honesty layer from ~/.vanta/self/.
+  const { selfDigest } = await import("./self/store.js");
+  const selfContent = await selfDigest(process.env).catch(() => "");
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
   const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
@@ -137,6 +140,7 @@ export async function prepareRun(
     brain,
     errorsLog,
     projectId,
+    selfContent,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved

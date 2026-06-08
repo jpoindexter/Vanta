@@ -120,6 +120,8 @@ export async function buildSystemPrompt(opts: {
   brain?: string;
   errorsLog?: string;
   projectId?: string;
+  /** SCAFFOLD: versioned identity/values/honesty from ~/.vanta/self/ */
+  selfContent?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -133,6 +135,7 @@ export async function buildSystemPrompt(opts: {
   const tasksTier = taskStackSummary(stack) ? `Operator task stack:\n${taskStackSummary(stack)}` : "";
   const tiers = [
     stableTier(soul, opts.root, opts.tools),
+    opts.selfContent?.trim() ? `Self layer (identity + values + honesty guardrail):\n${opts.selfContent}` : "",
     brainTier(opts.brain),
     skillsTier(opts.skills),
     await contextTier(opts.root),
