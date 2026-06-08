@@ -12,6 +12,14 @@
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# --- self-register this location ---------------------------------------------
+# Record where the repo lives so the global `vanta` launcher always finds us —
+# even after the repo is moved. Running `./run.sh` (or `vanta`) once from the new
+# location updates the pointer; no install.sh re-run needed.
+VANTA_STATE_HOME="${VANTA_HOME:-$HOME/.vanta}"
+mkdir -p "$VANTA_STATE_HOME" 2>/dev/null || true
+printf '%s\n' "$DIR" > "$VANTA_STATE_HOME/repo-path" 2>/dev/null || true
+
 # --- prerequisites -----------------------------------------------------------
 if ! command -v cargo >/dev/null 2>&1; then
   echo "vanta: Rust toolchain not found. Install it: https://rustup.rs" >&2
