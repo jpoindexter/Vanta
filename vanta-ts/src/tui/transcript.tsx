@@ -3,6 +3,7 @@ import { Box, Text } from "ink";
 import { diffStat } from "./tool-result.js";
 import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
+import { linkifyFilePaths } from "./osc8.js";
 import type { DiffLine } from "../util/diff.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
@@ -60,14 +61,14 @@ export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElem
 
 function SingleLine(props: { entry: Exclude<Entry, ToolEntry> }): ReactElement {
   const e = props.entry;
-  if (e.kind === "user") return <Text color="cyan">› {e.text}</Text>;
+  if (e.kind === "user") return <Text color="cyan">› {linkifyFilePaths(e.text, process.cwd())}</Text>;
   if (e.kind === "assistant") return renderMarkdown(e.text);
   if (e.kind === "thinking") {
     const preview = e.text.split("\n")[0] ?? "";
     const truncated = preview.length > 80 ? `${preview.slice(0, 77)}...` : preview;
     return <Text dimColor>  ⚙ {truncated}</Text>;
   }
-  return <Text dimColor>  {e.text}</Text>;
+  return <Text dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
 }
 
 /**
