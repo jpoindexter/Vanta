@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-07",
+  "updated": "2026-06-08",
   "items": [
     {
       "id": "NOW-QUEUE",
@@ -245,7 +245,7 @@
       "id": "EF-TASKSTACK",
       "track": "Executive function",
       "title": "Persistent operator task stack + loop-closing",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "A durable task stack with explicit in-progress / blocked / parked / done states, surfaced on demand, and loop-closing ('I said I would do X - here is whether X happened'). Builds on todo/store, closure-gate, and /wm working memory.",
       "done": "Vanta tracks every committed task to closure and can answer 'where are we?' with accurate states.",
@@ -257,7 +257,7 @@
       "id": "MEM-RELEVANCE",
       "track": "Memory",
       "title": "Durable-vs-noise classification + relevance-gated surfacing",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Classify durable facts (taste, projects, people, workflows, decisions) vs temporary session noise, and surface memory only when relevant to the current task - never as clutter. Builds on brain regions, capped/pruned memory/store, and recall.",
       "done": "Vanta recalls the right durable fact at the right moment without dumping irrelevant memory.",
@@ -1061,7 +1061,7 @@
       "id": "CC-LINKS",
       "track": "Core UX",
       "title": "Clickable links + file:line refs (OSC-8 / desktop anchors)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Claude Code parity gap (Jason's example: 'click links, files — Vanta can't'): emit terminal OSC-8 hyperlinks for URLs and file:line in the TUI, and real clickable anchors in the desktop, so references are clickable instead of plain text.",
       "done": "A URL and a file:line in Vanta's output are clickable (OSC-8 in a supporting terminal; anchors in the desktop).",
