@@ -25,6 +25,8 @@ export type ToolEntry = {
   summary?: string;
   /** Diff lines for write_file results — folded behind the expand toggle. */
   diff?: DiffLine[];
+  /** CC-TRANSCRIPT: truncated result output — shown when the entry is expanded. */
+  resultOutput?: string;
 };
 
 export type Entry =
@@ -84,15 +86,19 @@ function ToolLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement 
   const mark = e.ok === undefined ? "·" : e.ok ? "✓" : "✗";
   const tail = e.detail ? ` ${e.detail}` : "";
   const meta = e.ok ? diffStat(e.diff) || e.summary || "" : "";
+  const showOutput = props.expanded && e.ok && e.resultOutput;
+  const showDiff = props.expanded && e.ok && e.diff?.length;
   return (
     <Box flexDirection="column">
       <Text dimColor>
         {mark} {e.icon} {e.verb}
         {tail}
         {meta ? <Text dimColor> · {meta}</Text> : null}
+        {e.resultOutput && !props.expanded ? <Text dimColor> [^O for output]</Text> : null}
         {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
       </Text>
-      {props.expanded && e.ok && e.diff?.length ? <DiffView lines={e.diff} /> : null}
+      {showOutput ? <Text dimColor>{e.resultOutput}</Text> : null}
+      {showDiff ? <DiffView lines={e.diff!} /> : null}
     </Box>
   );
 }

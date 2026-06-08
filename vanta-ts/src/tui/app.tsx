@@ -69,7 +69,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       onThinking: (text) => dispatch({ t: "thinking", text }),
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
-      onToolResult: (name, ok, output, diff) => dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff }),
+      onToolResult: (name, ok, output, diff) => {
+        const MAX_RESULT = 500;
+        const resultOutput = ok && output.trim() ? output.slice(0, MAX_RESULT).trimEnd() + (output.length > MAX_RESULT ? " …" : "") : undefined;
+        dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput });
+      },
       requestApproval,
     });
   }
@@ -196,7 +200,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
-  const hasFoldable = state.entries.some((e) => e.kind === "tool" && !!e.diff?.length);
+  const hasFoldable = state.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || !!e.resultOutput));
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${foldHint}/help  ?  /exit`;
 
