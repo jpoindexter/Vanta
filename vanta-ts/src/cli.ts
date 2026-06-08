@@ -22,6 +22,7 @@ import {
   runFactoryCommand,
   runDesktopCommand,
 } from "./cli/ops.js";
+import { runModelCommand } from "./cli/model-cmd.js";
 import {
   usage,
   usageExit,
@@ -163,6 +164,7 @@ const COMMANDS: Record<string, CommandFn> = {
     console.log(out);
   },
   today: async (root, rest) => COMMANDS["brief"]!(root, rest),
+  model: (root, rest) => runModelCommand(root, rest),
 };
 
 async function main(): Promise<void> {

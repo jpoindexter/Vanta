@@ -43,6 +43,7 @@ export function usage(): void {
       "       vanta desktop [port]                start local desktop command center",
       "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
+      "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",
       "       vanta open <file[:line]>           open a file:line in your editor",
       "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
       "       vanta completion [bash|zsh|fish]   print a shell completion script",
