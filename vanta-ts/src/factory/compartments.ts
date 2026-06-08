@@ -28,31 +28,23 @@ const BRAINSTEM = [
   "vanta-ts/src/scope.ts",
 ];
 
-/** Which self-modification tier a repo file belongs to. */
-export function classifyCompartment(file: string): Compartment {
-  const s = file.toLowerCase();
-
-  // skeleton — mirrors src/safety.rs:is_protected_path (kernel + factory + manifesto).
-  if (
+function isSkeleton(s: string): boolean {
+  return (
     (s.startsWith("src/") && (s.endsWith(".rs") || s.endsWith(".toml") || s.endsWith(".lock"))) ||
     s === "cargo.toml" ||
     s === "cargo.lock" ||
     (s.startsWith("vanta-ts/src/factory/") && s.endsWith(".ts")) ||
     s === "manifesto.md"
-  ) {
-    return "skeleton";
-  }
+  );
+}
 
-  // memory — self-knowledge.
+/** Which self-modification tier a repo file belongs to. */
+export function classifyCompartment(file: string): Compartment {
+  const s = file.toLowerCase();
+  if (isSkeleton(s)) return "skeleton";
   if (s.startsWith("vanta-ts/src/brain/") || s.startsWith("vanta-ts/src/memory/")) return "memory";
-
-  // reflexes — skills (self-evolving data + the skill machinery).
   if (s.startsWith("vanta-ts/src/skills/") || s.startsWith("skills-library/")) return "reflexes";
-
-  // brainstem — the agent loop and its lifeline.
   if (BRAINSTEM.some((p) => (p.endsWith("/") ? s.startsWith(p) : s === p))) return "brainstem";
-
-  // limbs — tools and every other improvable file (the permissive default).
   return "limbs";
 }
 

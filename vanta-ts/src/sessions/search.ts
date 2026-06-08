@@ -27,6 +27,22 @@ function makeSnippet(text: string, query: string): string {
   return `${prefix}${raw}${suffix}`;
 }
 
+type Session = NonNullable<Awaited<ReturnType<typeof loadSession>>>;
+
+function scanSession(session: Session, query: string, lower: string, max: number): SearchMatch[] {
+  const found: SearchMatch[] = [];
+  let turnIndex = 0;
+  for (const msg of session.messages) {
+    if (msg.role !== "user" && msg.role !== "assistant") continue;
+    turnIndex++;
+    const text = typeof msg.content === "string" ? msg.content : "";
+    if (!text.toLowerCase().includes(lower)) continue;
+    found.push({ sessionId: session.id, turnIndex, role: msg.role, snippet: makeSnippet(text, query) });
+    if (found.length >= max) break;
+  }
+  return found;
+}
+
 /** Full-text search over persisted sessions (case-insensitive substring). Returns [] on error. */
 export async function searchSessions(
   query: string,
@@ -35,40 +51,19 @@ export async function searchSessions(
 ): Promise<SearchMatch[]> {
   const maxResults = opts.maxResults ?? DEFAULT_MAX_RESULTS;
   const maxSessions = opts.maxSessions ?? DEFAULT_MAX_SESSIONS;
-
   if (!query.trim()) return [];
-
   try {
     const metas = await listSessions(env);
-    const sessions = metas.slice(0, maxSessions);
     const matches: SearchMatch[] = [];
     const lower = query.toLowerCase();
-
-    for (const meta of sessions) {
+    for (const meta of metas.slice(0, maxSessions)) {
       if (matches.length >= maxResults) break;
       const session = await loadSession(meta.id, env);
       if (!session) continue;
-
-      let turnIndex = 0;
-      for (const msg of session.messages) {
-        if (msg.role !== "user" && msg.role !== "assistant") continue;
-        turnIndex++;
-        const text = typeof msg.content === "string" ? msg.content : "";
-        if (!text.toLowerCase().includes(lower)) continue;
-        matches.push({
-          sessionId: session.id,
-          turnIndex,
-          role: msg.role,
-          snippet: makeSnippet(text, query),
-        });
-        if (matches.length >= maxResults) break;
-      }
+      matches.push(...scanSession(session, query, lower, maxResults - matches.length));
     }
-
     return matches;
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 /** Format search results for terminal display. */

@@ -52,62 +52,44 @@ async function fetchCalendarEvents(env: NodeJS.ProcessEnv): Promise<string | nul
   }
 }
 
+function buildSections(
+  activeTasks: Array<{ status: string; title: string }>,
+  activeGoals: Goal[],
+  calendarOut: string | null,
+  episodic: string | null,
+): string[] {
+  const sections: string[] = [];
+  if (activeTasks.length > 0) {
+    const shown = activeTasks.slice(0, MAX_TASKS);
+    const lines = shown.map((t) => `  [${t.status}] ${t.title}`);
+    if (activeTasks.length > shown.length) lines.push(`  … +${activeTasks.length - shown.length} more`);
+    sections.push(header("Tasks"), lines.join("\n"));
+  }
+  if (activeGoals.length > 0) {
+    sections.push(header("Goals"), activeGoals.map((g) => `  [${g.id}] ${g.text}`).join("\n"));
+  }
+  if (calendarOut !== null) sections.push(header("Today's Calendar"), calendarOut);
+  const ep = episodic?.trim() ?? "";
+  if (ep.length > 0) {
+    const excerpt = ep.length > MAX_EPISODIC_CHARS ? ep.slice(0, MAX_EPISODIC_CHARS).trimEnd() + " …" : ep;
+    sections.push(header("Recent Context"), `  ${excerpt.split("\n").join("\n  ")}`);
+  }
+  return sections;
+}
+
 /** Build the brief. Pure-ish: all I/O injected via deps so tests can isolate. */
 export async function buildBrief(deps: BriefDeps): Promise<string> {
   const { dataDir, env, getGoals } = deps;
-
   const [stack, allGoals, episodic, calendarOut] = await Promise.all([
     readStack(dataDir),
     getGoals().catch(() => [] as Goal[]),
     readRegion("episodic", env).catch(() => null),
     fetchCalendarEvents(env),
   ]);
-
   const activeGoals = allGoals.filter((g) => g.status === "active");
   const activeTasks = stack.tasks.filter((t) => t.status === "active" || t.status === "pending");
-
-  const hasAnything =
-    activeTasks.length > 0 ||
-    activeGoals.length > 0 ||
-    calendarOut !== null ||
-    (episodic?.trim() ?? "").length > 0;
-
-  if (!hasAnything) {
-    return NOTHING_MSG;
-  }
-
-  const sections: string[] = [];
-
-  // Tasks
-  if (activeTasks.length > 0) {
-    const shown = activeTasks.slice(0, MAX_TASKS);
-    const extra = activeTasks.length - shown.length;
-    const lines = shown.map((t) => `  [${t.status}] ${t.title}`);
-    if (extra > 0) lines.push(`  … +${extra} more`);
-    sections.push(header("Tasks"), lines.join("\n"));
-  }
-
-  // Goals
-  if (activeGoals.length > 0) {
-    const lines = activeGoals.map((g) => `  [${g.id}] ${g.text}`);
-    sections.push(header("Goals"), lines.join("\n"));
-  }
-
-  // Calendar
-  if (calendarOut !== null) {
-    sections.push(header("Today's Calendar"), calendarOut);
-  }
-
-  // Episodic brain (recent context / reflections)
-  const episodicTrimmed = episodic?.trim() ?? "";
-  if (episodicTrimmed.length > 0) {
-    const excerpt = episodicTrimmed.length > MAX_EPISODIC_CHARS
-      ? episodicTrimmed.slice(0, MAX_EPISODIC_CHARS).trimEnd() + " …"
-      : episodicTrimmed;
-    sections.push(header("Recent Context"), `  ${excerpt.split("\n").join("\n  ")}`);
-  }
-
-  return sections.join("\n");
+  const sections = buildSections(activeTasks, activeGoals, calendarOut, episodic);
+  return sections.length === 0 ? NOTHING_MSG : sections.join("\n");
 }
 
 export const brief: SlashHandler = async (_arg, ctx) => {

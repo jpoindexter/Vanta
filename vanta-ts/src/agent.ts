@@ -113,7 +113,7 @@ export function createConversation(
   };
   return {
     messages,
-    send: (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => runTurn(messages, ctx, deps, userText, images, signal),
+    send: (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => runTurn({ messages, ctx, deps, userText, images, signal }),
     setProvider: (provider, summarize) => {
       deps.provider = provider;
       if (summarize) deps.summarize = summarize;
@@ -130,134 +130,98 @@ export async function runAgent(
   return createConversation(systemPrompt, deps).send(instruction);
 }
 
-async function runTurn(
-  messages: Message[],
-  ctx: ToolContext,
+type TurnOpts = {
+  messages: Message[];
+  ctx: ToolContext;
+  deps: AgentDeps;
+  userText: string;
+  images?: ImageAttachment[];
+  signal?: AbortSignal;
+};
+
+type TurnState = {
+  consecutiveFailures: number;
+  consecutiveErrorResults: number;
+  toolIterations: number;
+  turnUsage: { inputTokens: number; outputTokens: number };
+  sawUsage: boolean;
+  callCounts: Map<string, number>;
+};
+
+function makeInitialState(): TurnState {
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map() };
+}
+
+async function processToolCalls(
+  calls: ToolCall[],
   deps: AgentDeps,
-  userText: string,
-  images?: ImageAttachment[],
-  signal?: AbortSignal,
-): Promise<AgentOutcome> {
+  ctx: ToolContext,
+  state: TurnState,
+  messages: Message[],
+): Promise<string | null> {
+  for (const call of calls) {
+    const outcome = await dispatchTool(call, deps, ctx);
+    state.toolIterations++;
+    messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: outcome.output });
+    await deps.safety.logEvent(`${call.name}: ${outcome.output.slice(0, 120)}`);
+    if (outcome.executed) {
+      state.consecutiveFailures = outcome.empty ? state.consecutiveFailures + 1 : 0;
+      if (isErrorResult(outcome.ok, outcome.output)) {
+        state.consecutiveErrorResults++;
+        const t = DEFAULT_ERRORDETECT_THRESHOLD;
+        if (state.consecutiveErrorResults >= t && state.consecutiveErrorResults % t === 0) {
+          try { deps.onText?.(buildErrorDetectText(state.consecutiveErrorResults)); deps.onIterationCheck?.(state.consecutiveErrorResults); } catch { /* best-effort */ }
+        }
+      } else { state.consecutiveErrorResults = 0; }
+    }
+    const sig = callSignature(call.name, call.arguments);
+    const count = (state.callCounts.get(sig) ?? 0) + 1;
+    state.callCounts.set(sig, count);
+    if (count >= MAX_IDENTICAL_CALLS) return call.name;
+  }
+  return null;
+}
+
+async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
+  const { messages, ctx, deps, userText, images, signal } = opts;
   const effectiveSignal = signal ?? deps.signal;
   const maxIter = deps.maxIterations ?? 50;
   messages.push(images?.length ? { role: "user", content: userText, images } : { role: "user", content: userText });
-  let consecutiveFailures = 0;
-  let consecutiveErrorResults = 0;
-  let toolIterations = 0;
-  const turnUsage = { inputTokens: 0, outputTokens: 0 };
-  let sawUsage = false;
-  const usage = () => (sawUsage ? { ...turnUsage } : undefined);
-  const callCounts = new Map<string, number>();
+  const state = makeInitialState();
+  const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
+  const ti = () => state.toolIterations;
 
   for (let iter = 1; iter <= maxIter; iter++) {
-    if (effectiveSignal?.aborted) {
-      return {
-        finalText: "Interrupted.",
-        iterations: iter - 1,
-        stoppedReason: "interrupted",
-        toolIterations,
-        usage: usage(),
-      };
-    }
+    if (effectiveSignal?.aborted)
+      return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage() };
     const trimmed = deps.summarize
       ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize, { activeGoalText: deps.activeGoalText })
       : trimMessages(messages, deps.provider.contextWindow());
-    const safe = sanitizeMessages(trimmed); // final pre-flight scrub (orphans, surrogates)
-    const result = await getCompletion(deps, safe);
-    if (result.usage) {
-      turnUsage.inputTokens += result.usage.inputTokens;
-      turnUsage.outputTokens += result.usage.outputTokens;
-      sawUsage = true;
-    }
+    const result = await getCompletion(deps, sanitizeMessages(trimmed));
+    if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
         messages.push({ role: "assistant", content: result.text });
-        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations, usage: usage() };
+        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage() };
       }
-      // Empty, no tools: nudge once and continue.
       messages.push({ role: "assistant", content: "" });
-      messages.push({
-        role: "user",
-        content: "You returned nothing. State your result or call a tool.",
-      });
+      messages.push({ role: "user", content: "You returned nothing. State your result or call a tool." });
       continue;
     }
 
-    if (result.thinking) {
-      deps.onThinking?.(result.thinking);
-      deps.onEvent?.({ type: "thinking", text: result.thinking });
-    }
-    if (result.text.trim()) {
-      deps.onText?.(result.text);
-      deps.onEvent?.({ type: "text_complete", text: result.text });
-    }
-    messages.push({
-      role: "assistant",
-      content: result.text,
-      toolCalls: result.toolCalls,
-    });
+    if (result.thinking) { deps.onThinking?.(result.thinking); deps.onEvent?.({ type: "thinking", text: result.thinking }); }
+    if (result.text.trim()) { deps.onText?.(result.text); deps.onEvent?.({ type: "text_complete", text: result.text }); }
+    messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls });
 
-    let stuckTool: string | null = null;
-    for (const call of result.toolCalls) {
-      const outcome = await dispatchTool(call, deps, ctx);
-      toolIterations++;
-      messages.push({
-        role: "tool",
-        toolCallId: call.id,
-        name: call.name,
-        content: outcome.output,
-      });
-      await deps.safety.logEvent(`${call.name}: ${outcome.output.slice(0, 120)}`);
-      if (outcome.executed) {
-        consecutiveFailures = outcome.empty ? consecutiveFailures + 1 : 0;
-        if (isErrorResult(outcome.ok, outcome.output)) {
-          consecutiveErrorResults++;
-          const threshold = DEFAULT_ERRORDETECT_THRESHOLD;
-          if (consecutiveErrorResults >= threshold && consecutiveErrorResults % threshold === 0) {
-            try {
-              deps.onText?.(buildErrorDetectText(consecutiveErrorResults));
-              deps.onIterationCheck?.(consecutiveErrorResults);
-            } catch { /* best-effort */ }
-          }
-        } else {
-          consecutiveErrorResults = 0;
-        }
-      }
-      const sig = callSignature(call.name, call.arguments);
-      const count = (callCounts.get(sig) ?? 0) + 1;
-      callCounts.set(sig, count);
-      if (count >= MAX_IDENTICAL_CALLS) stuckTool = call.name;
-    }
-
-    if (stuckTool) {
-      return {
-        finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`,
-        iterations: iter,
-        stoppedReason: "repeated_failure",
-        toolIterations,
-        usage: usage(),
-      };
-    }
-
-    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-      return {
-        finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`,
-        iterations: iter,
-        stoppedReason: "repeated_failure",
-        toolIterations,
-        usage: usage(),
-      };
-    }
+    const stuckTool = await processToolCalls(result.toolCalls, deps, ctx, state, messages);
+    if (stuckTool)
+      return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage() };
+    if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
+      return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage() };
   }
 
-  return {
-    finalText: `Reached the ${maxIter}-iteration limit before completing.`,
-    iterations: maxIter,
-    stoppedReason: "max_iterations",
-    toolIterations,
-    usage: usage(),
-  };
+  return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage() };
 }
 
 /**

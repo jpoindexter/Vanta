@@ -88,59 +88,47 @@ function renderNext(stack: import("../task-stack/types.js").TaskStack): string {
   return `  ${next.title}${action}`;
 }
 
+function assembleDashboard(opts: {
+  activeSection: string; pendingSection: string; blockedSection: string;
+  goalLines: string; approvalsOut: string; gitOutput: string;
+  modelLine: string; costLine: string; nextLine: string;
+}): string {
+  return [
+    header("Active Task"), opts.activeSection, "",
+    header("Pending Tasks"), opts.pendingSection, "",
+    header("Blocked Tasks"), opts.blockedSection, "",
+    header("Goals"), opts.goalLines, "",
+    header("Pending Approvals"), opts.approvalsOut, "",
+    header("Repo Status"), opts.gitOutput, "",
+    header("Model"), opts.modelLine, "",
+    header("Session Cost"), opts.costLine, "",
+    header("Next Recommended"), opts.nextLine,
+  ].join("\n");
+}
+
 /** Build and return the full dashboard output string. */
 export async function buildDashboard(ctx: import("./types.js").ReplCtx): Promise<string> {
   const repoRoot = dirname(ctx.dataDir);
   const allGoals = await ctx.setup.safety.getGoals().catch(() => []);
   const activeGoals = allGoals.filter((g) => g.status === "active");
-
   const [taskData, approvalsOut, gitData] = await Promise.all([
     renderTasks(ctx.dataDir),
     renderApprovals(ctx),
     renderGitStatus(repoRoot),
   ]);
-
   const { activeSection, pendingSection, blockedSection, stack } = taskData;
-  const goalLines = renderGoals(activeGoals);
-  const hasGoals = activeGoals.length > 0;
-
-  const allClear = stack.tasks.length === 0 && !hasGoals && gitData.clean;
-  if (allClear) {
+  if (stack.tasks.length === 0 && activeGoals.length === 0 && gitData.clean) {
     return "✓ all clear — no tasks, no goals, clean repo.";
   }
-
-  const modelLine = `  ${ctx.setup.provider.modelId()}`;
-  const costLine = `  ${formatSessionCost(ctx.state.sessionCost)}`;
-  const nextLine = renderNext(stack);
-
-  return [
-    header("Active Task"),
-    activeSection,
-    "",
-    header("Pending Tasks"),
-    pendingSection,
-    "",
-    header("Blocked Tasks"),
-    blockedSection,
-    "",
-    header("Goals"),
-    goalLines,
-    "",
-    header("Pending Approvals"),
+  return assembleDashboard({
+    activeSection, pendingSection, blockedSection,
+    goalLines: renderGoals(activeGoals),
     approvalsOut,
-    "",
-    header("Repo Status"),
-    gitData.output,
-    "",
-    header("Model"),
-    modelLine,
-    "",
-    header("Session Cost"),
-    costLine,
-    "",
-    header("Next Recommended"),
-    nextLine,
-  ].join("\n");
+    gitOutput: gitData.output,
+    modelLine: `  ${ctx.setup.provider.modelId()}`,
+    costLine: `  ${formatSessionCost(ctx.state.sessionCost)}`,
+    nextLine: renderNext(stack),
+  });
 }
 
 export const dashboard: SlashHandler = async (_arg, ctx) => {
