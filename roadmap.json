@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-08",
+  "updated": "2026-06-08T13:05:19Z",
   "items": [
     {
       "id": "NOW-QUEUE",
@@ -3900,6 +3900,18 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium"
+    },
+    {
+      "id": "EDIT-RESPONSE",
+      "track": "Core UX",
+      "title": "Inline AI response editing",
+      "status": "shipped",
+      "size": "S",
+      "summary": "/edit slash command loads the last assistant message into the composer for inline editing. TUI: yellow border + edit-mode placeholder; submitting replaces the message in convo history. REPL: response injected into readline via rl.write(). loadIntoComposer + editMessageIndex added to SlashResult.",
+      "done": "User can type /edit and modify the last AI response inline without leaving the composer.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low"
     }
   ]
 }
