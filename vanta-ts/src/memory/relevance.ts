@@ -74,51 +74,29 @@ function match(text: string, patterns: RegExp[]): boolean {
  * Returns `durable: false` for noise, ephemeral, and sensitive to
  * signal that callers should skip the write (or store session-only).
  */
+// Ordered priority table: first match wins. Checked before the length guards.
+type PatternRule = { patterns: RegExp[]; result: () => ClassifyResult };
+
+const PATTERN_RULES: PatternRule[] = [
+  { patterns: SENSITIVE_PATTERNS, result: () => ({ class: "sensitive", durable: false, reason: "contains sensitive data — do not store" }) },
+  { patterns: CONSTRAINT_PATTERNS, result: () => ({ class: "durable-constraint", durable: true, reason: "hard rule the agent must follow" }) },
+  { patterns: CORRECTION_PATTERNS, result: () => ({ class: "correction", durable: true, reason: "user correction — preserve the lesson" }) },
+  { patterns: NOISE_PATTERNS, result: () => ({ class: "noise", durable: false, reason: "conversational filler with no future value" }) },
+  { patterns: PREFERENCE_PATTERNS, result: () => ({ class: "durable-preference", durable: true, reason: "user preference or style" }) },
+  { patterns: WORKFLOW_PATTERNS, result: () => ({ class: "recurring-workflow", durable: true, reason: "repeating workflow worth encoding" }) },
+  { patterns: FACT_PATTERNS, result: () => ({ class: "durable-fact", durable: true, reason: "stable identity or project fact" }) },
+  { patterns: PROJECT_STATE_PATTERNS, result: () => ({ class: "project-state", durable: false, reason: "project state that stales quickly — session-only" }) },
+];
+
 export function classifyMemory(text: string): ClassifyResult {
   const t = text.trim();
-  if (!t || t.length < 8) {
-    return { class: "noise", durable: false, reason: "too short to be meaningful" };
+  if (!t || t.length < 8) return { class: "noise", durable: false, reason: "too short to be meaningful" };
+  for (const { patterns, result } of PATTERN_RULES) {
+    if (match(t, patterns)) return result();
   }
-
-  if (match(t, SENSITIVE_PATTERNS)) {
-    return { class: "sensitive", durable: false, reason: "contains sensitive data — do not store" };
-  }
-
-  // Check durable signals BEFORE noise — a correction can start with "no,"
-  if (match(t, CONSTRAINT_PATTERNS)) {
-    return { class: "durable-constraint", durable: true, reason: "hard rule the agent must follow" };
-  }
-
-  if (match(t, CORRECTION_PATTERNS)) {
-    return { class: "correction", durable: true, reason: "user correction — preserve the lesson" };
-  }
-
-  if (match(t, NOISE_PATTERNS)) {
-    return { class: "noise", durable: false, reason: "conversational filler with no future value" };
-  }
-
-  if (match(t, PREFERENCE_PATTERNS)) {
-    return { class: "durable-preference", durable: true, reason: "user preference or style" };
-  }
-
-  if (match(t, WORKFLOW_PATTERNS)) {
-    return { class: "recurring-workflow", durable: true, reason: "repeating workflow worth encoding" };
-  }
-
-  if (match(t, FACT_PATTERNS)) {
-    return { class: "durable-fact", durable: true, reason: "stable identity or project fact" };
-  }
-
-  if (match(t, PROJECT_STATE_PATTERNS)) {
-    return { class: "project-state", durable: false, reason: "project state that stales quickly — session-only" };
-  }
-
-  // Long structured content (multi-line or >80 chars) defaults to ephemeral-detail
-  // rather than noise so callers can choose to keep it for the session.
   if (t.length > 80 || t.includes("\n")) {
     return { class: "ephemeral-detail", durable: false, reason: "task-local detail, unlikely to matter next session" };
   }
-
   return { class: "noise", durable: false, reason: "no durable signal detected" };
 }
 

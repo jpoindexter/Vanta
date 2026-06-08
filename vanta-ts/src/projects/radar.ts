@@ -23,64 +23,36 @@ type Classification = {
   lastSeen?: string;
 };
 
+function maxUpdatedAt(tasks: TaskStack["tasks"]): string | undefined {
+  return tasks.reduce<string | undefined>(
+    (max, t) => (max === undefined || t.updatedAt > max ? t.updatedAt : max),
+    undefined,
+  );
+}
+
+function classifySignal(
+  tasks: TaskStack["tasks"],
+  lastSeen: string | undefined,
+): Classification {
+  if (tasks.length === 0 || tasks.every((t) => t.status === "closed" || t.status === "parked")) {
+    const detail = tasks.length === 0
+      ? "no tasks in stack"
+      : `all ${tasks.length} task(s) closed or parked`;
+    return { signal: "idle", lastSeen, detail };
+  }
+  const nearDone = tasks.find(
+    (t) => t.status === "active" && t.nextAction != null && NEAR_DONE_RE.test(t.nextAction),
+  );
+  if (nearDone) return { signal: "near-done", lastSeen, detail: `"${nearDone.nextAction}" — ${nearDone.title}` };
+  const blocked = tasks.find((t) => t.status === "blocked");
+  if (blocked) return { signal: "blocked", lastSeen, detail: blocked.blocker ? `blocked: ${blocked.blocker}` : `blocked: ${blocked.title}` };
+  return { signal: "active", lastSeen, detail: `${tasks.filter((t) => t.status === "active").length} active task(s)` };
+}
+
 /** Pure classifier — extracted for testability. */
 export function classifyStack(stack: TaskStack): Classification {
-  const tasks = stack.tasks;
-
-  // lastSeen = max updatedAt (ISO-8601 strings sort lexicographically)
-  const lastSeen = tasks.reduce<string | undefined>((max, t) => {
-    return max === undefined || t.updatedAt > max ? t.updatedAt : max;
-  }, undefined);
-
-  // idle: no tasks OR all tasks are closed/parked
-  const idle =
-    tasks.length === 0 ||
-    tasks.every((t) => t.status === "closed" || t.status === "parked");
-
-  if (idle) {
-    return {
-      signal: "idle",
-      lastSeen,
-      detail:
-        tasks.length === 0
-          ? "no tasks in stack"
-          : `all ${tasks.length} task(s) closed or parked`,
-    };
-  }
-
-  // near-done: any active task whose nextAction mentions a ship/done keyword
-  const nearDoneTask = tasks.find(
-    (t) =>
-      t.status === "active" &&
-      t.nextAction != null &&
-      NEAR_DONE_RE.test(t.nextAction),
-  );
-  if (nearDoneTask) {
-    return {
-      signal: "near-done",
-      lastSeen,
-      detail: `"${nearDoneTask.nextAction}" — ${nearDoneTask.title}`,
-    };
-  }
-
-  // blocked: any blocked task
-  const blockedTask = tasks.find((t) => t.status === "blocked");
-  if (blockedTask) {
-    return {
-      signal: "blocked",
-      lastSeen,
-      detail: blockedTask.blocker
-        ? `blocked: ${blockedTask.blocker}`
-        : `blocked: ${blockedTask.title}`,
-    };
-  }
-
-  const activeTasks = tasks.filter((t) => t.status === "active");
-  return {
-    signal: "active",
-    lastSeen,
-    detail: `${activeTasks.length} active task(s)`,
-  };
+  const lastSeen = maxUpdatedAt(stack.tasks);
+  return classifySignal(stack.tasks, lastSeen);
 }
 
 async function gitDirtiness(projectPath: string): Promise<string> {

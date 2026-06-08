@@ -114,13 +114,16 @@ async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
  * Handle one inbound message with pairing gate. Returns the reply, or undefined
  * when the message was handled as a pairing interaction (no agent turn needed).
  */
-async function handleWithPairing(
-  m: import("./platforms/base.js").InboundMessage,
-  platform: PlatformAdapter,
-  handle: (text: string) => Promise<string>,
-  home: string,
-  log: (msg: string) => void,
-): Promise<void> {
+type PairingDeps = {
+  m: import("./platforms/base.js").InboundMessage;
+  platform: PlatformAdapter;
+  handle: (text: string) => Promise<string>;
+  home: string;
+  log: (msg: string) => void;
+};
+
+async function handleWithPairing(opts: PairingDeps): Promise<void> {
+  const { m, platform, handle, home, log } = opts;
   const { isApproved, requestPairing, verifyCode, looksLikeCode } = await import("./pairing.js");
 
   if (await isApproved(m.chatId, home)) {
@@ -165,7 +168,7 @@ export async function pollPlatform(deps: GatewayDeps): Promise<number> {
   for (const m of messages) {
     log(`  ✉ ${deps.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
     if (deps.home) {
-      await handleWithPairing(m, deps.platform, deps.handle, deps.home, log).catch((err) => {
+      await handleWithPairing({ m, platform: deps.platform, handle: deps.handle, home: deps.home, log }).catch((err) => {
         log(`  pairing error: ${err instanceof Error ? err.message : String(err)}`);
       });
     } else {

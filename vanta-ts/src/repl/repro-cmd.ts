@@ -73,59 +73,31 @@ function lastNByRole(messages: Message[], role: "user" | "assistant", n: number)
 
 // ─── pure formatter ───────────────────────────────────────────────────────────
 
+function fmtMessages(msgs: string[], role: string): string {
+  if (!msgs.length) return "(none)";
+  return msgs.map((m, i) => `### ${role} [-${msgs.length - i}]\n${m}`).join("\n\n");
+}
+
+function fmtList(items: string[], indent = "  - "): string {
+  return items.length ? items.map((s) => `${indent}${s}`).join("\n") : "  (none)";
+}
+
 /** Render a repro bundle to markdown. Pure — the testable core of /repro. */
 export function formatReproBundle(d: ReproData): string {
-  const goalLines = d.goals.length
-    ? d.goals.filter((g) => g.status === "active").map((g) => `  - [${g.id}] ${g.text}`).join("\n")
-    : "  (none)";
-
-  const taskLines = d.tasks.length ? d.tasks.map((t) => `  - ${t}`).join("\n") : "  (none)";
-
-  const userLines = d.lastUserMessages.length
-    ? d.lastUserMessages.map((m, i) => `### User [-${d.lastUserMessages.length - i}]\n${m}`).join("\n\n")
-    : "(none)";
-
-  const assistantLines = d.lastAssistantMessages.length
-    ? d.lastAssistantMessages.map((m, i) => `### Assistant [-${d.lastAssistantMessages.length - i}]\n${m}`).join("\n\n")
-    : "(none)";
-
-  const envBlock = d.envFlags.length ? d.envFlags.join("\n") : "  (none)";
-
+  const goalLines = fmtList(d.goals.filter((g) => g.status === "active").map((g) => `[${g.id}] ${g.text}`));
   return [
-    `# Vanta Repro Bundle`,
-    ``,
-    `- When: ${d.when}`,
-    `- Session: ${d.sessionId}`,
-    `- Model: ${d.provider}/${d.model}`,
-    `- Node: ${d.nodeVersion}`,
-    ``,
-    `## Active Goals`,
-    goalLines,
-    ``,
-    `## Active Tasks`,
-    taskLines,
-    ``,
-    `## Git Status`,
-    "```",
-    d.gitStatus,
-    "```",
-    ``,
-    `## Git Log (last 5)`,
-    "```",
-    d.gitLog,
-    "```",
-    ``,
-    `## Last 3 User Messages`,
-    userLines,
-    ``,
-    `## Last 3 Assistant Messages`,
-    assistantLines,
-    ``,
-    `## Vanta Env Flags`,
-    "```",
-    envBlock,
-    "```",
-    ``,
+    `# Vanta Repro Bundle`, ``,
+    `- When: ${d.when}`, `- Session: ${d.sessionId}`,
+    `- Model: ${d.provider}/${d.model}`, `- Node: ${d.nodeVersion}`, ``,
+    `## Active Goals`, goalLines, ``,
+    `## Active Tasks`, fmtList(d.tasks), ``,
+    `## Git Status`, "```", d.gitStatus, "```", ``,
+    `## Git Log (last 5)`, "```", d.gitLog, "```", ``,
+    `## Last 3 User Messages`, fmtMessages(d.lastUserMessages, "User"), ``,
+    `## Last 3 Assistant Messages`, fmtMessages(d.lastAssistantMessages, "Assistant"), ``,
+    `## Vanta Env Flags`, "```",
+    d.envFlags.length ? d.envFlags.join("\n") : "  (none)",
+    "```", ``,
   ].join("\n");
 }
 

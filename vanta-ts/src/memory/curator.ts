@@ -40,6 +40,32 @@ function blockBody(block: string): string {
  * - Durable + skipped blocks are rewritten into the main file (order preserved).
  * - Returns a summary. If the memory file is missing, returns all zeros.
  */
+type ClassifiedBlocks = { keptBlocks: string[]; archivedBlocks: string[]; skipped: number };
+
+function classifyBlocks(blocks: string[]): ClassifiedBlocks {
+  const keptBlocks: string[] = [];
+  const archivedBlocks: string[] = [];
+  let skipped = 0;
+  for (const block of blocks) {
+    const body = blockBody(block);
+    if (!body) { skipped++; keptBlocks.push(block); continue; }
+    if (classifyMemory(body).durable) keptBlocks.push(block);
+    else archivedBlocks.push(block);
+  }
+  return { keptBlocks, archivedBlocks, skipped };
+}
+
+async function persistCuration(
+  mainFile: string,
+  archiveFile: string,
+  kept: string[],
+  archived: string[],
+): Promise<void> {
+  if (archived.length > 0) await appendFile(archiveFile, archived.join("\n\n") + "\n\n", "utf8");
+  if (kept.length > 0) await writeFile(mainFile, kept.join("\n\n") + "\n\n", "utf8");
+  else if (archived.length > 0) await writeFile(mainFile, "", "utf8");
+}
+
 export async function curateMemory(
   goalId: string,
   env: NodeJS.ProcessEnv = process.env,
@@ -48,51 +74,11 @@ export async function curateMemory(
   const dir = memoriesDir(env);
   const mainFile = join(dir, `${goalId}.md`);
   const archiveFile = join(dir, `${goalId}.archived.md`);
-
   let raw: string;
-  try {
-    raw = await readFile(mainFile, "utf8");
-  } catch {
-    return { total: 0, kept: 0, archived: 0, skipped: 0 };
-  }
-
+  try { raw = await readFile(mainFile, "utf8"); }
+  catch { return { total: 0, kept: 0, archived: 0, skipped: 0 }; }
   const blocks = splitBlocks(raw);
-  const total = blocks.length;
-
-  const keptBlocks: string[] = [];
-  const archivedBlocks: string[] = [];
-  let skipped = 0;
-
-  for (const block of blocks) {
-    const body = blockBody(block);
-    if (!body) {
-      // Empty body — can't meaningfully classify; keep it unchanged.
-      skipped++;
-      keptBlocks.push(block);
-      continue;
-    }
-    const result = classifyMemory(body);
-    if (result.durable) {
-      keptBlocks.push(block);
-    } else {
-      archivedBlocks.push(block);
-    }
-  }
-
-  // Crash-safe write order: archive first, then rewrite main.
-  if (archivedBlocks.length > 0) {
-    const archiveContent = archivedBlocks.join("\n\n") + "\n\n";
-    await appendFile(archiveFile, archiveContent, "utf8");
-  }
-
-  // Rewrite main file with durable + skipped blocks (order preserved).
-  if (keptBlocks.length > 0) {
-    await writeFile(mainFile, keptBlocks.join("\n\n") + "\n\n", "utf8");
-  } else if (archivedBlocks.length > 0) {
-    // All blocks were archived — truncate main to empty (the data is in archive).
-    await writeFile(mainFile, "", "utf8");
-  }
-
-  const kept = keptBlocks.length - skipped;
-  return { total, kept, archived: archivedBlocks.length, skipped };
+  const { keptBlocks, archivedBlocks, skipped } = classifyBlocks(blocks);
+  await persistCuration(mainFile, archiveFile, keptBlocks, archivedBlocks);
+  return { total: blocks.length, kept: keptBlocks.length - skipped, archived: archivedBlocks.length, skipped };
 }

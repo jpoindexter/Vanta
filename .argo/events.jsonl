@@ -837,3 +837,81 @@
 {"ts":1780772298,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
 {"ts":1780772298,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
 {"ts":1780772298,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780806151,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780806151,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780806151,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780808543,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780808543,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780808543,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780810586,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780810586,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780810587,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780811131,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780811131,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780811131,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780812306,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780812306,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780812306,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780812894,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780812894,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780812894,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780813630,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780813630,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780813630,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780814471,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780814471,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780814471,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780814794,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780814794,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780814794,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780815923,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780815923,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780815923,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780816382,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780816382,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780816382,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780818185,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780818185,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780818185,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780822380,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780822380,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780822380,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780823309,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780823309,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780823309,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780823676,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780823676,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780823676,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780824615,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780824615,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780824615,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780824758,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780824758,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780824758,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780825398,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780825398,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780825398,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780828220,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780828220,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780828220,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780830117,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780830117,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780830117,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780830327,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780830327,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780830327,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780831249,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780831249,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780831249,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780832661,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780832661,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780832661,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780832697,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780832697,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780832697,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780833762,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780833762,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780833762,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
+{"ts":1780833889,"event":"shell_cmd: denied by user: machine/config/credential change requires explicit approval"}
+{"ts":1780833889,"event":"shell_cmd: blocked by safety: destructive file operation violates rule zero"}
+{"ts":1780833889,"event":"inspect_state: [\n  {\n    \"id\": 1,\n    \"text\": \"Ship Vanta v0 agent loop\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n    \"text\": \"Shi"}
