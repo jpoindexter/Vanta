@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { nextMode, APPROVAL_MODES, type ApprovalMode } from "./approval-mode.js";
+import { nextMode, APPROVAL_MODES, MODE_LABEL, type ApprovalMode } from "./approval-mode.js";
 
 describe("nextMode", () => {
-  it("cycles from review to auto", () => {
-    expect(nextMode("review")).toBe("auto");
+  it("cycles from review to accept-edits", () => {
+    expect(nextMode("review")).toBe("accept-edits");
+  });
+
+  it("cycles from accept-edits to auto", () => {
+    expect(nextMode("accept-edits")).toBe("auto");
   });
 
   it("cycles from auto back to review", () => {
@@ -24,5 +28,11 @@ describe("nextMode", () => {
       m = nextMode(m);
     } while (!visited.has(m));
     expect(visited.size).toBe(APPROVAL_MODES.length);
+  });
+
+  it("has a label for every mode in APPROVAL_MODES", () => {
+    for (const m of APPROVAL_MODES) {
+      expect(typeof MODE_LABEL[m]).toBe("string");
+    }
   });
 });

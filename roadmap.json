@@ -3125,7 +3125,7 @@
       "id": "CC-EDIT-MODES",
       "track": "Claude Code parity",
       "title": "Accept-edits mode + full approval cycle",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Vanta's shift+tab cycles only review↔auto. Claude Code cycles default → accept-edits → plan → auto. Add an accept-edits mode (auto-approve file writes/edits + safe FS commands like mkdir/mv, still kernel-gate other shell + destructive ops) and expand the cycle.",
       "done": "Shift+Tab cycles review → accept-edits → plan → auto; in accept-edits, write_file/edit run without prompts while shell/destructive stay kernel-gated; the active mode shows in the status line.",
