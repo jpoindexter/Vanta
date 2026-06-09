@@ -71,7 +71,7 @@ export type AgentOutcome = {
 
 const MAX_CONSECUTIVE_FAILURES = 3;
 // Stop if the model calls the exact same tool with the exact same args this many
-// times in a turn — it's stuck in a rut, not making progress (Hermes guardrail).
+// times in a turn — it's stuck in a rut, not making progress.
 const MAX_IDENTICAL_CALLS = 3;
 
 function callSignature(name: string, args: Record<string, unknown>): string {

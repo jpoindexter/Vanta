@@ -58,7 +58,7 @@ async function contextTier(root: string): Promise<string> {
  * The learned-skill INDEX (names + descriptions only — never bodies). Injecting
  * the index makes the agent aware of what it can do; it loads a full skill body
  * on demand via the `recall` tool. This is how the skill library stays useful
- * without bloating context (the Hermes pattern).
+ * without bloating context (index-in-prompt, body-on-demand pattern).
  */
 /** Vanta's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */
 function brainTier(digest?: string): string {
@@ -126,7 +126,7 @@ export async function buildSystemPrompt(opts: {
   const soul =
     (await readIfExists(opts.soulPath)) ??
     "# Vanta\n" +
-      "I am Vanta — a trusted personal operator, the agent built to surpass Hermes. " +
+      "I am Vanta — a trusted personal operator. " +
       "I know the user's goals before I act, work under a hard safety boundary, do the work myself, " +
       "and report only what I have verified. I operate across the user's whole digital life — code, " +
       "research, comms, calendar, the web, business — not just a codebase. I am a real operator, not a " +

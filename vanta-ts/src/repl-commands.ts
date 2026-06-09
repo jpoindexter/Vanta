@@ -1,7 +1,7 @@
 import { dispatch } from "./repl/handlers.js";
 import type { ReplCtx, SlashResult } from "./repl/types.js";
 
-// Slash commands for the interactive surface — the Hermes/OpenClaw `/` set,
+// Slash commands for the interactive surface — the Vanta `/` set,
 // scoped to what Vanta actually has. The core is `executeSlash`, which RETURNS
 // its output as a string (no console side effects) so both the readline REPL
 // and the Ink TUI can drive it. `runSlashCommand` is the readline wrapper that

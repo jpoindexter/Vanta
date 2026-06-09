@@ -239,7 +239,7 @@ export function consoleCallbacks(): Pick<
   };
 }
 
-const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days, matching Hermes
+const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days
 
 /**
  * Run the skill curator at most once per interval, at session start. Best-effort

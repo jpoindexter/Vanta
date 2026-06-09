@@ -28,8 +28,7 @@ export type Deliver = (text: string) => Promise<void>;
 /**
  * Resolve a `--deliver`-style target into a delivery function. Pure (the
  * returned closure does the I/O). Targets: `local` (stdout), `file:<path>`
- * (append), `telegram:<chatId>` (needs the injected sender). Mirrors Hermes's
- * deliver-anywhere resolver, shared by cron + webhooks.
+ * (append), `telegram:<chatId>` (needs the injected sender). Shared by cron + webhooks.
  */
 export function resolveDeliver(
   target: string,

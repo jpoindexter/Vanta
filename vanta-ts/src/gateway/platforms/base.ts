@@ -1,6 +1,6 @@
 // The messaging-gateway contract. One adapter per platform (Telegram first;
-// Discord/Slack/etc. follow the same shape). Mirrors Hermes's
-// BasePlatformAdapter (connect/disconnect/send) plus a `poll` for pull-based
+// Discord/Slack/etc. follow the same shape). Contract: connect/disconnect/send
+// plus a `poll` for pull-based
 // platforms like Telegram's getUpdates. A pull model fits the gateway's tick
 // loop without a long-lived socket.
 
