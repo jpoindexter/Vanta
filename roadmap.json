@@ -8551,6 +8551,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-POST-COMPACT-RESTORE",
+      "track": "Claude Code parity",
+      "title": "Post-compact file restoration \u2014 re-inject top files and skills after compaction",
+      "status": "next",
+      "size": "M",
+      "summary": "After CC compacts a conversation, it runs a post-compact restoration phase: up to 5 key files are re-read into context (budget: 50K tokens total, 5K per file), and active skills are re-injected (budget: 25K tokens). This prevents the agent from 'forgetting' critical files that were recently edited. `runPostCompactCleanup()` orchestrates this.",
+      "done": "After /compact, the 5 most recently accessed files are automatically re-read into the fresh context. The agent doesn't lose track of the active codebase state.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-API-KEY-HELPER",
+      "track": "Claude Code parity",
+      "title": "API key helper script \u2014 dynamic API key via shell command or project settings",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports `api_key_helper` \u2014 a shell command configured in settings or project config that is executed to dynamically retrieve an API key (e.g. from a vault, 1Password, or credential manager). `getApiKeyFromApiKeyHelperCached()` caches the result with a TTL. `prefetchApiKeyFromApiKeyHelperIfSafe()` warms the cache during startup. Also supports AWS credential export from project settings.",
+      "done": "`api_key_helper: 'op read op://vault/anthropic/key'` in settings.json fetches the API key from 1Password at startup. Cached and refreshed automatically.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
