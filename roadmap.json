@@ -8155,6 +8155,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-API-PRECONNECT",
+      "track": "Claude Code parity",
+      "title": "API preconnect \u2014 pre-warm TCP+TLS during startup for 100-200ms first-request savings",
+      "status": "next",
+      "size": "S",
+      "summary": "CC fires a fire-and-forget fetch to the Anthropic API endpoint during init (after CA certs and proxy are configured), warming the TCP+TLS connection pool before the first real request. Bun's keep-alive pool reuses the connection. In `-p` mode this saves ~100-200ms; in interactive mode the savings are the full 'user is typing' window. Runs AFTER settings.json env vars are applied so proxy/mTLS settings are respected.",
+      "done": "First API request in a session completes 100-200ms faster because the connection was pre-warmed during startup.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PROMPT-EDITOR",
+      "track": "Claude Code parity",
+      "title": "External prompt editor \u2014 open $EDITOR to compose multi-line input",
+      "status": "next",
+      "size": "S",
+      "summary": "CC lets users press a keybinding to open the current prompt input in their external editor (`$VISUAL`, `$EDITOR`, or detected IDE). Supports VS Code (`code -w`), Sublime Text (`subl --wait`), and any GUI editor. Pasted content refs from the editor are expanded back into the prompt on save. Enables composing complex multi-line prompts outside the terminal.",
+      "done": "Pressing the editor keybinding opens the current prompt draft in VS Code. Saving and closing inserts the edited text back into the input.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
