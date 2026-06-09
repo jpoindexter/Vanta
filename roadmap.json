@@ -6218,6 +6218,58 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-RENAME-CMD",
+      "track": "Claude Code parity",
+      "title": "/rename \u2014 auto-generate session title from conversation via Haiku",
+      "status": "next",
+      "size": "S",
+      "summary": "The /rename command prompts for a new title or auto-generates one via Haiku by extracting the key topic from the conversation. Session titles persist across resumes and appear in /session list and the title bar.",
+      "done": "Running /rename without args generates a title; /rename 'custom name' sets it; title persists across resume; shown in session list and status bar.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-STATUS-CMD",
+      "track": "Claude Code parity",
+      "title": "/status \u2014 show version, model, account, API health, tool statuses",
+      "status": "next",
+      "size": "S",
+      "summary": "Quick-status slash command: shows CC version, active model, account type (API key / subscription), API connectivity check, and tool availability. Lighter than /doctor \u2014 instant display, no network health checks.",
+      "done": "Running /status shows version, model name, account type, API connectivity result, and list of enabled tools; output is immediate; no network calls (except API ping).",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-COPY-CMD",
+      "track": "Claude Code parity",
+      "title": "/copy \u2014 copy last response as markdown, HTML, or RTF to clipboard",
+      "status": "next",
+      "size": "S",
+      "summary": "The /copy command copies the last assistant response to the system clipboard in the user's chosen format: plain markdown, rendered HTML, or RTF. Uses OSC clipboard sequence for terminal clipboard access.",
+      "done": "Running /copy shows a format picker; selected format is copied to clipboard; markdown copies raw text; HTML converts markdown to rendered HTML; RTF for rich text editors.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-USAGE-CMD",
+      "track": "Claude Code parity",
+      "title": "/usage \u2014 show claude.ai plan usage and limits",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Shows current claude.ai plan usage and remaining limits (message count, premium usage, token budget). Only available when signed in via Claude.ai OAuth. Shows overage options if limits are reached.",
+      "done": "Running /usage shows current usage vs limits; overage options shown when approaching limits; not available for API-key-only users.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
