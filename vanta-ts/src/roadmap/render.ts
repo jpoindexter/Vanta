@@ -61,7 +61,12 @@ const CSS = `*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:1.5rem}
 h1{font-size:1.4rem;margin-bottom:.4rem}
 .meta{color:#64748b;font-size:.8rem;margin-bottom:1.25rem}
-.filters{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.25rem}
+.filters{display:flex;flex-wrap:wrap;gap:.8rem;margin-bottom:1.25rem;align-items:center}
+.filters label{font-size:.75rem;color:#94a3b8;font-weight:600}
+select{background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:.4rem .65rem;border-radius:4px;cursor:pointer;font-size:.75rem;font-family:system-ui,sans-serif;min-width:120px}
+select:hover{border-color:#475569;color:#cbd5e1}
+select:focus{outline:none;border-color:#3b82f6;color:#fff}
+option{background:#0f172a;color:#e2e8f0;padding:.35rem}
 button{background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:.25rem .65rem;border-radius:4px;cursor:pointer;font-size:.75rem}
 button.active,button:hover{background:#3b82f6;border-color:#3b82f6;color:#fff}
 .board{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
@@ -146,11 +151,13 @@ var tgs=document.querySelectorAll('.tg');
 var cols=document.querySelectorAll('.col');
 var activeTrack='all';
 var activeSize='all';
+var activeModel='all';
 function applyFilters(){
 cards.forEach(function(c){
 var tm=activeTrack==='all'||c.dataset.track===activeTrack;
 var sm=activeSize==='all'||c.dataset.size===activeSize;
-c.classList.toggle('hidden',!(tm&&sm));
+var mm=activeModel==='all'||c.querySelector('.m-'+activeModel);
+c.classList.toggle('hidden',!(tm&&sm&&mm));
 });
 tgs.forEach(function(t){
 var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
@@ -161,36 +168,29 @@ var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.displa
 c.style.display=vis?'':'none';
 });
 }
-document.querySelectorAll('button[data-filter],button[data-track]').forEach(function(btn){
-btn.addEventListener('click',function(){
-document.querySelectorAll('button[data-filter],button[data-track]').forEach(function(b){b.classList.remove('active');});
-this.classList.add('active');
-activeTrack=this.dataset.filter||this.dataset.track||'all';
-applyFilters();
-});
-});
-document.querySelectorAll('button[data-size]').forEach(function(btn){
-btn.addEventListener('click',function(){
-document.querySelectorAll('button[data-size]').forEach(function(b){b.classList.remove('active');});
-this.classList.add('active');
-activeSize=this.dataset.size||'all';
-applyFilters();
-});
-});
+document.getElementById('track-filter').addEventListener('change',function(){activeTrack=this.value;applyFilters();});
+document.getElementById('size-filter').addEventListener('change',function(){activeSize=this.value;applyFilters();});
+document.getElementById('model-filter').addEventListener('change',function(){activeModel=this.value;applyFilters();});
 })();`;
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL"] as const;
+const MODEL_ORDER = ["haiku", "sonnet", "opus"] as const;
 
 export function renderRoadmap(data: Roadmap): string {
-  const tracks = [...new Set(data.items.map((i) => i.track))];
+  const tracks = [...new Set(data.items.map((i) => i.track))].sort();
   const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
+  const models = MODEL_ORDER.filter((m) => data.items.some((i) => i.model === m));
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
-  const trackButtons = tracks
-    .map((t) => `<button data-track="${esc(t)}">${esc(t)}</button>`)
+
+  const trackOptions = tracks
+    .map((t) => `<option value="${esc(t)}">${esc(t)}</option>`)
     .join("");
-  const sizeButtons = sizes
-    .map((s) => `<button data-size="${esc(s)}">${esc(s)}</button>`)
+  const sizeOptions = sizes
+    .map((s) => `<option value="${esc(s)}">${esc(s)}</option>`)
+    .join("");
+  const modelOptions = models
+    .map((m) => `<option value="${esc(m)}">${esc(m)}</option>`)
     .join("");
 
   return `<!DOCTYPE html>
@@ -203,12 +203,21 @@ export function renderRoadmap(data: Roadmap): string {
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
 <div class="filters">
-<button class="active" data-filter="all">All tracks</button>
-${trackButtons}
-</div>
-<div class="filters">
-<button class="active" data-size="all">All sizes</button>
-${sizeButtons}
+<label for="track-filter">Track:</label>
+<select id="track-filter">
+<option value="all">All tracks</option>
+${trackOptions}
+</select>
+<label for="size-filter">Size:</label>
+<select id="size-filter">
+<option value="all">All sizes</option>
+${sizeOptions}
+</select>
+<label for="model-filter">Model:</label>
+<select id="model-filter">
+<option value="all">All models</option>
+${modelOptions}
+</select>
 </div>
 <div class="board">${board}</div>
 <details class="sh-section">
