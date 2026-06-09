@@ -1,7 +1,7 @@
 # Vanta TUI — agent-model.html: shipped
 
 Date: 2026-06-02
-Branch: `feat/v1-hermes-parity` (local commits; **no remote configured** — nothing pushed)
+Branch: `feat/v1-parity` (local commits; **no remote configured** — nothing pushed)
 Goal: implement every screen + workflow in `docs/agent-model.html`, fully wired and working.
 
 ## What shipped (all 6 mockup screens)

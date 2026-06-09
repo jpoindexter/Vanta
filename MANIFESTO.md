@@ -34,8 +34,7 @@ That correction **is** the project. The founding mandate is not "an agent." It i
 
 ## The lineage
 
-- **OpenClaw** — gave agents a *body* (tool execution).
-- **Prior art** — gave agents a *personal runtime* (chat + tools + memory, reactive, advisory safety).
+- **Prior art** — gave agents a *body* (tool execution) and a *personal runtime* (chat + tools + memory, reactive, advisory safety).
 - **Vanta** — a *trusted digital person*: goal-aware, scope-enforced, fully capable, and safe by construction — not by suggestion.
 
 Vanta inherits the breadth and discipline those runtimes established (*"the deliverable is a working artifact backed by real tool output — never fabricate"*). Vanta **hardens** that discipline into a kernel and a contract.

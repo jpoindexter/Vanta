@@ -2,7 +2,7 @@ import { useState, type ReactElement } from "react";
 import { useInput } from "ink";
 import { Overlay, OverlayRow } from "./overlay.js";
 
-// The HITL approval prompt (docs/hermes-model.html tab 6). Replaces the old
+// The HITL approval prompt. Replaces the old
 // inline y/n with a four-option choice. once/deny are always available; session
 // + always-allow only when the gated action carries a tool name to key on
 // (kernel-gated tool calls do; some tool-internal confirmations don't). ↑↓ + ⏎,

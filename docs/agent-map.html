@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hermes Architecture Map — Vanta Reference</title>
+<title>Reference Agent Architecture Map — Vanta Reference</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#e8e8e2;font:14px/1.5 -apple-system,BlinkMacSystemFont,'Inter',monospace;min-height:100vh}
@@ -50,7 +50,7 @@ hr{border:none;border-top:1px solid #1e1e1e;margin:16px 0}
 <body>
 <header>
   <div style="display:flex;align-items:center;gap:12px">
-    <h1>Hermes Architecture Map</h1>
+    <h1>Reference Agent Architecture Map</h1>
     <span>Vanta reference — click any module</span>
   </div>
   <div class="legend">
@@ -331,7 +331,7 @@ const data = {
   run_agent: {
     label: "run_agent.py",
     cat: "improve",
-    desc: "The AIAgent class — the central orchestrator. Owns the conversation loop, spawns subagents, manages profile state, handles scheduling. 4,575 lines. The biggest file.",
+    desc: "The AIAgent class — the central orchestrator in the reference implementation. Owns the conversation loop, spawns subagents, manages profile state, handles scheduling. 4,575 lines. The biggest file.",
     fns: ["run_conversation()", "chat()", "delegate_task()", "spawn_subagent()"],
     vanta: "agent.ts",
     vantaNote: "Vanta's agent loop. Same responsibility, TS. No profile management — one user only. Goal injection happens here.",
@@ -358,7 +358,7 @@ const data = {
   acp_adapter: {
     label: "acp_adapter/",
     cat: "skip",
-    desc: "ACP (Agent Communication Protocol) adapter. Enables Hermes to speak the ACP standard for cross-agent communication. Not relevant for v0.",
+    desc: "ACP (Agent Communication Protocol) adapter. Enables the reference agent to speak the ACP standard for cross-agent communication. Not relevant for v0.",
     fns: [],
     vanta: null,
     vantaNote: "Not built in Vanta v0.",
@@ -371,7 +371,7 @@ const data = {
     fns: ["run_conversation()", "dispatch_tools()", "_compress_if_needed()", "_fire_hooks()"],
     vanta: "agent.ts",
     vantaNote: "Same loop structure, but with three additions: (1) safety assess() before every tool call, (2) goal context injected at startup, (3) verified-output check before declaring done.",
-    why: "Improve: the loop architecture is solid. Missing: goal-awareness, enforced safety gate, verification discipline."
+    why: "Improve: the reference loop architecture is solid. Missing: goal-awareness, enforced safety gate, verification discipline."
   },
   iteration_budget: {
     label: "iteration_budget.py",
@@ -538,10 +538,10 @@ const data = {
   file_safety: {
     label: "file_safety.py",
     cat: "replace",
-    desc: "Advisory blocklist for file operations. Blocks SSH keys, .env files, credential stores via hardcoded list. Explicitly says: 'This is NOT a security boundary' — guards return warnings, callers decide. HERMES_WRITE_SAFE_ROOT env var for scope.",
+    desc: "Advisory blocklist for file operations. Blocks SSH keys, .env files, credential stores via hardcoded list. Explicitly says: 'This is NOT a security boundary' — guards return warnings, callers decide. Write-safe root env var for scope.",
     fns: ["check_write()", "check_read()", "is_blocked_path()"],
     vanta: "Rust safety kernel (safety.rs)",
-    vantaNote: "The Rust kernel IS the security boundary. assess() returns block/ask/allow — the agent cannot bypass it. No 'HERMES_WRITE_SAFE_ROOT' opt-in needed.",
+    vantaNote: "The Rust kernel IS the security boundary. assess() returns block/ask/allow — the agent cannot bypass it. No write-safe-root opt-in needed.",
     why: "Replace: advisory safety is not safety. Vanta enforces scope via the kernel on every single tool call."
   },
   tool_result_classification: {
@@ -556,19 +556,19 @@ const data = {
   skill_commands: {
     label: "skill_commands.py",
     cat: "steal",
-    desc: "Skills are markdown files with YAML frontmatter at ~/.hermes/skills/<name>/SKILL.md. Slash commands mapped to skill slugs. Inline shell expansion and template variable substitution. 24 symbols.",
+    desc: "Skills are markdown files with YAML frontmatter. Slash commands mapped to skill slugs. Inline shell expansion and template variable substitution. 24 symbols.",
     fns: ["load_skill()", "list_skills()", "skill_view()", "resolve_command_key()"],
     vanta: "~/.vanta/skills/ (v1)",
-    vantaNote: "Same pattern. ~/.vanta/skills/<name>/SKILL.md. Same YAML frontmatter. Builds on Hermes's format — cross-compatible.",
+    vantaNote: "Same pattern. ~/.vanta/skills/<name>/SKILL.md. Same YAML frontmatter as reference implementation.",
     why: null
   },
   skill_bundles: {
     label: "skill_bundles.py",
     cat: "steal",
-    desc: "Groups skills into named bundles via YAML files at ~/.hermes/skill-bundles/*.yaml. Bundle wins over individual skill on name conflict. Cheap disk-change-aware caching. 28 symbols.",
+    desc: "Groups skills into named bundles via YAML files. Bundle wins over individual skill on name conflict. Cheap disk-change-aware caching. 28 symbols.",
     fns: ["get_skill_bundles()", "resolve_bundle_command_key()", "build_bundle_invocation_message()"],
     vanta: "~/.vanta/skill-bundles/ (v1)",
-    vantaNote: "Same format. Cross-compatible bundles with Hermes.",
+    vantaNote: "Same bundle format as reference implementation.",
     why: null
   },
   curator: {

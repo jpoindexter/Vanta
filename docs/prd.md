@@ -22,7 +22,7 @@ Vanta is not a chatbot. Not a dashboard. Not a wrapper.
 Vanta is a full-capability personal operator agent with one structural advantage over everything that came before: it knows the goal before it picks a tool, enforces scope on every action, and reports only what it actually verified.
 
 **The lineage:**
-- OpenClaw → gave agents a body (tool execution)
+- Prior art → gave agents a body (tool execution)
 - Prior agent → gave agents a personal runtime (chat + tools + memory, reactive)
 - Vanta → a real digital person (goal-aware, scope-enforced, fully capable, trusted)
 

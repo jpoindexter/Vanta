@@ -2,7 +2,7 @@ import { type ReactElement, type ReactNode } from "react";
 import { Box, Text } from "ink";
 
 // Shared chrome for the floating pickers (sessions, model, approval) — the
-// bordered overlay box from docs/hermes-model.html: a colored title, a hint
+// Bordered overlay box: a colored title, a hint
 // line, the rows, and a key-legend footer. Each picker owns its own keyboard
 // handling and selection; this is purely the frame so the three surfaces look
 // identical without copy-pasting the layout.

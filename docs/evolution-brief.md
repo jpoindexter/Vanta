@@ -14,7 +14,7 @@ The goal is not to add more tools. The goal is to make Vanta behave like command
 
 Repository: `jpoindexter/Vanta`
 
-Active branch: `feat/v1-hermes-parity`
+Active branch: `feat/v1`
 
 Current high-level status:
 

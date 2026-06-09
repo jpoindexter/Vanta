@@ -2,8 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { ApprovalMode } from "./approval-mode.js";
 
-// The live status bar — the bottom readout that mirrors docs/hermes-model.html
-// tab 4. Shows run state, active model, an estimated context fill (with a bar),
+// The live status bar — the bottom readout. Shows run state, active model, an estimated context fill (with a bar),
 // and elapsed turn time. Cost and exact token usage are intentionally absent:
 // Vanta's providers don't surface usage data yet, so showing "$0.0021" would be
 // invented precision. Tokens are an estimate, marked with a leading ~.

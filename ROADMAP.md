@@ -73,7 +73,7 @@ skills, prunes them safely) → it's reachable as a background service you can t
 - [x] **C1 · Session persist + resume** (M) — **file-based** (`~/.vanta/sessions/<id>.json`, id `YYYYMMDD-HHMMSS`), not SQLite — dependency-free + git-versionable, consistent with skills/memory (avoids Node's flagged experimental `node:sqlite`). `sessions/store.ts` (zod-validated round-trip), `createConversation(...,{history})` seeds prior turns + fresh system prompt, `vanta sessions` lists newest-first, `vanta resume <id>` / `vanta --resume <id>` rehydrates. Saved after every turn. Bonus: fixed REPL Ctrl+D/EOF to exit cleanly instead of erroring.
 
 ### D — Borrow the skills library  ← ✅ SHIPPED 2026-06-02
-- [x] **D1 · Port skills** (M) — 10 high-value skills ported into bundled `vanta-ts/skills-library/` (coupling stripped: env vars renamed to `VANTA_*`, `delegate_task`→delegate subagent, external-agent-specific TUI/kanban removed), with `vanta skills install [--force]` → idempotent, non-destructive copy into `~/.vanta/skills/` (`skills/library.ts`). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, gstack-openclaw-retro. Live-verified install (10/10).
+- [x] **D1 · Port skills** (M) — 10 high-value skills ported into bundled `vanta-ts/skills-library/` (coupling stripped: env vars renamed to `VANTA_*`, `delegate_task`→delegate subagent, external-agent-specific TUI/kanban removed), with `vanta skills install [--force]` → idempotent, non-destructive copy into `~/.vanta/skills/` (`skills/library.ts`). Ported: systematic-debugging, test-driven-development, writing-plans, requesting-code-review, spike, humanizer, github-pr-workflow, claude-design, duckduckgo-search, build-retro. Live-verified install (10/10).
 - [ ] **D2 · Skill bundles** (S) — adopt a YAML bundle schema (`name`/`description`/`skills:[]`/`instruction`) so one `/slash` loads several skills. *Why:* composite operator commands. (Pending — not blocking.)
 
 ### E — Autonomy & reach  ← daemon is the keystone (E1 shipped; E2–E6 pending)
@@ -285,7 +285,7 @@ Synthesized from improvement dumps + the Vanta Brand Style Guide. **Key truth: m
 
 **Research (verify before building — expect high existing coverage):**
 - [x] **USE-CASE-AUDIT** (S) — map 262 use cases → Vanta's 45 tools → coverage matrix; surface only genuine gaps.
-- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (see `docs/feature-audit.md`). *(horizon)*
+- [ ] **CODEBASE-MINE** (M) — targeted read of reference agent codebases for specific stealable patterns (see `docs/feature-audit.md`). *(horizon)*
 - [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard). *(horizon)*
 
 **Gated:** SCRUB-AI (run last, force-push gated) · DESKTOP (horizon; OPERATOR-DASHBOARD is its seed).
