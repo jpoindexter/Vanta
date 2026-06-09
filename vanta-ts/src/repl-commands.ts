@@ -25,14 +25,21 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
   const [cmd, ...rest] = input.slice(1).split(/\s+/);
   const name = cmd ?? "";
   const arg = rest.join(" ").trim();
+  // Check for a skill BEFORE dispatching so collision detection can warn.
+  const skill = name ? await readSkill(name, ctx.env) : null;
   const result = await dispatch(name, arg, ctx);
-  if (result) return result;
+  if (result) {
+    // Built-in wins. Warn if a same-named skill exists so the user knows it's shadowed.
+    if (skill) {
+      return { ...result, output: `  ⚠ /${name} matches an installed skill but the built-in command takes precedence.\n${result.output ?? ""}`.trimEnd() };
+    }
+    return result;
+  }
 
   // Generic skill aliases: if `/hill-climb` matches a stored skill, treat it as
   // `vanta skill hill-climb`. With an argument, run a normal agent turn primed
   // by the skill body; with no argument, print the skill so the user can inspect
   // it. Explicit HANDLERS above always win, so built-in slash commands are stable.
-  const skill = name ? await readSkill(name, ctx.env) : null;
   if (skill) {
     if (!arg) return { output: `# ${skill.meta.name}\n\n${skill.body}` };
     return { resend: `${skill.body}\n\n${arg}` };

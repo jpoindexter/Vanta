@@ -1,18 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { planMode, PLAN_MARKER } from "./plan-mode.js";
-import type { ReplCtx } from "./types.js";
+import type { ReplCtx, ReplState } from "./types.js";
 
-function makeCtx(systemContent = "You are Vanta."): { ctx: ReplCtx; sys: { role: string; content: string } } {
+function makeCtx(systemContent = "You are Vanta."): {
+  ctx: ReplCtx;
+  sys: { role: string; content: string };
+  state: ReplState;
+} {
   const sys = { role: "system", content: systemContent };
+  const state = { sessionId: "s1", started: "", turnIndex: 0 } as ReplState;
   const ctx = {
     convo: { messages: [sys] },
+    state,
   } as unknown as ReplCtx;
-  return { ctx, sys };
+  return { ctx, sys, state };
 }
 
 describe("planMode handler", () => {
   it("returns unavailable when there is no system message", () => {
-    const ctx = { convo: { messages: [] } } as unknown as ReplCtx;
+    const state = { sessionId: "s1", started: "", turnIndex: 0 } as ReplState;
+    const ctx = { convo: { messages: [] }, state } as unknown as ReplCtx;
     const result = planMode("", ctx);
     expect((result as { output: string }).output).toContain("unavailable");
   });
@@ -56,5 +63,36 @@ describe("planMode handler", () => {
     const { ctx } = makeCtx();
     const result = planMode("off", ctx); // already off
     expect((result as { output: string }).output).toContain("already OFF");
+  });
+
+  it("sets planApproved false when turning on", () => {
+    const { ctx, state } = makeCtx();
+    state.planApproved = true; // pre-approved from a previous session action
+    planMode("on", ctx);
+    expect(state.planApproved).toBe(false);
+  });
+
+  it("approves plan with 'approve' arg", () => {
+    const { ctx, state } = makeCtx();
+    planMode("on", ctx);
+    expect(state.planApproved).toBe(false);
+    const result = planMode("approve", ctx);
+    expect((result as { output: string }).output).toContain("approved");
+    expect(state.planApproved).toBe(true);
+  });
+
+  it("returns error when approving without plan mode on", () => {
+    const { ctx } = makeCtx();
+    const result = planMode("approve", ctx);
+    expect((result as { output: string }).output).toContain("not active");
+  });
+
+  it("resets planApproved when turning off", () => {
+    const { ctx, state } = makeCtx();
+    planMode("on", ctx);
+    planMode("approve", ctx);
+    expect(state.planApproved).toBe(true);
+    planMode("off", ctx);
+    expect(state.planApproved).toBe(false);
   });
 });

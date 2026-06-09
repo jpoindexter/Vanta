@@ -31,7 +31,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "update", desc: "git pull the latest Vanta (then ./install.sh to rebuild)" },
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
-  { name: "planmode", arg: "[on|off]", desc: "toggle plan-first mode — Vanta plans + confirms before acting" },
+  { name: "planmode", arg: "[on|off|approve]", desc: "enforced plan mode — write tools blocked until /planmode approve" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
   { name: "wm", arg: "[note]", desc: "view or add to session working memory (cleared each session)" },
@@ -52,6 +52,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "verify", desc: "run the app and confirm a change actually works" },
   { name: "run", desc: "launch and drive this project's app" },
   { name: "add-dir", arg: "<path>", desc: "add a directory to this session's readable/writable scope" },
+  { name: "routes", desc: "show provider routing config (main + named VANTA_ROUTE_* overrides)" },
   { name: "exit", desc: "leave the session" },
 ];
 
