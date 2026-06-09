@@ -9,6 +9,25 @@ import type { DiffLine } from "../util/diff.js";
 
 const SINGLE_LINE_MAX = 60;
 
+// CC-COLLAPSED-READ: short outputs (≤ INLINE_MAX lines) always show inline;
+// longer outputs fold behind ^O and show at most FOLD_PREVIEW lines when expanded.
+export const INLINE_MAX = 5;
+export const FOLD_PREVIEW = 12;
+
+/**
+ * Compute the display preview for a tool result: capture up to FOLD_PREVIEW
+ * lines and return both the preview text and the total line count. Returns
+ * undefined when output is empty. Pure — no side effects.
+ */
+export function buildResultPreview(output: string): { preview: string; lineCount: number } | undefined {
+  const trimmed = output.trimEnd();
+  if (!trimmed) return undefined;
+  const lines = trimmed.split("\n");
+  const lineCount = lines.length;
+  const preview = lines.slice(0, FOLD_PREVIEW).join("\n");
+  return { preview, lineCount };
+}
+
 /**
  * A compact magnitude for a tool result: `254 lines` for multi-line output, the
  * line itself for a short single line (e.g. `exit 0`), `N chars` for a long
