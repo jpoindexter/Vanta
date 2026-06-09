@@ -27,8 +27,8 @@ function routing(item: RoadmapItem): string {
 }
 
 function card(item: RoadmapItem): string {
-  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}" data-size="${esc(item.size)}" data-tier="${esc(item.tier ?? "")}">
-<div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span><span class="trk">${esc(item.track)}</span></div>
+  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}" data-size="${esc(item.size)}" data-tier="${esc(item.tier ?? "")}" data-lens="${esc(item.lens ?? "")}">
+<div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span>${item.lens ? `<span class="lens l-${esc(item.lens)}">${esc(item.lens)}</span>` : ""}<span class="trk">${esc(item.track)}</span></div>
 ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 <p class="sum">${esc(item.summary)}</p>
 <details><summary>Done criteria</summary><p class="done">${esc(item.done)}</p></details>
@@ -91,6 +91,15 @@ h2.s-shipped{color:#475569;border-left-color:#475569}
 .sz{background:transparent;border:1px solid #1e2737;font-size:.62rem;padding:.1rem .3rem;color:#3e4a5c;flex-shrink:0;font-family:ui-monospace,monospace}
 .ttl{font-size:.82rem;font-weight:600;flex:1;line-height:1.3;color:#dce0e8}
 .trk{font-size:.6rem;color:#3e4a5c;flex-shrink:0;max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace}
+.lens{font-size:.56rem;padding:.05rem .3rem;flex-shrink:0;font-family:ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase;border:1px solid}
+.l-agent-loop{color:#f59e0b;border-color:#4a3408;background:#171002}
+.l-tui{color:#60a5fa;border-color:#1e3a5c;background:#0a1320}
+.l-memory{color:#c084fc;border-color:#3a2452;background:#140a1f}
+.l-reach{color:#4ade80;border-color:#1e4a32;background:#08160e}
+.l-selfhood{color:#f472b6;border-color:#5a2440;background:#1a0810}
+.l-coding{color:#5e6e82;border-color:#1e2737;background:#0d1117}
+.l-infra{color:#7a8898;border-color:#2a323e;background:#10141b}
+.l-cosmetic{color:#475569;border-color:#1e2737;background:#0d1117}
 .sum{font-size:.73rem;color:#5e6e82;line-height:1.5;margin-bottom:.35rem}
 details>summary{font-size:.68rem;color:#3e4a5c;cursor:pointer;list-style:none;padding:.15rem 0;font-family:ui-monospace,monospace}
 details>summary::marker,details>summary::-webkit-details-marker{display:none}
@@ -153,13 +162,15 @@ var activeTrack='all';
 var activeSize='all';
 var activeModel='all';
 var activePriority='all';
+var activeLens='all';
 function applyFilters(){
 cards.forEach(function(c){
 var tm=activeTrack==='all'||c.dataset.track===activeTrack;
 var sm=activeSize==='all'||c.dataset.size===activeSize;
 var mm=activeModel==='all'||c.querySelector('.m-'+activeModel);
 var pm=activePriority==='all'||c.dataset.tier===activePriority;
-c.classList.toggle('hidden',!(tm&&sm&&mm&&pm));
+var lm=activeLens==='all'||c.dataset.lens===activeLens;
+c.classList.toggle('hidden',!(tm&&sm&&mm&&pm&&lm));
 });
 tgs.forEach(function(t){
 var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
@@ -170,6 +181,7 @@ var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.displa
 c.style.display=vis?'':'none';
 });
 }
+document.getElementById('lens-filter').addEventListener('change',function(){activeLens=this.value;applyFilters();});
 document.getElementById('track-filter').addEventListener('change',function(){activeTrack=this.value;applyFilters();});
 document.getElementById('size-filter').addEventListener('change',function(){activeSize=this.value;applyFilters();});
 document.getElementById('model-filter').addEventListener('change',function(){activeModel=this.value;applyFilters();});
@@ -185,6 +197,28 @@ const PRIORITY_LABEL: Record<string, string> = {
   sand: "Sand (quick wins)",
 };
 
+// Ordered most-to-least Hermes-strategic so the dropdown reads as a priority list.
+const LENS_ORDER = [
+  "agent-loop",
+  "tui",
+  "memory",
+  "reach",
+  "selfhood",
+  "infra",
+  "coding",
+  "cosmetic",
+] as const;
+const LENS_LABEL: Record<string, string> = {
+  "agent-loop": "Agent loop (autonomy)",
+  tui: "TUI (display)",
+  memory: "Memory + context",
+  reach: "Reach (comms/senses)",
+  selfhood: "Selfhood + EF",
+  infra: "Infra + setup",
+  coding: "Coding harness",
+  cosmetic: "Cosmetic",
+};
+
 function buildOptions(values: string[], labels?: Record<string, string>): string {
   return values.map((v) => `<option value="${esc(v)}">${esc(labels?.[v] ?? v)}</option>`).join("");
 }
@@ -194,6 +228,7 @@ export function renderRoadmap(data: Roadmap): string {
   const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
   const models = MODEL_ORDER.filter((m) => data.items.some((i) => i.model === m));
   const priorities = PRIORITY_ORDER.filter((p) => data.items.some((i) => i.tier === p));
+  const lenses = LENS_ORDER.filter((l) => data.items.some((i) => i.lens === l));
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
 
@@ -207,6 +242,11 @@ export function renderRoadmap(data: Roadmap): string {
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
 <div class="filters">
+<label for="lens-filter">Lens:</label>
+<select id="lens-filter">
+<option value="all">All lenses</option>
+${buildOptions(lenses, LENS_LABEL)}
+</select>
 <label for="priority-filter">Priority:</label>
 <select id="priority-filter">
 <option value="all">All priorities</option>
