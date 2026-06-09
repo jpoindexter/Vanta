@@ -8486,6 +8486,19 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PLUGIN-CLI",
+      "track": "Claude Code parity",
+      "title": "`claude plugin` CLI \u2014 install/uninstall/enable/disable/update plugins from terminal",
+      "status": "next",
+      "size": "M",
+      "summary": "CC has a `claude plugin` subcommand with operations: `install <name@marketplace>`, `uninstall <name>`, `enable <name>`, `disable <name>`, `update [name]`. Pure library functions in `pluginOperations.ts` power both the CLI and the interactive ManagePlugins.tsx UI. Non-interactive mode (CI/scripts) supported.",
+      "done": "`claude plugin install pylsp@agent-skills` installs and activates the LSP plugin. `claude plugin disable pylsp` disables it without removing. `claude plugin update` updates all.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
