@@ -9,6 +9,17 @@ const TEMP_MARKERS = ["/var/folders", "/tmp/", "NSIRD", "/T/"];
 
 const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
+/**
+ * CC-BASH-COMMENT-LABEL: extract the display label from the first `# label`
+ * comment line of a shell command. Returns null when the command has no comment.
+ */
+export function bashLabel(cmd: string): string | null {
+  const first = (cmd.trim().split("\n")[0] ?? "").trim();
+  if (!first.startsWith("#")) return null;
+  const label = first.slice(1).trim();
+  return label || null;
+}
+
 /** Abbreviate a path: temp dirs → basename, $HOME → ~, deep paths → …/last/two. */
 export function abbrevPath(p: string): string {
   if (!p) return "";
@@ -54,8 +65,10 @@ export function toolDisplay(name: string, args: Record<string, unknown>): ToolDi
       return { icon: "📖", verb: "read", detail: abbrevPath(str("path")) };
     case "write_file":
       return { icon: "✎", verb: "wrote", detail: abbrevPath(str("path")) };
-    case "shell_cmd":
-      return { icon: "❯", verb: "ran", detail: trunc(str("command"), 60) };
+    case "shell_cmd": {
+      const label = bashLabel(str("command"));
+      return { icon: "❯", verb: "ran", detail: label ?? trunc(str("command"), 60) };
+    }
     case "run_code":
       return { icon: "▶", verb: "ran", detail: str("language") };
     case "web_search":
