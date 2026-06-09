@@ -8116,6 +8116,45 @@
       "model": "opus",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-EXAMPLE-COMMANDS",
+      "track": "Claude Code parity",
+      "title": "Smart first-run example commands \u2014 git-history-aware prompt suggestions on empty input",
+      "status": "next",
+      "size": "S",
+      "summary": "On first launch or empty-state input, CC generates contextual example commands by sampling from git history (recent commit messages, changed files) filtered through a pattern list that removes lock files, build artifacts, generated files, and config. Examples like 'Explain the changes in <recent-file>.ts' are shown as tappable suggestions instead of generic placeholder text.",
+      "done": "Empty input shows 3-4 smart example commands drawn from the current repo's git history. They update per-project, not per-install.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SHELL-COMPLETION-INSTALL",
+      "track": "Claude Code parity",
+      "title": "Shell completion install \u2014 add `claude` tab-completion to bash/zsh/fish rc files",
+      "status": "next",
+      "size": "S",
+      "summary": "CC generates and caches shell completion scripts for bash, zsh, and fish, then installs them into the user's shell rc file. Completions are cached to disk (per theme/shell) and only regenerated when the theme or version changes. Enables tab-completing `claude` subcommands and flags in the terminal.",
+      "done": "`claude --install-completions` adds completion source to ~/.bashrc. Tab-completing `claude r` offers `run`, `resume`, `review`, etc.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AUTO-ISSUE",
+      "track": "Claude Code parity",
+      "title": "Auto-run /issue \u2014 proactive GitHub issue creation with ESC cancellation window",
+      "status": "next",
+      "size": "S",
+      "summary": "When CC detects conditions that warrant filing a GitHub issue (bug, unexpected behavior), it shows an `AutoRunIssueNotification` banner proposing to auto-run `/issue`. The user has a brief window to press ESC to cancel; otherwise the issue command runs automatically. The banner shows the reason for the proposed issue.",
+      "done": "After a crash or repeated error, a banner appears: 'Running /issue: unexpected tool failure [ESC to cancel]'. On ESC timeout, `/issue` runs and opens a draft in the browser.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
