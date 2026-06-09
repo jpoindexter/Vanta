@@ -190,8 +190,8 @@ export async function runChat(
     if (outcome.usage) {
       // COST-VISIBLE: tokens + latency + cost per turn; accumulate the session split.
       const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
-      console.log(`  ${formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - t0, cost)}`);
-      state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost);
+      console.log(`  ${formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - t0, cost, outcome.tokensSaved)}`);
+      state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
     }
     // AUTO-HANDOFF: write a resume block when context crosses the threshold (note once).
     const ah = await maybeAutoHandoff({

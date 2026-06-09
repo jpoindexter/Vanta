@@ -4,7 +4,7 @@ The blueprint. This traces how Hermes actually runs end-to-end (entry → loop �
 subsystems) and maps each step to Vanta's implementation + status. Build Vanta to
 this flow, not to a feature list.
 
-`docs/hermes-map.html` is the *component* inventory (symbol → Vanta equivalent).
+`docs/agent-map.html` is the *component* inventory (symbol → Vanta equivalent).
 This is the *flow*: how those components connect at runtime.
 
 ---

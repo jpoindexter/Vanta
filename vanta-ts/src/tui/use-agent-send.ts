@@ -77,8 +77,8 @@ export function useAgentSend(
         if (outcome.usage) {
           // COST-VISIBLE: tokens + latency + cost; accumulate the session split on ReplState.
           const cost = estimateCostUsd(process.env.VANTA_MODEL ?? "", outcome.usage.inputTokens, outcome.usage.outputTokens);
-          dispatch({ t: "note", text: formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - turnStartRef.current, cost) });
-          replStateRef.current.sessionCost = addTurnCost(replStateRef.current.sessionCost, process.env.VANTA_PROVIDER, cost);
+          dispatch({ t: "note", text: formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - turnStartRef.current, cost, outcome.tokensSaved) });
+          replStateRef.current.sessionCost = addTurnCost(replStateRef.current.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
         }
         // AUTO-HANDOFF: write a resume block when context crosses the threshold (note once).
         void maybeAutoHandoff({

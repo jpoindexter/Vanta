@@ -24,7 +24,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1822 tests + type
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-09):** v1 complete; roadmap-grind in progress on `feat/v1-hermes-parity`. **1822 TS + 27 Rust tests green; 46 tools.** Recent: COMPRESS-NATIVE (in-house context compression, zero-dep TS), self-locating global launcher. Still open: EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD · VISION-COMPARE · AUX-MAP · AUTO-ROUTER. Gated on Jason: SCRUB-AI · VOICE-NATURAL. Horizon: DESKTOP. Per-card detail in `roadmap.json`.
+> **Status (2026-06-09):** v1 complete; roadmap-grind in progress on `main`. **1822 TS + 27 Rust tests green; 46 tools.** Recent: COMPRESS-NATIVE (in-house context compression, zero-dep TS), self-locating global launcher. Still open: EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD · VISION-COMPARE · AUX-MAP · AUTO-ROUTER. Gated on Jason: SCRUB-AI · VOICE-NATURAL. Horizon: DESKTOP. Per-card detail in `roadmap.json`.
 
 ## Key files
 
@@ -38,7 +38,7 @@ vanta                                          # launch TUI (TTY) or readline RE
 
 ## Active branch
 
-`feat/v1-hermes-parity` — all work happens here. Every slice: real code + co-located test + tsc/cargo clean + `git commit` + `git push`. No exceptions.
+`main` — all work happens here. Every slice: real code + co-located test + tsc/cargo clean + `git commit` + `git push`. No exceptions.
 
 ## Safety rules (non-negotiable)
 

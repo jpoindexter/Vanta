@@ -1,6 +1,6 @@
 # Vanta Desktop App Completion Plan
 
-Purpose: give Claude/Cursor a clear implementation plan to turn Vanta’s rough Hermes-shaped local web shell into a real, functional desktop app.
+Purpose: give Claude/Cursor a clear implementation plan to turn Vanta’s local web shell into a real, functional desktop app.
 
 Repo:
 
@@ -38,7 +38,7 @@ http://127.0.0.1:7790
 
 The current desktop implementation is only a rough local web shell. It has some real Vanta wiring, but it is not a complete desktop app.
 
-The target is a real Vanta desktop interface inspired by Hermes desktop, but better aligned with Vanta’s identity:
+The target is a real Vanta desktop interface targeting a full desktop experience, better aligned with Vanta’s identity:
 
 - native desktop shell
 - session sidebar
@@ -53,36 +53,36 @@ The target is a real Vanta desktop interface inspired by Hermes desktop, but bet
 - memory/goals/plan visibility
 - Vanta safety kernel enforced everywhere
 
-Important: do **not** make a generic dashboard. Jason specifically rejected that. Match Hermes’ actual interaction model first, then improve it with Vanta’s operator/dossier aesthetic and stronger safety.
+Important: do **not** make a generic dashboard. Jason specifically rejected that. Match a full interaction model first, then improve it with Vanta’s operator/dossier aesthetic and stronger safety.
 
 ---
 
 ## Reference app to inspect first
 
-Hermes reference is already in the repo:
+The reference implementation is in the repo:
 
 ```text
-reference/hermes-upstream/apps/desktop
-reference/hermes-upstream/ui-tui
+reference/apps/desktop
+reference/ui-tui
 ```
 
-Important Hermes files to inspect:
+Reference files:
 
 ```text
-reference/hermes-upstream/apps/desktop/package.json
-reference/hermes-upstream/apps/desktop/src/app/desktop-controller.tsx
-reference/hermes-upstream/apps/desktop/src/app/shell/app-shell.tsx
-reference/hermes-upstream/apps/desktop/src/app/chat/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/chat/sidebar/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/chat/right-rail/preview-pane.tsx
-reference/hermes-upstream/apps/desktop/src/app/command-palette/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/command-center/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/settings/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/skills/index.tsx
-reference/hermes-upstream/apps/desktop/src/app/right-sidebar/terminal/persistent.tsx
+reference/apps/desktop/package.json
+reference/apps/desktop/src/app/desktop-controller.tsx
+reference/apps/desktop/src/app/shell/app-shell.tsx
+reference/apps/desktop/src/app/chat/index.tsx
+reference/apps/desktop/src/app/chat/sidebar/index.tsx
+reference/apps/desktop/src/app/chat/right-rail/preview-pane.tsx
+reference/apps/desktop/src/app/command-palette/index.tsx
+reference/apps/desktop/src/app/command-center/index.tsx
+reference/apps/desktop/src/app/settings/index.tsx
+reference/apps/desktop/src/app/skills/index.tsx
+reference/apps/desktop/src/app/right-sidebar/terminal/persistent.tsx
 ```
 
-Hermes desktop shape:
+Target desktop shape:
 
 - Electron shell
 - left session sidebar
@@ -101,7 +101,7 @@ Hermes desktop shape:
 
 ## Non-negotiable Vanta constraints
 
-Vanta is not Hermes. Vanta has a Rust safety kernel and every action must respect it.
+Vanta has a Rust safety kernel and every action must respect it.
 
 ### Safety rules
 
@@ -197,7 +197,7 @@ Current problems:
 - minimal tests
 - no serious UI polish
 - single global server state
-- not enough like Hermes yet
+- desktop feature set incomplete
 
 ---
 
@@ -205,11 +205,11 @@ Current problems:
 
 Build this in layers. Do not try to ship everything in one unverified patch.
 
-Recommended direction: **Electron first** for fastest Hermes parity.
+Recommended direction: **Electron first** for fastest feature parity.
 
 Why Electron:
 
-- Hermes uses Electron.
+- Electron is the proven choice.
 - Easier preview webview.
 - Easier `node-pty` terminal.
 - Easier native menus/window controls.
@@ -520,8 +520,6 @@ MessagingView
 
 ### Layout target
 
-Match Hermes:
-
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │ titlebar / model / command controls                         │
@@ -547,7 +545,7 @@ Use Jason’s preferred technical/operator style:
 - compact status labels
 - clear approval states
 
-Do not copy Hermes branding. Copy the interaction model.
+Copy the interaction model. Do not build generic SaaS branding.
 
 Acceptance:
 
@@ -724,7 +722,7 @@ Tests:
 
 # Phase 7 — Terminal rail / PTY
 
-Goal: real terminal rail like Hermes, but Vanta-safe.
+Goal: real terminal rail, Vanta-safe.
 
 Current terminal:
 
@@ -781,7 +779,7 @@ Acceptance phase 1:
 
 # Phase 8 — Preview rail
 
-Goal: preview apps/files like Hermes.
+Goal: real preview rail for apps/files.
 
 Current:
 
@@ -831,7 +829,7 @@ Acceptance:
 
 # Phase 9 — Command palette
 
-Goal: real fuzzy command palette like Hermes/VS Code.
+Goal: real fuzzy command palette like VS Code.
 
 Current:
 
@@ -1158,7 +1156,7 @@ Manual smoke tests:
 Jason should be able to say:
 
 - “This feels like a real app, not a webpage.”
-- “It works like Hermes structurally.”
+- “It works like a proper desktop agent, not a webpage.”
 - “It looks like Vanta, not generic SaaS.”
 - “I can see what Vanta is doing.”
 - “Risky actions clearly ask me.”
@@ -1178,9 +1176,8 @@ Do not:
 - bypass the kernel for terminal/file operations
 - fake usage/cost metrics
 - silently auto-approve actions
-- copy Hermes branding
 - build a generic admin dashboard
-- ignore Jason’s correction that it must function like Hermes
+- ignore Jason’s requirement that it must function like a real desktop agent
 
 ---
 
@@ -1188,7 +1185,7 @@ Do not:
 
 A native Vanta desktop app with:
 
-- Hermes-like interaction model
+- full desktop interaction model
 - Vanta operator/dossier aesthetic
 - safe approval-first action flow
 - session continuity

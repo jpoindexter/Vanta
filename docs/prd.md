@@ -4,12 +4,12 @@
 
 Vanta is a personal AI operator — a real digital person that knows your goals, acts safely, learns from experience, and can do everything a smart operator would do across code, research, comms, calendar, and business work.
 
-> **Status (2026-06-02): v0 complete → building v1 (Full Hermes Parity).**
+> **Status (2026-06-02): v0 complete → building v1.**
 > All 7 original phases below are **done** (32 tools, 290 tests green) — that's v0,
 > "has all the parts." v1 makes Vanta *feel and work* like a full personal agent:
 > hook to any model (ChatGPT/Claude/Gemini/local/OpenRouter) via a first-run wizard,
 > remember conversations across sessions, learn from what it does (self-improvement
-> loop), borrow Hermes's skill library, and run as a service you can text.
+> loop), borrow the bundled skill library, and run as a service you can text.
 > **Ordered v1 build list + sequencing: see [`../ROADMAP.md`](../ROADMAP.md).**
 > The phase roadmap in this PRD is the historical v0 record.
 
@@ -23,10 +23,10 @@ Vanta is a full-capability personal operator agent with one structural advantage
 
 **The lineage:**
 - OpenClaw → gave agents a body (tool execution)
-- Hermes → gave agents a personal runtime (chat + tools + memory, reactive)
+- Prior agent → gave agents a personal runtime (chat + tools + memory, reactive)
 - Vanta → a real digital person (goal-aware, scope-enforced, fully capable, trusted)
 
-**What Hermes users are asking for** (from open issues, by demand):
+**What users are asking for** (from open issues, by demand):
 - Better web search with privacy options — SerpAPI, Searxng, Brave (95 combined reactions)
 - Clean accessible UI (40 reactions)
 - Cross-agent communication / subagent delegation (46 reactions)
@@ -86,7 +86,7 @@ Every file operation, shell command, and external call is gated through the safe
 Risky operations enter the approval queue before execution. Jason approves interactively or async via the cockpit.
 
 ### 6. Learns from experience
-After completing complex tasks, Vanta creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. This also solves the Hermes backup problem: version control is built in.
+After completing complex tasks, Vanta creates skill files that encode what worked. Skills are plain markdown — readable, editable, git-versioned. Skills are version-controlled by design: no extra backup step needed.
 
 ### 7. Privacy-first by default
 Web search defaults to DuckDuckGo (no API key, no tracking). Self-hosted Searxng is the recommended power-user option. Cloud providers (SerpAPI, Brave) are opt-in.
@@ -148,7 +148,7 @@ Out of scope: memory persistence, skills, web search, browser.
 **Done when:** Vanta remembers what it did toward a goal across sessions. After a complex task, it creates a skill file. A week later, it recalls and applies that skill automatically.
 
 Delivers:
-- **Skills system** — `~/.vanta/skills/<name>/SKILL.md` (markdown + YAML frontmatter, cross-compatible with Hermes format)
+- **Skills system** — `~/.vanta/skills/<name>/SKILL.md` (markdown + YAML frontmatter, portable format)
 - **Slash commands** — `/skills`, `/skill <name>` list and invoke skills
 - **Curator** — background maintenance: consolidate overlapping skills, archive stale (30d inactive), remove old (90d)
 - **Memory** — per-goal session summaries in `~/.vanta/memories/<goal-id>.md`
@@ -163,7 +163,7 @@ Delivers:
 ### Phase 2B — Web Search ← moved up from Phase 3
 **Done when:** `vanta run "research the latest on X and summarize"` returns a cited report using web results, with no API key required by default.
 
-This moved up because it's the #1 most requested Hermes feature (95 combined reactions across 3 issues). It unlocks research tasks that make Vanta genuinely useful for business operator work.
+This moved up because it's the most requested feature (95 combined reactions across 3 issues). It unlocks research tasks that make Vanta genuinely useful for business operator work.
 
 Delivers:
 - **SearchProvider interface** — same pattern as LLMProvider: `search(query, config) → SearchResult[]`
@@ -267,16 +267,16 @@ Delivers:
 
 ---
 
-## v1 — Full Hermes Parity (current focus)
+## v1 — Full Feature Set (current focus)
 
 v0 has every subsystem; v1 closes the *experience + self-improvement* gap that made
-it feel like scripts. Built from a full read of the Hermes reference. Seven tracks —
+it feel like scripts. Built from a full feature audit. Seven tracks —
 **ordered build list, sizes, and "done when" live in [`../ROADMAP.md`](../ROADMAP.md)**:
 
 - **A — Hook to any model + full setup.** Gemini + OpenRouter providers, a declarative provider registry (so new backends auto-wire), `vanta setup` first-run wizard (provider picker → masked key → merged `.env` → model pick), first-run auto-launch, `vanta status`/`doctor`. *Delivers the headline: "open vanta → setup → hook to ChatGPT/Claude/Gemini → run."*
 - **B — Self-improvement loop.** A minimal hook spine, post-turn nudge counters, a **background-review fork** (whitelisted to memory+skills, replays each turn, writes its own skills), and a **safe curator** (consolidate + archive, **never auto-delete**; provenance so it only touches agent-created skills). *This is "how it self-improves everything."*
 - **C — Continuity.** SQLite session persist + resume (`vanta --resume`, `sessions browse`). *So it stops forgetting between runs.*
-- **D — Borrow the skills library.** Port the top ~20 of ~181 portable Hermes/OpenClaw `SKILL.md`s (coupling stripped) + adopt skill bundles.
+- **D — Borrow the skills library.** Port the top bundled skills (coupling stripped) + adopt skill bundles.
 - **E — Autonomy & reach.** Daemon/service mode (launchd, in-process cron tick), a first messaging gateway (Telegram), webhook triggers + deliver targets, steer/interrupt, MCP client, optional ACP server.
 - **F — Robustness steals.** Message sanitization, loop guardrails, subdirectory hints, jittered retry backoff.
 - **G — Subscription auth.** Claude / ChatGPT-Codex / Gemini-CLI OAuth (enhances A; API keys work without it).
@@ -300,31 +300,31 @@ backend without editing files → it remembers conversations → it learns from 
 
 ---
 
-## Vanta vs Hermes — the real difference
+## Vanta design principles
 
-| | Hermes | Vanta |
-|---|---|---|
-| Safety | Advisory — "NOT a security boundary" | Enforced — Rust kernel is the boundary |
-| Goal awareness | None — reactive | First-class — loaded before every session |
-| Scope enforcement | Optional env var | Always on — every action gated |
-| Verification | Prompt instruction | Runtime check — empty = not done |
-| Fake progress | Possible | Blocked by design |
-| Web search | SerpAPI, DuckDuckGo | DDG (default) + Searxng + SerpAPI + Brave |
-| Privacy-first search | No | Yes — Searxng self-hosted is the recommended option |
-| Skills | Markdown files | Same — cross-compatible with Hermes |
-| Skill backups | Manual cron needed | Git-versioned by default — no extra work |
-| Memory | Plugin provider | Same pattern — goal-linked summaries |
-| Comms | Telegram, Discord, Slack (broad) | Gmail + Calendar ✅ · Telegram gateway (v1 E2) |
-| Code execution | Yes | ✅ run-code + LSP + git |
-| Browser | Yes | ✅ Playwright + vision |
-| Autonomy | Broad | Scoped + approval-gated · daemon (v1 E1) |
-| Multi-agent | Delegation only | ✅ subagents + local A2A · ACP server (v1 E6) |
-| Stack | Python 559MB (hard to own) | TypeScript + Rust (your stack) |
-| Model backends | ~28 (registry) | OpenAI/Ollama/Anthropic ✅ · Gemini/OpenRouter + registry (v1 A) |
-| Setup | First-run wizard | Edit `.env` → first-run wizard (v1 A4) |
-| Sessions | Persist + resume | Per-goal memory ✅ · full transcripts (v1 C1) |
-| Self-improvement | Background review + curator | Pieces built ✅ · wired into loop (v1 B) |
-| Auth | API keys + subscription OAuth | API keys ✅ · subscription OAuth (v1 G) |
+| Principle | Vanta |
+|---|---|
+| Safety | Enforced — Rust kernel is the boundary |
+| Goal awareness | First-class — loaded before every session |
+| Scope enforcement | Always on — every action gated |
+| Verification | Runtime check — empty = not done |
+| Fake progress | Blocked by design |
+| Web search | DDG (default) + Searxng + SerpAPI + Brave |
+| Privacy-first search | Yes — Searxng self-hosted is the recommended option |
+| Skills | Markdown files — portable format, git-versioned |
+| Skill backups | Git-versioned by default — no extra work |
+| Memory | Goal-linked summaries, git-versioned |
+| Comms | Gmail + Calendar ✅ · Telegram gateway (v1 E2) |
+| Code execution | ✅ run-code + LSP + git |
+| Browser | ✅ Playwright + vision |
+| Autonomy | Scoped + approval-gated · daemon (v1 E1) |
+| Multi-agent | ✅ subagents + local A2A · ACP server (v1 E6) |
+| Stack | TypeScript + Rust |
+| Model backends | OpenAI/Ollama/Anthropic ✅ · Gemini/OpenRouter + registry (v1 A) |
+| Setup | Edit `.env` → first-run wizard (v1 A4) |
+| Sessions | Per-goal memory ✅ · full transcripts (v1 C1) |
+| Self-improvement | Pieces built ✅ · wired into loop (v1 B) |
+| Auth | API keys ✅ · subscription OAuth (v1 G) |
 
 ---
 
@@ -346,11 +346,11 @@ backend without editing files → it remembers conversations → it learns from 
 **Resolved in v0:**
 1. ~~Comms route through kernel `assess()` or TS-only?~~ → Every tool, comms included, gates through kernel `assess()`. (DECISIONS)
 2. ~~Project rooms stored or inferred?~~ → Inferred from `~/Documents/GitHub/_active/` via `VANTA_PROJECTS_DIR`.
-3. ~~Skills cross-compatible with Hermes format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed ~181 Hermes/OpenClaw skills are directly portable (v1 D).
-5. ~~A2A: Google protocol or Vanta-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6 (Hermes has no peer-to-peer A2A either).
+3. ~~Skills portable format?~~ → **Yes** — same `SKILL.md` + YAML frontmatter; confirmed bundled skills are directly portable (v1 D).
+5. ~~A2A: Google protocol or Vanta-native?~~ → Local in-process bus shipped; networked = **ACP server** in v1 E6.
 
 **Live for v1:**
-- **MCP client vs own each integration** (v1 E5) — Hermes mounts MCP servers (stdio + HTTP); Vanta went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
-- **Curator delete policy** — Hermes **never auto-deletes** (archive only, recoverable). Vanta's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
-- **Setup config format** — write provider/model to `.env` (current) or a `config.yaml` like Hermes? Leaning: `.env` merge for v1 (no new parser), revisit if config grows.
+- **MCP client vs own each integration** (v1 E5) — Vanta went direct for Google. Add an MCP client as a general tool gateway, or keep owning integrations? Leaning: add the client, keep Google direct as the reference impl.
+- **Curator delete policy** — Prior art: archive only, never auto-delete (recoverable). Vanta's `curator.ts` currently *removes* at 90d. v1 B4 changes this to archive. (Effectively decided — log in DECISIONS when implemented.)
+- **Setup config format** — write provider/model to `.env` (current) or a `config.yaml`? Leaning: `.env` merge for v1 (no new parser), revisit if config grows.
 - **Desktop app** (Tauri, consistent with indx) vs CLI + cockpit — still deferred (PARKED).
