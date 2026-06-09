@@ -70,7 +70,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 46 tools + `mount_mcp` via factory = 47 total (`exclude:["delegate"]` → 46 for workers); `roadmap_add` files new cards, `roadmap_move` changes status |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 47 tools + `mount_mcp` via factory = 48 total (`exclude:["delegate"]` → 47 for workers); `roadmap_add` files new cards, `roadmap_move` changes status |
 | `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter) |

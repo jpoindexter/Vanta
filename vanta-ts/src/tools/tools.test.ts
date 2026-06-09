@@ -43,6 +43,7 @@ describe("registry", () => {
       "clarify",
       "compare_vision",
       "compose_workflow",
+      "config",
       "delegate",
       "describe_image",
       "drive_create",
