@@ -8499,6 +8499,32 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-BRIDGE-QR",
+      "track": "Claude Code parity",
+      "title": "Bridge QR code \u2014 scannable QR for mobile/remote connection to live session",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's bridge UI generates a QR code (`qrcode` library) displaying the bridge connection URL. Users can scan it to connect from a mobile device or another computer to the live session. Shows alongside BRIDGE_READY_INDICATOR and bridge spinner frames in the CLI.",
+      "done": "When bridge is active, a QR code is rendered in the terminal. Scanning it on mobile opens the session in a browser or app.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-GIT-REPO-SESSION",
+      "track": "Claude Code parity",
+      "title": "Git-sourced remote sessions \u2014 create remote session from a git repository URL",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC's remote session creation supports a `GitSource` type (`{type: 'git_repository', url, revision?}`) for spinning up a remote environment from a git repo URL directly. The session clones the repo and runs in it, rather than teleporting an existing local session. Used in the cloud/CCR flow.",
+      "done": "Providing a GitHub repo URL to the remote session creator spawns a container with that repo checked out at the given revision.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
