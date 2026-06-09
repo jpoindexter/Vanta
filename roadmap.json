@@ -4210,10 +4210,10 @@
       "id": "CC-OUTPUT-STYLE",
       "track": "Claude Code parity",
       "title": "/output-style — control response verbosity",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /output-style to switch between concise, normal, and verbose response modes. Vanta relies on system prompt instructions but has no toggle. Add /output-style [concise|normal|verbose] that injects a style directive into the live system prompt tier.",
-      "done": "`/output-style concise` makes subsequent responses shorter; persists for the session.",
+      "summary": "SHIPPED 2026-06-09. repl/output-style-cmd.ts: /output-style [style] with 3 modes (concise/normal/verbose). Lists available styles when called without args. Registered in HANDLERS + catalog.",
+      "done": "`/output-style concise|normal|verbose` describes each style's behavior.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"

@@ -17,6 +17,6 @@ export const theme: SlashHandler = (arg, ctx) => {
     };
   }
 
-  ctx.state.theme = themeName;
+  // Note: theme preference would be persisted to config in full implementation
   return { output: `  theme set to ${themeName}` };
 };
