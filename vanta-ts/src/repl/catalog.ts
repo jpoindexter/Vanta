@@ -24,6 +24,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "image", arg: "<path>", desc: "attach an image for your next message" },
   { name: "paste", desc: "attach an image from the clipboard (macOS)" },
   { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
+  { name: "branch", arg: "<name>", desc: "create or switch git branch (kernel-gated)" },
   { name: "context", desc: "visual context-budget breakdown" },
   { name: "files", desc: "list files in the current conversation context" },
   { name: "theme", arg: "<name>", desc: "switch TUI color theme" },
