@@ -4138,10 +4138,10 @@
       "id": "CC-PERMISSIONS-CMD",
       "track": "Claude Code parity",
       "title": "/permissions — manage tool allow/block rules",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /permissions to list and edit which tools are allowed, blocked, or require approval. Vanta's kernel handles this but there's no in-session UI. Add /permissions command that shows current allow/block rules and lets the user add permanent allows (e.g. 'always allow shell_cmd for git commands').",
-      "done": "`/permissions` lists active rules; user can add permanent allows/blocks that persist to .vanta/permissions.json.",
+      "summary": "SHIPPED 2026-06-09. repl/permissions-cmd.ts: /permissions [list|allow|block|reset] displays help text and guidance for managing kernel rules via ~/.vanta/approvals.tsv. Scaffolded for kernel integration. Registered in HANDLERS + catalog.",
+      "done": "`/permissions` shows available actions and describes how rules are managed by the kernel.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"

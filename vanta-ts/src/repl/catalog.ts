@@ -29,6 +29,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "files", desc: "list files in the current conversation context" },
   { name: "theme", arg: "<name>", desc: "switch TUI color theme" },
   { name: "mcp", desc: "list configured MCP servers" },
+  { name: "permissions", arg: "[list|allow|block|reset]", desc: "manage tool allow/block rules via kernel" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Vanta (then ./install.sh to rebuild)" },
