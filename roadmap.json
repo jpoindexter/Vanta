@@ -6227,15 +6227,14 @@
     {
       "id": "CC-RENAME-CMD",
       "track": "Claude Code parity",
-      "title": "/rename — auto-generate session title from conversation via Haiku",
-      "status": "next",
+      "title": "/rename — set session title",
+      "status": "shipped",
       "size": "S",
-      "summary": "The /rename command prompts for a new title or auto-generates one via Haiku by extracting the key topic from the conversation. Session titles persist across resumes and appear in /session list and the title bar.",
-      "done": "Running /rename without args generates a title; /rename 'custom name' sets it; title persists across resume; shown in session list and status bar.",
+      "summary": "SHIPPED 2026-06-09. repl/rename-cmd.ts: /rename [name] shows current title or sets a new one (max 100 chars). Modifies ctx.state.title. Registered in HANDLERS + catalog.",
+      "done": "`/rename` shows current title; `/rename 'new name'` updates it.",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low",
-      "updated": "2026-06-09"
+      "effort": "low"
     },
     {
       "id": "CC-STATUS-CMD",

@@ -55,6 +55,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "run", desc: "launch and drive this project's app" },
   { name: "add-dir", arg: "<path>", desc: "add a directory to this session's readable/writable scope" },
   { name: "routes", desc: "show provider routing config (main + named VANTA_ROUTE_* overrides)" },
+  { name: "rename", arg: "<name>", desc: "rename the current session" },
   { name: "exit", desc: "leave the session" },
 ];
 
