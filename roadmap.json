@@ -6166,6 +6166,58 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DEEP-LINK",
+      "track": "Claude Code parity",
+      "title": "Deep link protocol \u2014 claude-cli:// URL opens CC with pre-filled context",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Registers the `claude-cli://` URL scheme. Opening `claude-cli://open?q=fix+tests&repo=owner/repo` opens a new terminal window with CC, pre-filling the prompt and working directory. Used for 'open in terminal' integrations from claude.ai and IDE extensions. Security: control char filtering, shell-escaping at injection boundary.",
+      "done": "Clicking a claude-cli:// link opens a terminal with CC; prompt is pre-filled; working directory set from cwd/repo params; control characters in params are rejected.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DXT",
+      "track": "Claude Code parity",
+      "title": ".dxt extension packages \u2014 single-file MCP server installer",
+      "status": "next",
+      "size": "M",
+      "summary": "`.dxt` file format (from `@anthropic-ai/mcpb`) packages an MCP server manifest + assets into a single installable file. `claude install <path>.dxt` validates the manifest and configures the MCP server. Enables one-click MCP server installation from file or URL.",
+      "done": "Installing a .dxt file validates the manifest, mounts the MCP server in settings, and makes its tools available in the next session; invalid manifests are rejected with field-level errors.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-ULTRAPLAN",
+      "track": "Claude Code parity",
+      "title": "Ultraplan keyword trigger \u2014 multi-agent planning mode from prompt keyword",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Typing 'ultraplan' in a user prompt (outside delimiters, paths, or slash commands) activates a multi-agent parallel planning mode backed by a CCR session. Keyword detection skips false positives (inside backticks, quotes, paths, identifiers). Shows a notification that ultraplan will be activated.",
+      "done": "'Write a spec ultraplan' activates multi-agent planning; false positives in code blocks or paths don't trigger; '/rename ultraplan foo' as a slash command doesn't trigger.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-ANSI-PNG",
+      "track": "Claude Code parity",
+      "title": "ANSI-to-PNG renderer \u2014 terminal screenshot as PNG with bitmap font",
+      "status": "next",
+      "size": "S",
+      "summary": "Renders ANSI-escaped terminal output directly to a PNG image using a bundled Fira Code 24\u00d748 bitmap font. Zero external deps; ~5-15ms per render; exact pixel grid output. Used for terminal session screenshots shared in conversations or exported via /export.",
+      "done": "Terminal output can be exported as a PNG screenshot; output includes ANSI colors and bold; render is fast enough to use inline; no system fonts required.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
