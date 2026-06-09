@@ -8317,6 +8317,19 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CLI-HIGHLIGHT",
+      "track": "Claude Code parity",
+      "title": "Syntax highlighting \u2014 colored code blocks in CLI output via cli-highlight",
+      "status": "next",
+      "size": "S",
+      "summary": "CC lazy-loads `cli-highlight` to syntax-highlight code blocks in CLI output and markdown rendering. `supportsLanguage()` checks before applying highlighting. The module is shared lazily across Fallback.tsx, markdown.ts, events.ts, and getLanguageName. Avoids adding startup overhead by loading only on first use.",
+      "done": "Code blocks in assistant responses and tool output are syntax-highlighted in the terminal (e.g. TypeScript keywords colored, strings highlighted).",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
