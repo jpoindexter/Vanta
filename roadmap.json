@@ -5906,6 +5906,71 @@
       "model": "sonnet",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-OUTPUT-STYLE-DIR",
+      "track": "Claude Code parity",
+      "title": "Custom output styles via .claude/output-styles/ \u2014 markdown-file-defined styles",
+      "status": "next",
+      "size": "S",
+      "summary": "Users and projects define custom output styles as .md files in ~/.claude/output-styles/ (user) or .claude/output-styles/ (project). Each file = one named style; frontmatter provides name/description; `keep-coding-instructions: true` preserves coding behavior while applying the style. Plugin styles also load here.",
+      "done": "Custom output styles appear in /output-style picker; project styles override user styles; styles from plugins load alongside user/project styles; keep-coding-instructions flag respected.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MAGIC-DOCS",
+      "track": "Claude Code parity",
+      "title": "Magic Docs \u2014 auto-maintained markdown files updated after each turn",
+      "status": "next",
+      "size": "M",
+      "summary": "Any .md file starting with `# MAGIC DOC: [title]` is automatically updated by a background subagent after each turn that contains tool calls. The doc accumulates learnings from the conversation (architecture, decisions, patterns) without interrupting the main flow. Uses post-sampling hook + sequential update guard.",
+      "done": "Files with MAGIC DOC header are updated after turns with tool calls; updates are non-blocking; concurrent updates are serialised; the doc reflects conversation knowledge after the session.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AGENT-SUMMARY",
+      "track": "Claude Code parity",
+      "title": "Sub-agent progress summaries \u2014 periodic 3-5 word status in footer pill",
+      "status": "next",
+      "size": "S",
+      "summary": "Coordinator sub-agents generate a 3-5 word present-tense progress summary every 30s via a forked side-query. Summaries name the specific file or function being worked on (not vague descriptions). Shown in the footer task pill. Cache-shared with parent agent to avoid extra billing.",
+      "done": "Running sub-agent tasks show a live progress summary in the footer pill (e.g. 'Editing auth.ts'); summaries update every ~30s; summaries are specific, not vague.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SHELL-STALL-DETECT",
+      "track": "Claude Code parity",
+      "title": "Shell task stall detection \u2014 notification when background command awaits input",
+      "status": "next",
+      "size": "S",
+      "summary": "Background shell tasks get a stall watchdog: if output stops growing for 45s, the last tail is pattern-matched against interactive prompt patterns (y/n, yes/no, 'Press any key', directed questions like 'Are you sure?'). If matched, a notification fires so the agent can unblock it.",
+      "done": "Long-running commands that ask y/n surface a notification; slow commands that don't ask anything stay silent; notification fires once, not repeatedly.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-COORDINATOR-MODE",
+      "track": "Claude Code parity",
+      "title": "Coordinator mode \u2014 env-controlled lead-agent persona with restricted tool set",
+      "status": "next",
+      "size": "M",
+      "summary": "CLAUDE_CODE_COORDINATOR_MODE env var makes an agent run as a coordinator. Coordinator agents use a distinct tool set (ASYNC_AGENT_ALLOWED_TOOLS; internal swarm tools excluded from external API). matchSessionMode() detects and fixes mode mismatch when resuming a coordinator session.",
+      "done": "Setting CLAUDE_CODE_COORDINATOR_MODE spawns an agent with coordinator-only tools; resuming a session that was coordinator retains coordinator mode; mode mismatch on resume is fixed with a warning.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
