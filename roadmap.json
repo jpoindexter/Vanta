@@ -5867,6 +5867,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DIRECT-CONNECT-SERVER",
+      "track": "Claude Code parity",
+      "title": "Direct-connect server \u2014 CC as local HTTP+WebSocket server for IDE/client connections",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC can run as a local HTTP+WebSocket server (--server flag). Clients POST to /sessions to create a session, receive ws_url. Supports auth token, dangerously_skip_permissions, idle timeout, max concurrent sessions, Unix socket. Used by IDE extensions to drive CC programmatically.",
+      "done": "CC starts an HTTP server on a port or Unix socket; POST /sessions creates a CC session and returns a ws_url; IDE/client connects via WebSocket to stream messages and send prompts.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-REMOTE-VIEWER",
+      "track": "Claude Code parity",
+      "title": "Remote session viewer mode \u2014 observe a CCR session without interrupting",
+      "status": "horizon",
+      "size": "S",
+      "summary": "viewerOnly mode on a remote session connection: Ctrl+C/Escape do NOT send interrupt to the remote agent; 60s reconnect timeout is disabled; session title is never updated. Used by `claude assistant` to observe a running remote session.",
+      "done": "Connecting to a session in viewer mode shows its output without interrupting the agent; Ctrl+C doesn't abort; session title unchanged; multiple viewers can observe simultaneously.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
