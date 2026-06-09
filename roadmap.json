@@ -7583,6 +7583,71 @@
       "model": "sonnet",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-AGENT-TYPE",
+      "track": "Claude Code parity",
+      "title": "Agent hook type \u2014 hooks backed by a full multi-turn LLM agent",
+      "status": "next",
+      "size": "M",
+      "summary": "CC supports an 'agent' hook type where each hook event fires a full multi-turn LLM agent (tool-enabled, with access to a restricted toolset). The agent runs in isolation, receives the hook event as JSON input, and returns a structured JSON result via StructuredOutput. Enables complex conditional logic in hooks \u2014 e.g. 'analyze this command with a reasoning model before allowing it'.",
+      "done": "A hook configured with `type: agent` fires a full query per event. The agent can call tools, reason across turns, and return a structured block/allow verdict.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-PROMPT-TYPE",
+      "track": "Claude Code parity",
+      "title": "Prompt hook type \u2014 hooks backed by a single LLM query",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports a 'prompt' hook type: each hook event fires a single non-streaming LLM query (small/fast model). The hook receives the event JSON as `$ARGUMENTS` substituted into its prompt, and returns a structured `{decision, reason}` response. Lighter-weight than agent hooks \u2014 useful for classification/labeling tasks without multi-turn logic.",
+      "done": "A hook configured with `type: prompt` fires one LLM call per event. Returns a structured `{decision: 'block'|'allow', reason}` that determines hook behavior.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-FRONTMATTER",
+      "track": "Claude Code parity",
+      "title": "Frontmatter hooks \u2014 agents and skills declare hooks in YAML frontmatter",
+      "status": "next",
+      "size": "S",
+      "summary": "CC agents and skills can declare hook configurations in their YAML frontmatter (`hooks:` key). These hooks are automatically registered when the agent/skill activates and deregistered when it exits. Sub-agent Stop hooks are converted to SubagentStop events. Session hooks share the same lifecycle as the agent.",
+      "done": "A skill with a `hooks.PreToolUse` frontmatter entry runs that hook for every tool call while the skill is active. The hook is removed when the skill session ends.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-ONCE",
+      "track": "Claude Code parity",
+      "title": "Once-only hooks \u2014 `once: true` hooks auto-deregister after first fire",
+      "status": "next",
+      "size": "S",
+      "summary": "CC skill hooks support a `once: true` flag that causes the hook to automatically deregister itself after its first successful execution. Useful for one-shot setup hooks (e.g. 'on the first tool call after this skill activates, do X') without polluting subsequent tool calls with unnecessary hook processing.",
+      "done": "A skill hook with `once: true` fires exactly once, then disappears from the hook registry. Subsequent tool calls in the same session don't trigger it.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-EXIT-CODES",
+      "track": "Claude Code parity",
+      "title": "Hook exit code semantics \u2014 exit 0 silent, exit 2 blocks + shows model, other shows user",
+      "status": "next",
+      "size": "S",
+      "summary": "CC defines specific semantics for hook exit codes: exit 0 = success (stdout/stderr not shown), exit 2 = show stderr to model AND block the tool call (the model sees the message and can change strategy), any other non-zero = show stderr to user only but continue with the tool call. This gives hook authors precise control over whether the model or user sees the hook's output.",
+      "done": "A PreToolUse hook returning exit 2 with a message causes the tool call to be blocked and the model receives the hook's stderr as a constraint.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
