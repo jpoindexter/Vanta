@@ -27,7 +27,7 @@ function routing(item: RoadmapItem): string {
 }
 
 function card(item: RoadmapItem): string {
-  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}" data-size="${esc(item.size)}">
+  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}" data-size="${esc(item.size)}" data-tier="${esc(item.tier ?? "")}">
 <div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span><span class="trk">${esc(item.track)}</span></div>
 ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 <p class="sum">${esc(item.summary)}</p>
@@ -152,12 +152,14 @@ var cols=document.querySelectorAll('.col');
 var activeTrack='all';
 var activeSize='all';
 var activeModel='all';
+var activePriority='all';
 function applyFilters(){
 cards.forEach(function(c){
 var tm=activeTrack==='all'||c.dataset.track===activeTrack;
 var sm=activeSize==='all'||c.dataset.size===activeSize;
 var mm=activeModel==='all'||c.querySelector('.m-'+activeModel);
-c.classList.toggle('hidden',!(tm&&sm&&mm));
+var pm=activePriority==='all'||c.dataset.tier===activePriority;
+c.classList.toggle('hidden',!(tm&&sm&&mm&&pm));
 });
 tgs.forEach(function(t){
 var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
@@ -171,19 +173,27 @@ c.style.display=vis?'':'none';
 document.getElementById('track-filter').addEventListener('change',function(){activeTrack=this.value;applyFilters();});
 document.getElementById('size-filter').addEventListener('change',function(){activeSize=this.value;applyFilters();});
 document.getElementById('model-filter').addEventListener('change',function(){activeModel=this.value;applyFilters();});
+document.getElementById('priority-filter').addEventListener('change',function(){activePriority=this.value;applyFilters();});
 })();`;
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL"] as const;
 const MODEL_ORDER = ["haiku", "sonnet", "opus"] as const;
+const PRIORITY_ORDER = ["rock", "pebble", "sand"] as const;
+const PRIORITY_LABEL: Record<string, string> = {
+  rock: "Rock (foundational)",
+  pebble: "Pebble (substantial)",
+  sand: "Sand (quick wins)",
+};
 
-function buildOptions(values: string[]): string {
-  return values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+function buildOptions(values: string[], labels?: Record<string, string>): string {
+  return values.map((v) => `<option value="${esc(v)}">${esc(labels?.[v] ?? v)}</option>`).join("");
 }
 
 export function renderRoadmap(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))].sort();
   const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
   const models = MODEL_ORDER.filter((m) => data.items.some((i) => i.model === m));
+  const priorities = PRIORITY_ORDER.filter((p) => data.items.some((i) => i.tier === p));
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
 
@@ -197,6 +207,11 @@ export function renderRoadmap(data: Roadmap): string {
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
 <div class="filters">
+<label for="priority-filter">Priority:</label>
+<select id="priority-filter">
+<option value="all">All priorities</option>
+${buildOptions(priorities, PRIORITY_LABEL)}
+</select>
 <label for="track-filter">Track:</label>
 <select id="track-filter">
 <option value="all">All tracks</option>
