@@ -6036,6 +6036,71 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PREVENT-SLEEP",
+      "track": "Claude Code parity",
+      "title": "macOS caffeinate \u2014 prevent system sleep during long operations",
+      "status": "next",
+      "size": "S",
+      "summary": "Uses macOS `caffeinate` to prevent idle sleep while CC is running API requests or tools. Self-healing: 5-minute timeout + 4-minute restart so orphaned caffeinate exits on SIGKILL. No-op on non-macOS. Ref-counted (start/stop) so multiple callers share one process.",
+      "done": "Mac stays awake during long API calls and tool execution; caffeinate exits cleanly on process exit or after 5min idle; no-op on Linux/Windows.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TOOL-SUMMARY",
+      "track": "Claude Code parity",
+      "title": "Tool batch summary \u2014 Haiku-generated ~30-char label for completed tool batches",
+      "status": "next",
+      "size": "S",
+      "summary": "After each batch of tool calls, generates a short (\u226430 char, git-commit-subject style) human-readable summary via Haiku: 'Fixed NPE in UserService', 'Searched in auth/'. Used by the SDK to provide progress labels to mobile/IDE clients. Abortable; failures are non-fatal.",
+      "done": "SDK clients receive a short plain-text summary of each completed tool batch; label is \u226430 chars, past-tense verb, names specific file/class; generation failure doesn't break the flow.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CHANNEL-PERMISSIONS",
+      "track": "Claude Code parity",
+      "title": "Channel permission relay \u2014 approve permissions via Telegram/iMessage/Discord",
+      "status": "horizon",
+      "size": "L",
+      "summary": "When CC hits a permission dialog, it also sends the prompt to connected channels (Telegram, iMessage, Discord). User replies 'yes <request_id>' via the channel; CC receives it as a structured notification and races it against local UI. First resolver wins. Allowlist-gated per server. Requires channel MCP server supporting `claude/channel/permission` capability.",
+      "done": "Permission dialogs arrive in connected messaging channels; replying 'yes <id>' approves without opening the terminal; local UI still works in parallel.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SETTINGS-SYNC",
+      "track": "Claude Code parity",
+      "title": "Settings sync \u2014 sync user settings and memory across CC environments",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Syncs user settings (incremental, only changed keys) and memory files between CC environments via Anthropic's API. Interactive CLI: uploads to remote. CCR: downloads before plugin install. OAuth required. Uses repo remote hash for project scoping.",
+      "done": "Settings made in one CC instance are available in another after sync; only changed settings are uploaded (delta); memory files sync with the same mechanism.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TIME-BASED-MC",
+      "track": "Claude Code parity",
+      "title": "Time-based microcompact \u2014 auto-clear stale tool results after cache TTL expiry",
+      "status": "next",
+      "size": "S",
+      "summary": "Runs before each API call: if the gap since the last assistant message exceeds the cache TTL (default 60 min), clears old tool results from the prompt to shrink what gets rewritten. Keeps the N most recent tool results. Main thread only (subagents have short lifetimes). GrowthBook-configurable.",
+      "done": "After 60+ minutes idle, the next request sends a compacted prompt; old tool results are cleared; the N most recent are kept; no visible disruption to the conversation.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
