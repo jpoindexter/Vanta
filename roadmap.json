@@ -8642,6 +8642,19 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-BUN-WEBVIEW",
+      "track": "Claude Code parity",
+      "title": "Bun WebView \u2014 native embedded browser panel inside the terminal",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC (feature-gated `WEB_BROWSER_TOOL`) supports a native embedded browser panel using Bun's built-in `WebView` API. Unlike Claude for Chrome (which uses a Chrome extension) or computer use (which takes screenshots), this embeds a real browser pane directly in the Bun runtime. Available only in native Bun builds with WebView support.",
+      "done": "A side panel shows a live browser view within the terminal. The agent can interact with it via WebBrowserTool commands without needing a separate Chrome process.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
