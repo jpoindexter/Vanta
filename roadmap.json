@@ -8603,6 +8603,19 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TOOL-SEARCH-AUTO",
+      "track": "Claude Code parity",
+      "title": "Auto tool-search mode \u2014 defer tools only when they exceed the context threshold",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports `ENABLE_TOOL_SEARCH=auto` (tst-auto mode): tools are only deferred to ToolSearch when their total schema size exceeds `getAutoToolSearchCharThreshold(model)`. Below the threshold, all tools are exposed inline as usual. `auto:50` enables for 50% of sessions for gradual rollout. Prevents unnecessary overhead for simple sessions while still protecting context on complex ones.",
+      "done": "With `VANTA_TOOL_SEARCH=auto`, simple sessions see all tools inline. Sessions with many plugins/MCP tools automatically defer the overflow to ToolSearch.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
