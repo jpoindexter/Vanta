@@ -10380,7 +10380,7 @@
       "id": "CC-NO-FLICKER-ENV",
       "track": "Claude Code parity",
       "title": "`CLAUDE_CODE_NO_FLICKER=1` \u2014 opt into flicker-free alt-screen rendering globally",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC (v2.1.89) adds `CLAUDE_CODE_NO_FLICKER=1` to start every session in the fullscreen alt-screen renderer. Reduces terminal flicker, enables virtualized scrollback, and improves rendering performance on slow terminals.",
       "done": "With `CLAUDE_CODE_NO_FLICKER=1` in `.env`, all CC sessions start in fullscreen mode. `/tui` can still toggle back.",
@@ -10388,7 +10388,8 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "Alt-screen enter/leave in launch.tsx; VANTA_NO_FLICKER=1 + CLAUDE_CODE_NO_FLICKER=1 both accepted. Documented in .env.example."
     },
     {
       "id": "CC-VIM-VISUAL-MODE",
