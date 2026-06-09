@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 243 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18 + 3 p19 + 3 p20 + 2 p21 + 1 p22 + 2 p23 + 5 p24)
+- Cards added this full audit: 255 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18 + 3 p19 + 3 p20 + 2 p21 + 1 p22 + 2 p23 + 5 p24 + 12 p25)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -136,8 +136,9 @@ Legend:
 - Pass 21: 2 cards (shadowed rule detection, dangerous paths blocklist) ← first ≤2 pass
 - Pass 22: 1 card (auto tool-search mode) ← second ≤2 pass
 - Pass 23: 2 cards (bg session cmds, bare mode) ← would have been 3rd ≤2 pass
-- Pass 24: 5 cards (Bun WebView, UDS peers, terminal capture, history snip, push notify) ← spike — stopping clock RESET
-  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6/3/3/2/1/5 — p24 found 5 via feature flag sweep
+- Pass 24: 5 cards (Bun WebView, UDS peers, terminal capture, history snip, push notify) ← stopping clock RESET
+- Pass 25: 12 cards (MCP skills, templates, quick search, verification agent, review artifact, history picker, MCP rich output, reactive compact, tree-sitter bash, cache-break detection, native clipboard, /init) ← another spike from feature-flag sweep
+  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6/3/3/2/1/5/12 — stopping clock RESET again
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
