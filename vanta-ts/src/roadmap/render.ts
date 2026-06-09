@@ -176,22 +176,16 @@ document.getElementById('model-filter').addEventListener('change',function(){act
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL"] as const;
 const MODEL_ORDER = ["haiku", "sonnet", "opus"] as const;
 
+function buildOptions(values: string[]): string {
+  return values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+}
+
 export function renderRoadmap(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))].sort();
   const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
   const models = MODEL_ORDER.filter((m) => data.items.some((i) => i.model === m));
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
-
-  const trackOptions = tracks
-    .map((t) => `<option value="${esc(t)}">${esc(t)}</option>`)
-    .join("");
-  const sizeOptions = sizes
-    .map((s) => `<option value="${esc(s)}">${esc(s)}</option>`)
-    .join("");
-  const modelOptions = models
-    .map((m) => `<option value="${esc(m)}">${esc(m)}</option>`)
-    .join("");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -206,17 +200,17 @@ export function renderRoadmap(data: Roadmap): string {
 <label for="track-filter">Track:</label>
 <select id="track-filter">
 <option value="all">All tracks</option>
-${trackOptions}
+${buildOptions(tracks)}
 </select>
 <label for="size-filter">Size:</label>
 <select id="size-filter">
 <option value="all">All sizes</option>
-${sizeOptions}
+${buildOptions(sizes)}
 </select>
 <label for="model-filter">Model:</label>
 <select id="model-filter">
 <option value="all">All models</option>
-${modelOptions}
+${buildOptions(models)}
 </select>
 </div>
 <div class="board">${board}</div>
