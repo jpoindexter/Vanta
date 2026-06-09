@@ -8077,6 +8077,45 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PARALLEL-TOOL-EXEC",
+      "track": "Claude Code parity",
+      "title": "Parallel tool execution \u2014 concurrent read-only tool calls with configurable cap",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's tool orchestration batches tool calls marked `isConcurrencySafe` and runs them concurrently (up to `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY`, default 10). Read-only operations (Glob, Grep, Read, WebSearch, WebFetch) run in parallel; write/mutating tools run sequentially. Speeds up multi-file reads and search-heavy turns significantly.",
+      "done": "A turn with 5 parallel Glob calls completes in ~200ms instead of ~1s. `VANTA_MAX_TOOL_CONCURRENCY=10` controls the cap.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-VCR-MODE",
+      "track": "Claude Code parity",
+      "title": "VCR record/replay \u2014 record API request/response cassettes for test replay",
+      "status": "next",
+      "size": "S",
+      "summary": "CC has a VCR (cassette recorder) mode that records all API requests and responses to disk when `FORCE_VCR=1` (for ants) or in `NODE_ENV=test`. Cassettes are keyed by content hash; on replay, matching requests return cached responses instantly without hitting the API. Used in integration tests and for debugging.",
+      "done": "`VANTA_VCR=1` records a session's API calls to `.vanta/cassettes/`. Re-running with the same inputs replays from cassette without network calls.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-VOICE-STT",
+      "track": "Claude Code parity",
+      "title": "Push-to-talk voice input \u2014 native CoreAudio/cpal + SoX/arecord fallback",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC records microphone audio for voice input using a native NAPI module (`audio-capture-napi`) backed by CoreAudio on macOS, with lazy-loading (~1s first-press delay). Falls back to SoX `rec` or ALSA `arecord` on Linux. Audio is recorded while the key is held, then transcribed. The native module is loaded lazily to avoid blocking startup.",
+      "done": "Holding the voice keybinding records audio. On release, it transcribes and submits as a prompt. `/voice status` shows whether native audio or fallback is active.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
