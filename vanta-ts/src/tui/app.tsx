@@ -81,6 +81,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           dispatch({ t: "note", text: `  ☑ plan updated:\n${output.split("\n").map((l) => `  ${l}`).join("\n")}` });
         }
       },
+      onAutoCompact: (dropped, summary) => {
+        dispatch({ t: "note", text: `⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}` });
+      },
       requestApproval,
       // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
       planGate: () => {

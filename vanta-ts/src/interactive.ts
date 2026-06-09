@@ -135,6 +135,9 @@ export async function runChat(
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
+      onAutoCompact: (dropped, summary) => {
+        console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`);
+      },
       ...consoleCallbacks(),
       onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
       // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
