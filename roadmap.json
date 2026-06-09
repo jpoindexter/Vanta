@@ -8265,6 +8265,32 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SLACK-CHANNEL-SUGGEST",
+      "track": "Claude Code parity",
+      "title": "Slack channel autocomplete \u2014 `#channel` mention suggestions in prompt input",
+      "status": "horizon",
+      "size": "S",
+      "summary": "CC's prompt input suggestion overlay supports a `slack-channel` suggestion type, enabling `#channel-name` autocomplete when the user types `#` in the prompt. Integrates with the Slack channel suggestion service (`slackChannelSuggestions.ts`) to fetch accessible channels. Used in organizations with Slack integration enabled.",
+      "done": "Typing `#eng` in the prompt shows matching Slack channels as suggestions. Selecting one inserts the channel reference for context or notification routing.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MODEL-DEPRECATION",
+      "track": "Claude Code parity",
+      "title": "Model deprecation warnings \u2014 show retirement date when user is on a deprecated model",
+      "status": "next",
+      "size": "S",
+      "summary": "CC tracks model deprecation info per provider with retirement dates. When the active model is deprecated, CC surfaces a warning with the model name, retirement date, and a suggestion to upgrade. Deprecation data is provider-aware (same model may have different retirement timelines on different providers).",
+      "done": "When using a model past its retirement announcement date, a warning in the status line shows 'claude-3-opus-20240229 retires 2025-08-01 \u2014 /model to switch'.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
