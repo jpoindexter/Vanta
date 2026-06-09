@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 169 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11)
+- Cards added this full audit: 203 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -123,7 +123,11 @@ Legend:
 - Pass 8: 6 cards (tools/ long-tail: AskUserQuestion, McpAuth, StructuredOutput, CronDurable, SendMessage, TeamTools)
 - Pass 9: 5 cards (hooks/ agent/prompt types, frontmatter hooks, once-hooks, exit codes)
 - Pass 10: 6 cards (away summary, auto-updater, SSH session, plugin recommend, deferred hooks, marketplace auto-install)
-- Pass 11: 11 cards (memory warn, OS notify, copy-on-select, clipboard hint, asciicast, screenshot-clipboard, session title, JetBrains, PDF read, context suggestions, transcript search) → NOT stopped yet
+- Pass 11: 11 cards (memory warn, OS notify, copy-on-select, clipboard hint, asciicast, screenshot-clipboard, session title, JetBrains, PDF read, context suggestions, transcript search)
+- Pass 12: 9 cards (claude-code-hints proto, +500k budget, plugin autoupdate, release channels, SDK idle timeout, standalone agent name, plan mode v2, auto-mode denials, extract memories)
+- Pass 13: 7 cards (session memory svc, team memory sync, auto-compact, session memory compact, remote managed settings, chrome native setup, chrome GIF recorder)
+- Pass 14: 8 cards (parallel tool exec, VCR mode, voice STT, example commands, shell completion install, auto-issue, API preconnect, prompt editor)
+  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8 — yield slowing, approaching ≤2 threshold
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
