@@ -223,12 +223,40 @@ function buildOptions(values: string[], labels?: Record<string, string>): string
   return values.map((v) => `<option value="${esc(v)}">${esc(labels?.[v] ?? v)}</option>`).join("");
 }
 
-export function renderRoadmap(data: Roadmap): string {
+// One labelled <select> filter. `all` is the always-present reset option.
+type FilterSpec = {
+  id: string;
+  label: string;
+  allLabel: string;
+  values: string[];
+  labels?: Record<string, string>;
+};
+function filterSelect(f: FilterSpec): string {
+  return `<label for="${f.id}-filter">${f.label}:</label>
+<select id="${f.id}-filter">
+<option value="all">${f.allLabel}</option>
+${buildOptions(f.values, f.labels)}
+</select>`;
+}
+
+// The full filter bar — lens first (primary strategic axis), then priority/track/size/model.
+function filterBar(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))].sort();
   const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
   const models = MODEL_ORDER.filter((m) => data.items.some((i) => i.model === m));
   const priorities = PRIORITY_ORDER.filter((p) => data.items.some((i) => i.tier === p));
   const lenses = LENS_ORDER.filter((l) => data.items.some((i) => i.lens === l));
+  const specs: FilterSpec[] = [
+    { id: "lens", label: "Lens", allLabel: "All lenses", values: lenses, labels: LENS_LABEL },
+    { id: "priority", label: "Priority", allLabel: "All priorities", values: priorities, labels: PRIORITY_LABEL },
+    { id: "track", label: "Track", allLabel: "All tracks", values: tracks },
+    { id: "size", label: "Size", allLabel: "All sizes", values: sizes },
+    { id: "model", label: "Model", allLabel: "All models", values: models },
+  ];
+  return `<div class="filters">\n${specs.map(filterSelect).join("\n")}\n</div>`;
+}
+
+export function renderRoadmap(data: Roadmap): string {
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
 
@@ -241,33 +269,7 @@ export function renderRoadmap(data: Roadmap): string {
 <body>
 <h1>Vanta Roadmap</h1>
 <p class="meta">Updated ${esc(data.updated)} &middot; ${data.items.length} items</p>
-<div class="filters">
-<label for="lens-filter">Lens:</label>
-<select id="lens-filter">
-<option value="all">All lenses</option>
-${buildOptions(lenses, LENS_LABEL)}
-</select>
-<label for="priority-filter">Priority:</label>
-<select id="priority-filter">
-<option value="all">All priorities</option>
-${buildOptions(priorities, PRIORITY_LABEL)}
-</select>
-<label for="track-filter">Track:</label>
-<select id="track-filter">
-<option value="all">All tracks</option>
-${buildOptions(tracks)}
-</select>
-<label for="size-filter">Size:</label>
-<select id="size-filter">
-<option value="all">All sizes</option>
-${buildOptions(sizes)}
-</select>
-<label for="model-filter">Model:</label>
-<select id="model-filter">
-<option value="all">All models</option>
-${buildOptions(models)}
-</select>
-</div>
+${filterBar(data)}
 <div class="board">${board}</div>
 <details class="sh-section">
 <summary>Shipped (${shipped.length})</summary>
