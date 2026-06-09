@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 227 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18)
+- Cards added this full audit: 230 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18 + 3 p19)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -131,7 +131,8 @@ Legend:
 - Pass 16: 5 cards (Slack channel autocomplete, model deprecation, shell JSON format, terminal hyperlinks, syntax highlighting)
 - Pass 17: 9 cards (Bedrock provider, Vertex provider, undercover mode, stats sparkline, /env session vars, privacy levels, HTTPS proxy)
 - Pass 18: 6 cards (interleaved thinking, model tier overrides, skip update, prompt keywords, auth conflict notice, plugin CLI)
-  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6 — still finding 5-9 per pass
+- Pass 19: 3 cards (bridge QR code, git-repo remote session, plan mode interview phase)
+  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6/3 — **FIRST PASS ≤5: 1 of 3 consecutive ≤2 not yet triggered but approaching**
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
