@@ -2402,6 +2402,18 @@
       "effort": "medium"
     },
     {
+      "id": "SKILL-SLASH",
+      "track": "Skills",
+      "title": "Invoke installed skills as slash commands",
+      "status": "next",
+      "size": "S",
+      "summary": "Skills install into ~/.vanta/skills/ and appear in the prompt index, but typing /hill-climb or any skill slug in the REPL/TUI hits the unknown-command handler instead of invoking the skill. Fix: after loading installed skills in prepareRun, dynamically register each skill slug as a slash command that runs the skill body as an agent instruction. Slugs colliding with built-in commands warn and defer to the built-in.",
+      "done": "`/hill-climb` (and any other installed skill slug) invokes the skill inline; unknown-command handler is not hit. Built-in command names take precedence with a clear warning on collision.",
+      "tier": "sand",
+      "model": "haiku",
+      "effort": "low"
+    },
+    {
       "id": "KANBAN-DECOMPOSE",
       "track": "Factory evolution",
       "title": "Auto-spec + fan-out a roadmap card into child tasks",
