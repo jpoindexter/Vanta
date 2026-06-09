@@ -8577,6 +8577,32 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SHADOWED-RULE-DETECT",
+      "track": "Claude Code parity",
+      "title": "Shadowed permission rule detection \u2014 warn about unreachable allow/deny rules",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's `detectUnreachableRules()` analyzes the permission rule set and identifies rules that will never match because a broader rule with the same tool already shadows them. Surfaced as a `ContextWarning` in `/doctor`. Prevents confusion where users add rules that silently have no effect because an existing `Allow Bash(*)` already covers them.",
+      "done": "`/doctor` reports 'Rule Allow Bash(ls) is unreachable \u2014 shadowed by Allow Bash(*)'. Helps users maintain a clean permission set.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DANGEROUS-PATHS",
+      "track": "Claude Code parity",
+      "title": "Dangerous paths blocklist \u2014 hardcoded files/dirs Claude never writes to",
+      "status": "next",
+      "size": "S",
+      "summary": "CC maintains `DANGEROUS_FILES` and `DANGEROUS_DIRECTORIES` constants \u2014 a hardcoded blocklist of system-critical paths (SSH keys, shell configs, credentials, OS directories) that Claude will never write to, regardless of permission rules. This is distinct from user-configured deny rules and cannot be overridden.",
+      "done": "Attempting to edit `~/.ssh/id_rsa` or `/etc/passwd` always returns a permission denial, even in bypassPermissions mode.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
