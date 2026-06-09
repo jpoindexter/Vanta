@@ -7505,6 +7505,84 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-ASK-USER-TOOL",
+      "track": "Claude Code parity",
+      "title": "AskUserQuestion tool \u2014 structured multi-question UI with options, previews, multi-select",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's AskUserQuestion tool lets the model present 1-4 structured questions in one call, each with 2-4 labeled options (plus auto-added 'Other'), optional per-option preview content (markdown in a side panel), optional multi-select, and a short header chip. The user's selections plus free-text notes are returned as structured annotations. Richer than a plain clarify tool \u2014 preview content enables side-by-side comparisons of code snippets or mockups.",
+      "done": "Model can call AskUserQuestion with up to 4 questions. Each question shows options in a tappable list; options with `preview` show a preview pane. User can select + add notes. Returns structured answers.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MCP-AUTH-TOOL",
+      "track": "Claude Code parity",
+      "title": "McpAuthTool \u2014 pseudo-tool that starts OAuth flow for unauthenticated MCP servers",
+      "status": "next",
+      "size": "S",
+      "summary": "When an MCP server requires OAuth but hasn't been authenticated, CC surfaces a pseudo-tool (McpAuthTool) in place of the server's real tools. The model can call this to start the OAuth flow \u2014 it returns an auth_url for the user to open, then clears the auth cache and reconnects the server. The user never has to manually restart.",
+      "done": "Calling the mcp_auth pseudo-tool for an unauthenticated server returns an auth URL. After browser auth, re-calling the tool confirms the connection is live and restores the server's real tools.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-STRUCTURED-OUTPUT-TOOL",
+      "track": "Claude Code parity",
+      "title": "StructuredOutput tool \u2014 schema-validated JSON output for SDK/non-interactive sessions",
+      "status": "next",
+      "size": "M",
+      "summary": "CC has a SyntheticOutputTool (`StructuredOutput`) enabled only in non-interactive/SDK sessions. When an SDK caller provides a JSON schema, the model is forced to call this tool as its final action, and the output is validated against the schema before returning. This is how workflow agents return structured data instead of free text \u2014 and how `agent({schema})` in workflows works.",
+      "done": "SDK sessions with a schema constraint receive a validated JSON object as the agent's return value. The agent calls `StructuredOutput({...})` as its terminal action.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CRON-DURABLE",
+      "track": "Claude Code parity",
+      "title": "Durable cron jobs \u2014 persist scheduled tasks across session restarts",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's CronCreate tool has a `durable` flag (default false). Durable crons are written to `.claude/scheduled_tasks.json` and survive session restarts \u2014 OS-triggered cron invocations can fire them. Non-durable (default) crons are in-memory only and die when the session ends. The `recurring` flag (default true) controls one-shot vs repeating. Vanta's cron is in-memory only.",
+      "done": "`cron_create(durable: true)` persists the job to `.vanta/scheduled_tasks.json`. After a session restart, `cron_list` shows the job and it fires at the next scheduled time.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SEND-MESSAGE-TOOL",
+      "track": "Claude Code parity",
+      "title": "SendMessageTool \u2014 agent-to-agent messaging within swarms (mailbox-based)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC's SendMessageTool lets agents send messages to named teammates (`to: 'agent-name'`), the team lead (`to: 'leader'`), or all (`to: '*'` broadcast). Messages are written to the recipient's mailbox file. The leader can also initiate shutdown of a worker via a shutdown request/approved/rejected flow. Peers resolve addresses from the team file.",
+      "done": "An agent calls `send_message({to: 'researcher', message: '...'})`. The researcher's next turn includes the message in context. Broadcasts reach all active teammates.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TEAM-TOOLS",
+      "track": "Claude Code parity",
+      "title": "TeamCreate/TeamDelete tools \u2014 spawn and disband named agent teams from within a session",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC has TeamCreateTool and TeamDeleteTool: callable agent tools (not just CLI commands) that let the model itself spawn a named team of workers with a description, assign colors, initialize a task list, and register for cleanup. TeamDeleteTool tears down the team and tasks. This is what makes self-directed swarm orchestration possible without human-initiated `/spawn`.",
+      "done": "The model calls `team_create({team_name: 'researchers', description: '...'})` and immediately gets worker IDs. It can then call `agent({})` to hand off tasks. `team_delete` when done.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
