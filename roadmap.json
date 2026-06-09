@@ -8382,6 +8382,45 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SESSION-ENV",
+      "track": "Claude Code parity",
+      "title": "/env \u2014 set session-scoped environment variables for child processes",
+      "status": "next",
+      "size": "S",
+      "summary": "CC has an `/env` command that sets session-scoped environment variables. These are stored in `sessionEnvVars` and applied only to spawned child processes (via the bash provider env overrides) \u2014 NOT to the REPL process itself. Useful for temporarily setting API keys, feature flags, or tool configuration without modifying shell profile.",
+      "done": "`/env FOO=bar` sets FOO for subsequent bash tool calls in the session. `/env` with no args shows current session env vars. Vars are cleared on session end.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PRIVACY-LEVELS",
+      "track": "Claude Code parity",
+      "title": "Privacy levels \u2014 default/no-telemetry/essential-traffic to control network traffic",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports three privacy levels (ordered by restrictiveness): `default` (everything enabled), `no-telemetry` (disables analytics/telemetry but other network traffic allowed), and `essential-traffic` (only API calls \u2014 no telemetry, no update checks, no marketplace refreshes, no bootstrap). Configurable via settings or `CLAUDE_CODE_PRIVACY_LEVEL`.",
+      "done": "`VANTA_PRIVACY=no-telemetry` disables all usage tracking. `essential-traffic` mode blocks all non-API network calls for air-gapped environments.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HTTPS-PROXY",
+      "track": "Claude Code parity",
+      "title": "HTTPS proxy support \u2014 route API calls through corporate proxy",
+      "status": "next",
+      "size": "M",
+      "summary": "CC supports standard `HTTPS_PROXY` / `HTTP_PROXY` env vars and an `ANTHROPIC_PROXY_URL` override for routing all API traffic through a corporate proxy. Uses `HttpsProxyAgent` with full proxy auth support. Also supports AWS SDK proxy config for Bedrock calls. The proxy agent is lazily loaded (~1.5MB undici) only when proxy vars are set.",
+      "done": "Setting `HTTPS_PROXY=http://proxy.corp.com:8080` routes all Vanta API calls through the corporate proxy. No code changes needed.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
