@@ -3,7 +3,7 @@
 Source-of-truth map of every Hermes interactive flow, what it does, and how it
 ports to Vanta's **in-process** architecture. Built from a 6-track recon of
 `~/Documents/GitHub/_active/hermes-reference`. Detailed per-area docs live in
-`docs/_hermes-recon/` (01 slash · 02 tui-components · 03 gateway · 04 banner ·
+`docs/_recon/` (01 slash · 02 tui-components · 03 gateway · 04 banner ·
 05 setup · 06 sessions).
 
 ---
@@ -178,7 +178,7 @@ flows that make Vanta more than a Hermes clone.
 
 ## 5. HTML model
 
-`docs/hermes-model.html` — clickable mockup of the Vanta target TUI (banner,
+`docs/agent-model.html` — clickable mockup of the Vanta target TUI (banner,
 slash palette, `/model` picker, streaming turn, status bar, sessions overlay,
 approval prompt). Open in a browser; use the tabs to step through each flow.
 This is the visual spec to align on **before** building P2+.

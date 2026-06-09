@@ -38,8 +38,21 @@ describe("formatUsd / formatTurnCost", () => {
     expect(line).toContain("$0.01");
   });
 
+  it("shows compression savings when tokensSaved is provided", () => {
+    const line = formatTurnCost(1200, 300, 1500, 0.0123, 360);
+    expect(line).toContain("1,500→1,140 tokens (360 saved via compression)");
+    expect(line).toContain("1.5s");
+    expect(line).toContain("$0.01");
+  });
+
   it("renders ~? when the model is unpriced", () => {
     expect(formatTurnCost(1, 1, 1000, null)).toContain("~?");
+  });
+
+  it("shows compression savings when unpriced", () => {
+    const line = formatTurnCost(1000, 500, 2000, null, 250);
+    expect(line).toContain("1,500→1,250 tokens (250 saved via compression)");
+    expect(line).toContain("~?");
   });
 });
 
@@ -51,9 +64,18 @@ describe("addTurnCost / formatSessionCost", () => {
     expect(c.localTurns).toBe(1);
     expect(c.frontierTurns).toBe(2);
     expect(c.frontierUsd).toBeCloseTo(0.05, 5);
+    expect(c.totalTokensSaved).toBe(0);
     const line = formatSessionCost(c);
     expect(line).toContain("frontier $0.05");
     expect(line).toContain("local free (1 turn)");
+  });
+
+  it("accumulates compression savings across turns", () => {
+    let c = addTurnCost(undefined, "openai", 0.02, 100);
+    c = addTurnCost(c, "openai", 0.03, 250);
+    expect(c.totalTokensSaved).toBe(350);
+    const line = formatSessionCost(c);
+    expect(line).toContain("350 tokens saved via compression");
   });
 
   it("reports no turns yet for an empty session", () => {

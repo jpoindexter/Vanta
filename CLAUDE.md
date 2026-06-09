@@ -4,7 +4,7 @@ Read this first. Global `~/.claude/CLAUDE.md` conventions apply; only Vanta-spec
 
 ## What Vanta is
 
-A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Lineage: OpenClaw → Hermes → Vanta. Full vision + roadmap in `docs/prd.md`. Hermes architecture reference (what to steal/improve/replace) in `docs/hermes-map.html`.
+A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Lineage: OpenClaw → Hermes → Vanta. Full vision + roadmap in `docs/prd.md`. Hermes architecture reference (what to steal/improve/replace) in `docs/agent-map.html`.
 
 ## Two layers
 

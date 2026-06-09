@@ -1,7 +1,7 @@
 # Vanta TUI v2 — mission-control surface (non-destructive)
 
 > Roadmap: `TUI-V2` + `TUI-V2-PALETTE` + `TUI-V2-RAILS`. Design source: the mockup Vanta built
-> itself, `docs/hermes-model-v2.html` (open it to see all screens). Goal: build v2 **without
+> itself, `docs/agent-model-v2.html` (open it to see all screens). Goal: build v2 **without
 > overwriting the working v1 TUI.**
 
 ## The non-overwrite strategy (the core constraint)

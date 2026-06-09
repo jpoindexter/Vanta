@@ -110,7 +110,7 @@ Bedrock + the long tail of ~20 niche providers; the other ~19 messaging platform
 ---
 
 ## v1.1 — Feature parity (2026-06-02) — CORE COMPLETE
-Founding mandate: broad capability + kernel-enforced safety as the differentiator. **Full audit + gap matrix: [`docs/parity-audit.md`](docs/parity-audit.md) — all 8 manifesto hard lines verified in code; core parity met.** P1/P1b/P2/P3/P4/P5 shipped 2026-06-02; remaining deltas (session search, more platforms, desktop/web UI, skill breadth) parked by design.
+Founding mandate: broad capability + kernel-enforced safety as the differentiator. **Full audit + gap matrix: [`docs/feature-audit.md`](docs/feature-audit.md) — all 8 manifesto hard lines verified in code; core parity met.** P1/P1b/P2/P3/P4/P5 shipped 2026-06-02; remaining deltas (session search, more platforms, desktop/web UI, skill breadth) parked by design.
 
 - [x] **P1 + P1b · Slash-command parity** — ✅ SHIPPED 2026-06-02. `/history /retry /undo /reset` (commits `73bf5c6`) + `/title /fork` (`2285270`), both readline + TUI. `/redraw` dropped (TUI auto-renders). Known minor gap: TUI `/undo` retracts model history but not the rendered transcript (needs a reducer action) — readline is fully correct.
 - [x] **P2 · Memory parity** — ✅ SHIPPED 2026-06-02. Injection was already capped; added a **stored-file cap** (`VANTA_MEMORY_MAX_BLOCKS`, default 50) — older blocks pruned from the live file but git-retained. (Memory compression deferred — optional.)
@@ -183,7 +183,7 @@ connective tissue + a few organs, not a new brain.
 - **UX:** queued type-ahead (U1), notifications (U3), real token usage (U4), `/compress` (U5), `/memory` (U6), `/export` (U7); full command set incl. `/goal /plan /title /fork /history /retry /undo /usage /copy /update`.
 - **Skills/memory:** skill-index injection + recall-body, capped memory, `skills lint`, in-session `todo`+`/plan`.
 - **Safety (manifesto-critical):** kernel `assess_action` hardened against known denylist/scope bypasses (broadened set, interpreter vectors, absolute-path-outside-root).
-- **Efficiency:** token/power frugality directive; prefer-local delegation. **Installer:** `bootstrap.sh`. **Docs:** MANIFESTO + parity-audit + claude-cli-gaps; CLAUDE.md kept current.
+- **Efficiency:** token/power frugality directive; prefer-local delegation. **Installer:** `bootstrap.sh`. **Docs:** MANIFESTO + feature-audit + claude-cli-gaps; CLAUDE.md kept current.
 
 ## ALSO SHIPPED in the marathon (continued)
 O2 swarms · O4 camera (`look_at_camera`) · O5 video (`watch_video`) · O7 speak (TTS) + transcribe (STT) ·
@@ -238,7 +238,7 @@ Two goal-dumps this session. UI bugs (width fill · slash palette 8-item cap · 
 **Auxiliary-task gap:** Bind each *function* (vision, summarization, title-gen, embeddings) to its own model, independent of the main agent model. Without this, a non-vision main model (DeepSeek V4 Flash, local text-only Ollama) silently breaks vision. AUX-VISION (shipped) re-introduces `VANTA_VISION_MODEL`; AUX-MAP generalizes it.
 - [x] **AUX-VISION** (S) — ✅ SHIPPED 2026-06-05. `routing/vision.ts` (`visionEnv` pure + `resolveVisionProvider`); all 3 image tools (`describe_image`, `look_at_screen`, `look_at_camera`) route to `VANTA_VISION_MODEL` (+ optional `VANTA_VISION_PROVIDER`) when set, else the active provider (prior behavior). Fixes vision silently breaking on a text-only main model. 4 unit tests, full suite green (1067 TS), `.env.example` + both `CLAUDE.md` updated. *The explicit "delegate those vision tasks today" ask.*
 - [x] **UI-READABILITY** (S) — ✅ SHIPPED 2026-06-05. TUI fills terminal width (removed 100-col cap, `tui/app.tsx`) · slash palette capped to 8 + fixed command column + width-clipped descriptions (`tui/transcript.tsx`, was unbounded ragged `space-between` → typing `/` dumped all 37) · `/skills` aligns names + clips to one line (`repl/handlers.ts`) · skill INDEX clipped per-line in the prompt (`prompt.ts` `trimSkillDesc`) so weak models stop parroting the library. 310 TUI/repl tests green.
-- [x] **SCRUB-AI** (M) ✅ SHIPPED 2026-06-09 — stripped other-agent mentions from published surface (source code, README, ROADMAP, AGENTS.md); kept research docs (`docs/_hermes-recon`, `docs/hermes-*`); branch renamed + merged to main.
+- [x] **SCRUB-AI** (M) ✅ SHIPPED 2026-06-09 — stripped legacy-agent mentions from published surface (source code, README, ROADMAP, AGENTS.md); kept research docs (`docs/_recon`, `docs/agent-*`, `docs/feature-*`, `docs/platform-*`); branch renamed + merged to main.
 - [ ] **AUX-MAP** (M) — generalize AUX-VISION into a per-function aux-task → model/provider map (vision · summarize · title · embed), one resolver extending `routing/model-router.ts`. Surfaced in `/status` + a `/aux` command + setup wizard.
 - [ ] **UX-MODEL-FIX** (S) — *regression.* `UX-MODEL` is marked shipped (picker persists to `.env`, survives relaunch) but model choice is not sticking. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. **Done =** pick a model → still active next launch, proven by relaunch.
 - [ ] **GOAL→ACTION** (S) — strengthen the headline ask: turn any vague goal into one safe, concrete, verified next action. Infra exists (`repl/next.ts`, `clarify` tool, nd-task-initiation) but is manual; gap = **auto-fire** a `/next`-style single-micro-step prompt on goal-set / vague input. Don't duplicate `next.ts` — trigger it.
@@ -285,7 +285,7 @@ Synthesized from improvement dumps + the Vanta Brand Style Guide. **Key truth: m
 
 **Research (verify before building — expect high existing coverage):**
 - [x] **USE-CASE-AUDIT** (S) — map 262 use cases → Vanta's 45 tools → coverage matrix; surface only genuine gaps.
-- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (see `docs/parity-audit.md`). *(horizon)*
+- [ ] **CODEBASE-MINE** (M) — targeted read of Goose/OpenClaw for specific stealable patterns (see `docs/feature-audit.md`). *(horizon)*
 - [ ] **INSTALL-PARITY** (S) — setup/install UX parity (one-line `bootstrap.sh` exists; audit the wizard). *(horizon)*
 
 **Gated:** SCRUB-AI (run last, force-push gated) · DESKTOP (horizon; OPERATOR-DASHBOARD is its seed).

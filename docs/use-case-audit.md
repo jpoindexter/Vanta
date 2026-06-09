@@ -1,6 +1,6 @@
 # Vanta Use-Case Coverage Audit (2026-06-08)
 
-Source of truth: `docs/hermes-parity-map.html` data island (67 capability rows, grounded in `~/.hermes/hermes-agent` v0.15.1 read live), `docs/parity-audit.md`, `docs/_hermes-recon/`, and confirmed roadmap.json statuses.
+Source of truth: `docs/feature-map.html` data island (67 capability rows, grounded in `~/.hermes/hermes-agent` v0.15.1 read live), `docs/feature-audit.md`, `docs/_recon/`, and confirmed roadmap.json statuses.
 
 Status icons: ✅ fully covered · 🟡 partially covered · ❌ not covered · ⬜ deliberately skipped (forget)
 

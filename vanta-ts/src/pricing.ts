@@ -43,31 +43,43 @@ export function formatUsd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
-/** One-line per-turn footer: tokens + latency + cost (or ~? when unpriced). */
+/** One-line per-turn footer: tokens + latency + cost + compression savings (or ~? when unpriced). */
 export function formatTurnCost(
   inputTokens: number,
   outputTokens: number,
   elapsedMs: number,
   cost: number | null,
+  tokensSaved?: number,
 ): string {
   const secs = `${(elapsedMs / 1000).toFixed(1)}s`;
   const costStr = cost === null ? "~?" : formatUsd(cost);
-  return `· ${inputTokens.toLocaleString()} in / ${outputTokens.toLocaleString()} out · ${secs} · ${costStr}`;
+  const totalTokens = inputTokens + outputTokens;
+  let tokensStr = `${inputTokens.toLocaleString()} in / ${outputTokens.toLocaleString()} out`;
+  if (tokensSaved && tokensSaved > 0) {
+    const saved = totalTokens - tokensSaved;
+    tokensStr = `${totalTokens.toLocaleString()}→${saved.toLocaleString()} tokens (${tokensSaved.toLocaleString()} saved via compression)`;
+  }
+  return `· ${tokensStr} · ${secs} · ${costStr}`;
 }
 
-/** Running session totals, split local (free) vs frontier (metered). */
-export type SessionCost = { localUsd: number; frontierUsd: number; localTurns: number; frontierTurns: number };
+/** Running session totals, split local (free) vs frontier (metered), plus compression savings. */
+export type SessionCost = { localUsd: number; frontierUsd: number; localTurns: number; frontierTurns: number; totalTokensSaved: number };
 
 /** Fold one turn's cost into the session total by provider class. Pure. */
-export function addTurnCost(prev: SessionCost | undefined, provider: string | undefined, cost: number | null): SessionCost {
-  const b = prev ?? { localUsd: 0, frontierUsd: 0, localTurns: 0, frontierTurns: 0 };
-  if (isLocalProvider(provider)) return { ...b, localTurns: b.localTurns + 1 };
-  return { ...b, frontierUsd: b.frontierUsd + (cost ?? 0), frontierTurns: b.frontierTurns + 1 };
+export function addTurnCost(prev: SessionCost | undefined, provider: string | undefined, cost: number | null, tokensSaved?: number): SessionCost {
+  const b = prev ?? { localUsd: 0, frontierUsd: 0, localTurns: 0, frontierTurns: 0, totalTokensSaved: 0 };
+  const nextSaved = b.totalTokensSaved + (tokensSaved ?? 0);
+  if (isLocalProvider(provider)) return { ...b, localTurns: b.localTurns + 1, totalTokensSaved: nextSaved };
+  return { ...b, frontierUsd: b.frontierUsd + (cost ?? 0), frontierTurns: b.frontierTurns + 1, totalTokensSaved: nextSaved };
 }
 
-/** The /status + /usage session-cost line, split local vs frontier. */
+/** The /status + /usage session-cost line, split local vs frontier, with compression savings. */
 export function formatSessionCost(c?: SessionCost): string {
   if (!c || (c.localTurns === 0 && c.frontierTurns === 0)) return "session cost: (no turns yet)";
   const t = (n: number) => `${n} turn${n === 1 ? "" : "s"}`;
-  return `session cost: frontier ${formatUsd(c.frontierUsd)} (${t(c.frontierTurns)}) · local free (${t(c.localTurns)})`;
+  let line = `session cost: frontier ${formatUsd(c.frontierUsd)} (${t(c.frontierTurns)}) · local free (${t(c.localTurns)})`;
+  if (c.totalTokensSaved > 0) {
+    line += ` · ${c.totalTokensSaved.toLocaleString()} tokens saved via compression`;
+  }
+  return line;
 }
