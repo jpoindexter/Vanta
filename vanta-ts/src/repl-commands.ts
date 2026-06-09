@@ -1,4 +1,5 @@
 import { dispatch } from "./repl/handlers.js";
+import { readSkill } from "./skills/store.js";
 import type { ReplCtx, SlashResult } from "./repl/types.js";
 
 // Slash commands for the interactive surface — the Vanta `/` set,
@@ -22,9 +23,22 @@ export { HANDLERS } from "./repl/handlers.js";
  */
 export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashResult> {
   const [cmd, ...rest] = input.slice(1).split(/\s+/);
+  const name = cmd ?? "";
   const arg = rest.join(" ").trim();
-  const result = await dispatch(cmd ?? "", arg, ctx);
-  return result ?? { output: `  unknown command /${cmd} — /help for the list`, unknown: true };
+  const result = await dispatch(name, arg, ctx);
+  if (result) return result;
+
+  // Generic skill aliases: if `/hill-climb` matches a stored skill, treat it as
+  // `vanta skill hill-climb`. With an argument, run a normal agent turn primed
+  // by the skill body; with no argument, print the skill so the user can inspect
+  // it. Explicit HANDLERS above always win, so built-in slash commands are stable.
+  const skill = name ? await readSkill(name, ctx.env) : null;
+  if (skill) {
+    if (!arg) return { output: `# ${skill.meta.name}\n\n${skill.body}` };
+    return { resend: `${skill.body}\n\n${arg}` };
+  }
+
+  return { output: `  unknown command /${name} — /help for the list`, unknown: true };
 }
 
 /**

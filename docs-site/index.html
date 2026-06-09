@@ -999,8 +999,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 <h2>Gotchas (will waste your time if you don't know)</h2>
 <ul>
 <li><strong><code>VANTA_ROOT</code> env var</strong> overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.</li>
-<li><strong>Stale <code>nexarion-agent</code> binary</strong> may hold port 7788 from before the rename. If a new kernel won't bind, <code>lsof -nP -iTCP:7788 -sTCP:LISTEN</code> and kill the PID.</li>
-<li><strong>A leftover empty <code>../Nexarion Agent/</code> dir</strong> exists (harness artifact, only an empty <code>.claude/</code>). The real repo is <code>Vanta/</code>. Don't work in the old path.</li>
+<li><strong>Stale <code>vanta-kernel</code> binary</strong> may hold port 7788 from a previous session. If a new kernel won't bind, <code>lsof -nP -iTCP:7788 -sTCP:LISTEN</code> and kill the PID.</li>
 <li>Kernel must be reachable before the agent runs (launcher auto-starts it; needs <code>target/debug/vanta-kernel</code> built).</li>
 </ul>
 <h2>Status</h2>
