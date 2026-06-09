@@ -121,6 +121,12 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `lint/run.ts` | `vanta lint [files\|--staged]` — `resolveTargets` (explicit=cwd-relative, git=root-relative), `lintFiles` (reports analyzed vs missing), `runLint` (exit 1 on violations/missing) |
 | `cli.ts` | Thin entry point: bootstrap (`findRepoRoot`/`loadEnv`/`ensureVantaStore`) + `startInteractive` (TTY-gated first-run wizard) + a `COMMANDS` lookup table (a returned number = exit code). `chat`/`--resume`/`resume`/`run` stay explicit (flag parsing). Add a command = one table entry. |
 | `cli/commands.ts` | The `vanta <cmd>` handlers extracted from cli.ts (CODE-SIZE-GATE): `usage`/`usageExit`, `runInstruction` (shared run/skill/room path), `runSessionsList`/`runSkillsCommand`/`runMemoryCommand`/`runVoiceCommand`/`runHooksCommand`/`runSkillCommand`/`runRoomCommand` |
+| `compress/types.ts` | COMPRESS-NATIVE — `ContentType` (`json`/`log`/`binary`/`text`), `CompressOptions`, `CompressResult`, `DEFAULTS`, `estTokens` |
+| `compress/router.ts` | `detectContentType(text)` — pure classifier (binary/log/json/text). `compressContent(text,opts)` — routes to the right compressor, returns no-op if ratio ≥ threshold |
+| `compress/json-crush.ts` | `crushJson(text,opts)` — strips whitespace, number precision, long arrays → `[n items]` stub |
+| `compress/log-squash.ts` | `squashLogs(text,opts)` — deduplicates repeated log lines, collapses runs |
+| `compress/store.ts` | CCR (Context-Compression Retrieval) stash: `ccrId(text)` (hash) + `storeCcr`/`retrieveCcr` — `.vanta/ccr/` files so the agent can ask for the full text after compression |
+| `compress/apply.ts` | `compressEnabled(env)` + `COMPRESS_TOOLS` allowlist + `shouldCompressTool(name)` + `applyCompression(toolName,output,opts)` — wired into `agent.ts dispatchTool`; only compresses tools on the allowlist |
 | `cli/ops.ts` | Larger op handlers: `dataDirFor`/`buildCronRunTask`/`runGatewayCommand`/`runServiceCommand`/`runMcpCommand`/`runRoadmapCommand`/`runFactoryCommand`/`runDesktopCommand` |
 | `cli-dx/` | CLI-DX-PACK: `prompt-size.ts` (token breakdown), `completion.ts` (shell completion + CLI_COMMANDS), `backup.ts` (tar ~/.vanta) |
 

@@ -38,7 +38,8 @@ cargo run -- serve 7788                   # cockpit + JSON API
 npm install
 npm run vanta                              # interactive session (no args)
 npm run vanta -- run "<instruction>"       # one-shot; kernel auto-starts if down
-npm test                                  # 274 vitest tests
+npm test                                  # all vitest tests
+npx vitest run <pattern>                  # single test file or describe block
 npm run typecheck                         # tsc --noEmit (must be clean)
 ```
 
@@ -67,15 +68,11 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**v1 complete; roadmap-grind in progress (2026-06-07).** Full v1 Hermes parity + Phase 2 EF + all S/M/L roadmap extensions. **46 tools** (+ compose_workflow + graph_query + roadmap_add) · **1216 TS + 27 Rust = 1243 tests green.** New ops: `vanta lint` (code-size gate) · `vanta open file:line`.
+**v1 complete; roadmap-grind in progress.** Full v1 Hermes parity + Phase 2 EF + all S/M/L extensions. **46 tools** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
 
-**Shipped 2026-06-07 (18 cards — per-card notes + statuses in `roadmap.json`; module detail in `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)"):** UX-MODEL-FIX (legacy `ARGO_*` env strip — root cause of "stuck on codex"; `/model <arg>` hot-swap+persist) · RESTART (`/restart` exit-75 + run.sh relaunch loop) · TOOL-RETRY (safe retry of idempotent reads) · GOAL-ACTION (vague goal auto-fires `/next`) · STALL-UNBLOCK · AUTO-HANDOFF (auto resume block on context pressure + reload on launch — the top net-new continuity want) · COST-VISIBLE (per-turn cost/latency + session split) · MODE-DETECT · ROADMAP-ADD (`roadmap_add` tool) · BUG-CAPTURE (`/bug`) · HANDOFF-PACKET (`/handoff`) · ACTION-PROOF (write_file re-read verify) · BEHAVIOR-VOICE (prompt rule 10) + REF-FIDELITY/VERIFY-RIGHT/BETTER-ENDINGS/TRUST-LABELS folded into rules 1/4/7 · CODE-SIZE-GATE (`vanta lint` + warn-only pre-commit + in-`write_file` self-check) · CC-EDITOR (`vanta open`/`/open`).
+**Open (roadmap.json `next`):** `EF-TASKSTACK` · `MEM-RELEVANCE` · `OPERATOR-DASHBOARD` · `VISION-COMPARE` · `AUX-MAP` · `AUTO-ROUTER`. Gated on Jason: `SCRUB-AI` · `VOICE-NATURAL`. Horizon: `DESKTOP` (Tauri).
 
-**Still open in `roadmap.json` (`next`):** the bigger Rocks — `EF-TASKSTACK` · `MEM-RELEVANCE` · `OPERATOR-DASHBOARD` · `VISION-COMPARE` — plus `AUX-MAP`/`AUTO-ROUTER` and a long S/M tail. **Gated on Jason:** `SCRUB-AI` (force-push history rewrite) · `VOICE-NATURAL` (3-sample approval). `horizon`: `DESKTOP` (Tauri app).
-
-Key capabilities added this session: TUI (help overlay, themes, vim mode, shortcuts, thinking display), EF Phase 3 (scope-delta, wm-manip), Memory (verbatim archive, compression, working memory, versioning, graph, 5D/12-axis brain), Factory (preflight, escalation, holdout, stall recovery, auto-close), Platform (voice loop, checkpoints, user commands), Brain (salience+executive networks, v2 scaffold), Infrastructure (canonical project ID, worktree detection, Claude Code hooks, typed stream events).
-
-Live-setup caveats (real code, offline-unit-tested; live use needs external setup): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision an OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`, one-time) + `vanta auth google`; LSP .ts/.tsx only; `vanta cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`. Post-MVP polish in `PARKED.md`.
+**Live-setup caveats** (offline-unit-tested; live needs): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`) + `vanta auth google`; LSP covers .ts/.tsx only; `vanta cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`, `PARKED.md`.
 
 ## Rule zero
 

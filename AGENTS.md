@@ -19,12 +19,12 @@ The kernel is the enforced security boundary — `assess()` blocks, it doesn't a
 
 ```bash
 cargo build && cargo test                     # Rust kernel (27 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1216 tests + typecheck)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1822 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-07):** v1 complete; roadmap-grind in progress on `feat/v1-hermes-parity`. 20 cards shipped this session (UX-MODEL-FIX, RESTART, TOOL-RETRY, GOAL-ACTION, STALL-UNBLOCK, AUTO-HANDOFF, COST-VISIBLE, MODE-DETECT, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, ACTION-PROOF, BEHAVIOR-VOICE + 4 prompt-rule folds, CODE-SIZE-GATE incl. in-`write_file` self-check, CC-EDITOR). 1216 TS + 27 Rust tests green; 46 tools; new ops `vanta lint` + `vanta open`. Per-card detail in `roadmap.json` + `vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)". Still open: AUX-MAP + the bigger Rocks (EF-TASKSTACK, MEM-RELEVANCE, OPERATOR-DASHBOARD). Gated on Jason: SCRUB-AI (force-push), VOICE-NATURAL (sample approval). Horizon: DESKTOP.
+> **Status (2026-06-09):** v1 complete; roadmap-grind in progress on `feat/v1-hermes-parity`. **1822 TS + 27 Rust tests green; 46 tools.** Recent: COMPRESS-NATIVE (in-house context compression, zero-dep TS), self-locating global launcher. Still open: EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD · VISION-COMPARE · AUX-MAP · AUTO-ROUTER. Gated on Jason: SCRUB-AI · VOICE-NATURAL. Horizon: DESKTOP. Per-card detail in `roadmap.json`.
 
 ## Key files
 
