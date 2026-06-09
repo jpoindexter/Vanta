@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { summarizeResult, diffStat } from "./tool-result.js";
+import { summarizeResult, diffStat, buildResultPreview, INLINE_MAX, FOLD_PREVIEW } from "./tool-result.js";
 import type { DiffLine } from "../util/diff.js";
 
 describe("summarizeResult", () => {
@@ -17,6 +17,39 @@ describe("summarizeResult", () => {
   });
   it("falls back to a char count for a long single line", () => {
     expect(summarizeResult("x".repeat(61))).toBe("61 chars");
+  });
+});
+
+describe("buildResultPreview", () => {
+  it("returns undefined for empty/whitespace output", () => {
+    expect(buildResultPreview("")).toBeUndefined();
+    expect(buildResultPreview("  \n  ")).toBeUndefined();
+  });
+
+  it("returns all lines and lineCount for short output", () => {
+    const result = buildResultPreview("a\nb\nc");
+    expect(result?.lineCount).toBe(3);
+    expect(result?.preview).toBe("a\nb\nc");
+  });
+
+  it("caps preview at FOLD_PREVIEW lines for long output", () => {
+    const lines = Array.from({ length: 20 }, (_, i) => `line${i}`);
+    const result = buildResultPreview(lines.join("\n"));
+    expect(result?.lineCount).toBe(20);
+    expect(result?.preview.split("\n").length).toBe(FOLD_PREVIEW);
+    expect(result?.preview).toBe(lines.slice(0, FOLD_PREVIEW).join("\n"));
+  });
+
+  it("strips trailing newline from lineCount", () => {
+    const result = buildResultPreview("a\nb\nc\n");
+    expect(result?.lineCount).toBe(3);
+  });
+});
+
+describe("INLINE_MAX / FOLD_PREVIEW constants", () => {
+  it("INLINE_MAX is 5 and FOLD_PREVIEW is 12", () => {
+    expect(INLINE_MAX).toBe(5);
+    expect(FOLD_PREVIEW).toBe(12);
   });
 });
 

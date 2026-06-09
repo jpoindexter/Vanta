@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { diffStat } from "./tool-result.js";
+import { diffStat, INLINE_MAX, FOLD_PREVIEW } from "./tool-result.js";
 import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
 import { linkifyFilePaths } from "./osc8.js";
@@ -25,8 +25,10 @@ export type ToolEntry = {
   summary?: string;
   /** Diff lines for write_file results — folded behind the expand toggle. */
   diff?: DiffLine[];
-  /** CC-TRANSCRIPT: truncated result output — shown when the entry is expanded. */
+  /** CC-COLLAPSED-READ: preview (up to FOLD_PREVIEW lines) — shown when expanded. */
   resultOutput?: string;
+  /** Total line count of the result; controls inline vs. folded display. */
+  lineCount?: number;
 };
 
 export type Entry =
@@ -86,18 +88,27 @@ function ToolLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement 
   const mark = e.ok === undefined ? "·" : e.ok ? "✓" : "✗";
   const tail = e.detail ? ` ${e.detail}` : "";
   const meta = e.ok ? diffStat(e.diff) || e.summary || "" : "";
-  const showOutput = props.expanded && e.ok && e.resultOutput;
-  const showDiff = props.expanded && e.ok && e.diff?.length;
+  // Short outputs (≤ INLINE_MAX lines) always show; long outputs fold behind ^O.
+  const isLong = (e.lineCount ?? 0) > INLINE_MAX;
+  const showOutput = e.ok && !!e.resultOutput && (!isLong || props.expanded);
+  const showFoldHint = isLong && !props.expanded && !!e.resultOutput;
+  const showDiff = props.expanded && e.ok && !!e.diff?.length;
+  const extraLines = (e.lineCount ?? 0) - FOLD_PREVIEW;
   return (
     <Box flexDirection="column">
       <Text dimColor>
         {mark} {e.icon} {e.verb}
         {tail}
         {meta ? <Text dimColor> · {meta}</Text> : null}
-        {e.resultOutput && !props.expanded ? <Text dimColor> [^O for output]</Text> : null}
+        {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
         {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
       </Text>
-      {showOutput ? <Text dimColor>{e.resultOutput}</Text> : null}
+      {showOutput ? (
+        <Box flexDirection="column" marginLeft={2}>
+          <Text dimColor>{e.resultOutput}</Text>
+          {extraLines > 0 ? <Text dimColor>… +{extraLines} more lines</Text> : null}
+        </Box>
+      ) : null}
       {showDiff ? <DiffView lines={e.diff!} /> : null}
     </Box>
   );

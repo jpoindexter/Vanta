@@ -16,7 +16,7 @@ import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { EntryRow, Palette, firstLine, type Entry } from "./transcript.js";
 import { toolDisplay } from "./tool-display.js";
-import { summarizeResult } from "./tool-result.js";
+import { summarizeResult, buildResultPreview, INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
@@ -74,9 +74,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       onTextDelta: (d) => dispatch({ t: "delta", d }),
       onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
       onToolResult: (name, ok, output, diff) => {
-        const MAX_RESULT = 500;
-        const resultOutput = ok && output.trim() ? output.slice(0, MAX_RESULT).trimEnd() + (output.length > MAX_RESULT ? " …" : "") : undefined;
-        dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput });
+        const preview = ok ? buildResultPreview(output) : undefined;
+        dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput: preview?.preview, lineCount: preview?.lineCount });
         // CC-TODO: live checklist — surface the todo list as a note every time the agent writes it.
         if (name === "todo" && ok && output.includes("done)")) {
           dispatch({ t: "note", text: `  ☑ plan updated:\n${output.split("\n").map((l) => `  ${l}`).join("\n")}` });
@@ -235,7 +234,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
-  const hasFoldable = state.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || !!e.resultOutput));
+  const hasFoldable = state.entries.some(
+    (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
+  );
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${foldHint}/help  ?  /exit`;
 
