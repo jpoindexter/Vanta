@@ -1,4 +1,4 @@
-/** YAML frontmatter of a SKILL.md file. Flat string fields, Hermes-compatible. */
+/** YAML frontmatter of a SKILL.md file. Flat string fields, portable across agent runtimes. */
 export type SkillMeta = {
   /** Human-readable skill name (also the slug source for the directory). */
   name: string;

@@ -7,8 +7,8 @@ import { skillsDir, ensureVantaStore, commitInHome } from "../store/home.js";
 const SKILL_FILE = "SKILL.md";
 
 /**
- * The bundled skill library shipped with Vanta — high-value skills ported from
- * the Hermes/OpenClaw references (coupling stripped). Lives at
+ * The bundled skill library shipped with Vanta — high-value skills, coupling-stripped.
+ * Lives at
  * vanta-ts/skills-library/<slug>/SKILL.md, resolved from this module's path so it
  * works under tsx regardless of cwd (same approach as cli.ts findRepoRoot).
  */
@@ -17,8 +17,8 @@ export function libraryDir(): string {
 }
 
 /**
- * All bundled skill sources, in install order. `skills-library/` (Hermes-ported
- * + nd-* skills) plus the repo-root `design-system-skills/` (the 17 design
+ * All bundled skill sources, in install order. `skills-library/` (curated + nd-*
+ * skills) plus the repo-root `design-system-skills/` (the 17 design
  * skills) — kept in their showcase folder (with its HTML viewer) and installed
  * from there rather than duplicated. Later sources don't override earlier ones;
  * each slug installs once (existing slugs are skipped).

@@ -1,7 +1,7 @@
 /**
  * Small shared catalog of the provider backends the setup wizard offers and
- * `vanta doctor` reports on. This is intentionally NOT the full Hermes-style
- * ProviderProfile registry — it's the minimum the wizard/doctor need to stay in
+ * `vanta doctor` reports on. This is intentionally NOT a full ProviderProfile
+ * registry — it's the minimum the wizard/doctor need to stay in
  * sync with {@link resolveProvider}. Extend `resolveProvider` and this list
  * together when adding a backend; build the registry only when a third wire
  * format or the ~6th provider forces it.

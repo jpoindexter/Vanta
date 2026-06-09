@@ -99,7 +99,7 @@ export async function expandAtImports(body: string, root: string): Promise<strin
 }
 
 /**
- * Serialize a {@link Skill} to the flat, Hermes-compatible SKILL.md format:
+ * Serialize a {@link Skill} to the flat, portable SKILL.md format:
  * a frontmatter block (tags as "[a, b, c]") then a blank line then the body.
  * Round-trips with {@link parseSkill} for well-formed input.
  */

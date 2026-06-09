@@ -7,7 +7,7 @@ import type { Skill } from "./types.js";
 
 const SKILL_FILE = "SKILL.md";
 
-// Hermes-derived lifecycle thresholds. A skill untouched for 30 days is a stale
+// Lifecycle thresholds. A skill untouched for 30 days is a stale
 // candidate; a learned skill is archived (reversible move to _archive), a
 // hand-authored one is only REPORTED. A long-archived skill (90 days) is
 // reported as prunable but NEVER auto-deleted — auto-delete is irreversible data

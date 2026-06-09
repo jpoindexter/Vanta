@@ -36,7 +36,7 @@ export async function appendMemory(
   const file = memoryFile(goalId, env);
   const block = `${BLOCK_DELIM}${now}\n${summary.trim()}\n\n`;
   await appendFile(file, block, "utf8");
-  // Bound the stored file (Hermes-style capped memory): keep the most recent
+  // Bound the stored file (capped memory): keep the most recent
   // blocks; older ones are pruned from the live file but preserved in git below.
   const cap = Number(env?.VANTA_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
   const blocks = splitBlocks(await readFile(file, "utf8").catch(() => ""));

@@ -11,8 +11,8 @@ import type { Message } from "../types.js";
 
 // Track B — the post-turn self-improvement review. After a turn that did real
 // work, a SECOND agent (whitelisted to recall + write_skill only) replays the
-// transcript and captures a reusable skill. Mirrors Hermes background_review:
-// forked, tool-restricted, biased to act, never blocks or fails the main turn.
+// transcript and captures a reusable skill. Forked, tool-restricted, biased to
+// act, never blocks or fails the main turn.
 
 const DEFAULT_REVIEW_EVERY = 8; // every Nth turn in a session
 const DEFAULT_REVIEW_MIN_TOOLS = 6; // or any turn that used >= this many tools
