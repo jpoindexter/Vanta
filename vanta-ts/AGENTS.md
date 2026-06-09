@@ -9,8 +9,9 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run          # 1216 tests (from vanta-ts/)
-npx tsc --noEmit        # must be clean before any commit
+npx vitest run                   # 1822 tests (from vanta-ts/)
+npx vitest run <pattern>         # single test file or describe block
+npx tsc --noEmit                 # must be clean before any commit
 ```
 
 ## Key entry points
@@ -47,7 +48,7 @@ npx tsc --noEmit        # must be clean before any commit
 - **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map (vision · summarize · title · embed); AUTO-ROUTER absorbs it.
 - **SCRUB-AI** — strip Hermes/Claude/other-agent mentions from the published surface before going public (keep research docs). **Gated on Jason** (history rewrite + force-push) — run LAST.
 - **VOICE-NATURAL** — warmth substance is in prompt rule 10; **gated on Jason** (done = 3 before/after sample approvals).
-- *(Shipped 2026-06-07: UX-MODEL-FIX, GOAL-ACTION, RESTART, TOOL-RETRY, BEHAVIOR-VOICE, STALL-UNBLOCK, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, COST-VISIBLE, MODE-DETECT, AUTO-HANDOFF, ACTION-PROOF + VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folds — see roadmap.json + CLAUDE.md §"Session additions (2026-06-07)".)*
+- *(Recent ships: COMPRESS-NATIVE (in-house context compression, `src/compress/`), self-locating global launcher. 2026-06-07 batch: UX-MODEL-FIX, GOAL-ACTION, RESTART, TOOL-RETRY, BEHAVIOR-VOICE, STALL-UNBLOCK, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, COST-VISIBLE, MODE-DETECT, AUTO-HANDOFF, ACTION-PROOF — see roadmap.json + CLAUDE.md §"Session additions".)*
 
 ## Adding a tool (checklist)
 
