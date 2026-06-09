@@ -4260,6 +4260,18 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high"
+    },
+    {
+      "id": "CC-POWERSHELL",
+      "track": "Claude Code parity",
+      "title": "PowerShell tool \u2014 Windows shell execution",
+      "status": "horizon",
+      "size": "M",
+      "summary": "CC has PowerShellTool for Windows environments. Vanta's shell_cmd uses /bin/sh (macOS/Linux). For Windows support: detect platform, swap the shell backend to PowerShell when on Windows, surface a powershell tool with the same safety gating as shell_cmd. Kernel already OS-agnostic; main work is TS shell spawning + test coverage on Windows.",
+      "done": "`powershell` tool executes commands on Windows via PowerShell with the same kernel safety gating as shell_cmd. Vanta runs on Windows.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium"
     }
   ]
 }
