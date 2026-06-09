@@ -3,7 +3,7 @@ import { useInput } from "ink";
 import { Overlay, OverlayRow } from "./overlay.js";
 import type { SessionMeta } from "../sessions/store.js";
 
-// The /sessions overlay (docs/hermes-model.html tab 5): the live session, a
+// The /sessions overlay: the live session, a
 // "new session" row, then saved sessions newest-first. ↑↓ move, ⏎ resumes a
 // saved session (or starts fresh on the new row), d deletes, Esc/q closes.
 // Drives sessions/store.ts directly — no gateway.

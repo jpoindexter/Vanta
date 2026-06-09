@@ -43,6 +43,7 @@ impl PromptPlan {
 }
 
 pub fn detect_agent_bridge() -> BridgeStatus {
+    // Legacy bridge: probes the external CLI binary by name.
     match Command::new("hermes").arg("--version").output() {
         Ok(out) if out.status.success() => BridgeStatus {
             available: true,
@@ -74,6 +75,7 @@ pub fn plan_prompt(root: &Path, prompt: &str) -> PromptPlan {
     PromptPlan {
         allowed: true,
         reason: "safe to route through external agent bridge".into(),
+        // Legacy bridge command — "hermes" is the external binary name; do not rename.
         command: vec!["hermes".into(), "chat".into(), "-q".into(), prompt.into()],
     }
 }
@@ -110,6 +112,7 @@ mod tests {
     fn builds_safe_agent_bridge_command() {
         let plan = plan_prompt(&root(), "summarize the project README");
         assert!(plan.allowed);
+        // Legacy: command[0] is the external binary name; kept as a contract test.
         assert_eq!(plan.command[0], "hermes");
         assert!(plan.command.contains(&"chat".to_string()));
         assert!(plan.command.contains(&"-q".to_string()));

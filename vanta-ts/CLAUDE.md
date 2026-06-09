@@ -73,7 +73,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/index.ts` | `buildRegistry({exclude?})` — registers all 45 tools + `mount_mcp` via factory = 46 total (`exclude:["delegate"]` → 45 for workers); `roadmap_add` files new cards, `roadmap_move` changes status |
 | `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
-| `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter, Hermes-compatible) |
+| `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter) |
 | `skills/store.ts` | `writeSkill`/`readSkill`/`listSkills` — `~/.vanta/skills/<slug>/SKILL.md`, auto-commits. `LEARNED_TAG` provenance constant |
 | `skills/library.ts` | `installSkillLibrary({force,from})` — copies bundled `skills-library/` into `~/.vanta/skills` (idempotent, skips existing unless `--force`). `libraryDir()` resolves to `vanta-ts/skills-library/`. Called by `vanta skills install` **and auto-run in `prepareRun`** every session, so newly-bundled skills appear without a manual install |
 | `skills-library/` | **35** shipped skills at `vanta-ts/skills-library/<slug>/SKILL.md`: ~10 ported from references + `agent-orchestration-workflows`, `build-mcp-server`, the **14 `nd-*` executive-function skills**, and the **9 Boris-Cherny build-catalog skills** (`standing-loops`, `keep-green`, `prod-watch`, `cluster-feedback`, `hill-climb`, `agent-fanout`, `parallel-verify-workflows`, `ship-preflight`, `agentic-build-strategy`). Add a `<slug>/SKILL.md` dir to grow the bundle; it auto-installs on next session |
@@ -212,7 +212,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Delegate:** `provider`/`model` params → agent routes a subtask to any backend (e.g. local ollama). `delegateEnv` overlays the choice.
 
-**Kernel safety (`src/safety.rs`):** hardened — `normalize_cmd` (strips quote/backslash escapes), broadened destructive set, arbitrary-exec vectors (interpreters/eval/pipe/egress) → ASK, absolute-path-outside-root → ASK. Closes the bypassable-denylist holes (Hermes #36846/#36645).
+**Kernel safety (`src/safety.rs`):** hardened — `normalize_cmd` (strips quote/backslash escapes), broadened destructive set, arbitrary-exec vectors (interpreters/eval/pipe/egress) → ASK, absolute-path-outside-root → ASK. Closes bypassable-denylist holes identified in prior-agent audit.
 
 **Phase 2 EF gates (2026-06-04):** All gates are best-effort, non-blocking, wrapped in try/catch. Post-turn gates (inhibit, set-shift) live as session-scoped state refs in `interactive.ts` + `tui/use-agent-send.ts`, mirroring the `researchGateRef` pattern. Pre-turn gate (closure-gate) fires inside `runUserTurn` / `sendToAgent` alongside complexity-gate and topic-shift check. In-loop gates (self-monitor, error-detect) live in `agent.ts dispatchTool` / `runTurn`. New env overrides: `VANTA_INHIBIT_THRESHOLD` · `VANTA_SETSHIFT_THRESHOLD`. `handlers.ts` MUST STAY at 300 lines — new slash handlers go in own files, trade a blank line for the import.
 
@@ -220,7 +220,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Env added:** `VANTA_MEMORY_MAX_BLOCKS` · `VANTA_SPINNER` (orbit|dots|pulse|snake|wave). Prompt rule 8 = token/power frugality (prefer local ollama for simple work).
 
-**Docs:** `MANIFESTO.md` (north star) · `docs/parity-audit.md` · `docs/claude-cli-gaps.md` · `docs/hermes-issues-map.md` · `ROADMAP.md` v1.1–v1.5 (parity + UX + autonomy/senses + selfhood + efficiency).
+**Docs:** `MANIFESTO.md` (north star) · `docs/parity-audit.md` · `docs/claude-cli-gaps.md` · `docs/issues-map.md` · `ROADMAP.md` v1.1–v1.5 (parity + UX + autonomy/senses + selfhood + efficiency).
 
 ## Session additions (2026-06-05) — keep current
 
@@ -232,7 +232,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Messaging setup wizard (MSG-WIZARD + MSG-REGISTRY):** `gateway/platforms/registry.ts` — `MESSAGING_CATALOG` (the messaging analogue of `providers/catalog.ts`): `{id,label,implemented,requiredEnv,secretEnv?,enableEnv?,prerequisite?,warning?,setupSteps,signupUrl?}` + `platformAvailability(p,env)` + `messagingPlatformById`. **Only Telegram is `implemented`** (live adapter); iMessage/Signal/WhatsApp are `planned` (preview-only — the wizard never writes a fake enable flag for a missing adapter). `setup-messaging.ts` — `vanta setup messaging`: registry-driven menu with `[available|configured|planned]` status, `renderSetupSteps` (prereq + ⚠ warning + numbered steps), configures Telegram for real (`VANTA_TELEGRAM_TOKEN` via the shared `upsertEnv`, exported `promptSecret` from `setup.ts`). Wired in `cli.ts` (`setup` → `messaging` subcommand). Future adapters (iMessage osascript+chat.db, Signal signal-cli, WhatsApp Node bridge) flip `implemented:true` + add their adapter. Design: `docs/messaging-gateways.md`.
 
-**Multi-source skill install:** `skills/library.ts` installs from `librarySources()` = **three** bundled dirs: `vanta-ts/skills-library/` (Hermes-ported + nd-*), the repo-root `design-system-skills/` (27 design skills + viewer), and `ai-engineering-skills/` (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into `~/.vanta/skills` each session via `installSkillLibrary()`. `installOne()` helper keeps the fn small; `from` still overrides to a single source (tests). Adding a skill source = one entry in `librarySources()`. Each library's `index.html` regenerates via `scripts/build-skills-index.py <folder>` (mistune); they're also installed into `~/.claude/skills` for Claude Code.
+**Multi-source skill install:** `skills/library.ts` installs from `librarySources()` = **three** bundled dirs: `vanta-ts/skills-library/` (nd-* + ported references), the repo-root `design-system-skills/` (27 design skills + viewer), and `ai-engineering-skills/` (13 production-LLM/agent-engineering skills + viewer). The extra libraries stay in their showcase folders (not duplicated) and auto-install into `~/.vanta/skills` each session via `installSkillLibrary()`. `installOne()` helper keeps the fn small; `from` still overrides to a single source (tests). Adding a skill source = one entry in `librarySources()`. Each library's `index.html` regenerates via `scripts/build-skills-index.py <folder>` (mistune); they're also installed into `~/.claude/skills` for Claude Code.
 
 ## Session additions (2026-06-07) — keep current
 

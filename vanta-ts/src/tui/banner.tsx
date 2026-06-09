@@ -7,8 +7,8 @@ import type { RunSetup } from "../session.js";
 
 // Startup banner — the first thing a session prints: an ASCII wordmark plus a
 // one-card readout of what the agent is wired with (tools, skills, system
-// prompt size, MCP servers). Modeled on the Hermes/Claude-Code startup card but
-// fed entirely from Vanta's own subsystems — no fabricated numbers. Rendered
+// prompt size, MCP servers).
+// Fed entirely from Vanta's own subsystems — no fabricated numbers. Rendered
 // inside Ink's <Static> by the App so it commits once and scrolls into the
 // terminal's native scrollback instead of re-painting every frame.
 

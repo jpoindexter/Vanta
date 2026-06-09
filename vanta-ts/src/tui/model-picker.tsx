@@ -4,13 +4,13 @@ import TextInput from "ink-text-input";
 import { Overlay, OverlayRow } from "./overlay.js";
 import type { ProviderEntry } from "../providers/catalog.js";
 
-// The /model picker (docs/hermes-model.html tab 3) — the headline gap. A
+// The /model picker — UI for switching providers and models. A
 // two-step wizard (provider → model) with an optional key-entry step for
 // providers missing their API key. The type-to-filter doubles as free-text
 // entry: ⏎ on a query that matches no curated model accepts the raw string, so
 // OpenRouter's 200+ and Ollama's local models stay reachable. On select the App
 // rebuilds the provider and hot-swaps it into the live conversation. Modeled on
-// Hermes' modelPicker.tsx but in-process — no gateway, reads providers/catalog.
+// In-process model picker — no gateway, reads providers/catalog.
 
 type Stage = "provider" | "key" | "model";
 

@@ -1,6 +1,6 @@
 # CLAUDE.md — desktop interface
 
-First slice of the Vanta desktop experience, modeled structurally after the Hermes desktop app: session sidebar, central chat, right preview/files/terminal rail, command palette, and command-center overlay.
+First slice of the Vanta desktop experience: session sidebar, central chat, right preview/files/terminal rail, command palette, and command-center overlay.
 
 ## Run
 

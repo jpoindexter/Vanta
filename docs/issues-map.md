@@ -1,13 +1,13 @@
-# Hermes issues → Vanta opportunities (manifesto-aligned) — 2026-06-02
+# Prior agent issues → Vanta opportunities (manifesto-aligned) — 2026-06-02
 
-Reviewed NousResearch/hermes-agent open issues (~200). Most are Hermes-specific
+Reviewed prior agent open issues (~200). Most are reference-implementation-specific
 (Desktop app, Windows, Telegram/Discord gateway, plugins, localization) and don't
 apply. Below: what maps to Vanta's architecture + manifesto.
 
-## 🔴 SECURITY — Vanta currently REPLICATES these Hermes holes (manifesto-critical)
+## 🔴 SECURITY — Vanta currently REPLICATES these reference holes (manifesto-critical)
 
 Vanta's manifesto hard line #2: *"Safety enforced, not advisory. The Rust kernel is
-the boundary. Blocked means blocked."* The Hermes security issues show this is the
+the boundary. Blocked means blocked."* The reference security issues show this is the
 hardest thing to get right — and **Vanta's kernel currently fails the same way.**
 
 - **#36846 (denylist bypassable by shell escapes → silent RCE)** — Vanta's `assess_action`
@@ -21,7 +21,7 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
   with `cwd: root` but nothing stops `cd /tmp && …` or `open('/abs/path','w')`. Only
   Vanta's *native* file tools use `resolveInScope`; shell does not. Same hole.
   → FIX: shell/exec that references absolute paths outside root or an interpreter → ask.
-  Honest note: true containment needs a sandbox (Hermes' answer is OpenShell); the
+  Honest note: true containment needs a sandbox (the reference agent's answer is OpenShell); the
   kernel hardening reduces the trivial-bypass surface and shifts power ops to approval.
 - **#37617 (prompt-injected writes to inactive-profile credential files)** — Vanta writes
   `~/.codex/auth.json` (0600) and `~/.vanta`. → verify no tool can write to credential
@@ -51,7 +51,7 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
   delegate; a deliberation planner fits the "operator." ★ (bigger).
 - **#37253 disable hardcoded system-prompt injections** — Vanta injects soul/rules/skill
   index; make tiers individually toggleable for power users. ★
-- **#36949 1Password (op://) secret backend** — Vanta reads `.env`; an `op://` resolver fits
+- **#36949 1Password (`op://`) secret backend** — Vanta reads `.env`; an `op://` resolver fits
   privacy-first secret handling. ★
 
 ## 🟡 Robustness lessons (verify/avoid in Vanta)
@@ -68,4 +68,4 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
 The issue review's biggest payoff is the **security finding**: Vanta's kernel is currently
 advisory-in-disguise (bypassable keyword denylist + no shell write containment), so the
 manifesto's "real safety" claim isn't yet true. Hardening `safety.rs` is the #1 action.
-After that, the cheap feature wins (#37184, #37352, #36656, #36821) extend parity.
+After that, the cheap feature wins (#37184, #37352, #36656, #36821) extend capability.

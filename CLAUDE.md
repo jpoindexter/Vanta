@@ -4,7 +4,7 @@ Read this first. Global `~/.claude/CLAUDE.md` conventions apply; only Vanta-spec
 
 ## What Vanta is
 
-A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Lineage: OpenClaw → Hermes → Vanta. Full vision + roadmap in `docs/prd.md`. Hermes architecture reference (what to steal/improve/replace) in `docs/agent-map.html`.
+A local trusted-operator agent: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Full vision + roadmap in `docs/prd.md`. Prior architecture reference (what to steal/improve/replace) in `docs/agent-map.html`.
 
 ## Two layers
 
@@ -24,7 +24,7 @@ cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
 
-# Install the global `vanta` command (Hermes/OpenClaw-style: ~/.local/bin launcher + ~/.vanta seed)
+# Install the global `vanta` command (~/.local/bin launcher + ~/.vanta seed)
 ./install.sh                               # then `vanta` works from anywhere (no profile edit if ~/.local/bin is on PATH)
 
 # Agent — from repo root (preferred): self-bootstrapping launcher
@@ -47,12 +47,12 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 | Module | Purpose |
 |--------|---------|
-| `app` | `State` (root + data_dir), `doctor`, `append_event`/`log_event`, `esc()` JSON escaper, `.nexarion→.vanta` migration |
+| `app` | `State` (root + data_dir), `doctor`, `append_event`/`log_event`, `esc()` JSON escaper, legacy data dir migration |
 | `safety` | `assess_action() → Verdict{Risk::Allow/Ask/Block}`. Keyword blocklist (destructive/exfiltration=Block), scope check (outside root=Ask), system/credential keywords=Ask, else Allow |
 | `approvals` | `ApprovalQueue`, persisted `.vanta/approvals.tsv`. Only `Ask` actions queue; `Block` errors, `Allow` errors |
 | `goals` | `GoalLedger`, `.vanta/goals.tsv` |
 | `runtime` | `run_native()` — safety-gates then dispatches; returns `Unsupported` rather than silently falling back |
-| `bridge` | Detects Hermes CLI; `plan_prompt()` gates before building a hermes command (legacy, not core) |
+| `bridge` | Legacy CLI bridge; `plan_prompt()` gates before building an external command (legacy, not core) |
 | `server` | Raw TCP HTTP/1.1; inlined cockpit HTML const; all `/api/*` return JSON |
 
 **Kernel API** (`127.0.0.1:7788`): `GET /api/status`, `POST /api/assess` (body=action→Verdict), `GET|POST /api/goals`, `GET|POST /api/approvals`, `POST /api/log` (body=event), `POST /api/run`, `POST /api/bridge/plan`, `GET *`→cockpit.
@@ -62,13 +62,12 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 ## Gotchas (will waste your time if you don't know)
 
 - **`VANTA_ROOT` env var** overrides the kernel's cwd-based root. Set it when launching the kernel for a specific project. The TS launcher always passes it.
-- **Stale `nexarion-agent` binary** may hold port 7788 from before the rename. If a new kernel won't bind, `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill the PID.
-- **A leftover empty `../Nexarion Agent/` dir** exists (harness artifact, only an empty `.claude/`). The real repo is `Vanta/`. Don't work in the old path.
+- **Stale kernel binary** may hold port 7788 from a previous build. If a new kernel won't bind, `lsof -nP -iTCP:7788 -sTCP:LISTEN` and kill the PID.
 - Kernel must be reachable before the agent runs (launcher auto-starts it; needs `target/debug/vanta-kernel` built).
 
 ## Status
 
-**v1 complete; roadmap-grind in progress.** Full v1 Hermes parity + Phase 2 EF + all S/M/L extensions. **46 tools** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
+**v1 complete; roadmap-grind in progress.** Full v1 feature parity + Phase 2 EF + all S/M/L extensions. **46 tools** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
 
 **Open (roadmap.json `next`):** `EF-TASKSTACK` · `MEM-RELEVANCE` · `OPERATOR-DASHBOARD` · `VISION-COMPARE` · `AUX-MAP` · `AUTO-ROUTER`. Gated on Jason: `SCRUB-AI` · `VOICE-NATURAL`. Horizon: `DESKTOP` (Tauri).
 

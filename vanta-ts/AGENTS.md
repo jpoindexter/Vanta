@@ -46,7 +46,7 @@ npx tsc --noEmit                 # must be clean before any commit
 ## Open bugs / in-flight (roadmap.json)
 
 - **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map (vision · summarize · title · embed); AUTO-ROUTER absorbs it.
-- **SCRUB-AI** — strip Hermes/Claude/other-agent mentions from the published surface before going public (keep research docs). **Gated on Jason** (history rewrite + force-push) — run LAST.
+- **SCRUB-AI** — strip legacy agent mentions from the published surface before going public (keep research docs). ✅ SHIPPED 2026-06-09.
 - **VOICE-NATURAL** — warmth substance is in prompt rule 10; **gated on Jason** (done = 3 before/after sample approvals).
 - *(Recent ships: COMPRESS-NATIVE (in-house context compression, `src/compress/`), self-locating global launcher. 2026-06-07 batch: UX-MODEL-FIX, GOAL-ACTION, RESTART, TOOL-RETRY, BEHAVIOR-VOICE, STALL-UNBLOCK, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, COST-VISIBLE, MODE-DETECT, AUTO-HANDOFF, ACTION-PROOF — see roadmap.json + CLAUDE.md §"Session additions".)*
 

@@ -10,8 +10,8 @@
 Jason called the desktop chat "a good case study." The *reasoning* mistakes matter
 more than the individual UI gaps — they're behavioral and will repeat unless fixed:
 
-1. **Reference-blindness.** Told "build something like hermes-agent but better," Vanta
-   built a generic dashboard *without inspecting Hermes first*. Lesson → **`REF-FIDELITY`**:
+1. **Reference-blindness.** Told "build something like the prior agent but better," Vanta
+   built a generic dashboard *without inspecting the reference first*. Lesson → **`REF-FIDELITY`**:
    "like X but better" means inspect X's actual structure/interaction model first,
    reproduce it, *then* improve + brand. (Vanta's brain already saved this; make it a rule.)
 2. **Proxy verification.** Vanta claimed "2 tests pass, typecheck clean" as if that proved
@@ -73,8 +73,8 @@ links, files, etc — Vanta can't"):
 
 The desktop interface exists but is a rough web shell. The completion plan
 (`docs/desktop-completion-plan.md`) lays out **13 phases → `DESKTOP-P0..P12`**, Electron-first
-for Hermes parity, kernel-enforced everywhere. Build order is P0 (refactor+tests) → P1
+for reference-implementation parity, kernel-enforced everywhere. Build order is P0 (refactor+tests) → P1
 (SSE streaming) → P2 (session runtime map) → P3 (React renderer) → P4 (approval) → P5–P11
 (model/files/terminal/preview/palette/center/composer) → P12 (native packaging, after UX is
-approved). **Hard rule kept from Jason: not a generic dashboard — match Hermes's interaction
+approved). **Hard rule kept from Jason: not a generic dashboard — match the reference interaction
 model first, then apply Vanta's operator/dossier aesthetic + safety kernel.**

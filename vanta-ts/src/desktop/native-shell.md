@@ -6,7 +6,7 @@ Current command:
 npm run vanta -- desktop
 ```
 
-This starts the Hermes-style local desktop surface at `http://127.0.0.1:7790`.
+This starts the local desktop surface at `http://127.0.0.1:7790`.
 
 ## What is live now
 
@@ -20,7 +20,7 @@ This starts the Hermes-style local desktop surface at `http://127.0.0.1:7790`.
 
 ## Native app next
 
-Preferred shell: Tauri if we want small/mac-native; Electron if we want Hermes parity fastest (`webview`, `node-pty`, builder ecosystem).
+Preferred shell: Tauri if we want small/mac-native; Electron if we want fastest feature parity (`webview`, `node-pty`, builder ecosystem).
 
 Minimal native wrapper requirements:
 
