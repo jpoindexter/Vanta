@@ -26,16 +26,16 @@ export function reduce(s: State, a: Action): State {
       return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], busy: true, streaming: "", status: "thinking" };
     case "delta":
       return { ...s, streaming: s.streaming + a.d, status: "generating" };
-    case "toolCall":
+    case "toolCall": {
+      const prevEntries = commitStreaming(s.entries, s.streaming);
+      const isGrouped = prevEntries[prevEntries.length - 1]?.kind === "tool";
       return {
         ...s,
-        entries: [
-          ...commitStreaming(s.entries, s.streaming),
-          { kind: "tool", name: a.name, icon: a.icon, verb: a.verb, detail: a.detail },
-        ],
+        entries: [...prevEntries, { kind: "tool", name: a.name, icon: a.icon, verb: a.verb, detail: a.detail, isGrouped }],
         streaming: "",
         status: `${a.verb}${a.detail ? ` ${a.detail}` : ""}`,
       };
+    }
     case "toolResult": {
       const entries = [...s.entries];
       for (let i = entries.length - 1; i >= 0; i--) {

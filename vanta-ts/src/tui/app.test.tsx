@@ -32,7 +32,7 @@ describe("tui reduce", () => {
     s = reduce(s, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
     expect(s.entries).toEqual([
       { kind: "assistant", text: "let me read it" },
-      { kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "x" },
+      expect.objectContaining({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "x" }),
     ]);
     expect(s.streaming).toBe("");
     expect(s.status).toBe("read x");
@@ -41,7 +41,7 @@ describe("tui reduce", () => {
   it("a tool result fills ok on success (no error line) on the matching open tool entry", () => {
     let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "" });
     s = reduce(s, { t: "toolResult", name: "read_file", ok: true });
-    expect(s.entries[0]).toEqual({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "", ok: true, errorLine: undefined, summary: undefined });
+    expect(s.entries[0]).toEqual(expect.objectContaining({ kind: "tool", name: "read_file", icon: "📖", verb: "read", detail: "", ok: true, errorLine: undefined, summary: undefined }));
   });
 
   it("a tool result stores the result summary for the collapsed one-liner", () => {
@@ -49,6 +49,15 @@ describe("tui reduce", () => {
     s = reduce(s, { t: "toolResult", name: "read_file", ok: true, summary: "254 lines" });
     const e = s.entries[0];
     expect(e?.kind === "tool" && e.summary).toBe("254 lines");
+  });
+
+  it("second consecutive tool call gets isGrouped:true; first gets false", () => {
+    let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "a" });
+    s = reduce(s, { t: "toolCall", name: "shell_cmd", icon: "❯", verb: "ran", detail: "b" });
+    const first = s.entries[0];
+    const second = s.entries[1];
+    expect(first?.kind === "tool" && first.isGrouped).toBe(false);
+    expect(second?.kind === "tool" && second.isGrouped).toBe(true);
   });
 
   it("toggleExpand flips the transcript fold state", () => {
