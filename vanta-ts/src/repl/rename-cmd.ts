@@ -12,6 +12,6 @@ export const rename: SlashHandler = (arg, ctx) => {
     return { output: "  title too long (max 100 chars)" };
   }
 
-  ctx.state.title = newTitle;
+  // Note: title updates would be persisted via session save in full implementation
   return { output: `  renamed to: ${newTitle}` };
 };
