@@ -8538,6 +8538,19 @@
       "model": "opus",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-COMPACT-INSTRUCTIONS",
+      "track": "Claude Code parity",
+      "title": "/compact with custom instructions \u2014 control what the summary preserves",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's `/compact` accepts an optional argument: `/compact <instructions>` to guide the summarization. E.g. `/compact focus on the authentication flow` tells the summarizer what to emphasize. Also supports `DISABLE_COMPACT` env var to block compaction. Works in non-interactive mode for scripted compaction.",
+      "done": "`/compact keep the database schema details` produces a summary that preserves schema context over other content.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
