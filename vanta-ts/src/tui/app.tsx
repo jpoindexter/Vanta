@@ -24,6 +24,8 @@ import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "../repl/shortcuts.js";
 import { HelpOverlay } from "./help-overlay.js";
 import { resolveTheme } from "./theme.js";
+import { getRiskTier, formatRiskLabel } from "./command-risk.js";
+import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
@@ -94,15 +96,20 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety, setup.goals, repoRoot, activeProvider.contextWindow());
 
-  // Slash palette — suggest matching commands while typing a bare `/word`.
+  // Slash palette — fuzzy-search matching commands while typing a bare `/word`.
+  // Results include risk tier labels.
   const slashHead = !pending && !overlay && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
-  const matches = slashHead !== null ? SLASH_COMMANDS.filter((c) => c.name.startsWith(slashHead)).slice(0, 8) : [];
-  const showPalette = matches.length > 0;
+  const fuzzyMatches = slashHead !== null ? fuzzyFilter(SLASH_COMMANDS, slashHead, (c) => c.name) : [];
+  const matchesWithRisk = fuzzyMatches.slice(0, 8).map((m) => ({
+    ...m.item,
+    risk: formatRiskLabel(getRiskTier(m.item.name)),
+  }));
+  const showPalette = matchesWithRisk.length > 0;
   useEffect(() => setSel(0), [slashHead]);
   useInput((_in, key) => {
-    if (key.upArrow) setSel((s) => (s - 1 + matches.length) % matches.length);
-    else if (key.downArrow) setSel((s) => (s + 1) % matches.length);
-    else if (key.tab) setInput(`/${(matches[sel] ?? matches[0])!.name} `);
+    if (key.upArrow) setSel((s) => (s - 1 + matchesWithRisk.length) % matchesWithRisk.length);
+    else if (key.downArrow) setSel((s) => (s + 1) % matchesWithRisk.length);
+    else if (key.tab) setInput(`/${(matchesWithRisk[sel] ?? matchesWithRisk[0])!.name} `);
   }, { isActive: showPalette });
 
   // @-context palette — suggest files while typing @<partial-path>.
@@ -269,7 +276,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             <Text color={editMode.active ? "yellow" : state.busy ? "gray" : THEME.primary}>{"› "}</Text>
             <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={editMode.active ? "editing response — ⏎ confirm, clear + ⏎ cancel" : state.busy ? "working…" : "Ask Vanta anything — /help for commands"} history={inputHistory} isHistoryActive={!editMode.active && !showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
           </Box>
-          {showPalette ? <Palette matches={matches} sel={Math.min(sel, matches.length - 1)} width={w} /> : null}
+          {showPalette ? <Palette matches={matchesWithRisk} sel={Math.min(sel, matchesWithRisk.length - 1)} width={w} /> : null}
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}
           <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} primaryColor={THEME.primary} vimMode={VIM_ENABLED ? vimMode : undefined} />
         </Box>

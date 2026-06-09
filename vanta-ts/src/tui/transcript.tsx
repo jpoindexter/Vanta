@@ -110,27 +110,29 @@ export function clip(s: string, max: number): string {
 }
 
 export function Palette(props: {
-  matches: ReadonlyArray<{ name: string; arg?: string; desc: string }>;
+  matches: ReadonlyArray<{ name: string; arg?: string; desc: string; risk?: string }>;
   sel: number;
   width: number;
 }): ReactElement {
-  // Fixed command column (Claude-CLI style): the command name padded to a shared
-  // width, then a single-line, width-clipped description. No space-between — that
-  // floats descriptions to ragged right edges and reads as broken.
+  // Fixed command column (Claude-CLI style): command name padded to a shared
+  // width, then risk label, then one-line, width-clipped description.
   const labels = props.matches.map((c) => `/${c.name}${c.arg ? ` ${c.arg}` : ""}`);
   const cmdCol = Math.min(22, Math.max(2, ...labels.map((l) => l.length)) + 2);
-  const descCol = Math.max(8, props.width - cmdCol - 4); // 4 = border + gutter + marker
+  const riskCol = 11; // "[approval] " = 11 chars
+  const descCol = Math.max(8, props.width - cmdCol - riskCol - 4); // 4 = border + gutter + marker
   return (
     <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} width={props.width}>
       {props.matches.map((c, i) => {
         const active = i === props.sel;
         const label = clip(labels[i] ?? "", cmdCol).padEnd(cmdCol);
+        const riskLabel = c.risk ? c.risk.padEnd(riskCol) : "".padEnd(riskCol);
         return (
           <Box key={c.name}>
             <Text color={active ? "cyan" : "white"} bold={active}>
               {active ? "› " : "  "}
               {label}
             </Text>
+            <Text color={active ? "cyan" : "gray"}>{riskLabel}</Text>
             <Text dimColor>{clip(c.desc, descCol)}</Text>
           </Box>
         );
