@@ -5,11 +5,24 @@ import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 
 // CC-NO-FLICKER-ENV: alternate screen buffer toggle. Accepts VANTA_NO_FLICKER=1
 // or the Claude Code compat alias CLAUDE_CODE_NO_FLICKER=1.
+//
+// WARNING: the alternate buffer has NO native scrollback. The Static-based
+// transcript model relies on terminal scrollback for history. Enable this only
+// alongside a virtual viewport (CC-VIRTUAL-LIST); without it, lines that scroll
+// off screen are unrecoverable. Disabled by default for this reason.
 const ALT_ENTER = "\x1b[?1049h\x1b[H";
 const ALT_LEAVE = "\x1b[?1049l";
 
 function inAltScreen(): boolean {
   return process.env.VANTA_NO_FLICKER === "1" || process.env.CLAUDE_CODE_NO_FLICKER === "1";
+}
+
+/** Register cleanup handlers so a SIGINT/SIGTERM/uncaught exit restores the terminal. */
+function registerAltScreenCleanup(): void {
+  const restore = (): void => { process.stdout.write(ALT_LEAVE); };
+  process.on("exit", restore);
+  process.on("SIGINT", () => { restore(); process.exit(130); });
+  process.on("SIGTERM", () => { restore(); process.exit(143); });
 }
 
 /**
@@ -19,7 +32,10 @@ function inAltScreen(): boolean {
  */
 export async function runTui(repoRoot: string): Promise<void> {
   const altScreen = inAltScreen();
-  if (altScreen) process.stdout.write(ALT_ENTER);
+  if (altScreen) {
+    process.stdout.write(ALT_ENTER);
+    registerAltScreenCleanup();
+  }
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate();
   const { waitUntilExit } = render(<App setup={setup} repoRoot={repoRoot} />);
