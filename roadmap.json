@@ -4898,7 +4898,7 @@
       "size": "M",
       "summary": "CC groups parallel tool calls into a single GroupedToolUseContent block, delegating rendering to each tool's renderGroupedToolUse method. Each tool can show progress/error/resolved state per-call within the group. Vanta shows parallel calls as sequential individual lines.",
       "done": "Parallel tool calls from the same batch are rendered as a group; each tool can provide a renderGroupedToolUse implementation; in-progress / resolved / error states render per-call within the group.",
-      "tier": "pebble",
+      "tier": "rock",
       "model": "sonnet",
       "effort": "medium"
     },
@@ -4979,10 +4979,10 @@
       "track": "Claude Code parity",
       "title": "Collapsed read/search content — auto-fold long tool output",
       "status": "next",
-      "size": "S",
+      "size": "M",
       "summary": "CC's CollapsedReadSearchContent auto-folds long file reads and search results to N lines by default, with a 'show more' control. Prevents large file reads from flooding the transcript. Vanta shows full tool output inline.",
       "done": "File reads and search results > N lines (configurable, default 20) render collapsed to a summary line; Ctrl+O or a keybinding expands/collapses; the full output is never lost.",
-      "tier": "sand",
+      "tier": "rock",
       "model": "sonnet",
       "effort": "medium"
     },
@@ -5354,7 +5354,7 @@
       "size": "S",
       "summary": "CC's ToolUseLoader shows a distinct animated loading state while a tool is executing (between call and result), including the tool name and a progress indicator. Vanta shows the spinner globally; individual tool calls have no per-tool loading state.",
       "done": "While a tool is running, its entry shows a tool-specific loader (name + animated indicator); on completion it transitions to the result; parallel calls each have their own loader.",
-      "tier": "sand",
+      "tier": "pebble",
       "model": "sonnet",
       "effort": "low"
     },
@@ -5946,7 +5946,7 @@
       "size": "S",
       "summary": "Coordinator sub-agents generate a 3-5 word present-tense progress summary every 30s via a forked side-query. Summaries name the specific file or function being worked on (not vague descriptions). Shown in the footer task pill. Cache-shared with parent agent to avoid extra billing.",
       "done": "Running sub-agent tasks show a live progress summary in the footer pill (e.g. 'Editing auth.ts'); summaries update every ~30s; summaries are specific, not vague.",
-      "tier": "sand",
+      "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
@@ -7088,7 +7088,7 @@
       "size": "S",
       "summary": "CC extracts the first `# comment` line from a bash command and uses it as the tool-use display label in fullscreen mode, and as the collapse-group hint. Users can annotate scripts with human-readable descriptions that appear in the UI instead of the raw command.",
       "done": "First `# comment` in a bash command block renders as the display label in tool call UI; raw command still executes.",
-      "tier": "sand",
+      "tier": "rock",
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
@@ -9520,7 +9520,7 @@
       "size": "M",
       "summary": "CC (v2.1.152) adds a `MessageDisplay` hook event that fires before each assistant message is shown. Hooks can rewrite or suppress the text — useful for operators that want to strip internal reasoning, add context, or route messages to external systems.",
       "done": "A MessageDisplay hook strips <thinking> blocks from displayed output. The transcript shows clean responses; raw content still reaches downstream tools.",
-      "tier": "pebble",
+      "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
@@ -9884,7 +9884,7 @@
       "size": "S",
       "summary": "CC (v2.1.110) adds `/focus` as a dedicated command to toggle focus view (compact prompt + one-line tool summary + final response only). `Ctrl+O` now only toggles between normal and verbose transcript; `/focus` is the focus-view entry point.",
       "done": "Running `/focus` switches to a minimal view showing only the prompt, tool summary line, and final response. `/focus` again returns to normal.",
-      "tier": "sand",
+      "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
