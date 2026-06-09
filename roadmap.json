@@ -6101,6 +6101,71 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-BUDDY",
+      "track": "Claude Code parity",
+      "title": "Companion buddy \u2014 animated ASCII creature with species, rarity, stats",
+      "status": "horizon",
+      "size": "S",
+      "summary": "CC has a virtual companion (duck, cat, octopus, robot, snail, etc.) deterministically generated from the user ID. Creatures have rarity (common \u2192 legendary), stats, hats, and eyes. Idle fidget animation with multiple ASCII art frames. Shown as a terminal sprite via useBuddyNotification.",
+      "done": "User gets a persistent named companion visible in the TUI; creature is deterministic (same ID = same creature); rare variants are rarer; idle animation plays between turns.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CONFIG-TOOL",
+      "track": "Claude Code parity",
+      "title": "ConfigTool \u2014 agent reads and updates user settings during session",
+      "status": "next",
+      "size": "S",
+      "summary": "Agent-accessible tool to read the current value of a setting, list valid options, get the config file path, and update supported settings (Global config + settings.json) during a session. Enables the agent to configure itself (e.g., enable verbose mode, set model).",
+      "done": "Agent can call ConfigTool to read/update settings without user manual edit; unsupported settings rejected; changes persisted to the appropriate config file.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-LSP-TOOL-FULL",
+      "track": "Claude Code parity",
+      "title": "LSPTool full parity \u2014 call hierarchy, find references, hover, document symbols",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's LSPTool exposes the full LSP API: hover info (type + docs), go-to-definition, find references (with line preview), document symbols (outline), call hierarchy (incoming/outgoing callers), workspace symbols. Multi-language via the LSP server manager (not just TS). ENABLE_LSP_TOOL env var gates it.",
+      "done": "Agent can get call hierarchy for a function, list all references with context, get hover docs for a symbol; works for any language with an LSP server configured.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TOOL-SEARCH-DEFERRED",
+      "track": "Claude Code parity",
+      "title": "ToolSearchTool \u2014 on-demand deferred tool loading by keyword",
+      "status": "next",
+      "size": "S",
+      "summary": "Agent-accessible ToolSearch tool: loads deferred tool schemas on demand by keyword query or `select:<name>` for direct selection. Keeps tool context lean by not loading all tool schemas upfront. Agent first discovers that a tool exists (from index), then fetches its full schema when needed.",
+      "done": "Deferred tools appear as names-only in the context; calling ToolSearch loads their full schema; agent can then call them; `select:ToolName` fetches by exact name.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TASK-TOOLS",
+      "track": "Claude Code parity",
+      "title": "Task management tools \u2014 TaskCreate/Get/List/Update/Stop/Output for agent loops",
+      "status": "next",
+      "size": "M",
+      "summary": "Suite of agent-accessible task management tools for the TodoV2 task system: TaskCreate (spawn background task), TaskGet (check status), TaskList (list all tasks), TaskUpdate (update title/description), TaskStop (cancel task), TaskOutput (stream task output). Enables agent orchestration of background work.",
+      "done": "Agent can create a background task, monitor its status, stream its output, and stop it; tasks survive context compaction; task IDs are stable references.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
