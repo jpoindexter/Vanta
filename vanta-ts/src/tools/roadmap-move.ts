@@ -37,6 +37,14 @@ export const roadmapMoveTool: Tool = {
       return { ok: false, output: `Invalid args: ${parsed.error.message}` };
     }
     const { id, status } = parsed.data;
+    if (status === "building") {
+      const ok = await ctx.requestApproval(
+        `move roadmap item ${id} to building (Now)`,
+        "Now is operator-gated — only Jason decides what's actively in flight.",
+        "roadmap_move",
+      );
+      if (!ok) return { ok: false, output: "Move to Now blocked — operator approval required." };
+    }
     try {
       const { moveRoadmapItem } = await import("../roadmap/move.js");
       const item = await moveRoadmapItem(ctx.root, id, status);
