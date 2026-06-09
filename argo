@@ -1,3 +1,0 @@
-#!/bin/sh
-# Thin alias for run.sh so `./argo run "..."` works the same as `./run.sh run "..."`.
-exec "$(cd "$(dirname "$0")" && pwd)/run.sh" "$@"

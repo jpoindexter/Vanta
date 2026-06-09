@@ -42,12 +42,12 @@ impl PromptPlan {
     }
 }
 
-pub fn detect_hermes() -> BridgeStatus {
+pub fn detect_agent_bridge() -> BridgeStatus {
     match Command::new("hermes").arg("--version").output() {
         Ok(out) if out.status.success() => BridgeStatus {
             available: true,
             version: String::from_utf8_lossy(&out.stdout).trim().to_string(),
-            note: "Hermes CLI is available as the current runtime bridge".into(),
+            note: "external agent bridge is available".into(),
         },
         Ok(out) => BridgeStatus {
             available: false,
@@ -73,7 +73,7 @@ pub fn plan_prompt(root: &Path, prompt: &str) -> PromptPlan {
     }
     PromptPlan {
         allowed: true,
-        reason: "safe to route through Hermes chat bridge".into(),
+        reason: "safe to route through external agent bridge".into(),
         command: vec!["hermes".into(), "chat".into(), "-q".into(), prompt.into()],
     }
 }
@@ -95,11 +95,11 @@ mod tests {
     use std::path::PathBuf;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Argo")
+        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
     }
 
     #[test]
-    fn blocks_destructive_prompts_before_hermes() {
+    fn blocks_destructive_prompts_before_bridge() {
         let plan = plan_prompt(&root(), "delete ~/Documents");
         assert!(!plan.allowed);
         assert!(plan.command.is_empty());
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn builds_safe_hermes_chat_command() {
+    fn builds_safe_agent_bridge_command() {
         let plan = plan_prompt(&root(), "summarize the project README");
         assert!(plan.allowed);
         assert_eq!(plan.command[0], "hermes");

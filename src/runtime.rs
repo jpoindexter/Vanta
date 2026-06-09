@@ -14,18 +14,18 @@ pub struct RuntimeResult {
     pub executed: bool,
     pub tool: String,
     pub output: String,
-    pub hermes_used: bool,
+    pub fallback_used: bool,
 }
 
 impl RuntimeResult {
     pub fn to_json(&self) -> String {
         format!(
-            "{{\"decision\":\"{}\",\"executed\":{},\"tool\":\"{}\",\"output\":\"{}\",\"hermes_used\":{}}}",
+            "{{\"decision\":\"{}\",\"executed\":{},\"tool\":\"{}\",\"output\":\"{}\",\"fallback_used\":{}}}",
             decision_name(&self.decision),
             self.executed,
             app::esc(&self.tool),
             app::esc(&self.output),
-            self.hermes_used
+            self.fallback_used
         )
     }
 }
@@ -38,14 +38,14 @@ pub fn run_native(root: &Path, instruction: &str) -> RuntimeResult {
             executed: false,
             tool: "none".into(),
             output: verdict.reason,
-            hermes_used: false,
+            fallback_used: false,
         },
         safety::Risk::Ask => RuntimeResult {
             decision: RuntimeDecision::NeedsApproval,
             executed: false,
             tool: "native.approval_gate".into(),
             output: format!("approval required: {}", verdict.reason),
-            hermes_used: false,
+            fallback_used: false,
         },
         safety::Risk::Allow => run_allowed_native(root, instruction),
     }
@@ -57,7 +57,7 @@ fn run_allowed_native(root: &Path, instruction: &str) -> RuntimeResult {
         return executed(
             "native.status",
             &format!(
-                "Argo native runtime ready; root={}; Hermes fallback not used",
+                "Vanta native runtime ready; root={}; no external fallback used",
                 root.display()
             ),
         );
@@ -76,9 +76,9 @@ fn run_allowed_native(root: &Path, instruction: &str) -> RuntimeResult {
         executed: false,
         tool: "none".into(),
         output:
-            "no native tool can satisfy this request yet; Hermes fallback deliberately not used"
+            "no native tool can satisfy this request yet; no external fallback used"
                 .into(),
-        hermes_used: false,
+        fallback_used: false,
     }
 }
 
@@ -88,7 +88,7 @@ fn executed(tool: &str, output: &str) -> RuntimeResult {
         executed: true,
         tool: tool.into(),
         output: output.into(),
-        hermes_used: false,
+        fallback_used: false,
     }
 }
 
@@ -107,7 +107,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Argo")
+        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
     }
 
     #[test]
@@ -127,20 +127,20 @@ mod tests {
     }
 
     #[test]
-    fn executes_native_status_without_hermes() {
+    fn executes_native_status_directly() {
         let result = run_native(&root(), "status");
         assert_eq!(result.decision, RuntimeDecision::Executed);
         assert!(result.executed);
         assert_eq!(result.tool, "native.status");
-        assert!(result.output.contains("Argo native runtime ready"));
+        assert!(result.output.contains("Vanta native runtime ready"));
     }
 
     #[test]
-    fn rejects_unknown_safe_requests_instead_of_falling_back_to_hermes() {
+    fn rejects_unknown_safe_requests_with_unsupported() {
         let result = run_native(&root(), "write a poem about agents");
         assert_eq!(result.decision, RuntimeDecision::Unsupported);
         assert!(!result.executed);
         assert!(result.output.contains("no native tool"));
-        assert!(result.to_json().contains("\"hermes_used\":false"));
+        assert!(result.to_json().contains("\"fallback_used\":false"));
     }
 }

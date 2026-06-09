@@ -1,0 +1,306 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, maybeDroppedVideo, type ReplCtx } from "./repl-commands.js";
+import { saveSession, loadSession } from "./sessions/store.js";
+import type { Message } from "./types.js";
+
+function makeCtx(home: string, messages: Message[]): ReplCtx {
+  return {
+    convo: { messages, send: async () => ({ finalText: "", iterations: 0, stoppedReason: "done", toolIterations: 0 }) },
+    setup: {
+      registry: { schemas: () => [{ name: "read_file", description: "", parameters: {} }, { name: "shell_cmd", description: "", parameters: {} }] },
+      provider: { modelId: () => "gpt-4o-mini", contextWindow: () => 128_000 },
+      safety: { getGoals: async () => [], addGoal: async () => true, completeGoal: async () => true },
+      goals: [],
+      systemPrompt: "sys",
+    },
+    dataDir: join(home, ".vanta-data"),
+    state: { sessionId: "s1", started: "t0", turnIndex: 5 },
+    env: { VANTA_HOME: home } as NodeJS.ProcessEnv,
+    now: () => new Date("2026-06-02T00:00:00.000Z"),
+  } as unknown as ReplCtx;
+}
+
+describe("runSlashCommand", () => {
+  let home: string;
+  let log: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(async () => {
+    home = await mkdtemp(join(tmpdir(), "vanta-repl-"));
+    log = vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+  afterEach(async () => {
+    log.mockRestore();
+    await rm(home, { recursive: true, force: true });
+  });
+
+  it("/exit and /quit return true (leave the loop)", async () => {
+    expect(await runSlashCommand("/exit", makeCtx(home, []))).toBe(true);
+    expect(await runSlashCommand("/quit", makeCtx(home, []))).toBe(true);
+  });
+
+  it("/help prints and stays in the loop", async () => {
+    expect(await runSlashCommand("/help", makeCtx(home, []))).toBe(false);
+    expect(log.mock.calls.flat().join("\n")).toContain("/resume");
+  });
+
+  it("/clear drops history (keeps system) and resets the turn counter", async () => {
+    const messages: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "yo" },
+    ];
+    const ctx = makeCtx(home, messages);
+    const exit = await runSlashCommand("/clear", ctx);
+    expect(exit).toBe(false);
+    expect(messages).toEqual([{ role: "system", content: "sys" }]);
+    expect(ctx.state.turnIndex).toBe(0);
+  });
+
+  it("/tools and /model surface registry + provider info", async () => {
+    await runSlashCommand("/tools", makeCtx(home, []));
+    await runSlashCommand("/model", makeCtx(home, []));
+    const out = log.mock.calls.flat().join("\n");
+    expect(out).toContain("read_file");
+    expect(out).toContain("gpt-4o-mini");
+  });
+
+  it("/resume loads a saved session into the conversation", async () => {
+    const saved: Message[] = [
+      { role: "system", content: "old-sys" },
+      { role: "user", content: "first" },
+      { role: "assistant", content: "reply" },
+      { role: "user", content: "second" },
+    ];
+    await saveSession("20260601-101010", saved, { env: { VANTA_HOME: home } as NodeJS.ProcessEnv });
+
+    const live: Message[] = [{ role: "system", content: "sys" }];
+    const ctx = makeCtx(home, live);
+    const exit = await runSlashCommand("/resume 20260601-101010", ctx);
+    expect(exit).toBe(false);
+    // system kept (the live one), prior non-system turns appended
+    expect(live[0]).toEqual({ role: "system", content: "sys" });
+    expect(live.filter((m) => m.role === "user")).toHaveLength(2);
+    expect(ctx.state.sessionId).toBe("20260601-101010");
+    expect(ctx.state.turnIndex).toBe(2);
+  });
+
+  it("unknown commands are reported, not sent to the model", async () => {
+    expect(await runSlashCommand("/bogus", makeCtx(home, []))).toBe(false);
+    expect(log.mock.calls.flat().join("\n")).toContain("unknown command /bogus");
+  });
+});
+
+describe("conversation commands (history / retry / undo / reset)", () => {
+  let home: string;
+  const convo = (): Message[] => [
+    { role: "system", content: "sys" },
+    { role: "user", content: "first" },
+    { role: "assistant", content: "reply one" },
+    { role: "user", content: "second" },
+    { role: "assistant", content: "reply two" },
+  ];
+
+  beforeEach(async () => {
+    home = await mkdtemp(join(tmpdir(), "vanta-repl-"));
+  });
+  afterEach(async () => {
+    await rm(home, { recursive: true, force: true });
+  });
+
+  it("/history renders the transcript without the system message", async () => {
+    const r = await executeSlash("/history", makeCtx(home, convo()));
+    expect(r.output).toContain("you  › first");
+    expect(r.output).toContain("vanta › reply one");
+    expect(r.output).toContain("you  › second");
+    expect(r.output).not.toContain("sys");
+  });
+
+  it("/history on an empty conversation says so", async () => {
+    const r = await executeSlash("/history", makeCtx(home, [{ role: "system", content: "sys" }]));
+    expect(r.output).toContain("no history");
+  });
+
+  it("/retry drops the last turn, resends the last user text, decrements turnIndex", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/retry", ctx);
+    expect(r.resend).toBe("second");
+    expect(ctx.convo.messages).toHaveLength(3); // system + first user + its reply
+    expect(ctx.convo.messages.at(-1)).toMatchObject({ role: "assistant", content: "reply one" });
+    expect(ctx.state.turnIndex).toBe(4); // was 5
+  });
+
+  it("/retry with no user turns is a no-op", async () => {
+    const ctx = makeCtx(home, [{ role: "system", content: "sys" }]);
+    const r = await executeSlash("/retry", ctx);
+    expect(r.resend).toBeUndefined();
+    expect(r.output).toContain("nothing to retry");
+  });
+
+  it("/undo drops the last turn without resending", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/undo", ctx);
+    expect(r.resend).toBeUndefined();
+    expect(ctx.convo.messages).toHaveLength(3);
+    expect(ctx.state.turnIndex).toBe(4);
+  });
+
+  it("/reset clears history but keeps the system message", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/reset", ctx);
+    expect(r.cleared).toBe(true);
+    expect(ctx.convo.messages).toHaveLength(1);
+    expect(ctx.convo.messages[0]).toMatchObject({ role: "system" });
+  });
+
+  it("formatHistory is pure and skips system", () => {
+    const out = formatHistory(convo());
+    expect(out.split("\n")).toHaveLength(4); // 2 user + 2 assistant
+  });
+
+  it("/title sets and persists the session title", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/title Parity work", ctx);
+    expect(r.output).toContain("Parity work");
+    expect(ctx.state.title).toBe("Parity work");
+    const saved = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(saved?.title).toBe("Parity work");
+  });
+
+  it("/title with no name shows usage", async () => {
+    const r = await executeSlash("/title", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/goal <text> sets a goal and reflects it in the live system prompt", async () => {
+    const ctx = makeCtx(home, [{ role: "system", content: "base prompt" }, ...convo().slice(1)]);
+    const r = await executeSlash("/goal ship the parity slices", ctx);
+    expect(r.output).toContain("goal set");
+    const sys = ctx.convo.messages[0];
+    expect(sys?.role === "system" && sys.content).toContain("ship the parity slices");
+  });
+
+  it("/image reads a file and queues it as a pending attachment", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const png = join(home, "shot.png");
+    await writeFile(png, Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG magic bytes
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash(`/image ${png}`, ctx);
+    expect(r.output).toContain("attached");
+    expect(ctx.state.pendingImages).toHaveLength(1);
+    expect(ctx.state.pendingImages![0]!.mime).toBe("image/png");
+    expect(ctx.state.pendingImages![0]!.dataBase64).toBe(Buffer.from([0x89, 0x50, 0x4e, 0x47]).toString("base64"));
+  });
+
+  it("/image with no path shows usage", async () => {
+    const r = await executeSlash("/image", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/attachments shows and clears pending images", async () => {
+    const ctx = makeCtx(home, convo());
+    ctx.state.pendingImages = [{ mime: "image/png", dataBase64: "AAAA" }];
+    expect((await executeSlash("/attachments", ctx)).output).toContain("1 image");
+    const cleared = await executeSlash("/attachments clear", ctx);
+    expect(cleared.output).toContain("cleared 1");
+    expect(ctx.state.pendingImages).toBeUndefined();
+  });
+
+  it("maybeDroppedImage attaches a lone existing image path (quoted too), else null", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const png = join(home, "drop.png");
+    await writeFile(png, Buffer.from([1, 2, 3]));
+    expect((await maybeDroppedImage(png))?.mime).toBe("image/png");
+    expect((await maybeDroppedImage(`'${png}'`))?.mime).toBe("image/png"); // terminal-quoted
+    expect(await maybeDroppedImage("just a normal message")).toBeNull();
+    expect(await maybeDroppedImage(`${join(home, "missing.png")}`)).toBeNull(); // path doesn't exist
+  });
+
+  it("maybeDroppedVideo returns the path for an existing video file, null otherwise", async () => {
+    const { writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const mov = join(home, "clip.mov");
+    await writeFile(mov, Buffer.from([0]));
+    expect(await maybeDroppedVideo(mov)).toBe(mov);
+    expect(await maybeDroppedVideo(`'${mov}'`)).toBe(mov); // terminal-quoted
+    expect(await maybeDroppedVideo("just a normal message")).toBeNull();
+    expect(await maybeDroppedVideo(join(home, "missing.mp4"))).toBeNull(); // doesn't exist
+    expect(await maybeDroppedVideo(join(home, "drop.png"))).toBeNull(); // wrong extension
+  });
+
+  it("/context shows a budget bar + message breakdown", async () => {
+    const r = await executeSlash("/context", makeCtx(home, convo()));
+    expect(r.output).toContain("context");
+    expect(r.output).toMatch(/\d+%/);
+    expect(r.output).toContain("messages");
+  });
+
+  it("/mcp reports none when unconfigured", async () => {
+    const r = await executeSlash("/mcp", makeCtx(home, convo()));
+    expect(r.output).toContain("no MCP servers");
+  });
+
+  it("/usage reports an estimate, context window, and turn count", async () => {
+    const r = await executeSlash("/usage", makeCtx(home, convo()));
+    expect(r.output).toMatch(/tokens/);
+    expect(r.output).toContain("ctx");
+    expect(r.output).toContain("turn(s)");
+  });
+
+  it("/copy reports nothing to copy when there is no assistant reply", async () => {
+    const r = await executeSlash("/copy", makeCtx(home, [{ role: "system", content: "sys" }]));
+    expect(r.output).toContain("nothing to copy");
+  });
+
+  it("/memory appends what you tell it to the brain's semantic region", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/memory Jason prefers terse replies", ctx);
+    expect(r.output).toContain("remembered");
+    const { readRegion } = await import("./brain/store.js");
+    expect((await readRegion("semantic", ctx.env)) ?? "").toContain("Jason prefers terse replies");
+  });
+
+  it("/export writes a markdown transcript file", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/export", ctx);
+    expect(r.output).toContain("exported to");
+    const { readFile } = await import("node:fs/promises");
+    const path = r.output!.split("exported to ")[1]!.trim();
+    const md = await readFile(path, "utf8");
+    expect(md).toContain("## You");
+    expect(md).toContain("first");
+    expect(md).toContain("reply one");
+  });
+
+  it("/compress is a safe no-op on a short conversation (nothing to compact)", async () => {
+    const ctx = makeCtx(home, convo()); // 5 messages, all protected → no summarizer call
+    const r = await executeSlash("/compress", ctx);
+    expect(r.output).toContain("compressed");
+    expect(ctx.convo.messages).toHaveLength(5);
+  });
+
+  it("/goal status lists active goals (none here)", async () => {
+    const r = await executeSlash("/goal status", makeCtx(home, convo()));
+    expect(r.output).toContain("no active goals");
+  });
+
+  it("/goal done <id> requires a numeric id", async () => {
+    const r = await executeSlash("/goal done abc", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/fork branches into a new session id, preserving history", async () => {
+    const ctx = makeCtx(home, convo());
+    const original = ctx.state.sessionId;
+    const r = await executeSlash("/fork", ctx);
+    expect(r.output).toContain("forked");
+    expect(ctx.state.sessionId).not.toBe(original);
+    expect(ctx.convo.messages).toHaveLength(5); // history carried into the fork
+    const forked = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(forked?.messages).toHaveLength(5);
+  });
+});

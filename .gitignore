@@ -11,8 +11,17 @@ node_modules
 !.env.example
 
 # Runtime data dirs (state, not source)
-.argo/
+.vanta/
 .nexarion/
+
+# CodeGraph index (rebuildable from source)
+.codegraph/
+
+# Generated artifacts
+roadmap.html
 
 # OS
 .DS_Store
+
+# External agent source cloned for audit (not vendored)
+reference/

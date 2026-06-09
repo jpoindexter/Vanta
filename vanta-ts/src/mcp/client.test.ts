@@ -1,0 +1,98 @@
+import { describe, it, expect } from "vitest";
+import { McpClient, textFromContent, type Transport } from "./client.js";
+
+/**
+ * A fake transport that auto-replies to JSON-RPC requests via a scripted
+ * responder, so the client's request/response correlation is tested without a
+ * real subprocess. The responder receives the parsed request and returns a
+ * `result` object (or throws to simulate an error response).
+ */
+function fakeTransport(responder: (method: string, params: unknown) => unknown): Transport {
+  let onMsg: ((line: string) => void) | null = null;
+  return {
+    send(line: string) {
+      const req = JSON.parse(line) as { id?: number; method: string; params?: unknown };
+      if (req.id === undefined) return; // notification — no reply
+      queueMicrotask(() => {
+        try {
+          const result = responder(req.method, req.params);
+          onMsg?.(`${JSON.stringify({ jsonrpc: "2.0", id: req.id, result })}\n`);
+        } catch (e) {
+          onMsg?.(
+            `${JSON.stringify({ jsonrpc: "2.0", id: req.id, error: { message: (e as Error).message } })}\n`,
+          );
+        }
+      });
+    },
+    onMessage(cb) {
+      onMsg = cb;
+    },
+    onError() {},
+    close() {},
+  };
+}
+
+describe("textFromContent", () => {
+  it("joins text blocks from an MCP result", () => {
+    expect(textFromContent({ content: [{ type: "text", text: "a" }, { type: "text", text: "b" }] })).toBe("a\nb");
+  });
+  it("stringifies a result with no content array", () => {
+    expect(textFromContent({ ok: true })).toBe('{"ok":true}');
+  });
+  it("is empty for non-objects", () => {
+    expect(textFromContent(null)).toBe("");
+  });
+});
+
+describe("McpClient", () => {
+  it("initializes, lists tools, and calls a tool over the transport", async () => {
+    const client = new McpClient(
+      fakeTransport((method, params) => {
+        if (method === "initialize") return { protocolVersion: "2024-11-05", capabilities: {} };
+        if (method === "tools/list") {
+          return { tools: [{ name: "echo", description: "echoes", inputSchema: { type: "object" } }] };
+        }
+        if (method === "tools/call") {
+          const p = params as { name: string; arguments: { text: string } };
+          return { content: [{ type: "text", text: `echo: ${p.arguments.text}` }] };
+        }
+        throw new Error(`unexpected ${method}`);
+      }),
+    );
+
+    await client.initialize();
+    const tools = await client.listTools();
+    expect(tools).toEqual([{ name: "echo", description: "echoes", inputSchema: { type: "object" } }]);
+
+    const out = await client.callTool("echo", { text: "hi" });
+    expect(out).toBe("echo: hi");
+  });
+
+  it("rejects the pending request on a JSON-RPC error response", async () => {
+    const client = new McpClient(
+      fakeTransport((method) => {
+        if (method === "tools/call") throw new Error("tool blew up");
+        return {};
+      }),
+    );
+    await expect(client.callTool("boom", {})).rejects.toThrow("tool blew up");
+  });
+
+  it("correlates concurrent requests to their own responses", async () => {
+    const client = new McpClient(
+      fakeTransport((method, params) => {
+        if (method === "tools/call") {
+          const p = params as { arguments: { n: number } };
+          return { content: [{ type: "text", text: String(p.arguments.n * 2) }] };
+        }
+        return {};
+      }),
+    );
+    const [a, b, c] = await Promise.all([
+      client.callTool("d", { n: 1 }),
+      client.callTool("d", { n: 2 }),
+      client.callTool("d", { n: 3 }),
+    ]);
+    expect([a, b, c]).toEqual(["2", "4", "6"]);
+  });
+});

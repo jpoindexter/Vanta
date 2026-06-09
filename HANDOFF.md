@@ -1,52 +1,102 @@
-# Argo — Handoff (2026-06-02)
+# Vanta — Session Handoff (2026-06-07)
 
-Resume cold from this. Read `CLAUDE.md` (root) + `argo-ts/CLAUDE.md` first — they're the live source of truth (file maps, env, gotchas), kept current as phases landed.
+Cold-start context for the next thread. Read this + `CLAUDE.md` + `ROADMAP.md` first.
 
-## One-line state
+---
 
-**All 7 PRD phases are built, integrated, and green.** 16 Rust + 274 TS = **290 tests pass**, typecheck clean. The full agent loop is verified live on Ollama qwen2.5:14b.
+## ⚑ DO THIS FIRST (offline — no Vanta session running)
 
-## What this is
+You chose to rename the on-disk repo folder `Argo/ → Vanta/`. It's cosmetic (the
+code finds its root via `Cargo.toml`), but both global launchers hardcode the old
+path, so the folder mv + launcher fix must happen together, with nothing running.
 
-Argo = local trusted-operator agent. Lineage OpenClaw → Hermes → Argo. Rust safety kernel (enforced boundary, `src/`) + TypeScript agent layer (`argo-ts/`). Knows the goal before it picks a tool; gates every action through the kernel; reports only verified output. Full vision: `docs/prd.md`.
+```sh
+# 1. Quit any Vanta session. Free port 7788 if a stale kernel holds it:
+lsof -nP -iTCP:7788 -sTCP:LISTEN        # note the PID, then: kill <PID>
 
-## Phases (all done)
+# 2. Rename the folder:
+mv ~/Documents/GitHub/Argo ~/Documents/GitHub/Vanta
 
-- **1** — agent loop: providers (OpenAI/Ollama), 4 core tools, 3-tier prompt, context trim, kernel auto-start, `argo run`.
-- **2A** — skills + memory: `~/.argo/skills/<slug>/SKILL.md`, `write_skill`/`recall`, curator, per-goal memory injected into the prompt, LLM context compression, `argo skills`/`skill`. Global store is git-versioned (verified live).
-- **2B** — web search: `SearchProvider` (ddg/searxng/serpapi/brave), `web_search`/`web_fetch` (Readability). `web_fetch` verified live; DDG IP-blocked from datacenters.
-- **3** — browser + vision: `screenshot`/`browser_navigate`/`browser_extract` (playwright-core + domain allowlist), `describe_image`.
-- **4** — code/dev: `run_code` (approval-gated), `lsp_diagnostics`/`lsp_definition` (TS compiler API), 6 git tools, README context autodetect, full Anthropic provider.
-- **6** — autonomous: cron scheduler (`argo schedule`/`cron`), subagent spawning (`delegate`, isolated workers), A2A local bus.
-- **7** — digital person: project rooms (`argo room <name>`), 6 operator modes (skills), multi-model routing, mode learning.
-- **5** — comms: Gmail/Calendar/Drive (10 tools, every outbound approval-gated), `argo auth google` (per-user OAuth).
+# 3. Re-register the launcher from the NEW location (regenerates ~/.local/bin/vanta
+#    with the correct path + symlinks the gitleaks/size pre-commit hook):
+cd ~/Documents/GitHub/Vanta && ./install.sh
 
-**32 tools** registered. `buildRegistry({exclude:["delegate"]})` → 31 for workers.
+# 4. Drop the stale old launcher (vanta replaces it):
+rm -f ~/.local/bin/argo
 
-## Test / verify
-
-```bash
-cd ~/Documents/GitHub/Argo
-cargo test                                       # 16 pass
-(cd argo-ts && npm test && npm run typecheck)    # 274 pass, clean
-npm --prefix argo-ts run argo -- run "list my active goals"   # live loop (Ollama)
+# 5. Verify:
+which vanta && vanta doctor
 ```
 
-## What needs external setup for LIVE use (code is real + offline-tested)
+**Optional (carries this session's auto-memory to the new path):** Claude Code keys
+project memory by folder path, so a session in `Vanta/` starts a fresh memory dir.
+To keep the index:
+`mv ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Argo ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Vanta`
 
-See `PARKED.md`. Short version: browser → `npx playwright install chromium`; Anthropic/vision → API keys; comms → provision a Google OAuth client (`ARGO_GOOGLE_CLIENT_ID/SECRET`) then `argo auth google`. None block the built+tested code; they gate the live external round-trip.
+**Note:** CodeGraph (`.codegraph/`) moves with the folder; if queries look stale after
+the mv, run `codegraph index` once from `~/Documents/GitHub/Vanta`.
 
-## Locked decisions
+---
 
-See `DECISIONS.md` (git baseline, search-mirrors-providers, web-fetch deps, DDG fragility, global `~/.argo` store, skill/memory kernel-Allow classification). The skill/memory safety classification is flagged there for veto.
+## Where things are (2026-06-07)
 
-## Gotchas (will waste your time)
+- **Repo:** currently `~/Documents/GitHub/Argo` (→ `Vanta/` after the mv above). Rust kernel `src/*.rs`; TS agent `vanta-ts/`.
+- **Branch:** `main` — all work merged. Remote: `github.com/jpoindexter/Vanta`.
+- **Tests:** **1227 TS (vitest) + 27 Rust = 1254 green**; `tsc --noEmit` clean. 46 tools.
+  - Run: `cd vanta-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
+  - **Always run `git` from the repo root** (tsx/test commands cd into `vanta-ts/` and the shell cwd persists).
+- **`vanta` command:** now works (`~/.local/bin/vanta` created this session; `argo` still works as a back-compat alias until step 4 above).
 
-- Harness pins spawned cwd to the old `Nexarion Agent` path → `ARGO_ROOT` works around it; the TS launcher passes it.
-- Stale binary on :7788 → `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill PID.
-- `argo cron` needs an OS scheduler (launchd/cron) to fire; the due-logic is tested.
-- Each phase is one git commit (`git log --oneline`) — clean rollback points.
+## What shipped this session (20 roadmap cards — all in `roadmap.json`, status `shipped`)
 
-## How to build from here
+UX-MODEL-FIX · RESTART · TOOL-RETRY · BEHAVIOR-VOICE · GOAL-ACTION · STALL-UNBLOCK ·
+ROADMAP-ADD · BUG-CAPTURE · HANDOFF-PACKET · COST-VISIBLE · MODE-DETECT · AUTO-HANDOFF ·
+ACTION-PROOF · CODE-SIZE-GATE (+ wired into `write_file`) · CC-EDITOR · CLI-DX-PACK ·
+and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rules 1/4/7.
+Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
+`vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
 
-The 7 phases match `docs/prd.md`. Each was built as: write contracts → parallel build workflow → serial integrate → verify-and-repair gate → commit + update both CLAUDE.md. Repeat that shape for any new capability. Promote items from `PARKED.md`.
+## SIZE-PAYDOWN — 85→69 done; remainder is brainstem/REPL (next-session)
+
+`vanta lint` surfaced ~85 violations. **DONE 2026-06-07 (→69):** cli.ts (worst —
+428→175L, `main` → `COMMANDS` table, handlers → `cli/commands.ts`) · interactive.ts
+file-size (335→286L; gates → tested `runPostTurnGates` in `repl/post-turn-gates.ts`) ·
+`writeRunMemory` → options object · plus safe pure-fn cx fixes (each extract-helper,
+behavior preserved, tested): `memory/compress` extractObservations, `schedule/cron`
+parseField, `util/diff` withContext, `skills/bundle` parseBundle, `repl/wm-manip`
+detectWmMode, `search/serpapi` mapSerpapiJson, `repl/closure-gate` hasCommitAfterIndex.
+
+**Remaining 69 — a focused pass (weak/no test nets or high blast radius):**
+- interactive.ts `runChat` (206L/cx29) + `runUserTurn` (78L) — un-live-smokeable readline path.
+- session.ts (473L file + `prepareRun` 64L) — split into modules.
+- **brainstem** (high blast radius): `providers/index.ts` `resolveProvider` cx24, `agent.ts` `runTurn` cx23.
+- `factory/run.ts` `runCycle`, `desktop/server.ts` cx27, `tools/{mount-mcp,browser-navigate,screenshot}` long fns, + a tail of param/cx.
+- Easy-safe leftovers if you want quick wins: `graph/store.ts` makeRelation (5 params), `skills/library.ts` installOne (5 params), `repl/plan-mode.ts` (cx12), `skills/lint.ts` lintSkills (cx13), `gateway/run.ts` runGateway, `status.ts` gatherStatus, `voice/loop.ts` runVoiceLoop, `review/background-review.ts` serializeTranscript.
+Proven pattern: lookup-table for dispatchers, extract-helper for long fns, options-object for >4 params, **full suite (gated on exit code) per file**. Then set `VANTA_LINT_BLOCK=1`.
+
+**Remaining (78), tackle incrementally — full suite + live smoke per file:**
+- **Limbs (lower risk, do first):** `interactive.ts` (335L; `runChat` 240L + nested
+  `runUserTurn` 107L — extract the post-turn-gate pipeline + the slash-dispatch block),
+  `desktop/server.ts`, `memory/compress.ts`.
+- **Brainstem (higher blast radius per the factory compartment map — do carefully,
+  not rushed):** `providers/index.ts` (`resolveProvider` cx-24 — a provider table like
+  cli's), `agent.ts` (`runTurn` 129L/cx-23), `factory/run.ts` (`runCycle` 134L).
+- Goal: `vanta lint` 0 on `src/`, then set `VANTA_LINT_BLOCK=1` so the gate stays green.
+Pattern proven on cli.ts: lookup-table for dispatchers, extract helpers for long fns,
+verify each file with the full suite. Tracked as the `SIZE-PAYDOWN` card.
+
+## Backlog shape (`roadmap.json` — 270 cards: 158 shipped · 86 next · 26 horizon)
+
+- **Gated on you:** SCRUB-AI (force-push history rewrite) · VOICE-NATURAL (3-sample approval).
+- **External setup:** COMMS-TRIAGE (OAuth) · AUTH-BROWSER (Playwright login) · MSG-* (daemons/perms).
+- **Big-design Rocks (brainstorm first):** EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD (L) · AGENT-COUNCIL (L) · AUTO-ROUTER · PROJECT-RADAR · the MEM-* / TASTE arc.
+- **Model-in-loop S cards:** SELF-EVAL · ANTI-SLOP · ENERGY-PLAN · DECISION-GUARD · CC-LINKS.
+- **Platform:** DESKTOP-P0…P11, TUI-V2* (12 cards).
+
+## Discipline that worked (keep it)
+
+- One card = real code + co-located test + `tsc` clean + full `vitest` run + `roadmap.json` marked + commit + push.
+- Fold related prompt cards into existing rules — don't append rules 11+ (prompt is per-turn).
+- Run the **full** suite on any host/shared-file change (pure-unit + tsc aren't enough for two-host wiring).
+- Honest bar: code-only/prompt-only cards are "wired + unit-tested, live-verify pending" — not "proven."
+- `roadmap.html` is gitignored — regenerate via `roadmap/build.ts buildRoadmap`, never `git add` it.
