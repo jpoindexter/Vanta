@@ -8356,6 +8356,32 @@
       "model": "opus",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-UNDERCOVER-MODE",
+      "track": "Claude Code parity",
+      "title": "Undercover mode \u2014 safety strip for public/open-source repo contributions",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's 'undercover mode' activates when working in public/external repos (auto-detects unless repo is in internal allowlist, or `CLAUDE_CODE_UNDERCOVER=1`). When active: adds safety instructions to commit/PR prompts to avoid leaking internal codenames or Anthropic-internal context, and strips all commit attribution. The model is not told its own identity.",
+      "done": "Working in a public GitHub repo, CC adds a safety caveat to generated commit messages and omits model attribution. `VANTA_UNDERCOVER=1` forces it on.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-STATS-SPARKLINE",
+      "track": "Claude Code parity",
+      "title": "/stats sparkline charts \u2014 ASCII activity charts and heatmap in stats view",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's `/stats` view renders ASCII sparkline charts using `asciichart` for activity over time (sessions/day, tokens/session), plus a terminal heatmap (GitHub-style). Navigation with j/k/arrows. The stats are aggregated from transcript JSONL files across all sessions.",
+      "done": "`/stats` shows an ASCII line chart of daily activity and a 12-week heatmap of session counts, navigable with arrow keys.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
