@@ -39,7 +39,7 @@ fn main() {
         }
         "bridge" => match args.next().as_deref() {
             Some("status") => {
-                println!("{}", bridge::detect_hermes().to_json());
+                println!("{}", bridge::detect_agent_bridge().to_json());
                 Ok(())
             }
             Some("plan") => {

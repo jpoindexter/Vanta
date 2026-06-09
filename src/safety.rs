@@ -29,7 +29,7 @@ impl Verdict {
 }
 
 // Destructive operations — broadened beyond the trivial "rm -rf" so shell/interpreter
-// variants don't slip through (Hermes #36846). Matched on the NORMALIZED string.
+// variants don't slip through. Matched on the NORMALIZED string.
 const DESTRUCTIVE: &[&str] = &[
     "rm -rf", "rm -fr", "rm -r", "rm -f", "rmdir", "rmtree", "shutil.rmtree", "os.remove",
     "os.unlink", "unlink(", "pathlib", "delete", "erase", "nuke", "wipe", "trash",
@@ -38,7 +38,7 @@ const DESTRUCTIVE: &[&str] = &[
 const DATA_LOSS: &[&str] = &["overwrite", "replace whole", "truncate", "drop table", "reset --hard", "git push --force", "push -f"];
 const EXFIL: &[&str] = &["blackmail", "exfiltrate", "steal", "leak token", "api key"];
 // Arbitrary-code-execution vectors: a keyword denylist can't foresee what these do,
-// so they require a human rather than allow-by-default (Hermes #36846/#36645).
+// so they require a human rather than allow-by-default.
 const EXEC_VECTORS: &[&str] = &[
     "python -c", "python3 -c", "node -e", "node --eval", "bash -c", "sh -c", "zsh -c",
     "| sh", "| bash", "| python", "eval ", "exec(", "perl -e", "ruby -e", "base64 -d",
@@ -95,7 +95,7 @@ fn normalize_cmd(s: &str) -> String {
 }
 
 /// True if any whitespace token is an absolute path not under `root` — generic,
-/// not hardcoded to one user's home (closes the brittle path check + Hermes #36645).
+/// not hardcoded to one user's home.
 fn references_abs_path_outside_root(text: &str, root: &Path) -> bool {
     let base = root.display().to_string().to_lowercase();
     text.split_whitespace().any(|tok| tok.starts_with('/') && tok.len() > 1 && !tok.starts_with(&base))
@@ -227,7 +227,7 @@ mod tests {
         assert_eq!(v.risk, Risk::Allow);
     }
 
-    // --- Hermes #36846 / #36645 bypasses that the old keyword denylist let through ---
+    // --- known bypass patterns that a naive keyword denylist lets through ---
 
     #[test]
     fn blocks_python_rmtree_disguise() {
