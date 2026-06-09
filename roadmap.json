@@ -4198,10 +4198,10 @@
       "id": "CC-BRANCH-CMD",
       "track": "Claude Code parity",
       "title": "/branch — create or switch git branches from REPL",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /branch to create and switch git branches without leaving the session. Vanta has git tools (git_branch, git_checkout) but no slash command surface. Add /branch [name] as a thin wrapper around the existing git tools with kernel Ask approval.",
-      "done": "`/branch feat/my-feature` creates and checks out the branch; `/branch` lists local branches.",
+      "summary": "SHIPPED 2026-06-09. repl/branch-cmd.ts: /branch [name] validates branch name (alphanumeric + -._/), returns resend prompt for git_branch + git_checkout. Registered in HANDLERS + catalog. Kernel Ask approval via git tools.",
+      "done": "`/branch feat/my-feature` creates and switches to the branch via git tools.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
