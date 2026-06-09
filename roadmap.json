@@ -8291,6 +8291,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SHELL-JSON-FORMAT",
+      "track": "Claude Code parity",
+      "title": "Shell output JSON auto-format \u2014 pretty-print JSON lines in bash output",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's shell output renderer (`OutputLine`) attempts to parse each output line as JSON and re-serializes it for readability when successful. Checks for precision loss on large integers before substituting. Turns compact JSON API responses in bash output into human-readable formatted output without user action.",
+      "done": "A bash command that outputs `{\"status\":\"ok\",\"count\":42}` renders as nicely formatted JSON in the transcript instead of raw string.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TERMINAL-HYPERLINKS",
+      "track": "Claude Code parity",
+      "title": "Terminal hyperlinks \u2014 OSC 8 clickable links in tool output and messages",
+      "status": "next",
+      "size": "S",
+      "summary": "CC creates OSC 8 terminal hyperlinks (`createHyperlink`) in shell output and messages. In supporting terminals (iTerm2, WezTerm, Kitty, modern terminals), URLs become clickable links that open in the browser. The feature is guarded by `supportsHyperlinks()` for terminals that don't support OSC 8.",
+      "done": "File paths and URLs in bash output are rendered as clickable links in iTerm2/WezTerm. Clicking opens the file in the browser or editor.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
