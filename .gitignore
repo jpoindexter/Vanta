@@ -25,3 +25,5 @@ roadmap.html
 
 # External agent source cloned for audit (not vendored)
 reference/
+argo
+.argo/

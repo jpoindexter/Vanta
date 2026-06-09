@@ -80,6 +80,7 @@ describe("registry", () => {
       "run_code",
       "screenshot",
       "shell_cmd",
+      "sleep",
       "speak",
       "swarm",
       "todo",

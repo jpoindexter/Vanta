@@ -5,10 +5,10 @@ Deferred ideas. Promote, never delete. These are honest deferrals — the code t
 ## Promoted into v1 (2026-06-02 — now in `ROADMAP.md`, no longer parked)
 - **Claude subscription OAuth** → ROADMAP **G1** (was "Scope-limited v0" below).
 - **`vanta cron` OS trigger** → subsumed by ROADMAP **E1** (daemon/service mode runs an in-process cron tick; launchd backend).
-- **A2A networked transport** → ROADMAP **E6** (ACP server — Hermes has no peer-to-peer A2A; ACP is the real interop path).
-- Plus net-new v1 scope from the Hermes recon: Gemini/OpenRouter providers + provider registry + `vanta setup` wizard + `status`/`doctor` (A), the self-improvement loop wiring (B), session persist/resume (C), skill-library port (D), messaging gateway (E2). See `ROADMAP.md`.
+- **A2A networked transport** → ROADMAP **E6** (ACP server — ACP is the real interop path).
+- Plus net-new v1 scope: Gemini/OpenRouter providers + provider registry + `vanta setup` wizard + `status`/`doctor` (A), the self-improvement loop wiring (B), session persist/resume (C), skill-library port (D), messaging gateway (E2). See `ROADMAP.md`.
 
-## Newly parked — out of v1 scope (from the Hermes recon)
+## Newly parked — out of v1 scope
 - **The ~24 niche model providers** beyond OpenAI/Anthropic/Ollama/Gemini/OpenRouter (Bedrock, DeepSeek, xAI, Qwen, Kimi, Z.AI, Copilot, MiniMax, Nous, …). The provider *registry* (A2) makes each a small add later; not v1 work.
 - **The other ~19 messaging platforms** beyond Telegram (Discord, Slack, Signal, WhatsApp, Matrix, iMessage, the China stack, …). v1 ships Telegram only to prove the `BaseAdapter` pattern (Rule of 3).
 - **Image-gen / voice-transcription providers** (DALL-E/Whisper registries) — not on the operator path.

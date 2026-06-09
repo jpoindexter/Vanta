@@ -4042,10 +4042,10 @@
       "id": "CC-SLEEP",
       "track": "Claude Code parity",
       "title": "Sleep tool — pause execution",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has SleepTool: pause the agent loop for N seconds (useful for polling loops, waiting on async side-effects, rate-limit backoff). Trivial to add: sleep_ms(ms) → Promise timeout. Kernel Allow.",
-      "done": "`sleep_ms` tool pauses the agent for the specified duration without blocking the process.",
+      "summary": "SHIPPED 2026-06-09. tools/sleep.ts: sleep tool accepts seconds (0–3600), pauses execution, returns ok + output. Kernel Allow. Useful for polling loops, async side-effects, rate-limit backoff. 4 tests; tsc clean.",
+      "done": "`sleep` tool pauses execution for the specified duration.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"

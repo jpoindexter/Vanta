@@ -1,7 +1,7 @@
 # KANBAN Slice 1 — roadmap_move tool + CLI
 
 Date: 2026-06-04
-Branch: feat/v1-hermes-parity
+Branch: main
 Status: approved
 
 ## Goal
