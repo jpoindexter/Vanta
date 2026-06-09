@@ -5672,6 +5672,58 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-KEYBINDING-SYSTEM",
+      "track": "Claude Code parity",
+      "title": "User keybinding customization \u2014 ~/.claude/keybindings.json with hot-reload",
+      "status": "next",
+      "size": "M",
+      "summary": "CC loads user keybindings from ~/.claude/keybindings.json (schema-validated via Zod, hot-reloads via chokidar). Users define context-scoped bindings with named action IDs (app:interrupt, history:previous, etc.); default bindings ship as a documented template. /doctor reports validation errors.",
+      "done": "Users can add/modify keybindings in ~/.claude/keybindings.json; changes reload without restart; invalid entries reported by /doctor; generating the template pre-fills all defaults.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CHORD-BINDINGS",
+      "track": "Claude Code parity",
+      "title": "Chord bindings \u2014 multi-keystroke sequences (e.g. ctrl+k ctrl+s)",
+      "status": "next",
+      "size": "M",
+      "summary": "Keybinding parser handles chord sequences (two or more keystrokes). Resolver tracks pending-chord state; results include chord_started, chord_cancelled, match, none. Platform modifier aliases normalised (ctrl/alt/meta/cmd/super).",
+      "done": "Multi-keystroke chords defined in keybindings.json fire correctly; partial chord shows pending state; invalid followup cancels without side effects; modifier aliases all work.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-KEYBINDING-CONTEXTS",
+      "track": "Claude Code parity",
+      "title": "Keybinding contexts \u2014 17+ named UI contexts for context-sensitive bindings",
+      "status": "next",
+      "size": "S",
+      "summary": "Bindings are scoped to named contexts: Global, Chat, Autocomplete, Confirmation, Help, Transcript, HistorySearch, Task, ThemePicker, Settings, Tabs, Attachments, Footer, MessageSelector, DiffDialog, ModelPicker, Select, Plugin. Context registers/unregisters at React mount/unmount; resolver applies priority by active context set.",
+      "done": "Bindings only fire in their declared context; Global bindings work everywhere; context stack updates on dialog open/close; conflicts within a context surface a warning.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SHORTCUT-DISPLAY",
+      "track": "Claude Code parity",
+      "title": "useShortcutDisplay \u2014 render user-configured keybinding hints in UI",
+      "status": "next",
+      "size": "S",
+      "summary": "React hook and non-React function that return the display text for any action+context pair from the user's live keybinding config. Used in help overlays, confirmation dialogs, and typeahead footers so shown shortcuts always match the user's custom config.",
+      "done": "Keyboard hints in help overlays and dialogs show the user's configured binding, not hardcoded defaults; non-React callers (commands, services) use the sync variant.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
