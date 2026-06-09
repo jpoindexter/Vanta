@@ -5802,6 +5802,71 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TURN-DIFFS",
+      "track": "Claude Code parity",
+      "title": "Per-turn file diff history \u2014 track file changes by turn index",
+      "status": "next",
+      "size": "S",
+      "summary": "Builds a per-turn history of file changes from FileEditTool/FileWriteTool outputs: hunks, lines added/removed, files changed, user prompt preview, and timestamp per turn. Enables the interactive diff viewer to show 'what changed in this turn' and navigate turn history.",
+      "done": "After each turn containing file edits, a TurnDiff entry exists with structured hunk data, stats, and prompt preview; diff viewer can navigate to any prior turn's changes.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SESSION-BACKGROUNDING",
+      "track": "Claude Code parity",
+      "title": "Session backgrounding \u2014 Ctrl+B to background/foreground running queries",
+      "status": "next",
+      "size": "M",
+      "summary": "Ctrl+B backgrounds the current in-progress query into a background task, freeing the TUI for a new query. Foreground a running background task and sync its messages back. Enables multi-query session management without cancelling work in flight.",
+      "done": "Ctrl+B while a query is running moves it to background; user can continue chatting; /tasks or the task panel shows background task progress; foreground a task to see its messages.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CHROME-EXTENSION-PROMPTS",
+      "track": "Claude Code parity",
+      "title": "Prompts from Claude for Chrome \u2014 browser extension sends prompts to terminal",
+      "status": "horizon",
+      "size": "M",
+      "summary": "The Claude for Chrome extension sends JSON-RPC notifications (prompt + optional image) via the MCP server; CC enqueues them as user messages and syncs permission mode back to the extension. Enables 'send to terminal' from claude.ai in the browser. Requires the Chrome extension and MCP server.",
+      "done": "Prompts sent from the Chrome extension appear in the TUI conversation; optional images are attached; permission mode is reflected in the extension; multiple tabs tracked by tabId.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKILL-BATCH",
+      "track": "Claude Code parity",
+      "title": "/batch \u2014 parallel multi-agent code implementation skill",
+      "status": "next",
+      "size": "L",
+      "summary": "Bundled /batch skill that orchestrates a large parallelizable codebase change across 5\u201330 worker agents in git worktrees. Each worker implements one change, runs tests, and creates a PR. Coordinator tracks PR URLs. Uses EnterPlanMode + AgentTool.",
+      "done": "Running /batch with a description spawns multiple worker agents in isolated worktrees; each worker creates a PR; coordinator reports PR URLs on completion; test failures are fixed before PR creation.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKILL-LOOP",
+      "track": "Claude Code parity",
+      "title": "/loop \u2014 recurring cron task from natural-language interval",
+      "status": "next",
+      "size": "S",
+      "summary": "Bundled /loop skill that parses a natural-language interval (10m, 30m, 2h, 1d) + prompt, then creates a CronCreate task to run it recurrently. Handles 'every 20m' prose, defaults to 10m. Uses the Kairos cron engine.",
+      "done": "'/loop 30m check the deploy' creates a cron task that fires every 30 min; '/loop /babysit-prs' defaults to 10m; interval parsed from the end of the string if prose format.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
