@@ -4162,10 +4162,10 @@
       "id": "CC-THEME-CMD",
       "track": "Claude Code parity",
       "title": "/theme — switch TUI color theme",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /theme to switch color themes (dark/light/solarized etc.). Vanta has theming in TUI but no /theme command to switch interactively. Add /theme [name] that lists available themes and hot-swaps the active theme, persisting to .vanta/config.json.",
-      "done": "`/theme` lists themes; `/theme dark` applies immediately without restart.",
+      "summary": "SHIPPED 2026-06-09. repl/theme-cmd.ts: /theme [name] lists 5 available themes (dark/light/solarized-dark/solarized-light/high-contrast) or applies a named theme to state.theme. Registered in HANDLERS + catalog.",
+      "done": "`/theme` lists available themes; `/theme dark` applies the dark theme.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
