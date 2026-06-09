@@ -9435,6 +9435,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DESKTOP-UPSELL",
+      "track": "Claude Code parity",
+      "title": "Desktop app upsell dialog — GrowthBook-gated prompt to try Claude Code Desktop",
+      "status": "horizon",
+      "size": "S",
+      "summary": "CC shows a `DesktopUpsell` dialog (title: 'Try Claude Code Desktop') based on `tengu_desktop_upsell` GrowthBook config. Prompts terminal users to try the native desktop app. Logs `tengu_desktop_upsell_shown` analytics event.",
+      "done": "When the GrowthBook flag is on, a dialog appears offering to download the desktop app. Analytics tracks conversion.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-REMOTE-CALLOUT",
+      "track": "Claude Code parity",
+      "title": "Remote Control first-run callout — onboarding dialog for CCR setup",
+      "status": "next",
+      "size": "S",
+      "summary": "CC shows a `RemoteCallout` component (PermissionDialog titled 'Remote Control') as a first-time callout when CCR conditions are met. Guides users through enabling remote control for the first time. Tracks whether the user has seen it.",
+      "done": "First time a CCR-eligible session runs, a dialog explains what Remote Control is and asks to enable it.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
