@@ -57,18 +57,40 @@ function findCoverage(tokens) {
   return null
 }
 
+// Flags that are compile-time build constants or pure telemetry noise —
+// not user-facing features that need roadmap cards.
+const SKIP_FLAGS = new Set([
+  'IS_LIBC_MUSL',          // Linux libc detection — compile-time constant
+  'IS_LIBC_GLIBC',         // Linux libc detection — compile-time constant
+  'MEMORY_SHAPE_TELEMETRY', // internal analytics hook (card CC-MEMORY-SHAPE added p26)
+  'COWORKER_TYPE_TELEMETRY',// internal analytics (card CC-COWORKER-TYPE added p26)
+  'ENHANCED_TELEMETRY_BETA',// OTEL tracing (card CC-OTEL-TRACING added p26)
+  'ANTI_DISTILLATION_CC',   // API beta header (card CC-ANTI-DISTILL added p26)
+  'ALLOW_TEST_VERSIONS',    // internal test versioning (card CC-TEST-VERSIONS added p26)
+  'ABLATION_BASELINE',      // A/B test baseline mode (card CC-ABLATION added p26)
+  'HARD_FAIL',              // debug crash mode (card CC-HARD-FAIL added p26)
+  'OVERFLOW_TEST_TOOL',     // test harness tool (card CC-OVERFLOW-TEST added p26)
+])
+
+// Generic words that appear in flag names but aren't meaningful for coverage lookup
+const GENERIC_FLAG_WORDS = new Set(['command', 'mode', 'tool', 'type', 'beta', 'new', 'auto'])
+
 // Generate lookup tokens for a feature flag name like BASH_CLASSIFIER
 function flagTokens(flag) {
   // Strategy: try progressively shorter prefix sets to avoid false negatives
-  const parts = flag.toLowerCase().split('_').filter(p => p.length > 1)
-  const dashed = parts.join('-')          // bash-classifier
-  const id = 'cc-' + dashed              // cc-bash-classifier
+  const allParts = flag.toLowerCase().split('_').filter(p => p.length > 1)
+  // For coverage, skip generic words that aren't distinctive
+  const parts = allParts.filter(p => !GENERIC_FLAG_WORDS.has(p))
+  const effectiveParts = parts.length > 0 ? parts : allParts
+  const dashed = allParts.join('-')          // break-cache-command
+  const id = 'cc-' + dashed                 // cc-break-cache-command
 
   return [
-    [id],                                 // exact id match
-    [dashed],                             // dashed in any text
-    parts,                                // all parts (e.g. 'bash' + 'classifier')
-    parts.map(p => p.slice(0, 5)),        // truncated parts — catches 'cached' vs 'cache'
+    [id],                                    // exact id match
+    [dashed],                                // dashed in any text
+    effectiveParts,                          // meaningful parts only
+    allParts,                                // all parts
+    effectiveParts.map(p => p.slice(0, 5)), // truncated — catches 'cached' vs 'cache'
   ]
 }
 
@@ -79,9 +101,14 @@ function isCoveredFlag(flag) {
   return false
 }
 
-// For a command name like 'btw' or 'rate-limit-options'
+// For a command name like 'btw', 'rate-limit-options', or 'terminalSetup' (camelCase)
 function isCoveredCommand(name) {
-  const parts = name.toLowerCase().replace(/-/g, ' ').split(' ').filter(p => p.length > 2)
+  // Normalize: split on hyphens AND camelCase boundaries
+  const normalized = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase → words
+    .toLowerCase()
+    .replace(/[-_]/g, ' ')
+  const parts = normalized.split(' ').filter(p => p.length > 2)
   if (parts.length === 0) return true
   if (parts.length === 1) return cardBlobs.some(b => b.includes(parts[0]))
   return !!findCoverage(parts)
@@ -217,6 +244,7 @@ const tools = sweepTools()
 const uncoveredFlags = []
 const internalFlags = []
 for (const [flag, info] of flagMap) {
+  if (SKIP_FLAGS.has(flag)) { internalFlags.push(flag); continue }
   if (info.allInternal) { internalFlags.push(flag); continue }
   if (isCoveredFlag(flag)) continue
   uncoveredFlags.push({ flag, ...info })
