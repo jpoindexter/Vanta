@@ -41,7 +41,7 @@ the mv, run `codegraph index` once from `~/Documents/GitHub/Vanta`.
 ## Where things are (2026-06-07)
 
 - **Repo:** currently `~/Documents/GitHub/Argo` (→ `Vanta/` after the mv above). Rust kernel `src/*.rs`; TS agent `vanta-ts/`.
-- **Branch:** `feat/v1-hermes-parity` — **all work pushed, clean tree.** Remote: `github.com/jpoindexter/Vanta`.
+- **Branch:** `main` — all work merged. Remote: `github.com/jpoindexter/Vanta`.
 - **Tests:** **1227 TS (vitest) + 27 Rust = 1254 green**; `tsc --noEmit` clean. 46 tools.
   - Run: `cd vanta-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
   - **Always run `git` from the repo root** (tsx/test commands cd into `vanta-ts/` and the shell cwd persists).

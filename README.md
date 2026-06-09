@@ -2,13 +2,13 @@
 
 A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.
 
-OpenClaw gave agents a body. Hermes gave agents a personal runtime. Vanta starts the next layer: goal-aware, boundary-enforced operation with visible decisions before action.
+Goal-aware, boundary-enforced operation with visible decisions before action.
 
 Two layers:
 - **`src/` — Rust safety kernel** (`vanta-kernel`): the enforced security boundary — risk classifier, approval queue, goal ledger, event log, HTTP sidecar.
 - **`vanta-ts/` — TypeScript agent layer** (`vanta`): the agent loop — LLM providers, tools, three-tier prompt, goal-aware execution that gates every action through the kernel.
 
-See `docs/prd.md` for the full roadmap and `docs/hermes-map.html` for the Hermes architecture reference.
+See `docs/prd.md` for the full roadmap.
 
 ## Install
 
