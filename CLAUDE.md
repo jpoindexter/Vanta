@@ -67,7 +67,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**v1 complete; roadmap-grind in progress.** Full v1 feature parity + Phase 2 EF + all S/M/L extensions. **46 tools** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
+**v1 complete; roadmap-grind in progress.** Full v1 feature parity + Phase 2 EF + all S/M/L extensions. **47 tools** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
 
 **Open (roadmap.json `next`):** `EF-TASKSTACK` · `MEM-RELEVANCE` · `OPERATOR-DASHBOARD` · `VISION-COMPARE` · `AUX-MAP` · `AUTO-ROUTER`. Gated on Jason: `SCRUB-AI` · `VOICE-NATURAL`. Horizon: `DESKTOP` (Tauri).
 

@@ -83,7 +83,7 @@ function render(d) {
     .map(
       (r) => `<tr data-verdict="${esc(verdictClass(r.verdict))}">
       <td class="cap">${esc(r.capability)} ${fchips(r.ndFit, F)}</td>
-      <td>${esc(r.vanta)}</td><td>${esc(r.hermes)}</td><td>${esc(r.goose)}</td><td>${esc(r.claudeCode)}</td>
+      <td>${esc(r.vanta)}</td><td>${esc(r.prior)}</td><td>${esc(r.goose)}</td><td>${esc(r.claudeCode)}</td>
       <td class="${verdictClass(r.verdict)}">${esc(r.verdict)}</td>
       <td class="muted">${esc(r.note)}</td></tr>`,
     )
@@ -122,7 +122,7 @@ function render(d) {
           )
           .join("")}</tbody></table>`;
 
-  const deltaRows = (d.localHermesDelta?.items || [])
+  const deltaRows = (d.localPriorDelta?.items || [])
     .map(
       (x) => `<tr><td class="cap">${esc(x.file)}</td><td>${esc(x.what)}</td><td class="${verdictClass(
         x.verdict,
@@ -187,7 +187,7 @@ input.search{background:#0a0f0e;border:1px solid var(--line);color:var(--text);b
 <nav>
 <a href="#agents">Agents</a><a href="#vision">Vision</a><a href="#patterns">Patterns→Features</a><a href="#inventory">Vanta Inventory</a>
 <a href="#nd">ND Alignment</a><a href="#matrix">Matrix</a><a href="#pulls">Pulls</a><a href="#drops">Drops</a>
-<a href="#issues">Issues</a><a href="#local">Local Hermes</a><a href="#cc">Claude Code</a><a href="#docs">Docs</a>
+<a href="#issues">Issues</a><a href="#local">Prior Agent</a><a href="#cc">Claude Code</a><a href="#docs">Docs</a>
 </nav>
 <div class="wrap">
 
@@ -220,7 +220,7 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 <button class="btn" data-filt="bad">Drop</button>
 <input class="search" id="msearch" placeholder="filter capabilities…"/>
 </div>
-<div class="card span12"><table class="t" id="matrix-t"><thead><tr><th>Capability</th><th>Vanta</th><th>Hermes</th><th>Goose</th><th>Claude Code</th><th>Verdict</th><th>Note</th></tr></thead><tbody>${cmpRows}</tbody></table></div></section>
+<div class="card span12"><table class="t" id="matrix-t"><thead><tr><th>Capability</th><th>Vanta</th><th>Prior</th><th>Goose</th><th>Claude Code</th><th>Verdict</th><th>Note</th></tr></thead><tbody>${cmpRows}</tbody></table></div></section>
 
 <section id="pulls"><h2 class="ok">Pull — worth adding (curated)</h2>
 <p class="note">${esc(d.pulls?.note || "")} ${esc(d.pulls?.pendingFrom || "")}</p><div class="grid">${pullCards}</div></section>
@@ -230,11 +230,11 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 
 <section id="issues"><h2>GitHub issue triage</h2>
 <p class="note">${esc(d.issues?.note || "")}</p>
-<div class="grid"><div class="card span6"><h3>Hermes issues</h3>${issueTable(d.issues?.hermes)}</div>
+<div class="grid"><div class="card span6"><h3>Prior agent issues</h3>${issueTable(d.issues?.prior)}</div>
 <div class="card span6"><h3>Goose issues</h3>${issueTable(d.issues?.goose)}</div></div></section>
 
-<section id="local"><h2>Local Hermes — customization delta</h2>
-<p class="note">${esc(d.localHermesDelta?.note || "")}</p>
+<section id="local"><h2>Prior Agent — customization delta</h2>
+<p class="note">${esc(d.localPriorDelta?.note || "")}</p>
 <div class="card span12"><table class="t"><thead><tr><th>File / area</th><th>What it does</th><th>Verdict</th><th>Why</th></tr></thead><tbody>${deltaRows}</tbody></table></div></section>
 
 <section id="cc"><h2>Claude Code — reference findings</h2>
@@ -242,7 +242,7 @@ ${thesisList ? `<h3>The thesis</h3><ul class="thesis">${thesisList}</ul>` : ""}
 <div class="card span12"><table class="t"><thead><tr><th>Finding</th><th>Repo</th><th>Value</th><th>Risk</th><th>Note</th></tr></thead><tbody>${ccRows}</tbody></table></div></section>
 
 <section id="docs"><h2>Docs takeaways</h2><div class="grid">
-<div class="card span6"><h3>Hermes user-stories</h3><p class="muted">${esc(d.docsTakeaways?.hermes || "")}</p></div>
+<div class="card span6"><h3>Prior agent notes</h3><p class="muted">${esc(d.docsTakeaways?.prior || "")}</p></div>
 <div class="card span6"><h3>Goose guides</h3><p class="muted">${esc(d.docsTakeaways?.goose || "")}</p></div></div></section>
 
 </div>
