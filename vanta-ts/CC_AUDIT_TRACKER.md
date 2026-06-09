@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 147 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9)
+- Cards added this full audit: 169 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -121,7 +121,9 @@ Legend:
 - Pass 6: 13 cards
 - Pass 7: 9 cards (1 session dump + 5 swarm/services + 2 LSP/MCP + 1 NVIDIA)
 - Pass 8: 6 cards (tools/ long-tail: AskUserQuestion, McpAuth, StructuredOutput, CronDurable, SendMessage, TeamTools)
-- Pass 9: 5 cards (hooks/ agent/prompt types, frontmatter hooks, once-hooks, exit codes) → NOT stopped yet
+- Pass 9: 5 cards (hooks/ agent/prompt types, frontmatter hooks, once-hooks, exit codes)
+- Pass 10: 6 cards (away summary, auto-updater, SSH session, plugin recommend, deferred hooks, marketplace auto-install)
+- Pass 11: 11 cards (memory warn, OS notify, copy-on-select, clipboard hint, asciicast, screenshot-clipboard, session title, JetBrains, PDF read, context suggestions, transcript search) → NOT stopped yet
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
