@@ -8668,6 +8668,45 @@
       "model": "opus",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TERMINAL-CAPTURE",
+      "track": "Claude Code parity",
+      "title": "Terminal panel + TerminalCaptureTool \u2014 agent captures terminal content, Meta+J toggle",
+      "status": "horizon",
+      "size": "M",
+      "summary": "CC (feature-gated `TERMINAL_PANEL`) adds a `TerminalCaptureTool` letting the agent read the current terminal buffer content, plus an embedded terminal panel toggled with `Meta+J` (`app:toggleTerminal`). The agent can 'see' what's on screen without a screenshot.",
+      "done": "`Meta+J` opens a terminal panel. The agent can call `terminal_capture` to read current terminal output as text context, useful for debugging TUI apps.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HISTORY-SNIP",
+      "track": "Claude Code parity",
+      "title": "History snipping \u2014 automatic SDK conversation pruning for long-running sessions",
+      "status": "next",
+      "size": "M",
+      "summary": "CC (feature-gated `HISTORY_SNIP`) automatically snips (prunes) conversation history in long SDK sessions to bound memory. Uses `snipCompact` to truncate and `snipProjection` to maintain a view. SDK-only \u2014 the interactive REPL keeps full history for scrollback. Distinct from manual /compact: triggered automatically by token count rather than user action.",
+      "done": "In long SDK runs, conversation history is pruned to a rolling window automatically. `snipProjection` provides a projected view for the agent without the full context.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PUSH-NOTIFY",
+      "track": "Claude Code parity",
+      "title": "Mobile push notifications \u2014 alert when task completes or input needed",
+      "status": "horizon",
+      "size": "M",
+      "summary": "CC supports mobile push notifications via `taskCompleteNotifEnabled` and `inputNeededNotifEnabled` config settings (requires Remote Control). When enabled, CC pushes to the user's mobile device when idle after task completion, or when the agent needs input. Configured in /config.",
+      "done": "With Remote Control and `taskCompleteNotifEnabled: true`, a push notification arrives on phone when a long-running task finishes.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
