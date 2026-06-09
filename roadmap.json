@@ -7648,6 +7648,84 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AWAY-SUMMARY",
+      "track": "Claude Code parity",
+      "title": "Away summary \u2014 auto-generate context recap when terminal regains focus after 5+ min",
+      "status": "next",
+      "size": "S",
+      "summary": "CC detects terminal focus loss via `subscribeTerminalFocus`. If the terminal has been unfocused for 5+ minutes and no away summary exists since the last user turn, CC auto-generates a `away_summary` system message summarizing recent activity. The model sees this as context when the user returns, reducing the need for manual context re-establishment.",
+      "done": "After 5+ minutes away, returning to the terminal shows an auto-generated 'While you were away...' summary of recent turns injected as a system message.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AUTO-UPDATER",
+      "track": "Claude Code parity",
+      "title": "CLI auto-updater \u2014 version notification + background update with semver comparison",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's AutoUpdater/AutoUpdaterWrapper components check for new CLI versions and notify the user via a bottom-right notification. `useUpdateNotification` tracks the last-notified semver to avoid repeat notifications for the same version. The update is downloaded in the background and the user is prompted to restart.",
+      "done": "When a new version is available, a notification appears in the corner. User can dismiss or restart to apply the update.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SSH-SESSION",
+      "track": "Claude Code parity",
+      "title": "`claude ssh` \u2014 remote session over SSH with SSHSessionManager",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC supports a `claude ssh` command that creates an SSH-based remote session (sibling to `claude --remote` WebSocket sessions). The SSH child process and auth proxy are created at startup and handed to `useSSHSession`. The hook bridges SSH session messages into the REPL UI using the same SDK message adapters as remote WebSocket sessions.",
+      "done": "`claude ssh user@host` opens an interactive session over SSH. Tool calls execute on the remote host; permission prompts appear locally.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PLUGIN-RECOMMEND",
+      "track": "Claude Code parity",
+      "title": "Plugin recommendation engine \u2014 proactive install suggestions for LSP and hint plugins",
+      "status": "next",
+      "size": "S",
+      "summary": "CC has a `usePluginRecommendationBase` shared state machine that powers proactive plugin install recommendations. Sources include: LSP server plugins (for detected file types) and claude-code-hint plugins (from skill frontmatter). The machine handles gates (remote mode, already-showing, in-flight), async resolution, and shows success/failure notifications. Users can install from the suggestion.",
+      "done": "Opening a `.py` file when no Python LSP is installed shows a 'Install pylsp plugin?' suggestion. Accepting installs and activates it.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-DEFERRED-SESSION-HOOKS",
+      "track": "Claude Code parity",
+      "title": "Deferred SessionStart hooks \u2014 async hook execution without blocking REPL startup",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's `useDeferredHookMessages` runs SessionStart hooks asynchronously so the REPL renders immediately (~500ms savings). Hook messages are stored in a pending promise and merged into the conversation before the first API request (ensuring the model always sees hook context). The deferred pattern avoids REPL startup blocking on slow hooks.",
+      "done": "SessionStart hooks with slow shell commands (~500ms+) don't delay the initial REPL render. Their output appears as the first hook attachment when the user sends their first message.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MARKETPLACE-AUTO-INSTALL",
+      "track": "Claude Code parity",
+      "title": "Official marketplace auto-install \u2014 startup check installs missing official plugins",
+      "status": "next",
+      "size": "S",
+      "summary": "On startup, CC calls `checkAndInstallOfficialMarketplace()` which detects if the official Anthropic marketplace plugin is missing and auto-installs it silently. Success/failure notifications appear in the bottom-right corner. Config save failures show a specific message with remediation instructions.",
+      "done": "First launch after adding an official marketplace entry auto-installs it. A brief notification confirms success or shows an actionable error if config save fails.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
