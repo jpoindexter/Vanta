@@ -1,27 +1,34 @@
 import type { SlashHandler } from "./types.js";
 
-// ND3 — plan-first mode. Injects a plan-before-tools instruction into the
-// live system prompt (ephemeral; lasts the current session). Toggled by
-// /planmode with no arg; /planmode on|off sets it explicitly.
+// ND3 / CC-PLAN-MODE-REAL — plan-first mode with enforced read-only gate.
 //
-// The marker embeds into the system string so the toggle is detectable
-// without extra state. The LLM sees the instruction on every turn while on.
+// /planmode on|off|approve
+//
+// ON:      injects PLAN_MARKER + instruction into the live system prompt; resets
+//          ctx.state.planApproved to false so the agent is read-only gated.
+// OFF:     removes the marker + instruction; clears planApproved.
+// APPROVE: sets planApproved = true, lifting the read-only gate for the session.
+//
+// The agent gate (agent.ts PLAN_MODE_ALLOWED_TOOLS) reads planGate() — a closure
+// over ctx.state.planApproved — on every tool dispatch. Any write/shell tool
+// returns "blocked: plan mode" until the user explicitly approves.
 
 export const PLAN_MARKER = "<!-- plan-first-mode -->";
 
 const INSTRUCTION = `\n\n${PLAN_MARKER}
-⚡ Plan-first mode is active. Before using any tools or making any changes:
-1. Lay out a numbered step-by-step plan.
-2. Present it clearly and wait for explicit user confirmation ("yes", "ok", "proceed", or "go").
-3. Only then execute the steps — one at a time, confirming after each if the user asks.
+⚡ Plan-first mode is active (enforced). Write and shell tools are blocked until the user
+approves the plan. Before acting:
+1. Lay out a numbered step-by-step plan using read-only tools only.
+2. Present it clearly and wait for the user to run /planmode approve.
+3. Only after approval execute the steps — kernel gating still applies per step.
 `;
 
-type PlanAction = "turn-on" | "turn-off" | "already-on" | "already-off";
+type PlanAction = "turn-on" | "turn-off" | "approve" | "already-on" | "already-off" | "already-approved";
 
-/** Decide what /planmode does: explicit on|off, else toggle the current state. */
-function resolvePlanAction(arg: string | undefined, isOn: boolean): PlanAction {
+function resolvePlanAction(arg: string, isOn: boolean, isApproved: boolean): PlanAction {
+  if (arg === "approve") return isApproved ? "already-approved" : "approve";
   const explicit = arg === "on" ? true : arg === "off" ? false : undefined;
-  const wantOn = explicit ?? !isOn; // bare /planmode toggles
+  const wantOn = explicit ?? !isOn;
   if (wantOn === isOn) return isOn ? "already-on" : "already-off";
   return wantOn ? "turn-on" : "turn-off";
 }
@@ -32,17 +39,32 @@ export const planMode: SlashHandler = (arg, ctx) => {
     return { output: "  plan mode unavailable (no system message in conversation)" };
   }
   const isOn = sys.content.includes(PLAN_MARKER);
-  const action = resolvePlanAction(arg, isOn);
+  const isApproved = ctx.state.planApproved ?? false;
+  const action = resolvePlanAction(arg, isOn, isApproved);
+
   if (action === "turn-on") {
-    sys.content += INSTRUCTION;
-    return { output: "  ⚡ plan-first mode ON — Vanta will plan + confirm before acting" };
+    if (!isOn) sys.content += INSTRUCTION;
+    ctx.state.planApproved = false;
+    return { output: "  ⚡ plan-first mode ON (enforced) — write tools blocked. Run /planmode approve after reviewing the plan." };
   }
   if (action === "turn-off") {
     sys.content = sys.content.replace(INSTRUCTION, "");
+    ctx.state.planApproved = false;
     return { output: "  · plan-first mode OFF — Vanta acts immediately again" };
   }
+  if (action === "approve") {
+    if (!isOn) return { output: "  plan mode is not active — nothing to approve" };
+    ctx.state.planApproved = true;
+    return { output: "  ✓ plan approved — write tools unlocked. Kernel gating still applies per action." };
+  }
+  if (action === "already-approved") {
+    return { output: "  ✓ plan already approved — write tools are unlocked" };
+  }
   if (action === "already-on") {
-    return { output: "  ⚡ plan-first mode is already ON (use /planmode off to disable)" };
+    const approvedLine = isApproved
+      ? "plan approved — write tools unlocked"
+      : "write tools BLOCKED — run /planmode approve after reviewing the plan";
+    return { output: `  ⚡ plan-first mode is already ON (${approvedLine})` };
   }
   return { output: "  · plan-first mode is already OFF (use /planmode on to enable)" };
 };

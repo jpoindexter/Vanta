@@ -31,6 +31,7 @@ import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
+import { PLAN_MARKER } from "../repl/plan-mode.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
@@ -82,6 +83,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         }
       },
       requestApproval,
+      // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
+      planGate: () => {
+        const sys = convoRef.current?.messages[0];
+        return !!(sys?.content.includes(PLAN_MARKER) && !replStateRef.current.planApproved);
+      },
     });
   }
 

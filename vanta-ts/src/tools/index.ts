@@ -37,6 +37,9 @@ import { delegateTool } from "./delegate.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
+import { editFileTool } from "./edit-file.js";
+import { grepFilesTool } from "./grep-files.js";
+import { globFilesTool } from "./glob-files.js";
 import { protectTool } from "./protect.js";
 import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
@@ -67,7 +70,10 @@ import type { Tool } from "./types.js";
  */
 const ALL_TOOLS: readonly Tool[] = [
   readFileTool,
+  editFileTool,
   writeFileTool,
+  grepFilesTool,
+  globFilesTool,
   shellCmdTool,
   inspectStateTool,
   clarifyTool,

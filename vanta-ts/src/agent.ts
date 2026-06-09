@@ -38,6 +38,12 @@ export type AgentDeps = {
   onIterationCheck?: (consecutiveFailures: number) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
+  /**
+   * CC-PLAN-MODE-REAL: when this returns true, only read-only tools are allowed.
+   * Write/shell tools return a "blocked: plan mode" result without executing.
+   * Set by the interactive host when /planmode is on and the plan is not yet approved.
+   */
+  planGate?: () => boolean;
 };
 
 export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted";
@@ -72,6 +78,41 @@ const MAX_CONSECUTIVE_FAILURES = 3;
 // Stop if the model calls the exact same tool with the exact same args this many
 // times in a turn — it's stuck in a rut, not making progress.
 const MAX_IDENTICAL_CALLS = 3;
+
+/**
+ * CC-PLAN-MODE-REAL: whitelist of tools that are permitted while plan mode is
+ * active and the plan has not yet been approved. Default-deny: anything NOT on
+ * this list is blocked, so adding a new write tool doesn't silently bypass the gate.
+ */
+const PLAN_MODE_ALLOWED_TOOLS = new Set([
+  "read_file",
+  "edit_file",      // read-path is safe; write-path is blocked by this gate upstream
+  "grep_files",
+  "glob_files",
+  "recall",
+  "web_search",
+  "web_fetch",
+  "lsp_diagnostics",
+  "lsp_definition",
+  "git_status",
+  "git_diff",
+  "inspect_state",
+  "clarify",
+  "screenshot",
+  "look_at_screen",
+  "look_at_camera",
+  "describe_image",
+  "compare_vision",
+  "watch_video",
+  "tool_search",
+  "graph_query",
+  "bg_list",
+  "bg_status",
+  "ref_search",
+  "ref_list",
+  "retrieve_original",
+  "todo",           // reading/planning the task list is safe
+]);
 
 function callSignature(name: string, args: Record<string, unknown>): string {
   return `${name}:${JSON.stringify(args)}`;
@@ -258,6 +299,15 @@ async function dispatchTool(
   deps.onEvent?.({ type: "tool_start", name: call.name, args: call.arguments });
 
   const tool = deps.registry.get(call.name);
+
+  // CC-PLAN-MODE-REAL: enforce read-only restriction when plan mode is active.
+  if (deps.planGate?.() && !PLAN_MODE_ALLOWED_TOOLS.has(call.name)) {
+    const output = `blocked: plan mode is active — read-only tools only. Present your plan and run /planmode approve to proceed.`;
+    deps.onToolResult?.(call.name, false, output);
+    deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
+    return { executed: false, empty: false, ok: false, output };
+  }
+
   const gateResult = await applySafetyGate(call, deps, ctx);
   if (!gateResult.approved) {
     return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied" };

@@ -28,6 +28,7 @@ import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
+import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
@@ -136,6 +137,11 @@ export async function runChat(
       activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
       ...consoleCallbacks(),
       onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
+      // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
+      planGate: () => {
+        const sys = convo.messages[0];
+        return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved);
+      },
     },
     { history: resumed?.messages },
   );

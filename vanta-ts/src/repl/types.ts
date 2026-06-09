@@ -15,6 +15,11 @@ export type ReplState = {
   pendingImages?: ImageAttachment[];
   /** COST-VISIBLE: running session cost split (local free vs frontier metered). */
   sessionCost?: SessionCost;
+  /**
+   * CC-PLAN-MODE-REAL: true after the user runs /planmode approve.
+   * Reset to false whenever /planmode is toggled or the session clears.
+   */
+  planApproved?: boolean;
 };
 
 export type ReplCtx = {
