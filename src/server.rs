@@ -7,7 +7,7 @@ use std::{
 pub fn serve(state: app::State, port: u16) -> Result<(), String> {
     let addr = format!("127.0.0.1:{port}");
     let listener = TcpListener::bind(&addr).map_err(|e| e.to_string())?;
-    println!("Argo cockpit: http://{addr}");
+    println!("Vanta cockpit: http://{addr}");
     for stream in listener.incoming() {
         match stream {
             Ok(mut s) => handle(&mut s, &state)?,
@@ -32,11 +32,11 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
             &format!(
                 "{{\"status\":\"ready\",\"root\":\"{}\",\"bridge\":{}}}",
                 app::esc(&state.root.display().to_string()),
-                bridge::detect_hermes().to_json()
+                bridge::detect_agent_bridge().to_json()
             ),
         )
     } else if head.starts_with("GET /api/bridge/status") {
-        json(stream, &bridge::detect_hermes().to_json())
+        json(stream, &bridge::detect_agent_bridge().to_json())
     } else if head.starts_with("POST /api/bridge/plan") {
         json(
             stream,
@@ -137,19 +137,19 @@ fn write_response(stream: &mut TcpStream, mime: &str, body: &str) -> Result<(), 
 }
 
 const INDEX: &str = r#"<!doctype html>
-<html><head><meta charset="utf-8"><title>Argo</title>
+<html><head><meta charset="utf-8"><title>Vanta</title>
 <style>
 body{margin:0;background:#050505;color:#f4f4f0;font:16px -apple-system,BlinkMacSystemFont,Inter,sans-serif}
 main{max-width:980px;margin:0 auto;padding:42px 24px}.tag{color:#9cffc7}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .card{border:1px solid #2a2a2a;background:#101010;border-radius:18px;padding:20px}textarea{width:100%;min-height:130px;border-radius:14px;border:1px solid #333;background:#050505;color:#fff;padding:14px;font:inherit;box-sizing:border-box}
 button{margin-top:12px;border:0;border-radius:999px;background:#9cffc7;color:#000;padding:12px 18px;font-weight:800;cursor:pointer}pre{white-space:pre-wrap;background:#050505;border-radius:14px;padding:14px;border:1px solid #222}.pill{display:inline-block;border:1px solid #333;border-radius:999px;padding:6px 10px;margin:4px;color:#bbb}@media(max-width:760px){.grid{grid-template-columns:1fr}}
 </style></head><body><main>
-<p class="tag">Argo // trusted operator agent</p><h1>Know the goal. Know the boundary. Act verified.</h1>
-<div class="grid"><section class="card"><h2>Ask Argo before action</h2><textarea id="action">edit README inside Nexarion Agent</textarea><button onclick="assess()">Assess action</button><button onclick="runNative()">Run native</button><button onclick="planBridge()">Plan Hermes bridge</button><pre id="out">waiting</pre></section>
-<section class="card"><h2>Hermes bridge</h2><p id="bridge">checking...</p><p>For now Nexarion gates prompts before Hermes. The long-term target is an independent operator runtime past Hermes code.</p><span class="pill">guard first</span><span class="pill">no auto-exec</span><span class="pill">replace Hermes later</span></section>
-<section class="card"><h2>Native approvals</h2><p>Ask-risk actions now queue inside Nexarion before any tool or Hermes handoff.</p><button onclick="proposeApproval()">Queue approval</button><button onclick="loadApprovals()">Refresh queue</button><pre id="approvals">[]</pre></section>
-<section class="card"><h2>Goal ledger</h2><p>Nexarion now keeps project-local goals, so action checks have a native operating target.</p><button onclick="addGoal()">Add goal from text</button><button onclick="loadGoals()">Refresh goals</button><pre id="goals">[]</pre></section>
-<section class="card"><h2>Rule zero</h2><p>Do no harm. Deletes, overwrites, secret leaks, blackmail, and outside-scope edits are blocked or require Jason.</p><span class="pill">scope-aware</span><span class="pill">no deletes</span><span class="pill">visible decisions</span><span class="pill">Hermes bridge now</span></section></div>
+<p class="tag">Vanta // trusted operator agent</p><h1>Know the goal. Know the boundary. Act verified.</h1>
+<div class="grid"><section class="card"><h2>Ask Vanta before action</h2><textarea id="action">edit README inside ~/projects/my-app</textarea><button onclick="assess()">Assess action</button><button onclick="runNative()">Run native</button><button onclick="planBridge()">Plan agent bridge</button><pre id="out">waiting</pre></section>
+<section class="card"><h2>Agent bridge</h2><p id="bridge">checking...</p><p>Vanta gates prompts before routing to any external agent bridge. The long-term target is a fully standalone operator runtime.</p><span class="pill">guard first</span><span class="pill">no auto-exec</span><span class="pill">standalone target</span></section>
+<section class="card"><h2>Native approvals</h2><p>Ask-risk actions queue inside Vanta before any tool or external bridge.</p><button onclick="proposeApproval()">Queue approval</button><button onclick="loadApprovals()">Refresh queue</button><pre id="approvals">[]</pre></section>
+<section class="card"><h2>Goal ledger</h2><p>Vanta keeps project-local goals so action checks have a native operating target.</p><button onclick="addGoal()">Add goal from text</button><button onclick="loadGoals()">Refresh goals</button><pre id="goals">[]</pre></section>
+<section class="card"><h2>Rule zero</h2><p>Do no harm. Deletes, overwrites, secret leaks, blackmail, and outside-scope edits are blocked or require Jason.</p><span class="pill">scope-aware</span><span class="pill">no deletes</span><span class="pill">visible decisions</span><span class="pill">kernel-enforced</span></section></div>
 </main><script>
 async function assess(){const r=await fetch('/api/assess',{method:'POST',body:document.getElementById('action').value});document.getElementById('out').textContent=JSON.stringify(await r.json(),null,2)}
 async function runNative(){const r=await fetch('/api/run',{method:'POST',body:document.getElementById('action').value});document.getElementById('out').textContent=JSON.stringify(await r.json(),null,2)}
@@ -158,5 +158,5 @@ async function proposeApproval(){const r=await fetch('/api/approvals/propose',{m
 async function loadApprovals(){const r=await fetch('/api/approvals');document.getElementById('approvals').textContent=JSON.stringify(await r.json(),null,2)}
 async function addGoal(){const r=await fetch('/api/goals/add',{method:'POST',body:document.getElementById('action').value});document.getElementById('out').textContent=JSON.stringify(await r.json(),null,2);loadGoals()}
 async function loadGoals(){const r=await fetch('/api/goals');document.getElementById('goals').textContent=JSON.stringify(await r.json(),null,2)}
-async function bridgeStatus(){const r=await fetch('/api/bridge/status');const j=await r.json();document.getElementById('bridge').textContent=j.available?j.version:'Hermes not found: '+j.note}bridgeStatus();loadApprovals();loadGoals();
+async function bridgeStatus(){const r=await fetch('/api/bridge/status');const j=await r.json();document.getElementById('bridge').textContent=j.available?j.version:'Bridge not available: '+j.note}bridgeStatus();loadApprovals();loadGoals();
 </script></body></html>"#;

@@ -166,9 +166,9 @@ mod tests {
     #[test]
     fn adds_project_goal_as_active() {
         let ledger = GoalLedger::empty();
-        let goal = ledger.add("Ship a safer Argo cockpit").unwrap();
+        let goal = ledger.add("Ship a safer Vanta cockpit").unwrap();
         assert_eq!(goal.id, 1);
-        assert_eq!(goal.text, "Ship a safer Argo cockpit");
+        assert_eq!(goal.text, "Ship a safer Vanta cockpit");
         assert_eq!(goal.status, GoalStatus::Active);
     }
 

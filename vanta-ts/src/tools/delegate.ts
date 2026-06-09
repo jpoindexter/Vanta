@@ -1,0 +1,132 @@
+import { z } from "zod";
+import type { Tool } from "./types.js";
+import { spawnSubagent } from "../subagent/spawn.js";
+import { resolveProvider } from "../providers/index.js";
+import { buildRegistry } from "./index.js";
+
+const Args = z.object({
+  goal: z.string().min(1),
+  instruction: z.string().min(1),
+  max_iterations: z.number().int().min(1).max(50).optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+  isolation: z.enum(["worktree"]).optional(),
+});
+
+/** Env for the worker — overlay the agent's chosen provider/model over the parent's. */
+export function delegateEnv(
+  env: NodeJS.ProcessEnv,
+  provider?: string,
+  model?: string,
+): NodeJS.ProcessEnv {
+  const merged: NodeJS.ProcessEnv = { ...env };
+  if (provider) merged.VANTA_PROVIDER = provider;
+  if (model) merged.VANTA_MODEL = model;
+  return merged;
+}
+
+export const delegateTool: Tool = {
+  schema: {
+    name: "delegate",
+    description:
+      "Delegate a scoped subtask to a worker agent — optionally on a DIFFERENT model/provider. " +
+      "The worker runs its own loop with the same tools (minus delegate) and returns its result. " +
+      "Use `provider`/`model` to route a subtask to the best backend (e.g. provider:'ollama' for a " +
+      "free local model, provider:'openai' model:'gpt-4o' for a hard reasoning step). Call it multiple " +
+      "times to fan a goal out across several workers/models.",
+    parameters: {
+      type: "object",
+      properties: {
+        goal: {
+          type: "string",
+          description: "The worker's scoped goal — the outcome to achieve",
+        },
+        instruction: {
+          type: "string",
+          description: "Concrete instructions for the worker to follow",
+        },
+        max_iterations: {
+          type: "integer",
+          minimum: 1,
+          maximum: 50,
+          description: "Optional cap on the worker's loop iterations (1-50)",
+        },
+        provider: {
+          type: "string",
+          description: "Optional backend for the worker: openai | ollama | anthropic | gemini | openrouter | codex | claude-code. Defaults to the parent's.",
+        },
+        model: {
+          type: "string",
+          description: "Optional model id for the worker (e.g. gpt-4o, qwen2.5:14b, gemini-2.5-flash).",
+        },
+        isolation: {
+          type: "string",
+          enum: ["worktree"],
+          description: "Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict.",
+        },
+      },
+      required: ["goal", "instruction"],
+    },
+  },
+  // Constant string by design: delegation is an internal orchestration op. The
+  // worker's own tool calls are each assessed by the kernel as they happen, so
+  // echoing the goal/instruction here would only let their content false-trigger
+  // the safety classifier.
+  describeForSafety: () => "delegate a subtask to a worker agent",
+  async execute(raw, ctx) {
+    const parsed = Args.safeParse(raw);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        output: "delegate needs goal and instruction strings",
+      };
+    }
+    try {
+      const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = parsed.data;
+      // The agent may route this worker to a different backend (Ollama, gpt-4o, …).
+      let provider;
+      try {
+        provider = resolveProvider(delegateEnv(process.env, prov, model));
+      } catch (err) {
+        return { ok: false, output: `cannot use ${prov ?? "default"}/${model ?? "default"}: ${(err as Error).message}` };
+      }
+      // Child cannot spawn further delegates — prevents runaway recursion.
+      const registry = buildRegistry({ exclude: ["delegate"] });
+
+      // CC-WORKTREE-AGENTS: run the worker in an isolated git worktree.
+      let worktreeHandle: import("../worktree/manager.js").WorktreeHandle | undefined;
+      let workerRoot = ctx.root;
+      if (isolation === "worktree") {
+        const { createWorktree } = await import("../worktree/manager.js");
+        try {
+          worktreeHandle = await createWorktree(ctx.root, "agent/worktree");
+          workerRoot = worktreeHandle.path;
+        } catch (err) {
+          return { ok: false, output: `worktree creation failed: ${(err as Error).message}` };
+        }
+      }
+
+      try {
+        const outcome = await spawnSubagent({
+          goal,
+          instruction,
+          deps: {
+            provider,
+            safety: ctx.safety,
+            registry,
+            root: workerRoot,
+            requestApproval: ctx.requestApproval,
+            maxIterations,
+          },
+          maxIterations,
+        });
+        const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
+        return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
+      } finally {
+        if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
+      }
+    } catch (err) {
+      return { ok: false, output: (err as Error).message };
+    }
+  },
+};

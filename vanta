@@ -1,0 +1,3 @@
+#!/bin/sh
+# Thin alias for run.sh so `./vanta run "..."` works the same as `./run.sh run "..."`.
+exec "$(cd "$(dirname "$0")" && pwd)/run.sh" "$@"

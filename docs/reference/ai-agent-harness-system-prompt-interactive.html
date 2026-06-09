@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How an AI Agent Works — Harness + System Prompt</title>
+<style>
+  :root{
+    --bg:#06070a; --ink:#f4f7ff; --muted:#8c97aa; --dim:#566174;
+    --panel:#111621; --panel2:#171d2a; --line:rgba(244,247,255,.14);
+    --blue:#4aa3ff; --violet:#b178ff; --green:#42f5a1; --amber:#ffc857; --red:#ff5470;
+    --cyan:#29f1ff; --shadow:0 24px 90px rgba(0,0,0,.5);
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--ink); font-family:var(--sans);
+    background:
+      radial-gradient(circle at 16% 12%,rgba(41,241,255,.16),transparent 28rem),
+      radial-gradient(circle at 84% 8%,rgba(177,120,255,.18),transparent 30rem),
+      radial-gradient(circle at 58% 94%,rgba(66,245,161,.10),transparent 30rem),
+      linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px),#06070a;
+    background-size:auto,auto,auto,34px 34px,34px 34px,auto;
+  }
+  .app{width:min(1280px,calc(100% - 32px));margin:0 auto;padding:24px 0 44px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+  .live{display:flex;gap:10px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 24px var(--green);animation:pulse 1.4s infinite}@keyframes pulse{50%{opacity:.35;transform:scale(.72)}}
+  .hero{display:grid;grid-template-columns:.78fr 1.22fr;gap:18px;align-items:stretch}
+  .intro,.board,.inspector,.timeline,.plain{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));border-radius:30px;box-shadow:var(--shadow)}
+  .intro{padding:30px;position:relative;overflow:hidden}.intro:after{content:"PROMPT ≠ AGENT";position:absolute;left:24px;bottom:-12px;font:900 64px/1 var(--mono);letter-spacing:-.08em;color:rgba(255,255,255,.035)}
+  h1{margin:0 0 18px;font-size:clamp(46px,7vw,92px);line-height:.86;letter-spacing:-.075em;text-wrap:balance}
+  .lede{font-size:20px;line-height:1.28;color:var(--muted);margin:0 0 24px}.lede b{color:var(--ink)}
+  .modes{display:grid;gap:10px;margin-top:24px}.mode{appearance:none;border:1px solid var(--line);background:rgba(0,0,0,.2);color:var(--muted);border-radius:16px;padding:14px 15px;text-align:left;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:.18s}.mode:hover,.mode.active{color:var(--ink);border-color:rgba(41,241,255,.45);background:rgba(41,241,255,.09)}
+  .board{padding:22px;position:relative;overflow:hidden;min-height:600px}.board:before{content:"";position:absolute;inset:22px;border:1px dashed rgba(255,255,255,.10);border-radius:24px;pointer-events:none}
+  .map{position:relative;height:555px}.node{position:absolute;width:190px;min-height:118px;padding:16px;border:1px solid var(--line);border-radius:22px;background:rgba(13,17,25,.92);backdrop-filter:blur(12px);transition:.25s;cursor:pointer;z-index:2}.node:hover{transform:translateY(-3px);border-color:rgba(41,241,255,.4)}.node.active{box-shadow:0 0 0 1px var(--color),0 0 38px rgba(41,241,255,.16);border-color:var(--color);transform:translateY(-4px)}
+  .node .k{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--color);margin-bottom:14px}.node h2{font-size:19px;line-height:1;margin:0 0 8px;letter-spacing:-.04em}.node p{margin:0;color:var(--muted);font-size:13px;line-height:1.25}
+  #user{left:2%;top:28%;--color:var(--cyan)} #prompt{left:25%;top:6%;--color:var(--violet)} #context{left:25%;bottom:5%;--color:var(--amber)} #model{left:50%;top:30%;transform:translateX(-50%);width:225px;min-height:150px;--color:var(--blue)} #harness{right:23%;top:6%;--color:var(--amber)} #safety{right:23%;bottom:5%;--color:var(--red)} #tools{right:2%;top:28%;--color:var(--green)}
+  #model.active{transform:translateX(-50%) translateY(-4px)}
+  svg.wires{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}.wire{fill:none;stroke:rgba(255,255,255,.16);stroke-width:2;stroke-dasharray:7 8}.wire.hot{stroke:var(--cyan);stroke-width:3;filter:drop-shadow(0 0 8px rgba(41,241,255,.65));animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-30}}
+  .packet{position:absolute;z-index:3;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 20px var(--cyan);opacity:0}.running .packet{animation:packet 4.8s ease-in-out infinite}@keyframes packet{0%{opacity:0;left:10%;top:42%}5%{opacity:1}18%{left:31%;top:21%}34%{left:49%;top:42%}50%{left:70%;top:21%}66%{left:70%;top:70%}82%{left:88%;top:42%}95%{opacity:1}100%{opacity:0;left:50%;top:42%}}
+  .lower{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.inspector{padding:24px}.inspector .eyebrow,.timeline .eyebrow,.plain .eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--cyan);margin:0 0 12px}.inspector h2{font-size:38px;letter-spacing:-.055em;line-height:.92;margin:0 0 12px}.inspector p{color:var(--muted);font-size:18px;line-height:1.35;margin:0}.bullets{display:grid;gap:8px;margin-top:18px}.bullet{border:1px solid var(--line);border-radius:14px;padding:11px 12px;color:rgba(244,247,255,.88);background:rgba(0,0,0,.16);font-size:14px}.bullet b{color:var(--ink)}
+  .timeline{padding:24px}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.step{border:1px solid var(--line);border-radius:16px;padding:14px 12px;min-height:122px;background:rgba(0,0,0,.16);transition:.2s}.step.active{border-color:var(--green);background:rgba(66,245,161,.08)}.step span{font-family:var(--mono);font-size:11px;color:var(--green)}.step p{margin:20px 0 0;color:var(--muted);font-size:14px;line-height:1.22}
+  .plain{margin-top:18px;padding:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}.plain h3{margin:0 0 10px;font-size:24px;letter-spacing:-.04em}.plain p{margin:0;color:var(--muted);line-height:1.4}.plain b{color:var(--ink)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.ctrl{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);color:var(--ink);padding:10px 14px;font-family:var(--mono);font-size:12px;cursor:pointer}.ctrl:hover{border-color:var(--cyan)}
+  @media(max-width:1050px){.hero,.lower,.plain{grid-template-columns:1fr}.map{height:720px}.node{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:100%!important;margin-bottom:10px}.wires,.packet{display:none}.board{min-height:auto}.map{height:auto}.steps{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.app{width:min(100% - 20px,1280px)}.intro,.board{border-radius:22px;padding:20px}.steps{grid-template-columns:1fr}header{display:block}.plain{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="live"><span class="dot"></span> interactive explainer</div><div>Harness / System Prompt / Agent Loop</div></header>
+
+  <main class="hero">
+    <section class="intro">
+      <h1>The model is not the agent.</h1>
+      <p class="lede">An agent is a <b>reasoning model</b> inside an operating system: prompt rules, runtime harness, memory/context, tools, safety gates, and verification.</p>
+      <div class="modes" aria-label="Diagram modes">
+        <button class="mode active" data-mode="normal">01 · Explain the parts</button>
+        <button class="mode" data-mode="run">02 · Animate one agent run</button>
+        <button class="mode" data-mode="risk">03 · Show safety boundary</button>
+        <button class="mode" data-mode="simple">04 · Human analogy</button>
+      </div>
+      <div class="controls">
+        <button class="ctrl" id="play">Run packet</button>
+        <button class="ctrl" id="reset">Reset focus</button>
+      </div>
+    </section>
+
+    <section class="board" id="board">
+      <div class="map" id="map">
+        <svg class="wires" viewBox="0 0 900 555" preserveAspectRatio="none" aria-hidden="true">
+          <path class="wire w-user-prompt" d="M105 255 C170 145 225 105 305 105"/>
+          <path class="wire w-prompt-model" d="M330 125 C395 150 420 205 450 265"/>
+          <path class="wire w-context-model" d="M330 440 C385 410 420 350 450 315"/>
+          <path class="wire w-model-harness" d="M520 260 C585 170 640 120 700 105"/>
+          <path class="wire w-harness-safety" d="M700 130 C735 230 735 330 700 430"/>
+          <path class="wire w-safety-tools" d="M735 430 C800 375 830 315 850 255"/>
+          <path class="wire w-tools-model" d="M845 285 C740 390 610 390 520 315"/>
+        </svg>
+        <div class="packet"></div>
+        <article class="node active" id="user" data-key="user"><div class="k">Input</div><h2>User goal</h2><p>The mission: what you want done.</p></article>
+        <article class="node" id="prompt" data-key="prompt"><div class="k">Rules</div><h2>System prompt</h2><p>Identity, priorities, boundaries, style.</p></article>
+        <article class="node" id="context" data-key="context"><div class="k">State</div><h2>Context + memory</h2><p>Files, goals, history, current screen.</p></article>
+        <article class="node" id="model" data-key="model"><div class="k">Reasoning core</div><h2>LLM model</h2><p>Plans, predicts, decides next action. Cannot touch the world alone.</p></article>
+        <article class="node" id="harness" data-key="harness"><div class="k">Runtime</div><h2>Harness</h2><p>The cockpit that feeds context, exposes tools, and records actions.</p></article>
+        <article class="node" id="safety" data-key="safety"><div class="k">Boundary</div><h2>Safety gate</h2><p>Allows, asks, or blocks before risky actions run.</p></article>
+        <article class="node" id="tools" data-key="tools"><div class="k">Hands</div><h2>Tools</h2><p>Files, shell, browser, email, calendar, vision, git.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <section class="lower">
+    <aside class="inspector" id="inspector">
+      <p class="eyebrow">Selected part</p>
+      <h2>User goal</h2>
+      <p>The user provides intent. The agent should translate that into a concrete goal before using tools.</p>
+      <div class="bullets">
+        <div class="bullet"><b>Human analogy:</b> “I need a table built.”</div>
+        <div class="bullet"><b>Agent behavior:</b> clarify outcome, plan, act, verify.</div>
+      </div>
+    </aside>
+
+    <aside class="timeline">
+      <p class="eyebrow">Execution loop</p>
+      <div class="steps">
+        <div class="step active" data-step="0"><span>01</span><p>Goal enters the agent.</p></div>
+        <div class="step" data-step="1"><span>02</span><p>Prompt + context shape reasoning.</p></div>
+        <div class="step" data-step="2"><span>03</span><p>Harness checks and runs tools.</p></div>
+        <div class="step" data-step="3"><span>04</span><p>World returns evidence.</p></div>
+        <div class="step" data-step="4"><span>05</span><p>Agent verifies and reports.</p></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="plain">
+    <article><h3>System prompt</h3><p>The <b>constitution</b>. It says who the agent is, what matters, what to refuse, and how to behave.</p></article>
+    <article><h3>Harness</h3><p>The <b>body/cockpit</b>. It gives the model controlled access to memory, files, tools, approvals, and logs.</p></article>
+    <article><h3>Agent</h3><p>The <b>whole organism</b>. Model + prompt + harness + tools + safety + verification loop.</p></article>
+  </section>
+</div>
+
+<script>
+const info={
+ user:{title:'User goal',body:'The user provides intent. The agent should translate that into a concrete goal before using tools.',bullets:['Human analogy: “I need a table built.”','Agent behavior: clarify outcome, plan, act, verify.'],wires:['w-user-prompt']},
+ prompt:{title:'System prompt',body:'The system prompt is the constitution. It shapes identity, priorities, tone, boundaries, and tool-use rules.',bullets:['It can instruct the model.','It cannot physically enforce actions by itself.','Good prompts reduce drift and hidden assumptions.'],wires:['w-user-prompt','w-prompt-model']},
+ context:{title:'Context + memory',body:'Context is what the model can currently see: recent messages, files, goals, screenshots, logs, and durable memory.',bullets:['More context is not always better.','Relevant context helps the model reason.','Stale context can confuse the agent.'],wires:['w-context-model']},
+ model:{title:'LLM model',body:'The model is the reasoning core. It predicts, plans, summarizes, and chooses proposed next actions.',bullets:['It does not directly edit files or send email.','It asks the harness to use tools.','It can be powerful and still need guardrails.'],wires:['w-prompt-model','w-context-model','w-model-harness','w-tools-model']},
+ harness:{title:'Harness',body:'The harness is the runtime body. It packages prompts, exposes tools, routes approvals, logs events, and checks outputs.',bullets:['This is where “agent” becomes more than chat.','It controls what actions are possible.','It can force verification before success is claimed.'],wires:['w-model-harness','w-harness-safety']},
+ safety:{title:'Safety gate',body:'The safety layer decides whether an action is allowed, needs approval, or must be blocked.',bullets:['Safe: read a local file.','Ask: send email or write outside scope.','Block: destructive commands or secret exfiltration.'],wires:['w-harness-safety','w-safety-tools']},
+ tools:{title:'Tools',body:'Tools are the agent’s hands: file reads/writes, shell commands, browser, search, calendar, email, screenshots, git, and more.',bullets:['Tools return evidence from the real world.','The model must inspect that evidence.','No verified output means no claimed success.'],wires:['w-safety-tools','w-tools-model']}
+};
+const nodes=[...document.querySelectorAll('.node')];
+const inspector=document.getElementById('inspector');
+const board=document.getElementById('board');
+const steps=[...document.querySelectorAll('.step')];
+let timer=null;
+function select(key){
+ nodes.forEach(n=>n.classList.toggle('active',n.dataset.key===key));
+ document.querySelectorAll('.wire').forEach(w=>w.classList.remove('hot'));
+ (info[key].wires||[]).forEach(c=>document.querySelector('.'+c)?.classList.add('hot'));
+ const d=info[key];
+ inspector.innerHTML=`<p class="eyebrow">Selected part</p><h2>${d.title}</h2><p>${d.body}</p><div class="bullets">${d.bullets.map(b=>`<div class="bullet"><b>${b.split(':')[0]}:</b>${b.includes(':')?b.split(':').slice(1).join(':'):b}</div>`).join('')}</div>`;
+}
+nodes.forEach(n=>n.addEventListener('click',()=>select(n.dataset.key)));
+function animateRun(){
+ clearInterval(timer); board.classList.add('running');
+ const order=['user','prompt','model','harness','safety','tools','model']; let i=0;
+ select(order[0]); steps.forEach((s,j)=>s.classList.toggle('active',j===0));
+ timer=setInterval(()=>{i=(i+1)%order.length;select(order[i]);steps.forEach((s,j)=>s.classList.toggle('active',j===Math.min(4,Math.floor(i*.75))));},900);
+ setTimeout(()=>{clearInterval(timer);board.classList.remove('running');steps.forEach((s,j)=>s.classList.toggle('active',j===4));},5600);
+}
+document.getElementById('play').addEventListener('click',animateRun);
+document.getElementById('reset').addEventListener('click',()=>{clearInterval(timer);board.classList.remove('running');select('user');steps.forEach((s,j)=>s.classList.toggle('active',j===0));});
+document.querySelectorAll('.mode').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.mode').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+ const m=btn.dataset.mode;
+ if(m==='run') animateRun();
+ if(m==='risk') select('safety');
+ if(m==='simple'){select('harness'); inspector.querySelector('p:nth-of-type(2)').textContent='Human analogy: the model is the brain doing reasoning, the system prompt is the constitution, the harness is the body and cockpit, safety is the immune system, and tools are the hands.';}
+ if(m==='normal') select('user');
+}));
+select('user');
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vanta — What To Actually Build (evidence-grounded)</title>
+<style>
+  :root{
+    --bg:#0b0d10;--panel:#14181d;--panel2:#1b2026;--line:#272d35;
+    --ink:#e7ecf2;--dim:#9aa6b2;--faint:#6b7682;
+    --vanta:#46c6a0;--build:#5aa9ff;--park:#b07cff;--lose:#6b7682;--hot:#f0a35a;--validate:#3fb950;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:30px 22px 80px}
+  h1{font-size:25px;margin:0 0 4px;letter-spacing:-.4px}
+  .sub{color:var(--dim);margin:0 0 18px;font-size:13px}
+  .sub code{color:var(--vanta)}
+  h2{font-size:17px;margin:32px 0 10px;letter-spacing:-.2px;border-bottom:1px solid var(--line);padding-bottom:7px}
+  p.lede{color:var(--dim);max-width:78ch}
+  .verdict{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--vanta);border-radius:10px;padding:15px 18px;margin:8px 0}
+  .verdict b{color:var(--ink)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .stat .n{font-size:22px;font-weight:700}
+  .stat .l{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  thead th{text-align:left;color:var(--faint);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:hover{background:#11151a}
+  .rank{color:var(--hot);font-weight:700;font-variant-numeric:tabular-nums}
+  .freq{color:var(--ink);font-weight:600;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+  .p-build{color:var(--build);background:#0f1d2e99}
+  .p-park{color:var(--park);background:#1c142e99}
+  .p-lose{color:var(--lose);background:#1a1e2399}
+  .p-validate{color:var(--validate);background:#10231599}
+  .rid{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--build);border:1px solid #21344a;border-radius:5px;padding:0 5px}
+  .rid.new{color:var(--hot);border-color:#5a3f21}
+  ul.tight{margin:6px 0 0;padding-left:18px}
+  ul.tight li{margin:5px 0;color:var(--dim)}
+  ul.tight li b{color:var(--ink)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .ex{color:var(--faint);font-style:italic}
+  footer{color:var(--faint);font-size:12px;margin-top:38px;border-top:1px solid var(--line);padding-top:14px}
+  .flag{background:#1c160f;border:1px solid #5a3f21;border-left:3px solid var(--hot);border-radius:10px;padding:13px 16px;margin:10px 0}
+  .flag b{color:var(--hot)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vanta — What To Actually Build</h1>
+  <p class="sub">Grounded in <b>~10,000+ of Jason's real Claude + Codex messages</b> (1.6 GB Claude / 110 projects · 2.8 GB Codex / 493 sessions), mined bottom-up across 4 passes · 2026-06-06. Companion to <code>hermes-parity-map.html</code>. The question wasn't "what does Hermes have" — it was "how does Jason actually work, and what would help."</p>
+
+  <div class="verdict">
+    <b>The headline:</b> three independent derivations — my curated parity list, Vanta's own Desktop recommendation doc, and now <b>10k messages of real usage</b> — converge on the same answer. <b>Don't clone Hermes.</b> Vanta's thesis isn't aspirational, it's the <b>#1 measured pain</b>: the single most common friction is the agent acting <i>beside</i> the instruction (<span class="ex">"I didn't say move, I said rename"; "push" ≠ open a PR; "make a v3" ≠ overwrite v1</span>) — which is exactly what the Rust kernel's <code>assess()</code> gate exists to stop. The scrape didn't re-decide the roadmap; it <b>proved the thesis</b> and surfaced 3 net-new needs Hermes doesn't have.
+  </div>
+
+  <div class="cards" id="stats"></div>
+
+  <h2>1 · The reframe the data forces: general operator, not coding agent</h2>
+  <p class="lede">Jason says he wants "a real digital person that can do everything, not a coding agent." The usage confirms it — with a twist: <b>coding is the means, life is the end.</b> Across every project the <i>output</i> is a personal-life tool — a posture-rehab program from a PT textbook, a job-search pipeline, a UFO-disclosure archive, a business-idea miner, a personal second-brain. He is hand-building bespoke apps to do jobs a general operator would just do. Plus raw life-admin: organize files (<span class="ex">"don't delete anything"</span>), assemble PDFs, install tools, set up agents. <b>Coding is one capability, not the frame.</b></p>
+
+  <h2>2 · Top frictions, ranked by evidence — and what each proves</h2>
+  <table>
+    <thead><tr><th style="width:4%">#</th><th style="width:23%">Friction (real pain)</th><th style="width:16%">Evidence</th><th style="width:11%">Verdict</th><th>What it validates / drives</th></tr></thead>
+    <tbody id="frictions"></tbody>
+  </table>
+
+  <h2>3 · Hermes-parity verdict — reprioritized by what Jason actually hits</h2>
+  <p class="lede">The 10 curated parity cards are already on the roadmap. The evidence <b>re-tiers</b> them — and parks two that 10k messages show <b>zero demand</b> for.</p>
+  <table>
+    <thead><tr><th style="width:14%">Card</th><th style="width:12%">Tier (by evidence)</th><th>Why</th></tr></thead>
+    <tbody id="parity"></tbody>
+  </table>
+
+  <h2>4 · Net-new — the highest-value output (Hermes has none of these)</h2>
+  <p class="lede">What the scrape produced that no parity list had. Added to the roadmap this pass.</p>
+  <ul class="tight" id="netnew"></ul>
+
+  <div class="flag" id="messagingflag"></div>
+
+  <div class="two">
+    <div>
+      <h2>5 · Confirmed "lose"</h2>
+      <p class="lede">The evidence backs the cuts — these have no demand in 10k messages.</p>
+      <ul class="tight" id="lose"></ul>
+    </div>
+    <div>
+      <h2>6 · Already right (validated, not new)</h2>
+      <p class="lede">The backlog is well-aimed. These existing cards are exactly what the pain points need — build them with confidence.</p>
+      <ul class="tight" id="validated"></ul>
+    </div>
+  </div>
+
+  <h2>7 · Recommended build order</h2>
+  <ol class="tight" id="order"></ol>
+
+  <h2>8 · Bottom line</h2>
+  <div class="verdict">
+    Vanta should be <b>the local trusted operator that remembers, recovers, and doesn't act outside the line</b> — a general life-operator where coding is one tool. Don't chase Hermes' surface. Build <b>continuity</b> (<span class="rid new">AUTO-HANDOFF</span> <span class="rid">SESSION-SEARCH</span>), <b>reliability</b> (<span class="rid new">RUN-RESUME</span> <span class="rid">MODEL-FALLBACK</span> <span class="rid">UX-MODEL-FIX</span>), the <b>reference loop</b> (<span class="rid new">REF-INGEST</span>), and <b>autonomy-with-verification</b> — and keep the kernel sacred, because it's the thing the data says Jason needs most and Hermes doesn't have. <b>Smaller than Hermes in surface, stronger in trust.</b>
+  </div>
+
+  <footer>Source of truth: this file's <code>#data</code> JSON island (parse it). Mining method: bottom-up theme extraction over user-authored messages only; counts are approximate, exemplars short + non-sensitive. New roadmap cards: <code>AUTO-HANDOFF</code>, <code>REF-INGEST</code>, <code>RUN-RESUME</code>.</footer>
+</div>
+
+<script type="application/json" id="data">
+{
+  "stats": [
+    ["Messages mined (user-authored)","~10k+"],
+    ["Claude corpus","1.6 GB · 110 projects"],
+    ["Codex corpus","2.8 GB · 493 sessions"],
+    ["Independent derivations converged","3"],
+    ["Parity cards confirmed","10"],
+    ["Net-new cards added","3"]
+  ],
+  "frictions": [
+    ["1","Agent acts beside / beyond the instruction (scope over-action)","~10+ explicit 'I didn't say X, I said Y'; 21 hand-fenced Workers","validate","Proves the Rust kernel assess() gate is the crown jewel — the #1 measured pain is exactly what it stops. Pair with ACTION-PROOF."],
+    ["2","Context / token economy is a constant chore","138 compaction events + 48 manual handoffs (one project); 'give me a handoff' = most-repeated action","build","Drives net-new AUTO-HANDOFF; validates MEM-CURATOR + EF-TASKSTACK. His biggest recurring manual cost."],
+    ["3","Reference → build loop, all manual","~165 'look at this' · 144 URLs · 130 file drops · 94 'clone this repo'","build","Drives net-new REF-INGEST — make pasted/cloned references durable project context, not re-pasted every session."],
+    ["4","Verify-before-report gap (claims done, reality differs)","35 'are you broken / where is it'; 151 'still / again'; output ≠ reference image","validate","Validates BEHAVIOR-VOICE / SELF-EVAL / ACTION-PROOF + AUX-VISION visual-verify. Vanta's 'report only verified output' rule is the fix."],
+    ["5","Long autonomous runs die mid-flight","'don't stop until done' (34+) but 'stream disconnected before completion'; manual pipeline babysitting (~20)","build","Drives net-new RUN-RESUME — auto-resume from checkpoint after a drop; builds on checkpoints + STALL-UNBLOCK."],
+    ["6","Cost-aware model routing + persistence","'stop spamming opus' · 'you're pricey' · 'doesn't remember the model I selected' · 'launch lower models for sub-work'","validate","Makes UX-MODEL-FIX urgent (trust bug); validates AUX-MAP + MODEL-FALLBACK. He wants the agent to OWN the opus/sonnet decision."],
+    ["7","Destructive-action fear","'was it pushed before you deleted shit'; 'organize my desktop — do not delete anything'","validate","Validates the kernel's block/ask on destructive ops + ACTION-PROOF post-action receipts."],
+    ["8","Multi-agent scope orchestration is hand-rolled","21 'You are Worker X — only edit Y, don't overwrite others'","validate","Validates kernel-enforced scoped swarm/delegate — replace the manual Worker contracts with native fences."],
+    ["9","Second-opinion / stop-gate review","171 'Codex Companion — review the previous Claude' invocations","validate","Validates a first-class 'review another agent's (or own prior) work, report only verified' mode — holdout / SELF-EVAL."]
+  ],
+  "parity": [
+    ["SESSION-SEARCH","Tier 1 — build first","Continuity/recall is the #1 pain cluster (memory resets, 'what did we decide about X', nonlinear long-running work). Strongest evidence of all 10."],
+    ["MODEL-FALLBACK","Tier 1 — build first","Reliability: a dead provider kills the turn; Codex stream-drops corroborate. Pairs with RUN-RESUME."],
+    ["KANBAN-DECOMPOSE","Tier 2 — confirmed","His dominant interaction is 'set a goal and knock out the whole backlog' — card→spec→subtasks is the factory he keeps asking for."],
+    ["MODEL-CMD","Tier 2 — confirmed","Constant model switching — but the URGENT sibling is UX-MODEL-FIX (the persistence trust bug), not the CLI selector itself."],
+    ["SELF-UPDATE","Tier 2 — keep","Operator hygiene; thin direct evidence but the snapshot/rollback shape is right. Make it safer than Hermes."],
+    ["DEP-AUDIT","Tier 2 — keep","Thesis-aligned (supply-chain trust) and cheap; security is designed-for more than experienced in the logs, so build it, don't rush it."],
+    ["SKILL-UMBRELLA","Tier 3 — low","Skills are UNDER-used ('use the skills bro'), not sprawling — governance matters less than the evidence first suggested. Keep, deprioritize."],
+    ["CLI-DX-PACK","Tier 3 — low","Boring conveniences; prompt-size + recap have mild support, the rest are nice-to-have."],
+    ["ACP-SERVE","Park — no demand","Zero editor-integration asks in 10k messages. He uses Codex-in-VSCode but never requests ACP. Park until real demand."],
+    ["PROXY-ENDPOINT","Park — no demand","No proxy/bridge demand surfaced. Vanta's own doc already flagged it as commercial-adjacent. Park behind reliability + continuity."]
+  ],
+  "netnew": [
+    {"id":"AUTO-HANDOFF","new":true,"t":"Auto-handoff on context pressure + reload on restart","w":"His #1 manual chore. Detect context pressure → auto-emit a durable resume block → reload it next launch. No more 'give me a handoff'. (rock)"},
+    {"id":"REF-INGEST","new":true,"t":"Durable reference ingestion","w":"His dominant input mode (URLs / repos / screenshots / transcripts / files) is re-pasted every session. Make references durable, project-scoped, recallable. A capability Hermes lacks entirely."},
+    {"id":"RUN-RESUME","new":true,"t":"Long-run resilience — resume after a mid-flight drop","w":"He wants 'don't stop until done' but runs die on stream-disconnect. Auto-resume from checkpoint without a manual 'continue'."}
+  ],
+  "lose": [
+    ["21 messaging platforms","~Zero messaging-platform usage in 10k messages. Keep the registry; add the ONE platform he actually adopts. (see flag below)"],
+    ["Nous Portal / hosted inference","No demand; against the local-trusted-operator thesis."],
+    ["Isolated multi-user profiles","No demand; rooms cover the real per-project need."],
+    ["169-skill breadth","Skills are under-used, not sprawling — chase the right skill at the right time, not count."],
+    ["RL datagen / trajectory harvesting","He does research SYNTHESIS (transcripts → knowledge) — that's REF-INGEST + research loops, not training-data farming."],
+    ["i18n, Bitwarden, plugin git-framework, skins/infographic/analytics","No demand; premature platform/polish work."]
+  ],
+  "validated": [
+    "HANDOFF-PACKET, MEM-CURATOR, EF-TASKSTACK — continuity (the #2 pain)",
+    "UX-MODEL-FIX, AUX-MAP, MODEL-BENCH — cost-aware model routing (the #6 pain)",
+    "GOAL-ACTION, STALL-UNBLOCK, the autonomy ladder (O10/O10b/O11) — delegate-the-backlog autonomy",
+    "BEHAVIOR-VOICE, SELF-EVAL, ACTION-PROOF, TRUST-LABELS — verify-before-report + trust",
+    "The Rust kernel + EF gates + Brain — Vanta's whole not-Hermes thesis, now empirically the #1 need"
+  ],
+  "order": [
+    "AUTO-HANDOFF + SESSION-SEARCH — kill the continuity tax (pains #2, the biggest recurring cost)",
+    "UX-MODEL-FIX — fix the live model-persistence trust bug (cheap, outsized)",
+    "RUN-RESUME + MODEL-FALLBACK — make long autonomous runs survive (pains #5/#6)",
+    "REF-INGEST — make the reference→build loop durable (pain #3)",
+    "KANBAN-DECOMPOSE — goal → spec → subtasks (the backlog-autonomy he lives in)",
+    "Then: SELF-UPDATE, DEP-AUDIT, MODEL-CMD, SKILL-UMBRELLA, CLI-DX-PACK — operator hygiene",
+    "Park: ACP-SERVE, PROXY-ENDPOINT, all messaging breadth, everything on the lose list"
+  ]
+}
+</script>
+<script>
+(function(){
+  const D=JSON.parse(document.getElementById('data').textContent);
+  const PV={validate:['p-validate','validates'],build:['p-build','→ build'],park:['p-park','park'],lose:['p-lose','lose']};
+  document.getElementById('stats').innerHTML=D.stats.map(s=>`<div class="stat"><div class="n">${s[1]}</div><div class="l">${s[0]}</div></div>`).join('');
+  document.getElementById('frictions').innerHTML=D.frictions.map(f=>{
+    const [cls,lbl]=PV[f[3]]||['p-build',f[3]];
+    return `<tr><td class="rank">${f[0]}</td><td><b>${f[1]}</b></td><td class="freq">${f[2]}</td><td><span class="pill ${cls}">${lbl}</span></td><td>${f[4]}</td></tr>`;
+  }).join('');
+  document.getElementById('parity').innerHTML=D.parity.map(p=>{
+    const park=/Park/.test(p[1]); const t1=/Tier 1/.test(p[1]);
+    const col=park?'p-park':(t1?'p-build':'p-validate');
+    return `<tr><td><span class="rid">${p[0]}</span></td><td><span class="pill ${col}">${p[1]}</span></td><td>${p[2]}</td></tr>`;
+  }).join('');
+  document.getElementById('netnew').innerHTML=D.netnew.map(n=>`<li><span class="rid ${n.new?'new':''}">${n.id}</span> <b>${n.t}</b> — ${n.w}</li>`).join('');
+  document.getElementById('lose').innerHTML=D.lose.map(l=>`<li><b>${l[0]}</b> — ${l[1]}</li>`).join('');
+  document.getElementById('validated').innerHTML=D.validated.map(v=>`<li>${v}</li>`).join('');
+  document.getElementById('order').innerHTML=D.order.map(o=>`<li>${o}</li>`).join('');
+  document.getElementById('messagingflag').innerHTML='<b>⚑ Honest flag — messaging.</b> You said "we want to match messaging." But 10k messages show <b>~zero messaging-platform usage</b> — email/calendar/drive matter, channel-chat doesn\'t (yet). My read: keep the connector registry, build the <b>one</b> platform you actually adopt, and don\'t clone Hermes\' 21. If you know a channel is coming (e.g. you\'ll run Vanta over iMessage), name it and I\'ll card that single adapter. Your call — I\'m flagging the evidence, not overriding you.';
+})();
+</script>
+</body>
+</html>

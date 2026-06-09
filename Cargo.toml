@@ -1,11 +1,11 @@
 [package]
-name = "argo-kernel"
+name = "vanta-kernel"
 version = "0.1.0"
 edition = "2021"
-description = "Argo — trusted operator agent kernel"
+description = "Vanta — trusted operator agent kernel"
 
 [[bin]]
-name = "argo-kernel"
+name = "vanta-kernel"
 path = "src/main.rs"
 
 [dependencies]

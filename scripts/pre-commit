@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Pre-commit hook: run gitleaks on staged changes.
+# Install: ln -sf ../../scripts/pre-commit .git/hooks/pre-commit
+# Or run: ./install.sh  (installs automatically)
+
+if ! command -v gitleaks &>/dev/null; then
+  echo "⚠  gitleaks not found — skipping secret scan (install: brew install gitleaks)"
+  exit 0
+fi
+
+if ! gitleaks protect --staged --config .gitleaks.toml 2>&1; then
+  echo ""
+  echo "✗  gitleaks found potential secrets in staged files."
+  echo "   Review the findings above, then rotate any real secrets before committing."
+  exit 1
+fi
+
+# CODE-SIZE-GATE — flag oversized staged TS (file>300 / fn>50 / params>4 / cx>10).
+# Warn-only by default so pre-existing debt never blocks a commit; set
+# VANTA_LINT_BLOCK=1 to enforce. Skips cleanly when no TS is staged or tsx is absent.
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.tsx?$' | grep -vE '\.(d|test)\.tsx?$' || true)
+if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
+  if ! (cd vanta-ts && node_modules/.bin/tsx src/cli.ts lint --staged); then
+    if [ "${VANTA_LINT_BLOCK:-0}" = "1" ]; then
+      echo "✗  size violations above (VANTA_LINT_BLOCK=1 enforcing). Fix, or unset to warn-only."
+      exit 1
+    fi
+    echo "⚠  size violations above (warn-only; set VANTA_LINT_BLOCK=1 to enforce)."
+  fi
+fi

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vanta TUI — flow model v2</title>
+<style>
+  :root{
+    --bg:#080b10; --bg2:#0d1118; --panel:#101720; --panel2:#121b26; --term:#070a0f; --line:#202b38;
+    --ink:#d6e0eb; --dim:#7a8797; --faint:#465565; --ghost:#2f3a47;
+    --cyan:#5ad1e6; --cyan-d:#287f90; --gold:#e3b64b; --bronze:#b78342;
+    --green:#86d073; --red:#ec7480; --yellow:#eccb72; --violet:#b7a1ff; --blue:#79a8ff;
+    --sel:#162536; --selbar:#1a2b3f; --okbg:#112018; --warnbg:#211b0e; --badbg:#241218;
+    --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 20% -10%,#132437 0,#080b10 34%,#07090d 100%);color:var(--ink);font-family:var(--mono);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:26px 18px 54px}
+  h1{font-size:18px;font-weight:650;margin:0 0 3px;letter-spacing:.2px}.anchor{color:var(--cyan)}
+  .sub{color:var(--dim);font-size:12.5px;margin:0 0 16px}.sub code{color:var(--gold)}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.tab{appearance:none;border:1px solid var(--line);background:linear-gradient(#121923,#0e141d);color:var(--dim);font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:8px;cursor:pointer;transition:.12s}.tab:hover{color:var(--ink);border-color:var(--cyan-d)}.tab.active{background:var(--sel);color:var(--cyan);border-color:var(--cyan-d);box-shadow:0 0 0 1px rgba(90,209,230,.08) inset}.tab .k{color:var(--faint);margin-right:7px}.tab.active .k{color:var(--cyan-d)}
+  .term{background:var(--term);border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:0 28px 80px -30px #000}.chrome{display:flex;align-items:center;gap:7px;padding:10px 13px;background:#0d1219;border-bottom:1px solid var(--line)}.dot{width:10px;height:10px;border-radius:50%}.r{background:#ec7480}.y{background:#eccb72}.gdot{background:#86d073}.title{margin-left:8px;color:var(--dim);font-size:12px}.title b{color:var(--ink);font-weight:500}
+  .screen{display:none;padding:16px}.screen.on{display:block}pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit}
+  .grid{display:grid;grid-template-columns:230px minmax(0,1fr) 260px;gap:12px}.left,.main,.right,.card,.box,.ovl{border:1px solid var(--line);border-radius:10px;background:rgba(15,21,30,.74)}.left,.right{padding:12px}.main{padding:13px;background:#090d13}.card{padding:12px;margin:10px 0 0}.hd{color:var(--dim);font-size:12px;margin-bottom:8px}.section{margin-top:10px}.t{color:var(--gold)}.dm{color:var(--dim)}.ft{color:var(--faint)}.c{color:var(--cyan)}.g{color:var(--gold)}.br{color:var(--bronze)}.gr{color:var(--green)}.rd{color:var(--red)}.yl{color:var(--yellow)}.vi{color:var(--violet)}.bl{color:var(--blue)}.b{font-weight:650}.ink{color:var(--ink)}
+  .logo{color:var(--cyan);font-weight:800;letter-spacing:1px;line-height:1.1}.kv{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dotted rgba(70,85,101,.45)}.kv:last-child{border-bottom:0}.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--dim);font-size:11.5px}.badge.ok{color:var(--green);background:var(--okbg);border-color:#25462d}.badge.warn{color:var(--yellow);background:var(--warnbg);border-color:#4a3d1a}.badge.bad{color:var(--red);background:var(--badbg);border-color:#54202a}.badge.hot{color:var(--cyan);border-color:var(--cyan-d);background:#0b1b23}
+  .rail{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.rail .badge{font-size:11px}.meter{height:7px;background:#111822;border:1px solid var(--line);border-radius:99px;overflow:hidden}.meter span{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green))}.meter.warn span{background:linear-gradient(90deg,var(--yellow),var(--red))}
+  .composer{margin-top:12px}.box{border-color:var(--cyan-d);padding:9px 12px;display:flex;gap:9px;align-items:center}.box.busy{border-color:var(--line)}.pr{color:var(--cyan);font-weight:800}.ph{color:var(--faint)}.caret{display:inline-block;width:8px;background:var(--cyan);animation:bl 1s steps(1) infinite;color:transparent}@keyframes bl{50%{opacity:0}}
+  .status{display:flex;justify-content:space-between;color:var(--dim);font-size:12px;padding:8px 2px 0;margin-top:8px}.sp::before{content:" │ ";color:var(--faint)}.on{color:var(--cyan)}
+  .row{display:flex;gap:10px;padding:2px 0}.gut{width:15px;flex:none;color:var(--cyan);font-weight:800}.asst .gut{color:var(--bronze)}.tool .gut{color:var(--gold)}.sys .gut{color:var(--faint)}.body{color:var(--ink)}.sys .body{color:var(--dim)}.toolbox{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:4px 0 4px 25px;color:var(--dim);background:#0b1017}.sep{color:var(--faint);margin:9px 0}
+  .drop,.ovl{overflow:hidden}.drow,.orow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:5px 11px}.drow.sel,.orow.sel{background:var(--selbar)}.cmd,.nm{color:var(--ink)}.sel .cmd,.sel .nm{color:var(--cyan);font-weight:650}.ds,.meta{color:var(--dim)}.mk{width:14px;text-align:center}.head{color:var(--cyan);font-weight:650;margin-bottom:4px}.hint{color:var(--dim);font-size:12px;margin-bottom:8px}.keys{color:var(--faint);font-size:12px;margin-top:8px;border-top:1px solid var(--line);padding-top:7px}kbd{background:#0f151d;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--ink);font-size:11px}
+  .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{border:1px solid var(--line);border-radius:9px;padding:10px;background:#0c121a}.tile .big{font-size:18px;color:var(--cyan);font-weight:700}.timeline{border-left:1px solid var(--line);padding-left:12px}.ev{position:relative;margin:0 0 10px}.ev:before{content:"";position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--cyan)}
+  .note{color:var(--dim);font-size:12.5px;margin:13px 2px 0;border-top:1px solid var(--line);padding-top:11px}.legend{color:var(--faint);font-size:12px;margin-top:16px;text-align:center}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}.left,.right{display:none}.tiles{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="anchor">⚓</span> Vanta TUI — flow model v2</h1>
+  <p class="sub">A non-destructive v2 of <code>docs/hermes-model.html</code>: same demo spirit, more Vanta-native operator UI, safety visibility, working memory, routing, and execution telemetry.</p>
+  <div class="tabs" id="tabs"></div>
+
+  <div class="term">
+    <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot gdot"></span><span class="title"><b>vanta</b> — ~/Documents/GitHub/Vanta · feat/v1-hermes-parity · kernel :7788</span></div>
+
+    <section class="screen on" data-s="command">
+      <div class="grid">
+        <aside class="left">
+          <pre class="logo">  █████╗
+ ██╔══██╗
+ ███████║
+ ██╔══██║
+ ██║  ██║
+ ╚═╝  ╚═╝</pre>
+          <div class="section"><span class="badge hot">operator mode</span> <span class="badge ok">safe</span></div>
+          <div class="section">
+            <div class="kv"><span class="dm">goal</span><span class="ink">TUI demo v2</span></div>
+            <div class="kv"><span class="dm">model</span><span class="ink">gemini-2.5-flash</span></div>
+            <div class="kv"><span class="dm">vision</span><span class="ink">gpt-4o-mini</span></div>
+            <div class="kv"><span class="dm">scope</span><span class="ink">Vanta repo</span></div>
+          </div>
+          <div class="section"><div class="hd">Context budget</div><div class="meter"><span style="width:18%"></span></div><div class="dm">38k / 1.0M · low load</div></div>
+        </aside>
+        <main class="main">
+          <div class="row sys"><span class="gut">◇</span><span class="body">Active goal: create a v2 TUI demo without overwriting the original.</span></div>
+          <div class="row"><span class="gut">❯</span><span class="body">make a vr 2 and add all the improvements u can think of</span></div>
+          <div class="row asst"><span class="gut">┊</span><span class="body">I’ll preserve the original and create <span class="c">docs/hermes-model-v2.html</span>. Before action: read original → verify → write new file.</span></div>
+          <div class="row tool"><span class="gut">⚡</span><span class="body dm">read_file <span class="ft">docs/hermes-model.html</span></span></div>
+          <div class="toolbox"><span class="gr">✓</span> verified original exists · 1 HTML file · no overwrite</div>
+          <div class="composer"><div class="box"><span class="pr">❯</span><span class="ph">Ask Vanta anything — /help, /next, /model, /roadmap</span><span class="caret">.</span></div></div>
+          <div class="status"><div><span class="on">● ready</span><span class="sp">goal locked</span><span class="sp">kernel allow</span></div><div><span class="dm">Esc interrupt · Shift+Enter newline</span></div></div>
+        </main>
+        <aside class="right">
+          <div class="hd">Safety rail</div>
+          <div class="kv"><span class="gr">ALLOW</span><span>read original</span></div>
+          <div class="kv"><span class="gr">ALLOW</span><span>write new v2</span></div>
+          <div class="kv"><span class="yl">ASK</span><span>overwrite original</span></div>
+          <div class="kv"><span class="rd">BLOCK</span><span>destructive shell</span></div>
+          <div class="section"><div class="hd">Working memory</div><pre class="dm">• no overwrite
+• v2 filename
+• demo only
+• improve TUI ideas</pre></div>
+        </aside>
+      </div>
+      <p class="note"><b>New in v2:</b> default layout is a 3-column mission-control surface: active goal + transcript center, durable state left, safety/working-memory right.</p>
+    </section>
+
+    <section class="screen" data-s="palette">
+      <div class="main">
+        <pre class="dm">Slash palette has categories, fuzzy search, and shows whether commands are local, kernel-gated, or approval-gated.</pre>
+        <div class="composer">
+          <div class="drop">
+            <div class="drow sel"><span class="mk c">›</span><span class="cmd">/next</span><span class="ds">one smallest action from active goal</span></div>
+            <div class="drow"><span class="mk gr">●</span><span class="cmd">/status</span><span class="ds">kernel, provider, keys, store</span></div>
+            <div class="drow"><span class="mk yl">◆</span><span class="cmd">/commit</span><span class="ds">approval-gated git commit</span></div>
+            <div class="drow"><span class="mk vi">◈</span><span class="cmd">/model</span><span class="ds">switch live model + persistence target</span></div>
+            <div class="drow"><span class="mk bl">▣</span><span class="cmd">/roadmap</span><span class="ds">view or move roadmap items</span></div>
+            <div class="drow"><span class="mk g">★</span><span class="cmd">/skills</span><span class="ds">browse learned skills</span></div>
+          </div>
+          <div class="box"><span class="pr">❯</span><span class="ink">/n</span><span class="caret">.</span></div>
+        </div>
+        <div class="status"><div><span class="on">● palette</span><span class="sp">6 of 45 tools surfaced</span></div><div>↑↓ · Tab · Enter · Esc</div></div>
+      </div>
+      <p class="note"><b>Improvement:</b> command rows expose risk and purpose instead of being only labels. This reduces hidden state and choice load.</p>
+    </section>
+
+    <section class="screen" data-s="routing">
+      <div class="main">
+        <div class="tiles">
+          <div class="tile"><div class="hd">Main model</div><div class="big">gemini-2.5-flash</div><div class="dm">conversation + planning</div></div>
+          <div class="tile"><div class="hd">Vision aux</div><div class="big">gpt-4o-mini</div><div class="dm">images, screenshots, video frames</div></div>
+          <div class="tile"><div class="hd">Local worker</div><div class="big">qwen2.5:14b</div><div class="dm">cheap summarization + lint passes</div></div>
+          <div class="tile"><div class="hd">Hard reasoning</div><div class="big">gpt-4o</div><div class="dm">only when escalated</div></div>
+        </div>
+        <div class="card"><div class="hd">/model picker preview</div>
+          <div class="orow sel"><span class="mk c">*</span><span class="nm">Session only</span><span class="meta">temporary model switch</span></div>
+          <div class="orow"><span class="mk gr">●</span><span class="nm">Persist globally</span><span class="meta">updates config after approval</span></div>
+          <div class="orow"><span class="mk vi">◈</span><span class="nm">Aux map</span><span class="meta">route image/code/research subtasks</span></div>
+        </div>
+        <div class="status"><div><span class="on">● model routing</span><span class="sp">capability matrix active</span></div><div>no invalid params sent</div></div>
+      </div>
+      <p class="note"><b>Improvement:</b> TUI makes model routing visible: main model, aux models, local workers, escalation policy, and whether a choice persists.</p>
+    </section>
+
+    <section class="screen" data-s="turn">
+      <div class="grid">
+        <main class="main" style="grid-column:1 / span 2">
+          <div class="row"><span class="gut">❯</span><span class="body">add roadmap_move and run tests</span></div>
+          <div class="row asst"><span class="gut">┊</span><span class="body">Plan: inspect roadmap shape, add pure move function, add tool wrapper, verify with tests.</span></div>
+          <div class="row tool"><span class="gut">⚡</span><span class="body dm">todo.write <span class="ft">4 steps</span></span></div>
+          <div class="toolbox"><span class="gr">✓</span> plan visible in /plan</div>
+          <div class="row tool"><span class="gut">⚡</span><span class="body dm">shell_cmd <span class="ft">cd vanta-ts && npx vitest run</span></span></div>
+          <div class="toolbox">⠹ running… <span class="ft">9.4s · Esc interrupts · output streaming</span></div>
+          <div class="row asst"><span class="gut">┊</span><span class="body">I’m checking test output before I call this done<span class="caret">.</span></span></div>
+        </main>
+        <aside class="right">
+          <div class="hd">Live telemetry</div>
+          <div class="kv"><span>tokens</span><span class="ink">41k / 1.0M</span></div>
+          <div class="kv"><span>cost</span><span class="ink">$0.0031</span></div>
+          <div class="kv"><span>time</span><span class="ink">00:37</span></div>
+          <div class="kv"><span>tools</span><span class="ink">2 active</span></div>
+          <div class="section"><div class="meter warn"><span style="width:42%"></span></div><div class="dm">cognitive load medium</div></div>
+        </aside>
+      </div>
+      <p class="note"><b>Improvement:</b> stream includes plans, tool state, interrupt affordance, cost/time/tokens, and an explicit verification checkpoint.</p>
+    </section>
+
+    <section class="screen" data-s="approval">
+      <div class="main">
+        <div class="ovl" style="border-color:var(--yellow);background:#11100b">
+          <div class="head" style="color:var(--yellow)">⚠ Approval required — git_commit</div>
+          <div class="hint">Kernel classified this as reversible but user-visible. Review exact intent before allowing.</div>
+          <div class="card"><div class="kv"><span class="dm">branch</span><span class="ink">feat/v1-hermes-parity</span></div><div class="kv"><span class="dm">files</span><span class="ink">3 changed</span></div><div class="kv"><span class="dm">message</span><span class="ink">Add roadmap move tool</span></div><div class="kv"><span class="dm">risk reason</span><span class="yl">writes git history</span></div></div>
+          <div class="orow sel"><span class="mk c">1</span><span class="nm">Allow once</span><span class="meta">recommended</span></div>
+          <div class="orow"><span class="mk">2</span><span class="nm">Allow this session</span><span class="meta">same tool + branch</span></div>
+          <div class="orow"><span class="mk">3</span><span class="nm">Always allow</span><span class="meta">requires stronger confirmation</span></div>
+          <div class="orow"><span class="mk rd">4</span><span class="nm rd">Deny</span><span class="meta">Esc</span></div>
+          <div class="keys"><kbd>1-4</kbd> quick choose · <kbd>v</kbd> view diff · <kbd>Esc</kbd> deny · approval is logged</div>
+        </div>
+        <div class="status"><div><span class="yl">⚠ blocked</span><span class="sp">waiting for human</span></div><div>input paused</div></div>
+      </div>
+      <p class="note"><b>Improvement:</b> approval is a decision dossier: exact action, scope, risk reason, and consequences are visible before the user acts.</p>
+    </section>
+
+    <section class="screen" data-s="memory">
+      <div class="grid">
+        <main class="main">
+          <div class="hd">Working memory board</div>
+          <div class="card"><span class="t">Current task</span><pre class="ink">Create docs/hermes-model-v2.html. Do not overwrite original.</pre></div>
+          <div class="card"><span class="t">Constraints</span><pre class="dm">• file writes inside Vanta repo
+• no destructive commands
+• verify after tool calls
+• concise final report</pre></div>
+          <div class="card"><span class="t">Open loops</span><pre class="dm">1. write v2 file
+2. verify it exists
+3. report path</pre></div>
+        </main>
+        <aside class="right">
+          <div class="hd">Brain signals</div>
+          <div class="kv"><span>salience</span><span class="ink">normal</span></div>
+          <div class="kv"><span>executive</span><span class="ink">single task</span></div>
+          <div class="kv"><span>mood</span><span class="ink">steady</span></div>
+          <div class="section"><span class="badge hot">ND-first</span> <span class="badge ok">low choice load</span></div>
+        </aside>
+      </div>
+      <p class="note"><b>Improvement:</b> memory is not invisible. The TUI can show what Vanta is currently holding, what it is inhibiting, and what remains open.</p>
+    </section>
+
+    <section class="screen" data-s="roadmap">
+      <div class="main">
+        <div class="tiles">
+          <div class="tile"><div class="hd">building</div><pre><span class="c">TUI-INPUT</span> composer history
+<span class="c">ND1</span> one-step next action</pre></div>
+          <div class="tile"><div class="hd">next</div><pre><span class="g">AUX-MAP</span> per-function aux models
+<span class="g">UX-MODEL-FIX</span> persistence regression
+<span class="g">GOAL-ACTION</span> vague goal → next step</pre></div>
+          <div class="tile"><div class="hd">shipped</div><pre><span class="gr">AUX-VISION</span> dedicated vision model
+<span class="gr">TUI readability</span> full width + slash palette</pre></div>
+          <div class="tile"><div class="hd">horizon</div><pre><span class="vi">DESKTOP</span> Tauri app
+<span class="vi">Factory UI</span> autonomous review loop</pre></div>
+        </div>
+        <div class="composer"><div class="box"><span class="pr">❯</span><span class="ink">/roadmap move AUX-MAP building</span><span class="caret">.</span></div></div>
+        <div class="status"><div><span class="on">● roadmap</span><span class="sp">kernel-gated write</span></div><div>drag or command</div></div>
+      </div>
+      <p class="note"><b>Improvement:</b> roadmap operations are first-class in the TUI: commandable, visible, and safety-gated.</p>
+    </section>
+
+    <section class="screen" data-s="inbox">
+      <div class="main">
+        <div class="timeline">
+          <div class="ev"><span class="c">Vision</span> · screenshot captured → described by aux vision model · no main-model mismatch</div>
+          <div class="ev"><span class="g">Gmail</span> · draft created only after approval · never auto-sent</div>
+          <div class="ev"><span class="vi">Calendar</span> · event create/update requires human approval</div>
+          <div class="ev"><span class="bl">Drive</span> · read allowed, writes approval-gated</div>
+        </div>
+        <div class="card"><div class="hd">Attachment lane</div><pre class="dm">/image path-or-drop
+/video path-or-drop
+/paste image
+/screenshot approved-url</pre></div>
+      </div>
+      <p class="note"><b>Improvement:</b> external-life tools have a distinct lane with irreversible actions visually separated from reads.</p>
+    </section>
+
+    <section class="screen" data-s="review">
+      <div class="grid">
+        <main class="main">
+          <div class="hd">Completion review</div>
+          <div class="row tool"><span class="gut">✓</span><span class="body">Original file read and preserved.</span></div>
+          <div class="row tool"><span class="gut">✓</span><span class="body">New v2 file written at <span class="c">docs/hermes-model-v2.html</span>.</span></div>
+          <div class="row tool"><span class="gut">✓</span><span class="body">No destructive commands, no overwrite, no out-of-scope writes.</span></div>
+          <div class="sep">────────────────────────────────────────</div>
+          <pre class="dm">Final response should say what actually happened, include the path, and note that the original remains unchanged.</pre>
+        </main>
+        <aside class="right"><div class="hd">Trust checklist</div><div class="kv"><span>goal served</span><span class="gr">yes</span></div><div class="kv"><span>verified</span><span class="gr">yes</span></div><div class="kv"><span>scope</span><span class="gr">inside repo</span></div><div class="kv"><span>risk</span><span class="gr">low</span></div></aside>
+      </div>
+      <p class="note"><b>Improvement:</b> the final state is auditable. The user can see why Vanta believes the task is complete.</p>
+    </section>
+  </div>
+
+  <p class="legend">Mockup · not live · created as v2 concept art for Vanta’s TUI. Use number keys 1–9 to switch panels.</p>
+</div>
+
+<script>
+  const screens = [
+    ["command","Command center"],["palette","Slash palette"],["routing","Model routing"],
+    ["turn","Streaming turn"],["approval","Approval"],["memory","Memory"],
+    ["roadmap","Roadmap"],["inbox","Vision + comms"],["review","Review"]
+  ];
+  const tabs=document.getElementById("tabs");
+  screens.forEach(([id,label],i)=>{const b=document.createElement("button");b.className="tab"+(i===0?" active":"");b.innerHTML='<span class="k">'+(i+1)+'</span>'+label;b.onclick=()=>select(id,b);tabs.appendChild(b)});
+  function select(id,btn){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.dataset.s===id));document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active")}
+  document.addEventListener("keydown",e=>{const n=parseInt(e.key,10);if(n>=1&&n<=screens.length){const t=document.querySelectorAll(".tab")[n-1];t&&t.click()}});
+</script>
+</body>
+</html>

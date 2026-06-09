@@ -1,0 +1,35 @@
+{
+  "name": "vanta",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Vanta agent layer — goal-aware, scope-enforced operator runtime",
+  "bin": {
+    "vanta": "bin/vanta.mjs"
+  },
+  "scripts": {
+    "vanta": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
+    "@mozilla/readability": "^0.6.0",
+    "google-auth-library": "^10.6.2",
+    "ink": "^7.0.5",
+    "ink-text-input": "^6.0.0",
+    "linkedom": "^0.18.12",
+    "openai": "^5.12.0",
+    "playwright-core": "^1.60.0",
+    "react": "^19.2.7",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.2.16",
+    "ink-testing-library": "^4.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.0"
+  }
+}
