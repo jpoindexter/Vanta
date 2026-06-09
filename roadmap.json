@@ -8330,6 +8330,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AWS-BEDROCK-PROVIDER",
+      "track": "Claude Code parity",
+      "title": "AWS Bedrock provider \u2014 full Bedrock deployment with inference profiles, STS, cross-region",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC supports AWS Bedrock as a first-class provider (`CLAUDE_CODE_USE_BEDROCK=1`). Features: `getBedrockInferenceProfiles` lists available system-defined Anthropic profiles for cross-region routing, STS credentials management with `aws sts assume-role`, `CLAUDE_CODE_SKIP_BEDROCK_AUTH` for CI, `AwsAuthStatusManager` singleton for auth refresh status across React/SDK. Model names differ per provider (e.g. `us.anthropic.claude-3-7-sonnet-20250219-v1:0`).",
+      "done": "`CLAUDE_CODE_USE_BEDROCK=1` routes all API calls through Bedrock. `/status` shows Bedrock as provider. Inference profiles are listed in `/model`.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-VERTEX-PROVIDER",
+      "track": "Claude Code parity",
+      "title": "Google Vertex AI provider \u2014 full Vertex deployment with GCP auth refresh",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC supports Google Vertex AI as a first-class provider (`CLAUDE_CODE_USE_VERTEX=1`). Uses `AwsAuthStatusManager` (provider-agnostic despite legacy name) for GCP credential refresh status. Model names differ per provider (e.g. `claude-3-7-sonnet@20250219`). Model config constants (`CLAUDE_*_CONFIG`) include Vertex variants for each model.",
+      "done": "`CLAUDE_CODE_USE_VERTEX=1` routes all API calls through Vertex. GCP credentials auto-refresh. `/status` shows Vertex as provider.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
