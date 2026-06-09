@@ -5971,6 +5971,71 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PROMPT-SUGGEST-UI",
+      "track": "Claude Code parity",
+      "title": "In-TUI next-prompt suggestions \u2014 tappable predicted prompts after each turn",
+      "status": "next",
+      "size": "M",
+      "summary": "After each model response, CC generates 3 predicted next prompts via a forked side-query and shows them as tappable options below the input. Controlled by `promptSuggestionsEnabled` setting. Disabled in swarm/teammate mode and non-interactive sessions.",
+      "done": "3 suggested prompts appear after a model response; selecting one submits it; suggestions update per turn; disabling in settings removes them.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SPECULATION-ENGINE",
+      "track": "Claude Code parity",
+      "title": "Speculative prompt pre-execution \u2014 pre-run predicted next command before user submits",
+      "status": "horizon",
+      "size": "L",
+      "summary": "After a model turn, CC speculatively pre-executes the most likely next user command (read-only tools only: Read, Grep, Glob, WebSearch, WebFetch). File state cache is shared. If user submits the predicted command, the pre-run result is used immediately. Aborted on mismatch or if user submits a different command.",
+      "done": "Pre-run completes before user submits; matching submission uses cached result with no added latency; non-matching submission aborts speculation cleanly; read-only constraint enforced.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MCP-ELICITATION",
+      "track": "Claude Code parity",
+      "title": "MCP elicitation \u2014 in-session user input prompts from MCP servers (2025-11-05 spec)",
+      "status": "next",
+      "size": "M",
+      "summary": "Handles MCP `elicitation/create` requests from servers. Two modes: form (surfaces a dialog for user text input during tool execution) and url (opens browser URL, waits for completion notification via `notifications/elicitationComplete`). Pre/post hooks. Part of MCP 2025-11-05 spec.",
+      "done": "MCP tool calling elicitation/create surfaces a dialog; user submits input; server receives the response; url mode opens browser; completion notification resolves the elicitation.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SECRET-SCANNER",
+      "track": "Claude Code parity",
+      "title": "Secret scanner \u2014 block credentials from cloud memory sync",
+      "status": "next",
+      "size": "S",
+      "summary": "Client-side secret scanner that checks memory file content before cloud upload. Uses curated high-confidence gitleaks rules (GitHub PAT, AWS access/secret keys, etc.) with near-zero false positives. Secrets are detected and blocked from leaving the machine.",
+      "done": "Memory files containing GitHub PATs or AWS credentials are blocked from cloud sync; clean files sync normally; matched rule ID logged for diagnosis.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AUTO-DREAM-SVC",
+      "track": "Claude Code parity",
+      "title": "Auto-dream \u2014 periodic background memory consolidation across sessions",
+      "status": "next",
+      "size": "M",
+      "summary": "Background service that consolidates memories across sessions via forked agent. Fires when: time since last consolidation >= minHours AND session count >= minSessions. File-based lock prevents parallel runs. Made visible in task list as DreamTask (phase: starting/updating, files touched, turn summaries).",
+      "done": "After accumulating sessions, auto-dream fires; progress visible in footer pill; lock prevents duplicate runs; files touched tracked; consolidation updates MEMORY.md.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
