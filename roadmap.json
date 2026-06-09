@@ -5724,6 +5724,84 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKILLIFY",
+      "track": "Claude Code parity",
+      "title": "/skillify \u2014 capture current session as a reusable skill",
+      "status": "next",
+      "size": "M",
+      "summary": "Bundled /skillify skill that reads session memory + user messages, then generates a new skill file (frontmatter + prompt) encoding the session's repeatable process. User describes the skill name; the model produces a ready-to-commit skill file.",
+      "done": "Running /skillify after a session produces a valid skill .md file with frontmatter and a prompt that recreates the session's workflow; the file is saved to the skills directory.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKILL-FILE-ASSETS",
+      "track": "Claude Code parity",
+      "title": "Skill companion files \u2014 bundled assets extracted to disk on first use",
+      "status": "next",
+      "size": "S",
+      "summary": "Skills can declare `files: Record<string, string>` of companion text assets. On first invocation CC extracts them to a per-skill base directory and prepends a 'Base directory: <dir>' line to the prompt so the model can Read/Grep them on demand.",
+      "done": "Skill with declared files extracts them on first run; subsequent runs find them already present; model can reference them by path without knowing the extraction location.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKILL-ALLOWEDTOOLS",
+      "track": "Claude Code parity",
+      "title": "allowedTools + disableModelInvocation in skill frontmatter",
+      "status": "next",
+      "size": "S",
+      "summary": "Skills can restrict their tool palette via `allowedTools: string[]` in frontmatter. `disableModelInvocation: true` makes a pure-tool skill that executes its tool list without an LLM turn. Pairs with hooks and agent fields to compose complex skill behaviors.",
+      "done": "Skills with allowedTools only expose those tools during execution; skills with disableModelInvocation run tool calls without an LLM round-trip; /doctor reports invalid tool names.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MEM-RELEVANCE-LLM",
+      "track": "Claude Code parity",
+      "title": "Memory relevance via Sonnet side-query \u2014 LLM-selected memory files per turn",
+      "status": "next",
+      "size": "M",
+      "summary": "Each turn, CC scans memory-file headers (frontmatter name+description only), then fires a dedicated Sonnet side-query to pick up to 5 most-relevant files for the current user query. Excludes API/usage docs for tools already in use. Returns file paths + mtime for staleness annotation.",
+      "done": "Only relevant memory files are loaded per turn (not all memories); recently-used tool docs excluded from selection; up to 5 files selected; selection logged for debugging.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MEM-TEAM",
+      "track": "Claude Code parity",
+      "title": "Team memory directory \u2014 shared memory namespace for swarm agents",
+      "status": "next",
+      "size": "M",
+      "summary": "Separate `~/.claude/memory/team/<project>/` directory for shared team context across swarm agents. Combined prompt mode covers both private and team memory types with per-type scope guidance. Path traversal protection on all team memory writes.",
+      "done": "Team memory files written to team directory; combined prompt includes both private and team memories with scope labels; path traversal attempts rejected with PathTraversalError.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-MEM-FRESHNESS",
+      "track": "Claude Code parity",
+      "title": "Memory freshness caveat \u2014 staleness annotation for memories > 1 day old",
+      "status": "next",
+      "size": "S",
+      "summary": "Memories older than 1 day get a human-readable age string ('47 days ago') and a staleness caveat injected alongside their content: 'This memory is N days old. Memories are point-in-time observations \u2014 file:line citations may be outdated. Verify against current code.' Prevents stale facts from being asserted confidently.",
+      "done": "Fresh memories (today/yesterday) inject no caveat; older memories prepend the staleness note; age shown as human-readable string, not raw timestamp.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
