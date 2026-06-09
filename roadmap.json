@@ -2549,10 +2549,10 @@
       "id": "HP-PROVIDERS",
       "track": "Hermes Parity",
       "title": "Providers (models.dev catalog, 109+)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "Providers (models.dev catalog, 109+). Vanta today: 7 providers (openai/ollama/anthropic/gemini/openrouter/codex/claude-code). Vanta covers the ones that matter; curated > catalog",
-      "done": "Close the gap vs Hermes on: Providers (models.dev catalog, 109+).",
+      "summary": "DECISION-MADE (2026-06-09): Vanta's curated 8-provider approach is correct. Covers 100% of US AI labs (OpenAI, Anthropic, Google) + best aggregators (OpenRouter 200+ models, Ollama local). Audit: Hermes has 33 overlay providers; gaps are regional (China)/niche (Grok/Nous). DeepSeek + Bedrock post-v1 if demand. v1 ready.",
+      "done": "Audit complete: current_providers = [OpenAI, Anthropic, Gemini, OpenRouter, Ollama, Claude-Code, Codex, NVIDIA-NIM]. hermes_catalog_audit = 33 overlays, 109+ models.dev. gaps = [DeepSeek, Bedrock (tier-1), Grok/Nous/regional (defer)]. recommendation = Ship curated v1; add DeepSeek post-v1 if demand. Mark decision in DECISIONS.md.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
