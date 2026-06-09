@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 127 new roadmap items (102 passes 1-4 + 12 pass 5 + 13 pass 6)
+- Cards added this full audit: 136 new roadmap items (102 passes 1-4 + 12 p5 + 13 p6 + 9 p7)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -118,7 +118,8 @@ Legend:
 - Pass 3: 14 cards
 - Pass 4: 13 cards
 - Pass 5: 12 cards
-- Pass 6: 13 cards → NOT stopped yet (need 3 consecutive ≤2)
+- Pass 6: 13 cards
+- Pass 7: 8 cards (1 from session dump + 5 swarm/services + 2 LSP/MCP) → NOT stopped yet
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
