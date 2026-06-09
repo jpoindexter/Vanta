@@ -8181,6 +8181,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-GROVE",
+      "track": "Claude Code parity",
+      "title": "Grove \u2014 data privacy/consent opt-in dialog at onboarding and policy updates",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's 'Grove' is a data privacy consent dialog shown at onboarding, after policy updates, and in Settings. Users choose accept_opt_in (share data), accept_opt_out (don't share), or defer (decide later). CC tracks whether the notice has been viewed. Shows updated ASCII art on new terms. Distinct from /privacy-settings (subscription prefs) \u2014 this is the initial data-collection consent flow.",
+      "done": "First launch shows the Grove dialog. User selects opt-in or opt-out. Decision is stored. /settings has a 'Data privacy' section to revisit it.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-STREAMING-TOOL-EXEC",
+      "track": "Claude Code parity",
+      "title": "Streaming tool execution \u2014 start tools as tool_use blocks arrive in stream",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's StreamingToolExecutor begins executing tools as their `tool_use` blocks arrive in the streaming response, without waiting for the full response to complete. Concurrency-safe tools (Glob, Grep, Read, etc.) can start while the model is still generating. Queued tools wait for their slot. Reduces end-to-end latency for tool-heavy turns by overlapping execution with streaming.",
+      "done": "A turn with 3 Glob calls starts executing the first Glob while the model is still streaming the 2nd and 3rd. Total wall-clock time drops proportionally.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
     }
   ]
 }
