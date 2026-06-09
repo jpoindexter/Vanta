@@ -8447,6 +8447,45 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SKIP-VERSION",
+      "track": "Claude Code parity",
+      "title": "Skip update version \u2014 snooze a specific CLI update version permanently",
+      "status": "next",
+      "size": "S",
+      "summary": "CC's auto-updater supports `shouldSkipVersion(targetVersion)` \u2014 if the user chooses 'Skip this version', the version is persisted to global config and the update prompt never reappears for that version. `MaxVersionConfig` from GrowthBook can also cap the maximum auto-update target. Pairs with release channels.",
+      "done": "When prompted to update to vX.Y.Z, choosing 'Skip' persists the skip. Future launches don't prompt for vX.Y.Z, only for newer versions.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-PROMPT-KEYWORDS",
+      "track": "Claude Code parity",
+      "title": "Prompt keyword detection \u2014 'keep going' resumes, negative keywords stop agent",
+      "status": "next",
+      "size": "S",
+      "summary": "CC detects semantic keywords in user prompts: `matchesKeepGoingKeyword()` detects 'continue', 'keep going', 'proceed' to signal the agent should resume without stopping; `matchesNegativeKeyword()` detects 'no', 'stop', 'cancel' to signal interruption. Used in multi-turn flows and agentic sessions to understand user intent without full LLM inference.",
+      "done": "Typing 'keep going' after an agent pause resumes without generating a new full response. 'stop' or 'no' in a message flags the intent for the agent loop.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AUTH-CONFLICT-NOTICE",
+      "track": "Claude Code parity",
+      "title": "Auth conflict notice \u2014 warn when both API key and OAuth credentials are configured",
+      "status": "next",
+      "size": "S",
+      "summary": "CC surfaces a startup status notice (`apiKeyConflictNotice`, `bothAuthMethodsNotice`) when both an API key and OAuth login are simultaneously active. These can conflict \u2014 the user may not realize they're using the wrong credentials. The notice suggests which to remove and links to auth docs.",
+      "done": "After `claude login` while `ANTHROPIC_API_KEY` is also set, a startup notice says 'Both API key and OAuth configured \u2014 remove one to avoid conflicts'.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
