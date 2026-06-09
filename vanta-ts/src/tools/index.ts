@@ -45,6 +45,7 @@ import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { sleepTool } from "./sleep.js";
+import { configTool } from "./config.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
 import {
   gmailSearchTool,
@@ -78,6 +79,7 @@ const ALL_TOOLS: readonly Tool[] = [
   shellCmdTool,
   inspectStateTool,
   clarifyTool,
+  configTool,
   sleepTool,
   roadmapMoveTool,
   roadmapAddTool,
