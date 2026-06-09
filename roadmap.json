@@ -4174,10 +4174,10 @@
       "id": "CC-FILES-CMD",
       "track": "Claude Code parity",
       "title": "/files — list files in current context",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /files to show which files are attached/referenced in the current context window. Vanta has @-context and /attachments for images but no way to see all files currently in context. Add /files to list file paths that appear in the current conversation (from read_file calls, @-refs, and explicit attachments).",
-      "done": "`/files` lists all file paths referenced in the current conversation context.",
+      "summary": "SHIPPED 2026-06-09. repl/files-cmd.ts: /files handler extracts file paths from conversation messages (tool_use blocks with path/file_path/target/new_path). Registered in HANDLERS + catalog. Sorted output.",
+      "done": "`/files` lists file paths from tool calls in the current conversation context.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
