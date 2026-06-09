@@ -18,6 +18,29 @@ export type Model = (typeof MODEL)[number];
 export const EFFORT = ["low", "medium", "high"] as const;
 export type Effort = (typeof EFFORT)[number];
 
+// Strategic lens — what this item serves for Vanta-as-Hermes (a do-everything
+// operator), independent of which source it came from. Lets the board separate
+// the autonomous-agent spine from coding-harness leftovers and pure polish.
+//   agent-loop = autonomous reliability (compaction, hooks, permissions, goals, recovery)
+//   tui        = display, render stability, visual hierarchy
+//   memory     = memory, continuity, brain, context
+//   reach      = comms, platforms, senses, autonomy, the wider digital life
+//   selfhood   = identity, executive function, values, self-improvement
+//   coding     = code-harness-specific (worktrees, bash AST, IDE, code review) — deprioritized
+//   infra      = setup, providers, telemetry, enterprise, plumbing
+//   cosmetic   = polish, animations, nice-to-have rendering
+export const LENS = [
+  "agent-loop",
+  "tui",
+  "memory",
+  "reach",
+  "selfhood",
+  "coding",
+  "infra",
+  "cosmetic",
+] as const;
+export type Lens = (typeof LENS)[number];
+
 export const RoadmapItemSchema = z.object({
   id: z.string().min(1),
   track: z.string().min(1),
@@ -29,6 +52,7 @@ export const RoadmapItemSchema = z.object({
   tier: z.enum(TIER).optional(),
   model: z.enum(MODEL).optional(),
   effort: z.enum(EFFORT).optional(),
+  lens: z.enum(LENS).optional(),
 });
 
 export const RoadmapSchema = z.object({
