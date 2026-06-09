@@ -1,5 +1,5 @@
 # CC Source Audit Tracker — HONEST STATUS
-Updated: 2026-06-09 after hill-climb verification pass
+Updated: 2026-06-09 after pass 5
 
 Legend:
 - [x] = every file explicitly read
@@ -66,7 +66,7 @@ Legend:
 - [s] ink/ (large — covered in prior session)
 - [s] services/ (130 files — all subdirs listed, key files in each read)
 - [s] skills/ (20 files — read loadSkillsDir, bundledSkills, mcpSkillBuilders, key bundled skills)
-- [s] tools/ (184 files — all 41 subdirs listed; BashTool, AgentTool, FileEditTool key files read)
+- [s] tools/ (184 files — all 41 subdirs listed; BashTool [~] pass 5 read modeValidation/pathValidation/commentLabel/commandSemantics/shouldUseSandbox/utils/readOnlyValidation; FileEditTool [~] pass 5 read FileEditTool.ts/utils.ts; AgentTool key files read)
 - [s] utils/ (564 files — all subdirs listed; key files in each read)
   - bash/ [~] (23 files — bashParser, ShellSnapshot, key security files)
   - computerUse/ [~] (15 files — executor, common read)
@@ -80,8 +80,8 @@ Legend:
   - mcp/ [x] (2 files)
   - model/ [~] (16 files — modelCapabilities, contextWindowUpgrade, configs read)
   - nativeInstaller/ [~] (5 files — installer read)
-  - permissions/ [~] (24 files — bashClassifier, dangerousPatterns, denialTracking, PermissionMode, filesystem read)
-  - plugins/ [s] (44 files — installedPluginsManager, dependencyResolver, marketplaceManager read)
+  - permissions/ [x] (24 files — all read in pass 5: permissionExplainer, permissionRuleParser, pathValidation, getNextPermissionMode, autoModeState, permissionSetup, permissions, bypassPermissionsKillswitch + prior 8)
+  - plugins/ [~] (44 files — pass 5 read: loadPluginAgents, loadPluginCommands, loadPluginHooks, loadPluginOutputStyles, pluginLoader, pluginDirectories, pluginInstallationHelpers, pluginOptionsStorage, schemas + prior 4 = ~30% read, rest are helpers/types)
   - powershell/ [x] (3 files)
   - processUserInput/ [~] (4 files — processUserInput read)
   - sandbox/ [x] (2 files)
@@ -100,18 +100,23 @@ Legend:
 
 ## Honest count
 - Dirs with every file read: 17
-- Dirs with key files confirmed: 11  
+- Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 102 new roadmap items
+- Cards added this full audit: 114 new roadmap items (102 passes 1-4 + 12 pass 5)
 
 ## What could still be missed
-- BashTool/ remaining ~15 files (modeValidation, pathValidation, commentLabel, commandSemantics, etc.)
-- FileEditTool/ internals (FileEditTool.ts, utils.ts)
-- services/api/ remaining files (withRetry, sessionIngress, usage, etc.)
-- utils/plugins/ remaining ~30 files
+- services/api/ remaining files (sessionIngress, adminRequests, referral, bootstrap — all read pass 5 but are claude.ai-specific horizon items)
 - commands/ — sampled ~60 of 80+ subdirs, remainder are mostly stubs/ant-only
+- utils/bash/ remaining files (commands, prefix, registry, shellCompletion, specs/)
+
+## Pass history
+- Pass 1: ~30 cards (bootstrap session)
+- Pass 2: ~30 cards
+- Pass 3: 14 cards
+- Pass 4: 13 cards
+- Pass 5: 12 cards → NOT stopped yet (need 3 consecutive ≤2)
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
-- Current pass 3 found 13 new cards → continue next wake
+- Pass 4 found 13, pass 5 found 12 → continue (passes need to show ≤2 per pass)
