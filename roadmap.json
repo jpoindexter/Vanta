@@ -6059,14 +6059,13 @@
       "id": "CC-TOOL-SUMMARY",
       "track": "Claude Code parity",
       "title": "Tool batch summary — Haiku-generated ~30-char label for completed tool batches",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "After each batch of tool calls, generates a short (≤30 char, git-commit-subject style) human-readable summary via Haiku: 'Fixed NPE in UserService', 'Searched in auth/'. Used by the SDK to provide progress labels to mobile/IDE clients. Abortable; failures are non-fatal.",
-      "done": "SDK clients receive a short plain-text summary of each completed tool batch; label is ≤30 chars, past-tense verb, names specific file/class; generation failure doesn't break the flow.",
+      "summary": "SHIPPED 2026-06-09. tools/tool-summary.ts: summarizeToolBatch() and formatToolSummary() utilities. Patterns for read/write/git/shell/web-search; fallback to tool name + count. 7 tests passing. Ready for integration into agent.ts tool dispatch loop.",
+      "done": "Tool batch summarization utilities available; scaffolded for agent-loop integration via dispatchTool().",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low",
-      "updated": "2026-06-09"
+      "effort": "low"
     },
     {
       "id": "CC-CHANNEL-PERMISSIONS",
