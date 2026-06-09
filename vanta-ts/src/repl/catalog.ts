@@ -36,6 +36,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
   { name: "output-style", arg: "<concise|normal|verbose>", desc: "control response verbosity" },
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
+  { name: "now", desc: "execute items in the Now column — agent picks up whatever you put there" },
   { name: "planmode", arg: "[on|off|approve]", desc: "enforced plan mode — write tools blocked until /planmode approve" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
