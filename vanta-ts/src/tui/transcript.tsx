@@ -29,6 +29,8 @@ export type ToolEntry = {
   resultOutput?: string;
   /** Total line count of the result; controls inline vs. folded display. */
   lineCount?: number;
+  /** CC-MSG-GROUPED-TOOLS: true when this tool call directly follows another in the same turn. */
+  isGrouped?: boolean;
 };
 
 export type Entry =
@@ -56,6 +58,7 @@ export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElem
   if (e.kind === "tool") {
     return (
       <Box marginLeft={1}>
+        {e.isGrouped ? <Text dimColor>│ </Text> : null}
         <ToolLine entry={e} expanded={props.expanded ?? false} />
       </Box>
     );
