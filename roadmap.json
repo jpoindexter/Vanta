@@ -8207,6 +8207,32 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-THINKING-ADAPTIVE",
+      "track": "Claude Code parity",
+      "title": "Adaptive thinking mode \u2014 let model self-budget tokens + `ultrathink` max-budget keyword",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports three thinking modes: `adaptive` (model decides how much thinking budget to use), `enabled` with a fixed `budgetTokens` value, and `disabled`. The `ultrathink` keyword in a prompt triggers maximum thinking budget (feature-gated). Users control mode via /think toggle or settings. Adaptive mode avoids token waste on simple tasks while allowing deep reasoning on complex ones.",
+      "done": "`/think` cycles through disabled \u2192 adaptive \u2192 max. Typing 'ultrathink' in a prompt activates maximum extended thinking for that turn only.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-HOOK-TIMING",
+      "track": "Claude Code parity",
+      "title": "Hook timing indicator \u2014 show elapsed time when hooks take >500ms",
+      "status": "next",
+      "size": "S",
+      "summary": "CC shows a timing indicator in the hook progress display when a hook takes longer than `HOOK_TIMING_DISPLAY_THRESHOLD_MS` (500ms). Helps users identify slow hooks that are delaying tool execution, with elapsed time shown as e.g. '1.2s' in the hook progress pill.",
+      "done": "A PreToolUse hook that takes 800ms shows '800ms' next to the hook name in the tool call progress display.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
