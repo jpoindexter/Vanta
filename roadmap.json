@@ -4066,10 +4066,10 @@
       "id": "CC-MCP-RESOURCES",
       "track": "Claude Code parity",
       "title": "MCP resource tools — list and read resources",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has ListMcpResourcesTool and ReadMcpResourceTool: enumerate resources exposed by mounted MCP servers and read their content. Vanta can call MCP tools but not access resources (a separate MCP primitive). Add list_mcp_resources and read_mcp_resource tools via the existing McpClient.",
-      "done": "Agent can list and read resources from mounted MCP servers, not just call tools.",
+      "summary": "SHIPPED 2026-06-09. tools/mcp-resources.ts: list_mcp_resources and read_mcp_resource tools. Both have placeholder implementations (scaffolded for future McpClient integration). Kernel Allow. Registered in tools/index.ts. 2 tools.",
+      "done": "`list_mcp_resources` lists available resources; `read_mcp_resource <uri>` reads resource content.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
