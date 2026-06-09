@@ -5893,6 +5893,19 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-VIM-OPERATORS",
+      "track": "Claude Code parity",
+      "title": "Vim operator system \u2014 text objects, find motions, counts, dot-repeat, yank register",
+      "status": "next",
+      "size": "M",
+      "summary": "Full vim operator system beyond basic hjkl: operators (d/c/y/>/< with motion), text objects (iw/aw/i''/a''/i(/a(/i[/a[/i{/a{), find motions (f/F/t/T with ; repeat), count prefix (3w, 2dd), dot-repeat (.), yank register, r replace, linewise vs characterwise resolution. Extends CC-VIM-MODE.",
+      "done": "Operators with motions and counts work (3dw deletes 3 words); text objects work (ci' changes inside quotes); find motions work (f( moves to next '('); dot-repeat re-applies last change; yank register shared across d/c/y.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "high",
+      "updated": "2026-06-09"
     }
   ]
 }
