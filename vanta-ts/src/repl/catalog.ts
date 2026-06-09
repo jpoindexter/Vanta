@@ -48,6 +48,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },
   { name: "search", arg: "<query>", desc: "search conversation history for a term" },
   { name: "repro", desc: "save a diagnostic repro bundle to .vanta/repro-*.md" },
+  { name: "summary", desc: "summarize this session (what was done, what remains)" },
   { name: "dashboard", desc: "live operator state — tasks, goals, repo, model" },
   { name: "brief", desc: "JARVIS-style today brief — tasks, goals, calendar, episodic" },
   { name: "review", arg: "[effort]", desc: "review changed code for bugs and cleanups (low|medium|high)" },
