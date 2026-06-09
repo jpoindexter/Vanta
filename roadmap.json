@@ -7675,7 +7675,7 @@
       "id": "CC-BASH-COMMENT-LABEL",
       "track": "Claude Code parity",
       "title": "Bash comment-as-label \u2014 first # line becomes tool-use display label",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC extracts the first `# comment` line from a bash command and uses it as the tool-use display label in fullscreen mode, and as the collapse-group hint. Users can annotate scripts with human-readable descriptions that appear in the UI instead of the raw command.",
       "done": "First `# comment` in a bash command block renders as the display label in tool call UI; raw command still executes.",
@@ -7683,7 +7683,8 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "bashLabel() in tool-display.ts; shell_cmd uses first # comment as display label, falls back to truncated command."
     },
     {
       "id": "CC-BASH-CMD-SEMANTICS",

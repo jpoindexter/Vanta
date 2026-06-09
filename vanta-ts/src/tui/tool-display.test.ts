@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { abbrevPath, toolDisplay, partitionBlocks } from "./tool-display.js";
+import { abbrevPath, bashLabel, toolDisplay, partitionBlocks } from "./tool-display.js";
 import type { Entry } from "./transcript.js";
 
 describe("abbrevPath", () => {
@@ -26,6 +26,25 @@ describe("abbrevPath", () => {
   });
 });
 
+describe("bashLabel", () => {
+  it("extracts text after # from the first line", () => {
+    expect(bashLabel("# Install deps\nnpm install")).toBe("Install deps");
+  });
+
+  it("returns null when no leading comment", () => {
+    expect(bashLabel("npm install")).toBeNull();
+    expect(bashLabel("")).toBeNull();
+  });
+
+  it("returns null for a bare # with no text", () => {
+    expect(bashLabel("#\nnpm install")).toBeNull();
+  });
+
+  it("ignores leading whitespace on the first line", () => {
+    expect(bashLabel("  # Build project\nmake")).toBe("Build project");
+  });
+});
+
 describe("toolDisplay", () => {
   it("renders read_file with an abbreviated path, no JSON", () => {
     const d = toolDisplay("read_file", { path: "vanta-ts/src/tools/web-search.ts" });
@@ -43,6 +62,11 @@ describe("toolDisplay", () => {
   it("shows the command as the detail for shell_cmd", () => {
     const d = toolDisplay("shell_cmd", { command: "git status --porcelain" });
     expect(d.detail).toBe("git status --porcelain");
+  });
+
+  it("uses the first # comment as the label for shell_cmd", () => {
+    const d = toolDisplay("shell_cmd", { command: "# Run tests\nnpm test" });
+    expect(d.detail).toBe("Run tests");
   });
 
   it("truncates an over-long command", () => {
