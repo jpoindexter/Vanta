@@ -2405,13 +2405,14 @@
       "id": "SKILL-SLASH",
       "track": "Skills",
       "title": "Invoke installed skills as slash commands",
-      "status": "next",
+      "status": "done",
       "size": "S",
       "summary": "Skills install into ~/.vanta/skills/ and appear in the prompt index, but typing /hill-climb or any skill slug in the REPL/TUI hits the unknown-command handler instead of invoking the skill. Fix: after loading installed skills in prepareRun, dynamically register each skill slug as a slash command that runs the skill body as an agent instruction. Slugs colliding with built-in commands warn and defer to the built-in.",
       "done": "`/hill-climb` (and any other installed skill slug) invokes the skill inline; unknown-command handler is not hit. Built-in command names take precedence with a clear warning on collision.",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low"
+      "effort": "low",
+      "updated": "2026-06-09"
     },
     {
       "id": "KANBAN-DECOMPOSE",
@@ -3149,13 +3150,14 @@
       "id": "CC-PLAN-MODE-REAL",
       "track": "Claude Code parity",
       "title": "Enforced read-only plan mode",
-      "status": "next",
+      "status": "done",
       "size": "M",
       "summary": "Today /planmode injects a PLAN_MARKER into the prompt (advisory). Claude Code's plan mode restricts the agent to read-only tools until the plan is approved. Make plan mode a real capability gate so the plan-before-act guarantee is enforced, not requested.",
       "done": "In plan mode the agent can only call read tools; any write/shell tool returns a 'blocked: plan mode' result until the user approves the plan, after which normal kernel gating resumes.",
       "tier": "pebble",
       "model": "opus",
-      "effort": "medium"
+      "effort": "medium",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-REWIND",
@@ -3989,37 +3991,40 @@
       "id": "CC-GLOB",
       "track": "Claude Code parity",
       "title": "Glob tool \u2014 file pattern search",
-      "status": "next",
+      "status": "done",
       "size": "S",
       "summary": "CC has GlobTool: find files matching a glob pattern (e.g. src/**/*.ts). Vanta's read_file + shell_cmd can approximate it but no dedicated tool. Add glob_files tool with pattern + optional base path, returns matching file list. Safe read-only, kernel Allow.",
       "done": "`glob_files` tool finds files by glob pattern and returns the list; no shell_cmd workaround needed.",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low"
+      "effort": "low",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-GREP",
       "track": "Claude Code parity",
       "title": "Grep tool \u2014 fast code search",
-      "status": "next",
+      "status": "done",
       "size": "S",
       "summary": "CC has GrepTool: search file contents by regex/string using ripgrep. Vanta uses shell_cmd workaround. Add grep_files tool wrapping rg (or grep fallback): pattern, path, optional file glob, include/exclude. Returns matches with file:line context. Kernel Allow.",
       "done": "`grep_files` tool returns regex matches across the codebase without needing a shell_cmd workaround.",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low"
+      "effort": "low",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-FILE-EDIT",
       "track": "Claude Code parity",
       "title": "Targeted file edit \u2014 old/new string replacement",
-      "status": "next",
+      "status": "done",
       "size": "S",
       "summary": "CC has FileEditTool: replace an exact old_string with new_string in a file (no full rewrite). Vanta's write_file does full overwrites. Add edit_file tool: path + old_string + new_string + optional replace_all. Fails if old_string not found or not unique (unless replace_all). Much safer than full overwrites for large files.",
       "done": "`edit_file` tool does targeted string replacement; write_file remains for full writes.",
       "tier": "sand",
       "model": "haiku",
-      "effort": "low"
+      "effort": "low",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-WORKTREE",
@@ -7406,14 +7411,15 @@
       "id": "PROVIDER-NVIDIA-NIM",
       "track": "Models + Setup",
       "title": "NVIDIA NIM provider \u2014 cheap worker routing for summarize/classify/code",
-      "status": "next",
+      "status": "done",
       "size": "S",
       "summary": "Add an NVIDIA NIM provider adapter (OpenAI-compatible API at build.nvidia.com) so Vanta can route low-cost subtasks (summarize, classify, first-pass code) to NVIDIA-hosted models like meta/llama-3.1-8b-instruct. Uses NVIDIA_API_KEY + VANTA_ROUTE_SUMMARIZE=nvidia:model config. Since NIM is OpenAI-compatible, implementation is a baseURL swap in the OpenAI adapter \u2014 minimal new code.",
       "done": "VANTA_PROVIDER=nvidia with NVIDIA_API_KEY resolves the OpenAI adapter to build.nvidia.com. /routes shows nvidia as a configured route. A summarize task auto-delegates to the configured NIM model.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09"
+      "updated": "2026-06-09",
+      "notes": "Provider adapter + /routes command done. Auto-delegation (VANTA_ROUTE_SUMMARIZE) parked \u2014 needs routing infra, scope exceeds S/low-effort."
     },
     {
       "id": "CC-SWARM-IT2-SETUP",
@@ -8232,6 +8238,32 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AGENT-EDITOR",
+      "track": "Claude Code parity",
+      "title": "In-TUI agent editor \u2014 edit agent tools, color, model, and file from /agents menu",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's `/agents` menu has an in-TUI editor for custom agents: choose allowed tools via ToolSelector, assign a color via ColorPicker, change the model via ModelSelector, or open the agent's markdown file in the external editor. Saves changes to the agent file. Only editable for custom (non-built-in, non-plugin) agents.",
+      "done": "`/agents` \u2192 select a custom agent \u2192 Edit \u2192 change tools/model/color or open in VS Code. Changes persist to `~/.claude/agents/<name>.md`.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-GENERATE-AGENT",
+      "track": "Claude Code parity",
+      "title": "AI agent generator \u2014 LLM-powered creation of agent definitions from description",
+      "status": "next",
+      "size": "M",
+      "summary": "CC can generate a new agent definition (identifier, whenToUse, systemPrompt) by prompting a fast model with the user's description and repo context. The generated agent is written to `~/.claude/agents/<identifier>.md`. Triggered from the `/agents` new-agent flow. Integrates with auto-memory if enabled.",
+      "done": "In `/agents`, choosing 'Create new agent' and typing a description generates a ready-to-use agent file with a system prompt tailored to the repo context.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
       "updated": "2026-06-09"
     }
   ]
