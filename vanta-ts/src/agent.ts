@@ -36,6 +36,8 @@ export type AgentDeps = {
   activeGoalText?: string;
   /** Called when consecutive tool failures hit the threshold; fire a note or interrupt. */
   onIterationCheck?: (consecutiveFailures: number) => void;
+  /** CC-AUTO-COMPACT: called when a compression round runs, with the dropped count and summary. */
+  onAutoCompact?: (dropped: number, summary: string) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
   /**
@@ -236,12 +238,24 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const ti = () => state.toolIterations;
   const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
 
+  // Wrap the summarizer to detect when compaction actually fires and notify the host.
+  const compactThresholdPct = process.env.VANTA_AUTO_COMPACT_THRESHOLD
+    ? Math.round(Number(process.env.VANTA_AUTO_COMPACT_THRESHOLD) * 100)
+    : undefined;
+  const trackedSummarize = deps.summarize && deps.onAutoCompact
+    ? async (mid: Message[]) => {
+        const s = await deps.summarize!(mid);
+        deps.onAutoCompact!(mid.length, s);
+        return s;
+      }
+    : deps.summarize;
+
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)
       return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
-    const trimmed = deps.summarize
-      ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize, { activeGoalText: deps.activeGoalText })
-      : trimMessages(messages, deps.provider.contextWindow());
+    const trimmed = trackedSummarize
+      ? await compressMessages(messages, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
+      : trimMessages(messages, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
     const result = await getCompletion(deps, sanitizeMessages(trimmed));
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 

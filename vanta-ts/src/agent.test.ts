@@ -121,6 +121,44 @@ describe("agent dispatch against the live kernel", () => {
   });
 });
 
+// CC-AUTO-COMPACT: onAutoCompact callback fires when context compression runs.
+// Uses a tiny context window to force compaction without needing the kernel.
+describe("CC-AUTO-COMPACT onAutoCompact callback", () => {
+  it("fires with dropped count and summary text when compression runs", async () => {
+    // Seed 12 prior messages so rest.length > protectFirst(3)+protectLast(6)=9.
+    // With a 300-token window and ~80-char messages, the total comfortably exceeds 75%.
+    const history = Array.from({ length: 12 }, (_, i) => ({
+      role: i % 2 === 0 ? ("user" as const) : ("assistant" as const),
+      content: "x".repeat(80),
+    }));
+    const tinyWindow: LLMProvider = {
+      complete: async () => ({ text: "done", toolCalls: [], finishReason: "stop" }),
+      modelId: () => "fake",
+      contextWindow: () => 300,
+    };
+    const compactEvents: Array<{ dropped: number; summary: string }> = [];
+    const convo = createConversation(
+      "sys",
+      {
+        provider: tinyWindow,
+        safety: new SafetyClient("http://127.0.0.1:7788"),
+        registry: buildRegistry(),
+        root: process.cwd(),
+        requestApproval: async () => true,
+        summarize: async () => "work was summarized",
+        onAutoCompact: (dropped, summary) => compactEvents.push({ dropped, summary }),
+      },
+      { history },
+    );
+
+    await convo.send("new turn");
+
+    expect(compactEvents.length).toBeGreaterThan(0);
+    expect(compactEvents[0]?.summary).toBe("work was summarized");
+    expect(compactEvents[0]?.dropped).toBeGreaterThan(0);
+  });
+});
+
 // The /model hot-swap mechanism, proven without the kernel (no tools → no
 // safety calls). This is the half the picker's selectModel relies on:
 // setProvider must change which provider the NEXT send actually calls.

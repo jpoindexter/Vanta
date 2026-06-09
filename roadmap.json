@@ -8686,7 +8686,7 @@
       "id": "CC-AUTO-COMPACT",
       "track": "Claude Code parity",
       "title": "Auto-compact \u2014 automatic context compaction when window fills to threshold",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC automatically triggers conversation compaction when context fills. `isAutoCompactEnabled()` checks settings + env (`CLAUDE_CODE_AUTO_COMPACT_WINDOW`). Reserves 20K tokens for summary output, respects manual/auto compact buffer sizes. Runs `compactConversation()` then `runPostCompactCleanup()`. Distinct from manual /compact and time-based microcompact.",
       "done": "When context reaches the auto-compact threshold, a compact runs automatically without user action. A compact boundary message shows what was summarized.",
@@ -8694,7 +8694,8 @@
       "model": "sonnet",
       "effort": "medium",
       "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "notes": "onAutoCompact callback on AgentDeps; trackedSummarize wrapper in runTurn emits callback when compressMessages fires; wired in app.tsx + interactive.ts. VANTA_AUTO_COMPACT_THRESHOLD configures fill pct. Test proves callback fires with seeded history."
     },
     {
       "id": "CC-SESSION-MEMORY-COMPACT",
