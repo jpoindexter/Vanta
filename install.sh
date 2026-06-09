@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# Vanta installer — mirrors how Hermes/OpenClaw install.
+# Vanta installer.
 # Builds the kernel + agent deps, seeds the ~/.vanta home, and installs a global
 # `vanta` command into ~/.local/bin so you can start it from anywhere by typing
 # `vanta`. Re-run any time (idempotent).

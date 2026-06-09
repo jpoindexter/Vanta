@@ -8,7 +8,7 @@
 #
 # While the repo is PRIVATE the clone uses your GitHub git auth (SSH key, gh, or
 # a credential helper); the curl one-liner above works once the repo is public.
-# Installs to ~/vanta (Hermes-style, home-level). Override with:
+# Installs to ~/vanta. Override with:
 #   VANTA_DIR=/path/to/Vanta bash bootstrap.sh
 # Idempotent — re-run any time; it fast-forward-updates an existing checkout.
 # ============================================================================

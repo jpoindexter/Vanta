@@ -119,11 +119,11 @@ mod tests {
     fn status_json_does_not_leak_secrets() {
         let s = BridgeStatus {
             available: true,
-            version: "Hermes Agent v0.15.1 TOKEN=secret".into(),
+            version: "agent v0.15.1 TOKEN=secret".into(),
             note: "ok".into(),
         };
         let json = s.to_json();
         assert!(!json.contains("TOKEN=secret"));
-        assert!(json.contains("Hermes Agent v0.15.1"));
+        assert!(json.contains("agent v0.15.1"));
     }
 }
