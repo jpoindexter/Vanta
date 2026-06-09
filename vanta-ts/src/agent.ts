@@ -6,11 +6,8 @@ import type { Message, ToolCall, ImageAttachment } from "./types.js";
 import type { DiffLine } from "./util/diff.js";
 import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
-import { shouldWarn, buildSelfMonitorText } from "./repl/self-monitor.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
-import { shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
-import { applyCompression, compressEnabled, shouldCompressTool } from "./compress/apply.js";
-import { join } from "node:path";
+import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -67,6 +64,8 @@ export type AgentOutcome = {
   toolIterations: number;
   /** Real token usage summed across the turn's provider calls, when reported. */
   usage?: { inputTokens: number; outputTokens: number };
+  /** Tokens saved by native compression this turn. */
+  tokensSaved?: number;
 };
 
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -148,10 +147,11 @@ type TurnState = {
   turnUsage: { inputTokens: number; outputTokens: number };
   sawUsage: boolean;
   callCounts: Map<string, number>;
+  tokensSaved: number;
 };
 
 function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map() };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0 };
 }
 
 async function processToolCalls(
@@ -164,6 +164,7 @@ async function processToolCalls(
   for (const call of calls) {
     const outcome = await dispatchTool(call, deps, ctx);
     state.toolIterations++;
+    if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
     messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: outcome.output });
     await deps.safety.logEvent(`${call.name}: ${outcome.output.slice(0, 120)}`);
     if (outcome.executed) {
@@ -192,10 +193,11 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const state = makeInitialState();
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
   const ti = () => state.toolIterations;
+  const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
 
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)
-      return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage() };
+      return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     const trimmed = deps.summarize
       ? await compressMessages(messages, deps.provider.contextWindow(), deps.summarize, { activeGoalText: deps.activeGoalText })
       : trimMessages(messages, deps.provider.contextWindow());
@@ -205,7 +207,7 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
         messages.push({ role: "assistant", content: result.text });
-        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage() };
+        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
       }
       messages.push({ role: "assistant", content: "" });
       messages.push({ role: "user", content: "You returned nothing. State your result or call a tool." });
@@ -218,12 +220,12 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
 
     const stuckTool = await processToolCalls(result.toolCalls, deps, ctx, state, messages);
     if (stuckTool)
-      return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage() };
+      return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
-      return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage() };
+      return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
   }
 
-  return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage() };
+  return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
 }
 
 /**
@@ -245,7 +247,7 @@ async function getCompletion(deps: AgentDeps, messages: Message[]): Promise<Comp
   return deps.provider.complete(messages, schemas);
 }
 
-type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean };
+type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };
 
 async function dispatchTool(
   call: ToolCall,
@@ -254,58 +256,17 @@ async function dispatchTool(
 ): Promise<DispatchOutcome> {
   deps.onToolCall?.(call.name, call.arguments);
   deps.onEvent?.({ type: "tool_start", name: call.name, args: call.arguments });
+
   const tool = deps.registry.get(call.name);
-  if (!tool) {
-    return { executed: false, empty: false, ok: false, output: `unknown tool: ${call.name}` };
+  const gateResult = await applySafetyGate(call, deps, ctx);
+  if (!gateResult.approved) {
+    return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied" };
   }
 
-  const action = tool.describeForSafety
-    ? tool.describeForSafety(call.arguments)
-    : `${call.name} ${JSON.stringify(call.arguments)}`;
-  const verdict = await deps.safety.assess(action);
-
-  if (verdict.risk === "block") {
-    deps.onToolResult?.(call.name, false, `blocked: ${verdict.reason}`);
-    return { executed: false, empty: false, ok: false, output: `blocked by safety: ${verdict.reason}` };
-  }
-
-  if (verdict.risk === "ask") {
-    const approved = await deps.requestApproval(action, verdict.reason, call.name);
-    const id = await deps.safety.proposeApproval(action);
-    if (!approved) {
-      if (id) await deps.safety.deny(id);
-      deps.onToolResult?.(call.name, false, "denied by user");
-      return { executed: false, empty: false, ok: false, output: `denied by user: ${verdict.reason}` };
-    }
-    if (id) await deps.safety.approve(id);
-  }
-
-  try {
-    if (shouldWarn(action, deps.activeGoalText)) {
-      deps.onText?.(buildSelfMonitorText(call.name, deps.activeGoalText!));
-    }
-  } catch { /* best-effort — never block */ }
-  // TOOL-RETRY: re-run only idempotent reads on a transient failure; never a
-  // write/shell/spawn (re-running could double a side effect). Honest report —
-  // the final result is returned as-is, success is never faked.
-  let res = await tool.execute(call.arguments, ctx);
-  const budget = resolveToolRetries();
-  for (let attempt = 1; attempt <= budget && shouldRetryTool(call.name, res.ok, res.output); attempt++) {
-    deps.onText?.(`  ↻ ${call.name} hit a transient failure — retry ${attempt}/${budget}`);
-    res = await tool.execute(call.arguments, ctx);
-  }
+  const res = await executeWithRetry(call, deps, ctx, tool);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
-  // Native context compression (the Headroom concept, in-house): shrink a fat
-  // tool output ONCE here, before it enters history. Never the system prefix,
-  // never re-compressed. Compression is LOSSY, so it's allow-listed to
-  // voluminous media/web outputs only (shouldCompressTool) — precision reads
-  // (read_file, grep, lsp, git_diff) keep byte-for-byte fidelity so the agent
-  // never edits/cites against a mangled view. Reversible via CCR. Best-effort.
-  let output = res.output;
-  if (res.ok && compressEnabled() && shouldCompressTool(call.name)) {
-    const applied = await applyCompression(output, join(ctx.root, ".vanta"));
-    output = applied.output;
-  }
-  return { executed: true, empty: output.trim().length === 0, ok: res.ok, output };
+
+  const compressed = await compressOutput(call.name, res.output, ctx.root);
+  return { executed: true, empty: compressed.output.trim().length === 0, ok: res.ok, output: compressed.output, tokensSaved: compressed.tokensSaved };
 }
