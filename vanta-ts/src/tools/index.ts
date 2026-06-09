@@ -46,6 +46,7 @@ import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { sleepTool } from "./sleep.js";
 import { configTool } from "./config.js";
+import { briefTool } from "./brief.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
 import {
   gmailSearchTool,
@@ -95,6 +96,7 @@ const ALL_TOOLS: readonly Tool[] = [
   lookAtScreenTool,
   lookAtCameraTool,
   brainTool,
+  briefTool,
   todoTool,
   watchVideoTool,
   speakTool,
