@@ -8616,6 +8616,32 @@
       "model": "sonnet",
       "effort": "low",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-BG-SESSION-CMDS",
+      "track": "Claude Code parity",
+      "title": "Background session process manager \u2014 `claude ps/logs/attach/kill` + `--bg` flag",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC (feature-gated `BG_SESSIONS`) supports `--bg`/`--background` to spawn a session as a background process, then manage it with: `claude ps` (list running sessions), `claude logs <id>` (stream output), `claude attach <id>` (bring to foreground), `claude kill <id>` (terminate). Similar to Docker/tmux session management but for CC agent sessions.",
+      "done": "`claude run 'fix all lint errors' --bg` spawns in background. `claude ps` shows it running. `claude attach <id>` brings it foreground. `claude kill <id>` terminates it.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-BARE-MODE",
+      "track": "Claude Code parity",
+      "title": "`--bare` mode \u2014 minimal output format for scripting and pipelines",
+      "status": "next",
+      "size": "S",
+      "summary": "CC supports a `--bare` CLI flag that enables bare mode: minimal output formatting suitable for scripting and pipes. In bare mode, decorative UI elements (spinners, boxes, colors, status line) are stripped \u2014 only the essential response text is output. Complements `--print` / non-interactive mode.",
+      "done": "`claude --bare 'summarize this file' < file.txt` outputs only the summary text, no terminal UI chrome. Suitable for shell pipelines.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
