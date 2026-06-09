@@ -7986,6 +7986,97 @@
       "model": "opus",
       "effort": "high",
       "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SESSION-MEMORY-SVC",
+      "track": "Claude Code parity",
+      "title": "Session Memory service \u2014 background LLM notes file maintained during conversation",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's Session Memory service (`sessionMemory.ts`) auto-maintains a per-session markdown notes file in the background using a forked subagent. It runs periodically via post-sampling hook, extracting key info (decisions, context, in-progress items) from conversation without blocking the main loop. Distinct from extractMemories (which writes to ~/.claude/projects/memory) \u2014 this is an in-session scratchpad.",
+      "done": "A `.claude/session-memory.md` is auto-populated and updated throughout the session. The notes are injected into context on /compact and session resume.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-TEAM-MEMORY-SYNC",
+      "track": "Claude Code parity",
+      "title": "Team memory sync \u2014 per-repo shared memory across org members via API",
+      "status": "horizon",
+      "size": "L",
+      "summary": "CC syncs team memory files (`~/.claude/team_memory/<repo>/`) between local and a server API. Pull (server wins) downloads files on launch; push (delta, hash-based) uploads only changed entries. Scoped per git remote hash. Includes a secret scanner (`teamMemSecretGuard`) that blocks writes containing API keys/tokens to team memory.",
+      "done": "Two org members on the same repo see the same shared memory. Writes sync within seconds. Secret patterns in edits are blocked from reaching team memory.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-AUTO-COMPACT",
+      "track": "Claude Code parity",
+      "title": "Auto-compact \u2014 automatic context compaction when window fills to threshold",
+      "status": "next",
+      "size": "M",
+      "summary": "CC automatically triggers conversation compaction when context fills. `isAutoCompactEnabled()` checks settings + env (`CLAUDE_CODE_AUTO_COMPACT_WINDOW`). Reserves 20K tokens for summary output, respects manual/auto compact buffer sizes. Runs `compactConversation()` then `runPostCompactCleanup()`. Distinct from manual /compact and time-based microcompact.",
+      "done": "When context reaches the auto-compact threshold, a compact runs automatically without user action. A compact boundary message shows what was summarized.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-SESSION-MEMORY-COMPACT",
+      "track": "Claude Code parity",
+      "title": "Session memory compact \u2014 compact into persistent session memory files (not just summary)",
+      "status": "horizon",
+      "size": "L",
+      "summary": "An experimental compaction variant (`sessionMemoryCompact`) that compacts the conversation into structured session memory files (`.claude/session-memory/`) rather than a plain summary message. On the next session, the memory is loaded to restore context. Tracks tool names seen since last compact via `extractDiscoveredToolNames`.",
+      "done": "After compaction, key facts persist to `.vanta/session-memory.md`. On `/resume`, the memory is injected as context so the agent recalls prior decisions.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-REMOTE-MANAGED-SETTINGS",
+      "track": "Claude Code parity",
+      "title": "Remote managed settings \u2014 enterprise org policies via API with dangerous-change security gate",
+      "status": "horizon",
+      "size": "M",
+      "summary": "CC fetches org-level settings from a remote API and merges them as a `remoteManagedSettings` source. When fetched settings contain dangerous changes (bypassPermissions mode, hooks that execute arbitrary commands, MDM-style tool restrictions), CC shows a blocking security dialog requiring explicit user approval before applying.",
+      "done": "Org admin sets `bypassPermissions: true` in remote settings. On next launch, a security dialog shows the dangerous change. User approves \u2192 takes effect. User rejects \u2192 session exits.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CHROME-NATIVE-SETUP",
+      "track": "Claude Code parity",
+      "title": "Claude in Chrome setup \u2014 install native messaging host for all Chromium browsers",
+      "status": "next",
+      "size": "M",
+      "summary": "CC's `/chrome` command installs a native messaging host that bridges the Claude for Chrome browser extension to the CLI. Supports all Chromium-based browsers: Chrome, Brave, Edge, Chromium, Vivaldi, etc. Writes the host manifest to each browser's native messaging path on macOS/Linux/Windows, including registry entries on Windows.",
+      "done": "`/chrome` installs the native messaging bridge for detected browsers. After setup, the Chrome extension can send prompts and images directly to the running Vanta session.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "updated": "2026-06-09"
+    },
+    {
+      "id": "CC-CHROME-GIF-RECORDER",
+      "track": "Claude Code parity",
+      "title": "Chrome automation GIF recorder \u2014 capture multi-step browser interactions as GIF",
+      "status": "next",
+      "size": "S",
+      "summary": "During Chrome browser automation (`mcp__claude-in-chrome__*` tools), CC can record multi-step browser interactions as animated GIFs via `mcp__claude-in-chrome__gif_creator`. The agent is prompted to capture extra frames before/after actions for smooth playback, and to name the file meaningfully. GIFs are saved locally for review or sharing.",
+      "done": "After a multi-step browser automation, a named GIF file appears in the working directory showing the full interaction replay.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-09"
     }
   ]
 }
