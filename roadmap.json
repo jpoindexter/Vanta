@@ -4222,10 +4222,10 @@
       "id": "CC-SUMMARY-CMD",
       "track": "Claude Code parity",
       "title": "/summary — summarize the current conversation",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC has /summary to generate a structured summary of what's been done in the current session. Vanta has /handoff (a structured packet) and session memory, but no quick inline summary. Add /summary that asks the agent to emit a concise what-was-done / what-remains summary without a full handoff packet.",
-      "done": "`/summary` emits a 5–10 line structured recap: what was built, files changed, what's next.",
+      "summary": "SHIPPED 2026-06-09. repl/summary-cmd.ts: /summary handler emits a resend prompt asking for a session summary. Counts turns and injects turn count into the prompt. Registered in HANDLERS + catalog.",
+      "done": "`/summary` asks the agent for a concise what-was-done / what-remains recap.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
