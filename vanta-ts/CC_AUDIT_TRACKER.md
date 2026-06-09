@@ -103,7 +103,7 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 235 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18 + 3 p19 + 3 p20 + 2 p21)
+- Cards added this full audit: 236 new roadmap items (102 p1-4 + 12 p5 + 13 p6 + 9 p7 + 6 p8 + 5 p9 + 6 p10 + 11 p11 + 9 p12 + 7 p13 + 8 p14 + 6 p15 + 5 p16 + 9 p17 + 6 p18 + 3 p19 + 3 p20 + 2 p21 + 1 p22)
 
 ## What could still be missed
 - services/api/ — all key files read passes 4-5; remainder low-signal
@@ -133,8 +133,9 @@ Legend:
 - Pass 18: 6 cards (interleaved thinking, model tier overrides, skip update, prompt keywords, auth conflict notice, plugin CLI)
 - Pass 19: 3 cards (bridge QR code, git-repo remote session, plan mode interview phase)
 - Pass 20: 3 cards (/compact instructions, post-compact restore, API key helper)
-- Pass 21: 2 cards (shadowed rule detection, dangerous paths blocklist) ← **FIRST ≤2 PASS (1 of 3)**
-  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6/3/3/2 — stopping condition clock started
+- Pass 21: 2 cards (shadowed rule detection, dangerous paths blocklist) ← first ≤2 pass
+- Pass 22: 1 card (auto tool-search mode) ← **SECOND ≤2 PASS (2 of 3)**
+  → Pass trend: 13/12/13/9/6/5/6/5/6/11/9/7/8/6/5/9/6/3/3/2/1 — one more ≤2 pass stops the audit
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
