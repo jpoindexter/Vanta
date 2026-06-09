@@ -35,6 +35,7 @@ describe("registry", () => {
       "bg_list",
       "bg_status",
       "brain",
+      "brief",
       "browser_extract",
       "browser_navigate",
       "calendar_create",

@@ -4234,10 +4234,10 @@
       "id": "CC-BRIEF-TOOL",
       "track": "Claude Code parity",
       "title": "Brief tool — proactive user notifications with attachments",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC's BriefTool lets the agent send a structured message to the user with optional file attachments (photos, diffs, screenshots) and a status type (normal vs proactive). Proactive = agent-initiated update while user is away. Vanta surfaces text via onText but has no structured notification with attachments. Add a brief tool: message + optional file paths + status (normal|proactive), renders in TUI as a highlighted card.",
-      "done": "`brief` tool delivers a formatted message with optional file attachments; proactive status renders distinctly in the TUI so the user notices it.",
+      "summary": "SHIPPED 2026-06-09. tools/brief.ts: brief tool with message (required), status=normal|proactive (default normal), optional files array. Returns formatted [STATUS] message with attachments list. Kernel Allow. 5 tests; tsc clean.",
+      "done": "`brief <message> [--status proactive] [--files path1 path2]` sends a structured notification.",
       "tier": "sand",
       "model": "haiku",
       "effort": "low"
