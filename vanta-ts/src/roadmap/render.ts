@@ -27,7 +27,7 @@ function routing(item: RoadmapItem): string {
 }
 
 function card(item: RoadmapItem): string {
-  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}">
+  return `<div class="card s-${item.status}" data-track="${esc(item.track)}" data-id="${esc(item.id)}" data-size="${esc(item.size)}">
 <div class="hd"><span class="sz">${esc(item.size)}</span><span class="ttl">${esc(item.title)}</span><span class="trk">${esc(item.track)}</span></div>
 ${routing(item) ? `<div class="badges">${routing(item)}</div>` : ""}
 <p class="sum">${esc(item.summary)}</p>
@@ -144,17 +144,14 @@ const JS = `(function(){
 var cards=document.querySelectorAll('.card');
 var tgs=document.querySelectorAll('.tg');
 var cols=document.querySelectorAll('.col');
-document.querySelectorAll('button[data-filter],button[data-track]').forEach(function(btn){
-btn.addEventListener('click',function(){
-document.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-this.classList.add('active');
-var f=this.dataset.filter||this.dataset.track;
-if(f==='all'){
-cards.forEach(function(c){c.classList.remove('hidden');});
-tgs.forEach(function(t){t.style.display='';});
-cols.forEach(function(c){c.style.display='';});
-}else{
-cards.forEach(function(c){c.classList.toggle('hidden',c.dataset.track!==f);});
+var activeTrack='all';
+var activeSize='all';
+function applyFilters(){
+cards.forEach(function(c){
+var tm=activeTrack==='all'||c.dataset.track===activeTrack;
+var sm=activeSize==='all'||c.dataset.size===activeSize;
+c.classList.toggle('hidden',!(tm&&sm));
+});
 tgs.forEach(function(t){
 var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
 t.style.display=vis?'':'none';
@@ -164,16 +161,36 @@ var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.displa
 c.style.display=vis?'':'none';
 });
 }
+document.querySelectorAll('button[data-filter],button[data-track]').forEach(function(btn){
+btn.addEventListener('click',function(){
+document.querySelectorAll('button[data-filter],button[data-track]').forEach(function(b){b.classList.remove('active');});
+this.classList.add('active');
+activeTrack=this.dataset.filter||this.dataset.track||'all';
+applyFilters();
+});
+});
+document.querySelectorAll('button[data-size]').forEach(function(btn){
+btn.addEventListener('click',function(){
+document.querySelectorAll('button[data-size]').forEach(function(b){b.classList.remove('active');});
+this.classList.add('active');
+activeSize=this.dataset.size||'all';
+applyFilters();
 });
 });
 })();`;
 
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL"] as const;
+
 export function renderRoadmap(data: Roadmap): string {
   const tracks = [...new Set(data.items.map((i) => i.track))];
+  const sizes = SIZE_ORDER.filter((s) => data.items.some((i) => i.size === s));
   const board = COLS.map((s) => column(s, data.items, s === "building" ? WIP_LIMIT : undefined)).join("");
   const shipped = data.items.filter((i) => i.status === "shipped");
   const trackButtons = tracks
     .map((t) => `<button data-track="${esc(t)}">${esc(t)}</button>`)
+    .join("");
+  const sizeButtons = sizes
+    .map((s) => `<button data-size="${esc(s)}">${esc(s)}</button>`)
     .join("");
 
   return `<!DOCTYPE html>
@@ -188,6 +205,10 @@ export function renderRoadmap(data: Roadmap): string {
 <div class="filters">
 <button class="active" data-filter="all">All tracks</button>
 ${trackButtons}
+</div>
+<div class="filters">
+<button class="active" data-size="all">All sizes</button>
+${sizeButtons}
 </div>
 <div class="board">${board}</div>
 <details class="sh-section">
