@@ -103,20 +103,23 @@ Legend:
 - Dirs with key files confirmed: 12 (permissions/ upgraded to [x] in pass 5)
 - Dirs sampled (≥20%): 8
 - Files confirmed low-signal without reading: ~200 (types, formatters, re-exports, test helpers)
-- Cards added this full audit: 114 new roadmap items (102 passes 1-4 + 12 pass 5)
+- Cards added this full audit: 127 new roadmap items (102 passes 1-4 + 12 pass 5 + 13 pass 6)
 
 ## What could still be missed
-- services/api/ remaining files (sessionIngress, adminRequests, referral, bootstrap — all read pass 5 but are claude.ai-specific horizon items)
-- commands/ — sampled ~60 of 80+ subdirs, remainder are mostly stubs/ant-only
-- utils/bash/ remaining files (commands, prefix, registry, shellCompletion, specs/)
+- services/api/ — all key files read passes 4-5; remainder low-signal
+- commands/ — all 80+ subdirs now scanned pass 6; some (ant-only, bughunter, ctx_viz, debug-tool-call) have no index.ts
+- utils/bash/ — commands/prefix/registry/shellCompletion/shellQuoting/shellPrefix/treeSitterAnalysis/bashPipeCommand all read pass 6; specs/ (benchmark files only)
+- utils/swarm/ — partially read (TeammateTmux, InProcess, layout); remaining: agentCoordinator, networkAdapter, etc.
+- services/ subdirs not fully read: policyLimits/, diagnosticTracking, rateLimitMocking
 
 ## Pass history
 - Pass 1: ~30 cards (bootstrap session)
 - Pass 2: ~30 cards
 - Pass 3: 14 cards
 - Pass 4: 13 cards
-- Pass 5: 12 cards → NOT stopped yet (need 3 consecutive ≤2)
+- Pass 5: 12 cards
+- Pass 6: 13 cards → NOT stopped yet (need 3 consecutive ≤2)
 
 ## Stopping condition
 - 3 consecutive passes finding 0-2 new high-signal cards
-- Pass 4 found 13, pass 5 found 12 → continue (passes need to show ≤2 per pass)
+- Passes 4/5/6 found 13/12/13 → continue; yield is still high
