@@ -26,6 +26,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
   { name: "context", desc: "visual context-budget breakdown" },
   { name: "files", desc: "list files in the current conversation context" },
+  { name: "theme", arg: "<name>", desc: "switch TUI color theme" },
   { name: "mcp", desc: "list configured MCP servers" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
