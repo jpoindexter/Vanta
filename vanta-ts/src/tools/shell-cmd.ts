@@ -2,8 +2,23 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
+import { destructiveWarning } from "./destructive-warn.js";
+
+type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
+
+/** Build the result for a non-zero/failed run: reclassify benign exits, else error. */
+function formatRunFailure(command: string, e: RunError, pfx: string): ToolResult {
+  const out = [e.stdout, e.stderr].filter(Boolean).join("\n").trim();
+  // A numeric exit code means the command ran (vs. ENOENT/timeout, where code is
+  // a string/undefined and we keep it an error). Reclassify no-match/differs/partial.
+  if (typeof e.code === "number") {
+    const cls = classifyExitCode(command, e.code);
+    if (cls.ok) return { ok: true, output: pfx + (out ? `${cls.note}\n${out}` : `(${cls.note})`) };
+  }
+  return { ok: false, output: pfx + (out || e.message) };
+}
 
 const run = promisify(execFile);
 const Args = z.object({
@@ -76,6 +91,9 @@ export const shellCmdTool: Tool = {
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
     }
+    // CC-DESTRUCTIVE-WARN: informational note for allowed-but-destructive commands.
+    const warn = destructiveWarning(command);
+    const pfx = warn ? `⚠ ${warn}\n` : "";
     try {
       const { stdout, stderr } = await run("sh", ["-c", command], {
         cwd: ctx.root,
@@ -83,20 +101,9 @@ export const shellCmdTool: Tool = {
         maxBuffer: MAX_OUTPUT,
       });
       const out = [stdout, stderr].filter(Boolean).join("\n").trim();
-      return { ok: true, output: out || "(command produced no output)" };
+      return { ok: true, output: pfx + (out || "(command produced no output)") };
     } catch (err) {
-      const e = err as { code?: number | string; stdout?: string; stderr?: string; message: string };
-      const out = [e.stdout, e.stderr].filter(Boolean).join("\n").trim();
-      // A numeric exit code means the command ran (vs. ENOENT/timeout, where
-      // code is a string/undefined and we keep it an error). Reclassify the
-      // "no-match / differs / partial" exits as non-error outcomes.
-      if (typeof e.code === "number") {
-        const cls = classifyExitCode(command, e.code);
-        if (cls.ok) {
-          return { ok: true, output: out ? `${cls.note}\n${out}` : `(${cls.note})` };
-        }
-      }
-      return { ok: false, output: out || e.message };
+      return formatRunFailure(command, err as RunError, pfx);
     }
   },
 };

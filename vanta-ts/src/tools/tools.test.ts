@@ -258,6 +258,12 @@ describe("shell_cmd", () => {
     const res = await shellCmdTool.execute({ command: "ls /no/such/path/xyz" }, ctx());
     expect(res.ok).toBe(false);
   });
+
+  it("prepends a destructive-command warning to the result (CC-DESTRUCTIVE-WARN)", async () => {
+    // Runs in a temp non-repo dir → git errors harmlessly; the ⚠ note is still surfaced.
+    const res = await shellCmdTool.execute({ command: "git reset --hard" }, ctx());
+    expect(res.output).toContain("discards uncommitted");
+  });
 });
 
 describe("dangerous-path floor (CC-DANGEROUS-PATHS)", () => {
