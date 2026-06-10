@@ -76,4 +76,28 @@ describe("memory store", () => {
     expect(recent).toContain("goal two note");
     expect(recent).not.toContain("Goal 500:");
   });
+
+  it("CC-SECRET-SCANNER: a summary with a credential is not persisted and reports the rule", async () => {
+    const fake = `here is a token ${"ghp" + "_" + "x".repeat(36)} keep it safe`;
+    const res = await appendMemory(3, fake, { env, now: "2026-06-02T10:00:00.000Z" });
+    expect(res.skipped).toBe(true);
+    expect(res.rules).toContain("github-pat");
+    expect(await readMemory(3, env)).toBeNull(); // never written
+  });
+
+  it("CC-SECRET-SCANNER: clean content is written and reports not-skipped", async () => {
+    const res = await appendMemory(4, "a perfectly normal observation", { env, now: "2026-06-02T10:00:00.000Z" });
+    expect(res.skipped).toBe(false);
+    expect(await readMemory(4, env)).toContain("normal observation");
+  });
+
+  it("CC-MEM-FRESHNESS: an old block gets a staleness caveat; a fresh one does not", async () => {
+    await appendMemory(5, "stale fact", { env, now: "2026-04-21T10:00:00.000Z" }); // ~50 days before
+    const stale = await recentMemory([5], { env, now: Date.parse("2026-06-10T10:00:00.000Z") });
+    expect(stale).toContain("days ago");
+
+    await appendMemory(6, "fresh fact", { env, now: "2026-06-10T09:00:00.000Z" });
+    const fresh = await recentMemory([6], { env, now: Date.parse("2026-06-10T10:00:00.000Z") });
+    expect(fresh).not.toContain("days ago");
+  });
 });
