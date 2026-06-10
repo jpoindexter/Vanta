@@ -44,6 +44,7 @@ export type Entry =
   | { kind: "note"; text: string }
   | { kind: "thinking"; text: string }
   | { kind: "interrupted"; text: string }
+  | { kind: "compactBoundary"; text: string }
   | BannerEntry;
 
 /** First non-empty line of a tool result, truncated — used for error rows. */
@@ -86,6 +87,7 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; exp
     return <Text dimColor>  ⚙ {truncated}</Text>;
   }
   if (e.kind === "interrupted") return <Text color="yellow">  ⎋ {e.text}</Text>;
+  if (e.kind === "compactBoundary") return <Text color="magenta">  ──── ✻ {e.text} ────</Text>;
   return <Text dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
 }
 

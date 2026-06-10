@@ -39,6 +39,11 @@ describe("tui reduce", () => {
     expect(s.entries.at(-1)?.kind).toBe("interrupted");
   });
 
+  it("compactBoundary appends a distinct boundary entry", () => {
+    const s = reduce(base, { t: "compactBoundary", text: "compacted 12 messages · summary" });
+    expect(s.entries.at(-1)).toEqual({ kind: "compactBoundary", text: "compacted 12 messages · summary" });
+  });
+
   it("a tool call commits streamed text as an assistant entry then logs the tool", () => {
     let s = reduce(base, { t: "delta", d: "let me read it" });
     s = reduce(s, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
@@ -177,6 +182,17 @@ describe("interrupted entry (CC-MSG-INTERRUPTED)", () => {
     const frame = lastFrame() ?? "";
     expect(frame).toContain("⎋");
     expect(frame).toContain("interrupted");
+    unmount();
+  });
+});
+
+describe("compactBoundary entry (CC-MSG-COMPACT-BOUNDARY)", () => {
+  it("renders a distinct ✻ separator with the message count", () => {
+    const entry: Entry = { kind: "compactBoundary", text: "compacted 12 messages · brief summary" };
+    const { lastFrame, unmount } = render(<EntryRow entry={entry} />);
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("✻");
+    expect(frame).toContain("compacted 12 messages");
     unmount();
   });
 });
