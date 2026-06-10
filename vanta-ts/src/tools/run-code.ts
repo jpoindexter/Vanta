@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
+import { isSandboxError, maybeSandbox } from "../sandbox/run.js";
 
 const run = promisify(execFile);
 
@@ -40,9 +41,13 @@ async function runStep(
   cmd: [string, string[]],
   cwd: string,
   language: Language,
+  root: string,
 ): Promise<ToolResult> {
+  // CC-SANDBOX: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
+  const sb = await maybeSandbox({ env: process.env, root, baseCmd: cmd[0], baseArgs: cmd[1] });
+  if (isSandboxError(sb)) return { ok: false, output: sb.error };
   try {
-    const { stdout, stderr } = await run(cmd[0], cmd[1], {
+    const { stdout, stderr } = await run(sb.cmd, sb.args, {
       cwd,
       timeout: TIMEOUT_MS,
       maxBuffer: MAX_OUTPUT,
@@ -63,6 +68,8 @@ async function runStep(
     const captured = combine(e.stdout, e.stderr);
     const detail = e.killed ? `timed out after ${TIMEOUT_MS}ms` : e.message;
     return { ok: false, output: captured || detail };
+  } finally {
+    await sb.cleanup?.();
   }
 }
 
@@ -109,12 +116,12 @@ export const runCodeTool: Tool = {
     try {
       await writeFile(join(dir, runner.file), code, "utf8");
       if (runner.compile) {
-        const compiled = await runStep(runner.compile, dir, language);
+        const compiled = await runStep(runner.compile, dir, language, ctx.root);
         if (!compiled.ok) {
           return compiled;
         }
       }
-      return await runStep(runner.exec, dir, language);
+      return await runStep(runner.exec, dir, language, ctx.root);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

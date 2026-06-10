@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
+import { isSandboxError, maybeSandbox } from "../sandbox/run.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
@@ -88,14 +89,23 @@ export const shellCmdTool: Tool = {
       return { ok: false, output: "refused: command matches a destructive pattern" };
     }
     if (background) {
+      // CC-SANDBOX: detached background tasks aren't wrapped (no exit-time profile
+      // cleanup for an unref'd child). The sandbox only ever TIGHTENS, so when it's
+      // requested we REFUSE the unsandboxed bypass rather than silently weaken it.
+      if (process.env.VANTA_SANDBOX === "1") {
+        return { ok: false, output: "refused: background tasks are not sandboxed; run without background=true under VANTA_SANDBOX=1, or unset it" };
+      }
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
     }
     // CC-DESTRUCTIVE-WARN: informational note for allowed-but-destructive commands.
     const warn = destructiveWarning(command);
     const pfx = warn ? `⚠ ${warn}\n` : "";
+    // CC-SANDBOX: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
+    const sb = await maybeSandbox({ env: process.env, root: ctx.root, baseCmd: "sh", baseArgs: ["-c", command] });
+    if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
     try {
-      const { stdout, stderr } = await run("sh", ["-c", command], {
+      const { stdout, stderr } = await run(sb.cmd, sb.args, {
         cwd: ctx.root,
         timeout: TIMEOUT_MS,
         maxBuffer: MAX_OUTPUT,
@@ -104,6 +114,8 @@ export const shellCmdTool: Tool = {
       return { ok: true, output: pfx + (out || "(command produced no output)") };
     } catch (err) {
       return formatRunFailure(command, err as RunError, pfx);
+    } finally {
+      await sb.cleanup?.();
     }
   },
 };

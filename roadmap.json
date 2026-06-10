@@ -3507,14 +3507,16 @@
       "id": "CC-SANDBOX",
       "track": "Claude Code parity",
       "title": "OS sandbox for tool execution",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Claude Code's /sandbox runs tools under OS isolation (Linux bwrap). Add an opt-in sandbox for shell_cmd/run_code using macOS Seatbelt (sandbox-exec) and Linux bwrap, restricting filesystem + network to the approved scope. Reinforces the kernel thesis with OS-level enforcement.",
       "done": "With sandbox enabled, shell_cmd/run_code execute inside a Seatbelt/bwrap profile scoped to the project root + writable zones; an out-of-scope file or network access fails at the OS layer, verified by a test.",
       "tier": "rock",
       "model": "opus",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10 (design-first: docs/design-cc-sandbox.md \u2192 agent + parent integration). OPT-IN (VANTA_SANDBOX=1, default OFF; default path byte-identical). sandbox/profile.ts: pure buildSeatbeltProfile / buildBwrapArgs / detectBackend / wrapCommand \u2014 deny-default, write only under root + resolveWritableZones (+ tmpdir for run_code), DENY the SAME DANGEROUS_DIRS the file tools use (exported from writable-zones.ts \u2014 single source, can't drift), network denied unless VANTA_SANDBOX_NET=1. sandbox/run.ts: maybeSandbox({env,root,baseCmd,baseArgs}) wraps under the flag (writes Seatbelt profile to a temp file + cleanup) or returns base unchanged; when VANTA_SANDBOX=1 but no backend \u2192 error sentinel (fail-closed, never silent-unsandboxed). Wired into shell-cmd.ts + run-code.ts exec seams (rust compile step sandboxed too); detached background tasks REFUSE under the flag (no exit-time cleanup for unref'd children). +35 unit tests; full suite 2229 green, tsc clean. \u26a0 LIVE OS ENFORCEMENT UNVERIFIED \u2014 sandbox-exec/bwrap couldn't run in the build env; only the generated profile/argv SHAPE is tested. Fail-closed (deny-default \u2192 a wrong profile fails LOUD, not a silent hole). MUST run the manual acceptance checks before relying on it: under VANTA_SANDBOX=1 \u2014 echo>~/Desktop/ok allowed; echo>~/.ssh/evil + cat ~/.ssh/id_rsa blocked; curl blocked unless VANTA_SANDBOX_NET=1. If `sandbox-exec -f profile sh -c 'echo hi'` fails first, the process-exec allows need widening."
     },
     {
       "id": "CC-HOOKS",

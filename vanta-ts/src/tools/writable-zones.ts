@@ -72,7 +72,10 @@ export function isInZone(abs: string, zones: string[]): boolean {
 // CC-DANGEROUS-PATHS: an unconditional floor beneath zones, scope, AND approval
 // mode. These credential/system paths are NEVER readable or writable by the file
 // tools — distinct from configurable zones, and not overridable by auto-approve.
-const DANGEROUS_DIRS = ["~/.ssh", "~/.gnupg", "~/.aws", "~/.config/gcloud", "/etc", "/private/etc", "/System", "/var/db/sudo"];
+// Exported so the OS sandbox (CC-SANDBOX) emits the SAME deny list as the file
+// tools — single source of truth, can't drift. Entries use `~` / relative form;
+// callers expand via `expandHome` + `resolve` before use (see `isDangerousPath`).
+export const DANGEROUS_DIRS = ["~/.ssh", "~/.gnupg", "~/.aws", "~/.config/gcloud", "/etc", "/private/etc", "/System", "/var/db/sudo"];
 const DANGEROUS_FILES = [
   "~/.netrc", "~/.npmrc", "~/.pypirc", "~/.docker/config.json", "~/.kube/config",
   "~/.codex/auth.json", "~/.claude/.credentials.json", "~/.vanta/google-tokens.json",
