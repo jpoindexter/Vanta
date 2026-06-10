@@ -1,4 +1,5 @@
 import type { Message } from "./types.js";
+import { compactionReminder } from "./repl/compaction-remind.js";
 
 const CHARS_PER_TOKEN = 4;
 
@@ -118,7 +119,11 @@ export async function compressMessages(
       role: "user",
       content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
     };
-    const compressed = [...system, ...head, note, ...tail];
+    // CC-COMPACTION-REMIND: a transient nudge to /compress, injected interior so
+    // it never displaces head/goalNote at index 1 (pinned by tests).
+    const reminder = compactionReminder(estimateTokens(messages), contextWindow);
+    const reminderNote: Message[] = reminder ? [{ role: "user" as const, content: reminder }] : [];
+    const compressed = [...system, ...head, note, ...reminderNote, ...tail];
     if (!opts.activeGoalText) return compressed;
     const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
     return [...system, goalNote, ...compressed.slice(system.length)];
