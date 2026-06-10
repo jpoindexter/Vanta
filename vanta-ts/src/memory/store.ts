@@ -5,6 +5,7 @@ import {
   ensureVantaStore,
   commitInHome,
 } from "../store/home.js";
+import { scanForSecrets } from "../store/secret-scan.js";
 
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
@@ -24,13 +25,23 @@ function memoryFile(goalId: number, env?: NodeJS.ProcessEnv): string {
  * Append a timestamped summary block to a goal's memory file, then commit it
  * in the Vanta home. `now` is injected for deterministic tests; defaults to the
  * current ISO 8601 timestamp at runtime.
+ *
+ * CC-SECRET-SCANNER: if the summary contains a high-confidence secret shape
+ * (GitHub PAT, AWS key, etc.), the block is NOT written or committed — secret
+ * content never reaches the versioned ~/.vanta store. Returns the matched rule
+ * ids (never the values) so the caller can surface a redaction notice. The
+ * early return short-circuits write + cap + commit in one move.
  */
 export async function appendMemory(
   goalId: number,
   summary: string,
   opts: AppendOptions = {},
-): Promise<void> {
+): Promise<{ skipped: boolean; rules: string[] }> {
   const env = opts.env;
+  const rules = scanForSecrets(summary);
+  if (rules.length > 0) {
+    return { skipped: true, rules };
+  }
   await ensureVantaStore(env);
   const now = opts.now ?? new Date().toISOString();
   const file = memoryFile(goalId, env);
@@ -44,6 +55,7 @@ export async function appendMemory(
     await writeFile(file, `${blocks.slice(-cap).join("\n\n")}\n\n`, "utf8");
   }
   await commitInHome(join("memories", `${goalId}.md`), `memory: goal ${goalId}`, env);
+  return { skipped: false, rules: [] };
 }
 
 /** Read a goal's full memory file, or null if it has none yet. */

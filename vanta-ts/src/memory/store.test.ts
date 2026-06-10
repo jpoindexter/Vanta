@@ -76,4 +76,24 @@ describe("memory store", () => {
     expect(recent).toContain("goal two note");
     expect(recent).not.toContain("Goal 500:");
   });
+
+  it("CC-SECRET-SCANNER: a summary with a secret is not persisted and reports the rule id", async () => {
+    // Fragmented so no contiguous secret-shaped literal lands in source (gitleaks).
+    const awsKeyId = "AKIA" + "A".repeat(16);
+
+    const result = await appendMemory(42, `here is a key ${awsKeyId} keep it`, { env });
+
+    expect(result.skipped).toBe(true);
+    expect(result.rules).toContain("aws-access-key-id");
+    // Nothing was written for the goal — no secret reaches the store.
+    expect(await readMemory(42, env)).toBeNull();
+  });
+
+  it("CC-SECRET-SCANNER: clean content syncs normally and reports skipped:false", async () => {
+    const result = await appendMemory(43, "a perfectly clean memory note", { env });
+
+    expect(result.skipped).toBe(false);
+    expect(result.rules).toEqual([]);
+    expect(await readMemory(43, env)).toContain("a perfectly clean memory note");
+  });
 });
