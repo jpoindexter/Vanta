@@ -2,8 +2,7 @@ import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveInScope } from "../scope.js";
-import { expandHome, resolveReadableZones, isInZone } from "./writable-zones.js";
+import { resolveReadablePath } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 
 const Args = z.object({
@@ -60,20 +59,11 @@ export const describeImageTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'describe_image needs a "path" string' };
     }
-    const { prompt } = parsed.data;
-    // Expand ~ BEFORE the scope check — otherwise "~/Desktop/x.png" resolves to a
-    // bogus "<root>/~/Desktop/x.png" that passes the in-scope test then ENOENTs.
-    const path = expandHome(parsed.data.path);
-
-    const { ok, path: abs } = resolveInScope(path, ctx.root);
-    // Outside the project root: permitted only inside a configured readable zone
-    // (so a screenshot on ~/Desktop works, mirroring read_file).
-    if (!ok && !isInZone(abs, resolveReadableZones(process.env, ctx.root))) {
-      return {
-        ok: false,
-        output: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
-      };
-    }
+    const { path, prompt } = parsed.data;
+    // Shared policy: expand ~ then allow in-root OR a readable zone (e.g. ~/Desktop).
+    const r = resolveReadablePath(path, ctx.root, process.env);
+    if (!r.ok) return { ok: false, output: r.error };
+    const abs = r.abs;
 
     const mime = mimeForImage(abs);
     if (!mime) {
