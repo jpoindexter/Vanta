@@ -66,12 +66,15 @@ describe("installSkillLibrary", () => {
     expect(r).toEqual({ installed: [], skipped: [] });
   });
 
+  // The two real-library tests copy all ~86 bundled skills; under the full
+  // parallel suite (241 files) that I/O can exceed the global 20s timeout,
+  // so they get their own 60s budget.
   it("the real bundled library resolves and contains SKILL.md dirs", async () => {
     // smoke: libraryDir() points at a dir with the ported skills
     const r = await installSkillLibrary();
     expect(r.installed.length + r.skipped.length).toBeGreaterThanOrEqual(10);
     expect([...r.installed, ...r.skipped]).toContain("systematic-debugging");
-  });
+  }, 60_000);
 
   it("installs the design + ai-engineering sources too (multi-source)", async () => {
     const r = await installSkillLibrary();
@@ -80,7 +83,7 @@ describe("installSkillLibrary", () => {
     expect(all).toContain("atomic-design"); // design-system-skills
     expect(all).toContain("usability-heuristics"); // design-system-skills
     expect(all).toContain("rag-architecture"); // ai-engineering-skills
-  });
+  }, 60_000);
 
   it("librarySources lists the bundled library + design + ai-engineering skills", () => {
     const srcs = librarySources();
