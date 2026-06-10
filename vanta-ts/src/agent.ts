@@ -4,7 +4,7 @@ import type { ToolRegistry } from "./tools/registry.js";
 import type { ToolContext } from "./tools/types.js";
 import type { Message, ToolCall, ImageAttachment } from "./types.js";
 import type { DiffLine } from "./util/diff.js";
-import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
+import { trimMessages, compressMessages, sanitizeMessages, compactConversation } from "./context.js";
 import type { Summarizer } from "./context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
@@ -138,6 +138,26 @@ export type Conversation = {
 };
 
 /**
+ * Persistent auto-compaction: shrink the STORED conversation in place when it
+ * grows past the threshold, so context actually drops between turns (the
+ * in-loop compressMessages only compacts the per-call copy). Best-effort;
+ * fires onAutoCompact so the host can mark the boundary.
+ */
+async function persistCompaction(messages: Message[], deps: AgentDeps): Promise<void> {
+  if (!deps.summarize) return;
+  const thr = process.env.VANTA_AUTO_COMPACT_THRESHOLD
+    ? Math.round(Number(process.env.VANTA_AUTO_COMPACT_THRESHOLD) * 100)
+    : undefined;
+  try {
+    const r = await compactConversation(messages, deps.provider.contextWindow(), deps.summarize, { thresholdPct: thr });
+    if (r.compacted) {
+      messages.splice(0, messages.length, ...r.messages);
+      deps.onAutoCompact?.(r.dropped, r.summary);
+    }
+  } catch { /* compaction is best-effort — a failure must never block the turn */ }
+}
+
+/**
  * Open a conversation that persists message history across turns — the basis for
  * the interactive REPL. `runAgent` is the one-shot form of this.
  */
@@ -159,7 +179,10 @@ export function createConversation(
   };
   return {
     messages,
-    send: (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => runTurn({ messages, ctx, deps, userText, images, signal }),
+    send: async (userText: string, images?: ImageAttachment[], signal?: AbortSignal) => {
+      await persistCompaction(messages, deps); // shrink the stored convo before the new turn
+      return runTurn({ messages, ctx, deps, userText, images, signal });
+    },
     setProvider: (provider, summarize) => {
       deps.provider = provider;
       if (summarize) deps.summarize = summarize;

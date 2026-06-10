@@ -3,6 +3,7 @@ import {
   estimateTokens,
   trimMessages,
   compressMessages,
+  compactConversation,
   sanitizeMessages,
 } from "./context.js";
 import type { Message } from "./types.js";
@@ -14,6 +15,40 @@ function manyMessages(): Message[] {
   }
   return msgs;
 }
+
+describe("compactConversation (persistent auto-compaction)", () => {
+  const summarize = async () => "the user worked through many steps";
+
+  it("does not compact when under threshold", async () => {
+    const msgs = manyMessages();
+    const r = await compactConversation(msgs, 1_000_000, summarize); // huge window
+    expect(r.compacted).toBe(false);
+    expect(r.dropped).toBe(0);
+    expect(r.messages).toBe(msgs); // same reference — caller keeps the originals
+  });
+
+  it("compacts over threshold: shrinks, keeps system+head+tail, one summary note, no injections", async () => {
+    const msgs = manyMessages(); // 41 msgs, ~6k tokens
+    const r = await compactConversation(msgs, 1000, summarize, { thresholdPct: 75 });
+    expect(r.compacted).toBe(true);
+    expect(r.dropped).toBeGreaterThan(0);
+    expect(r.messages.length).toBeLessThan(msgs.length); // actually smaller
+    expect(r.messages[0]).toEqual({ role: "system", content: "sys" }); // system kept at head
+    const summaryNotes = r.messages.filter((m) => m.content.startsWith("[Summary of"));
+    expect(summaryNotes).toHaveLength(1);
+    // No transient injections persisted:
+    expect(r.messages.some((m) => m.content.includes("Active goal"))).toBe(false);
+    expect(r.messages.some((m) => m.content.includes("consider /compress"))).toBe(false);
+  });
+
+  it("returns not-compacted (originals) when the summarizer throws", async () => {
+    const msgs = manyMessages();
+    const boom = async () => { throw new Error("no summary"); };
+    const r = await compactConversation(msgs, 1000, boom, { thresholdPct: 75 });
+    expect(r.compacted).toBe(false);
+    expect(r.messages).toBe(msgs);
+  });
+});
 
 describe("trimMessages", () => {
   it("returns messages unchanged when under threshold", () => {

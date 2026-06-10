@@ -131,3 +131,44 @@ export async function compressMessages(
     return trimMessages(messages, contextWindow, opts);
   }
 }
+
+export type CompactResult = { messages: Message[]; compacted: boolean; dropped: number; summary: string };
+
+/**
+ * PERSISTENT compaction. Unlike compressMessages (which returns a transient
+ * per-call copy with goal/reminder injections), this returns the compacted BASE
+ * — system + protected head + one summary note + protected tail, NO transient
+ * injections — so the caller can REPLACE the stored conversation and actually
+ * shrink it. Returns compacted=false (with the originals) when under threshold,
+ * too short to compact, or the summarizer throws.
+ */
+export async function compactConversation(
+  messages: Message[],
+  contextWindow: number,
+  summarize: Summarizer,
+  opts: TrimOptions = {},
+): Promise<CompactResult> {
+  const protectFirst = opts.protectFirst ?? 3;
+  const protectLast = opts.protectLast ?? 6;
+  const threshold = (opts.thresholdPct ?? 75) / 100;
+  const none: CompactResult = { messages, compacted: false, dropped: 0, summary: "" };
+  if (contextWindow <= 0 || estimateTokens(messages) <= contextWindow * threshold) return none;
+
+  const system = messages.filter((m) => m.role === "system");
+  const rest = messages.filter((m) => m.role !== "system");
+  if (rest.length <= protectFirst + protectLast) return none;
+
+  const head = rest.slice(0, protectFirst);
+  let tail = rest.slice(-protectLast);
+  while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1); // never lead the tail with an orphan tool result
+  const middle = rest.slice(protectFirst, rest.length - tail.length);
+  if (middle.length === 0) return none;
+
+  try {
+    const summary = await summarize(middle);
+    const note: Message = { role: "user", content: `[Summary of ${middle.length} earlier messages]: ${summary}` };
+    return { messages: [...system, ...head, note, ...tail], compacted: true, dropped: middle.length, summary };
+  } catch {
+    return none;
+  }
+}
