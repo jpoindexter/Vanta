@@ -9,7 +9,7 @@ import { newSessionId } from "../sessions/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
-import { Banner, bannerEntries, gatherBannerData, type BannerData } from "./banner.js";
+import { gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
@@ -260,17 +260,12 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
   );
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
-  // CC-ALT-BANNER: banner lines lead the virtual transcript as scrollable entries.
-  const vtEntries = ALT_SCREEN && banner ? [...bannerEntries(banner), ...state.entries] : state.entries;
-  const scrollHint = ALT_SCREEN && vtEntries.length > maxVisible ? "pgup/pgdn  " : "";
+  // CC-ALT-BANNER: the banner leads the transcript as its first entry — into
+  // <Static> scrollback in normal mode, into the virtual viewport (scrolls
+  // away via pgup) in alt-screen mode. Same designed card in both.
+  const allEntries: Entry[] = banner ? [{ kind: "banner", data: banner, root: repoRoot }, ...state.entries] : state.entries;
+  const scrollHint = ALT_SCREEN && allEntries.length > maxVisible ? "pgup/pgdn  " : "";
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${scrollHint}${foldHint}/help  ?  /exit`;
-
-  // Normal mode renders history via <Static> so terminal-native scrollback
-  // works unchanged; alt-screen mode renders a capped viewport slice instead.
-  const staticItems: Array<{ kind: "banner"; data: BannerData } | { kind: "entry"; entry: Entry; i: number }> = [
-    ...(banner ? [{ kind: "banner" as const, data: banner }] : []),
-    ...state.entries.map((entry, i) => ({ kind: "entry" as const, entry, i })),
-  ];
 
   // Bottom chrome (approval / pickers / composer + status) — shared by both layouts.
   const chrome = pending ? (
@@ -310,7 +305,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
         nonce={redrawNonce}
         viewport={
           <>
-            <VirtualTranscript entries={vtEntries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
+            <VirtualTranscript entries={allEntries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
             {/* Tail-cap streaming to one screen — bounds per-frame bytes. */}
             {state.streaming.trim() ? <Text>{state.streaming.split("\n").slice(-termRows).join("\n")}</Text> : null}
           </>
@@ -322,14 +317,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Static items={staticItems}>
-        {(item) =>
-          item.kind === "banner" ? (
-            <Banner key="banner" data={item.data} />
-          ) : (
-            <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
-          )
-        }
+      <Static items={allEntries}>
+        {(item, i) => <EntryRow key={`e${i}`} entry={item} expanded={state.expanded} />}
       </Static>
       {state.streaming.trim() ? (
         // Cap streaming display to last 8 lines so the dynamic region doesn't

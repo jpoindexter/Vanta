@@ -4,6 +4,7 @@ import { diffStat, INLINE_MAX, FOLD_PREVIEW } from "./tool-result.js";
 import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
 import { linkifyFilePaths } from "./osc8.js";
+import { Banner, type BannerData } from "./banner.js";
 import type { DiffLine } from "../util/diff.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
@@ -33,14 +34,16 @@ export type ToolEntry = {
   isGrouped?: boolean;
 };
 
+/** The startup banner as a transcript entry — scrolls into history like any other. */
+export type BannerEntry = { kind: "banner"; data: BannerData; root?: string };
+
 export type Entry =
   | { kind: "user"; text: string }
   | { kind: "assistant"; text: string }
   | ToolEntry
   | { kind: "note"; text: string }
   | { kind: "thinking"; text: string }
-  /** Banner wordmark lines (alt-screen mode) — bold cyan, no indent. */
-  | { kind: "hero"; text: string };
+  | BannerEntry;
 
 /** First non-empty line of a tool result, truncated — used for error rows. */
 export const firstLine = (t: string): string => {
@@ -57,6 +60,7 @@ export const firstLine = (t: string): string => {
  */
 export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElement {
   const e = props.entry;
+  if (e.kind === "banner") return <Banner data={e.data} root={e.root} />;
   if (e.kind === "tool") {
     return (
       <Box marginLeft={1}>
@@ -68,16 +72,10 @@ export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElem
   return <SingleLine entry={e} expanded={props.expanded ?? false} />;
 }
 
-function SingleLine(props: { entry: Exclude<Entry, ToolEntry>; expanded?: boolean }): ReactElement {
+function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; expanded?: boolean }): ReactElement {
   const e = props.entry;
   if (e.kind === "user") return <Text color="cyan">› {linkifyFilePaths(e.text, process.cwd())}</Text>;
   if (e.kind === "assistant") return renderMarkdown(e.text);
-  if (e.kind === "hero")
-    return (
-      <Text color="cyan" bold>
-        {e.text}
-      </Text>
-    );
   if (e.kind === "thinking") {
     if (props.expanded) {
       return <Text dimColor>  ⚙ {e.text}</Text>;
