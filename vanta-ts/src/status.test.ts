@@ -10,6 +10,7 @@ const base: StatusReport = {
   ],
   store: { home: "/home/.vanta", skills: 3, memories: 5 },
   goals: { active: 2, total: 4 },
+  notices: [],
 };
 
 describe("formatStatus", () => {
@@ -45,5 +46,12 @@ describe("formatStatus", () => {
     const out = formatStatus(base);
     // the report carries no secret; assert the rendering exposes only env-var names
     expect(out).not.toMatch(/=[A-Za-z0-9]/);
+  });
+
+  it("renders auth-conflict notices when present, and nothing when empty", () => {
+    expect(formatStatus(base)).not.toContain("notices:");
+    const withNotice = formatStatus({ ...base, notices: ["Anthropic: ... remove one"] });
+    expect(withNotice).toContain("⚠ notices:");
+    expect(withNotice).toContain("remove one");
   });
 });

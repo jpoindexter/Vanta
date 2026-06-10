@@ -5,6 +5,7 @@ import { PROVIDER_CATALOG } from "./providers/catalog.js";
 import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
+import { detectAuthConflicts } from "./providers/auth-conflict.js";
 
 // `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -18,9 +19,18 @@ export type StatusReport = {
   store: { home: string; skills: number; memories: number };
   goals: { active: number; total: number } | { error: string };
   velocity?: VelocityStats;
+  notices: string[];
 };
 
 const mark = (ok: boolean): string => (ok ? "✓" : "✗");
+
+/** The velocity line, or nothing if there's no capture/ship activity yet. */
+function velocityLines(v: VelocityStats): string[] {
+  if (!(v.captures > 0 || v.ships > 0)) return [];
+  const ratioStr = v.ratio === null ? "∞:1" : `${v.ratio.toFixed(0)}:1`;
+  const note = v.warn ? "  ⚠ consider closing before opening" : "";
+  return [`  velocity  capture:ship 7d  ${v.captures}:${v.ships} (${ratioStr})${note}`];
+}
 
 /** Render a report to a boxed terminal block. Pure. */
 export function formatStatus(r: StatusReport): string {
@@ -50,11 +60,11 @@ export function formatStatus(r: StatusReport): string {
     lines.push(`  goals     ${r.goals.active} active / ${r.goals.total} total`);
   }
 
-  if (r.velocity && (r.velocity.captures > 0 || r.velocity.ships > 0)) {
-    const v = r.velocity;
-    const ratioStr = v.ratio === null ? "∞:1" : `${v.ratio.toFixed(0)}:1`;
-    const note = v.warn ? "  ⚠ consider closing before opening" : "";
-    lines.push(`  velocity  capture:ship 7d  ${v.captures}:${v.ships} (${ratioStr})${note}`);
+  if (r.velocity) lines.push(...velocityLines(r.velocity));
+
+  if (r.notices.length) {
+    lines.push("", "  ⚠ notices:");
+    for (const n of r.notices) lines.push(`    • ${n}`);
   }
 
   lines.push("");
@@ -121,6 +131,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
     store: { home: resolveVantaHome(env), skills, memories },
     goals,
     velocity,
+    notices: detectAuthConflicts(env),
   };
 }
 
