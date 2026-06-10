@@ -33,7 +33,7 @@ export async function appendMemory(
   opts: AppendOptions = {},
 ): Promise<{ skipped: boolean; rules: string[] }> {
   const env = opts.env;
-  // CC-SECRET-SCANNER: never persist (or sync to the ~/.vanta git store) memory
+  // Secret scanner: never persist (or sync to the ~/.vanta git store) memory
   // content that contains a credential. Returns the matched rule ids for diagnosis.
   const rules = scanForSecrets(summary);
   if (rules.length > 0) return { skipped: true, rules };
@@ -77,7 +77,7 @@ function splitBlocks(content: string): string[] {
     .filter((p) => p.startsWith(BLOCK_DELIM));
 }
 
-/** CC-MEM-FRESHNESS: prepend a staleness caveat to a block older than ~1 day. */
+/** Memory freshness: prepend a staleness caveat to a block older than ~1 day. */
 function annotateBlock(block: string, now: number): string {
   const header = (block.split("\n", 1)[0] ?? "").slice(BLOCK_DELIM.length).trim();
   const ts = Date.parse(header);

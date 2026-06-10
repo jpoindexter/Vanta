@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-// CC-WORKTREE-AGENTS: the worktree manager is a thin shell-orchestration layer.
+// Worktree agents: the worktree manager is a thin shell-orchestration layer.
 // The pure helpers (branchName format) are not exported. The core functions require
 // a real git repo with a tracking branch — unit tests are limited to the module
 // export check. Full integration is verified manually with a real repo.

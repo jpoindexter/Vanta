@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-// CC-WORKTREE-AGENTS: git worktree isolation for parallel subagents.
+// Worktree agents: git worktree isolation for parallel subagents.
 // Each isolated agent runs in a fresh worktree on its own branch so parallel
 // code-editing agents don't conflict. Cleanup removes the worktree after use.
 

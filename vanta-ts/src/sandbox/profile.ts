@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { DANGEROUS_DIRS, expandHome } from "../tools/writable-zones.js";
 
-// CC-SANDBOX (opt-in OS isolation) — the PURE builders. These emit the backend
+// Sandbox (opt-in OS isolation) — the PURE builders. These emit the backend
 // config text/argv from resolved absolute paths; the impure file/temp work and
 // env reads live in run.ts. The invariant: the output only ever TIGHTENS — every
 // allow is scoped to root + zones + tmp, every DANGEROUS_DIR is denied, and the

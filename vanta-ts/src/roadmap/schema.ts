@@ -18,8 +18,8 @@ export type Model = (typeof MODEL)[number];
 export const EFFORT = ["low", "medium", "high"] as const;
 export type Effort = (typeof EFFORT)[number];
 
-// Strategic lens — what this item serves for Vanta-as-Hermes (a do-everything
-// operator), independent of which source it came from. Lets the board separate
+// Strategic lens — what this item serves for Vanta as a do-everything
+// operator, independent of track. Lets the board separate
 // the autonomous-agent spine from coding-harness leftovers and pure polish.
 //   agent-loop = autonomous reliability (compaction, hooks, permissions, goals, recovery)
 //   tui        = display, render stability, visual hierarchy

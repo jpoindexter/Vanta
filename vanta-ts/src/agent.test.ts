@@ -121,9 +121,9 @@ describe("agent dispatch against the live kernel", () => {
   });
 });
 
-// CC-AUTO-COMPACT: onAutoCompact callback fires when context compression runs.
+// Auto-compact: onAutoCompact callback fires when context compression runs.
 // Uses a tiny context window to force compaction without needing the kernel.
-describe("CC-AUTO-COMPACT onAutoCompact callback", () => {
+describe("auto-compact onAutoCompact callback", () => {
   it("fires with dropped count and summary text when compression runs", async () => {
     // Seed 12 prior messages so rest.length > protectFirst(3)+protectLast(6)=9.
     // With a 300-token window and ~80-char messages, the total comfortably exceeds 75%.

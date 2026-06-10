@@ -9,7 +9,7 @@ const msgs: Message[] = [
   { role: "tool", toolCallId: "1", name: "read_file", content: "w".repeat(80) }, // 20 tok
 ];
 
-describe("contextBreakdown (CC-CONTEXT-USAGE-CMD)", () => {
+describe("contextBreakdown (context usage breakdown)", () => {
   it("sums tokens by message category at ~4 chars/token", () => {
     const b = contextBreakdown(msgs, 1000);
     expect(b.system).toBe(100);

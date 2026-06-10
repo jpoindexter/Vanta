@@ -1,7 +1,7 @@
 import { type ReactElement, type ReactNode } from "react";
 import { Box, Text } from "ink";
 
-// CC-FULLSCREEN-FILL: alt-screen frame = a full viewport of blank filler ABOVE
+// Alt-screen fullscreen fill: alt-screen frame = a full viewport of blank filler ABOVE
 // the content. Every frame is therefore rows+content lines tall — it ALWAYS
 // overflows the viewport, so Ink always takes its clearTerminal render path
 // (absolute, home-anchored full rewrite) instead of the cursor-relative

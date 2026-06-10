@@ -2,7 +2,7 @@ import type { Message } from "../types.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
 import { contextSuggestions } from "./context-suggestions.js";
 
-// CC-CONTEXT-USAGE-CMD: /context — estimate how the context window is spent,
+// Context usage command: /context — estimate how the context window is spent,
 // broken down by message category, so the user knows what to /compact. Token
 // counts are estimates (~4 chars/token), matching the status-bar heuristic.
 
@@ -66,7 +66,7 @@ export function formatContextBreakdown(b: ContextBreakdown): string {
 export const contextCmd: SlashHandler = (_arg, ctx: ReplCtx): SlashResult => {
   const window = ctx.setup.provider.contextWindow();
   const breakdown = formatContextBreakdown(contextBreakdown(ctx.convo.messages, window));
-  // CC-CONTEXT-SUGGESTIONS: at ≥70% fill, name the heaviest items to remove.
+  // Context suggestions: at ≥70% fill, name the heaviest items to remove.
   const tips = contextSuggestions(ctx.convo.messages, window).map((s) => `  ${s.severity === "warning" ? "⚠" : "·"} ${s.text}`);
   return { output: tips.length ? `${breakdown}\n${tips.join("\n")}` : breakdown };
 };

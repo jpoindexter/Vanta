@@ -48,7 +48,7 @@ export function resolveReadableZones(env: NodeJS.ProcessEnv, root: string): stri
 }
 
 /**
- * CC-ADD-DIR: add a directory to the session's extra dirs (readable + writable).
+ * Add a directory to the session's extra dirs (readable + writable).
  * Mutates process.env.VANTA_EXTRA_DIRS. The kernel still gates each access.
  */
 export function addSessionDir(dir: string, env: NodeJS.ProcessEnv): void {
@@ -69,10 +69,10 @@ export function isInZone(abs: string, zones: string[]): boolean {
   return zones.some((z) => abs === z || abs.startsWith(z + sep));
 }
 
-// CC-DANGEROUS-PATHS: an unconditional floor beneath zones, scope, AND approval
+// Dangerous-paths floor: an unconditional floor beneath zones, scope, AND approval
 // mode. These credential/system paths are NEVER readable or writable by the file
 // tools — distinct from configurable zones, and not overridable by auto-approve.
-// Exported so the OS sandbox (CC-SANDBOX) emits the SAME deny list as the file
+// Exported so the OS sandbox emits the SAME deny list as the file
 // tools — single source of truth, can't drift. Entries use `~` / relative form;
 // callers expand via `expandHome` + `resolve` before use (see `isDangerousPath`).
 export const DANGEROUS_DIRS = ["~/.ssh", "~/.gnupg", "~/.aws", "~/.config/gcloud", "/etc", "/private/etc", "/System", "/var/db/sudo"];
@@ -84,7 +84,7 @@ const DANGEROUS_FILES = [
 
 /**
  * True (with a reason) if `abs` is a protected credential/system path the file
- * tools must never read or write — the absolute floor for CC-DANGEROUS-PATHS.
+ * tools must never read or write — the absolute floor for the dangerous-paths policy.
  */
 export function isDangerousPath(abs: string): { dangerous: boolean; reason?: string } {
   if (DANGEROUS_FILES.map((p) => resolve(expandHome(p))).includes(abs)) {

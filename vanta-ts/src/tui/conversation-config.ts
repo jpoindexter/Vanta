@@ -35,7 +35,7 @@ export function buildConvoConfig(deps: {
     onToolResult: (name, ok, output, diff) => {
       const preview = ok ? buildResultPreview(output) : undefined;
       deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput: preview?.preview, lineCount: preview?.lineCount });
-      // CC-TODO: live checklist — surface the todo list as a note every time the agent writes it.
+      // Live checklist — surface the todo list as a note every time the agent writes it.
       if (name === "todo" && ok && output.includes("done)")) {
         deps.dispatch({ t: "note", text: `  ☑ plan updated:\n${output.split("\n").map((l) => `  ${l}`).join("\n")}` });
       }
@@ -45,7 +45,7 @@ export function buildConvoConfig(deps: {
       deps.dispatch({ t: "compactBoundary", text: `compacted ${dropped} messages · ${preview}` });
     },
     requestApproval: deps.requestApproval,
-    // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
+    // Plan-mode gate: block write tools while plan mode is active and unapproved.
     planGate: () => {
       const sys = deps.convoRef.current?.messages[0];
       return !!(sys?.content.includes(PLAN_MARKER) && !deps.replStateRef.current.planApproved);

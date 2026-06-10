@@ -10,7 +10,7 @@ const TEMP_MARKERS = ["/var/folders", "/tmp/", "NSIRD", "/T/"];
 const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 /**
- * CC-BASH-COMMENT-LABEL: extract the display label from the first `# label`
+ * Extract the display label from the first `# label`
  * comment line of a shell command. Returns null when the command has no comment.
  */
 export function bashLabel(cmd: string): string | null {

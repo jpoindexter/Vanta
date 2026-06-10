@@ -1,4 +1,4 @@
-// CC-MEM-FRESHNESS: stale-memory caveats. Memories are point-in-time
+// Memory freshness: stale-memory caveats. Memories are point-in-time
 // observations; file:line citations in an old block may no longer match the
 // code. Fresh blocks (today/yesterday) inject nothing; older blocks get a
 // one-line staleness note so the agent re-verifies before trusting them.

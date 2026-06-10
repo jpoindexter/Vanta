@@ -1,4 +1,4 @@
-// CC-DIAGNOSTIC-BASELINE wiring helper. Straddles a file write to surface only
+// Diagnostic-baseline wiring helper. Straddles a file write to surface only
 // the TS diagnostics the write INTRODUCED. Unlike the size gate (a pure
 // post-write check on the new content), diagnostics are read from DISK — so the
 // baseline must be captured BEFORE the write lands and the after-pass AFTER.

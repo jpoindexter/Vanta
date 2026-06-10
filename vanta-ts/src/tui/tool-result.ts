@@ -1,6 +1,6 @@
 import type { DiffLine } from "../util/diff.js";
 
-// CC-TRANSCRIPT — pure result-summary rules for the activity feed. The render
+// Pure result-summary rules for the activity feed. The render
 // layer never sees a tool's raw output (that goes to the model only); instead we
 // compute a short magnitude one-liner at DISPATCH time and store just that string
 // on the entry. Pairs with tool-display.ts (which summarizes the CALL); this
@@ -9,7 +9,7 @@ import type { DiffLine } from "../util/diff.js";
 
 const SINGLE_LINE_MAX = 60;
 
-// CC-COLLAPSED-READ: short outputs (≤ INLINE_MAX lines) always show inline;
+// Collapsed read: short outputs (≤ INLINE_MAX lines) always show inline;
 // longer outputs fold behind ^O and show at most FOLD_PREVIEW lines when expanded.
 export const INLINE_MAX = 5;
 export const FOLD_PREVIEW = 12;

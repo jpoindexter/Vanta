@@ -4,9 +4,9 @@ import { existsSync } from "node:fs";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 
-// CC-SETTINGS: layered settings.json (user → project → local).
+// Layered settings.json (user → project → local).
 // Non-secret config (permissions, allowed tools, ui prefs).
-// Merges three scopes; local wins. Mirrors Claude Code's settings merge model.
+// Merges three scopes; local wins.
 
 export const SettingsSchema = z.object({
   /** Tool names always approved without a prompt. */

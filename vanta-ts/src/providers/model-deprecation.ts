@@ -1,4 +1,4 @@
-// CC-MODEL-DEPRECATION — surface a retirement notice when the active model id is a
+// Model deprecation — surface a retirement notice when the active model id is a
 // known-legacy model. Pure: no I/O, no Date.now(); `now` is injected for testability.
 // The retirement dates are best-effort/illustrative static strings for clearly-superseded
 // models — not a live registry.

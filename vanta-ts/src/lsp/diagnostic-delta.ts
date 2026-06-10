@@ -1,4 +1,4 @@
-// CC-DIAGNOSTIC-BASELINE — after an edit, surface only the diagnostics the edit
+// Diagnostic baseline — after an edit, surface only the diagnostics the edit
 // INTRODUCED. Pre-existing issues are baseline noise; the agent should not be
 // blamed for them. Pure: diff two diagnostic lists + format the delta.
 //

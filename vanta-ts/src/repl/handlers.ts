@@ -100,7 +100,7 @@ const undo: SlashHandler = (_arg, ctx) => {
 const skills: SlashHandler = async (_arg, ctx) => {
   const s = await listSkills(ctx.env);
   if (!s.length) return { output: "  (no skills yet — `vanta skills install`)" };
-  // Aligned name column + one-line clipped description (Claude-CLI style) — full
+  // Aligned name column + one-line clipped description — full
   // multi-sentence descriptions wrap into an unreadable wall otherwise.
   const w = Math.min(24, Math.max(...s.map((x) => x.meta.name.length)) + 2);
   const rows = s.map((x) => `  ${x.meta.name.padEnd(w)}${oneLine(x.meta.description, 72)}`);
@@ -122,7 +122,7 @@ const compress: SlashHandler = async (arg, ctx) => {
   const { compressMessages } = await import("../context.js");
   const { buildSummarizer } = await import("../session.js");
   const before = ctx.convo.messages.length;
-  const instructions = arg.trim() || undefined; // CC-COMPACT-INSTRUCTIONS: steer the summary
+  const instructions = arg.trim() || undefined; // Steer the summary
   const compressed = await compressMessages(
     ctx.convo.messages,
     ctx.setup.provider.contextWindow(),

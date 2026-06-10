@@ -153,7 +153,7 @@ describe("App render", () => {
   });
 });
 
-describe("Transcript fold (CC-TRANSCRIPT)", () => {
+describe("Transcript fold", () => {
   const wrote: Entry = {
     kind: "tool", name: "write_file", icon: "✎", verb: "wrote", detail: "x.ts",
     ok: true, diff: [{ type: "add", text: "hello world" }, { type: "remove", text: "old line" }],
@@ -175,7 +175,7 @@ describe("Transcript fold (CC-TRANSCRIPT)", () => {
   });
 });
 
-describe("interrupted entry (CC-MSG-INTERRUPTED)", () => {
+describe("interrupted entry", () => {
   it("renders a distinct ⎋ marker", () => {
     const entry: Entry = { kind: "interrupted", text: "interrupted — agent stopped mid-turn" };
     const { lastFrame, unmount } = render(<EntryRow entry={entry} />);
@@ -186,7 +186,7 @@ describe("interrupted entry (CC-MSG-INTERRUPTED)", () => {
   });
 });
 
-describe("compactBoundary entry (CC-MSG-COMPACT-BOUNDARY)", () => {
+describe("compactBoundary entry", () => {
   it("renders a distinct ✻ separator with the message count", () => {
     const entry: Entry = { kind: "compactBoundary", text: "compacted 12 messages · brief summary" };
     const { lastFrame, unmount } = render(<EntryRow entry={entry} />);

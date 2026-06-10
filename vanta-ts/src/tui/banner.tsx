@@ -7,7 +7,7 @@ import type { RunSetup } from "../session.js";
 
 // Startup banner — the first thing a session shows: the ASCII wordmark plus a
 // title-bordered two-column card (left: identity + session meta, right: the
-// live capability inventory), Hermes/Claude-Code style. Fed entirely from
+// live capability inventory). Fed entirely from
 // Vanta's own subsystems — no fabricated numbers. Normal mode renders it once
 // inside <Static>; alt-screen mode renders it as the first transcript entry so
 // it scrolls into history like everything else.

@@ -30,7 +30,7 @@ describe("readMcpConfig", () => {
     expect(cfg.servers).toEqual({});
   });
 
-  it("accepts mcpServers key in inline config (Claude Code convention)", async () => {
+  it("accepts mcpServers key in inline config (the common mcpServers convention)", async () => {
     const cfg = await readMcpConfig({
       VANTA_MCP_SERVERS: JSON.stringify({
         mcpServers: { myserver: { command: "mcp-tool", args: ["--flag"] } },

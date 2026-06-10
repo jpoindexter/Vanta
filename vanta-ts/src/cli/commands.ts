@@ -236,11 +236,11 @@ export async function runHooksCommand(rest: string[]): Promise<void> {
   const settingsPath = join(homedir(), ".claude", "settings.json");
   const vantaCmd = join(homedir(), ".local", "bin", "vanta");
   if (rest[0] === "run") {
-    // Called by Claude Code Stop/PreCompact hooks — write a brain episodic note.
+    // Called by external Stop/PreCompact hooks — write a brain episodic note.
     const event = rest[1] ?? "stop";
     try {
       const { writeRegion } = await import("../brain/store.js");
-      const note = `\n- [${new Date().toISOString()}] Claude Code hook: ${event}`;
+      const note = `\n- [${new Date().toISOString()}] hook: ${event}`;
       await writeRegion("episodic", note, { append: true });
     } catch { /* best-effort */ }
     return;

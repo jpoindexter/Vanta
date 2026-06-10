@@ -29,7 +29,7 @@ export async function applySafetyGate(
   const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
   const verdict = await deps.safety.assess(action);
 
-  // CC-PERMISSIONS: the kernel verdict is the floor. User rules may TIGHTEN it
+  // Permissions: the kernel verdict is the floor. User rules may TIGHTEN it
   // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
   // tighten() returns "block" for any kernel block regardless of the rule.
   const decision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));

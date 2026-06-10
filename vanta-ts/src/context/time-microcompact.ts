@@ -1,4 +1,4 @@
-// CC-TIME-BASED-MC: time-based microcompact. After a long idle gap, clear old
+// Time-based microcompact: after a long idle gap, clear old
 // tool results before the next API call so the resumed prompt is lean. Pure and
 // transient: returns a NEW array, never mutates the live transcript, never throws.
 

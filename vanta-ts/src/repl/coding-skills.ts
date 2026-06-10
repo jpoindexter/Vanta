@@ -1,7 +1,7 @@
 import { readSkill } from "../skills/store.js";
 import type { SlashHandler, SlashResult } from "./types.js";
 
-// CC-CODING-SKILLS: slash command handlers for /review, /simplify, /verify, /run.
+// Coding-skills: slash command handlers for /review, /simplify, /verify, /run.
 // Each loads the corresponding skill from the skill store and passes it to the
 // agent as a resend instruction. Skills install on first session start via
 // installSkillLibrary (skills-library/cc-review, cc-simplify, cc-verify, cc-run).

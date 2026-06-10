@@ -1,4 +1,4 @@
-// CC-EDITOR — open a referenced file:line in the user's editor. Pure parse +
+// Editor open — open a referenced file:line in the user's editor. Pure parse +
 // command building (testable); the spawn is the only side effect. Editor from
 // VANTA_EDITOR > VISUAL > EDITOR, default `code` (Jason's stack is VS Code-like).
 

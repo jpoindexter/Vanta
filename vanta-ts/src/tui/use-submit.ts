@@ -120,7 +120,7 @@ export function useSubmit(d: SubmitDeps): (raw: string) => void {
     if (!line) return;
     if (handleSpecialLine(line, d)) return;
     if (d.busy) { d.dispatch({ t: "enqueue", text: line }); return; }
-    // CC-PROMPT-KEYWORDS: a bare "keep going"/"continue" resumes the prior task.
+    // Prompt keywords: a bare "keep going"/"continue" resumes the prior task.
     if (classifyPromptKeyword(line) === "continue") { d.sendToAgent(CONTINUE_NUDGE); return; }
     void sendLine(line, d);
   };

@@ -1,6 +1,6 @@
 import { stashOriginal } from "./store.js";
 
-// CC-TOOL-RESULT-DISK: size-based offload. Compression (apply.ts) is LOSSY and
+// Tool-result disk offload: size-based offload. Compression (apply.ts) is LOSSY and
 // allow-listed to media/web outputs; THIS is the lossless, all-tools backstop —
 // any tool output over the char limit (a 60K read_file, a noisy shell dump) is
 // stashed whole in the CCR store and replaced in history by a deterministic

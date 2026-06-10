@@ -1,4 +1,4 @@
-// CC-SHELL-STALL-DETECT: background shell stall watchdog.
+// Background shell stall watchdog.
 // A long-running bg command that asks for interactive input (y/n, password, …)
 // can hang forever silently. These pure fns detect that tail and decide whether
 // to fire a one-time notification. No I/O, no timers, no state held — `nowMs` and

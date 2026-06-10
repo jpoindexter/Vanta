@@ -9,9 +9,9 @@ import type { Tool } from "../tools/types.js";
 // Mount external MCP servers as Vanta tools.
 // Config sources (first wins for inline; files are merged with project winning on conflict):
 //   1. VANTA_MCP_SERVERS env (JSON, inline)
-//   2. ./.mcp.json in cwd — Claude-compatible format (mcpServers key)
+//   2. ./.mcp.json in cwd — common mcpServers format (mcpServers key)
 //   3. ~/.vanta/mcp.json — user-level fallback (servers key)
-// Accepts both "mcpServers" (Claude Code convention) and "servers" (Vanta convention).
+// Accepts both "mcpServers" (the common mcpServers convention) and "servers" (Vanta convention).
 // No config → no-op (zero overhead). Each server is best-effort: one that fails
 // to start doesn't block the others or the session. MCP tools go through the
 // kernel `assess()` like every other tool.
@@ -20,13 +20,13 @@ const ServerSchema = z.object({
   command: z.string().optional(),
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
-  // CC-MCP-REMOTE: HTTP transport support
+  // MCP remote: HTTP transport support
   url: z.string().url().optional(),
   token: z.string().optional(),
   headers: z.record(z.string()).optional(),
 }).refine((s) => s.command || s.url, "either command or url is required");
 
-// Accept both "servers" (Vanta) and "mcpServers" (Claude Code) keys; merge with servers winning.
+// Accept both "servers" (Vanta) and "mcpServers" (common convention) keys; merge with servers winning.
 const ConfigSchema = z
   .object({
     servers: z.record(ServerSchema).optional(),
@@ -74,7 +74,7 @@ export function mcpToolToVantaTool(
   def: McpToolDef,
   opts: { deferred?: boolean } = {},
 ): Tool {
-  // CC-MCP-TOOLSEARCH: when deferred=true, strip the parameters from the schema.
+  // Deferred tools: when deferred=true, strip the parameters from the schema.
   // The tool still works but the LLM must call tool_search to get the full schema.
   const parameters = opts.deferred
     ? { type: "object" as const, properties: {}, description: "Use tool_search to fetch the full schema before calling." }
@@ -127,7 +127,7 @@ export async function mountMcpServers(
     try {
       let transport!: Transport;
       if (spec.url) {
-        // CC-MCP-REMOTE: HTTP transport
+        // MCP remote: HTTP transport
         const { httpTransport, resolveToken } = await import("./http-transport.js");
         const token = resolveToken(name, spec.token, env);
         transport = httpTransport(spec.url, { token, headers: spec.headers });

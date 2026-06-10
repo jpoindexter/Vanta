@@ -1,6 +1,6 @@
 import type { Transport } from "./client.js";
 
-// CC-MCP-REMOTE: HTTP transport for remote MCP servers.
+// MCP remote: HTTP transport for remote MCP servers.
 // Allows mounting hosted MCP servers (e.g. Zapier, GitHub, Stripe) over HTTP
 // instead of stdio. Supports Bearer token and OAuth-style headers.
 // Usage in mcp.json:

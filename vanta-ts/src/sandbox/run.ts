@@ -10,7 +10,7 @@ import {
   wrapCommand,
 } from "./profile.js";
 
-// CC-SANDBOX seam: `maybeSandbox` is the single entry point both exec sites
+// Sandbox seam: `maybeSandbox` is the single entry point both exec sites
 // (shell-cmd, run-code) call. Default-off path is byte-identical — when
 // VANTA_SANDBOX !== "1" it returns the base cmd/args UNCHANGED. The invariant:
 // enabling it only TIGHTENS; it never grants access.

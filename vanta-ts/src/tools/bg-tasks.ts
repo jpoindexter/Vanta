@@ -11,7 +11,7 @@ import { notify } from "../tui/notify.js";
 // Must be < the stall idle window (45s) so idle time accrues across ticks.
 const STALL_POLL_MS = 5_000;
 
-// CC-SHELL-STALL-DETECT: poll the live output buffer; notify once if the task
+// Shell-stall detect: poll the live output buffer; notify once if the task
 // stalls on an interactive prompt. Returns an unref'd timer cleared on close.
 function startStallWatchdog(chunks: string[], id: string, command: string): NodeJS.Timeout {
   let stall: StallState = { lastLen: 0, lastChangeMs: Date.now(), notified: false };
@@ -31,7 +31,7 @@ function startStallWatchdog(chunks: string[], id: string, command: string): Node
   return timer;
 }
 
-// CC-BG-TASKS: background shell task execution.
+// Background shell task execution.
 // Spawns commands detached, writes output to .vanta/bg-tasks/<id>.{log,status}.
 // The agent polls with bg_status; users see the list via /tasks or bg_list tool.
 

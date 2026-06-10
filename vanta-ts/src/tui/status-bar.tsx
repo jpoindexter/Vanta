@@ -36,7 +36,7 @@ export function formatDuration(ms: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
-// CC-TOKEN-WARN-UI: warn when the conversation is approaching the context limit
+// Token-warning UI: warn when the conversation is approaching the context limit
 // so the user can /compact or /new before a turn overflows. Thresholds are
 // fractions of the context window, configurable via env.
 export type TokenWarnLevel = "none" | "warn" | "urgent";

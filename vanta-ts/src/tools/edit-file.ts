@@ -89,7 +89,7 @@ export const editFileTool: Tool = {
 
     const diff = computeDiff(content, updated);
     try {
-      const finishDiag = await beginDiagnosticDelta(abs, true); // CC-DIAGNOSTIC-BASELINE (opt-in)
+      const finishDiag = await beginDiagnosticDelta(abs, true); // Diagnostic baseline (opt-in)
       await writeFile(abs, updated, "utf8");
       const occurrences = replace_all
         ? content.split(old_string).length - 1

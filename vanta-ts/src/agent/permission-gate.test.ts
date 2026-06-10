@@ -7,7 +7,7 @@ import type { AgentDeps } from "../agent.js";
 import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
 
-// Integration test for CC-PERMISSIONS in the dispatch gate: the kernel verdict is
+// Integration test for the permissions gate in dispatch: the kernel verdict is
 // the floor; rules may TIGHTEN it but never loosen a Block. (The tighten() truth
 // table itself is exhaustively unit-tested in permissions/rules.test.ts.)
 
@@ -47,7 +47,7 @@ function makeDeps(o: GateOpts): AgentDeps {
 const call: ToolCall = { id: "1", name: "shell_cmd", arguments: { cmd: "ls" } };
 const ctx = {} as ToolContext;
 
-describe("applySafetyGate + CC-PERMISSIONS", () => {
+describe("applySafetyGate + permissions", () => {
   it("a deny rule blocks an otherwise-allowed tool", async () => {
     await writeRules("deny\tshell_cmd\t\n");
     const res = await applySafetyGate(call, makeDeps({ risk: "allow" }), ctx);

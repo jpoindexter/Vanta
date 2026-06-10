@@ -259,14 +259,14 @@ describe("shell_cmd", () => {
     expect(res.ok).toBe(false);
   });
 
-  it("prepends a destructive-command warning to the result (CC-DESTRUCTIVE-WARN)", async () => {
+  it("prepends a destructive-command warning to the result", async () => {
     // Runs in a temp non-repo dir → git errors harmlessly; the ⚠ note is still surfaced.
     const res = await shellCmdTool.execute({ command: "git reset --hard" }, ctx());
     expect(res.output).toContain("discards uncommitted");
   });
 });
 
-describe("dangerous-path floor (CC-DANGEROUS-PATHS)", () => {
+describe("dangerous-path floor", () => {
   it("write_file refuses a protected credential path even with auto-approval", async () => {
     // ctx() approves everything; the dangerous floor runs BEFORE approval.
     const res = await writeFileTool.execute({ path: "~/.ssh/id_rsa", content: "x" }, ctx());
@@ -280,7 +280,7 @@ describe("dangerous-path floor (CC-DANGEROUS-PATHS)", () => {
   });
 });
 
-describe("classifyExitCode (CC-BASH-CMD-SEMANTICS)", () => {
+describe("classifyExitCode", () => {
   it("treats grep/rg exit 1 as 'No matches found'", () => {
     expect(classifyExitCode("grep foo bar.txt", 1)).toEqual({ ok: true, note: "No matches found" });
     expect(classifyExitCode("rg foo", 1)).toEqual({ ok: true, note: "No matches found" });

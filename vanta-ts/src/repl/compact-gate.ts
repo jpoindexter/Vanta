@@ -1,4 +1,4 @@
-// CC-COMPACT-INSTRUCTIONS — an opt-out kill switch for conversation compaction.
+// Compaction gate — an opt-out kill switch for conversation compaction.
 // Strict "1" (not the default-on `compressEnabled` contract): compaction is ON
 // unless the operator explicitly disables it. Either env var (canonical
 // `VANTA_DISABLE_COMPACT`, or the unprefixed `DISABLE_COMPACT`) flips it off.

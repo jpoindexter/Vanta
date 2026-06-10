@@ -50,7 +50,7 @@ describe("StatusBar", () => {
   });
 });
 
-describe("tokenWarningLevel (CC-TOKEN-WARN-UI)", () => {
+describe("tokenWarningLevel", () => {
   const empty = {} as NodeJS.ProcessEnv;
   it("is none below the warn threshold", () => {
     expect(tokenWarningLevel(8_000, 10_000, empty)).toBe("none"); // 80%

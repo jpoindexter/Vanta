@@ -14,7 +14,7 @@ function oneLine(text: string, max: number): string {
 }
 
 /**
- * CC-HISTORY-SEARCH — `/search <query>`
+ * `/search <query>`
  * Search the current session's conversation history for messages containing
  * the query string (case-insensitive). Shows matching turns as:
  *   [turn N] role: …preview…

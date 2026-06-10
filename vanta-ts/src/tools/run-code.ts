@@ -43,7 +43,7 @@ async function runStep(
   language: Language,
   root: string,
 ): Promise<ToolResult> {
-  // CC-SANDBOX: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
+  // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
   const sb = await maybeSandbox({ env: process.env, root, baseCmd: cmd[0], baseArgs: cmd[1] });
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
   try {

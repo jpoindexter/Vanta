@@ -93,7 +93,7 @@ export const delegateTool: Tool = {
       // Child cannot spawn further delegates — prevents runaway recursion.
       const registry = buildRegistry({ exclude: ["delegate"] });
 
-      // CC-WORKTREE-AGENTS: run the worker in an isolated git worktree.
+      // Worktree agents: run the worker in an isolated git worktree.
       let worktreeHandle: import("../worktree/manager.js").WorktreeHandle | undefined;
       let workerRoot = ctx.root;
       if (isolation === "worktree") {

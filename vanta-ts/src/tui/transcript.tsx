@@ -26,11 +26,11 @@ export type ToolEntry = {
   summary?: string;
   /** Diff lines for write_file results — folded behind the expand toggle. */
   diff?: DiffLine[];
-  /** CC-COLLAPSED-READ: preview (up to FOLD_PREVIEW lines) — shown when expanded. */
+  /** Preview (up to FOLD_PREVIEW lines) — shown when expanded. */
   resultOutput?: string;
   /** Total line count of the result; controls inline vs. folded display. */
   lineCount?: number;
-  /** CC-MSG-GROUPED-TOOLS: true when this tool call directly follows another in the same turn. */
+  /** True when this tool call directly follows another in the same turn. */
   isGrouped?: boolean;
 };
 
@@ -138,7 +138,7 @@ export function Palette(props: {
   sel: number;
   width: number;
 }): ReactElement {
-  // Fixed command column (Claude-CLI style): command name padded to a shared
+  // Fixed command column: command name padded to a shared
   // width, then risk label, then one-line, width-clipped description.
   const labels = props.matches.map((c) => `/${c.name}${c.arg ? ` ${c.arg}` : ""}`);
   const cmdCol = Math.min(22, Math.max(2, ...labels.map((l) => l.length)) + 2);

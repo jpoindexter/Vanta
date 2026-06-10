@@ -1,4 +1,4 @@
-// CC-DESTRUCTIVE-WARN: a curated list of bash/git commands that are allowed to
+// Destructive-command warning: a curated list of bash/git commands that are allowed to
 // run but can silently discard work. We surface an INFORMATIONAL note alongside
 // the result — it never blocks or changes approval logic (the kernel/DESTRUCTIVE
 // gate handles outright-refused commands like `rm -rf`).

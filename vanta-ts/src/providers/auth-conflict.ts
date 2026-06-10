@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { credentialsPath } from "./claude-code-auth.js";
 import { defaultCodexAuthPath } from "./codex-auth.js";
 
-// CC-AUTH-CONFLICT-NOTICE: when an API key AND an OAuth login are both active
+// Auth-conflict notice: when an API key AND an OAuth login are both active
 // for the same upstream, the user may not realize which credential is in use.
 // We surface an informational notice (doctor/status) suggesting they remove one.
 

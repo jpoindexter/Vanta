@@ -197,7 +197,7 @@ const PRIORITY_LABEL: Record<string, string> = {
   sand: "Sand (quick wins)",
 };
 
-// Ordered most-to-least Hermes-strategic so the dropdown reads as a priority list.
+// Ordered most-to-least strategic so the dropdown reads as a priority list.
 const LENS_ORDER = [
   "agent-loop",
   "tui",

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolContext } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
 
-// CC-MCP-TOOLSEARCH: deferred tool schema discovery.
+// Deferred tool schema discovery.
 // Vanta's prompt includes full schemas for all built-in tools.
 // When VANTA_MCP_DEFER=1, MCP tool schemas are omitted from the prompt;
 // the agent uses `tool_search` to fetch schemas on demand before calling.

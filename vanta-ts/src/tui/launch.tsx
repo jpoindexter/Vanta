@@ -3,10 +3,10 @@ import { App } from "./app.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 
-// CC-NO-FLICKER-ENV: opt into Ink's built-in alternateScreen mode.
+// No-flicker env: opt into Ink's built-in alternateScreen mode.
 // Ink v7 manages the buffer switch, cursor hide/restore, and unmount cleanup
 // natively — this is the correct API rather than manual escape sequences.
-// Accepts VANTA_NO_FLICKER=1 or the Claude Code compat alias.
+// Accepts VANTA_NO_FLICKER=1 or its compat alias.
 export function inAltScreen(): boolean {
   return process.env.VANTA_NO_FLICKER === "1" || process.env.CLAUDE_CODE_NO_FLICKER === "1";
 }

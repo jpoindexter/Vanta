@@ -25,13 +25,13 @@ const OAUTH_BETA = "oauth-2025-04-20";
 const OAUTH_USER_AGENT = "claude-cli/1.0.0 (external, vanta)";
 const CLAUDE_CODE_SPOOF = "You are Claude Code, Anthropic's official CLI for Claude.";
 
-// CC-PROMPT-CACHE-1H: opt-in 1-hour cache TTL (default ephemeral TTL is 5 min).
+// 1-hour prompt cache: opt-in 1-hour cache TTL (default ephemeral TTL is 5 min).
 // Frugality win ONLY on long sessions — a 1h cache WRITE costs 2x base input, so
 // you need ~3+ cache reads inside the hour to beat the 5-min TTL. Off by default;
 // turn on for marathon/agentic runs that keep hitting the same stable prefix.
 const EXTENDED_CACHE_BETA = "extended-cache-ttl-2025-04-11";
 
-/** True when the 1-hour prompt-cache TTL is opted in (Claude Code's env name). */
+/** True when the 1-hour prompt-cache TTL is opted in (via ENABLE_PROMPT_CACHING_1H). */
 export function promptCache1hEnabled(env: NodeJS.ProcessEnv): boolean {
   const v = env.ENABLE_PROMPT_CACHING_1H?.trim().toLowerCase();
   return v === "1" || v === "true" || v === "yes";

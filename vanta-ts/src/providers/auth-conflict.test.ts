@@ -3,7 +3,7 @@ import { authConflictNotices } from "./auth-conflict.js";
 
 const env = (o: Record<string, string>) => o as unknown as NodeJS.ProcessEnv;
 
-describe("authConflictNotices (CC-AUTH-CONFLICT-NOTICE)", () => {
+describe("authConflictNotices (auth-conflict notice)", () => {
   it("flags Anthropic key + Claude OAuth both active", () => {
     const n = authConflictNotices(env({ ANTHROPIC_API_KEY: "sk-x" }), { claude: true, codex: false });
     expect(n).toHaveLength(1);

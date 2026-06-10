@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-// CC-FULLSCREEN-FILL: reactive terminal size. Ink re-lays-out on resize, but
+// Reactive terminal size. Ink re-lays-out on resize, but
 // props derived from process.stdout.{rows,columns} are read once per render —
 // without this hook a resize never re-renders the React tree, so the alt-screen
 // frame keeps a stale height and falls out of Ink's fullscreen/overflow

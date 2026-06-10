@@ -99,7 +99,7 @@ describe("resolveReadablePath (shared read-path policy)", () => {
   });
 });
 
-describe("isDangerousPath (CC-DANGEROUS-PATHS)", () => {
+describe("isDangerousPath", () => {
   it("flags SSH/credential/cloud/system paths", () => {
     expect(isDangerousPath(join(homedir(), ".ssh", "id_rsa")).dangerous).toBe(true);
     expect(isDangerousPath("/etc/passwd").dangerous).toBe(true);

@@ -1,6 +1,6 @@
 import type { SlashHandler } from "./types.js";
 
-// ND3 / CC-PLAN-MODE-REAL — plan-first mode with enforced read-only gate.
+// ND3 — plan-first mode with enforced read-only gate.
 //
 // /planmode on|off|approve
 //

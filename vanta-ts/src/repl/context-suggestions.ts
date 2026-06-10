@@ -1,4 +1,4 @@
-// CC-CONTEXT-SUGGESTIONS — when the context window fills, turn the abstract
+// Context suggestions — when the context window fills, turn the abstract
 // "you're 80% full" number into specific, actionable removals: which tool
 // outputs to drop and how many tokens that frees. Pure + deterministic so the
 // /context command can render it and tests can pin the boundaries exactly.

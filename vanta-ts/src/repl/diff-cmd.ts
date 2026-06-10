@@ -6,7 +6,7 @@ import type { SlashHandler } from "./types.js";
 const execFileAsync = promisify(execFile);
 
 /**
- * CC-DIFF-VIEWER — `/diff`
+ * `/diff`
  * Shows uncommitted changes: working-tree diff stat + staged diff stat.
  * Runs git in the repo root (derived from dataDir, matching the /update pattern).
  */

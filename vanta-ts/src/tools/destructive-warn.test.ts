@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { destructiveWarning } from "./destructive-warn.js";
 
-describe("destructiveWarning (CC-DESTRUCTIVE-WARN)", () => {
+describe("destructiveWarning", () => {
   it("warns on git reset --hard", () => {
     expect(destructiveWarning("git reset --hard")).toContain("discards uncommitted");
     expect(destructiveWarning("git reset --hard HEAD~3")).toContain("discards uncommitted");

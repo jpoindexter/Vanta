@@ -1,7 +1,7 @@
 import type { SlashHandler } from "./types.js";
 
 /**
- * CC-BTW — `/btw <question>`
+ * `/btw <question>`
  * Sends a single-turn completion to the current provider WITHOUT touching
  * ctx.convo.messages. The answer is shown with a dim "⁻ btw:" prefix so
  * it's visually distinct from main conversation turns.

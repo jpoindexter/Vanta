@@ -3,9 +3,9 @@ import { existsSync } from "node:fs";
 import type { SlashHandler } from "./types.js";
 import { addSessionDir, getSessionDirs, expandHome } from "../tools/writable-zones.js";
 
-// CC-ADD-DIR: add extra working directories for the session.
+// Add-dir: add extra working directories for the session.
 // Each added dir is immediately readable + writable for this session; the kernel
-// still gates every individual access. Mirrors Claude Code's /add-dir.
+// still gates every individual access.
 
 function listDirs(env: NodeJS.ProcessEnv): string {
   const dirs = getSessionDirs(env);

@@ -8,14 +8,14 @@ import {
   localSettingsPath,
 } from "../settings/store.js";
 
-// CC-INVALID-SETTINGS-UI: when a Vanta config file fails to JSON-parse, the
+// Invalid-settings UI: when a Vanta config file fails to JSON-parse, the
 // runtime keeps its best-effort silent fallback ({} → no config) so a typo in
 // one file never crashes a session. But silent is the wrong default for the
 // OPERATOR — `vanta status`/`doctor` should NAME the broken file, what's wrong,
 // and (when locatable) the offending line, so it's fixable. This module is the
 // detector: it independently re-reads + re-parses the known config files and
 // returns a notice per file that fails, reusing the same `StatusReport.notices`
-// channel as CC-AUTH-CONFLICT-NOTICE and CC-MODEL-DEPRECATION. Pure aside from
+// channel as auth-conflict notices and model-deprecation notices. Pure aside from
 // the injected reader — never throws (gatherStatus's contract).
 
 /** Reads a file's text, or returns null when absent/unreadable. Injected for testability. */

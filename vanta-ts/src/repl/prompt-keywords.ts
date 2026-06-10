@@ -1,4 +1,4 @@
-// CC-PROMPT-KEYWORDS — bare continuation/negative phrase detection.
+// Bare continuation/negative phrase detection.
 // "keep going" resumes the prior task; "stop"/"never mind" are recognized too.
 // Matches ONLY a near-bare phrase — embedded in a longer instruction it must NOT fire.
 

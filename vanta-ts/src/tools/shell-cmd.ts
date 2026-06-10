@@ -48,7 +48,7 @@ export function lastCommandWord(command: string): string {
 }
 
 /**
- * CC-BASH-CMD-SEMANTICS: per-command exit-code semantics. grep/rg/find/diff
+ * Per-command exit-code semantics. grep/rg/find/diff
  * exit 1 is a valid *outcome*, not a failure — treating it as an error makes
  * the agent see false failures and retry needlessly. Returns ok=true (with an
  * info note) for those cases; everything else stays a real error.
@@ -89,7 +89,7 @@ export const shellCmdTool: Tool = {
       return { ok: false, output: "refused: command matches a destructive pattern" };
     }
     if (background) {
-      // CC-SANDBOX: detached background tasks aren't wrapped (no exit-time profile
+      // Sandbox: detached background tasks aren't wrapped (no exit-time profile
       // cleanup for an unref'd child). The sandbox only ever TIGHTENS, so when it's
       // requested we REFUSE the unsandboxed bypass rather than silently weaken it.
       if (process.env.VANTA_SANDBOX === "1") {
@@ -98,10 +98,10 @@ export const shellCmdTool: Tool = {
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
     }
-    // CC-DESTRUCTIVE-WARN: informational note for allowed-but-destructive commands.
+    // Destructive-command warning: informational note for allowed-but-destructive commands.
     const warn = destructiveWarning(command);
     const pfx = warn ? `⚠ ${warn}\n` : "";
-    // CC-SANDBOX: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
+    // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
     const sb = await maybeSandbox({ env: process.env, root: ctx.root, baseCmd: "sh", baseArgs: ["-c", command] });
     if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
     try {

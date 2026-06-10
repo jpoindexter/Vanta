@@ -1,4 +1,4 @@
-// CC-COMPACTION-REMIND — a transient context-fullness reminder.
+// Compaction reminder — a transient context-fullness reminder.
 // When the running context nears its window, nudge the model to consider
 // compaction. Returned as a string the caller injects as a transient message
 // (same seam as the goal-reminder note) — NEVER baked into the system prompt.

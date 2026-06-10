@@ -11,7 +11,7 @@ afterEach(() => {
   else process.env.VANTA_DIAGNOSTIC_DELTA = saved;
 });
 
-describe("beginDiagnosticDelta (CC-DIAGNOSTIC-BASELINE gate)", () => {
+describe("beginDiagnosticDelta (diagnostic-baseline gate)", () => {
   it("is a no-op when the opt-in flag is unset (default off)", async () => {
     delete process.env.VANTA_DIAGNOSTIC_DELTA;
     const finish = await beginDiagnosticDelta("/some/file.ts", true);

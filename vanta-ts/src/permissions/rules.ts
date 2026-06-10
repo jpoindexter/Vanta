@@ -1,11 +1,11 @@
 /**
- * CC-PERMISSIONS — pure rule layer on top of the Rust kernel verdict.
+ * Permission rules — pure rule layer on top of the Rust kernel verdict.
  *
  * The load-bearing invariant: rules may TIGHTEN, never LOOSEN. The kernel's
  * `assess()` verdict is the floor — a user rule can escalate (allow→ask→block)
  * but can NEVER turn a kernel `block` into anything weaker. `tighten()` is the
  * whole safety story; it is exhaustively unit-tested over the verdict × action
- * matrix. See docs/design-cc-permissions.md.
+ * matrix. See docs/design-permissions.md.
  */
 
 export type PermAction = "allow" | "ask" | "deny";

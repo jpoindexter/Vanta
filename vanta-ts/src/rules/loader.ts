@@ -1,4 +1,4 @@
-// CC-RULES — path-scoped rule files from .vanta/rules/*.md.
+// Path-scoped rule files from .vanta/rules/*.md.
 // Rule files may carry YAML frontmatter with a `paths:` field (glob list).
 // Rules without `paths:` are always-on; those with `paths:` are injected only
 // when at least one of the active files matches one of the globs.

@@ -154,7 +154,7 @@ describe("toAnthropicMessages", () => {
   });
 });
 
-describe("CC-PROMPT-CACHE-1H", () => {
+describe("1-hour prompt cache", () => {
   const withSplit: Message[] = [
     { role: "system", content: "Stable rules.\n\n---\n\nActive goals: none\n\nSession started: now" },
   ];
@@ -174,7 +174,7 @@ describe("CC-PROMPT-CACHE-1H", () => {
     expect(unset[0]?.cache_control).toEqual({ type: "ephemeral" });
   });
 
-  it("promptCache1hEnabled reads the Claude Code env name, truthy values only", () => {
+  it("promptCache1hEnabled reads the 1-hour-cache env name, truthy values only", () => {
     expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "1" } as NodeJS.ProcessEnv)).toBe(true);
     expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "true" } as NodeJS.ProcessEnv)).toBe(true);
     expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "yes" } as NodeJS.ProcessEnv)).toBe(true);

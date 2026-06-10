@@ -51,12 +51,12 @@ export function useKeybindings(d: {
     }
   }, { isActive: d.showAtPalette });
 
-  // Ctrl+O folds/unfolds tool detail across the transcript (CC-TRANSCRIPT).
+  // Ctrl+O folds/unfolds tool detail across the transcript.
   useInput((input, key) => {
     if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" });
   });
 
-  // CC-VIRTUAL-LIST: pgup/pgdn scroll the virtual viewport in alt-screen mode.
+  // Virtual list: pgup/pgdn scroll the virtual viewport in alt-screen mode.
   useInput((_in, key) => {
     const half = Math.max(1, Math.floor(d.maxVisible / 2));
     if (key.pageUp) d.dispatch({ t: "scrollBy", delta: half });

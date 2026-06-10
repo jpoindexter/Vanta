@@ -2,7 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { EntryRow, type Entry } from "./transcript.js";
 
-// CC-VIRTUAL-LIST: renders only the entries that fit within the terminal viewport.
+// Virtual list: renders only the entries that fit within the terminal viewport.
 // Used in alt-screen mode only. Replaces <Static> — no scrollback, but no ghost
 // frames and no Ink-tree growth. Parent passes viewOffset (how many entries above
 // the bottom are hidden); this component clamps and slices.

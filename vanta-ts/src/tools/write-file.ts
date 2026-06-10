@@ -48,7 +48,7 @@ async function verifyWrite(abs: string, content: string): Promise<string> {
 /** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
 async function writeAndReport(o: { abs: string; displayPath: string; content: string; isExisting: boolean; oldContent: string }): Promise<ToolResult> {
   try {
-    const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting); // CC-DIAGNOSTIC-BASELINE (opt-in)
+    const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting); // diagnostic baseline (opt-in)
     await mkdir(dirname(o.abs), { recursive: true });
     await writeFile(o.abs, o.content, "utf8");
     const kind = o.isExisting ? "overwritten" : "new file";
