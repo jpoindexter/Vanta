@@ -29,13 +29,47 @@ describe("describeImageTool", () => {
     expect(res.ok).toBe(false);
   });
 
-  it("returns ok:false for a path outside project scope", async () => {
-    const res = await describeImageTool.execute(
-      { path: "../escape.png" },
-      makeCtx("/tmp/vanta-scope"),
-    );
-    expect(res.ok).toBe(false);
-    expect(res.output).toContain("outside project scope");
+  // BUG-IMAGE-DESKTOP-PATH: ~ must be expanded before the scope check, and
+  // out-of-root images are allowed inside a readable zone (e.g. ~/Desktop).
+  describe("readable-zone path resolution", () => {
+    const saved = process.env.VANTA_READABLE_DIRS;
+    afterEach(() => {
+      if (saved === undefined) delete process.env.VANTA_READABLE_DIRS;
+      else process.env.VANTA_READABLE_DIRS = saved;
+    });
+
+    it("refuses an image outside the project and outside every readable zone", async () => {
+      process.env.VANTA_READABLE_DIRS = "/tmp/vanta-allowed-zone";
+      const res = await describeImageTool.execute(
+        { path: "/var/somewhere/else/x.png" },
+        makeCtx("/tmp/vanta-scope"),
+      );
+      expect(res.ok).toBe(false);
+      expect(res.output).toContain("readable zone");
+    });
+
+    it("allows an absolute path inside a configured readable zone (past the scope gate)", async () => {
+      process.env.VANTA_READABLE_DIRS = "/tmp/vanta-allowed-zone";
+      const res = await describeImageTool.execute(
+        { path: "/tmp/vanta-allowed-zone/missing.png" },
+        makeCtx("/tmp/vanta-scope"),
+      );
+      // Past the gate → fails at readFile (ENOENT), NOT a scope refusal.
+      expect(res.output).not.toContain("readable zone");
+      expect(res.output).toContain("could not describe");
+    });
+
+    it("expands ~ before the scope check so a ~/Desktop image is not bogusly in-root", async () => {
+      delete process.env.VANTA_READABLE_DIRS; // default zones include ~/Desktop
+      const res = await describeImageTool.execute(
+        { path: "~/Desktop/vanta-nonexistent-test-file.png" },
+        makeCtx("/tmp/vanta-scope"),
+      );
+      // ~ expanded + Desktop is a readable zone → past the gate, then ENOENT.
+      // (Pre-fix this resolved to <root>/~/Desktop/... and ENOENTed for the wrong reason.)
+      expect(res.output).not.toContain("readable zone");
+      expect(res.output).toContain("could not describe");
+    });
   });
 
   describe("with a real in-scope image and no API key", () => {

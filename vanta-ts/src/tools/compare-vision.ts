@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Tool } from "./types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { resolveInScope } from "../scope.js";
+import { expandHome, resolveReadableZones, isInZone } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 import { mimeForImage } from "./describe-image.js";
 import { readRegion } from "../brain/store.js";
@@ -110,11 +111,14 @@ export const compareVisionTool: Tool = {
     // Resolve + validate each path
     const resolved: Array<{ label: string; mime: string; dataBase64: string }> = [];
     for (const p of paths) {
-      const { ok, path: abs } = resolveInScope(p, ctx.root);
-      if (!ok) {
+      // Mirror read_file / describe_image: expand ~ first, allow out-of-root
+      // images that live in a readable zone (e.g. ~/Desktop). See BUG-IMAGE-DESKTOP-PATH.
+      const path = expandHome(p);
+      const { ok, path: abs } = resolveInScope(path, ctx.root);
+      if (!ok && !isInZone(abs, resolveReadableZones(process.env, ctx.root))) {
         return {
           ok: false,
-          output: `refused: path is outside project scope: ${p}`,
+          output: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
         };
       }
       const mime = mimeForImage(abs);
