@@ -43,13 +43,16 @@ const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!pro
 const SPINNER = spinnerFrames();
 const THEME = resolveTheme(process.env);
 const VIM_ENABLED = !!process.env.VANTA_VIM;
-// CC-VIRTUAL-LIST: alt-screen mode — virtual viewport replaces <Static>.
-const ALT_SCREEN = process.env.VANTA_NO_FLICKER === "1" || process.env.CLAUDE_CODE_NO_FLICKER === "1";
 // Reserve rows for: composer(3) + status(1) + padding(2) + streaming(2) + safety margin(2).
 const CHROME_ROWS = 10;
 
-export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
+// CC-VIRTUAL-LIST: alt-screen mode (virtual viewport replaces <Static>) is passed
+// as a prop, NOT read from process.env at module load — the .env is loaded at
+// runtime (cli.ts main → loadEnv), well after this module's top-level evaluates,
+// so a module-const read would always be false. launch.tsx reads it correctly.
+export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: boolean }): ReactElement {
   const { setup, repoRoot } = props;
+  const ALT_SCREEN = props.altScreen ?? false;
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
   const [input, setInput] = useState("");
