@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { shellCmdTool } from "./shell-cmd.js";
+import { shellCmdTool, classifyExitCode, lastCommandWord } from "./shell-cmd.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -245,5 +245,54 @@ describe("shell_cmd", () => {
     const res = await shellCmdTool.execute({ command: "rm -rf /" }, ctx());
     expect(res.ok).toBe(false);
     expect(res.output).toContain("destructive");
+  });
+
+  it("reports grep no-match (exit 1) as success, not failure", async () => {
+    const res = await shellCmdTool.execute({ command: "grep needle /dev/null" }, ctx());
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("No matches found");
+  });
+
+  it("still fails a real non-zero command", async () => {
+    const res = await shellCmdTool.execute({ command: "ls /no/such/path/xyz" }, ctx());
+    expect(res.ok).toBe(false);
+  });
+});
+
+describe("classifyExitCode (CC-BASH-CMD-SEMANTICS)", () => {
+  it("treats grep/rg exit 1 as 'No matches found'", () => {
+    expect(classifyExitCode("grep foo bar.txt", 1)).toEqual({ ok: true, note: "No matches found" });
+    expect(classifyExitCode("rg foo", 1)).toEqual({ ok: true, note: "No matches found" });
+  });
+  it("treats diff exit 1 as 'Differences found'", () => {
+    expect(classifyExitCode("diff a b", 1)).toEqual({ ok: true, note: "Differences found" });
+  });
+  it("treats find exit 1 as a partial-access outcome", () => {
+    expect(classifyExitCode("find . -name x", 1)).toEqual({ ok: true, note: "Some paths were inaccessible" });
+  });
+  it("keeps grep exit 2 (real error) an error", () => {
+    expect(classifyExitCode("grep foo bar", 2).ok).toBe(false);
+  });
+  it("keeps unrelated commands' non-zero exits errors", () => {
+    expect(classifyExitCode("ls /nope", 1).ok).toBe(false);
+  });
+  it("classifies by the LAST command in a pipeline/chain", () => {
+    expect(classifyExitCode("cat x | grep y", 1).ok).toBe(true);
+    expect(classifyExitCode("grep y file && echo done", 1).ok).toBe(false); // last = echo
+  });
+  it("handles git grep / git diff and path-qualified binaries", () => {
+    expect(classifyExitCode("git grep foo", 1).ok).toBe(true);
+    expect(classifyExitCode("git diff --quiet", 1)).toEqual({ ok: true, note: "Differences found" });
+    expect(classifyExitCode("/usr/bin/grep -n x f", 1).ok).toBe(true);
+  });
+});
+
+describe("lastCommandWord", () => {
+  it("takes the last pipeline segment's program basename", () => {
+    expect(lastCommandWord("grep x f")).toBe("grep");
+    expect(lastCommandWord("cat x | grep y")).toBe("grep");
+    expect(lastCommandWord("find . && echo hi")).toBe("echo");
+    expect(lastCommandWord("git grep foo")).toBe("git grep");
+    expect(lastCommandWord("/usr/bin/grep -n x")).toBe("grep");
   });
 });

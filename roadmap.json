@@ -5660,7 +5660,7 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "tui",
-      "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation."
+      "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation. 2026-06-10: resize ghost-frame regression killed + banner restored via tui/alt-frame.tsx (always-overflow blank-filler viewport forces Ink's clearTerminal full-rewrite path instead of the cursor-relative eraseLines path that under-erases after a resize rewrap; a redraw nonce defeats log-update's identical-string skip) + tui/use-term-size.ts (reactive rows/cols + debounced resize redraw). Banner unified as a title-bordered two-column card across both screen modes. Commits a07f84c + 8b10fa6; see ERRORS.md 2026-06-10 pt 2."
     },
     {
       "id": "CC-SCROLL-BOX",
@@ -7694,15 +7694,16 @@
       "id": "CC-BASH-CMD-SEMANTICS",
       "track": "Claude Code parity",
       "title": "Bash per-command exit code semantics \u2014 grep exit 1 = no-match, not error",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC maps per-command exit code semantics: grep/rg exit 1 = 'No matches found' (not an error), find exit 1 = partial success, diff exit 1 = 'differences found'. Without this, these commands falsely appear as failures and the agent may retry unnecessarily.",
       "done": "grep/rg returning exit 1 shows 'No matches found' as info, not error. diff exit 1 shows 'Differences found'. find exit 1 shows 'Some directories were inaccessible'.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10. tools/shell-cmd.ts: pure lastCommandWord() (first token of the last pipeline/chain segment, git-aware, basename-stripped) + classifyExitCode() \u2014 grep/rg/egrep/fgrep exit 1 \u2192 'No matches found', diff exit 1 \u2192 'Differences found', find exit 1 \u2192 'Some paths were inaccessible', all ok=true; exit \u22652 and unrelated commands stay errors; ENOENT/timeout (non-numeric code) stay errors. Returns the info note as the result so the TUI renders it as a normal (non-error) outcome \u2014 no display-layer change needed. +11 tests in tools.test.ts; suite green, tsc clean."
     },
     {
       "id": "CC-BASH-IMAGE-OUTPUT",
