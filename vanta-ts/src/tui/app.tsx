@@ -35,6 +35,7 @@ import { useResizeRedraw, useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
+import { classifyPromptKeyword, CONTINUE_NUDGE } from "../repl/prompt-keywords.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
@@ -243,6 +244,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
       return;
     }
     if (state.busy) { dispatch({ t: "enqueue", text: line }); return; }
+    // CC-PROMPT-KEYWORDS: a bare "keep going"/"continue" resumes the prior task.
+    if (classifyPromptKeyword(line) === "continue") { sendToAgent(CONTINUE_NUDGE); return; }
     void (async () => {
       const dropped = await maybeDroppedImage(line);
       if (dropped) { (replStateRef.current.pendingImages ??= []).push(dropped); sendToAgent("Take a look at this image."); return; }
