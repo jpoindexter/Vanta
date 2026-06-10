@@ -9886,15 +9886,16 @@
       "id": "CC-COMPACTION-REMIND",
       "track": "Claude Code parity",
       "title": "Compaction reminders \u2014 inject compaction_reminder attachment into context",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC (feature-gated `COMPACTION_REMINDERS`) adds a `compaction_reminder` resolver to the context attachments pipeline. When included, the reminder attachment nudges the model to use compaction tools when context is getting large, without hard-coding the instruction into the system prompt.",
       "done": "When context approaches limits, a `compaction_reminder` attachment appears in the context, prompting the model to consider compaction.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/compaction-remind.ts: pure compactionReminder(estTokens, contextWindow, env?) \u2192 null below 0.70 fill (VANTA_COMPACTION_REMIND_FRAC override) else \"[context ~NN% full \u2014 consider /compress \u2026]\" (display clamped \u226499%). Wired into context.ts compressMessages: injected as a transient interior message in the compression branch (after the summary note, before the tail) so it never displaces head/goalNote at index 1. Used the MINIMAL safe seam (compression branch only) \u2014 not the agent's 70-75% band early-return \u2014 to avoid any reminder-accumulation risk if a caller stores the result. +9 tests; full suite 2080 green, tsc clean."
     },
     {
       "id": "CC-RUN-SKILL-GEN",
