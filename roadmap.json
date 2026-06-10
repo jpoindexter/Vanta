@@ -9185,15 +9185,16 @@
       "id": "CC-AUTH-CONFLICT-NOTICE",
       "track": "Claude Code parity",
       "title": "Auth conflict notice \u2014 warn when both API key and OAuth credentials are configured",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC surfaces a startup status notice (`apiKeyConflictNotice`, `bothAuthMethodsNotice`) when both an API key and OAuth login are simultaneously active. These can conflict \u2014 the user may not realize they're using the wrong credentials. The notice suggests which to remove and links to auth docs.",
       "done": "After `claude login` while `ANTHROPIC_API_KEY` is also set, a startup notice says 'Both API key and OAuth configured \u2014 remove one to avoid conflicts'.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "updated": "2026-06-10",
+      "lens": "infra",
+      "notes": "SHIPPED 2026-06-10. providers/auth-conflict.ts: pure authConflictNotices(env, {claude,codex}) + detectAuthConflicts(env) (detects OAuth via CLAUDE_CODE_OAUTH_TOKEN/ANTHROPIC_AUTH_TOKEN env or ~/.claude/.credentials.json, and ~/.codex/auth.json). Flags ANTHROPIC_API_KEY+Claude-OAuth and OPENAI_API_KEY+Codex-OAuth coexistence with a 'remove one' notice naming which provider uses which. Surfaced in StatusReport.notices \u2192 rendered by `vanta status`/`doctor` under \"\u26a0 notices:\". Reused existing path helpers (exported credentialsPath from claude-code-auth.ts; defaultCodexAuthPath already exported). Whitespace-only keys treated as unset. +9 tests; suite green, tsc clean."
     },
     {
       "id": "CC-PLUGIN-CLI",

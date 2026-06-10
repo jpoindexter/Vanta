@@ -21,7 +21,7 @@ export function isTokenExpired(expiresAt: number | undefined, nowMs: number): bo
   return typeof expiresAt === "number" && expiresAt > 0 && expiresAt <= nowMs;
 }
 
-function credentialsPath(env: NodeJS.ProcessEnv): string {
+export function credentialsPath(env: NodeJS.ProcessEnv): string {
   return join(env.CLAUDE_CONFIG_DIR?.trim() || join(homedir(), ".claude"), ".credentials.json");
 }
 
