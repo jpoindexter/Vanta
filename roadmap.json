@@ -332,12 +332,13 @@
       "title": "Change-watchers for repos/issues/email/calendar",
       "status": "next",
       "size": "M",
-      "summary": "Scheduled watchers that monitor repos/issues/emails/calendar for important changes and draft actions, awaiting approval where risk is high. Extends gateway (cron+webhook+platform poll).",
+      "summary": "Scheduled watchers that monitor repos/issues/emails/calendar for important changes and draft actions, awaiting approval where risk is high. Extends gateway (cron+webhook+platform poll). \u2014 the 'watch what's next' half of the SOLUTIONING-MODE loop (research\u2192decide\u2192ship\u2192watch, one shared brain).",
       "done": "Vanta surfaces an important change and a drafted response without being asked, gated by approval on risk.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-10"
     },
     {
       "id": "USE-CASE-AUDIT",
@@ -11058,6 +11059,90 @@
       "summary": "In normal (non-alt-screen) mode, the transcript keeps scrolling down as the agent streams. The terminal raw mode blocks native scroll. User cannot read earlier content while the agent is running.",
       "done": "User can scroll up (pgup/pgdn or terminal scroll) to read history while agent is generating. View snaps back to bottom when the turn completes.",
       "notes": "Reported via screenshot: continuous downward scroll during generation, no way to scroll back mid-run."
+    },
+    {
+      "id": "SOLUTIONING-MODE",
+      "track": "Solutioning",
+      "title": "Solutioning mode \u2014 research \u2192 decide what to build + how to win",
+      "status": "next",
+      "size": "L",
+      "summary": "A 7th operator mode (alongside modes/builtin.ts) running the FRONT half of rocket.new's loop, Vanta-native: web research + browser + brain + goals \u2192 an evidence-backed, RANKED 'what to build and why it wins' recommendation, not just execution. Local + kernel-gated; no platform, no SaaS. Pairs with AUTO-WATCH (the 'watch what's next' half) on one shared brain. From the rocket.new 'Solve' layer; the part Jason actually wants.",
+      "done": "From a vague objective, Vanta returns a ranked recommendation (what to build + why it wins) grounded in goals+brain, with sources, before any build action.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
+    },
+    {
+      "id": "CC-RESEARCH-DECOMPOSE",
+      "track": "Solutioning",
+      "title": "Query decomposition \u2014 parallel research with tool transparency",
+      "status": "next",
+      "size": "M",
+      "summary": "Steal rocket.new Solve's engine: decompose a research objective into independent sub-queries, run them as parallel subagents (Vanta has delegate/swarm), and surface WHICH tools each ran + what it found. The transparent-research substrate under SOLUTIONING-MODE; serves 'report only verified output.'",
+      "done": "A research goal fans out into labeled parallel sub-queries and returns a synthesis that shows, per dimension, which tools ran and what each found.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
+    },
+    {
+      "id": "CC-CLARITY-GATE",
+      "track": "Solutioning",
+      "title": "Clarity gate \u2014 score instruction, auto-clarify below threshold",
+      "status": "next",
+      "size": "M",
+      "summary": "rocket.new 'Prompt Intelligence', Vanta-native: score an instruction's clarity BEFORE assess(), and when below threshold fire the existing clarify tool with a few TARGETED questions instead of guessing. Direct expression of the north star (know the goal before picking a tool). Builds on clarify + complexity-gate + the prompt's ambiguity scoring.",
+      "done": "A vague instruction is scored and triggers 1-3 targeted clarifying questions before any tool runs; a clear one passes straight through.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
+    },
+    {
+      "id": "CC-LAUNCHPAD",
+      "track": "Solutioning",
+      "title": "Launchpad \u2014 ground a task in real source docs before acting",
+      "status": "next",
+      "size": "M",
+      "summary": "rocket.new 'Launchpad', Vanta-native: before generating, ground the task in real sources (a PRD/ROADMAP, a ticket, a local file/@-ref) and extract scope/entities FIRST \u2014 'without one it launches from thin air.' Maps to Vanta reading goal+repo docs before tool selection.",
+      "done": "A task can be seeded from a named source doc; Vanta extracts scope/entities and references them in its plan before the first tool call.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
+    },
+    {
+      "id": "CC-ADVISOR-ESCALATE",
+      "track": "Reliability (ND trust)",
+      "title": "Advisor escalation \u2014 read-only stronger model after repeated failure",
+      "status": "next",
+      "size": "M",
+      "summary": "Steal rocket.new's 'Advisor Agent': after the loop fails the same fix N times (Vanta has onIterationCheck + error-detect), escalate to a stronger READ-ONLY model that returns root cause + numbered steps + a trade-off table and NEVER writes code. Wires the escalation trigger + read-only contract around the existing advisorModel config.",
+      "done": "On the 2nd+ consecutive failed fix, Vanta consults a read-only advisor and surfaces root-cause + numbered next steps; the advisor cannot call write/edit tools.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
+    },
+    {
+      "id": "ORGANIZE-CODE-TOOL",
+      "track": "Code health",
+      "title": "Organize-code tool \u2014 agent-callable file decomposition",
+      "status": "next",
+      "size": "S",
+      "summary": "Steal rocket.new '/Organize Code': an agent-callable refactor tool that splits an oversized file into cohesive modules, operationalizing the size gate (lint/size.ts, file<=300/fn<=50) as an ACTION the agent can take, not just a warn-only lint. Behavior-preserving extraction, test-gated. (Exactly the app.tsx decomposition done by hand 2026-06-10.)",
+      "done": "The agent can call organize_code on a file over the size limit and get back a behavior-preserving multi-file split that passes the existing tests.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "coding",
+      "updated": "2026-06-10"
     }
   ]
 }
