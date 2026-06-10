@@ -10516,15 +10516,16 @@
       "id": "CC-PROMPT-CACHE-1H",
       "track": "Claude Code parity",
       "title": "`ENABLE_PROMPT_CACHING_1H` \u2014 opt into 1-hour prompt cache TTL",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC (v2.1.108) adds `ENABLE_PROMPT_CACHING_1H` to opt into a 1-hour prompt cache TTL (vs the default 5 minutes) on API key, Bedrock, Vertex, and Foundry. Dramatically reduces cost for long-running sessions.",
       "done": "With `ENABLE_PROMPT_CACHING_1H=1`, cache hits persist for 1 hour. A 2-hour session with a large system prompt sees >80% cache hit rate.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "Shipped. Caching already existed (ephemeral cache_control on the stable system prefix in providers/anthropic.ts); this gates the 1h TTL behind ENABLE_PROMPT_CACHING_1H (Claude Code's env name). toSystemBlocks stamps {type:ephemeral,ttl:1h} on the stable breakpoint + complete() adds the extended-cache-ttl-2025-04-11 beta header (combined with the OAuth beta when both apply). Off by default: 1h cache WRITE costs 2x base, so it only wins on long sessions with ~3+ reads/hour. Pure path unit-tested (toAnthropicMessages cache1h on/off + promptCache1hEnabled)."
     },
     {
       "id": "CC-BEDROCK-WIZARD",

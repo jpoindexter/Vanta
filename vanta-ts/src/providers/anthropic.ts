@@ -10,7 +10,7 @@ import { splitStableVolatile } from "../prompt.js";
 type AnthropicTextBlock = {
   type: "text";
   text: string;
-  cache_control?: { type: "ephemeral" };
+  cache_control?: { type: "ephemeral"; ttl?: "1h" };
 };
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
@@ -24,6 +24,18 @@ const DEFAULT_MAX_TOKENS = 4096;
 const OAUTH_BETA = "oauth-2025-04-20";
 const OAUTH_USER_AGENT = "claude-cli/1.0.0 (external, vanta)";
 const CLAUDE_CODE_SPOOF = "You are Claude Code, Anthropic's official CLI for Claude.";
+
+// CC-PROMPT-CACHE-1H: opt-in 1-hour cache TTL (default ephemeral TTL is 5 min).
+// Frugality win ONLY on long sessions — a 1h cache WRITE costs 2x base input, so
+// you need ~3+ cache reads inside the hour to beat the 5-min TTL. Off by default;
+// turn on for marathon/agentic runs that keep hitting the same stable prefix.
+const EXTENDED_CACHE_BETA = "extended-cache-ttl-2025-04-11";
+
+/** True when the 1-hour prompt-cache TTL is opted in (Claude Code's env name). */
+export function promptCache1hEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = env.ENABLE_PROMPT_CACHING_1H?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
 
 /** Anthropic Messages API provider. SDK is lazy-imported in complete(). */
 export class AnthropicProvider implements LLMProvider {
@@ -54,14 +66,17 @@ export class AnthropicProvider implements LLMProvider {
     // Lazy so Vanta loads even when the SDK isn't installed.
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
     const oauth = Boolean(this.authToken);
+    const cache1h = promptCache1hEnabled(process.env);
+    // Combine beta flags — OAuth + extended cache TTL can both apply at once.
+    const betas = [oauth ? OAUTH_BETA : null, cache1h ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
+    const defaultHeaders: Record<string, string> = {};
+    if (betas.length) defaultHeaders["anthropic-beta"] = betas.join(",");
+    if (oauth) defaultHeaders["user-agent"] = OAUTH_USER_AGENT;
     const client = oauth
-      ? new Anthropic({
-          authToken: this.authToken,
-          defaultHeaders: { "anthropic-beta": OAUTH_BETA, "user-agent": OAUTH_USER_AGENT },
-        })
-      : new Anthropic({ apiKey: this.apiKey });
+      ? new Anthropic({ authToken: this.authToken, defaultHeaders })
+      : new Anthropic({ apiKey: this.apiKey, defaultHeaders });
 
-    const converted = toAnthropicMessages(messages);
+    const converted = toAnthropicMessages(messages, { cache1h });
     const amsgs = converted.messages;
     // OAuth mode requires the system prompt to open with the Claude Code line.
     let system: string | AnthropicTextBlock[];
@@ -113,7 +128,7 @@ export class AnthropicProvider implements LLMProvider {
  * cache_control so Anthropic's ephemeral cache can reuse it across turns.
  * Pure — no SDK import — so the conversion can be unit-tested.
  */
-export function toAnthropicMessages(messages: Message[]): {
+export function toAnthropicMessages(messages: Message[], opts?: { cache1h?: boolean }): {
   system: string | AnthropicTextBlock[];
   messages: unknown[];
 } {
@@ -160,7 +175,7 @@ export function toAnthropicMessages(messages: Message[]): {
   }
 
   const rawSystem = systemParts.join("\n\n");
-  return { system: toSystemBlocks(rawSystem), messages: out };
+  return { system: toSystemBlocks(rawSystem, opts?.cache1h ?? false), messages: out };
 }
 
 /**
@@ -169,11 +184,14 @@ export function toAnthropicMessages(messages: Message[]): {
  * two-block array so Anthropic caches the stable part across sessions.
  * Falls back to a plain string for prompts without a tier separator.
  */
-function toSystemBlocks(system: string): string | AnthropicTextBlock[] {
+function toSystemBlocks(system: string, cache1h: boolean): string | AnthropicTextBlock[] {
   const { stable, volatile } = splitStableVolatile(system);
   if (!volatile) return system;
+  const cache_control = cache1h
+    ? ({ type: "ephemeral", ttl: "1h" } as const)
+    : ({ type: "ephemeral" } as const);
   return [
-    { type: "text", text: stable, cache_control: { type: "ephemeral" } },
+    { type: "text", text: stable, cache_control },
     { type: "text", text: volatile },
   ];
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toAnthropicMessages, parseResponse } from "./anthropic.js";
+import { toAnthropicMessages, parseResponse, promptCache1hEnabled } from "./anthropic.js";
 import type { Message } from "../types.js";
 
 describe("parseResponse", () => {
@@ -151,5 +151,34 @@ describe("toAnthropicMessages", () => {
     expect(stable.text).toBe("soul\n\n---\n\nbrain");
     expect(stable.cache_control).toEqual({ type: "ephemeral" });
     expect(volatile.text).toBe("Active goals: none\n\nSession started: now");
+  });
+});
+
+describe("CC-PROMPT-CACHE-1H", () => {
+  const withSplit: Message[] = [
+    { role: "system", content: "Stable rules.\n\n---\n\nActive goals: none\n\nSession started: now" },
+  ];
+
+  it("stamps the stable breakpoint with a 1h TTL when cache1h is on", () => {
+    const result = toAnthropicMessages(withSplit, { cache1h: true });
+    const blocks = result.system as Array<{ cache_control?: unknown }>;
+    expect(blocks[0]?.cache_control).toEqual({ type: "ephemeral", ttl: "1h" });
+    // The volatile tier is never cached, TTL or not.
+    expect(blocks[1]?.cache_control).toBeUndefined();
+  });
+
+  it("defaults to the 5-minute TTL (no ttl field) when cache1h is off or unset", () => {
+    const off = toAnthropicMessages(withSplit, { cache1h: false }).system as Array<{ cache_control?: unknown }>;
+    const unset = toAnthropicMessages(withSplit).system as Array<{ cache_control?: unknown }>;
+    expect(off[0]?.cache_control).toEqual({ type: "ephemeral" });
+    expect(unset[0]?.cache_control).toEqual({ type: "ephemeral" });
+  });
+
+  it("promptCache1hEnabled reads the Claude Code env name, truthy values only", () => {
+    expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "1" } as NodeJS.ProcessEnv)).toBe(true);
+    expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "true" } as NodeJS.ProcessEnv)).toBe(true);
+    expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "yes" } as NodeJS.ProcessEnv)).toBe(true);
+    expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "0" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(promptCache1hEnabled({} as NodeJS.ProcessEnv)).toBe(false);
   });
 });
