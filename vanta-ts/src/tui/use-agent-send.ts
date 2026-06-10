@@ -34,6 +34,7 @@ export function useAgentSend(
   const turnStartRef = useRef<number>(0);
   const autoHandoffNotedRef = useRef<boolean>(false);
   const abortRef = useRef<AbortController | null>(null);
+  const interruptedRef = useRef<boolean>(false);
   const researchGateRef = useRef<ResearchGateState>({ consecutiveTurns: 0 });
   const inhibitRef = useRef<InhibitState>({ consecutiveCalls: 0 });
   const setShiftRef = useRef<SetShiftState>({ repeatingTool: null, consecutiveRuns: 0 });
@@ -65,6 +66,7 @@ export function useAgentSend(
     replStateRef.current.pendingImages = undefined;
     const ac = new AbortController();
     abortRef.current = ac;
+    interruptedRef.current = false;
     // MODE-DETECT: prepend a one-line stance hint (display already shows clean text).
     const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
     const sendText = modeHint ? `${modeHint}\n\n${text}` : text;
@@ -130,6 +132,9 @@ export function useAgentSend(
       })
       .catch((err: unknown) => {
         abortRef.current = null;
+        // A user interrupt already ended the turn with its own distinct marker —
+        // don't also surface the AbortError as a generic "error:" note.
+        if (interruptedRef.current) { interruptedRef.current = false; return; }
         dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
         dispatch({ t: "commit", finalText: "" });
       });
@@ -148,8 +153,9 @@ export function useAgentSend(
   useInput(
     (_in, key) => {
       if (key.escape && busy && abortRef.current) {
+        interruptedRef.current = true;
         abortRef.current.abort();
-        dispatch({ t: "note", text: "· interrupted" });
+        dispatch({ t: "interrupted" });
       }
     },
     { isActive: busy },

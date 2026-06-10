@@ -5365,14 +5365,16 @@
       "id": "CC-MSG-INTERRUPTED",
       "track": "Claude Code parity",
       "title": "Interrupted message \u2014 distinct visual when user interrupts a turn",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC renders a distinct InterruptedByUser message when Esc aborts a turn, showing what partial work was done before the stop. Vanta aborts cleanly but shows no marker in the transcript that a turn was interrupted vs completed.",
       "done": "When a turn is aborted via Esc, an 'Interrupted' marker appears in the transcript with the partial tool-use count and a prompt to continue or ask again.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10. New transcript Entry kind \"interrupted\" (yellow \u238b marker) + reducer action { t: \"interrupted\" } that preserves partial streamed text as an assistant entry, appends the marker, and ends the turn (busy=false, idle). use-agent-send.ts Esc handler now dispatches \"interrupted\" (was a generic note) and sets interruptedRef; the send .catch short-circuits on interruptedRef so the AbortError no longer also surfaces as a noisy \"error:\" note. interruptedRef reset at each turn start. +3 tests (reducer preserves-partial + EntryRow render); full TUI suite 224 green, tsc clean."
     },
     {
       "id": "CC-BASH-IO-MSGS",
