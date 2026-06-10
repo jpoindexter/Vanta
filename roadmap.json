@@ -733,14 +733,16 @@
       "id": "AUTH-BROWSER",
       "track": "Autonomy + Reach",
       "title": "Authenticated browser profile for logged-in sites",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Opt-in persistent Playwright profile so Vanta browses logged-in sites (X, GitHub, Google, dashboards) WITHOUT stealing cookies from your real browser. 'vanta browser auth <site>' opens a headed window in a dedicated profile under ~/.vanta/browser-profiles/<site>/ (outside the repo) -> you log in manually (Vanta never sees password/2FA) -> browser_extract_auth reads logged-in pages headless via launchPersistentContext. Domain-bound per profile, read-only by default (navigate/click/post = explicit approval each time), NEVER returns cookies/localStorage/auth headers. Extends the existing browser tools + isAllowedDomain. Packaged as Vanta's FIRST capability plugin (tools + skill + lazy deps in OS cache). Design + slices: docs/plugins-and-auth-browser.md.",
       "done": "'vanta browser auth x.com' opens a dedicated profile, Jason logs in manually, then browser_extract_auth reads X search results from that profile while cookies stay confined to ~/.vanta/browser-profiles and are never exposed to the model; tests prove id-sanitization + domain-binding + no-cookie-leak.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration; LIVE browser flow needs `npx playwright install chromium` to verify). browser/profile.ts: browserProfileDir(env) (~/.vanta/browser-profile, VANTA_BROWSER_PROFILE) + pure usesPersistentProfile(env) (VANTA_BROWSER_PROFILE_ENABLED=1 OR dir exists). browser/launch.ts: shared acquirePage(chromium, env, {headless?}) \u2192 persistent (launchPersistentContext, reuses pages()[0]) vs ephemeral (launch()+newPage()) + close(). cli/browser-cmd.ts: `vanta browser auth <site>` opens a HEADED persistent context so the user logs in once; session persists for later headless tool use; cookies never stolen from the real browser. The 3 browser tools (navigate/extract/screenshot) swap to acquirePage. CLI table + completion + .env.example wired. Default (no profile) path behavior-identical. +16 offline tests; full suite 2200 green, tsc clean (parent fixed an as-cast in launch.test.ts that the agent's tsconfig missed). LIVE-PENDING: the auth login + headless logged-in reuse (needs chromium)."
     },
     {
       "id": "PLUGIN-SYSTEM",

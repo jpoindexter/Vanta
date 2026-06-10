@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { isAllowedDomain } from "../browser/allowlist.js";
+import { acquirePage } from "../browser/launch.js";
 
 const ActionSchema = z.object({
   type: z.enum(["click", "fill", "scroll"]),
@@ -69,16 +70,35 @@ async function applyAction(
   });
 }
 
-/** Launch chromium, navigate, run the actions, and return the page's visible text. */
+/**
+ * The page surface this tool drives. acquirePage returns the minimal shared
+ * shape (goto only); navigate also needs the action + innerText members, so we
+ * cast to this richer structural type at the acquisition boundary.
+ */
+type NavPage = {
+  goto: (url: string, opts: { timeout: number }) => Promise<unknown>;
+  click: (s: string, o: { timeout: number }) => Promise<void>;
+  fill: (s: string, v: string, o: { timeout: number }) => Promise<void>;
+  evaluate: (fn: () => void) => Promise<void>;
+  innerText: (selector: string) => Promise<string>;
+};
+
+/**
+ * Acquire a page (persistent profile when authed, else ephemeral), navigate,
+ * run the actions, and return the page's visible text. `env` selects the
+ * profile mode via acquirePage.
+ */
 async function navigateAndExtract(
   chromium: typeof import("playwright-core").chromium,
+  env: NodeJS.ProcessEnv,
   url: string,
   actions: Action[],
 ): Promise<ToolResult> {
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
+  let close: (() => Promise<void>) | null = null;
   try {
-    browser = await chromium.launch();
-    const page = await browser.newPage();
+    const acquired = await acquirePage(chromium, env);
+    close = acquired.close;
+    const page = acquired.page as unknown as NavPage;
     await page.goto(url, { timeout: GOTO_TIMEOUT_MS });
     for (const action of actions) {
       await applyAction(page, action);
@@ -96,7 +116,7 @@ async function navigateAndExtract(
     }
     return { ok: false, output: `browser_navigate failed: ${message}` };
   } finally {
-    await browser?.close();
+    await close?.();
   }
 }
 
@@ -169,6 +189,6 @@ export const browserNavigateTool: Tool = {
       };
     }
 
-    return navigateAndExtract(chromium, url, actions);
+    return navigateAndExtract(chromium, process.env, url, actions);
   },
 };

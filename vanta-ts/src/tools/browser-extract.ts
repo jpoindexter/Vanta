@@ -2,6 +2,7 @@ import { parseHTML } from "linkedom";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { isAllowedDomain } from "../browser/allowlist.js";
+import { acquirePage } from "../browser/launch.js";
 
 const What = z.enum(["text", "links", "tables"]).default("text");
 const Args = z.object({ url: z.string().url(), what: What });
@@ -115,14 +116,18 @@ export const browserExtractTool: Tool = {
     }
 
     try {
-      const browser = await chromium.launch();
+      // Persistent profile when authed (reuses logins), else ephemeral.
+      const { page, close } = await acquirePage(chromium, process.env);
+      const p = page as unknown as {
+        goto: (u: string, o: { timeout: number; waitUntil: "load" }) => Promise<unknown>;
+        content: () => Promise<string>;
+      };
       try {
-        const page = await browser.newPage();
-        await page.goto(url, { timeout: TIMEOUT_MS, waitUntil: "load" });
-        const html = await page.content();
+        await p.goto(url, { timeout: TIMEOUT_MS, waitUntil: "load" });
+        const html = await p.content();
         return { ok: true, output: extractFromHtml(html, what) };
       } finally {
-        await browser.close();
+        await close();
       }
     } catch (err) {
       return {
