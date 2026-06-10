@@ -6,6 +6,7 @@ import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
 import { detectAuthConflicts } from "./providers/auth-conflict.js";
+import { modelDeprecationNotices } from "./providers/model-deprecation.js";
 
 // `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -131,7 +132,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
     store: { home: resolveVantaHome(env), skills, memories },
     goals,
     velocity,
-    notices: detectAuthConflicts(env),
+    notices: [...detectAuthConflicts(env), ...modelDeprecationNotices(env, new Date())],
   };
 }
 
