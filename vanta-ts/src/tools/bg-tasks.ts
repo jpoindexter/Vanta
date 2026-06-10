@@ -4,6 +4,12 @@ import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { z } from "zod";
 import type { Tool } from "./types.js";
+import { checkStall, type StallState } from "./shell-stall.js";
+import { notify } from "../tui/notify.js";
+
+// How often the in-process watchdog samples a running task's live output buffer.
+// Must be < the stall idle window (45s) so idle time accrues across ticks.
+const STALL_POLL_MS = 5_000;
 
 // CC-BG-TASKS: background shell task execution.
 // Spawns commands detached, writes output to .vanta/bg-tasks/<id>.{log,status}.
@@ -36,6 +42,29 @@ function genId(): string {
   return `bg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// Poll the live output buffer; notify once if it stalls on an interactive prompt.
+// Returns an unref'd timer the caller clears on close. Never throws.
+function startStallWatchdog(chunks: string[], id: string, command: string): NodeJS.Timeout {
+  let stall: StallState = { lastLen: 0, lastChangeMs: Date.now(), notified: false };
+  const timer = setInterval(() => {
+    try {
+      const buf = chunks.join("");
+      const r = checkStall(stall, buf.length, buf, Date.now());
+      stall = r.state;
+      if (r.notify) {
+        notify({
+          title: `Vanta · bg task ${id}`,
+          message: `"${command.slice(0, 60)}" appears to be waiting for input (y/n)…`,
+        });
+      }
+    } catch {
+      // best-effort: a watchdog tick must never break the task
+    }
+  }, STALL_POLL_MS);
+  timer.unref();
+  return timer;
+}
+
 /** Spawn a command in the background, writing output to a log file. Returns the task id. */
 export async function spawnBackground(
   command: string,
@@ -63,7 +92,12 @@ export async function spawnBackground(
   child.stdout?.on("data", (d: Buffer) => chunks.push(d.toString()));
   child.stderr?.on("data", (d: Buffer) => chunks.push(d.toString()));
 
+  // The live `chunks` buffer is the only place output exists while the task runs
+  // (the log file stays empty until close), so the watchdog lives at the spawn site.
+  const watchdog = startStallWatchdog(chunks, id, command);
+
   child.on("close", (code) => {
+    clearInterval(watchdog);
     const done: BgTask = { ...meta, status: code === 0 ? "done" : "failed", exitCode: code ?? -1 };
     writeFile(metaPath(dataDir, id), JSON.stringify(done, null, 2)).catch(() => {});
     writeFile(logFile, chunks.join("")).catch(() => {});
