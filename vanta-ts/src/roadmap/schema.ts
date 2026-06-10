@@ -53,6 +53,13 @@ export const RoadmapItemSchema = z.object({
   model: z.enum(MODEL).optional(),
   effort: z.enum(EFFORT).optional(),
   lens: z.enum(LENS).optional(),
+  // Metadata written by ship/triage tooling. Declared so RoadmapSchema.parse →
+  // write round-trips (moveRoadmapItem) don't silently strip them (zod drops
+  // unknown keys by default).
+  updated: z.string().optional(),
+  notes: z.string().optional(),
+  // Build-order dependency: this card never sorts before an open card it names.
+  after: z.array(z.string()).optional(),
 });
 
 export const RoadmapSchema = z.object({

@@ -69,7 +69,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 **v1 complete; roadmap-grind in progress.** Full v1 feature parity + Phase 2 EF + all S/M/L extensions. **51 tools** · **40 slash commands** · **27 Rust tests** · **TS tests in `npm test`** (all green). Per-card statuses + notes in `roadmap.json`; full session changelog in `vanta-ts/CLAUDE.md` §"Session additions".
 
-**Open (roadmap.json `next`):** `EF-TASKSTACK` · `MEM-RELEVANCE` · `OPERATOR-DASHBOARD` · `VISION-COMPARE` · `AUX-MAP` · `AUTO-ROUTER`. Gated on Jason: `SCRUB-AI` · `VOICE-NATURAL`. Horizon: `DESKTOP` (Tauri).
+**Direction:** `STRATEGY.md` — 5 pillars (**Harness > Operator > Solutioning > Extensibility > Cofounder engine**); CC parity is a quarry, not a goal (DECISIONS 2026-06-11; 166 cards parked, see PARKED.md). Top open rocks: `CC-SESSION-MEMORY-SVC` · `CC-STREAMING-TOOL-EXEC` · `CC-HOOKS-ENGINE` · `TUI-V2` · `DESKTOP-P3` · `SOLUTIONING-MODE` · `PLUGIN-FRAMEWORK`. Build-order export: `node scripts/build-order.mjs`.
 
 **Live-setup caveats** (offline-unit-tested; live needs): browser → `npx playwright install chromium`; anthropic/vision → API keys; comms → provision OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`) + `vanta auth google`; LSP covers .ts/.tsx only; `vanta cron` is OS-scheduler-invoked. See `docs/prd.md`, `DECISIONS.md`, `PARKED.md`.
 

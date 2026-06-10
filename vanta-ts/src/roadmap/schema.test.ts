@@ -38,6 +38,19 @@ describe("RoadmapItemSchema", () => {
     expect(() => RoadmapItemSchema.parse({ ...validItem, tier: "boulder" })).toThrow();
     expect(() => RoadmapItemSchema.parse({ ...validItem, model: "gpt" })).toThrow();
   });
+
+  it("round-trips updated/notes/after instead of stripping them", () => {
+    const tagged = {
+      ...validItem,
+      updated: "2026-06-11",
+      notes: "shipped via triage",
+      after: ["CC-SEND-MSG"],
+    };
+    const parsed = RoadmapItemSchema.parse(tagged);
+    expect(parsed.updated).toBe("2026-06-11");
+    expect(parsed.notes).toBe("shipped via triage");
+    expect(parsed.after).toEqual(["CC-SEND-MSG"]);
+  });
 });
 
 describe("RoadmapSchema", () => {
