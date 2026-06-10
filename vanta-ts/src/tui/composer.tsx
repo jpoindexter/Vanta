@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Text, useInput, usePaste } from "ink";
 import { newPasteStore, shouldCollapse, collapse, expandPastes } from "./paste.js";
+import {
+  wordLeft,
+  wordRight,
+  killToStart,
+  killToEnd,
+  killWordBack,
+  deleteForward,
+  yank,
+} from "./composer-edits.js";
 
 export type VimMode = "normal" | "insert";
 
@@ -36,14 +45,6 @@ export function navigateHistory(history: string[], state: HistState, dir: "up" |
   return { ...state, histIdx, value: history[history.length - 1 - histIdx] ?? "" };
 }
 
-/** Delete the word (and any trailing whitespace) immediately before `pos`. */
-function deleteWordBefore(value: string, pos: number): { value: string; pos: number } {
-  let i = pos;
-  while (i > 0 && /\s/.test(value[i - 1]!)) i--;
-  while (i > 0 && !/\s/.test(value[i - 1]!)) i--;
-  return { value: value.slice(0, i) + value.slice(pos), pos: i };
-}
-
 export function Composer(props: ComposerProps): ReactElement {
   const { value, onChange, onSubmit, placeholder = "", isActive = true, isHistoryActive = false, history = [], color, vimEnabled = false, onVimModeChange } = props;
   const [cursor, setCursor] = useState(value.length);
@@ -51,6 +52,9 @@ export function Composer(props: ComposerProps): ReactElement {
   const histRef = useRef<HistState>({ histIdx: -1, draft: "", value: "" });
   // Large pastes collapse to a [Pasted text #N …] ref here, expanded on submit.
   const pasteStore = useRef(newPasteStore());
+  // Kill ring: the last text killed by Ctrl+U/W/K, yanked back by Ctrl+Y.
+  // Persists across clears (emacs-like) — intentionally NOT reset in the effect below.
+  const killRing = useRef("");
 
   const setVimMode = (m: VimMode): void => {
     setVimModeState(m);
@@ -115,26 +119,50 @@ export function Composer(props: ComposerProps): ReactElement {
         return;
       }
 
-      // Cursor movement (left/right + home/end). Up/down/Tab are left for the
-      // slash palette.
-      if (key.leftArrow) return setCursor((c) => Math.max(0, c - 1));
-      if (key.rightArrow) return setCursor((c) => Math.min(value.length, c + 1));
+      // Cursor movement. Char: left/right or Ctrl+B/F. Line ends: Ctrl+A/E.
+      // Word: Alt/Option+B/F (run of non-space, stops at newlines). Up/down/Tab
+      // are left for the slash palette.
+      if (key.leftArrow || (key.ctrl && input === "b")) return setCursor((c) => Math.max(0, c - 1));
+      if (key.rightArrow || (key.ctrl && input === "f")) return setCursor((c) => Math.min(value.length, c + 1));
       if (key.ctrl && input === "a") return setCursor(0);
       if (key.ctrl && input === "e") return setCursor(value.length);
+      if (key.meta && input === "b") return setCursor((c) => wordLeft(value, c));
+      if (key.meta && input === "f") return setCursor((c) => wordRight(value, c));
 
-      // Kill-to-start (Ctrl+U) — the reliable "clear the line".
+      // Kill-to-start (Ctrl+U) — the reliable "clear the line". Feeds the kill ring.
       if (key.ctrl && input === "u") {
-        onChange(value.slice(cursor));
-        return setCursor(0);
-      }
-      // Kill-to-end (Ctrl+K).
-      if (key.ctrl && input === "k") return onChange(value.slice(0, cursor));
-
-      // Delete word before cursor: Ctrl+W or Option/Alt+Backspace.
-      if ((key.ctrl && input === "w") || (key.meta && (key.backspace || key.delete))) {
-        const r = deleteWordBefore(value, cursor);
+        const r = killToStart(value, cursor);
+        killRing.current = r.killed;
         onChange(r.value);
-        return setCursor(r.pos);
+        return setCursor(r.cursor);
+      }
+      // Kill-to-end (Ctrl+K). Feeds the kill ring.
+      if (key.ctrl && input === "k") {
+        const r = killToEnd(value, cursor);
+        killRing.current = r.killed;
+        return onChange(r.value);
+      }
+
+      // Delete word before cursor: Ctrl+W or Option/Alt+Backspace. Feeds the kill ring.
+      if ((key.ctrl && input === "w") || (key.meta && (key.backspace || key.delete))) {
+        const r = killWordBack(value, cursor);
+        killRing.current = r.killed;
+        onChange(r.value);
+        return setCursor(r.cursor);
+      }
+
+      // Forward-delete the char under the cursor (Ctrl+D). On EMPTY input this is a
+      // no-op — exit is handled elsewhere (Esc), so Ctrl+D never quits the session.
+      if (key.ctrl && input === "d") {
+        if (value.length === 0) return;
+        return onChange(deleteForward(value, cursor));
+      }
+
+      // Yank (Ctrl+Y) — paste the last killed text at the cursor.
+      if (key.ctrl && input === "y") {
+        const r = yank(value, cursor, killRing.current);
+        onChange(r.value);
+        return setCursor(r.cursor);
       }
 
       // Delete the char before the cursor.
