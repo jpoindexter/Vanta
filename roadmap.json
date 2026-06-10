@@ -5561,14 +5561,16 @@
       "id": "CC-TOKEN-WARN-UI",
       "track": "Claude Code parity",
       "title": "Token warning \u2014 approaching context limit alert",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC's TokenWarning renders a visible alert when the conversation is approaching the context window limit (e.g. >85% full), prompting the user to compact or start a new session. Vanta tracks context % (CC-S-CONTEXT) but has no alert threshold UI.",
       "done": "When context fill crosses a configurable threshold (default 85%), a persistent warning appears near the composer with context % and a /compact shortcut; at 95% the warning turns urgent.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "lens": "tui"
+      "updated": "2026-06-10",
+      "lens": "tui",
+      "notes": "SHIPPED 2026-06-10. tui/status-bar.tsx: pure tokenWarningLevel(estTokens, contextWindow, env) \u2192 none/warn/urgent + tokenWarnFractions(env) (VANTA_TOKEN_WARN_FRAC default 0.85, VANTA_TOKEN_URGENT_FRAC default 0.95). The status bar (already below the composer, receiving estTokens+contextWindow) colors the % yellow and appends '\u25b2 /compact' at warn, red 'context full \u00b7 /compact' at urgent \u2014 zero app.tsx changes (StatusBar self-computes; env read at render time, not module load). +12 tests; full TUI suite 218 green, tsc clean. Documented in .env.example."
     },
     {
       "id": "CC-EXPORT-DIALOG-UI",
