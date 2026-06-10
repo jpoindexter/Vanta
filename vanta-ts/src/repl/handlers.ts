@@ -116,14 +116,17 @@ const plan: SlashHandler = async (_arg, ctx) => {
   return { output: formatTodos(await readTodos(ctx.env)) };
 };
 
-const compress: SlashHandler = async (_arg, ctx) => {
+const compress: SlashHandler = async (arg, ctx) => {
+  const { compactionDisabled } = await import("./compact-gate.js");
+  if (compactionDisabled(ctx.env)) return { output: "  · compaction disabled (VANTA_DISABLE_COMPACT)" };
   const { compressMessages } = await import("../context.js");
   const { buildSummarizer } = await import("../session.js");
   const before = ctx.convo.messages.length;
+  const instructions = arg.trim() || undefined; // CC-COMPACT-INSTRUCTIONS: steer the summary
   const compressed = await compressMessages(
     ctx.convo.messages,
     ctx.setup.provider.contextWindow(),
-    buildSummarizer(ctx.setup.provider),
+    buildSummarizer(ctx.setup.provider, instructions),
     { thresholdPct: 0 }, // force compaction now
   );
   ctx.convo.messages.splice(0, Infinity, ...compressed);
