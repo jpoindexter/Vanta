@@ -9310,15 +9310,16 @@
       "id": "CC-DANGEROUS-PATHS",
       "track": "Claude Code parity",
       "title": "Dangerous paths blocklist \u2014 hardcoded files/dirs Claude never writes to",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC maintains `DANGEROUS_FILES` and `DANGEROUS_DIRECTORIES` constants \u2014 a hardcoded blocklist of system-critical paths (SSH keys, shell configs, credentials, OS directories) that Claude will never write to, regardless of permission rules. This is distinct from user-configured deny rules and cannot be overridden.",
       "done": "Attempting to edit `~/.ssh/id_rsa` or `/etc/passwd` always returns a permission denial, even in bypassPermissions mode.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10. tools/writable-zones.ts: isDangerousPath(abs) \u2014 an unconditional floor beneath zones, scope AND approval mode. Blocks DANGEROUS_DIRS (~/.ssh ~/.gnupg ~/.aws ~/.config/gcloud /etc /private/etc /System /var/db/sudo) + DANGEROUS_FILES (~/.netrc ~/.npmrc ~/.pypirc ~/.docker/config.json ~/.kube/config ~/.codex/auth.json ~/.claude/.credentials.json ~/.vanta/google-tokens.json + shell rc files). Checked FIRST in both resolveReadablePath (reads) and a new resolveWritablePath (writes), so write_file/edit_file/read_file/describe_image/compare_vision all refuse these paths even in auto-approve mode. Also DRY'd write_file+edit_file onto resolveWritablePath (mirrors the read helper; the security floor now lives in one place per direction). Prefix-collision safe (~/.ssh-backup not blocked). +~15 tests; suite green, tsc clean."
     },
     {
       "id": "CC-TOOL-SEARCH-AUTO",

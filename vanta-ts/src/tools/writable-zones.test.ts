@@ -7,6 +7,8 @@ import {
   resolveReadableZones,
   isInZone,
   resolveReadablePath,
+  resolveWritablePath,
+  isDangerousPath,
 } from "./writable-zones.js";
 
 describe("expandHome", () => {
@@ -90,9 +92,48 @@ describe("resolveReadablePath (shared read-path policy)", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("refuses a path outside the project and every readable zone", () => {
+  it("refuses /etc/passwd as a dangerous path, not merely out-of-zone", () => {
     const r = resolveReadablePath("/etc/passwd", root, { VANTA_READABLE_DIRS: "/srv/data" } as NodeJS.ProcessEnv);
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toContain("readable zone");
+    if (!r.ok) expect(r.error).toContain("never accessible");
+  });
+});
+
+describe("isDangerousPath (CC-DANGEROUS-PATHS)", () => {
+  it("flags SSH/credential/cloud/system paths", () => {
+    expect(isDangerousPath(join(homedir(), ".ssh", "id_rsa")).dangerous).toBe(true);
+    expect(isDangerousPath("/etc/passwd").dangerous).toBe(true);
+    expect(isDangerousPath(join(homedir(), ".aws", "credentials")).dangerous).toBe(true);
+    expect(isDangerousPath(join(homedir(), ".config", "gcloud", "x.json")).dangerous).toBe(true);
+    expect(isDangerousPath(join(homedir(), ".zshrc")).dangerous).toBe(true);
+    expect(isDangerousPath(join(homedir(), ".vanta", "google-tokens.json")).dangerous).toBe(true);
+  });
+  it("does NOT flag ordinary repo or Desktop files", () => {
+    expect(isDangerousPath("/Users/x/Documents/GitHub/Vanta/src/a.ts").dangerous).toBe(false);
+    expect(isDangerousPath(join(homedir(), "Desktop", "note.txt")).dangerous).toBe(false);
+    expect(isDangerousPath(join(homedir(), ".vanta", "skills", "x", "SKILL.md")).dangerous).toBe(false);
+  });
+  it("rejects a prefix-collision sibling of a protected dir", () => {
+    expect(isDangerousPath(join(homedir(), ".ssh-backup", "id_rsa")).dangerous).toBe(false);
+  });
+});
+
+describe("resolveWritablePath", () => {
+  const root = "/Users/x/Documents/GitHub/Vanta";
+  it("refuses a dangerous path before any zone/approval logic", () => {
+    const r = resolveWritablePath("~/.ssh/id_rsa", root, {} as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("never writable");
+  });
+  it("accepts an in-root path", () => {
+    expect(resolveWritablePath("src/a.ts", root, {} as NodeJS.ProcessEnv).ok).toBe(true);
+  });
+  it("accepts a ~/Desktop path (default writable zone)", () => {
+    expect(resolveWritablePath("~/Desktop/x.md", root, {} as NodeJS.ProcessEnv).ok).toBe(true);
+  });
+  it("refuses an out-of-zone path", () => {
+    const r = resolveWritablePath("/var/elsewhere/x", root, {} as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("writable zone");
   });
 });

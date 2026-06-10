@@ -1,8 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveInScope } from "../scope.js";
-import { expandHome, resolveWritableZones, isInZone } from "./writable-zones.js";
+import { resolveWritablePath } from "./writable-zones.js";
 import { computeDiff } from "../util/diff.js";
 
 const Args = z.object({
@@ -49,14 +48,10 @@ export const editFileTool: Tool = {
       return { ok: false, output: `edit_file: ${parsed.error.issues[0]?.message ?? "invalid args"}` };
     }
     const { old_string, new_string, replace_all = false } = parsed.data;
-    const path = expandHome(parsed.data.path);
-    const { ok, path: abs } = resolveInScope(path, ctx.root);
-    if (!ok && !isInZone(abs, resolveWritableZones(process.env))) {
-      return {
-        ok: false,
-        output: `refused: ${path} is outside the project and not in a writable zone`,
-      };
-    }
+    const path = parsed.data.path;
+    const r = resolveWritablePath(path, ctx.root, process.env);
+    if (!r.ok) return { ok: false, output: r.error };
+    const abs = r.abs;
 
     let content: string;
     try {

@@ -2,8 +2,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
-import { resolveInScope } from "../scope.js";
-import { expandHome, resolveWritableZones, isInZone } from "./writable-zones.js";
+import { resolveWritablePath } from "./writable-zones.js";
 import { computeDiff } from "../util/diff.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
@@ -88,17 +87,10 @@ export const writeFileTool: Tool = {
       return { ok: false, output: 'write_file needs "path" and "content"' };
     }
     const { content } = parsed.data;
-    const path = expandHome(parsed.data.path);
-    const { ok, path: abs } = resolveInScope(path, ctx.root);
-    // Outside the project root: permitted only inside a configured writable zone.
-    // The kernel has already returned Ask for any out-of-root path (so dispatch
-    // prompted the human); the zone allowlist bounds where that approved write can land.
-    if (!ok && !isInZone(abs, resolveWritableZones(process.env))) {
-      return {
-        ok: false,
-        output: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set VANTA_WRITABLE_DIRS)`,
-      };
-    }
+    const path = parsed.data.path;
+    const r = resolveWritablePath(path, ctx.root, process.env);
+    if (!r.ok) return { ok: false, output: r.error };
+    const abs = r.abs;
 
     const isExisting = await exists(abs);
     let oldContent = "";
