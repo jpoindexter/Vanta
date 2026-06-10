@@ -6301,15 +6301,16 @@
       "id": "CC-MEM-FRESHNESS",
       "track": "Claude Code parity",
       "title": "Memory freshness caveat \u2014 staleness annotation for memories > 1 day old",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Memories older than 1 day get a human-readable age string ('47 days ago') and a staleness caveat injected alongside their content: 'This memory is N days old. Memories are point-in-time observations \u2014 file:line citations may be outdated. Verify against current code.' Prevents stale facts from being asserted confidently.",
       "done": "Fresh memories (today/yesterday) inject no caveat; older memories prepend the staleness note; age shown as human-readable string, not raw timestamp.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). memory/freshness.ts: pure humanAge(ageMs) (\"today\"/\"yesterday\"/\"N days ago\") + freshnessCaveat(ageMs) (null when <2 days, else a point-in-time caveat) + annotateMemory(content, ageMs). Wired into memory/store.ts recentMemory: each block's own ISO timestamp \u2192 age \u2192 stale blocks get the caveat prepended at the injection path (per-block granularity). +14 unit + 1 store integration test; full suite 2019 green, tsc clean."
     },
     {
       "id": "CC-TURN-DIFFS",
@@ -6539,15 +6540,16 @@
       "id": "CC-SECRET-SCANNER",
       "track": "Claude Code parity",
       "title": "Secret scanner \u2014 block credentials from cloud memory sync",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Client-side secret scanner that checks memory file content before cloud upload. Uses curated high-confidence gitleaks rules (GitHub PAT, AWS access/secret keys, etc.) with near-zero false positives. Secrets are detected and blocked from leaving the machine.",
       "done": "Memory files containing GitHub PATs or AWS credentials are blocked from cloud sync; clean files sync normally; matched rule ID logged for diagnosis.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "updated": "2026-06-10",
+      "lens": "memory",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). store/secret-scan.ts: pure scanForSecrets(text)\u2192deduped rule ids (never the values) + hasSecrets(), 7 high-confidence near-zero-FP rules (github-pat, github-fine-grained-pat, aws-access-key-id, slack-token, google-api-key, private-key, openai-key). Wired into memory/store.ts appendMemory: scans the summary FIRST and returns {skipped:true, rules} without writing/committing if a secret is found \u2014 credential content never reaches ~/.vanta or its git store. Caller (session.ts) ignores the new return (void\u2192object compatible). +17 unit + 2 store integration tests; full suite 2019 green, tsc clean."
     },
     {
       "id": "CC-AUTO-DREAM-SVC",

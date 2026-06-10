@@ -5,6 +5,8 @@ import {
   ensureVantaStore,
   commitInHome,
 } from "../store/home.js";
+import { scanForSecrets } from "../store/secret-scan.js";
+import { annotateMemory } from "./freshness.js";
 
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
@@ -14,7 +16,7 @@ const DEFAULT_MAX_STORED_BLOCKS = 50;
 const BLOCK_DELIM = "## ";
 
 type AppendOptions = { env?: NodeJS.ProcessEnv; now?: string };
-type RecentOptions = { env?: NodeJS.ProcessEnv; maxPerGoal?: number };
+type RecentOptions = { env?: NodeJS.ProcessEnv; maxPerGoal?: number; now?: number };
 
 function memoryFile(goalId: number, env?: NodeJS.ProcessEnv): string {
   return join(memoriesDir(env), `${goalId}.md`);
@@ -29,8 +31,12 @@ export async function appendMemory(
   goalId: number,
   summary: string,
   opts: AppendOptions = {},
-): Promise<void> {
+): Promise<{ skipped: boolean; rules: string[] }> {
   const env = opts.env;
+  // CC-SECRET-SCANNER: never persist (or sync to the ~/.vanta git store) memory
+  // content that contains a credential. Returns the matched rule ids for diagnosis.
+  const rules = scanForSecrets(summary);
+  if (rules.length > 0) return { skipped: true, rules };
   await ensureVantaStore(env);
   const now = opts.now ?? new Date().toISOString();
   const file = memoryFile(goalId, env);
@@ -44,6 +50,7 @@ export async function appendMemory(
     await writeFile(file, `${blocks.slice(-cap).join("\n\n")}\n\n`, "utf8");
   }
   await commitInHome(join("memories", `${goalId}.md`), `memory: goal ${goalId}`, env);
+  return { skipped: false, rules: [] };
 }
 
 /** Read a goal's full memory file, or null if it has none yet. */
@@ -70,10 +77,18 @@ function splitBlocks(content: string): string[] {
     .filter((p) => p.startsWith(BLOCK_DELIM));
 }
 
+/** CC-MEM-FRESHNESS: prepend a staleness caveat to a block older than ~1 day. */
+function annotateBlock(block: string, now: number): string {
+  const header = (block.split("\n", 1)[0] ?? "").slice(BLOCK_DELIM.length).trim();
+  const ts = Date.parse(header);
+  if (Number.isNaN(ts)) return block; // unparseable timestamp — best-effort, never throw
+  return annotateMemory(block, now - ts);
+}
+
 /**
  * Build a compact recent-memory string across goals for prompt injection. Takes
  * the last `maxPerGoal` blocks per goal, skips goals with no memory, and returns
- * "" when nothing is available.
+ * "" when nothing is available. Stale blocks get a freshness caveat.
  */
 export async function recentMemory(
   goalIds: number[],
@@ -81,6 +96,7 @@ export async function recentMemory(
 ): Promise<string> {
   const env = opts.env;
   const maxPerGoal = opts.maxPerGoal ?? DEFAULT_MAX_PER_GOAL;
+  const now = opts.now ?? Date.now();
   const sections: string[] = [];
 
   for (const goalId of goalIds) {
@@ -88,7 +104,7 @@ export async function recentMemory(
     if (!content) continue;
     const blocks = splitBlocks(content);
     if (blocks.length === 0) continue;
-    const recent = blocks.slice(-maxPerGoal).join("\n\n");
+    const recent = blocks.slice(-maxPerGoal).map((b) => annotateBlock(b, now)).join("\n\n");
     sections.push(`Goal ${goalId}:\n${recent}`);
   }
 
