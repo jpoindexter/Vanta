@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
-import { Box, Static, Text, useApp, useInput } from "ink";
+import { Box, Static, Text, useApp } from "ink";
 import { Composer } from "./composer.js";
 import { spinnerFrames } from "./spinners.js";
 import { notify } from "./notify.js";
@@ -16,7 +16,7 @@ import { EntryRow, Palette, type Entry } from "./transcript.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
-import { nextMode, type ApprovalMode } from "./approval-mode.js";
+import { type ApprovalMode } from "./approval-mode.js";
 import { activeAtRef, listRepoFiles } from "./at-context.js";
 import { HelpOverlay } from "./help-overlay.js";
 import { resolveTheme } from "./theme.js";
@@ -31,6 +31,7 @@ import { useResizeRedraw, useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { useSubmit } from "./use-submit.js";
+import { useKeybindings } from "./use-keybindings.js";
 import { buildConvoConfig } from "./conversation-config.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
@@ -101,59 +102,17 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     risk: formatRiskLabel(getRiskTier(m.item.name)),
   }));
   const showPalette = matchesWithRisk.length > 0;
-  useEffect(() => setSel(0), [slashHead]);
-  useInput((_in, key) => {
-    if (key.upArrow) setSel((s) => (s - 1 + matchesWithRisk.length) % matchesWithRisk.length);
-    else if (key.downArrow) setSel((s) => (s + 1) % matchesWithRisk.length);
-    else if (key.tab) setInput(`/${(matchesWithRisk[sel] ?? matchesWithRisk[0])!.name} `);
-  }, { isActive: showPalette });
-
   // @-context palette — suggest files while typing @<partial-path>.
   const atHead = !pending && !overlay && !state.busy && !showPalette ? activeAtRef(input) : null;
   const atMatches = atHead !== null ? atFiles.filter((f) => f.includes(atHead)).slice(0, 8) : [];
   const showAtPalette = atMatches.length > 0;
   const [atSel, setAtSel] = useState(0);
-  useEffect(() => setAtSel(0), [atHead]);
-  useInput((_in, key) => {
-    if (key.upArrow) setAtSel((s) => (s - 1 + atMatches.length) % atMatches.length);
-    else if (key.downArrow) setAtSel((s) => (s + 1) % atMatches.length);
-    else if (key.tab) {
-      const chosen = atMatches[atSel] ?? atMatches[0];
-      if (chosen) setInput(input.replace(/@[\w./\-]*$/, `@${chosen} `));
-    }
-  }, { isActive: showAtPalette });
-
-  // Ctrl+O folds/unfolds tool detail (full diffs) across the whole transcript —
-  // collapsed by default so the feed never floods (CC-TRANSCRIPT).
-  useInput((input, key) => {
-    if (key.ctrl && input === "o") dispatch({ t: "toggleExpand" });
-  });
-
-  // CC-VIRTUAL-LIST: pgup/pgdn scroll the virtual viewport in alt-screen mode.
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
-  useInput((_in, key) => {
-    const half = Math.max(1, Math.floor(maxVisible / 2));
-    if (key.pageUp) dispatch({ t: "scrollBy", delta: half });
-    else if (key.pageDown) dispatch({ t: "scrollBy", delta: -half });
-  }, { isActive: ALT_SCREEN && !showPalette && !showAtPalette });
 
-  // Shift+tab cycles the approval mode. Keep modeRef in sync so requestApproval
-  // always reads the latest value without closing over stale state.
-  useInput((_in, key) => {
-    if (key.tab && key.shift) {
-      setMode((prev) => {
-        const next = nextMode(prev);
-        modeRef.current = next;
-        const noteText =
-          next === "accept-edits"
-            ? "✎ accept-edits mode — file writes auto-approved · ⇧⇥ for auto"
-            : next === "auto"
-              ? "⚡ auto-approve mode — ⇧⇥ to return to review"
-              : "● review mode — approvals restored";
-        dispatch({ t: "note", text: noteText });
-        return next;
-      });
-    }
+  useKeybindings({
+    slashHead, showPalette, matchesWithRisk, sel, setSel,
+    atHead, showAtPalette, atMatches, atSel, setAtSel, input, setInput,
+    altScreen: ALT_SCREEN, maxVisible, dispatch, setMode, modeRef,
   });
 
   const submit = useSubmit({
