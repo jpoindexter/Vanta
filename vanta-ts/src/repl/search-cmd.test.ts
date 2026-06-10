@@ -18,6 +18,7 @@ function makeCtx(messages: Message[]): ReplCtx {
       messages,
       send: async () => STUB_OUTCOME,
       setProvider: () => {},
+      setSessionMemory: () => {},
     },
     setup: {} as ReplCtx["setup"],
     dataDir: "/tmp/.vanta",

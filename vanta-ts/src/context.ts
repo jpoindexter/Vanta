@@ -50,6 +50,8 @@ type TrimOptions = {
   thresholdPct?: number;
   /** When set, a goal-reminder note is injected right after system messages on compression. */
   activeGoalText?: string;
+  /** The live session scratchpad, injected interior on compression. */
+  sessionMemory?: string;
 };
 
 /**
@@ -119,11 +121,16 @@ export async function compressMessages(
       role: "user",
       content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
     };
-    // CC-COMPACTION-REMIND: a transient nudge to /compress, injected interior so
+    // Compaction reminder: a transient nudge to /compress, injected interior so
     // it never displaces head/goalNote at index 1 (pinned by tests).
     const reminder = compactionReminder(estimateTokens(messages), contextWindow);
     const reminderNote: Message[] = reminder ? [{ role: "user" as const, content: reminder }] : [];
-    const compressed = [...system, ...head, note, ...reminderNote, ...tail];
+    // Re-inject the live scratchpad interior so the curated session snapshot
+    // survives compaction even as the middle is summarized away.
+    const sessionNote: Message[] = opts.sessionMemory?.trim()
+      ? [{ role: "user" as const, content: `[Session notes — running scratchpad]: ${opts.sessionMemory.trim()}` }]
+      : [];
+    const compressed = [...system, ...head, note, ...reminderNote, ...sessionNote, ...tail];
     if (!opts.activeGoalText) return compressed;
     const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
     return [...system, goalNote, ...compressed.slice(system.length)];

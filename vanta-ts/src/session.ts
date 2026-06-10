@@ -12,6 +12,12 @@ import { listSkills } from "./skills/store.js";
 import { brainDigest } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
 import { reviewTurn, shouldReview } from "./review/background-review.js";
+import {
+  shouldUpdateSessionMemory,
+  updateSessionMemory,
+  readSessionMemory,
+  sessionMemoryBlock,
+} from "./memory/session-memory.js";
 import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "./repl/nudge.js";
 import {
   nextGateState,
@@ -123,7 +129,7 @@ export async function prepareRun(
   // SCAFFOLD: load the versioned identity/values/honesty layer from ~/.vanta/self/.
   const { selfDigest } = await import("./self/store.js");
   const selfContent = await selfDigest(process.env).catch(() => "");
-  // CC-SETTINGS: load layered settings.json and apply env overrides.
+  // Load layered settings.json and apply env overrides.
   const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
@@ -157,6 +163,10 @@ export async function prepareRun(
       systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
       await clearAutoHandoff(dataDir);
     }
+    // Inject the session scratchpad on resume. Unlike the handoff, it is NOT
+    // consumed — it keeps updating through the new session.
+    const scratch = await readSessionMemory(dataDir).catch(() => "");
+    if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
   }
   return { safety, registry, provider, goals, systemPrompt };
 }
@@ -164,7 +174,7 @@ export async function prepareRun(
 const SUMMARIZE_SYS =
   "Summarize the following conversation messages into a compact paragraph capturing decisions, findings, and open threads. Be terse.";
 
-/** CC-COMPACT-INSTRUCTIONS: optionally steer the summary toward what to keep. */
+/** Optionally steer the summary toward what to keep. */
 function summarizeSys(instructions?: string): string {
   const focus = instructions?.trim();
   return focus ? `${SUMMARIZE_SYS}\nFocus especially on: ${focus}` : SUMMARIZE_SYS;
@@ -238,7 +248,7 @@ export function consoleCallbacks(): Pick<
     onToolCall: (n, a) => console.log(`  → ${n}(${shortArgs(a)})`),
     onToolResult: (n, ok, out) => {
       console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`);
-      // CC-TODO: print the live checklist every time the agent updates it.
+      // Print the live checklist every time the agent updates it.
       if (n === "todo" && ok && out.includes("done)")) {
         console.log(out.split("\n").map((l) => `  ${l}`).join("\n"));
       }
@@ -303,6 +313,32 @@ export async function reviewAfterTurn(opts: {
     transcript: opts.transcript,
   });
   if (wrote.length) console.log(`  💾 self-improvement: learned ${wrote.join(", ")}`);
+}
+
+/**
+ * Post-turn, distil the running transcript into .vanta/session-memory.md when
+ * the turn warrants it (busy turn or the periodic
+ * interval — see {@link shouldUpdateSessionMemory}). Returns the new scratchpad
+ * content so the host can refresh the live compaction injection, or null when no
+ * update ran. Best-effort and silent.
+ */
+export async function sessionMemoryAfterTurn(opts: {
+  provider: LLMProvider;
+  dataDir: string;
+  transcript: Message[];
+  toolIterations: number;
+  turnIndex: number;
+  env?: NodeJS.ProcessEnv;
+}): Promise<string | null> {
+  const env = opts.env ?? process.env;
+  if (!shouldUpdateSessionMemory(opts.turnIndex, opts.toolIterations, env)) return null;
+  const { updated, content } = await updateSessionMemory({
+    provider: opts.provider,
+    dataDir: opts.dataDir,
+    transcript: opts.transcript,
+    env,
+  });
+  return updated ? content ?? null : null;
 }
 
 /**

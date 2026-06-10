@@ -37,14 +37,17 @@ export type AgentDeps = {
   summarize?: Summarizer;
   /** When set, a goal-reminder note is re-injected after context compression. */
   activeGoalText?: string;
+  /** The live session scratchpad, re-injected on compaction. Hosts refresh it
+   * post-turn via Conversation.setSessionMemory. */
+  sessionMemory?: string;
   /** Called when consecutive tool failures hit the threshold; fire a note or interrupt. */
   onIterationCheck?: (consecutiveFailures: number) => void;
-  /** CC-AUTO-COMPACT: called when a compression round runs, with the dropped count and summary. */
+  /** Called when a compression round runs, with the dropped count and summary. */
   onAutoCompact?: (dropped: number, summary: string) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
   /**
-   * CC-PLAN-MODE-REAL: when this returns true, only read-only tools are allowed.
+   * Plan mode: when this returns true, only read-only tools are allowed.
    * Write/shell tools return a "blocked: plan mode" result without executing.
    * Set by the interactive host when /planmode is on and the plan is not yet approved.
    */
@@ -85,7 +88,7 @@ const MAX_CONSECUTIVE_FAILURES = 3;
 const MAX_IDENTICAL_CALLS = 3;
 
 /**
- * CC-PLAN-MODE-REAL: whitelist of tools that are permitted while plan mode is
+ * Plan mode: whitelist of tools that are permitted while plan mode is
  * active and the plan has not yet been approved. Default-deny: anything NOT on
  * this list is blocked, so adding a new write tool doesn't silently bypass the gate.
  */
@@ -136,6 +139,8 @@ export type Conversation = {
    * between turns — never mid-flight.
    */
   setProvider: (provider: LLMProvider, summarize?: Summarizer) => void;
+  /** Refresh the live scratchpad injected on compaction. */
+  setSessionMemory: (text: string) => void;
 };
 
 /**
@@ -167,6 +172,9 @@ export function createConversation(
     setProvider: (provider, summarize) => {
       deps.provider = provider;
       if (summarize) deps.summarize = summarize;
+    },
+    setSessionMemory: (text) => {
+      deps.sessionMemory = text;
     },
   };
 }
@@ -311,7 +319,7 @@ async function dispatchTool(
 
   const tool = deps.registry.get(call.name);
 
-  // CC-PLAN-MODE-REAL: enforce read-only restriction when plan mode is active.
+  // Plan mode: enforce read-only restriction when plan mode is active.
   if (deps.planGate?.() && !PLAN_MODE_ALLOWED_TOOLS.has(call.name)) {
     const output = `blocked: plan mode is active — read-only tools only. Present your plan and run /planmode approve to proceed.`;
     deps.onToolResult?.(call.name, false, output);
@@ -329,7 +337,7 @@ async function dispatchTool(
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
-  // CC-TOOL-RESULT-DISK: size-based backstop AFTER lossy compression — catches any
+  // Tool-result offload: size-based backstop AFTER lossy compression — catches any
   // tool (incl. non-allow-listed reads/shell) whose output is still oversized,
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir: join(ctx.root, ".vanta") });

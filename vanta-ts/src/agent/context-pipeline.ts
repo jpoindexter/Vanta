@@ -12,6 +12,8 @@ export type ContextDeps = {
   summarize?: Summarizer;
   onAutoCompact?: (dropped: number, summary: string) => void;
   activeGoalText?: string;
+  /** The live session scratchpad, re-injected on compaction. */
+  sessionMemory?: string;
 };
 
 /** Per-conversation last-turn time (GC-safe; keyed by the stable messages array). */
@@ -77,9 +79,9 @@ export async function prepareCallMessages(
   iter: number,
   tc: TurnContext,
 ): Promise<Message[]> {
-  // Idle-clear only at the genuinely-idle turn start (CC-TIME-BASED-MC).
+  // Idle-clear only at the genuinely-idle turn start (time-based micro-compaction).
   const fresh = iter === 1 ? clearStaleToolResults(messages, tc.idleMs, tc.idleCfg) : messages;
   return tc.trackedSummarize
-    ? compressMessages(fresh, deps.provider.contextWindow(), tc.trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: tc.thresholdPct })
+    ? compressMessages(fresh, deps.provider.contextWindow(), tc.trackedSummarize, { activeGoalText: deps.activeGoalText, sessionMemory: deps.sessionMemory, thresholdPct: tc.thresholdPct })
     : trimMessages(fresh, deps.provider.contextWindow(), { thresholdPct: tc.thresholdPct });
 }

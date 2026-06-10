@@ -136,6 +136,26 @@ describe("compressMessages", () => {
     expect(result.every((m) => !m.content.includes("Active goal"))).toBe(true);
   });
 
+  it("re-injects the session scratchpad interior on compaction without displacing index 1", async () => {
+    const msgs = manyMessages();
+    const result = await compressMessages(msgs, 1000, async () => "summary", {
+      protectFirst: 3,
+      protectLast: 6,
+      activeGoalText: "ship card 1",
+      sessionMemory: "- **Now** wiring the injection",
+    });
+    // goal note still owns index 1 (pinned invariant)
+    expect(result[1]?.content).toContain("Active goal");
+    const scratch = result.find((m) => m.content.includes("Session notes"));
+    expect(scratch?.content).toContain("wiring the injection");
+  });
+
+  it("does not inject a session note when sessionMemory is absent or blank", async () => {
+    const msgs = manyMessages();
+    const result = await compressMessages(msgs, 1000, async () => "summary", { sessionMemory: "   " });
+    expect(result.every((m) => !m.content.includes("Session notes"))).toBe(true);
+  });
+
   it("falls back to a trimmed result when the summarizer throws", async () => {
     const msgs = manyMessages();
     const summarize = async (): Promise<string> => {

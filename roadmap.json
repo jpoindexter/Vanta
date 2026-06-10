@@ -1,19 +1,19 @@
 {
-  "updated": "2026-06-11",
+  "updated": "2026-06-10",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
       "track": "Harness",
       "title": "Session Memory service — background LLM notes file maintained during conversation",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's Session Memory service (`sessionMemory.ts`) auto-maintains a per-session markdown notes file in the background using a forked subagent. It runs periodically via post-sampling hook, extracting key info (decisions, context, in-progress items) from conversation without blocking the main loop. Distinct from extractMemories (which writes to ~/.claude/projects/memory) — this is an in-session scratchpad.",
       "done": "A `.claude/session-memory.md` is auto-populated and updated throughout the session. The notes are injected into context on /compact and session resume.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STREAMING-TOOL-EXEC",
@@ -26,8 +26,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-MESSAGE-DISPLAY",
@@ -40,8 +40,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOKS-ENGINE",
@@ -67,8 +67,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-ADDITIONAL-CTX",
@@ -81,8 +81,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TEAMS",
@@ -189,8 +189,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "SOLUTIONING-MODE",
@@ -256,8 +256,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-REWIND",
@@ -361,8 +361,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TEAM-SECRET-GUARD",
@@ -375,8 +375,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-LSP-DIAGNOSTIC-PUSH",
@@ -389,8 +389,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STRUCTURED-OUTPUT-TOOL",
@@ -403,8 +403,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CRON-DURABLE",
@@ -417,8 +417,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-AGENT-TYPE",
@@ -431,8 +431,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-POST-COMPACT-RESTORE",
@@ -445,8 +445,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HISTORY-SNIP",
@@ -459,8 +459,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-VERIFICATION-AGENT",
@@ -473,8 +473,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-REACTIVE-COMPACT",
@@ -487,8 +487,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-INIT-CMD",
@@ -501,8 +501,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TOKEN-COUNT-API",
@@ -515,8 +515,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BG-FLAG-PRESERVE",
@@ -529,8 +529,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-MCP-TOOL-TYPE",
@@ -543,8 +543,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-ADVISOR-ESCALATE",
@@ -610,8 +610,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-FOCUS-CMD",
@@ -624,21 +624,21 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SCROLL-DURING-RUN",
+      "track": "Operator",
       "title": "Scroll up while agent is streaming (normal mode)",
       "status": "next",
-      "tier": "pebble",
       "size": "S",
-      "effort": "low",
-      "track": "Operator",
-      "lens": "tui",
-      "model": "sonnet",
       "summary": "In normal (non-alt-screen) mode, the transcript keeps scrolling down as the agent streams. The terminal raw mode blocks native scroll. User cannot read earlier content while the agent is running.",
       "done": "User can scroll up (pgup/pgdn or terminal scroll) to read history while agent is generating. View snaps back to bottom when the turn completes.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
       "notes": "Reported via screenshot: continuous downward scroll during generation, no way to scroll back mid-run."
     },
     {
@@ -678,8 +678,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "TUI-V2-RAILS",
@@ -861,8 +861,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PERMISSION-EXPLAINER",
@@ -875,8 +875,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BASH-SHELL-COMPLETION",
@@ -889,8 +889,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STATS-CMD",
@@ -903,8 +903,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-ASK-USER-TOOL",
@@ -917,8 +917,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-ASCIICAST",
@@ -931,8 +931,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SCREENSHOT-CLIPBOARD",
@@ -945,8 +945,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PDF-READ",
@@ -959,8 +959,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENT-EDITOR",
@@ -973,8 +973,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENT-SNAPSHOT",
@@ -987,8 +987,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MESSAGE-ACTIONS",
@@ -1001,8 +1001,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "TUI-SELECT",
@@ -1054,8 +1054,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "AGENT-COUNCIL",
@@ -1176,8 +1176,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-GENERATE-AGENT",
@@ -1190,8 +1190,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-CLI",
@@ -1204,8 +1204,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-SKILLS",
@@ -1218,8 +1218,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-RUN-SKILL-GEN",
@@ -1232,8 +1232,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-DESKTOP-IMPORT",
@@ -1246,8 +1246,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-MONITORS",
@@ -1260,8 +1260,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BUDGET-CAP",
@@ -1443,8 +1443,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-LOOP",
@@ -1457,8 +1457,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PREVENT-SLEEP",
@@ -1471,8 +1471,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CONFIG-TOOL",
@@ -1485,8 +1485,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TOOL-SEARCH-DEFERRED",
@@ -1499,8 +1499,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CONTEXT-UPGRADE",
@@ -1513,8 +1513,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-KEYCHAIN-STORAGE",
@@ -1527,8 +1527,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-DANGEROUS-PATTERNS",
@@ -1541,8 +1541,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HISTORY-PASTE-STORE",
@@ -1555,8 +1555,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SCRATCHPAD",
@@ -1569,8 +1569,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-SSRF-GUARD",
@@ -1583,8 +1583,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-FILE-CHANGED-HOOKS",
@@ -1597,8 +1597,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TEAMMATE-DEFAULT-MODEL",
@@ -1611,8 +1611,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SECURITY-REVIEW-CMD",
@@ -1625,8 +1625,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CYBER-RISK-INSTRUCTION",
@@ -1639,8 +1639,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BASH-OUTPUT-LIMIT",
@@ -1653,8 +1653,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SETTINGS-HOT-RELOAD",
@@ -1667,8 +1667,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CROSS-PROJECT-RESUME",
@@ -1681,8 +1681,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-COMMIT-ATTRIBUTION",
@@ -1695,8 +1695,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CONCURRENT-SESSIONS",
@@ -1709,8 +1709,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-PROMPT-TYPE",
@@ -1723,8 +1723,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-FRONTMATTER",
@@ -1737,8 +1737,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-ONCE",
@@ -1751,8 +1751,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-EXIT-CODES",
@@ -1765,8 +1765,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AUTO-UPDATER",
@@ -1779,8 +1779,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-DEFERRED-SESSION-HOOKS",
@@ -1793,8 +1793,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MEMORY-WARN",
@@ -1807,8 +1807,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TOKEN-BUDGET-PARSE",
@@ -1821,8 +1821,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PARALLEL-TOOL-EXEC",
@@ -1835,8 +1835,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-VCR-MODE",
@@ -1849,8 +1849,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-API-PRECONNECT",
@@ -1863,8 +1863,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-THINKING-ADAPTIVE",
@@ -1877,8 +1877,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-TIMING",
@@ -1891,8 +1891,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-UNDERCOVER-MODE",
@@ -1905,8 +1905,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SESSION-ENV",
@@ -1919,8 +1919,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PRIVACY-LEVELS",
@@ -1933,8 +1933,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-INTERLEAVED-THINKING",
@@ -1947,8 +1947,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MODEL-TIER-OVERRIDE",
@@ -1961,8 +1961,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SHADOWED-RULE-DETECT",
@@ -1975,8 +1975,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TOOL-SEARCH-AUTO",
@@ -1989,8 +1989,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BARE-MODE",
@@ -2003,8 +2003,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PROMPT-CACHE-BREAK",
@@ -2017,8 +2017,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-DUMP-SYS-PROMPT",
@@ -2031,8 +2031,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CD-CMD",
@@ -2045,8 +2045,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-PERM-DENIED",
@@ -2059,8 +2059,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-EXEC-FORM",
@@ -2073,8 +2073,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-CONTINUE-BLOCK",
@@ -2087,8 +2087,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SANDBOX-NETWORK-DENY",
@@ -2101,8 +2101,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-ULTRACODE-TRIGGER",
@@ -2115,8 +2115,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BG-RESPOND-CONTINUE",
@@ -2129,8 +2129,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HOOK-SESSION-TITLE",
@@ -2143,8 +2143,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-GREP-READ-EDIT",
@@ -2157,8 +2157,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-LESS-PERMS-SKILL",
@@ -2171,8 +2171,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SHELL-STARTUP-WRITE-PROMPT",
@@ -2185,8 +2185,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PROACTIVE-ALIAS",
@@ -2199,8 +2199,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-10"
     },
     {
       "id": "CC-ACCEPTEDITS-HUSKY",
@@ -2213,8 +2213,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-10"
     },
     {
       "id": "CC-MONITOR",
@@ -2293,8 +2293,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MEM-TEAM",
@@ -2307,8 +2307,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MAGIC-DOCS",
@@ -2321,8 +2321,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-COORDINATOR-MODE",
@@ -2335,8 +2335,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-LSP-TOOL-FULL",
@@ -2349,8 +2349,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TASK-TOOLS",
@@ -2363,8 +2363,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SHELL-SNAPSHOT",
@@ -2377,8 +2377,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BUILTIN-AGENTS",
@@ -2391,8 +2391,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENT-MEMORY",
@@ -2405,8 +2405,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SWARM-IN-PROCESS",
@@ -2419,8 +2419,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-READ-ONLY-CMD-MAP",
@@ -2433,8 +2433,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BASH-SECURITY-BLOCKS",
@@ -2447,8 +2447,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-FORK-SUBAGENT",
@@ -2461,8 +2461,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SPINNER-STALLED",
@@ -2709,8 +2709,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-OUTPUT-STYLE-DIR",
@@ -2723,8 +2723,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-COPY-CMD",
@@ -2737,8 +2737,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PROJECT-ONBOARDING",
@@ -2751,8 +2751,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TODO-ACTIVE-FORM",
@@ -2765,8 +2765,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TEAMMATE-COLOR",
@@ -2779,8 +2779,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-RECONNECT-TOGGLE",
@@ -2793,8 +2793,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SPINNER-VERBS",
@@ -2807,8 +2807,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TERMINAL-SETUP-CMD",
@@ -2821,8 +2821,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AWAY-SUMMARY",
@@ -2835,8 +2835,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-OS-NOTIFY",
@@ -2849,8 +2849,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-COPY-ON-SELECT",
@@ -2863,8 +2863,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CLIPBOARD-IMAGE-HINT",
@@ -2877,8 +2877,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SESSION-TITLE",
@@ -2891,8 +2891,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TRANSCRIPT-SEARCH",
@@ -2905,8 +2905,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STANDALONE-AGENT-NAME",
@@ -2919,8 +2919,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AUTO-MODE-DENIALS",
@@ -2933,8 +2933,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CHROME-GIF-RECORDER",
@@ -2947,8 +2947,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-EXAMPLE-COMMANDS",
@@ -2961,8 +2961,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AUTO-ISSUE",
@@ -2975,8 +2975,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PROMPT-EDITOR",
@@ -2989,8 +2989,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SHELL-JSON-FORMAT",
@@ -3003,8 +3003,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TERMINAL-HYPERLINKS",
@@ -3017,8 +3017,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STATS-SPARKLINE",
@@ -3031,8 +3031,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-HISTORY-PICKER",
@@ -3045,8 +3045,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-RICH-OUTPUT",
@@ -3059,8 +3059,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-NATIVE-CLIPBOARD",
@@ -3073,8 +3073,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AUTO-THEME",
@@ -3087,8 +3087,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-IDLE-RETURN",
@@ -3101,8 +3101,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SANDBOX-VIOLATION",
@@ -3115,8 +3115,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-MULTISELECT",
@@ -3129,8 +3129,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-PROJECT-APPROVE",
@@ -3143,8 +3143,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SHELL-HISTORY-COMPLETE",
@@ -3157,8 +3157,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PATH-COMPLETE",
@@ -3171,8 +3171,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-VIM-UNDO-REDO",
@@ -3185,8 +3185,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-USAGE-MERGED",
@@ -3199,8 +3199,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-STATUS-LINE-GITHUB",
@@ -3213,8 +3213,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CTRL-U-CLEAR-ALL",
@@ -3227,8 +3227,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-10"
     },
     {
       "id": "CC-SETTINGS-UX",
@@ -3345,8 +3345,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-KEYBINDING-SYSTEM",
@@ -3359,8 +3359,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CHORD-BINDINGS",
@@ -3373,8 +3373,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MEM-RELEVANCE-LLM",
@@ -3387,8 +3387,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SESSION-BACKGROUNDING",
@@ -3401,8 +3401,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PROMPT-SUGGEST-UI",
@@ -3415,8 +3415,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AUTO-DREAM-SVC",
@@ -3429,8 +3429,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-COST-TRACKER-DETAIL",
@@ -3443,8 +3443,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENTIC-SESSION-SEARCH",
@@ -3457,8 +3457,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-WAIT-MCP",
@@ -3497,8 +3497,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-FILE-ASSETS",
@@ -3511,8 +3511,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-ALLOWEDTOOLS",
@@ -3525,8 +3525,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-LSP",
@@ -3539,8 +3539,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-INIT-VERIFIERS",
@@ -3553,8 +3553,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-USAGE-RANK",
@@ -3567,8 +3567,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-CONDITIONAL-ACTIVATE",
@@ -3581,8 +3581,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-OFFICIAL-REGISTRY",
@@ -3595,8 +3595,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-RECOMMEND",
@@ -3609,8 +3609,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-AUTOUPDATE",
@@ -3623,8 +3623,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-RELOAD-SKILLS-CMD",
@@ -3637,8 +3637,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-BIN-EXEC",
@@ -3651,8 +3651,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-ALWAYS-LOAD",
@@ -3665,8 +3665,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-RESULT-SIZE",
@@ -3679,8 +3679,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-OVERRIDE-SETTING",
@@ -3693,8 +3693,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-DOLLAR-ESCAPE",
@@ -3707,8 +3707,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SETTINGS-MCP",
@@ -3747,8 +3747,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MCP-ELICITATION",
@@ -3761,8 +3761,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-DXT",
@@ -3775,8 +3775,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-MARKETPLACE",
@@ -3789,8 +3789,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENTS-DIR",
@@ -3803,8 +3803,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-IMPROVEMENT",
@@ -3817,8 +3817,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLUGIN-DEPS",
@@ -3831,8 +3831,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MONITOR-MCP-TASK",
@@ -3845,8 +3845,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SWARM-IDLE-NOTIFY",
@@ -3859,8 +3859,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-WORKFLOW-TASK-TYPE",
@@ -3873,8 +3873,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-WORKTREE",
@@ -3900,8 +3900,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SKILL-BATCH",
@@ -3914,8 +3914,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SWARM-TMUX",
@@ -3928,8 +3928,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLAN-MODE-V2",
@@ -3942,8 +3942,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SESSION-MEMORY-COMPACT",
@@ -3956,8 +3956,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-UDS-PEERS",
@@ -3970,8 +3970,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-TEMPLATES",
@@ -3984,8 +3984,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-DEEP-LINK",
@@ -3998,8 +3998,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SLACK-CHANNEL-SUGGEST",
@@ -4012,8 +4012,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BIDI-TEXT",
@@ -4039,8 +4039,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-AGENT-WIZARD",
@@ -4105,8 +4105,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SSH-SESSION",
@@ -4119,8 +4119,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-EXTRACT-MEMORIES",
@@ -4133,8 +4133,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-VOICE-STT",
@@ -4147,8 +4147,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-REVIEW-ARTIFACT",
@@ -4161,8 +4161,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-PLAN-INTERVIEW-PHASE",
@@ -4175,8 +4175,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-CHICAGO-MCP",
@@ -4189,8 +4189,8 @@
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-09"
     },
     {
       "id": "COFOUNDER-ENGINE-SURVEY",
@@ -4217,8 +4217,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SELF-HOSTED",
@@ -4231,8 +4231,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SSH-CONFIGS",
@@ -4453,8 +4453,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-VIM-VISUAL-MODE",
@@ -4467,8 +4467,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-MARKDOWN-TABLES",
@@ -4637,8 +4637,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "Shipped. Caching already existed (ephemeral cache_control on the stable system prefix in providers/anthropic.ts); this gates the 1h TTL behind ENABLE_PROMPT_CACHING_1H (Claude Code's env name). toSystemBlocks stamps {type:ephemeral,ttl:1h} on the stable breakpoint + complete() adds the extended-cache-ttl-2025-04-11 beta header (combined with the OAuth beta when both apply). Off by default: 1h cache WRITE costs 2x base, so it only wins on long sessions with ~3+ reads/hour. Pure path unit-tested (toAnthropicMessages cache1h on/off + promptCache1hEnabled)."
     },
     {
@@ -4682,8 +4682,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
       "lens": "agent-loop",
+      "updated": "2026-06-09",
       "notes": "onAutoCompact callback on AgentDeps; trackedSummarize wrapper in runTurn emits callback when compressMessages fires; wired in app.tsx + interactive.ts. VANTA_AUTO_COMPACT_THRESHOLD configures fill pct. Test proves callback fires with seeded history."
     },
     {
@@ -4749,8 +4749,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
       "lens": "tui",
+      "updated": "2026-06-09",
       "notes": "bashLabel() in tool-display.ts; shell_cmd uses first # comment as display label, falls back to truncated command."
     },
     {
@@ -5410,8 +5410,8 @@
       "tier": "pebble",
       "model": "opus",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-BG-TASKS",
@@ -5541,8 +5541,8 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-10",
       "lens": "coding",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration, OPT-IN). lsp/diagnostic-delta.ts: pure diffDiagnostics(before, after) (keys on message+category so a line-shifted pre-existing diag stays baseline) + formatNewDiagnostics. lsp/diagnostic-note.ts: beginDiagnosticDelta(abs, isExisting) straddles a write (baseline read from disk BEFORE, delta AFTER — getDiagnostics reads disk) → appends \"⚠ N new diagnostic(s)\" to the write_file/edit_file result. PARENT DECISION: gated behind VANTA_DIAGNOSTIC_DELTA=1, DEFAULT OFF — getDiagnostics runs a full semantic TS build, so straddling costs TWO per .ts write (too much latency to impose by default; verified ts-service.buildService creates a fresh language service per call). Agent's sandbox couldn't run tests; parent verified (typecheck + 14 module/gate tests + full suite 2118 green). Best-effort, never blocks the write; .d.ts/test exempt. Documented in .env.example."
     },
     {
@@ -5725,22 +5725,22 @@
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
       "lens": "tui",
+      "updated": "2026-06-09",
       "notes": "Alt-screen enter/leave in launch.tsx; VANTA_NO_FLICKER=1 + CLAUDE_CODE_NO_FLICKER=1 both accepted. Documented in .env.example."
     },
     {
       "id": "CC-ESC-INTERRUPT",
+      "track": "Operator",
       "title": "Esc interrupts the running agent",
       "status": "shipped",
-      "tier": "pebble",
       "size": "S",
-      "effort": "low",
-      "track": "Operator",
-      "lens": "tui",
-      "model": "sonnet",
       "summary": "Pressing Esc while the agent is running should abort the current turn (set the AbortSignal). Currently Esc has no effect mid-run, which means the only escape is Ctrl+C (kills the whole process). Should fire the existing abortRef in use-agent-send.ts and show a cancellation note.",
       "done": "Pressing Esc while busy=true cancels the current agent turn gracefully. A note appears confirming the interrupt. The composer becomes active again.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
       "notes": "Signal now flows through getCompletion -> provider.complete/stream. Codex uses fetch signal. OpenAI/Anthropic SDKs use RequestOptions signal. Abort checks every iteration + mid-stream chunk. Esc fires abortRef.abort() immediately."
     },
     {
@@ -7262,8 +7262,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-GREP",
@@ -7276,8 +7276,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-FILE-EDIT",
@@ -7290,8 +7290,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-09"
     },
     {
       "id": "CC-SLEEP",
@@ -7382,8 +7382,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). memory/freshness.ts: pure humanAge(ageMs) (\"today\"/\"yesterday\"/\"N days ago\") + freshnessCaveat(ageMs) (null when <2 days, else a point-in-time caveat) + annotateMemory(content, ageMs). Wired into memory/store.ts recentMemory: each block's own ISO timestamp → age → stale blocks get the caveat prepended at the injection path (per-block granularity). +14 unit + 1 store integration test; full suite 2019 green, tsc clean."
     },
     {
@@ -7397,8 +7397,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). tools/shell-stall.ts: pure detectInteractivePrompt(tail) (matches the trimmed/lowercased LAST non-empty line against a needle list + a ?-ending-with-y/n branch; near-zero prose FP) + StallState + checkStall(prev, curLen, tail, nowMs, idleMs=45000) (resets on output growth, fires once after idle+interactive, never refires; nowMs injected). Wired into bg-tasks.ts spawnBackground: startStallWatchdog polls the live in-memory chunks buffer every 5s (the log file is empty until close, so the watchdog lives at the spawn site), notify()s once when stalled-on-prompt, cleared on close. +32 tests; full suite green, tsc clean. (checkStall has 5 params — card-mandated signature, size gate warn-only.)"
     },
     {
@@ -7425,8 +7425,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration). context/time-microcompact.ts: pure clearStaleToolResults(messages, idleMs, opts?) — under idle threshold (default 60min, VANTA_MICROCOMPACT_IDLE_MS) returns the same array ref; over it, stubs old role:\"tool\" contents to \"[old tool result cleared after idle]\" IN PLACE (position preserved → tool_call/tool_result pairing valid), keeps the last N (default 4, VANTA_MICROCOMPACT_KEEP). + resolveIdleConfig(env). Wired into agent.ts runTurn: a GC-safe WeakMap<messages,number> tracks last-turn time; on iter 1 (the genuinely-idle turn start) clearStaleToolResults feeds the transient compress/trim copy — stored messages keep full content (no visible disruption). Agent's sandbox couldn't run tests; parent verified (typecheck + 12 module tests + full suite 2096 green). Completes the auto-context set: persistent size-compaction + >50k offload + idle clearing."
     },
     {
@@ -7453,8 +7453,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. Root cause: describe_image (and compare_vision) called resolveInScope WITHOUT expandHome — '~/Desktop/x.png' resolved to a bogus '<root>/~/Desktop/x.png' that passed the in-scope test then ENOENTed; an absolute Desktop path was refused outright though ~/Desktop is a default readable zone. Fix mirrors read_file exactly: expandHome() first, then allow out-of-root paths that isInZone(resolveReadableZones()). Tool descriptions updated to say ~-paths / readable zones are OK. Fixed BOTH describe_image and compare_vision (same bug). The drag-drop attach path (repl/format.ts maybeDroppedImage) already expanded ~ and was fine. +~6 tests across describe-image/compare-vision; suite green, tsc clean. (screenshot.ts/lsp.ts keep the old in-root-only message by design — not image-from-Desktop.)"
     },
     {
@@ -7468,8 +7468,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. tools/destructive-warn.ts: pure destructiveWarning(command) → curated note for allowed-but-destructive git commands (reset --hard, push --force [but NOT --force-with-lease], clean -f, checkout . / -f, restore ., branch -D, stash drop/clear), else null. shell-cmd.ts prepends \"⚠ <note>\" to the result (success or failure) so the user/agent sees it in the transcript. Purely informational — never blocks (rm -rf etc. stay hard-refused by the DESTRUCTIVE gate). +7 tests; suite green, tsc clean."
     },
     {
@@ -7483,8 +7483,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. Replaced the untested inline /context handler with repl/context-cmd.ts: pure contextBreakdown(messages, window) → per-category token estimates (system/user/assistant[+tool-call args]/tool results) + total + pct, and formatContextBreakdown() rendering a usage bar + each category's token count and % share. Richer than the old role-count version AND now unit-tested; also shrinks handlers.ts (inline handler removed, registered via import). +5 tests; full suite 1985 green, tsc clean."
     },
     {
@@ -7498,8 +7498,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. tools/shell-cmd.ts: pure lastCommandWord() (first token of the last pipeline/chain segment, git-aware, basename-stripped) + classifyExitCode() — grep/rg/egrep/fgrep exit 1 → 'No matches found', diff exit 1 → 'Differences found', find exit 1 → 'Some paths were inaccessible', all ok=true; exit ≥2 and unrelated commands stay errors; ENOENT/timeout (non-numeric code) stay errors. Returns the info note as the result so the TUI renders it as a normal (non-error) outcome — no display-layer change needed. +11 tests in tools.test.ts; suite green, tsc clean."
     },
     {
@@ -7513,9 +7513,9 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
+      "lens": "infra",
       "updated": "2026-06-09",
-      "notes": "Provider adapter + /routes command done. Auto-delegation (VANTA_ROUTE_SUMMARIZE) parked — needs routing infra, scope exceeds S/low-effort.",
-      "lens": "infra"
+      "notes": "Provider adapter + /routes command done. Auto-delegation (VANTA_ROUTE_SUMMARIZE) parked — needs routing infra, scope exceeds S/low-effort."
     },
     {
       "id": "CC-MODEL-DEPRECATION",
@@ -7528,8 +7528,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "infra",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). providers/model-deprecation.ts: pure modelDeprecationNotice(modelId, now) over a curated DEPRECATIONS map of clearly-legacy ids (claude-1/2/2.0/2.1/instant, gpt-4-0314/0613, gpt-3.5-turbo-0301/0613, gemini-1.0-pro/pro) → \"model 'X' is deprecated (retires DATE) — switch to Y\"; case-insensitive + prefix match (gpt-4-0314-preview matches). modelDeprecationNotices(env, now) reads VANTA_MODEL. Wired into status.ts notices: [...detectAuthConflicts, ...modelDeprecationNotices] → shown by vanta status/doctor under \"⚠ notices:\". Dates are best-effort/illustrative. +7 tests; full suite 1985 green, tsc clean."
     },
     {
@@ -7543,8 +7543,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "infra",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. providers/auth-conflict.ts: pure authConflictNotices(env, {claude,codex}) + detectAuthConflicts(env) (detects OAuth via CLAUDE_CODE_OAUTH_TOKEN/ANTHROPIC_AUTH_TOKEN env or ~/.claude/.credentials.json, and ~/.codex/auth.json). Flags ANTHROPIC_API_KEY+Claude-OAuth and OPENAI_API_KEY+Codex-OAuth coexistence with a 'remove one' notice naming which provider uses which. Surfaced in StatusReport.notices → rendered by `vanta status`/`doctor` under \"⚠ notices:\". Reused existing path helpers (exported credentialsPath from claude-code-auth.ts; defaultCodexAuthPath already exported). Whitespace-only keys treated as unset. +9 tests; suite green, tsc clean."
     },
     {
@@ -7558,8 +7558,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). /compress now accepts an optional instruction: session.ts buildSummarizer(provider, instructions?) prepends \"Focus especially on: <instr>\" to the summary system prompt (summarizeSys helper); all other callers unchanged via the optional param. handlers.ts compress handler threads arg.trim() → buildSummarizer. New repl/compact-gate.ts: compactionDisabled(env) (VANTA_DISABLE_COMPACT/DISABLE_COMPACT === \"1\") short-circuits the manual /compress with a \"compaction disabled\" notice (auto-compaction not gated — out of scope). +7 tests; full suite 2032 green, tsc clean."
     },
     {
@@ -7573,8 +7573,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. tools/writable-zones.ts: isDangerousPath(abs) — an unconditional floor beneath zones, scope AND approval mode. Blocks DANGEROUS_DIRS (~/.ssh ~/.gnupg ~/.aws ~/.config/gcloud /etc /private/etc /System /var/db/sudo) + DANGEROUS_FILES (~/.netrc ~/.npmrc ~/.pypirc ~/.docker/config.json ~/.kube/config ~/.codex/auth.json ~/.claude/.credentials.json ~/.vanta/google-tokens.json + shell rc files). Checked FIRST in both resolveReadablePath (reads) and a new resolveWritablePath (writes), so write_file/edit_file/read_file/describe_image/compare_vision all refuse these paths even in auto-approve mode. Also DRY'd write_file+edit_file onto resolveWritablePath (mirrors the read helper; the security floor now lives in one place per direction). Prefix-collision safe (~/.ssh-backup not blocked). +~15 tests; suite green, tsc clean."
     },
     {
@@ -7588,8 +7588,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "agent-loop",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/compaction-remind.ts: pure compactionReminder(estTokens, contextWindow, env?) → null below 0.70 fill (VANTA_COMPACTION_REMIND_FRAC override) else \"[context ~NN% full — consider /compress …]\" (display clamped ≤99%). Wired into context.ts compressMessages: injected as a transient interior message in the compression branch (after the summary note, before the tail) so it never displaces head/goalNote at index 1. Used the MINIMAL safe seam (compression branch only) — not the agent's 70-75% band early-return — to avoid any reminder-accumulation risk if a caller stores the result. +9 tests; full suite 2080 green, tsc clean."
     },
     {
@@ -8309,8 +8309,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "tui",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10. tui/status-bar.tsx: pure tokenWarningLevel(estTokens, contextWindow, env) → none/warn/urgent + tokenWarnFractions(env) (VANTA_TOKEN_WARN_FRAC default 0.85, VANTA_TOKEN_URGENT_FRAC default 0.95). The status bar (already below the composer, receiving estTokens+contextWindow) colors the % yellow and appends '▲ /compact' at warn, red 'context full · /compact' at urgent — zero app.tsx changes (StatusBar self-computes; env read at render time, not module load). +12 tests; full TUI suite 218 green, tsc clean. Documented in .env.example."
     },
     {
@@ -8339,8 +8339,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "memory",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). store/secret-scan.ts: pure scanForSecrets(text)→deduped rule ids (never the values) + hasSecrets(), 7 high-confidence near-zero-FP rules (github-pat, github-fine-grained-pat, aws-access-key-id, slack-token, google-api-key, private-key, openai-key). Wired into memory/store.ts appendMemory: scans the summary FIRST and returns {skipped:true, rules} without writing/committing if a secret is found — credential content never reaches ~/.vanta or its git store. Caller (session.ts) ignores the new return (void→object compatible). +17 unit + 2 store integration tests; full suite 2019 green, tsc clean."
     },
     {
@@ -8354,8 +8354,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "memory",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). compress/result-offload.ts: offloadResult(text, {toolName, dataDir}) — when a tool output exceeds resolveMaxResultChars (default 50k, VANTA_MAX_RESULT_CHARS / per-tool override) it stashes the full text via the existing CCR store (stashOriginal → .vanta/ccr/<id>.txt, reused — no parallel system) and returns a ~2k preview + retrieval id (the model's existing retrieve_original tool reads it back). Wired into agent.ts dispatchTool AFTER compressOutput, so it backstops non-allow-listed oversized outputs (read_file/shell_cmd/grep). Best-effort (stash failure → original text). +7 tests; full suite 2080 green, tsc clean."
     },
     {
@@ -8369,8 +8369,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "memory",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/context-suggestions.ts: pure contextSuggestions(messages, window) → ContextSuggestion[] — returns [] below 70% fill; at ≥70% groups role:\"tool\" messages by name and emits \"Remove N <name> output(s) (~Xk tokens)\" for each ≥1k-token group (savedTokens desc), always appends a /compress entry; severity warning ≥85% else info. Wired into the /context command (context-cmd.ts contextCmd): appends the suggestions (⚠/· prefixed) under the breakdown when context is high. +6 tests; full suite 2032 green, tsc clean."
     },
     {
@@ -8384,8 +8384,8 @@
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-10",
       "lens": "reach",
+      "updated": "2026-06-10",
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/prompt-keywords.ts: pure classifyPromptKeyword(text) → \"continue\"|\"stop\"|null. Normalizes (trim, lowercase, strip one trailing .!?) then WHOLE-STRING set-matches so a bare phrase fires but an embedded one doesn't (\"keep going\" → continue; \"keep going on the refactor\" → null). continue set: keep going/continue/go on/proceed/keep at it/carry on; stop set: stop/never mind/nevermind/cancel that/forget it. CONTINUE_NUDGE exported. Wired into tui/app.tsx submit (after the busy-enqueue guard): a bare continue phrase sends the nudge to resume the prior task instead of the literal text. No auto-action for \"stop\" (Esc already interrupts). +7 tests; full suite 1985 green, tsc clean."
     },
     {
@@ -8451,8 +8451,8 @@
       "tier": "sand",
       "model": "haiku",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "selfhood"
+      "lens": "selfhood",
+      "updated": "2026-06-09"
     },
     {
       "id": "D2",

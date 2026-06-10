@@ -46,7 +46,7 @@ const VIM_ENABLED = !!process.env.VANTA_VIM;
 // Reserve rows for: composer(3) + status(1) + padding(2) + streaming(2) + safety margin(2).
 const CHROME_ROWS = 10;
 
-// CC-VIRTUAL-LIST: alt-screen mode (virtual viewport replaces <Static>) is passed
+// Virtual list: alt-screen mode (virtual viewport replaces <Static>) is passed
 // as a prop, NOT read from process.env at module load — the .env is loaded at
 // runtime (cli.ts main → loadEnv), well after this module's top-level evaluates,
 // so a module-const read would always be false. launch.tsx reads it correctly.
@@ -91,7 +91,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
 
-  const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety, setup.goals, repoRoot, activeProvider.contextWindow());
+  const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety, setup.goals, repoRoot, activeProvider.contextWindow(), activeProvider);
 
   // Slash palette — fuzzy-search matching commands while typing a bare `/word`.
   // Results include risk tier labels.
@@ -129,7 +129,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
   );
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
-  // CC-ALT-BANNER: the banner leads the transcript as its first entry — into
+  // Alt-screen banner: the banner leads the transcript as its first entry — into
   // <Static> scrollback in normal mode, into the virtual viewport (scrolls
   // away via pgup) in alt-screen mode. Same designed card in both.
   const allEntries: Entry[] = banner ? [{ kind: "banner", data: banner, root: repoRoot }, ...state.entries] : state.entries;

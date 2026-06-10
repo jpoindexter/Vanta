@@ -16,6 +16,7 @@ import {
   approver,
   writeRunMemory,
   reviewAfterTurn,
+  sessionMemoryAfterTurn,
   maybeCurate,
   antiSlopAfterText,
 } from "./session.js";
@@ -140,7 +141,7 @@ export async function runChat(
       },
       ...consoleCallbacks(),
       onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
-      // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
+      // Plan mode: block write tools while plan mode is active and unapproved.
       planGate: () => {
         const sys = convo.messages[0];
         return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved);
@@ -239,6 +240,16 @@ export async function runChat(
       toolIterations: outcome.toolIterations,
       turnIndex: state.turnIndex,
     });
+    // Distil the running transcript into the session scratchpad, then refresh the
+    // live compaction injection on the conversation.
+    const newScratch = await sessionMemoryAfterTurn({
+      provider: setup.provider,
+      dataDir: join(repoRoot, ".vanta"),
+      transcript: convo.messages,
+      toolIterations: outcome.toolIterations,
+      turnIndex: state.turnIndex,
+    });
+    if (newScratch) convo.setSessionMemory(newScratch);
     gates = await runPostTurnGates(gates, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
     // REFLECT-CORRECT: extract correction rules from user messages and persist to brain.
     const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");

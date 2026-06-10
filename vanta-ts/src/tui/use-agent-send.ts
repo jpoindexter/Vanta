@@ -5,7 +5,7 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, antiSlopAfterText, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, antiSlopAfterText, sessionMemoryAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
 import { buildModeHint } from "../repl/mode-detect.js";
 import { maybeAutoHandoff } from "../repl/auto-handoff.js";
@@ -16,6 +16,7 @@ import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
 import type { Goal } from "../types.js";
+import type { LLMProvider } from "../providers/interface.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
 type MutableRef<T> = React.MutableRefObject<T>;
@@ -30,6 +31,7 @@ export function useAgentSend(
   goals: Goal[] = [],
   repoRoot = process.cwd(),
   contextWindow = 0,
+  provider?: LLMProvider,
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
   const turnStartRef = useRef<number>(0);
   const autoHandoffNotedRef = useRef<boolean>(false);
@@ -129,6 +131,17 @@ export function useAgentSend(
           convo.messages,
           (note) => dispatch({ t: "note", text: note }),
         ).then((s) => { scopeDeltaRef.current = s; });
+        // Distil the running transcript into the session scratchpad and refresh the
+        // live compaction injection. Forked, best-effort, silent.
+        if (provider) {
+          void sessionMemoryAfterTurn({
+            provider,
+            dataDir: join(repoRoot, ".vanta"),
+            transcript: convo.messages,
+            toolIterations: outcome.toolIterations,
+            turnIndex: replStateRef.current.turnIndex,
+          }).then((scratch) => { if (scratch) convo.setSessionMemory(scratch); });
+        }
       })
       .catch((err: unknown) => {
         abortRef.current = null;
