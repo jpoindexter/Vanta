@@ -6923,15 +6923,16 @@
       "id": "BUG-IMAGE-DESKTOP-PATH",
       "track": "Bugs",
       "title": "Fix: image drag-drop from Desktop fails ENOENT (path not in scope)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Dragging an image from ~/Desktop into the TUI fails with ENOENT. describe_image resolves the path via resolveInScope which rejects Desktop paths even though ~/Desktop is in resolveReadableZones. Tilde expansion may also be missing from the image tool's path handling.",
       "done": "Dragging ~/Desktop/image.png into the TUI attaches it correctly; no ENOENT; tilde paths expanded before scope check; Desktop is treated as readable zone for image attach.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10. Root cause: describe_image (and compare_vision) called resolveInScope WITHOUT expandHome — '~/Desktop/x.png' resolved to a bogus '<root>/~/Desktop/x.png' that passed the in-scope test then ENOENTed; an absolute Desktop path was refused outright though ~/Desktop is a default readable zone. Fix mirrors read_file exactly: expandHome() first, then allow out-of-root paths that isInZone(resolveReadableZones()). Tool descriptions updated to say ~-paths / readable zones are OK. Fixed BOTH describe_image and compare_vision (same bug). The drag-drop attach path (repl/format.ts maybeDroppedImage) already expanded ~ and was fine. +~6 tests across describe-image/compare-vision; suite green, tsc clean. (screenshot.ts/lsp.ts keep the old in-root-only message by design — not image-from-Desktop.)"
     },
     {
       "id": "CC-COST-TRACKER-DETAIL",

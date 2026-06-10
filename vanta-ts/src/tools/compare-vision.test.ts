@@ -119,6 +119,7 @@ describe("compareVisionTool.execute", () => {
   let dir: string;
   const savedProvider = process.env.VANTA_PROVIDER;
   const savedKey = process.env.OPENAI_API_KEY;
+  const savedReadable = process.env.VANTA_READABLE_DIRS;
 
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), "vanta-cvision-"));
@@ -130,6 +131,8 @@ describe("compareVisionTool.execute", () => {
     else process.env.VANTA_PROVIDER = savedProvider;
     if (savedKey === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = savedKey;
+    if (savedReadable === undefined) delete process.env.VANTA_READABLE_DIRS;
+    else process.env.VANTA_READABLE_DIRS = savedReadable;
     await rm(dir, { recursive: true, force: true });
   });
 
@@ -139,13 +142,25 @@ describe("compareVisionTool.execute", () => {
     expect(res.output).toContain("compare_vision needs");
   });
 
-  it("returns ok:false for an out-of-scope image path", async () => {
+  it("returns ok:false for an image outside the project and every readable zone", async () => {
+    process.env.VANTA_READABLE_DIRS = "/tmp/vanta-allowed-zone";
     const res = await compareVisionTool.execute(
-      { images: ["../escape.png"] },
+      { images: ["/var/somewhere/else/escape.png"] },
       makeCtx(dir),
     );
     expect(res.ok).toBe(false);
-    expect(res.output).toContain("outside project scope");
+    expect(res.output).toContain("readable zone");
+  });
+
+  it("allows a ~/Desktop image past the scope gate (BUG-IMAGE-DESKTOP-PATH)", async () => {
+    delete process.env.VANTA_READABLE_DIRS; // default zones include ~/Desktop
+    const res = await compareVisionTool.execute(
+      { images: ["~/Desktop/vanta-nonexistent-test-file.png"] },
+      makeCtx(dir),
+    );
+    // ~ expanded + Desktop is a readable zone → past the gate, then read fails (ENOENT).
+    expect(res.output).not.toContain("readable zone");
+    expect(res.output).toContain("could not read");
   });
 
   it("returns ok:false for an unsupported image extension", async () => {

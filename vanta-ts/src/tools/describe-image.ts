@@ -3,6 +3,7 @@ import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveInScope } from "../scope.js";
+import { expandHome, resolveReadableZones, isInZone } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 
 const Args = z.object({
@@ -34,13 +35,16 @@ export const describeImageTool: Tool = {
   schema: {
     name: "describe_image",
     description:
-      "Send a local image (inside the project scope) to a vision model and return a text description.",
+      "Send a local image to a vision model and return a text description. Reads inside the " +
+      "project freely; outside it, the image must be in a readable zone (the project's parent " +
+      "dir plus ~/Desktop and ~/Downloads by default). Use an absolute or ~-prefixed path for " +
+      "files outside the repo (e.g. a screenshot on ~/Desktop).",
     parameters: {
       type: "object",
       properties: {
         path: {
           type: "string",
-          description: "Path to an image file, relative to the project root",
+          description: "Path relative to the project root, or an absolute / ~-prefixed path inside a readable zone",
         },
         prompt: {
           type: "string",
@@ -56,13 +60,18 @@ export const describeImageTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'describe_image needs a "path" string' };
     }
-    const { path, prompt } = parsed.data;
+    const { prompt } = parsed.data;
+    // Expand ~ BEFORE the scope check — otherwise "~/Desktop/x.png" resolves to a
+    // bogus "<root>/~/Desktop/x.png" that passes the in-scope test then ENOENTs.
+    const path = expandHome(parsed.data.path);
 
     const { ok, path: abs } = resolveInScope(path, ctx.root);
-    if (!ok) {
+    // Outside the project root: permitted only inside a configured readable zone
+    // (so a screenshot on ~/Desktop works, mirroring read_file).
+    if (!ok && !isInZone(abs, resolveReadableZones(process.env, ctx.root))) {
       return {
         ok: false,
-        output: `refused: path is outside project scope: ${path}`,
+        output: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
       };
     }
 
