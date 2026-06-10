@@ -29,6 +29,7 @@ import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
+import { VirtualTranscript } from "./virtual-transcript.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
@@ -42,11 +43,15 @@ const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!pro
 const SPINNER = spinnerFrames();
 const THEME = resolveTheme(process.env);
 const VIM_ENABLED = !!process.env.VANTA_VIM;
+// CC-VIRTUAL-LIST: alt-screen mode — virtual viewport replaces <Static>.
+const ALT_SCREEN = process.env.VANTA_NO_FLICKER === "1" || process.env.CLAUDE_CODE_NO_FLICKER === "1";
+// Reserve rows for: banner(~4) + composer(3) + status(1) + padding(2) + streaming(2).
+const CHROME_ROWS = 12;
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
   const app = useApp();
-  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false });
+  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [atFiles, setAtFiles] = useState<string[]>([]);
@@ -140,6 +145,15 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useInput((input, key) => {
     if (key.ctrl && input === "o") dispatch({ t: "toggleExpand" });
   });
+
+  // CC-VIRTUAL-LIST: pgup/pgdn scroll the virtual viewport in alt-screen mode.
+  const termRows = process.stdout.rows ?? 24;
+  const maxVisible = Math.max(5, termRows - CHROME_ROWS);
+  useInput((_in, key) => {
+    const half = Math.max(1, Math.floor(maxVisible / 2));
+    if (key.pageUp) dispatch({ t: "scrollBy", delta: half });
+    else if (key.pageDown) dispatch({ t: "scrollBy", delta: -half });
+  }, { isActive: ALT_SCREEN && !showPalette && !showAtPalette });
 
   // Shift+tab cycles the approval mode. Keep modeRef in sync so requestApproval
   // always reads the latest value without closing over stale state.
@@ -241,12 +255,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
   );
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
-  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${foldHint}/help  ?  /exit`;
+  const scrollHint = ALT_SCREEN && state.entries.length > maxVisible ? "pgup/pgdn  " : "";
+  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${scrollHint}${foldHint}/help  ?  /exit`;
 
-  // Banner + committed history live in ONE <Static>: each line commits to
-  // scrollback exactly once, so the dynamic region stays shorter than the
-  // terminal and Ink can clear it cleanly on resize (no ghost frames). The
-  // in-flight streaming buffer renders dynamically just below.
+  // In alt-screen mode (VANTA_NO_FLICKER=1): VirtualTranscript renders a capped
+  // viewport slice — no Static, no ghost frames, no Ink-tree growth. Normal mode
+  // keeps Static so terminal native scrollback works unchanged.
   const staticItems: Array<{ kind: "banner"; data: BannerData } | { kind: "entry"; entry: Entry; i: number }> = [
     ...(banner ? [{ kind: "banner" as const, data: banner }] : []),
     ...state.entries.map((entry, i) => ({ kind: "entry" as const, entry, i })),
@@ -254,15 +268,22 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Static items={staticItems}>
-        {(item) =>
-          item.kind === "banner" ? (
-            <Banner key="banner" data={item.data} />
-          ) : (
-            <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
-          )
-        }
-      </Static>
+      {ALT_SCREEN ? (
+        <>
+          {banner ? <Banner data={banner} /> : null}
+          <VirtualTranscript entries={state.entries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
+        </>
+      ) : (
+        <Static items={staticItems}>
+          {(item) =>
+            item.kind === "banner" ? (
+              <Banner key="banner" data={item.data} />
+            ) : (
+              <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
+            )
+          }
+        </Static>
+      )}
       {state.streaming.trim() ? <Text>{state.streaming}</Text> : null}
       {pending ? (
         <Box flexDirection="column" marginTop={1}>

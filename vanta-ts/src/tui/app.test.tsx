@@ -4,7 +4,7 @@ import { App, reduce, type State } from "./app.js";
 import { EntryRow, type Entry } from "./transcript.js";
 import type { RunSetup } from "../session.js";
 
-const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false };
+const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 };
 
 describe("tui reduce", () => {
   it("user submit adds an entry and goes busy/thinking", () => {
@@ -51,6 +51,21 @@ describe("tui reduce", () => {
     expect(e?.kind === "tool" && e.summary).toBe("254 lines");
   });
 
+  it("scrollBy increases viewOffset; scrollReset and user submit both zero it", () => {
+    let s = reduce(base, { t: "scrollBy", delta: 10 });
+    expect(s.viewOffset).toBe(10);
+    s = reduce(s, { t: "scrollBy", delta: -3 });
+    expect(s.viewOffset).toBe(7);
+    s = reduce(s, { t: "scrollBy", delta: -999 });
+    expect(s.viewOffset).toBe(0); // floor at 0
+    s = reduce(base, { t: "scrollBy", delta: 5 });
+    s = reduce(s, { t: "scrollReset" });
+    expect(s.viewOffset).toBe(0);
+    s = reduce(base, { t: "scrollBy", delta: 5 });
+    s = reduce(s, { t: "user", text: "new message" });
+    expect(s.viewOffset).toBe(0); // user submit resets scroll
+  });
+
   it("second consecutive tool call gets isGrouped:true; first gets false", () => {
     let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "a" });
     s = reduce(s, { t: "toolCall", name: "shell_cmd", icon: "❯", verb: "ran", detail: "b" });
@@ -84,7 +99,7 @@ describe("tui reduce", () => {
 
   it("clear empties the transcript", () => {
     const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true, expanded: true }, { t: "clear" });
-    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false });
+    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
   });
 });
 
