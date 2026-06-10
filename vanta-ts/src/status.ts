@@ -5,6 +5,7 @@ import { PROVIDER_CATALOG } from "./providers/catalog.js";
 import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
+import { modelDeprecationNotices } from "./providers/model-deprecation.js";
 
 // `vanta status` / `vanta doctor` — read-only health. Pings the kernel (never
 // spawns it — a status check that starts the thing it's checking is useless),
@@ -18,9 +19,16 @@ export type StatusReport = {
   store: { home: string; skills: number; memories: number };
   goals: { active: number; total: number } | { error: string };
   velocity?: VelocityStats;
+  notices?: string[];
 };
 
 const mark = (ok: boolean): string => (ok ? "✓" : "✗");
+
+/** Render the optional notices block (deprecations, conflicts). Empty when none. */
+function noticeLines(notices: string[] | undefined): string[] {
+  if (!notices?.length) return [];
+  return ["", "  ⚠ notices:", ...notices.map((n) => `    - ${n}`)];
+}
 
 /** Render a report to a boxed terminal block. Pure. */
 export function formatStatus(r: StatusReport): string {
@@ -56,6 +64,8 @@ export function formatStatus(r: StatusReport): string {
     const note = v.warn ? "  ⚠ consider closing before opening" : "";
     lines.push(`  velocity  capture:ship 7d  ${v.captures}:${v.ships} (${ratioStr})${note}`);
   }
+
+  lines.push(...noticeLines(r.notices));
 
   lines.push("");
   return lines.join("\n");
@@ -121,6 +131,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
     store: { home: resolveVantaHome(env), skills, memories },
     goals,
     velocity,
+    notices: modelDeprecationNotices(env, new Date()),
   };
 }
 
