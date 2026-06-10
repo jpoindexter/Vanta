@@ -39,7 +39,7 @@ async function installOne(
   source: string,
   name: string,
   dest: string,
-  opts: { force?: boolean; env?: NodeJS.ProcessEnv } = {},
+  opts: { force?: boolean } = {},
 ): Promise<"installed" | "skipped" | null> {
   const src = join(source, name, SKILL_FILE);
   if (!existsSync(src)) return null;
@@ -47,7 +47,6 @@ async function installOne(
   if (existsSync(target) && !opts.force) return "skipped";
   await mkdir(join(dest, name), { recursive: true });
   await writeFile(target, await readFile(src, "utf8"), "utf8");
-  await commitInHome(join("skills", name, SKILL_FILE), `skill: install ${name}`, opts.env);
   return "installed";
 }
 
@@ -76,10 +75,18 @@ export async function installSkillLibrary(
     }
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const r = await installOne(source, entry.name, dest, { force: !!opts.force, env: opts.env });
+      const r = await installOne(source, entry.name, dest, { force: !!opts.force });
       if (r === "installed") installed.push(entry.name);
       else if (r === "skipped") skipped.push(entry.name);
     }
+  }
+
+  // One batch commit for the whole install, not one per skill — a fresh install
+  // is ~86 skills, and 86 sequential add+commit spawns is what made this take
+  // ~50s under a loaded machine. Per-skill commit granularity only matters for
+  // user edits and learned skills (skills/store.ts), not a bulk bundle copy.
+  if (installed.length > 0) {
+    await commitInHome("skills", `skill: install library (${installed.length} new)`, opts.env);
   }
 
   return { installed, skipped };
