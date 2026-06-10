@@ -6470,15 +6470,16 @@
       "id": "CC-SHELL-STALL-DETECT",
       "track": "Claude Code parity",
       "title": "Shell task stall detection \u2014 notification when background command awaits input",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Background shell tasks get a stall watchdog: if output stops growing for 45s, the last tail is pattern-matched against interactive prompt patterns (y/n, yes/no, 'Press any key', directed questions like 'Are you sure?'). If matched, a notification fires so the agent can unblock it.",
       "done": "Long-running commands that ask y/n surface a notification; slow commands that don't ask anything stay silent; notification fires once, not repeatedly.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). tools/shell-stall.ts: pure detectInteractivePrompt(tail) (matches the trimmed/lowercased LAST non-empty line against a needle list + a ?-ending-with-y/n branch; near-zero prose FP) + StallState + checkStall(prev, curLen, tail, nowMs, idleMs=45000) (resets on output growth, fires once after idle+interactive, never refires; nowMs injected). Wired into bg-tasks.ts spawnBackground: startStallWatchdog polls the live in-memory chunks buffer every 5s (the log file is empty until close, so the watchdog lives at the spawn site), notify()s once when stalled-on-prompt, cleared on close. +32 tests; full suite green, tsc clean. (checkStall has 5 params \u2014 card-mandated signature, size gate warn-only.)"
     },
     {
       "id": "CC-COORDINATOR-MODE",
