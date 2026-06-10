@@ -8,6 +8,8 @@ import { trimMessages, compressMessages, sanitizeMessages } from "./context.js";
 import type { Summarizer } from "./context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
+import { offloadResult } from "./compress/result-offload.js";
+import { join } from "node:path";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -334,5 +336,9 @@ async function dispatchTool(
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
-  return { executed: true, empty: compressed.output.trim().length === 0, ok: res.ok, output: compressed.output, tokensSaved: compressed.tokensSaved };
+  // CC-TOOL-RESULT-DISK: size-based backstop AFTER lossy compression — catches any
+  // tool (incl. non-allow-listed reads/shell) whose output is still oversized,
+  // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
+  const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir: join(ctx.root, ".vanta") });
+  return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
 }

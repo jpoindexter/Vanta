@@ -7311,15 +7311,16 @@
       "id": "CC-TOOL-RESULT-DISK",
       "track": "Claude Code parity",
       "title": "Tool result disk storage \u2014 persist large outputs (>50K chars) to disk",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Tool results exceeding 50K characters (DEFAULT_MAX_RESULT_SIZE_CHARS) are persisted to disk; the model receives a preview and file path reference instead of the full content. Individual tools can declare a lower maxResultSizeChars. Prevents context window explosion from large tool outputs.",
       "done": "Shell commands producing >50K output store to disk; model gets preview + path; subsequent Read can retrieve the full content; per-tool limit respected.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "updated": "2026-06-10",
+      "lens": "memory",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). compress/result-offload.ts: offloadResult(text, {toolName, dataDir}) \u2014 when a tool output exceeds resolveMaxResultChars (default 50k, VANTA_MAX_RESULT_CHARS / per-tool override) it stashes the full text via the existing CCR store (stashOriginal \u2192 .vanta/ccr/<id>.txt, reused \u2014 no parallel system) and returns a ~2k preview + retrieval id (the model's existing retrieve_original tool reads it back). Wired into agent.ts dispatchTool AFTER compressOutput, so it backstops non-allow-listed oversized outputs (read_file/shell_cmd/grep). Best-effort (stash failure \u2192 original text). +7 tests; full suite 2080 green, tsc clean."
     },
     {
       "id": "CC-SPINNER-VERBS",
