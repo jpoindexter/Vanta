@@ -5,7 +5,7 @@
 export const CLI_COMMANDS = [
   "setup", "status", "doctor", "run", "chat", "sessions", "resume", "skills", "skill",
   "schedule", "cron", "gateway", "service", "rooms", "room", "modes", "auth", "mcp",
-  "roadmap", "desktop", "memory", "hooks", "voice", "improve", "factory",
+  "roadmap", "desktop", "browser", "memory", "hooks", "voice", "improve", "factory",
   "lint", "open", "prompt-size", "completion", "backup", "import", "help",
 ] as const;
 

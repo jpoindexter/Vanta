@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { resolveInScope } from "../scope.js";
 import { extractDomain, isAllowedDomain } from "../browser/allowlist.js";
+import { acquirePage, type Acquired } from "../browser/launch.js";
 
 const Args = z.object({
   url: z.string().url(),
@@ -10,24 +11,25 @@ const Args = z.object({
 
 const NAV_TIMEOUT_MS = 30_000;
 
-type LaunchedBrowser = Awaited<ReturnType<typeof import("playwright-core").chromium.launch>>;
-
-/** Capture a full-page PNG from an already-launched browser. Always closes it. */
+/** Capture a full-page PNG from an already-acquired page. Always closes it. */
 async function capturePage(
-  browser: LaunchedBrowser,
+  acquired: Acquired,
   url: string,
   abs: string,
   displayPath: string,
 ): Promise<ToolResult> {
+  const page = acquired.page as unknown as {
+    goto: (u: string, o: { timeout: number; waitUntil: "load" }) => Promise<unknown>;
+    screenshot: (o: { path: string; fullPage: boolean }) => Promise<unknown>;
+  };
   try {
-    const page = await browser.newPage();
     await page.goto(url, { timeout: NAV_TIMEOUT_MS, waitUntil: "load" });
     await page.screenshot({ path: abs, fullPage: true });
     return { ok: true, output: `saved screenshot to ${displayPath}` };
   } catch (err) {
     return { ok: false, output: `could not screenshot ${url}: ${(err as Error).message}` };
   } finally {
-    await browser.close();
+    await acquired.close();
   }
 }
 
@@ -81,13 +83,17 @@ export const screenshotTool: Tool = {
 
     // Lazy import so Vanta loads even when playwright-core is absent.
     const { chromium } = await import("playwright-core");
-    const browser = await chromium.launch({ headless: true }).catch(() => null);
-    if (browser === null) {
+    // Persistent profile when authed (reuses logins), else ephemeral. null on a
+    // missing chromium binary preserves the prior graceful-degradation message.
+    const acquired = await acquirePage(chromium, process.env, { headless: true }).catch(
+      () => null,
+    );
+    if (acquired === null) {
       return {
         ok: false,
         output: "chromium not available — run: npx playwright install chromium",
       };
     }
-    return capturePage(browser, url, abs, path);
+    return capturePage(acquired, url, abs, path);
   },
 };
