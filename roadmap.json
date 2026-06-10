@@ -3488,14 +3488,16 @@
       "id": "CC-PERMISSIONS",
       "track": "Claude Code parity",
       "title": "In-session permission rules (allow/ask/deny)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Claude Code's /permissions manages allow/ask/deny rule lists. Vanta's kernel decides per-action but the user can't tune persistent rules in-session. Add user-editable allow/ask/deny lists (tool + arg patterns), persisted per project, that feed the kernel verdict. Rule zero holds: allow-rules may only downgrade Ask\u2192Allow within kernel-permitted bounds, never override a Block.",
       "done": "/permissions shows current allow/ask/deny rules; the user can add a rule (e.g. allow read_file, deny 'shell rm *'); rules persist and the kernel honors them on later actions; a Block stays a Block regardless of an allow rule.",
       "tier": "rock",
       "model": "opus",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10 (design-first: docs/design-cc-permissions.md \u2192 agent pure layer + parent security wiring). User-tunable allow/ask/deny rules layered on the kernel, TIGHTEN-only. permissions/rules.ts: pure matchRule(rules, tool, descriptor) (specificity: tool+pattern > tool > pattern > any; first-match) + tighten(kernelVerdict, ruleAction) \u2014 kernel \"block\" is IMMOVABLE (returns block for any rule), kernel \"ask\"+allow\u2192allow / +deny\u2192block, kernel \"allow\"+deny\u2192block / +ask\u2192ask. permissions/store.ts: ~/.vanta/permissions.tsv (auto-commits). /permissions list|allow|ask|deny <tool> [pattern]|remove <n>. Wired into agent/dispatch-helpers.ts applySafetyGate: decision = tighten(verdict.risk, matchRule(loadRules,...)); kernel approval queue reconciled ONLY when the kernel itself asked (rule-escalated asks just prompt; rule-allow auto-confirms a kernel ask). +35 tests incl. the exhaustive 3\u00d74 tighten matrix (block-immovable) + a gate integration test (deny blocks / block immovable / allow auto-confirms). full suite 2153 green, tsc clean. Unblocks CC-AUTO-MODE + CC-PERM-PER-TOOL-UI."
     },
     {
       "id": "CC-SANDBOX",

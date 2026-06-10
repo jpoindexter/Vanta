@@ -6,6 +6,8 @@ import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { tighten, matchRule } from "../permissions/rules.js";
+import { loadRules } from "../permissions/store.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -27,18 +29,26 @@ export async function applySafetyGate(
   const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
   const verdict = await deps.safety.assess(action);
 
-  if (verdict.risk === "block") {
-    deps.onToolResult?.(call.name, false, `blocked: ${verdict.reason}`);
-    return { approved: false, reason: `blocked by safety: ${verdict.reason}` };
+  // CC-PERMISSIONS: the kernel verdict is the floor. User rules may TIGHTEN it
+  // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
+  // tighten() returns "block" for any kernel block regardless of the rule.
+  const decision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+
+  if (decision === "block") {
+    const reason = verdict.risk === "block" ? verdict.reason : "denied by a permission rule";
+    deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
+    return { approved: false, reason: `blocked: ${reason}` };
   }
 
-  if (verdict.risk === "ask") {
-    const approved = await deps.requestApproval(action, verdict.reason, call.name);
-    const id = await deps.safety.proposeApproval(action);
+  if (decision === "ask") {
+    const why = verdict.reason || "permission rule";
+    const approved = await deps.requestApproval(action, why, call.name);
+    // Reconcile the kernel approval queue ONLY when the kernel itself asked.
+    const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action) : null;
     if (!approved) {
       if (id) await deps.safety.deny(id);
       deps.onToolResult?.(call.name, false, "denied by user");
-      return { approved: false, reason: `denied by user: ${verdict.reason}` };
+      return { approved: false, reason: `denied by user: ${why}` };
     }
     if (id) await deps.safety.approve(id);
   }
