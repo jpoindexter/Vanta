@@ -1,8 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveInScope } from "../scope.js";
-import { expandHome, resolveReadableZones, isInZone } from "./writable-zones.js";
+import { resolveReadablePath } from "./writable-zones.js";
 
 const Args = z.object({ path: z.string().min(1) });
 
@@ -32,22 +31,15 @@ export const readFileTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'read_file needs a "path" string' };
     }
-    const path = expandHome(parsed.data.path);
-    const { ok, path: abs } = resolveInScope(path, ctx.root);
-    // Outside the project root: permitted only inside a configured readable zone.
-    if (!ok && !isInZone(abs, resolveReadableZones(process.env, ctx.root))) {
-      return {
-        ok: false,
-        output: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
-      };
-    }
+    const r = resolveReadablePath(parsed.data.path, ctx.root, process.env);
+    if (!r.ok) return { ok: false, output: r.error };
     try {
-      const content = await readFile(abs, "utf8");
+      const content = await readFile(r.abs, "utf8");
       return { ok: true, output: content };
     } catch (err) {
       return {
         ok: false,
-        output: `could not read ${path}: ${(err as Error).message}`,
+        output: `could not read ${parsed.data.path}: ${(err as Error).message}`,
       };
     }
   },

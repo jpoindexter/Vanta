@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
+import { resolveInScope } from "../scope.js";
 
 // Path zones — directories outside the project root that the file tools may touch,
 // each still kernel-gated (the kernel returns Ask for any out-of-root path). The
@@ -66,4 +67,29 @@ export function getSessionDirs(env: NodeJS.ProcessEnv): string[] {
 /** True if `abs` (an absolute path) is inside one of the zones. */
 export function isInZone(abs: string, zones: string[]): boolean {
   return zones.some((z) => abs === z || abs.startsWith(z + sep));
+}
+
+/**
+ * The single read-path policy shared by read_file / describe_image /
+ * compare_vision: expand `~`, then require the path to be inside the project
+ * root OR a configured readable zone (~/Desktop, the project's parent, etc.).
+ * Expanding `~` BEFORE the scope check is load-bearing — otherwise
+ * "~/Desktop/x.png" resolves to a bogus "<root>/~/Desktop/x.png" that passes
+ * the in-root test then ENOENTs (BUG-IMAGE-DESKTOP-PATH).
+ */
+export function resolveReadablePath(
+  rawPath: string,
+  root: string,
+  env: NodeJS.ProcessEnv,
+): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
+  const path = expandHome(rawPath);
+  const { ok, path: abs } = resolveInScope(path, root);
+  if (!ok && !isInZone(abs, resolveReadableZones(env, root))) {
+    return {
+      ok: false,
+      abs,
+      error: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
+    };
+  }
+  return { ok: true, abs };
 }

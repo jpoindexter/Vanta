@@ -6,6 +6,7 @@ import {
   resolveWritableZones,
   resolveReadableZones,
   isInZone,
+  resolveReadablePath,
 } from "./writable-zones.js";
 
 describe("expandHome", () => {
@@ -67,5 +68,31 @@ describe("isInZone", () => {
   });
   it("rejects a prefix-collision sibling (Desktop-evil)", () => {
     expect(isInZone(join(homedir(), "Desktop-evil", "a.txt"), zones)).toBe(false);
+  });
+});
+
+describe("resolveReadablePath (shared read-path policy)", () => {
+  const root = "/Users/x/Documents/GitHub/Vanta";
+
+  it("accepts an in-root relative path", () => {
+    const r = resolveReadablePath("src/a.ts", root, {} as NodeJS.ProcessEnv);
+    expect(r).toEqual({ ok: true, abs: join(root, "src/a.ts") });
+  });
+
+  it("expands ~ before resolving so ~/Desktop is not bogusly in-root", () => {
+    const r = resolveReadablePath("~/Desktop/x.png", root, {} as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(true);
+    expect(r.abs).toBe(join(homedir(), "Desktop", "x.png")); // not <root>/~/Desktop/x.png
+  });
+
+  it("accepts an absolute path inside a configured readable zone", () => {
+    const r = resolveReadablePath("/srv/data/x.png", root, { VANTA_READABLE_DIRS: "/srv/data" } as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(true);
+  });
+
+  it("refuses a path outside the project and every readable zone", () => {
+    const r = resolveReadablePath("/etc/passwd", root, { VANTA_READABLE_DIRS: "/srv/data" } as NodeJS.ProcessEnv);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("readable zone");
   });
 });
