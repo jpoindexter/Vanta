@@ -284,7 +284,16 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           }
         </Static>
       )}
-      {state.streaming.trim() ? <Text>{state.streaming}</Text> : null}
+      {state.streaming.trim() ? (
+        // Cap streaming display to last 8 lines in normal mode so the dynamic
+        // region doesn't outgrow the terminal and scroll content off screen.
+        // Alt-screen mode renders the full buffer inside the virtual viewport.
+        (() => {
+          const lines = state.streaming.split("\n");
+          const visible = ALT_SCREEN ? state.streaming : (lines.length > 8 ? `…\n${lines.slice(-8).join("\n")}` : state.streaming);
+          return <Text>{visible}</Text>;
+        })()
+      ) : null}
       {pending ? (
         <Box flexDirection="column" marginTop={1}>
           <ApprovalPrompt action={pending.action} reason={pending.reason} toolName={pending.toolName} width={w} onChoose={chooseApproval} />
