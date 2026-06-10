@@ -141,6 +141,7 @@ const COMMANDS: Record<string, CommandFn> = {
   mcp: (root, rest) => runMcpCommand(root, rest),
   roadmap: (root, rest) => runRoadmapCommand(root, rest),
   desktop: (root, rest) => runDesktopCommand(root, rest),
+  browser: async (_root, rest) => (await import("./cli/browser-cmd.js")).runBrowserCommand(rest),
   memory: (_root, rest) => runMemoryCommand(rest),
   audit: async (root) => (await import("./cli/audit.js")).runAudit(root),
   lint: async (root, rest) => (await import("./lint/run.js")).runLint(root, rest),
