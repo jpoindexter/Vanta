@@ -6,8 +6,7 @@ import { notify } from "./notify.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { newSessionId } from "../sessions/store.js";
-import { executeSlash, maybeDroppedImage, maybeDroppedVideo, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
-import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
+import { SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
@@ -20,8 +19,7 @@ import { summarizeResult, buildResultPreview, INLINE_MAX } from "./tool-result.j
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
-import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
-import { parseShortcut, runBashShortcut, runMemoryShortcut } from "../repl/shortcuts.js";
+import { activeAtRef, listRepoFiles } from "./at-context.js";
 import { HelpOverlay } from "./help-overlay.js";
 import { resolveTheme } from "./theme.js";
 import { getRiskTier, formatRiskLabel } from "./command-risk.js";
@@ -35,7 +33,7 @@ import { useResizeRedraw, useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
-import { classifyPromptKeyword, CONTINUE_NUDGE } from "../repl/prompt-keywords.js";
+import { useSubmit } from "./use-submit.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
@@ -182,80 +180,12 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     }
   });
 
-  const handleSlash = (line: string): void => {
-    const convo = convoRef.current;
-    if (!convo) return;
-    const head = line.slice(1).split(/\s+/)[0] ?? "";
-    const ms = SLASH_COMMANDS.filter((c) => c.name.startsWith(head));
-    const effective = !line.slice(1).includes(" ") && ms.length > 0 && !ms.some((c) => c.name === head)
-      ? `/${(ms[Math.min(sel, ms.length - 1)] ?? ms[0])!.name}`
-      : line;
-    const parts = effective.slice(1).split(/\s+/);
-    const resolvedCmd = parts[0] ?? "";
-    const resolvedArg = parts.slice(1).join(" ").trim();
-    if (resolvedCmd === "sessions" && !resolvedArg) return void openSessions();
-    if (resolvedCmd === "model" && !resolvedArg) return void openModel();
-    void executeSlash(effective, buildCtx()).then((r) => {
-      if (r.exit) return void app.exit();
-      if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return void app.exit(); } // run.sh re-execs on 75
-      if (r.cleared) dispatch({ t: "clear" });
-      if (r.provider) setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
-      if (r.output) dispatch({ t: "note", text: r.output });
-      if (r.resend) sendToAgent(r.resend);
-      if (r.loadIntoComposer !== undefined) {
-        setInput(r.loadIntoComposer);
-        setEditMode({ active: true, messageIndex: r.editMessageIndex ?? -1 });
-      }
-    });
-  };
-
-  const submit = (raw: string): void => {
-    const line = raw.trim();
-    setInput("");
-    if (pending) return;
-    // Edit mode: replace the target message in place, then return to normal.
-    if (editMode.active) {
-      setEditMode({ active: false, messageIndex: -1 });
-      const convo = convoRef.current;
-      const msg = convo?.messages[editMode.messageIndex];
-      if (!line) { dispatch({ t: "note", text: "  · edit cancelled" }); return; }
-      if (msg && msg.role === "assistant") {
-        convo!.messages[editMode.messageIndex] = { ...msg, content: line };
-        dispatch({ t: "note", text: "  ✎ response updated" });
-      }
-      return;
-    }
-    if (line) setInputHistory((h) => [...h, line]);
-    if (!line) return;
-    const firstToken = line.slice(1).split(/\s/)[0] ?? "";
-    if (line.startsWith("/") && !firstToken.includes("/")) { handleSlash(line); return; }
-    if (line === "?") { setShowHelp((h) => !h); return; }
-    const shortcut = parseShortcut(line);
-    if (shortcut) {
-      if (shortcut.type === "bash") {
-        void runBashShortcut(shortcut.cmd, setup.safety, repoRoot)
-          .then((out) => dispatch({ t: "note", text: out }))
-          .catch((e: unknown) => dispatch({ t: "note", text: `error: ${e instanceof Error ? e.message : String(e)}` }));
-      } else {
-        void runMemoryShortcut(shortcut.text, process.env)
-          .then((out) => dispatch({ t: "note", text: out }))
-          .catch((e: unknown) => dispatch({ t: "note", text: `error: ${e instanceof Error ? e.message : String(e)}` }));
-      }
-      return;
-    }
-    if (state.busy) { dispatch({ t: "enqueue", text: line }); return; }
-    // CC-PROMPT-KEYWORDS: a bare "keep going"/"continue" resumes the prior task.
-    if (classifyPromptKeyword(line) === "continue") { sendToAgent(CONTINUE_NUDGE); return; }
-    void (async () => {
-      const dropped = await maybeDroppedImage(line);
-      if (dropped) { (replStateRef.current.pendingImages ??= []).push(dropped); sendToAgent("Take a look at this image."); return; }
-      const videoPath = await maybeDroppedVideo(line);
-      if (videoPath) { sendToAgent(`Watch this video and describe what you see: ${videoPath}`); return; }
-      const refs = parseAtRefs(line);
-      const ctxBlock = refs.length > 0 ? await buildContextBlock(refs, repoRoot) : "";
-      sendToAgent(ctxBlock ? `${ctxBlock}\n\n${line}` : line);
-    })();
-  };
+  const submit = useSubmit({
+    convoRef, replStateRef, setup, repoRoot,
+    pending, editMode, busy: state.busy, sel,
+    dispatch, sendToAgent, buildCtx, openSessions, openModel, exit: app.exit,
+    setInput, setEditMode, setInputHistory, setShowHelp, setActiveProvider,
+  });
 
   const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
