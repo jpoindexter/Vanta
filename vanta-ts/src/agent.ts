@@ -9,7 +9,13 @@ import type { Summarizer } from "./context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
 import { offloadResult } from "./compress/result-offload.js";
+import { clearStaleToolResults, resolveIdleConfig } from "./context/time-microcompact.js";
 import { join } from "node:path";
+
+// CC-TIME-BASED-MC: end-of-turn timestamp per conversation, keyed by the stable
+// `messages` array reference. WeakMap = GC-safe, per-conversation, no signature
+// change. Subagent conversations are short-lived → idle ≈ 0 → main-thread only.
+const lastTurnAt = new WeakMap<Message[], number>();
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -252,12 +258,22 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
       }
     : deps.summarize;
 
+  // CC-TIME-BASED-MC: idle = gap since this conversation's prior turn (NaN on the
+  // first/resumed turn → treated as under-threshold by the pure fn). Stamp now;
+  // over-counts by at most this turn's duration, negligible vs the 60-min threshold.
+  const idleCfg = resolveIdleConfig(process.env);
+  const idleMs = Date.now() - (lastTurnAt.get(messages) ?? Number.NaN);
+  lastTurnAt.set(messages, Date.now());
+
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)
       return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    // Clear stale tool results when idle exceeds the threshold; transient (a copy
+    // feeds compress/trim — the live transcript keeps full content, no visible disruption).
+    const fresh = clearStaleToolResults(messages, idleMs, idleCfg);
     const trimmed = trackedSummarize
-      ? await compressMessages(messages, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
-      : trimMessages(messages, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
+      ? await compressMessages(fresh, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
+      : trimMessages(fresh, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
     const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal);
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 
