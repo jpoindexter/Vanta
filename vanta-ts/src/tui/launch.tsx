@@ -21,7 +21,7 @@ export async function runTui(repoRoot: string): Promise<void> {
   const altScreen = inAltScreen();
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate();
-  const { waitUntilExit } = render(<App setup={setup} repoRoot={repoRoot} />, {
+  const { waitUntilExit } = render(<App setup={setup} repoRoot={repoRoot} altScreen={altScreen} />, {
     ...(altScreen ? { alternateScreen: true } : {}),
   });
   await waitUntilExit();
