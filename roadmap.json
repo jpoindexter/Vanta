@@ -5207,14 +5207,15 @@
       "id": "CC-VIRTUAL-LIST",
       "track": "Claude Code parity",
       "title": "Virtual message list \u2014 scrolling, in-transcript search, jump navigation",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC's VirtualMessageList (1081 lines) renders only visible messages, supports Ctrl+R search-within-transcript, jump-to-match navigation, and sticky prompt headers when scrolling up through history. Vanta renders all messages eagerly \u2014 long sessions slow down and have no search.",
       "done": "Long conversations render only visible rows; Ctrl+R searches within the transcript with match highlighting and arrow-key navigation; sticky prompts show context when scrolling up.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation."
     },
     {
       "id": "CC-STATUSLINE-RICH",
@@ -5651,27 +5652,29 @@
       "id": "CC-ALT-SCREEN",
       "track": "Claude Code parity",
       "title": "Alternate terminal screen \u2014 fullscreen mode for dialogs",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC's AlternateScreen component switches the terminal to the alternate screen buffer for fullscreen dialogs and views (settings, MCP panel, diff viewer, etc.), restoring the main screen on exit. Vanta's dialogs render inline, pushing content down.",
       "done": "Full-screen views (settings, MCP panel, diff, agent wizard) use the alternate screen; main transcript is preserved and restored on exit; Esc always exits the alternate screen.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation."
     },
     {
       "id": "CC-SCROLL-BOX",
       "track": "Claude Code parity",
       "title": "ScrollBox \u2014 proper scrollable content containers",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC's ScrollBox provides bounded scrollable regions with keyboard navigation (arrow keys, Page Up/Down, Home/End) independent of terminal scroll. Used for file pickers, MCP tool lists, permission dialogs with long content. Vanta relies on terminal scroll only.",
       "done": "ScrollBox renders a bounded height region; arrow keys scroll content without scrolling the whole terminal; scroll position is shown as a mini scrollbar; Home/End jump to top/bottom.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation."
     },
     {
       "id": "CC-TAB-NAV",

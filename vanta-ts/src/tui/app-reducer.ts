@@ -1,7 +1,7 @@
 import type { Entry } from "./transcript.js";
 import type { DiffLine } from "../util/diff.js";
 
-export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean };
+export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean; viewOffset: number };
 
 export type Action =
   | { t: "user"; text: string }
@@ -14,6 +14,8 @@ export type Action =
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
   | { t: "toggleExpand" }
+  | { t: "scrollBy"; delta: number }
+  | { t: "scrollReset" }
   | { t: "clear" };
 
 function commitStreaming(entries: Entry[], streaming: string): Entry[] {
@@ -23,7 +25,7 @@ function commitStreaming(entries: Entry[], streaming: string): Entry[] {
 export function reduce(s: State, a: Action): State {
   switch (a.t) {
     case "user":
-      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], busy: true, streaming: "", status: "thinking" };
+      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], busy: true, streaming: "", status: "thinking", viewOffset: 0 };
     case "delta":
       return { ...s, streaming: s.streaming + a.d, status: "generating" };
     case "toolCall": {
@@ -62,7 +64,11 @@ export function reduce(s: State, a: Action): State {
       return { ...s, queued: s.queued.slice(1) };
     case "toggleExpand":
       return { ...s, expanded: !s.expanded };
+    case "scrollBy":
+      return { ...s, viewOffset: Math.max(0, s.viewOffset + a.delta) };
+    case "scrollReset":
+      return { ...s, viewOffset: 0 };
     case "clear":
-      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false };
+      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 };
   }
 }
