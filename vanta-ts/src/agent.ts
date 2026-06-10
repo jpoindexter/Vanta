@@ -256,7 +256,7 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const trimmed = trackedSummarize
       ? await compressMessages(messages, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
       : trimMessages(messages, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
-    const result = await getCompletion(deps, sanitizeMessages(trimmed));
+    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal);
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 
     if (result.toolCalls.length === 0) {
@@ -289,17 +289,19 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
  * non-streaming call. Either way returns the assembled CompletionResult so the
  * loop's tool-dispatch path is identical.
  */
-async function getCompletion(deps: AgentDeps, messages: Message[]): Promise<CompletionResult> {
+async function getCompletion(deps: AgentDeps, messages: Message[], signal?: AbortSignal): Promise<CompletionResult> {
   const schemas = deps.registry.schemas();
+  const cfg = signal ? { signal } : undefined;
   if (deps.provider.stream && deps.onTextDelta) {
     let result: CompletionResult | null = null;
-    for await (const chunk of deps.provider.stream(messages, schemas)) {
+    for await (const chunk of deps.provider.stream(messages, schemas, cfg)) {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (chunk.type === "text") deps.onTextDelta(chunk.delta);
       else result = chunk.result;
     }
     if (result) return result;
   }
-  return deps.provider.complete(messages, schemas);
+  return deps.provider.complete(messages, schemas, cfg);
 }
 
 type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };

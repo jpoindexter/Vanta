@@ -10996,6 +10996,34 @@
       "effort": "low",
       "updated": "2026-06-10",
       "lens": "coding"
+    },
+    {
+      "id": "CC-ESC-INTERRUPT",
+      "title": "Esc interrupts the running agent",
+      "status": "shipped",
+      "tier": "pebble",
+      "size": "S",
+      "effort": "low",
+      "track": "TUI / UX",
+      "lens": "tui",
+      "model": "sonnet",
+      "summary": "Pressing Esc while the agent is running should abort the current turn (set the AbortSignal). Currently Esc has no effect mid-run, which means the only escape is Ctrl+C (kills the whole process). Should fire the existing abortRef in use-agent-send.ts and show a cancellation note.",
+      "done": "Pressing Esc while busy=true cancels the current agent turn gracefully. A note appears confirming the interrupt. The composer becomes active again.",
+      "notes": "Signal now flows through getCompletion -> provider.complete/stream. Codex uses fetch signal. OpenAI/Anthropic SDKs use RequestOptions signal. Abort checks every iteration + mid-stream chunk. Esc fires abortRef.abort() immediately."
+    },
+    {
+      "id": "CC-SCROLL-DURING-RUN",
+      "title": "Scroll up while agent is streaming (normal mode)",
+      "status": "next",
+      "tier": "pebble",
+      "size": "S",
+      "effort": "low",
+      "track": "TUI / UX",
+      "lens": "tui",
+      "model": "sonnet",
+      "summary": "In normal (non-alt-screen) mode, the transcript keeps scrolling down as the agent streams. The terminal raw mode blocks native scroll. User cannot read earlier content while the agent is running.",
+      "done": "User can scroll up (pgup/pgdn or terminal scroll) to read history while agent is generating. View snaps back to bottom when the turn completes.",
+      "notes": "Reported via screenshot: continuous downward scroll during generation, no way to scroll back mid-run."
     }
   ]
 }

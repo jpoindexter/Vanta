@@ -53,13 +53,16 @@ export class OpenAIProvider implements LLMProvider {
   ): Promise<CompletionResult> {
     let response;
     try {
-      response = await this.client.chat.completions.create({
-        model: this.model,
-        messages: messages.map(toOpenAIMessage),
-        tools: tools.length ? tools.map(toOpenAITool) : undefined,
-        temperature: config?.temperature ?? 0.2,
-        max_tokens: config?.maxTokens,
-      });
+      response = await this.client.chat.completions.create(
+        {
+          model: this.model,
+          messages: messages.map(toOpenAIMessage),
+          tools: tools.length ? tools.map(toOpenAITool) : undefined,
+          temperature: config?.temperature ?? 0.2,
+          max_tokens: config?.maxTokens,
+        },
+        { signal: config?.signal },
+      );
     } catch (err) {
       throw translateError(err, this.model);
     }
@@ -90,15 +93,18 @@ export class OpenAIProvider implements LLMProvider {
   ): AsyncIterable<StreamChunk> {
     let stream;
     try {
-      stream = await this.client.chat.completions.create({
-        model: this.model,
-        messages: messages.map(toOpenAIMessage),
-        tools: tools.length ? tools.map(toOpenAITool) : undefined,
-        temperature: config?.temperature ?? 0.2,
-        max_tokens: config?.maxTokens,
-        stream: true,
-        stream_options: { include_usage: true },
-      });
+      stream = await this.client.chat.completions.create(
+        {
+          model: this.model,
+          messages: messages.map(toOpenAIMessage),
+          tools: tools.length ? tools.map(toOpenAITool) : undefined,
+          temperature: config?.temperature ?? 0.2,
+          max_tokens: config?.maxTokens,
+          stream: true,
+          stream_options: { include_usage: true },
+        },
+        { signal: config?.signal },
+      );
     } catch (err) {
       throw translateError(err, this.model);
     }
