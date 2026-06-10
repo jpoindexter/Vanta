@@ -9,7 +9,12 @@ import type { Summarizer } from "./context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "./repl/error-detect.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
 import { offloadResult } from "./compress/result-offload.js";
+import { clearStaleToolResults, resolveIdleConfig } from "./context/time-microcompact.js";
 import { join } from "node:path";
+
+// CC-TIME-BASED-MC: per-conversation last-turn timestamp (GC-safe; keyed by the
+// stable messages array). Subagent convos are short-lived → idle ≈ 0 → inert.
+const lastTurnAt = new WeakMap<Message[], number>();
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -275,12 +280,19 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
       }
     : deps.summarize;
 
+  const idleCfg = resolveIdleConfig(process.env);
+  const idleMs = Date.now() - (lastTurnAt.get(messages) ?? Number.NaN);
+  lastTurnAt.set(messages, Date.now());
+
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)
       return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    // CC-TIME-BASED-MC: after a long idle gap, stub stale tool results (keep the
+    // most recent) — only at the genuinely-idle turn start (iter 1).
+    const fresh = iter === 1 ? clearStaleToolResults(messages, idleMs, idleCfg) : messages;
     const trimmed = trackedSummarize
-      ? await compressMessages(messages, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
-      : trimMessages(messages, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
+      ? await compressMessages(fresh, deps.provider.contextWindow(), trackedSummarize, { activeGoalText: deps.activeGoalText, thresholdPct: compactThresholdPct })
+      : trimMessages(fresh, deps.provider.contextWindow(), { thresholdPct: compactThresholdPct });
     const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal);
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 
