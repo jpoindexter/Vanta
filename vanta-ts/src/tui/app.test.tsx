@@ -27,6 +27,18 @@ describe("tui reduce", () => {
     expect(s.streaming).toBe("Hello");
   });
 
+  it("interrupt preserves partial output, adds a distinct marker, and ends the turn", () => {
+    let s = reduce(base, { t: "user", text: "go" });
+    s = reduce(s, { t: "delta", d: "partial answer" });
+    s = reduce(s, { t: "interrupted" });
+    expect(s.busy).toBe(false);
+    expect(s.status).toBe("idle");
+    expect(s.streaming).toBe("");
+    // partial streamed text kept as an assistant entry, then the interrupted marker
+    expect(s.entries.at(-2)).toEqual({ kind: "assistant", text: "partial answer" });
+    expect(s.entries.at(-1)?.kind).toBe("interrupted");
+  });
+
   it("a tool call commits streamed text as an assistant entry then logs the tool", () => {
     let s = reduce(base, { t: "delta", d: "let me read it" });
     s = reduce(s, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "x" });
@@ -154,6 +166,17 @@ describe("Transcript fold (CC-TRANSCRIPT)", () => {
     const { lastFrame, unmount } = render(<EntryRow entry={wrote} expanded />);
     const frame = lastFrame() ?? "";
     expect(frame).toContain("hello world");
+    unmount();
+  });
+});
+
+describe("interrupted entry (CC-MSG-INTERRUPTED)", () => {
+  it("renders a distinct ⎋ marker", () => {
+    const entry: Entry = { kind: "interrupted", text: "interrupted — agent stopped mid-turn" };
+    const { lastFrame, unmount } = render(<EntryRow entry={entry} />);
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("⎋");
+    expect(frame).toContain("interrupted");
     unmount();
   });
 });

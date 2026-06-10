@@ -9,6 +9,7 @@ export type Action =
   | { t: "toolCall"; name: string; icon: string; verb: string; detail: string }
   | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[]; resultOutput?: string; lineCount?: number }
   | { t: "commit"; finalText: string }
+  | { t: "interrupted" }
   | { t: "note"; text: string }
   | { t: "thinking"; text: string }
   | { t: "enqueue"; text: string }
@@ -53,6 +54,11 @@ export function reduce(s: State, a: Action): State {
       const text = s.streaming.trim() || a.finalText;
       const entries = text ? [...s.entries, { kind: "assistant" as const, text }] : s.entries;
       return { ...s, entries, streaming: "", busy: false, status: "idle" };
+    }
+    case "interrupted": {
+      // Preserve any partial streamed text, then a distinct marker; the turn ends.
+      const entries = commitStreaming(s.entries, s.streaming);
+      return { ...s, entries: [...entries, { kind: "interrupted", text: "interrupted — agent stopped mid-turn" }], streaming: "", busy: false, status: "idle", viewOffset: 0 };
     }
     case "note":
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
