@@ -16,6 +16,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "plan", desc: "show the agent's current task plan (todo list)" },
   { name: "memory", arg: "<text>", desc: "tell Vanta something to remember (→ its brain)" },
   { name: "compress", desc: "compact the conversation context now" },
+  { name: "compact", arg: "[instructions]", desc: "compact context now (alias of /compress; optional steer)" },
   { name: "sessions", desc: "list saved sessions" },
   { name: "resume", arg: "<id>", desc: "load a past session into this conversation" },
   { name: "title", arg: "<name>", desc: "name the current session" },
