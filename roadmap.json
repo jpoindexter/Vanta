@@ -9265,15 +9265,16 @@
       "id": "CC-COMPACT-INSTRUCTIONS",
       "track": "Claude Code parity",
       "title": "/compact with custom instructions \u2014 control what the summary preserves",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC's `/compact` accepts an optional argument: `/compact <instructions>` to guide the summarization. E.g. `/compact focus on the authentication flow` tells the summarizer what to emphasize. Also supports `DISABLE_COMPACT` env var to block compaction. Works in non-interactive mode for scripted compaction.",
       "done": "`/compact keep the database schema details` produces a summary that preserves schema context over other content.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). /compress now accepts an optional instruction: session.ts buildSummarizer(provider, instructions?) prepends \"Focus especially on: <instr>\" to the summary system prompt (summarizeSys helper); all other callers unchanged via the optional param. handlers.ts compress handler threads arg.trim() \u2192 buildSummarizer. New repl/compact-gate.ts: compactionDisabled(env) (VANTA_DISABLE_COMPACT/DISABLE_COMPACT === \"1\") short-circuits the manual /compress with a \"compaction disabled\" notice (auto-compaction not gated \u2014 out of scope). +7 tests; full suite 2032 green, tsc clean."
     },
     {
       "id": "CC-POST-COMPACT-RESTORE",

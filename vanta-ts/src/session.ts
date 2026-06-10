@@ -164,13 +164,20 @@ export async function prepareRun(
 const SUMMARIZE_SYS =
   "Summarize the following conversation messages into a compact paragraph capturing decisions, findings, and open threads. Be terse.";
 
+/** CC-COMPACT-INSTRUCTIONS: optionally steer the summary toward what to keep. */
+function summarizeSys(instructions?: string): string {
+  const focus = instructions?.trim();
+  return focus ? `${SUMMARIZE_SYS}\nFocus especially on: ${focus}` : SUMMARIZE_SYS;
+}
+
 /** Best-effort history compressor passed to the agent loop (see context.ts). */
-export function buildSummarizer(provider: LLMProvider): Summarizer {
+export function buildSummarizer(provider: LLMProvider, instructions?: string): Summarizer {
+  const sys = summarizeSys(instructions);
   return async (msgs) =>
     (
       await provider.complete(
         [
-          { role: "system", content: SUMMARIZE_SYS },
+          { role: "system", content: sys },
           { role: "user", content: JSON.stringify(msgs).slice(0, 12000) },
         ],
         [],
