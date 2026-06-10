@@ -284,6 +284,13 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(ctx.convo.messages).toHaveLength(5);
   });
 
+  it("/compact is an alias of /compress", async () => {
+    const ctx = makeCtx(home, convo());
+    const r = await executeSlash("/compact", ctx);
+    expect(r.output).toContain("compressed");
+    expect(ctx.convo.messages).toHaveLength(5);
+  });
+
   it("/goal status lists active goals (none here)", async () => {
     const r = await executeSlash("/goal status", makeCtx(home, convo()));
     expect(r.output).toContain("no active goals");
