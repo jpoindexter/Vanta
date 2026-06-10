@@ -134,7 +134,8 @@ describe("read_file", () => {
     const prev = process.env.VANTA_READABLE_DIRS;
     process.env.VANTA_READABLE_DIRS = "/some/allowed/zone";
     try {
-      const res = await readFileTool.execute({ path: "/etc/hosts" }, ctx());
+      // A path that is out-of-zone but NOT on the dangerous blocklist.
+      const res = await readFileTool.execute({ path: "/var/lib/elsewhere/x.txt" }, ctx());
       expect(res.ok).toBe(false);
       expect(res.output).toContain("not in a readable zone");
     } finally {
@@ -256,6 +257,20 @@ describe("shell_cmd", () => {
   it("still fails a real non-zero command", async () => {
     const res = await shellCmdTool.execute({ command: "ls /no/such/path/xyz" }, ctx());
     expect(res.ok).toBe(false);
+  });
+});
+
+describe("dangerous-path floor (CC-DANGEROUS-PATHS)", () => {
+  it("write_file refuses a protected credential path even with auto-approval", async () => {
+    // ctx() approves everything; the dangerous floor runs BEFORE approval.
+    const res = await writeFileTool.execute({ path: "~/.ssh/id_rsa", content: "x" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("never writable");
+  });
+  it("read_file refuses /etc/passwd as protected, not merely out-of-zone", async () => {
+    const res = await readFileTool.execute({ path: "/etc/passwd" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("never accessible");
   });
 });
 

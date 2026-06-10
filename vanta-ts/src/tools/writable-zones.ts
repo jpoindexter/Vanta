@@ -69,6 +69,30 @@ export function isInZone(abs: string, zones: string[]): boolean {
   return zones.some((z) => abs === z || abs.startsWith(z + sep));
 }
 
+// CC-DANGEROUS-PATHS: an unconditional floor beneath zones, scope, AND approval
+// mode. These credential/system paths are NEVER readable or writable by the file
+// tools — distinct from configurable zones, and not overridable by auto-approve.
+const DANGEROUS_DIRS = ["~/.ssh", "~/.gnupg", "~/.aws", "~/.config/gcloud", "/etc", "/private/etc", "/System", "/var/db/sudo"];
+const DANGEROUS_FILES = [
+  "~/.netrc", "~/.npmrc", "~/.pypirc", "~/.docker/config.json", "~/.kube/config",
+  "~/.codex/auth.json", "~/.claude/.credentials.json", "~/.vanta/google-tokens.json",
+  "~/.bashrc", "~/.bash_profile", "~/.zshrc", "~/.zprofile", "~/.profile",
+];
+
+/**
+ * True (with a reason) if `abs` is a protected credential/system path the file
+ * tools must never read or write — the absolute floor for CC-DANGEROUS-PATHS.
+ */
+export function isDangerousPath(abs: string): { dangerous: boolean; reason?: string } {
+  if (DANGEROUS_FILES.map((p) => resolve(expandHome(p))).includes(abs)) {
+    return { dangerous: true, reason: "a protected credential file" };
+  }
+  if (DANGEROUS_DIRS.map((p) => resolve(expandHome(p))).some((d) => abs === d || abs.startsWith(d + sep))) {
+    return { dangerous: true, reason: "a protected system/credential directory" };
+  }
+  return { dangerous: false };
+}
+
 /**
  * The single read-path policy shared by read_file / describe_image /
  * compare_vision: expand `~`, then require the path to be inside the project
@@ -84,11 +108,42 @@ export function resolveReadablePath(
 ): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
   const path = expandHome(rawPath);
   const { ok, path: abs } = resolveInScope(path, root);
+  const danger = isDangerousPath(abs);
+  if (danger.dangerous) {
+    return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never accessible to tools` };
+  }
   if (!ok && !isInZone(abs, resolveReadableZones(env, root))) {
     return {
       ok: false,
       abs,
       error: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
+    };
+  }
+  return { ok: true, abs };
+}
+
+/**
+ * The write-path policy shared by write_file / edit_file: dangerous-path floor
+ * first (never overridable), then expand ~ and require in-root OR a writable
+ * zone. The kernel has already Asked for any out-of-root write; this bounds
+ * where that approved write may land.
+ */
+export function resolveWritablePath(
+  rawPath: string,
+  root: string,
+  env: NodeJS.ProcessEnv,
+): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
+  const path = expandHome(rawPath);
+  const { ok, path: abs } = resolveInScope(path, root);
+  const danger = isDangerousPath(abs);
+  if (danger.dangerous) {
+    return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never writable, even in auto-approve mode` };
+  }
+  if (!ok && !isInZone(abs, resolveWritableZones(env))) {
+    return {
+      ok: false,
+      abs,
+      error: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set VANTA_WRITABLE_DIRS)`,
     };
   }
   return { ok: true, abs };
