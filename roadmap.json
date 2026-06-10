@@ -5959,14 +5959,16 @@
       "id": "CC-INVALID-SETTINGS-UI",
       "track": "Claude Code parity",
       "title": "InvalidConfigDialog + InvalidSettingsDialog \u2014 actionable config error UX",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC renders dedicated dialogs for invalid config (.mcp.json parse errors, settings.json schema violations) showing the specific error, file location, and a suggested fix instead of crashing or silent fallback. Vanta logs parse errors to console with no UI.",
       "done": "Config parse errors show InvalidConfigDialog with: which file, what's wrong, the offending line, and a 'Fix in editor' button; settings schema violations show ValidationErrorsList with all violations.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). config/validate.ts: pure describeConfigError(file, raw, err) \u2192 \"<file>: invalid JSON at line N \u2014 <reason> \u2014 fix it or remove it\" + validateConfigFiles(env) which independently re-parses the known config files (./.mcp.json, ~/.vanta/mcp.json, the three settings scopes via settings/store path exports) and returns one notice per broken file ([] when clean/absent). Surfaced via status.ts notices \u2192 shown in vanta status/doctor under \"\u26a0 notices:\" (same mechanism as auth-conflict/model-deprecation) instead of a silent fallback. Reader injected for fs-free tests. Adapted to Vanta (no Ink dialog system \u2014 doctor surfacing, not a CC-style InvalidConfigDialog). +8 tests; full suite 2104 green, tsc clean."
     },
     {
       "id": "CC-WORKFLOW-MULTISELECT",
