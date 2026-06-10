@@ -6625,15 +6625,16 @@
       "id": "CC-TIME-BASED-MC",
       "track": "Claude Code parity",
       "title": "Time-based microcompact \u2014 auto-clear stale tool results after cache TTL expiry",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Runs before each API call: if the gap since the last assistant message exceeds the cache TTL (default 60 min), clears old tool results from the prompt to shrink what gets rewritten. Keeps the N most recent tool results. Main thread only (subagents have short lifetimes). GrowthBook-configurable.",
       "done": "After 60+ minutes idle, the next request sends a compacted prompt; old tool results are cleared; the N most recent are kept; no visible disruption to the conversation.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration). context/time-microcompact.ts: pure clearStaleToolResults(messages, idleMs, opts?) \u2014 under idle threshold (default 60min, VANTA_MICROCOMPACT_IDLE_MS) returns the same array ref; over it, stubs old role:\"tool\" contents to \"[old tool result cleared after idle]\" IN PLACE (position preserved \u2192 tool_call/tool_result pairing valid), keeps the last N (default 4, VANTA_MICROCOMPACT_KEEP). + resolveIdleConfig(env). Wired into agent.ts runTurn: a GC-safe WeakMap<messages,number> tracks last-turn time; on iter 1 (the genuinely-idle turn start) clearStaleToolResults feeds the transient compress/trim copy \u2014 stored messages keep full content (no visible disruption). Agent's sandbox couldn't run tests; parent verified (typecheck + 12 module tests + full suite 2096 green). Completes the auto-context set: persistent size-compaction + >50k offload + idle clearing."
     },
     {
       "id": "CC-BUDDY",
