@@ -45,8 +45,8 @@ const THEME = resolveTheme(process.env);
 const VIM_ENABLED = !!process.env.VANTA_VIM;
 // CC-VIRTUAL-LIST: alt-screen mode — virtual viewport replaces <Static>.
 const ALT_SCREEN = process.env.VANTA_NO_FLICKER === "1" || process.env.CLAUDE_CODE_NO_FLICKER === "1";
-// Reserve rows for: banner(~4) + composer(3) + status(1) + padding(2) + streaming(2).
-const CHROME_ROWS = 12;
+// Reserve rows for: composer(3) + status(1) + padding(2) + streaming(2) + safety margin(2).
+const CHROME_ROWS = 10;
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
@@ -269,10 +269,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   return (
     <Box flexDirection="column" paddingX={1}>
       {ALT_SCREEN ? (
-        <>
-          {banner ? <Banner data={banner} /> : null}
-          <VirtualTranscript entries={state.entries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
-        </>
+        // In alt-screen mode, skip the banner entirely — it's ~36 lines and
+        // overflows short terminals, causing Ink to ghost-frame on every tick.
+        // Model + token info is already in the status bar.
+        <VirtualTranscript entries={state.entries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
       ) : (
         <Static items={staticItems}>
           {(item) =>
