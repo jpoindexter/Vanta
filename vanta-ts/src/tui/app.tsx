@@ -4,7 +4,6 @@ import { Composer } from "./composer.js";
 import { spinnerFrames } from "./spinners.js";
 import { notify } from "./notify.js";
 import { createConversation, type Conversation } from "../agent.js";
-import { buildSummarizer } from "../session.js";
 import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
@@ -13,9 +12,8 @@ import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
-import { EntryRow, Palette, firstLine, type Entry } from "./transcript.js";
-import { toolDisplay } from "./tool-display.js";
-import { summarizeResult, buildResultPreview, INLINE_MAX } from "./tool-result.js";
+import { EntryRow, Palette, type Entry } from "./transcript.js";
+import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
@@ -32,8 +30,8 @@ import { AltFrame } from "./alt-frame.js";
 import { useResizeRedraw, useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
-import { PLAN_MARKER } from "../repl/plan-mode.js";
 import { useSubmit } from "./use-submit.js";
+import { buildConvoConfig } from "./conversation-config.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
@@ -77,32 +75,10 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
 
   if (convoRef.current === null) {
-    convoRef.current = createConversation(setup.systemPrompt, {
-      provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
-      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
-      summarize: buildSummarizer(setup.provider),
-      onThinking: (text) => dispatch({ t: "thinking", text }),
-      onTextDelta: (d) => dispatch({ t: "delta", d }),
-      onToolCall: (name, args) => dispatch({ t: "toolCall", name, ...toolDisplay(name, args) }),
-      onToolResult: (name, ok, output, diff) => {
-        const preview = ok ? buildResultPreview(output) : undefined;
-        dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, resultOutput: preview?.preview, lineCount: preview?.lineCount });
-        // CC-TODO: live checklist — surface the todo list as a note every time the agent writes it.
-        if (name === "todo" && ok && output.includes("done)")) {
-          dispatch({ t: "note", text: `  ☑ plan updated:\n${output.split("\n").map((l) => `  ${l}`).join("\n")}` });
-        }
-      },
-      onAutoCompact: (dropped, summary) => {
-        const preview = summary.length > 60 ? summary.slice(0, 57) + "…" : summary;
-        dispatch({ t: "compactBoundary", text: `compacted ${dropped} messages · ${preview}` });
-      },
-      requestApproval,
-      // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
-      planGate: () => {
-        const sys = convoRef.current?.messages[0];
-        return !!(sys?.content.includes(PLAN_MARKER) && !replStateRef.current.planApproved);
-      },
-    });
+    convoRef.current = createConversation(
+      setup.systemPrompt,
+      buildConvoConfig({ setup, repoRoot, dispatch, convoRef, replStateRef, requestApproval }),
+    );
   }
 
   useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
