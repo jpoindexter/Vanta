@@ -21,18 +21,34 @@ import type { LLMProvider } from "../providers/interface.js";
 type ConvoRef = ReturnType<typeof createConversation>;
 type MutableRef<T> = React.MutableRefObject<T>;
 
+export type UseAgentSendOptions = {
+  dispatch: Dispatch<Action>;
+  convoRef: MutableRef<ConvoRef | null>;
+  replStateRef: MutableRef<ReplState>;
+  busy: boolean;
+  queued: string[];
+  safety: SafetyClient;
+  goals?: Goal[];
+  repoRoot?: string;
+  contextWindow?: number;
+  provider?: LLMProvider;
+};
+
 export function useAgentSend(
-  dispatch: Dispatch<Action>,
-  convoRef: MutableRef<ConvoRef | null>,
-  replStateRef: MutableRef<ReplState>,
-  busy: boolean,
-  queued: string[],
-  safety: SafetyClient,
-  goals: Goal[] = [],
-  repoRoot = process.cwd(),
-  contextWindow = 0,
-  provider?: LLMProvider,
+  opts: UseAgentSendOptions,
 ): { sendToAgent: (text: string) => void; abortRef: MutableRef<AbortController | null> } {
+  const {
+    dispatch,
+    convoRef,
+    replStateRef,
+    busy,
+    queued,
+    safety,
+    goals = [],
+    repoRoot = process.cwd(),
+    contextWindow = 0,
+    provider,
+  } = opts;
   const turnStartRef = useRef<number>(0);
   const autoHandoffNotedRef = useRef<boolean>(false);
   const abortRef = useRef<AbortController | null>(null);

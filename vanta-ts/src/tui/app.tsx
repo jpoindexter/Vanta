@@ -91,7 +91,18 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
 
-  const { sendToAgent } = useAgentSend(dispatch, convoRef, replStateRef, state.busy, state.queued, setup.safety, setup.goals, repoRoot, activeProvider.contextWindow(), activeProvider);
+  const { sendToAgent } = useAgentSend({
+    dispatch,
+    convoRef,
+    replStateRef,
+    busy: state.busy,
+    queued: state.queued,
+    safety: setup.safety,
+    goals: setup.goals,
+    repoRoot,
+    contextWindow: activeProvider.contextWindow(),
+    provider: activeProvider,
+  });
 
   // Slash palette — fuzzy-search matching commands while typing a bare `/word`.
   // Results include risk tier labels.
