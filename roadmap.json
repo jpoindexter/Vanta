@@ -7603,15 +7603,16 @@
       "id": "CC-CONTEXT-USAGE-CMD",
       "track": "Claude Code parity",
       "title": "/context \u2014 show context window usage breakdown with microcompact option",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "The /context command analyzes and displays context window usage breakdown (analyzeContextUsage): how many tokens are used by system prompt, conversation, tool results, etc. Optionally runs microcompact to clear old tool results and show the savings.",
       "done": "Running /context shows current context breakdown by category; shows % of window used; optional compact button clears old results; savings displayed.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10. Replaced the untested inline /context handler with repl/context-cmd.ts: pure contextBreakdown(messages, window) \u2192 per-category token estimates (system/user/assistant[+tool-call args]/tool results) + total + pct, and formatContextBreakdown() rendering a usage bar + each category's token count and % share. Richer than the old role-count version AND now unit-tested; also shrinks handlers.ts (inline handler removed, registered via import). +5 tests; full suite 1985 green, tsc clean."
     },
     {
       "id": "CC-PASSES-REFERRAL",

@@ -40,6 +40,7 @@ import { summary } from "./summary-cmd.js";
 import { outputStyle } from "./output-style-cmd.js";
 import { permissions } from "./permissions-cmd.js";
 import { now } from "./now-cmd.js";
+import { contextCmd } from "./context-cmd.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -182,20 +183,6 @@ const fork: SlashHandler = async (_arg, ctx) => {
   return { output: `  ⑂ forked into new session ${newId} (history carried over)` };
 };
 
-const context: SlashHandler = (_arg, ctx) => {
-  const msgs = ctx.convo.messages;
-  const chars = msgs.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0);
-  const est = Math.round(chars / 4);
-  const win = ctx.setup.provider.contextWindow();
-  const pct = win ? Math.round((est / win) * 100) : 0;
-  const sysTok = msgs[0]?.role === "system" ? Math.round(msgs[0].content.length / 4) : 0;
-  const byRole = msgs.reduce<Record<string, number>>((acc, m) => ((acc[m.role] = (acc[m.role] ?? 0) + 1), acc), {});
-  const filled = Math.round((pct / 100) * 20);
-  const bar = "█".repeat(Math.min(20, filled)) + "░".repeat(Math.max(0, 20 - filled));
-  const roles = Object.entries(byRole).map(([r, n]) => `${r}:${n}`).join(" · ");
-  return { output: `  context  [${bar}] ${pct}%  ~${est.toLocaleString()}/${win.toLocaleString()} tok\n  system prompt ~${sysTok.toLocaleString()} tok · ${msgs.length} messages (${roles})` };
-};
-
 const mcp: SlashHandler = async (_arg, ctx) => {
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(ctx.env).catch(() => ({ servers: {} as Record<string, unknown> }));
@@ -282,7 +269,7 @@ const cron: SlashHandler = async (_arg, ctx) => {
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
-  plan, compress, memory, goals, goal, sessions, resume, title, fork, context,
+  plan, compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
   routes, files, theme, rename, branch, summary, "output-style": outputStyle, permissions,
   "add-dir": addDir,

@@ -232,11 +232,12 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(await maybeDroppedVideo(join(home, "drop.png"))).toBeNull(); // wrong extension
   });
 
-  it("/context shows a budget bar + message breakdown", async () => {
+  it("/context shows a usage bar + per-category token breakdown", async () => {
     const r = await executeSlash("/context", makeCtx(home, convo()));
     expect(r.output).toContain("context");
     expect(r.output).toMatch(/\d+%/);
-    expect(r.output).toContain("messages");
+    expect(r.output).toContain("assistant");
+    expect(r.output).toContain("tool results");
   });
 
   it("/mcp reports none when unconfigured", async () => {
