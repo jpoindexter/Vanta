@@ -10,6 +10,7 @@ export type Action =
   | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[]; resultOutput?: string; lineCount?: number }
   | { t: "commit"; finalText: string }
   | { t: "interrupted" }
+  | { t: "compactBoundary"; text: string }
   | { t: "note"; text: string }
   | { t: "thinking"; text: string }
   | { t: "enqueue"; text: string }
@@ -60,6 +61,8 @@ export function reduce(s: State, a: Action): State {
       const entries = commitStreaming(s.entries, s.streaming);
       return { ...s, entries: [...entries, { kind: "interrupted", text: "interrupted — agent stopped mid-turn" }], streaming: "", busy: false, status: "idle", viewOffset: 0 };
     }
+    case "compactBoundary":
+      return { ...s, entries: [...s.entries, { kind: "compactBoundary", text: a.text }] };
     case "note":
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
     case "thinking":

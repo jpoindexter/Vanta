@@ -5273,14 +5273,16 @@
       "id": "CC-MSG-COMPACT-BOUNDARY",
       "track": "Claude Code parity",
       "title": "Compact boundary message \u2014 visual separator after context compaction",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC renders a distinct '\u273b Conversation compacted (Ctrl+O for history)' message at the compaction point, with a dynamic shortcut hint. Vanta compacts context (CC-S-COMPACT shipped) but shows no in-transcript marker where compaction occurred.",
       "done": "After compaction, a separator line appears in the transcript at the compaction boundary with the shortcut to view full history; it uses the active keybinding, not a hardcoded key.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-10",
+      "notes": "SHIPPED 2026-06-10. New transcript Entry kind \"compactBoundary\" (magenta \u2500\u2500\u2500\u2500 \u273b \u2026 \u2500\u2500\u2500\u2500 separator) + reducer action { t: \"compactBoundary\"; text }. app.tsx onAutoCompact now dispatches the boundary (was a plain note) with \"compacted N messages \u00b7 <summary preview>\", so the transcript shows a distinct visual marker where the model's context was summarized. +2 tests (reducer + EntryRow render); full TUI suite 226 green, tsc clean."
     },
     {
       "id": "CC-MSG-RATE-LIMIT",

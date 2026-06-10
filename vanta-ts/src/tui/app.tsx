@@ -94,7 +94,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
         }
       },
       onAutoCompact: (dropped, summary) => {
-        dispatch({ t: "note", text: `⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}` });
+        const preview = summary.length > 60 ? summary.slice(0, 57) + "…" : summary;
+        dispatch({ t: "compactBoundary", text: `compacted ${dropped} messages · ${preview}` });
       },
       requestApproval,
       // CC-PLAN-MODE-REAL: block write tools while plan mode is active and unapproved.
