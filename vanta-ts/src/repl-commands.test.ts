@@ -283,6 +283,15 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect(ctx.convo.messages).toHaveLength(5);
   });
 
+  it("/compress returns a disabled notice (no compaction) when VANTA_DISABLE_COMPACT=1", async () => {
+    const ctx = makeCtx(home, convo());
+    ctx.env.VANTA_DISABLE_COMPACT = "1";
+    const r = await executeSlash("/compress keep the schema", ctx);
+    expect(r.output).toContain("compaction disabled");
+    expect(r.output).not.toContain("compressed");
+    expect(ctx.convo.messages).toHaveLength(5); // untouched
+  });
+
   it("/goal status lists active goals (none here)", async () => {
     const r = await executeSlash("/goal status", makeCtx(home, convo()));
     expect(r.output).toContain("no active goals");
