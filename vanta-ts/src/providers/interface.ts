@@ -28,12 +28,17 @@ export type CompletionResult = {
 export type Usage = { inputTokens: number; outputTokens: number };
 
 /**
- * A streaming chunk. `text` deltas arrive as the model generates; a single
- * `done` chunk carries the assembled CompletionResult (full text + tool calls)
- * so the agent loop can proceed exactly as the non-streaming path does.
+ * A streaming chunk. `text` deltas arrive as the model generates. A `tool_call`
+ * chunk is emitted the moment a tool-call block finishes streaming (before the
+ * response completes), so the loop can start a concurrency-safe tool while the
+ * model is still generating later blocks. A single `done` chunk carries the
+ * assembled CompletionResult (full text + ALL tool calls) so the loop can
+ * proceed exactly as the non-streaming path does — `tool_call` chunks are an
+ * early-start optimization, never the source of truth.
  */
 export type StreamChunk =
   | { type: "text"; delta: string }
+  | { type: "tool_call"; call: ToolCall }
   | { type: "done"; result: CompletionResult };
 
 /**

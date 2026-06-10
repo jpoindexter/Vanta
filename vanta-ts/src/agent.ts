@@ -10,6 +10,7 @@ import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } fr
 import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispatch-helpers.js";
 import { offloadResult } from "./compress/result-offload.js";
 import { persistCompaction, beginTurnContext, prepareCallMessages } from "./agent/context-pipeline.js";
+import { consumeStream } from "./agent/stream-dispatch.js";
 import { join } from "node:path";
 
 export type AgentDeps = {
@@ -211,15 +212,22 @@ function makeInitialState(): TurnState {
   return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0 };
 }
 
-async function processToolCalls(
-  calls: ToolCall[],
-  deps: AgentDeps,
-  ctx: ToolContext,
-  state: TurnState,
-  messages: Message[],
-): Promise<string | null> {
+type ProcessToolCallsArgs = {
+  calls: ToolCall[];
+  deps: AgentDeps;
+  ctx: ToolContext;
+  state: TurnState;
+  messages: Message[];
+  prefetched?: Map<string, Promise<DispatchOutcome>>;
+};
+
+async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | null> {
+  const { calls, deps, ctx, state, messages, prefetched } = args;
   for (const call of calls) {
-    const outcome = await dispatchTool(call, deps, ctx);
+    // A concurrency-safe tool may already be running (started mid-stream) — await
+    // that in-flight result instead of dispatching it a second time.
+    const inFlight = prefetched?.get(call.id);
+    const outcome = inFlight ? await inFlight : await dispatchTool(call, deps, ctx);
     state.toolIterations++;
     if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
     messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: outcome.output });
@@ -259,7 +267,8 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (effectiveSignal?.aborted)
       return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     const trimmed = await prepareCallMessages(messages, deps, iter, turnCtx);
-    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal);
+    const prefetched = new Map<string, Promise<DispatchOutcome>>();
+    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal, { ctx, prefetched });
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
 
     if (result.toolCalls.length === 0) {
@@ -276,7 +285,7 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (result.text.trim()) { deps.onText?.(result.text); deps.onEvent?.({ type: "text_complete", text: result.text }); }
     messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls });
 
-    const stuckTool = await processToolCalls(result.toolCalls, deps, ctx, state, messages);
+    const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });
     if (stuckTool)
       return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
     if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
@@ -289,19 +298,31 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
 /**
  * Get one model completion. Streams (emitting onTextDelta per token) when both
  * the provider supports it and a delta consumer is wired; otherwise the plain
- * non-streaming call. Either way returns the assembled CompletionResult so the
- * loop's tool-dispatch path is identical.
+ * non-streaming call. While streaming, a concurrency-safe tool block is started
+ * the moment it completes (stashed in `pf.prefetched` by call id) so it overlaps
+ * the model generating later blocks. Either way returns the assembled
+ * CompletionResult so the loop's tool-dispatch path is identical.
  */
-async function getCompletion(deps: AgentDeps, messages: Message[], signal?: AbortSignal): Promise<CompletionResult> {
+async function getCompletion(
+  deps: AgentDeps,
+  messages: Message[],
+  signal?: AbortSignal,
+  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>> },
+): Promise<CompletionResult> {
   const schemas = deps.registry.schemas();
   const cfg = signal ? { signal } : undefined;
   if (deps.provider.stream && deps.onTextDelta) {
-    let result: CompletionResult | null = null;
-    for await (const chunk of deps.provider.stream(messages, schemas, cfg)) {
-      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-      if (chunk.type === "text") deps.onTextDelta(chunk.delta);
-      else result = chunk.result;
-    }
+    const onSafeToolCall = pf
+      ? (call: ToolCall) => {
+          if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
+        }
+      : undefined;
+    const result = await consumeStream({
+      stream: deps.provider.stream(messages, schemas, cfg),
+      onTextDelta: deps.onTextDelta,
+      signal,
+      onSafeToolCall,
+    });
     if (result) return result;
   }
   return deps.provider.complete(messages, schemas, cfg);

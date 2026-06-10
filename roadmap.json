@@ -19,7 +19,7 @@
       "id": "CC-STREAMING-TOOL-EXEC",
       "track": "Harness",
       "title": "Streaming tool execution — start tools as tool_use blocks arrive in stream",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's StreamingToolExecutor begins executing tools as their `tool_use` blocks arrive in the streaming response, without waiting for the full response to complete. Concurrency-safe tools (Glob, Grep, Read, etc.) can start while the model is still generating. Queued tools wait for their slot. Reduces end-to-end latency for tool-heavy turns by overlapping execution with streaming.",
       "done": "A turn with 3 Glob calls starts executing the first Glob while the model is still streaming the 2nd and 3rd. Total wall-clock time drops proportionally.",
