@@ -94,7 +94,7 @@ export class AnthropicProvider implements LLMProvider {
     let response;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      response = await (client.messages.create(createParams) as Promise<any>);
+      response = await (client.messages.create(createParams, { signal: config?.signal }) as Promise<any>);
     } catch (err) {
       throw translateError(err, this.model);
     }

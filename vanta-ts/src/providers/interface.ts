@@ -10,6 +10,8 @@ export type ToolSchema = {
 export type CompletionConfig = {
   temperature?: number;
   maxTokens?: number;
+  /** Abort signal — cancels the in-flight HTTP request when set. */
+  signal?: AbortSignal;
 };
 
 export type CompletionResult = {

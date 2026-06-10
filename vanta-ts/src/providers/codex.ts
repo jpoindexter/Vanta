@@ -90,6 +90,7 @@ export class CodexProvider implements LLMProvider {
         Accept: "text/event-stream",
       },
       body: JSON.stringify(body),
+      signal: config?.signal,
     });
     if (!res.ok || !res.body) {
       const detail = await res.text().catch(() => "");
