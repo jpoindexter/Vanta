@@ -8104,15 +8104,16 @@
       "id": "CC-DIAGNOSTIC-BASELINE",
       "track": "Claude Code parity",
       "title": "Diagnostic baseline tracking \u2014 surface only new LSP errors after file edits",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's `DiagnosticTrackingService` captures a baseline of IDE diagnostics before each file edit, then computes a delta after the write. Only errors and warnings that appeared after the edit are surfaced to the agent, preventing false noise from pre-existing issues. Tracks per-file diagnostic state with timestamps for right-file (cursor-context) diagnostics.",
       "done": "After writing a file, the agent sees only diagnostics introduced by that edit (new errors/warnings). Pre-existing issues are filtered as baseline.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "updated": "2026-06-09",
-      "lens": "coding"
+      "updated": "2026-06-10",
+      "lens": "coding",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration, OPT-IN). lsp/diagnostic-delta.ts: pure diffDiagnostics(before, after) (keys on message+category so a line-shifted pre-existing diag stays baseline) + formatNewDiagnostics. lsp/diagnostic-note.ts: beginDiagnosticDelta(abs, isExisting) straddles a write (baseline read from disk BEFORE, delta AFTER \u2014 getDiagnostics reads disk) \u2192 appends \"\u26a0 N new diagnostic(s)\" to the write_file/edit_file result. PARENT DECISION: gated behind VANTA_DIAGNOSTIC_DELTA=1, DEFAULT OFF \u2014 getDiagnostics runs a full semantic TS build, so straddling costs TWO per .ts write (too much latency to impose by default; verified ts-service.buildService creates a fresh language service per call). Agent's sandbox couldn't run tests; parent verified (typecheck + 14 module/gate tests + full suite 2118 green). Best-effort, never blocks the write; .d.ts/test exempt. Documented in .env.example."
     },
     {
       "id": "CC-SWARM-IDLE-NOTIFY",

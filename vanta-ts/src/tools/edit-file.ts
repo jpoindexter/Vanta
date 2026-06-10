@@ -2,6 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveWritablePath } from "./writable-zones.js";
+import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 
 const Args = z.object({
@@ -88,13 +89,15 @@ export const editFileTool: Tool = {
 
     const diff = computeDiff(content, updated);
     try {
+      const finishDiag = await beginDiagnosticDelta(abs, true); // CC-DIAGNOSTIC-BASELINE (opt-in)
       await writeFile(abs, updated, "utf8");
       const occurrences = replace_all
         ? content.split(old_string).length - 1
         : 1;
+      const diagNote = await finishDiag();
       return {
         ok: true,
-        output: `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}`,
+        output: `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}${diagNote}`,
         diff: diff.length ? diff : undefined,
       };
     } catch (err) {
