@@ -40,6 +40,7 @@ import { summary } from "./summary-cmd.js";
 import { outputStyle } from "./output-style-cmd.js";
 import { permissions } from "./permissions-cmd.js";
 import { now } from "./now-cmd.js";
+import { contextSuggestions } from "./context-suggestions.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -193,7 +194,10 @@ const context: SlashHandler = (_arg, ctx) => {
   const filled = Math.round((pct / 100) * 20);
   const bar = "█".repeat(Math.min(20, filled)) + "░".repeat(Math.max(0, 20 - filled));
   const roles = Object.entries(byRole).map(([r, n]) => `${r}:${n}`).join(" · ");
-  return { output: `  context  [${bar}] ${pct}%  ~${est.toLocaleString()}/${win.toLocaleString()} tok\n  system prompt ~${sysTok.toLocaleString()} tok · ${msgs.length} messages (${roles})` };
+  const breakdown = `  context  [${bar}] ${pct}%  ~${est.toLocaleString()}/${win.toLocaleString()} tok\n  system prompt ~${sysTok.toLocaleString()} tok · ${msgs.length} messages (${roles})`;
+  // CC-CONTEXT-SUGGESTIONS: when context is high (≥70%), append concrete removals.
+  const tips = contextSuggestions(msgs, win).map((s) => `  ${s.severity === "warning" ? "⚠" : "·"} ${s.text}`);
+  return { output: tips.length ? `${breakdown}\n${tips.join("\n")}` : breakdown };
 };
 
 const mcp: SlashHandler = async (_arg, ctx) => {
