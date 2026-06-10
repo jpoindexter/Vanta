@@ -7528,15 +7528,16 @@
       "id": "CC-DESTRUCTIVE-WARN",
       "track": "Claude Code parity",
       "title": "Destructive bash command warnings \u2014 informational notes in permission dialog",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Permission dialogs for commands like `git reset --hard`, `git push --force`, `git clean -f`, `git checkout .` show an informational warning ('Note: may discard uncommitted changes'). Purely informational \u2014 doesn't affect permission logic or auto-approval. Curated list of dangerous git patterns.",
       "done": "Running `git reset --hard` shows the warning note in the dialog; `git push -f` shows the force-push warning; non-destructive commands show no extra note.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "agent-loop"
+      "updated": "2026-06-10",
+      "lens": "agent-loop",
+      "notes": "SHIPPED 2026-06-10. tools/destructive-warn.ts: pure destructiveWarning(command) \u2192 curated note for allowed-but-destructive git commands (reset --hard, push --force [but NOT --force-with-lease], clean -f, checkout . / -f, restore ., branch -D, stash drop/clear), else null. shell-cmd.ts prepends \"\u26a0 <note>\" to the result (success or failure) so the user/agent sees it in the transcript. Purely informational \u2014 never blocks (rm -rf etc. stay hard-refused by the DESTRUCTIVE gate). +7 tests; suite green, tsc clean."
     },
     {
       "id": "CC-FORK-SUBAGENT",
