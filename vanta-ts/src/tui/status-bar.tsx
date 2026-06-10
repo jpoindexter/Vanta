@@ -36,6 +36,44 @@ export function formatDuration(ms: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
+// CC-TOKEN-WARN-UI: warn when the conversation is approaching the context limit
+// so the user can /compact or /new before a turn overflows. Thresholds are
+// fractions of the context window, configurable via env.
+export type TokenWarnLevel = "none" | "warn" | "urgent";
+const DEFAULT_WARN_FRAC = 0.85;
+const DEFAULT_URGENT_FRAC = 0.95;
+
+/** Read configurable warn/urgent fractions (VANTA_TOKEN_WARN_FRAC / _URGENT_FRAC). */
+export function tokenWarnFractions(env: NodeJS.ProcessEnv): { warn: number; urgent: number } {
+  const w = Number(env.VANTA_TOKEN_WARN_FRAC);
+  const u = Number(env.VANTA_TOKEN_URGENT_FRAC);
+  return {
+    warn: w > 0 && w < 1 ? w : DEFAULT_WARN_FRAC,
+    urgent: u > 0 && u <= 1 ? u : DEFAULT_URGENT_FRAC,
+  };
+}
+
+/** Classify context fill into a warning level. Pure (env read at call time, not module load). */
+export function tokenWarningLevel(
+  estTokens: number,
+  contextWindow: number,
+  env: NodeJS.ProcessEnv = process.env,
+): TokenWarnLevel {
+  if (contextWindow <= 0) return "none";
+  const frac = estTokens / contextWindow;
+  const { warn, urgent } = tokenWarnFractions(env);
+  if (frac >= urgent) return "urgent";
+  if (frac >= warn) return "warn";
+  return "none";
+}
+
+/** Map a warn level to status-bar styling (pure; keeps StatusBar's branching low). */
+export function tokenWarnDecor(level: TokenWarnLevel): { pctColor?: string; tagColor?: string; tagText?: string } {
+  if (level === "urgent") return { pctColor: "red", tagColor: "red", tagText: " ■ context full · /compact" };
+  if (level === "warn") return { pctColor: "yellow", tagColor: "yellow", tagText: " ▲ /compact" };
+  return {};
+}
+
 export function StatusBar(props: {
   status: string;
   busy: boolean;
@@ -54,6 +92,13 @@ export function StatusBar(props: {
   const color = props.primaryColor ?? "cyan";
   const left = props.busy ? `${props.spinner} ${props.status}` : "● ready";
   const dur = props.busy ? ` · ${formatDuration(props.elapsedMs)}` : "";
+  // Context-limit warning: color the left % and, when high, REPLACE the right-side
+  // hint with a /compact nudge — so the line never grows wider (an unexpected
+  // status-line wrap is the overflow class behind the alt-screen ghost frames).
+  const decor = tokenWarnDecor(tokenWarningLevel(props.estTokens, props.contextWindow));
+  const right = decor.tagText
+    ? <Text color={decor.tagColor}>{decor.tagText.trim()}</Text>
+    : <Text dimColor>{props.hint}</Text>;
   const modeTag =
     props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> :
     props.mode === "accept-edits" ? <Text color="cyan"> ✎edits</Text> :
@@ -65,11 +110,13 @@ export function StatusBar(props: {
         <Text color={props.busy ? "yellow" : color}>{left}</Text>
         {` · ${props.model} · ~${formatCount(props.estTokens)}/${formatCount(props.contextWindow)} `}
         <Text color={color}>{bar}</Text>
-        {` ${pct}%${dur}`}
+        {" "}
+        <Text color={decor.pctColor}>{pct}%</Text>
+        {dur}
         {modeTag}
         {vimTag}
       </Text>
-      <Text dimColor>{props.hint}</Text>
+      {right}
     </Box>
   );
 }
