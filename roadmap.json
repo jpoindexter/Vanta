@@ -9177,15 +9177,16 @@
       "id": "CC-PROMPT-KEYWORDS",
       "track": "Claude Code parity",
       "title": "Prompt keyword detection \u2014 'keep going' resumes, negative keywords stop agent",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC detects semantic keywords in user prompts: `matchesKeepGoingKeyword()` detects 'continue', 'keep going', 'proceed' to signal the agent should resume without stopping; `matchesNegativeKeyword()` detects 'no', 'stop', 'cancel' to signal interruption. Used in multi-turn flows and agentic sessions to understand user intent without full LLM inference.",
       "done": "Typing 'keep going' after an agent pause resumes without generating a new full response. 'stop' or 'no' in a message flags the intent for the agent loop.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "reach"
+      "updated": "2026-06-10",
+      "lens": "reach",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/prompt-keywords.ts: pure classifyPromptKeyword(text) \u2192 \"continue\"|\"stop\"|null. Normalizes (trim, lowercase, strip one trailing .!?) then WHOLE-STRING set-matches so a bare phrase fires but an embedded one doesn't (\"keep going\" \u2192 continue; \"keep going on the refactor\" \u2192 null). continue set: keep going/continue/go on/proceed/keep at it/carry on; stop set: stop/never mind/nevermind/cancel that/forget it. CONTINUE_NUDGE exported. Wired into tui/app.tsx submit (after the busy-enqueue guard): a bare continue phrase sends the nudge to resume the prior task instead of the literal text. No auto-action for \"stop\" (Esc already interrupts). +7 tests; full suite 1985 green, tsc clean."
     },
     {
       "id": "CC-AUTH-CONFLICT-NOTICE",
