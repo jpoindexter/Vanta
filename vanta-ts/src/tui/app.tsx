@@ -9,7 +9,7 @@ import { newSessionId } from "../sessions/store.js";
 import { executeSlash, maybeDroppedImage, maybeDroppedVideo, SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
-import { Banner, gatherBannerData, type BannerData } from "./banner.js";
+import { Banner, bannerEntries, gatherBannerData, type BannerData } from "./banner.js";
 import { StatusBar, estimateTokens } from "./status-bar.js";
 import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
@@ -30,6 +30,8 @@ import type { VimMode } from "./composer.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
 import { VirtualTranscript } from "./virtual-transcript.js";
+import { AltFrame } from "./alt-frame.js";
+import { useResizeRedraw, useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { PLAN_MARKER } from "../repl/plan-mode.js";
@@ -54,6 +56,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const { setup, repoRoot } = props;
   const ALT_SCREEN = props.altScreen ?? false;
   const app = useApp();
+  const { rows: termRows, cols } = useTermSize();
+  const redrawNonce = useResizeRedraw(ALT_SCREEN);
   const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
@@ -150,7 +154,6 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   });
 
   // CC-VIRTUAL-LIST: pgup/pgdn scroll the virtual viewport in alt-screen mode.
-  const termRows = process.stdout.rows ?? 24;
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
   useInput((_in, key) => {
     const half = Math.max(1, Math.floor(maxVisible / 2));
@@ -250,7 +253,6 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     })();
   };
 
-  const cols = process.stdout.columns ?? 80;
   const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
   const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const elapsedMs = state.busy && Date.now();
@@ -258,46 +260,20 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
   );
   const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
-  const scrollHint = ALT_SCREEN && state.entries.length > maxVisible ? "pgup/pgdn  " : "";
+  // CC-ALT-BANNER: banner lines lead the virtual transcript as scrollable entries.
+  const vtEntries = ALT_SCREEN && banner ? [...bannerEntries(banner), ...state.entries] : state.entries;
+  const scrollHint = ALT_SCREEN && vtEntries.length > maxVisible ? "pgup/pgdn  " : "";
   const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${scrollHint}${foldHint}/help  ?  /exit`;
 
-  // In alt-screen mode (VANTA_NO_FLICKER=1): VirtualTranscript renders a capped
-  // viewport slice — no Static, no ghost frames, no Ink-tree growth. Normal mode
-  // keeps Static so terminal native scrollback works unchanged.
+  // Normal mode renders history via <Static> so terminal-native scrollback
+  // works unchanged; alt-screen mode renders a capped viewport slice instead.
   const staticItems: Array<{ kind: "banner"; data: BannerData } | { kind: "entry"; entry: Entry; i: number }> = [
     ...(banner ? [{ kind: "banner" as const, data: banner }] : []),
     ...state.entries.map((entry, i) => ({ kind: "entry" as const, entry, i })),
   ];
 
-  return (
-    <Box flexDirection="column" paddingX={1}>
-      {ALT_SCREEN ? (
-        // In alt-screen mode, skip the banner entirely — it's ~36 lines and
-        // overflows short terminals, causing Ink to ghost-frame on every tick.
-        // Model + token info is already in the status bar.
-        <VirtualTranscript entries={state.entries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
-      ) : (
-        <Static items={staticItems}>
-          {(item) =>
-            item.kind === "banner" ? (
-              <Banner key="banner" data={item.data} />
-            ) : (
-              <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
-            )
-          }
-        </Static>
-      )}
-      {state.streaming.trim() ? (
-        // Cap streaming display to last 8 lines in normal mode so the dynamic
-        // region doesn't outgrow the terminal and scroll content off screen.
-        // Alt-screen mode renders the full buffer inside the virtual viewport.
-        (() => {
-          const lines = state.streaming.split("\n");
-          const visible = ALT_SCREEN ? state.streaming : (lines.length > 8 ? `…\n${lines.slice(-8).join("\n")}` : state.streaming);
-          return <Text>{visible}</Text>;
-        })()
-      ) : null}
-      {pending ? (
+  // Bottom chrome (approval / pickers / composer + status) — shared by both layouts.
+  const chrome = pending ? (
         <Box flexDirection="column" marginTop={1}>
           <ApprovalPrompt action={pending.action} reason={pending.reason} toolName={pending.toolName} width={w} onChoose={chooseApproval} />
           <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}><Text dimColor>{"› "}awaiting approval…</Text></Box>
@@ -323,7 +299,48 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
           {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}
           <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} primaryColor={THEME.primary} vimMode={VIM_ENABLED ? vimMode : undefined} />
         </Box>
-      )}
+      );
+
+  // Alt-screen (VANTA_NO_FLICKER=1): fullscreen-fill frame — see alt-frame.tsx
+  // for why the frame overflows the viewport by one sacrificial line.
+  if (ALT_SCREEN) {
+    return (
+      <AltFrame
+        rows={termRows}
+        nonce={redrawNonce}
+        viewport={
+          <>
+            <VirtualTranscript entries={vtEntries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
+            {/* Tail-cap streaming to one screen — bounds per-frame bytes. */}
+            {state.streaming.trim() ? <Text>{state.streaming.split("\n").slice(-termRows).join("\n")}</Text> : null}
+          </>
+        }
+        chrome={chrome}
+      />
+    );
+  }
+
+  return (
+    <Box flexDirection="column" paddingX={1}>
+      <Static items={staticItems}>
+        {(item) =>
+          item.kind === "banner" ? (
+            <Banner key="banner" data={item.data} />
+          ) : (
+            <EntryRow key={`e${item.i}`} entry={item.entry} expanded={state.expanded} />
+          )
+        }
+      </Static>
+      {state.streaming.trim() ? (
+        // Cap streaming display to last 8 lines so the dynamic region doesn't
+        // outgrow the terminal and scroll content off screen.
+        (() => {
+          const lines = state.streaming.split("\n");
+          const visible = lines.length > 8 ? `…\n${lines.slice(-8).join("\n")}` : state.streaming;
+          return <Text>{visible}</Text>;
+        })()
+      ) : null}
+      {chrome}
     </Box>
   );
 }

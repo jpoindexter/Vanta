@@ -38,7 +38,9 @@ export type Entry =
   | { kind: "assistant"; text: string }
   | ToolEntry
   | { kind: "note"; text: string }
-  | { kind: "thinking"; text: string };
+  | { kind: "thinking"; text: string }
+  /** Banner wordmark lines (alt-screen mode) — bold cyan, no indent. */
+  | { kind: "hero"; text: string };
 
 /** First non-empty line of a tool result, truncated — used for error rows. */
 export const firstLine = (t: string): string => {
@@ -70,6 +72,12 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry>; expanded?: boolea
   const e = props.entry;
   if (e.kind === "user") return <Text color="cyan">› {linkifyFilePaths(e.text, process.cwd())}</Text>;
   if (e.kind === "assistant") return renderMarkdown(e.text);
+  if (e.kind === "hero")
+    return (
+      <Text color="cyan" bold>
+        {e.text}
+      </Text>
+    );
   if (e.kind === "thinking") {
     if (props.expanded) {
       return <Text dimColor>  ⚙ {e.text}</Text>;
