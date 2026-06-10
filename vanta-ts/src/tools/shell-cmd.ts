@@ -17,6 +17,37 @@ const DESTRUCTIVE = /\brm\s+-rf?\b|\bsudo\b|\bchmod\s+777\b|\bmkfs\b|>\s*\/dev\/
 const MAX_OUTPUT = 1024 * 1024;
 const TIMEOUT_MS = 30_000;
 
+/**
+ * The program whose exit code we actually received: the first token of the
+ * LAST segment of a pipeline/chain (`a | grep x`, `find . && echo`), since the
+ * shell reports that command's status. `git grep`/`git diff` keep both words;
+ * a leading path (`/usr/bin/grep`) is stripped to its basename.
+ */
+export function lastCommandWord(command: string): string {
+  const seg = command.split(/&&|\|\||;|\|/).pop() ?? command;
+  const tok = seg.trim().split(/\s+/).filter(Boolean);
+  let w = tok[0] ?? "";
+  if (w === "git" && tok[1]) w = `git ${tok[1]}`;
+  return w.replace(/^.*\//, "");
+}
+
+/**
+ * CC-BASH-CMD-SEMANTICS: per-command exit-code semantics. grep/rg/find/diff
+ * exit 1 is a valid *outcome*, not a failure — treating it as an error makes
+ * the agent see false failures and retry needlessly. Returns ok=true (with an
+ * info note) for those cases; everything else stays a real error.
+ */
+export function classifyExitCode(command: string, code: number): { ok: boolean; note?: string } {
+  let w = lastCommandWord(command);
+  if (w.startsWith("git ")) w = w.slice(4);
+  if (code === 1) {
+    if (["grep", "rg", "egrep", "fgrep", "ripgrep"].includes(w)) return { ok: true, note: "No matches found" };
+    if (w === "diff") return { ok: true, note: "Differences found" };
+    if (w === "find") return { ok: true, note: "Some paths were inaccessible" };
+  }
+  return { ok: false };
+}
+
 export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
@@ -54,8 +85,17 @@ export const shellCmdTool: Tool = {
       const out = [stdout, stderr].filter(Boolean).join("\n").trim();
       return { ok: true, output: out || "(command produced no output)" };
     } catch (err) {
-      const e = err as { stdout?: string; stderr?: string; message: string };
+      const e = err as { code?: number | string; stdout?: string; stderr?: string; message: string };
       const out = [e.stdout, e.stderr].filter(Boolean).join("\n").trim();
+      // A numeric exit code means the command ran (vs. ENOENT/timeout, where
+      // code is a string/undefined and we keep it an error). Reclassify the
+      // "no-match / differs / partial" exits as non-error outcomes.
+      if (typeof e.code === "number") {
+        const cls = classifyExitCode(command, e.code);
+        if (cls.ok) {
+          return { ok: true, output: out ? `${cls.note}\n${out}` : `(${cls.note})` };
+        }
+      }
       return { ok: false, output: out || e.message };
     }
   },
