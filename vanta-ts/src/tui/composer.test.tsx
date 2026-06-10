@@ -45,6 +45,37 @@ describe("Composer", () => {
     expect(submitted).toBe("foo ");
   });
 
+  it("Ctrl+K kills to end and Ctrl+Y yanks it back (kill ring)", async () => {
+    let submitted = "";
+    const { stdin } = render(<Harness initial="hello world" onSubmit={(v) => (submitted = v)} />);
+    stdin.write("\x01"); // Ctrl+A → cursor to start
+    await tick();
+    stdin.write("\x0b"); // Ctrl+K → kill "hello world", ring holds it
+    await tick();
+    stdin.write("\x19"); // Ctrl+Y → yank it back
+    await tick();
+    stdin.write("\r");
+    await tick();
+    expect(submitted).toBe("hello world");
+  });
+
+  it("Ctrl+D forward-deletes; on empty input it is a no-op (does not submit/exit)", async () => {
+    let submits = 0;
+    const { stdin, lastFrame } = render(<Harness onSubmit={() => submits++} />);
+    stdin.write("\x04"); // Ctrl+D on empty input → no-op
+    await tick();
+    expect(submits).toBe(0);
+    expect(lastFrame()).toContain("type here"); // still the placeholder
+    stdin.write("abc");
+    await tick();
+    stdin.write("\x01"); // Ctrl+A → cursor to start
+    await tick();
+    stdin.write("\x04"); // Ctrl+D → delete "a"
+    await tick();
+    expect(lastFrame()).toContain("bc");
+    expect(lastFrame()).not.toContain("abc");
+  });
+
   it("backspace deletes one char", async () => {
     const { stdin, lastFrame } = render(<Harness />);
     stdin.write("abc");
