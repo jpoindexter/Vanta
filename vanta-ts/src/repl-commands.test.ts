@@ -311,4 +311,38 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     const forked = await loadSession(ctx.state.sessionId, ctx.env);
     expect(forked?.messages).toHaveLength(5);
   });
+
+  it("/permissions with no args lists rules (none yet)", async () => {
+    const r = await executeSlash("/permissions", makeCtx(home, convo()));
+    expect(r.output).toContain("no permission rules");
+  });
+
+  it("/permissions deny adds a rule, then lists it numbered", async () => {
+    const ctx = makeCtx(home, convo());
+    const added = await executeSlash("/permissions deny shell_cmd rm -rf", ctx);
+    expect(added.output).toContain("added: deny shell_cmd");
+    const listed = await executeSlash("/permissions", ctx);
+    expect(listed.output).toContain("1. deny");
+    expect(listed.output).toContain("shell_cmd");
+    expect(listed.output).toContain("rm -rf");
+  });
+
+  it("/permissions allow without a tool shows usage", async () => {
+    const r = await executeSlash("/permissions allow", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
+
+  it("/permissions remove deletes by index", async () => {
+    const ctx = makeCtx(home, convo());
+    await executeSlash("/permissions deny shell_cmd", ctx);
+    const removed = await executeSlash("/permissions remove 1", ctx);
+    expect(removed.output).toContain("removed rule 1");
+    const listed = await executeSlash("/permissions", ctx);
+    expect(listed.output).toContain("no permission rules");
+  });
+
+  it("/permissions remove with a non-numeric index shows usage", async () => {
+    const r = await executeSlash("/permissions remove abc", makeCtx(home, convo()));
+    expect(r.output).toContain("usage:");
+  });
 });
