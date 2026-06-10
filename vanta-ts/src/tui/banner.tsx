@@ -4,6 +4,7 @@ import { listSkills } from "../skills/store.js";
 import { readMcpConfig } from "../mcp/mount.js";
 import { groupToolsByDomain } from "./capabilities.js";
 import type { RunSetup } from "../session.js";
+import type { Entry } from "./transcript.js";
 
 // Startup banner — the first thing a session prints: an ASCII wordmark plus a
 // one-card readout of what the agent is wired with (tools, skills, system
@@ -56,6 +57,28 @@ export async function gatherBannerData(
     skillCount: skills.length,
     mcpServers: Object.keys(mcp.servers ?? {}),
   };
+}
+
+// CC-ALT-BANNER: the alt-screen TUI has no <Static> scrollback, so the banner
+// renders as ordinary transcript entries instead of fixed chrome — it fills the
+// first screen, then scrolls into history via pgup like any other entry. Split
+// per line so the virtual viewport's entry-count slicing stays ~1 line/entry.
+export function bannerEntries(d: BannerData): Entry[] {
+  const domains = groupToolsByDomain(d.toolNames);
+  const mcpCount = d.mcpServers?.length ?? 0;
+  const skillLabel = d.skillCount === null ? "…" : `${d.skillCount}`;
+  const mcpLabel = d.mcpServers === null ? "…" : `${mcpCount}`;
+  return [
+    ...LOGO.split("\n").map((text): Entry => ({ kind: "hero", text })),
+    { kind: "note", text: "⚓ Trusted operator · Rust safety kernel + TypeScript agent" },
+    { kind: "note", text: `${d.model} · Session ${d.sessionId}` },
+    { kind: "note", text: `▾ Capabilities — ${d.toolNames.length} tools · ${domains.length} domains` },
+    ...domains.map((g): Entry => ({ kind: "note", text: `  ${g.label}  ${g.tools.join(", ")}` })),
+    {
+      kind: "note",
+      text: `▸ ${skillLabel} skills · ${d.promptChars.toLocaleString()}-char prompt · ${mcpLabel} MCP server${mcpCount === 1 ? "" : "s"} · /help for commands`,
+    },
+  ];
 }
 
 function Section(props: { mark: string; title: string; meta?: string; children?: ReactElement }): ReactElement {

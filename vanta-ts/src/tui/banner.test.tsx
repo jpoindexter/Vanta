@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "ink-testing-library";
-import { Banner, gatherBannerData, type BannerData } from "./banner.js";
+import { Banner, bannerEntries, gatherBannerData, type BannerData } from "./banner.js";
 import type { RunSetup } from "../session.js";
 
 const data: BannerData = {
@@ -30,6 +30,25 @@ describe("Banner", () => {
     const { lastFrame, unmount } = render(<Banner data={{ ...data, skillCount: null, mcpServers: null }} />);
     expect(lastFrame() ?? "").toContain("…");
     unmount();
+  });
+});
+
+describe("bannerEntries (alt-screen)", () => {
+  it("splits the banner into per-line entries: hero wordmark + capability notes", () => {
+    const entries = bannerEntries(data);
+    expect(entries.filter((e) => e.kind === "hero")).toHaveLength(6); // wordmark lines
+    const text = entries.map((e) => ("text" in e ? e.text : "")).join("\n");
+    expect(text).toContain("gemini-2.5-flash");
+    expect(text).toContain("3 tools");
+    expect(text).toContain("read_file");
+    expect(text).toContain("/help");
+  });
+
+  it("shows a loading ellipsis for not-yet-loaded async counts", () => {
+    const text = bannerEntries({ ...data, skillCount: null, mcpServers: null })
+      .map((e) => ("text" in e ? e.text : ""))
+      .join("\n");
+    expect(text).toContain("…");
   });
 });
 
