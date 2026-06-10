@@ -64,6 +64,38 @@ describe("memory store", () => {
     expect(content).toBeNull();
   });
 
+  it("recentMemory caveats a stale block but not a fresh one", async () => {
+    const day = 86_400_000;
+    const now = Date.parse("2026-06-10T00:00:00.000Z");
+    // One block 47 days old, one from today.
+    await appendMemory(3, "old observation", {
+      env,
+      now: new Date(now - 47 * day).toISOString(),
+    });
+    await appendMemory(3, "fresh observation", {
+      env,
+      now: new Date(now).toISOString(),
+    });
+
+    const recent = await recentMemory([3], { env, now });
+
+    // Stale block carries the human-readable age caveat.
+    expect(recent).toContain("47 days ago");
+    expect(recent).toContain("verify file:line citations");
+    // Fresh block is injected without any caveat noise.
+    expect(recent).toContain("fresh observation");
+  });
+
+  it("recentMemory injects no caveat when every block is fresh", async () => {
+    const now = Date.parse("2026-06-10T00:00:00.000Z");
+    await appendMemory(4, "today note", { env, now: new Date(now).toISOString() });
+
+    const recent = await recentMemory([4], { env, now });
+
+    expect(recent).toContain("today note");
+    expect(recent).not.toContain("[memory is");
+  });
+
   it("recentMemory concatenates across goals and skips empty ones", async () => {
     await appendMemory(1, "goal one note", { env, now: "2026-06-02T10:00:00.000Z" });
     await appendMemory(2, "goal two note", { env, now: "2026-06-02T11:00:00.000Z" });

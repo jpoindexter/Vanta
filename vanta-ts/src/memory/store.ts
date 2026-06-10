@@ -5,6 +5,7 @@ import {
   ensureVantaStore,
   commitInHome,
 } from "../store/home.js";
+import { annotateMemory } from "./freshness.js";
 
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
@@ -14,7 +15,12 @@ const DEFAULT_MAX_STORED_BLOCKS = 50;
 const BLOCK_DELIM = "## ";
 
 type AppendOptions = { env?: NodeJS.ProcessEnv; now?: string };
-type RecentOptions = { env?: NodeJS.ProcessEnv; maxPerGoal?: number };
+type RecentOptions = {
+  env?: NodeJS.ProcessEnv;
+  maxPerGoal?: number;
+  /** Reference time (ms) for staleness annotation. Defaults to Date.now(). */
+  now?: number;
+};
 
 function memoryFile(goalId: number, env?: NodeJS.ProcessEnv): string {
   return join(memoriesDir(env), `${goalId}.md`);
@@ -71,9 +77,23 @@ function splitBlocks(content: string): string[] {
 }
 
 /**
+ * Annotate a single `## <ISO>\n...` block with a staleness caveat when it is
+ * older than the fresh window. Best-effort: an unparseable timestamp yields the
+ * block unchanged (never throws). `now` is the reference time in ms.
+ */
+function annotateBlock(block: string, now: number): string {
+  const header = (block.split("\n", 1)[0] ?? "").slice(BLOCK_DELIM.length).trim();
+  const ts = Date.parse(header);
+  if (Number.isNaN(ts)) return block;
+  return annotateMemory(block, now - ts);
+}
+
+/**
  * Build a compact recent-memory string across goals for prompt injection. Takes
  * the last `maxPerGoal` blocks per goal, skips goals with no memory, and returns
- * "" when nothing is available.
+ * "" when nothing is available. Stale blocks (older than today/yesterday) are
+ * prefixed with a freshness caveat so the agent re-verifies before trusting
+ * point-in-time observations.
  */
 export async function recentMemory(
   goalIds: number[],
@@ -81,6 +101,7 @@ export async function recentMemory(
 ): Promise<string> {
   const env = opts.env;
   const maxPerGoal = opts.maxPerGoal ?? DEFAULT_MAX_PER_GOAL;
+  const now = opts.now ?? Date.now();
   const sections: string[] = [];
 
   for (const goalId of goalIds) {
@@ -88,7 +109,10 @@ export async function recentMemory(
     if (!content) continue;
     const blocks = splitBlocks(content);
     if (blocks.length === 0) continue;
-    const recent = blocks.slice(-maxPerGoal).join("\n\n");
+    const recent = blocks
+      .slice(-maxPerGoal)
+      .map((b) => annotateBlock(b, now))
+      .join("\n\n");
     sections.push(`Goal ${goalId}:\n${recent}`);
   }
 
