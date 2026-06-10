@@ -8519,15 +8519,16 @@
       "id": "CC-CONTEXT-SUGGESTIONS",
       "track": "Claude Code parity",
       "title": "Context suggestions \u2014 actionable recommendations when context window fills up",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC's `contextSuggestions.ts` generates actionable suggestions when context fills: identifies which tools (bash, read, grep, web-fetch) are consuming tokens, shows estimated savings, and suggests /compact or specific file removal. Surfaced in the ContextVisualization component (CC-CONTEXT-VIZ) with severity levels (info/warning).",
       "done": "When context is 70%+ full, the context visualization shows specific items to remove with token counts: 'Remove 3 bash outputs (~4k tokens)'.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "updated": "2026-06-09",
-      "lens": "memory"
+      "updated": "2026-06-10",
+      "lens": "memory",
+      "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/context-suggestions.ts: pure contextSuggestions(messages, window) \u2192 ContextSuggestion[] \u2014 returns [] below 70% fill; at \u226570% groups role:\"tool\" messages by name and emits \"Remove N <name> output(s) (~Xk tokens)\" for each \u22651k-token group (savedTokens desc), always appends a /compress entry; severity warning \u226585% else info. Wired into the /context command (context-cmd.ts contextCmd): appends the suggestions (\u26a0/\u00b7 prefixed) under the breakdown when context is high. +6 tests; full suite 2032 green, tsc clean."
     },
     {
       "id": "CC-TRANSCRIPT-SEARCH",
