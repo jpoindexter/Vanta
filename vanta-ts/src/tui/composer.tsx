@@ -117,18 +117,20 @@ const KILL_YANK_TABLE: KeyEntry[] = [
 // ─── insert-mode submit/history/backspace section ─────────────────────────
 // Separated from handleKeyInput so that fn's complexity stays ≤10.
 
-function handleHistoryNav(key: Key, ctx: HandlerCtx): boolean {
+function applyHistoryNav(ctx: HandlerCtx, dir: "up" | "down"): true {
+  const next = navigateHistory(ctx.history, ctx.histRef.current, dir);
+  ctx.histRef.current = next; ctx.onChange(next.value); ctx.setCursor(next.value.length);
+  return true;
+}
+
+function handleHistoryNav(input: string, key: Key, ctx: HandlerCtx): boolean {
+  // ^P/^N (readline previous/next) always reach history — including with an
+  // empty composer, where plain ↑/↓ scroll the transcript instead.
+  if (key.ctrl && input === "p") return applyHistoryNav(ctx, "up");
+  if (key.ctrl && input === "n") return applyHistoryNav(ctx, "down");
   if (!ctx.isHistoryActive) return false;
-  if (key.upArrow) {
-    const next = navigateHistory(ctx.history, ctx.histRef.current, "up");
-    ctx.histRef.current = next; ctx.onChange(next.value); ctx.setCursor(next.value.length);
-    return true;
-  }
-  if (key.downArrow) {
-    const next = navigateHistory(ctx.history, ctx.histRef.current, "down");
-    ctx.histRef.current = next; ctx.onChange(next.value); ctx.setCursor(next.value.length);
-    return true;
-  }
+  if (key.upArrow) return applyHistoryNav(ctx, "up");
+  if (key.downArrow) return applyHistoryNav(ctx, "down");
   return false;
 }
 
@@ -141,7 +143,7 @@ function handleInsertSubmitHistory(input: string, key: Key, ctx: HandlerCtx): bo
     return true;
   }
   if (key.return) { ctx.onSubmit(expandPastes(ctx.value, ctx.pasteStore.current)); return true; }
-  return handleHistoryNav(key, ctx);
+  return handleHistoryNav(input, key, ctx);
 }
 
 // SGR mouse-report fragment (wheel events while mouse reporting is on) — must

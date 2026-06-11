@@ -43,7 +43,6 @@ export type KeybindingsDeps = {
   // transcript / scroll / mode
   altScreen: boolean;
   maxVisible: number;
-  viewOffset: number;
   dispatch: Dispatch<Action>;
   setMode: Dispatch<SetStateAction<ApprovalMode>>;
   modeRef: MutableRefObject<ApprovalMode>;
@@ -90,14 +89,17 @@ export function useKeybindings(d: KeybindingsDeps): void {
     else if (key.shift && key.downArrow) d.dispatch({ t: "scrollBy", delta: -1 });
   }, { isActive: d.altScreen && !d.showPalette && !d.showAtPalette });
 
-  // While scrolled back, plain ↑/↓ keep scrolling (reading mode) — the composer
-  // suppresses history nav whenever viewOffset > 0 so the two can't collide.
-  // At the bottom, ↑/↓ return to input history as usual.
+  // Plain ↑/↓ scroll the transcript while the composer is EMPTY — this is how
+  // the trackpad/wheel scrolls too: DECSET 1007 (alternate scroll) makes the
+  // terminal send arrow keys for wheel gestures on the alt screen. With text
+  // in the composer, ↑/↓ go to input history instead (the composer's history
+  // nav is gated on non-empty input — disjoint conditions, no double-fire);
+  // ^P/^N reach history any time, including with an empty composer.
   useInput((_in, key) => {
     if (key.shift) return; // shift variants handled above
     if (key.upArrow) d.dispatch({ t: "scrollBy", delta: 1 });
     else if (key.downArrow) d.dispatch({ t: "scrollBy", delta: -1 });
-  }, { isActive: d.altScreen && d.viewOffset > 0 && !d.showPalette && !d.showAtPalette });
+  }, { isActive: d.altScreen && d.input === "" && !d.showPalette && !d.showAtPalette });
 
   // Shift+tab cycles the approval mode; keep modeRef in sync for requestApproval.
   useInput((_in, key) => { if (key.tab && key.shift) cycleApprovalMode(d.setMode, d.modeRef, d.dispatch); });

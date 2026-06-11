@@ -3,20 +3,20 @@ import { useInput } from "ink";
 import type { Action } from "./app-reducer.js";
 
 // Mouse/trackpad scrolling for the alt-screen TUI. An alternate screen has no
-// scrollback, and terminals send wheel/two-finger-scroll gestures to the app
-// ONLY when it opts into mouse reporting — so we enable mouse tracking + SGR
-// encoding while mounted, and parse the wheel reports INSIDE Ink's input
-// pipeline via useInput. Never attach a raw stdin 'data' listener for this:
-// Ink reads stdin in paused mode ('readable' + read()), and a parallel 'data'
-// listener races the stream mode and silently misses chunks. Ink hands
-// unrecognized CSI sequences to useInput as text with the ESC prefix stripped.
-// Trackpads emit a high-frequency event stream (momentum), so events
-// accumulate and convert to one entry-step per WHEEL_EVENTS_PER_STEP — the
-// classic 3-lines-per-notch convention. Text selection while mouse reporting
-// is on needs the terminal's override modifier (⌥ on iTerm2, fn on Terminal).
+// scrollback; the fix is DECSET 1007 ("alternate scroll"): the terminal
+// translates wheel/two-finger gestures into ↑/↓ arrow keys while on the alt
+// screen, and use-keybindings routes empty-composer arrows to transcript
+// scroll. Crucially this does NOT capture the mouse — clicks, drags, and
+// native text selection keep working. Full mouse tracking (DECSET 1000) was
+// tried and reverted: it steals every click, so selection needs ⌥-drag, which
+// reads as "the window is broken". The SGR parser below stays as a safety
+// net for layers that inject mouse reports anyway (e.g. tmux passthrough) —
+// parsed INSIDE Ink's input pipeline via useInput, never a raw stdin 'data'
+// listener (Ink reads stdin in paused mode; a parallel listener races the
+// stream mode and silently misses chunks).
 
-const ENABLE_MOUSE = "\x1b[?1000;1006h";
-const DISABLE_MOUSE = "\x1b[?1000;1006l";
+const ENABLE_MOUSE = "\x1b[?1007h";
+const DISABLE_MOUSE = "\x1b[?1007l";
 const WHEEL_EVENTS_PER_STEP = 3;
 
 // SGR encoding only (DECSET 1006): CSI < Pb ; Px ; Py M — wheel up = 64,

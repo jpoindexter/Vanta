@@ -187,9 +187,9 @@ function composerColors(editActive: boolean, busy: boolean, showPalette: boolean
 
 function ChromeComposer(p: ChromeProps): ReactElement {
   const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors(p.editMode.active, p.state.busy, p.showPalette, p.showAtPalette);
-  // While scrolled back, ↑/↓ scroll the transcript (use-keybindings) — keep
-  // them out of input history until the view returns to the bottom.
-  const historyActive = isHistoryActive && p.state.viewOffset === 0;
+  // With an EMPTY composer, ↑/↓ scroll the transcript (use-keybindings) and
+  // 1007 wheel-arrows scroll too — history nav needs typed text (or ^P/^N).
+  const historyActive = isHistoryActive && p.input !== "";
   const elapsedMs = p.state.busy ? Date.now() : 0;
   const vimMode = VIM_ENABLED ? p.vimMode : undefined;
   return (
@@ -269,7 +269,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 
-  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, viewOffset: s.state.viewOffset, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
   useMouseWheel(ALT_SCREEN, s.dispatch);
   const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
 
