@@ -278,7 +278,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const visibleEntries = s.state.focusMode
     ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
     : s.state.entries;
-  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
+  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot, compact: ALT_SCREEN }, ...visibleEntries] : visibleEntries;
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   if (ALT_SCREEN) {

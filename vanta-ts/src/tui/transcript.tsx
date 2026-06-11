@@ -34,8 +34,10 @@ export type ToolEntry = {
   isGrouped?: boolean;
 };
 
-/** The startup banner as a transcript entry — scrolls into history like any other. */
-export type BannerEntry = { kind: "banner"; data: BannerData; root?: string };
+/** The startup banner as a transcript entry — scrolls into history like any other.
+ * `compact` renders the 4-line variant (alt-screen: the full card is taller
+ * than the viewport and clips). */
+export type BannerEntry = { kind: "banner"; data: BannerData; root?: string; compact?: boolean };
 
 export type Entry =
   | { kind: "user"; text: string }
@@ -62,7 +64,7 @@ export const firstLine = (t: string): string => {
  */
 export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElement {
   const e = props.entry;
-  if (e.kind === "banner") return <Banner data={e.data} root={e.root} />;
+  if (e.kind === "banner") return <Banner data={e.data} root={e.root} compact={e.compact} />;
   if (e.kind === "tool") {
     return (
       <Box marginLeft={1}>

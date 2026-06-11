@@ -166,7 +166,34 @@ function InventoryColumn(props: { d: BannerData; skillLabel: string; mcpCount: n
   );
 }
 
-export function Banner(props: { data: BannerData; root?: string }): ReactElement {
+/** Compact banner for the alt-screen viewport: the full card is taller than
+ * most terminal windows, and an entry taller than the viewport gets its top
+ * clipped and makes scrolling look broken (entry-granular virtual list).
+ * Four lines carry the essentials; /tools and /skills hold the inventory. */
+function CompactBanner(props: { d: BannerData; root?: string; skillLabel: string; mcpLabel: string; mcpCount: number }): ReactElement {
+  const { d, root, skillLabel, mcpLabel, mcpCount } = props;
+  return (
+    <Box flexDirection="column" paddingX={1} marginBottom={1}>
+      <Text>
+        <Text color="cyan" bold>⚓ Vanta</Text>
+        <Text dimColor> · trusted operator</Text>
+      </Text>
+      <Text>
+        <Text color="gray">model </Text>
+        <Text color="white">{d.model}</Text>
+        <Text color="gray"> · session </Text>
+        <Text dimColor>{d.sessionId}</Text>
+        {root ? <Text color="gray"> · {shortPath(root)}</Text> : null}
+      </Text>
+      <Text dimColor>
+        {d.toolNames.length} tools · {skillLabel} · {mcpLabel} MCP server{mcpCount === 1 ? "" : "s"} ·{" "}
+        <Text color="cyan">/help</Text> for commands
+      </Text>
+    </Box>
+  );
+}
+
+export function Banner(props: { data: BannerData; root?: string; compact?: boolean }): ReactElement {
   const d = props.data;
   // Read columns directly: <Static> renders once at startup width; in
   // alt-screen mode every commit re-renders the entry, so resizes track.
@@ -177,6 +204,9 @@ export function Banner(props: { data: BannerData; root?: string }): ReactElement
   const mcpCount = d.mcpServers?.length ?? 0;
   const skillLabel = d.skillCount === null ? "…" : `${d.skillCount} installed`;
   const mcpLabel = d.mcpServers === null ? "…" : `${mcpCount}`;
+  if (props.compact) {
+    return <CompactBanner d={d} root={props.root} skillLabel={skillLabel} mcpLabel={mcpLabel} mcpCount={mcpCount} />;
+  }
 
   return (
     <Box flexDirection="column" paddingX={1} marginBottom={1}>

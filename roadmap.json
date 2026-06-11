@@ -636,6 +636,20 @@
       "updated": "2026-06-11"
     },
     {
+      "id": "TUI-LINE-SCROLL",
+      "track": "Operator",
+      "title": "Line-based virtual scrolling — viewport slices by rendered lines, not entries",
+      "status": "next",
+      "size": "M",
+      "summary": "The alt-screen virtual list slices the transcript by ENTRIES, but one entry (a long markdown answer, a diff, the full banner) can be taller than the terminal — its top gets clipped off-screen and scrolling looks broken while it dominates the window. Fix: measure each entry's rendered line height at the current width (pre-render to text — the markdown renderer and tool rows are deterministic) and scroll the viewport by LINES, partial-entry rendering included. This is the hermes-ink ScrollBox approach (reference/hermes-agent: overflow scroll over a line buffer) and what CC's virtual list does. Compact alt-screen banner (shipped 2026-06-11) removed the worst offender; tall assistant entries remain.",
+      "done": "An assistant reply taller than the terminal can be read top to bottom with wheel/pgup — every line reachable, partial entries render at the viewport edges, scroll indicators show line counts.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "updated": "2026-06-11"
+    },
+    {
       "id": "CC-SCROLL-DURING-RUN",
       "track": "Operator",
       "title": "Scroll up while agent is streaming (normal mode)",
