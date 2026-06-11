@@ -8950,6 +8950,172 @@
       "effort": "low",
       "lens": "tui",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "LOOP-ENGINE",
+      "track": "Harness",
+      "title": "Loop engine — first-class loops: trigger + stages + rubric + stop rules",
+      "status": "next",
+      "size": "L",
+      "summary": "The operator designs loops; Vanta runs them. A .vanta/loops/ registry of durable loop objects: goal, trigger (cron/heartbeat/event), discover-plan-execute-evaluate-improve stages, eval rubric, stop rules (pass condition / max iterations / no-progress). vanta loop add/list/run/pause/kill. Executes on the existing gateway tick; subsumes ad-hoc standing-loop prompts. From the June-2026 loops-over-prompting shift (playbook + CC dynamic workflows).",
+      "done": "vanta loop add registers a loop that wakes on its trigger, runs its stages, evaluates against its rubric, and stops on its stop rule — surviving restarts.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "LOOP-STATE",
+      "track": "Harness",
+      "title": "Loop state — durable per-loop memory across wakes",
+      "status": "next",
+      "size": "M",
+      "summary": "Each loop owns persistent state: last-run, in-progress items, escalations (only a human clears), lessons (append-only). Read at wake, written at exit, re-injected after compaction — kills goal drift and re-derivation. Steals loop-state + paperclip checkpoint + gstack retro.",
+      "done": "A loop resumes mid-list after a restart; escalations persist until cleared; lessons accumulate.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-ENGINE"
+      ]
+    },
+    {
+      "id": "LOOP-GATES-BUDGETS",
+      "track": "Harness",
+      "title": "Loop gates + budgets — objective advance gates, kill switches, accepted-rate ledger",
+      "status": "next",
+      "size": "M",
+      "summary": "Engine-enforced (not prompt-promised): a gate command must exit 0 (or health score over floor) before a loop advances/commits; budgets per loop (max iterations, wall-clock, tokens); no-progress kill after 3 zero-delta wakes; accepted-change-rate ledger so a losing loop is visible. loop.killed events. Steals ship-preflight, hill-climb stop rules, terminal-bench-loop, gstack health score.",
+      "done": "A failing gate blocks advancement; a loop with 3 zero-delta wakes halts with a named blocker; budgets enforce.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-ENGINE"
+      ]
+    },
+    {
+      "id": "LOOP-VERIFY",
+      "track": "Harness",
+      "title": "Native verification primitives — adversarial fan-out, tournament, generate-filter",
+      "status": "next",
+      "size": "M",
+      "summary": "The maker never grades its own work: checker subagents run isolated from the maker context with a refute posture and evidence requirements (N skeptics, majority rule); tournament (generate N, judge by rubric, pick winner) and generate-filter as engine primitives any loop stage can invoke. Steals adversarial-verify + content-engine tournament + playbook eval gates.",
+      "done": "A loop stage can declare verify: adversarial(n=3) or tournament(n=5, rubric) and the engine runs isolated judges.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-ENGINE"
+      ]
+    },
+    {
+      "id": "WAKE-CONTEXT",
+      "track": "Harness",
+      "title": "Scoped wakes — wake reason + delta context instead of full history",
+      "status": "next",
+      "size": "M",
+      "summary": "Gateway wakes inject {wake_reason, goal_id, approval_id?, since} so a loop reads only what changed since last wake; resolved approvals become first-class wake triggers reviewed before other work. Cuts long-loop context cost sharply. Steals the paperclip heartbeat model.",
+      "done": "A cron/webhook wake carries its reason + delta; an approval resolution wakes the owning loop first.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-ENGINE"
+      ]
+    },
+    {
+      "id": "GOAL-DEPS",
+      "track": "Harness",
+      "title": "Goal dependency graph — blocked_by/blocks + auto-start scheduler",
+      "status": "next",
+      "size": "M",
+      "summary": "Goals declare blocked_by/blocks; the scheduler auto-starts any goal whose blockers are done and holds blocked ones. Parallel branches fall out of the graph instead of hand-coded fan-out. Steals paperclip plan-to-tasks decomposition.",
+      "done": "Completing a blocker auto-wakes its dependents; vanta goals shows the graph state.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "DECISION-CLASSIFIER",
+      "track": "Operator",
+      "title": "Decision classifier — mechanical vs taste vs user-challenge HITL routing",
+      "status": "next",
+      "size": "M",
+      "summary": "Before any HITL gate: classify the decision. Mechanical (one right answer) auto-decides silently; taste (viable alternatives) auto-decides but surfaces at the final gate; user-challenge (overriding the operator stated direction) NEVER auto-decides. Stops loops from over-asking and over-assuming at once. Steals autoplan decision classification.",
+      "done": "Loop checkpoints route by class; user-challenge decisions always reach the operator; taste decisions batch at the final gate.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "OPERATOR-PROFILE",
+      "track": "Operator",
+      "title": "Operator profile — declared vs inferred autonomy preferences + drift detection",
+      "status": "next",
+      "size": "M",
+      "summary": "A declared profile (autonomy level, scope appetite, detail, risk tolerance) beside an inferred one built from observed overrides; drift over threshold surfaces a one-line flag. Per-question ask-preferences (never-ask / always-ask / ask-only-one-way); one-way doors override never-ask unconditionally. Lives in the brain user_model region (rides BRAIN-AUTOLEARN). Steals plan-tune.",
+      "done": "Approval prompts respect per-question preferences; declared-vs-inferred drift is flagged; one-way doors always ask.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "LEARNINGS-INDEX",
+      "track": "Operator",
+      "title": "Per-project learnings index — typed insights with staleness + contradiction checks",
+      "status": "next",
+      "size": "S",
+      "summary": "Loop/session completions log typed learnings (pattern / pitfall / preference) scoped to the project; top-K inject at session start; staleness (referenced file gone) and contradiction (same key, opposing insight) detection keeps it honest. Implemented as project-scoped brain entries — reuses entries + consolidation built 2026-06-11. Steals gstack learn.",
+      "done": "A session starts with the 3 most relevant project learnings; stale/conflicting entries get flagged.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "ND-VELOCITY-CLOSURE",
+      "track": "Operator",
+      "title": "Velocity + closure tracking — captures:ships ratio and finish-before-start, cross-session",
+      "status": "next",
+      "size": "S",
+      "summary": "Native rolling-7-day captured-vs-shipped counters and completion-percent tracking so the closure gate can truly say two items are over 50 percent done — finish one first. The EF gates exist as prompts; the counters they need only the engine can keep. ND-first; helps everyone. Steals nd-velocity-check + nd-closuregate.",
+      "done": "Registering a new goal when ratio exceeds 5:1 surfaces the ratio + top unfinished items, cross-session.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "LIVENESS-WATCHDOG",
+      "track": "Harness",
+      "title": "Kernel liveness watchdog — every loop/goal in a named state, stalls surfaced",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Kernel-side state machine: every running loop/goal must terminate each tick in live / waiting / blocked / terminal; violations (silent stall, unbounded in-progress, recursive recovery) surface as events and halt further spawns until resolved. The hard backstop under all loop autonomy. Steals diagnose-why-work-stopped. Kernel work — sequenced after the engine proves out.",
+      "done": "A silently-stalled loop is detected and surfaced within one tick; runaway spawn recursion is halted by the kernel.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
     }
   ]
 }
