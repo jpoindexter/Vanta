@@ -21,13 +21,14 @@ import {
   buildLoopDef,
   assertValidId,
 } from "../cli/loop-cmd-build.js";
+import type { Escalation } from "../loop/types.js";
 
 // `loop` tool — create and manage first-class loops from the agent's own loop.
 // The agent calls `run` to fire a single iteration in a background process
 // (no re-entrant agent turns) and all other actions inline.
 
 const Args = z.object({
-  action: z.enum(["add", "list", "run", "pause", "resume", "kill", "show"]),
+  action: z.enum(["add", "list", "run", "pause", "resume", "kill", "show", "escalations"]),
   id: z.string().optional(),
   goal: z.string().optional(),
   trigger: z.string().optional(),
@@ -112,6 +113,18 @@ async function execShow(id: string | undefined, dataDir: string): Promise<ToolRe
   return { ok: true, output: `${JSON.stringify(def, null, 2)}${historyText}` };
 }
 
+async function execEscalations(id: string | undefined, dataDir: string): Promise<ToolResult> {
+  if (!id) return { ok: false, output: "escalations requires id" };
+  const def = await loadDef(dataDir, id);
+  if (!def) return { ok: false, output: `unknown loop: ${id}` };
+  const state = await loadState(dataDir, id);
+  if (!state.escalations.length) return { ok: true, output: "no escalations" };
+  const lines = state.escalations.map((e: Escalation) =>
+    `${e.id}  ${e.status}  ${e.reason}  (${e.raisedAt})`,
+  );
+  return { ok: true, output: lines.join("\n") };
+}
+
 /** Spawn `vanta loop run <id>` detached so the tool returns immediately. */
 async function execRun(id: string | undefined, dataDir: string, ctx: ToolContext): Promise<ToolResult> {
   if (!id) return { ok: false, output: "run requires id" };
@@ -135,13 +148,15 @@ export const loopTool: Tool = {
       "Create and manage first-class loops: durable, goal-driven iteration cycles that run " +
       "stages (discover/plan/execute/evaluate/improve) on a trigger (heartbeat/cron/manual). " +
       "Use add to register, list/show to inspect, pause/resume/kill to control status, " +
-      "and run to fire one iteration as a background process (non-blocking).",
+      "run to fire one iteration as a background process (non-blocking), and escalations to " +
+      "read open blockers. Escalations are surfaced here but only a human can clear them via " +
+      "`vanta loop clear` — the agent must not resolve its own blockers.",
     parameters: {
       type: "object",
       properties: {
         action: {
           type: "string",
-          enum: ["add", "list", "run", "pause", "resume", "kill", "show"],
+          enum: ["add", "list", "run", "pause", "resume", "kill", "show", "escalations"],
           description: "What to do.",
         },
         id: { type: "string", description: "Loop id (required except for add/list)." },
@@ -159,7 +174,7 @@ export const loopTool: Tool = {
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
-      return { ok: false, output: "loop needs action: add | list | run | pause | resume | kill | show" };
+      return { ok: false, output: "loop needs action: add | list | run | pause | resume | kill | show | escalations" };
     }
     const a = parsed.data;
     const dataDir = dataDirFor(ctx.root);
@@ -171,6 +186,7 @@ export const loopTool: Tool = {
     if (a.action === "resume") return execStatusChange(a.id, dataDir, "active");
     if (a.action === "kill") return execKill(a, dataDir);
     if (a.action === "show") return execShow(a.id, dataDir);
+    if (a.action === "escalations") return execEscalations(a.id, dataDir);
     return { ok: false, output: `unknown action: ${String(a.action)}` };
   },
 };

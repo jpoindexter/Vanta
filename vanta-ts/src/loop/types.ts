@@ -77,6 +77,19 @@ export const LoopRunSchema = z.object({
 });
 export type LoopRun = z.infer<typeof LoopRunSchema>;
 
+/** A blocker the loop raised that ONLY a human can clear (`vanta loop clear`).
+ *  Raising one pauses the loop so it never spins on something it can't resolve —
+ *  the durable form of "stop and surface the blocker". The agent-facing tool can
+ *  read escalations but cannot clear them. */
+export const EscalationSchema = z.object({
+  id: z.string(),
+  raisedAt: z.string(),
+  reason: z.string().min(1),
+  status: z.enum(["open", "cleared"]).default("open"),
+  clearedAt: z.string().nullable().default(null),
+});
+export type Escalation = z.infer<typeof EscalationSchema>;
+
 /** Mutable per-loop progress. Persisted at `.vanta/loops/<id>.state.json`, read at
  *  wake and written at exit, so a loop survives restarts mid-flight. */
 export const LoopStateSchema = z.object({
@@ -92,6 +105,11 @@ export const LoopStateSchema = z.object({
   /** Append-only learnings carried across iterations and restarts. */
   lessons: z.array(z.string()).default([]),
   history: z.array(LoopRunSchema).default([]),
+  /** Human-clear-only blockers. Any open entry pauses the loop. */
+  escalations: z.array(EscalationSchema).default([]),
+  /** Set true at iteration start, false at clean exit. True on reload ⇒ the
+   *  previous iteration crashed mid-run — surfaced as a recoverable lesson. */
+  inProgress: z.boolean().default(false),
 });
 export type LoopState = z.infer<typeof LoopStateSchema>;
 

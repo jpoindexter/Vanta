@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { parseScore, runLoopIteration } from "./runner.js";
+import { parseScore, parseEscalation, runLoopIteration } from "./runner.js";
 import { LoopDefSchema, newState } from "./types.js";
+import { raiseEscalation, markInProgress } from "./state.js";
 
 // Shared base def factory — override fields per-test.
 function makeDef(overrides?: object) {
@@ -48,6 +49,27 @@ describe("parseScore", () => {
 
   it("returns null for garbage value", () => {
     expect(parseScore("SCORE: abc")).toBeNull();
+  });
+});
+
+// --- parseEscalation ---
+
+describe("parseEscalation", () => {
+  it("extracts a reason from a multiline output", () => {
+    const text = "some analysis\nESCALATE: needs an API key\nmore text";
+    expect(parseEscalation(text)).toBe("needs an API key");
+  });
+
+  it("is case-insensitive", () => {
+    expect(parseEscalation("escalate: missing credential")).toBe("missing credential");
+  });
+
+  it("trims to the first line of the match", () => {
+    expect(parseEscalation("ESCALATE: first line\nsecond line")).toBe("first line");
+  });
+
+  it("returns null when absent", () => {
+    expect(parseEscalation("everything looks fine SCORE: 0.9")).toBeNull();
   });
 });
 
@@ -163,5 +185,80 @@ describe("runLoopIteration — prior threading", () => {
     const evalArgs = capturedArgs.find((a) => a.stage.name === "evaluate");
     expect(evalArgs).toBeDefined();
     expect(evalArgs!.prior).toContain("execute was here");
+  });
+});
+
+// --- runLoopIteration: escalation during a stage ---
+
+describe("runLoopIteration — escalation", () => {
+  it("pauses on ESCALATE output, stops further stages, records an open escalation", async () => {
+    const def = makeDef({
+      stages: [
+        { name: "execute", prompt: "do the work" },
+        { name: "evaluate", prompt: "score it" },
+        { name: "improve", prompt: "improve it" },
+      ],
+    });
+    const state = newState("test-loop");
+    const evaluateSpy = vi.fn().mockResolvedValue("SCORE: 0.5");
+    const improveSpy = vi.fn().mockResolvedValue("improved");
+
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "execute") return Promise.resolve("ESCALATE: needs an API key");
+      if (stage.name === "evaluate") return evaluateSpy();
+      return improveSpy();
+    });
+
+    const result = await runLoopIteration(def, state, { runStage, now: fixedNow });
+
+    expect(result.stopped).toBe(true);
+    expect(result.def.status).toBe("paused");
+    expect(result.reason).toMatch(/^escalated/);
+    expect(result.state.escalations).toHaveLength(1);
+    expect(result.state.escalations[0]!.status).toBe("open");
+    expect(result.state.escalations[0]!.reason).toBe("needs an API key");
+    // evaluate and improve stages must NOT have run
+    expect(evaluateSpy).not.toHaveBeenCalled();
+    expect(improveSpy).not.toHaveBeenCalled();
+  });
+});
+
+// --- runLoopIteration: crash recovery ---
+
+describe("runLoopIteration — crash recovery", () => {
+  it("appends a recovery lesson when inProgress is true on entry", async () => {
+    const def = makeDef();
+    // Simulate a state left behind by a crashed iteration
+    const crashedState = markInProgress(newState("test-loop"), true);
+
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.5");
+      return Promise.resolve("work done");
+    });
+
+    const result = await runLoopIteration(def, crashedState, { runStage, now: fixedNow });
+
+    expect(result.state.lessons).toContain(
+      "previous iteration did not finish cleanly (recovered)",
+    );
+    expect(result.state.inProgress).toBe(false);
+  });
+});
+
+// --- runLoopIteration: open-escalation guard ---
+
+describe("runLoopIteration — open-escalation guard", () => {
+  it("refuses to run when there is an open escalation", async () => {
+    const def = makeDef();
+    const stateWithEsc = raiseEscalation(newState("test-loop"), "needs human review", FIXED_NOW);
+
+    const runStage = vi.fn();
+
+    const result = await runLoopIteration(def, stateWithEsc, { runStage, now: fixedNow });
+
+    expect(result.stopped).toBe(true);
+    expect(result.def.status).toBe("paused");
+    expect(result.reason).toMatch(/^blocked/);
+    expect(runStage).not.toHaveBeenCalled();
   });
 });

@@ -3,8 +3,10 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runLoopCommand } from "./loop-cmd.js";
-import { listDefs, loadDef, loadState } from "../loop/store.js";
+import { listDefs, loadDef, loadState, saveState } from "../loop/store.js";
 import { parseTrigger } from "./loop-cmd-build.js";
+import { raiseEscalation } from "../loop/state.js";
+import { dataDirFor } from "./ops.js";
 
 // Capture console.log/error output in tests without polluting stdout.
 function captureConsole(): { lines: string[]; restore: () => void } {
@@ -208,6 +210,106 @@ describe("loop run (unknown id)", () => {
   it("returns 1 for an unknown loop id", async () => {
     const cap = captureConsole();
     const code = await runLoopCommand(root, ["run", "definitely-does-not-exist"]);
+    cap.restore();
+    expect(code).toBe(1);
+    await cleanup();
+  });
+});
+
+describe("loop escalations", () => {
+  async function addLoop(goal = "escalation test"): Promise<string> {
+    const cap = captureConsole();
+    await runLoopCommand(root, ["add", goal]);
+    cap.restore();
+    const defs = await listDefs(dataDirFor(root));
+    return defs[0]!.id;
+  }
+
+  it("prints 'no escalations' when loop has none", async () => {
+    const id = await addLoop();
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["escalations", id]);
+    cap.restore();
+    expect(code).toBe(0);
+    expect(cap.lines.join("\n")).toContain("no escalations");
+    await cleanup();
+  });
+
+  it("returns 1 for unknown loop id", async () => {
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["escalations", "no-such"]);
+    cap.restore();
+    expect(code).toBe(1);
+    await cleanup();
+  });
+
+  it("output contains the reason when an escalation is seeded", async () => {
+    const id = await addLoop();
+    const dataDir = dataDirFor(root);
+    const state = await loadState(dataDir, id);
+    await saveState(dataDir, raiseEscalation(state, "needs key", new Date()));
+
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["escalations", id]);
+    cap.restore();
+    expect(code).toBe(0);
+    expect(cap.lines.join("\n")).toContain("needs key");
+    await cleanup();
+  });
+});
+
+describe("loop clear", () => {
+  async function addPausedWithEsc(): Promise<{ id: string; dataDir: string }> {
+    const cap = captureConsole();
+    await runLoopCommand(root, ["add", "clear test"]);
+    cap.restore();
+    const dataDir = dataDirFor(root);
+    const defs = await listDefs(dataDir);
+    const id = defs[0]!.id;
+    // Pause the loop and raise an escalation.
+    const pauseCap = captureConsole();
+    await runLoopCommand(root, ["pause", id]);
+    pauseCap.restore();
+    const state = await loadState(dataDir, id);
+    await saveState(dataDir, raiseEscalation(state, "needs key", new Date()));
+    return { id, dataDir };
+  }
+
+  it("clear returns 0 and resumes a paused loop with no remaining blockers", async () => {
+    const { id, dataDir } = await addPausedWithEsc();
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["clear", id, "esc-1"]);
+    cap.restore();
+    expect(code).toBe(0);
+    expect(cap.lines.join("\n")).toContain("cleared esc-1");
+    expect(cap.lines.join("\n")).toContain("loop resumed");
+    const def = await loadDef(dataDir, id);
+    expect(def?.status).toBe("active");
+    await cleanup();
+  });
+
+  it("second clear on the same escalation returns 1", async () => {
+    const { id } = await addPausedWithEsc();
+    const cap = captureConsole();
+    await runLoopCommand(root, ["clear", id, "esc-1"]);
+    const code = await runLoopCommand(root, ["clear", id, "esc-1"]);
+    cap.restore();
+    expect(code).toBe(1);
+    await cleanup();
+  });
+
+  it("clear on unknown loop returns 1", async () => {
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["clear", "no-such", "esc-1"]);
+    cap.restore();
+    expect(code).toBe(1);
+    await cleanup();
+  });
+
+  it("clear on unknown escId returns 1", async () => {
+    const { id } = await addPausedWithEsc();
+    const cap = captureConsole();
+    const code = await runLoopCommand(root, ["clear", id, "esc-999"]);
     cap.restore();
     expect(code).toBe(1);
     await cleanup();

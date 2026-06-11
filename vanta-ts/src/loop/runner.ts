@@ -5,6 +5,7 @@ import type {
   IterationResult,
 } from "./types.js";
 import { effectivePassScore } from "./types.js";
+import { raiseEscalation, markInProgress, hasOpenEscalations } from "./state.js";
 
 // Extracts a 0..1 score from evaluate-stage output. Case-insensitive SCORE: <n>.
 export function parseScore(text: string): number | null {
@@ -15,14 +16,22 @@ export function parseScore(text: string): number | null {
   return Math.min(1, Math.max(0, n));
 }
 
+// Extracts an escalation reason from stage output. First line of the match only.
+export function parseEscalation(text: string): string | null {
+  const m = text.match(/ESCALATE:\s*(.+)/i);
+  if (!m || m[1] === undefined) return null;
+  return m[1].split("\n")[0]!.trim();
+}
+
 type StageRunResult = {
   prior: string;
   score: number | null;
   gateFailedAt: string | null;
+  escalationReason: string | null;
 };
 
 // Runs stages in order, threading prior text forward.
-// Stops early if a gate blocks; evaluate stage extracts the score.
+// Stops early if a gate blocks or a stage emits ESCALATE.
 async function runStages(
   def: LoopDef,
   deps: IterationDeps,
@@ -30,6 +39,7 @@ async function runStages(
   let prior = "";
   let score: number | null = null;
   let gateFailedAt: string | null = null;
+  let escalationReason: string | null = null;
 
   for (const stage of def.stages) {
     if (stage.gate && deps.runGate) {
@@ -46,9 +56,16 @@ async function runStages(
     if (stage.name === "evaluate") {
       score = parseScore(text);
     }
+
+    // Escalation takes priority — stop running further stages.
+    const esc = parseEscalation(text);
+    if (esc !== null) {
+      escalationReason = esc;
+      break;
+    }
   }
 
-  return { prior, score, gateFailedAt };
+  return { prior, score, gateFailedAt, escalationReason };
 }
 
 // Computes the updated no-progress streak given previous best and new score.
@@ -116,28 +133,34 @@ function decideStop(opts: StopOpts): StopDecision {
   return { stopped: false, status: def.status, reason: fallbackReason };
 }
 
-// Runs one full iteration of a loop: stages, scoring, state update, stop rules.
-// Does not write to disk — the caller persists the returned state.
-export async function runLoopIteration(
+// Checks if the incoming state indicates a prior crash and appends a recovery lesson.
+function applyCrashRecovery(state: LoopState): LoopState {
+  if (!state.inProgress) return state;
+  const note = "previous iteration did not finish cleanly (recovered)";
+  return { ...state, lessons: [...state.lessons, note] };
+}
+
+type RunCtx = { score: number | null; now: string };
+
+// Builds the IterationResult for an escalation pause — counts as a completed iteration.
+function escalationResult(def: LoopDef, state: LoopState, reason: string, ctx: RunCtx): IterationResult {
+  const nextState = recordIteration(state, ctx.score, reason, ctx.now);
+  return { def: { ...def, status: "paused" }, state: nextState, score: ctx.score, stopped: true, reason };
+}
+
+// Builds the IterationResult for a normal (non-escalated) stage run.
+function normalResult(
   def: LoopDef,
   state: LoopState,
-  deps: IterationDeps,
-): Promise<IterationResult> {
-  const { score, gateFailedAt } = await runStages(def, deps);
-
+  gateFailedAt: string | null,
+  ctx: RunCtx,
+): IterationResult {
+  const { score, now } = ctx;
   const gateReason = gateFailedAt ? `gate failed: ${gateFailedAt}` : null;
-
-  const now = deps.now().toISOString();
   const scoreLabel = score !== null ? String(score) : "n/a";
   const iterReason = gateReason ?? `iteration ${state.iterations + 1} complete (score ${scoreLabel})`;
-
-  const updatedLessons = gateFailedAt
-    ? [...state.lessons, `gate failed at ${gateFailedAt}`]
-    : state.lessons;
-
-  const preState: LoopState = { ...state, lessons: updatedLessons };
-  const nextState = recordIteration(preState, score, iterReason, now);
-
+  const lessons = gateFailedAt ? [...state.lessons, `gate failed at ${gateFailedAt}`] : state.lessons;
+  const nextState = recordIteration({ ...state, lessons }, score, iterReason, now);
   const { stopped, status, reason } = decideStop({
     def,
     iterations: nextState.iterations,
@@ -145,12 +168,42 @@ export async function runLoopIteration(
     streak: nextState.noProgressStreak,
     fallbackReason: iterReason,
   });
+  return { def: { ...def, status }, state: nextState, score, stopped, reason };
+}
 
-  return {
-    def: { ...def, status },
-    state: nextState,
-    score,
-    stopped,
-    reason,
-  };
+// Runs one full iteration of a loop: stages, scoring, state update, stop rules.
+// Does not write to disk — the caller persists the returned state.
+export async function runLoopIteration(
+  def: LoopDef,
+  state: LoopState,
+  deps: IterationDeps,
+): Promise<IterationResult> {
+  // Crash detection: inProgress=true on entry means the prior run died mid-iteration.
+  let working = applyCrashRecovery(state);
+  // Always exit with inProgress=false; the caller sets it true before the next run.
+  working = markInProgress(working, false);
+
+  // Escalation guard: an open escalation blocks the loop until a human clears it.
+  if (hasOpenEscalations(working)) {
+    const n = working.escalations.filter((e) => e.status === "open").length;
+    return {
+      def: { ...def, status: "paused" },
+      state: working,
+      score: null,
+      stopped: true,
+      reason: `blocked: ${n} open escalation(s) — clear them first`,
+    };
+  }
+
+  const { score, gateFailedAt, escalationReason } = await runStages(def, deps);
+  const nowDate = deps.now();
+  const ctx: RunCtx = { score, now: nowDate.toISOString() };
+
+  // Escalation during a stage: raise it, pause the loop, and still count the iteration.
+  if (escalationReason !== null) {
+    const afterEsc = raiseEscalation(working, escalationReason, nowDate);
+    return escalationResult(def, afterEsc, `escalated: ${escalationReason}`, ctx);
+  }
+
+  return normalResult(def, working, gateFailedAt, ctx);
 }

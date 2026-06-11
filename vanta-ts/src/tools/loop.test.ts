@@ -3,7 +3,9 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loopTool } from "./loop.js";
-import { listDefs, loadDef } from "../loop/store.js";
+import { listDefs, loadDef, loadState, saveState } from "../loop/store.js";
+import { raiseEscalation } from "../loop/state.js";
+import { dataDirFor } from "../cli/ops.js";
 import type { ToolContext } from "./types.js";
 
 // Minimal context shape used across tool tests in this codebase.
@@ -117,5 +119,44 @@ describe("loopTool describeForSafety", () => {
 
   it("omits id when not provided", () => {
     expect(loopTool.describeForSafety?.({ action: "list" })).toBe("loop list");
+  });
+});
+
+describe("loopTool escalations", () => {
+  it("returns 'no escalations' when loop has none", async () => {
+    const ctx = makeCtx(root);
+    await loopTool.execute({ action: "add", goal: "esc read test", id: "esc-read" }, ctx);
+    const res = await loopTool.execute({ action: "escalations", id: "esc-read" }, ctx);
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("no escalations");
+    await cleanup();
+  });
+
+  it("output contains seeded escalation reason", async () => {
+    const ctx = makeCtx(root);
+    await loopTool.execute({ action: "add", goal: "esc seed test", id: "esc-seed" }, ctx);
+    const dataDir = dataDirFor(root);
+    const state = await loadState(dataDir, "esc-seed");
+    await saveState(dataDir, raiseEscalation(state, "missing api key", new Date()));
+    const res = await loopTool.execute({ action: "escalations", id: "esc-seed" }, ctx);
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("missing api key");
+    await cleanup();
+  });
+
+  it("returns ok:false for unknown loop", async () => {
+    const ctx = makeCtx(root);
+    const res = await loopTool.execute({ action: "escalations", id: "no-such" }, ctx);
+    expect(res.ok).toBe(false);
+    await cleanup();
+  });
+});
+
+describe("loopTool no clear action", () => {
+  it("Zod rejects action 'clear' and returns ok:false", async () => {
+    const ctx = makeCtx(root);
+    const res = await loopTool.execute({ action: "clear", id: "whatever" }, ctx);
+    expect(res.ok).toBe(false);
+    await cleanup();
   });
 });

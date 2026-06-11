@@ -8969,7 +8969,7 @@
       "id": "LOOP-STATE",
       "track": "Harness",
       "title": "Loop state — durable per-loop memory across wakes",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Each loop owns persistent state: last-run, in-progress items, escalations (only a human clears), lessons (append-only). Read at wake, written at exit, re-injected after compaction — kills goal drift and re-derivation. Steals loop-state + paperclip checkpoint + gstack retro.",
       "done": "A loop resumes mid-list after a restart; escalations persist until cleared; lessons accumulate.",
