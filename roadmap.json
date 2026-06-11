@@ -8955,7 +8955,7 @@
       "id": "LOOP-ENGINE",
       "track": "Harness",
       "title": "Loop engine — first-class loops: trigger + stages + rubric + stop rules",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "The operator designs loops; Vanta runs them. A .vanta/loops/ registry of durable loop objects: goal, trigger (cron/heartbeat/event), discover-plan-execute-evaluate-improve stages, eval rubric, stop rules (pass condition / max iterations / no-progress). vanta loop add/list/run/pause/kill. Executes on the existing gateway tick; subsumes ad-hoc standing-loop prompts. From the June-2026 loops-over-prompting shift (playbook + CC dynamic workflows).",
       "done": "vanta loop add registers a loop that wakes on its trigger, runs its stages, evaluates against its rubric, and stops on its stop rule — surviving restarts.",

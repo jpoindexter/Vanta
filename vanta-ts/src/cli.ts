@@ -49,6 +49,7 @@ import {
   runSettingsCommand,
   runBriefCommand,
 } from "./cli/extra-cmds.js";
+import { runLoopCommand } from "./cli/loop-cmd.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -186,6 +187,7 @@ const COMMANDS: Record<string, CommandFn> = {
   },
   ref: (root, rest) => runRefCommand(root, rest),
   settings: (root, rest) => runSettingsCommand(root, rest),
+  loop: (root, rest) => runLoopCommand(root, rest),
 };
 
 /** Parse the `run` subcommand args into instruction + outputFormat. */

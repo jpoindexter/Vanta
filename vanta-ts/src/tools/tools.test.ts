@@ -68,6 +68,7 @@ describe("registry", () => {
       "list_mcp_resources",
       "look_at_camera",
       "look_at_screen",
+      "loop",
       "lsp_definition",
       "lsp_diagnostics",
       "mount_mcp",

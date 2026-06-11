@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { runDueTasks } from "../schedule/runner.js";
 import { isDue, loadCron } from "../schedule/cron.js";
+import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter } from "./platforms/base.js";
@@ -43,6 +44,21 @@ export type GatewayDeps = {
 function firstLine(text: string): string {
   const line = text.split("\n")[0] ?? "";
   return line.length > 100 ? `${line.slice(0, 97)}...` : line;
+}
+
+/**
+ * Spawn `vanta loop run <id>` as a detached child for one loop iteration.
+ * Detached so a long iteration never blocks the 60 s tick; no lockfile needed
+ * because loops are independent and the runner is idempotent per-id.
+ */
+function spawnLoopChild(id: string, log: (msg: string) => void): void {
+  const child = spawn("vanta", ["loop", "run", id], {
+    detached: true,
+    stdio: "ignore",
+    env: process.env, // already carries VANTA_ROOT for the child to resolve its data dir
+  });
+  child.unref();
+  log(`loop ${id}: spawned detached iteration (pid ${child.pid})`);
 }
 
 /**
@@ -95,7 +111,14 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   // S5: periodic brain heartbeat — update drives/identity region every N ticks.
   await writeHeartbeat(deps.dataDir, now).catch(() => {});
 
-  return results.length + factoryEntries.length;
+  const loopsFired = await tickLoops({
+    dataDir: deps.dataDir,
+    now,
+    spawn: (id) => spawnLoopChild(id, log),
+    log,
+  });
+
+  return results.length + factoryEntries.length + loopsFired;
 }
 
 const HEARTBEAT_EVERY_MS = 3_600_000; // 1 hour
