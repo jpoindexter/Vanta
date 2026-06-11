@@ -47,7 +47,7 @@
       "id": "CC-HOOKS-ENGINE",
       "track": "Harness",
       "title": "Hooks engine — shell commands on agent events",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC fires configurable shell hooks at key agent lifecycle events: PreToolUse (before a tool runs), PostToolUse (after), UserPromptSubmit (on user input), Stop (on session end). Hooks receive JSON context via stdin and can block/allow actions (PreToolUse exit code gates execution). Add a hooks runner in session.ts: load .vanta/hooks.json, match event + tool name, spawn shell command with JSON context, handle exit codes.",
       "done": "PreToolUse hooks can block tool execution; PostToolUse, UserPromptSubmit, Stop hooks fire and complete without blocking. Hooks configured in .vanta/hooks.json.",

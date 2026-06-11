@@ -9,6 +9,7 @@ import { prepareRun, buildSummarizer, consoleCallbacks, approver, maybeCurate } 
 import { freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
+import { fireHooks } from "./hooks/shell-hooks.js";
 import { loadUserCommands, type UserCommand } from "./commands/loader.js";
 import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
@@ -194,6 +195,8 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}
   const runUserTurn = async (text: string): Promise<void> => {
     const resolved = await resolveDroppedMedia(text, state);
     state.turnIndex++;
+    // UserPromptSubmit shell hooks — fire-and-forget on each submitted prompt.
+    void fireHooks(join(repoRoot, ".vanta"), "UserPromptSubmit", { prompt: resolved.text }, { cwd: repoRoot });
     printPreTurnNotes(resolved.text, convo, setup);
     const turnStart = new Date().toISOString();
     const t0 = Date.now();
@@ -206,6 +209,8 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}
   } finally {
     rl.close();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
+    // Stop shell hooks — fire on session end (best-effort).
+    await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot });
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
