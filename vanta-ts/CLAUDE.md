@@ -199,6 +199,19 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
+## Session additions (2026-06-11) — keep current
+
+**v0.2.0.** Four Harness rocks + a full size-gate cleanup. All editable TS now passes file ≤300 / fn ≤50 / params ≤4 / cx ≤10 (only kernel-protected `factory/*` excepted).
+
+- **Session memory** (`memory/session-memory.ts`) — a forked distiller maintains `.vanta/session-memory.md` during the session (periodic / busy turns); re-injected interior on compaction (`context.ts`) and into the system prompt on resume (`prepareRun`). `Conversation.setSessionMemory` refreshes the live injection. Env: `VANTA_SESSION_MEMORY[_EVERY|_MIN_TOOLS]`. Post-turn wiring lives in `session/after-turn.ts`.
+- **Streaming tool execution** (`agent/stream-dispatch.ts`) — providers emit a `tool_call` stream chunk when a block completes; the loop prefetches concurrency-safe reads (`CONCURRENCY_SAFE_TOOLS`) mid-stream and reuses the in-flight result. openai emits via the pure `completedToolCalls` fold. `done` stays the source of truth (backward-compatible).
+- **MessageDisplay hook** (`agent/message-display.ts`) — `plugins/hooks.ts` gains a `message_display` event (rewrite/suppress) fired before render; raw text stays in the transcript. Strip-`<thinking>` builtin, opt-in `VANTA_STRIP_THINKING`. The TUI commit now prefers the (transformed) finalText.
+- **Shell-hooks engine** (`hooks/shell-hooks.ts`) — `.vanta/hooks.json` fires external shell commands on PreToolUse (non-zero exit BLOCKS, fail-closed, after the kernel gate) / PostToolUse / UserPromptSubmit / Stop. JSON context on stdin; regex matcher for tool events. Wired in `agent/dispatch-tool.ts` + `interactive.ts`. Distinct from the in-process `plugins/hooks.ts` JS bus.
+
+**Decomposition (size grind):** new modules from splitting oversized files — `session/after-turn.ts`, `agent/{agent-types,plan-gate,dispatch-tool}.ts`, `interactive-turn.ts`, `cli/{extra-cmds,roadmap-cmd}.ts`, plus `context.ts splitForCompaction`. Behavior-preserving extraction + re-export; full suite green throughout. Parallel-subagent waves + central full-suite verification did the bulk.
+
+**Comment convention:** code comments + commit messages stay Vanta-native — no Claude Code / `CC-` / Hermes provenance (the real `claude-code` provider integration + roadmap card-ids are kept).
+
 ## Session additions (2026-06-02/03) — keep current
 
 **Providers:** `VANTA_PROVIDER` now also: `gemini` · `openrouter` · `codex` (alias `openai-codex`, ChatGPT-subscription OAuth via `~/.codex/auth.json`, Responses API — `providers/codex.ts`+`codex-auth.ts`) · `claude-code` (Claude sub OAuth). Catalog: `providers/catalog.ts`.
