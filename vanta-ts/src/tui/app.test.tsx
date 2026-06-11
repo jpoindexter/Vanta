@@ -105,8 +105,14 @@ describe("tui reduce", () => {
     expect(e?.kind === "tool" && e.errorLine).toBe("no such file");
   });
 
-  it("commit uses the streamed text, or the final text when nothing streamed", () => {
+  it("commit uses finalText (the display-hook output), falling back to streamed text only when it is empty", () => {
+    // finalText is authoritative — the loop already ran it through the message_display
+    // hooks, so a rewrite supersedes the raw text streamed live.
     expect(reduce({ ...base, streaming: "streamed" }, { t: "commit", finalText: "final" }).entries).toEqual([
+      { kind: "assistant", text: "final" },
+    ]);
+    // Falls back to the streamed buffer when the loop returned nothing (e.g. interrupt).
+    expect(reduce({ ...base, streaming: "streamed" }, { t: "commit", finalText: "" }).entries).toEqual([
       { kind: "assistant", text: "streamed" },
     ]);
     expect(reduce(base, { t: "commit", finalText: "final" }).entries).toEqual([

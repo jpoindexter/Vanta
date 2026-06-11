@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-10",
+  "updated": "2026-06-11",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -33,7 +33,7 @@
       "id": "CC-HOOK-MESSAGE-DISPLAY",
       "track": "Harness",
       "title": "`MessageDisplay` hook event — transform or hide assistant messages before rendering",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC (v2.1.152) adds a `MessageDisplay` hook event that fires before each assistant message is shown. Hooks can rewrite or suppress the text — useful for operators that want to strip internal reasoning, add context, or route messages to external systems.",
       "done": "A MessageDisplay hook strips <thinking> blocks from displayed output. The transcript shows clean responses; raw content still reaches downstream tools.",

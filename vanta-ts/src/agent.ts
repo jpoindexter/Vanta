@@ -11,6 +11,8 @@ import { applySafetyGate, executeWithRetry, compressOutput } from "./agent/dispa
 import { offloadResult } from "./compress/result-offload.js";
 import { persistCompaction, beginTurnContext, prepareCallMessages } from "./agent/context-pipeline.js";
 import { consumeStream } from "./agent/stream-dispatch.js";
+import { applyMessageDisplay } from "./agent/message-display.js";
+import { globalHookBus, type HookBus } from "./plugins/hooks.js";
 import { join } from "node:path";
 
 export type AgentDeps = {
@@ -53,6 +55,10 @@ export type AgentDeps = {
    * Set by the interactive host when /planmode is on and the plan is not yet approved.
    */
   planGate?: () => boolean;
+  /** MessageDisplay hook bus — transforms/suppresses assistant text before it is
+   * shown. Defaults to the global bus; tests pass a fresh one. The transcript
+   * keeps the raw text either way, so tools and the model are unaffected. */
+  hooks?: HookBus;
 };
 
 export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted";
@@ -273,8 +279,8 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
 
     if (result.toolCalls.length === 0) {
       if (result.text.trim()) {
-        messages.push({ role: "assistant", content: result.text });
-        return { finalText: result.text, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+        messages.push({ role: "assistant", content: result.text }); // raw → model + tools
+        return { finalText: await displayText(deps, result.text), iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
       }
       messages.push({ role: "assistant", content: "" });
       messages.push({ role: "user", content: "You returned nothing. State your result or call a tool." });
@@ -282,8 +288,9 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     }
 
     if (result.thinking) { deps.onThinking?.(result.thinking); deps.onEvent?.({ type: "thinking", text: result.thinking }); }
-    if (result.text.trim()) { deps.onText?.(result.text); deps.onEvent?.({ type: "text_complete", text: result.text }); }
-    messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls });
+    const shownText = result.text.trim() ? await displayText(deps, result.text) : "";
+    if (shownText) { deps.onText?.(shownText); deps.onEvent?.({ type: "text_complete", text: shownText }); }
+    messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls }); // raw → model + tools
 
     const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });
     if (stuckTool)
@@ -293,6 +300,12 @@ async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   }
 
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+}
+
+/** Run assistant text through the message_display hooks for the screen. The raw
+ * text stays in the transcript; this only changes what is shown. */
+async function displayText(deps: AgentDeps, text: string): Promise<string> {
+  return (await applyMessageDisplay(deps.hooks ?? globalHookBus, text)).text;
 }
 
 /**

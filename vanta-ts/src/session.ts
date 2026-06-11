@@ -18,6 +18,8 @@ import {
   readSessionMemory,
   sessionMemoryBlock,
 } from "./memory/session-memory.js";
+import { installMessageDisplayHooks } from "./agent/message-display.js";
+import { globalHookBus } from "./plugins/hooks.js";
 import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "./repl/nudge.js";
 import {
   nextGateState,
@@ -133,6 +135,8 @@ export async function prepareRun(
   const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
+  // MessageDisplay: wire the opt-in built-in display hooks (VANTA_STRIP_THINKING).
+  installMessageDisplayHooks(globalHookBus, process.env);
   const { readMoim } = await import("./moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
   const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);

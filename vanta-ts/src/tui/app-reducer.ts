@@ -52,7 +52,11 @@ export function reduce(s: State, a: Action): State {
       return { ...s, entries, status: "thinking" };
     }
     case "commit": {
-      const text = s.streaming.trim() || a.finalText;
+      // finalText is authoritative: the agent loop has already run it through the
+      // message_display hooks, so a rewrite (e.g. stripped <thinking>) supersedes
+      // the raw text streamed live. Fall back to the streamed buffer only when the
+      // loop returned nothing (e.g. an interrupt with partial output).
+      const text = a.finalText.trim() || s.streaming.trim();
       const entries = text ? [...s.entries, { kind: "assistant" as const, text }] : s.entries;
       return { ...s, entries, streaming: "", busy: false, status: "idle" };
     }

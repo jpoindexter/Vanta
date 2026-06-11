@@ -14,7 +14,8 @@ export type HookEvent =
   | "on_session_end"
   | "on_session_reset"
   | "subagent_stop"
-  | "pre_gateway_dispatch";
+  | "pre_gateway_dispatch"
+  | "message_display";
 
 export type HookContext = {
   pre_tool_call: { name: string; args: Record<string, unknown> };
@@ -26,12 +27,15 @@ export type HookContext = {
   on_session_reset: Record<string, never>;
   subagent_stop: { reason: string };
   pre_gateway_dispatch: { chatId: string; text: string; platform: string };
+  message_display: { text: string; role: "assistant" };
 };
 
 export type HookAction<E extends HookEvent = HookEvent> =
   E extends "pre_gateway_dispatch"
     ? { action: "allow" | "skip" | "rewrite"; rewrittenText?: string }
-    : void;
+    : E extends "message_display"
+      ? { action: "allow" | "suppress" | "rewrite"; rewrittenText?: string }
+      : void;
 
 export type HookHandler<E extends HookEvent = HookEvent> = (
   ctx: HookContext[E],
@@ -59,15 +63,17 @@ export class HookBus {
 
   /**
    * Fire an event. Runs all handlers sequentially.
-   * For pre_gateway_dispatch, the FIRST non-allow action wins.
-   * All other hooks are fire-and-forget (errors logged, never thrown).
+   * For the actionable events (pre_gateway_dispatch, message_display) the FIRST
+   * non-allow action wins. All other hooks are fire-and-forget (errors logged,
+   * never thrown).
    */
   async fire<E extends HookEvent>(event: E, ctx: HookContext[E]): Promise<HookAction<E>> {
     const list = this.handlers.get(event) ?? [];
+    const actionable = event === "pre_gateway_dispatch" || event === "message_display";
     for (const handler of list) {
       try {
         const result = await handler(ctx);
-        if (event === "pre_gateway_dispatch" && result && (result as { action: string }).action !== "allow") {
+        if (actionable && result && (result as { action: string }).action !== "allow") {
           return result as HookAction<E>;
         }
       } catch (err) {
@@ -75,7 +81,7 @@ export class HookBus {
         console.warn(`hook error [${event}]: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
-    return (event === "pre_gateway_dispatch" ? { action: "allow" } : undefined) as HookAction<E>;
+    return (actionable ? { action: "allow" } : undefined) as HookAction<E>;
   }
 
   /** How many handlers are registered for an event. For testing. */
