@@ -296,14 +296,15 @@
       "id": "CC-SEND-MSG",
       "track": "Harness",
       "title": "Send message tool — agent-to-agent messaging",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC has SendMessageTool: send a message to another running agent or thread (used in multi-agent orchestration). Maps to Vanta's A2A bus (a2a/local.ts). Wire the existing A2ABus into a send_message tool so orchestrators can push work to named agents. Kernel Ask (network/process side-effect).",
       "done": "`send_message` tool delivers a message to a named agent via the A2A bus; receiver processes it on next tick.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "note": "send_message tool routes via globalBus (a2a/bus.ts). Delivers to registered agent handlers, returns reply text. 8 tests + registry test updated."
     },
     {
       "id": "CC-HOOKS-CMD",
