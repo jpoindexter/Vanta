@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { buildSummarizer } from "../session.js";
 import { executeSlash, type ReplCtx, type ReplState } from "../repl-commands.js";
 import { listSessions, deleteSession, type SessionMeta } from "../sessions/store.js";
-import { listSkills, readSkill } from "../skills/store.js";
+import { listSkills } from "../skills/store.js";
 import type { Skill } from "../skills/types.js";
 import { providerById } from "../providers/catalog.js";
 import { buildProviderForSelection, persistSelectionGlobal } from "./model-switch.js";
@@ -76,7 +76,6 @@ export type OverlaysResult = {
   openModel: () => void;
   selectModel: (sel: ModelSelection) => void;
   openSkills: () => void;
-  invokeSkill: (name: string) => void;
 };
 
 // Owns the TUI's overlay state and the side-effecting handlers behind the
@@ -129,15 +128,6 @@ export function useOverlays(deps: OverlaysDeps): OverlaysResult {
     });
   };
 
-  const invokeSkill = (name: string): void => {
-    setOverlay(null);
-    void readSkill(name).then((skill) => {
-      if (!skill) { dispatch({ t: "note", text: `  skill "${name}" not found` }); return; }
-      if (!convoRef.current) return;
-      runSlashAndClear(`/run ${name}`, buildCtx(), dispatch, setOverlay);
-    });
-  };
-
   const selectModel = (sel: ModelSelection): void => {
     try {
       applyModelSelection(sel, { convoRef, setActiveProvider, repoRoot, dispatch });
@@ -147,5 +137,5 @@ export function useOverlays(deps: OverlaysDeps): OverlaysResult {
     setOverlay(null);
   };
 
-  return { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill };
+  return { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
 }

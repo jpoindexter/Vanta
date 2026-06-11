@@ -14,6 +14,7 @@ import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { EntryRow, Palette, type Entry } from "./transcript.js";
 import { SkillsPicker } from "./skills-picker.js";
+import { readSkill } from "../skills/store.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
@@ -135,7 +136,7 @@ type ChromeProps = {
   removeSession: ReturnType<typeof useOverlays>["removeSession"];
   selectModel: ReturnType<typeof useOverlays>["selectModel"];
   skillList: ReturnType<typeof useOverlays>["skillList"];
-  invokeSkill: ReturnType<typeof useOverlays>["invokeSkill"];
+  invokeSkill: (name: string) => void;
   setOverlay: ReturnType<typeof useOverlays>["setOverlay"];
   setInput: (v: string) => void;
   submit: (v: string) => void;
@@ -230,13 +231,13 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   const [vimMode, setVimMode] = useState<VimMode>("insert");
   const [editMode, setEditMode] = useState({ active: false, messageIndex: -1 });
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
-  const { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill } =
+  const { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
   useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill };
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────
@@ -261,6 +262,16 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   }
 
   const { sendToAgent } = useAgentSend({ dispatch: s.dispatch, convoRef: s.convoRef, replStateRef: s.replStateRef, busy: s.state.busy, queued: s.state.queued, safety: setup.safety, goals: setup.goals, repoRoot, contextWindow: s.activeProvider.contextWindow(), provider: s.activeProvider });
+  // Skill invocation from the picker: load the body, send it as the next turn
+  // (same resend pattern as the /review-family handlers in coding-skills.ts).
+  const invokeSkill = (name: string): void => {
+    s.setOverlay(null);
+    void readSkill(name).then((skill) => {
+      if (!skill) { s.dispatch({ t: "note", text: `  skill "${name}" not found` }); return; }
+      s.dispatch({ t: "note", text: `  ◆ invoking skill: ${name}` });
+      sendToAgent(`${skill.body}\n\nApply this skill now in the current project context.`);
+    });
+  };
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 
@@ -273,7 +284,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
     : s.state.entries;
   const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill: s.invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   if (ALT_SCREEN) {
     return (
