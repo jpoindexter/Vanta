@@ -2,6 +2,8 @@ mod app;
 mod approvals;
 mod bridge;
 mod goals;
+mod jsonv;
+mod loops;
 mod runtime;
 mod safety;
 mod server;

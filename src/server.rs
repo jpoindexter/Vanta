@@ -1,4 +1,4 @@
-use crate::{app, approvals, bridge, goals, runtime, safety};
+use crate::{app, approvals, bridge, goals, loops, runtime, safety};
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
@@ -74,6 +74,18 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
             Ok(item) => json(stream, &item.to_json()),
             Err(err) => json(stream, &format!("{{\"error\":\"{}\"}}", app::esc(&err))),
         }
+    } else if head.starts_with("GET /api/loops") {
+        json(stream, &loops::list_json(state))
+    } else if head.starts_with("POST /api/loops/clear/") {
+        let rest = path_tail(head, "/api/loops/clear/");
+        let (id, esc) = rest.split_once('/').unwrap_or((rest, ""));
+        respond_result(stream, loops::clear_escalation(state, id, esc))
+    } else if head.starts_with("POST /api/loops/pause/") {
+        respond_result(stream, loops::set_status(state, path_tail(head, "/api/loops/pause/"), "paused"))
+    } else if head.starts_with("POST /api/loops/resume/") {
+        respond_result(stream, loops::set_status(state, path_tail(head, "/api/loops/resume/"), "active"))
+    } else if head.starts_with("POST /api/loops/kill/") {
+        respond_result(stream, loops::set_status(state, path_tail(head, "/api/loops/kill/"), "killed"))
     } else if head.starts_with("POST /api/run") {
         json(
             stream,
@@ -98,6 +110,23 @@ fn path_id(head: &str, prefix: &str) -> usize {
         .and_then(|path| path.strip_prefix(prefix))
         .and_then(|id| id.parse().ok())
         .unwrap_or(0)
+}
+
+/// The raw path remainder after a prefix — for string ids (loop slugs).
+fn path_tail<'a>(head: &'a str, prefix: &str) -> &'a str {
+    head.split_whitespace()
+        .nth(1)
+        .and_then(|path| path.strip_prefix(prefix))
+        .unwrap_or("")
+}
+
+/// Module results → JSON over the wire: Ok payloads pass through, Err becomes
+/// an {"error": …} object the cockpit can render.
+fn respond_result(stream: &mut TcpStream, result: Result<String, String>) -> Result<(), String> {
+    match result {
+        Ok(body) => json(stream, &body),
+        Err(err) => json(stream, &format!("{{\"error\":\"{}\"}}", app::esc(&err))),
+    }
 }
 
 fn read_body(stream: &mut TcpStream, head: &str, first_body: &str) -> Result<String, String> {
@@ -164,10 +193,13 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 ul.rows{list-style:none;margin:0;padding:0}ul.rows li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
 ul.rows li:first-child{border-top:0}.rowtext{flex:1;min-width:0}.rowtext .t{font-family:var(--mono);font-size:13px;word-break:break-word}.rowtext .m{color:var(--dim);font-size:12px}
 .badge{font:600 11px var(--mono);border-radius:5px;padding:2px 7px;color:#000;white-space:nowrap}
-.badge.ask{background:var(--amber)}.badge.allow{background:var(--mint)}.badge.block{background:var(--red)}.badge.done,.badge.approved{background:#333;color:var(--dim)}.badge.denied{background:#333;color:var(--red)}.badge.active{background:var(--mint)}
+.badge.ask{background:var(--amber)}.badge.allow{background:var(--mint)}.badge.block{background:var(--red)}.badge.done,.badge.approved{background:#333;color:var(--dim)}.badge.denied,.badge.killed{background:#333;color:var(--red)}.badge.active{background:var(--mint)}.badge.paused{background:var(--amber)}
 .empty{color:var(--dim);font-size:13px;padding:8px 0}
 .act{display:flex;gap:6px}.act button{padding:6px 12px;font-size:12px}.act .no{background:transparent;color:var(--red);border:1px solid var(--red)}
-footer{color:var(--dim);font-size:13px;margin-top:24px}footer code{font-family:var(--mono);font-size:12px;color:#bdbdb4}
+.esc{display:flex;gap:8px;align-items:center;margin-top:8px;padding:8px 10px;border:1px solid #4a3a14;border-radius:8px;background:#171204}
+.esc .reason{flex:1;color:var(--amber);font-size:12px;font-family:var(--mono)}
+.run{color:var(--mint);font-size:11px}
+footer{color:var(--dim);font-size:13px;margin-top:24px}code{font-family:var(--mono);font-size:12px;color:#bdbdb4}
 .note{font-size:12px;color:var(--dim);margin-top:8px}
 </style></head><body><main>
 <header><h1><span>VANTA</span> KERNEL</h1><p class="status"><span class="dot" id="dot"></span><span id="statusline">connecting…</span></p></header>
@@ -189,6 +221,12 @@ footer{color:var(--dim);font-size:13px;margin-top:24px}footer code{font-family:v
 <button onclick="tryExample(this)">rm -rf node_modules</button>
 </div>
 <div class="verdict" id="verdict" aria-live="polite"></div>
+</section>
+
+<section>
+<h2>Loops — standing work</h2>
+<p class="sub">First-class loops the agent re-runs toward a goal on the gateway tick. When a loop hits something it can't resolve it raises a blocker and pauses — only you can clear it, here or via <code>vanta loop clear</code>.</p>
+<ul class="rows" id="loops" aria-live="polite"></ul>
 </section>
 
 <div class="cols">
@@ -225,8 +263,14 @@ async function loadApprovals(){const r=await fetch("/api/approvals");const items
 function goalRow(g){const li=el("li");const txt=el("div","rowtext");txt.append(el("div","t",g.text));li.append(el("span","badge "+g.status,g.status),txt);if(g.status==="active"){const act=el("div","act");const done=el("button",null,"Done");done.onclick=async()=>{await fetch("/api/goals/complete/"+g.id,{method:"POST"});loadGoals()};act.append(done);li.append(act)}return li}
 async function loadGoals(){const r=await fetch("/api/goals");const items=await r.json();const ul=$("goals");ul.replaceChildren();if(!items.length){ul.append(el("li","empty","No goals yet. Add one — actions are scope-checked against these."));return}items.slice().reverse().forEach(g=>ul.append(goalRow(g)))}
 async function addGoal(){const t=$("goaltext").value.trim();if(!t)return;await fetch("/api/goals/add",{method:"POST",body:t});$("goaltext").value="";loadGoals()}
+function triggerLabel(t){if(!t||!t.kind)return"?";if(t.kind==="heartbeat")return"heartbeat · every "+(t.everyTicks||1)+" tick(s)";if(t.kind==="cron")return"cron · "+t.expr;return t.kind}
+function loopMeta(l){const bits=[triggerLabel(l.trigger),"iterations "+(l.iterations??0)];if(l.lastScore!==null&&l.lastScore!==undefined)bits.push("last score "+l.lastScore);return bits.join("  ·  ")}
+function escRow(loopId,e){const d=el("div","esc");d.append(el("span","badge ask","blocked"),el("span","reason",e.reason));const b=el("button",null,"Clear");b.onclick=async()=>{await fetch("/api/loops/clear/"+loopId+"/"+e.id,{method:"POST"});loadLoops()};d.append(b);return d}
+function loopRow(l){const li=el("li");const txt=el("div","rowtext");const head=el("div","t",l.id+(l.inProgress?"  ":""));if(l.inProgress)head.append(el("span","run","● running"));txt.append(head,el("div","m",l.goal),el("div","m",loopMeta(l)));(l.escalations||[]).filter(e=>e.status==="open").forEach(e=>txt.append(escRow(l.id,e)));li.append(el("span","badge "+l.status,l.status),txt);const act=el("div","act");if(l.status==="active"){const p=el("button",null,"Pause");p.onclick=()=>loopCtl("pause",l.id);act.append(p)}else if(l.status==="paused"){const r=el("button",null,"Resume");r.onclick=()=>loopCtl("resume",l.id);act.append(r)}if(l.status==="active"||l.status==="paused"){const k=el("button","no","Kill");k.onclick=()=>loopCtl("kill",l.id);act.append(k)}li.append(act);return li}
+async function loopCtl(action,id){await fetch("/api/loops/"+action+"/"+id,{method:"POST"});loadLoops()}
+async function loadLoops(){const r=await fetch("/api/loops");const items=await r.json();const ul=$("loops");ul.replaceChildren();if(!items.length){ul.append(el("li","empty","No loops registered. Create one with: vanta loop add \"<goal>\""));return}items.forEach(l=>ul.append(loopRow(l)))}
 $("goaltext").addEventListener("keydown",e=>{if(e.key==="Enter")addGoal()});
 $("action").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){e.preventDefault();judge()}});
 async function refreshStatus(){try{const r=await fetch("/api/status");const j=await r.json();$("dot").className="dot on";$("statusline").textContent="live · "+j.root;$("datadir").textContent=j.root+"/.vanta/";$("bridge").textContent="bridge: "+(j.bridge&&j.bridge.available?j.bridge.version+" (legacy external-agent bridge, gated)":"not installed (legacy external-agent bridge — optional)")}catch(e){$("dot").className="dot";$("statusline").textContent="kernel unreachable"}}
-refreshStatus();setInterval(refreshStatus,5000);loadApprovals();loadGoals();
+refreshStatus();setInterval(refreshStatus,5000);setInterval(loadLoops,5000);loadApprovals();loadGoals();loadLoops();
 </script></body></html>"##;
