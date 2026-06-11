@@ -50,6 +50,16 @@ export const StopRulesSchema = z.object({
   passScore: z.number().min(0).max(1).optional(),
   /** Stop after this many consecutive iterations with no score improvement. */
   noProgressWakes: z.number().int().positive().default(3),
+  /** Kill if a single iteration takes longer than this many ms. */
+  maxWallMs: z.number().int().positive().optional(),
+  /** Kill if a single iteration consumes more than this many tokens (requires getTokensUsed dep). */
+  maxTokens: z.number().int().positive().optional(),
+  /** Kill if score drops below this floor after a baseline is established. */
+  healthScoreFloor: z.number().min(0).max(1).optional(),
+  /** Kill if acceptance rate drops below this after minAcceptRateAfter iterations. */
+  minAcceptRate: z.number().min(0).max(1).optional(),
+  /** Minimum iterations before minAcceptRate is checked. Default 5. */
+  minAcceptRateAfter: z.number().int().positive().default(5),
 });
 export type StopRules = z.infer<typeof StopRulesSchema>;
 
@@ -110,6 +120,12 @@ export const LoopStateSchema = z.object({
   /** Set true at iteration start, false at clean exit. True on reload ⇒ the
    *  previous iteration crashed mid-run — surfaced as a recoverable lesson. */
   inProgress: z.boolean().default(false),
+  /** Cumulative tokens used across all iterations (informational). */
+  tokensUsed: z.number().int().min(0).default(0),
+  /** Iterations where gate passed and score improved — numerator for accept rate. */
+  acceptedChanges: z.number().int().min(0).default(0),
+  /** Total iterations counted in the acceptance-rate ledger. */
+  totalChanges: z.number().int().min(0).default(0),
 });
 export type LoopState = z.infer<typeof LoopStateSchema>;
 
@@ -135,6 +151,10 @@ export type IterationDeps = {
   runStage: RunStage;
   now: () => Date;
   runGate?: RunGate;
+  /** Called after all stages to get the token count for this iteration. */
+  getTokensUsed?: () => number;
+  /** Called when the loop is killed by any budget, health, or rate rule. */
+  logKilled?: (id: string, reason: string) => void;
 };
 export type IterationResult = {
   def: LoopDef;

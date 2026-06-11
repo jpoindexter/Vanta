@@ -8986,7 +8986,7 @@
       "id": "LOOP-GATES-BUDGETS",
       "track": "Harness",
       "title": "Loop gates + budgets — objective advance gates, kill switches, accepted-rate ledger",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Engine-enforced (not prompt-promised): a gate command must exit 0 (or health score over floor) before a loop advances/commits; budgets per loop (max iterations, wall-clock, tokens); no-progress kill after 3 zero-delta wakes; accepted-change-rate ledger so a losing loop is visible. loop.killed events. Steals ship-preflight, hill-climb stop rules, terminal-bench-loop, gstack health score.",
       "done": "A failing gate blocks advancement; a loop with 3 zero-delta wakes halts with a named blocker; budgets enforce.",
@@ -8997,7 +8997,8 @@
       "updated": "2026-06-11",
       "after": [
         "LOOP-ENGINE"
-      ]
+      ],
+      "note": " Shipped 2026-06-11: maxWallMs/maxTokens/healthScoreFloor/minAcceptRate/logKilled — pure StopRules extensions + acceptance-rate ledger in LoopState. 2437 TS tests green, tsc clean."
     },
     {
       "id": "LOOP-VERIFY",

@@ -113,24 +113,60 @@ type StopOpts = {
   iterations: number;
   score: number | null;
   streak: number;
+  elapsedMs: number;
+  iterTokens: number;
+  acceptedChanges: number;
+  totalChanges: number;
   fallbackReason: string;
 };
 
+// Budget gates: wall-clock, token, and health-score-floor checks.
+function checkTimingBudgets(
+  stop: LoopDef["stop"],
+  score: number | null,
+  elapsedMs: number,
+  iterTokens: number,
+): StopDecision | null {
+  if (stop.maxWallMs !== undefined && elapsedMs >= stop.maxWallMs)
+    return { stopped: true, status: "killed", reason: `wall-clock budget: ${elapsedMs}ms ≥ ${stop.maxWallMs}ms` };
+  if (stop.maxTokens !== undefined && iterTokens >= stop.maxTokens)
+    return { stopped: true, status: "killed", reason: `token budget: ${iterTokens} ≥ ${stop.maxTokens} tokens` };
+  if (stop.healthScoreFloor !== undefined && score !== null && score < stop.healthScoreFloor)
+    return { stopped: true, status: "killed", reason: `score ${score} below health floor ${stop.healthScoreFloor}` };
+  return null;
+}
+
+// Acceptance-rate gate: kills when rate drops below threshold after enough iterations.
+function checkAcceptRate(
+  stop: LoopDef["stop"],
+  acceptedChanges: number,
+  totalChanges: number,
+): StopDecision | null {
+  const minAfter = stop.minAcceptRateAfter ?? 5;
+  if (stop.minAcceptRate === undefined || totalChanges < minAfter) return null;
+  const rate = totalChanges > 0 ? acceptedChanges / totalChanges : 0;
+  if (rate < stop.minAcceptRate)
+    return { stopped: true, status: "killed", reason: `accept rate ${rate.toFixed(2)} below min ${stop.minAcceptRate}` };
+  return null;
+}
+
 // Evaluates stop rules in priority order; falls back to the gate/progress reason.
 function decideStop(opts: StopOpts): StopDecision {
-  const { def, iterations, score, streak, fallbackReason } = opts;
+  const { def, iterations, score, streak, elapsedMs, iterTokens, acceptedChanges, totalChanges, fallbackReason } = opts;
   const pass = effectivePassScore(def);
+  const { stop } = def;
 
-  if (score !== null && score >= pass) {
+  if (score !== null && score >= pass)
     return { stopped: true, status: "done", reason: `passed: score ${score} ≥ ${pass}` };
-  }
-  if (iterations >= def.stop.maxIterations) {
+  if (iterations >= stop.maxIterations)
     return { stopped: true, status: "done", reason: `reached max iterations (${iterations})` };
-  }
-  if (streak >= def.stop.noProgressWakes) {
+  if (streak >= stop.noProgressWakes)
     return { stopped: true, status: "killed", reason: `no progress for ${streak} iterations` };
-  }
-  return { stopped: false, status: def.status, reason: fallbackReason };
+  return (
+    checkTimingBudgets(stop, score, elapsedMs, iterTokens) ??
+    checkAcceptRate(stop, acceptedChanges, totalChanges) ??
+    { stopped: false, status: def.status, reason: fallbackReason }
+  );
 }
 
 // Checks if the incoming state indicates a prior crash and appends a recovery lesson.
@@ -140,7 +176,13 @@ function applyCrashRecovery(state: LoopState): LoopState {
   return { ...state, lessons: [...state.lessons, note] };
 }
 
-type RunCtx = { score: number | null; now: string };
+type RunCtx = {
+  score: number | null;
+  now: string;
+  elapsedMs: number;
+  iterTokens: number;
+  logKilled?: IterationDeps["logKilled"];
+};
 
 // Builds the IterationResult for an escalation pause — counts as a completed iteration.
 function escalationResult(def: LoopDef, state: LoopState, reason: string, ctx: RunCtx): IterationResult {
@@ -148,26 +190,42 @@ function escalationResult(def: LoopDef, state: LoopState, reason: string, ctx: R
   return { def: { ...def, status: "paused" }, state: nextState, score: ctx.score, stopped: true, reason };
 }
 
+// Updates the acceptance-rate ledger and cumulative token count.
+function computeLedger(state: LoopState, gateFailedAt: string | null, score: number | null, iterTokens: number) {
+  const isAccepted = gateFailedAt === null && score !== null && (state.bestScore === null || score > state.bestScore);
+  return {
+    totalChanges: state.totalChanges + 1,
+    acceptedChanges: state.acceptedChanges + (isAccepted ? 1 : 0),
+    tokensUsed: state.tokensUsed + iterTokens,
+  };
+}
+
 // Builds the IterationResult for a normal (non-escalated) stage run.
-function normalResult(
-  def: LoopDef,
-  state: LoopState,
-  gateFailedAt: string | null,
-  ctx: RunCtx,
-): IterationResult {
-  const { score, now } = ctx;
+function normalResult(def: LoopDef, state: LoopState, gateFailedAt: string | null, ctx: RunCtx): IterationResult {
+  const { score, now, elapsedMs, iterTokens, logKilled } = ctx;
+  const { totalChanges, acceptedChanges, tokensUsed } = computeLedger(state, gateFailedAt, score, iterTokens);
   const gateReason = gateFailedAt ? `gate failed: ${gateFailedAt}` : null;
   const scoreLabel = score !== null ? String(score) : "n/a";
   const iterReason = gateReason ?? `iteration ${state.iterations + 1} complete (score ${scoreLabel})`;
   const lessons = gateFailedAt ? [...state.lessons, `gate failed at ${gateFailedAt}`] : state.lessons;
-  const nextState = recordIteration({ ...state, lessons }, score, iterReason, now);
+  const nextState = recordIteration(
+    { ...state, lessons, totalChanges, acceptedChanges, tokensUsed },
+    score,
+    iterReason,
+    now,
+  );
   const { stopped, status, reason } = decideStop({
     def,
     iterations: nextState.iterations,
     score,
     streak: nextState.noProgressStreak,
+    elapsedMs,
+    iterTokens,
+    acceptedChanges,
+    totalChanges,
     fallbackReason: iterReason,
   });
+  if (stopped && status === "killed") logKilled?.(def.id, reason);
   return { def: { ...def, status }, state: nextState, score, stopped, reason };
 }
 
@@ -195,9 +253,12 @@ export async function runLoopIteration(
     };
   }
 
+  const startMs = deps.now().getTime();
   const { score, gateFailedAt, escalationReason } = await runStages(def, deps);
   const nowDate = deps.now();
-  const ctx: RunCtx = { score, now: nowDate.toISOString() };
+  const elapsedMs = nowDate.getTime() - startMs;
+  const iterTokens = deps.getTokensUsed?.() ?? 0;
+  const ctx: RunCtx = { score, now: nowDate.toISOString(), elapsedMs, iterTokens, logKilled: deps.logKilled };
 
   // Escalation during a stage: raise it, pause the loop, and still count the iteration.
   if (escalationReason !== null) {

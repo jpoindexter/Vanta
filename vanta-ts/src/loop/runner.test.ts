@@ -262,3 +262,174 @@ describe("runLoopIteration — open-escalation guard", () => {
     expect(runStage).not.toHaveBeenCalled();
   });
 });
+
+// --- LOOP-GATES-BUDGETS ---
+
+describe("runLoopIteration — wall-clock budget", () => {
+  it("kills when elapsed ms exceeds maxWallMs", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3, maxWallMs: 5000 } });
+    const times = [
+      new Date("2026-06-11T12:00:00.000Z"),
+      new Date("2026-06-11T12:00:10.000Z"), // 10 000ms elapsed
+    ];
+    let tick = 0;
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.5");
+      return Promise.resolve("work done");
+    });
+
+    const result = await runLoopIteration(def, newState("test-loop"), {
+      runStage,
+      now: () => times[tick++]!,
+    });
+
+    expect(result.stopped).toBe(true);
+    expect(result.def.status).toBe("killed");
+    expect(result.reason).toMatch(/wall-clock budget/);
+  });
+});
+
+describe("runLoopIteration — token budget", () => {
+  it("kills when iterTokens exceeds maxTokens", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3, maxTokens: 500 } });
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.5");
+      return Promise.resolve("work done");
+    });
+
+    const result = await runLoopIteration(def, newState("test-loop"), {
+      runStage,
+      now: fixedNow,
+      getTokensUsed: () => 1000,
+    });
+
+    expect(result.stopped).toBe(true);
+    expect(result.def.status).toBe("killed");
+    expect(result.reason).toMatch(/token budget/);
+  });
+
+  it("accumulates tokensUsed in state across iterations", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3 } });
+    const runStage = vi.fn().mockResolvedValue("SCORE: 0.5");
+
+    const r1 = await runLoopIteration(def, newState("test-loop"), {
+      runStage,
+      now: fixedNow,
+      getTokensUsed: () => 300,
+    });
+    expect(r1.state.tokensUsed).toBe(300);
+
+    const r2 = await runLoopIteration(def, r1.state, {
+      runStage,
+      now: fixedNow,
+      getTokensUsed: () => 200,
+    });
+    expect(r2.state.tokensUsed).toBe(500);
+  });
+});
+
+describe("runLoopIteration — health score floor", () => {
+  it("kills when score drops below healthScoreFloor", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3, healthScoreFloor: 0.4 } });
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.2");
+      return Promise.resolve("work done");
+    });
+
+    const result = await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+
+    expect(result.stopped).toBe(true);
+    expect(result.def.status).toBe("killed");
+    expect(result.reason).toMatch(/health floor/);
+  });
+
+  it("does not kill when score meets or exceeds the floor", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3, healthScoreFloor: 0.4 } });
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.6");
+      return Promise.resolve("work done");
+    });
+
+    const result = await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+
+    expect(result.stopped).toBe(false);
+  });
+});
+
+describe("runLoopIteration — acceptance rate ledger", () => {
+  it("kills when acceptance rate drops below minAcceptRate after minAcceptRateAfter iterations", async () => {
+    // minAcceptRateAfter: 2, minAcceptRate: 0.8 — run 2 iterations with 0 accepted
+    const def = makeDef({
+      stop: { maxIterations: 20, noProgressWakes: 10, minAcceptRate: 0.8, minAcceptRateAfter: 2 },
+    });
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      // Always gate-fail so isAccepted never triggers
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.3");
+      return Promise.resolve("no improvement");
+    });
+
+    // Two iterations of gate-failing (score doesn't improve past first)
+    const r1 = await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+    const r2 = await runLoopIteration(def, r1.state, { runStage, now: fixedNow });
+
+    expect(r2.stopped).toBe(true);
+    expect(r2.def.status).toBe("killed");
+    expect(r2.reason).toMatch(/accept rate/);
+  });
+
+  it("tracks acceptedChanges when score improves with gate passing", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3 } });
+    let callN = 0;
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      callN++;
+      if (stage.name === "evaluate") return Promise.resolve(`SCORE: ${callN * 0.1}`); // 0.1, 0.2…
+      return Promise.resolve("work");
+    });
+
+    const r1 = await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+    // First iteration: bestScore was null, first real score = accepted
+    expect(r1.state.acceptedChanges).toBe(1);
+    expect(r1.state.totalChanges).toBe(1);
+
+    const r2 = await runLoopIteration(def, r1.state, { runStage, now: fixedNow });
+    // Second iteration: score 0.2 > bestScore 0.1 = accepted again
+    expect(r2.state.acceptedChanges).toBe(2);
+    expect(r2.state.totalChanges).toBe(2);
+  });
+});
+
+describe("runLoopIteration — logKilled callback", () => {
+  it("fires logKilled when the loop is killed by a budget rule", async () => {
+    const def = makeDef({ stop: { maxIterations: 10, noProgressWakes: 3, maxTokens: 100 } });
+    const runStage = vi.fn().mockResolvedValue("SCORE: 0.5");
+    const logKilled = vi.fn();
+
+    await runLoopIteration(def, newState("test-loop"), {
+      runStage,
+      now: fixedNow,
+      getTokensUsed: () => 200,
+      logKilled,
+    });
+
+    expect(logKilled).toHaveBeenCalledOnce();
+    expect(logKilled).toHaveBeenCalledWith("test-loop", expect.stringMatching(/token budget/));
+  });
+
+  it("does not fire logKilled when loop stops with status done", async () => {
+    const def = makeDef();
+    const runStage = vi.fn().mockImplementation(({ stage }) => {
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.95");
+      return Promise.resolve("work done");
+    });
+    const logKilled = vi.fn();
+
+    const result = await runLoopIteration(def, newState("test-loop"), {
+      runStage,
+      now: fixedNow,
+      logKilled,
+    });
+
+    expect(result.def.status).toBe("done");
+    expect(logKilled).not.toHaveBeenCalled();
+  });
+});
