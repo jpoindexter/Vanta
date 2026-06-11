@@ -66,45 +66,12 @@ export class AnthropicProvider implements LLMProvider {
     // Lazy so Vanta loads even when the SDK isn't installed.
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
     const oauth = Boolean(this.authToken);
-    const cache1h = promptCache1hEnabled(process.env);
-    // Combine beta flags — OAuth + extended cache TTL can both apply at once.
-    const betas = [oauth ? OAUTH_BETA : null, cache1h ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
-    const defaultHeaders: Record<string, string> = {};
-    if (betas.length) defaultHeaders["anthropic-beta"] = betas.join(",");
-    if (oauth) defaultHeaders["user-agent"] = OAUTH_USER_AGENT;
-    const client = oauth
-      ? new Anthropic({ authToken: this.authToken, defaultHeaders })
-      : new Anthropic({ apiKey: this.apiKey, defaultHeaders });
+    const client = buildAnthropicClient(Anthropic, { oauth, authToken: this.authToken, apiKey: this.apiKey });
 
-    const converted = toAnthropicMessages(messages, { cache1h });
-    const amsgs = converted.messages;
-    // OAuth mode requires the system prompt to open with the Claude Code line.
-    let system: string | AnthropicTextBlock[];
-    if (oauth) {
-      if (Array.isArray(converted.system)) {
-        system = [{ type: "text", text: CLAUDE_CODE_SPOOF }, ...converted.system];
-      } else {
-        system = `${CLAUDE_CODE_SPOOF}\n\n${converted.system}`;
-      }
-    } else {
-      system = converted.system;
-    }
+    const { system, amsgs } = buildConvertedMessages(messages, oauth);
 
-    const thinkingBudget = parseInt(process.env.VANTA_THINKING_BUDGET ?? "", 10);
-    const thinkingParam = !isNaN(thinkingBudget) && thinkingBudget > 0
-      ? { type: "enabled" as const, budget_tokens: thinkingBudget }
-      : undefined;
-
-    const maxTokens = config?.maxTokens ?? (thinkingParam ? Math.max(DEFAULT_MAX_TOKENS, thinkingBudget + 1024) : DEFAULT_MAX_TOKENS);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const createParams: any = {
-      model: this.model,
-      max_tokens: maxTokens,
-      system: system as Parameters<typeof client.messages.create>[0]["system"],
-      messages: amsgs as Parameters<typeof client.messages.create>[0]["messages"],
-      tools: tools.length ? tools.map(toAnthropicTool) : undefined,
-    };
-    if (thinkingParam) createParams.thinking = thinkingParam;
+    const createParams = buildCreateParams({ model: this.model, system, amsgs, tools, config }) as any;
 
     let response;
     try {
@@ -120,6 +87,57 @@ export class AnthropicProvider implements LLMProvider {
     }
     return result;
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildAnthropicClient(Anthropic: any, opts: { oauth: boolean; authToken?: string; apiKey?: string }): any {
+  const betas = [opts.oauth ? OAUTH_BETA : null, promptCache1hEnabled(process.env) ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
+  const defaultHeaders: Record<string, string> = {};
+  if (betas.length) defaultHeaders["anthropic-beta"] = betas.join(",");
+  if (opts.oauth) defaultHeaders["user-agent"] = OAUTH_USER_AGENT;
+  return opts.oauth
+    ? new Anthropic({ authToken: opts.authToken, defaultHeaders })
+    : new Anthropic({ apiKey: opts.apiKey, defaultHeaders });
+}
+
+/** Convert messages + inject OAuth identity prefix; avoids double call to toAnthropicMessages. */
+function buildConvertedMessages(
+  messages: Message[],
+  oauth: boolean,
+): { system: string | AnthropicTextBlock[]; amsgs: unknown[] } {
+  const converted = toAnthropicMessages(messages, { cache1h: promptCache1hEnabled(process.env) });
+  const system: string | AnthropicTextBlock[] = oauth
+    ? (Array.isArray(converted.system)
+      ? [{ type: "text", text: CLAUDE_CODE_SPOOF }, ...converted.system]
+      : `${CLAUDE_CODE_SPOOF}\n\n${converted.system}`)
+    : converted.system;
+  return { system, amsgs: converted.messages };
+}
+
+type CreateParamsOpts = {
+  model: string;
+  system: string | AnthropicTextBlock[];
+  amsgs: unknown[];
+  tools: ToolSchema[];
+  config?: CompletionConfig;
+};
+
+/** Build createParams including optional thinking extension. */
+function buildCreateParams(opts: CreateParamsOpts): Record<string, unknown> {
+  const thinkingBudget = parseInt(process.env.VANTA_THINKING_BUDGET ?? "", 10);
+  const thinkingParam = !isNaN(thinkingBudget) && thinkingBudget > 0
+    ? { type: "enabled" as const, budget_tokens: thinkingBudget }
+    : undefined;
+  const maxTokens = opts.config?.maxTokens ?? (thinkingParam ? Math.max(DEFAULT_MAX_TOKENS, thinkingBudget + 1024) : DEFAULT_MAX_TOKENS);
+  const params: Record<string, unknown> = {
+    model: opts.model,
+    max_tokens: maxTokens,
+    system: opts.system,
+    messages: opts.amsgs,
+    tools: opts.tools.length ? opts.tools.map(toAnthropicTool) : undefined,
+  };
+  if (thinkingParam) params.thinking = thinkingParam;
+  return params;
 }
 
 /**

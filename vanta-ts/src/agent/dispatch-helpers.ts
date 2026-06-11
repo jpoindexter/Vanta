@@ -1,7 +1,7 @@
 import type { SafetyClient } from "../safety-client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { ToolContext } from "../tools/types.js";
-import type { ToolCall } from "../types.js";
+import type { ToolCall, Verdict } from "../types.js";
 import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
@@ -41,18 +41,28 @@ export async function applySafetyGate(
   }
 
   if (decision === "ask") {
-    const why = verdict.reason || "permission rule";
-    const approved = await deps.requestApproval(action, why, call.name);
-    // Reconcile the kernel approval queue ONLY when the kernel itself asked.
-    const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action) : null;
-    if (!approved) {
-      if (id) await deps.safety.deny(id);
-      deps.onToolResult?.(call.name, false, "denied by user");
-      return { approved: false, reason: `denied by user: ${why}` };
-    }
-    if (id) await deps.safety.approve(id);
+    return handleApprovalRequest(call, action, verdict, deps);
   }
 
+  return { approved: true };
+}
+
+async function handleApprovalRequest(
+  call: ToolCall,
+  action: string,
+  verdict: Verdict,
+  deps: AgentDeps,
+): Promise<SafetyGateResult> {
+  const why = verdict.reason || "permission rule";
+  const approved = await deps.requestApproval(action, why, call.name);
+  // Reconcile the kernel approval queue ONLY when the kernel itself asked.
+  const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action) : null;
+  if (!approved) {
+    if (id) await deps.safety.deny(id);
+    deps.onToolResult?.(call.name, false, "denied by user");
+    return { approved: false, reason: `denied by user: ${why}` };
+  }
+  if (id) await deps.safety.approve(id);
   return { approved: true };
 }
 

@@ -66,24 +66,7 @@ export class OpenAIProvider implements LLMProvider {
     } catch (err) {
       throw translateError(err, this.model);
     }
-
-    const choice = response.choices[0];
-    if (!choice) {
-      return { text: "", toolCalls: [], finishReason: "empty" };
-    }
-    const toolCalls: ToolCall[] = [];
-    for (const tc of choice.message.tool_calls ?? []) {
-      if (tc.type !== "function") continue;
-      toolCalls.push(parseToolCall(tc));
-    }
-    return {
-      text: choice.message.content ?? "",
-      toolCalls,
-      finishReason: choice.finish_reason ?? "stop",
-      usage: response.usage
-        ? { inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens }
-        : undefined,
-    };
+    return mapCompletionResponse(response);
   }
 
   async *stream(
@@ -142,6 +125,23 @@ export class OpenAIProvider implements LLMProvider {
       throw translateError(err, this.model);
     }
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapCompletionResponse(response: any): CompletionResult {
+  const choice = response.choices[0];
+  if (!choice) return { text: "", toolCalls: [], finishReason: "empty" };
+  const toolCalls: ToolCall[] = (choice.message.tool_calls ?? [])
+    .filter((tc: { type: string }) => tc.type === "function")
+    .map((tc: { id: string; function: { name: string; arguments: string } }) => parseToolCall(tc));
+  return {
+    text: choice.message.content ?? "",
+    toolCalls,
+    finishReason: choice.finish_reason ?? "stop",
+    usage: response.usage
+      ? { inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens }
+      : undefined,
+  };
 }
 
 export type ToolCallDelta = {

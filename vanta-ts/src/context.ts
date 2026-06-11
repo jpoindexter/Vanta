@@ -89,6 +89,43 @@ export function trimMessages(
 
 export type Summarizer = (messages: Message[]) => Promise<string>;
 
+type SplitResult = {
+  system: Message[];
+  head: Message[];
+  tail: Message[];
+  middle: Message[];
+};
+
+/**
+ * Pure helper: partition messages into system / head / tail / middle for
+ * compaction. Returns null when under threshold or too short to compact.
+ * Both compressMessages and compactConversation use this to avoid duplicating
+ * the split logic (which was the source of their high cyclomatic complexity).
+ */
+function splitForCompaction(
+  messages: Message[],
+  contextWindow: number,
+  opts: TrimOptions,
+): SplitResult | null {
+  const protectFirst = opts.protectFirst ?? 3;
+  const protectLast = opts.protectLast ?? 6;
+  const threshold = (opts.thresholdPct ?? 75) / 100;
+
+  if (estimateTokens(messages) <= contextWindow * threshold) return null;
+
+  const system = messages.filter((m) => m.role === "system");
+  const rest = messages.filter((m) => m.role !== "system");
+  if (rest.length <= protectFirst + protectLast) return null;
+
+  const head = rest.slice(0, protectFirst);
+  let tail = rest.slice(-protectLast);
+  // A leading tool result with no preceding assistant tool_call breaks the API.
+  while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1);
+  const middle = rest.slice(protectFirst, rest.length - tail.length);
+
+  return { system, head, tail, middle };
+}
+
 /**
  * Like trimMessages, but replaces the dropped middle with an LLM summary
  * instead of a bare notice. Falls back to trimMessages if summarize throws.
@@ -99,21 +136,9 @@ export async function compressMessages(
   summarize: Summarizer,
   opts: TrimOptions = {},
 ): Promise<Message[]> {
-  const protectFirst = opts.protectFirst ?? 3;
-  const protectLast = opts.protectLast ?? 6;
-  const threshold = (opts.thresholdPct ?? 75) / 100;
-
-  if (estimateTokens(messages) <= contextWindow * threshold) return messages;
-
-  const system = messages.filter((m) => m.role === "system");
-  const rest = messages.filter((m) => m.role !== "system");
-  if (rest.length <= protectFirst + protectLast) return messages;
-
-  const head = rest.slice(0, protectFirst);
-  let tail = rest.slice(-protectLast);
-  // A leading tool result with no preceding assistant tool_call breaks the API.
-  while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1);
-  const middle = rest.slice(protectFirst, rest.length - tail.length);
+  const split = splitForCompaction(messages, contextWindow, opts);
+  if (!split) return messages;
+  const { system, head, tail, middle } = split;
 
   try {
     const summary = await summarize(middle);
@@ -155,20 +180,12 @@ export async function compactConversation(
   summarize: Summarizer,
   opts: TrimOptions = {},
 ): Promise<CompactResult> {
-  const protectFirst = opts.protectFirst ?? 3;
-  const protectLast = opts.protectLast ?? 6;
-  const threshold = (opts.thresholdPct ?? 75) / 100;
   const none: CompactResult = { messages, compacted: false, dropped: 0, summary: "" };
-  if (contextWindow <= 0 || estimateTokens(messages) <= contextWindow * threshold) return none;
+  if (contextWindow <= 0) return none;
 
-  const system = messages.filter((m) => m.role === "system");
-  const rest = messages.filter((m) => m.role !== "system");
-  if (rest.length <= protectFirst + protectLast) return none;
-
-  const head = rest.slice(0, protectFirst);
-  let tail = rest.slice(-protectLast);
-  while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1); // never lead the tail with an orphan tool result
-  const middle = rest.slice(protectFirst, rest.length - tail.length);
+  const split = splitForCompaction(messages, contextWindow, opts);
+  if (!split) return none;
+  const { system, head, tail, middle } = split;
   if (middle.length === 0) return none;
 
   try {

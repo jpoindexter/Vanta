@@ -41,6 +41,48 @@ export type RunSetup = {
  * Ensure the kernel is up and assemble a run. `instruction` drives multi-model
  * routing (a no-op when no cheap/expensive model is set).
  */
+type PromptContext = {
+  memory: string;
+  skills: { name: string; description: string }[];
+  brain: string;
+  selfContent: string;
+  moimNote: string | undefined;
+  errorsLog: string | undefined;
+  projectId: string | undefined;
+};
+
+async function loadPromptContext(repoRoot: string, activeGoalIds: number[]): Promise<PromptContext> {
+  const memory = await recentMemory(activeGoalIds);
+  const { installSkillLibrary } = await import("./skills/library.js");
+  await installSkillLibrary({ env: process.env }).catch(() => {});
+  const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
+    name: s.meta.name,
+    description: s.meta.description,
+  }));
+  const brain = await brainDigest(process.env).catch(() => "");
+  const { selfDigest } = await import("./self/store.js");
+  const selfContent = await selfDigest(process.env).catch(() => "");
+  const { readMoim } = await import("./moim/store.js");
+  const moimNote = await readMoim(process.env).catch(() => undefined);
+  const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
+  const { canonicalProjectId } = await import("./projects/identity.js");
+  const projectId = await canonicalProjectId(repoRoot).catch(() => undefined);
+  return { memory, skills, brain, selfContent, moimNote, errorsLog, projectId };
+}
+
+async function injectResume(systemPrompt: string, repoRoot: string): Promise<string> {
+  const { readAutoHandoff, clearAutoHandoff } = await import("./repl/auto-handoff.js");
+  const dataDir = join(repoRoot, ".vanta");
+  const resume = await readAutoHandoff(dataDir).catch(() => null);
+  if (resume) {
+    systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
+    await clearAutoHandoff(dataDir);
+  }
+  const scratch = await readSessionMemory(dataDir).catch(() => "");
+  if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+  return systemPrompt;
+}
+
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
@@ -52,70 +94,36 @@ export async function prepareRun(
 
   const safety = new SafetyClient(baseUrl);
   const registry = buildRegistry();
-  // Mount any configured MCP servers (no-op without config). Their tools join the
-  // registry and pass through the same kernel assess() as built-in tools.
   await mountMcpServers(registry, process.env, (m) => console.log(m));
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
-  const memory = await recentMemory(activeIds);
-  // Ensure the bundled skill library is installed (idempotent: new slugs are
-  // added, the user's existing/edited skills are kept). This is what makes
-  // shipped skills — including the nd-* executive-function set — appear without
-  // a manual `vanta skills install`. Best-effort: never block startup.
-  const { installSkillLibrary } = await import("./skills/library.js");
-  await installSkillLibrary({ env: process.env }).catch(() => {});
-  // Inject the learned-skill INDEX (names+descriptions) so the agent knows what
-  // it can recall; bodies are loaded on demand via the `recall` tool.
-  const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
-    name: s.meta.name,
-    description: s.meta.description,
-  }));
-  // Vanta reads its own brain (durable self) each session.
-  const brain = await brainDigest(process.env).catch(() => "");
-  // SCAFFOLD: load the versioned identity/values/honesty layer from ~/.vanta/self/.
-  const { selfDigest } = await import("./self/store.js");
-  const selfContent = await selfDigest(process.env).catch(() => "");
-  // Load layered settings.json and apply env overrides.
+
   const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
-  // MessageDisplay: wire the opt-in built-in display hooks (VANTA_STRIP_THINKING).
   installMessageDisplayHooks(globalHookBus, process.env);
-  const { readMoim } = await import("./moim/store.js");
-  const moimNote = await readMoim(process.env).catch(() => undefined);
-  const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
-  const { canonicalProjectId } = await import("./projects/identity.js");
-  const projectId = await canonicalProjectId(repoRoot).catch(() => undefined);
+
+  const ctx = await loadPromptContext(repoRoot, activeIds);
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
     goals,
     tools: registry.schemas(),
     now: new Date().toISOString(),
-    memory,
-    moimNote,
-    skills,
-    brain,
-    errorsLog,
-    projectId,
-    selfContent,
+    memory: ctx.memory,
+    moimNote: ctx.moimNote,
+    skills: ctx.skills,
+    brain: ctx.brain,
+    errorsLog: ctx.errorsLog,
+    projectId: ctx.projectId,
+    selfContent: ctx.selfContent,
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved
   // resume block so a restart/fresh session continues without a manual handoff.
   if (instruction === "interactive session") {
-    const { readAutoHandoff, clearAutoHandoff } = await import("./repl/auto-handoff.js");
-    const dataDir = join(repoRoot, ".vanta");
-    const resume = await readAutoHandoff(dataDir).catch(() => null);
-    if (resume) {
-      systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
-      await clearAutoHandoff(dataDir);
-    }
-    // Inject the session scratchpad on resume. Unlike the handoff, it is NOT
-    // consumed — it keeps updating through the new session.
-    const scratch = await readSessionMemory(dataDir).catch(() => "");
-    if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+    systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
   return { safety, registry, provider, goals, systemPrompt };
 }
