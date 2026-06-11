@@ -17,6 +17,21 @@ export const TriggerSchema = z.discriminatedUnion("kind", [
 ]);
 export type Trigger = z.infer<typeof TriggerSchema>;
 
+/** How a stage verifies its own output before advancing. adversarial fans out N
+ *  isolated skeptics (majority-refute = fail); tournament runs N candidates and
+ *  picks the highest-scoring one; filter runs N candidates and keeps the first that
+ *  passes the filterPrompt predicate. */
+export const VerifyModeSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("adversarial"), n: z.number().int().positive().default(3) }),
+  z.object({ kind: z.literal("tournament"), n: z.number().int().positive().default(3) }),
+  z.object({
+    kind: z.literal("filter"),
+    n: z.number().int().positive().default(3),
+    filterPrompt: z.string().min(1),
+  }),
+]);
+export type VerifyMode = z.infer<typeof VerifyModeSchema>;
+
 /** One step of the loop body — an agent turn driven by `prompt`. The conventional
  *  five are discover/plan/execute/evaluate/improve, but any name is allowed. The
  *  stage named `evaluate` is special: its output is scanned for `SCORE: <0..1>`,
@@ -26,6 +41,9 @@ export const StageSchema = z.object({
   name: z.string().min(1),
   prompt: z.string().min(1),
   gate: z.string().optional(),
+  /** When set, the engine applies verification after running (or instead of running
+   *  once, for tournament/filter). A verify-failed stage acts like a gate failure. */
+  verify: VerifyModeSchema.optional(),
 });
 export type Stage = z.infer<typeof StageSchema>;
 

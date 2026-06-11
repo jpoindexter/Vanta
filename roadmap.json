@@ -9004,7 +9004,7 @@
       "id": "LOOP-VERIFY",
       "track": "Harness",
       "title": "Native verification primitives — adversarial fan-out, tournament, generate-filter",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The maker never grades its own work: checker subagents run isolated from the maker context with a refute posture and evidence requirements (N skeptics, majority rule); tournament (generate N, judge by rubric, pick winner) and generate-filter as engine primitives any loop stage can invoke. Steals adversarial-verify + content-engine tournament + playbook eval gates.",
       "done": "A loop stage can declare verify: adversarial(n=3) or tournament(n=5, rubric) and the engine runs isolated judges.",
@@ -9015,7 +9015,8 @@
       "updated": "2026-06-11",
       "after": [
         "LOOP-ENGINE"
-      ]
+      ],
+      "note": " Shipped 2026-06-11: adversarial fan-out (n skeptics, majority-refute), tournament (n candidates + judge scoring, pick winner), generate-filter (n candidates + binary pass/fail predicate). Stage.verify field in StageSchema. runStageWithVerify wired into runStages. 2454 tests green, tsc clean."
     },
     {
       "id": "WAKE-CONTEXT",

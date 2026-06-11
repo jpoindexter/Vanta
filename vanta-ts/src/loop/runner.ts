@@ -6,6 +6,7 @@ import type {
 } from "./types.js";
 import { effectivePassScore } from "./types.js";
 import { raiseEscalation, markInProgress, hasOpenEscalations } from "./state.js";
+import { runStageWithVerify } from "./verify.js";
 
 // Extracts a 0..1 score from evaluate-stage output. Case-insensitive SCORE: <n>.
 export function parseScore(text: string): number | null {
@@ -50,7 +51,8 @@ async function runStages(
       }
     }
 
-    const text = await deps.runStage({ stage, goal: def.goal, prior });
+    const { text, verifyFailedAt } = await runStageWithVerify(stage, def.goal, prior, deps.runStage);
+    if (verifyFailedAt) { gateFailedAt = verifyFailedAt; break; }
     prior = prior ? `${prior}\n\n## ${stage.name}\n${text}` : `## ${stage.name}\n${text}`;
 
     if (stage.name === "evaluate") {
