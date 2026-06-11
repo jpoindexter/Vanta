@@ -163,9 +163,11 @@ export function adjustedConfidence(e: BrainEntry): number {
   return Math.max(0, e.confidence - Math.min(0.5, e.contradicts.length * 0.15));
 }
 
-/** Strength × recency (14-day half-life) × adjusted confidence, with salience + retrieval bonuses. */
+/** Strength × recency (14-day half-life) × adjusted confidence, with salience + retrieval bonuses.
+ * Recency counts the last TOUCH — written or recalled — so a recently-recalled memory stays warm. */
 export function entryScore(e: BrainEntry, now = new Date()): number {
-  const ageDays = (now.getTime() - new Date(e.updatedAt).getTime()) / 86_400_000;
+  const lastTouch = e.accessedAt && e.accessedAt > e.updatedAt ? e.accessedAt : e.updatedAt;
+  const ageDays = (now.getTime() - new Date(lastTouch).getTime()) / 86_400_000;
   const recency = Math.exp(-ageDays / 14);
   const retrieval = Math.log1p(e.retrievalCount) / 10;
   return e.strength * recency * adjustedConfidence(e) * (1 + e.salience * 0.5 + retrieval);

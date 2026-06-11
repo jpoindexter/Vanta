@@ -8894,6 +8894,20 @@
       "effort": "medium",
       "lens": "selfhood",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "BRAIN-CONSOLIDATE",
+      "track": "Operator",
+      "title": "Brain consolidation — gist merging, decay sweep, hard entry budget",
+      "status": "shipped",
+      "size": "M",
+      "summary": "The sleep pass: near-duplicate memories in a region merge into one stronger gist (strength/links/reinforcement carried, marked crystallized), decayed entries fall away, and a hard budget (VANTA_BRAIN_MAX_ENTRIES, default 400) drops only the weakest-scored — entries.json stays bounded on disk forever. Links healed after every pass (absorbed ids remapped, dangling dropped). Auto-runs when over budget during the session digest. Scoring also now counts ACCESS recency: a recalled memory stays warm, not just a re-written one.",
+      "done": "Duplicate merge carries strength+retrievals+links and remaps references; consolidate enforces the budget weakest-first with healed links; maybeConsolidate fires only over budget from brainDigest; recalled-recently outranks untouched at equal strength; tests cover all of it.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "selfhood",
+      "updated": "2026-06-11"
     }
   ]
 }

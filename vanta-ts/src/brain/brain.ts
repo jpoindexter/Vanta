@@ -11,7 +11,10 @@ import {
   type UpsertOpts,
 } from "./entries.js";
 import { autoLink, associativeRecall, type Activation } from "./assoc.js";
+import { maybeConsolidate, consolidate, resolveMaxEntries } from "./consolidate.js";
 import { BRAIN_REGIONS } from "./regions.js";
+
+export { consolidate };
 
 // THE brain — one cohesive unit. Everything outside brain/ imports from here.
 // It composes two layers behind one surface:
@@ -81,6 +84,7 @@ export async function brainDigest(env: NodeJS.ProcessEnv = process.env): Promise
   } catch { /* regions unreadable — entries may still serve */ }
   try {
     await sweep(env).catch(() => {});
+    await maybeConsolidate(env); // over-budget? merge dupes + drop weakest (sleep-style)
     const top = await topEntries({ topK: DIGEST_ENTRIES, env });
     if (top.length) {
       parts.push(`### Structured recall (top ${top.length} by strength×recency)\n${top.map(formatEntry).join("\n")}`);
@@ -95,6 +99,8 @@ export type BrainHealth = {
   regionsMissing: string[];
   entryCount: number;
   decayedCount: number;
+  /** The entry budget — consolidation keeps entryCount at or under this. */
+  maxEntries: number;
 };
 
 /** Self-check both layers — what Vanta reads before repairing itself. */
@@ -116,5 +122,5 @@ export async function brainHealth(env: NodeJS.ProcessEnv = process.env): Promise
     entryCount = entries.length;
     decayedCount = entries.filter((e) => isDecayed(e)).length;
   } catch { /* counted as zero */ }
-  return { ok: missing.length === 0, regionsPresent: present, regionsMissing: missing, entryCount, decayedCount };
+  return { ok: missing.length === 0, regionsPresent: present, regionsMissing: missing, entryCount, decayedCount, maxEntries: resolveMaxEntries(env) };
 }
