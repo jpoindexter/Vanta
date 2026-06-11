@@ -642,7 +642,7 @@
       "status": "shipped",
       "size": "S",
       "summary": "pgup/pgdn scroll was already wired in alt-screen mode (useKeybindings has no busy gate). The only missing piece was snap-to-bottom on turn complete: `handleCommit` in app-reducer now resets `viewOffset: 0` so the user auto-sees the final response. `VirtualTranscript` already shows ↑/↓ scroll indicators when content is cut. Follow-up fix: the viewport clamped scroll to total-maxVisible ENTRIES while maxVisible is derived from terminal ROWS — short transcripts with tall (multi-line) entries were unscrollable. Clamp is now total-1 (every entry reachable) and the reducer ceilings viewOffset at entries-1 so over-scroll can't strand pgdn.",
-      "done": "User can scroll up (pgup/pgdn or ⇧↑/↓) to read history while agent is generating. View snaps back to bottom when the turn completes. Test added in app.test.tsx.",
+      "done": "User can scroll with the mouse/trackpad (SGR mouse reporting, use-mouse-wheel.ts), plain ↑/↓ while scrolled back, or pgup/pgdn/⇧↑↓ — during generation too. View snaps back to bottom when the turn completes. Native scrollback was lost when alt-screen mode shipped; mouse reporting restores it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",

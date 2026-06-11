@@ -43,6 +43,7 @@ export type KeybindingsDeps = {
   // transcript / scroll / mode
   altScreen: boolean;
   maxVisible: number;
+  viewOffset: number;
   dispatch: Dispatch<Action>;
   setMode: Dispatch<SetStateAction<ApprovalMode>>;
   modeRef: MutableRefObject<ApprovalMode>;
@@ -78,8 +79,9 @@ export function useKeybindings(d: KeybindingsDeps): void {
   useInput((input, key) => { if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" }); });
 
   // Virtual list: scroll the viewport in alt-screen mode (the alt buffer has no
-  // native scrollback, so keys are the only way). pgup/pgdn (fn+↑/↓ on a Mac
-  // keyboard) move half a page; shift+↑/↓ move one entry for fine control.
+  // native scrollback; the mouse wheel works via useMouseWheel's SGR reporting).
+  // pgup/pgdn (fn+↑/↓ on a Mac keyboard) move half a page; shift+↑/↓ move one
+  // entry for fine control.
   useInput((_in, key) => {
     const half = Math.max(1, Math.floor(d.maxVisible / 2));
     if (key.pageUp) d.dispatch({ t: "scrollBy", delta: half });
@@ -87,6 +89,15 @@ export function useKeybindings(d: KeybindingsDeps): void {
     else if (key.shift && key.upArrow) d.dispatch({ t: "scrollBy", delta: 1 });
     else if (key.shift && key.downArrow) d.dispatch({ t: "scrollBy", delta: -1 });
   }, { isActive: d.altScreen && !d.showPalette && !d.showAtPalette });
+
+  // While scrolled back, plain ↑/↓ keep scrolling (reading mode) — the composer
+  // suppresses history nav whenever viewOffset > 0 so the two can't collide.
+  // At the bottom, ↑/↓ return to input history as usual.
+  useInput((_in, key) => {
+    if (key.shift) return; // shift variants handled above
+    if (key.upArrow) d.dispatch({ t: "scrollBy", delta: 1 });
+    else if (key.downArrow) d.dispatch({ t: "scrollBy", delta: -1 });
+  }, { isActive: d.altScreen && d.viewOffset > 0 && !d.showPalette && !d.showAtPalette });
 
   // Shift+tab cycles the approval mode; keep modeRef in sync for requestApproval.
   useInput((_in, key) => { if (key.tab && key.shift) cycleApprovalMode(d.setMode, d.modeRef, d.dispatch); });

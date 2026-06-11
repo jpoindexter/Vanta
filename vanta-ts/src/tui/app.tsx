@@ -33,6 +33,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { useSubmit } from "./use-submit.js";
 import { useKeybindings } from "./use-keybindings.js";
+import { useMouseWheel } from "./use-mouse-wheel.js";
 import { buildConvoConfig } from "./conversation-config.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
@@ -84,7 +85,7 @@ function computeHint(o: DisplayOpts, showPalette: boolean, showAtPalette: boolea
   if (o.showHelp) return "? ⏎ — close help";
   const hasFoldable = o.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX)));
   const foldHint = hasFoldable ? `^O ${o.expanded ? "collapse" : "details"}  ` : "";
-  const scrollHint = o.altScreen && o.entries.length > o.maxVisible ? "⇧↑↓/pgup scroll  " : "";
+  const scrollHint = o.altScreen && o.entries.length > 1 ? "scroll/pgup  " : "";
   return `${scrollHint}${foldHint}/help  ?  /exit`;
 }
 
@@ -186,6 +187,9 @@ function composerColors(editActive: boolean, busy: boolean, showPalette: boolean
 
 function ChromeComposer(p: ChromeProps): ReactElement {
   const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors(p.editMode.active, p.state.busy, p.showPalette, p.showAtPalette);
+  // While scrolled back, ↑/↓ scroll the transcript (use-keybindings) — keep
+  // them out of input history until the view returns to the bottom.
+  const historyActive = isHistoryActive && p.state.viewOffset === 0;
   const elapsedMs = p.state.busy ? Date.now() : 0;
   const vimMode = VIM_ENABLED ? p.vimMode : undefined;
   return (
@@ -193,7 +197,7 @@ function ChromeComposer(p: ChromeProps): ReactElement {
       {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
       <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
         <Text color={promptColor}>{"› "}</Text>
-        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
+        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={historyActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
       </Box>
       {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
       {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
@@ -265,7 +269,8 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 
-  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, viewOffset: s.state.viewOffset, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  useMouseWheel(ALT_SCREEN, s.dispatch);
   const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
 
   const w = Math.max(24, cols - 2);

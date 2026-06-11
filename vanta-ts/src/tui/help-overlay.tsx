@@ -4,7 +4,10 @@ import { Box, Text } from "ink";
 const BINDINGS: ReadonlyArray<readonly [string, string]> = [
   ["⏎", "submit message"],
   ["⇧⏎", "insert newline (multiline)"],
-  ["↑ / ↓", "browse send history"],
+  ["↑ / ↓", "browse send history (scroll, while scrolled back)"],
+  ["wheel / trackpad", "scroll the transcript"],
+  ["pgup / pgdn", "scroll half a page (fn+↑/↓ on Mac)"],
+  ["⇧↑ / ⇧↓", "scroll one entry"],
   ["← / →", "move cursor left / right"],
   ["Ctrl+A", "cursor to line start"],
   ["Ctrl+E", "cursor to line end"],

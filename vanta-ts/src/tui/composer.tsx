@@ -144,9 +144,13 @@ function handleInsertSubmitHistory(input: string, key: Key, ctx: HandlerCtx): bo
   return handleHistoryNav(key, ctx);
 }
 
+// SGR mouse-report fragment (wheel events while mouse reporting is on) — must
+// never be inserted as text if one leaks through Ink's key parser.
+const MOUSE_SEQ_RE = /\[<\d+;\d+;\d+[Mm]/;
+
 // Returns true when the key is a non-printable control that should be ignored.
 function isIgnoredKey(input: string, key: Key): boolean {
-  return !input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape;
+  return !input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape || MOUSE_SEQ_RE.test(input);
 }
 
 function handleInsertChar(input: string, key: Key, ctx: HandlerCtx): void {
