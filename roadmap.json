@@ -154,7 +154,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "tui",
-      "updated": "2026-06-11"
+      "updated": "2026-06-12",
+      "notes": "Partial 2026-06-12 (commits 78a9b94, f4db2ed, 19b152d): the three target surfaces now share the design-demo treatment from docs/design-refs/tui-demo.html — pickers/approval render the full-width themed selection bar (Overlay/OverlayRow, accent resolved from VANTA_THEME, not hard-coded cyan); the approval prompt surfaces the gated command + a 'why' line as the kernel ASK verdict box; the status bar shows run-state and approval-mode chips. Remaining for full ship: extract named Tab/Dialog/Panel/StatusChip components, a live /theme switch command (currently env-driven), and the Tabs row."
     },
     {
       "id": "TUI-V2",
