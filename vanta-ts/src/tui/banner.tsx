@@ -131,21 +131,32 @@ function MetaColumn(props: { d: BannerData; root?: string; narrow: boolean }): R
   );
 }
 
+/** Truncate to one line with an ellipsis — the hermes-banner pattern: each
+ * category row is clipped to its column, NEVER wrapped. Multi-line Text wrap
+ * inside nested flex columns renders continuations at the parent origin under
+ * the vendored renderer, bleeding over the card border. */
+function clipLine(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, Math.max(1, max - 1))}…` : text;
+}
+
 /** Right column: the live capability inventory, grouped by domain. */
-function InventoryColumn(props: { d: BannerData; skillLabel: string; mcpCount: number }): ReactElement {
-  const { d, skillLabel, mcpCount } = props;
+function InventoryColumn(props: { d: BannerData; skillLabel: string; mcpCount: number; colWidth: number }): ReactElement {
+  const { d, skillLabel, mcpCount, colWidth } = props;
   const domains = groupToolsByDomain(d.toolNames);
   return (
     <Box flexDirection="column" flexGrow={1} paddingLeft={1}>
       <Section mark="▾" title="Capabilities" meta={`(${d.toolNames.length} tools · ${domains.length} domains)`}>
         <Box flexDirection="column">
-          {domains.map((g) => (
-            <Text key={g.label}>
-              {"  "}
-              <Text color="cyan">{g.label}</Text>
-              <Text dimColor>{`  ${g.tools.join(", ")}`}</Text>
-            </Text>
-          ))}
+          {domains.map((g) => {
+            const tools = clipLine(g.tools.join(", "), Math.max(8, colWidth - g.label.length - 4));
+            return (
+              <Text key={g.label} wrap="truncate-end">
+                {"  "}
+                <Text color="cyan">{g.label}</Text>
+                <Text dimColor>{`  ${tools}`}</Text>
+              </Text>
+            );
+          })}
         </Box>
       </Section>
       <Section mark="▸" title="Available Skills" meta={`(${skillLabel})`} />
@@ -226,7 +237,7 @@ export function Banner(props: { data: BannerData; root?: string; compact?: boole
         <Box flexDirection="column" borderStyle="round" borderColor="gray" borderTop={false} paddingX={1}>
           <Box flexDirection={narrow ? "column" : "row"}>
             <MetaColumn d={d} root={props.root} narrow={narrow} />
-            <InventoryColumn d={d} skillLabel={skillLabel} mcpCount={mcpCount} />
+            <InventoryColumn d={d} skillLabel={skillLabel} mcpCount={mcpCount} colWidth={width - 6 - (narrow ? 0 : META_COL)} />
           </Box>
           <Box marginTop={1} borderStyle="single" borderColor="gray" borderTop borderBottom={false} borderLeft={false} borderRight={false}>
             <Text dimColor>
