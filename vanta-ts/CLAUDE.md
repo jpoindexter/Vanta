@@ -219,6 +219,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Cohesive brain (BRAIN-COHESIVE):** the brain is one unit — `brain/brain.ts` facade composing the md regions with a structured entries layer (`brain/entries.ts`, rebuilt from the dormant brain5d + neuro modules, now deleted). `brainDigest` (session.ts) injects regions + top scored memories in one digest; the `brain` tool gains `remember`/`recall` actions (recall reinforces → crystallization). Always-on; per-layer best-effort; corrupt store quarantined; legacy `brain5d.json` migrated. `brain/v2.ts` (self-evolving substrate) parked — see PARKED.md + DECISIONS 2026-06-11.
 
+**Turn-abort hardening (post-incident, see ERRORS.md 2026-06-11):** `sanitizeMessages` now also synthesizes stub results for DANGLING assistant tool calls (a turn aborted mid-dispatch used to brick the session — every later call 400s on the missing tool output; saved sessions resumed the brick). `applySafetyGate` fails CLOSED but gracefully when the kernel is unreachable (blocked tool result + "restart vanta", instead of throwing through the loop); approval-queue bookkeeping is best-effort. TUI scroll: alt-screen viewport scrolls via pgup/pgdn (fn+↑/↓ on Mac) **and** ⇧↑/⇧↓ fine-scroll; the mouse wheel cannot scroll an alt-screen (no scrollback). Composer already supports ⌥⌫ (kill word) and ^U (kill to start); a literal cmd+⌫ never reaches terminal apps unless the terminal maps it (e.g. iTerm: cmd+⌫ → send hex 0x15).
+
 **Comment convention:** code comments + commit messages stay Vanta-native — no Claude Code / `CC-` / Hermes provenance (the real `claude-code` provider integration + roadmap card-ids are kept).
 
 ## Session additions (2026-06-02/03) — keep current

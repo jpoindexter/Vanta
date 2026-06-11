@@ -77,11 +77,15 @@ export function useKeybindings(d: KeybindingsDeps): void {
   // Ctrl+O folds/unfolds tool detail across the transcript.
   useInput((input, key) => { if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" }); });
 
-  // Virtual list: pgup/pgdn scroll the virtual viewport in alt-screen mode.
+  // Virtual list: scroll the viewport in alt-screen mode (the alt buffer has no
+  // native scrollback, so keys are the only way). pgup/pgdn (fn+↑/↓ on a Mac
+  // keyboard) move half a page; shift+↑/↓ move one entry for fine control.
   useInput((_in, key) => {
     const half = Math.max(1, Math.floor(d.maxVisible / 2));
     if (key.pageUp) d.dispatch({ t: "scrollBy", delta: half });
     else if (key.pageDown) d.dispatch({ t: "scrollBy", delta: -half });
+    else if (key.shift && key.upArrow) d.dispatch({ t: "scrollBy", delta: 1 });
+    else if (key.shift && key.downArrow) d.dispatch({ t: "scrollBy", delta: -1 });
   }, { isActive: d.altScreen && !d.showPalette && !d.showAtPalette });
 
   // Shift+tab cycles the approval mode; keep modeRef in sync for requestApproval.

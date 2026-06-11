@@ -171,6 +171,32 @@ describe("compressMessages", () => {
 });
 
 describe("sanitizeMessages", () => {
+  it("synthesizes a stub result for a dangling assistant tool_call (aborted turn)", () => {
+    const msgs: Message[] = [
+      { role: "user", content: "do it" },
+      { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "shell_cmd", arguments: {} }] },
+      // turn aborted here — no tool result ever recorded
+      { role: "user", content: "hello?" },
+    ];
+    const out = sanitizeMessages(msgs);
+    const stub = out.find((m) => m.role === "tool");
+    expect(stub).toMatchObject({ role: "tool", toolCallId: "c1", name: "shell_cmd" });
+    expect(stub && "content" in stub ? stub.content : "").toContain("interrupted");
+    // The stub lands directly after its assistant message (API ordering).
+    expect(out.findIndex((m) => m.role === "tool")).toBe(2);
+  });
+
+  it("does not duplicate a result that already exists for a call", () => {
+    const msgs: Message[] = [
+      { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "read_file", arguments: {} }] },
+      { role: "tool", toolCallId: "c1", name: "read_file", content: "real result" },
+    ];
+    const out = sanitizeMessages(msgs);
+    expect(out.filter((m) => m.role === "tool")).toHaveLength(1);
+    const only = out.find((m) => m.role === "tool");
+    expect(only && "content" in only ? only.content : "").toBe("real result");
+  });
+
   it("drops an orphaned tool result (no matching assistant tool_call)", () => {
     const msgs: Message[] = [
       { role: "system", content: "s" },

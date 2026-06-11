@@ -75,4 +75,24 @@ describe("applySafetyGate + permissions", () => {
     expect(res.approved).toBe(true);
     expect(prompted).toBe(true);
   });
+
+  it("kernel unreachable → fails CLOSED gracefully (blocked result, no throw)", async () => {
+    const deps = makeDeps({ risk: "allow" });
+    (deps.safety as unknown as { assess: () => Promise<never> }).assess = async () => {
+      throw new Error("fetch failed");
+    };
+    const res = await applySafetyGate(call, deps, ctx);
+    expect(res.approved).toBe(false);
+    expect(res.reason).toContain("kernel unreachable");
+    expect(res.reason).toContain("restart vanta");
+  });
+
+  it("a kernel hiccup during approval-queue bookkeeping does not abort an approved turn", async () => {
+    const deps = makeDeps({ risk: "ask", approve: true });
+    (deps.safety as unknown as { proposeApproval: () => Promise<never> }).proposeApproval = async () => {
+      throw new Error("fetch failed");
+    };
+    const res = await applySafetyGate(call, deps, ctx);
+    expect(res.approved).toBe(true); // bookkeeping is best-effort
+  });
 });

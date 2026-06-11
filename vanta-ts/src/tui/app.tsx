@@ -83,7 +83,7 @@ function computeHint(o: DisplayOpts, showPalette: boolean, showAtPalette: boolea
   if (o.showHelp) return "? ⏎ — close help";
   const hasFoldable = o.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX)));
   const foldHint = hasFoldable ? `^O ${o.expanded ? "collapse" : "details"}  ` : "";
-  const scrollHint = o.altScreen && o.entries.length > o.maxVisible ? "pgup/pgdn  " : "";
+  const scrollHint = o.altScreen && o.entries.length > o.maxVisible ? "⇧↑↓/pgup scroll  " : "";
   return `${scrollHint}${foldHint}/help  ?  /exit`;
 }
 

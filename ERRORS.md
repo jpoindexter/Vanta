@@ -35,3 +35,13 @@ Append-only. Approaches that took >2 attempts. Check this before debugging simil
 - A fixed-height frame needs `flexShrink={0}` on every fixed-size child or Yoga silently collapses them.
 
 **Lesson:** verify resize handling with a rapid storm in BOTH directions, never a single resize. And never build on an assumed Yoga layout behavior — probe it with a 10-line ink-testing-library render first.
+
+## 2026-06-11 — Killed the kernel under a live session → bricked transcript (Codex 400)
+
+**Symptom:** After rebuilding the kernel I killed the old process (port 7788) while a Vanta session was OPEN. The live session's next tool call failed (`error: fetch failed` — safety client lost the kernel), the turn aborted mid-dispatch, and from then on EVERY turn failed: `Codex request failed (400): No tool output found for function call call_…`. The session was bricked; /compact etc. appeared "broken" too (same kernel-down root cause).
+
+**What failed:** (1) `applySafetyGate` had no try/catch around `safety.assess()` — a kernel fetch failure threw through dispatchTool → runTurn → the turn died AFTER the assistant tool_calls message was pushed but BEFORE any tool result landed. (2) `sanitizeMessages` only dropped orphaned tool RESULTS, not dangling assistant tool CALLS — so the malformed transcript replayed forever (saved sessions resume it too).
+
+**What worked:** Fail closed, gracefully: assess() failure now returns a blocked tool result ("safety kernel unreachable — restart vanta") so the transcript stays consistent and the session survives; approval-queue bookkeeping is best-effort. And `sanitizeMessages` now synthesizes a stub result for any dangling call ("[no result — the turn was interrupted…]") right after its assistant message — self-heals new aborts AND existing bricked session files on their next call.
+
+**Lesson:** the kernel is a live dependency of every open session — never kill/replace it while a session is running without restarting the session; and any code path that appends an assistant tool_calls message must guarantee a result lands for every call id, even on abort. Transcript consistency is an invariant, not a happy-path property.

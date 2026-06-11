@@ -8922,6 +8922,34 @@
       "effort": "medium",
       "lens": "selfhood",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "HARDEN-TURN-ABORT",
+      "track": "Harness",
+      "title": "Turn-abort hardening — transcripts self-heal, kernel-down fails closed gracefully",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Incident fix (ERRORS.md 2026-06-11): a turn aborting mid-dispatch (kernel death, network drop) left a dangling assistant tool_call that 400d every later request — bricking the session and its saved file. sanitizeMessages now synthesizes stub results for dangling calls (heals new aborts AND existing bricked sessions on resume); applySafetyGate returns a graceful blocked result when the kernel is unreachable instead of throwing through the loop; approval-queue bookkeeping is best-effort.",
+      "done": "A kernel-down tool call yields a blocked result and the turn continues; a transcript with a dangling call gets a stub and the next request succeeds; tests cover both + no-duplicate-stub.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "TUI-SCROLL-KEYS",
+      "track": "Operator",
+      "title": "TUI scroll keys — shift-arrows fine scroll + clearer hint",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Alt-screen has no native scrollback, so keys are the only scroll. Added shift+up/down single-entry scroll alongside pgup/pgdn (fn+arrows on Mac); hint now reads (shift-arrows/pgup scroll). Composer already has opt+backspace kill-word and ctrl+U kill-to-start; real cmd+backspace requires a terminal mapping (documented).",
+      "done": "shift-arrow scrolls the virtual viewport by one entry in alt-screen; hint shows the keys; existing pgup/pgdn unchanged.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "updated": "2026-06-11"
     }
   ]
 }

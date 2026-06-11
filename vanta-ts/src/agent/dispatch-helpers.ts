@@ -27,7 +27,18 @@ export async function applySafetyGate(
   }
 
   const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
-  const verdict = await deps.safety.assess(action);
+  // The kernel is THE boundary: if it is unreachable, fail CLOSED — but gracefully,
+  // as a blocked tool result. Throwing here aborts the turn mid-dispatch and leaves
+  // a dangling assistant tool_call that 400s every later request in the session.
+  let verdict: Verdict;
+  try {
+    verdict = await deps.safety.assess(action);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const output = `blocked: safety kernel unreachable (${msg}) — restart vanta to relaunch it`;
+    deps.onToolResult?.(call.name, false, output);
+    return { approved: false, reason: output };
+  }
 
   // Permissions: the kernel verdict is the floor. User rules may TIGHTEN it
   // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
@@ -56,13 +67,14 @@ async function handleApprovalRequest(
   const why = verdict.reason || "permission rule";
   const approved = await deps.requestApproval(action, why, call.name);
   // Reconcile the kernel approval queue ONLY when the kernel itself asked.
-  const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action) : null;
+  // Queue bookkeeping is best-effort — a kernel hiccup must not abort the turn.
+  const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action).catch(() => null) : null;
   if (!approved) {
-    if (id) await deps.safety.deny(id);
+    if (id) await deps.safety.deny(id).catch(() => {});
     deps.onToolResult?.(call.name, false, "denied by user");
     return { approved: false, reason: `denied by user: ${why}` };
   }
-  if (id) await deps.safety.approve(id);
+  if (id) await deps.safety.approve(id).catch(() => {});
   return { approved: true };
 }
 
