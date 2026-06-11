@@ -31,6 +31,7 @@ export type SubmitDeps = {
   buildCtx: () => ReplCtx;
   openSessions: () => void;
   openModel: () => void;
+  openSkills: () => void;
   exit: () => void;
   setInput: Dispatch<SetStateAction<string>>;
   setEditMode: Dispatch<SetStateAction<EditMode>>;
@@ -69,6 +70,7 @@ function runSlash(line: string, d: SubmitDeps): void {
   const resolvedArg = parts.slice(1).join(" ").trim();
   if (resolvedCmd === "sessions" && !resolvedArg) return void d.openSessions();
   if (resolvedCmd === "model" && !resolvedArg) return void d.openModel();
+  if (resolvedCmd === "skills" && !resolvedArg) return void d.openSkills();
   void executeSlash(effective, d.buildCtx()).then((r) => applySlashResult(r, d));
 }
 

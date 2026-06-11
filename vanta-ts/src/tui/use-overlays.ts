@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { buildSummarizer } from "../session.js";
 import { executeSlash, type ReplCtx, type ReplState } from "../repl-commands.js";
 import { listSessions, deleteSession, type SessionMeta } from "../sessions/store.js";
+import { listSkills, readSkill } from "../skills/store.js";
+import type { Skill } from "../skills/types.js";
 import { providerById } from "../providers/catalog.js";
 import { buildProviderForSelection, persistSelectionGlobal } from "./model-switch.js";
 import type { Conversation } from "../agent.js";
@@ -11,7 +13,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import type { ModelSelection } from "./model-picker.js";
 import type { Action } from "./app.js";
 
-export type OverlayKind = null | "sessions" | "model";
+export type OverlayKind = null | "sessions" | "model" | "skills";
 
 type ModelApplyDeps = {
   convoRef: import("react").MutableRefObject<import("../agent.js").Conversation | null>;
@@ -65,6 +67,7 @@ export type OverlaysResult = {
   overlay: OverlayKind;
   setOverlay: (o: OverlayKind) => void;
   sessionList: SessionMeta[];
+  skillList: Skill[];
   buildCtx: () => ReplCtx;
   openSessions: () => void;
   resumeSession: (id: string) => void;
@@ -72,6 +75,8 @@ export type OverlaysResult = {
   removeSession: (id: string) => void;
   openModel: () => void;
   selectModel: (sel: ModelSelection) => void;
+  openSkills: () => void;
+  invokeSkill: (name: string) => void;
 };
 
 // Owns the TUI's overlay state and the side-effecting handlers behind the
@@ -82,6 +87,7 @@ export function useOverlays(deps: OverlaysDeps): OverlaysResult {
   const { convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch } = deps;
   const [overlay, setOverlay] = useState<OverlayKind>(null);
   const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
+  const [skillList, setSkillList] = useState<Skill[]>([]);
 
   const buildCtx = (): ReplCtx => ({
     convo: convoRef.current!,
@@ -116,6 +122,22 @@ export function useOverlays(deps: OverlaysDeps): OverlaysResult {
 
   const openModel = (): void => setOverlay("model");
 
+  const openSkills = (): void => {
+    void listSkills(process.env).then((list) => {
+      setSkillList(list);
+      setOverlay("skills");
+    });
+  };
+
+  const invokeSkill = (name: string): void => {
+    setOverlay(null);
+    void readSkill(name).then((skill) => {
+      if (!skill) { dispatch({ t: "note", text: `  skill "${name}" not found` }); return; }
+      if (!convoRef.current) return;
+      runSlashAndClear(`/run ${name}`, buildCtx(), dispatch, setOverlay);
+    });
+  };
+
   const selectModel = (sel: ModelSelection): void => {
     try {
       applyModelSelection(sel, { convoRef, setActiveProvider, repoRoot, dispatch });
@@ -125,5 +147,5 @@ export function useOverlays(deps: OverlaysDeps): OverlaysResult {
     setOverlay(null);
   };
 
-  return { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel };
+  return { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill };
 }

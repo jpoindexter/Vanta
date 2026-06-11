@@ -2632,14 +2632,15 @@
       "id": "CC-SKILLS-MENU",
       "track": "Operator",
       "title": "SkillsMenu — in-TUI skill browser and picker",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC's SkillsMenu is a browsable, searchable in-TUI menu of all installed skills with their descriptions and invocation syntax. Vanta shows skills in the banner and /skills lists them, but there's no interactive in-TUI skill picker.",
-      "done": "/skills opens SkillsMenu; arrow keys navigate; Enter invokes the skill; search filters by name/description; installed vs available skills are distinguished.",
+      "summary": "Bare `/skills` in the TUI now opens an interactive picker (tui/skills-picker.tsx): type-to-filter by name/description, ↑↓ navigate, ⏎ invokes the skill through the agent, Esc closes. New 'skills' OverlayKind in use-overlays (openSkills/invokeSkill + skillList state); use-submit routes bare /skills to the overlay (with-arg falls through to the list handler). ChromeSkills wired in app.tsx BottomChrome.",
+      "done": "/skills opens SkillsMenu; arrow keys navigate; Enter invokes the skill; search filters by name/description. Suite green, tsc clean, size gate clean.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-11"
     },
     {
       "id": "CC-ADVISOR-MSG",

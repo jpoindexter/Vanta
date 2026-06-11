@@ -13,6 +13,7 @@ import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { EntryRow, Palette, type Entry } from "./transcript.js";
+import { SkillsPicker } from "./skills-picker.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
@@ -133,6 +134,8 @@ type ChromeProps = {
   newSession: ReturnType<typeof useOverlays>["newSession"];
   removeSession: ReturnType<typeof useOverlays>["removeSession"];
   selectModel: ReturnType<typeof useOverlays>["selectModel"];
+  skillList: ReturnType<typeof useOverlays>["skillList"];
+  invokeSkill: ReturnType<typeof useOverlays>["invokeSkill"];
   setOverlay: ReturnType<typeof useOverlays>["setOverlay"];
   setInput: (v: string) => void;
   submit: (v: string) => void;
@@ -152,6 +155,15 @@ function ChromeSessions(p: Pick<ChromeProps, "sessionList" | "replStateRef" | "r
     <Box flexDirection="column" marginTop={1}>
       <SessionsPicker sessions={p.sessionList} currentId={p.replStateRef.current.sessionId} currentTurns={p.replStateRef.current.turnIndex} nowMs={Date.now()} width={p.w} onResume={p.resumeSession} onNew={p.newSession} onDelete={p.removeSession} onCancel={() => p.setOverlay(null)} />
       <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}choosing session…</Text></Box>
+    </Box>
+  );
+}
+
+function ChromeSkills(p: Pick<ChromeProps, "skillList" | "invokeSkill" | "setOverlay" | "w">): ReactElement {
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      <SkillsPicker skills={p.skillList} onInvoke={p.invokeSkill} onCancel={() => p.setOverlay(null)} width={p.w} />
+      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}browsing skills…</Text></Box>
     </Box>
   );
 }
@@ -194,6 +206,7 @@ function BottomChrome(p: ChromeProps): ReactElement {
   if (p.pending) return <ChromeApproval pending={p.pending} chooseApproval={p.chooseApproval} w={p.w} />;
   if (p.overlay === "sessions") return <ChromeSessions sessionList={p.sessionList} replStateRef={p.replStateRef} resumeSession={p.resumeSession} newSession={p.newSession} removeSession={p.removeSession} setOverlay={p.setOverlay} w={p.w} />;
   if (p.overlay === "model") return <ChromeModel activeProvider={p.activeProvider} selectModel={p.selectModel} setOverlay={p.setOverlay} w={p.w} />;
+  if (p.overlay === "skills") return <ChromeSkills skillList={p.skillList} invokeSkill={p.invokeSkill} setOverlay={p.setOverlay} w={p.w} />;
   return <ChromeComposer {...p} />;
 }
 
@@ -217,13 +230,13 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   const [vimMode, setVimMode] = useState<VimMode>("insert");
   const [editMode, setEditMode] = useState({ active: false, messageIndex: -1 });
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
-  const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
+  const { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
   useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel };
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, invokeSkill };
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────
@@ -252,7 +265,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 
   useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
-  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
+  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
 
   const w = Math.max(24, cols - 2);
   const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
@@ -260,7 +273,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
     ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
     : s.state.entries;
   const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill: s.invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   if (ALT_SCREEN) {
     return (
