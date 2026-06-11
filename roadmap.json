@@ -282,14 +282,15 @@
       "id": "COMPRESS-CODE-AST",
       "track": "Harness",
       "title": "AST code compressor (keep signatures, drop bodies)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Follow-up to COMPRESS-NATIVE. Headroom's CodeCompressor, native: for.ts/.tsx tool outputs (file reads), use the TS compiler API (already in lint/size.ts + lsp/ts-service.ts) to keep imports/signatures/types and elide function bodies → big shrink on large file reads while the agent keeps the shape. Reversible via the existing CCR store. Only fires on detected code; text stays untouched.",
       "done": "Large.ts/.tsx tool outputs compress by eliding function bodies while preserving imports + signatures; reversible via retrieve_original.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "note": "ast-compress.ts uses TS compiler API to elide function bodies (≥4 lines) while preserving imports, types, and signatures. Wired into dispatch-helpers compressOutput for read_file; applyCodeCompression stashes original in CCR for retrieval. 11 tests."
     },
     {
       "id": "CC-SEND-MSG",

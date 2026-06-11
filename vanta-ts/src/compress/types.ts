@@ -10,7 +10,7 @@ export function estTokens(text: string): number {
 }
 
 /** Content classes the router recognizes; picks the compressor. */
-export type ContentType = "json" | "logs" | "text" | "binary";
+export type ContentType = "json" | "logs" | "text" | "binary" | "code";
 
 export interface CompressResult {
   /** The compressed (or original, if not worth it) text. */

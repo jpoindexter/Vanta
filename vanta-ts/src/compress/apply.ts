@@ -1,6 +1,8 @@
 import type { CompressOptions } from "./types.js";
 import { compressText } from "./router.js";
 import { stashOriginal } from "./store.js";
+import { estTokens, DEFAULTS } from "./types.js";
+import { isCodeContent, compressTypeScript } from "./ast-compress.js";
 
 // The impure seam: wrap the pure router with CCR stashing + a retrieval footer.
 // Called once per tool result in the agent loop (never the system prefix, never
@@ -39,6 +41,31 @@ export function shouldCompressTool(name: string): boolean {
 export interface ApplyResult {
   output: string;
   tokensSaved: number;
+}
+
+/**
+ * AST-compress a TypeScript/JavaScript read_file output. Only fires when:
+ * - Content passes the TS heuristic (import/export patterns)
+ * - Output is above minTokens threshold
+ * - AST elision actually shrinks the text
+ * Best-effort: any error → original output.
+ */
+export async function applyCodeCompression(output: string, dataDir: string): Promise<ApplyResult> {
+  try {
+    const tokensBefore = estTokens(output);
+    if (tokensBefore < DEFAULTS.minTokens || !isCodeContent(output)) {
+      return { output, tokensSaved: 0 };
+    }
+    const compressed = compressTypeScript(output);
+    const tokensAfter = estTokens(compressed);
+    if (tokensAfter >= tokensBefore) return { output, tokensSaved: 0 };
+    const id = await stashOriginal(dataDir, output);
+    const saved = tokensBefore - tokensAfter;
+    const footer = `\n\n[vanta compressed ${tokensBefore}→${tokensAfter} tokens (code); original_id="${id}" — call retrieve_original to expand]`;
+    return { output: compressed + footer, tokensSaved: saved };
+  } catch {
+    return { output, tokensSaved: 0 };
+  }
 }
 
 /**

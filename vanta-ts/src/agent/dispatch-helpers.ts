@@ -5,7 +5,7 @@ import type { ToolCall, Verdict } from "../types.js";
 import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
-import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { join } from "node:path";
@@ -123,9 +123,15 @@ export async function compressOutput(
   output: string,
   dataDir: string,
 ): Promise<{ output: string; tokensSaved: number }> {
-  if (!compressEnabled() || !shouldCompressTool(toolName)) {
-    return { output, tokensSaved: 0 };
+  if (!compressEnabled()) return { output, tokensSaved: 0 };
+  const vantaDir = join(dataDir, ".vanta");
+  // read_file: AST code compressor only (preserves structure; json-crush/log-squash
+  // are banned here because line numbers and precision matter for file edits).
+  if (toolName === "read_file") {
+    const applied = await applyCodeCompression(output, vantaDir);
+    return { output: applied.output, tokensSaved: applied.tokensSaved || 0 };
   }
-  const applied = await applyCompression(output, join(dataDir, ".vanta"));
+  if (!shouldCompressTool(toolName)) return { output, tokensSaved: 0 };
+  const applied = await applyCompression(output, vantaDir);
   return { output: applied.output, tokensSaved: applied.tokensSaved || 0 };
 }
