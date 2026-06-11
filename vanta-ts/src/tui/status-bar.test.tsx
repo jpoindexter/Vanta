@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { StatusBar, estimateTokens, formatCount, progressBar, formatDuration, tokenWarningLevel, tokenWarnFractions, tokenWarnDecor } from "./status-bar.js";
 
 describe("status-bar helpers", () => {

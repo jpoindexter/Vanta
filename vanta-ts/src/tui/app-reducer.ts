@@ -1,7 +1,7 @@
 import type { Entry } from "./transcript.js";
 import type { DiffLine } from "../util/diff.js";
 
-export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean; viewOffset: number; focusMode: boolean };
+export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean; focusMode: boolean };
 
 export type Action =
   | { t: "user"; text: string }
@@ -17,8 +17,6 @@ export type Action =
   | { t: "dequeue" }
   | { t: "toggleExpand" }
   | { t: "toggleFocus" }
-  | { t: "scrollBy"; delta: number }
-  | { t: "scrollReset" }
   | { t: "clear" };
 
 function commitStreaming(entries: Entry[], streaming: string): Entry[] {
@@ -55,13 +53,13 @@ function handleCommit(s: State, a: Extract<Action, { t: "commit" }>): State {
   // loop returned nothing (e.g. an interrupt with partial output).
   const text = a.finalText.trim() || s.streaming.trim();
   const entries = text ? [...s.entries, { kind: "assistant" as const, text }] : s.entries;
-  return { ...s, entries, streaming: "", busy: false, status: "idle", viewOffset: 0 };
+  return { ...s, entries, streaming: "", busy: false, status: "idle" };
 }
 
 function handleInterrupted(s: State): State {
   // Preserve any partial streamed text, then a distinct marker; the turn ends.
   const entries = commitStreaming(s.entries, s.streaming);
-  return { ...s, entries: [...entries, { kind: "interrupted", text: "interrupted — agent stopped mid-turn" }], streaming: "", busy: false, status: "idle", viewOffset: 0 };
+  return { ...s, entries: [...entries, { kind: "interrupted", text: "interrupted — agent stopped mid-turn" }], streaming: "", busy: false, status: "idle" };
 }
 
 function handleAppend(s: State, a: Extract<Action, { t: "compactBoundary" | "note" | "thinking" | "enqueue" }>): State {
@@ -72,7 +70,7 @@ function handleAppend(s: State, a: Extract<Action, { t: "compactBoundary" | "not
   return { ...s, entries: [...s.entries, { kind, text: a.text }] };
 }
 
-type SimpleAction = Extract<Action, { t: "delta" | "dequeue" | "toggleExpand" | "toggleFocus" | "scrollBy" | "scrollReset" | "clear" }>;
+type SimpleAction = Extract<Action, { t: "delta" | "dequeue" | "toggleExpand" | "toggleFocus" | "clear" }>;
 
 function handleSimple(s: State, a: SimpleAction): State {
   switch (a.t) {
@@ -80,19 +78,15 @@ function handleSimple(s: State, a: SimpleAction): State {
     case "dequeue":      return { ...s, queued: s.queued.slice(1) };
     case "toggleExpand": return { ...s, expanded: !s.expanded };
     case "toggleFocus":  return { ...s, focusMode: !s.focusMode };
-    // Ceiling at entries-1 so over-scrolling can't inflate the offset: an
-    // unbounded offset made pgdn appear dead while the excess unwound.
-    case "scrollBy":     return { ...s, viewOffset: Math.min(Math.max(0, s.viewOffset + a.delta), Math.max(0, s.entries.length - 1)) };
-    case "scrollReset":  return { ...s, viewOffset: 0 };
     case "clear":
-      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: s.focusMode };
+      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, focusMode: s.focusMode };
   }
 }
 
 export function reduce(s: State, a: Action): State {
   switch (a.t) {
     case "user":
-      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], busy: true, streaming: "", status: "thinking", viewOffset: 0 };
+      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], busy: true, streaming: "", status: "thinking" };
     case "toolCall":     return handleToolCall(s, a);
     case "toolResult":   return handleToolResult(s, a);
     case "commit":       return handleCommit(s, a);

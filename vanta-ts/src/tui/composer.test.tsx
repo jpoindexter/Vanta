@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { useState } from "react";
 import { Composer } from "./composer.js";
 

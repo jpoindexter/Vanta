@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { ModelPicker, fuzzyFilter } from "./model-picker.js";
 import type { ProviderEntry } from "../providers/catalog.js";
 
@@ -12,7 +12,7 @@ const PROVIDERS: ProviderEntry[] = [
 const hasKey = (e: ProviderEntry): boolean => e.envVar === null || e.id === "gemini";
 
 const ESC = String.fromCharCode(27); const KEY = { down: ESC + "[B", up: ESC + "[A", enter: String.fromCharCode(13), esc: ESC, ctrlG: String.fromCharCode(7) };
-const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 20));
+const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 70)); // > the input parser's 50ms lone-Esc flush timeout
 
 const base = { providers: PROVIDERS, currentProviderId: "gemini", currentModel: "gemini-2.5-flash", hasKey, width: 80 };
 

@@ -4,7 +4,7 @@ The TypeScript agent loop. Read root `../CLAUDE.md` for the kernel + project ove
 
 ## Runtime
 
-Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`, `process.loadEnvFile` — **no dotenv, no axios.** Relative imports use `.js` extensions (ESM convention; tsx resolves to `.ts`). **TUI** uses React/Ink 7 (`jsx: react-jsx` automatic runtime — components don't import React; `.tsx` runs under tsx + vitest). Deps: `ink`, `react`, `ink-text-input`.
+Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`, `process.loadEnvFile` — **no dotenv, no axios.** Relative imports use `.js` extensions (ESM convention; tsx resolves to `.ts`). **TUI** uses React 19 + the **vendored hermes-ink fork** (`vendor/hermes-ink`, MIT, aliased as `ink` in package.json — see its `VENDORED.md`): AlternateScreen + line-based ScrollBox + native mouse-wheel key events. Its type surface is hand-declared in `src/types/ink.d.ts` (the fork's shipped d.ts re-exports `.ts` paths tsc can't follow); runtime loads `vendor/hermes-ink/dist` (esbuild bundle, committed — rebuild cmd in VENDORED.md). Component tests use `tui/test-render.tsx` (renderSync + terminal-grid emulator), NOT ink-testing-library. Deps: `ink` (=fork), `react`, `ink-text-input`.
 
 ## File map (`src/`)
 
@@ -13,13 +13,16 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
-| `tui/app.tsx` | The Ink/React TUI: App component only — wires hooks, JSX, palette logic, submit. Delegates state to `app-reducer.ts` and agent I/O to `use-agent-send.ts` |
+| `tui/app.tsx` | The TUI App: `<AlternateScreen mouseTracking="wheel"><ScrollBox stickyScroll>` transcript + bottom chrome. Delegates state to `app-reducer.ts`, agent I/O to `use-agent-send.ts`, scroll keys to `use-scroll-keys.ts` |
+| `tui/use-scroll-keys.ts` | Wheel/trackpad (fork's wheelUp/wheelDown key events) + pgup/pgdn + ⇧↑↓ + ^End → `ScrollBoxHandle.scrollBy/scrollToBottom`. Line-based; stickyScroll re-pins on new turn |
+| `tui/test-render.tsx` | Test harness replacing ink-testing-library: `renderSync` + fake stdio (paused-mode stdin w/ `readableLength`) + a terminal-grid emulator (frames use cursor-move spacing + sync-update wraps). Lone-Esc tests need ticks > the parser's 50ms flush |
+| `vendor/hermes-ink/` | The vendored Ink fork (MIT, NousResearch/hermes-agent) aliased as `ink` — ScrollBox, AlternateScreen, mouse-aware keypress parser. Local deltas + rebuild cmd in `VENDORED.md`; its 16 test files run in our vitest |
 | `tui/app-reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `app.test.tsx`) |
 | `tui/use-agent-send.ts` | `useAgentSend` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
 | `tui/markdown.tsx` | `renderMarkdown` — minimal Ink markdown renderer: headers, fenced code, bullets, numbered, inline **bold** + `code`. Pure `tokenizeInline` + `parseBlocks` (tested) |
 | `tui/at-context.ts` | U2 @-context: `parseAtRefs`, `activeAtRef`, `buildContextBlock`, `listRepoFiles` (depth-3 repo walk, skips build dirs). Powers TUI @ autocomplete + submit context injection |
 | `tui/launch.tsx` | `runTui(repoRoot)` — prepareRun + maybeCurate + `render(<App/>)`. `vanta` uses it on a TTY; readline REPL is the fallback |
-| `tui/alt-frame.tsx` + `tui/use-term-size.ts` | Alt-screen fullscreen-fill frame: a viewport of blank filler above the content keeps every frame overflowing → Ink always takes its clearTerminal path (no resize ghosts; see ERRORS.md 2026-06-10 pt 2) + reactive terminal-size / debounced resize-redraw hooks |
+| `tui/use-term-size.ts` | Reactive terminal-size hook (cols for layout width). The old AltFrame/VirtualTranscript entry-granular alt-screen stack was deleted 2026-06-11 — the vendored fork's AlternateScreen + ScrollBox replaced it |
 | `providers/index.ts` | `resolveProvider(env)` — reads `VANTA_PROVIDER`/`VANTA_MODEL`. openai/ollama/anthropic/**gemini**/**openrouter**/**claude-code** (gemini+openrouter = OpenAI adapter w/ baseURL swap; claude-code = Anthropic adapter w/ OAuth token) |
 | `providers/claude-code-auth.ts` | v1 G1 — `resolveClaudeCodeToken` reads a Claude Pro/Max OAuth token (env or `~/.claude/.credentials.json`), `isTokenExpired`. **Grey area** (ToS); `VANTA_PROVIDER=claude-code`. No refresh (Claude Code keeps creds fresh). See DECISIONS 2026-06-02 |
 | `providers/catalog.ts` | `PROVIDER_CATALOG` — small shared `{id,label,envVar,defaultModel,signupUrl}` list the setup wizard + `doctor` read. **Not** the full registry (deferred); extend alongside `resolveProvider` |

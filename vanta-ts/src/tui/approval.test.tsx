@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { ApprovalPrompt, buildApprovalOptions } from "./approval.js";
 
 const ESC = String.fromCharCode(27); const KEY = { down: ESC + "[B", up: ESC + "[A", enter: String.fromCharCode(13), esc: ESC };
-const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 20));
+const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 70)); // > the input parser's 50ms lone-Esc flush timeout
 
 describe("buildApprovalOptions", () => {
   it("offers once/session/always/deny when a tool name keys the allowlist", () => {

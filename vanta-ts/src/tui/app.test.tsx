@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { App, reduce, type State } from "./app.js";
 import { EntryRow, type Entry } from "./transcript.js";
 import type { RunSetup } from "../session.js";
 
-const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false };
+const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, focusMode: false };
 
 describe("tui reduce", () => {
   it("user submit adds an entry and goes busy/thinking", () => {
@@ -68,31 +68,6 @@ describe("tui reduce", () => {
     expect(e?.kind === "tool" && e.summary).toBe("254 lines");
   });
 
-  it("scrollBy increases viewOffset; scrollReset and user submit both zero it", () => {
-    const many: State = { ...base, entries: Array.from({ length: 20 }, (_, i) => ({ kind: "note" as const, text: `n${i}` })) };
-    let s = reduce(many, { t: "scrollBy", delta: 10 });
-    expect(s.viewOffset).toBe(10);
-    s = reduce(s, { t: "scrollBy", delta: -3 });
-    expect(s.viewOffset).toBe(7);
-    s = reduce(s, { t: "scrollBy", delta: -999 });
-    expect(s.viewOffset).toBe(0); // floor at 0
-    s = reduce(many, { t: "scrollBy", delta: 5 });
-    s = reduce(s, { t: "scrollReset" });
-    expect(s.viewOffset).toBe(0);
-    s = reduce(many, { t: "scrollBy", delta: 5 });
-    s = reduce(s, { t: "user", text: "new message" });
-    expect(s.viewOffset).toBe(0); // user submit resets scroll
-  });
-
-  it("scrollBy ceilings at entries-1 so over-scroll can't strand pgdn", () => {
-    const five: State = { ...base, entries: Array.from({ length: 5 }, (_, i) => ({ kind: "note" as const, text: `n${i}` })) };
-    let s = reduce(five, { t: "scrollBy", delta: 100 });
-    expect(s.viewOffset).toBe(4); // entries-1, not 100
-    s = reduce(s, { t: "scrollBy", delta: -1 });
-    expect(s.viewOffset).toBe(3); // pgdn responds immediately
-    expect(reduce(base, { t: "scrollBy", delta: 10 }).viewOffset).toBe(0); // empty transcript pins to 0
-  });
-
   it("second consecutive tool call gets isGrouped:true; first gets false", () => {
     let s = reduce(base, { t: "toolCall", name: "read_file", icon: "📖", verb: "read", detail: "a" });
     s = reduce(s, { t: "toolCall", name: "shell_cmd", icon: "❯", verb: "ran", detail: "b" });
@@ -130,15 +105,9 @@ describe("tui reduce", () => {
     ]);
   });
 
-  it("commit snaps viewOffset to 0 (scroll-during-run: snap to bottom on turn complete)", () => {
-    const s = reduce({ ...base, viewOffset: 5, busy: true, streaming: "partial" }, { t: "commit", finalText: "done" });
-    expect(s.viewOffset).toBe(0);
-    expect(s.busy).toBe(false);
-  });
-
   it("clear empties the transcript", () => {
     const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true, expanded: true }, { t: "clear" });
-    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false });
+    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, focusMode: false });
   });
 });
 
@@ -163,14 +132,16 @@ describe("App render", () => {
   // renders), not just that handlers are wired. Settles "slash commands don't
   // work" with evidence rather than code-reading.
   it("executes a slash command: typing /help and pressing Enter renders the command list", async () => {
-    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 30));
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 70)); // > the input parser's 50ms lone-Esc flush timeout
     const { lastFrame, stdin, unmount } = render(<App setup={setup} repoRoot="/x" />);
     stdin.write("/help");
     await tick();
     stdin.write("\r"); // Enter
     await tick();
     const frame = lastFrame() ?? "";
-    expect(frame).toContain("Commands:"); // first line of SLASH_HELP
+    // The ScrollBox pins to the bottom, so assert on SLASH_HELP's tail —
+    // the header line has scrolled above the viewport.
+    expect(frame).toContain("Anything else is sent to the agent");
     unmount();
   });
 });

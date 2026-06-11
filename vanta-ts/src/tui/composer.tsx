@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { Text, useInput, usePaste, type Key } from "ink";
+import { Text, useInput, type InputEvent, type Key } from "ink";
 import { newPasteStore, shouldCollapse, collapse, expandPastes } from "./paste.js";
 import {
   wordLeft,
@@ -217,18 +217,19 @@ export function Composer(props: ComposerProps): ReactElement {
     if (value === "") { histRef.current = { histIdx: -1, draft: "", value: "" }; pasteStore.current = newPasteStore(); }
   }, [value]);
 
-  useInput(
-    (input, key) => handleKeyInput(input, key, { value, cursor, vimMode, vimEnabled, isHistoryActive, history, histRef, killRing, pasteStore, onChange, onSubmit, setCursor, setVimMode }),
-    { isActive },
-  );
+  // Bracketed paste — the vendored ink fork delivers the whole paste as ONE
+  // input event flagged isPasted, so embedded newlines can't be misread as
+  // Enter. Large pastes collapse to a ref.
+  const handlePaste = (pasted: string): void => {
+    const insert = shouldCollapse(pasted) ? collapse(pasteStore.current, pasted) : pasted;
+    onChange(value.slice(0, cursor) + insert + value.slice(cursor));
+    setCursor((c) => c + insert.length);
+  };
 
-  // Bracketed paste — Ink delivers the whole paste on a separate channel so
-  // embedded newlines can't be misread as Enter. Large pastes collapse to a ref.
-  usePaste(
-    (pasted) => {
-      const insert = shouldCollapse(pasted) ? collapse(pasteStore.current, pasted) : pasted;
-      onChange(value.slice(0, cursor) + insert + value.slice(cursor));
-      setCursor((c) => c + insert.length);
+  useInput(
+    (input, key, event?: InputEvent) => {
+      if (event?.keypress?.isPasted) { handlePaste(input); return; }
+      handleKeyInput(input, key, { value, cursor, vimMode, vimEnabled, isHistoryActive, history, histRef, killRing, pasteStore, onChange, onSubmit, setCursor, setVimMode });
     },
     { isActive },
   );

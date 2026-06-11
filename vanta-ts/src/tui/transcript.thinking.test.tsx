@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { EntryRow } from "./transcript.js";
 import type { Entry } from "./transcript.js";
 

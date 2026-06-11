@@ -1,4 +1,4 @@
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { describe, it, expect } from "vitest";
 import { Palette } from "./transcript.js";
 import { formatRiskLabel, getRiskTier } from "./command-risk.js";

@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
-import { Box, Static, Text, useApp } from "ink";
+import { AlternateScreen, Box, ScrollBox, Text, useApp, type ScrollBoxHandle } from "ink";
 import { Composer } from "./composer.js";
 import { spinnerFrames } from "./spinners.js";
 import { notify } from "./notify.js";
@@ -26,14 +26,12 @@ import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
 import { useAgentSend } from "./use-agent-send.js";
 import { reduce, type State, type Action } from "./app-reducer.js";
-import { VirtualTranscript } from "./virtual-transcript.js";
-import { AltFrame } from "./alt-frame.js";
-import { useResizeRedraw, useTermSize } from "./use-term-size.js";
+import { useTermSize } from "./use-term-size.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { RunSetup } from "../session.js";
 import { useSubmit } from "./use-submit.js";
 import { useKeybindings } from "./use-keybindings.js";
-import { useMouseWheel } from "./use-mouse-wheel.js";
+import { useScrollKeys } from "./use-scroll-keys.js";
 import { buildConvoConfig } from "./conversation-config.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
@@ -45,15 +43,13 @@ const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!pro
 const SPINNER = spinnerFrames();
 const THEME = resolveTheme(process.env);
 const VIM_ENABLED = !!process.env.VANTA_VIM;
-// Reserve rows for: composer(3) + status(1) + padding(2) + streaming(2) + safety margin(2).
-const CHROME_ROWS = 10;
 
 // ─── display-value computation (pure, no hooks) ───────────────────────────
 
 type DisplayOpts = {
   input: string; pending: unknown; overlay: string | null; busy: boolean;
   atFiles: string[]; showHelp: boolean; expanded: boolean;
-  entries: Entry[]; maxVisible: number; altScreen: boolean;
+  entries: Entry[];
 };
 type DisplayValues = {
   slashHead: string | null; atHead: string | null;
@@ -85,7 +81,7 @@ function computeHint(o: DisplayOpts, showPalette: boolean, showAtPalette: boolea
   if (o.showHelp) return "? ⏎ — close help";
   const hasFoldable = o.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX)));
   const foldHint = hasFoldable ? `^O ${o.expanded ? "collapse" : "details"}  ` : "";
-  const scrollHint = o.altScreen && o.entries.length > 1 ? "scroll/pgup  " : "";
+  const scrollHint = o.entries.length > 1 ? "scroll/pgup  " : "";
   return `${scrollHint}${foldHint}/help  ?  /exit`;
 }
 
@@ -98,11 +94,10 @@ function computeDisplayValues(o: DisplayOpts): DisplayValues {
 
 // ─── streaming tail display ────────────────────────────────────────────────
 
-function StreamingTail({ streaming, maxLines }: { streaming: string; maxLines: number }): ReactElement | null {
+// Full text — the ScrollBox owns overflow and stickyScroll follows the tail.
+function StreamingTail({ streaming }: { streaming: string }): ReactElement | null {
   if (!streaming.trim()) return null;
-  const lines = streaming.split("\n");
-  const visible = lines.length > maxLines ? `…\n${lines.slice(-maxLines).join("\n")}` : streaming;
-  return <Text>{visible}</Text>;
+  return <Text>{streaming}</Text>;
 }
 
 // ─── bottom chrome sub-renderers ──────────────────────────────────────────
@@ -187,9 +182,6 @@ function composerColors(editActive: boolean, busy: boolean, showPalette: boolean
 
 function ChromeComposer(p: ChromeProps): ReactElement {
   const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors(p.editMode.active, p.state.busy, p.showPalette, p.showAtPalette);
-  // With an EMPTY composer, ↑/↓ scroll the transcript (use-keybindings) and
-  // 1007 wheel-arrows scroll too — history nav needs typed text (or ^P/^N).
-  const historyActive = isHistoryActive && p.input !== "";
   const elapsedMs = p.state.busy ? Date.now() : 0;
   const vimMode = VIM_ENABLED ? p.vimMode : undefined;
   return (
@@ -197,7 +189,7 @@ function ChromeComposer(p: ChromeProps): ReactElement {
       {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
       <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
         <Text color={promptColor}>{"› "}</Text>
-        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={historyActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
+        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
       </Box>
       {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
       {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
@@ -217,7 +209,7 @@ function BottomChrome(p: ChromeProps): ReactElement {
 // ─── app state hook ───────────────────────────────────────────────────────
 
 function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string }) {
-  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false });
+  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, focusMode: false });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [atFiles, setAtFiles] = useState<string[]>([]);
@@ -245,17 +237,16 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
 
 // ─── app ──────────────────────────────────────────────────────────────────
 
-// Virtual list: alt-screen mode (virtual viewport replaces <Static>) is passed
-// as a prop, NOT read from process.env at module load — the .env is loaded at
-// runtime (cli.ts main → loadEnv), well after this module's top-level evaluates,
-// so a module-const read would always be false. launch.tsx reads it correctly.
-export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: boolean }): ReactElement {
+// Renders inside the vendored ink fork's AlternateScreen: the renderer
+// constrains itself to the viewport, the ScrollBox owns line-based scrolling
+// (wheel via mouseTracking="wheel" → wheelUp/wheelDown keys → useScrollKeys),
+// and stickyScroll follows new output until the user scrolls away.
+export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const { setup, repoRoot } = props;
-  const ALT_SCREEN = props.altScreen ?? false;
   const app = useApp();
-  const { rows: termRows, cols } = useTermSize();
-  const redrawNonce = useResizeRedraw(ALT_SCREEN);
+  const { cols } = useTermSize();
   const s = useAppState({ setup, repoRoot });
+  const scrollRef = useRef<ScrollBoxHandle | null>(null);
 
   if (s.convoRef.current === null) {
     s.convoRef.current = createConversation(
@@ -266,11 +257,12 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
 
   const { sendToAgent } = useAgentSend({ dispatch: s.dispatch, convoRef: s.convoRef, replStateRef: s.replStateRef, busy: s.state.busy, queued: s.state.queued, safety: setup.safety, goals: setup.goals, repoRoot, contextWindow: s.activeProvider.contextWindow(), provider: s.activeProvider });
   const invokeSkill = makeInvokeSkill({ setOverlay: s.setOverlay, dispatch: s.dispatch, sendToAgent });
-  const maxVisible = Math.max(5, termRows - CHROME_ROWS);
-  const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
+  const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries });
 
-  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
-  useMouseWheel(ALT_SCREEN, s.dispatch);
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  useScrollKeys(scrollRef);
+  // A new turn re-pins the viewport to the bottom so the response is followed.
+  useEffect(() => { if (s.state.busy) scrollRef.current?.scrollToBottom(); }, [s.state.busy]);
   const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
 
   const w = Math.max(24, cols - 2);
@@ -278,23 +270,20 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const visibleEntries = s.state.focusMode
     ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
     : s.state.entries;
-  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot, compact: ALT_SCREEN }, ...visibleEntries] : visibleEntries;
+  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
-  if (ALT_SCREEN) {
-    return (
-      <AltFrame rows={termRows} nonce={redrawNonce}
-        viewport={<><VirtualTranscript entries={allEntries} expanded={s.state.expanded} viewOffset={s.state.viewOffset} maxVisible={maxVisible} /><StreamingTail streaming={s.state.streaming} maxLines={termRows} /></>}
-        chrome={<BottomChrome {...chromeProps} />}
-      />
-    );
-  }
-
   return (
-    <Box flexDirection="column" paddingX={1}>
-      <Static items={allEntries}>{(item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />}</Static>
-      <StreamingTail streaming={s.state.streaming} maxLines={8} />
-      <BottomChrome {...chromeProps} />
-    </Box>
+    <AlternateScreen mouseTracking="wheel">
+      <Box flexDirection="column" flexGrow={1}>
+        <ScrollBox ref={scrollRef} flexDirection="column" flexGrow={1} flexShrink={1} stickyScroll>
+          <Box flexDirection="column" paddingX={1}>
+            {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />)}
+            <StreamingTail streaming={s.state.streaming} />
+          </Box>
+        </ScrollBox>
+        <BottomChrome {...chromeProps} />
+      </Box>
+    </AlternateScreen>
   );
 }

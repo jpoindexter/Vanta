@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render } from "ink-testing-library";
+import { render } from "./test-render.js";
 import { SessionsPicker, buildSessionRows, formatWhen } from "./sessions-picker.js";
 import type { SessionMeta } from "../sessions/store.js";
 
@@ -13,7 +13,7 @@ const meta = (id: string, over: Partial<SessionMeta> = {}): SessionMeta => ({
 });
 
 const KEY = { down: "[B", up: "[A", enter: "\r", esc: "" };
-const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 20));
+const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 70)); // > the input parser's 50ms lone-Esc flush timeout
 
 describe("buildSessionRows", () => {
   it("puts live + new first, then saved sessions minus the current one", () => {
