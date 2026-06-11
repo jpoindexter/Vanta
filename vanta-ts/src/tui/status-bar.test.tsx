@@ -48,6 +48,14 @@ describe("StatusBar", () => {
     expect(frame).toContain("0:09");
     unmount();
   });
+
+  it("renders the approval mode as a chip when not in review", () => {
+    const { lastFrame, unmount } = render(
+      <StatusBar status="idle" busy={false} spinner="⠋" model="m" estTokens={0} contextWindow={100} elapsedMs={0} width={80} hint="/help" mode="auto" />,
+    );
+    expect(lastFrame() ?? "").toContain("⚡auto");
+    unmount();
+  });
 });
 
 describe("tokenWarningLevel", () => {

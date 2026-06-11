@@ -99,15 +99,19 @@ export function StatusBar(props: {
   const right = decor.tagText
     ? <Text color={decor.tagColor}>{decor.tagText.trim()}</Text>
     : <Text dimColor>{props.hint}</Text>;
+  // Run-state and mode render as chips (background blocks) — the design-demo
+  // treatment. The background is applied to the EXISTING strings with no added
+  // spaces, so the line width is unchanged and the status bar can't wrap (an
+  // unexpected wrap is the alt-screen ghost-frame class of bug — see ERRORS.md).
   const modeTag =
-    props.mode === "auto" ? <Text color="yellow"> ⚡auto</Text> :
-    props.mode === "accept-edits" ? <Text color="cyan"> ✎edits</Text> :
+    props.mode === "auto" ? <Text backgroundColor="yellow" color="black"> ⚡auto</Text> :
+    props.mode === "accept-edits" ? <Text backgroundColor="cyan" color="black"> ✎edits</Text> :
     null;
   const vimTag = props.vimMode ? <Text color={color}> [{props.vimMode === "normal" ? "N" : "I"}]</Text> : null;
   return (
     <Box width={props.width} justifyContent="space-between">
       <Text dimColor>
-        <Text color={props.busy ? "yellow" : color}>{left}</Text>
+        <Text backgroundColor={props.busy ? "yellow" : "green"} color="black">{left}</Text>
         {` · ${props.model} · ~${formatCount(props.estTokens)}/${formatCount(props.contextWindow)} `}
         <Text color={color}>{bar}</Text>
         {" "}
