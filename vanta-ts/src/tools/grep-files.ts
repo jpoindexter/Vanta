@@ -52,21 +52,19 @@ export const grepFilesTool: Tool = {
     const searchPath = path ? expandHome(path) : ctx.root;
 
     // Try rg first; fall back to grep.
+    const args = { pattern, searchPath, fileGlob: file_glob, maxResults: max_results, cwd: ctx.root };
     try {
-      return await runRg(pattern, searchPath, file_glob, max_results, ctx.root);
+      return await runRg(args);
     } catch {
-      return runGrep(pattern, searchPath, file_glob, max_results, ctx.root);
+      return runGrep(args);
     }
   },
 };
 
-async function runRg(
-  pattern: string,
-  searchPath: string,
-  fileGlob: string | undefined,
-  maxResults: number,
-  cwd: string,
-): Promise<{ ok: boolean; output: string }> {
+type GrepArgs = { pattern: string; searchPath: string; fileGlob: string | undefined; maxResults: number; cwd: string };
+
+async function runRg(o: GrepArgs): Promise<{ ok: boolean; output: string }> {
+  const { pattern, searchPath, fileGlob, maxResults, cwd } = o;
   const args: string[] = [
     "--line-number",
     "--no-heading",
@@ -90,13 +88,8 @@ async function runRg(
   }
 }
 
-async function runGrep(
-  pattern: string,
-  searchPath: string,
-  fileGlob: string | undefined,
-  maxResults: number,
-  cwd: string,
-): Promise<{ ok: boolean; output: string }> {
+async function runGrep(o: GrepArgs): Promise<{ ok: boolean; output: string }> {
+  const { pattern, searchPath, fileGlob, maxResults, cwd } = o;
   // grep -rn for recursive line-numbered search. No shell interpolation — args are array.
   const args: string[] = ["-rn", "--color=never", "-m", String(maxResults)];
   if (fileGlob) args.push("--include", fileGlob);
