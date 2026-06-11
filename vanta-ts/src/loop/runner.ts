@@ -40,6 +40,25 @@ type StageRunResult = {
   weakRubricItems: string[];
 };
 
+// Runs the gate check for a stage — returns the failing stage name or null if passed.
+async function checkGate(stage: { gate?: string }, runGate?: IterationDeps["runGate"]): Promise<string | null> {
+  if (!stage.gate || !runGate) return null;
+  const passed = await runGate(stage.gate);
+  return passed ? null : (stage.gate);
+}
+
+type EvalResult = { score: number | null; weakRubricItems: string[]; critique: string | null };
+
+// Extracts the score (via rubric or inline SCORE:) and REASONING critique from evaluate output.
+async function applyEvaluate(text: string, def: LoopDef, prior: string, runStage: IterationDeps["runStage"]): Promise<EvalResult> {
+  const critique = parseReasoning(text);
+  if (def.rubric.items.length > 0) {
+    const rubric = await scoreByRubric({ rubric: def.rubric, priorWork: prior, goal: def.goal, runStage });
+    return { score: rubric.score, weakRubricItems: rubric.weakItems, critique };
+  }
+  return { score: parseScore(text), weakRubricItems: [], critique };
+}
+
 // Runs stages in order, threading prior text forward.
 // Stops early if a gate blocks or a stage emits ESCALATE.
 async function runStages(
@@ -54,13 +73,8 @@ async function runStages(
   let lastCritique: string | null = null;
 
   for (const stage of def.stages) {
-    if (stage.gate && deps.runGate) {
-      const passed = await deps.runGate(stage.gate);
-      if (!passed) {
-        gateFailedAt = stage.name;
-        break;
-      }
-    }
+    const failedGate = await checkGate(stage, deps.runGate);
+    if (failedGate) { gateFailedAt = stage.name; break; }
 
     const stageCtx = stage.critiqueDriven && lastCritique ? `${prior}\n\n## critique\n${lastCritique}` : prior;
     const { text, verifyFailedAt } = await runStageWithVerify(stage, def.goal, stageCtx, deps.runStage);
@@ -68,22 +82,14 @@ async function runStages(
     prior = prior ? `${prior}\n\n## ${stage.name}\n${text}` : `## ${stage.name}\n${text}`;
 
     if (stage.name === "evaluate") {
-      if (def.rubric.items.length > 0) {
-        const rubric = await scoreByRubric({ rubric: def.rubric, priorWork: prior, goal: def.goal, runStage: deps.runStage });
-        score = rubric.score;
-        weakRubricItems = rubric.weakItems;
-      } else {
-        score = parseScore(text);
-      }
-      lastCritique = parseReasoning(text);
+      const ev = await applyEvaluate(text, def, prior, deps.runStage);
+      score = ev.score;
+      weakRubricItems = ev.weakRubricItems;
+      lastCritique = ev.critique;
     }
 
-    // Escalation takes priority — stop running further stages.
     const esc = parseEscalation(text);
-    if (esc !== null) {
-      escalationReason = esc;
-      break;
-    }
+    if (esc !== null) { escalationReason = esc; break; }
   }
 
   return { prior, score, gateFailedAt, escalationReason, weakRubricItems };
