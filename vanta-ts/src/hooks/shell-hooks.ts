@@ -14,12 +14,35 @@ import { z } from "zod";
 export type ShellHookEvent = "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
 
 const ShellHookSchema = z.object({
-  /** Tool-name match (regex) for the tool events; ignored for UserPromptSubmit/Stop. Absent = match all. */
+  /** Regex on tool name. Applies to PreToolUse / PostToolUse. Absent = match all.
+   *  Example: `"toolNamePattern": "write_file|shell_cmd"` */
+  toolNamePattern: z.string().optional(),
+  /** @deprecated Alias for toolNamePattern. */
   matcher: z.string().optional(),
+  /** Regex on serialized tool input JSON. Applies to PreToolUse / PostToolUse.
+   *  Example: `"inputPattern": "/etc/"` fires only when input JSON contains /etc/ */
+  inputPattern: z.string().optional(),
+  /** Regex on the user's prompt text. Applies to UserPromptSubmit.
+   *  Example: `"promptPattern": "^/skill"` fires only for skill slash commands */
+  promptPattern: z.string().optional(),
+  /** If true, only fire when the tool returned an error (ok: false). Applies to PostToolUse. */
+  onError: z.boolean().optional(),
+  /** Session type filter. Absent = fire in both modes.
+   *  "interactive" = REPL / TUI session; "one-shot" = `vanta run`. */
+  sessionType: z.enum(["interactive", "one-shot"]).optional(),
   /** Shell command to run; the JSON context is piped to its stdin. */
   command: z.string().min(1),
 });
 export type ShellHook = z.infer<typeof ShellHookSchema>;
+
+/** Context passed to matchingHooks to evaluate conditional matchers. */
+export type MatchContext = {
+  toolName?: string;
+  toolInputJson?: string;
+  prompt?: string;
+  isError?: boolean;
+  sessionType?: "interactive" | "one-shot";
+};
 
 const ShellHooksConfigSchema = z.object({
   PreToolUse: z.array(ShellHookSchema).optional(),
@@ -47,17 +70,28 @@ export async function loadShellHooks(dataDir: string): Promise<ShellHooksConfig>
   }
 }
 
-/** Hooks for an event whose matcher matches the tool name (or that have no matcher). */
-export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, toolName?: string): ShellHook[] {
-  const hooks = config[event] ?? [];
-  return hooks.filter((h) => {
-    if (!h.matcher || toolName === undefined) return true;
-    try {
-      return new RegExp(h.matcher).test(toolName);
-    } catch {
-      return h.matcher === toolName; // invalid regex → exact-match fallback
-    }
-  });
+/** Returns true if pattern (regex) matches text. Absent pattern = match all; absent text with pattern = no match. */
+function matchesPattern(pattern: string | undefined, text: string | undefined): boolean {
+  if (pattern === undefined) return true;
+  if (text === undefined) return false;
+  try { return new RegExp(pattern).test(text); }
+  catch { return pattern === text; }
+}
+
+function hookMatches(hook: ShellHook, ctx: MatchContext): boolean {
+  const namePattern = hook.toolNamePattern ?? hook.matcher;
+  // Tool name patterns only apply when a toolName is in the context; absent = match all.
+  if (namePattern && ctx.toolName !== undefined && !matchesPattern(namePattern, ctx.toolName)) return false;
+  if (!matchesPattern(hook.inputPattern, ctx.toolInputJson)) return false;
+  if (!matchesPattern(hook.promptPattern, ctx.prompt)) return false;
+  if (hook.onError && ctx.isError !== true) return false;
+  if (hook.sessionType && ctx.sessionType && hook.sessionType !== ctx.sessionType) return false;
+  return true;
+}
+
+/** Hooks for an event whose conditional matchers all pass against ctx. */
+export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, ctx: MatchContext = {}): ShellHook[] {
+  return (config[event] ?? []).filter((h) => hookMatches(h, ctx));
 }
 
 export type ShellHookResult = { code: number; stdout: string; stderr: string };
@@ -96,9 +130,10 @@ export async function firePreToolUse(
   dataDir: string,
   toolName: string,
   args: Record<string, unknown>,
-  opts: { cwd?: string } = {},
+  opts: { cwd?: string; sessionType?: MatchContext["sessionType"] } = {},
 ): Promise<{ blocked: boolean; reason?: string }> {
-  const hooks = matchingHooks(await loadShellHooks(dataDir), "PreToolUse", toolName);
+  const matchCtx: MatchContext = { toolName, toolInputJson: JSON.stringify(args), sessionType: opts.sessionType };
+  const hooks = matchingHooks(await loadShellHooks(dataDir), "PreToolUse", matchCtx);
   if (!hooks.length) return { blocked: false };
   const ctx = JSON.stringify({ event: "PreToolUse", tool: toolName, args });
   for (const h of hooks) {
@@ -149,10 +184,11 @@ export async function fireHooks(
   dataDir: string,
   event: Exclude<ShellHookEvent, "PreToolUse">,
   context: Record<string, unknown>,
-  opts: { toolName?: string; cwd?: string } = {},
+  opts: { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; cwd?: string } = {},
 ): Promise<void> {
   try {
-    const hooks = matchingHooks(await loadShellHooks(dataDir), event, opts.toolName);
+    const matchCtx: MatchContext = { toolName: opts.toolName, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType };
+    const hooks = matchingHooks(await loadShellHooks(dataDir), event, matchCtx);
     if (!hooks.length) return;
     const ctx = JSON.stringify({ event, ...context });
     await Promise.all(hooks.map((h) => runShellHook(h.command, ctx, { cwd: opts.cwd })));

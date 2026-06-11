@@ -52,20 +52,58 @@ describe("matchingHooks", () => {
     ],
   };
 
-  it("matches by regex on the tool name", () => {
-    expect(matchingHooks(cfg, "PreToolUse", "write_file").map((h) => h.command)).toEqual(["a", "c"]);
+  it("matches by regex on the tool name (legacy matcher field)", () => {
+    expect(matchingHooks(cfg, "PreToolUse", { toolName: "write_file" }).map((h) => h.command)).toEqual(["a", "c"]);
   });
 
   it("matches read_file via ^read + the no-matcher hook", () => {
-    expect(matchingHooks(cfg, "PreToolUse", "read_file").map((h) => h.command)).toEqual(["b", "c"]);
+    expect(matchingHooks(cfg, "PreToolUse", { toolName: "read_file" }).map((h) => h.command)).toEqual(["b", "c"]);
   });
 
   it("returns all hooks when no tool name is given (non-tool events)", () => {
-    expect(matchingHooks(cfg, "PreToolUse", undefined)).toHaveLength(3);
+    expect(matchingHooks(cfg, "PreToolUse", {})).toHaveLength(3);
   });
 
   it("is empty for an event with no hooks", () => {
     expect(matchingHooks(cfg, "Stop")).toEqual([]);
+  });
+
+  it("toolNamePattern takes precedence over matcher as the explicit name", () => {
+    const c = { PreToolUse: [{ toolNamePattern: "shell_cmd", command: "x" }] };
+    expect(matchingHooks(c, "PreToolUse", { toolName: "shell_cmd" }).map((h) => h.command)).toEqual(["x"]);
+    expect(matchingHooks(c, "PreToolUse", { toolName: "write_file" })).toHaveLength(0);
+  });
+
+  it("inputPattern filters by tool input JSON", () => {
+    const c = { PreToolUse: [{ inputPattern: "/etc/", command: "y" }, { command: "always" }] };
+    expect(matchingHooks(c, "PreToolUse", { toolInputJson: '{"path":"/etc/hosts"}' }).map((h) => h.command)).toEqual(["y", "always"]);
+    expect(matchingHooks(c, "PreToolUse", { toolInputJson: '{"path":"/tmp/safe"}' }).map((h) => h.command)).toEqual(["always"]);
+  });
+
+  it("promptPattern filters UserPromptSubmit by prompt text", () => {
+    const c = { UserPromptSubmit: [{ promptPattern: "^/skill", command: "z" }, { command: "always" }] };
+    expect(matchingHooks(c, "UserPromptSubmit", { prompt: "/skill run foo" }).map((h) => h.command)).toEqual(["z", "always"]);
+    expect(matchingHooks(c, "UserPromptSubmit", { prompt: "just a question" }).map((h) => h.command)).toEqual(["always"]);
+  });
+
+  it("onError only fires for failed tool calls", () => {
+    const c = { PostToolUse: [{ onError: true, command: "err-hook" }, { command: "always" }] };
+    expect(matchingHooks(c, "PostToolUse", { isError: true }).map((h) => h.command)).toEqual(["err-hook", "always"]);
+    expect(matchingHooks(c, "PostToolUse", { isError: false }).map((h) => h.command)).toEqual(["always"]);
+    expect(matchingHooks(c, "PostToolUse", {}).map((h) => h.command)).toEqual(["always"]);
+  });
+
+  it("sessionType filters by session mode", () => {
+    const c = {
+      UserPromptSubmit: [
+        { sessionType: "interactive" as const, command: "int-hook" },
+        { sessionType: "one-shot" as const, command: "run-hook" },
+        { command: "always" },
+      ],
+    };
+    expect(matchingHooks(c, "UserPromptSubmit", { sessionType: "interactive" }).map((h) => h.command)).toEqual(["int-hook", "always"]);
+    expect(matchingHooks(c, "UserPromptSubmit", { sessionType: "one-shot" }).map((h) => h.command)).toEqual(["run-hook", "always"]);
+    expect(matchingHooks(c, "UserPromptSubmit", {}).map((h) => h.command)).toEqual(["int-hook", "run-hook", "always"]);
   });
 });
 

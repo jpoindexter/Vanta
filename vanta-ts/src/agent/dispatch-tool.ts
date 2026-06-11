@@ -47,7 +47,7 @@ export async function dispatchTool(
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   // PostToolUse shell hooks — fire-and-forget, never block the turn.
-  void fireHooks(dataDir, "PostToolUse", { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } }, { toolName: call.name, cwd: ctx.root });
+  void fireHooks(dataDir, "PostToolUse", { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } }, { toolName: call.name, isError: !res.ok, cwd: ctx.root });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
   // Tool-result offload: size-based backstop AFTER lossy compression — catches any

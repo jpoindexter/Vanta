@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-11T13:44:33.664Z",
+  "updated": "2026-06-11",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -240,14 +240,15 @@
       "id": "CC-HOOK-MATCHERS",
       "track": "Harness",
       "title": "Hook matcher depth — all conditional hook matchers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC hook rules support rich conditional matchers: session start method (startup/resume/clear/compact), CLI trigger (init/maintenance), session end reason, notification type, agent type, compaction trigger, config source, literal filenames, error type (rate_limit/overloaded/auth), load reason, skill/command names, MCP server names. Vanta hooks support basic tool-name matching only.",
       "done": "All CC matcher categories are implemented for the Vanta hooks engine; the settings schema accepts any combination; docs show a worked example for each matcher type.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "note": "Extended ShellHookSchema with toolNamePattern/inputPattern/promptPattern/onError/sessionType conditional matchers. MatchContext type + hookMatches/matchesPattern helpers. Backward-compat: matcher deprecated alias kept; toolNamePattern absent toolName = match all (non-tool events)."
     },
     {
       "id": "CC-API-KEY-HELPER",
