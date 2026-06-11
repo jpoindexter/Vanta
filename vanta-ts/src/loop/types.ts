@@ -47,11 +47,16 @@ export const StageSchema = z.object({
 });
 export type Stage = z.infer<typeof StageSchema>;
 
-/** A weighted scoring criterion. The rubric is advisory context for the evaluate
- *  stage now; RUBRIC-ENGINE turns it into confidence-weighted structured scoring. */
+/** A weighted scoring criterion. verifiable items ask a constrained critic that must
+ *  cite evidence; non-verifiable items use a broader critic prompt. A critiquePrompt
+ *  overrides the auto-generated judge question for either kind. */
 export const RubricItemSchema = z.object({
   criterion: z.string().min(1),
   weight: z.number().min(0).default(1),
+  /** verifiable: judge must cite evidence; non-verifiable: general quality critic. */
+  kind: z.enum(["verifiable", "non-verifiable"]).default("non-verifiable"),
+  /** Optional explicit critique question. Auto-generated from criterion if absent. */
+  critiquePrompt: z.string().optional(),
 });
 export type RubricItem = z.infer<typeof RubricItemSchema>;
 

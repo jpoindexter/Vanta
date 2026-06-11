@@ -7,6 +7,7 @@ import type {
 import { effectivePassScore } from "./types.js";
 import { raiseEscalation, markInProgress, hasOpenEscalations } from "./state.js";
 import { runStageWithVerify } from "./verify.js";
+import { scoreByRubric } from "./rubric.js";
 
 // Extracts a 0..1 score from evaluate-stage output. Case-insensitive SCORE: <n>.
 export function parseScore(text: string): number | null {
@@ -29,6 +30,7 @@ type StageRunResult = {
   score: number | null;
   gateFailedAt: string | null;
   escalationReason: string | null;
+  weakRubricItems: string[];
 };
 
 // Runs stages in order, threading prior text forward.
@@ -41,6 +43,7 @@ async function runStages(
   let score: number | null = null;
   let gateFailedAt: string | null = null;
   let escalationReason: string | null = null;
+  let weakRubricItems: string[] = [];
 
   for (const stage of def.stages) {
     if (stage.gate && deps.runGate) {
@@ -56,7 +59,13 @@ async function runStages(
     prior = prior ? `${prior}\n\n## ${stage.name}\n${text}` : `## ${stage.name}\n${text}`;
 
     if (stage.name === "evaluate") {
-      score = parseScore(text);
+      if (def.rubric.items.length > 0) {
+        const rubric = await scoreByRubric({ rubric: def.rubric, priorWork: prior, goal: def.goal, runStage: deps.runStage });
+        score = rubric.score;
+        weakRubricItems = rubric.weakItems;
+      } else {
+        score = parseScore(text);
+      }
     }
 
     // Escalation takes priority — stop running further stages.
@@ -67,7 +76,7 @@ async function runStages(
     }
   }
 
-  return { prior, score, gateFailedAt, escalationReason };
+  return { prior, score, gateFailedAt, escalationReason, weakRubricItems };
 }
 
 // Computes the updated no-progress streak given previous best and new score.
@@ -183,6 +192,7 @@ type RunCtx = {
   now: string;
   elapsedMs: number;
   iterTokens: number;
+  weakRubricItems: string[];
   logKilled?: IterationDeps["logKilled"];
 };
 
@@ -204,12 +214,14 @@ function computeLedger(state: LoopState, gateFailedAt: string | null, score: num
 
 // Builds the IterationResult for a normal (non-escalated) stage run.
 function normalResult(def: LoopDef, state: LoopState, gateFailedAt: string | null, ctx: RunCtx): IterationResult {
-  const { score, now, elapsedMs, iterTokens, logKilled } = ctx;
+  const { score, now, elapsedMs, iterTokens, logKilled, weakRubricItems } = ctx;
   const { totalChanges, acceptedChanges, tokensUsed } = computeLedger(state, gateFailedAt, score, iterTokens);
   const gateReason = gateFailedAt ? `gate failed: ${gateFailedAt}` : null;
   const scoreLabel = score !== null ? String(score) : "n/a";
   const iterReason = gateReason ?? `iteration ${state.iterations + 1} complete (score ${scoreLabel})`;
-  const lessons = gateFailedAt ? [...state.lessons, `gate failed at ${gateFailedAt}`] : state.lessons;
+  const rubricNotes = weakRubricItems.map((c) => `weak rubric confidence: "${c}"`);
+  const base = gateFailedAt ? [...state.lessons, `gate failed at ${gateFailedAt}`] : state.lessons;
+  const lessons = rubricNotes.length > 0 ? [...base, ...rubricNotes] : base;
   const nextState = recordIteration(
     { ...state, lessons, totalChanges, acceptedChanges, tokensUsed },
     score,
@@ -256,11 +268,11 @@ export async function runLoopIteration(
   }
 
   const startMs = deps.now().getTime();
-  const { score, gateFailedAt, escalationReason } = await runStages(def, deps);
+  const { score, gateFailedAt, escalationReason, weakRubricItems } = await runStages(def, deps);
   const nowDate = deps.now();
   const elapsedMs = nowDate.getTime() - startMs;
   const iterTokens = deps.getTokensUsed?.() ?? 0;
-  const ctx: RunCtx = { score, now: nowDate.toISOString(), elapsedMs, iterTokens, logKilled: deps.logKilled };
+  const ctx: RunCtx = { score, now: nowDate.toISOString(), elapsedMs, iterTokens, weakRubricItems, logKilled: deps.logKilled };
 
   // Escalation during a stage: raise it, pause the loop, and still count the iteration.
   if (escalationReason !== null) {

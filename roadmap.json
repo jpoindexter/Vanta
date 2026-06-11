@@ -9123,7 +9123,7 @@
       "id": "RUBRIC-ENGINE",
       "track": "Harness",
       "title": "Rubric engine — weighted per-category rubrics with confidence-weighted scoring",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "GRAPE distilled (Patel/Meta 2025): per-task-category rubrics of weighted items, each VERIFIABLE (scored against ground truth/checks) or non-verifiable (atomized into verifiable parts + a critic prompt). Every judge returns reasoning + score + CONFIDENCE; aggregation is confidence-weighted, and a persistently low-confidence rubric item is flagged as a bad item for operator review. Upgrades LOOP-VERIFY from flat rubric to a self-auditing scoring system.",
       "done": "A loop stage scores candidates against a category rubric; verifiable items run checks, non-verifiable run critics; aggregate is confidence-weighted; weak rubric items get flagged.",
@@ -9134,7 +9134,8 @@
       "updated": "2026-06-11",
       "after": [
         "LOOP-VERIFY"
-      ]
+      ],
+      "note": " Shipped 2026-06-11: GRAPE-distilled confidence-weighted scoring. RubricItem gains kind+critiquePrompt. parseJudgment(SCORE+CONFIDENCE+REASONING). scoreByRubric: Promise.all over items, confidence*weight aggregation, weakItems flagged at <0.3 confidence. Wired into evaluate stage in runStages — rubric score replaces parseScore when items present. 2462 tests green, tsc clean."
     },
     {
       "id": "RELATIVE-EVAL",
