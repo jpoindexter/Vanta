@@ -56,23 +56,28 @@ export function defaultStages(goal: string): Stage[] {
     {
       name: "discover",
       prompt: `Survey the current state relevant to the goal. Identify what has been done, what is missing, and what the next concrete gap is. Goal: ${goal}`,
+      critiqueDriven: false,
     },
     {
       name: "plan",
       prompt: `Given the discovery, write a specific, minimal plan for the next concrete unit of work. Prefer the smallest change that makes measurable progress. Goal: ${goal}`,
+      critiqueDriven: false,
     },
     {
       name: "execute",
       prompt: "Do the next concrete unit of work toward the goal.",
+      critiqueDriven: false,
     },
     {
       name: "evaluate",
       prompt:
         "Score the work against the goal from 0 to 1. Consider: was the plan followed, was quality acceptable, did it move the goal forward? End your reply with a line: SCORE: <0..1>.",
+      critiqueDriven: false,
     },
     {
       name: "improve",
       prompt: `Capture lessons from this iteration. What worked, what did not, and what should change in the next cycle? Goal: ${goal}`,
+      critiqueDriven: true,
     },
   ];
 }

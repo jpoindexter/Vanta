@@ -45,7 +45,7 @@ export async function adversarialVerify(opts: {
     `Goal: ${goal}\n\nOutput to evaluate:\n${output}`;
   const results = await Promise.all(
     Array.from({ length: n }, () =>
-      runStage({ stage: { name: "skeptic", prompt: skepticPrompt }, goal, prior }),
+      runStage({ stage: { name: "skeptic", prompt: skepticPrompt, critiqueDriven: false }, goal, prior }),
     ),
   );
   const refuted = results.filter(parseRefuted).length;
@@ -71,7 +71,7 @@ export async function tournamentVerify(opts: {
     `Goal: ${goal}\n\nOutput:\n${c}`;
   const scores = await Promise.all(
     candidates.map((c) =>
-      runStage({ stage: { name: "judge", prompt: judgePrompt(c) }, goal, prior }).then((t) => {
+      runStage({ stage: { name: "judge", prompt: judgePrompt(c), critiqueDriven: false }, goal, prior }).then((t) => {
         const m = t.match(/SCORE:\s*([\d.]+)/i);
         return m ? Math.min(1, Math.max(0, parseFloat(m[1]!))) : 0;
       }),
@@ -104,7 +104,7 @@ export async function filterVerify(opts: {
     `${filterPrompt}\n\nCandidate:\n${c}\n\nOutput PASSED: true or PASSED: false.`;
   const verdicts = await Promise.all(
     candidates.map((c) =>
-      runStage({ stage: { name: "filter-judge", prompt: checkPrompt(c) }, goal, prior }).then(
+      runStage({ stage: { name: "filter-judge", prompt: checkPrompt(c), critiqueDriven: false }, goal, prior }).then(
         parsePassed,
       ),
     ),

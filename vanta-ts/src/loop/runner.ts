@@ -18,6 +18,13 @@ export function parseScore(text: string): number | null {
   return Math.min(1, Math.max(0, n));
 }
 
+// Extracts all REASONING: lines from evaluate or rubric output; returns joined string.
+export function parseReasoning(text: string): string | null {
+  const matches = [...text.matchAll(/REASONING:\s*(.+)/gi)];
+  if (!matches.length) return null;
+  return matches.map((m) => m[1]!.trim()).join("; ");
+}
+
 // Extracts an escalation reason from stage output. First line of the match only.
 export function parseEscalation(text: string): string | null {
   const m = text.match(/ESCALATE:\s*(.+)/i);
@@ -44,6 +51,7 @@ async function runStages(
   let gateFailedAt: string | null = null;
   let escalationReason: string | null = null;
   let weakRubricItems: string[] = [];
+  let lastCritique: string | null = null;
 
   for (const stage of def.stages) {
     if (stage.gate && deps.runGate) {
@@ -54,7 +62,8 @@ async function runStages(
       }
     }
 
-    const { text, verifyFailedAt } = await runStageWithVerify(stage, def.goal, prior, deps.runStage);
+    const stageCtx = stage.critiqueDriven && lastCritique ? `${prior}\n\n## critique\n${lastCritique}` : prior;
+    const { text, verifyFailedAt } = await runStageWithVerify(stage, def.goal, stageCtx, deps.runStage);
     if (verifyFailedAt) { gateFailedAt = verifyFailedAt; break; }
     prior = prior ? `${prior}\n\n## ${stage.name}\n${text}` : `## ${stage.name}\n${text}`;
 
@@ -66,6 +75,7 @@ async function runStages(
       } else {
         score = parseScore(text);
       }
+      lastCritique = parseReasoning(text);
     }
 
     // Escalation takes priority — stop running further stages.

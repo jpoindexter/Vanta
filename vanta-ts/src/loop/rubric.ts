@@ -62,7 +62,7 @@ export async function scoreByRubric(opts: {
   const judged = await Promise.all(
     rubric.items.map((item) => {
       const prompt = buildJudgePrompt(item, priorWork, goal);
-      return runStage({ stage: { name: "rubric-judge", prompt }, goal, prior: "" }).then((text) => ({
+      return runStage({ stage: { name: "rubric-judge", prompt, critiqueDriven: false }, goal, prior: "" }).then((text) => ({
         item,
         ...parseJudgment(text),
       }));

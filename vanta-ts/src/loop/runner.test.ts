@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { parseScore, parseEscalation, runLoopIteration } from "./runner.js";
+import { parseScore, parseEscalation, parseReasoning, runLoopIteration } from "./runner.js";
 import { LoopDefSchema, newState } from "./types.js";
 import { raiseEscalation, markInProgress } from "./state.js";
 
@@ -70,6 +70,29 @@ describe("parseEscalation", () => {
 
   it("returns null when absent", () => {
     expect(parseEscalation("everything looks fine SCORE: 0.9")).toBeNull();
+  });
+});
+
+// --- parseReasoning ---
+
+describe("parseReasoning", () => {
+  it("returns null when no REASONING field is present", () => {
+    expect(parseReasoning("SCORE: 0.7\nAll looks fine.")).toBeNull();
+  });
+
+  it("extracts a single REASONING line", () => {
+    expect(parseReasoning("SCORE: 0.6\nREASONING: output lacks edge cases")).toBe(
+      "output lacks edge cases",
+    );
+  });
+
+  it("joins multiple REASONING lines with '; '", () => {
+    const text = "REASONING: too verbose\nSCORE: 0.5\nREASONING: missing error handling";
+    expect(parseReasoning(text)).toBe("too verbose; missing error handling");
+  });
+
+  it("is case-insensitive", () => {
+    expect(parseReasoning("reasoning: coverage is low")).toBe("coverage is low");
   });
 });
 
@@ -431,5 +454,68 @@ describe("runLoopIteration — logKilled callback", () => {
 
     expect(result.def.status).toBe("done");
     expect(logKilled).not.toHaveBeenCalled();
+  });
+});
+
+// --- runLoopIteration — critiqueDriven stage ---
+
+describe("runLoopIteration — critiqueDriven stage", () => {
+  it("injects REASONING from evaluate into the prior context of a critiqueDriven stage", async () => {
+    const priorArgs: Array<{ stage: { name: string }; prior: string }> = [];
+    const def = LoopDefSchema.parse({
+      id: "test-loop",
+      goal: "improve the thing",
+      trigger: { kind: "manual" },
+      stages: [
+        { name: "execute", prompt: "do the work" },
+        { name: "evaluate", prompt: "score the work" },
+        { name: "improve", prompt: "fix based on critique", critiqueDriven: true },
+      ],
+      rubric: { items: [], passScore: 0.8 },
+      stop: { maxIterations: 10, noProgressWakes: 3 },
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const runStage = vi.fn().mockImplementation(({ stage, prior }) => {
+      priorArgs.push({ stage: { name: stage.name }, prior });
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.5\nREASONING: output needs more tests");
+      return Promise.resolve("ok");
+    });
+
+    await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+
+    const improveCall = priorArgs.find((a) => a.stage.name === "improve");
+    expect(improveCall).toBeDefined();
+    expect(improveCall!.prior).toContain("## critique");
+    expect(improveCall!.prior).toContain("output needs more tests");
+  });
+
+  it("does not inject critique when critiqueDriven is false", async () => {
+    const priorArgs: Array<{ stage: { name: string }; prior: string }> = [];
+    const def = LoopDefSchema.parse({
+      id: "test-loop",
+      goal: "improve the thing",
+      trigger: { kind: "manual" },
+      stages: [
+        { name: "execute", prompt: "do the work" },
+        { name: "evaluate", prompt: "score the work" },
+        { name: "improve", prompt: "fix it", critiqueDriven: false },
+      ],
+      rubric: { items: [], passScore: 0.8 },
+      stop: { maxIterations: 10, noProgressWakes: 3 },
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const runStage = vi.fn().mockImplementation(({ stage, prior }) => {
+      priorArgs.push({ stage: { name: stage.name }, prior });
+      if (stage.name === "evaluate") return Promise.resolve("SCORE: 0.5\nREASONING: needs work");
+      return Promise.resolve("ok");
+    });
+
+    await runLoopIteration(def, newState("test-loop"), { runStage, now: fixedNow });
+
+    const improveCall = priorArgs.find((a) => a.stage.name === "improve");
+    expect(improveCall).toBeDefined();
+    expect(improveCall!.prior).not.toContain("## critique");
   });
 });

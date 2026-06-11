@@ -44,6 +44,9 @@ export const StageSchema = z.object({
   /** When set, the engine applies verification after running (or instead of running
    *  once, for tournament/filter). A verify-failed stage acts like a gate failure. */
   verify: VerifyModeSchema.optional(),
+  /** When true, the runner injects the last evaluate critique (REASONING fields) into
+   *  this stage's prior context. Enables critique-driven improvement over fresh generation. */
+  critiqueDriven: z.boolean().default(false),
 });
 export type Stage = z.infer<typeof StageSchema>;
 

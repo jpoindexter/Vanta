@@ -9161,7 +9161,7 @@
       "id": "CRITIQUE-REUSE",
       "track": "Harness",
       "title": "Critique-reuse improve stage — judge reasoning feeds the next generation",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "GRAPE feature made native: the evaluate stage emits critique + reasoning per candidate; the improve stage consumes that critique to produce the next iteration (improver prompt = response + critique -> improved response). Iterations mix fresh generation with critique-driven improvement. Closes the loop the playbook calls evaluate -> improve with concrete plumbing.",
       "done": "A loop iteration after evaluate receives the structured critique; the improved candidate measurably consumes it; fresh-vs-improve mix is configurable.",
@@ -9170,6 +9170,7 @@
       "effort": "low",
       "lens": "agent-loop",
       "updated": "2026-06-11",
+      "note": "critiqueDriven: boolean on Stage; parseReasoning extracts REASONING: lines from evaluate output; runner injects critique as ## critique section into critiqueDriven stage prior; default 5-stage loop sets improve.critiqueDriven=true; 8 new tests (4 parseReasoning + 2 integration)",
       "after": [
         "LOOP-VERIFY"
       ]
