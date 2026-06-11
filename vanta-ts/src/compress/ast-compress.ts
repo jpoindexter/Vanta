@@ -10,6 +10,20 @@ const MIN_BODY_LINES = 4;
 // Match common TS/JS module patterns: import or export at the start of a line.
 const TS_HINT = /^(?:import|export)\s+(?:type\s+)?(?:{|\*|default|\w)/m;
 
+const FUNCTION_KINDS = new Set([
+  ts.SyntaxKind.FunctionDeclaration,
+  ts.SyntaxKind.MethodDeclaration,
+  ts.SyntaxKind.ArrowFunction,
+  ts.SyntaxKind.FunctionExpression,
+  ts.SyntaxKind.GetAccessor,
+  ts.SyntaxKind.SetAccessor,
+  ts.SyntaxKind.Constructor,
+]);
+
+function isFunctionLike(node: ts.Node): boolean {
+  return FUNCTION_KINDS.has(node.kind);
+}
+
 /** Heuristic: true when the text looks like TypeScript/JavaScript source. Pure. */
 export function isCodeContent(text: string): boolean {
   return TS_HINT.test(text);
@@ -26,13 +40,7 @@ function lineSpan(node: ts.Node, sf: ts.SourceFile): number {
 function collectBodies(sf: ts.SourceFile): BodyRange[] {
   const ranges: BodyRange[] = [];
   function visit(node: ts.Node): void {
-    if (
-      (ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node) ||
-       ts.isArrowFunction(node) || ts.isFunctionExpression(node) ||
-       ts.isGetAccessorDeclaration(node) || ts.isSetAccessorDeclaration(node) ||
-       ts.isConstructorDeclaration(node)) &&
-      "body" in node && node.body && ts.isBlock(node.body as ts.Node)
-    ) {
+    if (isFunctionLike(node) && "body" in node && node.body && ts.isBlock(node.body as ts.Node)) {
       const body = node.body as ts.Block;
       const lines = lineSpan(body, sf);
       if (lines >= MIN_BODY_LINES) {
