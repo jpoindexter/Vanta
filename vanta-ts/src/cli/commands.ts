@@ -179,6 +179,22 @@ export async function runSkillsCommand(rest: string[]): Promise<void> {
   }
 }
 
+async function runMemoryForget(rest: string[]): Promise<void> {
+  const { pruneStaleBlocks, getMemoryFootprint, formatForgetSummary } = await import("../memory/forget.js");
+  const { memoriesDir } = await import("../store/home.js");
+  const { readdir } = await import("node:fs/promises");
+  const { existsSync } = await import("node:fs");
+  const ttlDays = rest[1] ? Number(rest[1]) : undefined;
+  const dir = memoriesDir(process.env);
+  if (!existsSync(dir)) { console.log("(no memories yet)"); return; }
+  const files = (await readdir(dir)).filter((f) => f.endsWith(".md") && !f.endsWith(".archived.md"));
+  if (!files.length) { console.log("(no memory files)"); return; }
+  const before = await getMemoryFootprint(process.env);
+  const results = await Promise.all(files.map((f) => pruneStaleBlocks(f.replace(/\.md$/, ""), process.env, { ttlDays })));
+  const after = await getMemoryFootprint(process.env);
+  console.log(formatForgetSummary(results, before, after));
+}
+
 export async function runMemoryCommand(rest: string[]): Promise<void> {
   const sub = rest[0];
   if (sub === "search") {
@@ -190,22 +206,7 @@ export async function runMemoryCommand(rest: string[]): Promise<void> {
     for (const r of results) console.log(`[${r.sessionId}] ${r.role}: ${r.excerpt}`);
     return;
   }
-  if (sub === "forget") {
-    const { pruneStaleBlocks, getMemoryFootprint, formatForgetSummary } = await import("../memory/forget.js");
-    const { memoriesDir } = await import("../store/home.js");
-    const { readdir } = await import("node:fs/promises");
-    const { existsSync } = await import("node:fs");
-    const ttlDays = rest[1] ? Number(rest[1]) : undefined;
-    const dir = memoriesDir(process.env);
-    if (!existsSync(dir)) { console.log("(no memories yet)"); return; }
-    const files = (await readdir(dir)).filter((f) => f.endsWith(".md") && !f.endsWith(".archived.md"));
-    if (!files.length) { console.log("(no memory files)"); return; }
-    const before = await getMemoryFootprint(process.env);
-    const results = await Promise.all(files.map((f) => pruneStaleBlocks(f.replace(/\.md$/, ""), process.env, { ttlDays })));
-    const after = await getMemoryFootprint(process.env);
-    console.log(formatForgetSummary(results, before, after));
-    return;
-  }
+  if (sub === "forget") return runMemoryForget(rest);
   if (sub === "footprint") {
     const { getMemoryFootprint } = await import("../memory/forget.js");
     const fp = await getMemoryFootprint(process.env);

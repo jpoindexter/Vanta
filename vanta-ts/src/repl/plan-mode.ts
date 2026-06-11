@@ -33,6 +33,40 @@ function resolvePlanAction(arg: string, isOn: boolean, isApproved: boolean): Pla
   return wantOn ? "turn-on" : "turn-off";
 }
 
+type DispatchCtx = {
+  action: PlanAction;
+  sys: { content: string };
+  isOn: boolean;
+  isApproved: boolean;
+  state: { planApproved?: boolean };
+};
+
+function dispatchPlanAction({ action, sys, isOn, isApproved, state }: DispatchCtx): { output: string } {
+  if (action === "turn-on") {
+    if (!isOn) sys.content += INSTRUCTION;
+    state.planApproved = false;
+    return { output: "  ⚡ plan-first mode ON (enforced) — write tools blocked. Run /planmode approve after reviewing the plan." };
+  }
+  if (action === "turn-off") {
+    sys.content = sys.content.replace(INSTRUCTION, "");
+    state.planApproved = false;
+    return { output: "  · plan-first mode OFF — Vanta acts immediately again" };
+  }
+  if (action === "approve") {
+    if (!isOn) return { output: "  plan mode is not active — nothing to approve" };
+    state.planApproved = true;
+    return { output: "  ✓ plan approved — write tools unlocked. Kernel gating still applies per action." };
+  }
+  if (action === "already-approved") return { output: "  ✓ plan already approved — write tools are unlocked" };
+  if (action === "already-on") {
+    const approvedLine = isApproved
+      ? "plan approved — write tools unlocked"
+      : "write tools BLOCKED — run /planmode approve after reviewing the plan";
+    return { output: `  ⚡ plan-first mode is already ON (${approvedLine})` };
+  }
+  return { output: "  · plan-first mode is already OFF (use /planmode on to enable)" };
+}
+
 export const planMode: SlashHandler = (arg, ctx) => {
   const sys = ctx.convo.messages[0];
   if (!sys || sys.role !== "system") {
@@ -41,30 +75,5 @@ export const planMode: SlashHandler = (arg, ctx) => {
   const isOn = sys.content.includes(PLAN_MARKER);
   const isApproved = ctx.state.planApproved ?? false;
   const action = resolvePlanAction(arg, isOn, isApproved);
-
-  if (action === "turn-on") {
-    if (!isOn) sys.content += INSTRUCTION;
-    ctx.state.planApproved = false;
-    return { output: "  ⚡ plan-first mode ON (enforced) — write tools blocked. Run /planmode approve after reviewing the plan." };
-  }
-  if (action === "turn-off") {
-    sys.content = sys.content.replace(INSTRUCTION, "");
-    ctx.state.planApproved = false;
-    return { output: "  · plan-first mode OFF — Vanta acts immediately again" };
-  }
-  if (action === "approve") {
-    if (!isOn) return { output: "  plan mode is not active — nothing to approve" };
-    ctx.state.planApproved = true;
-    return { output: "  ✓ plan approved — write tools unlocked. Kernel gating still applies per action." };
-  }
-  if (action === "already-approved") {
-    return { output: "  ✓ plan already approved — write tools are unlocked" };
-  }
-  if (action === "already-on") {
-    const approvedLine = isApproved
-      ? "plan approved — write tools unlocked"
-      : "write tools BLOCKED — run /planmode approve after reviewing the plan";
-    return { output: `  ⚡ plan-first mode is already ON (${approvedLine})` };
-  }
-  return { output: "  · plan-first mode is already OFF (use /planmode on to enable)" };
+  return dispatchPlanAction({ action, sys: sys as { content: string }, isOn, isApproved, state: ctx.state });
 };

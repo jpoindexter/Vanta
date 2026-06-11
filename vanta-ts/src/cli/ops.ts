@@ -8,9 +8,11 @@ import { resolveVantaHome } from "../store/home.js";
 import { prepareRun, buildSummarizer, writeRunMemory } from "../session.js";
 import type { RunTask } from "../schedule/runner.js";
 
-// Operational subcommands (gateway / service / mcp / roadmap / factory + the
+// Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
 // cli.ts owns the interactive + run/skill/room paths and the main() dispatch.
+// runRoadmapCommand lives in roadmap-cmd.ts (CODE-SIZE-GATE).
+export { runRoadmapCommand } from "./roadmap-cmd.js";
 
 export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta");
 
@@ -137,67 +139,6 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
   }
 }
 
-export async function runRoadmapCommand(repoRoot: string, args: string[] = []): Promise<void> {
-  if (args[0] === "serve") {
-    const port = Number(process.env.VANTA_ROADMAP_PORT) || 7789;
-    const [{ serveRoadmap }, { buildRoadmap }, { execSync }] = await Promise.all([
-      import("../roadmap/server.js"),
-      import("../roadmap/build.js"),
-      import("node:child_process"),
-    ]);
-    await buildRoadmap(repoRoot);
-    setTimeout(() => {
-      try {
-        execSync(`open "http://localhost:${port}/roadmap/board"`);
-      } catch {}
-    }, 300);
-    await serveRoadmap(repoRoot, port);
-    return;
-  }
-
-  if (args[0] === "move") {
-    const id = args[1];
-    const status = args[2];
-    if (!id || !status) {
-      console.error("Usage: vanta roadmap move <id> <status>");
-      console.error("  status: shipped | building | next | horizon");
-      process.exit(1);
-    }
-    const { moveRoadmapItem } = await import("../roadmap/move.js");
-    const { STATUS } = await import("../roadmap/schema.js");
-    if (!(STATUS as readonly string[]).includes(status)) {
-      console.error(`Invalid status '${status}'. Valid: ${STATUS.join(", ")}`);
-      process.exit(1);
-    }
-    const item = await moveRoadmapItem(repoRoot, id, status as import("../roadmap/schema.js").Status);
-    console.log(`  ✓ Moved ${item.id} → ${status}: ${item.title}`);
-    return;
-  }
-
-  if (args[1] === "decompose") {
-    const id = args[2];
-    if (!id) { console.error("Usage: vanta roadmap decompose <id> [--apply]"); process.exit(1); }
-    const { findCard, buildProposal, formatProposal, applyProposal } = await import("../roadmap/decompose.js");
-    const card = await findCard(repoRoot, id);
-    if (!card) { console.error(`Card not found: ${id}`); process.exit(1); }
-    const proposal = buildProposal(card);
-    console.log(formatProposal(proposal));
-    if (!args.includes("--apply")) {
-      console.log("\nRun with --apply to write these child cards to roadmap.json.");
-      return;
-    }
-    const { added, skipped } = await applyProposal(repoRoot, proposal);
-    if (added.length) console.log(`  ✓ added: ${added.join(", ")}`);
-    if (skipped.length) console.log(`  · skipped (already exist): ${skipped.join(", ")}`);
-    return;
-  }
-
-  const { buildRoadmap } = await import("../roadmap/build.js");
-  const { execSync } = await import("node:child_process");
-  const htmlPath = await buildRoadmap(repoRoot);
-  execSync(`open "${htmlPath}"`);
-  console.log(`  → opened ${htmlPath}`);
-}
 
 export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
   const port = Number(rest[0] ?? process.env.VANTA_DESKTOP_PORT) || 7790;

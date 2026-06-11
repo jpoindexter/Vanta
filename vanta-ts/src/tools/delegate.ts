@@ -25,6 +25,63 @@ export function delegateEnv(
   return merged;
 }
 
+type DelegateArgs = import("zod").infer<typeof Args>;
+
+async function resolveWorktree(
+  root: string,
+  isolation: DelegateArgs["isolation"],
+): Promise<{ handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string } | { ok: false; output: string }> {
+  if (isolation !== "worktree") return { handle: undefined, workerRoot: root };
+  const { createWorktree } = await import("../worktree/manager.js");
+  try {
+    const handle = await createWorktree(root, "agent/worktree");
+    return { handle, workerRoot: handle.path };
+  } catch (err) {
+    return { ok: false, output: `worktree creation failed: ${(err as Error).message}` };
+  }
+}
+
+async function runDelegate(
+  data: DelegateArgs,
+  ctx: import("./types.js").ToolContext,
+): Promise<import("./types.js").ToolResult> {
+  const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = data;
+
+  let provider;
+  try {
+    provider = resolveProvider(delegateEnv(process.env, prov, model));
+  } catch (err) {
+    return { ok: false, output: `cannot use ${prov ?? "default"}/${model ?? "default"}: ${(err as Error).message}` };
+  }
+
+  // Child cannot spawn further delegates — prevents runaway recursion.
+  const registry = buildRegistry({ exclude: ["delegate"] });
+
+  const wt = await resolveWorktree(ctx.root, isolation);
+  if ("ok" in wt && !wt.ok) return wt;
+  const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
+
+  try {
+    const outcome = await spawnSubagent({
+      goal,
+      instruction,
+      deps: {
+        provider,
+        safety: ctx.safety,
+        registry,
+        root: workerRoot,
+        requestApproval: ctx.requestApproval,
+        maxIterations,
+      },
+      maxIterations,
+    });
+    const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
+    return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
+  } finally {
+    if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
+  }
+}
+
 export const delegateTool: Tool = {
   schema: {
     name: "delegate",
@@ -76,55 +133,10 @@ export const delegateTool: Tool = {
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
-      return {
-        ok: false,
-        output: "delegate needs goal and instruction strings",
-      };
+      return { ok: false, output: "delegate needs goal and instruction strings" };
     }
     try {
-      const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = parsed.data;
-      // The agent may route this worker to a different backend (Ollama, gpt-4o, …).
-      let provider;
-      try {
-        provider = resolveProvider(delegateEnv(process.env, prov, model));
-      } catch (err) {
-        return { ok: false, output: `cannot use ${prov ?? "default"}/${model ?? "default"}: ${(err as Error).message}` };
-      }
-      // Child cannot spawn further delegates — prevents runaway recursion.
-      const registry = buildRegistry({ exclude: ["delegate"] });
-
-      // Worktree agents: run the worker in an isolated git worktree.
-      let worktreeHandle: import("../worktree/manager.js").WorktreeHandle | undefined;
-      let workerRoot = ctx.root;
-      if (isolation === "worktree") {
-        const { createWorktree } = await import("../worktree/manager.js");
-        try {
-          worktreeHandle = await createWorktree(ctx.root, "agent/worktree");
-          workerRoot = worktreeHandle.path;
-        } catch (err) {
-          return { ok: false, output: `worktree creation failed: ${(err as Error).message}` };
-        }
-      }
-
-      try {
-        const outcome = await spawnSubagent({
-          goal,
-          instruction,
-          deps: {
-            provider,
-            safety: ctx.safety,
-            registry,
-            root: workerRoot,
-            requestApproval: ctx.requestApproval,
-            maxIterations,
-          },
-          maxIterations,
-        });
-        const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
-        return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
-      } finally {
-        if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
-      }
+      return await runDelegate(parsed.data, ctx);
     } catch (err) {
       return { ok: false, output: (err as Error).message };
     }

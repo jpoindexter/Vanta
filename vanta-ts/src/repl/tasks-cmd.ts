@@ -35,77 +35,66 @@ function listOutput(stack: import("../task-stack/types.js").TaskStack): string {
   return parts.join("\n\n");
 }
 
+async function cmdAdd(dataDir: string, rest: string[]): Promise<{ output: string }> {
+  const titleRaw = rest.join(" ").trim();
+  if (!titleRaw) return { output: "  Usage: /tasks add <title>" };
+  const [title, ...whyParts] = titleRaw.split(/\s*--\s*/);
+  const why = whyParts.join(" -- ").trim() || "added by user";
+  const result = await addTask(dataDir, { title: title!.trim(), why, source: "user" });
+  if (!result.ok) return { output: `  ✗ ${result.error}` };
+  return { output: `  ✓ added [${shortId(result.value.id)}] ${result.value.title}` };
+}
+
+type IdOpDef = {
+  dataDir: string;
+  id: string | undefined;
+  usage: string;
+  op: (taskId: string) => (dir: string) => Promise<{ ok: boolean; error?: string; value?: OperatorTask }>;
+  verb: string;
+};
+
+async function cmdIdOp({ dataDir, id, usage, op, verb }: IdOpDef): Promise<{ output: string }> {
+  if (!id) return { output: `  Usage: /tasks ${usage}` };
+  const stack = await readStack(dataDir);
+  const task = stack.tasks.find((t) => t.id.startsWith(id));
+  if (!task) return { output: `  ✗ no task matching '${id}'` };
+  const result = await op(task.id)(dataDir);
+  if (!result.ok) return { output: `  ✗ ${result.error}` };
+  return { output: `  ✓ ${verb}: ${result.value!.title}` };
+}
+
+async function cmdBlock(dataDir: string, rest: string[]): Promise<{ output: string }> {
+  const [id, ...reasonParts] = rest;
+  const reason = reasonParts.join(" ").trim();
+  if (!id || !reason) return { output: "  Usage: /tasks block <id> <reason>" };
+  const stack = await readStack(dataDir);
+  const task = stack.tasks.find((t) => t.id.startsWith(id));
+  if (!task) return { output: `  ✗ no task matching '${id}'` };
+  const result = await blockTask(task.id, reason)(dataDir);
+  if (!result.ok) return { output: `  ✗ ${result.error}` };
+  return { output: `  ✓ blocked: ${result.value.title} — ${reason}` };
+}
+
+async function cmdNext(dataDir: string): Promise<{ output: string }> {
+  const stack = await readStack(dataDir);
+  const next = selectNextTask(stack);
+  if (!next) return { output: "  (no actionable tasks — all blocked, parked, or stack is empty)" };
+  const extra = next.nextAction ? `\n  Next action: ${next.nextAction}` : "";
+  const blocker = next.blocker ? `\n  Blocker: ${next.blocker}` : "";
+  return { output: `  ▶ [${shortId(next.id)}] ${next.title}\n  Why: ${next.why}${extra}${blocker}` };
+}
+
 export const tasks: SlashHandler = async (arg, ctx) => {
   const dataDir = ctx.dataDir;
   const [sub, ...rest] = arg.trim().split(/\s+/);
 
-  if (!sub || sub === "list") {
-    return { output: listOutput(await readStack(dataDir)) };
-  }
-
-  if (sub === "add") {
-    const titleRaw = rest.join(" ").trim();
-    if (!titleRaw) return { output: "  Usage: /tasks add <title>" };
-    const [title, ...whyParts] = titleRaw.split(/\s*--\s*/);
-    const why = whyParts.join(" -- ").trim() || "added by user";
-    const result = await addTask(dataDir, { title: title!.trim(), why, source: "user" });
-    if (!result.ok) return { output: `  ✗ ${result.error}` };
-    return { output: `  ✓ added [${shortId(result.value.id)}] ${result.value.title}` };
-  }
-
-  if (sub === "close") {
-    const id = rest[0];
-    if (!id) return { output: "  Usage: /tasks close <id>" };
-    const stack = await readStack(dataDir);
-    const task = stack.tasks.find((t) => t.id.startsWith(id));
-    if (!task) return { output: `  ✗ no task matching '${id}'` };
-    const result = await closeTask(task.id)(dataDir);
-    if (!result.ok) return { output: `  ✗ ${result.error}` };
-    return { output: `  ✓ closed: ${result.value.title}` };
-  }
-
-  if (sub === "block") {
-    const [id, ...reasonParts] = rest;
-    const reason = reasonParts.join(" ").trim();
-    if (!id || !reason) return { output: "  Usage: /tasks block <id> <reason>" };
-    const stack = await readStack(dataDir);
-    const task = stack.tasks.find((t) => t.id.startsWith(id));
-    if (!task) return { output: `  ✗ no task matching '${id}'` };
-    const result = await blockTask(task.id, reason)(dataDir);
-    if (!result.ok) return { output: `  ✗ ${result.error}` };
-    return { output: `  ✓ blocked: ${result.value.title} — ${reason}` };
-  }
-
-  if (sub === "park") {
-    const id = rest[0];
-    if (!id) return { output: "  Usage: /tasks park <id>" };
-    const stack = await readStack(dataDir);
-    const task = stack.tasks.find((t) => t.id.startsWith(id));
-    if (!task) return { output: `  ✗ no task matching '${id}'` };
-    const result = await parkTask(task.id)(dataDir);
-    if (!result.ok) return { output: `  ✗ ${result.error}` };
-    return { output: `  ✓ parked: ${result.value.title}` };
-  }
-
-  if (sub === "reopen") {
-    const id = rest[0];
-    if (!id) return { output: "  Usage: /tasks reopen <id>" };
-    const stack = await readStack(dataDir);
-    const task = stack.tasks.find((t) => t.id.startsWith(id));
-    if (!task) return { output: `  ✗ no task matching '${id}'` };
-    const result = await reopenTask(task.id)(dataDir);
-    if (!result.ok) return { output: `  ✗ ${result.error}` };
-    return { output: `  ✓ reopened: ${result.value.title}` };
-  }
-
-  if (sub === "next") {
-    const stack = await readStack(dataDir);
-    const next = selectNextTask(stack);
-    if (!next) return { output: "  (no actionable tasks — all blocked, parked, or stack is empty)" };
-    const extra = next.nextAction ? `\n  Next action: ${next.nextAction}` : "";
-    const blocker = next.blocker ? `\n  Blocker: ${next.blocker}` : "";
-    return { output: `  ▶ [${shortId(next.id)}] ${next.title}\n  Why: ${next.why}${extra}${blocker}` };
-  }
+  if (!sub || sub === "list") return { output: listOutput(await readStack(dataDir)) };
+  if (sub === "add")    return cmdAdd(dataDir, rest);
+  if (sub === "close")  return cmdIdOp({ dataDir, id: rest[0], usage: "close <id>", op: closeTask, verb: "closed" });
+  if (sub === "park")   return cmdIdOp({ dataDir, id: rest[0], usage: "park <id>", op: parkTask, verb: "parked" });
+  if (sub === "reopen") return cmdIdOp({ dataDir, id: rest[0], usage: "reopen <id>", op: reopenTask, verb: "reopened" });
+  if (sub === "block")  return cmdBlock(dataDir, rest);
+  if (sub === "next")   return cmdNext(dataDir);
 
   return { output: `  Unknown subcommand '${sub}'. Use: list · add · close · block · park · reopen · next` };
 };

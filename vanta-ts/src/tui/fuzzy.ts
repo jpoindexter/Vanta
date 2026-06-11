@@ -16,6 +16,22 @@ export interface FuzzyMatch<T> {
  * - Separated matches score lower
  * - Start-of-string matches bonus
  */
+/** Score one character match, returning points awarded and new consecutive count. */
+function scoreChar(
+  t: string,
+  foundIdx: number,
+  targetIdx: number,
+  consecutiveMatches: number,
+): { points: number; consecutive: number } {
+  if (foundIdx === targetIdx) {
+    const next = consecutiveMatches + 1;
+    return { points: 10 * next, consecutive: next };
+  }
+  const prevChar = t[foundIdx - 1];
+  const isWordBoundary = foundIdx === 0 || (prevChar != null && !/[a-z0-9]/.test(prevChar));
+  return { points: isWordBoundary ? 15 : 1, consecutive: 1 };
+}
+
 function fuzzyScore(query: string, target: string): number {
   const q = query.toLowerCase();
   const t = target.toLowerCase();
@@ -32,22 +48,10 @@ function fuzzyScore(query: string, target: string): number {
   for (let i = 0; i < q.length; i++) {
     const char = q[i]!;
     const foundIdx = t.indexOf(char, targetIdx);
-
     if (foundIdx === -1) return 0; // Character not found
-
-    // Bonus for consecutive character matches
-    if (foundIdx === targetIdx) {
-      consecutiveMatches++;
-      score += 10 * consecutiveMatches;
-    } else {
-      // Bonus for starting a new match at word boundary
-      const prevChar = t[foundIdx - 1];
-      const isWordBoundary =
-        foundIdx === 0 || (prevChar && !/[a-z0-9]/.test(prevChar));
-      score += isWordBoundary ? 15 : 1;
-      consecutiveMatches = 1;
-    }
-
+    const delta = scoreChar(t, foundIdx, targetIdx, consecutiveMatches);
+    score += delta.points;
+    consecutiveMatches = delta.consecutive;
     targetIdx = foundIdx + 1;
   }
 

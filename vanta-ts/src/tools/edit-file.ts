@@ -12,6 +12,49 @@ const Args = z.object({
   replace_all: z.boolean().optional(),
 });
 
+type ValidatedArgs = { path: string; old_string: string; new_string: string; replace_all: boolean };
+
+function checkUniqueness(content: string, old_string: string, replace_all: boolean, path: string):
+  | { ok: true }
+  | { ok: false; output: string } {
+  if (!content.includes(old_string)) return { ok: false, output: `old_string not found in ${path}` };
+  if (!replace_all) {
+    const first = content.indexOf(old_string);
+    if (content.indexOf(old_string, first + 1) !== -1) {
+      return {
+        ok: false,
+        output: `old_string appears more than once in ${path} — add more surrounding context to make it unique, or set replace_all`,
+      };
+    }
+  }
+  return { ok: true };
+}
+
+async function applyEdit(
+  abs: string,
+  path: string,
+  content: string,
+  { old_string, new_string, replace_all }: ValidatedArgs,
+): Promise<import("./types.js").ToolResult> {
+  const updated = replace_all
+    ? content.split(old_string).join(new_string)
+    : content.replace(old_string, new_string);
+  const diff = computeDiff(content, updated);
+  try {
+    const finishDiag = await beginDiagnosticDelta(abs, true);
+    await writeFile(abs, updated, "utf8");
+    const occurrences = replace_all ? content.split(old_string).length - 1 : 1;
+    const diagNote = await finishDiag();
+    return {
+      ok: true,
+      output: `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}${diagNote}`,
+      diff: diff.length ? diff : undefined,
+    };
+  } catch (err) {
+    return { ok: false, output: `could not write ${path}: ${(err as Error).message}` };
+  }
+}
+
 export const editFileTool: Tool = {
   schema: {
     name: "edit_file",
@@ -61,47 +104,12 @@ export const editFileTool: Tool = {
       return { ok: false, output: `could not read ${path}: ${(err as Error).message}` };
     }
 
-    if (!content.includes(old_string)) {
-      return { ok: false, output: `old_string not found in ${path}` };
-    }
+    const check = checkUniqueness(content, old_string, replace_all, path);
+    if (!check.ok) return check;
 
-    if (!replace_all) {
-      const first = content.indexOf(old_string);
-      if (content.indexOf(old_string, first + 1) !== -1) {
-        return {
-          ok: false,
-          output:
-            `old_string appears more than once in ${path} — add more surrounding context to make it unique, or set replace_all`,
-        };
-      }
-    }
-
-    const approved = await ctx.requestApproval(
-      `Edit file ${path}`,
-      "modifying existing file content",
-      "edit_file",
-    );
+    const approved = await ctx.requestApproval(`Edit file ${path}`, "modifying existing file content", "edit_file");
     if (!approved) return { ok: false, output: `edit to ${path} denied — file left unchanged` };
 
-    const updated = replace_all
-      ? content.split(old_string).join(new_string)
-      : content.replace(old_string, new_string);
-
-    const diff = computeDiff(content, updated);
-    try {
-      const finishDiag = await beginDiagnosticDelta(abs, true); // Diagnostic baseline (opt-in)
-      await writeFile(abs, updated, "utf8");
-      const occurrences = replace_all
-        ? content.split(old_string).length - 1
-        : 1;
-      const diagNote = await finishDiag();
-      return {
-        ok: true,
-        output: `edited ${path} — replaced ${occurrences} occurrence${occurrences === 1 ? "" : "s"}${diagNote}`,
-        diff: diff.length ? diff : undefined,
-      };
-    } catch (err) {
-      return { ok: false, output: `could not write ${path}: ${(err as Error).message}` };
-    }
+    return applyEdit(abs, path, content, { path, old_string, new_string, replace_all });
   },
 };

@@ -55,6 +55,23 @@ export function buildAgentRegistry(repoRoot: string): Record<string, unknown> {
   };
 }
 
+async function handleRunRequest(req: IncomingMessage, res: ServerResponse, run: AcpConfig["run"]): Promise<void> {
+  let body: { instruction?: string };
+  try {
+    body = JSON.parse(await readBody(req));
+  } catch {
+    json(res, 400, { error: "invalid json" });
+    return;
+  }
+  if (!body.instruction) { json(res, 400, { error: "instruction required" }); return; }
+  try {
+    const result = await run(body.instruction);
+    json(res, 200, { result, agent: "vanta" });
+  } catch (err) {
+    json(res, 500, { error: (err as Error).message });
+  }
+}
+
 /** Start the ACP server. */
 export function startAcpServer(config: AcpConfig): Promise<{ close: () => void; port: number }> {
   const port = config.port ?? DEFAULT_PORT;
@@ -65,15 +82,7 @@ export function startAcpServer(config: AcpConfig): Promise<{ close: () => void; 
         return;
       }
       if (req.method === "POST" && req.url === "/run") {
-        let body: { instruction?: string };
-        try { body = JSON.parse(await readBody(req)); } catch { json(res, 400, { error: "invalid json" }); return; }
-        if (!body.instruction) { json(res, 400, { error: "instruction required" }); return; }
-        try {
-          const result = await config.run(body.instruction);
-          json(res, 200, { result, agent: "vanta" });
-        } catch (err) {
-          json(res, 500, { error: (err as Error).message });
-        }
+        await handleRunRequest(req, res, config.run);
         return;
       }
       if (req.method === "GET" && req.url === "/status") {

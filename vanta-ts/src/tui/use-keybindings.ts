@@ -3,14 +3,29 @@ import { useInput } from "ink";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
 import type { Action } from "./app-reducer.js";
 
-/**
- * All the composer/transcript keybindings, lifted out of App so the component
- * stays a thin shell. Called unconditionally from App every render, so the
- * useInput/useEffect hook order is stable and the closures capture current
- * values exactly as the inline form did. The palette derivations + selection
- * state stay in App (the render needs them); this only registers the handlers.
- */
-export function useKeybindings(d: {
+/** Note text shown when the approval mode cycles to the given value. */
+function modeNoteText(mode: ApprovalMode): string {
+  if (mode === "accept-edits") return "✎ accept-edits mode — file writes auto-approved · ⇧⇥ for auto";
+  if (mode === "auto") return "⚡ auto-approve mode — ⇧⇥ to return to review";
+  return "● review mode — approvals restored";
+}
+
+/** Cycle approval mode, keep modeRef in sync, dispatch the note. */
+function cycleApprovalMode(
+  setMode: Dispatch<SetStateAction<ApprovalMode>>,
+  modeRef: MutableRefObject<ApprovalMode>,
+  dispatch: Dispatch<Action>,
+): void {
+  setMode((prev) => {
+    const next = nextMode(prev);
+    modeRef.current = next;
+    dispatch({ t: "note", text: modeNoteText(next) });
+    return next;
+  });
+}
+
+/** All deps passed to useKeybindings. */
+export type KeybindingsDeps = {
   // slash palette
   slashHead: string | null;
   showPalette: boolean;
@@ -31,7 +46,15 @@ export function useKeybindings(d: {
   dispatch: Dispatch<Action>;
   setMode: Dispatch<SetStateAction<ApprovalMode>>;
   modeRef: MutableRefObject<ApprovalMode>;
-}): void {
+};
+
+/**
+ * All the composer/transcript keybindings, lifted out of App so the component
+ * stays a thin shell. Called unconditionally from App every render, so the
+ * useInput/useEffect hook order is stable and the closures capture current
+ * values exactly as the inline form did.
+ */
+export function useKeybindings(d: KeybindingsDeps): void {
   // Slash palette nav.
   useEffect(() => d.setSel(0), [d.slashHead]); // eslint-disable-line react-hooks/exhaustive-deps
   useInput((_in, key) => {
@@ -52,9 +75,7 @@ export function useKeybindings(d: {
   }, { isActive: d.showAtPalette });
 
   // Ctrl+O folds/unfolds tool detail across the transcript.
-  useInput((input, key) => {
-    if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" });
-  });
+  useInput((input, key) => { if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" }); });
 
   // Virtual list: pgup/pgdn scroll the virtual viewport in alt-screen mode.
   useInput((_in, key) => {
@@ -64,20 +85,5 @@ export function useKeybindings(d: {
   }, { isActive: d.altScreen && !d.showPalette && !d.showAtPalette });
 
   // Shift+tab cycles the approval mode; keep modeRef in sync for requestApproval.
-  useInput((_in, key) => {
-    if (key.tab && key.shift) {
-      d.setMode((prev) => {
-        const next = nextMode(prev);
-        d.modeRef.current = next;
-        const noteText =
-          next === "accept-edits"
-            ? "✎ accept-edits mode — file writes auto-approved · ⇧⇥ for auto"
-            : next === "auto"
-              ? "⚡ auto-approve mode — ⇧⇥ to return to review"
-              : "● review mode — approvals restored";
-        d.dispatch({ t: "note", text: noteText });
-        return next;
-      });
-    }
-  });
+  useInput((_in, key) => { if (key.tab && key.shift) cycleApprovalMode(d.setMode, d.modeRef, d.dispatch); });
 }

@@ -46,6 +46,27 @@ const VANTA_KEYS = [
   "VANTA_MCP_SERVE_TOOLS",
 ];
 
+const SECRET_SUFFIXES = ["_KEY", "_SECRET", "_TOKEN", "_PASSWORD"];
+const isSensitive = (key: string): boolean => SECRET_SUFFIXES.some((s) => key.includes(s));
+
+function parseEnvText(text: string): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const line of text.split("\n")) {
+    const [key, ...valueParts] = line.split("=");
+    const k = key?.trim();
+    if (k && !k.startsWith("#")) env[k] = valueParts.join("=");
+  }
+  return env;
+}
+
+function printEnvBlock(label: string, keys: string[], env: Record<string, string>): void {
+  console.log(label);
+  for (const key of keys) {
+    const display = isSensitive(key) ? "[REDACTED]" : env[key];
+    console.log(`  ${key}=${display}`);
+  }
+}
+
 /**
  * Show the current Vanta config from .env. Shows VANTA_* and provider keys.
  * Masks secrets with [REDACTED].
@@ -53,20 +74,8 @@ const VANTA_KEYS = [
 export async function showConfig(repoRoot: string): Promise<void> {
   const path = getEnvPath(repoRoot);
   const text = existsSync(path) ? await readFile(path, "utf-8") : "";
+  const env = parseEnvText(text);
 
-  const env: Record<string, string> = {};
-  for (const line of text.split("\n")) {
-    const [key, ...valueParts] = line.split("=");
-    const k = key?.trim();
-    if (k && !k.startsWith("#")) {
-      env[k] = valueParts.join("=");
-    }
-  }
-
-  const secrets = ["_KEY", "_SECRET", "_TOKEN", "_PASSWORD"];
-  const isSensitive = (key: string) => secrets.some((s) => key.includes(s));
-
-  // Show VANTA_* keys + provider API keys
   const active = Object.keys(env)
     .filter((k) => (k.startsWith("VANTA_") || k.endsWith("_KEY") || k.endsWith("_SECRET")) && env[k])
     .sort();
@@ -79,22 +88,10 @@ export async function showConfig(repoRoot: string): Promise<void> {
     return;
   }
 
-  if (active.length > 0) {
-    console.log("Active Vanta Configuration:");
-    for (const key of active) {
-      const val = env[key];
-      const display = isSensitive(key) ? "[REDACTED]" : val;
-      console.log(`  ${key}=${display}`);
-    }
-  }
+  if (active.length > 0) printEnvBlock("Active Vanta Configuration:", active, env);
 
   if (argo.length > 0) {
-    console.log("\n⚠  Legacy ARGO_* config found (mirrored by compat layer):");
-    for (const key of argo) {
-      const val = env[key];
-      const display = isSensitive(key) ? "[REDACTED]" : val;
-      console.log(`  ${key}=${display}`);
-    }
+    printEnvBlock("\n⚠  Legacy ARGO_* config found (mirrored by compat layer):", argo, env);
     console.log("\nRun `vanta config migrate` to clean these up.");
   }
 }

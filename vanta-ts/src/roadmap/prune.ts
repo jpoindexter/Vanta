@@ -22,76 +22,60 @@ const CONFIDENCE_RANK: Record<PruneCandidate["confidence"], number> = {
 // since it never appears in a real card title as a content word).
 const PLACEHOLDER_RE = /\bTBD\b|\bTODO\b|[Pp]laceholder/;
 
+function buildTitlePrefixMap(items: RoadmapItem[]): Map<string, string[]> {
+  const map: Map<string, string[]> = new Map();
+  for (const item of items.filter((i) => i.status === "next")) {
+    const key = item.title.slice(0, 30).toLowerCase();
+    const existing = map.get(key) ?? [];
+    existing.push(item.id);
+    map.set(key, existing);
+  }
+  return map;
+}
+
+function checkThinSpec(item: RoadmapItem): PruneCandidate | null {
+  if (item.status !== "next" || item.tier !== "sand") return null;
+  if (item.summary && item.summary.trim().length >= 20) return null;
+  return { id: item.id, title: item.title, reason: "thin spec, easy to drop", confidence: "medium" };
+}
+
+function checkPlaceholder(item: RoadmapItem): PruneCandidate | null {
+  if (item.status !== "next" || !PLACEHOLDER_RE.test(item.title)) return null;
+  return { id: item.id, title: item.title, reason: "placeholder card", confidence: "high" };
+}
+
+function checkDuplicate(item: RoadmapItem, prefixMap: Map<string, string[]>): PruneCandidate | null {
+  if (item.status !== "next") return null;
+  const key = item.title.slice(0, 30).toLowerCase();
+  const group = prefixMap.get(key) ?? [];
+  if (group.length <= 1 || group[0] !== item.id) return null;
+  return {
+    id: item.id,
+    title: item.title,
+    reason: `possible duplicate (same first-30-char prefix as: ${group.slice(1).join(", ")})`,
+    confidence: "medium",
+  };
+}
+
+function checkHorizonL(item: RoadmapItem): PruneCandidate | null {
+  if (item.status !== "horizon" || item.size !== "L") return null;
+  return { id: item.id, title: item.title, reason: "horizon L cards are aspirational, confirm still wanted", confidence: "low" };
+}
+
 export function pruneAnalysis(items: RoadmapItem[]): PruneCandidate[] {
+  const prefixMap = buildTitlePrefixMap(items);
   const candidates: PruneCandidate[] = [];
 
-  // Build a lookup of next-status items for duplicate detection
-  const nextItems = items.filter((i) => i.status === "next");
-  const titlePrefixCounts: Map<string, string[]> = new Map();
-  for (const item of nextItems) {
-    const key = item.title.slice(0, 30).toLowerCase();
-    const existing = titlePrefixCounts.get(key) ?? [];
-    existing.push(item.id);
-    titlePrefixCounts.set(key, existing);
-  }
-
   for (const item of items) {
-    // Thin spec: next + sand + no summary or very short summary
-    if (
-      item.status === "next" &&
-      item.tier === "sand" &&
-      (!item.summary || item.summary.trim().length < 20)
-    ) {
-      candidates.push({
-        id: item.id,
-        title: item.title,
-        reason: "thin spec, easy to drop",
-        confidence: "medium",
-      });
-      continue;
-    }
-
-    // Placeholder title: next items only
-    if (item.status === "next" && PLACEHOLDER_RE.test(item.title)) {
-      candidates.push({
-        id: item.id,
-        title: item.title,
-        reason: "placeholder card",
-        confidence: "high",
-      });
-      continue;
-    }
-
-    // Duplicate-looking titles among next items
-    if (item.status === "next") {
-      const key = item.title.slice(0, 30).toLowerCase();
-      const group = titlePrefixCounts.get(key) ?? [];
-      if (group.length > 1 && group[0] === item.id) {
-        // Emit one candidate for the first id in the group (others are siblings)
-        candidates.push({
-          id: item.id,
-          title: item.title,
-          reason: `possible duplicate (same first-30-char prefix as: ${group.slice(1).join(", ")})`,
-          confidence: "medium",
-        });
-        continue;
-      }
-    }
-
-    // Horizon L: aspirational large items
-    if (item.status === "horizon" && item.size === "L") {
-      candidates.push({
-        id: item.id,
-        title: item.title,
-        reason: "horizon L cards are aspirational, confirm still wanted",
-        confidence: "low",
-      });
-    }
+    const hit =
+      checkThinSpec(item) ??
+      checkPlaceholder(item) ??
+      checkDuplicate(item, prefixMap) ??
+      checkHorizonL(item);
+    if (hit) candidates.push(hit);
   }
 
-  return candidates.sort(
-    (a, b) => CONFIDENCE_RANK[b.confidence] - CONFIDENCE_RANK[a.confidence],
-  );
+  return candidates.sort((a, b) => CONFIDENCE_RANK[b.confidence] - CONFIDENCE_RANK[a.confidence]);
 }
 
 export function formatPruneReport(candidates: PruneCandidate[]): string {

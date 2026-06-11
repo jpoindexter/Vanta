@@ -102,6 +102,47 @@ export function mcpToolToVantaTool(
 
 export type MountResult = { servers: string[]; toolCount: number; dispose: () => void };
 
+type ServerSpec = z.infer<typeof ServerSchema>;
+
+async function resolveTransport(
+  name: string,
+  spec: ServerSpec,
+  env: NodeJS.ProcessEnv,
+  children: Array<{ kill: () => void }>,
+): Promise<Transport | null> {
+  if (spec.url) {
+    const { httpTransport, resolveToken } = await import("./http-transport.js");
+    const token = resolveToken(name, spec.token, env);
+    return httpTransport(spec.url, { token, headers: spec.headers });
+  }
+  if (spec.command) {
+    const t = stdioTransport(spec.command, spec.args ?? [], { ...process.env, ...spec.env });
+    children.push({ kill: () => t.child.kill() });
+    return t.transport;
+  }
+  return null;
+}
+
+async function mountOneServer(opts: {
+  name: string;
+  spec: ServerSpec;
+  registry: ToolRegistry;
+  env: NodeJS.ProcessEnv;
+  children: Array<{ kill: () => void }>;
+  deferred: boolean;
+  log: (msg: string) => void;
+}): Promise<number> {
+  const { name, spec, registry, env, children, deferred, log } = opts;
+  const transport = await resolveTransport(name, spec, env, children);
+  if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
+  const client = new McpClient(transport);
+  await client.initialize();
+  const defs = await client.listTools();
+  for (const def of defs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
+  log(`  · mcp: mounted ${name} (${defs.length} tool(s))${spec.url ? " [http]" : ""}`);
+  return defs.length;
+}
+
 /**
  * Mount every configured MCP server into the registry. Best-effort per server.
  * Registers a process-exit handler to kill spawned children, and returns a
@@ -119,48 +160,21 @@ export async function mountMcpServers(
   const children: Array<{ kill: () => void }> = [];
   const mounted: string[] = [];
   let toolCount = 0;
-
   const deferred = env.VANTA_MCP_DEFER === "1";
+
   for (const name of names) {
     const spec = config.servers[name];
     if (!spec) continue;
     try {
-      let transport!: Transport;
-      if (spec.url) {
-        // MCP remote: HTTP transport
-        const { httpTransport, resolveToken } = await import("./http-transport.js");
-        const token = resolveToken(name, spec.token, env);
-        transport = httpTransport(spec.url, { token, headers: spec.headers });
-      } else if (spec.command) {
-        const t = stdioTransport(spec.command, spec.args ?? [], { ...process.env, ...spec.env });
-        children.push({ kill: () => t.child.kill() });
-        transport = t.transport;
-      } else {
-        log(`  · mcp: ${name} skipped — no command or url`);
-        continue;
-      }
-      const client = new McpClient(transport);
-      await client.initialize();
-      const defs = await client.listTools();
-      for (const def of defs) {
-        registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
-        toolCount++;
-      }
-      mounted.push(name);
-      log(`  · mcp: mounted ${name} (${defs.length} tool(s))${spec.url ? " [http]" : ""}`);
+      const count = await mountOneServer({ name, spec, registry, env, children, deferred, log });
+      if (count > 0) { mounted.push(name); toolCount += count; }
     } catch (err) {
       log(`  · mcp: ${name} failed — ${(err as Error).message}`);
     }
   }
 
   const dispose = (): void => {
-    for (const c of children) {
-      try {
-        c.kill();
-      } catch {
-        /* already gone */
-      }
-    }
+    for (const c of children) { try { c.kill(); } catch { /* already gone */ } }
   };
   process.once("exit", dispose);
   return { servers: mounted, toolCount, dispose };

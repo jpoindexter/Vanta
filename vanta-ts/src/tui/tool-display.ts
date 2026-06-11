@@ -57,64 +57,74 @@ function compactArgs(args: Record<string, unknown>): string {
 
 export type ToolDisplay = { icon: string; verb: string; detail: string };
 
-/** Clean display parts for a tool call. Detail comes from ARGS, never raw output. */
-export function toolDisplay(name: string, args: Record<string, unknown>): ToolDisplay {
-  const str = (k: string): string => (typeof args[k] === "string" ? (args[k] as string) : "");
-  switch (name) {
-    case "read_file":
-      return { icon: "📖", verb: "read", detail: abbrevPath(str("path")) };
-    case "write_file":
-      return { icon: "✎", verb: "wrote", detail: abbrevPath(str("path")) };
-    case "shell_cmd": {
-      const label = bashLabel(str("command"));
-      return { icon: "❯", verb: "ran", detail: label ?? trunc(str("command"), 60) };
-    }
-    case "run_code":
-      return { icon: "▶", verb: "ran", detail: str("language") };
-    case "web_search":
-      return { icon: "🔎", verb: "searched", detail: trunc(str("query"), 60) };
-    case "web_fetch":
-      return { icon: "🌐", verb: "fetched", detail: host(str("url")) };
-    case "browser_navigate":
-      return { icon: "🌐", verb: "opened", detail: host(str("url")) };
-    case "browser_extract":
-      return { icon: "🌐", verb: "read page", detail: "" };
-    case "look_at_screen":
-    case "screenshot":
-      return { icon: "📸", verb: "saw screen", detail: "" };
-    case "look_at_camera":
-      return { icon: "📷", verb: "saw camera", detail: "" };
-    case "watch_video":
-      return { icon: "🎬", verb: "watched", detail: abbrevPath(str("path")) };
-    case "describe_image":
-      return { icon: "🖼", verb: "saw", detail: abbrevPath(str("path")) };
-    case "speak":
-      return { icon: "🔊", verb: "spoke", detail: "" };
-    case "transcribe":
-      return { icon: "🎙", verb: "transcribed", detail: "" };
-    case "recall":
-      return { icon: "🧠", verb: "recalled", detail: trunc(str("query"), 50) };
-    case "write_skill":
-      return { icon: "🧩", verb: "learned", detail: str("name") };
-    case "brain":
-      return { icon: "🧠", verb: str("action") || "brain", detail: str("region") };
-    case "delegate":
-      return { icon: "🤝", verb: "delegated", detail: trunc(str("goal") || str("prompt"), 50) };
-    case "swarm":
-      return { icon: "🐝", verb: "swarm", detail: "" };
-    case "todo":
-      return { icon: "☑", verb: "todo", detail: "" };
-    case "inspect_state":
-      return { icon: "🔍", verb: "inspected", detail: "" };
-    case "mount_mcp":
-      return { icon: "🔌", verb: "mounted", detail: str("name") };
-  }
+/** Match tool names that are prefixed namespaces (git_, gmail_, etc.). Returns null on no match. */
+function toolDisplayByPrefix(name: string): ToolDisplay | null {
   if (name.startsWith("git_")) return { icon: "⎇", verb: "git", detail: name.slice(4) };
   if (name.startsWith("gmail_")) return { icon: "✉", verb: "gmail", detail: name.slice(6) };
   if (name.startsWith("calendar_")) return { icon: "📅", verb: "calendar", detail: name.slice(9) };
   if (name.startsWith("drive_")) return { icon: "📁", verb: "drive", detail: name.slice(6) };
   if (name.startsWith("lsp_")) return { icon: "🔧", verb: "lsp", detail: name.slice(4) };
-  return { icon: "•", verb: name, detail: compactArgs(args) };
+  return null;
+}
+
+/** Display for file/shell/web/code tools. Returns null when name is not in this group. */
+function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "read_file": return { icon: "📖", verb: "read", detail: abbrevPath(str("path")) };
+    case "write_file": return { icon: "✎", verb: "wrote", detail: abbrevPath(str("path")) };
+    case "shell_cmd": {
+      const label = bashLabel(str("command"));
+      return { icon: "❯", verb: "ran", detail: label ?? trunc(str("command"), 60) };
+    }
+    case "run_code": return { icon: "▶", verb: "ran", detail: str("language") };
+    case "web_search": return { icon: "🔎", verb: "searched", detail: trunc(str("query"), 60) };
+    case "web_fetch": return { icon: "🌐", verb: "fetched", detail: host(str("url")) };
+    case "browser_navigate": return { icon: "🌐", verb: "opened", detail: host(str("url")) };
+    case "browser_extract": return { icon: "🌐", verb: "read page", detail: "" };
+    default: return null;
+  }
+}
+
+/** Display for media/sensing tools. Returns null when name is not in this group. */
+function toolDisplayMediaGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "look_at_screen":
+    case "screenshot":   return { icon: "📸", verb: "saw screen", detail: "" };
+    case "look_at_camera": return { icon: "📷", verb: "saw camera", detail: "" };
+    case "watch_video":  return { icon: "🎬", verb: "watched", detail: abbrevPath(str("path")) };
+    case "describe_image": return { icon: "🖼", verb: "saw", detail: abbrevPath(str("path")) };
+    case "speak":        return { icon: "🔊", verb: "spoke", detail: "" };
+    case "transcribe":   return { icon: "🎙", verb: "transcribed", detail: "" };
+    default:             return null;
+  }
+}
+
+/** Display for memory/skill/brain/delegate tools. Returns null when name is not in this group. */
+function toolDisplayMemoryGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "recall":       return { icon: "🧠", verb: "recalled", detail: trunc(str("query"), 50) };
+    case "write_skill":  return { icon: "🧩", verb: "learned", detail: str("name") };
+    case "brain":        return { icon: "🧠", verb: str("action") || "brain", detail: str("region") };
+    case "delegate":     return { icon: "🤝", verb: "delegated", detail: trunc(str("goal") || str("prompt"), 50) };
+    default:             return null;
+  }
+}
+
+/** Display for utility/task/MCP tools. Returns null when name is not in this group. */
+function toolDisplayAgentGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "swarm":        return { icon: "🐝", verb: "swarm", detail: "" };
+    case "todo":         return { icon: "☑", verb: "todo", detail: "" };
+    case "inspect_state": return { icon: "🔍", verb: "inspected", detail: "" };
+    case "mount_mcp":    return { icon: "🔌", verb: "mounted", detail: str("name") };
+    default:             return null;
+  }
+}
+
+/** Clean display parts for a tool call. Detail comes from ARGS, never raw output. */
+export function toolDisplay(name: string, args: Record<string, unknown>): ToolDisplay {
+  const str = (k: string): string => (typeof args[k] === "string" ? (args[k] as string) : "");
+  return toolDisplayCoreGroup(name, str) ?? toolDisplayMediaGroup(name, str) ?? toolDisplayMemoryGroup(name, str) ?? toolDisplayAgentGroup(name, str) ?? toolDisplayByPrefix(name) ?? { icon: "•", verb: name, detail: compactArgs(args) };
 }
 
 export type Block = { type: "single"; entry: Exclude<Entry, ToolEntry> } | { type: "tools"; items: ToolEntry[] };

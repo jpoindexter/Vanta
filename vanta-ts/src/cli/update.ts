@@ -42,54 +42,51 @@ async function loadSnapshot(): Promise<{ sha: string; branch: string; savedAt: s
   try { return JSON.parse(await readFile(await snapPath(), "utf8")); } catch { return null; }
 }
 
-export async function runUpdateCommand(repoRoot: string, args: string[]): Promise<number> {
-  const result: UpdateResult = { ok: true, lines: [] };
-  const log = (s: string): void => { result.lines.push(s); console.log(s); };
-
-  if (args.includes("--rollback")) {
-    const snap = await loadSnapshot();
-    if (!snap) { console.error("  no snapshot found — run `vanta update` first"); return 1; }
-    log(`  rolling back to ${snap.sha.slice(0, 8)} on ${snap.branch} (snapshot from ${snap.savedAt})`);
-    try {
-      await git(["checkout", snap.branch], repoRoot);
-      await git(["reset", "--hard", snap.sha], repoRoot);
-      log("  ✓ rolled back");
-    } catch (err) {
-      console.error(`  rollback failed: ${err instanceof Error ? err.message : String(err)}`);
-      return 1;
-    }
-    return 0;
+async function runRollback(repoRoot: string): Promise<number> {
+  const snap = await loadSnapshot();
+  if (!snap) { console.error("  no snapshot found — run `vanta update` first"); return 1; }
+  console.log(`  rolling back to ${snap.sha.slice(0, 8)} on ${snap.branch} (snapshot from ${snap.savedAt})`);
+  try {
+    await git(["checkout", snap.branch], repoRoot);
+    await git(["reset", "--hard", snap.sha], repoRoot);
+    console.log("  ✓ rolled back");
+  } catch (err) {
+    console.error(`  rollback failed: ${err instanceof Error ? err.message : String(err)}`);
+    return 1;
   }
+  return 0;
+}
 
-  // Step 1: check for local changes + autostash
+async function stashAndSnapshot(repoRoot: string, log: (s: string) => void): Promise<{ stashed: string | null; before: string }> {
   const dirty = await git(["status", "--short"], repoRoot);
   const stashed = dirty ? await tryGit(["stash", "push", "-m", "vanta-update-autostash"], repoRoot) : null;
   if (stashed) log(`  stashed local changes (restore with: git stash pop)`);
-
-  // Step 2: save rollback snapshot
   await saveSnapshot(repoRoot);
   const before = await git(["rev-parse", "HEAD"], repoRoot);
   log(`  snapshot saved (pre-update: ${before.slice(0, 8)})`);
+  return { stashed, before };
+}
 
-  // Step 3: pull
+async function pullLatest(repoRoot: string, before: string, stashed: string | null, log: (s: string) => void): Promise<boolean> {
   try {
     const pullOut = await git(["pull", "--ff-only"], repoRoot);
     const after = await git(["rev-parse", "HEAD"], repoRoot);
     if (before === after) {
       log("  ✓ already up to date");
       if (stashed) { await tryGit(["stash", "pop"], repoRoot); log("  restored local changes"); }
-      return 0;
+      return false; // signal: nothing to do
     }
     log(`  ⬆ pulled: ${pullOut.split("\n")[0] ?? ""}`);
+    return true;
   } catch {
     console.error("  pull failed — no network or not on a tracking branch");
     if (stashed) { await tryGit(["stash", "pop"], repoRoot); }
-    return 1;
+    return false;
   }
+}
 
-  // Step 4: rebuild kernel (Rust) + refresh deps (Node)
+async function rebuildAndSync(repoRoot: string, log: (s: string) => void): Promise<void> {
   log("  rebuilding…");
-  await tryGit([], repoRoot); // noop (just ensuring we stay in repo context)
   try {
     await run("cargo", ["build"], { cwd: repoRoot });
     log("  ✓ kernel rebuilt");
@@ -99,22 +96,32 @@ export async function runUpdateCommand(repoRoot: string, args: string[]): Promis
     log("  ✓ npm deps refreshed");
   } catch { log("  ⚠ npm install failed"); }
 
-  // Step 5: sync bundled skills
   try {
     const { installSkillLibrary } = await import("../skills/library.js");
     const { installed, skipped } = await installSkillLibrary({ force: false });
     if (installed.length) log(`  ✓ skills updated: ${installed.join(", ")}`);
     if (skipped.length) log(`  · skills kept (user-modified): ${skipped.slice(0, 5).join(", ")}${skipped.length > 5 ? "…" : ""}`);
   } catch { log("  ⚠ skill sync failed"); }
+}
 
-  // Step 6: restore stash
+export async function runUpdateCommand(repoRoot: string, args: string[]): Promise<number> {
+  const result: UpdateResult = { ok: true, lines: [] };
+  const log = (s: string): void => { result.lines.push(s); console.log(s); };
+
+  if (args.includes("--rollback")) return runRollback(repoRoot);
+
+  const { stashed, before } = await stashAndSnapshot(repoRoot, log);
+  const pulled = await pullLatest(repoRoot, before, stashed, log);
+  if (!pulled) return 0;
+
+  await rebuildAndSync(repoRoot, log);
+
   if (stashed) {
     const ok = await tryGit(["stash", "pop"], repoRoot);
     if (ok) log("  ✓ restored local changes");
     else log("  ⚠ stash pop had conflicts — check `git status`");
   }
 
-  // Step 7: restart service (best-effort)
   await tryRun("vanta", ["service", "uninstall"], repoRoot);
   await tryRun("vanta", ["service", "install"], repoRoot);
   log("  ✓ service restarted (if running)");
