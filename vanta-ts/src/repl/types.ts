@@ -50,6 +50,8 @@ export type SlashResult = {
   loadIntoComposer?: string;
   /** Index of the conversation message that loadIntoComposer came from. */
   editMessageIndex?: number;
+  /** Toggle focus view (hide tool entries; show only user + final assistant turns). */
+  toggleFocusMode?: true;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */

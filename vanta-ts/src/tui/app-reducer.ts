@@ -1,7 +1,7 @@
 import type { Entry } from "./transcript.js";
 import type { DiffLine } from "../util/diff.js";
 
-export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean; viewOffset: number };
+export type State = { entries: Entry[]; streaming: string; busy: boolean; status: string; queued: string[]; expanded: boolean; viewOffset: number; focusMode: boolean };
 
 export type Action =
   | { t: "user"; text: string }
@@ -16,6 +16,7 @@ export type Action =
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
   | { t: "toggleExpand" }
+  | { t: "toggleFocus" }
   | { t: "scrollBy"; delta: number }
   | { t: "scrollReset" }
   | { t: "clear" };
@@ -71,17 +72,18 @@ function handleAppend(s: State, a: Extract<Action, { t: "compactBoundary" | "not
   return { ...s, entries: [...s.entries, { kind, text: a.text }] };
 }
 
-type SimpleAction = Extract<Action, { t: "delta" | "dequeue" | "toggleExpand" | "scrollBy" | "scrollReset" | "clear" }>;
+type SimpleAction = Extract<Action, { t: "delta" | "dequeue" | "toggleExpand" | "toggleFocus" | "scrollBy" | "scrollReset" | "clear" }>;
 
 function handleSimple(s: State, a: SimpleAction): State {
   switch (a.t) {
     case "delta":        return { ...s, streaming: s.streaming + a.d, status: "generating" };
     case "dequeue":      return { ...s, queued: s.queued.slice(1) };
     case "toggleExpand": return { ...s, expanded: !s.expanded };
+    case "toggleFocus":  return { ...s, focusMode: !s.focusMode };
     case "scrollBy":     return { ...s, viewOffset: Math.max(0, s.viewOffset + a.delta) };
     case "scrollReset":  return { ...s, viewOffset: 0 };
     case "clear":
-      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 };
+      return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: s.focusMode };
   }
 }
 

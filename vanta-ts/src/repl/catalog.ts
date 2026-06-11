@@ -62,6 +62,8 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "add-dir", arg: "<path>", desc: "add a directory to this session's readable/writable scope" },
   { name: "routes", desc: "show provider routing config (main + named VANTA_ROUTE_* overrides)" },
   { name: "rename", arg: "<name>", desc: "rename the current session" },
+  { name: "tui", arg: "[fullscreen|status|exit]", desc: "TUI renderer info; /tui fullscreen confirms alt-screen mode" },
+  { name: "focus", desc: "toggle focus view — hide tool events, show only user + final responses" },
   { name: "exit", desc: "leave the session" },
 ];
 

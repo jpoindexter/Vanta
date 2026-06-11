@@ -44,6 +44,7 @@ function applySlashResult(r: SlashResult, d: SubmitDeps): void {
   if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return void d.exit(); } // run.sh re-execs on 75
   if (r.cleared) d.dispatch({ t: "clear" });
   if (r.provider) d.setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
+  if (r.toggleFocusMode) d.dispatch({ t: "toggleFocus" });
   if (r.output) d.dispatch({ t: "note", text: r.output });
   if (r.resend) d.sendToAgent(r.resend);
   if (r.loadIntoComposer !== undefined) {

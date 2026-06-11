@@ -4,7 +4,7 @@ import { App, reduce, type State } from "./app.js";
 import { EntryRow, type Entry } from "./transcript.js";
 import type { RunSetup } from "../session.js";
 
-const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 };
+const base: State = { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false };
 
 describe("tui reduce", () => {
   it("user submit adds an entry and goes busy/thinking", () => {
@@ -122,7 +122,7 @@ describe("tui reduce", () => {
 
   it("clear empties the transcript", () => {
     const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true, expanded: true }, { t: "clear" });
-    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
+    expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false });
   });
 });
 

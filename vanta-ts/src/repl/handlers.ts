@@ -38,6 +38,8 @@ import { rename } from "./rename-cmd.js";
 import { branch } from "./branch-cmd.js";
 import { summary } from "./summary-cmd.js";
 import { outputStyle } from "./output-style-cmd.js";
+import { tuiCommand } from "./tui-cmd.js";
+import { focusCommand } from "./focus-cmd.js";
 import { permissions } from "./permissions-cmd.js";
 import { now } from "./now-cmd.js";
 import { contextCmd } from "./context-cmd.js";
@@ -275,6 +277,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
   routes, files, theme, rename, branch, summary, "output-style": outputStyle, permissions,
+  tui: tuiCommand, focus: focusCommand,
   "add-dir": addDir,
 };
 

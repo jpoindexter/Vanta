@@ -200,7 +200,7 @@ function BottomChrome(p: ChromeProps): ReactElement {
 // ─── app state hook ───────────────────────────────────────────────────────
 
 function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string }) {
-  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
+  const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [atFiles, setAtFiles] = useState<string[]>([]);
@@ -256,7 +256,10 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
 
   const w = Math.max(24, cols - 2);
   const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
-  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...s.state.entries] : s.state.entries;
+  const visibleEntries = s.state.focusMode
+    ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
+    : s.state.entries;
+  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   if (ALT_SCREEN) {

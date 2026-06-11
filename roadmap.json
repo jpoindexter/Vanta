@@ -611,29 +611,29 @@
       "id": "CC-TUI-FULLSCREEN-CMD",
       "track": "Operator",
       "title": "`/tui` — toggle fullscreen flicker-free rendering mode in the same session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC (v2.1.110) adds `/tui fullscreen` to switch to the alternate-screen renderer mid-session without losing context. The fullscreen renderer virtualizes scrollback for lower memory usage, enables mouse support, and auto-copies on selection.",
-      "done": "Running `/tui fullscreen` in the TUI switches to the flicker-free renderer. The session continues; all prior context is preserved.",
+      "summary": "Adds `/tui [fullscreen|status|exit]` slash command. `/tui status` or bare `/tui` reports the current renderer; `/tui fullscreen` confirms already in fullscreen alt-screen mode; `/tui exit` exits the session. Handler in `repl/tui-cmd.ts`, registered in catalog + handlers.",
+      "done": "Running `/tui fullscreen` in the TUI confirms fullscreen mode. `/tui exit` exits. All 5 tests pass, tsc clean.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-11"
     },
     {
       "id": "CC-FOCUS-CMD",
       "track": "Operator",
       "title": "`/focus` command — separate focus view toggle (split from Ctrl+O)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC (v2.1.110) adds `/focus` as a dedicated command to toggle focus view (compact prompt + one-line tool summary + final response only). `Ctrl+O` now only toggles between normal and verbose transcript; `/focus` is the focus-view entry point.",
-      "done": "Running `/focus` switches to a minimal view showing only the prompt, tool summary line, and final response. `/focus` again returns to normal.",
+      "summary": "Adds `/focus` slash command that toggles focus mode in the TUI. Focus mode filters the transcript to user + assistant entries only — tool calls and system notes are hidden. State lives in `app-reducer.ts` (`focusMode: boolean`, `toggleFocus` action). `/focus` returns `toggleFocusMode: true` in `SlashResult`; `use-submit.ts applySlashResult` dispatches the reducer action. `app.tsx` filters `visibleEntries` accordingly.",
+      "done": "Running `/focus` hides tool events in the TUI transcript. `/focus` again restores the full view. 3 tests pass, tsc clean.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-11"
     },
     {
       "id": "CC-SCROLL-DURING-RUN",
