@@ -9226,6 +9226,23 @@
       "effort": "high",
       "lens": "agent-loop",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "COCKPIT-LOOP-PANEL",
+      "track": "Harness",
+      "title": "Cockpit loop panel — live loops + escalations in the kernel dashboard",
+      "status": "next",
+      "size": "M",
+      "summary": "The kernel cockpit (src/server.rs INDEX) has panels for goals/approvals/assess but none for the .vanta/loops/ registry shipped in LOOP-ENGINE/LOOP-STATE. Add a Loops panel: each loop row shows id, status, trigger, iterations, last score, in-progress flag, and open escalations; controls to clear an escalation (human-clear-only — the cockpit is a legitimate human surface) and pause/resume/kill a loop. Backed by new kernel endpoints GET /api/loops (read), POST /api/loops/clear|pause|resume|kill. Read path is an open call: the kernel (zero-dep Rust) can read .vanta/loops/*.json directly the way it reads goals.tsv/approvals.tsv, but the JSON is nested — decide hand-rolled parse vs. a thin TS-served proxy panel. Mirrors the existing approvals/goals panel pattern and their refresh-on-action UX.",
+      "done": "The cockpit renders a Loops panel listing each .vanta/loops/ entry with status/trigger/iterations/last-score and open escalations; a human can clear an escalation and pause/resume/kill a loop from the page; backed by /api/loops* endpoints; loops with no escalations and paused/active states render correctly.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-ENGINE"
+      ]
     }
   ]
 }
