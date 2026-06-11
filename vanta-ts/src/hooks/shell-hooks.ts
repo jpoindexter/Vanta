@@ -78,14 +78,22 @@ function matchesPattern(pattern: string | undefined, text: string | undefined): 
   catch { return pattern === text; }
 }
 
+function namePatternBlocked(hook: ShellHook, ctx: MatchContext): boolean {
+  const pat = hook.toolNamePattern ?? hook.matcher;
+  // Tool name patterns only apply when toolName is present; absent = match all (non-tool events).
+  return pat !== undefined && ctx.toolName !== undefined && !matchesPattern(pat, ctx.toolName);
+}
+
+function sessionTypeBlocked(hook: ShellHook, ctx: MatchContext): boolean {
+  return !!(hook.sessionType && ctx.sessionType && hook.sessionType !== ctx.sessionType);
+}
+
 function hookMatches(hook: ShellHook, ctx: MatchContext): boolean {
-  const namePattern = hook.toolNamePattern ?? hook.matcher;
-  // Tool name patterns only apply when a toolName is in the context; absent = match all.
-  if (namePattern && ctx.toolName !== undefined && !matchesPattern(namePattern, ctx.toolName)) return false;
+  if (namePatternBlocked(hook, ctx)) return false;
   if (!matchesPattern(hook.inputPattern, ctx.toolInputJson)) return false;
   if (!matchesPattern(hook.promptPattern, ctx.prompt)) return false;
   if (hook.onError && ctx.isError !== true) return false;
-  if (hook.sessionType && ctx.sessionType && hook.sessionType !== ctx.sessionType) return false;
+  if (sessionTypeBlocked(hook, ctx)) return false;
   return true;
 }
 
