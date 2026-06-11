@@ -17,13 +17,7 @@ import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { loadSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
-import {
-  resolveDroppedMedia,
-  printPreTurnNotes,
-  runPostTurnPipeline,
-  buildSendText,
-  type TurnDeps,
-} from "./interactive-turn.js";
+import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 
 const LOGO = String.raw`
    █████╗ ██████╗  ██████╗  ██████╗
@@ -192,17 +186,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}
   const userCommands = await loadUserCommands(process.env);
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
   const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() } };
-  const runUserTurn = async (text: string): Promise<void> => {
-    const resolved = await resolveDroppedMedia(text, state);
-    state.turnIndex++;
-    // UserPromptSubmit shell hooks — fire-and-forget on each submitted prompt.
-    void fireHooks(join(repoRoot, ".vanta"), "UserPromptSubmit", { prompt: resolved.text }, { cwd: repoRoot });
-    printPreTurnNotes(resolved.text, convo, setup);
-    const turnStart = new Date().toISOString();
-    const t0 = Date.now();
-    const outcome = await convo.send(buildSendText(resolved.text, workingMemory), resolved.images);
-    await runPostTurnPipeline({ outcome, text: resolved.text, t0, turnStart, deps: turnDeps });
-  };
+  const runUserTurn = (text: string) => executeUserTurn(text, turnDeps);
 
   try {
     await runReplLoop({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn });

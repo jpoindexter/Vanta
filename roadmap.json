@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-11",
+  "updated": "2026-06-11T13:36:57.156Z",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -60,7 +60,7 @@
       "id": "CC-GOAL-CMD",
       "track": "Harness",
       "title": "`/goal` — set a completion condition; agent works until it's met",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC (v2.1.139) adds `/goal` to set a completion condition for the session. Claude works autonomously across turns until the condition is satisfied. Works in interactive and headless sessions. Core to persistent autonomous agent loops.",
       "done": "Running `/goal done when tests pass` causes the agent to keep iterating until `npm test` passes without being re-prompted.",
@@ -68,7 +68,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-09",
+      "note": "parseDoneCondition + checkGoalLoop in repl/goal-condition.ts; REPL loops via executeUserTurn (interactive-turn.ts); TUI loops via sendTurn(count) in use-agent-send.ts; 14 tests"
     },
     {
       "id": "CC-HOOK-ADDITIONAL-CTX",

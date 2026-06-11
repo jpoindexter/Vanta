@@ -16,6 +16,7 @@ import type { SafetyClient } from "../safety-client.js";
 import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
 import type { Goal } from "../types.js";
+import { checkGoalLoop, buildGoalLoopMax } from "../repl/goal-condition.js";
 import type { LLMProvider } from "../providers/interface.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
@@ -160,24 +161,33 @@ function handleTurnOutcome(outcome: TurnOutcome, refs: TurnRefs, ctx: TurnContex
 
 /** Build the sendToAgent function from explicit deps (extracted from hook to keep useAgentSend under size gate). */
 function buildSendToAgent(d: SendDeps): (text: string) => void {
-  return (text: string): void => {
-    d.dispatch({ t: "user", text });
+  function sendTurn(text: string, loopCount: number): void {
+    if (loopCount === 0) d.dispatch({ t: "user", text });
     const convo = d.convoRef.current;
     if (!convo) return;
-    dispatchPreTurnNotes(text, convo, d.goals, d.dispatch);
+    if (loopCount === 0) dispatchPreTurnNotes(text, convo, d.goals, d.dispatch);
     d.replStateRef.current.turnIndex++;
     d.refs.turnStartRef.current = Date.now();
-    const images = d.replStateRef.current.pendingImages;
-    d.replStateRef.current.pendingImages = undefined;
+    const images = loopCount === 0 ? d.replStateRef.current.pendingImages : undefined;
+    if (loopCount === 0) d.replStateRef.current.pendingImages = undefined;
     const ac = new AbortController();
     d.abortRef.current = ac;
     d.interruptedRef.current = false;
     // MODE-DETECT: prepend a one-line stance hint (display already shows clean text).
-    const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
+    const modeHint = loopCount === 0 && process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
     const sendText = modeHint ? `${modeHint}\n\n${text}` : text;
     const turnCtx: TurnContext = { dispatch: d.dispatch, convo, replStateRef: d.replStateRef, safety: d.safety, repoRoot: d.repoRoot, contextWindow: d.contextWindow, provider: d.provider };
+    const loopMax = buildGoalLoopMax(process.env);
     void convo.send(sendText, images, ac.signal)
-      .then((outcome) => { d.abortRef.current = null; handleTurnOutcome(outcome, d.refs, turnCtx); })
+      .then((outcome) => {
+        d.abortRef.current = null;
+        handleTurnOutcome(outcome, d.refs, turnCtx);
+        if (loopCount < loopMax) {
+          void checkGoalLoop({ safety: d.safety, cwd: d.repoRoot, onNote: (n) => d.dispatch({ t: "note", text: n }) })
+            .catch(() => null)
+            .then((cw) => { if (cw) sendTurn(cw, loopCount + 1); });
+        }
+      })
       .catch((err: unknown) => {
         d.abortRef.current = null;
         // A user interrupt already ended the turn — don't surface AbortError as generic "error:".
@@ -185,7 +195,8 @@ function buildSendToAgent(d: SendDeps): (text: string) => void {
         d.dispatch({ t: "note", text: `error: ${err instanceof Error ? err.message : String(err)}` });
         d.dispatch({ t: "commit", finalText: "" });
       });
-  };
+  }
+  return (text: string) => sendTurn(text, 0);
 }
 
 export function useAgentSend(

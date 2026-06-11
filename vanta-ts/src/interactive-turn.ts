@@ -22,6 +22,8 @@ import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { saveSession } from "./sessions/store.js";
 import { reflectAfterTurn } from "./repl/reflect-correct.js";
+import { checkGoalLoop, buildGoalLoopMax } from "./repl/goal-condition.js";
+import { fireHooks } from "./hooks/shell-hooks.js";
 import type { ReplState } from "./repl-commands.js";
 import type { RunSetup } from "./session.js";
 import type { SessionWorkingMemory } from "./memory/working.js";
@@ -85,8 +87,9 @@ export type PostTurnOpts = {
   deps: TurnDeps;
 };
 
-/** Post-send pipeline: cost, handoff, save, review, session memory, gates, reflect. */
-export async function runPostTurnPipeline(o: PostTurnOpts): Promise<void> {
+/** Post-send pipeline: cost, handoff, save, review, session memory, gates, reflect.
+ *  Returns continueWith when an active goal has an unmet done-condition. */
+export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWith: string | null }> {
   const { outcome, text, t0, turnStart, deps } = o;
   const { convo, setup, state, repoRoot, gatesRef } = deps;
   pruneVolatileSkills(convo.messages);
@@ -110,6 +113,8 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<void> {
   const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
   await reflectAfterTurn(lastUserText, process.env);
+  const continueWith = await checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null);
+  return { continueWith: continueWith ?? null };
 }
 
 async function handleAutoHandoff(
@@ -131,6 +136,31 @@ async function handleAutoHandoff(
   if (ah.wrote && !autoHandoffNotedRef.current) {
     console.log(`\n  ↻ context filling up — saved a resume block to ${ah.path} (auto-reloads next launch)`);
     autoHandoffNotedRef.current = true;
+  }
+}
+
+/**
+ * Execute one user turn, looping automatically when the active goal has a
+ * "done when `<cmd>`" condition that has not yet passed (up to VANTA_GOAL_LOOP_MAX).
+ */
+export async function executeUserTurn(text: string, deps: TurnDeps): Promise<void> {
+  const resolved = await resolveDroppedMedia(text, deps.state);
+  let turnText = resolved.text;
+  let images = resolved.images;
+  const loopMax = buildGoalLoopMax(process.env);
+  let loopCount = 0;
+  for (;;) {
+    deps.state.turnIndex++;
+    void fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: turnText }, { cwd: deps.repoRoot });
+    printPreTurnNotes(turnText, deps.convo, deps.setup);
+    const turnStart = new Date().toISOString();
+    const t0 = Date.now();
+    const outcome = await deps.convo.send(buildSendText(turnText, deps.workingMemory), images);
+    const result = await runPostTurnPipeline({ outcome, text: turnText, t0, turnStart, deps });
+    images = undefined;
+    if (!result.continueWith || loopCount >= loopMax) break;
+    turnText = result.continueWith;
+    loopCount++;
   }
 }
 
