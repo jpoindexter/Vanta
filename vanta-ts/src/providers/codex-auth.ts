@@ -97,15 +97,17 @@ export type LoadCredsDeps = {
   write?: WriteFile;
 };
 
-/** Resolve LoadCredsDeps to concrete impls + timestamps (defaults applied). */
-function resolveLoadDeps(deps: LoadCredsDeps): {
+type Resolved = {
   path: string;
   read: ReadFile;
   write: WriteFile;
   fetchImpl: typeof fetch;
   nowMs: number;
   nowSec: number;
-} {
+};
+
+/** Resolve LoadCredsDeps to concrete impls + timestamps (defaults applied). */
+function resolveLoadDeps(deps: LoadCredsDeps): Resolved {
   const nowMs = deps.now ? deps.now() : Date.now();
   return {
     path: deps.authPath ?? defaultCodexAuthPath(),
@@ -117,31 +119,82 @@ function resolveLoadDeps(deps: LoadCredsDeps): {
   };
 }
 
-/**
- * Resolve a usable access token + account id. Refreshes and writes the rotated
- * tokens back to the shared ~/.codex/auth.json only when the token is expiring.
- */
-export async function loadCodexCreds(deps: LoadCredsDeps = {}): Promise<CodexCreds> {
-  const { path, read, write, fetchImpl, nowMs, nowSec } = resolveLoadDeps(deps);
-
-  const auth = readCodexAuth(path, read);
+/** Tokens or an actionable error. */
+function requireTokens(auth: AuthFile, path: string): CodexTokens {
   const tokens = auth.tokens;
   if (!tokens?.access_token || !tokens?.refresh_token || !tokens?.account_id) {
     throw new Error(`Codex auth at ${path} is missing tokens. Run \`codex login\` to re-authenticate.`);
   }
-  if (!accessTokenExpiring(tokens.access_token, nowSec)) {
-    return { accessToken: tokens.access_token, accountId: tokens.account_id };
-  }
-  const refreshed = await refreshCodexTokens(tokens.refresh_token, fetchImpl);
+  return tokens;
+}
+
+/** Refresh, persist the rotated pair back to auth.json, return creds. */
+async function refreshAndPersist(auth: AuthFile, tokens: CodexTokens, r: Resolved): Promise<CodexCreds> {
+  const refreshed = await refreshCodexTokens(tokens.refresh_token, r.fetchImpl);
   const updated: AuthFile = {
     ...auth,
     tokens: { ...tokens, access_token: refreshed.access_token, refresh_token: refreshed.refresh_token },
-    last_refresh: new Date(nowMs).toISOString(),
+    last_refresh: new Date(r.nowMs).toISOString(),
   };
   try {
-    write(path, JSON.stringify(updated, null, 2));
-  } catch {
-    // Best-effort persist; the token still works for this run even if write fails.
+    r.write(r.path, JSON.stringify(updated, null, 2));
+  } catch (err) {
+    // NOT a harmless miss: the refresh_token is single-use, so losing the
+    // rotated pair bricks the next refresh (401 "already been used") and
+    // forces a `codex login`. Token still works for this run — warn loudly.
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`⚠ could not persist rotated Codex tokens to ${r.path}: ${msg} — a future session may need \`codex login\`.\n`);
   }
   return { accessToken: refreshed.access_token, accountId: tokens.account_id };
+}
+
+/**
+ * Recovery for a refresh 401: "refresh token already used" usually means a
+ * concurrent process (the Codex CLI, or another Vanta) won the rotation race
+ * and persisted a NEWER token lineage to auth.json. Re-read the file; if its
+ * refresh_token differs from the one we burned, adopt that lineage — use its
+ * access token directly when fresh, else refresh once with the newer token.
+ * Returns null when the file is unchanged (the lineage is genuinely dead).
+ */
+async function recoverFromRotatedToken(burnedRefreshToken: string, r: Resolved): Promise<CodexCreds | null> {
+  let auth: AuthFile;
+  try {
+    auth = readCodexAuth(r.path, r.read);
+  } catch {
+    return null;
+  }
+  const tokens = auth.tokens;
+  if (!tokens?.access_token || !tokens?.refresh_token || !tokens?.account_id) return null;
+  if (tokens.refresh_token === burnedRefreshToken) return null;
+  if (!accessTokenExpiring(tokens.access_token, r.nowSec)) {
+    return { accessToken: tokens.access_token, accountId: tokens.account_id };
+  }
+  try {
+    return await refreshAndPersist(auth, tokens, r);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a usable access token + account id. Refreshes and writes the rotated
+ * tokens back to the shared ~/.codex/auth.json only when the token is expiring.
+ * A refresh 401 triggers one re-read recovery pass (rotation race, see above).
+ */
+export async function loadCodexCreds(deps: LoadCredsDeps = {}): Promise<CodexCreds> {
+  const r = resolveLoadDeps(deps);
+  const auth = readCodexAuth(r.path, r.read);
+  const tokens = requireTokens(auth, r.path);
+  if (!accessTokenExpiring(tokens.access_token, r.nowSec)) {
+    return { accessToken: tokens.access_token, accountId: tokens.account_id };
+  }
+  try {
+    return await refreshAndPersist(auth, tokens, r);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes("(401)")) throw err;
+    const recovered = await recoverFromRotatedToken(tokens.refresh_token, r);
+    if (recovered) return recovered;
+    throw err;
+  }
 }
