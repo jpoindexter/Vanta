@@ -18,13 +18,24 @@ describe("buildApprovalOptions", () => {
 describe("ApprovalPrompt keyboard", () => {
   const base = { action: "git commit", reason: "records changes", toolName: "git_commit", width: 80 };
 
-  it("renders the action + four options", () => {
+  it("renders the action, the kernel reason, and four options", () => {
     const { lastFrame, unmount } = render(<ApprovalPrompt {...base} onChoose={() => {}} />);
     const frame = lastFrame() ?? "";
-    expect(frame).toContain("git_commit");
+    expect(frame).toContain("git_commit"); // tool name in the title
+    expect(frame).toContain("git commit"); // the gated action, surfaced on its own line
+    expect(frame).toContain("why"); // the reason label
+    expect(frame).toContain("records changes"); // the kernel's reason
     expect(frame).toContain("Allow once");
     expect(frame).toContain("Always allow git_commit");
     expect(frame).toContain("Deny");
+    unmount();
+  });
+
+  it("clips a long command to one line so the box can't wrap", () => {
+    const longCmd = "rm -rf " + "build/and/a/very/deep/nested/path".repeat(6);
+    const { lastFrame, unmount } = render(<ApprovalPrompt {...base} action={longCmd} width={60} onChoose={() => {}} />);
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("…"); // ellipsis proves the clip fired
     unmount();
   });
 
