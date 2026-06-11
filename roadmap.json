@@ -8866,6 +8866,20 @@
       "summary": "vanta mcp serve — exposes Vanta tools over MCP stdio, kernel-gated + read-only allowlist. console.log→stderr keeps the protocol stream clean.",
       "done": "Live-verified: real McpClient drove vanta mcp serve subprocess — handshake, tools/list, allow→execute, out-of-scope refused, non-allowlisted refused. Claude Code integration untested.",
       "lens": "reach"
+    },
+    {
+      "id": "BRAIN-COHESIVE",
+      "track": "Operator",
+      "title": "Cohesive brain — one unit composing regions + structured scored memory",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Consolidate the brain into one cohesive unit (brain/brain.ts facade of small functions): the md regions stay the auditable layer; the dormant brain5d store and neuro 12-axis scoring are rebuilt into brain/entries.ts (typed, strength-scored, decay-aware, contradiction-penalized, crystallizing on retrieval). One composed brainDigest in the prompt; brain tool gains remember/recall (recall reinforces); per-layer best-effort so a broken layer degrades instead of breaking her; corrupt store quarantined, legacy brain5d.json migrated. v2 self-evolving substrate stays parked.",
+      "done": "brainDigest injects regions + top structured memories; brain remember/recall round-trips and reinforces; corrupt entries.json degrades to regions-only and is quarantined; brain5d.ts/neuro.ts deleted (absorbed); full suite green.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "selfhood",
+      "updated": "2026-06-11"
     }
   ]
 }

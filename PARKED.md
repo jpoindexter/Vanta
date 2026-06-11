@@ -205,3 +205,8 @@ Audited Claude Code's full feature set (~250 features) for the roadmap; 19 in-sc
 - `HP-SKIN-ENGINE` Skin engine (YAML themes) — YAML theme engine — cosmetic, post-users
 - `HP-TIPS` Tips (startup feature discovery) — startup tips — post-users polish
 - `HP-WEB-DASHBOARD` Web dashboard (FastAPI + Vite) — duplicate surface: kernel cockpit + roadmap serve + DESKTOP track
+
+## Brain v2 self-evolving substrate (brain/v2.ts)
+**Captured:** 2026-06-11 (BRAIN-COHESIVE consolidation).
+**Why parked:** Speculative bootstrap scaffold (Vanta designs her own brain format — jsonl/sqlite/graph/vector). The cohesive facade + structured entries layer covers current needs; self-designed substrates are platform-thinking before evidence.
+**Cost to revisit:** Low — the scaffold (`BrainV2Spec`, `evolveSpec`) stays in-tree; wiring it = implementing a spec + injecting its digest through the existing facade.

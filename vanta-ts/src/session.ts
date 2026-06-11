@@ -9,7 +9,7 @@ import { recentMemory, appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
 import { curate } from "./skills/curator.js";
 import { listSkills } from "./skills/store.js";
-import { brainDigest } from "./brain/store.js";
+import { brainDigest } from "./brain/brain.js";
 import { resolveVantaHome } from "./store/home.js";
 import { readSessionMemory, sessionMemoryBlock } from "./memory/session-memory.js";
 import { installMessageDisplayHooks } from "./agent/message-display.js";
