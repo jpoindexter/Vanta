@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { Text, useInput, usePaste } from "ink";
+import { Text, useInput, usePaste, type Key } from "ink";
 import { newPasteStore, shouldCollapse, collapse, expandPastes } from "./paste.js";
 import {
   wordLeft,
@@ -45,149 +45,179 @@ export function navigateHistory(history: string[], state: HistState, dir: "up" |
   return { ...state, histIdx, value: history[history.length - 1 - histIdx] ?? "" };
 }
 
+// ─── key-handler context ───────────────────────────────────────────────────
+
+type HandlerCtx = {
+  value: string;
+  cursor: number;
+  vimMode: VimMode;
+  vimEnabled: boolean;
+  isHistoryActive: boolean;
+  history: string[];
+  histRef: React.MutableRefObject<HistState>;
+  killRing: React.MutableRefObject<string>;
+  pasteStore: React.MutableRefObject<ReturnType<typeof newPasteStore>>;
+  onChange: (v: string) => void;
+  onSubmit: (v: string) => void;
+  setCursor: React.Dispatch<React.SetStateAction<number>>;
+  setVimMode: (m: VimMode) => void;
+};
+
+// ─── dispatch-table helpers ────────────────────────────────────────────────
+
+type KeyEntry = { match: (i: string, k: Key) => boolean; run: (i: string, ctx: HandlerCtx) => void };
+
+// Runs the first matching entry in a table; returns true if matched.
+function runTable(table: KeyEntry[], input: string, key: Key, ctx: HandlerCtx): boolean {
+  const entry = table.find((e) => e.match(input, key));
+  if (entry) { entry.run(input, ctx); return true; }
+  return false;
+}
+
+// ─── vim normal-mode dispatch table ───────────────────────────────────────
+
+const VIM_NORMAL_TABLE: KeyEntry[] = [
+  { match: (i) => i === "i", run: (_, c) => c.setVimMode("insert") },
+  { match: (i) => i === "a", run: (_, c) => { c.setCursor((p) => Math.min(c.value.length, p + 1)); c.setVimMode("insert"); } },
+  { match: (i) => i === "I", run: (_, c) => { c.setCursor(0); c.setVimMode("insert"); } },
+  { match: (i) => i === "A", run: (_, c) => { c.setCursor(c.value.length); c.setVimMode("insert"); } },
+  { match: (i, k) => i === "h" || k.leftArrow, run: (_, c) => c.setCursor((p) => Math.max(0, p - 1)) },
+  { match: (i, k) => i === "l" || k.rightArrow, run: (_, c) => c.setCursor((p) => Math.min(c.value.length, p + 1)) },
+  { match: (i) => i === "0", run: (_, c) => c.setCursor(0) },
+  { match: (i) => i === "$", run: (_, c) => c.setCursor(c.value.length) },
+  { match: (i) => i === "x", run: (_, c) => { if (c.cursor < c.value.length) c.onChange(c.value.slice(0, c.cursor) + c.value.slice(c.cursor + 1)); } },
+  { match: (_, k) => k.return, run: (_, c) => c.onSubmit(expandPastes(c.value, c.pasteStore.current)) },
+];
+
+function handleVimNormal(input: string, key: Key, ctx: HandlerCtx): boolean {
+  if (!ctx.vimEnabled || ctx.vimMode !== "normal") return false;
+  runTable(VIM_NORMAL_TABLE, input, key, ctx);
+  return true; // always consumed in normal mode
+}
+
+// ─── insert-mode movement + kill-ring dispatch tables ─────────────────────
+
+const MOVEMENT_TABLE: KeyEntry[] = [
+  { match: (i, k) => k.leftArrow || (k.ctrl && i === "b"), run: (_, c) => c.setCursor((p) => Math.max(0, p - 1)) },
+  { match: (i, k) => k.rightArrow || (k.ctrl && i === "f"), run: (_, c) => c.setCursor((p) => Math.min(c.value.length, p + 1)) },
+  { match: (i, k) => k.ctrl && i === "a", run: (_, c) => c.setCursor(0) },
+  { match: (i, k) => k.ctrl && i === "e", run: (_, c) => c.setCursor(c.value.length) },
+  { match: (i, k) => k.meta && i === "b", run: (_, c) => c.setCursor((p) => wordLeft(c.value, p)) },
+  { match: (i, k) => k.meta && i === "f", run: (_, c) => c.setCursor((p) => wordRight(c.value, p)) },
+];
+
+const KILL_YANK_TABLE: KeyEntry[] = [
+  { match: (i, k) => k.ctrl && i === "u", run: (_, c) => { const r = killToStart(c.value, c.cursor); c.killRing.current = r.killed; c.onChange(r.value); c.setCursor(r.cursor); } },
+  { match: (i, k) => k.ctrl && i === "k", run: (_, c) => { const r = killToEnd(c.value, c.cursor); c.killRing.current = r.killed; c.onChange(r.value); } },
+  { match: (i, k) => (k.ctrl && i === "w") || (k.meta && (k.backspace || k.delete)), run: (_, c) => { const r = killWordBack(c.value, c.cursor); c.killRing.current = r.killed; c.onChange(r.value); c.setCursor(r.cursor); } },
+  { match: (i, k) => k.ctrl && i === "d", run: (_, c) => { if (c.value.length > 0) c.onChange(deleteForward(c.value, c.cursor)); } },
+  { match: (i, k) => k.ctrl && i === "y", run: (_, c) => { const r = yank(c.value, c.cursor, c.killRing.current); c.onChange(r.value); c.setCursor(r.cursor); } },
+];
+
+// ─── insert-mode submit/history/backspace section ─────────────────────────
+// Separated from handleKeyInput so that fn's complexity stays ≤10.
+
+function handleHistoryNav(key: Key, ctx: HandlerCtx): boolean {
+  if (!ctx.isHistoryActive) return false;
+  if (key.upArrow) {
+    const next = navigateHistory(ctx.history, ctx.histRef.current, "up");
+    ctx.histRef.current = next; ctx.onChange(next.value); ctx.setCursor(next.value.length);
+    return true;
+  }
+  if (key.downArrow) {
+    const next = navigateHistory(ctx.history, ctx.histRef.current, "down");
+    ctx.histRef.current = next; ctx.onChange(next.value); ctx.setCursor(next.value.length);
+    return true;
+  }
+  return false;
+}
+
+function handleInsertSubmitHistory(input: string, key: Key, ctx: HandlerCtx): boolean {
+  const inInsert = ctx.vimEnabled && ctx.vimMode === "insert";
+  if (inInsert && key.escape) { ctx.setVimMode("normal"); return true; }
+  if (key.shift && key.return) {
+    ctx.onChange(ctx.value.slice(0, ctx.cursor) + "\n" + ctx.value.slice(ctx.cursor));
+    ctx.setCursor((c) => c + 1);
+    return true;
+  }
+  if (key.return) { ctx.onSubmit(expandPastes(ctx.value, ctx.pasteStore.current)); return true; }
+  return handleHistoryNav(key, ctx);
+}
+
+// Returns true when the key is a non-printable control that should be ignored.
+function isIgnoredKey(input: string, key: Key): boolean {
+  return !input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape;
+}
+
+function handleInsertChar(input: string, key: Key, ctx: HandlerCtx): void {
+  if (key.backspace || key.delete) {
+    if (ctx.cursor === 0) return;
+    ctx.onChange(ctx.value.slice(0, ctx.cursor - 1) + ctx.value.slice(ctx.cursor));
+    ctx.setCursor((c) => c - 1);
+    return;
+  }
+  if (isIgnoredKey(input, key)) return;
+  const insert = shouldCollapse(input) ? collapse(ctx.pasteStore.current, input) : input;
+  ctx.onChange(ctx.value.slice(0, ctx.cursor) + insert + ctx.value.slice(ctx.cursor));
+  ctx.setCursor((c) => c + insert.length);
+}
+
+// Main dispatch — thin; delegates to focused helpers.
+function handleKeyInput(input: string, key: Key, ctx: HandlerCtx): void {
+  if (handleVimNormal(input, key, ctx)) return;
+  if (handleInsertSubmitHistory(input, key, ctx)) return;
+  if (runTable(MOVEMENT_TABLE, input, key, ctx)) return;
+  if (runTable(KILL_YANK_TABLE, input, key, ctx)) return;
+  handleInsertChar(input, key, ctx);
+}
+
+// ─── render helpers ────────────────────────────────────────────────────────
+
+type DisplayProps = { value: string; cursor: number; color?: string; placeholder: string };
+function ComposerDisplay({ value, cursor, color, placeholder }: DisplayProps): ReactElement {
+  if (value.length === 0) {
+    return (
+      <Text>
+        <Text inverse> </Text>
+        <Text dimColor>{placeholder}</Text>
+      </Text>
+    );
+  }
+  const c = Math.min(cursor, value.length);
+  return (
+    <Text color={color}>
+      {value.slice(0, c)}
+      <Text inverse>{value[c] ?? " "}</Text>
+      {value.slice(c + 1)}
+    </Text>
+  );
+}
+
+// ─── component ────────────────────────────────────────────────────────────
+
 export function Composer(props: ComposerProps): ReactElement {
   const { value, onChange, onSubmit, placeholder = "", isActive = true, isHistoryActive = false, history = [], color, vimEnabled = false, onVimModeChange } = props;
   const [cursor, setCursor] = useState(value.length);
   const [vimMode, setVimModeState] = useState<VimMode>("insert");
   const histRef = useRef<HistState>({ histIdx: -1, draft: "", value: "" });
-  // Large pastes collapse to a [Pasted text #N …] ref here, expanded on submit.
   const pasteStore = useRef(newPasteStore());
-  // Kill ring: the last text killed by Ctrl+U/W/K, yanked back by Ctrl+Y.
-  // Persists across clears (emacs-like) — intentionally NOT reset in the effect below.
+  // Kill ring persists across clears (emacs-like) — intentionally NOT reset on value clear.
   const killRing = useRef("");
+  const setVimMode = (m: VimMode): void => { setVimModeState(m); onVimModeChange?.(m); };
 
-  const setVimMode = (m: VimMode): void => {
-    setVimModeState(m);
-    onVimModeChange?.(m);
-  };
-
-  // Keep the cursor inside the value when the parent rewrites it (e.g. clears on
-  // submit, or tab-completes a slash command). Also reset history navigation on clear.
+  // Keep cursor inside value when parent rewrites it; reset history nav on clear.
   useEffect(() => {
     setCursor((c) => Math.min(c, value.length));
-    if (value === "") {
-      histRef.current = { histIdx: -1, draft: "", value: "" };
-      pasteStore.current = newPasteStore();
-    }
+    if (value === "") { histRef.current = { histIdx: -1, draft: "", value: "" }; pasteStore.current = newPasteStore(); }
   }, [value]);
 
   useInput(
-    (input, key) => {
-      // Vim normal mode key handling — only active when vim is enabled.
-      if (vimEnabled && vimMode === "normal") {
-        if (input === "i") { setVimMode("insert"); return; }
-        if (input === "a") { setCursor((c) => Math.min(value.length, c + 1)); setVimMode("insert"); return; }
-        if (input === "I") { setCursor(0); setVimMode("insert"); return; }
-        if (input === "A") { setCursor(value.length); setVimMode("insert"); return; }
-        if (input === "h" || key.leftArrow) { setCursor((c) => Math.max(0, c - 1)); return; }
-        if (input === "l" || key.rightArrow) { setCursor((c) => Math.min(value.length, c + 1)); return; }
-        if (input === "0") { setCursor(0); return; }
-        if (input === "$") { setCursor(value.length); return; }
-        if (input === "x") {
-          if (cursor < value.length) { onChange(value.slice(0, cursor) + value.slice(cursor + 1)); }
-          return;
-        }
-        if (key.return) return onSubmit(expandPastes(value, pasteStore.current)); // Enter submits even in normal mode
-        return; // ignore all other keys in normal mode
-      }
-      // Insert mode: Esc exits to normal when vim enabled.
-      if (vimEnabled && vimMode === "insert" && key.escape) { setVimMode("normal"); return; }
-
-      // Multiline: shift+enter inserts \n at cursor (modern terminals only).
-      if (key.shift && key.return) {
-        onChange(value.slice(0, cursor) + "\n" + value.slice(cursor));
-        setCursor((c) => c + 1);
-        return;
-      }
-
-      // Submit (plain enter — shift+enter handled above). Expand collapsed pastes.
-      if (key.return) return onSubmit(expandPastes(value, pasteStore.current));
-
-      // History navigation — only when the slash palette is not open.
-      if (isHistoryActive && key.upArrow) {
-        const next = navigateHistory(history, histRef.current, "up");
-        histRef.current = next;
-        onChange(next.value);
-        setCursor(next.value.length);
-        return;
-      }
-      if (isHistoryActive && key.downArrow) {
-        const next = navigateHistory(history, histRef.current, "down");
-        histRef.current = next;
-        onChange(next.value);
-        setCursor(next.value.length);
-        return;
-      }
-
-      // Cursor movement. Char: left/right or Ctrl+B/F. Line ends: Ctrl+A/E.
-      // Word: Alt/Option+B/F (run of non-space, stops at newlines). Up/down/Tab
-      // are left for the slash palette.
-      if (key.leftArrow || (key.ctrl && input === "b")) return setCursor((c) => Math.max(0, c - 1));
-      if (key.rightArrow || (key.ctrl && input === "f")) return setCursor((c) => Math.min(value.length, c + 1));
-      if (key.ctrl && input === "a") return setCursor(0);
-      if (key.ctrl && input === "e") return setCursor(value.length);
-      if (key.meta && input === "b") return setCursor((c) => wordLeft(value, c));
-      if (key.meta && input === "f") return setCursor((c) => wordRight(value, c));
-
-      // Kill-to-start (Ctrl+U) — the reliable "clear the line". Feeds the kill ring.
-      if (key.ctrl && input === "u") {
-        const r = killToStart(value, cursor);
-        killRing.current = r.killed;
-        onChange(r.value);
-        return setCursor(r.cursor);
-      }
-      // Kill-to-end (Ctrl+K). Feeds the kill ring.
-      if (key.ctrl && input === "k") {
-        const r = killToEnd(value, cursor);
-        killRing.current = r.killed;
-        return onChange(r.value);
-      }
-
-      // Delete word before cursor: Ctrl+W or Option/Alt+Backspace. Feeds the kill ring.
-      if ((key.ctrl && input === "w") || (key.meta && (key.backspace || key.delete))) {
-        const r = killWordBack(value, cursor);
-        killRing.current = r.killed;
-        onChange(r.value);
-        return setCursor(r.cursor);
-      }
-
-      // Forward-delete the char under the cursor (Ctrl+D). On EMPTY input this is a
-      // no-op — exit is handled elsewhere (Esc), so Ctrl+D never quits the session.
-      if (key.ctrl && input === "d") {
-        if (value.length === 0) return;
-        return onChange(deleteForward(value, cursor));
-      }
-
-      // Yank (Ctrl+Y) — paste the last killed text at the cursor.
-      if (key.ctrl && input === "y") {
-        const r = yank(value, cursor, killRing.current);
-        onChange(r.value);
-        return setCursor(r.cursor);
-      }
-
-      // Delete the char before the cursor.
-      if (key.backspace || key.delete) {
-        if (cursor === 0) return;
-        onChange(value.slice(0, cursor - 1) + value.slice(cursor));
-        return setCursor((c) => c - 1);
-      }
-
-      // Ignore remaining control/navigation keys.
-      if (!input || key.ctrl || key.meta || key.tab || key.upArrow || key.downArrow || key.escape) return;
-
-      // Insert printable text at the cursor. A large block (a paste delivered as
-      // one event) collapses to a [Pasted text #N …] ref, expanded on submit.
-      const insert = shouldCollapse(input) ? collapse(pasteStore.current, input) : input;
-      onChange(value.slice(0, cursor) + insert + value.slice(cursor));
-      setCursor((c) => c + insert.length);
-    },
+    (input, key) => handleKeyInput(input, key, { value, cursor, vimMode, vimEnabled, isHistoryActive, history, histRef, killRing, pasteStore, onChange, onSubmit, setCursor, setVimMode }),
     { isActive },
   );
 
-  // Bracketed paste. Ink enables paste mode while this hook is active and
-  // delivers the WHOLE paste as one event on a separate channel — so a paste's
-  // embedded newlines can never be misread by useInput as Enter (the "repasted
-  // several times" multi-submit bug). Large pastes still collapse to a ref.
+  // Bracketed paste — Ink delivers the whole paste on a separate channel so
+  // embedded newlines can't be misread as Enter. Large pastes collapse to a ref.
   usePaste(
     (pasted) => {
       const insert = shouldCollapse(pasted) ? collapse(pasteStore.current, pasted) : pasted;
@@ -197,24 +227,5 @@ export function Composer(props: ComposerProps): ReactElement {
     { isActive },
   );
 
-  if (value.length === 0) {
-    return (
-      <Text>
-        <Text inverse> </Text>
-        <Text dimColor>{placeholder}</Text>
-      </Text>
-    );
-  }
-
-  const c = Math.min(cursor, value.length);
-  const before = value.slice(0, c);
-  const at = value[c] ?? " ";
-  const after = value.slice(c + 1);
-  return (
-    <Text color={color}>
-      {before}
-      <Text inverse>{at}</Text>
-      {after}
-    </Text>
-  );
+  return <ComposerDisplay value={value} cursor={cursor} color={color} placeholder={placeholder} />;
 }

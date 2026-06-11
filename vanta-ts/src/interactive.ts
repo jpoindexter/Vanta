@@ -2,39 +2,27 @@ import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
 import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
-import { executeSlash, maybeDroppedImage, maybeDroppedVideo, type ReplState } from "./repl-commands.js";
+import { executeSlash, type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
-import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
-import { buildModeHint } from "./repl/mode-detect.js";
-import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { groupToolsByDomain } from "./tui/capabilities.js";
-import { pruneVolatileSkills } from "./skills/volatile.js";
-import {
-  prepareRun,
-  buildSummarizer,
-  consoleCallbacks,
-  approver,
-  writeRunMemory,
-  reviewAfterTurn,
-  sessionMemoryAfterTurn,
-  maybeCurate,
-  antiSlopAfterText,
-} from "./session.js";
-import { runPostTurnGates, freshGateState } from "./repl/post-turn-gates.js";
+import { prepareRun, buildSummarizer, consoleCallbacks, approver, maybeCurate } from "./session.js";
+import { freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
 import { loadUserCommands, type UserCommand } from "./commands/loader.js";
 import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
-import { suggestSkillFromRun } from "./projects/commands.js";
-import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
-import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { PLAN_MARKER } from "./repl/plan-mode.js";
-import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
-import { loadSession, saveSession, newSessionId } from "./sessions/store.js";
-import { reflectAfterTurn } from "./repl/reflect-correct.js";
+import { loadSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
+import {
+  resolveDroppedMedia,
+  printPreTurnNotes,
+  runPostTurnPipeline,
+  buildSendText,
+  type TurnDeps,
+} from "./interactive-turn.js";
 
 const LOGO = String.raw`
    █████╗ ██████╗  ██████╗  ██████╗
@@ -44,13 +32,7 @@ const LOGO = String.raw`
   ██║  ██║██║  ██║╚██████╔╝╚██████╔╝
   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝`;
 
-type BannerData = {
-  modelId: string;
-  root: string;
-  goals: Goal[];
-  toolNames: string[];
-  skillNames: string[];
-};
+type BannerData = { modelId: string; root: string; goals: Goal[]; toolNames: string[]; skillNames: string[] };
 
 /** The startup banner: logo, model, goals, tool + skill inventory. */
 export function renderBanner(d: BannerData): string {
@@ -58,280 +40,197 @@ export function renderBanner(d: BannerData): string {
   const goalLines = active.length
     ? active.map((g) => `    [${g.id}] ${g.text}`).join("\n")
     : "    (none — add one with: cargo run -- goals add \"...\")";
-  const skills = d.skillNames.length
-    ? d.skillNames.join(", ")
-    : "(none yet — run `modes install`, or the agent writes its own)";
+  const skills = d.skillNames.length ? d.skillNames.join(", ") : "(none yet — run `modes install`, or the agent writes its own)";
   return [
-    LOGO,
-    "",
+    LOGO, "",
     "  Vanta — trusted operator. Knows the goal, gates every action, reports only verified output.",
-    `  model   ${d.modelId}`,
-    `  root    ${d.root}`,
-    "",
-    "  Active goals:",
-    goalLines,
-    "",
+    `  model   ${d.modelId}`, `  root    ${d.root}`, "",
+    "  Active goals:", goalLines, "",
     `  Capabilities (${d.toolNames.length} tools):`,
     ...groupToolsByDomain(d.toolNames).map((g) => `    ${g.label.padEnd(34)} ${g.tools.join(", ")}`),
-    "",
-    `  Skills: ${skills}`,
-    "",
-    "  Type a message and press enter. /help for commands, /exit to quit.",
-    "",
+    "", `  Skills: ${skills}`, "",
+    "  Type a message and press enter. /help for commands, /exit to quit.", "",
   ].join("\n");
 }
 
+// --- Slash-command helpers ---
+
+type SlashCtx = Parameters<typeof executeSlash>[1];
+type CpFn = (a: string, c: SlashCtx) => unknown;
+type SlashResult = { exit?: boolean; restart?: boolean; editPrefill?: string; editMsgIdx?: number };
+
+function printCpOutput(r: unknown): void {
+  if (r && typeof r === "object" && "output" in r) console.log((r as { output: unknown }).output);
+}
+
+/** Run checkpoint or rollback; returns result if matched, null otherwise. */
+async function tryCheckpointCmd(o: { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn }): Promise<SlashResult | null> {
+  if (o.firstToken === "checkpoint") { printCpOutput(o.cp(o.line.slice(o.firstToken.length + 1).trim(), o.ctx)); return {}; }
+  if (o.firstToken === "rollback") { printCpOutput(o.rb("", o.ctx)); return {}; }
+  return null;
+}
+
+type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; userCommands: UserCommand[]; runUserTurn: (t: string) => Promise<void> };
+
+async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
+  const cpResult = await tryCheckpointCmd({ line: o.line, firstToken: o.firstToken, ctx: o.ctx, cp: o.cp, rb: o.rb });
+  if (cpResult) return cpResult;
+  // TUI-CMD: user-defined commands take precedence over built-in slash dispatcher.
+  const userCmd = o.userCommands.find((c) => c.name === o.firstToken);
+  if (userCmd) {
+    const arg = o.line.slice(o.firstToken.length + 2).trim();
+    await o.runUserTurn(arg ? `${userCmd.content}\n\nArgs: ${arg}` : userCmd.content);
+    return {};
+  }
+  return dispatchSlash(o.line, o.ctx, o.runUserTurn);
+}
+
+async function dispatchSlash(line: string, ctx: SlashCtx, runUserTurn: (t: string) => Promise<void>): Promise<SlashResult> {
+  const result = await executeSlash(line, ctx);
+  if (result.output) console.log(result.output);
+  if (result.exit) return { exit: true };
+  if (result.restart) return { restart: true };
+  if (result.resend) await runUserTurn(result.resend);
+  if (result.loadIntoComposer !== undefined) return { editPrefill: result.loadIntoComposer, editMsgIdx: result.editMessageIndex ?? -1 };
+  return {};
+}
+
+// --- REPL loop ---
+
+type ReplDeps = {
+  rl: ReturnType<typeof createInterface>;
+  convo: ReturnType<typeof createConversation>;
+  ctx: SlashCtx;
+  cp: CpFn;
+  rb: CpFn;
+  userCommands: UserCommand[];
+  setup: Awaited<ReturnType<typeof prepareRun>>;
+  repoRoot: string;
+  runUserTurn: (text: string) => Promise<void>;
+};
+
+/** Handle a shortcut line (!! bash / !text memory). */
+async function runShortcut(line: string, deps: Pick<ReplDeps, "setup" | "repoRoot">): Promise<void> {
+  const shortcut = parseShortcut(line);
+  if (!shortcut) return;
+  if (shortcut.type === "bash") console.log(await runBashShortcut(shortcut.cmd, deps.setup.safety, deps.repoRoot).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
+  else console.log(await runMemoryShortcut(shortcut.text, process.env).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
+}
+
+/** Apply a pending edit-mode replacement; returns true if consumed. */
+function applyEditMode(line: string, editState: { prefill: string | null; msgIdx: number | null }, convo: ReturnType<typeof createConversation>): boolean {
+  if (editState.msgIdx === null) return false;
+  const idx = editState.msgIdx; editState.msgIdx = null;
+  const msg = convo.messages[idx];
+  if (msg && msg.role === "assistant") { convo.messages[idx] = { ...msg, content: line }; console.log("  ✎ response updated"); }
+  return true;
+}
+
+/** Process one REPL iteration; returns { stop } to break the loop. */
+async function replIteration(
+  line: string,
+  editState: { prefill: string | null; msgIdx: number | null },
+  d: ReplDeps,
+): Promise<{ stop?: boolean }> {
+  if (applyEditMode(line, editState, d.convo)) return {};
+  // Slash commands: /word (Finder-dropped paths have a nested slash → go to runUserTurn).
+  const firstToken = line.slice(1).split(/\s/)[0] ?? "";
+  if (line.startsWith("/") && !firstToken.includes("/")) {
+    const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, userCommands: d.userCommands, runUserTurn: d.runUserTurn });
+    if (r.exit) return { stop: true };
+    if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return { stop: true }; }
+    if (r.editPrefill !== undefined) { editState.prefill = r.editPrefill; editState.msgIdx = r.editMsgIdx ?? -1; }
+    return {};
+  }
+  if (parseShortcut(line)) { await runShortcut(line, d); return {}; }
+  await d.runUserTurn(line);
+  return {};
+}
+
+async function runReplLoop(d: ReplDeps): Promise<void> {
+  const editState = { prefill: null as string | null, msgIdx: null as number | null };
+  for (;;) {
+    let line: string;
+    try {
+      const q = d.rl.question("\nvanta › ");
+      if (editState.prefill !== null) { d.rl.write(editState.prefill); editState.prefill = null; }
+      line = (await q).trim();
+    } catch { break; } // stdin closed (Ctrl+D / EOF) → exit cleanly
+    if (!line) continue;
+    const res = await replIteration(line, editState, d);
+    if (res.stop) break;
+  }
+}
+
+// --- Main entry point ---
+
 /**
  * Launch the interactive session: print the banner, then a REPL that holds a
- * single conversation (history persists across turns) until /exit. Slash
- * commands are handled by repl-commands.ts; anything else goes to the agent.
+ * single conversation (history persists across turns) until /exit.
  */
-export async function runChat(
-  repoRoot: string,
-  opts: { resumeId?: string } = {},
-): Promise<void> {
+export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session");
-  await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
+  await maybeCurate();
   const skills = await listSkills();
-
   const resumed = opts.resumeId ? await loadSession(opts.resumeId) : null;
   const state: ReplState = {
     sessionId: resumed?.id ?? newSessionId(),
     started: resumed?.started ?? new Date().toISOString(),
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
   };
+  console.log(renderBanner({ modelId: setup.provider.modelId(), root: repoRoot, goals: setup.goals, toolNames: setup.registry.schemas().map((s) => s.name), skillNames: skills.map((s) => s.meta.name) }));
+  if (resumed) console.log(`  ↻ Resumed session ${resumed.id} "${resumed.title}" (${resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
+  else if (opts.resumeId) console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
 
-  console.log(
-    renderBanner({
-      modelId: setup.provider.modelId(),
-      root: repoRoot,
-      goals: setup.goals,
-      toolNames: setup.registry.schemas().map((s) => s.name),
-      skillNames: skills.map((s) => s.meta.name),
-    }),
-  );
-  if (resumed) {
-    const userTurns = resumed.messages.filter((m) => m.role === "user").length;
-    console.log(`  ↻ Resumed session ${resumed.id} "${resumed.title}" (${userTurns} turn(s))\n`);
-  } else if (opts.resumeId) {
-    console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
-  }
-
-  let gates = freshGateState();
-  let autoHandoffNoted = false;
   const workingMemory = new SessionWorkingMemory();
-  const checkpoints = new CheckpointStore();
-  const { checkpoint: checkpointHandler, rollback: rollbackHandler } = buildCheckpointHandlers(checkpoints);
-  const userCommands: UserCommand[] = await loadUserCommands(process.env);
-
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const convo = createConversation(
-    setup.systemPrompt,
-    {
-      provider: setup.provider,
-      safety: setup.safety,
-      registry: setup.registry,
-      root: repoRoot,
-      requestApproval: approver(rl),
-      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
-      summarize: buildSummarizer(setup.provider),
-      activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
-      onAutoCompact: (dropped, summary) => {
-        console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`);
-      },
-      ...consoleCallbacks(),
-      onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
-      // Plan mode: block write tools while plan mode is active and unapproved.
-      planGate: () => {
-        const sys = convo.messages[0];
-        return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved);
-      },
-    },
-    { history: resumed?.messages },
-  );
+  const convo = buildConversation({ repoRoot, setup, state, rl, history: resumed?.messages });
 
-  const ctx = {
-    convo,
-    setup,
-    dataDir: join(repoRoot, ".vanta"),
-    state,
-    env: process.env,
-    now: () => new Date(),
-    workingMemory,
-  };
-
-  // One user turn: send to the agent + run the full post-turn pipeline. Shared
-  // by typed input and by /retry (which re-sends the last message).
+  const checkpoints = new CheckpointStore();
+  const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
+  const userCommands = await loadUserCommands(process.env);
+  const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
+  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() } };
   const runUserTurn = async (text: string): Promise<void> => {
-    // Drag an image or video into the terminal → path arrives as text; attach it.
-    const dropped = await maybeDroppedImage(text);
-    if (dropped) {
-      (state.pendingImages ??= []).push(dropped);
-      text = "Take a look at this image.";
-    } else {
-      const videoPath = await maybeDroppedVideo(text);
-      if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;
-    }
+    const resolved = await resolveDroppedMedia(text, state);
     state.turnIndex++;
-    const images = state.pendingImages; // attach + consume any /image, /paste, or drop
-    state.pendingImages = undefined;
-    const complexityScore = scoreComplexity(text);
-    if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
-      console.log(`\n${buildComplexityNote(complexityScore)}`);
-    }
-    const activeGoal = setup.goals.find((g) => g.status === "active") ?? null;
-    if (isTopicShift(text, activeGoal, 0.15)) {
-      console.log(`\n${buildTopicShiftNote()}`);
-      try {
-        const inProgress = getInProgressItems(convo.messages);
-        if (inProgress.length) console.log(`\n${buildClosureGateText(inProgress)}`);
-      } catch { /* best-effort */ }
-    }
+    printPreTurnNotes(resolved.text, convo, setup);
     const turnStart = new Date().toISOString();
     const t0 = Date.now();
-    // Inject working memory as context prefix when the session has accumulated notes.
-    const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
-    // MODE-DETECT: prepend a one-line stance hint inferred from the request.
-    const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
-    const prefix = `${modeHint ? `${modeHint}\n\n` : ""}${wmCtx}`;
-    const outcome = await convo.send(`${prefix}${text}`, images);
-    pruneVolatileSkills(convo.messages); // drop one-turn skill bodies from history
-    console.log(`\n${outcome.finalText}`);
-    if (outcome.usage) {
-      // COST-VISIBLE: tokens + latency + cost per turn; accumulate the session split.
-      const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
-      console.log(`  ${formatTurnCost(outcome.usage.inputTokens, outcome.usage.outputTokens, Date.now() - t0, cost, outcome.tokensSaved)}`);
-      state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
-    }
-    // AUTO-HANDOFF: write a resume block when context crosses the threshold (note once).
-    const ah = await maybeAutoHandoff({
-      estTokens: outcome.usage?.inputTokens ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4),
-      contextWindow: setup.provider.contextWindow(),
-      messages: convo.messages,
-      sessionId: state.sessionId,
-      provider: process.env.VANTA_PROVIDER ?? "unknown",
-      model: setup.provider.modelId(),
-      repoRoot,
-      safety: setup.safety,
-      now: new Date(),
-    });
-    if (ah.wrote && !autoHandoffNoted) {
-      console.log(`\n  ↻ context filling up — saved a resume block to ${ah.path} (auto-reloads next launch)`);
-      autoHandoffNoted = true;
-    }
-    await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
-    await writeRunMemory({
-      provider: setup.provider,
-      goals: setup.goals,
-      instruction: text,
-      finalText: outcome.finalText,
-      now: turnStart,
-      sessionId: state.sessionId,
-      turnIndex: state.turnIndex,
-    });
-    await suggestSkillFromRun(text, process.env);
-    // ANTI-SLOP: flag AI-ish drift in the response.
-    await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
-    await reviewAfterTurn({
-      provider: setup.provider,
-      safety: setup.safety,
-      root: repoRoot,
-      transcript: convo.messages,
-      toolIterations: outcome.toolIterations,
-      turnIndex: state.turnIndex,
-    });
-    // Distil the running transcript into the session scratchpad, then refresh the
-    // live compaction injection on the conversation.
-    const newScratch = await sessionMemoryAfterTurn({
-      provider: setup.provider,
-      dataDir: join(repoRoot, ".vanta"),
-      transcript: convo.messages,
-      toolIterations: outcome.toolIterations,
-      turnIndex: state.turnIndex,
-    });
-    if (newScratch) convo.setSessionMemory(newScratch);
-    gates = await runPostTurnGates(gates, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
-    // REFLECT-CORRECT: extract correction rules from user messages and persist to brain.
-    const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
-    const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
-    await reflectAfterTurn(lastUserText, process.env);
+    const outcome = await convo.send(buildSendText(resolved.text, workingMemory), resolved.images);
+    await runPostTurnPipeline({ outcome, text: resolved.text, t0, turnStart, deps: turnDeps });
   };
 
-  let editPrefill: string | null = null;
-  let editMsgIdx: number | null = null;
   try {
-    for (;;) {
-      let line: string;
-      try {
-        const q = rl.question("\nvanta › ");
-        if (editPrefill !== null) { rl.write(editPrefill); editPrefill = null; }
-        line = (await q).trim();
-      } catch {
-        break; // stdin closed (Ctrl+D / EOF / piped input ended) → exit cleanly
-      }
-      if (!line) continue;
-      // Edit mode: user just confirmed their edit — replace the target message.
-      if (editMsgIdx !== null) {
-        const idx = editMsgIdx;
-        editMsgIdx = null;
-        const msg = convo.messages[idx];
-        if (msg && msg.role === "assistant") {
-          convo.messages[idx] = { ...msg, content: line };
-          console.log("  ✎ response updated");
-        }
-        continue;
-      }
-      // Slash commands are /word — file paths dropped from Finder start with /Users/...
-      // and have a nested slash in the first token. Route those to runUserTurn, not slash.
-      const firstToken = line.slice(1).split(/\s/)[0] ?? "";
-      if (line.startsWith("/") && !firstToken.includes("/")) {
-        // REL2: checkpoint + rollback handled inline (session-scoped state).
-        if (firstToken === "checkpoint") {
-          const r = checkpointHandler(line.slice(firstToken.length + 1).trim(), ctx);
-          if ("output" in r && r.output) console.log(r.output);
-          continue;
-        }
-        if (firstToken === "rollback") {
-          const r = rollbackHandler("", ctx);
-          if ("output" in r && r.output) console.log(r.output);
-          continue;
-        }
-        // TUI-CMD: check user-defined commands before the default slash dispatcher.
-        const userCmd = userCommands.find((c) => c.name === firstToken);
-        if (userCmd) {
-          const arg = line.slice(firstToken.length + 2).trim();
-          await runUserTurn(arg ? `${userCmd.content}\n\nArgs: ${arg}` : userCmd.content);
-          continue;
-        }
-        const result = await executeSlash(line, ctx);
-        if (result.output) console.log(result.output);
-        if (result.exit) break;
-        if (result.restart) { process.exitCode = RESTART_EXIT_CODE; break; }
-        if (result.resend) await runUserTurn(result.resend);
-        if (result.loadIntoComposer !== undefined) {
-          editPrefill = result.loadIntoComposer;
-          editMsgIdx = result.editMessageIndex ?? -1;
-        }
-        continue;
-      }
-      const shortcut = parseShortcut(line);
-      if (shortcut) {
-        if (shortcut.type === "bash") {
-          console.log(await runBashShortcut(shortcut.cmd, setup.safety, repoRoot).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
-        } else {
-          console.log(await runMemoryShortcut(shortcut.text, process.env).catch((e: unknown) => `error: ${e instanceof Error ? e.message : String(e)}`));
-        }
-        continue;
-      }
-      await runUserTurn(line);
-    }
+    await runReplLoop({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn });
   } finally {
     rl.close();
-    // MEM-VERBATIM: archive session messages on exit (best-effort, background).
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
   }
-  // /restart: force a clean code-75 exit so run.sh's loop re-execs (per-turn
-  // saveSession already persisted state); skip the "bye." farewell.
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
+}
+
+type ConvoOpts = {
+  repoRoot: string;
+  setup: Awaited<ReturnType<typeof prepareRun>>;
+  state: ReplState;
+  rl: ReturnType<typeof createInterface>;
+  history?: NonNullable<Parameters<typeof createConversation>[2]>["history"];
+};
+
+function buildConversation(o: ConvoOpts): ReturnType<typeof createConversation> {
+  const { repoRoot, setup, state, rl } = o;
+  // Declare before assign so planGate closure can capture the ref.
+  let convo!: ReturnType<typeof createConversation>;
+  convo = createConversation(setup.systemPrompt, {
+    provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
+    requestApproval: approver(rl), maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
+    summarize: buildSummarizer(setup.provider), activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
+    onAutoCompact: (dropped, summary) => console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`),
+    ...consoleCallbacks(),
+    onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
+    planGate: () => { const sys = convo.messages[0]; return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved); },
+  }, { history: o.history });
+  return convo;
 }

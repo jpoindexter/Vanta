@@ -49,6 +49,14 @@ export function detectInteractivePrompt(tail: string): boolean {
 
 export type StallState = { lastLen: number; lastChangeMs: number; notified: boolean };
 
+export type CheckStallOpts = {
+  prev: StallState;
+  curLen: number;
+  tail: string;
+  nowMs: number;
+  idleMs?: number;
+};
+
 /**
  * Decide whether a stalled-and-waiting bg task should fire a one-time notification.
  * - output grew (curLen > prev.lastLen) → reset the idle clock + notified flag, no notify
@@ -56,13 +64,8 @@ export type StallState = { lastLen: number; lastChangeMs: number; notified: bool
  * - otherwise → no notify, state carried forward
  * Pure: `nowMs` is injected.
  */
-export function checkStall(
-  prev: StallState,
-  curLen: number,
-  tail: string,
-  nowMs: number,
-  idleMs = DEFAULT_IDLE_MS,
-): { state: StallState; notify: boolean } {
+export function checkStall(opts: CheckStallOpts): { state: StallState; notify: boolean } {
+  const { prev, curLen, tail, nowMs, idleMs = DEFAULT_IDLE_MS } = opts;
   if (curLen > prev.lastLen) {
     return { state: { lastLen: curLen, lastChangeMs: nowMs, notified: false }, notify: false };
   }

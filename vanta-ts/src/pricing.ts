@@ -43,14 +43,17 @@ export function formatUsd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+export type FormatTurnCostOpts = {
+  inputTokens: number;
+  outputTokens: number;
+  elapsedMs: number;
+  cost: number | null;
+  tokensSaved?: number;
+};
+
 /** One-line per-turn footer: tokens + latency + cost + compression savings (or ~? when unpriced). */
-export function formatTurnCost(
-  inputTokens: number,
-  outputTokens: number,
-  elapsedMs: number,
-  cost: number | null,
-  tokensSaved?: number,
-): string {
+export function formatTurnCost(opts: FormatTurnCostOpts): string {
+  const { inputTokens, outputTokens, elapsedMs, cost, tokensSaved } = opts;
   const secs = `${(elapsedMs / 1000).toFixed(1)}s`;
   const costStr = cost === null ? "~?" : formatUsd(cost);
   const totalTokens = inputTokens + outputTokens;

@@ -56,6 +56,209 @@ function providerMark(entry: ProviderEntry, isCurrent: boolean, hasKey: boolean)
   return { mark: "○", color: "gray", meta: "· (no key)" };
 }
 
+function KeyStageView(props: {
+  chosen: ProviderEntry;
+  keyInput: string;
+  setKeyInput: (v: string) => void;
+  setEnteredKey: (v: string) => void;
+  width: number;
+  reset: (next: Stage) => void;
+}): ReactElement {
+  const { chosen, keyInput, setKeyInput, setEnteredKey, width, reset } = props;
+  return (
+    <Overlay title={`Enter ${chosen.short} API key`} hint={`Stored in vanta-ts/.env (${chosen.envVar}). ⏎ to continue · Esc back`} width={width}>
+      <Box>
+        <Text color="cyan">{"› "}</Text>
+        <TextInput value={keyInput} onChange={setKeyInput} mask="•" onSubmit={(v) => {
+          if (!v.trim()) return;
+          setEnteredKey(v.trim());
+          setKeyInput("");
+          reset("model");
+        }} />
+      </Box>
+    </Overlay>
+  );
+}
+
+function ModelStageView(props: {
+  chosen: ProviderEntry;
+  currentProviderId: string;
+  currentModel: string;
+  modelRows: string[];
+  modelCur: number;
+  filter: string;
+  keys: string;
+  width: number;
+}): ReactElement {
+  const { chosen, currentProviderId, currentModel, modelRows, modelCur, filter, keys, width } = props;
+  const free = modelRows.length === 0 && filter.trim() !== "";
+  return (
+    <Overlay title={`Select model — ${chosen.short}`} hint="step 2 / 2 · ⏎ choose · Esc back to providers" keys={keys} width={width}>
+      {modelRows.map((m, i) => {
+        const isCur = chosen.id === currentProviderId && m === currentModel;
+        return <OverlayRow key={m} selected={i === modelCur} mark={isCur ? "*" : "·"} markColor={isCur ? "cyan" : "gray"} label={m} />;
+      })}
+      <Text dimColor>
+        filter: <Text color="white">{filter || " "}</Text>
+        {free ? <Text color="yellow">  ⏎ uses "{filter.trim()}" as a custom model id</Text> : null}
+      </Text>
+    </Overlay>
+  );
+}
+
+function ProviderStageView(props: {
+  provRows: ProviderEntry[];
+  provCur: number;
+  currentProviderId: string;
+  currentModel: string;
+  filter: string;
+  keys: string;
+  width: number;
+  hasKey: (entry: ProviderEntry) => boolean;
+}): ReactElement {
+  const { provRows, provCur, currentProviderId, currentModel, filter, keys, width, hasKey } = props;
+  return (
+    <Overlay title="Select provider" hint={`step 1 / 2 · current: ${currentModel}`} keys={keys} width={width}>
+      {provRows.map((p, i) => {
+        const m = providerMark(p, p.id === currentProviderId, hasKey(p));
+        return <OverlayRow key={p.id} selected={i === provCur} mark={m.mark} markColor={m.color} label={p.short} meta={m.meta} />;
+      })}
+      <Text dimColor>
+        filter: <Text color="white">{filter || " "}</Text>
+      </Text>
+    </Overlay>
+  );
+}
+
+type KeyType = { escape?: boolean; ctrl?: boolean; meta?: boolean; tab?: boolean; upArrow?: boolean; downArrow?: boolean; return?: boolean; backspace?: boolean; delete?: boolean };
+
+type NavArgs = {
+  rows: number;
+  setIdx: (fn: (i: number) => number) => void;
+  setPersistGlobal: (fn: (g: boolean) => boolean) => void;
+};
+
+function handleNavKey(input: string, key: KeyType, args: NavArgs): boolean {
+  if (key.ctrl && input === "g") { args.setPersistGlobal((g) => !g); return true; }
+  if (key.upArrow) { args.setIdx((i) => (args.rows ? (i - 1 + args.rows) % args.rows : 0)); return true; }
+  if (key.downArrow) { args.setIdx((i) => (args.rows ? (i + 1) % args.rows : 0)); return true; }
+  return false;
+}
+
+type ReturnArgs = {
+  stage: Stage;
+  chosen: ProviderEntry;
+  chosenHasKey: boolean;
+  reset: (next: Stage) => void;
+  commit: () => void;
+};
+
+function handleReturnKey(args: ReturnArgs): void {
+  if (args.stage === "provider") {
+    if (args.chosen.envVar !== null && !args.chosenHasKey) { args.reset("key"); return; }
+    args.reset("model"); return;
+  }
+  args.commit();
+}
+
+type EscArgs = {
+  filter: string;
+  stage: Stage;
+  setFilter: (fn: (f: string) => string) => void;
+  reset: (next: Stage) => void;
+  onCancel: () => void;
+};
+
+function handleEscKey(args: EscArgs): void {
+  if (args.filter) { args.setFilter(() => ""); return; }
+  if (args.stage === "model") { args.reset("provider"); return; }
+  args.onCancel();
+}
+
+type PickerState = {
+  stage: Stage;
+  filter: string;
+  chosen: ProviderEntry;
+  provRows: readonly ProviderEntry[];
+  modelRows: string[];
+  provCur: number;
+  modelCur: number;
+  persistGlobal: boolean;
+  setFilter: (fn: (f: string) => string) => void;
+  setProviderIdx: (fn: (i: number) => number) => void;
+  setModelIdx: (fn: (i: number) => number) => void;
+  setPersistGlobal: (fn: (g: boolean) => boolean) => void;
+  reset: (next: Stage) => void;
+  keyInput: string;
+  setKeyInput: (v: string) => void;
+  setEnteredKey: (v: string) => void;
+};
+
+function useModelPickerState(providers: readonly ProviderEntry[], currentProviderId: string): PickerState {
+  const [stage, setStage] = useState<Stage>("provider");
+  const [providerIdx, setProviderIdx] = useState(() =>
+    Math.max(0, providers.findIndex((p) => p.id === currentProviderId)),
+  );
+  const [modelIdx, setModelIdx] = useState(0);
+  const [filter, setFilter] = useState("");
+  const [keyInput, setKeyInput] = useState("");
+  const [enteredKey, setEnteredKey] = useState("");
+  const [persistGlobal, setPersistGlobal] = useState(true);
+
+  const provRows = stage === "provider" ? fuzzyFilter(providers, filter, (p) => `${p.short} ${p.id} ${p.label}`) : providers;
+  const provCur = Math.min(providerIdx, Math.max(0, provRows.length - 1));
+  const chosen = provRows[provCur] ?? providers[0]!;
+  const modelRows = stage === "model" ? fuzzyFilter(chosen.models, filter, (m) => m) : chosen.models;
+  const modelCur = Math.min(modelIdx, Math.max(0, modelRows.length - 1));
+  const reset = (next: Stage): void => { setStage(next); setFilter(""); setModelIdx(0); };
+  return {
+    stage, filter, chosen, provRows, modelRows, provCur, modelCur, persistGlobal, enteredKey,
+    setFilter: (fn) => setFilter((f) => fn(f)), setProviderIdx, setModelIdx, setPersistGlobal, reset,
+    keyInput, setKeyInput, setEnteredKey,
+  } as PickerState & { enteredKey: string };
+}
+
+function handleFilterInput(
+  input: string,
+  key: KeyType,
+  setFilter: (fn: (f: string) => string) => void,
+): void {
+  if (key.backspace || key.delete) { setFilter((f) => f.slice(0, -1)); return; }
+  if (input && !key.ctrl && !key.meta && !key.tab) setFilter((f) => f + input);
+}
+
+type InputHookProps = {
+  ps: PickerState & { enteredKey: string };
+  hasKey: (e: ProviderEntry) => boolean;
+  onSelect: (sel: ModelSelection) => void;
+  onCancel: () => void;
+  isActive: boolean;
+};
+
+function useModelPickerInput(opts: InputHookProps): void {
+  const { ps, hasKey, onSelect, onCancel, isActive } = opts;
+  const { stage, filter, chosen, provRows, modelRows, modelCur, persistGlobal, enteredKey,
+    setFilter, setProviderIdx, setModelIdx, setPersistGlobal, reset } = ps;
+  const rows = stage === "provider" ? provRows.length : modelRows.length;
+  const setIdx = stage === "provider" ? setProviderIdx : setModelIdx;
+  const fullChosenHasKey = chosen.envVar === null || hasKey(chosen) || enteredKey !== "";
+  const commit = (): void => {
+    const model = modelRows[modelCur] ?? filter.trim();
+    if (!model) return;
+    onSelect({ providerId: chosen.id, model, apiKey: enteredKey || undefined, persistGlobal });
+  };
+  useInput(
+    (input, key) => {
+      if (stage === "key") { if (key.escape) reset("provider"); return; }
+      if (key.escape) { handleEscKey({ filter, stage, setFilter, reset, onCancel }); return; }
+      if (handleNavKey(input, key, { rows, setIdx, setPersistGlobal })) return;
+      if (key.return) { handleReturnKey({ stage, chosen, chosenHasKey: fullChosenHasKey, reset, commit }); return; }
+      handleFilterInput(input, key, setFilter);
+    },
+    { isActive },
+  );
+}
+
 export function ModelPicker(props: {
   providers: readonly ProviderEntry[];
   currentProviderId: string;
@@ -66,111 +269,24 @@ export function ModelPicker(props: {
   onSelect: (sel: ModelSelection) => void;
   onCancel: () => void;
 }): ReactElement {
-  const [stage, setStage] = useState<Stage>("provider");
-  const [providerIdx, setProviderIdx] = useState(() =>
-    Math.max(0, props.providers.findIndex((p) => p.id === props.currentProviderId)),
-  );
-  const [modelIdx, setModelIdx] = useState(0);
-  const [filter, setFilter] = useState("");
-  const [keyInput, setKeyInput] = useState("");
-  const [enteredKey, setEnteredKey] = useState("");
-  // Persist to .env by default — picking a model should be remembered next launch.
-  // ^g toggles to session-only for a one-off switch.
-  const [persistGlobal, setPersistGlobal] = useState(true);
-
-  const provRows = stage === "provider" ? fuzzyFilter(props.providers, filter, (p) => `${p.short} ${p.id} ${p.label}`) : props.providers;
-  const provCur = Math.min(providerIdx, Math.max(0, provRows.length - 1));
-  const chosen = provRows[provCur] ?? props.providers[0]!;
-  const chosenHasKey = chosen.envVar === null || props.hasKey(chosen) || enteredKey !== "";
-
-  const modelRows = stage === "model" ? fuzzyFilter(chosen.models, filter, (m) => m) : chosen.models;
-  const modelCur = Math.min(modelIdx, Math.max(0, modelRows.length - 1));
-
-  const reset = (next: Stage): void => {
-    setStage(next);
-    setFilter("");
-    setModelIdx(0);
-  };
-
-  const commit = (): void => {
-    const model = modelRows[modelCur] ?? filter.trim();
-    if (!model) return;
-    props.onSelect({ providerId: chosen.id, model, apiKey: enteredKey || undefined, persistGlobal });
-  };
-
-  useInput(
-    (input, key) => {
-      if (stage === "key") {
-        if (key.escape) reset("provider");
-        return; // TextInput owns typing + ⏎ in the key stage
-      }
-      const rows = stage === "provider" ? provRows.length : modelRows.length;
-      if (key.escape) {
-        if (filter) return setFilter("");
-        if (stage === "model") return reset("provider");
-        return props.onCancel();
-      }
-      if (key.ctrl && input === "g") return setPersistGlobal((g) => !g);
-      const setIdx = stage === "provider" ? setProviderIdx : setModelIdx;
-      if (key.upArrow) return setIdx((i) => (rows ? (i - 1 + rows) % rows : 0));
-      if (key.downArrow) return setIdx((i) => (rows ? (i + 1) % rows : 0));
-      if (key.return) {
-        if (stage === "provider") {
-          if (chosen.envVar !== null && !chosenHasKey) return reset("key");
-          return reset("model");
-        }
-        return commit();
-      }
-      if (key.backspace || key.delete) return setFilter((f) => f.slice(0, -1));
-      if (input && !key.ctrl && !key.meta && !key.tab) return setFilter((f) => f + input);
-    },
-    { isActive: props.isActive ?? true },
-  );
+  const ps = useModelPickerState(props.providers, props.currentProviderId) as PickerState & { enteredKey: string };
+  const { stage, filter, chosen, provRows, modelRows, provCur, modelCur, persistGlobal,
+    keyInput, setKeyInput, setEnteredKey, reset } = ps;
+  useModelPickerInput({ ps, hasKey: props.hasKey, onSelect: props.onSelect, onCancel: props.onCancel, isActive: props.isActive ?? true });
 
   const persistLabel = persistGlobal ? "global (.env)" : "session";
   const keys = `persist: ${persistLabel} · ^g toggle  |  ↑↓ select · ⏎ choose · Esc back · type to filter`;
 
   if (stage === "key") {
-    return (
-      <Overlay title={`Enter ${chosen.short} API key`} hint={`Stored in vanta-ts/.env (${chosen.envVar}). ⏎ to continue · Esc back`} width={props.width}>
-        <Box>
-          <Text color="cyan">{"› "}</Text>
-          <TextInput value={keyInput} onChange={setKeyInput} mask="•" onSubmit={(v) => {
-            if (!v.trim()) return;
-            setEnteredKey(v.trim());
-            setKeyInput("");
-            reset("model");
-          }} />
-        </Box>
-      </Overlay>
-    );
+    return <KeyStageView chosen={chosen} keyInput={keyInput} setKeyInput={setKeyInput}
+      setEnteredKey={setEnteredKey} width={props.width} reset={reset} />;
   }
-
   if (stage === "model") {
-    const free = modelRows.length === 0 && filter.trim() !== "";
-    return (
-      <Overlay title={`Select model — ${chosen.short}`} hint="step 2 / 2 · ⏎ choose · Esc back to providers" keys={keys} width={props.width}>
-        {modelRows.map((m, i) => {
-          const isCur = chosen.id === props.currentProviderId && m === props.currentModel;
-          return <OverlayRow key={m} selected={i === modelCur} mark={isCur ? "*" : "·"} markColor={isCur ? "cyan" : "gray"} label={m} />;
-        })}
-        <Text dimColor>
-          filter: <Text color="white">{filter || " "}</Text>
-          {free ? <Text color="yellow">  ⏎ uses "{filter.trim()}" as a custom model id</Text> : null}
-        </Text>
-      </Overlay>
-    );
+    return <ModelStageView chosen={chosen} currentProviderId={props.currentProviderId}
+      currentModel={props.currentModel} modelRows={[...modelRows]} modelCur={modelCur}
+      filter={filter} keys={keys} width={props.width} />;
   }
-
-  return (
-    <Overlay title="Select provider" hint={`step 1 / 2 · current: ${props.currentModel}`} keys={keys} width={props.width}>
-      {provRows.map((p, i) => {
-        const m = providerMark(p, p.id === props.currentProviderId, props.hasKey(p));
-        return <OverlayRow key={p.id} selected={i === provCur} mark={m.mark} markColor={m.color} label={p.short} meta={m.meta} />;
-      })}
-      <Text dimColor>
-        filter: <Text color="white">{filter || " "}</Text>
-      </Text>
-    </Overlay>
-  );
+  return <ProviderStageView provRows={[...provRows]} provCur={provCur}
+    currentProviderId={props.currentProviderId} currentModel={props.currentModel}
+    filter={filter} keys={keys} width={props.width} hasKey={props.hasKey} />;
 }

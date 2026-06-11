@@ -37,6 +37,60 @@ export function formatWhen(iso: string, nowMs: number): string {
   return `${days}d ago`;
 }
 
+function renderSessionRow(row: SessionRow, i: number, cur: number, nowMs: number): ReactElement {
+  const selected = i === cur;
+  if (row.kind === "live")
+    return <OverlayRow key="live" selected={selected} mark="●" markColor="green" label="live" meta={`${row.turns} turn(s) · now`} />;
+  if (row.kind === "new")
+    return <OverlayRow key="new" selected={selected} mark="+" markColor="cyan" label="New session" meta="type a prompt to start…" />;
+  const m = row.meta;
+  return (
+    <OverlayRow
+      key={m.id}
+      selected={selected}
+      mark="·"
+      markColor="gray"
+      label={m.id}
+      meta={`${m.title} · ${m.turns}t · ${formatWhen(m.updated, nowMs)}`}
+    />
+  );
+}
+
+type SessionsKeyArgs = {
+  rows: SessionRow[];
+  cur: number;
+  setSel: (fn: (s: number) => number) => void;
+  onCancel: () => void;
+  onResume: (id: string) => void;
+  onNew: () => void;
+  onDelete: (id: string) => void;
+};
+
+function activateRow(row: SessionRow, args: Pick<SessionsKeyArgs, "onResume" | "onNew" | "onCancel">): void {
+  if (row.kind === "session") { args.onResume(row.meta.id); return; }
+  if (row.kind === "new") { args.onNew(); return; }
+  args.onCancel();
+}
+
+function handleSessionsKey(
+  input: string,
+  key: { escape?: boolean; upArrow?: boolean; downArrow?: boolean; return?: boolean },
+  args: SessionsKeyArgs,
+): void {
+  const { rows, cur, setSel, onCancel, onResume, onNew, onDelete } = args;
+  if (key.escape) { onCancel(); return; }
+  if (input === "q") { onCancel(); return; }
+  if (key.upArrow) { setSel((s) => (s - 1 + rows.length) % rows.length); return; }
+  if (key.downArrow) { setSel((s) => (s + 1) % rows.length); return; }
+  const row = rows[cur];
+  if (!row) return;
+  if (key.return) { activateRow(row, { onResume, onNew, onCancel }); return; }
+  if (input === "d" && row.kind === "session") {
+    onDelete(row.meta.id);
+    setSel((s) => Math.max(0, Math.min(s, rows.length - 2)));
+  }
+}
+
 export function SessionsPicker(props: {
   sessions: ReadonlyArray<SessionMeta>;
   currentId: string;
@@ -55,19 +109,11 @@ export function SessionsPicker(props: {
 
   useInput(
     (input, key) => {
-      if (key.escape || input === "q") return props.onCancel();
-      if (key.upArrow) return setSel((s) => (s - 1 + rows.length) % rows.length);
-      if (key.downArrow) return setSel((s) => (s + 1) % rows.length);
-      const row = rows[cur];
-      if (!row) return;
-      if (key.return) {
-        if (row.kind === "session") props.onResume(row.meta.id);
-        else if (row.kind === "new") props.onNew();
-        else props.onCancel(); // live row is already active
-      } else if (input === "d" && row.kind === "session") {
-        props.onDelete(row.meta.id);
-        setSel((s) => Math.max(0, Math.min(s, rows.length - 2)));
-      }
+      handleSessionsKey(input, key, {
+        rows, cur, setSel: (fn) => setSel((s) => fn(s)),
+        onCancel: props.onCancel, onResume: props.onResume,
+        onNew: props.onNew, onDelete: props.onDelete,
+      });
     },
     { isActive: props.isActive ?? true },
   );
@@ -79,24 +125,7 @@ export function SessionsPicker(props: {
       keys="⏎ resume · d delete  |  new row starts a fresh conversation"
       width={props.width}
     >
-      {rows.map((row, i) => {
-        const selected = i === cur;
-        if (row.kind === "live")
-          return <OverlayRow key="live" selected={selected} mark="●" markColor="green" label="live" meta={`${row.turns} turn(s) · now`} />;
-        if (row.kind === "new")
-          return <OverlayRow key="new" selected={selected} mark="+" markColor="cyan" label="New session" meta="type a prompt to start…" />;
-        const m = row.meta;
-        return (
-          <OverlayRow
-            key={m.id}
-            selected={selected}
-            mark="·"
-            markColor="gray"
-            label={m.id}
-            meta={`${m.title} · ${m.turns}t · ${formatWhen(m.updated, props.nowMs)}`}
-          />
-        );
-      })}
+      {rows.map((row, i) => renderSessionRow(row, i, cur, props.nowMs))}
     </Overlay>
   );
 }

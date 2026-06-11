@@ -46,22 +46,167 @@ const VIM_ENABLED = !!process.env.VANTA_VIM;
 // Reserve rows for: composer(3) + status(1) + padding(2) + streaming(2) + safety margin(2).
 const CHROME_ROWS = 10;
 
-// Virtual list: alt-screen mode (virtual viewport replaces <Static>) is passed
-// as a prop, NOT read from process.env at module load — the .env is loaded at
-// runtime (cli.ts main → loadEnv), well after this module's top-level evaluates,
-// so a module-const read would always be false. launch.tsx reads it correctly.
-export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: boolean }): ReactElement {
-  const { setup, repoRoot } = props;
-  const ALT_SCREEN = props.altScreen ?? false;
-  const app = useApp();
-  const { rows: termRows, cols } = useTermSize();
-  const redrawNonce = useResizeRedraw(ALT_SCREEN);
+// ─── display-value computation (pure, no hooks) ───────────────────────────
+
+type DisplayOpts = {
+  input: string; pending: unknown; overlay: string | null; busy: boolean;
+  atFiles: string[]; showHelp: boolean; expanded: boolean;
+  entries: Entry[]; maxVisible: number; altScreen: boolean;
+};
+type DisplayValues = {
+  slashHead: string | null; atHead: string | null;
+  matchesWithRisk: Array<{ name: string; desc: string; risk: string }>;
+  atMatches: string[]; showPalette: boolean; showAtPalette: boolean; hint: string;
+};
+
+function isPaletteBlocked(o: DisplayOpts): boolean {
+  return !!(o.pending || o.overlay || o.busy);
+}
+
+function computePalette(o: DisplayOpts): Pick<DisplayValues, "slashHead" | "matchesWithRisk" | "showPalette"> {
+  const blocked = isPaletteBlocked(o);
+  const slashHead = !blocked && o.input.startsWith("/") && !o.input.slice(1).includes(" ") ? o.input.slice(1) : null;
+  const fuzzyMatches = slashHead !== null ? fuzzyFilter(SLASH_COMMANDS, slashHead, (c) => c.name) : [];
+  const matchesWithRisk = fuzzyMatches.slice(0, 8).map((m) => ({ ...m.item, risk: formatRiskLabel(getRiskTier(m.item.name)) }));
+  return { slashHead, matchesWithRisk, showPalette: matchesWithRisk.length > 0 };
+}
+
+function computeAtPalette(o: DisplayOpts, showPalette: boolean): Pick<DisplayValues, "atHead" | "atMatches" | "showAtPalette"> {
+  const blocked = isPaletteBlocked(o);
+  const atHead = !blocked && !showPalette ? activeAtRef(o.input) : null;
+  const atMatches = atHead !== null ? o.atFiles.filter((f) => f.includes(atHead)).slice(0, 8) : [];
+  return { atHead, atMatches, showAtPalette: atMatches.length > 0 };
+}
+
+function computeHint(o: DisplayOpts, showPalette: boolean, showAtPalette: boolean): string {
+  if (showPalette || showAtPalette) return "↑↓ select · tab complete · ⏎ run";
+  if (o.showHelp) return "? ⏎ — close help";
+  const hasFoldable = o.entries.some((e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX)));
+  const foldHint = hasFoldable ? `^O ${o.expanded ? "collapse" : "details"}  ` : "";
+  const scrollHint = o.altScreen && o.entries.length > o.maxVisible ? "pgup/pgdn  " : "";
+  return `${scrollHint}${foldHint}/help  ?  /exit`;
+}
+
+function computeDisplayValues(o: DisplayOpts): DisplayValues {
+  const { slashHead, matchesWithRisk, showPalette } = computePalette(o);
+  const { atHead, atMatches, showAtPalette } = computeAtPalette(o, showPalette);
+  const hint = computeHint(o, showPalette, showAtPalette);
+  return { slashHead, atHead, matchesWithRisk, atMatches, showPalette, showAtPalette, hint };
+}
+
+// ─── streaming tail display ────────────────────────────────────────────────
+
+function StreamingTail({ streaming, maxLines }: { streaming: string; maxLines: number }): ReactElement | null {
+  if (!streaming.trim()) return null;
+  const lines = streaming.split("\n");
+  const visible = lines.length > maxLines ? `…\n${lines.slice(-maxLines).join("\n")}` : streaming;
+  return <Text>{visible}</Text>;
+}
+
+// ─── bottom chrome sub-renderers ──────────────────────────────────────────
+
+type ChromeProps = {
+  pending: ReturnType<typeof useApproval>["pending"];
+  overlay: string | null;
+  state: State;
+  editMode: { active: boolean; messageIndex: number };
+  showHelp: boolean;
+  showPalette: boolean;
+  showAtPalette: boolean;
+  matchesWithRisk: Array<{ name: string; desc: string; risk: string }>;
+  atMatches: string[];
+  sel: number;
+  atSel: number;
+  input: string;
+  inputHistory: string[];
+  vimMode: VimMode;
+  hint: string;
+  frame: number;
+  w: number;
+  activeProvider: LLMProvider;
+  estTokens: number;
+  mode: ApprovalMode;
+  sessionList: ReturnType<typeof useOverlays>["sessionList"];
+  replStateRef: React.MutableRefObject<ReplState>;
+  chooseApproval: ReturnType<typeof useApproval>["chooseApproval"];
+  resumeSession: ReturnType<typeof useOverlays>["resumeSession"];
+  newSession: ReturnType<typeof useOverlays>["newSession"];
+  removeSession: ReturnType<typeof useOverlays>["removeSession"];
+  selectModel: ReturnType<typeof useOverlays>["selectModel"];
+  setOverlay: ReturnType<typeof useOverlays>["setOverlay"];
+  setInput: (v: string) => void;
+  submit: (v: string) => void;
+};
+
+function ChromeApproval(p: Pick<ChromeProps, "pending" | "chooseApproval" | "w">): ReactElement {
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      <ApprovalPrompt action={p.pending!.action} reason={p.pending!.reason} toolName={p.pending!.toolName} width={p.w} onChoose={p.chooseApproval} />
+      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}awaiting approval…</Text></Box>
+    </Box>
+  );
+}
+
+function ChromeSessions(p: Pick<ChromeProps, "sessionList" | "replStateRef" | "resumeSession" | "newSession" | "removeSession" | "setOverlay" | "w">): ReactElement {
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      <SessionsPicker sessions={p.sessionList} currentId={p.replStateRef.current.sessionId} currentTurns={p.replStateRef.current.turnIndex} nowMs={Date.now()} width={p.w} onResume={p.resumeSession} onNew={p.newSession} onDelete={p.removeSession} onCancel={() => p.setOverlay(null)} />
+      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}choosing session…</Text></Box>
+    </Box>
+  );
+}
+
+function ChromeModel(p: Pick<ChromeProps, "activeProvider" | "selectModel" | "setOverlay" | "w">): ReactElement {
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      <ModelPicker providers={PROVIDER_CATALOG} currentProviderId={process.env.VANTA_PROVIDER ?? "openai"} currentModel={p.activeProvider.modelId()} hasKey={hasKey} width={p.w} onSelect={p.selectModel} onCancel={() => p.setOverlay(null)} />
+      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}picking model…</Text></Box>
+    </Box>
+  );
+}
+
+type ComposerColors = { borderColor: string; promptColor: string; placeholder: string; isHistoryActive: boolean };
+function composerColors(editActive: boolean, busy: boolean, showPalette: boolean, showAtPalette: boolean): ComposerColors {
+  if (editActive) return { borderColor: "yellow", promptColor: "yellow", placeholder: "editing response — ⏎ confirm, clear + ⏎ cancel", isHistoryActive: false };
+  if (busy) return { borderColor: "gray", promptColor: "gray", placeholder: "working…", isHistoryActive: false };
+  return { borderColor: THEME.border, promptColor: THEME.primary, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !showPalette && !showAtPalette };
+}
+
+function ChromeComposer(p: ChromeProps): ReactElement {
+  const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors(p.editMode.active, p.state.busy, p.showPalette, p.showAtPalette);
+  const elapsedMs = p.state.busy ? Date.now() : 0;
+  const vimMode = VIM_ENABLED ? p.vimMode : undefined;
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
+      <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
+        <Text color={promptColor}>{"› "}</Text>
+        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
+      </Box>
+      {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
+      {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
+      <StatusBar status={p.state.status} busy={p.state.busy} spinner={SPINNER[p.frame] ?? "⠋"} model={p.activeProvider.modelId()} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} elapsedMs={elapsedMs} width={p.w} hint={p.hint} mode={p.mode} primaryColor={THEME.primary} vimMode={vimMode} />
+    </Box>
+  );
+}
+
+function BottomChrome(p: ChromeProps): ReactElement {
+  if (p.pending) return <ChromeApproval pending={p.pending} chooseApproval={p.chooseApproval} w={p.w} />;
+  if (p.overlay === "sessions") return <ChromeSessions sessionList={p.sessionList} replStateRef={p.replStateRef} resumeSession={p.resumeSession} newSession={p.newSession} removeSession={p.removeSession} setOverlay={p.setOverlay} w={p.w} />;
+  if (p.overlay === "model") return <ChromeModel activeProvider={p.activeProvider} selectModel={p.selectModel} setOverlay={p.setOverlay} w={p.w} />;
+  return <ChromeComposer {...p} />;
+}
+
+// ─── app state hook ───────────────────────────────────────────────────────
+
+function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string }) {
   const [state, dispatch] = useReducer(reduce, { entries: [] as Entry[], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0 });
   const [input, setInput] = useState("");
   const [inputHistory, setInputHistory] = useState<string[]>([]);
   const [atFiles, setAtFiles] = useState<string[]>([]);
   const [frame, setFrame] = useState(0);
   const [sel, setSel] = useState(0);
+  const [atSel, setAtSel] = useState(0);
   const [banner, setBanner] = useState<BannerData | null>(null);
   const [activeProvider, setActiveProvider] = useState<LLMProvider>(setup.provider);
   const convoRef = useRef<Conversation | null>(null);
@@ -74,142 +219,60 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
   const { overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
+  useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
+  useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel };
+}
 
-  if (convoRef.current === null) {
-    convoRef.current = createConversation(
+// ─── app ──────────────────────────────────────────────────────────────────
+
+// Virtual list: alt-screen mode (virtual viewport replaces <Static>) is passed
+// as a prop, NOT read from process.env at module load — the .env is loaded at
+// runtime (cli.ts main → loadEnv), well after this module's top-level evaluates,
+// so a module-const read would always be false. launch.tsx reads it correctly.
+export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: boolean }): ReactElement {
+  const { setup, repoRoot } = props;
+  const ALT_SCREEN = props.altScreen ?? false;
+  const app = useApp();
+  const { rows: termRows, cols } = useTermSize();
+  const redrawNonce = useResizeRedraw(ALT_SCREEN);
+  const s = useAppState({ setup, repoRoot });
+
+  if (s.convoRef.current === null) {
+    s.convoRef.current = createConversation(
       setup.systemPrompt,
-      buildConvoConfig({ setup, repoRoot, dispatch, convoRef, replStateRef, requestApproval }),
+      buildConvoConfig({ setup, repoRoot, dispatch: s.dispatch, convoRef: s.convoRef, replStateRef: s.replStateRef, requestApproval: s.requestApproval }),
     );
   }
 
-  useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!state.busy) return;
-    const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120);
-    return () => clearInterval(id);
-  }, [state.busy]);
-  useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-
-  const { sendToAgent } = useAgentSend({
-    dispatch,
-    convoRef,
-    replStateRef,
-    busy: state.busy,
-    queued: state.queued,
-    safety: setup.safety,
-    goals: setup.goals,
-    repoRoot,
-    contextWindow: activeProvider.contextWindow(),
-    provider: activeProvider,
-  });
-
-  // Slash palette — fuzzy-search matching commands while typing a bare `/word`.
-  // Results include risk tier labels.
-  const slashHead = !pending && !overlay && !state.busy && input.startsWith("/") && !input.slice(1).includes(" ") ? input.slice(1) : null;
-  const fuzzyMatches = slashHead !== null ? fuzzyFilter(SLASH_COMMANDS, slashHead, (c) => c.name) : [];
-  const matchesWithRisk = fuzzyMatches.slice(0, 8).map((m) => ({
-    ...m.item,
-    risk: formatRiskLabel(getRiskTier(m.item.name)),
-  }));
-  const showPalette = matchesWithRisk.length > 0;
-  // @-context palette — suggest files while typing @<partial-path>.
-  const atHead = !pending && !overlay && !state.busy && !showPalette ? activeAtRef(input) : null;
-  const atMatches = atHead !== null ? atFiles.filter((f) => f.includes(atHead)).slice(0, 8) : [];
-  const showAtPalette = atMatches.length > 0;
-  const [atSel, setAtSel] = useState(0);
+  const { sendToAgent } = useAgentSend({ dispatch: s.dispatch, convoRef: s.convoRef, replStateRef: s.replStateRef, busy: s.state.busy, queued: s.state.queued, safety: setup.safety, goals: setup.goals, repoRoot, contextWindow: s.activeProvider.contextWindow(), provider: s.activeProvider });
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
+  const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 
-  useKeybindings({
-    slashHead, showPalette, matchesWithRisk, sel, setSel,
-    atHead, showAtPalette, atMatches, atSel, setAtSel, input, setInput,
-    altScreen: ALT_SCREEN, maxVisible, dispatch, setMode, modeRef,
-  });
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, altScreen: ALT_SCREEN, maxVisible, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
 
-  const submit = useSubmit({
-    convoRef, replStateRef, setup, repoRoot,
-    pending, editMode, busy: state.busy, sel,
-    dispatch, sendToAgent, buildCtx, openSessions, openModel, exit: app.exit,
-    setInput, setEditMode, setInputHistory, setShowHelp, setActiveProvider,
-  });
+  const w = Math.max(24, cols - 2);
+  const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
+  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...s.state.entries] : s.state.entries;
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
-  const w = Math.max(24, cols - 2); // fill terminal width, leave 2-char gutter
-  const estTokens = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
-  const elapsedMs = state.busy && Date.now();
-  const hasFoldable = state.entries.some(
-    (e) => e.kind === "tool" && (!!e.diff?.length || (!!e.resultOutput && (e.lineCount ?? 0) > INLINE_MAX))
-  );
-  const foldHint = hasFoldable ? `^O ${state.expanded ? "collapse" : "details"}  ` : "";
-  // Alt-screen banner: the banner leads the transcript as its first entry — into
-  // <Static> scrollback in normal mode, into the virtual viewport (scrolls
-  // away via pgup) in alt-screen mode. Same designed card in both.
-  const allEntries: Entry[] = banner ? [{ kind: "banner", data: banner, root: repoRoot }, ...state.entries] : state.entries;
-  const scrollHint = ALT_SCREEN && allEntries.length > maxVisible ? "pgup/pgdn  " : "";
-  const hint = showPalette || showAtPalette ? "↑↓ select · tab complete · ⏎ run" : showHelp ? "? ⏎ — close help" : `${scrollHint}${foldHint}/help  ?  /exit`;
-
-  // Bottom chrome (approval / pickers / composer + status) — shared by both layouts.
-  const chrome = pending ? (
-        <Box flexDirection="column" marginTop={1}>
-          <ApprovalPrompt action={pending.action} reason={pending.reason} toolName={pending.toolName} width={w} onChoose={chooseApproval} />
-          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}><Text dimColor>{"› "}awaiting approval…</Text></Box>
-        </Box>
-      ) : overlay === "sessions" ? (
-        <Box flexDirection="column" marginTop={1}>
-          <SessionsPicker sessions={sessionList} currentId={replStateRef.current.sessionId} currentTurns={replStateRef.current.turnIndex} nowMs={Date.now()} width={w} onResume={resumeSession} onNew={newSession} onDelete={removeSession} onCancel={() => setOverlay(null)} />
-          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}><Text dimColor>{"› "}choosing session…</Text></Box>
-        </Box>
-      ) : overlay === "model" ? (
-        <Box flexDirection="column" marginTop={1}>
-          <ModelPicker providers={PROVIDER_CATALOG} currentProviderId={process.env.VANTA_PROVIDER ?? "openai"} currentModel={activeProvider.modelId()} hasKey={hasKey} width={w} onSelect={selectModel} onCancel={() => setOverlay(null)} />
-          <Box borderStyle="round" borderColor="gray" paddingX={1} width={w}><Text dimColor>{"› "}picking model…</Text></Box>
-        </Box>
-      ) : (
-        <Box flexDirection="column" marginTop={1}>
-          {showHelp && <HelpOverlay width={w} vimEnabled={VIM_ENABLED} />}
-          <Box borderStyle="round" borderColor={editMode.active ? "yellow" : state.busy ? "gray" : THEME.border} paddingX={1} width={w}>
-            <Text color={editMode.active ? "yellow" : state.busy ? "gray" : THEME.primary}>{"› "}</Text>
-            <Composer value={input} onChange={setInput} onSubmit={submit} placeholder={editMode.active ? "editing response — ⏎ confirm, clear + ⏎ cancel" : state.busy ? "working…" : "Ask Vanta anything — /help for commands"} history={inputHistory} isHistoryActive={!editMode.active && !showPalette && !showAtPalette && !state.busy} vimEnabled={VIM_ENABLED} onVimModeChange={setVimMode} />
-          </Box>
-          {showPalette ? <Palette matches={matchesWithRisk} sel={Math.min(sel, matchesWithRisk.length - 1)} width={w} /> : null}
-          {showAtPalette ? <Palette matches={atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(atSel, atMatches.length - 1)} width={w} /> : null}
-          <StatusBar status={state.status} busy={state.busy} spinner={SPINNER[frame] ?? "⠋"} model={activeProvider.modelId()} estTokens={estTokens} contextWindow={activeProvider.contextWindow()} elapsedMs={typeof elapsedMs === "number" ? elapsedMs : 0} width={w} hint={hint} mode={mode} primaryColor={THEME.primary} vimMode={VIM_ENABLED ? vimMode : undefined} />
-        </Box>
-      );
-
-  // Alt-screen (VANTA_NO_FLICKER=1): fullscreen-fill frame — see alt-frame.tsx
-  // for why the frame overflows the viewport by one sacrificial line.
   if (ALT_SCREEN) {
     return (
-      <AltFrame
-        rows={termRows}
-        nonce={redrawNonce}
-        viewport={
-          <>
-            <VirtualTranscript entries={allEntries} expanded={state.expanded} viewOffset={state.viewOffset} maxVisible={maxVisible} />
-            {/* Tail-cap streaming to one screen — bounds per-frame bytes. */}
-            {state.streaming.trim() ? <Text>{state.streaming.split("\n").slice(-termRows).join("\n")}</Text> : null}
-          </>
-        }
-        chrome={chrome}
+      <AltFrame rows={termRows} nonce={redrawNonce}
+        viewport={<><VirtualTranscript entries={allEntries} expanded={s.state.expanded} viewOffset={s.state.viewOffset} maxVisible={maxVisible} /><StreamingTail streaming={s.state.streaming} maxLines={termRows} /></>}
+        chrome={<BottomChrome {...chromeProps} />}
       />
     );
   }
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Static items={allEntries}>
-        {(item, i) => <EntryRow key={`e${i}`} entry={item} expanded={state.expanded} />}
-      </Static>
-      {state.streaming.trim() ? (
-        // Cap streaming display to last 8 lines so the dynamic region doesn't
-        // outgrow the terminal and scroll content off screen.
-        (() => {
-          const lines = state.streaming.split("\n");
-          const visible = lines.length > 8 ? `…\n${lines.slice(-8).join("\n")}` : state.streaming;
-          return <Text>{visible}</Text>;
-        })()
-      ) : null}
-      {chrome}
+      <Static items={allEntries}>{(item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />}</Static>
+      <StreamingTail streaming={s.state.streaming} maxLines={8} />
+      <BottomChrome {...chromeProps} />
     </Box>
   );
 }

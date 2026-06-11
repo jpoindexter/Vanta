@@ -238,46 +238,58 @@ async function handleChat(state: DesktopState, req: http.IncomingMessage, res: h
   }
 }
 
+type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
+
+/** Dispatch GET routes. Returns true when handled. */
+async function routeGet(ctx: RouteCtx): Promise<boolean> {
+  const { req, res, state, sid, sseClients, pathname: p } = ctx;
+  if (p === "/") { res.writeHead(200, { "content-type": "text/html; charset=utf-8" }); res.end(desktopHtml()); return true; }
+  // DESKTOP-P1: SSE event stream — live tool/text events during a run.
+  if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
+  if (p === "/api/status") { await handleStatus(state, res); return true; }
+  if (p === "/api/sessions") { await handleSessions(res); return true; }
+  if (p === "/api/tools") { await handleTools(state, res); return true; }
+  if (p === "/api/files") { await handleFiles(state, res); return true; }
+  if (p === "/api/models") { await handleModels(res); return true; }
+  if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
+  return false;
+}
+
+/** Dispatch POST routes. Returns true when handled. */
+async function routePost(ctx: RouteCtx): Promise<boolean> {
+  const { req, res, state, sid, sseClients, pathname: p } = ctx;
+  if (p === "/api/sessions/new") { await handleNewSession(state, res); return true; }
+  if (p === "/api/sessions/open") { await handleOpenSession(state, req, res); return true; }
+  if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
+  if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
+  if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
+  if (p === "/api/chat") {
+    // Wire SSE push into the conversation events for DESKTOP-P1.
+    state._sseSessionId = sid; state._sseClients = sseClients;
+    await handleChat(state, req, res); return true;
+  }
+  return false;
+}
+
+type ServerOpts = { sessions: SessionMap; sseClients: SseClients; repoRoot: string };
+
+async function routeRequest(req: http.IncomingMessage, res: http.ServerResponse, opts: ServerOpts): Promise<void> {
+  const { sessions, sseClients, repoRoot } = opts;
+  const url = new URL(req.url ?? "/", "http://127.0.0.1");
+  const sid = sessionIdFromRequest(req);
+  const state = getSession(sessions, sid, repoRoot);
+  const ctx: RouteCtx = { req, res, state, sid, sseClients, pathname: url.pathname };
+  const handled = req.method === "GET" ? await routeGet(ctx) : req.method === "POST" ? await routePost(ctx) : false;
+  if (!handled) sendJson(res, 404, { error: "not found" });
+}
+
 export function createDesktopServer(repoRoot: string): http.Server {
-  // DESKTOP-P2: per-session state map (no global clobber between tabs).
-  const sessions: SessionMap = new Map();
-  // DESKTOP-P1: SSE clients per session.
-  const sseClients: SseClients = new Map();
-
+  const sessions: SessionMap = new Map(); // DESKTOP-P2: per-session state map
+  const sseClients: SseClients = new Map(); // DESKTOP-P1: SSE clients per session
+  const opts: ServerOpts = { sessions, sseClients, repoRoot };
   return http.createServer((req, res) => {
-    void (async () => {
-      const url = new URL(req.url ?? "/", "http://127.0.0.1");
-      const sid = sessionIdFromRequest(req);
-      const state = getSession(sessions, sid, repoRoot);
-
-      if (req.method === "GET" && url.pathname === "/") {
-        res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-        res.end(desktopHtml());
-        return;
-      }
-      // DESKTOP-P1: SSE event stream — live tool/text events during a run.
-      if (req.method === "GET" && url.pathname === "/api/events") {
-        attachSse(sseClients, sid, res);
-        return;
-      }
-      if (req.method === "GET" && url.pathname === "/api/status") return handleStatus(state, res);
-      if (req.method === "GET" && url.pathname === "/api/sessions") return handleSessions(res);
-      if (req.method === "POST" && url.pathname === "/api/sessions/new") return handleNewSession(state, res);
-      if (req.method === "POST" && url.pathname === "/api/sessions/open") return handleOpenSession(state, req, res);
-      if (req.method === "GET" && url.pathname === "/api/tools") return handleTools(state, res);
-      if (req.method === "GET" && url.pathname === "/api/files") return handleFiles(state, res);
-      if (req.method === "GET" && url.pathname === "/api/models") return handleModels(res);
-      if (req.method === "POST" && url.pathname === "/api/model") return handleSetModel(state, req, res);
-      if ((req.method === "GET" || req.method === "POST") && url.pathname === "/api/approval") return handleApproval(state, req, res);
-      if (req.method === "POST" && url.pathname === "/api/terminal") return handleTerminal(state, req, res);
-      if (req.method === "POST" && url.pathname === "/api/chat") {
-        // Wire SSE push into the conversation events for DESKTOP-P1.
-        state._sseSessionId = sid;
-        state._sseClients = sseClients;
-        return handleChat(state, req, res);
-      }
-      sendJson(res, 404, { error: "not found" });
-    })().catch((err: unknown) => sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) }));
+    void routeRequest(req, res, opts)
+      .catch((err: unknown) => sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) }));
   });
 }
 

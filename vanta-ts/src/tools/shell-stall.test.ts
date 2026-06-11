@@ -64,38 +64,38 @@ describe("checkStall", () => {
 
   it("resets the idle clock and notified flag when output grows, no notify", () => {
     const prev: StallState = { lastLen: 10, lastChangeMs: 1_000, notified: true };
-    const r = checkStall(prev, 25, interactiveTail, 50_000, idleMs);
+    const r = checkStall({ prev, curLen: 25, tail: interactiveTail, nowMs: 50_000, idleMs });
     expect(r.notify).toBe(false);
     expect(r.state).toEqual({ lastLen: 25, lastChangeMs: 50_000, notified: false });
   });
 
   it("fires once after idle + interactive tail", () => {
-    const r = checkStall(base, 10, interactiveTail, base.lastChangeMs + idleMs, idleMs);
+    const r = checkStall({ prev: base, curLen: 10, tail: interactiveTail, nowMs: base.lastChangeMs + idleMs, idleMs });
     expect(r.notify).toBe(true);
     expect(r.state.notified).toBe(true);
   });
 
   it("does not refire once notified", () => {
-    const first = checkStall(base, 10, interactiveTail, base.lastChangeMs + idleMs, idleMs);
+    const first = checkStall({ prev: base, curLen: 10, tail: interactiveTail, nowMs: base.lastChangeMs + idleMs, idleMs });
     expect(first.notify).toBe(true);
-    const second = checkStall(first.state, 10, interactiveTail, base.lastChangeMs + idleMs * 2, idleMs);
+    const second = checkStall({ prev: first.state, curLen: 10, tail: interactiveTail, nowMs: base.lastChangeMs + idleMs * 2, idleMs });
     expect(second.notify).toBe(false);
     expect(second.state).toBe(first.state);
   });
 
   it("stays silent when idle but the tail is not interactive", () => {
-    const r = checkStall(base, 10, "still compiling, please wait...", base.lastChangeMs + idleMs, idleMs);
+    const r = checkStall({ prev: base, curLen: 10, tail: "still compiling, please wait...", nowMs: base.lastChangeMs + idleMs, idleMs });
     expect(r.notify).toBe(false);
     expect(r.state.notified).toBe(false);
   });
 
   it("stays silent when interactive but not yet idle long enough", () => {
-    const r = checkStall(base, 10, interactiveTail, base.lastChangeMs + idleMs - 1, idleMs);
+    const r = checkStall({ prev: base, curLen: 10, tail: interactiveTail, nowMs: base.lastChangeMs + idleMs - 1, idleMs });
     expect(r.notify).toBe(false);
   });
 
   it("fires exactly at the idle threshold (>=)", () => {
-    const r = checkStall(base, 10, interactiveTail, base.lastChangeMs + idleMs, idleMs);
+    const r = checkStall({ prev: base, curLen: 10, tail: interactiveTail, nowMs: base.lastChangeMs + idleMs, idleMs });
     expect(r.notify).toBe(true);
   });
 });

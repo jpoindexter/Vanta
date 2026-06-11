@@ -18,7 +18,7 @@ function startStallWatchdog(chunks: string[], id: string, command: string): Node
   const timer = setInterval(() => {
     try {
       const buf = chunks.join("");
-      const r = checkStall(stall, buf.length, buf, Date.now());
+      const r = checkStall({ prev: stall, curLen: buf.length, tail: buf, nowMs: Date.now() });
       stall = r.state;
       if (r.notify) {
         notify({ title: `Vanta · bg task ${id}`, message: `"${command.slice(0, 60)}" appears to be waiting for input (y/n)…` });

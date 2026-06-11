@@ -32,25 +32,25 @@ describe("formatUsd / formatTurnCost", () => {
     expect(formatUsd(0)).toBe("$0");
     expect(formatUsd(0.0004)).toBe("$0.0004");
     expect(formatUsd(1.5)).toBe("$1.50");
-    const line = formatTurnCost(1200, 300, 1500, 0.0123);
+    const line = formatTurnCost({ inputTokens: 1200, outputTokens: 300, elapsedMs: 1500, cost: 0.0123 });
     expect(line).toContain("1,200 in / 300 out");
     expect(line).toContain("1.5s");
     expect(line).toContain("$0.01");
   });
 
   it("shows compression savings when tokensSaved is provided", () => {
-    const line = formatTurnCost(1200, 300, 1500, 0.0123, 360);
+    const line = formatTurnCost({ inputTokens: 1200, outputTokens: 300, elapsedMs: 1500, cost: 0.0123, tokensSaved: 360 });
     expect(line).toContain("1,500→1,140 tokens (360 saved via compression)");
     expect(line).toContain("1.5s");
     expect(line).toContain("$0.01");
   });
 
   it("renders ~? when the model is unpriced", () => {
-    expect(formatTurnCost(1, 1, 1000, null)).toContain("~?");
+    expect(formatTurnCost({ inputTokens: 1, outputTokens: 1, elapsedMs: 1000, cost: null })).toContain("~?");
   });
 
   it("shows compression savings when unpriced", () => {
-    const line = formatTurnCost(1000, 500, 2000, null, 250);
+    const line = formatTurnCost({ inputTokens: 1000, outputTokens: 500, elapsedMs: 2000, cost: null, tokensSaved: 250 });
     expect(line).toContain("1,500→1,250 tokens (250 saved via compression)");
     expect(line).toContain("~?");
   });

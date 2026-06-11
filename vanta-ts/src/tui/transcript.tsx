@@ -91,6 +91,42 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; exp
   return <Text dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
 }
 
+function toolLineFlags(e: ToolEntry, expanded: boolean): {
+  isLong: boolean; showOutput: boolean; showFoldHint: boolean; showDiff: boolean; extraLines: number;
+} {
+  const isLong = (e.lineCount ?? 0) > INLINE_MAX;
+  const showOutput = e.ok === true && !!e.resultOutput && (!isLong || expanded);
+  const showFoldHint = isLong && !expanded && !!e.resultOutput;
+  const showDiff = expanded && e.ok === true && !!e.diff?.length;
+  const extraLines = (e.lineCount ?? 0) - FOLD_PREVIEW;
+  return { isLong, showOutput, showFoldHint, showDiff, extraLines };
+}
+
+function ToolOutputBlock(props: { resultOutput: string; extraLines: number }): ReactElement {
+  return (
+    <Box flexDirection="column" marginLeft={2}>
+      <Text dimColor>{props.resultOutput}</Text>
+      {props.extraLines > 0 ? <Text dimColor>… +{props.extraLines} more lines</Text> : null}
+    </Box>
+  );
+}
+
+function ToolSummaryLine(props: {
+  mark: string; icon: string; verb: string; tail: string;
+  meta: string; showFoldHint: boolean; ok?: boolean; errorLine?: string;
+}): ReactElement {
+  const { mark, icon, verb, tail, meta, showFoldHint, ok, errorLine } = props;
+  return (
+    <Text dimColor>
+      {mark} {icon} {verb}
+      {tail}
+      {meta ? <Text dimColor> · {meta}</Text> : null}
+      {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
+      {ok === false && errorLine ? <Text color="red"> — {errorLine}</Text> : null}
+    </Text>
+  );
+}
+
 /**
  * One clean activity line: `<mark> <icon> <verb> <detail> · <meta>` (+ error
  * tail). The result magnitude (`254 lines` / `+12/-3`) shows by default; the full
@@ -102,26 +138,12 @@ function ToolLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement 
   const tail = e.detail ? ` ${e.detail}` : "";
   const meta = e.ok ? diffStat(e.diff) || e.summary || "" : "";
   // Short outputs (≤ INLINE_MAX lines) always show; long outputs fold behind ^O.
-  const isLong = (e.lineCount ?? 0) > INLINE_MAX;
-  const showOutput = e.ok && !!e.resultOutput && (!isLong || props.expanded);
-  const showFoldHint = isLong && !props.expanded && !!e.resultOutput;
-  const showDiff = props.expanded && e.ok && !!e.diff?.length;
-  const extraLines = (e.lineCount ?? 0) - FOLD_PREVIEW;
+  const { showOutput, showFoldHint, showDiff, extraLines } = toolLineFlags(e, props.expanded);
   return (
     <Box flexDirection="column">
-      <Text dimColor>
-        {mark} {e.icon} {e.verb}
-        {tail}
-        {meta ? <Text dimColor> · {meta}</Text> : null}
-        {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
-        {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
-      </Text>
-      {showOutput ? (
-        <Box flexDirection="column" marginLeft={2}>
-          <Text dimColor>{e.resultOutput}</Text>
-          {extraLines > 0 ? <Text dimColor>… +{extraLines} more lines</Text> : null}
-        </Box>
-      ) : null}
+      <ToolSummaryLine mark={mark} icon={e.icon} verb={e.verb} tail={tail}
+        meta={meta} showFoldHint={showFoldHint} ok={e.ok} errorLine={e.errorLine} />
+      {showOutput ? <ToolOutputBlock resultOutput={e.resultOutput!} extraLines={extraLines} /> : null}
       {showDiff ? <DiffView lines={e.diff!} /> : null}
     </Box>
   );

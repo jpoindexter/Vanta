@@ -39,6 +39,16 @@ import {
   runRoomCommand,
   type OutputFormat,
 } from "./cli/commands.js";
+import {
+  runPluginsCommand,
+  runTasteCommand,
+  runModelsCommand,
+  runAcpCommand,
+  runProxyCommand,
+  runRefCommand,
+  runSettingsCommand,
+  runBriefCommand,
+} from "./cli/extra-cmds.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -156,139 +166,16 @@ const COMMANDS: Record<string, CommandFn> = {
   import: async (_root, rest) => (await import("./cli-dx/backup.js")).runImport(rest),
   improve: (root) => runFactoryCommand(root, "review"),
   factory: (root, rest) => runFactoryCommand(root, rest[0] ?? ""),
-  brief: async (root) => {
-    const { buildBrief } = await import("./repl/brief-cmd.js");
-    const { ensureKernel } = await import("./kernel-launcher.js");
-    const { SafetyClient } = await import("./safety-client.js");
-    const { join: pathJoin } = await import("node:path");
-    const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-    const kernelBin = pathJoin(root, "target", "debug", "vanta-kernel");
-    await ensureKernel({ baseUrl, kernelBin, root }).catch(() => {});
-    const safety = new SafetyClient(baseUrl);
-    const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });
-    console.log(out);
-  },
-  today: async (root, rest) => COMMANDS["brief"]!(root, rest),
+  brief: (root) => runBriefCommand(root),
+  today: (root) => runBriefCommand(root),
   model: (root, rest) => runModelCommand(root, rest),
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
-  plugins: async (root, rest) => {
-    const { PLUGIN_CATALOG, pluginById, formatPluginList, checkNoPluginFilesInRepo } = await import("./plugins/catalog.js");
-    const sub = rest[0] ?? "list";
-    if (sub === "list" || !rest[0]) {
-      const statuses = await Promise.all(PLUGIN_CATALOG.map(async (e) => ({ entry: e, installed: await e.checkInstalled() })));
-      console.log(formatPluginList(statuses));
-      return 0;
-    }
-    if (sub === "install") {
-      const id = rest[1];
-      if (!id) { console.error("usage: vanta plugins install <id>"); return 1; }
-      const plugin = pluginById(id);
-      if (!plugin) { console.error(`unknown plugin: ${id}`); return 1; }
-      console.log(`Installing ${plugin.label}…`);
-      await plugin.install();
-      console.log(`✓ installed: ${plugin.label}`);
-      return 0;
-    }
-    if (sub === "remove") {
-      const id = rest[1];
-      if (!id) { console.error("usage: vanta plugins remove <id>"); return 1; }
-      const plugin = pluginById(id);
-      if (!plugin) { console.error(`unknown plugin: ${id}`); return 1; }
-      await plugin.remove();
-      console.log(`✓ removed state for: ${plugin.label}`);
-      return 0;
-    }
-    if (sub === "check-repo") {
-      const polluted = await checkNoPluginFilesInRepo(root);
-      if (polluted.length) { console.error(`Plugin files found in repo:\n${polluted.join("\n")}`); return 1; }
-      console.log("✓ no plugin files in project tree");
-      return 0;
-    }
-    console.log("usage: vanta plugins [list | install <id> | remove <id> | check-repo]");
-    return 1;
-  },
-  taste: async (_root, rest) => {
-    const { ingestAsset, loadAssets, formatAssets, searchAssets } = await import("./taste/asset-index.js");
-    const { evaluateTaste } = await import("./taste/engine.js");
-    const sub = rest[0] ?? "list";
-    if (sub === "add") {
-      const source = rest[1];
-      if (!source) { console.error("usage: vanta taste add <url|path> [tags...]"); return 1; }
-      const tags = rest.slice(2) as Parameters<typeof ingestAsset>[0]["tags"];
-      const a = await ingestAsset({ source, tags, env: process.env });
-      console.log(`✓ ingested ${a.id}: ${a.title}`);
-      return 0;
-    }
-    if (sub === "eval") {
-      const desc = rest.slice(1).join(" ").trim();
-      if (!desc) { console.error("usage: vanta taste eval <description>"); return 1; }
-      const v = await evaluateTaste(desc, process.env);
-      console.log(`[${v.recommendation}] ${v.reason}`);
-      return 0;
-    }
-    if (sub === "search") {
-      const results = await searchAssets(rest.slice(1).join(" "), process.env);
-      console.log(formatAssets(results));
-      return 0;
-    }
-    console.log(formatAssets(await loadAssets(process.env)));
-    return 0;
-  },
-  models: async (_root, rest) => {
-    const sub = rest[0] ?? "bench";
-    if (sub === "bench") {
-      const { loadBenchResults, formatBenchScorecard } = await import("./bench/model-bench.js");
-      const results = await loadBenchResults(process.env);
-      console.log(formatBenchScorecard(results));
-      return 0;
-    }
-    console.log("usage: vanta models bench");
-    return 1;
-  },
-  acp: async (root, rest) => {
-    const port = Number(rest[0]) || 7792;
-    const { startAcpServer, writeAgentJson } = await import("./acp/server.js");
-    const { prepareRun, buildSummarizer } = await import("./session.js");
-    const { runAgent } = await import("./agent.js");
-    const { approver: _approver } = await import("./session.js");
-    const setup = await prepareRun(root, "acp session").catch(() => null);
-    if (!setup) { console.error("vanta acp: failed to initialize"); return 1; }
-    await writeAgentJson(root).catch(() => {});
-    const run = async (instruction: string): Promise<string> => {
-      const outcome = await runAgent(setup.systemPrompt, instruction, {
-        provider: setup.provider,
-        safety: setup.safety,
-        registry: setup.registry,
-        root,
-        requestApproval: async () => false,
-        summarize: buildSummarizer(setup.provider),
-      });
-      return outcome.finalText;
-    };
-    const srv = await startAcpServer({ port, repoRoot: root, run });
-    console.log(`vanta acp: ACP server on http://127.0.0.1:${srv.port}`);
-    console.log(`  agent.json at ${root}/agent.json`);
-    console.log("  Ctrl+C to stop.");
-    await new Promise<void>((resolve) => {
-      process.once("SIGINT", () => { srv.close(); resolve(); });
-      process.once("SIGTERM", () => { srv.close(); resolve(); });
-    });
-    return 0;
-  },
-  proxy: async (_root, rest) => {
-    const port = Number(rest[0]) || 7791;
-    const { startProxyServer } = await import("./proxy/server.js");
-    const srv = await startProxyServer(port, process.env);
-    console.log(`vanta proxy: OpenAI-compatible endpoint on http://127.0.0.1:${srv.port}`);
-    console.log(`  OPENAI_API_KEY=vanta OPENAI_BASE_URL=http://127.0.0.1:${srv.port}/v1`);
-    console.log("  Ctrl+C to stop.");
-    await new Promise<void>((resolve) => {
-      process.once("SIGINT", () => { srv.close(); resolve(); });
-      process.once("SIGTERM", () => { srv.close(); resolve(); });
-    });
-    return 0;
-  },
+  plugins: (root, rest) => runPluginsCommand(root, rest),
+  taste: (root, rest) => runTasteCommand(root, rest),
+  models: (root, rest) => runModelsCommand(root, rest),
+  acp: (root, rest) => runAcpCommand(root, rest),
+  proxy: (root, rest) => runProxyCommand(root, rest),
   money: async (_root, _rest) => {
     const { loadLifeOs } = await import("./life-os/store.js");
     const { buildMoneyBrief } = await import("./life-os/money.js");
@@ -297,56 +184,19 @@ const COMMANDS: Record<string, CommandFn> = {
     console.log(buildMoneyBrief(data, target));
     return 0;
   },
-  ref: async (_root, rest) => {
-    const { addRef, searchRefs, listRefs, formatRefs, formatRefForContext } = await import("./refs/store.js");
-    const sub = rest[0] ?? "list";
-    if (sub === "add") {
-      const source = rest[1];
-      if (!source) { console.error("usage: vanta ref add <url|path>"); return 1; }
-      let excerpt = "";
-      if (/^https?:\/\//.test(source)) {
-        try {
-          const { extractReadable } = await import("./tools/web-fetch.js");
-          const res = await fetch(source);
-          excerpt = extractReadable(await res.text(), source).text.slice(0, 2000);
-        } catch { excerpt = `(fetch failed)`; }
-      } else {
-        const { readFile } = await import("node:fs/promises");
-        excerpt = (await readFile(source, "utf8").catch(() => "")).slice(0, 2000);
-      }
-      const ref = await addRef({ source, excerpt });
-      console.log(`✓ ingested ${ref.id}: ${ref.title}`);
-      return 0;
-    }
-    if (sub === "search") {
-      const q = rest.slice(1).join(" ").trim();
-      if (!q) { console.error("usage: vanta ref search <query>"); return 1; }
-      const refs = await searchRefs(q);
-      if (!refs.length) { console.log(`(no refs matched "${q}")`); return 0; }
-      for (const r of refs.slice(0, 5)) console.log(`\n${formatRefForContext(r)}`);
-      return 0;
-    }
-    console.log(formatRefs(await listRefs()));
-    return 0;
-  },
-  settings: async (root, rest) => {
-    const { loadSettings, userSettingsPath, projectSettingsPath, localSettingsPath, formatSettings } = await import("./settings/store.js");
-    const sub = rest[0] ?? "show";
-    if (sub === "show") {
-      const s = await loadSettings(root);
-      console.log(formatSettings(s, "merged"));
-      return 0;
-    }
-    if (sub === "paths") {
-      console.log(`  user:    ${userSettingsPath()}`);
-      console.log(`  project: ${projectSettingsPath(root)}`);
-      console.log(`  local:   ${localSettingsPath(root)}`);
-      return 0;
-    }
-    console.log("usage: vanta settings [show | paths]");
-    return 1;
-  },
+  ref: (root, rest) => runRefCommand(root, rest),
+  settings: (root, rest) => runSettingsCommand(root, rest),
 };
+
+/** Parse the `run` subcommand args into instruction + outputFormat. */
+function parseRunArgs(rest: string[]): { instruction: string; outputFormat: OutputFormat } {
+  const fmtIdx = rest.indexOf("--output-format");
+  const rawFmt = fmtIdx >= 0 ? rest[fmtIdx + 1] : undefined;
+  const outputFormat: OutputFormat =
+    rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
+  const instrArgs = rest.filter((_, i) => i !== fmtIdx && i !== fmtIdx + 1);
+  return { instruction: instrArgs.join(" "), outputFormat };
+}
 
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
@@ -360,13 +210,8 @@ async function main(): Promise<void> {
     return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui") });
   if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "run" && rest.length > 0) {
-    const fmtIdx = rest.indexOf("--output-format");
-    const rawFmt = fmtIdx >= 0 ? rest[fmtIdx + 1] : undefined;
-    const outputFormat: OutputFormat =
-      rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
-    // Strip --output-format <value> from args before joining as the instruction.
-    const instrArgs = rest.filter((_, i) => i !== fmtIdx && i !== fmtIdx + 1);
-    return runInstruction(repoRoot, instrArgs.join(" "), { outputFormat });
+    const { instruction, outputFormat } = parseRunArgs(rest);
+    return runInstruction(repoRoot, instruction, { outputFormat });
   }
 
   const handler = COMMANDS[cmd];
