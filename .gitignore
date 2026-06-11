@@ -27,3 +27,6 @@ roadmap.html
 reference/
 argo
 .argo/
+
+# Transient agent worktrees (embedded git repos — never commit)
+.claude/worktrees/
