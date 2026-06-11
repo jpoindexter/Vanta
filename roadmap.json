@@ -639,15 +639,15 @@
       "id": "CC-SCROLL-DURING-RUN",
       "track": "Operator",
       "title": "Scroll up while agent is streaming (normal mode)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "In normal (non-alt-screen) mode, the transcript keeps scrolling down as the agent streams. The terminal raw mode blocks native scroll. User cannot read earlier content while the agent is running.",
-      "done": "User can scroll up (pgup/pgdn or terminal scroll) to read history while agent is generating. View snaps back to bottom when the turn completes.",
+      "summary": "pgup/pgdn scroll was already wired in alt-screen mode (useKeybindings has no busy gate). The only missing piece was snap-to-bottom on turn complete: `handleCommit` in app-reducer now resets `viewOffset: 0` so the user auto-sees the final response. `VirtualTranscript` already shows ↑/↓ scroll indicators when content is cut.",
+      "done": "User can scroll up (pgup/pgdn or ⇧↑/↓) to read history while agent is generating. View snaps back to bottom when the turn completes. Test added in app.test.tsx.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "low",
       "lens": "tui",
-      "notes": "Reported via screenshot: continuous downward scroll during generation, no way to scroll back mid-run."
+      "updated": "2026-06-11"
     },
     {
       "id": "CC-HIGHLIGHTED-CODE",

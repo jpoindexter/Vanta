@@ -55,7 +55,7 @@ function handleCommit(s: State, a: Extract<Action, { t: "commit" }>): State {
   // loop returned nothing (e.g. an interrupt with partial output).
   const text = a.finalText.trim() || s.streaming.trim();
   const entries = text ? [...s.entries, { kind: "assistant" as const, text }] : s.entries;
-  return { ...s, entries, streaming: "", busy: false, status: "idle" };
+  return { ...s, entries, streaming: "", busy: false, status: "idle", viewOffset: 0 };
 }
 
 function handleInterrupted(s: State): State {

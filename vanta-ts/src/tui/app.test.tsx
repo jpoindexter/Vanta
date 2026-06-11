@@ -120,6 +120,12 @@ describe("tui reduce", () => {
     ]);
   });
 
+  it("commit snaps viewOffset to 0 (scroll-during-run: snap to bottom on turn complete)", () => {
+    const s = reduce({ ...base, viewOffset: 5, busy: true, streaming: "partial" }, { t: "commit", finalText: "done" });
+    expect(s.viewOffset).toBe(0);
+    expect(s.busy).toBe(false);
+  });
+
   it("clear empties the transcript", () => {
     const s = reduce({ ...base, entries: [{ kind: "user", text: "x" }], busy: true, expanded: true }, { t: "clear" });
     expect(s).toEqual({ entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: false });
