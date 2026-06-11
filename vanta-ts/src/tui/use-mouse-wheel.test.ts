@@ -3,10 +3,17 @@ import { countWheelEvents, accumulateWheel } from "./use-mouse-wheel.js";
 
 const UP = "\x1b[<64;10;5M";
 const DOWN = "\x1b[<65;10;5M";
-
+// Ink's key parser strips the ESC prefix before handing sequences to useInput.
+const UP_STRIPPED = "[<64;10;5M";
+const DOWN_STRIPPED = "[<65;10;5M";
 describe("countWheelEvents", () => {
-  it("counts wheel-up and wheel-down events in a chunk", () => {
+  it("counts SGR wheel events with the ESC prefix intact", () => {
     expect(countWheelEvents(UP + DOWN + UP)).toEqual({ up: 2, down: 1 });
+  });
+
+  it("counts SGR wheel events with the ESC prefix stripped (Ink useInput form)", () => {
+    expect(countWheelEvents(UP_STRIPPED)).toEqual({ up: 1, down: 0 });
+    expect(countWheelEvents(DOWN_STRIPPED)).toEqual({ up: 0, down: 1 });
   });
 
   it("returns zeros for plain keystrokes", () => {
@@ -19,7 +26,7 @@ describe("countWheelEvents", () => {
   });
 
   it("handles a momentum burst (trackpad) in one chunk", () => {
-    expect(countWheelEvents(UP.repeat(12))).toEqual({ up: 12, down: 0 });
+    expect(countWheelEvents(UP_STRIPPED.repeat(12))).toEqual({ up: 12, down: 0 });
   });
 });
 
