@@ -1,22 +1,21 @@
 import type { SlashHandler } from "./types.js";
+import { THEME_NAMES, currentThemeName } from "../tui/theme.js";
 
-const AVAILABLE_THEMES = ["dark", "light", "solarized-dark", "solarized-light", "high-contrast"];
+// /theme — switch the TUI colour theme live. Returns a `theme` signal the TUI
+// host applies to its theme state (status bar + composer restyle immediately;
+// the modal pickers pick up the new accent the next time they open). Names are
+// the real themes from tui/theme.ts, not a placeholder list.
 
 export const theme: SlashHandler = (arg, ctx) => {
+  const active = currentThemeName(ctx.env);
   if (!arg.trim()) {
-    const list = AVAILABLE_THEMES.map((t) => `  ${t}`).join("\n");
-    return {
-      output: `Available themes:\n${list}\n\nUse: /theme <name>`,
-    };
+    const list = THEME_NAMES.map((t) => `  ${t === active ? "›" : " "} ${t}`).join("\n");
+    return { output: `Available themes (current: ${active}):\n${list}\n\nUse: /theme <name>` };
   }
-
-  const themeName = arg.trim().toLowerCase();
-  if (!AVAILABLE_THEMES.includes(themeName)) {
-    return {
-      output: `  unknown theme '${themeName}' — use /theme to see available options`,
-    };
+  const name = arg.trim().toLowerCase();
+  if (!THEME_NAMES.includes(name)) {
+    return { output: `  unknown theme '${name}' — use /theme to see available options` };
   }
-
-  // Note: theme preference would be persisted to config in full implementation
-  return { output: `  theme set to ${themeName}` };
+  if (name === active) return { output: `  already on theme ${name}` };
+  return { theme: name, output: `  ✓ theme set to ${name}` };
 };

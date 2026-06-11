@@ -20,7 +20,7 @@ import { useApproval } from "./use-approval.js";
 import { type ApprovalMode } from "./approval-mode.js";
 import { activeAtRef, listRepoFiles } from "./at-context.js";
 import { HelpOverlay } from "./help-overlay.js";
-import { resolveTheme } from "./theme.js";
+import { resolveThemeByName, currentThemeName, type VantaTheme } from "./theme.js";
 import { getRiskTier, formatRiskLabel } from "./command-risk.js";
 import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
@@ -41,7 +41,6 @@ export { reduce, type State, type Action };
 const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!process.env[entry.envVar];
 
 const SPINNER = spinnerFrames();
-const THEME = resolveTheme(process.env);
 const VIM_ENABLED = !!process.env.VANTA_VIM;
 
 // ─── display-value computation (pure, no hooks) ───────────────────────────
@@ -123,6 +122,7 @@ type ChromeProps = {
   activeProvider: LLMProvider;
   estTokens: number;
   mode: ApprovalMode;
+  theme: VantaTheme;
   sessionList: ReturnType<typeof useOverlays>["sessionList"];
   replStateRef: React.MutableRefObject<ReplState>;
   chooseApproval: ReturnType<typeof useApproval>["chooseApproval"];
@@ -174,14 +174,14 @@ function ChromeModel(p: Pick<ChromeProps, "activeProvider" | "selectModel" | "se
 }
 
 type ComposerColors = { borderColor: string; promptColor: string; placeholder: string; isHistoryActive: boolean };
-function composerColors(editActive: boolean, busy: boolean, showPalette: boolean, showAtPalette: boolean): ComposerColors {
-  if (editActive) return { borderColor: "yellow", promptColor: "yellow", placeholder: "editing response — ⏎ confirm, clear + ⏎ cancel", isHistoryActive: false };
-  if (busy) return { borderColor: "gray", promptColor: "gray", placeholder: "working…", isHistoryActive: false };
-  return { borderColor: THEME.border, promptColor: THEME.primary, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !showPalette && !showAtPalette };
+function composerColors(o: { theme: VantaTheme; editActive: boolean; busy: boolean; showPalette: boolean; showAtPalette: boolean }): ComposerColors {
+  if (o.editActive) return { borderColor: "yellow", promptColor: "yellow", placeholder: "editing response — ⏎ confirm, clear + ⏎ cancel", isHistoryActive: false };
+  if (o.busy) return { borderColor: "gray", promptColor: "gray", placeholder: "working…", isHistoryActive: false };
+  return { borderColor: o.theme.border, promptColor: o.theme.primary, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !o.showPalette && !o.showAtPalette };
 }
 
 function ChromeComposer(p: ChromeProps): ReactElement {
-  const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors(p.editMode.active, p.state.busy, p.showPalette, p.showAtPalette);
+  const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors({ theme: p.theme, editActive: p.editMode.active, busy: p.state.busy, showPalette: p.showPalette, showAtPalette: p.showAtPalette });
   const elapsedMs = p.state.busy ? Date.now() : 0;
   const vimMode = VIM_ENABLED ? p.vimMode : undefined;
   return (
@@ -193,7 +193,7 @@ function ChromeComposer(p: ChromeProps): ReactElement {
       </Box>
       {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
       {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
-      <StatusBar status={p.state.status} busy={p.state.busy} spinner={SPINNER[p.frame] ?? "⠋"} model={p.activeProvider.modelId()} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} elapsedMs={elapsedMs} width={p.w} hint={p.hint} mode={p.mode} primaryColor={THEME.primary} vimMode={vimMode} />
+      <StatusBar status={p.state.status} busy={p.state.busy} spinner={SPINNER[p.frame] ?? "⠋"} model={p.activeProvider.modelId()} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} elapsedMs={elapsedMs} width={p.w} hint={p.hint} mode={p.mode} primaryColor={p.theme.primary} vimMode={vimMode} />
     </Box>
   );
 }
@@ -222,6 +222,9 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
   const [mode, setMode] = useState<ApprovalMode>("review");
   const modeRef = useRef<ApprovalMode>("review");
+  const [themeName, setThemeName] = useState(() => currentThemeName(process.env));
+  // /theme writes env (modal pickers re-resolve on open) + state (composer/status restyle now).
+  const setTheme = (name: string): void => { process.env.VANTA_THEME = name; setThemeName(name); };
   const [showHelp, setShowHelp] = useState(false);
   const [vimMode, setVimMode] = useState<VimMode>("insert");
   const [editMode, setEditMode] = useState({ active: false, messageIndex: -1 });
@@ -232,7 +235,7 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, theme: resolveThemeByName(themeName), setTheme, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────
@@ -263,7 +266,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useScrollKeys(scrollRef);
   // A new turn re-pins the viewport to the bottom so the response is followed.
   useEffect(() => { if (s.state.busy) scrollRef.current?.scrollToBottom(); }, [s.state.busy]);
-  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider });
+  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider, setTheme: s.setTheme });
 
   const w = Math.max(24, cols - 2);
   const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
@@ -274,7 +277,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // clipped to ONE line (hermes-banner pattern) — wrapped continuations are
   // what bled over the card border in nested columns.
   const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (
     <AlternateScreen mouseTracking="wheel">

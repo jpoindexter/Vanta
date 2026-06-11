@@ -38,13 +38,22 @@ export type SubmitDeps = {
   setInputHistory: Dispatch<SetStateAction<string[]>>;
   setShowHelp: Dispatch<SetStateAction<boolean>>;
   setActiveProvider: Dispatch<SetStateAction<LLMProvider>>;
+  setTheme: (name: string) => void;
 };
 
+/** Terminal results (exit / restart) — split out so applySlashResult stays under
+ * the complexity gate. Returns true when the host is exiting. */
+function applyTerminal(r: SlashResult, d: SubmitDeps): boolean {
+  if (r.exit) { d.exit(); return true; }
+  if (r.restart) { process.exitCode = RESTART_EXIT_CODE; d.exit(); return true; } // run.sh re-execs on 75
+  return false;
+}
+
 function applySlashResult(r: SlashResult, d: SubmitDeps): void {
-  if (r.exit) return void d.exit();
-  if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return void d.exit(); } // run.sh re-execs on 75
+  if (applyTerminal(r, d)) return;
   if (r.cleared) d.dispatch({ t: "clear" });
   if (r.provider) d.setActiveProvider(r.provider); // /model <arg> hot-swap → refresh banner
+  if (r.theme) d.setTheme(r.theme); // /theme <name> → restyle live
   if (r.toggleFocusMode) d.dispatch({ t: "toggleFocus" });
   if (r.output) d.dispatch({ t: "note", text: r.output });
   if (r.resend) d.sendToAgent(r.resend);

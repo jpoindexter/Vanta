@@ -52,6 +52,8 @@ export type SlashResult = {
   editMessageIndex?: number;
   /** Toggle focus view (hide tool entries; show only user + final assistant turns). */
   toggleFocusMode?: true;
+  /** A new TUI theme name (drives /theme <name>) so the host restyles live. */
+  theme?: string;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */
