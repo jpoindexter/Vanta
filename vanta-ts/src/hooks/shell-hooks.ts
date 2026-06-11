@@ -111,6 +111,36 @@ export async function firePreToolUse(
 }
 
 /**
+ * Fire Stop hooks at the end of an agent turn and return the first
+ * `additionalContext` string from any hook's stdout JSON. When a Stop hook
+ * returns `{"additionalContext": "..."}` the caller can re-send that text as
+ * the next agent turn without user input (hook-driven feedback loop).
+ * Best-effort — never throws; returns null if no context is found.
+ */
+export async function fireStopHook(
+  dataDir: string,
+  context: Record<string, unknown>,
+  opts: { cwd?: string } = {},
+): Promise<string | null> {
+  try {
+    const hooks = matchingHooks(await loadShellHooks(dataDir), "Stop");
+    if (!hooks.length) return null;
+    const ctx = JSON.stringify({ event: "Stop", ...context });
+    for (const h of hooks) {
+      const r = await runShellHook(h.command, ctx, { cwd: opts.cwd });
+      try {
+        const parsed: unknown = JSON.parse(r.stdout.trim());
+        const ac = (parsed as { additionalContext?: unknown })?.additionalContext;
+        if (typeof ac === "string" && ac.trim()) return ac.trim();
+      } catch { /* stdout is not JSON — no additionalContext */ }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fire the hooks for a non-blocking event (PostToolUse / UserPromptSubmit / Stop).
  * Fire-and-forget: all matching hooks run, exit codes are ignored, and any error
  * is swallowed so a hook can never break the turn.

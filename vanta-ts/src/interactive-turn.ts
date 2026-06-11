@@ -23,7 +23,7 @@ import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js
 import { saveSession } from "./sessions/store.js";
 import { reflectAfterTurn } from "./repl/reflect-correct.js";
 import { checkGoalLoop, buildGoalLoopMax } from "./repl/goal-condition.js";
-import { fireHooks } from "./hooks/shell-hooks.js";
+import { fireHooks, fireStopHook } from "./hooks/shell-hooks.js";
 import type { ReplState } from "./repl-commands.js";
 import type { RunSetup } from "./session.js";
 import type { SessionWorkingMemory } from "./memory/working.js";
@@ -113,8 +113,12 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
   await reflectAfterTurn(lastUserText, process.env);
-  const continueWith = await checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null);
-  return { continueWith: continueWith ?? null };
+  const stopCtx = { sessionId: state.sessionId, finalResponse: outcome.finalText, turnIndex: state.turnIndex };
+  const [goalContinue, hookContext] = await Promise.all([
+    checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null),
+    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot }).catch(() => null),
+  ]);
+  return { continueWith: goalContinue ?? hookContext ?? null };
 }
 
 async function handleAutoHandoff(

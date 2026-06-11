@@ -8,6 +8,7 @@ import {
   runShellHook,
   firePreToolUse,
   fireHooks,
+  fireStopHook,
   shellHooksPath,
 } from "./shell-hooks.js";
 
@@ -135,5 +136,46 @@ describe("fireHooks — non-blocking events run to completion", () => {
     await writeHooks(dir, { Stop: [{ matcher: "ignored", command: `touch ${marker}` }] });
     await fireHooks(dir, "Stop", { sessionId: "s1" });
     await expect(access(marker)).resolves.toBeUndefined();
+  });
+});
+
+describe("fireStopHook — additionalContext from Stop hooks", () => {
+  let dir: string;
+  beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), "vanta-hooks-")); });
+  afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
+
+  it("returns null when no Stop hooks are configured", async () => {
+    expect(await fireStopHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("returns null when a Stop hook outputs no JSON", async () => {
+    await writeHooks(dir, { Stop: [{ command: "echo 'done'" }] });
+    expect(await fireStopHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("returns null when a Stop hook outputs JSON without additionalContext", async () => {
+    await writeHooks(dir, { Stop: [{ command: `echo '{"status":"ok"}'` }] });
+    expect(await fireStopHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("returns the additionalContext string from a Stop hook's stdout JSON", async () => {
+    await writeHooks(dir, { Stop: [{ command: `echo '{"additionalContext":"Tests failed — fix them"}'` }] });
+    const result = await fireStopHook(dir, { sessionId: "s1" });
+    expect(result).toBe("Tests failed — fix them");
+  });
+
+  it("returns the first non-empty additionalContext across multiple hooks (ordered)", async () => {
+    await writeHooks(dir, {
+      Stop: [
+        { command: "echo 'not json'" },
+        { command: `echo '{"additionalContext":"second hook context"}'` },
+      ],
+    });
+    const result = await fireStopHook(dir, { sessionId: "s1" });
+    expect(result).toBe("second hook context");
+  });
+
+  it("returns null gracefully when hooks.json is missing (best-effort)", async () => {
+    expect(await fireStopHook(dir, { sessionId: "s1" })).toBeNull();
   });
 });

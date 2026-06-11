@@ -17,6 +17,7 @@ import type { Action } from "./app-reducer.js";
 import type { ReplState } from "../repl-commands.js";
 import type { Goal } from "../types.js";
 import { checkGoalLoop, buildGoalLoopMax } from "../repl/goal-condition.js";
+import { fireStopHook } from "../hooks/shell-hooks.js";
 import type { LLMProvider } from "../providers/interface.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
@@ -183,9 +184,11 @@ function buildSendToAgent(d: SendDeps): (text: string) => void {
         d.abortRef.current = null;
         handleTurnOutcome(outcome, d.refs, turnCtx);
         if (loopCount < loopMax) {
-          void checkGoalLoop({ safety: d.safety, cwd: d.repoRoot, onNote: (n) => d.dispatch({ t: "note", text: n }) })
-            .catch(() => null)
-            .then((cw) => { if (cw) sendTurn(cw, loopCount + 1); });
+          const stopCtx = { sessionId: d.replStateRef.current.sessionId, finalResponse: outcome.finalText, turnIndex: d.replStateRef.current.turnIndex };
+          void Promise.all([
+            checkGoalLoop({ safety: d.safety, cwd: d.repoRoot, onNote: (n) => d.dispatch({ t: "note", text: n }) }).catch(() => null),
+            fireStopHook(join(d.repoRoot, ".vanta"), stopCtx, { cwd: d.repoRoot }).catch(() => null),
+          ]).then(([goalCw, hookCw]) => { const cw = goalCw ?? hookCw; if (cw) sendTurn(cw, loopCount + 1); });
         }
       })
       .catch((err: unknown) => {

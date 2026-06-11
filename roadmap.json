@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-11T13:36:57.156Z",
+  "updated": "2026-06-11T13:41:31.822Z",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -75,7 +75,7 @@
       "id": "CC-HOOK-ADDITIONAL-CTX",
       "track": "Harness",
       "title": "Hook `additionalContext` — hooks return context to keep the turn going",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC (v2.1.163) adds `hookSpecificOutput.additionalContext` to Stop and SubagentStop hooks. Instead of ending the turn, the hook can return feedback text that Claude receives as context and continues working. Enables hook-driven agent feedback loops.",
       "done": "A Stop hook returns `{additionalContext: 'Tests failed — retry with fix X'}`. Claude reads this and continues the turn without re-prompting.",
@@ -83,7 +83,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-09",
+      "note": "fireStopHook in shell-hooks.ts; Stop hooks return {additionalContext} to continue the turn; wired into runPostTurnPipeline + TUI sendTurn; 6 new tests"
     },
     {
       "id": "CC-TEAMS",
