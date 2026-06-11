@@ -9243,6 +9243,20 @@
       "after": [
         "LOOP-ENGINE"
       ]
+    },
+    {
+      "id": "COCKPIT-REDESIGN",
+      "track": "Harness",
+      "title": "Cockpit redesign — self-explaining boundary dashboard",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Rewrote the kernel cockpit (src/server.rs INDEX) around the question every panel must answer: what is this for? Header states what the kernel IS + live status dot polling /api/status. Hero = Test the boundary: one action input, three clickable examples teaching the three verdicts, verdict rendered as a color chip (ALLOW mint / ASK amber / BLOCK red) with a plain-English meaning line + kernel reason — no more raw JSON dumps. Approvals panel finally exposes the per-row approve/deny endpoints as buttons; pending is first-class, decided history collapsed to last 5 dimmed with a count. Goals get add input + per-row Done. Bridge demoted to a footer status line. Zero-dep inline HTML/CSS/JS, data rendered via textContent (no innerHTML injection), focus-visible outlines, aria-live regions, labeled inputs.",
+      "done": "Cockpit explains itself: verdict tester with examples + color-coded chip; approvals show pending with working approve/deny buttons and collapsed history; goals add/complete inline; live status strip; verified by headless-browser screenshot against the running kernel.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-11"
     }
   ]
 }
