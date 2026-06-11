@@ -5,7 +5,7 @@ import { createConversation } from "../agent.js";
 import { pruneVolatileSkills } from "../skills/volatile.js";
 import { saveSession } from "../sessions/store.js";
 import { notify, shouldNotify } from "./notify.js";
-import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, antiSlopAfterText, sessionMemoryAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
+import { nudgeAfterTurn, researchGateAfterTurn, inhibitAfterTurn, setShiftAfterTurn, stallAfterTurn, scopeDeltaAfterTurn, antiSlopAfterText, sessionMemoryAfterTurn, brainLearnAfterTurn, type ResearchGateState, type InhibitState, type SetShiftState, type StallState, type ScopeDeltaState } from "../session.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "../pricing.js";
 import { buildModeHint } from "../repl/mode-detect.js";
 import { maybeAutoHandoff } from "../repl/auto-handoff.js";
@@ -142,6 +142,11 @@ function runNdGates(
     // Distil the running transcript into the session scratchpad and refresh the
     // live compaction injection. Forked, best-effort, silent.
     void sessionMemoryAfterTurn({ provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: replStateRef.current.turnIndex }).then((scratch) => { if (scratch) convo.setSessionMemory(scratch); });
+    // Brain learning: distil durable memories (user patterns, facts, her own
+    // forming personality) into the structured brain. Forked, best-effort.
+    void brainLearnAfterTurn({ provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: replStateRef.current.turnIndex }).then((learned) => {
+      if (learned.length) dispatch({ t: "note", text: `🧠 learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}` });
+    });
   }
 }
 

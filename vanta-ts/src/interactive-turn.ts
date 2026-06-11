@@ -12,6 +12,7 @@ import {
   writeRunMemory,
   reviewAfterTurn,
   sessionMemoryAfterTurn,
+  brainLearnAfterTurn,
   antiSlopAfterText,
 } from "./session.js";
 import { runPostTurnGates, type GateState } from "./repl/post-turn-gates.js";
@@ -103,6 +104,8 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<void> {
   await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (newScratch) convo.setSessionMemory(newScratch);
+  const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
+  if (learned.length) console.log(`  🧠 learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
   gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
   const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";

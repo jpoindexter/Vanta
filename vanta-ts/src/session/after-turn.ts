@@ -1,5 +1,6 @@
-import { reviewTurn, shouldReview } from "../review/background-review.js";
-import { shouldUpdateSessionMemory, updateSessionMemory } from "../memory/session-memory.js";
+// The LLM-fork learning passes (reviewAfterTurn, sessionMemoryAfterTurn,
+// brainLearnAfterTurn) live in ./background-learning.js — re-exported here.
+export * from "./background-learning.js";
 import { shouldNudge, buildNudgeText, DEFAULT_NUDGE_EVERY } from "../repl/nudge.js";
 import {
   nextGateState,
@@ -55,62 +56,11 @@ import {
 } from "../repl/wm-manip.js";
 export type { WmManipState } from "../repl/wm-manip.js";
 import type { SafetyClient } from "../safety-client.js";
-import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
 
 // Post-turn gates — best-effort, non-blocking checks the hosts run after each
 // turn (review, session-memory, nudge, EF detectors, anti-slop). Extracted from
 // session.ts (size budget); re-exported there, so the public surface is unchanged.
-
-/**
- * Post-turn self-improvement nudge. When the turn warrants review (busy turn or
- * the periodic interval — see {@link shouldReview}), spawn the background-review
- * fork to capture a skill. Best-effort and quiet unless something was learned.
- */
-export async function reviewAfterTurn(opts: {
-  provider: LLMProvider;
-  safety: SafetyClient;
-  root: string;
-  transcript: Message[];
-  toolIterations: number;
-  turnIndex: number;
-  env?: NodeJS.ProcessEnv;
-}): Promise<void> {
-  if (!shouldReview(opts.toolIterations, opts.turnIndex, opts.env ?? process.env)) return;
-  const { wrote } = await reviewTurn({
-    provider: opts.provider,
-    safety: opts.safety,
-    root: opts.root,
-    transcript: opts.transcript,
-  });
-  if (wrote.length) console.log(`  💾 self-improvement: learned ${wrote.join(", ")}`);
-}
-
-/**
- * Post-turn, distil the running transcript into .vanta/session-memory.md when
- * the turn warrants it (busy turn or the periodic interval — see
- * {@link shouldUpdateSessionMemory}). Returns the new scratchpad content so the
- * host can refresh the live compaction injection, or null when no update ran.
- * Best-effort and silent.
- */
-export async function sessionMemoryAfterTurn(opts: {
-  provider: LLMProvider;
-  dataDir: string;
-  transcript: Message[];
-  toolIterations: number;
-  turnIndex: number;
-  env?: NodeJS.ProcessEnv;
-}): Promise<string | null> {
-  const env = opts.env ?? process.env;
-  if (!shouldUpdateSessionMemory(opts.turnIndex, opts.toolIterations, env)) return null;
-  const { updated, content } = await updateSessionMemory({
-    provider: opts.provider,
-    dataDir: opts.dataDir,
-    transcript: opts.transcript,
-    env,
-  });
-  return updated ? content ?? null : null;
-}
 
 /**
  * After-turn gentle nudge. When the turn index hits a multiple of

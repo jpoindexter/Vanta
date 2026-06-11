@@ -8908,6 +8908,20 @@
       "effort": "medium",
       "lens": "selfhood",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "BRAIN-AUTOLEARN",
+      "track": "Operator",
+      "title": "Brain auto-learning — grows with the user, forms her own personality",
+      "status": "shipped",
+      "size": "M",
+      "summary": "After a busy turn (or every Nth), a background pass distils the conversation into 0-3 durable memories and remembers them: the user behaviors/preferences/EF patterns (where they stall, what unblocks them, step sizing — ND-first, which helps everyone) into user_model; facts into semantic; events into episodic; and observations about Vanta OWN forming personality into identity/reflections. Re-learning strengthens (upsert), association links it, consolidation keeps it bounded. Both hosts surface a learned line. VANTA_BRAIN_LEARN[_EVERY|_MIN_TOOLS]; on by default, best-effort, never blocks a turn.",
+      "done": "A busy turn writes inference-sourced entries into the brain unprompted; identity/reflections receive personality observations; re-learned memories strengthen instead of duplicating; malformed model output writes nothing; hosts print learned-line; tests cover gating/parse/roundtrip.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "selfhood",
+      "updated": "2026-06-11"
     }
   ]
 }
