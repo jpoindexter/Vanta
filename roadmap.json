@@ -129,6 +129,34 @@
       "lens": "agent-loop"
     },
     {
+      "id": "TUI-EDIT-REVIEW",
+      "track": "Operator",
+      "title": "Interactive edit-review panel — per-change keep/undo with keyboard nav",
+      "status": "next",
+      "size": "M",
+      "summary": "A review surface for a turn's file edits, modeled on the reference in docs/design-refs/edit-review-panel.png: header 'N files edited · esc when done', per-file diff cards (old/new line numbers, green adds, red removes), focused-card highlight, ↑↓ moves between changes, 'a' keeps, 'z' undoes (kernel-gated restore of the pre-edit content), and an 'Add a follow-up' input that sends straight to the agent. Builds on the existing per-tool diff data (write_file diffs already render in the transcript) and the vendored fork's ScrollBox. Pairs with CC-STRUCTURED-DIFF (horizon) for the renderer; this card is the interaction loop.",
+      "done": "After a multi-edit turn, a review panel lists every file change; ↑↓ navigates, a/z keep/undo individual changes (undo restores the file via the kernel-gated write path), esc dismisses, follow-up input sends to the agent.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "TUI-DESIGN-LANGUAGE",
+      "track": "Operator",
+      "title": "TUI design language — lipgloss-grade layout primitives (tabs, dialogs, panels, status chips)",
+      "status": "next",
+      "size": "M",
+      "summary": "Visual quality bar set by docs/design-refs/lipgloss-layout-bar.png (charmbracelet/lipgloss demo): real tab rows, centered modal dialogs with focus-styled buttons, side-by-side framed list panels, colored status-bar chips (STATUS/encoding/badge), adaptive color ramps. Vanta already has Overlay/OverlayRow + theme.ts; this card grows them into a small primitive set (Tabs, Dialog, Panel, StatusChip) used by the existing overlays (skills/sessions/model pickers, approval prompt, status bar) so every surface shares one visual system under the vendored fork. No new deps — pure Box/Text composition.",
+      "done": "Pickers, approval prompt, and the status bar render through shared Tab/Dialog/Panel/StatusChip primitives; a /theme switch restyles all of them coherently; screenshots match the reference's structure.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "updated": "2026-06-11"
+    },
+    {
       "id": "TUI-V2",
       "track": "Operator",
       "title": "TUI v2 — mission-control surface (non-destructive)",
@@ -139,7 +167,8 @@
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "lens": "tui"
+      "lens": "tui",
+      "notes": "Design references captured 2026-06-11 in docs/design-refs/ (edit-review-panel.png, lipgloss-layout-bar.png) — TUI-EDIT-REVIEW and TUI-DESIGN-LANGUAGE are the concrete first slices."
     },
     {
       "id": "CC-TAB-NAV",
