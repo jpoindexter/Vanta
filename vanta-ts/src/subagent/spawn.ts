@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { runAgent } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
 import { listSkills } from "../skills/store.js";
-import { brainDigest } from "../brain/store.js";
+import { brainDigest } from "../brain/brain.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal } from "../types.js";
 

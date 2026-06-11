@@ -112,6 +112,19 @@ describe("upsert + reinforcement + decay", () => {
     expect(await loadEntries()).toHaveLength(1);
   });
 
+  it("an explicit higher strength on re-assert wins over the bump", async () => {
+    await upsertEntry({ region: "user_model", content: "core preference" });
+    const e = await upsertEntry({ region: "user_model", content: "core preference", strength: 0.95 });
+    expect(e.strength).toBeCloseTo(0.95);
+  });
+
+  it("rejects blank region/content actionably (trims first)", async () => {
+    await expect(upsertEntry({ region: "semantic", content: "   " })).rejects.toThrow(/non-empty/);
+    const e = await upsertEntry({ region: " semantic ", content: "  trimmed fact  " });
+    expect(e.region).toBe("semantic");
+    expect(e.content).toBe("trimmed fact");
+  });
+
   it("reinforce bumps retrieval count + strength and crystallizes at 3 and 10", async () => {
     const e = await upsertEntry({ region: "semantic", content: "x" });
     for (let i = 0; i < 3; i++) await reinforceEntries([e.id]);

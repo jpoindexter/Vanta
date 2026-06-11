@@ -6,7 +6,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import { resolveReadablePath } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 import { mimeForImage } from "./describe-image.js";
-import { readRegion } from "../brain/store.js";
+import { readRegion } from "../brain/brain.js";
 
 const Args = z.object({
   images: z.array(z.string().min(1)).min(1).max(4),

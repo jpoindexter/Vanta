@@ -135,7 +135,7 @@ const compress: SlashHandler = async (arg, ctx) => {
 
 const memory: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /memory <something to remember>" };
-  const { writeRegion } = await import("../brain/store.js");
+  const { writeRegion } = await import("../brain/brain.js");
   await writeRegion("semantic", `- ${arg}`, { append: true, env: ctx.env });
   return { output: `  🧠 remembered: ${oneLine(arg, 80)}` };
 };

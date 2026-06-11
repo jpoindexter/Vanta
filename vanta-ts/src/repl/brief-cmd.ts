@@ -1,7 +1,7 @@
 import type { Goal } from "../types.js";
 import type { SlashHandler } from "./types.js";
 import { readStack } from "../task-stack/store.js";
-import { readRegion } from "../brain/store.js";
+import { readRegion } from "../brain/brain.js";
 
 // BRIEF-CMD — JARVIS-style today brief: tasks, goals, calendar, episodic.
 // Calendar is skipped when VANTA_GOOGLE_CLIENT_ID is unset.

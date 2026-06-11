@@ -105,16 +105,21 @@ export function entriesFile(env: NodeJS.ProcessEnv = process.env): string {
   return join(brainDir(env), "entries.json");
 }
 
+/** Tolerant parse: malformed items are dropped, valid ones normalized. */
+function parseRawEntries(list: unknown[]): BrainEntry[] {
+  return list.flatMap((e) => {
+    const r = RawEntrySchema.safeParse(e);
+    return r.success ? [normalizeEntry(r.data)] : [];
+  });
+}
+
 /** One-time migration from the legacy ~/.vanta/brain5d.json store (left in place). */
 async function migrateLegacy(env: NodeJS.ProcessEnv): Promise<BrainEntry[] | null> {
   try {
     const raw: unknown = JSON.parse(await readFile(join(resolveVantaHome(env), "brain5d.json"), "utf8"));
     const list = (raw as { entries?: unknown[] }).entries;
     if (!Array.isArray(list)) return null;
-    const entries = list
-      .map((e) => RawEntrySchema.safeParse(e))
-      .filter((r) => r.success)
-      .map((r) => normalizeEntry(r.data!));
+    const entries = parseRawEntries(list);
     return entries.length ? entries : null;
   } catch {
     return null;
@@ -138,10 +143,7 @@ export async function loadEntries(env: NodeJS.ProcessEnv = process.env): Promise
   try {
     const raw: unknown = JSON.parse(text);
     if (!Array.isArray(raw)) throw new Error("not an array");
-    return raw
-      .map((e) => RawEntrySchema.safeParse(e))
-      .filter((r) => r.success)
-      .map((r) => normalizeEntry(r.data!));
+    return parseRawEntries(raw);
   } catch {
     // Quarantine the unreadable store so nothing is lost, then start clean.
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -187,9 +189,17 @@ export type UpsertOpts = Partial<Omit<BrainEntry, "id" | "region" | "content" | 
   now?: Date;
 };
 
-/** Insert a new entry, or re-asserting the same content strengthens it (+0.1). */
+/**
+ * Insert a new entry, or re-asserting the same content strengthens it (+0.1).
+ * An explicit higher `strength` on re-assert wins (a deliberate boost is never
+ * downgraded to the bump). Throws actionably on blank region/content.
+ */
 export async function upsertEntry(opts: UpsertOpts): Promise<BrainEntry> {
-  const { env, now = new Date(), region, content, ...axes } = opts;
+  const { env, now = new Date(), ...rest } = opts;
+  const region = rest.region.trim();
+  const content = rest.content.trim();
+  if (!region || !content) throw new Error("brain entry needs a non-empty region and content");
+  const axes = { ...rest, region, content };
   const entries = await loadEntries(env);
   const id = entryId(region, content);
   const idx = entries.findIndex((e) => e.id === id);
@@ -198,11 +208,11 @@ export async function upsertEntry(opts: UpsertOpts): Promise<BrainEntry> {
     entries[idx] = {
       ...prev,
       ...axes,
-      strength: Math.min(1, prev.strength + 0.1),
+      strength: Math.min(1, Math.max(prev.strength + 0.1, axes.strength ?? 0)),
       updatedAt: now.toISOString(),
     };
   } else {
-    entries.push(normalizeEntry({ region, content, ...axes }, now));
+    entries.push(normalizeEntry(axes, now));
   }
   await saveEntries(entries, env);
   return entries[idx >= 0 ? idx : entries.length - 1]!;

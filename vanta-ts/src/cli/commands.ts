@@ -240,7 +240,7 @@ export async function runHooksCommand(rest: string[]): Promise<void> {
     // Called by external Stop/PreCompact hooks — write a brain episodic note.
     const event = rest[1] ?? "stop";
     try {
-      const { writeRegion } = await import("../brain/store.js");
+      const { writeRegion } = await import("../brain/brain.js");
       const note = `\n- [${new Date().toISOString()}] hook: ${event}`;
       await writeRegion("episodic", note, { append: true });
     } catch { /* best-effort */ }

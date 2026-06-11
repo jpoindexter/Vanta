@@ -105,7 +105,7 @@ async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
   const ms = now.getTime();
   if (ms - lastHeartbeatMs < HEARTBEAT_EVERY_MS) return;
   lastHeartbeatMs = ms;
-  const { writeRegion } = await import("../brain/store.js");
+  const { writeRegion } = await import("../brain/brain.js");
   const note = `\n- [${now.toISOString()}] gateway heartbeat — daemon alive, tasks processed`;
   await writeRegion("drives", note, { append: true });
 }

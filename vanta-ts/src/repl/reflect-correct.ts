@@ -2,7 +2,7 @@
 // the brain "reflections" region. Post-turn, best-effort — never throws.
 
 import { classifyMemory } from "../memory/relevance.js";
-import { writeRegion } from "../brain/store.js";
+import { writeRegion } from "../brain/brain.js";
 
 /**
  * Pure. Returns a normalized rule string if the message looks like a correction,
