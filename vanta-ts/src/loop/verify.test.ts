@@ -6,8 +6,37 @@ import {
   tournamentVerify,
   filterVerify,
   runStageWithVerify,
+  relativeAdvantage,
 } from "./verify.js";
 import { StageSchema } from "./types.js";
+
+// --- relativeAdvantage ---
+
+describe("relativeAdvantage", () => {
+  it("returns empty array for empty input", () => {
+    expect(relativeAdvantage([])).toEqual([]);
+  });
+
+  it("returns zeros when all scores are equal", () => {
+    expect(relativeAdvantage([0.5, 0.5, 0.5])).toEqual([0, 0, 0]);
+  });
+
+  it("computes score[i] - mean for each element", () => {
+    // mean = (0.2 + 0.6 + 1.0) / 3 = 0.6
+    const adv = relativeAdvantage([0.2, 0.6, 1.0]);
+    expect(adv[0]).toBeCloseTo(-0.4);
+    expect(adv[1]).toBeCloseTo(0.0);
+    expect(adv[2]).toBeCloseTo(0.4);
+  });
+
+  it("max-advantage index matches max-score index (advantage is monotone within batch)", () => {
+    const scores = [0.3, 0.9, 0.5];
+    const adv = relativeAdvantage(scores);
+    const maxScoreIdx = scores.indexOf(Math.max(...scores));
+    const maxAdvIdx = adv.indexOf(Math.max(...adv));
+    expect(maxAdvIdx).toBe(maxScoreIdx);
+  });
+});
 
 // --- parseRefuted ---
 
@@ -104,8 +133,9 @@ describe("tournamentVerify", () => {
 
     const result = await tournamentVerify({ stage, goal: "improve", prior: "", n: 3, runStage });
 
-    expect(result.winner).toBe("output B"); // score 0.9 wins
+    expect(result.winner).toBe("output B"); // score 0.9 = max advantage wins
     expect(result.reason).toMatch(/tournament: 3 candidates/);
+    expect(result.reason).toMatch(/advantage/);
   });
 
   it("works with a single candidate", async () => {

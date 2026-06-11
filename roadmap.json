@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-11T13:41:31.822Z",
+  "updated": "2026-06-11T13:44:33.664Z",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -9143,7 +9143,7 @@
       "id": "RELATIVE-EVAL",
       "track": "Harness",
       "title": "Group-relative evaluation — advantage over the batch mean, not absolute thresholds",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "GRPO/GRAPE advantage at the agent level: judge each candidate RELATIVE to the group mean of its batch/category rather than an absolute pass bar — robust when a category is systematically hard or easy, and removes the need for hand-tuned thresholds in tournaments.",
       "done": "Tournament/judge primitives expose relative scoring; the winner is the max-advantage candidate; ties to RUBRIC-ENGINE aggregation.",
@@ -9154,7 +9154,8 @@
       "updated": "2026-06-11",
       "after": [
         "LOOP-VERIFY"
-      ]
+      ],
+      "note": "relativeAdvantage() in verify.ts; tournamentVerify winner = max-advantage with batch-mean in reason; 4 new tests"
     },
     {
       "id": "CRITIQUE-REUSE",

@@ -1,5 +1,13 @@
 import type { RunStage, Stage } from "./types.js";
 
+/** Computes group-relative advantage: score[i] - mean(scores).
+ *  Empty input → []. All equal → [0, ...0]. Available for rubric aggregation. */
+export function relativeAdvantage(scores: number[]): number[] {
+  if (scores.length === 0) return [];
+  const mean = scores.reduce((s, x) => s + x, 0) / scores.length;
+  return scores.map((s) => s - mean);
+}
+
 // Parses REFUTED: true|false from a skeptic's output. Defaults to true (fail-closed).
 export function parseRefuted(text: string): boolean {
   const m = text.match(/REFUTED:\s*(true|false)/i);
@@ -69,10 +77,12 @@ export async function tournamentVerify(opts: {
       }),
     ),
   );
-  const bestIdx = scores.reduce((b, s, i) => (s > scores[b]! ? i : b), 0);
+  const advantages = relativeAdvantage(scores);
+  const bestIdx = advantages.reduce((b, a, i) => (a > advantages[b]! ? i : b), 0);
+  const batchMean = scores.reduce((s, x) => s + x, 0) / scores.length;
   return {
     winner: candidates[bestIdx]!,
-    reason: `tournament: ${n} candidates, winner score ${scores[bestIdx]?.toFixed(2)}`,
+    reason: `tournament: ${n} candidates, winner advantage ${advantages[bestIdx]?.toFixed(2)} (score ${scores[bestIdx]?.toFixed(2)}, batch mean ${batchMean.toFixed(2)})`,
   };
 }
 
