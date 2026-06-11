@@ -80,7 +80,9 @@ function handleSimple(s: State, a: SimpleAction): State {
     case "dequeue":      return { ...s, queued: s.queued.slice(1) };
     case "toggleExpand": return { ...s, expanded: !s.expanded };
     case "toggleFocus":  return { ...s, focusMode: !s.focusMode };
-    case "scrollBy":     return { ...s, viewOffset: Math.max(0, s.viewOffset + a.delta) };
+    // Ceiling at entries-1 so over-scrolling can't inflate the offset: an
+    // unbounded offset made pgdn appear dead while the excess unwound.
+    case "scrollBy":     return { ...s, viewOffset: Math.min(Math.max(0, s.viewOffset + a.delta), Math.max(0, s.entries.length - 1)) };
     case "scrollReset":  return { ...s, viewOffset: 0 };
     case "clear":
       return { entries: [], streaming: "", busy: false, status: "idle", queued: [], expanded: false, viewOffset: 0, focusMode: s.focusMode };

@@ -69,18 +69,28 @@ describe("tui reduce", () => {
   });
 
   it("scrollBy increases viewOffset; scrollReset and user submit both zero it", () => {
-    let s = reduce(base, { t: "scrollBy", delta: 10 });
+    const many: State = { ...base, entries: Array.from({ length: 20 }, (_, i) => ({ kind: "note" as const, text: `n${i}` })) };
+    let s = reduce(many, { t: "scrollBy", delta: 10 });
     expect(s.viewOffset).toBe(10);
     s = reduce(s, { t: "scrollBy", delta: -3 });
     expect(s.viewOffset).toBe(7);
     s = reduce(s, { t: "scrollBy", delta: -999 });
     expect(s.viewOffset).toBe(0); // floor at 0
-    s = reduce(base, { t: "scrollBy", delta: 5 });
+    s = reduce(many, { t: "scrollBy", delta: 5 });
     s = reduce(s, { t: "scrollReset" });
     expect(s.viewOffset).toBe(0);
-    s = reduce(base, { t: "scrollBy", delta: 5 });
+    s = reduce(many, { t: "scrollBy", delta: 5 });
     s = reduce(s, { t: "user", text: "new message" });
     expect(s.viewOffset).toBe(0); // user submit resets scroll
+  });
+
+  it("scrollBy ceilings at entries-1 so over-scroll can't strand pgdn", () => {
+    const five: State = { ...base, entries: Array.from({ length: 5 }, (_, i) => ({ kind: "note" as const, text: `n${i}` })) };
+    let s = reduce(five, { t: "scrollBy", delta: 100 });
+    expect(s.viewOffset).toBe(4); // entries-1, not 100
+    s = reduce(s, { t: "scrollBy", delta: -1 });
+    expect(s.viewOffset).toBe(3); // pgdn responds immediately
+    expect(reduce(base, { t: "scrollBy", delta: 10 }).viewOffset).toBe(0); // empty transcript pins to 0
   });
 
   it("second consecutive tool call gets isGrouped:true; first gets false", () => {

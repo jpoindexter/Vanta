@@ -21,8 +21,12 @@ type Props = {
  */
 export function VirtualTranscript({ entries, expanded, viewOffset, maxVisible }: Props): ReactElement {
   const total = entries.length;
-  // Clamp so we can't scroll past the oldest entry.
-  const clamped = Math.min(viewOffset, Math.max(0, total - maxVisible));
+  // Clamp to total-1, NOT total-maxVisible: maxVisible counts entries but is
+  // derived from terminal rows, and one entry can span many rows. Clamping to
+  // total-maxVisible made short transcripts with tall entries unscrollable
+  // (max offset hit 0 while content overflowed three screens). With total-1
+  // every entry can become the bottom-most visible one.
+  const clamped = Math.min(viewOffset, Math.max(0, total - 1));
   const end = total - clamped;
   const start = Math.max(0, end - maxVisible);
   const visible = entries.slice(start, end > 0 ? end : undefined);
