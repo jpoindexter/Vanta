@@ -15,53 +15,55 @@ export function loadJsonSchema(pathOrInline: string): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
+/** Null-safe wrapper: returns undefined when src is falsy. */
+export function loadSchema(src: string | undefined): Record<string, unknown> | undefined {
+  return src ? loadJsonSchema(src) : undefined;
+}
+
+function findBalancedBlock(text: string): string | null {
+  const starts = [text.indexOf("{"), text.indexOf("[")].filter((i) => i >= 0);
+  if (!starts.length) return null;
+  const start = Math.min(...starts);
+  const [open, close] = text[start] === "{" ? ["{", "}"] : ["[", "]"];
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === open) depth++;
+    else if (text[i] === close && --depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
 /** Extract JSON from model output — fenced block, raw JSON, or first balanced block. */
 export function extractJson(text: string): { found: true; data: unknown } | { found: false } {
-  const trimmed = text.trim();
-
-  // Fenced ```json ... ``` block
-  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fencedMatch?.[1]) {
-    try {
-      return { found: true, data: JSON.parse(fencedMatch[1].trim()) };
-    } catch { /* fall through */ }
+  const t = text.trim();
+  const fenced = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced) {
+    try { return { found: true, data: JSON.parse(fenced[1]!.trim()) }; } catch { /* fall through */ }
   }
-
-  // Direct parse (model output is raw JSON)
-  try {
-    return { found: true, data: JSON.parse(trimmed) };
-  } catch { /* fall through */ }
-
-  // Find first balanced { or [ in the text
-  const starts = [trimmed.indexOf("{"), trimmed.indexOf("[")].filter((i) => i >= 0);
-  if (starts.length === 0) return { found: false };
-  const start = Math.min(...starts);
-  const open = trimmed[start] === "{" ? ["{", "}"] : ["[", "]"];
-  let depth = 0;
-  for (let i = start; i < trimmed.length; i++) {
-    if (trimmed[i] === open[0]) depth++;
-    else if (trimmed[i] === open[1]) { depth--; if (depth === 0) {
-      try {
-        return { found: true, data: JSON.parse(trimmed.slice(start, i + 1)) };
-      } catch { return { found: false }; }
-    }}
-  }
-  return { found: false };
+  try { return { found: true, data: JSON.parse(t) }; } catch { /* fall through */ }
+  const block = findBalancedBlock(t);
+  if (!block) return { found: false };
+  try { return { found: true, data: JSON.parse(block) }; } catch { return { found: false }; }
 }
+
+function pathJoin(parent: string, key: string): string {
+  return parent ? `${parent}.${key}` : key;
+}
+
+function checkRequired(obj: Record<string, unknown>, required: string[], path: string): string[] {
+  return required.filter((k) => !(k in obj)).map((k) => `${pathJoin(path, k)}: required field missing`);
+}
+
+const SCALAR_TYPES: Record<string, string> = { string: "string", number: "number", boolean: "boolean" };
 
 function checkType(data: unknown, schema: Record<string, unknown>, path: string): string[] {
   const type = schema["type"] as string | undefined;
   if (!type) return [];
   if (type === "object") return checkObject(data, schema, path);
   if (type === "array") return checkArray(data, schema, path);
-  if (type === "string" && typeof data !== "string")
-    return [`${path}: expected string, got ${typeof data}`];
-  if (type === "number" && typeof data !== "number")
-    return [`${path}: expected number, got ${typeof data}`];
-  if (type === "boolean" && typeof data !== "boolean")
-    return [`${path}: expected boolean, got ${typeof data}`];
-  if (type === "null" && data !== null)
-    return [`${path}: expected null, got ${typeof data}`];
+  if (type === "null") return data !== null ? [`${path}: expected null, got ${typeof data}`] : [];
+  const jsType = SCALAR_TYPES[type];
+  if (jsType && typeof data !== jsType) return [`${path}: expected ${jsType}, got ${typeof data}`];
   return [];
 }
 
@@ -69,14 +71,11 @@ function checkObject(data: unknown, schema: Record<string, unknown>, path: strin
   if (typeof data !== "object" || data === null || Array.isArray(data))
     return [`${path}: expected object, got ${Array.isArray(data) ? "array" : typeof data}`];
   const obj = data as Record<string, unknown>;
-  const errors: string[] = [];
   const required = (schema["required"] as string[] | undefined) ?? [];
-  for (const key of required) {
-    if (!(key in obj)) errors.push(`${path ? `${path}.` : ""}${key}: required field missing`);
-  }
   const properties = (schema["properties"] as Record<string, Record<string, unknown>> | undefined) ?? {};
-  for (const [key, propSchema] of Object.entries(properties)) {
-    if (key in obj) errors.push(...checkType(obj[key], propSchema, path ? `${path}.${key}` : key));
+  const errors = checkRequired(obj, required, path);
+  for (const [k, propSchema] of Object.entries(properties)) {
+    if (k in obj) errors.push(...checkType(obj[k], propSchema, pathJoin(path, k)));
   }
   return errors;
 }
@@ -109,4 +108,27 @@ export function buildSchemaInstruction(schema: Record<string, unknown>): string 
     `Output ONLY the JSON — no explanation, no markdown fences, no other text.\n\n` +
     `Schema:\n${JSON.stringify(schema, null, 2)}`
   );
+}
+
+type SchemaSend = {
+  send: (text: string) => Promise<{ finalText: string; stoppedReason: string; iterations: number; toolIterations: number }>;
+};
+
+const SCHEMA_MAX_RETRIES = 3;
+
+/** Send instruction with schema constraint; retries up to SCHEMA_MAX_RETRIES on validation failure. */
+export async function sendWithSchemaRetry(
+  convo: SchemaSend,
+  instruction: string,
+  schema: Record<string, unknown>,
+): Promise<{ finalText: string; stoppedReason: string; iterations: number; toolIterations: number }> {
+  let outcome = await convo.send(`${instruction}${buildSchemaInstruction(schema)}`);
+  for (let attempt = 0; attempt < SCHEMA_MAX_RETRIES; attempt++) {
+    const result = validateOutput(outcome.finalText, schema);
+    if (result.valid) return { ...outcome, finalText: JSON.stringify(result.data, null, 2) };
+    if (attempt === SCHEMA_MAX_RETRIES - 1) break;
+    const errs = (result as { valid: false; errors: string[] }).errors.join("\n");
+    outcome = await convo.send(`Invalid JSON. Schema errors:\n${errs}\nRespond with ONLY valid JSON.`);
+  }
+  return outcome;
 }
