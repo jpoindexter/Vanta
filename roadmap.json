@@ -254,7 +254,7 @@
       "id": "CC-API-KEY-HELPER",
       "track": "Harness",
       "title": "API key helper script — dynamic API key via shell command or project settings",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC supports `api_key_helper` — a shell command configured in settings or project config that is executed to dynamically retrieve an API key (e.g. from a vault, 1Password, or credential manager). `getApiKeyFromApiKeyHelperCached()` caches the result with a TTL. `prefetchApiKeyFromApiKeyHelperIfSafe()` warms the cache during startup. Also supports AWS credential export from project settings.",
       "done": "`api_key_helper: 'op read op://vault/anthropic/key'` in settings.json fetches the API key from 1Password at startup. Cached and refreshed automatically.",
@@ -262,7 +262,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-09",
+      "note": "api_key_helper in settings.json (user/project/local layered) runs a shell command to fetch the API key dynamically; result cached 5min. Injected into the active provider env var at prepareRun. 13 tests."
     },
     {
       "id": "CC-REWIND",

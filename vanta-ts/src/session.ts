@@ -102,6 +102,8 @@ export async function prepareRun(
   const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
+  const { prefetchApiKeyHelper } = await import("./api-key-helper.js");
+  await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
 
   const ctx = await loadPromptContext(repoRoot, activeIds);
