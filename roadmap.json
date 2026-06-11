@@ -225,14 +225,16 @@
       "id": "CC-JSON-SCHEMA",
       "track": "Harness",
       "title": "--json-schema — structured output + JSON Schema validation",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC's `--json-schema <file|inline>` forces the model to produce a response that validates against the provided JSON Schema, with retries on validation failure. Enables reliable structured extraction in automation pipelines. Vanta has no schema-constrained output.",
       "done": "`--json-schema <file>` (or `VANTA_JSON_SCHEMA`) forces JSON output and validates each response; on validation failure the agent retries with the error; the final result is printed as validated JSON to stdout in print mode.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-11",
+      "note": "output/json-schema.ts: loadJsonSchema/extractJson/validateAgainstSchema/validateOutput/buildSchemaInstruction; runInstruction opts.jsonSchema + VANTA_JSON_SCHEMA + sendWithSchemaRetry (3 attempts); --json-schema CLI flag in parseRunArgs; 19 tests"
     },
     {
       "id": "CC-HOOK-MATCHERS",
@@ -9207,7 +9209,7 @@
       "id": "STEP-VERIFY",
       "track": "Harness",
       "title": "Process supervision — verify intermediate stages, not just final output",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "PRMs-over-ORMs distilled (Lightman 2023 via the RLMT paper): a correct final artifact can hide broken reasoning. Loop gates extend to intermediate stages — plan quality, step soundness, constraint adherence — so credit/blame lands on the step that earned it and flawed-logic-lucky-outcome runs get caught.",
       "done": "A loop can declare per-stage gates; a failing intermediate stage blocks advancement with the step named, even if the final output looks right.",
@@ -9216,6 +9218,7 @@
       "effort": "low",
       "lens": "agent-loop",
       "updated": "2026-06-11",
+      "note": "already implemented by LOOP-GATES-BUDGETS + LOOP-VERIFY: Stage.gate (shell cmd) + Stage.verify (adversarial/tournament/filter) apply to every stage; gateFailedAt carries the intermediate stage name; test at runner.test.ts 'gate failure' describe block confirms",
       "after": [
         "LOOP-GATES-BUDGETS"
       ]

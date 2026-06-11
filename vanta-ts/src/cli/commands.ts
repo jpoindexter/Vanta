@@ -13,6 +13,11 @@ import {
   reviewAfterTurn,
   maybeCurate,
 } from "../session.js";
+import {
+  loadJsonSchema,
+  validateOutput,
+  buildSchemaInstruction,
+} from "../output/json-schema.js";
 
 // The `vanta <command>` handlers, extracted from cli.ts so the entry point stays
 // a thin dispatcher (CODE-SIZE-GATE). cli.ts keeps only bootstrap + the
@@ -92,14 +97,35 @@ function buildCallbacks(format: OutputFormat): Partial<Parameters<typeof createC
 
 // Shared run path for run / skill / room. `skillBody` is appended to the prompt;
 // `root` is the room's path for a room run (its own kernel data dir + goals).
+const SCHEMA_MAX_RETRIES = 3;
+
+async function sendWithSchemaRetry(
+  convo: ReturnType<typeof createConversation>,
+  instruction: string,
+  schema: Record<string, unknown>,
+): Promise<{ finalText: string; stoppedReason: string; iterations: number; toolIterations: number }> {
+  const schemaHint = buildSchemaInstruction(schema);
+  let outcome = await convo.send(`${instruction}${schemaHint}`);
+  for (let attempt = 0; attempt < SCHEMA_MAX_RETRIES; attempt++) {
+    const result = validateOutput(outcome.finalText, schema);
+    if (result.valid) return { ...outcome, finalText: JSON.stringify(result.data, null, 2) };
+    if (attempt === SCHEMA_MAX_RETRIES - 1) break;
+    const errorMsg = `Your response was not valid JSON matching the schema.\nErrors:\n${(result as { valid: false; errors: string[] }).errors.join("\n")}\nRespond with ONLY valid JSON.`;
+    outcome = await convo.send(errorMsg);
+  }
+  return outcome;
+}
+
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
-  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat } = {},
+  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat; jsonSchema?: string } = {},
 ): Promise<void> {
   const format: OutputFormat = opts.outputFormat ?? "text";
   const structured = format !== "text";
   const root = opts.root ?? repoRoot;
+  const schemaSource = opts.jsonSchema ?? process.env.VANTA_JSON_SCHEMA;
+  const schema = schemaSource ? loadJsonSchema(schemaSource) : undefined;
   const setup = await prepareRun(root, instruction, opts.skillBody);
   await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
   const activeGoals = setup.goals.filter((g) => g.status === "active").length;
@@ -121,7 +147,9 @@ export async function runInstruction(
       signal: controller.signal,
       ...buildCallbacks(format),
     });
-    const outcome = await convo.send(instruction);
+    const outcome = schema
+      ? await sendWithSchemaRetry(convo, instruction, schema)
+      : await convo.send(instruction);
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });

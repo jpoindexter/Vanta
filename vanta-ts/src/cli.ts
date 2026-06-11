@@ -190,14 +190,19 @@ const COMMANDS: Record<string, CommandFn> = {
   loop: (root, rest) => runLoopCommand(root, rest),
 };
 
-/** Parse the `run` subcommand args into instruction + outputFormat. */
-function parseRunArgs(rest: string[]): { instruction: string; outputFormat: OutputFormat } {
+/** Parse the `run` subcommand args into instruction + outputFormat + optional jsonSchema. */
+function parseRunArgs(rest: string[]): { instruction: string; outputFormat: OutputFormat; jsonSchema?: string } {
   const fmtIdx = rest.indexOf("--output-format");
   const rawFmt = fmtIdx >= 0 ? rest[fmtIdx + 1] : undefined;
   const outputFormat: OutputFormat =
     rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
-  const instrArgs = rest.filter((_, i) => i !== fmtIdx && i !== fmtIdx + 1);
-  return { instruction: instrArgs.join(" "), outputFormat };
+  const schemaIdx = rest.indexOf("--json-schema");
+  const jsonSchema = schemaIdx >= 0 ? rest[schemaIdx + 1] : undefined;
+  const skipIdxs = new Set<number>([
+    fmtIdx, fmtIdx + 1, schemaIdx, schemaIdx + 1,
+  ].filter((i) => i >= 0));
+  const instrArgs = rest.filter((_, i) => !skipIdxs.has(i));
+  return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
 }
 
 async function main(): Promise<void> {
@@ -212,8 +217,8 @@ async function main(): Promise<void> {
     return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui") });
   if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
   if (cmd === "run" && rest.length > 0) {
-    const { instruction, outputFormat } = parseRunArgs(rest);
-    return runInstruction(repoRoot, instruction, { outputFormat });
+    const { instruction, outputFormat, jsonSchema } = parseRunArgs(rest);
+    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema });
   }
 
   const handler = COMMANDS[cmd];
