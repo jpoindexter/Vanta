@@ -8880,6 +8880,20 @@
       "effort": "medium",
       "lens": "selfhood",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "BRAIN-ASSOC",
+      "track": "Operator",
+      "title": "Brain association — auto-linked memories + spreading-activation recall",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Ideas connect like a brain: memories auto-link to their most similar neighbors at write time (zero-dep token-overlap similarity, sparse capped graph), and recall is spreading activation — direct hits surface their linked neighbors at damped strength (primed, not reinforced). A relevance floor keeps one-word-overlap noise out of direct hits; weak matches arrive only via association.",
+      "done": "remember() wires bidirectional relatedIds; recall(query) returns direct hits plus ↪-marked associated neighbors ranked below them; direct hits reinforce, associations do not; tests prove linking, spreading, damping, and noise floor.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "selfhood",
+      "updated": "2026-06-11"
     }
   ]
 }

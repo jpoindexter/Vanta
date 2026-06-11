@@ -10,6 +10,7 @@ import {
   type BrainEntry,
   type UpsertOpts,
 } from "./entries.js";
+import { autoLink, associativeRecall, type Activation } from "./assoc.js";
 import { BRAIN_REGIONS } from "./regions.js";
 
 // THE brain — one cohesive unit. Everything outside brain/ imports from here.
@@ -27,26 +28,39 @@ export type { BrainEntry };
 
 const DIGEST_ENTRIES = 8;
 
-/** Store a structured memory (re-asserting the same content strengthens it). */
+/**
+ * Store a structured memory (re-asserting the same content strengthens it),
+ * then wire it to its most similar neighbors — ideas connect at write time.
+ */
 export async function remember(opts: UpsertOpts): Promise<BrainEntry> {
-  return upsertEntry(opts);
+  const entry = await upsertEntry(opts);
+  await autoLink(entry, opts.env); // best-effort inside
+  return entry;
 }
 
-export type RecallResult = { entries: BrainEntry[]; formatted: string };
+export type RecallResult = { entries: BrainEntry[]; formatted: string; activations: Activation[] };
 
 /**
- * Retrieve the strongest matching memories — and let retrieval reinforce them
- * (use is what crystallizes a memory). Pass reinforce:false for a passive peek.
+ * Spreading-activation retrieval: the strongest matches surface, and their
+ * linked neighbors light up with them (recalling one idea primes the ones wired
+ * to it). Direct hits are reinforced — use is what crystallizes a memory;
+ * association-surfaced neighbors are primed, not retrieved, so they are not.
+ * Pass reinforce:false for a fully passive peek.
  */
 export async function recall(
   opts: { query?: string; region?: string; topK?: number; reinforce?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<RecallResult> {
   const { reinforce = true, topK = 10, ...rest } = opts;
-  const entries = await topEntries({ ...rest, topK });
-  if (reinforce && entries.length) {
-    await reinforceEntries(entries.map((e) => e.id), opts.env).catch(() => {});
+  const activations = await associativeRecall({ ...rest, topK });
+  const directIds = activations.filter((a) => a.via === "direct").map((a) => a.entry.id);
+  if (reinforce && directIds.length) {
+    await reinforceEntries(directIds, opts.env).catch(() => {});
   }
-  return { entries, formatted: entries.map(formatEntry).join("\n") };
+  const entries = activations.map((a) => a.entry);
+  const formatted = activations
+    .map((a) => (a.via === "association" ? `↪ ${formatEntry(a.entry)}` : formatEntry(a.entry)))
+    .join("\n");
+  return { entries, formatted, activations };
 }
 
 /** Drop decayed entries (lazy hygiene — digest calls this best-effort). */
