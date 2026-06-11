@@ -108,3 +108,9 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Why:** Jason: "the brain should be one cohesive unit … one big function with a bunch of little functions … able to fix itself and do other stuff without breaking." Three brain implementations existed with only one wired; capability sat dormant. A facade of small gated functions delivers the cohesion without violating the size gate a literal mega-function would break.
 **Alternatives:** (a) wire brain5d behind `VANTA_BRAIN_V2` as-is — rejected: leaves three disjoint brains, no cohesion; (b) literal single big function — rejected: breaks the enforced fn≤50/cx≤10 rule; (c) SQLite/vector substrate — parked with v2, premature.
 **Reversible?** Yes — regions untouched; entries.json is additive + git-versioned; facade is an import-path change.
+
+## 2026-06-11 — Vendor hermes-ink fork as the TUI renderer
+**Choice:** Replace stock ink 7 with NousResearch's hermes-ink fork (MIT), vendored at `vanta-ts/vendor/hermes-ink`, npm-aliased as `ink`.
+**Alternatives:** (a) keep porting scroll/mouse features onto stock ink — three rounds of homegrown alt-screen scrolling (entry-granular virtual list, SGR stdin listener, 1007 wheel-arrows) each failed on a different layer; (b) depend on the fork via git URL — rejected: it's a private workspace package, not published, and we patch its package.json.
+**Why:** the fork solves the whole cluster natively and proven-in-prod: line-based ScrollBox (partial-entry rendering, sticky bottom), AlternateScreen-scoped wheel tracking parsed into key events, selection untouched. 1:1 beats reimplementation.
+**Reversible?** Yes — restore `"ink": "^7.0.5"`, delete vendor/ + src/types/ink.d.ts, resurrect the deleted tui files from git history.
