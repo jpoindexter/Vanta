@@ -2,9 +2,31 @@ import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { Overlay, OverlayRow } from "./overlay.js";
+import { readSkill } from "../skills/store.js";
 import type { Skill } from "../skills/types.js";
+import type { Action } from "./app-reducer.js";
+import type { OverlayKind } from "./use-overlays.js";
 
 // In-TUI skill browser: search + navigate skills, Enter invokes, Esc closes.
+
+type InvokeSkillDeps = {
+  setOverlay: (o: OverlayKind) => void;
+  dispatch: (a: Action) => void;
+  sendToAgent: (text: string) => void;
+};
+
+/** Picker ⏎ handler: load the skill body and send it as the next turn (the
+ * same resend pattern as the /review-family handlers in coding-skills.ts). */
+export function makeInvokeSkill(d: InvokeSkillDeps): (name: string) => void {
+  return (name: string): void => {
+    d.setOverlay(null);
+    void readSkill(name).then((skill) => {
+      if (!skill) { d.dispatch({ t: "note", text: `  skill "${name}" not found` }); return; }
+      d.dispatch({ t: "note", text: `  ◆ invoking skill: ${name}` });
+      d.sendToAgent(`${skill.body}\n\nApply this skill now in the current project context.`);
+    });
+  };
+}
 
 function filterSkills(skills: readonly Skill[], q: string): Skill[] {
   if (!q.trim()) return [...skills];

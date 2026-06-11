@@ -13,8 +13,7 @@ import { SessionsPicker } from "./sessions-picker.js";
 import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { EntryRow, Palette, type Entry } from "./transcript.js";
-import { SkillsPicker } from "./skills-picker.js";
-import { readSkill } from "../skills/store.js";
+import { SkillsPicker, makeInvokeSkill } from "./skills-picker.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
@@ -262,16 +261,7 @@ export function App(props: { setup: RunSetup; repoRoot: string; altScreen?: bool
   }
 
   const { sendToAgent } = useAgentSend({ dispatch: s.dispatch, convoRef: s.convoRef, replStateRef: s.replStateRef, busy: s.state.busy, queued: s.state.queued, safety: setup.safety, goals: setup.goals, repoRoot, contextWindow: s.activeProvider.contextWindow(), provider: s.activeProvider });
-  // Skill invocation from the picker: load the body, send it as the next turn
-  // (same resend pattern as the /review-family handlers in coding-skills.ts).
-  const invokeSkill = (name: string): void => {
-    s.setOverlay(null);
-    void readSkill(name).then((skill) => {
-      if (!skill) { s.dispatch({ t: "note", text: `  skill "${name}" not found` }); return; }
-      s.dispatch({ t: "note", text: `  ◆ invoking skill: ${name}` });
-      sendToAgent(`${skill.body}\n\nApply this skill now in the current project context.`);
-    });
-  };
+  const invokeSkill = makeInvokeSkill({ setOverlay: s.setOverlay, dispatch: s.dispatch, sendToAgent });
   const maxVisible = Math.max(5, termRows - CHROME_ROWS);
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries, maxVisible, altScreen: ALT_SCREEN });
 

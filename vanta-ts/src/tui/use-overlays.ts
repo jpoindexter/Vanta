@@ -82,20 +82,25 @@ export type OverlaysResult = {
 // /sessions and /model pickers, so app.tsx stays a thin orchestrator. Session
 // resume/new reuse the tested executeSlash logic; model switch reuses
 // resolveProvider + the setup wizard's env writer (model-switch.ts).
-export function useOverlays(deps: OverlaysDeps): OverlaysResult {
-  const { convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch } = deps;
-  const [overlay, setOverlay] = useState<OverlayKind>(null);
-  const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
-  const [skillList, setSkillList] = useState<Skill[]>([]);
-
-  const buildCtx = (): ReplCtx => ({
-    convo: convoRef.current!,
-    setup: { ...setup, provider: activeProvider },
-    dataDir: join(repoRoot, ".vanta"),
-    state: replStateRef.current,
+/** ReplCtx factory for slash commands run from overlays — fresh per call so it
+ * sees the current provider + session state. */
+function makeBuildCtx(deps: OverlaysDeps, activeProvider: LLMProvider): () => ReplCtx {
+  return () => ({
+    convo: deps.convoRef.current!,
+    setup: { ...deps.setup, provider: activeProvider },
+    dataDir: join(deps.repoRoot, ".vanta"),
+    state: deps.replStateRef.current,
     env: process.env,
     now: () => new Date(),
   });
+}
+
+export function useOverlays(deps: OverlaysDeps): OverlaysResult {
+  const { convoRef, replStateRef, repoRoot, activeProvider, setActiveProvider, dispatch } = deps;
+  const [overlay, setOverlay] = useState<OverlayKind>(null);
+  const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
+  const [skillList, setSkillList] = useState<Skill[]>([]);
+  const buildCtx = makeBuildCtx(deps, activeProvider);
 
   const openSessions = (): void => {
     void listSessions(process.env).then((list) => {
