@@ -9116,6 +9116,116 @@
       "effort": "high",
       "lens": "agent-loop",
       "updated": "2026-06-11"
+    },
+    {
+      "id": "RUBRIC-ENGINE",
+      "track": "Harness",
+      "title": "Rubric engine — weighted per-category rubrics with confidence-weighted scoring",
+      "status": "next",
+      "size": "M",
+      "summary": "GRAPE distilled (Patel/Meta 2025): per-task-category rubrics of weighted items, each VERIFIABLE (scored against ground truth/checks) or non-verifiable (atomized into verifiable parts + a critic prompt). Every judge returns reasoning + score + CONFIDENCE; aggregation is confidence-weighted, and a persistently low-confidence rubric item is flagged as a bad item for operator review. Upgrades LOOP-VERIFY from flat rubric to a self-auditing scoring system.",
+      "done": "A loop stage scores candidates against a category rubric; verifiable items run checks, non-verifiable run critics; aggregate is confidence-weighted; weak rubric items get flagged.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-VERIFY"
+      ]
+    },
+    {
+      "id": "RELATIVE-EVAL",
+      "track": "Harness",
+      "title": "Group-relative evaluation — advantage over the batch mean, not absolute thresholds",
+      "status": "next",
+      "size": "S",
+      "summary": "GRPO/GRAPE advantage at the agent level: judge each candidate RELATIVE to the group mean of its batch/category rather than an absolute pass bar — robust when a category is systematically hard or easy, and removes the need for hand-tuned thresholds in tournaments.",
+      "done": "Tournament/judge primitives expose relative scoring; the winner is the max-advantage candidate; ties to RUBRIC-ENGINE aggregation.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-VERIFY"
+      ]
+    },
+    {
+      "id": "CRITIQUE-REUSE",
+      "track": "Harness",
+      "title": "Critique-reuse improve stage — judge reasoning feeds the next generation",
+      "status": "next",
+      "size": "S",
+      "summary": "GRAPE feature made native: the evaluate stage emits critique + reasoning per candidate; the improve stage consumes that critique to produce the next iteration (improver prompt = response + critique -> improved response). Iterations mix fresh generation with critique-driven improvement. Closes the loop the playbook calls evaluate -> improve with concrete plumbing.",
+      "done": "A loop iteration after evaluate receives the structured critique; the improved candidate measurably consumes it; fresh-vs-improve mix is configurable.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-VERIFY"
+      ]
+    },
+    {
+      "id": "PREFERENCE-SIGNALS",
+      "track": "Operator",
+      "title": "Preference capture — accept/reject/edit decisions become chosen-vs-rejected pairs",
+      "status": "next",
+      "size": "M",
+      "summary": "DPO-style data from daily use, no training required yet: approvals granted/denied, /retry, /undo, edits to Vanta output, tournament winners — each captured as a preference pair (chosen vs rejected, with context) in ~/.vanta/preferences.jsonl. Feeds OPERATOR-PROFILE inference and the brain user_model immediately, and accumulates a fine-tune-ready dataset for PERSONAL-MODEL-TUNE later.",
+      "done": "Operator decisions persist as preference pairs with provenance; profile inference reads them; export to JSONL works.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "BEST-OF-EXEMPLARS",
+      "track": "Operator",
+      "title": "Best-of exemplar library — winners become few-shot context for similar tasks",
+      "status": "next",
+      "size": "S",
+      "summary": "Rejection sampling at the context level: tournament/loop winners are stored as exemplars (brain entries, sourceType crystallized) and the top-K similar exemplars inject as few-shot context when a similar task arrives — the model behaves better without weight updates. Rides the brain association layer for similarity matching.",
+      "done": "A won tournament stores an exemplar; a later similar task gets it as few-shot; recall reinforcement strengthens used exemplars.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
+    },
+    {
+      "id": "STEP-VERIFY",
+      "track": "Harness",
+      "title": "Process supervision — verify intermediate stages, not just final output",
+      "status": "next",
+      "size": "S",
+      "summary": "PRMs-over-ORMs distilled (Lightman 2023 via the RLMT paper): a correct final artifact can hide broken reasoning. Loop gates extend to intermediate stages — plan quality, step soundness, constraint adherence — so credit/blame lands on the step that earned it and flawed-logic-lucky-outcome runs get caught.",
+      "done": "A loop can declare per-stage gates; a failing intermediate stage blocks advancement with the step named, even if the final output looks right.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-11",
+      "after": [
+        "LOOP-GATES-BUDGETS"
+      ]
+    },
+    {
+      "id": "PERSONAL-MODEL-TUNE",
+      "track": "Operator",
+      "title": "Personal model tuning — local LoRA from accumulated preference data",
+      "status": "horizon",
+      "size": "L",
+      "summary": "The real-training path, when the data exists: export the PREFERENCE-SIGNALS dataset (SFT pairs + DPO preferences) and fine-tune a small local model (Ollama/MLX on the M4 Pro) into a personal model that bakes in learned voice, preferences, and patterns. GRAPE-style rubric scoring doubles as the eval harness for tune quality. Local-first, private, hers.",
+      "done": "vanta tune exports the dataset and runs/validates a local LoRA; the tuned model is selectable as a provider and beats the base on the personal rubric eval.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-11"
     }
   ]
 }

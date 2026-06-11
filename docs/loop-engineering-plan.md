@@ -31,3 +31,19 @@ Three structural failure modes loops must beat (and a prompt can't): **agentic l
 ## Kept as skills (not native)
 
 Loop-readiness scoring, choice-reduce, complexity-gate, time-blindness ranges, output-density modes — pure prompt behavior, already shipped as skills. The filter: native = needs state, scheduling, isolation, or enforcement.
+
+## RLMT/GRAPE distillation (Patel, Meta AI 2025 — "Understanding RL for Model Training… GRAPE")
+
+Vanta doesn't train weights, so the honest mapping is **GRAPE at the context level**: every mechanism the paper applies as a gradient update, Vanta applies as selection, rubric scoring, critique-reuse, and preference capture — with real local fine-tuning as the horizon.
+
+| Card | Paper concept → agent analogue |
+|---|---|
+| `RUBRIC-ENGINE` (rock·M, after LOOP-VERIFY) | GRAPE's per-category weighted rubrics; verifiable items run checks, non-verifiable are *atomized* then critiqued; every judge returns reasoning + score + **confidence**; aggregation confidence-weighted; chronically low-confidence items flagged as bad rubric items |
+| `RELATIVE-EVAL` (pebble·S) | GRPO/GRAPE advantage: judge candidates **relative to the group mean**, not an absolute bar — robust across hard/easy categories |
+| `CRITIQUE-REUSE` (pebble·S) | GRAPE's improver: evaluate emits critique+reasoning, improve consumes it (response+critique→improved response); iterations mix fresh vs improve |
+| `PREFERENCE-SIGNALS` (rock·M) | RLHF/DPO data from daily use: approvals, /retry, /undo, edits, tournament outcomes → chosen-vs-rejected pairs in `~/.vanta/preferences.jsonl`; feeds OPERATOR-PROFILE now, fine-tune dataset later |
+| `BEST-OF-EXEMPLARS` (pebble·S) | Rejection sampling at the context level: winners become brain-stored exemplars injected as few-shot for similar tasks |
+| `STEP-VERIFY` (pebble·S, after LOOP-GATES-BUDGETS) | Process supervision (PRMs > ORMs): gate intermediate stages, not just final output — catches lucky-outcome/broken-reasoning runs |
+| `PERSONAL-MODEL-TUNE` (horizon·L) | The real-training path: export the preference dataset, LoRA a local model (Ollama/MLX on the M4 Pro) into a personal model; GRAPE rubrics double as the tune-quality eval |
+
+Not adopted: PPO/TRPO clipping math, value-function learning, KL-regularized losses — meaningless without gradient access. Their *spirit* survives as: trust-region = the factory's max-diff-lines cap; KL-anchor = voice/anti-slop drift guards.
