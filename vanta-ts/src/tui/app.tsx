@@ -286,7 +286,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             <StreamingTail streaming={s.state.streaming} />
           </Box>
         </ScrollBox>
-        <BottomChrome {...chromeProps} />
+        {/* flexShrink=0: the prompt zone must NEVER be squeezed by transcript
+            overflow — Yoga would clip the composer (tiny box, invisible
+            typing). Same explicit pinning as the upstream hermes app. */}
+        <Box flexDirection="column" flexShrink={0} flexGrow={0}>
+          <BottomChrome {...chromeProps} />
+        </Box>
       </Box>
     </AlternateScreen>
   );
