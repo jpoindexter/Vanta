@@ -259,7 +259,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const invokeSkill = makeInvokeSkill({ setOverlay: s.setOverlay, dispatch: s.dispatch, sendToAgent });
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries });
 
-  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef });
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef, exit: app.exit });
   useScrollKeys(scrollRef);
   // A new turn re-pins the viewport to the bottom so the response is followed.
   useEffect(() => { if (s.state.busy) scrollRef.current?.scrollToBottom(); }, [s.state.busy]);
@@ -270,7 +270,11 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const visibleEntries = s.state.focusMode
     ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
     : s.state.entries;
-  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
+  // Compact banner: the full two-column card fights the fork's layout (nested
+  // fixed-width columns position wrapped-text continuations at the parent
+  // origin, bleeding over the border at narrow widths). The 4-line banner is
+  // layout-risk-free; /tools and /skills carry the inventory.
+  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot, compact: true }, ...visibleEntries] : visibleEntries;
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (

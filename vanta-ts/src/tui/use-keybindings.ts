@@ -40,10 +40,11 @@ export type KeybindingsDeps = {
   setAtSel: Dispatch<SetStateAction<number>>;
   input: string;
   setInput: Dispatch<SetStateAction<string>>;
-  // transcript fold / approval mode
+  // transcript fold / approval mode / exit
   dispatch: Dispatch<Action>;
   setMode: Dispatch<SetStateAction<ApprovalMode>>;
   modeRef: MutableRefObject<ApprovalMode>;
+  exit: () => void;
 };
 
 /**
@@ -74,6 +75,12 @@ export function useKeybindings(d: KeybindingsDeps): void {
 
   // Ctrl+O folds/unfolds tool detail across the transcript.
   useInput((input, key) => { if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" }); });
+
+  // Ctrl+C exits. The renderer's built-in exitOnCtrlC only matches a RAW \x03
+  // byte — under the kitty keyboard protocol (Ghostty, iTerm2, kitty) Ctrl+C
+  // arrives as a CSI-u key event and never hits that check, so bind it here
+  // like the upstream hermes app does.
+  useInput((input, key) => { if (key.ctrl && input === "c") d.exit(); });
 
   // Scrolling lives in use-scroll-keys.ts (ScrollBox handle: wheel/pgup/⇧↑↓).
 
