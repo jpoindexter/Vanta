@@ -27,11 +27,7 @@ export function FooterHint(props: {
 }): ReactElement {
   const sym = MODE_SYMBOL[props.mode];
   const title = MODE_TITLE[props.mode];
-  const parts = [
-    `${sym} ${title}`,
-    props.model,
-    "? for shortcuts",
-  ].join(` ${GLYPHS.mid} `);
+  const parts = `${sym} ${title} ${GLYPHS.mid} ${props.model} (shift+tab to cycle)`;
   return (
     <Box width={props.width} paddingX={1}>
       <Text dimColor>{parts}</Text>

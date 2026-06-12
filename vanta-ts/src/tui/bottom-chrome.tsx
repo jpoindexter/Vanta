@@ -5,7 +5,7 @@ import { ModelPicker } from "./model-picker.js";
 import { ApprovalPrompt } from "./approval.js";
 import { Palette } from "./transcript.js";
 import { SkillsPicker } from "./skills-picker.js";
-import { StatusBar } from "./status-bar.js";
+import { tokenWarningLevel, tokenWarnDecor } from "./status-bar.js";
 import { Composer, type VimMode } from "./composer.js";
 import { HelpOverlay } from "./help-overlay.js";
 import { composerColors } from "./composer-colors.js";
@@ -13,7 +13,6 @@ import { ChromeTheme } from "./theme-picker.js";
 import { FooterHint } from "./footer-hint.js";
 import { NewMessagesPill } from "./new-messages-pill.js";
 import { ChromeCockpit } from "./mission-control/chrome-cockpit.js";
-import { spinnerFrames } from "./spinners.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import type { State } from "./app-reducer.js";
 import type { ApprovalMode } from "./approval-mode.js";
@@ -29,7 +28,6 @@ import type { LLMProvider } from "../providers/interface.js";
 // slot router; each Chrome* is one mutually-exclusive occupant. Extracted from
 // app.tsx so that file stays a thin orchestrator under the size gate.
 
-const SPINNER = spinnerFrames();
 const VIM_ENABLED = !!process.env.VANTA_VIM;
 
 /** Picker availability: keyless backends + any provider whose API key is set. */
@@ -75,6 +73,23 @@ export type ChromeProps = {
   submit: (v: string) => void;
 };
 
+function SimpleBar(p: { turnIndex: number; estTokens: number; contextWindow: number; w: number }): ReactElement {
+  const pct = p.contextWindow > 0 ? Math.round((p.estTokens / p.contextWindow) * 100) : 0;
+  const level = tokenWarningLevel(p.estTokens, p.contextWindow);
+  const decor = tokenWarnDecor(level);
+  return (
+    <Box flexDirection="column" paddingX={1} width={p.w}>
+      <Box>
+        <Text dimColor>Composer {p.turnIndex}</Text>
+        <Text dimColor> · </Text>
+        <Text color={decor.pctColor} dimColor={!decor.pctColor}>{pct}%</Text>
+        {decor.tagText ? <Text color={decor.tagColor}>{decor.tagText}</Text> : null}
+      </Box>
+      <Text dimColor>/ commands · @ files · ! shell</Text>
+    </Box>
+  );
+}
+
 /** The dim "› doing…" footer shared by every modal picker. */
 function PickerFooter(p: { label: string; w: number }): ReactElement {
   return <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}{p.label}</Text></Box>;
@@ -117,9 +132,9 @@ function ChromeModel(p: Pick<ChromeProps, "activeProvider" | "selectModel" | "se
 }
 
 function ChromeComposer(p: ChromeProps): ReactElement {
-  const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors({ theme: p.theme, editActive: p.editMode.active, busy: p.state.busy, showPalette: p.showPalette, showAtPalette: p.showAtPalette });
-  const elapsedMs = p.state.busy ? Date.now() : 0;
+  const { borderColor, promptColor, placeholder: basePlaceholder, isHistoryActive } = composerColors({ theme: p.theme, editActive: p.editMode.active, busy: p.state.busy, showPalette: p.showPalette, showAtPalette: p.showAtPalette });
   const vimMode = VIM_ENABLED ? p.vimMode : undefined;
+  const placeholder = p.state.busy ? "Add a follow-up..." : basePlaceholder;
   return (
     <Box flexDirection="column" marginTop={1}>
       {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
@@ -129,9 +144,14 @@ function ChromeComposer(p: ChromeProps): ReactElement {
         <Text color={promptColor}>{"› "}</Text>
         <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
       </Box>
+      {p.state.busy ? (
+        <Box width={p.w} justifyContent="flex-end" paddingX={2}>
+          <Text dimColor>ctrl+c to stop</Text>
+        </Box>
+      ) : null}
       {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
       {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
-      <StatusBar status={p.state.status} busy={p.state.busy} spinner={SPINNER[p.frame] ?? "⠋"} model={p.activeProvider.modelId()} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} elapsedMs={elapsedMs} width={p.w} hint={p.hint} mode={p.mode} primaryColor={p.theme.primary} vimMode={vimMode} />
+      <SimpleBar turnIndex={p.replStateRef.current.turnIndex} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} w={p.w} />
     </Box>
   );
 }

@@ -11,7 +11,7 @@ describe("FooterHint", () => {
     expect(out).toContain(GLYPHS.ring);
     expect(out).toContain("review");
     expect(out).toContain("gemini-2.5-flash");
-    expect(out).toContain("? for shortcuts");
+    expect(out).toContain("shift+tab to cycle");
     inst.unmount();
   });
 

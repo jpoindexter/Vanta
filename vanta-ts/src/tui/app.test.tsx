@@ -123,7 +123,7 @@ describe("App render", () => {
   it("mounts under Ink and shows the status line + input prompt", () => {
     const { lastFrame, unmount } = render(<App setup={setup} repoRoot="/x" />);
     const frame = lastFrame() ?? "";
-    expect(frame).toContain("ready");
+    expect(frame).toContain("Composer");
     expect(frame).toContain("fake-model");
     unmount();
   });

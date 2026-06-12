@@ -6,6 +6,7 @@ import { DiffView } from "./diff-view.js";
 import { linkifyFilePaths } from "./osc8.js";
 import { Banner, type BannerData } from "./banner.js";
 import { GLYPHS } from "./figures.js";
+import { summarizeGroup } from "./tool-summary.js";
 import type { DiffLine } from "../util/diff.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
@@ -39,6 +40,36 @@ export type ToolEntry = {
  * `compact` renders the 4-line variant (alt-screen: the full card is taller
  * than the viewport and clips). */
 export type BannerEntry = { kind: "banner"; data: BannerData; root?: string; compact?: boolean };
+
+/** A consecutive run of completed ToolEntries collapsed into one group row. */
+export type ToolGroupEntry = { kind: "tool-group"; members: ToolEntry[] };
+
+/** Entries as rendered — completed tools are collapsed into ToolGroupEntry. */
+export type RenderEntry = Entry | ToolGroupEntry;
+
+/** Collapse consecutive completed ToolEntries into ToolGroupEntries.
+ * Pending tools (ok === undefined) are omitted — rendered separately by ActiveLine. */
+export function buildRenderGroups(entries: Entry[]): RenderEntry[] {
+  const result: RenderEntry[] = [];
+  let i = 0;
+  while (i < entries.length) {
+    const e = entries[i]!;
+    if (e.kind === "tool" && e.ok !== undefined) {
+      const members: ToolEntry[] = [];
+      while (i < entries.length) {
+        const curr = entries[i]!;
+        if (curr.kind !== "tool" || curr.ok === undefined) break;
+        members.push(curr as ToolEntry);
+        i++;
+      }
+      result.push({ kind: "tool-group", members });
+    } else {
+      if (e.kind !== "tool") result.push(e as Exclude<Entry, ToolEntry>);
+      i++;
+    }
+  }
+  return result;
+}
 
 export type Entry =
   | { kind: "user"; text: string }
@@ -80,22 +111,53 @@ export function toolGroupRole(entries: ReadonlyArray<{ kind: string }>, i: numbe
   return "solo";
 }
 
-export function EntryRow(props: { entry: Entry; expanded?: boolean; groupRole?: GroupRole }): ReactElement {
+export function EntryRow(props: { entry: RenderEntry; expanded?: boolean }): ReactElement {
   const e = props.entry;
   if (e.kind === "banner") return <Banner data={e.data} root={e.root} compact={e.compact} />;
+  if (e.kind === "tool-group") return <ToolGroupRow members={e.members} expanded={props.expanded ?? false} />;
   if (e.kind === "tool") {
-    // Fall back to the legacy isGrouped flag when no role is supplied (direct
-    // EntryRow renders in tests): grouped → a "mid" continuation bar.
-    const role = props.groupRole ?? (e.isGrouped ? "mid" : "solo");
-    const connector = CONNECTOR[role];
+    // Completed tool passed directly (e.g. tests) — render as a solo group.
+    if (e.ok !== undefined) return <ToolGroupRow members={[e]} expanded={props.expanded ?? false} />;
+    // Pending (in-flight): dim ring indicator — only reached via direct test calls.
     return (
       <Box marginLeft={1}>
-        {connector ? <Text dimColor>{connector} </Text> : null}
-        <ToolLine entry={e} expanded={props.expanded ?? false} />
+        <Text dimColor>{GLYPHS.ring} {e.verb}{e.detail ? ` ${e.detail}` : ""}</Text>
       </Box>
     );
   }
-  return <SingleLine entry={e} expanded={props.expanded ?? false} />;
+  return <SingleLine entry={e as Exclude<Entry, ToolEntry | BannerEntry>} expanded={props.expanded ?? false} />;
+}
+
+function ToolGroupRow(props: { members: ToolEntry[]; expanded: boolean }): ReactElement {
+  const { verbs, counts } = summarizeGroup(props.members);
+  const anyFailed = props.members.some((m) => m.ok === false);
+  const prefix = anyFailed ? "✗" : GLYPHS.bullet;
+  return (
+    <Box flexDirection="column" marginLeft={1}>
+      <Text dimColor>{prefix} {verbs.join(", ")}  {counts}</Text>
+      {props.members.map((m, i) => <ToolDetailLine key={i} entry={m} expanded={props.expanded} />)}
+    </Box>
+  );
+}
+
+function ToolDetailLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement {
+  const e = props.entry;
+  const mark = e.ok ? "✓" : "✗";
+  const detail = e.detail ? ` ${e.detail}` : "";
+  const meta = e.ok ? (diffStat(e.diff) || e.summary || "") : "";
+  const { showOutput, showFoldHint, showDiff, extraLines } = toolLineFlags(e, props.expanded);
+  return (
+    <Box flexDirection="column">
+      <Box marginLeft={1}>
+        <Text dimColor>  {mark} {e.verb}{detail}</Text>
+        {meta ? <Text dimColor> · {meta}</Text> : null}
+        {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
+        {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
+      </Box>
+      {showOutput ? <ToolOutputBlock resultOutput={e.resultOutput!} extraLines={extraLines} /> : null}
+      {showDiff ? <DiffView lines={e.diff!} /> : null}
+    </Box>
+  );
 }
 
 function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; expanded?: boolean }): ReactElement {

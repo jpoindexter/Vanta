@@ -8,7 +8,8 @@ import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { gatherBannerData, type BannerData } from "./banner.js";
 import { estimateTokens } from "./status-bar.js";
-import { EntryRow, toolGroupRole, type Entry } from "./transcript.js";
+import { EntryRow, buildRenderGroups, type Entry, type ToolEntry } from "./transcript.js";
+import { ActiveLine } from "./active-line.js";
 import { makeInvokeSkill } from "./skills-picker.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
@@ -171,7 +172,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // Full banner card is safe: every inventory row is clipped to ONE line
   // (hermes-banner pattern) — wrapped continuations are what bled over borders.
   const allEntries = buildEntries(s.state, s.banner, repoRoot);
+  const renderEntries = buildRenderGroups(allEntries);
   const newMessages = useNewMessages(scrollRef, allEntries.length);
+  let activeToolVerb: string | undefined;
+  for (let i = s.state.entries.length - 1; i >= 0; i--) {
+    const e = s.state.entries[i];
+    if (e?.kind === "tool" && (e as ToolEntry).ok === undefined) { activeToolVerb = (e as ToolEntry).verb; break; }
+  }
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, cockpitData: s.cockpitData, newMessages, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (
@@ -180,8 +187,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       mouseTracking={MOUSE_TRACKING}
       scrollable={
         <Box flexDirection="column" paddingX={1}>
-          {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} groupRole={toolGroupRole(allEntries, i)} />)}
+          {renderEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />)}
           <StreamingTail streaming={s.state.streaming} />
+          <ActiveLine busy={s.state.busy} activeTool={activeToolVerb} estTokens={estTokens} />
         </Box>
       }
       bottom={<BottomChrome {...chromeProps} />}
