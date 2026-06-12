@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import type { SearchResult } from "../search/interface.js";
-import { resolveSearchProvider } from "../search/index.js";
+import { resolveSearchProviders } from "../search/index.js";
 
 const Args = z.object({
   query: z.string().min(1),
@@ -40,17 +40,22 @@ export const webSearchTool: Tool = {
     }
     const { query, max_results: maxResults } = parsed.data;
     try {
-      const provider = resolveSearchProvider(process.env);
-      const results = await provider.search(query, { maxResults });
-      if (results.length === 0) {
-        return { ok: true, output: "(no results)" };
+      const providers = resolveSearchProviders(process.env);
+      const failures: string[] = [];
+      let anyEmpty = false;
+      for (const provider of providers) {
+        try {
+          const results = await provider.search(query, { maxResults });
+          if (results.length > 0) return { ok: true, output: results.map(formatResult).join("\n") };
+          anyEmpty = true; // empty ≠ done — fall through to the next provider (e.g. keyless DDG)
+        } catch (err) {
+          failures.push(`${provider.id}: ${(err as Error).message}`);
+        }
       }
-      return { ok: true, output: results.map(formatResult).join("\n") };
+      if (anyEmpty) return { ok: true, output: "(no results)" };
+      return { ok: false, output: `web search failed: ${failures.join("; ")}` };
     } catch (err) {
-      return {
-        ok: false,
-        output: `web search failed: ${(err as Error).message}`,
-      };
+      return { ok: false, output: `web search failed: ${(err as Error).message}` };
     }
   },
 };
