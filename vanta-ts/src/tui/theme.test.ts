@@ -4,8 +4,10 @@ import { resolveTheme, resolveThemeByName, currentThemeName, THEME_NAMES } from 
 describe("resolveTheme", () => {
   it("returns default theme when VANTA_THEME is unset", () => {
     const t = resolveTheme({});
-    expect(t.primary).toBe("cyan");
+    expect(t.primary).toBe("white");
+    expect(t.accent).toBe("cyan");
     expect(t.border).toBe("cyan");
+    expect(t.marker).toBe("cyan");
   });
 
   it("returns high-contrast theme", () => {
@@ -23,18 +25,19 @@ describe("resolveTheme", () => {
 
   it("returns dyslexia theme", () => {
     const t = resolveTheme({ VANTA_THEME: "dyslexia" });
-    expect(t.primary).toBe("green");
+    expect(t.accent).toBe("yellow");
+    expect(t.border).toBe("green");
     expect(t.dimText).toBe(false);
   });
 
   it("falls back to default for unknown theme names", () => {
     const t = resolveTheme({ VANTA_THEME: "nonexistent" });
-    expect(t.primary).toBe("cyan");
+    expect(t.accent).toBe("cyan");
   });
 
   it("is case-insensitive", () => {
     const t = resolveTheme({ VANTA_THEME: "HIGH-CONTRAST" });
-    expect(t.primary).toBe("white");
+    expect(t.accent).toBe("yellow");
   });
 });
 
@@ -43,10 +46,10 @@ describe("THEME_NAMES + resolveThemeByName", () => {
     expect(THEME_NAMES).toEqual(["default", "high-contrast", "muted", "dyslexia"]);
   });
   it("resolves a theme by name, case-insensitively", () => {
-    expect(resolveThemeByName("DYSLEXIA").primary).toBe("green");
+    expect(resolveThemeByName("DYSLEXIA").accent).toBe("yellow");
   });
   it("falls back to default for an unknown name", () => {
-    expect(resolveThemeByName("nope").primary).toBe("cyan");
+    expect(resolveThemeByName("nope").accent).toBe("cyan");
   });
 });
 
