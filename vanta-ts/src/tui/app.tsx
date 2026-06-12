@@ -27,6 +27,7 @@ import type { RunSetup } from "../session.js";
 import { useSubmit } from "./use-submit.js";
 import { useKeybindings } from "./use-keybindings.js";
 import { useScrollKeys } from "./use-scroll-keys.js";
+import { useNewMessages } from "./new-messages.js";
 import { buildConvoConfig } from "./conversation-config.js";
 import { BottomChrome, type ChromeProps } from "./bottom-chrome.js";
 // Re-export for test compat — app.test.tsx imports these from "./app".
@@ -166,7 +167,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // Full banner card is safe: every inventory row is clipped to ONE line
   // (hermes-banner pattern) — wrapped continuations are what bled over borders.
   const allEntries = buildEntries(s.state, s.banner, repoRoot);
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, cockpitData: s.cockpitData, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  const newMessages = useNewMessages(scrollRef, allEntries.length);
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, cockpitData: s.cockpitData, newMessages, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (
     <FullscreenLayout

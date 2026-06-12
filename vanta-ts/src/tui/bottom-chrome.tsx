@@ -11,6 +11,7 @@ import { HelpOverlay } from "./help-overlay.js";
 import { composerColors } from "./composer-colors.js";
 import { ChromeTheme } from "./theme-picker.js";
 import { FooterHint } from "./footer-hint.js";
+import { NewMessagesPill } from "./new-messages-pill.js";
 import { ChromeCockpit } from "./mission-control/chrome-cockpit.js";
 import { spinnerFrames } from "./spinners.js";
 import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
@@ -67,6 +68,7 @@ export type ChromeProps = {
   selectModel: ReturnType<typeof useOverlays>["selectModel"];
   skillList: ReturnType<typeof useOverlays>["skillList"];
   cockpitData: ReturnType<typeof useOverlays>["cockpitData"];
+  newMessages: number;
   invokeSkill: (name: string) => void;
   setOverlay: ReturnType<typeof useOverlays>["setOverlay"];
   setInput: (v: string) => void;
@@ -121,6 +123,7 @@ function ChromeComposer(p: ChromeProps): ReactElement {
   return (
     <Box flexDirection="column" marginTop={1}>
       {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
+      <NewMessagesPill count={p.newMessages} accent={p.theme.accent} width={p.w} />
       <FooterHint mode={p.mode ?? "review"} model={p.activeProvider.modelId()} accentColor={p.theme.accent} width={p.w} />
       <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
         <Text color={promptColor}>{"› "}</Text>
