@@ -8,7 +8,7 @@ import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
 import { gatherBannerData, type BannerData } from "./banner.js";
 import { estimateTokens } from "./status-bar.js";
-import { EntryRow, type Entry } from "./transcript.js";
+import { EntryRow, toolGroupRole, type Entry } from "./transcript.js";
 import { makeInvokeSkill } from "./skills-picker.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
@@ -175,7 +175,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       scrollRef={scrollRef}
       scrollable={
         <Box flexDirection="column" paddingX={1}>
-          {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />)}
+          {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} groupRole={toolGroupRole(allEntries, i)} />)}
           <StreamingTail streaming={s.state.streaming} />
         </Box>
       }

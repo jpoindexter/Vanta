@@ -63,13 +63,34 @@ export const firstLine = (t: string): string => {
  * frames when the terminal is resized — committing history to Static is the fix.
  * Tool rows keep their one-space indent; everything else renders as before.
  */
-export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElement {
+// Where a tool entry sits in its consecutive run, so a group of tool calls
+// renders as ONE bracketed block (┌ … │ … └) instead of N loose rows.
+export type GroupRole = "solo" | "head" | "mid" | "last";
+
+const CONNECTOR: Record<GroupRole, string | null> = { solo: null, head: "┌", mid: "│", last: "└" };
+
+/** Classify a tool entry by its neighbours. Non-tool entries are always "solo". */
+export function toolGroupRole(entries: ReadonlyArray<{ kind: string }>, i: number): GroupRole {
+  if (entries[i]?.kind !== "tool") return "solo";
+  const prev = entries[i - 1]?.kind === "tool";
+  const next = entries[i + 1]?.kind === "tool";
+  if (prev && next) return "mid";
+  if (next) return "head";
+  if (prev) return "last";
+  return "solo";
+}
+
+export function EntryRow(props: { entry: Entry; expanded?: boolean; groupRole?: GroupRole }): ReactElement {
   const e = props.entry;
   if (e.kind === "banner") return <Banner data={e.data} root={e.root} compact={e.compact} />;
   if (e.kind === "tool") {
+    // Fall back to the legacy isGrouped flag when no role is supplied (direct
+    // EntryRow renders in tests): grouped → a "mid" continuation bar.
+    const role = props.groupRole ?? (e.isGrouped ? "mid" : "solo");
+    const connector = CONNECTOR[role];
     return (
       <Box marginLeft={1}>
-        {e.isGrouped ? <Text dimColor>│ </Text> : null}
+        {connector ? <Text dimColor>{connector} </Text> : null}
         <ToolLine entry={e} expanded={props.expanded ?? false} />
       </Box>
     );
