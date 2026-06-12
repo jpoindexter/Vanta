@@ -35,6 +35,7 @@ import { useSubmit } from "./use-submit.js";
 import { useKeybindings } from "./use-keybindings.js";
 import { useScrollKeys } from "./use-scroll-keys.js";
 import { buildConvoConfig } from "./conversation-config.js";
+import { FooterHint } from "./footer-hint.js";
 
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
@@ -184,6 +185,7 @@ function ChromeComposer(p: ChromeProps): ReactElement {
   return (
     <Box flexDirection="column" marginTop={1}>
       {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
+      <FooterHint mode={p.mode ?? "review"} model={p.activeProvider.modelId()} accentColor={p.theme.accent} width={p.w} />
       <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
         <Text color={promptColor}>{"› "}</Text>
         <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
