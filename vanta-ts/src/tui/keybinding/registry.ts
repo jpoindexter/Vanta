@@ -55,6 +55,11 @@ const GROUPS: Group[] = [
     ["modal.confirm", ["return"], "select"],
     ["modal.cancel", ["escape"], "cancel"],
   ]],
+  ["tabs", "registry", [
+    ["tabs.next", ["tab", "right"], "next tab (mission-control)"],
+    ["tabs.prev", ["shift+tab", "left"], "previous tab (mission-control)"],
+    ["tabs.close", ["escape"], "close mission-control"],
+  ]],
 ];
 
 function expandGroups(groups: Group[]): Binding[] {
