@@ -121,7 +121,7 @@ export function EntryRow(props: { entry: RenderEntry; expanded?: boolean }): Rea
     // Pending (in-flight): dim ring indicator — only reached via direct test calls.
     return (
       <Box marginLeft={1}>
-        <Text dimColor>{GLYPHS.ring} {e.verb}{e.detail ? ` ${e.detail}` : ""}</Text>
+        <Text wrap="truncate-end" dimColor>{GLYPHS.ring} {e.verb}{e.detail ? ` ${e.detail}` : ""}</Text>
       </Box>
     );
   }
@@ -134,7 +134,7 @@ function ToolGroupRow(props: { members: ToolEntry[]; expanded: boolean }): React
   const prefix = anyFailed ? "✗" : GLYPHS.bullet;
   return (
     <Box flexDirection="column" marginLeft={1}>
-      <Text dimColor>{prefix} {verbs.join(", ")}  {counts}</Text>
+      <Text wrap="truncate-end" dimColor>{prefix} {verbs.join(", ")}  {counts}</Text>
       {props.members.map((m, i) => <ToolDetailLine key={i} entry={m} expanded={props.expanded} />)}
     </Box>
   );
@@ -161,8 +161,7 @@ function ToolDetailLine(props: { entry: ToolEntry; expanded: boolean }): ReactEl
   return (
     <Box flexDirection="column">
       <Box marginLeft={1}>
-        <Text dimColor>  {mark} {e.verb}{detail}</Text>
-        <ToolDetailMeta meta={meta} showFoldHint={showFoldHint} errorLine={e.errorLine} />
+        <Text wrap="truncate-end" dimColor>{"  "}{mark} {e.verb}{detail}<ToolDetailMeta meta={meta} showFoldHint={showFoldHint} errorLine={e.errorLine} /></Text>
       </Box>
       {showOutput ? <ToolOutputBlock resultOutput={e.resultOutput!} extraLines={extraLines} /> : null}
       {showDiff ? <DiffView lines={e.diff!} /> : null}
@@ -182,9 +181,9 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; exp
     const truncated = preview.length > 80 ? `${preview.slice(0, 77)}...` : preview;
     return <Text dimColor>  ⚙ {truncated}</Text>;
   }
-  if (e.kind === "interrupted") return <Text color="yellow">  ⎋ {e.text}</Text>;
-  if (e.kind === "compactBoundary") return <Text color="magenta">  ──── {GLYPHS.asterisk} {e.text} ────</Text>;
-  return <Text dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
+  if (e.kind === "interrupted") return <Text wrap="truncate-end" color="yellow">  ⎋ {e.text}</Text>;
+  if (e.kind === "compactBoundary") return <Text wrap="truncate-end" color="magenta">  ──── {GLYPHS.asterisk} {e.text} ────</Text>;
+  return <Text wrap="truncate-end" dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
 }
 
 function toolLineFlags(e: ToolEntry, expanded: boolean): {
