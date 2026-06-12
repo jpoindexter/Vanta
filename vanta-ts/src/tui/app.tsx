@@ -35,10 +35,10 @@ import { BottomChrome, type ChromeProps } from "./bottom-chrome.js";
 export { reduce, type State, type Action };
 
 const SPINNER = spinnerFrames();
-// VANTA_NO_MOUSE turns off terminal mouse reporting so native click-drag text
-// selection works again (you lose wheel/trackpad scroll — keyboard scroll via
-// ⇧↑/↓, pgup/pgdn still works).
-const MOUSE_TRACKING = process.env.VANTA_NO_MOUSE ? "off" : "wheel";
+// Mouse tracking is OFF by default — native click-drag text selection works.
+// Set VANTA_MOUSE=1 to re-enable wheel/trackpad scroll at the cost of selection.
+// Keyboard scroll (⇧↑/↓, pgup/pgdn) always works regardless.
+const MOUSE_TRACKING = process.env.VANTA_MOUSE ? "wheel" : "off";
 
 // ─── display-value computation (pure, no hooks) ───────────────────────────
 
