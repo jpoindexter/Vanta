@@ -111,6 +111,11 @@ const skills: SlashHandler = async (_arg, ctx) => {
 
 const tools: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.registry.schemas().map((s) => s.name).join(", ")}` });
 
+// In the TUI, bare `/cockpit` is intercepted by PICKER_OPENERS and opens the
+// mission-control overlay. The readline REPL has no overlay surface, so it just
+// explains where the data lives.
+const cockpit: SlashHandler = () => ({ output: "  mission-control is a TUI view — run `vanta` (interactive) and type /cockpit, or `vanta serve` for the web cockpit." });
+
 const status: SlashHandler = async (_arg, ctx) => ({ output: formatStatus(await gatherStatus(ctx.env)) });
 
 const plan: SlashHandler = async (_arg, ctx) => {
@@ -276,7 +281,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
-  routes, files, theme, rename, branch, summary, "output-style": outputStyle, permissions,
+  routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand,
   "add-dir": addDir,
 };

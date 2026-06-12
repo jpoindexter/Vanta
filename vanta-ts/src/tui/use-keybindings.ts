@@ -45,6 +45,9 @@ export type KeybindingsDeps = {
   setMode: Dispatch<SetStateAction<ApprovalMode>>;
   modeRef: MutableRefObject<ApprovalMode>;
   exit: () => void;
+  /** True while a modal overlay is open — suppresses ⇧⇥ approval-mode cycling so
+   *  the mission-control "tabs" context can own ⇧⇥ without a double-fire. */
+  overlayActive: boolean;
 };
 
 /**
@@ -80,5 +83,6 @@ export function useKeybindings(d: KeybindingsDeps): void {
   // Scrolling lives in use-scroll-keys.ts (registry transcript.scroll* + wheel).
 
   // ⇧⇥ cycles the approval mode; keep modeRef in sync for requestApproval.
-  useKeybinding("app.cycleApprovalMode", () => cycleApprovalMode(d.setMode, d.modeRef, d.dispatch));
+  // Suppressed while an overlay is open so mission-control's tabs.prev owns ⇧⇥.
+  useKeybinding("app.cycleApprovalMode", () => cycleApprovalMode(d.setMode, d.modeRef, d.dispatch), { isActive: !d.overlayActive });
 }

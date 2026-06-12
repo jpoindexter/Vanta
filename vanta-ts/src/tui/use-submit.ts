@@ -33,6 +33,7 @@ export type SubmitDeps = {
   openModel: () => void;
   openSkills: () => void;
   openTheme: () => void;
+  openCockpit: () => void;
   exit: () => void;
   setInput: Dispatch<SetStateAction<string>>;
   setEditMode: Dispatch<SetStateAction<EditMode>>;
@@ -79,6 +80,7 @@ const PICKER_OPENERS: Readonly<Record<string, (d: SubmitDeps) => void>> = {
   model: (d) => d.openModel(),
   skills: (d) => d.openSkills(),
   theme: (d) => d.openTheme(),
+  cockpit: (d) => d.openCockpit(),
 };
 
 function runSlash(line: string, d: SubmitDeps): void {

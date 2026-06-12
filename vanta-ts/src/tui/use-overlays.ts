@@ -12,8 +12,9 @@ import type { RunSetup } from "../session.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { ModelSelection } from "./model-picker.js";
 import type { Action } from "./app.js";
+import { gatherCockpitData, EMPTY_COCKPIT, type CockpitData } from "./mission-control/cockpit-data.js";
 
-export type OverlayKind = null | "sessions" | "model" | "skills" | "theme";
+export type OverlayKind = null | "sessions" | "model" | "skills" | "theme" | "cockpit";
 
 type ModelApplyDeps = {
   convoRef: import("react").MutableRefObject<import("../agent.js").Conversation | null>;
@@ -68,6 +69,7 @@ export type OverlaysResult = {
   setOverlay: (o: OverlayKind) => void;
   sessionList: SessionMeta[];
   skillList: Skill[];
+  cockpitData: CockpitData;
   buildCtx: () => ReplCtx;
   openSessions: () => void;
   resumeSession: (id: string) => void;
@@ -76,6 +78,7 @@ export type OverlaysResult = {
   openModel: () => void;
   selectModel: (sel: ModelSelection) => void;
   openSkills: () => void;
+  openCockpit: () => void;
 };
 
 // Owns the TUI's overlay state and the side-effecting handlers behind the
@@ -95,52 +98,43 @@ function makeBuildCtx(deps: OverlaysDeps, activeProvider: LLMProvider): () => Re
   });
 }
 
+/** Await an async load, then store the result + open its overlay. */
+function loadAndOpen<T>(load: Promise<T>, setData: (t: T) => void, setOverlay: (o: OverlayKind) => void, kind: OverlayKind): void {
+  void load.then((d) => { setData(d); setOverlay(kind); });
+}
+
+/** Apply a model selection, surfacing any error as a note, then close the overlay. */
+function runModelSelection(sel: ModelSelection, deps: ModelApplyDeps, setOverlay: (o: OverlayKind) => void): void {
+  try {
+    applyModelSelection(sel, deps);
+  } catch (err) {
+    deps.dispatch({ t: "note", text: `  model switch failed: ${err instanceof Error ? err.message : String(err)}` });
+  }
+  setOverlay(null);
+}
+
 export function useOverlays(deps: OverlaysDeps): OverlaysResult {
-  const { convoRef, replStateRef, repoRoot, activeProvider, setActiveProvider, dispatch } = deps;
+  const { convoRef, repoRoot, activeProvider, setActiveProvider, dispatch } = deps;
   const [overlay, setOverlay] = useState<OverlayKind>(null);
   const [sessionList, setSessionList] = useState<SessionMeta[]>([]);
   const [skillList, setSkillList] = useState<Skill[]>([]);
+  const [cockpitData, setCockpitData] = useState<CockpitData>(EMPTY_COCKPIT);
   const buildCtx = makeBuildCtx(deps, activeProvider);
 
-  const openSessions = (): void => {
-    void listSessions(process.env).then((list) => {
-      setSessionList(list);
-      setOverlay("sessions");
-    });
-  };
+  const openSessions = (): void => loadAndOpen(listSessions(process.env), setSessionList, setOverlay, "sessions");
+  const openSkills = (): void => loadAndOpen(listSkills(process.env), setSkillList, setOverlay, "skills");
+  // Mission-control: load live goals + loop state, then open. gatherCockpitData
+  // never throws, so a kernel-down state opens an empty panel rather than failing.
+  const openCockpit = (): void => loadAndOpen(gatherCockpitData({ client: deps.setup.safety, dataDir: join(repoRoot, ".vanta") }), setCockpitData, setOverlay, "cockpit");
+  const openModel = (): void => setOverlay("model");
 
-  const resumeSession = (id: string): void => {
-    if (!convoRef.current) return;
-    runSlashAndClear(`/resume ${id}`, buildCtx(), dispatch, setOverlay);
-  };
-
-  const newSession = (): void => {
-    if (!convoRef.current) return;
-    runSlashAndClear("/clear", buildCtx(), dispatch, setOverlay);
-  };
-
+  const resumeSession = (id: string): void => { if (convoRef.current) runSlashAndClear(`/resume ${id}`, buildCtx(), dispatch, setOverlay); };
+  const newSession = (): void => { if (convoRef.current) runSlashAndClear("/clear", buildCtx(), dispatch, setOverlay); };
   const removeSession = (id: string): void => {
     void deleteSession(id, process.env).catch(() => {});
     setSessionList((list) => list.filter((s) => s.id !== id));
   };
+  const selectModel = (sel: ModelSelection): void => runModelSelection(sel, { convoRef, setActiveProvider, repoRoot, dispatch }, setOverlay);
 
-  const openModel = (): void => setOverlay("model");
-
-  const openSkills = (): void => {
-    void listSkills(process.env).then((list) => {
-      setSkillList(list);
-      setOverlay("skills");
-    });
-  };
-
-  const selectModel = (sel: ModelSelection): void => {
-    try {
-      applyModelSelection(sel, { convoRef, setActiveProvider, repoRoot, dispatch });
-    } catch (err) {
-      dispatch({ t: "note", text: `  model switch failed: ${err instanceof Error ? err.message : String(err)}` });
-    }
-    setOverlay(null);
-  };
-
-  return { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
+  return { overlay, setOverlay, sessionList, skillList, cockpitData, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, openCockpit };
 }

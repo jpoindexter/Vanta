@@ -1,28 +1,21 @@
 import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
-import { AlternateScreen, Box, ScrollBox, Text, useApp, type ScrollBoxHandle } from "ink";
-import { Composer } from "./composer.js";
+import { Box, Text, useApp, type ScrollBoxHandle } from "ink";
+import { FullscreenLayout } from "./layout.js";
 import { spinnerFrames } from "./spinners.js";
 import { notify } from "./notify.js";
 import { createConversation, type Conversation } from "../agent.js";
 import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS, type ReplState } from "../repl-commands.js";
-import { PROVIDER_CATALOG, type ProviderEntry } from "../providers/catalog.js";
 import { gatherBannerData, type BannerData } from "./banner.js";
-import { StatusBar, estimateTokens } from "./status-bar.js";
-import { SessionsPicker } from "./sessions-picker.js";
-import { ModelPicker } from "./model-picker.js";
-import { ApprovalPrompt } from "./approval.js";
-import { EntryRow, Palette, type Entry } from "./transcript.js";
-import { SkillsPicker, makeInvokeSkill } from "./skills-picker.js";
+import { estimateTokens } from "./status-bar.js";
+import { EntryRow, type Entry } from "./transcript.js";
+import { makeInvokeSkill } from "./skills-picker.js";
 import { INLINE_MAX } from "./tool-result.js";
 import { useOverlays } from "./use-overlays.js";
 import { useApproval } from "./use-approval.js";
 import { type ApprovalMode } from "./approval-mode.js";
 import { activeAtRef, listRepoFiles } from "./at-context.js";
-import { HelpOverlay } from "./help-overlay.js";
-import { resolveThemeByName, currentThemeName, type VantaTheme } from "./theme.js";
-import { composerColors } from "./composer-colors.js";
-import { ChromeTheme } from "./theme-picker.js";
+import { resolveThemeByName, currentThemeName } from "./theme.js";
 import { getRiskTier, formatRiskLabel } from "./command-risk.js";
 import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
@@ -35,15 +28,11 @@ import { useSubmit } from "./use-submit.js";
 import { useKeybindings } from "./use-keybindings.js";
 import { useScrollKeys } from "./use-scroll-keys.js";
 import { buildConvoConfig } from "./conversation-config.js";
-import { FooterHint } from "./footer-hint.js";
+import { BottomChrome, type ChromeProps } from "./bottom-chrome.js";
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
 
-/** Picker availability: keyless backends + any provider whose API key is set. */
-const hasKey = (entry: ProviderEntry): boolean => entry.envVar === null || !!process.env[entry.envVar];
-
 const SPINNER = spinnerFrames();
-const VIM_ENABLED = !!process.env.VANTA_VIM;
 
 // ─── display-value computation (pure, no hooks) ───────────────────────────
 
@@ -101,108 +90,12 @@ function StreamingTail({ streaming }: { streaming: string }): ReactElement | nul
   return <Text>{streaming}</Text>;
 }
 
-// ─── bottom chrome sub-renderers ──────────────────────────────────────────
-
-type ChromeProps = {
-  pending: ReturnType<typeof useApproval>["pending"];
-  overlay: string | null;
-  state: State;
-  editMode: { active: boolean; messageIndex: number };
-  showHelp: boolean;
-  showPalette: boolean;
-  showAtPalette: boolean;
-  matchesWithRisk: Array<{ name: string; desc: string; risk: string }>;
-  atMatches: string[];
-  sel: number;
-  atSel: number;
-  input: string;
-  inputHistory: string[];
-  vimMode: VimMode;
-  hint: string;
-  frame: number;
-  w: number;
-  activeProvider: LLMProvider;
-  estTokens: number;
-  mode: ApprovalMode;
-  theme: VantaTheme;
-  themeName: string;
-  setTheme: (name: string) => void;
-  sessionList: ReturnType<typeof useOverlays>["sessionList"];
-  replStateRef: React.MutableRefObject<ReplState>;
-  chooseApproval: ReturnType<typeof useApproval>["chooseApproval"];
-  resumeSession: ReturnType<typeof useOverlays>["resumeSession"];
-  newSession: ReturnType<typeof useOverlays>["newSession"];
-  removeSession: ReturnType<typeof useOverlays>["removeSession"];
-  selectModel: ReturnType<typeof useOverlays>["selectModel"];
-  skillList: ReturnType<typeof useOverlays>["skillList"];
-  invokeSkill: (name: string) => void;
-  setOverlay: ReturnType<typeof useOverlays>["setOverlay"];
-  setInput: (v: string) => void;
-  submit: (v: string) => void;
-};
-
-function ChromeApproval(p: Pick<ChromeProps, "pending" | "chooseApproval" | "w">): ReactElement {
-  return (
-    <Box flexDirection="column" marginTop={1}>
-      <ApprovalPrompt action={p.pending!.action} reason={p.pending!.reason} toolName={p.pending!.toolName} width={p.w} onChoose={p.chooseApproval} />
-      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}awaiting approval…</Text></Box>
-    </Box>
-  );
-}
-
-function ChromeSessions(p: Pick<ChromeProps, "sessionList" | "replStateRef" | "resumeSession" | "newSession" | "removeSession" | "setOverlay" | "w">): ReactElement {
-  return (
-    <Box flexDirection="column" marginTop={1}>
-      <SessionsPicker sessions={p.sessionList} currentId={p.replStateRef.current.sessionId} currentTurns={p.replStateRef.current.turnIndex} nowMs={Date.now()} width={p.w} onResume={p.resumeSession} onNew={p.newSession} onDelete={p.removeSession} onCancel={() => p.setOverlay(null)} />
-      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}choosing session…</Text></Box>
-    </Box>
-  );
-}
-
-function ChromeSkills(p: Pick<ChromeProps, "skillList" | "invokeSkill" | "setOverlay" | "w">): ReactElement {
-  return (
-    <Box flexDirection="column" marginTop={1}>
-      <SkillsPicker skills={p.skillList} onInvoke={p.invokeSkill} onCancel={() => p.setOverlay(null)} width={p.w} />
-      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}browsing skills…</Text></Box>
-    </Box>
-  );
-}
-
-function ChromeModel(p: Pick<ChromeProps, "activeProvider" | "selectModel" | "setOverlay" | "w">): ReactElement {
-  return (
-    <Box flexDirection="column" marginTop={1}>
-      <ModelPicker providers={PROVIDER_CATALOG} currentProviderId={process.env.VANTA_PROVIDER ?? "openai"} currentModel={p.activeProvider.modelId()} hasKey={hasKey} width={p.w} onSelect={p.selectModel} onCancel={() => p.setOverlay(null)} />
-      <Box borderStyle="round" borderColor="gray" paddingX={1} width={p.w}><Text dimColor>{"› "}picking model…</Text></Box>
-    </Box>
-  );
-}
-
-function ChromeComposer(p: ChromeProps): ReactElement {
-  const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors({ theme: p.theme, editActive: p.editMode.active, busy: p.state.busy, showPalette: p.showPalette, showAtPalette: p.showAtPalette });
-  const elapsedMs = p.state.busy ? Date.now() : 0;
-  const vimMode = VIM_ENABLED ? p.vimMode : undefined;
-  return (
-    <Box flexDirection="column" marginTop={1}>
-      {p.showHelp && <HelpOverlay width={p.w} vimEnabled={VIM_ENABLED} />}
-      <FooterHint mode={p.mode ?? "review"} model={p.activeProvider.modelId()} accentColor={p.theme.accent} width={p.w} />
-      <Box borderStyle="round" borderColor={borderColor} paddingX={1} width={p.w}>
-        <Text color={promptColor}>{"› "}</Text>
-        <Composer value={p.input} onChange={p.setInput} onSubmit={p.submit} placeholder={placeholder} history={p.inputHistory} isHistoryActive={isHistoryActive} vimEnabled={VIM_ENABLED} onVimModeChange={() => {}} />
-      </Box>
-      {p.showPalette ? <Palette matches={p.matchesWithRisk} sel={Math.min(p.sel, p.matchesWithRisk.length - 1)} width={p.w} /> : null}
-      {p.showAtPalette ? <Palette matches={p.atMatches.map((f) => ({ name: f, desc: "" }))} sel={Math.min(p.atSel, p.atMatches.length - 1)} width={p.w} /> : null}
-      <StatusBar status={p.state.status} busy={p.state.busy} spinner={SPINNER[p.frame] ?? "⠋"} model={p.activeProvider.modelId()} estTokens={p.estTokens} contextWindow={p.activeProvider.contextWindow()} elapsedMs={elapsedMs} width={p.w} hint={p.hint} mode={p.mode} primaryColor={p.theme.primary} vimMode={vimMode} />
-    </Box>
-  );
-}
-
-function BottomChrome(p: ChromeProps): ReactElement {
-  if (p.pending) return <ChromeApproval pending={p.pending} chooseApproval={p.chooseApproval} w={p.w} />;
-  if (p.overlay === "sessions") return <ChromeSessions sessionList={p.sessionList} replStateRef={p.replStateRef} resumeSession={p.resumeSession} newSession={p.newSession} removeSession={p.removeSession} setOverlay={p.setOverlay} w={p.w} />;
-  if (p.overlay === "model") return <ChromeModel activeProvider={p.activeProvider} selectModel={p.selectModel} setOverlay={p.setOverlay} w={p.w} />;
-  if (p.overlay === "skills") return <ChromeSkills skillList={p.skillList} invokeSkill={p.invokeSkill} setOverlay={p.setOverlay} w={p.w} />;
-  if (p.overlay === "theme") return <ChromeTheme themeName={p.themeName} setTheme={p.setTheme} setOverlay={p.setOverlay} w={p.w} />;
-  return <ChromeComposer {...p} />;
+/** Transcript entries to render: focus-mode filter + optional leading banner. */
+function buildEntries(state: State, banner: BannerData | null, repoRoot: string): Entry[] {
+  const visible = state.focusMode
+    ? state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
+    : state.entries;
+  return banner ? [{ kind: "banner", data: banner, root: repoRoot }, ...visible] : visible;
 }
 
 // ─── app state hook ───────────────────────────────────────────────────────
@@ -228,14 +121,14 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   const [vimMode, setVimMode] = useState<VimMode>("insert");
   const [editMode, setEditMode] = useState({ active: false, messageIndex: -1 });
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
-  const { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills } =
+  const { overlay, setOverlay, sessionList, skillList, cockpitData, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, openCockpit } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
   const openTheme = (): void => setOverlay("theme");
   useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, theme: resolveThemeByName(themeName), themeName, setTheme, openTheme, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, theme: resolveThemeByName(themeName), themeName, setTheme, openTheme, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, cockpitData, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills, openCockpit };
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────
@@ -262,39 +155,29 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const invokeSkill = makeInvokeSkill({ setOverlay: s.setOverlay, dispatch: s.dispatch, sendToAgent });
   const dv = computeDisplayValues({ input: s.input, pending: s.pending, overlay: s.overlay, busy: s.state.busy, atFiles: s.atFiles, showHelp: s.showHelp, expanded: s.state.expanded, entries: s.state.entries });
 
-  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef, exit: app.exit });
+  useKeybindings({ slashHead: dv.slashHead, showPalette: dv.showPalette, matchesWithRisk: dv.matchesWithRisk, sel: s.sel, setSel: s.setSel, atHead: dv.atHead, showAtPalette: dv.showAtPalette, atMatches: dv.atMatches, atSel: s.atSel, setAtSel: s.setAtSel, input: s.input, setInput: s.setInput, dispatch: s.dispatch, setMode: s.setMode, modeRef: s.modeRef, exit: app.exit, overlayActive: s.overlay !== null });
   useScrollKeys(scrollRef);
   // A new turn re-pins the viewport to the bottom so the response is followed.
   useEffect(() => { if (s.state.busy) scrollRef.current?.scrollToBottom(); }, [s.state.busy]);
-  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, openTheme: s.openTheme, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider, setTheme: s.setTheme });
+  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, openTheme: s.openTheme, openCockpit: s.openCockpit, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider, setTheme: s.setTheme });
 
   const w = Math.max(24, cols - 2);
   const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
-  const visibleEntries = s.state.focusMode
-    ? s.state.entries.filter((e) => e.kind === "user" || e.kind === "assistant")
-    : s.state.entries;
-  // Full banner card: safe under the fork because every inventory row is
-  // clipped to ONE line (hermes-banner pattern) — wrapped continuations are
-  // what bled over the card border in nested columns.
-  const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  // Full banner card is safe: every inventory row is clipped to ONE line
+  // (hermes-banner pattern) — wrapped continuations are what bled over borders.
+  const allEntries = buildEntries(s.state, s.banner, repoRoot);
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, cockpitData: s.cockpitData, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (
-    <AlternateScreen mouseTracking="wheel">
-      <Box flexDirection="column" flexGrow={1}>
-        <ScrollBox ref={scrollRef} flexDirection="column" flexGrow={1} flexShrink={1} stickyScroll>
-          <Box flexDirection="column" paddingX={1}>
-            {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />)}
-            <StreamingTail streaming={s.state.streaming} />
-          </Box>
-        </ScrollBox>
-        {/* flexShrink=0: the prompt zone must NEVER be squeezed by transcript
-            overflow — Yoga would clip the composer (tiny box, invisible
-            typing). Same explicit pinning as the upstream hermes app. */}
-        <Box flexDirection="column" flexShrink={0} flexGrow={0}>
-          <BottomChrome {...chromeProps} />
+    <FullscreenLayout
+      scrollRef={scrollRef}
+      scrollable={
+        <Box flexDirection="column" paddingX={1}>
+          {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} />)}
+          <StreamingTail streaming={s.state.streaming} />
         </Box>
-      </Box>
-    </AlternateScreen>
+      }
+      bottom={<BottomChrome {...chromeProps} />}
+    />
   );
 }
