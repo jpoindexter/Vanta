@@ -16,5 +16,5 @@ export function composerColors(o: {
 }): ComposerColors {
   if (o.editActive) return { borderColor: "yellow", promptColor: "yellow", placeholder: "editing response — ⏎ confirm, clear + ⏎ cancel", isHistoryActive: false };
   if (o.busy) return { borderColor: "gray", promptColor: "gray", placeholder: "working…", isHistoryActive: false };
-  return { borderColor: o.theme.border, promptColor: o.theme.primary, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !o.showPalette && !o.showAtPalette };
+  return { borderColor: o.theme.border, promptColor: o.theme.accent, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !o.showPalette && !o.showAtPalette };
 }
