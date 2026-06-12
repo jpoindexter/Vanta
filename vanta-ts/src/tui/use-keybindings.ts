@@ -1,6 +1,6 @@
 import { useEffect, type Dispatch, type SetStateAction, type MutableRefObject } from "react";
-import { useInput } from "ink";
 import { nextMode, type ApprovalMode } from "./approval-mode.js";
+import { useKeybinding } from "./keybinding/use-keybinding.js";
 import type { Action } from "./app-reducer.js";
 
 /** Note text shown when the approval mode cycles to the given value. */
@@ -54,36 +54,31 @@ export type KeybindingsDeps = {
  * values exactly as the inline form did.
  */
 export function useKeybindings(d: KeybindingsDeps): void {
-  // Slash palette nav.
+  // Slash palette nav — chords resolved from the registry (palette.* actions).
   useEffect(() => d.setSel(0), [d.slashHead]); // eslint-disable-line react-hooks/exhaustive-deps
-  useInput((_in, key) => {
-    if (key.upArrow) d.setSel((s) => (s - 1 + d.matchesWithRisk.length) % d.matchesWithRisk.length);
-    else if (key.downArrow) d.setSel((s) => (s + 1) % d.matchesWithRisk.length);
-    else if (key.tab) d.setInput(`/${(d.matchesWithRisk[d.sel] ?? d.matchesWithRisk[0])!.name} `);
-  }, { isActive: d.showPalette });
+  useKeybinding("palette.prev", () => d.setSel((s) => (s - 1 + d.matchesWithRisk.length) % d.matchesWithRisk.length), { isActive: d.showPalette });
+  useKeybinding("palette.next", () => d.setSel((s) => (s + 1) % d.matchesWithRisk.length), { isActive: d.showPalette });
+  useKeybinding("palette.complete", () => d.setInput(`/${(d.matchesWithRisk[d.sel] ?? d.matchesWithRisk[0])!.name} `), { isActive: d.showPalette });
 
   // @-context palette nav.
   useEffect(() => d.setAtSel(0), [d.atHead]); // eslint-disable-line react-hooks/exhaustive-deps
-  useInput((_in, key) => {
-    if (key.upArrow) d.setAtSel((s) => (s - 1 + d.atMatches.length) % d.atMatches.length);
-    else if (key.downArrow) d.setAtSel((s) => (s + 1) % d.atMatches.length);
-    else if (key.tab) {
-      const chosen = d.atMatches[d.atSel] ?? d.atMatches[0];
-      if (chosen) d.setInput(d.input.replace(/@[\w./\-]*$/, `@${chosen} `));
-    }
+  useKeybinding("atPalette.prev", () => d.setAtSel((s) => (s - 1 + d.atMatches.length) % d.atMatches.length), { isActive: d.showAtPalette });
+  useKeybinding("atPalette.next", () => d.setAtSel((s) => (s + 1) % d.atMatches.length), { isActive: d.showAtPalette });
+  useKeybinding("atPalette.complete", () => {
+    const chosen = d.atMatches[d.atSel] ?? d.atMatches[0];
+    if (chosen) d.setInput(d.input.replace(/@[\w./\-]*$/, `@${chosen} `));
   }, { isActive: d.showAtPalette });
 
-  // Ctrl+O folds/unfolds tool detail across the transcript.
-  useInput((input, key) => { if (key.ctrl && input === "o") d.dispatch({ t: "toggleExpand" }); });
+  // Transcript fold / unfold tool detail (^O).
+  useKeybinding("transcript.toggleExpand", () => d.dispatch({ t: "toggleExpand" }));
 
-  // Ctrl+C exits. The renderer's built-in exitOnCtrlC only matches a RAW \x03
-  // byte — under the kitty keyboard protocol (Ghostty, iTerm2, kitty) Ctrl+C
-  // arrives as a CSI-u key event and never hits that check, so bind it here
-  // like the upstream hermes app does.
-  useInput((input, key) => { if (key.ctrl && input === "c") d.exit(); });
+  // ^C exits. The renderer's built-in exitOnCtrlC only matches a RAW \x03 byte —
+  // under the kitty keyboard protocol (Ghostty, iTerm2, kitty) ^C arrives as a
+  // CSI-u key event and never hits that check, so bind it here like upstream.
+  useKeybinding("app.exit", () => d.exit());
 
-  // Scrolling lives in use-scroll-keys.ts (ScrollBox handle: wheel/pgup/⇧↑↓).
+  // Scrolling lives in use-scroll-keys.ts (registry transcript.scroll* + wheel).
 
-  // Shift+tab cycles the approval mode; keep modeRef in sync for requestApproval.
-  useInput((_in, key) => { if (key.tab && key.shift) cycleApprovalMode(d.setMode, d.modeRef, d.dispatch); });
+  // ⇧⇥ cycles the approval mode; keep modeRef in sync for requestApproval.
+  useKeybinding("app.cycleApprovalMode", () => cycleApprovalMode(d.setMode, d.modeRef, d.dispatch));
 }

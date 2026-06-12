@@ -3,12 +3,15 @@ import { render } from "./test-render.js";
 import { HelpOverlay } from "./help-overlay.js";
 
 describe("HelpOverlay", () => {
-  it("renders key binding list", () => {
+  it("renders the registry-driven key binding list", () => {
     const { lastFrame, unmount } = render(<HelpOverlay width={80} />);
     const frame = lastFrame() ?? "";
     expect(frame).toContain("Key bindings");
-    expect(frame).toContain("Ctrl+A");
-    expect(frame).toContain("Ctrl+U");
+    // chords now render via formatChord (^A, ^U) from DEFAULT_BINDINGS
+    expect(frame).toContain("^A");
+    expect(frame).toContain("^U");
+    expect(frame).toContain("cursor to line start");
+    expect(frame).toContain("exit Vanta"); // a global registry binding
     expect(frame).toContain("! <cmd>");
     expect(frame).toContain("# <text>");
     unmount();
