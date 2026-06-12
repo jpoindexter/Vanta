@@ -39,7 +39,7 @@ export function MissionControl(props: { data: CockpitData; width: number; onClos
         <Panel tab={tab} data={props.data} width={inner} />
       </Box>
       <Box marginTop={1}>
-        <Text dimColor>tab / ⇧tab switch · esc close</Text>
+        <Text dimColor>tab or → / ← switch tabs · esc or q to close</Text>
       </Box>
     </Box>
   );

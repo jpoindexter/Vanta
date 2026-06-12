@@ -66,7 +66,7 @@ describe("MissionControl", () => {
     const out = inst.lastFrame();
     expect(out).toContain("Kernel");
     expect(out).toContain("ALLOW"); // Kernel panel is active first
-    expect(out).toContain("esc close");
+    expect(out).toContain("to close");
     inst.unmount();
   });
   it("renders the tab bar with all three screens", () => {
@@ -87,6 +87,17 @@ describe("MissionControl", () => {
     const out = inst.lastFrame();
     expect(out).toContain("ship the keybinding registry"); // Goals panel now active
     expect(out).not.toContain("ALLOW"); // Kernel panel no longer shown
+    inst.unmount();
+  });
+
+  it("closes on q (laptop-friendly tabs.close)", async () => {
+    let closed = 0;
+    const inst = render(h(MissionControl, { data, width: 80, onClose: () => { closed++; } }));
+    const wait = (): Promise<void> => new Promise((r) => setTimeout(r, 40));
+    await wait();
+    inst.stdin.write("q"); // q → tabs.close
+    await wait();
+    expect(closed).toBe(1);
     inst.unmount();
   });
 });

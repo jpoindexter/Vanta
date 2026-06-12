@@ -63,7 +63,10 @@ export function parseChord(spec: string): Chord {
 export function matchChord(chord: Chord, input: string, key: Key): boolean {
   if (!!key.ctrl !== chord.ctrl) return false;
   if (!!key.shift !== chord.shift) return false;
-  if (!!key.meta !== chord.meta) return false;
+  // The vendored ink fork forces key.meta=true on a lone Escape (legacy
+  // "Esc = Meta prefix" convention), so a bare `escape` chord must not enforce
+  // the meta modifier — otherwise Esc never matches. No alt+escape chord exists.
+  if (chord.named !== "escape" && !!key.meta !== chord.meta) return false;
   if (chord.named) return !!key[NAMED_TO_FIELD[chord.named]];
   if (chord.char) return input === chord.char;
   return false;

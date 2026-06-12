@@ -58,7 +58,7 @@ const GROUPS: Group[] = [
   ["tabs", "registry", [
     ["tabs.next", ["tab", "right"], "next tab (mission-control)"],
     ["tabs.prev", ["shift+tab", "left"], "previous tab (mission-control)"],
-    ["tabs.close", ["escape"], "close mission-control"],
+    ["tabs.close", ["escape", "q"], "close mission-control"],
   ]],
 ];
 

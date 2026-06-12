@@ -34,6 +34,10 @@ import { BottomChrome, type ChromeProps } from "./bottom-chrome.js";
 export { reduce, type State, type Action };
 
 const SPINNER = spinnerFrames();
+// VANTA_NO_MOUSE turns off terminal mouse reporting so native click-drag text
+// selection works again (you lose wheel/trackpad scroll — keyboard scroll via
+// ⇧↑/↓, pgup/pgdn still works).
+const MOUSE_TRACKING = process.env.VANTA_NO_MOUSE ? "off" : "wheel";
 
 // ─── display-value computation (pure, no hooks) ───────────────────────────
 
@@ -173,6 +177,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   return (
     <FullscreenLayout
       scrollRef={scrollRef}
+      mouseTracking={MOUSE_TRACKING}
       scrollable={
         <Box flexDirection="column" paddingX={1}>
           {allEntries.map((item, i) => <EntryRow key={`e${i}`} entry={item} expanded={s.state.expanded} groupRole={toolGroupRole(allEntries, i)} />)}

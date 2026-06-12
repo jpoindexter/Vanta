@@ -53,6 +53,11 @@ describe("matchChord", () => {
   it("matches a named scroll chord (shift+up)", () => {
     expect(matchChord(parseChord("shift+up"), "", key({ upArrow: true, shift: true }))).toBe(true);
   });
+  it("matches a bare escape even though the fork forces meta=true on Esc", () => {
+    // input-event.ts sets key.meta = (… || name === 'escape'), so a lone Esc
+    // always arrives with meta:true — the escape chord must still match.
+    expect(matchChord(parseChord("escape"), "", key({ escape: true, meta: true }))).toBe(true);
+  });
   it("requires modifiers to match exactly", () => {
     // plain tab must NOT match when shift is held
     expect(matchChord(parseChord("tab"), "", key({ tab: true }))).toBe(true);
