@@ -103,6 +103,24 @@ const RGB_REGEX = /^rgb\(\s?(\d+),\s?(\d+),\s?(\d+)\s?\)$/
 const ANSI_REGEX = /^ansi256\(\s?(\d+)\s?\)$/
 const HEX_REGEX = /^#[0-9a-fA-F]{6}$/
 
+// [VENDOR DELTA] Bare stock-Ink/chalk colour names. Stock Ink accepts these
+// directly (`color="cyan"`, `borderColor="gray"`); this fork narrowed colorize
+// to ansi:/hex/rgb only, so every bare name in the host app (themes, borders,
+// status chips) rendered with NO colour. Mapping them to chalk here restores it.
+const BARE_COLOR_NAMES = new Set([
+  'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white', 'gray', 'grey',
+  'blackBright', 'redBright', 'greenBright', 'yellowBright', 'blueBright', 'magentaBright', 'cyanBright', 'whiteBright',
+])
+
+function colorizeBareName(str: string, color: string, type: ColorType): string | undefined {
+  if (!BARE_COLOR_NAMES.has(color)) return undefined
+  const name = color === 'grey' ? 'gray' : color
+  const fns = chalk as unknown as Record<string, ((s: string) => string) | undefined>
+  const key = type === 'foreground' ? name : `bg${name.charAt(0).toUpperCase()}${name.slice(1)}`
+  const fn = fns[key]
+  return typeof fn === 'function' ? fn(str) : undefined
+}
+
 export const colorize = (str: string, color: string | undefined, type: ColorType): string => {
   if (!color) {
     return str
@@ -210,7 +228,7 @@ export const colorize = (str: string, color: string | undefined, type: ColorType
       : chalk.bgRgb(firstValue, secondValue, thirdValue)(str)
   }
 
-  return str
+  return colorizeBareName(str, color, type) ?? str
 }
 
 /**

@@ -1820,7 +1820,7 @@ var Ansi = React3.memo(function Ansi2(t0) {
   let t1;
   let t2;
   if ($[3] !== children || $[4] !== dimColor) {
-    t2 = /* @__PURE__ */ Symbol.for("react.early_return_sentinel");
+    t2 = Symbol.for("react.early_return_sentinel");
     bb0: {
       const spans = parseToSpans(children);
       if (spans.length === 0) {
@@ -1886,7 +1886,7 @@ var Ansi = React3.memo(function Ansi2(t0) {
     t1 = $[5];
     t2 = $[6];
   }
-  if (t2 !== /* @__PURE__ */ Symbol.for("react.early_return_sentinel")) {
+  if (t2 !== Symbol.for("react.early_return_sentinel")) {
     return t2;
   }
   const content = t1;
@@ -6483,7 +6483,7 @@ var reconciler = createReconciler({
   },
   NotPendingTransition: null,
   HostTransitionContext: {
-    $$typeof: /* @__PURE__ */ Symbol.for("react.context"),
+    $$typeof: Symbol.for("react.context"),
     _currentValue: null
   },
   setCurrentUpdatePriority(newPriority) {
@@ -6671,7 +6671,7 @@ import { jsx as jsx10 } from "react/jsx-runtime";
 function Spacer() {
   const $ = _c8(1);
   let t0;
-  if ($[0] === /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel")) {
+  if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t0 = /* @__PURE__ */ jsx10(Box_default, { flexGrow: 1 });
     $[0] = t0;
   } else {
@@ -8597,6 +8597,34 @@ var CHALK_USES_RICH_EIGHT_BIT_DOWNGRADE = shouldUseRichEightBitDowngradeForLegac
 var RGB_REGEX = /^rgb\(\s?(\d+),\s?(\d+),\s?(\d+)\s?\)$/;
 var ANSI_REGEX = /^ansi256\(\s?(\d+)\s?\)$/;
 var HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
+var BARE_COLOR_NAMES = /* @__PURE__ */ new Set([
+  "black",
+  "red",
+  "green",
+  "yellow",
+  "blue",
+  "magenta",
+  "cyan",
+  "white",
+  "gray",
+  "grey",
+  "blackBright",
+  "redBright",
+  "greenBright",
+  "yellowBright",
+  "blueBright",
+  "magentaBright",
+  "cyanBright",
+  "whiteBright"
+]);
+function colorizeBareName(str, color, type) {
+  if (!BARE_COLOR_NAMES.has(color)) return void 0;
+  const name = color === "grey" ? "gray" : color;
+  const fns = chalk;
+  const key = type === "foreground" ? name : `bg${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+  const fn = fns[key];
+  return typeof fn === "function" ? fn(str) : void 0;
+}
 var colorize = (str, color, type) => {
   if (!color) {
     return str;
@@ -8671,7 +8699,7 @@ var colorize = (str, color, type) => {
     }
     return type === "foreground" ? chalk.rgb(firstValue, secondValue, thirdValue)(str) : chalk.bgRgb(firstValue, secondValue, thirdValue)(str);
   }
-  return str;
+  return colorizeBareName(str, color, type) ?? str;
 };
 function applyTextStyles(text, styles2) {
   let result = text;
@@ -10321,7 +10349,6 @@ var TerminalQuerier = class {
   constructor(stdout) {
     this.stdout = stdout;
   }
-  stdout;
   /**
    * Interleaved queue of queries and sentinels in send order. Terminals
    * respond in order, so each flush() barrier only drains queries queued
@@ -11292,7 +11319,6 @@ var LogUpdate = class {
       previousOutput: ""
     };
   }
-  options;
   state;
   renderPreviousOutput_DEPRECATED(prevFrame) {
     if (!this.options.isTTY) {
@@ -11658,7 +11684,6 @@ var VirtualScreen = class {
     this.viewportWidth = viewportWidth;
     this.cursor = { ...origin };
   }
-  viewportWidth;
   // Public for direct mutation by writeCellWithStyleStr (avoids txn overhead).
   // File-private class — not exposed outside log-update.ts.
   cursor;
@@ -12576,7 +12601,6 @@ var Ink = class {
       });
     }
   }
-  options;
   log;
   terminal;
   scheduleRender;

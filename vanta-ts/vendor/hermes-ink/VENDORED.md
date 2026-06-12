@@ -19,3 +19,9 @@ Local changes vs upstream:
   follow from node_modules; Vanta types the surface it uses in
   src/types/ink.d.ts instead (same approach as upstream's own consumer).
 - Version set to 7.0.5 so ink-text-input's `ink>=5` peer range resolves.
+- `src/ink/colorize.ts`: added a bare-colour-name fallback (`colorizeBareName`).
+  Upstream's colorize only honoured `ansi:`-prefixed / hex / rgb values and
+  silently dropped bare stock-Ink names like `"cyan"` / `"gray"` / `"green"`,
+  which the host app uses throughout — so the whole TUI (and every theme)
+  rendered with no colour. The fallback maps bare names to chalk. Guarded by a
+  regression test at src/tui/theme-render.test.tsx. Rebuild dist/ after editing.
