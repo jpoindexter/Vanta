@@ -36,7 +36,6 @@ import { useKeybindings } from "./use-keybindings.js";
 import { useScrollKeys } from "./use-scroll-keys.js";
 import { buildConvoConfig } from "./conversation-config.js";
 import { FooterHint } from "./footer-hint.js";
-
 // Re-export for test compat — app.test.tsx imports these from "./app".
 export { reduce, type State, type Action };
 
