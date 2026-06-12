@@ -5,6 +5,7 @@ import { renderMarkdown } from "./markdown.js";
 import { DiffView } from "./diff-view.js";
 import { linkifyFilePaths } from "./osc8.js";
 import { Banner, type BannerData } from "./banner.js";
+import { GLYPHS } from "./figures.js";
 import type { DiffLine } from "../util/diff.js";
 
 // Presentational layer for the TUI: the scrolling transcript (user / assistant
@@ -78,8 +79,8 @@ export function EntryRow(props: { entry: Entry; expanded?: boolean }): ReactElem
 
 function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; expanded?: boolean }): ReactElement {
   const e = props.entry;
-  if (e.kind === "user") return <Text color="cyan">› {linkifyFilePaths(e.text, process.cwd())}</Text>;
-  if (e.kind === "assistant") return renderMarkdown(e.text);
+  if (e.kind === "user") return <Text color="cyan">{GLYPHS.pointer} {linkifyFilePaths(e.text, process.cwd())}</Text>;
+  if (e.kind === "assistant") return <Box><Text color="cyan">{GLYPHS.dot} </Text>{renderMarkdown(e.text)}</Box>;
   if (e.kind === "thinking") {
     if (props.expanded) {
       return <Text dimColor>  ⚙ {e.text}</Text>;
@@ -89,7 +90,7 @@ function SingleLine(props: { entry: Exclude<Entry, ToolEntry | BannerEntry>; exp
     return <Text dimColor>  ⚙ {truncated}</Text>;
   }
   if (e.kind === "interrupted") return <Text color="yellow">  ⎋ {e.text}</Text>;
-  if (e.kind === "compactBoundary") return <Text color="magenta">  ──── ✻ {e.text} ────</Text>;
+  if (e.kind === "compactBoundary") return <Text color="magenta">  ──── {GLYPHS.asterisk} {e.text} ────</Text>;
   return <Text dimColor>  {linkifyFilePaths(e.text, process.cwd())}</Text>;
 }
 
