@@ -174,11 +174,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const allEntries = buildEntries(s.state, s.banner, repoRoot);
   const renderEntries = buildRenderGroups(allEntries);
   const newMessages = useNewMessages(scrollRef, allEntries.length);
-  let activeToolVerb: string | undefined;
-  for (let i = s.state.entries.length - 1; i >= 0; i--) {
-    const e = s.state.entries[i];
-    if (e?.kind === "tool" && (e as ToolEntry).ok === undefined) { activeToolVerb = (e as ToolEntry).verb; break; }
-  }
+  const activeToolVerb = s.state.entries.slice().reverse()
+    .find((e): e is ToolEntry => e.kind === "tool" && e.ok === undefined)?.verb;
   const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, cockpitData: s.cockpitData, newMessages, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (

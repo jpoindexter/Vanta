@@ -140,6 +140,18 @@ function ToolGroupRow(props: { members: ToolEntry[]; expanded: boolean }): React
   );
 }
 
+function ToolDetailMeta(props: { meta: string; showFoldHint: boolean; errorLine?: string }): ReactElement | null {
+  const { meta, showFoldHint, errorLine } = props;
+  if (!meta && !showFoldHint && !errorLine) return null;
+  return (
+    <>
+      {meta ? <Text dimColor> · {meta}</Text> : null}
+      {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
+      {errorLine ? <Text color="red"> — {errorLine}</Text> : null}
+    </>
+  );
+}
+
 function ToolDetailLine(props: { entry: ToolEntry; expanded: boolean }): ReactElement {
   const e = props.entry;
   const mark = e.ok ? "✓" : "✗";
@@ -150,9 +162,7 @@ function ToolDetailLine(props: { entry: ToolEntry; expanded: boolean }): ReactEl
     <Box flexDirection="column">
       <Box marginLeft={1}>
         <Text dimColor>  {mark} {e.verb}{detail}</Text>
-        {meta ? <Text dimColor> · {meta}</Text> : null}
-        {showFoldHint ? <Text dimColor> [^O output]</Text> : null}
-        {e.ok === false && e.errorLine ? <Text color="red"> — {e.errorLine}</Text> : null}
+        <ToolDetailMeta meta={meta} showFoldHint={showFoldHint} errorLine={e.errorLine} />
       </Box>
       {showOutput ? <ToolOutputBlock resultOutput={e.resultOutput!} extraLines={extraLines} /> : null}
       {showDiff ? <DiffView lines={e.diff!} /> : null}
