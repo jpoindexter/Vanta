@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { Overlay, OverlayRow } from "./overlay.js";
+import { Tabs } from "./tabs.js";
 import type { ProviderEntry } from "../providers/catalog.js";
 
 // The /model picker — UI for switching providers and models. A
@@ -93,7 +94,8 @@ function ModelStageView(props: {
   const { chosen, currentProviderId, currentModel, modelRows, modelCur, filter, keys, width } = props;
   const free = modelRows.length === 0 && filter.trim() !== "";
   return (
-    <Overlay title={`Select model — ${chosen.short}`} hint="step 2 / 2 · ⏎ choose · Esc back to providers" keys={keys} width={width}>
+    <Overlay title={`Select model — ${chosen.short}`} hint="⏎ choose · Esc back to providers" keys={keys} width={width}>
+      <Tabs tabs={["Provider", "Model"]} active={1} />
       {modelRows.map((m, i) => {
         const isCur = chosen.id === currentProviderId && m === currentModel;
         return <OverlayRow key={m} selected={i === modelCur} mark={isCur ? "*" : "·"} markColor={isCur ? "cyan" : "gray"} label={m} />;
@@ -118,7 +120,8 @@ function ProviderStageView(props: {
 }): ReactElement {
   const { provRows, provCur, currentProviderId, currentModel, filter, keys, width, hasKey } = props;
   return (
-    <Overlay title="Select provider" hint={`step 1 / 2 · current: ${currentModel}`} keys={keys} width={width}>
+    <Overlay title="Select provider" hint={`current: ${currentModel}`} keys={keys} width={width}>
+      <Tabs tabs={["Provider", "Model"]} active={0} />
       {provRows.map((p, i) => {
         const m = providerMark(p, p.id === currentProviderId, hasKey(p));
         return <OverlayRow key={p.id} selected={i === provCur} mark={m.mark} markColor={m.color} label={p.short} meta={m.meta} />;
