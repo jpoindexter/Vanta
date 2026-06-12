@@ -30,3 +30,6 @@ argo
 
 # Transient agent worktrees (embedded git repos — never commit)
 .claude/worktrees/
+
+# Agent scratch space (OCR/temp output from running Vanta in this repo)
+.vanta_tmp/

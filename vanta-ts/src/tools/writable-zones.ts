@@ -119,7 +119,7 @@ export function resolveReadablePath(
     return {
       ok: false,
       abs,
-      error: `refused: ${path} is outside the project and not in a readable zone (set VANTA_READABLE_DIRS to allow more)`,
+      error: `refused: ${path} is outside the project and not in a readable zone — ask the user to type /add-dir <dir> (adds it to this session, no relaunch) or set VANTA_READABLE_DIRS`,
     };
   }
   return { ok: true, abs };
@@ -146,7 +146,7 @@ export function resolveWritablePath(
     return {
       ok: false,
       abs,
-      error: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads, or set VANTA_WRITABLE_DIRS)`,
+      error: `refused: ${path} is outside the project and not in a writable zone (~/Desktop, ~/Downloads) — ask the user to type /add-dir <dir> (adds it to this session, no relaunch) or set VANTA_WRITABLE_DIRS`,
     };
   }
   return { ok: true, abs };
