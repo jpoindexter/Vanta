@@ -30,6 +30,20 @@ const NAMED_ALIASES: Record<string, NamedKey> = {
 
 const NAMED_KEYS = new Set(Object.keys(NAMED_TO_FIELD));
 
+function applyModifier(chord: Chord, mod: string, spec: string): void {
+  if (mod === "ctrl" || mod === "control") chord.ctrl = true;
+  else if (mod === "shift") chord.shift = true;
+  else if (mod === "meta" || mod === "alt" || mod === "option") chord.meta = true;
+  else throw new Error(`unknown modifier "${mod}" in chord "${spec}"`);
+}
+
+function resolveKeyToken(chord: Chord, keyToken: string, spec: string): void {
+  const named = NAMED_ALIASES[keyToken] ?? (NAMED_KEYS.has(keyToken) ? (keyToken as NamedKey) : undefined);
+  if (named) chord.named = named;
+  else if (keyToken.length === 1) chord.char = keyToken;
+  else throw new Error(`unknown key "${keyToken}" in chord "${spec}"`);
+}
+
 /**
  * Parse a chord string like "ctrl+o", "shift+tab", "shift+up", "ctrl+end".
  * Modifiers: ctrl, shift, meta|alt. The final token is the key — a named key or
@@ -40,16 +54,8 @@ export function parseChord(spec: string): Chord {
   if (tokens.length === 0) throw new Error(`empty keybinding chord: "${spec}"`);
   const chord: Chord = { ctrl: false, shift: false, meta: false };
   const keyToken = tokens.pop()!;
-  for (const mod of tokens) {
-    if (mod === "ctrl" || mod === "control") chord.ctrl = true;
-    else if (mod === "shift") chord.shift = true;
-    else if (mod === "meta" || mod === "alt" || mod === "option") chord.meta = true;
-    else throw new Error(`unknown modifier "${mod}" in chord "${spec}"`);
-  }
-  const named = NAMED_ALIASES[keyToken] ?? (NAMED_KEYS.has(keyToken) ? (keyToken as NamedKey) : undefined);
-  if (named) chord.named = named;
-  else if (keyToken.length === 1) chord.char = keyToken;
-  else throw new Error(`unknown key "${keyToken}" in chord "${spec}"`);
+  for (const mod of tokens) applyModifier(chord, mod, spec);
+  resolveKeyToken(chord, keyToken, spec);
   return chord;
 }
 

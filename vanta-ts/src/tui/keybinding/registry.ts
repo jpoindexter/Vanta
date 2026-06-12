@@ -1,63 +1,73 @@
 import { parseChord } from "./chord.js";
-import type { Binding, Chord, KeyContext } from "./types.js";
+import type { Binding, BindingHandler, Chord, KeyContext } from "./types.js";
 
 // The single source of truth for every keybinding. "registry" bindings are
 // fired through useKeybinding; "composer"/"builtin" bindings are handled
 // elsewhere but listed here so the help overlay reads from one table.
 
-const b = (
-  action: string,
-  chordSpecs: string[],
-  context: KeyContext,
-  description: string,
-  handledBy: Binding["handledBy"],
-): Binding => ({ action, chords: chordSpecs.map(parseChord), context, description, handledBy });
+// A spec row: [action, chord strings, description, handledBy?]. handledBy
+// defaults to the group's default (4th arg overrides it for one row).
+type SpecRow = [action: string, chords: string[], description: string, handledBy?: BindingHandler];
+type Group = [context: KeyContext, defaultHandler: BindingHandler, rows: SpecRow[]];
 
-export const DEFAULT_BINDINGS: readonly Binding[] = [
-  // ── global ──────────────────────────────────────────────────────────────
-  b("app.exit", ["ctrl+c"], "global", "exit Vanta", "registry"),
-  b("app.cycleApprovalMode", ["shift+tab"], "global", "cycle approval mode (review → accept-edits → auto)", "registry"),
-  b("help.toggle", ["?"], "global", "toggle this help (type ? then ⏎)", "builtin"),
-
-  // ── transcript ──────────────────────────────────────────────────────────
-  b("transcript.toggleExpand", ["ctrl+o"], "transcript", "fold / unfold tool detail", "registry"),
-  b("transcript.scrollUp", ["pageup"], "transcript", "scroll up half a page (fn+↑ on Mac)", "registry"),
-  b("transcript.scrollDown", ["pagedown"], "transcript", "scroll down half a page (fn+↓ on Mac)", "registry"),
-  b("transcript.scrollLineUp", ["shift+up"], "transcript", "scroll one line up", "registry"),
-  b("transcript.scrollLineDown", ["shift+down"], "transcript", "scroll one line down", "registry"),
-  b("transcript.scrollToBottom", ["ctrl+end"], "transcript", "jump to the latest output", "registry"),
-
-  // ── composer (readline — handled in composer.tsx) ─────────────────────────
-  b("composer.submit", ["return"], "composer", "submit message", "composer"),
-  b("composer.newline", ["shift+return"], "composer", "insert newline (multiline)", "composer"),
-  b("composer.cursorStart", ["ctrl+a"], "composer", "cursor to line start", "composer"),
-  b("composer.cursorEnd", ["ctrl+e"], "composer", "cursor to line end", "composer"),
-  b("composer.killToStart", ["ctrl+u"], "composer", "clear to line start", "composer"),
-  b("composer.killToEnd", ["ctrl+k"], "composer", "clear to line end", "composer"),
-  b("composer.killWordBack", ["ctrl+w"], "composer", "delete word before cursor", "composer"),
-  b("composer.deleteForward", ["ctrl+d"], "composer", "delete char at cursor", "composer"),
-  b("composer.yank", ["ctrl+y"], "composer", "yank (paste last kill)", "composer"),
-  b("composer.wordLeft", ["meta+b"], "composer", "cursor back one word", "composer"),
-  b("composer.wordRight", ["meta+f"], "composer", "cursor forward one word", "composer"),
-  b("composer.historyPrev", ["ctrl+p"], "composer", "previous sent message", "composer"),
-  b("composer.historyNext", ["ctrl+n"], "composer", "next sent message", "composer"),
-
-  // ── slash palette ─────────────────────────────────────────────────────────
-  b("palette.prev", ["up"], "palette", "previous command", "registry"),
-  b("palette.next", ["down"], "palette", "next command", "registry"),
-  b("palette.complete", ["tab"], "palette", "autocomplete the command", "registry"),
-
-  // ── @-file palette ─────────────────────────────────────────────────────────
-  b("atPalette.prev", ["up"], "at-palette", "previous file", "registry"),
-  b("atPalette.next", ["down"], "at-palette", "next file", "registry"),
-  b("atPalette.complete", ["tab"], "at-palette", "autocomplete the @file", "registry"),
-
-  // ── modal pickers (handled inside each picker) ─────────────────────────────
-  b("modal.prev", ["up"], "modal", "previous item", "builtin"),
-  b("modal.next", ["down"], "modal", "next item", "builtin"),
-  b("modal.confirm", ["return"], "modal", "select", "builtin"),
-  b("modal.cancel", ["escape"], "modal", "cancel", "builtin"),
+const GROUPS: Group[] = [
+  ["global", "registry", [
+    ["app.exit", ["ctrl+c"], "exit Vanta"],
+    ["app.cycleApprovalMode", ["shift+tab"], "cycle approval mode (review → accept-edits → auto)"],
+    ["help.toggle", ["?"], "toggle this help (type ? then ⏎)", "builtin"],
+  ]],
+  ["transcript", "registry", [
+    ["transcript.toggleExpand", ["ctrl+o"], "fold / unfold tool detail"],
+    ["transcript.scrollUp", ["pageup"], "scroll up half a page (fn+↑ on Mac)"],
+    ["transcript.scrollDown", ["pagedown"], "scroll down half a page (fn+↓ on Mac)"],
+    ["transcript.scrollLineUp", ["shift+up"], "scroll one line up"],
+    ["transcript.scrollLineDown", ["shift+down"], "scroll one line down"],
+    ["transcript.scrollToBottom", ["ctrl+end"], "jump to the latest output"],
+  ]],
+  ["composer", "composer", [
+    ["composer.submit", ["return"], "submit message"],
+    ["composer.newline", ["shift+return"], "insert newline (multiline)"],
+    ["composer.cursorStart", ["ctrl+a"], "cursor to line start"],
+    ["composer.cursorEnd", ["ctrl+e"], "cursor to line end"],
+    ["composer.killToStart", ["ctrl+u"], "clear to line start"],
+    ["composer.killToEnd", ["ctrl+k"], "clear to line end"],
+    ["composer.killWordBack", ["ctrl+w"], "delete word before cursor"],
+    ["composer.deleteForward", ["ctrl+d"], "delete char at cursor"],
+    ["composer.yank", ["ctrl+y"], "yank (paste last kill)"],
+    ["composer.wordLeft", ["meta+b"], "cursor back one word"],
+    ["composer.wordRight", ["meta+f"], "cursor forward one word"],
+    ["composer.historyPrev", ["ctrl+p"], "previous sent message"],
+    ["composer.historyNext", ["ctrl+n"], "next sent message"],
+  ]],
+  ["palette", "registry", [
+    ["palette.prev", ["up"], "previous command"],
+    ["palette.next", ["down"], "next command"],
+    ["palette.complete", ["tab"], "autocomplete the command"],
+  ]],
+  ["at-palette", "registry", [
+    ["atPalette.prev", ["up"], "previous file"],
+    ["atPalette.next", ["down"], "next file"],
+    ["atPalette.complete", ["tab"], "autocomplete the @file"],
+  ]],
+  ["modal", "builtin", [
+    ["modal.prev", ["up"], "previous item"],
+    ["modal.next", ["down"], "next item"],
+    ["modal.confirm", ["return"], "select"],
+    ["modal.cancel", ["escape"], "cancel"],
+  ]],
 ];
+
+function expandGroups(groups: Group[]): Binding[] {
+  const out: Binding[] = [];
+  for (const [context, defaultHandler, rows] of groups) {
+    for (const [action, chordSpecs, description, handledBy] of rows) {
+      out.push({ action, chords: chordSpecs.map(parseChord), context, description, handledBy: handledBy ?? defaultHandler });
+    }
+  }
+  return out;
+}
+
+export const DEFAULT_BINDINGS: readonly Binding[] = expandGroups(GROUPS);
 
 /** First binding declared for an action (the canonical one). */
 export function bindingFor(action: string): Binding | undefined {
