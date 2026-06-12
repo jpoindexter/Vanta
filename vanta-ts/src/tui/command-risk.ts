@@ -20,6 +20,7 @@ export const COMMAND_RISKS: Readonly<Record<string, RiskTier>> = {
   tools: "local",
   skills: "local",
   status: "local",
+  theme: "local",
   goals: "local",
   plan: "local",
   memory: "local",

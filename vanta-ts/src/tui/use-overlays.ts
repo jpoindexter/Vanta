@@ -13,7 +13,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import type { ModelSelection } from "./model-picker.js";
 import type { Action } from "./app.js";
 
-export type OverlayKind = null | "sessions" | "model" | "skills";
+export type OverlayKind = null | "sessions" | "model" | "skills" | "theme";
 
 type ModelApplyDeps = {
   convoRef: import("react").MutableRefObject<import("../agent.js").Conversation | null>;

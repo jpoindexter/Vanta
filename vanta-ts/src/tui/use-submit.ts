@@ -32,6 +32,7 @@ export type SubmitDeps = {
   openSessions: () => void;
   openModel: () => void;
   openSkills: () => void;
+  openTheme: () => void;
   exit: () => void;
   setInput: Dispatch<SetStateAction<string>>;
   setEditMode: Dispatch<SetStateAction<EditMode>>;
@@ -71,15 +72,23 @@ function resolveSlashLine(line: string, sel: number): string {
   return isPartial ? `/${(ms[Math.min(sel, ms.length - 1)] ?? ms[0])!.name}` : line;
 }
 
+// Bare-command openers: `/sessions`, `/model`, `/skills`, `/theme` with no arg
+// open their interactive picker instead of running the text handler.
+const PICKER_OPENERS: Readonly<Record<string, (d: SubmitDeps) => void>> = {
+  sessions: (d) => d.openSessions(),
+  model: (d) => d.openModel(),
+  skills: (d) => d.openSkills(),
+  theme: (d) => d.openTheme(),
+};
+
 function runSlash(line: string, d: SubmitDeps): void {
   if (!d.convoRef.current) return;
   const effective = resolveSlashLine(line, d.sel);
   const parts = effective.slice(1).split(/\s+/);
   const resolvedCmd = parts[0] ?? "";
   const resolvedArg = parts.slice(1).join(" ").trim();
-  if (resolvedCmd === "sessions" && !resolvedArg) return void d.openSessions();
-  if (resolvedCmd === "model" && !resolvedArg) return void d.openModel();
-  if (resolvedCmd === "skills" && !resolvedArg) return void d.openSkills();
+  const opener = PICKER_OPENERS[resolvedCmd];
+  if (opener && !resolvedArg) return void opener(d);
   void executeSlash(effective, d.buildCtx()).then((r) => applySlashResult(r, d));
 }
 

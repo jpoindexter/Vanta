@@ -21,6 +21,8 @@ import { type ApprovalMode } from "./approval-mode.js";
 import { activeAtRef, listRepoFiles } from "./at-context.js";
 import { HelpOverlay } from "./help-overlay.js";
 import { resolveThemeByName, currentThemeName, type VantaTheme } from "./theme.js";
+import { composerColors } from "./composer-colors.js";
+import { ChromeTheme } from "./theme-picker.js";
 import { getRiskTier, formatRiskLabel } from "./command-risk.js";
 import { fuzzyFilter } from "./fuzzy.js";
 import type { VimMode } from "./composer.js";
@@ -123,6 +125,8 @@ type ChromeProps = {
   estTokens: number;
   mode: ApprovalMode;
   theme: VantaTheme;
+  themeName: string;
+  setTheme: (name: string) => void;
   sessionList: ReturnType<typeof useOverlays>["sessionList"];
   replStateRef: React.MutableRefObject<ReplState>;
   chooseApproval: ReturnType<typeof useApproval>["chooseApproval"];
@@ -173,13 +177,6 @@ function ChromeModel(p: Pick<ChromeProps, "activeProvider" | "selectModel" | "se
   );
 }
 
-type ComposerColors = { borderColor: string; promptColor: string; placeholder: string; isHistoryActive: boolean };
-function composerColors(o: { theme: VantaTheme; editActive: boolean; busy: boolean; showPalette: boolean; showAtPalette: boolean }): ComposerColors {
-  if (o.editActive) return { borderColor: "yellow", promptColor: "yellow", placeholder: "editing response — ⏎ confirm, clear + ⏎ cancel", isHistoryActive: false };
-  if (o.busy) return { borderColor: "gray", promptColor: "gray", placeholder: "working…", isHistoryActive: false };
-  return { borderColor: o.theme.border, promptColor: o.theme.primary, placeholder: "Ask Vanta anything — /help for commands", isHistoryActive: !o.showPalette && !o.showAtPalette };
-}
-
 function ChromeComposer(p: ChromeProps): ReactElement {
   const { borderColor, promptColor, placeholder, isHistoryActive } = composerColors({ theme: p.theme, editActive: p.editMode.active, busy: p.state.busy, showPalette: p.showPalette, showAtPalette: p.showAtPalette });
   const elapsedMs = p.state.busy ? Date.now() : 0;
@@ -203,6 +200,7 @@ function BottomChrome(p: ChromeProps): ReactElement {
   if (p.overlay === "sessions") return <ChromeSessions sessionList={p.sessionList} replStateRef={p.replStateRef} resumeSession={p.resumeSession} newSession={p.newSession} removeSession={p.removeSession} setOverlay={p.setOverlay} w={p.w} />;
   if (p.overlay === "model") return <ChromeModel activeProvider={p.activeProvider} selectModel={p.selectModel} setOverlay={p.setOverlay} w={p.w} />;
   if (p.overlay === "skills") return <ChromeSkills skillList={p.skillList} invokeSkill={p.invokeSkill} setOverlay={p.setOverlay} w={p.w} />;
+  if (p.overlay === "theme") return <ChromeTheme themeName={p.themeName} setTheme={p.setTheme} setOverlay={p.setOverlay} w={p.w} />;
   return <ChromeComposer {...p} />;
 }
 
@@ -231,11 +229,12 @@ function useAppState({ setup, repoRoot }: { setup: RunSetup; repoRoot: string })
   const { pending, requestApproval, chooseApproval } = useApproval(dispatch, modeRef);
   const { overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills } =
     useOverlays({ convoRef, replStateRef, setup, repoRoot, activeProvider, setActiveProvider, dispatch });
+  const openTheme = (): void => setOverlay("theme");
   useEffect(() => { void gatherBannerData(setup, replStateRef.current.sessionId, process.env).then(setBanner); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { void listRepoFiles(repoRoot).then(setAtFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!state.busy) return; const id = setInterval(() => setFrame((f) => (f + 1) % SPINNER.length), 120); return () => clearInterval(id); }, [state.busy]);
   useEffect(() => { if (pending) notify({ title: "Vanta", message: "needs your approval" }); }, [pending]);
-  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, theme: resolveThemeByName(themeName), setTheme, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
+  return { state, dispatch, input, setInput, inputHistory, setInputHistory, atFiles, frame, sel, setSel, atSel, setAtSel, banner, activeProvider, setActiveProvider, convoRef, replStateRef, mode, setMode, modeRef, theme: resolveThemeByName(themeName), themeName, setTheme, openTheme, showHelp, setShowHelp, vimMode, setVimMode, editMode, setEditMode, pending, requestApproval, chooseApproval, overlay, setOverlay, sessionList, skillList, buildCtx, openSessions, resumeSession, newSession, removeSession, openModel, selectModel, openSkills };
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────
@@ -266,7 +265,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useScrollKeys(scrollRef);
   // A new turn re-pins the viewport to the bottom so the response is followed.
   useEffect(() => { if (s.state.busy) scrollRef.current?.scrollToBottom(); }, [s.state.busy]);
-  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider, setTheme: s.setTheme });
+  const submit = useSubmit({ convoRef: s.convoRef, replStateRef: s.replStateRef, setup, repoRoot, pending: s.pending, editMode: s.editMode, busy: s.state.busy, sel: s.sel, dispatch: s.dispatch, sendToAgent, buildCtx: s.buildCtx, openSessions: s.openSessions, openModel: s.openModel, openSkills: s.openSkills, openTheme: s.openTheme, exit: app.exit, setInput: s.setInput, setEditMode: s.setEditMode, setInputHistory: s.setInputHistory, setShowHelp: s.setShowHelp, setActiveProvider: s.setActiveProvider, setTheme: s.setTheme });
 
   const w = Math.max(24, cols - 2);
   const estTokens = estimateTokens(s.convoRef.current?.messages ?? [], s.state.streaming);
@@ -277,7 +276,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   // clipped to ONE line (hermes-banner pattern) — wrapped continuations are
   // what bled over the card border in nested columns.
   const allEntries: Entry[] = s.banner ? [{ kind: "banner", data: s.banner, root: repoRoot }, ...visibleEntries] : visibleEntries;
-  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
+  const chromeProps: ChromeProps = { pending: s.pending, overlay: s.overlay, state: s.state, editMode: s.editMode, showHelp: s.showHelp, showPalette: dv.showPalette, showAtPalette: dv.showAtPalette, matchesWithRisk: dv.matchesWithRisk, atMatches: dv.atMatches, sel: s.sel, atSel: s.atSel, input: s.input, inputHistory: s.inputHistory, vimMode: s.vimMode, hint: dv.hint, frame: s.frame, w, activeProvider: s.activeProvider, estTokens, mode: s.mode, theme: s.theme, themeName: s.themeName, setTheme: s.setTheme, sessionList: s.sessionList, skillList: s.skillList, invokeSkill, replStateRef: s.replStateRef, chooseApproval: s.chooseApproval, resumeSession: s.resumeSession, newSession: s.newSession, removeSession: s.removeSession, selectModel: s.selectModel, setOverlay: s.setOverlay, setInput: s.setInput, submit };
 
   return (
     <AlternateScreen mouseTracking="wheel">
