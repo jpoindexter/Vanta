@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { StatusChip } from "./status-chip.js";
+import { GLYPHS } from "./figures.js";
 import type { ApprovalMode } from "./approval-mode.js";
 
 // The live status bar — the bottom readout. Shows run state, active model, an estimated context fill (with a bar),
@@ -91,7 +92,7 @@ export function StatusBar(props: {
 }): ReactElement {
   const { bar, pct } = progressBar(props.estTokens, props.contextWindow);
   const color = props.primaryColor ?? "cyan";
-  const left = props.busy ? `${props.spinner} ${props.status}` : "● ready";
+  const left = props.busy ? `${props.spinner} ${props.status}` : `${GLYPHS.bullet} ready`;
   const dur = props.busy ? ` · ${formatDuration(props.elapsedMs)}` : "";
   // Context-limit warning: color the left % and, when high, REPLACE the right-side
   // hint with a /compact nudge — so the line never grows wider (an unexpected

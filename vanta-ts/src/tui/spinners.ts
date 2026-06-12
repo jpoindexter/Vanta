@@ -2,6 +2,8 @@
 // arrays). Each is a cycle of single-cell braille glyphs animated by the status
 // bar. Pick the active one with VANTA_SPINNER (defaults to "orbit").
 
+import { ASTERISK_FRAMES } from "./figures.js";
+
 export const SPINNERS = {
   // Classic 8-frame dot orbit.
   orbit: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
@@ -13,6 +15,8 @@ export const SPINNERS = {
   snake: ["⠁", "⠉", "⠊", "⠒", "⠢", "⠆", "⡄", "⡠", "⡀", "⢀", "⠠", "⠐", "⠈"],
   // A wave sweeping left to right.
   wave: ["⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"],
+  // Growing asterisk — ✶ ✸ ✻ ✸ ✶ ✻ (CC-style).
+  asterisk: [...ASTERISK_FRAMES],
 } as const;
 
 export type SpinnerName = keyof typeof SPINNERS;
