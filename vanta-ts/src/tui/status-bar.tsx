@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
+import { StatusChip } from "./status-chip.js";
 import type { ApprovalMode } from "./approval-mode.js";
 
 // The live status bar — the bottom readout. Shows run state, active model, an estimated context fill (with a bar),
@@ -104,14 +105,14 @@ export function StatusBar(props: {
   // spaces, so the line width is unchanged and the status bar can't wrap (an
   // unexpected wrap is the alt-screen ghost-frame class of bug — see ERRORS.md).
   const modeTag =
-    props.mode === "auto" ? <Text backgroundColor="yellow" color="black"> ⚡auto</Text> :
-    props.mode === "accept-edits" ? <Text backgroundColor="cyan" color="black"> ✎edits</Text> :
+    props.mode === "auto" ? <StatusChip label=" ⚡auto" bg="yellow" /> :
+    props.mode === "accept-edits" ? <StatusChip label=" ✎edits" bg="cyan" /> :
     null;
   const vimTag = props.vimMode ? <Text color={color}> [{props.vimMode === "normal" ? "N" : "I"}]</Text> : null;
   return (
     <Box width={props.width} justifyContent="space-between">
       <Text dimColor>
-        <Text backgroundColor={props.busy ? "yellow" : "green"} color="black">{left}</Text>
+        <StatusChip label={left} bg={props.busy ? "yellow" : "green"} />
         {` · ${props.model} · ~${formatCount(props.estTokens)}/${formatCount(props.contextWindow)} `}
         <Text color={color}>{bar}</Text>
         {" "}
