@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveReadablePath } from "./writable-zones.js";
+import { resolveReadablePathAsk } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 
 const Args = z.object({
@@ -61,7 +61,7 @@ export const describeImageTool: Tool = {
     }
     const { path, prompt } = parsed.data;
     // Shared policy: expand ~ then allow in-root OR a readable zone (e.g. ~/Desktop).
-    const r = resolveReadablePath(path, ctx.root, process.env);
+    const r = await resolveReadablePathAsk(path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
 

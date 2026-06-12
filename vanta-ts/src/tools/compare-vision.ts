@@ -3,7 +3,7 @@ import { basename } from "node:path";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import type { LLMProvider } from "../providers/interface.js";
-import { resolveReadablePath } from "./writable-zones.js";
+import { resolveReadablePathAsk } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 import { mimeForImage } from "./describe-image.js";
 import { readRegion } from "../brain/brain.js";
@@ -111,7 +111,7 @@ export const compareVisionTool: Tool = {
     const resolved: Array<{ label: string; mime: string; dataBase64: string }> = [];
     for (const p of paths) {
       // Shared read-path policy (expand ~, in-root or readable zone). See BUG-IMAGE-DESKTOP-PATH.
-      const r = resolveReadablePath(p, ctx.root, process.env);
+      const r = await resolveReadablePathAsk(p, ctx.root, process.env, ctx.requestApproval);
       if (!r.ok) return { ok: false, output: r.error };
       const abs = r.abs;
       const mime = mimeForImage(abs);

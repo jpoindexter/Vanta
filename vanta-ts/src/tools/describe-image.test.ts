@@ -5,14 +5,20 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { describeImageTool, mimeForImage } from "./describe-image.js";
 import type { ToolContext } from "./types.js";
 
-// requestApproval throws if invoked — describe_image never asks for approval,
-// so any call indicates a logic error.
+// requestApproval throws if invoked — these tests stay in-zone, so any call
+// indicates a logic error. Out-of-zone tests pass an explicit denying ask.
 const makeCtx = (root: string): ToolContext => ({
   root,
   safety: {} as ToolContext["safety"],
   requestApproval: async () => {
     throw new Error("requestApproval must not be called in these tests");
   },
+});
+
+const denyCtx = (root: string): ToolContext => ({
+  root,
+  safety: {} as ToolContext["safety"],
+  requestApproval: async () => false,
 });
 
 describe("describeImageTool", () => {
@@ -38,11 +44,11 @@ describe("describeImageTool", () => {
       else process.env.VANTA_READABLE_DIRS = saved;
     });
 
-    it("refuses an image outside the project and outside every readable zone", async () => {
+    it("refuses an out-of-zone image when the user denies the scope ask", async () => {
       process.env.VANTA_READABLE_DIRS = "/tmp/vanta-allowed-zone";
       const res = await describeImageTool.execute(
         { path: "/var/somewhere/else/x.png" },
-        makeCtx("/tmp/vanta-scope"),
+        denyCtx("/tmp/vanta-scope"),
       );
       expect(res.ok).toBe(false);
       expect(res.output).toContain("readable zone");

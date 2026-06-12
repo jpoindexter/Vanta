@@ -142,11 +142,11 @@ describe("compareVisionTool.execute", () => {
     expect(res.output).toContain("compare_vision needs");
   });
 
-  it("returns ok:false for an image outside the project and every readable zone", async () => {
+  it("returns ok:false for an out-of-zone image when the user denies the scope ask", async () => {
     process.env.VANTA_READABLE_DIRS = "/tmp/vanta-allowed-zone";
     const res = await compareVisionTool.execute(
       { images: ["/var/somewhere/else/escape.png"] },
-      makeCtx(dir),
+      { ...makeCtx(dir), requestApproval: async () => false },
     );
     expect(res.ok).toBe(false);
     expect(res.output).toContain("readable zone");

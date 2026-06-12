@@ -125,6 +125,34 @@ export function resolveReadablePath(
   return { ok: true, abs };
 }
 
+type PathResolution = { ok: true; abs: string } | { ok: false; abs: string; error: string };
+type AskFn = (action: string, reason: string, toolName?: string) => Promise<boolean>;
+
+/** Out-of-zone but not dangerous → ask the human; approval adds the dir to the
+ *  session (same as /add-dir) and the access proceeds. Dangerous paths never ask. */
+async function resolveWithAsk(r: PathResolution, kind: "read" | "write", env: NodeJS.ProcessEnv, ask: AskFn): Promise<PathResolution> {
+  if (r.ok || isDangerousPath(r.abs).dangerous) return r;
+  const dir = dirname(r.abs);
+  const approved = await ask(
+    `${kind} ${r.abs}`,
+    `outside project scope — approving adds ${dir} to this session`,
+    kind === "read" ? "read_file" : "write_file",
+  );
+  if (!approved) return r;
+  addSessionDir(dir, env);
+  return { ok: true, abs: r.abs };
+}
+
+/** resolveReadablePath, but out-of-zone asks the human instead of refusing. */
+export async function resolveReadablePathAsk(rawPath: string, root: string, env: NodeJS.ProcessEnv, ask: AskFn): Promise<PathResolution> {
+  return resolveWithAsk(resolveReadablePath(rawPath, root, env), "read", env, ask);
+}
+
+/** resolveWritablePath, but out-of-zone asks the human instead of refusing. */
+export async function resolveWritablePathAsk(rawPath: string, root: string, env: NodeJS.ProcessEnv, ask: AskFn): Promise<PathResolution> {
+  return resolveWithAsk(resolveWritablePath(rawPath, root, env), "write", env, ask);
+}
+
 /**
  * The write-path policy shared by write_file / edit_file: dangerous-path floor
  * first (never overridable), then expand ~ and require in-root OR a writable

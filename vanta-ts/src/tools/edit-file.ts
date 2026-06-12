@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveWritablePath } from "./writable-zones.js";
+import { resolveWritablePathAsk } from "./writable-zones.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 
@@ -93,7 +93,7 @@ export const editFileTool: Tool = {
     }
     const { old_string, new_string, replace_all = false } = parsed.data;
     const path = parsed.data.path;
-    const r = resolveWritablePath(path, ctx.root, process.env);
+    const r = await resolveWritablePathAsk(path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
 

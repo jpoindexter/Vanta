@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
-import { resolveReadablePath } from "./writable-zones.js";
+import { resolveReadablePathAsk } from "./writable-zones.js";
 
 const Args = z.object({ path: z.string().min(1) });
 
@@ -31,7 +31,7 @@ export const readFileTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'read_file needs a "path" string' };
     }
-    const r = resolveReadablePath(parsed.data.path, ctx.root, process.env);
+    const r = await resolveReadablePathAsk(parsed.data.path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     try {
       const content = await readFile(r.abs, "utf8");

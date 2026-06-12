@@ -132,17 +132,42 @@ describe("read_file", () => {
     }
   });
 
-  it("refuses a path outside the project and outside every readable zone", async () => {
+  it("refuses an out-of-zone path when the user denies the scope ask", async () => {
     const prev = process.env.VANTA_READABLE_DIRS;
     process.env.VANTA_READABLE_DIRS = "/some/allowed/zone";
     try {
       // A path that is out-of-zone but NOT on the dangerous blocklist.
-      const res = await readFileTool.execute({ path: "/var/lib/elsewhere/x.txt" }, ctx());
+      const res = await readFileTool.execute(
+        { path: "/var/lib/elsewhere/x.txt" },
+        ctx({ requestApproval: async () => false }),
+      );
       expect(res.ok).toBe(false);
       expect(res.output).toContain("not in a readable zone");
     } finally {
       if (prev === undefined) delete process.env.VANTA_READABLE_DIRS;
       else process.env.VANTA_READABLE_DIRS = prev;
+    }
+  });
+
+  it("reads an out-of-zone path when the user approves the scope ask (adds session dir)", async () => {
+    const zone = await mkdtemp(join(tmpdir(), "vanta-askzone-"));
+    const prevR = process.env.VANTA_READABLE_DIRS;
+    const prevE = process.env.VANTA_EXTRA_DIRS;
+    process.env.VANTA_READABLE_DIRS = "/some/allowed/zone";
+    delete process.env.VANTA_EXTRA_DIRS;
+    try {
+      const target = join(zone, "approved.txt");
+      await writeFile(target, "let in");
+      const res = await readFileTool.execute({ path: target }, ctx({ requestApproval: async () => true }));
+      expect(res.ok).toBe(true);
+      expect(res.output).toBe("let in");
+      expect(process.env.VANTA_EXTRA_DIRS).toContain(zone);
+    } finally {
+      if (prevR === undefined) delete process.env.VANTA_READABLE_DIRS;
+      else process.env.VANTA_READABLE_DIRS = prevR;
+      if (prevE === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = prevE;
+      await rm(zone, { recursive: true, force: true });
     }
   });
 });
@@ -218,14 +243,14 @@ describe("write_file", () => {
     }
   });
 
-  it("refuses a path outside the project and outside every writable zone", async () => {
+  it("refuses an out-of-zone path when the user denies the scope ask", async () => {
     const outside = await mkdtemp(join(tmpdir(), "vanta-outside-"));
     const prev = process.env.VANTA_WRITABLE_DIRS;
     process.env.VANTA_WRITABLE_DIRS = "/some/allowed/zone";
     try {
       const res = await writeFileTool.execute(
         { path: join(outside, "x.txt"), content: "nope" },
-        ctx(),
+        ctx({ requestApproval: async () => false }),
       );
       expect(res.ok).toBe(false);
       expect(res.output).toContain("not in a writable zone");
