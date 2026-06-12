@@ -146,7 +146,7 @@
       "id": "TUI-DESIGN-LANGUAGE",
       "track": "Operator",
       "title": "TUI design language — lipgloss-grade layout primitives (tabs, dialogs, panels, status chips)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Visual quality bar set by docs/design-refs/lipgloss-layout-bar.png (charmbracelet/lipgloss demo): real tab rows, centered modal dialogs with focus-styled buttons, side-by-side framed list panels, colored status-bar chips (STATUS/encoding/badge), adaptive color ramps. Vanta already has Overlay/OverlayRow + theme.ts; this card grows them into a small primitive set (Tabs, Dialog, Panel, StatusChip) used by the existing overlays (skills/sessions/model pickers, approval prompt, status bar) so every surface shares one visual system under the vendored fork. No new deps — pure Box/Text composition.",
       "done": "Pickers, approval prompt, and the status bar render through shared Tab/Dialog/Panel/StatusChip primitives; a /theme switch restyles all of them coherently; screenshots match the reference's structure.",
@@ -155,7 +155,7 @@
       "effort": "medium",
       "lens": "tui",
       "updated": "2026-06-12",
-      "notes": "Partial 2026-06-12 (commits 78a9b94, f4db2ed, 19b152d): the three target surfaces now share the design-demo treatment from docs/design-refs/tui-demo.html — pickers/approval render the full-width themed selection bar (Overlay/OverlayRow, accent resolved from VANTA_THEME, not hard-coded cyan); the approval prompt surfaces the gated command + a 'why' line as the kernel ASK verdict box; the status bar shows run-state and approval-mode chips. Remaining for full ship: extract named Tab/Dialog/Panel/StatusChip components, a live /theme switch command (currently env-driven), and the Tabs row."
+      "notes": "Shipped 2026-06-12 (commits 78a9b94, f4db2ed, 19b152d, 13ede05, f1f4034, a266283), design language from docs/design-refs/tui-demo.html applied to the live TUI: (1) pickers + approval render the full-width themed selection bar via shared Overlay/OverlayRow, accent resolved from the active theme not hard-coded cyan; (2) the approval prompt is the kernel ASK verdict box — gated command on its own line + a 'why' line; (3) StatusChip primitive (status-chip.tsx) drives the status bar's run-state + mode chips; (4) Tabs primitive (tabs.tsx) drives the model wizard's Provider · Model step row; (5) /theme is a real live switch (was a stub) — composer + status bar restyle instantly, modal pickers re-resolve their accent on next open. Design note: Panel and Dialog are both realized by the one shared Overlay (one frame, two roles) rather than two near-duplicate components — leaner per Rule-of-3. A persistent multi-pane tab SURFACE (vs the wizard step row) belongs to TUI-V2's mission-control layout, not this primitive-kit card."
     },
     {
       "id": "TUI-V2",
