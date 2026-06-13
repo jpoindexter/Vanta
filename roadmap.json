@@ -10168,10 +10168,10 @@
       "lens": "infra",
       "updated": "2026-06-14",
       "id": "WANT-CAPABILITY-HEALTH",
-      "status": "next",
+      "status": "shipped",
       "title": "Capability health view — what works, what's missing, the exact fix",
       "summary": "vanta-wanted-abilities.md §13 (first tractable slice): a /health view listing each capability (gmail/calendar/drive, web search, vision, browser, kernel, provider key) with ✓ ready / ✗ missing + the EXACT enabling step (e.g. 'run vanta auth google'). Directly fixes the friction of hitting 'not authorized' walls mid-task. Builds on /doctor + /status.",
-      "done": "A /health command shows every capability's ready/missing status + the one command to enable each missing one."
+      "done": "/health shows each capability (kernel, model+key, web search, gmail/calendar/drive, vision, browser, mcp) with ✓ ready / ✗ missing + the exact enabling command. Pure formatHealth + per-cap checks, tested."
     }
   ]
 }
