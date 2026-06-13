@@ -10000,10 +10000,10 @@
       "lens": "agent-loop",
       "updated": "2026-06-14",
       "id": "THINK-ULTRATHINK",
-      "status": "next",
+      "status": "shipped",
       "title": "Ultrathink — extended-reasoning / thinking-budget mode",
       "summary": "Give Vanta a deliberate deep-thinking mode (cf. extended thinking): a larger reasoning budget for hard problems, surfaced as a mode/flag (/ultrathink or an effort level) that raises the thinking allowance + prompts for a plan-before-act pass on complex tasks. Vanta has onThinking + the mode cycle; add an explicit high-effort thinking mode.",
-      "done": "A deep-thinking mode raises the reasoning budget + forces a plan pass on complex tasks; toggled by command/effort level."
+      "done": "/ultrathink <task> — wraps the task with a deep-reasoning methodology (restate goal+criteria → plan+tradeoffs → edge cases+alternative → act+verify) and re-runs it. Shipped as a slash command (think-cmd.ts)."
     },
     {
       "track": "Harness",
@@ -10014,10 +10014,10 @@
       "lens": "coding",
       "updated": "2026-06-14",
       "id": "THINK-ULTRACODE",
-      "status": "next",
+      "status": "shipped",
       "title": "Ultracode — multi-agent coding orchestration",
       "summary": "A deep coding mode that fans work across subagents deterministically (decompose → parallel build → adversarial verify → synthesize), like a workflow harness. Vanta has delegate/swarm/loops/compose_workflow; package them into an /ultracode flow that orchestrates a multi-agent coding push with an eval gate.",
-      "done": "An /ultracode flow decomposes a coding task, runs parallel subagents, verifies adversarially, and synthesizes — one command."
+      "done": "/ultracode <task> — injects a multi-agent coding orchestration directive (decompose → delegate/swarm parallel subagents → adversarial verify → synthesize + full suite). Shipped as a slash command."
     },
     {
       "track": "Harness",
@@ -10028,10 +10028,10 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "THINK-DEEP-RESEARCH",
-      "status": "next",
+      "status": "shipped",
       "title": "Deep-research harness — fan-out search, verify, synthesize",
       "summary": "A research mode: fan-out web searches across angles, fetch + read sources, adversarially verify claims (default-skeptic), synthesize a cited report. Vanta has web_search/web_fetch + swarm + the keyless providers; package into a /deep-research flow with a completeness critic. Mirrors the deep-research pattern.",
-      "done": "A /deep-research flow fans out searches, verifies claims with skeptic agents, and returns a cited synthesis."
+      "done": "/deep-research <question> — injects a fan-out research methodology (decompose → multi web_search/web_fetch → skeptic-verify with a 2nd source → cited synthesis). Shipped as a slash command."
     }
   ]
 }
