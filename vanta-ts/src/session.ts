@@ -139,6 +139,10 @@ export async function prepareRun(
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
+    // A goal carried from a prior session starts PAUSED — a fresh launch must not
+    // silently resume last session's task (/goal resume to pick it up). Opt out
+    // with VANTA_GOAL_RESUME=auto to keep the old always-active behavior.
+    goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved

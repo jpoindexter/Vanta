@@ -36,3 +36,35 @@ describe("GOAL-ACTION auto-fire in /goal", () => {
     expect(r.resend).toBeUndefined();
   });
 });
+
+describe("/goal resume + drop", () => {
+  function ctxFor(goals: { id: number; text: string; status: string }[], completed: number[]): ReplCtx {
+    return {
+      setup: { safety: {
+        getGoals: async () => goals,
+        completeGoal: async (id: number) => { completed.push(id); return true; },
+      } } as unknown as ReplCtx["setup"],
+      convo: { messages: [{ role: "system", content: "sys" }] } as unknown as ReplCtx["convo"],
+      dataDir: "/tmp/x/.vanta", env: {},
+    } as unknown as ReplCtx;
+  }
+
+  it("resume re-injects the carried goal into the live system prompt", async () => {
+    const ctx = ctxFor([{ id: 1, text: "Add NVIDIA NIM", status: "active" }], []);
+    const r = await HANDLERS.goal!("resume", ctx);
+    expect(r.output).toContain("resumed goal: Add NVIDIA NIM");
+    expect((ctx.convo.messages[0] as { content: string }).content).toContain("Resumed standing goal");
+  });
+
+  it("resume with no carried goal is a no-op message", async () => {
+    const r = await HANDLERS.goal!("resume", ctxFor([], []));
+    expect(r.output).toContain("no carried goal");
+  });
+
+  it("drop completes all active goals (alias of clear)", async () => {
+    const completed: number[] = [];
+    const r = await HANDLERS.goal!("drop", ctxFor([{ id: 1, text: "X", status: "active" }, { id: 2, text: "Y", status: "active" }], completed));
+    expect(r.output).toContain("dropped 2");
+    expect(completed).toEqual([1, 2]);
+  });
+});

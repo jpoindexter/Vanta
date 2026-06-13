@@ -13,7 +13,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "skills", desc: "list learned + installed skills" },
   { name: "status", desc: "kernel, provider, keys, store health" },
   { name: "goals", desc: "active goals from the kernel" },
-  { name: "goal", arg: "<text|status|clear|done N>", desc: "set / manage a standing goal Vanta works toward" },
+  { name: "goal", arg: "<text|status|resume|clear|done N>", desc: "set / resume / drop a standing goal (a carried goal starts paused)" },
   { name: "plan", desc: "show the agent's current task plan (todo list)" },
   { name: "memory", arg: "<text>", desc: "tell Vanta something to remember (→ its brain)" },
   { name: "compress", desc: "compact the conversation context now" },

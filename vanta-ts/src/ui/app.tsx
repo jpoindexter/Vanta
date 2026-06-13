@@ -54,7 +54,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
-  const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started);
+  const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started, dispatch);
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
@@ -188,11 +188,19 @@ function useMcpPresent(): boolean {
   return present;
 }
 
-/** The footer's live status: active goal + MCP presence + a 1 Hz session timer. */
-function useSessionStatus(safety: RunSetup["safety"], busy: boolean, startedIso: string): { goal: string | null; mcp: boolean; elapsed: string } {
+/** The footer's live status: active goal + MCP presence + a 1 Hz session timer.
+ * Also surfaces a one-time carried-goal notice (a prior goal starts paused). */
+function useSessionStatus(safety: RunSetup["safety"], busy: boolean, startedIso: string, dispatch: Dispatch<Action>): { goal: string | null; mcp: boolean; elapsed: string } {
   const goal = useActiveGoal(safety, busy);
   const mcp = useMcpPresent();
   useClock();
+  useEffect(() => {
+    if (process.env.VANTA_GOAL_RESUME === "auto") return;
+    void safety.getGoals().then((gs) => {
+      const g = gs.find((x) => x.status === "active");
+      if (g) dispatch({ t: "note", text: `↻ Carried goal (paused): ${g.text.slice(0, 78)} — /goal resume to pick up · /goal clear to drop` });
+    }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return { goal, mcp, elapsed: formatElapsed(Date.now() - Date.parse(startedIso)) };
 }
 

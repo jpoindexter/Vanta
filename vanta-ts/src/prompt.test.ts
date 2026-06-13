@@ -43,6 +43,20 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Never declare a task complete without verified");
   });
 
+  it("frames a carried goal as PAUSED when goalsPaused, active otherwise", async () => {
+    const goals: Goal[] = [{ id: 1, text: "Ship Vanta v0", status: "active" }];
+    const base = { root: "/tmp/vanta", soulPath: "/nonexistent/SOUL.md", goals, tools, now: "2026-06-02T00:00:00Z" };
+
+    const paused = await buildSystemPrompt({ ...base, goalsPaused: true });
+    expect(paused).toContain("Ship Vanta v0"); // goal still visible
+    expect(paused).toContain("PAUSED");
+    expect(paused).toContain("/goal resume");
+
+    const active = await buildSystemPrompt({ ...base, goalsPaused: false });
+    expect(active).toContain("Active goals:");
+    expect(active).not.toContain("PAUSED");
+  });
+
   it("carries the operator voice rule and the hardened done-claim discipline (BEHAVIOR-VOICE)", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",

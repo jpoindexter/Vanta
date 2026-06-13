@@ -9792,6 +9792,20 @@
       "title": "Harness-thickness future-proofing audit — prune scaffolding as models improve",
       "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) decision 7 + co-evolution: scaffolding should be removed as the building completes; harness complexity should DECREASE as models improve (Manus rebuilt 5x removing complexity; Anthropic deletes planning steps as models internalize them). Future-proofing test: performance scales with stronger models WITHOUT added harness complexity. For Vanta: a recurring audit that prunes prompt scaffolding / planning steps a stronger model no longer needs — not only adds them.",
       "done": "A periodic audit identifies harness scaffolding (prompt rules, planning steps) a current model no longer needs and removes it; complexity trends down, not up."
+    },
+    {
+      "id": "VANTA-PAUSED-GOAL-RESUME",
+      "track": "Operator",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-13",
+      "status": "shipped",
+      "title": "Carried goal starts paused — pick up or drop on launch",
+      "summary": "A goal from a prior session no longer silently re-runs on a fresh launch (the weird everytime-its-an-old-task feeling, esp. when testing). The carried goal is framed PAUSED in the system prompt (prompt.ts goalsPaused), surfaced as a one-time TUI notice, and activated only by /goal resume (re-injects) or referenced by the user. /goal clear|drop drops it. VANTA_GOAL_RESUME=auto restores the old always-active behavior. Realizes part of HARNESS-RALPH-LOOP (durable-state continuity you opt into).",
+      "done": "Fresh launch does not auto-run last session goal; /goal resume activates, /goal clear drops; prompt framing + resume/drop tested; 149 tests green."
     }
   ]
 }

@@ -16,26 +16,48 @@ async function setNewGoal(arg: string, ctx: ReplCtx): Promise<SlashResult> {
   return { output: `  ◎ goal set: ${arg}` };
 }
 
-// `/goal` — show / set / clear / complete a standing goal. Setting a goal also
-// patches the live system prompt; a VAGUE goal auto-fires GOAL-ACTION (the /next
-// single-micro-step prompt) so a concrete next action surfaces without /next.
+type Safety = ReplCtx["setup"]["safety"];
+const activeGoals = async (safety: Safety): Promise<{ id: number; text: string }[]> =>
+  (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
+
+async function goalStatus(safety: Safety): Promise<SlashResult> {
+  const active = await activeGoals(safety);
+  return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals — /goal <text> to set one)") };
+}
+
+/** Activate a goal carried (paused) from a prior session: re-inject it into the
+ * live prompt as the directive. Counterpart to the paused-on-launch default. */
+async function goalResume(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
+  const active = await activeGoals(safety);
+  if (!active.length) return { output: "  (no carried goal to resume — /goal <text> to set one)" };
+  const sys = ctx.convo.messages[0];
+  const text = active.map((g) => g.text).join("; ");
+  if (sys && sys.role === "system") sys.content += `\n\nResumed standing goal — work toward it now: ${text}`;
+  return { output: `  ▶ resumed goal: ${text}` };
+}
+
+async function goalDrop(safety: Safety): Promise<SlashResult> {
+  const active = await activeGoals(safety);
+  for (const g of active) await safety.completeGoal(g.id);
+  return { output: `  · dropped ${active.length} active goal(s) — starting fresh` };
+}
+
+async function goalDone(arg: string, safety: Safety): Promise<SlashResult> {
+  const id = Number(arg.split(/\s+/)[1]);
+  if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
+  const ok = await safety.completeGoal(id);
+  return { output: ok ? `  ✓ completed goal ${id}` : `  could not complete goal ${id}` };
+}
+
+// `/goal` — show / set / resume / drop / complete a standing goal. A goal carried
+// from a prior session starts PAUSED (resume to activate). Setting a goal patches
+// the live prompt; a VAGUE goal auto-fires GOAL-ACTION (the /next micro-step).
 export const goal: SlashHandler = async (arg, ctx) => {
   const safety = ctx.setup.safety;
   const sub = arg.split(/\s+/)[0]?.toLowerCase() ?? "";
-  if (!arg || sub === "status") {
-    const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
-    return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals — /goal <text> to set one)") };
-  }
-  if (sub === "clear") {
-    const active = (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
-    for (const g of active) await safety.completeGoal(g.id);
-    return { output: `  · cleared ${active.length} active goal(s)` };
-  }
-  if (sub === "done") {
-    const id = Number(arg.split(/\s+/)[1]);
-    if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
-    const ok = await safety.completeGoal(id);
-    return { output: ok ? `  ✓ completed goal ${id}` : `  could not complete goal ${id}` };
-  }
+  if (!arg || sub === "status") return goalStatus(safety);
+  if (sub === "resume") return goalResume(safety, ctx);
+  if (sub === "clear" || sub === "drop") return goalDrop(safety);
+  if (sub === "done") return goalDone(arg, safety);
   return setNewGoal(arg, ctx); // anything else is new goal text
 };
