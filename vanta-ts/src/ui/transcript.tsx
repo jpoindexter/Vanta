@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
+import { Markdown } from "./markdown.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 
@@ -16,8 +17,9 @@ const THINK_MAX = 3;
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
   const t = useTheme();
-  if (e.kind === "user") return <Text color={t.userMarker}>❯ {e.text}</Text>;
-  if (e.kind === "assistant") return <Box><Text color={t.marker}>⏺ </Text><Text color={t.primary}>{e.text}</Text></Box>;
+  // A blank line above a user turn separates turns visually (Claude/Cursor rhythm).
+  if (e.kind === "user") return <Box marginTop={1}><Text color={t.userMarker} bold>❯ </Text><Text color={t.userMarker}>{e.text}</Text></Box>;
+  if (e.kind === "assistant") return <Box><Text color={t.marker}>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <Text dimColor={t.dimText}>{e.text}</Text>;
   return <ToolView entry={e} />;

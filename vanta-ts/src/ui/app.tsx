@@ -20,6 +20,7 @@ import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme
 import { StreamPreview } from "./stream-view.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
+import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";
 import type { OverlayRow } from "./overlays.js";
@@ -67,7 +68,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     }
   });
 
-  const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries);
+  const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
 
   return (
     <ThemeProvider theme={theme}>
@@ -76,9 +77,20 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} />}
+        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} /> : null}
       </Box>
     </ThemeProvider>
+  );
+}
+
+/** Status line + the dim prefix-affordance line beneath it. */
+function Footer(props: { model: string; ctxPct: number; turns: number; busy: boolean; queued: number }): ReactElement {
+  const t = useTheme();
+  return (
+    <Box flexDirection="column">
+      <StatusBar model={props.model} ctxPct={props.ctxPct} turns={props.turns} busy={props.busy} queued={props.queued} />
+      <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
+    </Box>
   );
 }
 
@@ -90,9 +102,9 @@ function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Actio
 }
 
 /** Banner + committed entries as <Static> items (banner scrolls into history too). */
-function buildStaticItems(model: string, repoRoot: string, entries: Entry[]): Array<{ key: string; node: ReactElement }> {
+function buildStaticItems(model: string, repoRoot: string, entries: Entry[], caps: { tools: number; cmds: number }): Array<{ key: string; node: ReactElement }> {
   return [
-    { key: "banner", node: <Banner model={model} cwd={repoRoot} kernel="127.0.0.1:7788" /> },
+    { key: "banner", node: <Banner model={model} cwd={repoRoot} kernel="127.0.0.1:7788" tools={caps.tools} cmds={caps.cmds} /> },
     ...entries.map((e, i) => ({ key: `e${i}`, node: <EntryView entry={e} /> })),
   ];
 }
@@ -134,10 +146,11 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
   const active = activeTools[activeTools.length - 1];
   const { frame, verb } = busyLabel(tick);
   const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
+  const secs = Math.round(tick * 0.15); // tick advances ~every 150ms
   return (
     <Box flexDirection="column">
       {streaming ? <StreamPreview text={streaming} /> : null}
-      {busy && !streaming ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}…</Text></Text> : null}
+      {busy && !streaming ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
     </Box>
   );
 }

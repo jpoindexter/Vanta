@@ -15,12 +15,13 @@ import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
 describe("Banner", () => {
   it("renders the name, model, and kernel line", async () => {
-    const inst = renderUi(h(Banner, { model: "claude-sonnet-4-6", cwd: "~/dev/site", kernel: "127.0.0.1:7788" }));
+    const inst = renderUi(h(Banner, { model: "claude-sonnet-4-6", cwd: "~/dev/site", kernel: "127.0.0.1:7788", tools: 49, cmds: 41 }));
     await tick();
     const out = inst.lastFrame();
     expect(out).toContain("Vanta");
     expect(out).toContain("claude-sonnet-4-6");
     expect(out).toContain("127.0.0.1:7788");
+    expect(out).toContain("49 tools");
     inst.unmount();
   });
 });
