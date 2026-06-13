@@ -9,6 +9,7 @@ import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
 import { TodoPanel } from "./todo-panel.js";
+import { StatusBar } from "./status-bar.js";
 import { matchSlash } from "./slash.js";
 import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
@@ -141,6 +142,28 @@ describe("inline overlays", () => {
     const inst = renderUi(h(TodoPanel, { todos: [] }));
     await tick();
     expect(inst.lastFrame().trim()).toBe("");
+    inst.unmount();
+  });
+});
+
+describe("StatusBar", () => {
+  it("shows model, context fill, turns, and the interrupt hint when busy", async () => {
+    const inst = renderUi(h(StatusBar, { model: "claude-sonnet-4-6", ctxPct: 12, turns: 3, busy: true }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("claude-sonnet-4-6");
+    expect(out).toContain("ctx 12%");
+    expect(out).toContain("3 turns");
+    expect(out).toContain("esc to interrupt");
+    inst.unmount();
+  });
+
+  it("shows the shortcuts hint when idle", async () => {
+    const inst = renderUi(h(StatusBar, { model: "gpt-4o", ctxPct: 0, turns: 1, busy: false }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("1 turn");
+    expect(out).toContain("? shortcuts");
     inst.unmount();
   });
 });

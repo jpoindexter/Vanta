@@ -13,8 +13,12 @@ import { useOverlay, type OverlayView } from "./use-overlay.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
+import { StatusBar } from "./status-bar.js";
+import { useBusyTick } from "./use-busy-tick.js";
+import { busyLabel, contextPct } from "./busy.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
+import { estimateTokens } from "../tui/status-bar.js";
 import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
@@ -36,8 +40,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash });
   const onSubmit = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+  const tick = useBusyTick(state.busy);
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+
+  const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
+  const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
 
   useInput((input, key) => {
     if (key.ctrl && input === "c") {
@@ -61,9 +69,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   return (
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-      <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} />
+      <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
       {overlay ? null : <TodoPanel todos={state.todos} />}
       <BottomRegion overlay={overlay} pending={pending} files={files} onSubmit={onSubmit} onSelect={selectRow} onClose={closeOverlay} />
+      {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} />}
     </Box>
   );
 }
@@ -87,8 +96,8 @@ function BottomRegion(props: {
 }
 
 /** The small dynamic tail: streaming text, in-flight tool line(s), approval. */
-function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; pending: Pending | null }): ReactElement | null {
-  const { streaming, activeTools, busy, pending } = props;
+function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; pending: Pending | null; tick: number }): ReactElement | null {
+  const { streaming, activeTools, busy, pending, tick } = props;
   if (pending) {
     return (
       <Box flexDirection="column" marginTop={1}>
@@ -100,10 +109,12 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
   }
   if (!busy && !streaming) return null;
   const active = activeTools[activeTools.length - 1];
+  const { frame, verb } = busyLabel(tick);
+  const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
   return (
     <Box flexDirection="column">
       {streaming ? <Box><Text color="cyan">⏺ </Text><Text>{streaming}</Text></Box> : null}
-      {busy ? <Text dimColor> ○ {active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : "thinking"}…</Text> : null}
+      {busy ? <Text color="cyan">{frame} <Text dimColor>{label}…</Text></Text> : null}
     </Box>
   );
 }
