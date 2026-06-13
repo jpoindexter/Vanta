@@ -148,19 +148,21 @@ describe("inline overlays", () => {
 });
 
 describe("StatusBar", () => {
-  it("shows model, context fill, turns, and the interrupt hint when busy", async () => {
-    const inst = renderUi(h(StatusBar, { model: "claude-sonnet-4-6", ctxPct: 12, turns: 3, busy: true }));
+  it("shows model, a context gauge, turns, and the interrupt hint when busy", async () => {
+    const inst = renderUi(h(StatusBar, { model: "claude-sonnet-4-6", ctxPct: 12, tokens: 24000, contextWindow: 200000, turns: 3, busy: true }));
     await tick();
     const out = inst.lastFrame();
     expect(out).toContain("claude-sonnet-4-6");
-    expect(out).toContain("ctx 12%");
+    expect(out).toContain("24k/200k");
+    expect(out).toContain("12%");
+    expect(out).toContain("█"); // context bar
     expect(out).toContain("3 turns");
     expect(out).toContain("esc to interrupt");
     inst.unmount();
   });
 
   it("shows the shortcuts hint when idle", async () => {
-    const inst = renderUi(h(StatusBar, { model: "gpt-4o", ctxPct: 0, turns: 1, busy: false }));
+    const inst = renderUi(h(StatusBar, { model: "gpt-4o", ctxPct: 0, tokens: 0, contextWindow: 128000, turns: 1, busy: false }));
     await tick();
     const out = inst.lastFrame();
     expect(out).toContain("1 turn");

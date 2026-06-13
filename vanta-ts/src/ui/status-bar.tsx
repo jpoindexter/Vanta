@@ -1,31 +1,30 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
+import { contextBar, kfmt } from "./busy.js";
 
-// The footer: one dim line under the composer — model · context fill · turns ·
-// mode, plus an esc-to-interrupt hint while a turn runs. Reads the live provider
-// (so it reflects a /model swap even though the banner already scrolled away).
+// The footer status line — model · a context gauge (used/window + bar + %) · turns
+// · queued, with an esc-to-interrupt / shortcuts hint. Reads the live provider so
+// it reflects a /model swap even though the banner already scrolled away.
 
 export function StatusBar(props: {
   model: string;
   ctxPct: number;
+  tokens: number;
+  contextWindow: number;
   turns: number;
   busy: boolean;
   queued?: number;
-  mode?: string;
 }): ReactElement {
-  const parts = [
-    props.model,
-    `ctx ${props.ctxPct}%`,
-    `${props.turns} turn${props.turns === 1 ? "" : "s"}`,
-  ];
-  if (props.queued && props.queued > 0) parts.push(`${props.queued} queued`);
-  if (props.mode) parts.push(props.mode);
-  const dim = useTheme().dimText;
+  const t = useTheme();
+  const gauge = `${kfmt(props.tokens)}/${kfmt(props.contextWindow)}`;
   return (
     <Box>
-      <Text dimColor={dim}>{parts.join("  ·  ")}</Text>
-      {props.busy ? <Text dimColor={dim}>  ·  esc to interrupt</Text> : <Text dimColor={dim}>  ·  ? shortcuts</Text>}
+      <Text dimColor={t.dimText}>  {props.model}  ·  {gauge} </Text>
+      <Text color={t.accent}>[{contextBar(props.ctxPct)}]</Text>
+      <Text dimColor={t.dimText}> {props.ctxPct}%  ·  {props.turns} turn{props.turns === 1 ? "" : "s"}</Text>
+      {props.queued && props.queued > 0 ? <Text color={t.warning}>  ·  {props.queued} queued</Text> : null}
+      {props.busy ? <Text dimColor={t.dimText}>  ·  esc to interrupt</Text> : <Text dimColor={t.dimText}>  ·  ? shortcuts</Text>}
     </Box>
   );
 }

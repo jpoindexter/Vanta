@@ -17,3 +17,16 @@ export function busyLabel(tick: number): { frame: string; verb: string } {
 export function contextPct(estTokens: number, contextWindow: number): number {
   return contextWindow > 0 ? Math.min(100, Math.round((estTokens / contextWindow) * 100)) : 0;
 }
+
+/** A filled/empty block bar for the context gauge (e.g. "████░░░░"). */
+export function contextBar(pct: number, width = 8): string {
+  const filled = Math.max(0, Math.min(width, Math.round((pct / 100) * width)));
+  return "█".repeat(filled) + "░".repeat(width - filled);
+}
+
+/** Compact token count: 24000 → "24k", 1_200_000 → "1.2M". */
+export function kfmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${Math.round(n / 1_000)}k`;
+  return String(n);
+}

@@ -77,18 +77,18 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} /> : null}
+        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} /> : null}
       </Box>
     </ThemeProvider>
   );
 }
 
 /** Status line + the dim prefix-affordance line beneath it. */
-function Footer(props: { model: string; ctxPct: number; turns: number; busy: boolean; queued: number }): ReactElement {
+function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number }): ReactElement {
   const t = useTheme();
   return (
     <Box flexDirection="column">
-      <StatusBar model={props.model} ctxPct={props.ctxPct} turns={props.turns} busy={props.busy} queued={props.queued} />
+      <StatusBar model={props.model} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} />
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
   );
@@ -135,10 +135,13 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
   const theme = useTheme();
   if (pending) {
     return (
-      <Box flexDirection="column" marginTop={1}>
-        <Text color={theme.warning}>⚠ approval — {pending.action}</Text>
-        <Text dimColor={theme.dimText}>{pending.reason}</Text>
-        <Text><Text color={theme.success}>[a]</Text>llow · <Text color={theme.error}>[d]</Text>eny</Text>
+      <Box borderStyle="round" borderColor={theme.warning} flexDirection="column" paddingX={1} marginTop={1}>
+        <Text color={theme.warning} bold>⚠ Approval needed</Text>
+        <Text color={theme.primary}>{pending.action}</Text>
+        {pending.reason ? <Text dimColor={theme.dimText}>{pending.reason}</Text> : null}
+        <Text>
+          <Text color={theme.success}>[a]</Text> allow  ·  <Text color={theme.error}>[d]</Text> deny  ·  <Text dimColor={theme.dimText}>esc to deny</Text>
+        </Text>
       </Box>
     );
   }
