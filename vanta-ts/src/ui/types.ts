@@ -1,9 +1,15 @@
 import type { DiffLine } from "../util/diff.js";
+import type { TodoItem } from "../todo/store.js";
 
 // The new Claude-method UI (real Ink, inline + <Static>). Finished entries commit
 // to native terminal scrollback exactly once; only the live tail redraws. This is
 // the whole reason selection/scroll/copy work and nothing ghosts — the terminal
 // owns history, we own a small bottom region.
+//
+// KEY INVARIANT: <Static> renders each item ONCE and never repaints it. So a tool
+// row is committed to `entries` only when it COMPLETES (with its ✓/✗ + summary +
+// diff). While a tool is in flight it lives in `activeTools` (the live region),
+// never in committed history.
 
 export type ToolEntry = {
   kind: "tool";
@@ -23,14 +29,19 @@ export type Entry =
   | { kind: "note"; text: string }
   | { kind: "thinking"; text: string };
 
+/** A tool currently executing — shown in the live region, not committed history. */
+export type PendingTool = { name: string; verb: string; detail: string };
+
 export type UiState = {
   /** Committed history — rendered in <Static>, flushed to scrollback once each. */
   entries: Entry[];
   /** The in-flight assistant text for this turn (live region only). */
   streaming: string;
-  /** Verb of the tool currently running, or null. Shown in the live status line. */
-  activeTool: string | null;
+  /** Tools currently running — live region only, cleared as each result lands. */
+  activeTools: PendingTool[];
+  /** The agent's current plan (todo list), shown as a live panel when non-empty. */
+  todos: TodoItem[];
   busy: boolean;
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTool: null, busy: false };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], todos: [], busy: false };

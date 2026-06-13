@@ -8,6 +8,7 @@ import { AtPalette } from "./at-palette.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
+import { TodoPanel } from "./todo-panel.js";
 import { matchSlash } from "./slash.js";
 import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
@@ -47,6 +48,25 @@ describe("EntryView", () => {
     const out = inst.lastFrame();
     expect(out).toContain("✗");
     expect(out).toContain("boom");
+    inst.unmount();
+  });
+
+  it("renders a tool's diff inline with +/- lines", async () => {
+    const diff = [{ type: "add" as const, text: "added me" }, { type: "remove" as const, text: "gone now" }];
+    const inst = renderUi(h(EntryView, { entry: { kind: "tool", name: "write_file", verb: "wrote", detail: "y.ts", ok: true, diff } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("+ added me");
+    expect(out).toContain("- gone now");
+    inst.unmount();
+  });
+
+  it("renders thinking as a dim multi-line panel", async () => {
+    const inst = renderUi(h(EntryView, { entry: { kind: "thinking", text: "first thought\nsecond thought" } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("thinking");
+    expect(out).toContain("first thought");
     inst.unmount();
   });
 });
@@ -104,6 +124,23 @@ describe("inline overlays", () => {
     const inst = renderUi(h(HelpPanel, { onClose: noop }));
     await tick();
     expect(inst.lastFrame()).toContain("Shortcuts");
+    inst.unmount();
+  });
+
+  it("TodoPanel renders the plan with a done count", async () => {
+    const todos = [{ text: "ship it", status: "in_progress" as const }, { text: "done thing", status: "done" as const }];
+    const inst = renderUi(h(TodoPanel, { todos }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("plan · 1/2 done");
+    expect(out).toContain("ship it");
+    inst.unmount();
+  });
+
+  it("TodoPanel renders nothing for an empty plan", async () => {
+    const inst = renderUi(h(TodoPanel, { todos: [] }));
+    await tick();
+    expect(inst.lastFrame().trim()).toBe("");
     inst.unmount();
   });
 });

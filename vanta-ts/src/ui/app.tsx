@@ -3,8 +3,9 @@ import { Box, Static, Text, useApp, useInput } from "inkr";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { Composer } from "./composer.js";
+import { TodoPanel } from "./todo-panel.js";
 import { reduce } from "./reducer.js";
-import { initialState, type Entry } from "./types.js";
+import { initialState, type Entry, type PendingTool } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
 import { useSlash } from "./use-slash.js";
 import { useSubmit } from "./use-submit.js";
@@ -60,7 +61,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   return (
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-      <LiveRegion streaming={state.streaming} activeTool={state.activeTool} busy={state.busy} pending={pending} />
+      <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} />
+      {overlay ? null : <TodoPanel todos={state.todos} />}
       <BottomRegion overlay={overlay} pending={pending} files={files} onSubmit={onSubmit} onSelect={selectRow} onClose={closeOverlay} />
     </Box>
   );
@@ -84,9 +86,9 @@ function BottomRegion(props: {
   return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} />;
 }
 
-/** The small dynamic tail: streaming text, active-tool spinner line, approval. */
-function LiveRegion(props: { streaming: string; activeTool: string | null; busy: boolean; pending: Pending | null }): ReactElement | null {
-  const { streaming, activeTool, busy, pending } = props;
+/** The small dynamic tail: streaming text, in-flight tool line(s), approval. */
+function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; pending: Pending | null }): ReactElement | null {
+  const { streaming, activeTools, busy, pending } = props;
   if (pending) {
     return (
       <Box flexDirection="column" marginTop={1}>
@@ -97,10 +99,11 @@ function LiveRegion(props: { streaming: string; activeTool: string | null; busy:
     );
   }
   if (!busy && !streaming) return null;
+  const active = activeTools[activeTools.length - 1];
   return (
     <Box flexDirection="column">
       {streaming ? <Box><Text color="cyan">⏺ </Text><Text>{streaming}</Text></Box> : null}
-      {busy ? <Text dimColor> ○ {activeTool ?? "thinking"}…</Text> : null}
+      {busy ? <Text dimColor> ○ {active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : "thinking"}…</Text> : null}
     </Box>
   );
 }
