@@ -27,3 +27,48 @@ describe("parseBlocks", () => {
     expect(parseBlocks("a\n\nb")[1]).toEqual({ type: "spacer" });
   });
 });
+
+describe("parseBlocks — tables", () => {
+  const TABLE_MD = "| Name | Size |\n| --- | --- |\n| app | 12k |\n| cli | 4k |";
+
+  it("recognizes a table block with correct headers and rows", () => {
+    const blocks = parseBlocks(TABLE_MD);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0]).toEqual({
+      type: "table",
+      headers: ["Name", "Size"],
+      rows: [
+        ["app", "12k"],
+        ["cli", "4k"],
+      ],
+    });
+  });
+
+  it("supports alignment markers in the separator", () => {
+    const md = "| A | B | C |\n| :-- | :--: | ---: |\n| 1 | 2 | 3 |";
+    const blocks = parseBlocks(md);
+    expect(blocks[0]).toMatchObject({
+      type: "table",
+      headers: ["A", "B", "C"],
+      rows: [["1", "2", "3"]],
+    });
+  });
+
+  it("table with no body rows is still a table", () => {
+    const md = "| Col |\n| --- |";
+    const blocks = parseBlocks(md);
+    expect(blocks[0]).toEqual({ type: "table", headers: ["Col"], rows: [] });
+  });
+
+  it("a pipe line without a separator on the next line stays a paragraph", () => {
+    const blocks = parseBlocks("| not a table |");
+    expect(blocks[0]).toEqual({ type: "paragraph", text: "| not a table |" });
+  });
+
+  it("does not consume the line after the table body", () => {
+    const md = `${TABLE_MD}\nplain text`;
+    const blocks = parseBlocks(md);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[1]).toEqual({ type: "paragraph", text: "plain text" });
+  });
+});

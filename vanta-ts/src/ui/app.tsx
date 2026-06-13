@@ -56,17 +56,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
 
-  useInput((input, key) => {
-    if (key.ctrl && input === "c") {
-      if (state.busy) interruptRef.current?.abort();
-      else app.exit();
-      return;
-    }
-    if (pending) {
-      if (input === "a") pending.resolve(true), setPending(null);
-      else if (input === "d" || key.escape) pending.resolve(false), setPending(null);
-    }
-  });
+  useInput((input, key) =>
+    handleGlobalKey(input, key, {
+      busy: state.busy, pending, overlayOpen: overlay !== null,
+      abort: () => interruptRef.current?.abort(), exit: app.exit, setPending,
+    }),
+  );
 
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
 
@@ -92,6 +87,28 @@ function Footer(props: { model: string; ctxPct: number; tokens: number; contextW
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
   );
+}
+
+type GlobalKey = { ctrl?: boolean; escape?: boolean };
+type GlobalKeyDeps = {
+  busy: boolean; pending: Pending | null; overlayOpen: boolean;
+  abort: () => void; exit: () => void; setPending: (p: Pending | null) => void;
+};
+
+const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
+  Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
+
+function resolveApproval(input: string, key: GlobalKey, p: Pending, setPending: (p: Pending | null) => void): void {
+  if (input === "a") { p.resolve(true); setPending(null); }
+  else if (input === "d" || key.escape) { p.resolve(false); setPending(null); }
+}
+
+/** App-level keys: ^C interrupt/exit, Esc interrupt a running turn, a/d resolve an
+ * approval. Overlays/approvals own Esc when open, so Esc-interrupt is suppressed then. */
+function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
+  if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
+  if (escInterrupts(key, d)) return void d.abort();
+  if (d.pending) resolveApproval(input, key, d.pending, d.setPending);
 }
 
 /** Drain one queued message per turn once the agent is idle again. */

@@ -76,15 +76,48 @@ export function resolveThemeByName(name: string): Theme {
   return THEMES[name.toLowerCase()] ?? THEMES.default!;
 }
 
+/**
+ * Detect terminal background brightness from COLORFGBG env var.
+ * Format: "fg;bg" where bg is an ANSI palette index (0-15).
+ * 0-6 and 8 = dark backgrounds; 7 and 9-15 = light backgrounds.
+ * Returns "unknown" when absent or unparseable — no escape-sequence queries.
+ */
+export function detectBackground(
+  env: NodeJS.ProcessEnv = process.env,
+): "light" | "dark" | "unknown" {
+  const raw = env.COLORFGBG;
+  if (!raw) return "unknown";
+  const parts = raw.split(";");
+  const bgStr = parts[parts.length - 1];
+  const bg = parseInt(bgStr ?? "", 10);
+  if (!Number.isFinite(bg) || bg < 0 || bg > 15) return "unknown";
+  // ANSI 7 and 9-15 are light; 0-6 and 8 are dark.
+  const isLight = bg === 7 || bg >= 9;
+  return isLight ? "light" : "dark";
+}
+
+/**
+ * Resolve the best theme name given the environment.
+ * Precedence: explicit VANTA_THEME (validated) → light-bg fallback → "default".
+ * Note: all current themes are dark-oriented; for light terminals we use
+ * "high-contrast" (most legible on light BG) — a dedicated light theme is future work.
+ */
+export function detectThemeName(env: NodeJS.ProcessEnv = process.env): string {
+  const explicit = env.VANTA_THEME?.toLowerCase();
+  if (explicit && THEME_NAMES.includes(explicit)) return explicit;
+  if (detectBackground(env) === "light") return "high-contrast";
+  return "default";
+}
+
 /** The active theme NAME from env, validated to a known name (else "default"). */
 export function currentThemeName(env: NodeJS.ProcessEnv = process.env): string {
   const name = (env.VANTA_THEME ?? "default").toLowerCase();
   return THEME_NAMES.includes(name) ? name : "default";
 }
 
-/** Reads VANTA_THEME env var; falls back to "default" for unknown names. */
+/** Reads VANTA_THEME env var; if unset, detects terminal background and picks accordingly. */
 export function resolveTheme(env: NodeJS.ProcessEnv = process.env): Theme {
-  return resolveThemeByName(env.VANTA_THEME ?? "default");
+  return resolveThemeByName(detectThemeName(env));
 }
 
 export type { Theme as VantaTheme };
