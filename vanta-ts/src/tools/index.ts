@@ -20,6 +20,9 @@ import { lookAtCameraTool } from "./look-at-camera.js";
 import { brainTool } from "./brain.js";
 import { todoTool } from "./todo.js";
 import { worldTool } from "./world.js";
+import { moneyTool } from "./money.js";
+import { radarTool } from "./radar.js";
+import { teamTool } from "./team.js";
 import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
@@ -103,6 +106,9 @@ const ALL_TOOLS: readonly Tool[] = [
   briefTool,
   todoTool,
   worldTool,
+  moneyTool,
+  radarTool,
+  teamTool,
   watchVideoTool,
   speakTool,
   swarmTool,

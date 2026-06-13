@@ -108,12 +108,13 @@
       "title": "Background agent management — agents view, attach, logs, respawn, daemon",
       "status": "next",
       "size": "L",
-      "summary": "CC has a full parallel-session management CLI: `claude agents` (dispatch/monitor view), `claude attach/logs/respawn/stop/rm <id>` for individual sessions, `claude daemon status/stop` for the supervisor. Vanta can spawn subagents but has no CLI for managing running background sessions.",
+      "summary": "[REGISTRY SLICE SHIPPED: team store (~/.vanta/team.jsonl: named workers role/model/tools/status) + team tool (define/status/list) + /team roster with blocker warnings. Runtime executor is a later slice.] CC has a full parallel-session management CLI: `claude agents` (dispatch/monitor view), `claude attach/logs/respawn/stop/rm <id>` for individual sessions, `claude daemon status/stop` for the supervisor. Vanta can spawn subagents but has no CLI for managing running background sessions.",
       "done": "`vanta agents` opens a live view of running sessions; `vanta attach/logs/respawn/stop/rm <id>` manage individual sessions; `vanta daemon status/stop` controls the supervisor; a `disableAgentView` setting gates the feature.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-14"
     },
     {
       "id": "CC-AUTO-MODE",
@@ -10058,7 +10059,7 @@
       "id": "WANT-OPPORTUNITY-RADAR",
       "status": "horizon",
       "title": "Opportunity radar — native business/opportunity engine",
-      "summary": "vanta-wanted-abilities.md §2 (top priority): continuous free-source scanning (markets, GitHub, jobs, grants/RFPs, forums, trends) → pain scoring (expensive/urgent/repeated/reachable) → buyer scoring → evidence-tied offer generator → artifact generator → market-test tracker → productization detector. Builds on web_search + swarm + the keyless providers.",
+      "summary": "[SLICE 1 SHIPPED: radar store (~/.vanta/radar.jsonl: scored opportunities) + radar tool (record/score/list, pain+buyer scoring) + /radar ranked view. Remaining: continuous free-source scanning, evidence-tied offer gen, productization detector.] vanta-wanted-abilities.md §2 (top priority): continuous free-source scanning (markets, GitHub, jobs, grants/RFPs, forums, trends) → pain scoring (expensive/urgent/repeated/reachable) → buyer scoring → evidence-tied offer generator → artifact generator → market-test tracker → productization detector. Builds on web_search + swarm + the keyless providers.",
       "done": "A /radar mode scans free sources, scores opportunities by pain+buyer signal, and generates an evidence-tied offer + artifact."
     },
     {
@@ -10072,7 +10073,7 @@
       "id": "WANT-MONEY-OS",
       "status": "horizon",
       "title": "Money OS — structured money-making operating system",
-      "summary": "vanta-wanted-abilities.md §16 (top priority): offer library + pricing experiments, prospect/reply pipeline, deliverable templates (reports/audits/demos/microtools), revenue ledger, follow-up scheduler, case-study generator, weekly business review. Ethical guardrails: no deception/spam/fake identity. Pairs with WANT-OPPORTUNITY-RADAR + WANT-OUTREACH-WORKSPACE.",
+      "summary": "[SLICE 1 SHIPPED: money store (~/.vanta/money.jsonl: offers/prospects/revenue) + money tool (offer/prospect/revenue/review) + /money ledger. Remaining: pricing experiments, deliverable templates, case-study gen, weekly review.] vanta-wanted-abilities.md §16 (top priority): offer library + pricing experiments, prospect/reply pipeline, deliverable templates (reports/audits/demos/microtools), revenue ledger, follow-up scheduler, case-study generator, weekly business review. Ethical guardrails: no deception/spam/fake identity. Pairs with WANT-OPPORTUNITY-RADAR + WANT-OUTREACH-WORKSPACE.",
       "done": "Machinery (not vibes) for: offers, prospects, deliverables, revenue ledger, follow-ups, weekly review — ethically guardrailed."
     },
     {
