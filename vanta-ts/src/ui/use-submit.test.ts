@@ -48,11 +48,12 @@ describe("useSubmit routing", () => {
     expect(h.send).toHaveBeenCalledWith("just a message");
   });
 
-  it("notes instead of sending while busy", () => {
+  it("queues instead of sending while busy", async () => {
     const h = harness(true);
     h.onSubmit("queued message");
+    await new Promise((r) => setTimeout(r, 10));
     expect(h.send).not.toHaveBeenCalled();
-    expect(h.dispatch).toHaveBeenCalledWith({ t: "note", text: expect.stringContaining("still working") });
+    expect(h.dispatch).toHaveBeenCalledWith({ t: "enqueue", text: "queued message" });
   });
 
   it("intercepts a ! prefix before slash/send routing", () => {

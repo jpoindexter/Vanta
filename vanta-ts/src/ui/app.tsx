@@ -1,10 +1,10 @@
-import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
+import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactElement } from "react";
 import { Box, Static, Text, useApp, useInput } from "inkr";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { Composer } from "./composer.js";
 import { TodoPanel } from "./todo-panel.js";
-import { reduce } from "./reducer.js";
+import { reduce, type Action } from "./reducer.js";
 import { initialState, type Entry, type PendingTool } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
 import { useSlash } from "./use-slash.js";
@@ -36,13 +36,16 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
   const [files, setFiles] = useState<string[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash });
-  const onSubmit = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+  const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+  const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  useQueueDrain(state.busy, state.queued, dispatch, send);
 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
@@ -53,28 +56,38 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       else app.exit();
       return;
     }
-    if (key.ctrl && input === "d") app.exit();
     if (pending) {
       if (input === "a") pending.resolve(true), setPending(null);
       else if (input === "d" || key.escape) pending.resolve(false), setPending(null);
     }
   });
 
-  // Banner is the first Static item, so it scrolls into history like everything else.
-  const staticItems: Array<{ key: string; node: ReactElement }> = [
-    { key: "banner", node: <Banner model={props.setup.provider.modelId()} cwd={props.repoRoot} kernel="127.0.0.1:7788" /> },
-    ...state.entries.map((e: Entry, i: number) => ({ key: `e${i}`, node: <EntryView entry={e} /> })),
-  ];
+  const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries);
 
   return (
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
       <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
       {overlay ? null : <TodoPanel todos={state.todos} />}
-      <BottomRegion overlay={overlay} pending={pending} files={files} onSubmit={onSubmit} onSelect={selectRow} onClose={closeOverlay} />
-      {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} />}
+      <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+      {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} />}
     </Box>
   );
+}
+
+/** Drain one queued message per turn once the agent is idle again. */
+function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Action>, send: (t: string) => void): void {
+  useEffect(() => {
+    if (!busy && queued.length > 0) { const next = queued[0]!; dispatch({ t: "dequeue" }); void send(next); }
+  }, [busy, queued.length]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** Banner + committed entries as <Static> items (banner scrolls into history too). */
+function buildStaticItems(model: string, repoRoot: string, entries: Entry[]): Array<{ key: string; node: ReactElement }> {
+  return [
+    { key: "banner", node: <Banner model={model} cwd={repoRoot} kernel="127.0.0.1:7788" /> },
+    ...entries.map((e, i) => ({ key: `e${i}`, node: <EntryView entry={e} /> })),
+  ];
 }
 
 /** Below the live region: an open overlay owns the keys, else the composer.
@@ -83,7 +96,9 @@ function BottomRegion(props: {
   overlay: OverlayView | null;
   pending: Pending | null;
   files: string[];
+  history: string[];
   onSubmit: (text: string) => void;
+  onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
   onClose: () => void;
 }): ReactElement | null {
@@ -92,7 +107,7 @@ function BottomRegion(props: {
   if (overlay?.kind === "list") return <OverlayList title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
   if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
   if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
-  return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} />;
+  return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} onPaste={props.onPaste} />;
 }
 
 /** The small dynamic tail: streaming text, in-flight tool line(s), approval. */

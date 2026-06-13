@@ -15,6 +15,8 @@ export type Action =
   | { t: "toolResult"; name: string; ok: boolean; errorLine?: string; summary?: string; diff?: DiffLine[] }
   | { t: "note"; text: string }
   | { t: "todos"; items: TodoItem[] }
+  | { t: "enqueue"; text: string }
+  | { t: "dequeue" }
   | { t: "turnStart" }
   | { t: "turnEnd" };
 
@@ -32,12 +34,24 @@ export function reduce(state: UiState, a: Action): UiState {
       return { ...state, activeTools: [...state.activeTools, { name: a.name, verb: a.verb, detail: a.detail }] };
     case "toolResult":
       return completeTool(state, a);
+    case "turnEnd":
+      return commitStreaming(state);
+    default:
+      return reduceAux(state, a);
+  }
+}
+
+/** The append/queue actions, split out so each switch stays under the complexity gate. */
+function reduceAux(state: UiState, a: Action): UiState {
+  switch (a.t) {
     case "note":
       return { ...state, entries: [...state.entries, { kind: "note", text: a.text }] };
     case "todos":
       return { ...state, todos: a.items };
-    case "turnEnd":
-      return commitStreaming(state);
+    case "enqueue":
+      return { ...state, queued: [...state.queued, a.text] };
+    case "dequeue":
+      return { ...state, queued: state.queued.slice(1) };
     default:
       return state;
   }

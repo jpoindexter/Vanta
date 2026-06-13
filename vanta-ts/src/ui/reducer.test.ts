@@ -66,4 +66,11 @@ describe("ui reducer — Claude-method commit model", () => {
     const s = run([{ t: "todos", items }]);
     expect(s.todos).toEqual(items);
   });
+
+  it("enqueues and dequeues messages FIFO", () => {
+    const q = run([{ t: "enqueue", text: "first" }, { t: "enqueue", text: "second" }]);
+    expect(q.queued).toEqual(["first", "second"]);
+    const d = reduce(q, { t: "dequeue" });
+    expect(d.queued).toEqual(["second"]);
+  });
 });

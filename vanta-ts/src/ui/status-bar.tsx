@@ -10,6 +10,7 @@ export function StatusBar(props: {
   ctxPct: number;
   turns: number;
   busy: boolean;
+  queued?: number;
   mode?: string;
 }): ReactElement {
   const parts = [
@@ -17,6 +18,7 @@ export function StatusBar(props: {
     `ctx ${props.ctxPct}%`,
     `${props.turns} turn${props.turns === 1 ? "" : "s"}`,
   ];
+  if (props.queued && props.queued > 0) parts.push(`${props.queued} queued`);
   if (props.mode) parts.push(props.mode);
   return (
     <Box>

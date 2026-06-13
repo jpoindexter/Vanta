@@ -41,7 +41,9 @@ export type UiState = {
   activeTools: PendingTool[];
   /** The agent's current plan (todo list), shown as a live panel when non-empty. */
   todos: TodoItem[];
+  /** Messages submitted while busy — drained one per turn when idle. */
+  queued: string[];
   busy: boolean;
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], todos: [], busy: false };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], todos: [], queued: [], busy: false };

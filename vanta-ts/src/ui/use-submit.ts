@@ -20,11 +20,11 @@ export type SubmitDeps = {
   dispatch: Dispatch<Action>;
 };
 
-/** Inline any @-referenced file content as a context block, then send. */
-async function sendWithContext(line: string, repoRoot: string, send: (t: string) => void): Promise<void> {
+/** Resolve a line with any @-referenced file content inlined as a context block. */
+async function resolveLine(line: string, repoRoot: string): Promise<string> {
   const refs = parseAtRefs(line);
   const block = refs.length > 0 ? await buildContextBlock(refs, repoRoot) : "";
-  send(block ? `${block}\n\n${line}` : line);
+  return block ? `${block}\n\n${line}` : line;
 }
 
 /** A bare picker command (`/model`, `/cockpit`, …) with no argument → overlay kind. */
@@ -43,7 +43,8 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
       return kind ? deps.openOverlay(kind) : deps.runSlash(text);
     }
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
-    if (deps.busy) return note("  · still working — send again when ready");
-    void sendWithContext(text, deps.repoRoot, deps.send);
+    // While a turn runs, queue the message (with @-context resolved now) and drain it when idle.
+    if (deps.busy) return void resolveLine(text, deps.repoRoot).then((resolved) => deps.dispatch({ t: "enqueue", text: resolved }));
+    void resolveLine(text, deps.repoRoot).then(deps.send);
   };
 }
