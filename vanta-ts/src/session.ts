@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, stat } from "node:fs/promises";
 import type { Interface as Readline } from "node:readline/promises";
 import { SafetyClient } from "./safety-client.js";
 import { ensureKernel } from "./kernel-launcher.js";
@@ -70,16 +70,35 @@ async function loadPromptContext(repoRoot: string, activeGoalIds: number[]): Pro
   return { memory, skills, brain, selfContent, moimNote, errorsLog, projectId };
 }
 
+/** True if `path` was modified within `maxAgeMs` (0/negative = never resume). */
+async function recentlyWritten(path: string, maxAgeMs: number): Promise<boolean> {
+  if (maxAgeMs <= 0) return false;
+  try {
+    const s = await stat(path);
+    return Date.now() - s.mtimeMs <= maxAgeMs;
+  } catch {
+    return false;
+  }
+}
+
+// Carry the prior thread (auto-handoff + session-memory) into a restart ONLY when
+// it was recent — a fresh start hours later should be clean, not stuck on a stale
+// goal/thread. Window: VANTA_RESUME_MAX_AGE_MIN (default 120; 0 disables resume).
 async function injectResume(systemPrompt: string, repoRoot: string): Promise<string> {
   const { readAutoHandoff, clearAutoHandoff } = await import("./repl/auto-handoff.js");
   const dataDir = join(repoRoot, ".vanta");
-  const resume = await readAutoHandoff(dataDir).catch(() => null);
-  if (resume) {
-    systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
-    await clearAutoHandoff(dataDir);
+  const maxAgeMs = (Number(process.env.VANTA_RESUME_MAX_AGE_MIN ?? 120) || 0) * 60_000;
+  if (await recentlyWritten(join(dataDir, "handoff.md"), maxAgeMs)) {
+    const resume = await readAutoHandoff(dataDir).catch(() => null);
+    if (resume) {
+      systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
+      await clearAutoHandoff(dataDir);
+    }
   }
-  const scratch = await readSessionMemory(dataDir).catch(() => "");
-  if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+  if (await recentlyWritten(join(dataDir, "session-memory.md"), maxAgeMs)) {
+    const scratch = await readSessionMemory(dataDir).catch(() => "");
+    if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+  }
   return systemPrompt;
 }
 

@@ -85,7 +85,9 @@ export function useAgent(deps: AgentDeps): { send: (text: string) => Promise<voi
     } finally {
       deps.dispatch({ t: "turnEnd" }); // commit assistant text first…
       if (tally) deps.dispatch({ t: "note", text: tally }); // …then the tally below it
-      void refreshTodos(deps.dispatch);
+      // NOTE: no blind todo reload here — the panel reflects only what the agent
+      // writes via the todo tool THIS session (onToolResult), so a fresh launch
+      // never shows a previous session's stale plan.
       deps.interruptRef.current = null;
     }
   };
