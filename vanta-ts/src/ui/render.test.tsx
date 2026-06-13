@@ -18,7 +18,8 @@ describe("Banner", () => {
     const inst = renderUi(h(Banner, { model: "claude-sonnet-4-6", cwd: "~/dev/site", kernel: "127.0.0.1:7788", tools: 49, cmds: 41 }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("Vanta");
+    expect(out).toContain("█"); // the VANTA block wordmark
+    expect(out).toContain("local trusted operator");
     expect(out).toContain("claude-sonnet-4-6");
     expect(out).toContain("127.0.0.1:7788");
     expect(out).toContain("49 tools");
