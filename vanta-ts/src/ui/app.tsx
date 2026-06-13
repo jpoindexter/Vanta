@@ -6,6 +6,11 @@ import { Composer } from "./composer.js";
 import { reduce } from "./reducer.js";
 import { initialState, type Entry } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
+import { useSlash } from "./use-slash.js";
+import { isSlashLine } from "./slash.js";
+import { newSessionId } from "../sessions/store.js";
+import type { Conversation } from "../agent.js";
+import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
 
 // The Claude-method App. <Static> commits finished history to native scrollback
@@ -17,7 +22,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [state, dispatch] = useReducer(reduce, initialState);
   const [pending, setPending] = useState<Pending | null>(null);
   const interruptRef = useRef<AbortController | null>(null);
-  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef });
+  const convoRef = useRef<Conversation | null>(null);
+  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
+  const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
+  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
 
   useInput((input, key) => {
     if (key.ctrl && input === "c") {
@@ -33,8 +41,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   });
 
   const onSubmit = (text: string): void => {
-    if (text === "/exit" || text === "/quit") return void app.exit();
-    if (text === "/clear") return; // history lives in scrollback; next slice wires full slash dispatch
+    if (isSlashLine(text)) return void runSlash(text);
+    if (state.busy) return void dispatch({ t: "note", text: "  · still working — send again when ready" });
     void send(text);
   };
 
@@ -48,7 +56,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
       <LiveRegion streaming={state.streaming} activeTool={state.activeTool} busy={state.busy} pending={pending} />
-      {pending ? null : <Composer busy={state.busy} onSubmit={onSubmit} placeholder="Ask Vanta anything — /help for commands" />}
+      {pending ? null : <Composer onSubmit={onSubmit} placeholder="Ask Vanta anything — /help for commands" />}
     </Box>
   );
 }

@@ -3,6 +3,8 @@ import { describe, it, expect } from "vitest";
 import { renderUi, tick } from "./test-render.js";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
+import { SlashPalette } from "./slash-palette.js";
+import { matchSlash } from "./slash.js";
 
 describe("Banner", () => {
   it("renders the name, model, and kernel line", async () => {
@@ -40,6 +42,22 @@ describe("EntryView", () => {
     const out = inst.lastFrame();
     expect(out).toContain("✗");
     expect(out).toContain("boom");
+    inst.unmount();
+  });
+});
+
+describe("SlashPalette", () => {
+  it("lists matching commands above the composer", async () => {
+    const inst = renderUi(h(SlashPalette, { matches: matchSlash("/mod"), sel: 0 }));
+    await tick();
+    expect(inst.lastFrame()).toContain("/model");
+    inst.unmount();
+  });
+
+  it("renders nothing when there are no matches", async () => {
+    const inst = renderUi(h(SlashPalette, { matches: [], sel: 0 }));
+    await tick();
+    expect(inst.lastFrame().trim()).toBe("");
     inst.unmount();
   });
 });
