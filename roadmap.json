@@ -9959,10 +9959,11 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "DESKTOP-ACTION-SCHEMA",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Desktop action schema — click/type/scroll/observe primitives",
       "summary": "From UI-TARS: an action model for OS control — click/double/right/drag, type, key, scroll, wait, screenshot — with targets specified by coords / accessibility tree / vision grounding. Vanta has vision-IN (screenshot, look_at_screen, describe_image) but no action-OUT; define a kernel-gated desktop action schema as the foundation of DESKTOP work.",
-      "done": "A typed desktop-action schema exists, each action describeForSafety-able and kernel-assessable."
+      "done": "A typed desktop-action schema exists, each action describeForSafety-able and kernel-assessable.",
+      "note": "Slice 1 (web surface): browser/act.ts — typed BrowserAction union (navigate/click/type/press/scroll/wait), classifyAction risk + describeAction (masks secrets); tools/browser_act.ts drives playwright via acquirePage. The action-out schema now exists for the browser body; OS-level coord/a11y targeting remains. 14 tests."
     },
     {
       "track": "Harness",
@@ -9987,10 +9988,11 @@
       "lens": "infra",
       "updated": "2026-06-14",
       "id": "DESKTOP-CONTROL-BOUNDARY",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Local desktop control within the kernel boundary (no feral agent)",
       "summary": "From UI-TARS: let an agent drive a real desktop WITHOUT going feral — scope which apps/regions it may touch, confirm irreversible UI actions, a kill-switch. This is exactly where Vanta's kernel assess() belongs: every click/type assessed, destructive/irreversible UI actions (close-without-save, send, delete, purchase) escalate to ask/block.",
-      "done": "Desktop actions route through the kernel; irreversible UI actions escalate; a kill-switch halts; scope limits which surfaces are touchable."
+      "done": "Desktop actions route through the kernel; irreversible UI actions escalate; a kill-switch halts; scope limits which surfaces are touchable.",
+      "note": "Slice 1 (web surface): browser_act gates every sequence containing an irreversible control (submit/buy/delete/login/send) or a secret/Enter via ctx.requestApproval (kernel approval queue), showing a masked numbered dry-run preview before launch; unlisted domains also escalate. riskyActions/previewActions pure + tested. OS-level kill-switch/region-scope remain."
     },
     {
       "track": "Harness",

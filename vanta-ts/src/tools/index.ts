@@ -13,6 +13,7 @@ import { recallTool } from "./recall.js";
 import { screenshotTool } from "./screenshot.js";
 import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
+import { browserActTool } from "./browser-act.js";
 import { describeImageTool } from "./describe-image.js";
 import { compareVisionTool } from "./compare-vision.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
@@ -99,6 +100,7 @@ const ALL_TOOLS: readonly Tool[] = [
   screenshotTool,
   browserNavigateTool,
   browserExtractTool,
+  browserActTool,
   describeImageTool,
   compareVisionTool,
   lookAtScreenTool,
