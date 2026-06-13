@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-13",
+  "updated": "2026-06-14",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -9807,6 +9807,118 @@
       "title": "Carried goal starts paused — pick up or drop on launch",
       "summary": "A goal from a prior session no longer silently re-runs on a fresh launch (the weird everytime-its-an-old-task feeling, esp. when testing). The carried goal is framed PAUSED in the system prompt (prompt.ts goalsPaused), surfaced as a one-time TUI notice, and activated only by /goal resume (re-injects) or referenced by the user. /goal clear|drop drops it. VANTA_GOAL_RESUME=auto restores the old always-active behavior. Realizes part of HARNESS-RALPH-LOOP (durable-state continuity you opt into).",
       "done": "Fresh launch does not auto-run last session goal; /goal resume activates, /goal clear drops; prompt framing + resume/drop tested; 149 tests green."
+    },
+    {
+      "track": "Harness",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "selfhood",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-REF-DOC",
+      "status": "shipped",
+      "title": "Self-correcting-harness — reference",
+      "summary": "docs/research/self-correcting-harness.md — extract of Your Agent Harness Should Repair Itself (Pachaar, 2026): the self-correction flywheel (bad trace to regression-locked) + its four layers + principles. Third in the harness series; SELFHARNESS-* cards trace here.",
+      "done": "The summary doc exists; SELFHARNESS-* cards reference it."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-SELF-CORRECT-LOOP",
+      "status": "horizon",
+      "title": "Self-correction loop — failure to diagnosed fix to regression-locked",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): the umbrella flywheel — a captured failure is diagnosed (causal chain from the trace), a kernel-gated diff is proposed, the human approves, the agent reruns the exact failing input for side-by-side comparison, and the original failure is locked as a regression test. Every cycle the harness gets harder to break. Vanta has the kernel + ERRORS.md + /verify + delegate; this composes them into one self-repair loop. Umbrella for the SELFHARNESS-* cards.",
+      "done": "A failure can be run end-to-end: diagnose, propose a gated diff, approve, rerun the failing input, lock a regression test — one loop."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "coding",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-FAILURE-TO-TEST",
+      "status": "next",
+      "title": "Failing run to regression test — the trace-as-asset principle",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): every debugged failure auto-becomes a regression test, so the suite grows from REAL production failures not synthetic scenarios; diagnosis without a locked test just means debugging the same thing next month. Vanta logs failures to ERRORS.md (passive); extend it so a resolved failure auto-emits a regression case (the failing input + the expected behavior) into a growing suite.",
+      "done": "Resolving a failure produces a regression test (failing input + expected behavior) added to a suite; the suite grows from real failures."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "coding",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-NL-ASSERTIONS",
+      "status": "next",
+      "title": "Plain-English assertion suite (LLM-as-judge), not numeric metrics",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): eval via natural-language assertions (\"the response must never reveal unauthorized info\") converted to LLM-as-judge clean pass/fail per case — matches how engineers think about quality, unlike numerical-metric datasets. Vanta has /verify + advisor; add a test-suite layer of plain-English assertions judged by a separate critic. Complements PAPER-OBSERVABILITY (generator-evaluator split).",
+      "done": "A suite of plain-English assertions runs as LLM-as-judge pass/fail per case against a captured input."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-DIFF-GATE",
+      "status": "next",
+      "title": "Human only at diff approval — automate the low-signal loops",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): put the human ONLY where full automation costs more trust than it saves. Root-cause and regression-locking are low-signal (automate); the DIFF APPROVAL is the high-signal/high-trust step (keep the human). A \"where to put the human\" rule that refines PAPER-REVERSIBILITY-RISK: the agent may diagnose + draft the fix autonomously, but the diff is kernel-gated to a human approve. Auto-merge would break trust fast.",
+      "done": "Self-correction runs diagnosis + draft autonomously; only the diff application is human/kernel-gated; nothing auto-merges."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-CONFIG-REPRO",
+      "status": "next",
+      "title": "Capture the active config per trace for reproducible reruns",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): every trace records which agent config (prompt/model/tools) was active, so a failing input can be re-run reproducibly later. Vanta has events.jsonl; capture the resolved config (provider, model, tool set, prompt hash) alongside an event so a failure can be reproduced under the same config. Prerequisite for the self-correction rerun step.",
+      "done": "Each turn/event records the resolved config; a past failing input can be re-run under exactly that config."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-SANDBOX",
+      "status": "horizon",
+      "title": "Agent sandbox — test a config change end-to-end without touching git",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): run the fully-instrumented agent end-to-end on a config change (swap prompt/model/tool) and watch the whole graph respond, producing a trace — safely, without touching the working tree; usable by a non-developer. Vanta has the TUI + mode cycle + worktree isolation (subagents); a sandbox that runs a candidate config against a saved input and shows a side-by-side result.",
+      "done": "A config change (prompt/model/tool) can be run end-to-end against a saved input in isolation, producing a comparable trace, no git mutation."
+    },
+    {
+      "track": "Harness",
+      "size": "M",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "coding",
+      "updated": "2026-06-14",
+      "id": "SELFHARNESS-SUITE-PRUNE",
+      "status": "horizon",
+      "title": "Prune the regression suite as tools/schema evolve",
+      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026) (comment thread): a locked regression input goes STALE when the tools or schema move under it — the suite needs pruning to stay honest, or it just gets better at explaining yesterday bug. A maintenance pass that detects locked inputs whose tool/schema assumptions no longer hold and flags them for refresh/removal.",
+      "done": "Stale locked inputs (tool/schema drift) are detected and flagged for refresh or removal; the suite stays honest."
     }
   ]
 }
