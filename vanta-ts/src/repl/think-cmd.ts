@@ -38,6 +38,13 @@ function thinkCmd(label: string, preamble: string): SlashHandler {
   };
 }
 
+const SKEPTIC =
+  "Adversarially verify this claim — try to REFUTE it. Default to NOT PROVEN unless you " +
+  "can show concrete evidence: run it and observe, read the actual file, cite the passing " +
+  "test/command. List what would have to be true, check each, then give a verdict " +
+  "(proven / not proven / uncertain) with the evidence that backs it.\n\nClaim: ";
+
 export const ultrathink = thinkCmd("ultrathink", ULTRATHINK);
 export const ultracode = thinkCmd("ultracode", ULTRACODE);
 export const deepResearch = thinkCmd("deep-research", DEEP_RESEARCH);
+export const skeptic = thinkCmd("skeptic", SKEPTIC);

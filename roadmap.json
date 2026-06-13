@@ -9863,7 +9863,7 @@
       "id": "SELFHARNESS-NL-ASSERTIONS",
       "status": "next",
       "title": "Plain-English assertion suite (LLM-as-judge), not numeric metrics",
-      "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): eval via natural-language assertions (\"the response must never reveal unauthorized info\") converted to LLM-as-judge clean pass/fail per case — matches how engineers think about quality, unlike numerical-metric datasets. Vanta has /verify + advisor; add a test-suite layer of plain-English assertions judged by a separate critic. Complements PAPER-OBSERVABILITY (generator-evaluator split).",
+      "summary": "[/skeptic shipped: adversarially-verify-a-claim command (refute by default, demand run-it/read-file/cite-test evidence) — the verification-organ first slice.] Your Agent Harness Should Repair Itself (Pachaar, 2026): eval via natural-language assertions (\"the response must never reveal unauthorized info\") converted to LLM-as-judge clean pass/fail per case — matches how engineers think about quality, unlike numerical-metric datasets. Vanta has /verify + advisor; add a test-suite layer of plain-English assertions judged by a separate critic. Complements PAPER-OBSERVABILITY (generator-evaluator split).",
       "done": "A suite of plain-English assertions runs as LLM-as-judge pass/fail per case against a captured input."
     },
     {
@@ -10115,7 +10115,7 @@
       "id": "WANT-LIFE-SEARCH",
       "status": "horizon",
       "title": "Life-wide semantic search — unified, permission-aware index",
-      "summary": "vanta-wanted-abilities.md §5 (top priority): a unified semantic index over repos/notes/docs/transcripts/email/calendar/drive/screenshots/reports; permission-aware retrieval (only what's allowed for the task); source-cited answers across stores; private/local embedding option; refresh scheduler with change detection. 'Find the thing I saw/wrote/talked about.'",
+      "summary": "[SLICE 1 SHIPPED: unified keyword search across the local stores (world/money/radar/team JSONL + ERRORS.md) with source-cited hits, via a life_search tool + /lifesearch. Local-only/permission-aware. Remaining: semantic embeddings, files/mail/calendar/drive index, refresh scheduler.] vanta-wanted-abilities.md §5 (top priority): a unified semantic index over repos/notes/docs/transcripts/email/calendar/drive/screenshots/reports; permission-aware retrieval (only what's allowed for the task); source-cited answers across stores; private/local embedding option; refresh scheduler with change detection. 'Find the thing I saw/wrote/talked about.'",
       "done": "One semantic index spanning Jason's stores; permission-aware, source-cited retrieval; local-embedding option; change-detecting refresh."
     },
     {
@@ -10129,7 +10129,7 @@
       "id": "WANT-SELF-REPAIR-COMPARTMENTS",
       "status": "horizon",
       "title": "Self-repair compartment model — body boundaries + limb sandbox",
-      "summary": "vanta-wanted-abilities.md §8: an explicit compartment map (skeleton/brainstem/limbs/reflexes/memory) with per-compartment max-autonomy; a limb sandbox to build/replace/test a tool in isolation before attaching; automatic rollback for failed self-edits; a broken-capability detector that opens a repair loop when a tool fails repeatedly. Builds on the factory + protected-paths. Do-not-want §18: never edit kernel/manifesto/brainstem autonomously.",
+      "summary": "[SLICE 1 SHIPPED: a body compartment map (brainstem/skeleton/reflexes/limbs/memory) with per-compartment max-autonomy, classifying any path; /compartments view. Brainstem(kernel/manifesto)+skeleton(factory) = never self-edit. Remaining: limb sandbox, auto-rollback, broken-capability detector.] vanta-wanted-abilities.md §8: an explicit compartment map (skeleton/brainstem/limbs/reflexes/memory) with per-compartment max-autonomy; a limb sandbox to build/replace/test a tool in isolation before attaching; automatic rollback for failed self-edits; a broken-capability detector that opens a repair loop when a tool fails repeatedly. Builds on the factory + protected-paths. Do-not-want §18: never edit kernel/manifesto/brainstem autonomously.",
       "done": "Self-edits target only non-protected compartments; a new/replaced tool is sandbox-tested before attach; failed edits auto-rollback; repeated tool failure opens a repair loop."
     },
     {

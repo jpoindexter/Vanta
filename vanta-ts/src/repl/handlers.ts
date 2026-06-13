@@ -45,8 +45,8 @@ import { now } from "./now-cmd.js";
 import { contextCmd } from "./context-cmd.js";
 import { CLI_PASSTHROUGH } from "./cli-bridge.js";
 import { formatGoalLedger } from "./goal-ledger.js";
-import { ultrathink, ultracode, deepResearch } from "./think-cmd.js";
-import { health, world, money, radar, team } from "./operator-cmds.js";
+import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
+import { health, world, money, radar, team, lifesearch, compartments } from "./operator-cmds.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -286,7 +286,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
   routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand,
-  ultrathink, ultracode, "deep-research": deepResearch, health, world, money, radar, team,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 

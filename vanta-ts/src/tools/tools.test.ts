@@ -65,6 +65,7 @@ describe("registry", () => {
       "graph_query",
       "grep_files",
       "inspect_state",
+      "life_search",
       "list_mcp_resources",
       "look_at_camera",
       "look_at_screen",

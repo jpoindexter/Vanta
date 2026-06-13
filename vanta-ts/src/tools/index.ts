@@ -23,6 +23,7 @@ import { worldTool } from "./world.js";
 import { moneyTool } from "./money.js";
 import { radarTool } from "./radar.js";
 import { teamTool } from "./team.js";
+import { lifeSearchTool } from "./life-search.js";
 import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
@@ -109,6 +110,7 @@ const ALL_TOOLS: readonly Tool[] = [
   moneyTool,
   radarTool,
   teamTool,
+  lifeSearchTool,
   watchVideoTool,
   speakTool,
   swarmTool,
