@@ -22,10 +22,14 @@ export type ToolEntry = {
   diff?: DiffLine[];
 };
 
+/** A run of consecutive tool calls, committed as one block with a header. */
+export type ToolGroupEntry = { kind: "toolGroup"; tools: ToolEntry[] };
+
 export type Entry =
   | { kind: "user"; text: string }
   | { kind: "assistant"; text: string }
   | ToolEntry
+  | ToolGroupEntry
   | { kind: "note"; text: string }
   | { kind: "thinking"; text: string };
 
@@ -39,6 +43,9 @@ export type UiState = {
   streaming: string;
   /** Tools currently running — live region only, cleared as each result lands. */
   activeTools: PendingTool[];
+  /** Completed tools in the current run, buffered until a non-tool entry flushes
+   * them into history as one toolGroup (the grouped-header look). */
+  pendingGroup: ToolEntry[];
   /** The agent's current plan (todo list), shown as a live panel when non-empty. */
   todos: TodoItem[];
   /** Messages submitted while busy — drained one per turn when idle. */
@@ -46,4 +53,4 @@ export type UiState = {
   busy: boolean;
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], todos: [], queued: [], busy: false };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false };

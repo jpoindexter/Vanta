@@ -72,6 +72,21 @@ describe("EntryView", () => {
     expect(out).toContain("first thought");
     inst.unmount();
   });
+
+  it("renders a tool group with a verb header + per-tool detail rows", async () => {
+    const tools = [
+      { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" },
+      { kind: "tool" as const, name: "write_file", verb: "wrote", detail: "y.ts", ok: true, summary: "+6/-0" },
+    ];
+    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("read, wrote"); // distinct-verb header
+    expect(out).toContain("2 actions");
+    expect(out).toContain("read x.ts");
+    expect(out).toContain("wrote y.ts");
+    inst.unmount();
+  });
 });
 
 describe("SlashPalette", () => {

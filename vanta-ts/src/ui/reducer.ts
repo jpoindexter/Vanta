@@ -22,30 +22,42 @@ export type Action =
 
 export function reduce(state: UiState, a: Action): UiState {
   switch (a.t) {
-    case "submit":
-      return { ...state, entries: [...state.entries, { kind: "user", text: a.text }] };
+    case "submit": {
+      const s = flushGroup(state);
+      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }] };
+    }
     case "turnStart":
       return { ...state, busy: true, streaming: "", activeTools: [] };
     case "delta":
       return { ...state, streaming: state.streaming + a.d };
-    case "thinking":
-      return { ...state, entries: [...state.entries, { kind: "thinking", text: a.text }] };
+    case "thinking": {
+      const s = flushGroup(state);
+      return { ...s, entries: [...s.entries, { kind: "thinking", text: a.text }] };
+    }
     case "toolCall":
       return { ...state, activeTools: [...state.activeTools, { name: a.name, verb: a.verb, detail: a.detail }] };
     case "toolResult":
       return completeTool(state, a);
     case "turnEnd":
-      return commitStreaming(state);
+      return commitStreaming(flushGroup(state));
     default:
       return reduceAux(state, a);
   }
 }
 
+/** Commit the buffered tool run as one toolGroup entry (the grouped-header look). */
+function flushGroup(state: UiState): UiState {
+  if (state.pendingGroup.length === 0) return state;
+  return { ...state, entries: [...state.entries, { kind: "toolGroup", tools: state.pendingGroup }], pendingGroup: [] };
+}
+
 /** The append/queue actions, split out so each switch stays under the complexity gate. */
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
-    case "note":
-      return { ...state, entries: [...state.entries, { kind: "note", text: a.text }] };
+    case "note": {
+      const s = flushGroup(state);
+      return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
+    }
     case "todos":
       return { ...state, todos: a.items };
     case "enqueue":
@@ -57,8 +69,8 @@ function reduceAux(state: UiState, a: Action): UiState {
   }
 }
 
-/** Move the matching in-flight tool out of activeTools and commit it as a
- * completed entry (carrying its ✓/✗, summary, and diff). */
+/** Move the matching in-flight tool out of activeTools and buffer it into the
+ * current run (pendingGroup); it commits as part of a toolGroup on the next flush. */
 function completeTool(state: UiState, a: Extract<Action, { t: "toolResult" }>): UiState {
   const idx = lastIndexByName(state.activeTools, a.name);
   const pend: PendingTool | undefined = idx >= 0 ? state.activeTools[idx] : undefined;
@@ -67,7 +79,7 @@ function completeTool(state: UiState, a: Extract<Action, { t: "toolResult" }>): 
     kind: "tool", name: a.name, verb: pend?.verb ?? a.name, detail: pend?.detail ?? "",
     ok: a.ok, errorLine: a.errorLine, summary: a.summary, diff: a.diff,
   };
-  return { ...state, activeTools, entries: [...state.entries, entry] };
+  return { ...state, activeTools, pendingGroup: [...state.pendingGroup, entry] };
 }
 
 /** Index of the last in-flight tool with this name (FIFO would mismatch interleaved calls). */

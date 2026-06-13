@@ -35,30 +35,55 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.activeTools).toEqual([{ name: "read_file", verb: "read", detail: "x.ts" }]);
   });
 
-  it("commits the completed tool entry on result and clears activeTools", () => {
+  it("buffers a completed tool into pendingGroup (not committed until a flush)", () => {
     const s = run([
       { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },
       { t: "toolResult", name: "read_file", ok: true, summary: "48 lines" },
     ]);
     expect(s.activeTools).toHaveLength(0);
-    expect(s.entries[0]).toMatchObject({ kind: "tool", name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" });
+    expect(s.entries).toHaveLength(0); // not yet flushed
+    expect(s.pendingGroup[0]).toMatchObject({ kind: "tool", name: "read_file", verb: "read", ok: true, summary: "48 lines" });
   });
 
-  it("records an error line for a failed tool", () => {
+  it("flushes a run of tools into one toolGroup on turnEnd", () => {
+    const s = run([
+      { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },
+      { t: "toolResult", name: "read_file", ok: true, summary: "48 lines" },
+      { t: "toolCall", name: "write_file", verb: "wrote", detail: "y.ts" },
+      { t: "toolResult", name: "write_file", ok: true, summary: "+6/-0" },
+      { t: "turnEnd" },
+    ]);
+    expect(s.pendingGroup).toHaveLength(0);
+    const group = s.entries.find((e) => e.kind === "toolGroup");
+    expect(group).toMatchObject({ kind: "toolGroup" });
+    expect((group as { tools: unknown[] }).tools).toHaveLength(2);
+  });
+
+  it("flushes the group before a user turn / thinking", () => {
+    const s = run([
+      { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },
+      { t: "toolResult", name: "read_file", ok: true },
+      { t: "submit", text: "next" },
+    ]);
+    expect(s.entries[0]).toMatchObject({ kind: "toolGroup" });
+    expect(s.entries[1]).toEqual({ kind: "user", text: "next" });
+  });
+
+  it("records an error line on the buffered tool", () => {
     const s = run([
       { t: "toolCall", name: "shell_cmd", verb: "ran", detail: "x" },
       { t: "toolResult", name: "shell_cmd", ok: false, errorLine: "boom" },
     ]);
-    expect(s.entries[0]).toMatchObject({ ok: false, errorLine: "boom" });
+    expect(s.pendingGroup[0]).toMatchObject({ ok: false, errorLine: "boom" });
   });
 
-  it("carries a diff through to the committed tool entry", () => {
+  it("carries a diff through to the buffered tool", () => {
     const diff = [{ type: "add" as const, text: "new line" }];
     const s = run([
       { t: "toolCall", name: "write_file", verb: "wrote", detail: "y.ts" },
       { t: "toolResult", name: "write_file", ok: true, diff },
     ]);
-    expect((s.entries[0] as { diff?: unknown }).diff).toEqual(diff);
+    expect(s.pendingGroup[0]!.diff).toEqual(diff);
   });
 
   it("replaces the todo list on a todos action", () => {
