@@ -14,6 +14,8 @@ import { useOverlay, type OverlayView } from "./use-overlay.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
+import { LoopsPanel } from "./loops-panel.js";
+import { ReviewPanel } from "./review-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { busyLabel, contextPct, formatElapsed } from "./busy.js";
@@ -226,6 +228,8 @@ function BottomRegion(props: {
   if (props.pending) return null;
   if (overlay?.kind === "list") return <OverlayList title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
   if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
+  if (overlay?.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={props.onClose} />;
+  if (overlay?.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={props.onClose} />;
   if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
   return (
     <Box flexDirection="column">

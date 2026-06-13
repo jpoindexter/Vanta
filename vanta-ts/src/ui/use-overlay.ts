@@ -5,6 +5,8 @@ import { listSkills } from "../skills/store.js";
 import { currentThemeName } from "../term/theme.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
 import { sessionRows, skillRows, modelRows, themeRows, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
+import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import type { RunSetup } from "../session.js";
 
 // Owns the inline-overlay state for the v2 UI. Open loads the overlay's data
@@ -14,6 +16,8 @@ import type { RunSetup } from "../session.js";
 export type OverlayView =
   | { kind: "list"; title: string; rows: OverlayRow[] }
   | { kind: "cockpit"; data: CockpitData }
+  | { kind: "loops"; loops: LoopSummary[] }
+  | { kind: "review"; files: ChangedFile[]; cwd: string }
   | { kind: "help" };
 
 async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string): Promise<OverlayView> {
@@ -23,6 +27,8 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string)
     case "sessions": return { kind: "list", title: "Sessions", rows: sessionRows(await listSessions(process.env)) };
     case "skills": return { kind: "list", title: "Skills", rows: skillRows(await listSkills(process.env)) };
     case "cockpit": return { kind: "cockpit", data: await gatherCockpitData({ client: setup.safety, dataDir: join(repoRoot, ".vanta") }) };
+    case "loops": return { kind: "loops", loops: await listLoopSummaries(join(repoRoot, ".vanta")) };
+    case "review": return { kind: "review", files: await listChangedFiles(repoRoot), cwd: repoRoot };
     case "help": return { kind: "help" };
   }
 }

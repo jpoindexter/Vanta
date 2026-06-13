@@ -132,15 +132,15 @@
       "id": "TUI-EDIT-REVIEW",
       "track": "Operator",
       "title": "Interactive edit-review panel — per-change keep/undo with keyboard nav",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "A review surface for a turn's file edits, modeled on the reference in docs/design-refs/edit-review-panel.png: header 'N files edited · esc when done', per-file diff cards (old/new line numbers, green adds, red removes), focused-card highlight, ↑↓ moves between changes, 'a' keeps, 'z' undoes (kernel-gated restore of the pre-edit content), and an 'Add a follow-up' input that sends straight to the agent. Builds on the existing per-tool diff data (write_file diffs already render in the transcript) and the vendored fork's ScrollBox. Pairs with CC-STRUCTURED-DIFF (horizon) for the renderer; this card is the interaction loop.",
-      "done": "After a multi-edit turn, a review panel lists every file change; ↑↓ navigates, a/z keep/undo individual changes (undo restores the file via the kernel-gated write path), esc dismisses, follow-up input sends to the agent.",
+      "done": "/changes opens an interactive review overlay: changed files from git (changed-files.ts) with +/- stats, ↑↓ navigate, the selected file diff previews, u=undo (git checkout for tracked / delete for untracked — keypress is the per-action consent), Esc close. Per-file granularity (hunk-level deferred).",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "tui",
-      "updated": "2026-06-11"
+      "updated": "2026-06-13"
     },
     {
       "id": "TUI-DESIGN-LANGUAGE",
@@ -9484,6 +9484,20 @@
       "title": "Shift+Tab autonomy mode cycle — normal / auto-accept / plan (Claude parity)",
       "summary": "Shift+Tab cycles normal → auto-accept → plan → normal with a ▶▶/⏸ indicator above the composer. Auto-accept auto-approves the kernel Ask tier (writes/out-of-root) while the Block tier (destructive/exfiltration) stays kernel-refused upstream — safe by construction. Plan reuses the real /planmode enforcement (write+shell blocked until /planmode approve). Reverses the earlier Rule-Zero deferral: the hard floor is intact because only Asks reach the prompt.",
       "done": "Shift+Tab cycles modes; auto-accept resolves Ask approvals without prompting; plan toggles /planmode; ModeLine indicator renders; cycleMode + ModeLine tested; 115 ui tests green."
+    },
+    {
+      "id": "TUI-LOOPS-DASHBOARD",
+      "track": "Harness",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "updated": "2026-06-13",
+      "status": "shipped",
+      "title": "Loops dashboard — live loops + escalations (TUI)",
+      "summary": "/loops opens a read-only dashboard over the real loop store: each loop with a status glyph (▶ active/in-progress · ⏸ paused/escalated · ✓ done · ✗ killed), goal, iter + score, and an open-escalation badge. listLoopSummaries composes listDefs + loadState; no backend invented — the loop engine already persists def+state under .vanta/loops.",
+      "done": "/loops renders the live loop state; listLoopSummaries + LoopsPanel tested; integrated as an overlay kind."
     }
   ]
 }
