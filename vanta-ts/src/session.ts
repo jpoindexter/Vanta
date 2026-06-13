@@ -103,6 +103,12 @@ async function injectResume(systemPrompt: string, repoRoot: string): Promise<str
   return systemPrompt;
 }
 
+/** Best-effort: log the resolved session config to events.jsonl for reproducibility. */
+function logSessionConfig(safety: { logEvent: (e: string) => Promise<void> }, provider: { modelId: () => string; contextWindow: () => number }, registry: { schemas: () => unknown[] }, systemPrompt: string): void {
+  const cfg = sessionConfig({ provider: process.env.VANTA_PROVIDER ?? "unknown", model: provider.modelId(), contextWindow: provider.contextWindow(), tools: registry.schemas().length, systemPrompt });
+  void safety.logEvent(sessionConfigEvent(cfg, new Date().toISOString()));
+}
+
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
@@ -140,9 +146,7 @@ export async function prepareRun(
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
-    // A goal carried from a prior session starts PAUSED — a fresh launch must not
-    // silently resume last session's task (/goal resume to pick it up). Opt out
-    // with VANTA_GOAL_RESUME=auto to keep the old always-active behavior.
+    // Carried goal starts PAUSED (no silent resume on a fresh launch); VANTA_GOAL_RESUME=auto = old behavior.
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
@@ -151,13 +155,7 @@ export async function prepareRun(
   if (instruction === "interactive session") {
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
-  // Reproducibility: log the resolved config so a past failing input can be re-run
-  // under the same setup (SELFHARNESS-CONFIG-REPRO). Best-effort — never blocks.
-  void safety.logEvent(sessionConfigEvent(sessionConfig({
-    provider: process.env.VANTA_PROVIDER ?? "unknown",
-    model: provider.modelId(), contextWindow: provider.contextWindow(),
-    tools: registry.schemas().length, systemPrompt,
-  }), new Date().toISOString()));
+  logSessionConfig(safety, provider, registry, systemPrompt); // reproducibility (SELFHARNESS-CONFIG-REPRO)
   return { safety, registry, provider, goals, systemPrompt };
 }
 
