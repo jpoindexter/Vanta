@@ -31,7 +31,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
     `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
     `\nAvailable tools:\n${toolList}`,
     `\nHow you operate — no exceptions:`,
-    `1. Goal before tool: before any tool call, state which active goal it serves and what you expect it to return. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
+    `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
     `3. If verification fails, stop and report. Do not continue or fake success.`,
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
