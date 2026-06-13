@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { useTheme, type Theme } from "./theme.js";
+import { highlightLine, type HlSeg } from "./highlight.js";
 
 // Minimal markdown renderer for the transcript: fenced code blocks, h1–h3,
 // bullet/numbered lists, inline **bold** and `code`. Theme-colored (headings →
@@ -131,6 +132,20 @@ function TableView(props: { block: Extract<Block, { type: "table" }>; theme: The
   );
 }
 
+/** A syntax-highlighted code line: keyword→accent, string→success, number→
+ * warning, comment→dim, plain→primary. Two-space indent matches the block. */
+function CodeLine(props: { line: string; lang: string; theme: Theme }): ReactElement {
+  const segs = highlightLine(props.line, props.lang);
+  return <Text>{"  "}{segs.map((s, i) => <Seg key={i} seg={s} theme={props.theme} />)}</Text>;
+}
+
+function Seg(props: { seg: HlSeg; theme: Theme }): ReactElement {
+  const { seg, theme: t } = props;
+  if (seg.cls === "comment") return <Text dimColor={t.dimText}>{seg.text}</Text>;
+  const color = seg.cls === "keyword" ? t.accent : seg.cls === "string" ? t.success : seg.cls === "number" ? t.warning : t.primary;
+  return <Text color={color}>{seg.text}</Text>;
+}
+
 function BlockView(props: { block: Block; theme: Theme }): ReactElement {
   const b = props.block;
   const t = props.theme;
@@ -138,7 +153,7 @@ function BlockView(props: { block: Block; theme: Theme }): ReactElement {
   if (b.type === "code") return (
     <Box flexDirection="column">
       {b.lang ? <Text dimColor={t.dimText}>{`  ${b.lang}`}</Text> : null}
-      {b.lines.map((l, j) => <Text key={j} color={t.info}>{`  ${l}`}</Text>)}
+      {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} theme={t} />)}
     </Box>
   );
   if (b.type === "heading") return <Text bold color={t.accent}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text>;

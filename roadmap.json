@@ -697,14 +697,15 @@
       "id": "CC-HIGHLIGHTED-CODE",
       "track": "Operator",
       "title": "Syntax-highlighted code blocks — HighlightedCode with language detection",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CC's HighlightedCode renders code blocks with full syntax highlighting (language-specific token coloring) and a Fallback for unsupported languages. Vanta shows code in fenced blocks (CC-S-MARKDOWN) but without syntax-token coloring.",
-      "done": "Code blocks in the transcript detect language from the fence label and render with token-level syntax coloring; the Fallback shows plain monospace when the language is unknown or highlighting is disabled.",
+      "done": "Fenced code blocks in the transcript are syntax-highlighted: keyword→accent, string→success, number→warning, comment→dim, plain→primary. Lightweight lossless tokenizer (ui/highlight.ts) for ts/js/json/bash/py/rust/go wired into markdown.tsx. 72 tests green.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-13"
     },
     {
       "id": "CC-TRUST-DIALOG",
