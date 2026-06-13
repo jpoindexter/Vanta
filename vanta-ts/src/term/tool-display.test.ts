@@ -84,6 +84,15 @@ describe("toolDisplay", () => {
     expect(toolDisplay("web_fetch", { url: "https://example.com/a/b" }).detail).toBe("example.com");
   });
 
+  it("gives search/background tools clean verbs instead of the raw snake_case name", () => {
+    const grep = toolDisplay("grep_files", { pattern: "tui|ui|ink", path: "src" });
+    expect(grep.verb).toBe("grep"); // not "grep_files"
+    expect(grep.detail).toBe("tui|ui|ink");
+    expect(toolDisplay("glob_files", { pattern: "**/*.ts" }).verb).toBe("glob");
+    expect(toolDisplay("bg_status", { id: "bg-1" }).verb).toBe("background");
+    expect(toolDisplay("ref_search", { query: "x" }).verb).toBe("ref"); // prefix
+  });
+
   it("never emits raw JSON for an unknown tool", () => {
     const d = toolDisplay("mystery_tool", { path: "/var/folders/T/NSIRD_x/y.png", n: 3 });
     expect(d.detail).not.toContain("{");

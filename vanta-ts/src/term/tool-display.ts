@@ -62,7 +62,25 @@ function toolDisplayByPrefix(name: string): ToolDisplay | null {
   if (name.startsWith("calendar_")) return { icon: "📅", verb: "calendar", detail: name.slice(9) };
   if (name.startsWith("drive_")) return { icon: "📁", verb: "drive", detail: name.slice(6) };
   if (name.startsWith("lsp_")) return { icon: "🔧", verb: "lsp", detail: name.slice(4) };
+  if (name.startsWith("ref_")) return { icon: "📚", verb: "ref", detail: name.slice(4) };
+  if (name.startsWith("roadmap_")) return { icon: "🗺", verb: "roadmap", detail: name.slice(8) };
   return null;
+}
+
+/** Display for search + background/utility tools (otherwise they fall back to a
+ * raw `grep_files(key:val …)` dump). Returns null when not in this group. */
+function toolDisplayUtilGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "grep_files":  return { icon: "🔎", verb: "grep", detail: trunc(str("pattern"), 50) };
+    case "glob_files":  return { icon: "🔎", verb: "glob", detail: trunc(str("pattern"), 50) };
+    case "bg_status":
+    case "bg_list":     return { icon: "⏱", verb: "background", detail: "" };
+    case "sleep":       return { icon: "⏾", verb: "slept", detail: "" };
+    case "loop":        return { icon: "🔁", verb: "loop", detail: str("action") || str("id") };
+    case "tool_search": return { icon: "🔎", verb: "found tools", detail: trunc(str("query"), 40) };
+    case "graph_query": return { icon: "🕸", verb: "graph", detail: trunc(str("query"), 40) };
+    default:            return null;
+  }
 }
 
 /** Display for file/shell/web/code tools. Returns null when name is not in this group. */
@@ -122,5 +140,5 @@ function toolDisplayAgentGroup(name: string, str: (k: string) => string): ToolDi
 /** Clean display parts for a tool call. Detail comes from ARGS, never raw output. */
 export function toolDisplay(name: string, args: Record<string, unknown>): ToolDisplay {
   const str = (k: string): string => (typeof args[k] === "string" ? (args[k] as string) : "");
-  return toolDisplayCoreGroup(name, str) ?? toolDisplayMediaGroup(name, str) ?? toolDisplayMemoryGroup(name, str) ?? toolDisplayAgentGroup(name, str) ?? toolDisplayByPrefix(name) ?? { icon: "•", verb: name, detail: compactArgs(args) };
+  return toolDisplayCoreGroup(name, str) ?? toolDisplayMediaGroup(name, str) ?? toolDisplayMemoryGroup(name, str) ?? toolDisplayAgentGroup(name, str) ?? toolDisplayUtilGroup(name, str) ?? toolDisplayByPrefix(name) ?? { icon: "•", verb: name, detail: compactArgs(args) };
 }
