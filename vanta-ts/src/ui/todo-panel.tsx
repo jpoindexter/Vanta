@@ -19,6 +19,9 @@ export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const t = useTheme();
   if (props.todos.length === 0) return null;
   const done = props.todos.filter((x) => x.status === "done").length;
+  // A fully-complete plan is stale clutter ("stuck at ✓4") — hide it. It returns
+  // when the agent starts a new plan (something in_progress/pending again).
+  if (done === props.todos.length) return null;
   const running = props.todos.filter((x) => x.status === "in_progress").length;
   const pending = props.todos.filter((x) => x.status === "pending").length;
   // Prefer showing active items; bound the height so the live region can't grow

@@ -182,6 +182,14 @@ describe("inline overlays", () => {
     expect(inst.lastFrame().trim()).toBe("");
     inst.unmount();
   });
+
+  it("TodoPanel hides a fully-complete plan (no more 'stuck at ✓4')", async () => {
+    const todos = [{ text: "a", status: "done" as const }, { text: "b", status: "done" as const }];
+    const inst = renderUi(h(TodoPanel, { todos }));
+    await tick();
+    expect(inst.lastFrame().trim()).toBe("");
+    inst.unmount();
+  });
 });
 
 describe("StatusBar", () => {
