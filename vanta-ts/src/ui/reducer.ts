@@ -1,4 +1,4 @@
-import type { Entry, PendingTool, ToolEntry, UiState } from "./types.js";
+import type { PendingTool, ToolEntry, UiState } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { TodoItem } from "../todo/store.js";
 
@@ -23,7 +23,7 @@ export type Action =
 export function reduce(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "submit": {
-      const s = flushGroup(state);
+      const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "user", text: a.text }] };
     }
     case "turnStart":
@@ -31,11 +31,17 @@ export function reduce(state: UiState, a: Action): UiState {
     case "delta":
       return { ...state, streaming: state.streaming + a.d };
     case "thinking": {
-      const s = flushGroup(state);
+      const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "thinking", text: a.text }] };
     }
-    case "toolCall":
-      return { ...state, activeTools: [...state.activeTools, { name: a.name, verb: a.verb, detail: a.detail }] };
+    case "toolCall": {
+      // Commit any streamed assistant text to <Static> NOW, before the tool runs.
+      // A tool call (esp. an approval-gated one) can hold the live region for a
+      // long time; leaving the text there lets every redraw frame leak into
+      // scrollback (ghosting). Committed text leaves the redrawing region.
+      const s = commitText(state);
+      return { ...s, activeTools: [...s.activeTools, { name: a.name, verb: a.verb, detail: a.detail }] };
+    }
     case "toolResult":
       return completeTool(state, a);
     case "turnEnd":
@@ -51,11 +57,25 @@ function flushGroup(state: UiState): UiState {
   return { ...state, entries: [...state.entries, { kind: "toolGroup", tools: state.pendingGroup }], pendingGroup: [] };
 }
 
+/** Commit in-flight streamed text to history (→ <Static>) WITHOUT ending the turn,
+ * clearing `streaming` so the redrawing live region drops it. No-op when empty. */
+function commitText(state: UiState): UiState {
+  const text = state.streaming.trim();
+  if (!text) return state;
+  return { ...state, entries: [...state.entries, { kind: "assistant", text }], streaming: "" };
+}
+
+/** Commit both pending text and the pending tool run, in turn order (text first).
+ * Used before any non-tool entry (user/thinking/note) is appended. */
+function flush(state: UiState): UiState {
+  return flushGroup(commitText(state));
+}
+
 /** The append/queue actions, split out so each switch stays under the complexity gate. */
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "note": {
-      const s = flushGroup(state);
+      const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
     }
     case "todos":
@@ -88,9 +108,7 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
   return -1;
 }
 
-/** Commit the streamed text to history (→ <Static>) and clear the live region. */
+/** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
-  const text = state.streaming.trim();
-  const entries: Entry[] = text ? [...state.entries, { kind: "assistant", text }] : state.entries;
-  return { ...state, entries, streaming: "", activeTools: [], busy: false };
+  return { ...commitText(state), activeTools: [], busy: false };
 }

@@ -29,6 +29,31 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.entries).toHaveLength(0);
   });
 
+  it("commits streamed text to history the moment a tool call interrupts it (anti-ghost)", () => {
+    const s = run([
+      { t: "turnStart" },
+      { t: "delta", d: "Here is the plan." },
+      { t: "toolCall", name: "write_file", verb: "wrote", detail: "x.html" },
+    ]);
+    expect(s.streaming).toBe(""); // text left the redrawing live region
+    expect(s.entries).toEqual([{ kind: "assistant", text: "Here is the plan." }]);
+    expect(s.activeTools).toEqual([{ name: "write_file", verb: "wrote", detail: "x.html" }]);
+  });
+
+  it("orders committed text before the tool group and never duplicates it on turnEnd", () => {
+    const s = run([
+      { t: "turnStart" },
+      { t: "delta", d: "Writing it now." },
+      { t: "toolCall", name: "write_file", verb: "wrote", detail: "x.html" },
+      { t: "toolResult", name: "write_file", ok: true, summary: "+6/-0" },
+      { t: "turnEnd" },
+    ]);
+    expect(s.entries).toHaveLength(2); // text once, then the group — no duplicate
+    expect(s.entries[0]).toEqual({ kind: "assistant", text: "Writing it now." });
+    expect(s.entries[1]).toMatchObject({ kind: "toolGroup" });
+    expect(s.streaming).toBe("");
+  });
+
   it("keeps an in-flight tool in the live region (not committed) until its result", () => {
     const s = run([{ t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" }]);
     expect(s.entries).toHaveLength(0); // <Static> never repaints — commit only when done
