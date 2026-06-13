@@ -13,7 +13,7 @@ export type OverlayRow = { label: string; hint?: string; command: string };
 
 /** Bare slash commands that open an inline overlay instead of printing text. */
 export const PICKER_KINDS: Readonly<Record<string, OverlayKind>> = {
-  model: "model", sessions: "sessions", skills: "skills", theme: "theme", cockpit: "cockpit", help: "help",
+  model: "model", setup: "model", sessions: "sessions", skills: "skills", theme: "theme", cockpit: "cockpit", help: "help",
 };
 
 export function sessionRows(sessions: SessionMeta[]): OverlayRow[] {
