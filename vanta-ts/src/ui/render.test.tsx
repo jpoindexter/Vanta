@@ -4,6 +4,7 @@ import { renderUi, tick } from "./test-render.js";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { SlashPalette } from "./slash-palette.js";
+import { AtPalette } from "./at-palette.js";
 import { matchSlash } from "./slash.js";
 
 describe("Banner", () => {
@@ -58,6 +59,17 @@ describe("SlashPalette", () => {
     const inst = renderUi(h(SlashPalette, { matches: [], sel: 0 }));
     await tick();
     expect(inst.lastFrame().trim()).toBe("");
+    inst.unmount();
+  });
+});
+
+describe("AtPalette", () => {
+  it("lists matching files with the @ glyph", async () => {
+    const inst = renderUi(h(AtPalette, { files: ["src/app.ts", "src/composer.tsx"], sel: 0 }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("@src/app.ts");
+    expect(out).toContain("@src/composer.tsx");
     inst.unmount();
   });
 });

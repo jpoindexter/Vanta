@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState, type ReactElement } from "react";
+import { useEffect, useReducer, useRef, useState, type ReactElement } from "react";
 import { Box, Static, Text, useApp, useInput } from "inkr";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
@@ -7,7 +7,8 @@ import { reduce } from "./reducer.js";
 import { initialState, type Entry } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
 import { useSlash } from "./use-slash.js";
-import { isSlashLine } from "./slash.js";
+import { useSubmit } from "./use-submit.js";
+import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
@@ -24,8 +25,12 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const interruptRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
+  const [files, setFiles] = useState<string[]>([]);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
+  const onSubmit = useSubmit({ runSlash, send, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+
+  useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
 
   useInput((input, key) => {
     if (key.ctrl && input === "c") {
@@ -40,12 +45,6 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     }
   });
 
-  const onSubmit = (text: string): void => {
-    if (isSlashLine(text)) return void runSlash(text);
-    if (state.busy) return void dispatch({ t: "note", text: "  · still working — send again when ready" });
-    void send(text);
-  };
-
   // Banner is the first Static item, so it scrolls into history like everything else.
   const staticItems: Array<{ key: string; node: ReactElement }> = [
     { key: "banner", node: <Banner model={props.setup.provider.modelId()} cwd={props.repoRoot} kernel="127.0.0.1:7788" /> },
@@ -56,7 +55,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
       <LiveRegion streaming={state.streaming} activeTool={state.activeTool} busy={state.busy} pending={pending} />
-      {pending ? null : <Composer onSubmit={onSubmit} placeholder="Ask Vanta anything — /help for commands" />}
+      {pending ? null : <Composer onSubmit={onSubmit} placeholder="Ask Vanta anything — /help for commands" files={files} />}
     </Box>
   );
 }
