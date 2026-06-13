@@ -7,7 +7,7 @@ import { TodoPanel } from "./todo-panel.js";
 import { reduce, type Action } from "./reducer.js";
 import { initialState, type Entry, type PendingTool } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
-import { grantAlways } from "./grant.js";
+import { ApprovalPrompt } from "./approval-prompt.js";
 import { useSlash } from "./use-slash.js";
 import { useSubmit } from "./use-submit.js";
 import { useOverlay, type OverlayView } from "./use-overlay.js";
@@ -60,7 +60,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useInput((input, key) =>
     handleGlobalKey(input, key, {
       busy: state.busy, pending, overlayOpen: overlay !== null,
-      abort: () => interruptRef.current?.abort(), exit: app.exit, setPending,
+      abort: () => interruptRef.current?.abort(), exit: app.exit,
     }),
   );
 
@@ -70,7 +70,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-        <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
+        {pending
+          ? <ApprovalPrompt pending={pending} onDone={() => setPending(null)} />
+          : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
         {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} /> : null}
@@ -93,24 +95,17 @@ function Footer(props: { model: string; ctxPct: number; tokens: number; contextW
 type GlobalKey = { ctrl?: boolean; escape?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
-  abort: () => void; exit: () => void; setPending: (p: Pending | null) => void;
+  abort: () => void; exit: () => void;
 };
 
 const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
   Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
 
-function resolveApproval(input: string, key: GlobalKey, p: Pending, setPending: (p: Pending | null) => void): void {
-  if (input === "a") { p.resolve(true); setPending(null); }
-  else if (input === "A") { void grantAlways(p.toolName).catch(() => {}); p.resolve(true); setPending(null); }
-  else if (input === "d" || key.escape) { p.resolve(false); setPending(null); }
-}
-
-/** App-level keys: ^C interrupt/exit, Esc interrupt a running turn, a/d resolve an
- * approval. Overlays/approvals own Esc when open, so Esc-interrupt is suppressed then. */
+/** App-level keys: ^C interrupt/exit, Esc interrupt a running turn. An open
+ * approval (pending) owns its own keys (ApprovalPrompt) and suppresses Esc-interrupt. */
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
   if (escInterrupts(key, d)) return void d.abort();
-  if (d.pending) resolveApproval(input, key, d.pending, d.setPending);
 }
 
 /** Drain one queued message per turn once the agent is idle again. */
@@ -148,22 +143,10 @@ function BottomRegion(props: {
   return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} onPaste={props.onPaste} />;
 }
 
-/** The small dynamic tail: streaming text, in-flight tool line(s), approval. */
-function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; pending: Pending | null; tick: number }): ReactElement | null {
-  const { streaming, activeTools, busy, pending, tick } = props;
+/** The small dynamic tail: streaming text, in-flight tool line(s). */
+function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number }): ReactElement | null {
+  const { streaming, activeTools, busy, tick } = props;
   const theme = useTheme();
-  if (pending) {
-    return (
-      <Box borderStyle="round" borderColor={theme.warning} flexDirection="column" paddingX={1} marginTop={1}>
-        <Text color={theme.warning} bold>⚠ Approval needed</Text>
-        <Text color={theme.primary}>{pending.action}</Text>
-        {pending.reason ? <Text dimColor={theme.dimText}>{pending.reason}</Text> : null}
-        <Text>
-          <Text color={theme.success}>[a]</Text> allow once  ·  <Text color={theme.success}>[A]</Text> always allow  ·  <Text color={theme.error}>[d]</Text> deny <Text dimColor={theme.dimText}>(esc)</Text>
-        </Text>
-      </Box>
-    );
-  }
   if (!busy && !streaming) return null;
   const active = activeTools[activeTools.length - 1];
   const { frame, verb } = busyLabel(tick);
