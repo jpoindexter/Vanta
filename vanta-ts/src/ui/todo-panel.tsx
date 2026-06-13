@@ -9,10 +9,18 @@ import type { TodoItem } from "../todo/store.js";
 
 const MAX_ROWS = 6;
 
+/** A 4-cell progress meter ("▰▰▱▱") for the share of done items. Pure. */
+export function planMeter(done: number, total: number): string {
+  const filled = total > 0 ? Math.round((done / total) * 4) : 0;
+  return "▰".repeat(filled) + "▱".repeat(4 - filled);
+}
+
 export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const t = useTheme();
   if (props.todos.length === 0) return null;
   const done = props.todos.filter((x) => x.status === "done").length;
+  const running = props.todos.filter((x) => x.status === "in_progress").length;
+  const pending = props.todos.filter((x) => x.status === "pending").length;
   // Prefer showing active items; bound the height so the live region can't grow
   // past the viewport (which would make Ink's in-place redraw stack/ghost).
   const ordered = [...props.todos].sort((a, b) => rank(a.status) - rank(b.status));
@@ -20,7 +28,7 @@ export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const extra = ordered.length - shown.length;
   return (
     <Box flexDirection="column" marginTop={1}>
-      <Text dimColor={t.dimText}>plan · {done}/{props.todos.length} done</Text>
+      <Text dimColor={t.dimText}>plan <Text color={t.accent}>{planMeter(done, props.todos.length)}</Text> · ✓{done} ◐{running} ○{pending}</Text>
       {shown.map((x, i) => <TodoRow key={i} todo={x} />)}
       {extra > 0 ? <Text dimColor={t.dimText}>  +{extra} more</Text> : null}
     </Box>

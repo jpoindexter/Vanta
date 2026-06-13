@@ -52,6 +52,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  const goal = useActiveGoal(props.setup.safety, state.busy);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
@@ -75,17 +76,24 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} /> : null}
+        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} /> : null}
       </Box>
     </ThemeProvider>
   );
 }
 
-/** Status line + the dim prefix-affordance line beneath it. */
-function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number }): ReactElement {
+/** Clip the active goal to one line so the footer never wraps (which would ghost). */
+function goalClip(s: string): string {
+  const l = s.split("\n")[0] ?? "";
+  return l.length > 88 ? `${l.slice(0, 87)}…` : l;
+}
+
+/** Active-goal line (when set) + status line + the dim prefix-affordance line. */
+function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null }): ReactElement {
   const t = useTheme();
   return (
     <Box flexDirection="column">
+      {props.goal ? <Text dimColor={t.dimText}><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</Text> : null}
       <StatusBar model={props.model} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} />
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
@@ -106,6 +114,16 @@ const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
   if (escInterrupts(key, d)) return void d.abort();
+}
+
+/** Read the kernel's active goal on mount + when a turn settles (cheap goals.tsv
+ * read), so the footer shows what Vanta is working toward. */
+function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null {
+  const [goal, setGoal] = useState<string | null>(null);
+  useEffect(() => {
+    void safety.getGoals().then((gs) => setGoal(gs.find((g) => g.status === "active")?.text ?? null)).catch(() => {});
+  }, [busy]); // eslint-disable-line react-hooks/exhaustive-deps
+  return goal;
 }
 
 /** Drain one queued message per turn once the agent is idle again. */

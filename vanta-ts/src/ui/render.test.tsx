@@ -8,7 +8,7 @@ import { AtPalette } from "./at-palette.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
-import { TodoPanel } from "./todo-panel.js";
+import { TodoPanel, planMeter } from "./todo-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { matchSlash } from "./slash.js";
 import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
@@ -146,14 +146,24 @@ describe("inline overlays", () => {
     inst.unmount();
   });
 
-  it("TodoPanel renders the plan with a done count", async () => {
+  it("TodoPanel renders the plan with a meter + status counts", async () => {
     const todos = [{ text: "ship it", status: "in_progress" as const }, { text: "done thing", status: "done" as const }];
     const inst = renderUi(h(TodoPanel, { todos }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("plan · 1/2 done");
+    expect(out).toContain("plan");
+    expect(out).toContain("✓1"); // done
+    expect(out).toContain("◐1"); // in progress
+    expect(out).toContain("▰");  // progress meter
     expect(out).toContain("ship it");
     inst.unmount();
+  });
+
+  it("planMeter fills 4 cells by share done", () => {
+    expect(planMeter(0, 4)).toBe("▱▱▱▱");
+    expect(planMeter(2, 4)).toBe("▰▰▱▱");
+    expect(planMeter(4, 4)).toBe("▰▰▰▰");
+    expect(planMeter(0, 0)).toBe("▱▱▱▱"); // no divide-by-zero
   });
 
   it("TodoPanel renders nothing for an empty plan", async () => {
