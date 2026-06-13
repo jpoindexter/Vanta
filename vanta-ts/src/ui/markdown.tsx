@@ -156,7 +156,7 @@ function BlockView(props: { block: Block; theme: Theme }): ReactElement {
       {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} theme={t} />)}
     </Box>
   );
-  if (b.type === "heading") return <Text bold color={t.accent}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text>;
+  if (b.type === "heading") return <Box marginTop={1}><Text bold color={t.accent}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
   if (b.type === "bullet") return <Text>{"  • "}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "numbered") return <Text>{`  ${b.n}. `}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "table") return <TableView block={b} theme={t} />;

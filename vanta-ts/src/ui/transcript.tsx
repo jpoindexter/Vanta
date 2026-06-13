@@ -18,9 +18,9 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   const t = useTheme();
   // A blank line above a user turn separates turns visually (Claude/Cursor rhythm).
   if (e.kind === "user") return <Box marginTop={1}><Text color={t.userMarker} bold>❯ </Text><Text color={t.userMarker}>{e.text}</Text></Box>;
-  if (e.kind === "assistant") return <Box><Text color={t.marker}>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
+  if (e.kind === "assistant") return <Box marginTop={1}><Text color={t.marker}>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
-  if (e.kind === "note") return <Text dimColor={t.dimText}>{e.text}</Text>;
+  if (e.kind === "note") return <Box marginTop={1}><Text dimColor={t.dimText}>{e.text}</Text></Box>;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
   return <ToolCallView entry={e} />;
 }
@@ -60,7 +60,7 @@ function ThinkingView(props: { text: string }): ReactElement {
   const t = useTheme();
   const lines = props.text.split("\n").map((l) => l.trim()).filter(Boolean).slice(0, THINK_MAX);
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" marginTop={1}>
       <Text dimColor={t.dimText}>✻ thinking</Text>
       {lines.map((l, i) => <Text key={i} dimColor={t.dimText}>  {clip(l, 100)}</Text>)}
     </Box>
