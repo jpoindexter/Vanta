@@ -25,7 +25,7 @@ describe("theme plumbing", () => {
   it("falls back to the default theme without a provider", async () => {
     const inst = renderUi(h(Probe));
     await tick();
-    expect(inst.lastFrame()).toContain("cyan"); // default accent
+    expect(inst.lastFrame()).toContain("#56c8db"); // default accent
     inst.unmount();
   });
 });

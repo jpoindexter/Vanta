@@ -18,17 +18,20 @@ export type Theme = {
 };
 
 const THEMES: Readonly<Record<string, Theme>> = {
+  // Truecolor hex (not ANSI names) so the render is identical across terminals
+  // and matches the design reference (docs/agent-model.html) instead of inheriting
+  // the user's washed-out palette. Light terminals still fall back to high-contrast.
   default: {
-    primary: "white",
-    accent: "cyan",
-    border: "cyan",
+    primary: "#c9d4e0",
+    accent: "#56c8db",
+    border: "#2f8f9e",
     dimText: true,
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "blue",
-    marker: "cyan",
-    userMarker: "white",
+    success: "#7ec76b",
+    error: "#e06c75",
+    warning: "#e0b341",
+    info: "#6cb6ff",
+    marker: "#56c8db",
+    userMarker: "#c9d4e0",
   },
   "high-contrast": {
     primary: "white",

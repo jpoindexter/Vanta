@@ -11,10 +11,10 @@ import {
 describe("resolveTheme", () => {
   it("returns default theme when VANTA_THEME is unset", () => {
     const t = resolveTheme({});
-    expect(t.primary).toBe("white");
-    expect(t.accent).toBe("cyan");
-    expect(t.border).toBe("cyan");
-    expect(t.marker).toBe("cyan");
+    expect(t.primary).toBe("#c9d4e0");
+    expect(t.accent).toBe("#56c8db");
+    expect(t.border).toBe("#2f8f9e");
+    expect(t.marker).toBe("#56c8db");
   });
 
   it("returns high-contrast theme", () => {
@@ -39,7 +39,7 @@ describe("resolveTheme", () => {
 
   it("falls back to default for unknown theme names", () => {
     const t = resolveTheme({ VANTA_THEME: "nonexistent" });
-    expect(t.accent).toBe("cyan");
+    expect(t.accent).toBe("#56c8db");
   });
 
   it("is case-insensitive", () => {
@@ -56,7 +56,7 @@ describe("THEME_NAMES + resolveThemeByName", () => {
     expect(resolveThemeByName("DYSLEXIA").accent).toBe("yellow");
   });
   it("falls back to default for an unknown name", () => {
-    expect(resolveThemeByName("nope").accent).toBe("cyan");
+    expect(resolveThemeByName("nope").accent).toBe("#56c8db");
   });
 });
 
@@ -149,7 +149,7 @@ describe("resolveTheme auto-detect integration", () => {
 
   it("dark terminal with no override yields default theme", () => {
     const t = resolveTheme({ COLORFGBG: "15;0" });
-    expect(t.accent).toBe("cyan");     // default accent
+    expect(t.accent).toBe("#56c8db");  // default accent
   });
 
   it("VANTA_THEME override on light terminal uses the explicit theme", () => {
