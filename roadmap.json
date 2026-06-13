@@ -9452,10 +9452,10 @@
       "lens": "tui",
       "updated": "2026-06-13",
       "id": "TUI-TOOL-CALL-CC-STYLE",
-      "status": "next",
+      "status": "shipped",
       "title": "Render tool calls as ⏺ Tool(args) / ⎿ result (Claude grammar)",
       "summary": "Demo renders each tool call Claude-style: ⏺ Read(src/x.ts) then ⎿ Read 48 lines. The live TUI groups a run under one ⏺ header (⏺ read, wrote · 2 actions). Track switching to (or offering) the per-call Claude grammar. Design choice — evaluate against the grouped header.",
-      "done": "Decision recorded; if adopted, tool calls render as ⏺ Tool(args) / ⎿ result; tests updated."
+      "done": "Tool calls render Claude-style: ⏺ Verb(detail) over a dim ⎿ result, no group header; render tests updated; ui suite green."
     }
   ]
 }

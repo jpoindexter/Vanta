@@ -2,15 +2,13 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 import { Markdown } from "./markdown.js";
-import { kfmt } from "./busy.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 
-// Pure renderers for one committed entry. Each renders one logical block; real
-// Ink + <Static> commits it to scrollback once, so wrapping is fine (the terminal
-// owns the wrapped lines). A run of tools commits as one toolGroup: a ⏺ header
-// (the distinct verbs + an action count) over dim, indented per-tool detail rows;
-// a tool that edited a file shows its diff inline beneath its row.
+// Pure renderers for one committed entry. Tools render Claude-style: each call is
+// a ⏺ Verb(detail) line over a dim ⎿ result line (+ inline diff for edits). Real
+// Ink + <Static> commits each entry to scrollback once, so wrapping is fine (the
+// terminal owns the wrapped lines).
 
 const DIFF_MAX = 12;
 const THINK_MAX = 3;
@@ -24,45 +22,35 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <Text dimColor={t.dimText}>{e.text}</Text>;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
-  return <ToolView entry={e} />;
+  return <ToolCallView entry={e} />;
 }
 
-/** Distinct verbs of a tool run, in first-seen order ("Read, wrote, ran"). */
-function groupVerbs(tools: ToolEntry[]): string {
-  const seen: string[] = [];
-  for (const x of tools) if (!seen.includes(x.verb)) seen.push(x.verb);
-  return seen.join(", ");
-}
+/** Capitalize a verb for the Claude-style call header ("read" → "Read"). */
+const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
+/** A committed run of tools, Claude-style: each is a ⏺ Verb(detail) line over a
+ * dim ⎿ result line (+ inline diff for edits) — sequential pairs, no group header. */
 function ToolGroupView(props: { tools: ToolEntry[] }): ReactElement {
-  const t = useTheme();
-  const n = props.tools.length;
-  const allOk = props.tools.every((x) => x.ok !== false);
-  const tokSum = props.tools.reduce((acc, x) => acc + (x.tokens ?? 0), 0);
   return (
     <Box flexDirection="column" marginTop={1}>
-      <Box>
-        <Text color={allOk ? t.success : t.error}>⏺ </Text>
-        <Text bold color={t.primary}>{groupVerbs(props.tools)}</Text>
-        <Text dimColor={t.dimText}> · {n} action{n === 1 ? "" : "s"}</Text>
-        {tokSum > 0 ? <Text dimColor={t.dimText}> · ~{kfmt(tokSum)} tok</Text> : null}
-      </Box>
-      {props.tools.map((tool, i) => <ToolDetailRow key={i} entry={tool} />)}
+      {props.tools.map((tool, i) => <ToolCallView key={i} entry={tool} />)}
     </Box>
   );
 }
 
-function ToolDetailRow(props: { entry: ToolEntry }): ReactElement {
+function ToolCallView(props: { entry: ToolEntry }): ReactElement {
   const e = props.entry;
   const t = useTheme();
   const ok = e.ok !== false;
   const meta = ok ? e.summary : e.errorLine;
+  const head = `${cap(e.verb)}${e.detail ? `(${e.detail})` : ""}`;
   return (
     <Box flexDirection="column">
       <Box>
-        <Text color={ok ? t.success : t.error}>  {ok ? "✓" : "✗"} </Text>
-        <Text dimColor={t.dimText}>{e.verb}{e.detail ? ` ${e.detail}` : ""}{meta ? ` · ${meta}` : ""}</Text>
+        <Text color={ok ? t.success : t.error}>⏺ </Text>
+        <Text color={t.primary}>{head}</Text>
       </Box>
+      {meta ? <Text dimColor={t.dimText}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );
@@ -75,25 +63,6 @@ function ThinkingView(props: { text: string }): ReactElement {
     <Box flexDirection="column">
       <Text dimColor={t.dimText}>✻ thinking</Text>
       {lines.map((l, i) => <Text key={i} dimColor={t.dimText}>  {clip(l, 100)}</Text>)}
-    </Box>
-  );
-}
-
-function ToolView(props: { entry: ToolEntry }): ReactElement {
-  const e = props.entry;
-  const t = useTheme();
-  const mark = e.ok === undefined ? "○" : e.ok ? "✓" : "✗";
-  const markColor = e.ok === undefined ? t.warning : e.ok ? t.success : t.error;
-  const meta = e.ok ? e.summary : e.errorLine;
-  return (
-    <Box flexDirection="column">
-      <Box>
-        <Text dimColor={t.dimText}>  ⎿ </Text>
-        <Text color={markColor}>{mark} </Text>
-        <Text dimColor={t.dimText}>{e.verb}{e.detail ? ` ${e.detail}` : ""}</Text>
-        {meta ? <Text dimColor={t.dimText}> · {meta}</Text> : null}
-      </Box>
-      {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );
 }

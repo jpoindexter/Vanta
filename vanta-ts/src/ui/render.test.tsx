@@ -35,21 +35,22 @@ describe("EntryView", () => {
     inst.unmount();
   });
 
-  it("renders a completed tool with a ✓ mark and summary", async () => {
+  it("renders a completed tool Claude-style: ⏺ Verb(detail) over a ⎿ result", async () => {
     const inst = renderUi(h(EntryView, { entry: { kind: "tool", name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" } }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("✓");
-    expect(out).toContain("read x.ts");
+    expect(out).toContain("⏺");
+    expect(out).toContain("Read(x.ts)");
+    expect(out).toContain("⎿");
     expect(out).toContain("48 lines");
     inst.unmount();
   });
 
-  it("renders a failed tool with a ✗ mark and error line", async () => {
+  it("renders a failed tool with the error on the ⎿ line", async () => {
     const inst = renderUi(h(EntryView, { entry: { kind: "tool", name: "shell_cmd", verb: "ran", detail: "x", ok: false, errorLine: "boom" } }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("✗");
+    expect(out).toContain("Ran(x)");
     expect(out).toContain("boom");
     inst.unmount();
   });
@@ -73,7 +74,7 @@ describe("EntryView", () => {
     inst.unmount();
   });
 
-  it("renders a tool group with a verb header + per-tool detail rows", async () => {
+  it("renders a tool group as sequential ⏺ Verb(detail) calls (no group header)", async () => {
     const tools = [
       { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" },
       { kind: "tool" as const, name: "write_file", verb: "wrote", detail: "y.ts", ok: true, summary: "+6/-0" },
@@ -81,34 +82,10 @@ describe("EntryView", () => {
     const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("read, wrote"); // distinct-verb header
-    expect(out).toContain("2 actions");
-    expect(out).toContain("read x.ts");
-    expect(out).toContain("wrote y.ts");
-    inst.unmount();
-  });
-
-  it("renders a tool group with a token tally suffix when tools carry tokens", async () => {
-    const tools = [
-      { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines", tokens: 800 },
-      { kind: "tool" as const, name: "write_file", verb: "wrote", detail: "y.ts", ok: true, summary: "+6/-0", tokens: 400 },
-    ];
-    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
-    await tick();
-    const out = inst.lastFrame();
-    expect(out).toContain("2 actions");
-    expect(out).toContain("~1k tok"); // 800 + 400 = 1200 → kfmt(1200) = "1k"
-    inst.unmount();
-  });
-
-  it("omits the token tally when all tokens are zero or absent", async () => {
-    const tools = [
-      { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" },
-    ];
-    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
-    await tick();
-    const out = inst.lastFrame();
-    expect(out).not.toContain("tok");
+    expect(out).toContain("Read(x.ts)");
+    expect(out).toContain("Wrote(y.ts)");
+    expect(out).toContain("48 lines");
+    expect(out).not.toContain("actions"); // no grouped "N actions" header
     inst.unmount();
   });
 });
