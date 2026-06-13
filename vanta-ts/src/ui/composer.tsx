@@ -55,6 +55,7 @@ export function Composer(props: {
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
+    if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
     if (key.return) return void (key.shift ? insertNewline() : submitNow());
     if (handleSpecialChord(input, key, { openEditor, undo, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;

@@ -53,6 +53,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
   const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started);
+  const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
@@ -61,7 +62,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useInput((input, key) =>
     handleGlobalKey(input, key, {
       busy: state.busy, pending, overlayOpen: overlay !== null,
-      abort: () => interruptRef.current?.abort(), exit: app.exit,
+      abort: () => interruptRef.current?.abort(), exit: app.exit, cycle,
     }),
   );
 
@@ -71,15 +72,51 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-        {pending
+        {pending && mode !== "auto"
           ? <ApprovalPrompt pending={pending} onDone={() => setPending(null)} />
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
-        <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+        <BottomRegion overlay={overlay} pending={pending} mode={mode} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
         {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
       </Box>
     </ThemeProvider>
   );
+}
+
+// Shift+Tab mode cycle (Claude-parity): normal → auto-accept → plan → normal.
+type Mode = "normal" | "auto" | "plan";
+const NEXT_MODE: Record<Mode, Mode> = { normal: "auto", auto: "plan", plan: "normal" };
+
+/** Advance the cycle. Entering/leaving plan reuses the real /planmode enforcement
+ * (write + shell tools blocked until /planmode approve); auto is TUI-local. */
+export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
+  const next = NEXT_MODE[mode];
+  if (next === "plan") runSlash("/planmode on");
+  else if (mode === "plan") runSlash("/planmode off");
+  setMode(next);
+}
+
+/** Auto-approve kernel Asks while in auto mode. Safe by construction: the kernel
+ * refuses the Block tier upstream, so only Ask-tier actions ever reach a prompt. */
+function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pending | null) => void): void {
+  useEffect(() => {
+    if (pending && mode === "auto") { pending.resolve(true); setPending(null); }
+  }, [pending, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** Mode state + the Shift+Tab cycle action, with auto-approve wired in. */
+function useModeState(pending: Pending | null, setPending: (p: Pending | null) => void, runSlash: (s: string) => void): { mode: Mode; cycle: () => void } {
+  const [mode, setMode] = useState<Mode>("normal");
+  useAutoApprove(pending, mode, setPending);
+  return { mode, cycle: () => cycleMode(mode, setMode, runSlash) };
+}
+
+/** The Shift+Tab mode indicator above the composer (hidden in normal mode). */
+export function ModeLine(props: { mode: Mode }): ReactElement | null {
+  const t = useTheme();
+  if (props.mode === "auto") return <Text color={t.warning} bold>▶▶ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "plan") return <Text color={t.accent} bold>⏸ plan mode on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  return null;
 }
 
 /** Clip the active goal to one line so the footer never wraps (which would ghost). */
@@ -100,19 +137,20 @@ function Footer(props: { model: string; ctxPct: number; tokens: number; contextW
   );
 }
 
-type GlobalKey = { ctrl?: boolean; escape?: boolean };
+type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
-  abort: () => void; exit: () => void;
+  abort: () => void; exit: () => void; cycle: () => void;
 };
 
 const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
   Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
 
-/** App-level keys: ^C interrupt/exit, Esc interrupt a running turn. An open
- * approval (pending) owns its own keys (ApprovalPrompt) and suppresses Esc-interrupt. */
+/** App-level keys: ^C interrupt/exit, Shift+Tab cycles the autonomy mode, Esc
+ * interrupts a running turn. An open approval/overlay owns its own keys. */
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
+  if (key.tab && key.shift && !d.pending && !d.overlayOpen) return void d.cycle();
   if (escInterrupts(key, d)) return void d.abort();
 }
 
@@ -176,6 +214,7 @@ function buildStaticItems(model: string, repoRoot: string, entries: Entry[], cap
 function BottomRegion(props: {
   overlay: OverlayView | null;
   pending: Pending | null;
+  mode: Mode;
   files: string[];
   history: string[];
   onSubmit: (text: string) => void;
@@ -188,7 +227,12 @@ function BottomRegion(props: {
   if (overlay?.kind === "list") return <OverlayList title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
   if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
   if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
-  return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} onPaste={props.onPaste} />;
+  return (
+    <Box flexDirection="column">
+      <ModeLine mode={props.mode} />
+      <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} onPaste={props.onPaste} />
+    </Box>
+  );
 }
 
 /** The small dynamic tail: streaming text, in-flight tool line(s). */

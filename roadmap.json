@@ -9470,6 +9470,20 @@
       "title": "Blinking composer cursor — the alive/ready idle cue",
       "summary": "A blinking inverse-block cursor in the input box (empty + typing states), driven by a self-contained useBlink(~530ms) hook — the canonical terminal ready signal Claude has and Vanta lacked. Composes with the 1 Hz session clock so the TUI feels alive idle, not frozen.",
       "done": "Cursor blinks in both empty and typing states; useBlink toggle is tested; 111 ui tests green."
+    },
+    {
+      "id": "TUI-MODE-CYCLE",
+      "track": "Harness",
+      "size": "M",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "tui",
+      "updated": "2026-06-13",
+      "status": "shipped",
+      "title": "Shift+Tab autonomy mode cycle — normal / auto-accept / plan (Claude parity)",
+      "summary": "Shift+Tab cycles normal → auto-accept → plan → normal with a ▶▶/⏸ indicator above the composer. Auto-accept auto-approves the kernel Ask tier (writes/out-of-root) while the Block tier (destructive/exfiltration) stays kernel-refused upstream — safe by construction. Plan reuses the real /planmode enforcement (write+shell blocked until /planmode approve). Reverses the earlier Rule-Zero deferral: the hard floor is intact because only Asks reach the prompt.",
+      "done": "Shift+Tab cycles modes; auto-accept resolves Ask approvals without prompting; plan toggles /planmode; ModeLine indicator renders; cycleMode + ModeLine tested; 115 ui tests green."
     }
   ]
 }
