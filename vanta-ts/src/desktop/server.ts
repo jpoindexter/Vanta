@@ -6,7 +6,7 @@ import { listSessions, loadSession, newSessionId, saveSession } from "../session
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
-import { listRepoFiles } from "../tui/at-context.js";
+import { listRepoFiles } from "../term/at-context.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import type { Conversation } from "../agent.js";

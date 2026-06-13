@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "inkr";
+import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 
 // Our own banner. Super simple, one render, scrolls away into history like any

@@ -1,4 +1,4 @@
-import { render } from "inkr";
+import { render } from "ink";
 import { App } from "./app.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";

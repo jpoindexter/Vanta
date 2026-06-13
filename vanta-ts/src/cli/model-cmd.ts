@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
-import { parseModelArg } from "../tui/model-switch.js";
+import { parseModelArg } from "../term/model-switch.js";
 import { upsertEnvMigratingLegacy, envPath, buildEnvUpdates } from "../setup.js";
 
 // `vanta model` — standalone CLI provider+model selector (MODEL-CMD).

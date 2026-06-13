@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text, useInput } from "inkr";
+import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
 import type { CockpitData } from "../tui/mission-control/cockpit-data.js";
 

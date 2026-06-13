@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { useState } from "react";
 import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
-import { currentThemeName } from "../tui/theme.js";
+import { currentThemeName } from "../term/theme.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
 import { sessionRows, skillRows, modelRows, themeRows, type OverlayKind, type OverlayRow } from "./overlays.js";
 import type { RunSetup } from "../session.js";

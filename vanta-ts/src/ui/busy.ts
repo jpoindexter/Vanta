@@ -1,4 +1,4 @@
-import { ASTERISK_FRAMES, SPINNER_VERBS } from "../tui/figures.js";
+import { ASTERISK_FRAMES, SPINNER_VERBS } from "../term/figures.js";
 
 // Pure busy-indicator state: a growing-asterisk frame + a slowly-rotating verb,
 // both derived from a monotonic tick. The tick advances ~every 150ms while a

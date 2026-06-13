@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactElement } from "react";
-import { Box, Text, useInput } from "inkr";
+import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";

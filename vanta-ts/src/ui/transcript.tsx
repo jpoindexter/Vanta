@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "inkr";
+import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";

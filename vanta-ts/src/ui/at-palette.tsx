@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "inkr";
+import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 
 // The @-mention file palette: matching repo paths above the composer while you

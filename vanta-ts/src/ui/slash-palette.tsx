@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "inkr";
+import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 import type { SlashMatch } from "./slash.js";
 

@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "inkr";
+import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 
 // The footer: one dim line under the composer — model · context fill · turns ·

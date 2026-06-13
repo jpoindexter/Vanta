@@ -1,4 +1,4 @@
-import { wordLeft, wordRight, killToStart, killToEnd, killWordBack, deleteForward, yank } from "../tui/composer-edits.js";
+import { wordLeft, wordRight, killToStart, killToEnd, killWordBack, deleteForward, yank } from "../term/composer-edits.js";
 
 // Pure readline/emacs key logic for the v2 composer. No React, no Ink — a key +
 // (value, cursor, killRing) maps to a new (value, cursor) and optionally a kill.

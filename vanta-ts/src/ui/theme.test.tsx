@@ -1,9 +1,9 @@
 import { createElement as h, type ReactElement } from "react";
 import { describe, it, expect } from "vitest";
-import { Text } from "inkr";
+import { Text } from "ink";
 import { renderUi, tick } from "./test-render.js";
 import { ThemeProvider, useTheme } from "./theme.js";
-import { resolveThemeByName, THEME_NAMES } from "../tui/theme.js";
+import { resolveThemeByName, THEME_NAMES } from "../term/theme.js";
 
 function Probe(): ReactElement {
   const t = useTheme();

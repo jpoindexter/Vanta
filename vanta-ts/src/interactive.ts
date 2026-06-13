@@ -4,7 +4,7 @@ import { createConversation } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { executeSlash, type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
-import { groupToolsByDomain } from "./tui/capabilities.js";
+import { groupToolsByDomain } from "./term/capabilities.js";
 import { prepareRun, buildSummarizer, consoleCallbacks, approver, maybeCurate } from "./session.js";
 import { freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";

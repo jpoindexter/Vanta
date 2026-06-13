@@ -1,8 +1,8 @@
 import { type Dispatch, type MutableRefObject } from "react";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
-import { toolDisplay } from "../tui/tool-display.js";
-import { summarizeResult } from "../tui/tool-result.js";
+import { toolDisplay } from "../term/tool-display.js";
+import { summarizeResult } from "../term/tool-result.js";
 import { readTodos } from "../todo/store.js";
 import { formatTally } from "./turn-metrics.js";
 import type { Action } from "./reducer.js";

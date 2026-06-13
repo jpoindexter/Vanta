@@ -1,8 +1,8 @@
 import { createContext, useContext, type ReactElement, type ReactNode } from "react";
-import { resolveTheme, resolveThemeByName, type Theme } from "../tui/theme.js";
+import { resolveTheme, resolveThemeByName, type Theme } from "../term/theme.js";
 
 // Theme for the v2 UI. The 4 canonical themes (default · high-contrast · muted ·
-// dyslexia) live in tui/theme.ts; here they flow to the components through a
+// dyslexia) live in term/theme.ts; here they flow to the components through a
 // context so a /theme switch restyles the live region, composer, footer, and all
 // future scrollback at once. Already-committed <Static> rows keep their colours
 // (the terminal owns them) — only new output adopts the new theme.

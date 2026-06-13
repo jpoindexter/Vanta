@@ -1,4 +1,4 @@
-export { activeAtRef, parseAtRefs, buildContextBlock, listRepoFiles } from "../tui/at-context.js";
+export { activeAtRef, parseAtRefs, buildContextBlock, listRepoFiles } from "../term/at-context.js";
 
 // @-file mention helpers for the v2 composer. Reuses the proven at-context
 // parser/loader (parseAtRefs/buildContextBlock inline the referenced file

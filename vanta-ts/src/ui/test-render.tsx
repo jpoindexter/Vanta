@@ -1,4 +1,4 @@
-import { render } from "inkr";
+import { render } from "ink";
 import type { ReactElement } from "react";
 import { EventEmitter } from "node:events";
 

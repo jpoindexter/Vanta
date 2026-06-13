@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text, useInput } from "inkr";
+import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
 
 // Inline quick-help (`?` or /help). The full command list lives behind the `/`

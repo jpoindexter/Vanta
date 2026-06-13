@@ -1,6 +1,6 @@
 import { dirname } from "node:path";
 import { providerById } from "../providers/catalog.js";
-import { buildProviderForSelection, persistSelectionGlobal, parseModelArg } from "../tui/model-switch.js";
+import { buildProviderForSelection, persistSelectionGlobal, parseModelArg } from "../term/model-switch.js";
 import type { SlashHandler } from "./types.js";
 
 // `/model` — bare prints the active model; `/model <arg>` switches it. The TUI

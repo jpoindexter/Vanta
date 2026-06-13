@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactElement } from "react";
-import { Box, Static, Text, useApp, useInput } from "inkr";
+import { Box, Static, Text, useApp, useInput } from "ink";
 import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { Composer } from "./composer.js";
@@ -19,8 +19,8 @@ import { busyLabel, contextPct } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
-import { estimateTokens } from "../tui/status-bar.js";
-import { resolveTheme } from "../tui/theme.js";
+import { estimateTokens } from "../term/tokens.js";
+import { resolveTheme } from "../term/theme.js";
 import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
