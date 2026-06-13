@@ -14,8 +14,9 @@ async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
   try { dispatch({ t: "todos", items: await readTodos(process.env) }); } catch { /* ignore */ }
 }
 
-/** A pending kernel approval the live region renders; resolved by an a/d keypress. */
-export type Pending = { action: string; reason: string; resolve: (ok: boolean) => void };
+/** A pending kernel approval the live region renders; resolved by an a/A/d keypress.
+ * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
+export type Pending = { action: string; reason: string; toolName?: string; resolve: (ok: boolean) => void };
 
 /** First non-empty line of a failed result, trimmed — used for the error tail. */
 function firstLine(t: string): string {
@@ -53,8 +54,8 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
       deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, tokens });
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
-    requestApproval: (action, reason) =>
-      new Promise<boolean>((resolve) => deps.setPending({ action, reason, resolve })),
+    requestApproval: (action, reason, toolName) =>
+      new Promise<boolean>((resolve) => deps.setPending({ action, reason, toolName, resolve })),
   };
 }
 

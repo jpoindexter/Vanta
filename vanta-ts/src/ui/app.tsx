@@ -7,6 +7,7 @@ import { TodoPanel } from "./todo-panel.js";
 import { reduce, type Action } from "./reducer.js";
 import { initialState, type Entry, type PendingTool } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
+import { grantAlways } from "./grant.js";
 import { useSlash } from "./use-slash.js";
 import { useSubmit } from "./use-submit.js";
 import { useOverlay, type OverlayView } from "./use-overlay.js";
@@ -100,6 +101,7 @@ const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
 
 function resolveApproval(input: string, key: GlobalKey, p: Pending, setPending: (p: Pending | null) => void): void {
   if (input === "a") { p.resolve(true); setPending(null); }
+  else if (input === "A") { void grantAlways(p.toolName).catch(() => {}); p.resolve(true); setPending(null); }
   else if (input === "d" || key.escape) { p.resolve(false); setPending(null); }
 }
 
@@ -157,7 +159,7 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
         <Text color={theme.primary}>{pending.action}</Text>
         {pending.reason ? <Text dimColor={theme.dimText}>{pending.reason}</Text> : null}
         <Text>
-          <Text color={theme.success}>[a]</Text> allow  ·  <Text color={theme.error}>[d]</Text> deny  ·  <Text dimColor={theme.dimText}>esc to deny</Text>
+          <Text color={theme.success}>[a]</Text> allow once  ·  <Text color={theme.success}>[A]</Text> always allow  ·  <Text color={theme.error}>[d]</Text> deny <Text dimColor={theme.dimText}>(esc)</Text>
         </Text>
       </Box>
     );
