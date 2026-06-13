@@ -9522,12 +9522,12 @@
       "model": "sonnet",
       "effort": "low",
       "lens": "selfhood",
-      "updated": "2026-06-13",
+      "updated": "2026-06-14",
       "id": "PAPER-DESIGN-AUDIT",
-      "status": "next",
+      "status": "shipped",
       "title": "Self-audit Vanta against the 13 Claude Code design principles",
       "summary": "arXiv:2604.14228 (Dive into Claude Code) Table 1 maps 13 principles to design questions. Score Vanta against each (deny-first, graduated trust, defense-in-depth, externalized policy, context-as-scarce-resource, append-only state, minimal-scaffolding, values-over-rules, composable extensibility, reversibility-weighted risk, transparent file config, isolated subagents, graceful recovery) — find the real gaps, not assumed ones.",
-      "done": "A scored audit doc per principle (have/partial/gap) drives a prioritized backlog."
+      "done": "docs/research/vanta-design-audit.md — Vanta scored vs all 13 principles (8 HAVE / 4 PARTIAL / 1 GAP). Surfaces the impact-ranked backlog: #10 reversibility (GAP, needs sign-off), #5 context pipeline (biggest PARTIAL), #12 subagent isolation, #4 hooks."
     },
     {
       "track": "Harness",
