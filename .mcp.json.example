@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "terminal-love": {
+      "command": "node",
+      "args": ["/absolute/path/to/terminal love mcp/dist/index.js"]
+    },
     "example-server": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-example"],
