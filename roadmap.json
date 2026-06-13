@@ -9888,10 +9888,10 @@
       "lens": "infra",
       "updated": "2026-06-14",
       "id": "SELFHARNESS-CONFIG-REPRO",
-      "status": "next",
+      "status": "shipped",
       "title": "Capture the active config per trace for reproducible reruns",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): every trace records which agent config (prompt/model/tools) was active, so a failing input can be re-run reproducibly later. Vanta has events.jsonl; capture the resolved config (provider, model, tool set, prompt hash) alongside an event so a failure can be reproduced under the same config. Prerequisite for the self-correction rerun step.",
-      "done": "Each turn/event records the resolved config; a past failing input can be re-run under exactly that config."
+      "done": "prepareRun logs a session_config event (provider/model/contextWindow/tools/promptChars/promptHash) to events.jsonl at startup, best-effort — a past failing input can be re-run under the same setup. Pure module (sessions/config-event.ts) + tests."
     },
     {
       "track": "Harness",

@@ -16,6 +16,7 @@ import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
+import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import type { Summarizer } from "./context.js";
 import type { AgentDeps } from "./agent.js";
 import type { Goal } from "./types.js";
@@ -150,6 +151,13 @@ export async function prepareRun(
   if (instruction === "interactive session") {
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
+  // Reproducibility: log the resolved config so a past failing input can be re-run
+  // under the same setup (SELFHARNESS-CONFIG-REPRO). Best-effort — never blocks.
+  void safety.logEvent(sessionConfigEvent(sessionConfig({
+    provider: process.env.VANTA_PROVIDER ?? "unknown",
+    model: provider.modelId(), contextWindow: provider.contextWindow(),
+    tools: registry.schemas().length, systemPrompt,
+  }), new Date().toISOString()));
   return { safety, registry, provider, goals, systemPrompt };
 }
 
