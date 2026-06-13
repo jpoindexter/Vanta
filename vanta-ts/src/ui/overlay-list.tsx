@@ -42,6 +42,7 @@ function Row(props: { row: OverlayRow; active: boolean }): ReactElement {
   return (
     <Box>
       <Text color={active ? t.accent : undefined}>{active ? "❯ " : "  "}</Text>
+      {row.mark ? <Text color={t.success}>{row.mark} </Text> : <Text>{"  "}</Text>}
       <Text color={active ? t.accent : undefined}>{row.label}</Text>
       {hint ? <Text dimColor={t.dimText}>  {hint}</Text> : null}
     </Box>

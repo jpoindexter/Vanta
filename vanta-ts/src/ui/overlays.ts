@@ -9,7 +9,9 @@ import type { Skill } from "../skills/types.js";
 // + help are read-only panels (no rows).
 
 export type OverlayKind = "model" | "sessions" | "skills" | "theme" | "cockpit" | "help";
-export type OverlayRow = { label: string; hint?: string; command: string };
+/** `mark` is an optional status glyph (● current) shown in its own column, left
+ * of the label and distinct from the ❯ selection cursor. */
+export type OverlayRow = { label: string; hint?: string; command: string; mark?: string };
 
 /** Bare slash commands that open an inline overlay instead of printing text. */
 export const PICKER_KINDS: Readonly<Record<string, OverlayKind>> = {
@@ -26,12 +28,13 @@ export function skillRows(skills: Skill[]): OverlayRow[] {
 
 export function modelRows(currentProviderId: string): OverlayRow[] {
   return PROVIDER_CATALOG.map((p) => ({
-    label: `${p.id === currentProviderId ? "› " : "  "}${p.short}`,
+    mark: p.id === currentProviderId ? "●" : undefined,
+    label: p.short,
     hint: p.defaultModel,
     command: `/model ${p.id}`,
   }));
 }
 
 export function themeRows(current: string): OverlayRow[] {
-  return THEME_NAMES.map((t) => ({ label: `${t === current ? "› " : "  "}${t}`, command: `/theme ${t}` }));
+  return THEME_NAMES.map((t) => ({ mark: t === current ? "●" : undefined, label: t, command: `/theme ${t}` }));
 }

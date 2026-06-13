@@ -129,6 +129,16 @@ describe("inline overlays", () => {
     inst.unmount();
   });
 
+  it("OverlayList shows a row's status mark (● current) in its own column", async () => {
+    const rows = [{ label: "openai", command: "/model openai", mark: "●" }, { label: "gemini", command: "/model gemini" }];
+    const inst = renderUi(h(OverlayList, { title: "Switch model", rows, onSelect: noop, onClose: noop }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("●");
+    expect(out).toContain("openai");
+    inst.unmount();
+  });
+
   it("CockpitPanel renders the kernel verdict ladder", async () => {
     const inst = renderUi(h(CockpitPanel, { data: EMPTY_COCKPIT, onClose: noop }));
     await tick();

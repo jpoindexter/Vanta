@@ -9438,10 +9438,10 @@
       "lens": "tui",
       "updated": "2026-06-13",
       "id": "TUI-RICH-PICKERS",
-      "status": "next",
+      "status": "shipped",
       "title": "Styled /sessions + /model pickers (vs plain list overlays)",
       "summary": "Demo tabs 6-7: /sessions and /model render via the generic list overlay; upgrade to the styled pickers in the demo (mark glyphs, key chips, current-● indicators, advisor/vision/routes footer). /skills already shipped (CC-SKILLS-MENU).",
-      "done": "/sessions and /model render the styled picker; behavior unchanged."
+      "done": "OverlayRow gained a `mark` field rendered in its own column (● current) — separate from the ❯ selection cursor; model + theme pickers mark the current entry instead of baking › into the label. overlays.test + render tests green."
     },
     {
       "track": "Harness",

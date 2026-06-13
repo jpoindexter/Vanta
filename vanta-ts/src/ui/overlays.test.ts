@@ -17,17 +17,19 @@ describe("overlay row builders", () => {
     expect(skillRows(sk)[0]!.command).toBe("/hill-climb");
   });
 
-  it("modelRows marks the current provider and carries /model <id>", () => {
+  it("modelRows marks the current provider with ● and carries /model <id>", () => {
     const rows = modelRows("openai");
     const openai = rows.find((r) => r.command === "/model openai");
     expect(openai).toBeTruthy();
-    expect(openai!.label).toContain("›"); // current marker
+    expect(openai!.mark).toBe("●"); // current marker, its own column
+    const other = rows.find((r) => r.command !== "/model openai");
+    expect(other!.mark).toBeUndefined(); // non-current rows carry no mark
   });
 
-  it("themeRows carries /theme <name> and marks the current", () => {
+  it("themeRows carries /theme <name> and marks the current with ●", () => {
     const rows = themeRows("default");
     expect(rows.some((r) => r.command === "/theme default")).toBe(true);
-    expect(rows.find((r) => r.command === "/theme default")!.label).toContain("›");
+    expect(rows.find((r) => r.command === "/theme default")!.mark).toBe("●");
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {
