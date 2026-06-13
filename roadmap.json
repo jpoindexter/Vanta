@@ -9424,10 +9424,10 @@
       "lens": "tui",
       "updated": "2026-06-13",
       "id": "TUI-GOAL-LEDGER-VIEW",
-      "status": "next",
+      "status": "shipped",
       "title": "Rich /goals ledger view — active/done + plan + working memory",
       "summary": "Demo tab 4: /goals is currently a plain list overlay; build the styled ledger (active ● / done ✓ goals, plan-for-active with progress, working-memory block) shown in the demo. Backed by the kernel goals API + todo state.",
-      "done": "/goals renders the rich ledger; reflects real kernel goals + plan."
+      "done": "/goals now renders the demo ledger: active goals (●) before done (✓), each with status + #id, under a Goal ledger header (formatGoalLedger, pure + tested). Was a flat active-only [id] text list."
     },
     {
       "track": "Harness",

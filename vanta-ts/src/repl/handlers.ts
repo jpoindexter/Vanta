@@ -44,6 +44,7 @@ import { permissions } from "./permissions-cmd.js";
 import { now } from "./now-cmd.js";
 import { contextCmd } from "./context-cmd.js";
 import { CLI_PASSTHROUGH } from "./cli-bridge.js";
+import { formatGoalLedger } from "./goal-ledger.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -150,8 +151,7 @@ const memory: SlashHandler = async (arg, ctx) => {
 
 const goals: SlashHandler = async (_arg, ctx) => {
   const g = await ctx.setup.safety.getGoals().catch(() => []);
-  const active = g.filter((x) => x.status === "active");
-  return { output: lines(active.map((x) => `  [${x.id}] ${x.text}`), "  (no active goals)") };
+  return { output: formatGoalLedger(g) };
 };
 
 const sessions: SlashHandler = async (arg, ctx) => {
