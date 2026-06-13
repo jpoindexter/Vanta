@@ -17,6 +17,7 @@ import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { busyLabel, contextPct } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
+import { StreamPreview } from "./stream-view.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import { estimateTokens } from "../term/tokens.js";
@@ -135,8 +136,8 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
   const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
   return (
     <Box flexDirection="column">
-      {streaming ? <Box><Text color={theme.marker}>⏺ </Text><Text color={theme.primary}>{streaming}</Text></Box> : null}
-      {busy ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}…</Text></Text> : null}
+      {streaming ? <StreamPreview text={streaming} /> : null}
+      {busy && !streaming ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}…</Text></Text> : null}
     </Box>
   );
 }

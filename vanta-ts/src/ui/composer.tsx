@@ -79,7 +79,7 @@ function ComposerView(props: {
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
-      <Box>
+      <Box borderStyle="round" borderColor={t.border} paddingX={1}>
         <Text color={t.accent}>› </Text>
         {props.value.length === 0 ? <Text dimColor={t.dimText}>{props.placeholder}</Text> : <CursorText value={props.value} cursor={props.cursor} />}
       </Box>

@@ -7,17 +7,28 @@ import type { TodoItem } from "../todo/store.js";
 // place as the agent rewrites the todo list mid-turn, then quietly disappears
 // when the plan is cleared. Done count in the header.
 
+const MAX_ROWS = 6;
+
 export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const t = useTheme();
   if (props.todos.length === 0) return null;
   const done = props.todos.filter((x) => x.status === "done").length;
+  // Prefer showing active items; bound the height so the live region can't grow
+  // past the viewport (which would make Ink's in-place redraw stack/ghost).
+  const ordered = [...props.todos].sort((a, b) => rank(a.status) - rank(b.status));
+  const shown = ordered.slice(0, MAX_ROWS);
+  const extra = ordered.length - shown.length;
   return (
     <Box flexDirection="column" marginTop={1}>
       <Text dimColor={t.dimText}>plan · {done}/{props.todos.length} done</Text>
-      {props.todos.map((x, i) => <TodoRow key={i} todo={x} />)}
+      {shown.map((x, i) => <TodoRow key={i} todo={x} />)}
+      {extra > 0 ? <Text dimColor={t.dimText}>  +{extra} more</Text> : null}
     </Box>
   );
 }
+
+/** Active work first, then pending, then done — so the bounded view shows what matters. */
+const rank = (s: TodoItem["status"]): number => (s === "in_progress" ? 0 : s === "pending" ? 1 : 2);
 
 function TodoRow(props: { todo: TodoItem }): ReactElement {
   const { todo } = props;
