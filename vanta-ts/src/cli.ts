@@ -7,7 +7,7 @@ import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import { runRoomsList, runModes } from "./projects/commands.js";
 import { runAuthCommand } from "./google/commands.js";
 import { runChat } from "./interactive.js";
-import { runTui } from "./tui/launch.js";
+import { runTuiV2 } from "./ui/launch.js";
 import { runSetup } from "./setup.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { runStatus } from "./status.js";
@@ -97,31 +97,21 @@ async function startInteractive(
     if (!wrote) return;
     loadEnv(repoRoot); // pick up the freshly written .env
   }
-  // The Ink TUI is the default interactive surface; fall back to the readline
-  // REPL for resume (TUI v1 doesn't rehydrate), --no-tui, VANTA_NO_TUI, or no TTY.
+  // The Claude-method Ink TUI is the default interactive surface; fall back to the
+  // readline REPL for resume (the TUI doesn't rehydrate), --no-tui, VANTA_NO_TUI,
+  // or no TTY.
   const useTui =
     Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
   if (!useTui) return runChat(repoRoot, opts);
   // REL3: wrap TUI launch in a try-catch; fall back to readline REPL if Ink
   // fails to render (bad TERM, missing native deps, restricted environment).
   try {
-    return await launchTui(repoRoot);
+    return await runTuiV2(repoRoot);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`\nTUI unavailable (${msg.split("\n")[0]}); falling back to readline REPL.\nSet VANTA_NO_TUI=1 to suppress this warning.\n`);
     return runChat(repoRoot, opts);
   }
-}
-
-/** Launch the interactive TUI. VANTA_UI2 selects the new Claude-method UI (real
- * Ink, inline + <Static>); otherwise the vendored-fork TUI. Opt-in while v2
- * reaches parity, then v2 becomes the default. */
-async function launchTui(repoRoot: string): Promise<void> {
-  if (process.env.VANTA_UI2) {
-    const { runTuiV2 } = await import("./ui/launch.js");
-    return runTuiV2(repoRoot);
-  }
-  return runTui(repoRoot);
 }
 
 /** Extract a `--resume <id>` value from args, if present. */
