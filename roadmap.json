@@ -9413,7 +9413,7 @@
       "status": "shipped",
       "title": "Main-session chrome — active-goal line · compact PLAN bar · status chips",
       "summary": "Demo tab 1 shows chrome the live TUI lacks: an active-goal line under the banner, a compact PLAN ▰▰▱▱ bar (vs the multi-line todo panel), and richer status chips (elapsed timer · MCP ✓ · kernel verdict). Mostly real data (kernel goal + todos in state). NOTE: the demo's autonomy line is intentionally NOT built — conflicts with Rule Zero.",
-      "done": "Active-goal line (◇ <goal>, read from the kernel via useActiveGoal) + compact PLAN bar (▰ meter + ✓done ◐running ○pending) shipped in the footer/todo panel. Timer/MCP status chips deferred — low value vs an always-on ticker's redraw churn; the status bar already carries model·ctx·turns."
+      "done": "Active-goal line (◇), compact PLAN bar (▰ meter + ✓◐○ counts), AND the status chips: a live 1 Hz session timer (◷ Xm YYs via useClock) + MCP ✓ chip (one-shot readMcpConfig at mount). Both are status-bar segments that drop first when the terminal narrows."
     },
     {
       "track": "Harness",

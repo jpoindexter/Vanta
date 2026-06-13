@@ -16,7 +16,7 @@ import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
-import { busyLabel, contextPct } from "./busy.js";
+import { busyLabel, contextPct, formatElapsed } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
 import { StreamPreview } from "./stream-view.js";
 import { listRepoFiles } from "./at.js";
@@ -52,7 +52,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
-  const goal = useActiveGoal(props.setup.safety, state.busy);
+  const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
@@ -76,7 +76,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} /> : null}
+        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
       </Box>
     </ThemeProvider>
   );
@@ -89,12 +89,12 @@ function goalClip(s: string): string {
 }
 
 /** Active-goal line (when set) + status line + the dim prefix-affordance line. */
-function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null }): ReactElement {
+function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
   const t = useTheme();
   return (
     <Box flexDirection="column">
       {props.goal ? <Text dimColor={t.dimText}><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</Text> : null}
-      <StatusBar model={props.model} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} />
+      <StatusBar model={props.model} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
   );
@@ -124,6 +124,36 @@ function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null
     void safety.getGoals().then((gs) => setGoal(gs.find((g) => g.status === "active")?.text ?? null)).catch(() => {});
   }, [busy]); // eslint-disable-line react-hooks/exhaustive-deps
   return goal;
+}
+
+/** Re-render once per second so the live session timer stays current even when
+ * idle (Ink only repaints on change; without this the clock would freeze). */
+function useClock(): void {
+  const [, setN] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setN((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+}
+
+/** Are any MCP servers configured? One-shot read at mount → the MCP ✓ chip. */
+function useMcpPresent(): boolean {
+  const [present, setPresent] = useState(false);
+  useEffect(() => {
+    void import("../mcp/mount.js")
+      .then(({ readMcpConfig }) => readMcpConfig(process.env))
+      .then((cfg) => setPresent(Object.keys(cfg.servers ?? {}).length > 0))
+      .catch(() => {});
+  }, []);
+  return present;
+}
+
+/** The footer's live status: active goal + MCP presence + a 1 Hz session timer. */
+function useSessionStatus(safety: RunSetup["safety"], busy: boolean, startedIso: string): { goal: string | null; mcp: boolean; elapsed: string } {
+  const goal = useActiveGoal(safety, busy);
+  const mcp = useMcpPresent();
+  useClock();
+  return { goal, mcp, elapsed: formatElapsed(Date.now() - Date.parse(startedIso)) };
 }
 
 /** Drain one queued message per turn once the agent is idle again. */

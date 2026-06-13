@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { busyLabel, contextPct, contextBar, kfmt } from "./busy.js";
+import { busyLabel, contextPct, contextBar, kfmt, formatElapsed } from "./busy.js";
 
 describe("busyLabel", () => {
   it("cycles the asterisk frame every tick", () => {
@@ -29,5 +29,14 @@ describe("contextBar + kfmt", () => {
     expect(kfmt(450)).toBe("450");
     expect(kfmt(24000)).toBe("24k");
     expect(kfmt(1_200_000)).toBe("1.2M");
+  });
+});
+
+describe("formatElapsed", () => {
+  it("shows seconds under a minute, m + zero-padded seconds above", () => {
+    expect(formatElapsed(9_000)).toBe("9s");
+    expect(formatElapsed(69_000)).toBe("1m09s");
+    expect(formatElapsed(605_000)).toBe("10m05s");
+    expect(formatElapsed(-50)).toBe("0s"); // clamps negatives
   });
 });

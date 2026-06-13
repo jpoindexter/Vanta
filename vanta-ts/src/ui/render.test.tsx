@@ -206,4 +206,27 @@ describe("StatusBar", () => {
     expect(out).toContain("? shortcuts");
     inst.unmount();
   });
+
+  it("shows the session timer when provided", async () => {
+    const inst = renderUi(h(StatusBar, { model: "gpt-5.5", ctxPct: 5, tokens: 13000, contextWindow: 272000, turns: 2, busy: false, elapsed: "1m09s" }));
+    await tick();
+    expect(inst.lastFrame()).toContain("◷ 1m09s");
+    inst.unmount();
+  });
+
+  it("shows the MCP chip when configured (and there's room for it)", async () => {
+    const inst = renderUi(h(StatusBar, { model: "gpt", ctxPct: 5, tokens: 1000, contextWindow: 128000, turns: 1, busy: false, mcp: true }));
+    await tick();
+    expect(inst.lastFrame()).toContain("MCP ✓");
+    inst.unmount();
+  });
+
+  it("omits the timer + MCP chip when not provided", async () => {
+    const inst = renderUi(h(StatusBar, { model: "gpt-5.5", ctxPct: 5, tokens: 13000, contextWindow: 272000, turns: 2, busy: false }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).not.toContain("◷");
+    expect(out).not.toContain("MCP");
+    inst.unmount();
+  });
 });

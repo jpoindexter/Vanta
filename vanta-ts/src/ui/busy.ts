@@ -30,3 +30,10 @@ export function kfmt(n: number): string {
   if (n >= 1_000) return `${Math.round(n / 1_000)}k`;
   return String(n);
 }
+
+/** Elapsed wall-clock for the session timer: 9000 → "9s", 69000 → "1m09s". */
+export function formatElapsed(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m${String(s % 60).padStart(2, "0")}s` : `${s}s`;
+}
