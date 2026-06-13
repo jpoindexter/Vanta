@@ -8,8 +8,13 @@ import { initialState, type Entry } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
 import { useSlash } from "./use-slash.js";
 import { useSubmit } from "./use-submit.js";
+import { useOverlay, type OverlayView } from "./use-overlay.js";
+import { OverlayList } from "./overlay-list.js";
+import { CockpitPanel } from "./cockpit-panel.js";
+import { HelpPanel } from "./help-panel.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
+import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
@@ -28,7 +33,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [files, setFiles] = useState<string[]>([]);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
-  const onSubmit = useSubmit({ runSlash, send, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
+  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash });
+  const onSubmit = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
 
@@ -55,9 +61,27 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <Box flexDirection="column">
       <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
       <LiveRegion streaming={state.streaming} activeTool={state.activeTool} busy={state.busy} pending={pending} />
-      {pending ? null : <Composer onSubmit={onSubmit} placeholder="Ask Vanta anything — /help for commands" files={files} />}
+      <BottomRegion overlay={overlay} pending={pending} files={files} onSubmit={onSubmit} onSelect={selectRow} onClose={closeOverlay} />
     </Box>
   );
+}
+
+/** Below the live region: an open overlay owns the keys, else the composer.
+ * An active approval (pending) suppresses both — its keys live in App. */
+function BottomRegion(props: {
+  overlay: OverlayView | null;
+  pending: Pending | null;
+  files: string[];
+  onSubmit: (text: string) => void;
+  onSelect: (row: OverlayRow) => void;
+  onClose: () => void;
+}): ReactElement | null {
+  const { overlay } = props;
+  if (props.pending) return null;
+  if (overlay?.kind === "list") return <OverlayList title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
+  if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
+  if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
+  return <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} />;
 }
 
 /** The small dynamic tail: streaming text, active-tool spinner line, approval. */

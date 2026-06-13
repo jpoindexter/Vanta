@@ -5,7 +5,11 @@ import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
+import { OverlayList } from "./overlay-list.js";
+import { CockpitPanel } from "./cockpit-panel.js";
+import { HelpPanel } from "./help-panel.js";
 import { matchSlash } from "./slash.js";
+import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
 describe("Banner", () => {
   it("renders the name, model, and kernel line", async () => {
@@ -70,6 +74,36 @@ describe("AtPalette", () => {
     const out = inst.lastFrame();
     expect(out).toContain("@src/app.ts");
     expect(out).toContain("@src/composer.tsx");
+    inst.unmount();
+  });
+});
+
+describe("inline overlays", () => {
+  const noop = (): void => {};
+  it("OverlayList renders a title and rows", async () => {
+    const rows = [{ label: "gpt-4o", hint: "openai", command: "/model openai" }];
+    const inst = renderUi(h(OverlayList, { title: "Switch model", rows, onSelect: noop, onClose: noop }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("Switch model");
+    expect(out).toContain("gpt-4o");
+    inst.unmount();
+  });
+
+  it("CockpitPanel renders the kernel verdict ladder", async () => {
+    const inst = renderUi(h(CockpitPanel, { data: EMPTY_COCKPIT, onClose: noop }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("Mission control");
+    expect(out).toContain("allow");
+    expect(out).toContain("block");
+    inst.unmount();
+  });
+
+  it("HelpPanel renders the shortcut card", async () => {
+    const inst = renderUi(h(HelpPanel, { onClose: noop }));
+    await tick();
+    expect(inst.lastFrame()).toContain("Shortcuts");
     inst.unmount();
   });
 });

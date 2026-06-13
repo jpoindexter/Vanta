@@ -7,18 +7,38 @@ import type { SafetyClient } from "../safety-client.js";
 
 const allowSafety = { assess: async () => ({ risk: "allow" as const, needsHuman: false, reason: "" }) } as unknown as SafetyClient;
 
-function harness(busy = false): { onSubmit: (t: string) => void; runSlash: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn>; dispatch: ReturnType<typeof vi.fn> } {
-  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn();
-  const deps: SubmitDeps = { runSlash, send, busy, safety: allowSafety, repoRoot: process.cwd(), dispatch };
-  return { onSubmit: useSubmit(deps), runSlash, send, dispatch };
+function harness(busy = false): { onSubmit: (t: string) => void; runSlash: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn>; dispatch: ReturnType<typeof vi.fn>; openOverlay: ReturnType<typeof vi.fn> } {
+  const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn();
+  const deps: SubmitDeps = { runSlash, send, openOverlay, busy, safety: allowSafety, repoRoot: process.cwd(), dispatch };
+  return { onSubmit: useSubmit(deps), runSlash, send, dispatch, openOverlay };
 }
 
 describe("useSubmit routing", () => {
-  it("routes a slash line to runSlash, not send", () => {
+  it("routes a slash line with an arg to runSlash, not send", () => {
     const h = harness();
-    h.onSubmit("/help");
-    expect(h.runSlash).toHaveBeenCalledWith("/help");
+    h.onSubmit("/resume 123");
+    expect(h.runSlash).toHaveBeenCalledWith("/resume 123");
     expect(h.send).not.toHaveBeenCalled();
+  });
+
+  it("opens an overlay for a bare picker command instead of running it", () => {
+    const h = harness();
+    h.onSubmit("/model");
+    expect(h.openOverlay).toHaveBeenCalledWith("model");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
+  it("runs (not overlay) when a picker command has an argument", () => {
+    const h = harness();
+    h.onSubmit("/model gemini");
+    expect(h.runSlash).toHaveBeenCalledWith("/model gemini");
+    expect(h.openOverlay).not.toHaveBeenCalled();
+  });
+
+  it("opens help on a bare ?", () => {
+    const h = harness();
+    h.onSubmit("?");
+    expect(h.openOverlay).toHaveBeenCalledWith("help");
   });
 
   it("sends plain text (no @refs) straight through", async () => {
