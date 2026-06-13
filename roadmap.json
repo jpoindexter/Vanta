@@ -10100,7 +10100,7 @@
       "id": "WANT-WORLD-MODEL",
       "status": "horizon",
       "title": "World model graph — entities + relationships across Jason's systems",
-      "summary": "vanta-wanted-abilities.md §4 (top priority): a coherent graph (people/projects/repos/companies/goals/assets/accounts/commitments) with relationships (owns/depends-on/blocked-by/promised-to/next-action-for), freshness timestamps + confidence labels, conflict detection on contradicting facts, cited 'what do I know about X?', approval-sensitive auto-updates from email/calendar/files/repos. Beyond the current brain (snippets) → a reasoned map. Overlaps HARNESS-MEMORY-GUARDRAILS.",
+      "summary": "[SLICE 1 SHIPPED: append-only world store (~/.vanta/world.jsonl) + a kernel-gated `world` tool (record/relate/query) + a /world view; latest-write-wins per entity, relations, confidence. Remaining: conflict detection, cited what-do-I-know-about-X, approval-sensitive auto-updates from email/calendar/files, project dashboards.] vanta-wanted-abilities.md §4 (top priority): a coherent graph (people/projects/repos/companies/goals/assets/accounts/commitments) with relationships (owns/depends-on/blocked-by/promised-to/next-action-for), freshness timestamps + confidence labels, conflict detection on contradicting facts, cited 'what do I know about X?', approval-sensitive auto-updates from email/calendar/files/repos. Beyond the current brain (snippets) → a reasoned map. Overlaps HARNESS-MEMORY-GUARDRAILS.",
       "done": "A queryable entity-relationship graph with freshness/confidence + conflict detection; 'what do I know about X' returns cited facts with uncertainty."
     },
     {

@@ -95,6 +95,7 @@ describe("registry", () => {
       "watch_video",
       "web_fetch",
       "web_search",
+      "world",
       "write_file",
       "write_skill",
     ]);
