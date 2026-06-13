@@ -66,6 +66,14 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "rename", arg: "<name>", desc: "rename the current session" },
   { name: "tui", arg: "[fullscreen|status|exit]", desc: "TUI renderer info; /tui fullscreen confirms alt-screen mode" },
   { name: "focus", desc: "toggle focus view — hide tool events, show only user + final responses" },
+  { name: "config", desc: "show resolved config (provider, model, kernel, dirs)" },
+  { name: "settings", desc: "show/edit persisted settings" },
+  { name: "models", desc: "list available models for the active provider" },
+  { name: "lint", desc: "run the code-size gate on changed files" },
+  { name: "roadmap", desc: "open the drag-and-drop roadmap board" },
+  { name: "audit", desc: "run npm audit + dependency checks" },
+  { name: "today", desc: "today brief — tasks, goals, calendar, episodic" },
+  { name: "import", arg: "<archive.tgz>", desc: "import config/skills from a backup archive" },
   { name: "exit", desc: "leave the session" },
 ];
 
