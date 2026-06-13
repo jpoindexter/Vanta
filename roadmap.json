@@ -9456,6 +9456,20 @@
       "title": "Render tool calls as ⏺ Tool(args) / ⎿ result (Claude grammar)",
       "summary": "Demo renders each tool call Claude-style: ⏺ Read(src/x.ts) then ⎿ Read 48 lines. The live TUI groups a run under one ⏺ header (⏺ read, wrote · 2 actions). Track switching to (or offering) the per-call Claude grammar. Design choice — evaluate against the grouped header.",
       "done": "Tool calls render Claude-style: ⏺ Verb(detail) over a dim ⎿ result, no group header; render tests updated; ui suite green."
+    },
+    {
+      "id": "TUI-BLINK-CURSOR",
+      "track": "Harness",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "tui",
+      "updated": "2026-06-13",
+      "status": "shipped",
+      "title": "Blinking composer cursor — the alive/ready idle cue",
+      "summary": "A blinking inverse-block cursor in the input box (empty + typing states), driven by a self-contained useBlink(~530ms) hook — the canonical terminal ready signal Claude has and Vanta lacked. Composes with the 1 Hz session clock so the TUI feels alive idle, not frozen.",
+      "done": "Cursor blinks in both empty and typing states; useBlink toggle is tested; 111 ui tests green."
     }
   ]
 }

@@ -7,6 +7,7 @@ import { matchSlash, completeSlash, isPartialSlash } from "./slash.js";
 import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
 import { readlineEdit, navigateHistory, type Key, type Edit, type HistState } from "./composer-keys.js";
 import { editInEditor } from "./composer-editor.js";
+import { useBlink } from "./use-blink.js";
 
 // The v2 composer on real Ink's useInput. Readline/emacs chords (^A/^E/^B/^F,
 // ^U/^K/^W kill, ^Y yank, ^D delete, ⌥←/→ word) live in composer-keys; here we
@@ -75,15 +76,19 @@ function ComposerView(props: {
   placeholder: string;
 }): ReactElement {
   const t = useTheme();
+  const blink = useBlink();
   // The Claude-method input: a single rounded-border box (not bare ─ rules), the
-  // signature shape of the reference TUI. Stretches full-width in the column.
+  // signature shape of the reference TUI. A blinking block cursor (empty + typing)
+  // is the canonical "alive/ready" cue. Stretches full-width in the column.
   return (
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
       <Box borderStyle="round" borderColor={t.border} paddingX={1}>
         <Text color={t.accent}>{"> "}</Text>
-        {props.value.length === 0 ? <Text dimColor={t.dimText}>{props.placeholder}</Text> : <CursorText value={props.value} cursor={props.cursor} />}
+        {props.value.length === 0
+          ? <Text><Text inverse={blink}> </Text><Text dimColor={t.dimText}>{props.placeholder}</Text></Text>
+          : <CursorText value={props.value} cursor={props.cursor} blink={blink} />}
       </Box>
     </Box>
   );
@@ -116,15 +121,17 @@ function handlePaletteKey(o: PaletteKeyOpts): boolean {
   return false;
 }
 
-/** Render the value with an inverse-video block at the cursor column. */
-function CursorText(props: { value: string; cursor: number }): ReactElement {
-  const { value, cursor } = props;
+/** Render the value with a blinking inverse-video block at the cursor column
+ * (when `blink` is on; the bare glyph when off — that's the cursor's dark phase). */
+function CursorText(props: { value: string; cursor: number; blink: boolean }): ReactElement {
+  const { value, cursor, blink } = props;
   const before = value.slice(0, cursor);
   const at = value[cursor] ?? " ";
   const after = value.slice(cursor + 1);
+  const glyph = at === "\n" ? " " : at;
   return (
     <Text>
-      {before}<Text inverse>{at === "\n" ? " " : at}</Text>{at === "\n" ? "\n" : ""}{after}
+      {before}<Text inverse={blink}>{glyph}</Text>{at === "\n" ? "\n" : ""}{after}
     </Text>
   );
 }
