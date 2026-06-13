@@ -112,11 +112,13 @@ session-count → background → cost. Right: cwd/branch.
   dropped-path attach, `$EDITOR` launch. (Paste/editor = post-v0.)
 
 ### Transcript
-`ScrollBox` (forked-Ink) virtualized, sticky-to-bottom. Rows: user `❯`,
-assistant `┊` (markdown), tool `⚡` (bordered preview), system `·`. Streaming
-markdown re-tokenizes the tail. **Stock Ink has no ScrollBox — this is Vanta's
-single biggest UI gap** (decision: build/borrow a scroll component vs run inline
-and let the terminal scroll).
+Reference (`hermes`) used a `ScrollBox` (forked-Ink) virtualized, sticky-to-bottom.
+Rows: user `❯`, assistant `┊` (markdown), tool `⚡` (bordered preview), system `·`.
+Streaming markdown re-tokenizes the tail. **Vanta resolved the scroll question** by
+rebuilding on real Ink 7 (`ink`) with an inline + `<Static>` committed-scrollback
+model (no ScrollBox, no AlternateScreen): finished rows are committed once via
+`<Static>` and native terminal scroll/selection/copy work without any custom component.
+The render layer lives in `vanta-ts/src/ui/`; the vendored hermes-ink fork is deleted.
 
 ---
 
@@ -164,12 +166,14 @@ count from provider) · duration · cost. Pure layout, local data.
 components (Vanta already has inline y/n; upgrade to the 4-option `Allow once /
 session / always / deny`).
 
-**P7 — Transcript scrolling.** The hard one. Decide: custom ScrollBox vs inline
-terminal scrollback. Defer until P2–P6 land.
+**P7 — Transcript scrolling.** Resolved. The TUI was rebuilt on real Ink 7 with
+inline + `<Static>` committed scrollback. Native terminal scroll/selection/copy work
+without a custom ScrollBox or alternate-screen mode. No further work needed on scroll
+architecture.
 
-**Defer / skip:** agents overlay, mouse select, OSC52, voice, platforms,
-`/handoff`, alternate-screen drag-select — all forked-Ink or gateway/platform
-dependent.
+**Defer / skip:** agents overlay, OSC52, voice, platforms, `/handoff` — gateway/platform
+dependent or not yet prioritized. Mouse select and alternate-screen drag-select are no
+longer blockers: native terminal selection works with the inline + `<Static>` model.
 
 **Keep (Vanta-only):** `/goal`, `/subgoal`, `/rollback`, `/snapshot` — the kernel
 flows that make Vanta distinctive.

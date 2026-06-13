@@ -73,7 +73,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 51 tools + `mount_mcp` via factory = 52 total (`exclude:["delegate"]` → 51 for workers); `roadmap_add` files new cards, `roadmap_move` changes status |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers all 64 tools + `mount_mcp` via factory = 65 total (`exclude:["delegate"]` → 64 for workers); `roadmap_add` files new cards, `roadmap_move` changes status |
 | `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter) |
@@ -207,6 +207,17 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **gitleaks pre-commit hook** runs `gitleaks protect --staged` on every commit. Hook lives at `scripts/pre-commit`; `install.sh` symlinks it into `.git/hooks/`. Example files (`.env.example`, `.mcp.json.example`) and test fixtures are allowlisted in `.gitleaks.toml`. If you get a false positive, add a pattern to the `allowlists` section — don't skip the hook.
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
+
+## Session additions (2026-06-13) — keep current
+
+**TUI full rebuild (Claude method) + command/persistence work.** The vendored `hermes-ink` fork never had a `<Static>` layer (root cause of the ghosting — see [[vanta-tui-rootcause]] in memory); rebuilt the whole interactive surface on **real Ink 7** the Claude way: inline render + React `<Static>` committed scrollback, so the terminal owns history (native selection/scroll/copy, zero ghosting) — no AlternateScreen, ScrollBox, mouse-capture, or virtual-history.
+
+- **New render layer:** `src/ui/` (app, reducer, transcript, composer, banner/wordmark, overlays, status-bar, markdown, theme context, stream-view, todo-panel, busy, slash/at/use-* hooks). **Shared pure helpers** moved to a neutral `src/term/` (theme, figures, composer-edits, tool-display, tool-result, at-context, capabilities, notify, model-switch, tokens). **Deleted:** `vendor/hermes-ink` (the fork), the old `src/tui/` render layer, `src/types/ink.d.ts`; the `inkr` alias is gone (`ink` = real Ink 7). ONE survivor under the old path: `src/tui/mission-control/cockpit-data.ts` (data, not render). **Default surface** — the `VANTA_UI2` gate is removed (resume/--no-tui/no-TTY still use the readline REPL).
+- **Look (matches Claude Code v2 / Cursor, source-verified via the terminal-love MCP):** borderless VANTA block-wordmark title screen, markdown + GFM tables, grouped tool-call headers (`⏺ verbs · N actions · ~Nk tok`) over dim per-tool rows with inline diffs, context gauge (`48k/200k [██░░] 24%`), bordered approval prompt, rotating busy verb + elapsed, responsive (segment-dropping) status bar + prefix-hint line, light/dark theme auto-detect (COLORFGBG), live todo panel. Composer parity: readline chords, history, multiline, queue-while-busy, undo/redo, `^G` $EDITOR, image-paste, `Esc`-interrupt.
+- **Architecture-bounded (NOT built, by design):** per-section expand/collapse, full-thinking expand, turn-backtrack *visual* retract, live spawn-tree — all need retroactive repaint of committed rows, which `<Static>` forbids (the whole point). Auto-approve / "yolo" modes skipped (bypass the kernel = rule zero).
+- **Commands → 75:** added `/setup` (opens the provider/model picker) + 8 one-shot CLI verbs surfaced via a subprocess bridge (`repl/cli-bridge.ts`): `/config /settings /models /lint /roadmap /audit /today /import` (daemons/interactive verbs stay CLI-only).
+- **Persistence:** resume (auto-handoff + session-memory) is **age-gated** — only carried into a restart if recent (`VANTA_RESUME_MAX_AGE_MIN`, default 120; 0 = always clean), fixing "stuck on an old thread after restart"; the TUI todo panel is session-scoped (reflects only the agent's `todo`-tool writes this session, never a stale global plan). Standing goals still persist (/goal clear).
+- **terminal-love MCP** wired into Vanta via repo `.mcp.json` (12 Terminal Trove design-reference tools mount as kernel-gated `mcp_terminal-love_*` tools); also shipped its own v1 (stars enrichment, richer screenshots, search TTL, MCP resources).
 
 ## Session additions (2026-06-12) — keep current
 
