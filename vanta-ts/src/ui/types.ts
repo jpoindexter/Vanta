@@ -20,6 +20,7 @@ export type ToolEntry = {
   errorLine?: string;
   summary?: string;
   diff?: DiffLine[];
+  tokens?: number;
 };
 
 /** A run of consecutive tool calls, committed as one block with a header. */

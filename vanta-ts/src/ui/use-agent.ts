@@ -49,7 +49,8 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
       deps.dispatch({ t: "toolCall", name, verb: disp.verb, detail: disp.detail });
     },
     onToolResult: (name, ok, output, diff) => {
-      deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff });
+      const tokens = Math.round((output?.length ?? 0) / 4);
+      deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, tokens });
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason) =>

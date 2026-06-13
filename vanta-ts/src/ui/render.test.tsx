@@ -87,6 +87,30 @@ describe("EntryView", () => {
     expect(out).toContain("wrote y.ts");
     inst.unmount();
   });
+
+  it("renders a tool group with a token tally suffix when tools carry tokens", async () => {
+    const tools = [
+      { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines", tokens: 800 },
+      { kind: "tool" as const, name: "write_file", verb: "wrote", detail: "y.ts", ok: true, summary: "+6/-0", tokens: 400 },
+    ];
+    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("2 actions");
+    expect(out).toContain("~1k tok"); // 800 + 400 = 1200 → kfmt(1200) = "1k"
+    inst.unmount();
+  });
+
+  it("omits the token tally when all tokens are zero or absent", async () => {
+    const tools = [
+      { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" },
+    ];
+    const inst = renderUi(h(EntryView, { entry: { kind: "toolGroup", tools } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).not.toContain("tok");
+    inst.unmount();
+  });
 });
 
 describe("SlashPalette", () => {

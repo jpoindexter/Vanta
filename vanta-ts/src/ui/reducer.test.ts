@@ -98,4 +98,25 @@ describe("ui reducer — Claude-method commit model", () => {
     const d = reduce(q, { t: "dequeue" });
     expect(d.queued).toEqual(["second"]);
   });
+
+  it("carries tokens onto the buffered tool entry in pendingGroup", () => {
+    const s = run([
+      { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },
+      { t: "toolResult", name: "read_file", ok: true, summary: "48 lines", tokens: 200 },
+    ]);
+    expect(s.pendingGroup[0]).toMatchObject({ kind: "tool", name: "read_file", tokens: 200 });
+  });
+
+  it("preserves tokens on each tool after a group flush to history", () => {
+    const s = run([
+      { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },
+      { t: "toolResult", name: "read_file", ok: true, tokens: 100 },
+      { t: "toolCall", name: "write_file", verb: "wrote", detail: "y.ts" },
+      { t: "toolResult", name: "write_file", ok: true, tokens: 50 },
+      { t: "turnEnd" },
+    ]);
+    const group = s.entries.find((e) => e.kind === "toolGroup") as { kind: "toolGroup"; tools: { tokens?: number }[] } | undefined;
+    expect(group?.tools[0]?.tokens).toBe(100);
+    expect(group?.tools[1]?.tokens).toBe(50);
+  });
 });

@@ -2,6 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { useTheme } from "./theme.js";
 import { Markdown } from "./markdown.js";
+import { kfmt } from "./busy.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 
@@ -37,12 +38,14 @@ function ToolGroupView(props: { tools: ToolEntry[] }): ReactElement {
   const t = useTheme();
   const n = props.tools.length;
   const allOk = props.tools.every((x) => x.ok !== false);
+  const tokSum = props.tools.reduce((acc, x) => acc + (x.tokens ?? 0), 0);
   return (
     <Box flexDirection="column" marginTop={1}>
       <Box>
         <Text color={allOk ? t.success : t.error}>⏺ </Text>
         <Text bold color={t.primary}>{groupVerbs(props.tools)}</Text>
         <Text dimColor={t.dimText}> · {n} action{n === 1 ? "" : "s"}</Text>
+        {tokSum > 0 ? <Text dimColor={t.dimText}> · ~{kfmt(tokSum)} tok</Text> : null}
       </Box>
       {props.tools.map((tool, i) => <ToolDetailRow key={i} entry={tool} />)}
     </Box>
