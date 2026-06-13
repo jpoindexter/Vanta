@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "inkr";
+import { useTheme } from "./theme.js";
 
 // The footer: one dim line under the composer — model · context fill · turns ·
 // mode, plus an esc-to-interrupt hint while a turn runs. Reads the live provider
@@ -20,10 +21,11 @@ export function StatusBar(props: {
   ];
   if (props.queued && props.queued > 0) parts.push(`${props.queued} queued`);
   if (props.mode) parts.push(props.mode);
+  const dim = useTheme().dimText;
   return (
     <Box>
-      <Text dimColor>{parts.join("  ·  ")}</Text>
-      {props.busy ? <Text dimColor>  ·  esc to interrupt</Text> : <Text dimColor>  ·  ? shortcuts</Text>}
+      <Text dimColor={dim}>{parts.join("  ·  ")}</Text>
+      {props.busy ? <Text dimColor={dim}>  ·  esc to interrupt</Text> : <Text dimColor={dim}>  ·  ? shortcuts</Text>}
     </Box>
   );
 }

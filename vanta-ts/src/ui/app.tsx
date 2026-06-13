@@ -16,9 +16,11 @@ import { HelpPanel } from "./help-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { busyLabel, contextPct } from "./busy.js";
+import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import { estimateTokens } from "../tui/status-bar.js";
+import { resolveTheme } from "../tui/theme.js";
 import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
@@ -37,8 +39,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
+  const [theme, setThemeState] = useState<Theme>(() => resolveTheme(process.env));
+  const setTheme = (name: string): void => setThemeState(resolveThemeByName(name));
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
-  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit });
+  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash });
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
@@ -65,13 +69,15 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries);
 
   return (
-    <Box flexDirection="column">
-      <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-      <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
-      {overlay ? null : <TodoPanel todos={state.todos} />}
-      <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-      {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} />}
-    </Box>
+    <ThemeProvider theme={theme}>
+      <Box flexDirection="column">
+        <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
+        <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} pending={pending} tick={tick} />
+        {overlay ? null : <TodoPanel todos={state.todos} />}
+        <BottomRegion overlay={overlay} pending={pending} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+        {pending ? null : <StatusBar model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} />}
+      </Box>
+    </ThemeProvider>
   );
 }
 
@@ -113,12 +119,13 @@ function BottomRegion(props: {
 /** The small dynamic tail: streaming text, in-flight tool line(s), approval. */
 function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; pending: Pending | null; tick: number }): ReactElement | null {
   const { streaming, activeTools, busy, pending, tick } = props;
+  const theme = useTheme();
   if (pending) {
     return (
       <Box flexDirection="column" marginTop={1}>
-        <Text color="yellow">⚠ approval — {pending.action}</Text>
-        <Text dimColor>{pending.reason}</Text>
-        <Text><Text color="green">[a]</Text>llow · <Text color="red">[d]</Text>eny</Text>
+        <Text color={theme.warning}>⚠ approval — {pending.action}</Text>
+        <Text dimColor={theme.dimText}>{pending.reason}</Text>
+        <Text><Text color={theme.success}>[a]</Text>llow · <Text color={theme.error}>[d]</Text>eny</Text>
       </Box>
     );
   }
@@ -128,8 +135,8 @@ function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy
   const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
   return (
     <Box flexDirection="column">
-      {streaming ? <Box><Text color="cyan">⏺ </Text><Text>{streaming}</Text></Box> : null}
-      {busy ? <Text color="cyan">{frame} <Text dimColor>{label}…</Text></Text> : null}
+      {streaming ? <Box><Text color={theme.marker}>⏺ </Text><Text color={theme.primary}>{streaming}</Text></Box> : null}
+      {busy ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}…</Text></Text> : null}
     </Box>
   );
 }

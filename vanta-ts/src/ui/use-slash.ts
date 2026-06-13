@@ -17,6 +17,7 @@ export type SlashEffects = {
   note: (text: string) => void;
   send: (text: string) => void;
   exit: () => void;
+  theme: (name: string) => void;
 };
 
 /** Map a SlashResult onto the host. Restart sets exit code 75 (run.sh re-execs). */
@@ -25,6 +26,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
     if (r.restart) process.exitCode = RESTART_EXIT_CODE;
     return void fx.exit();
   }
+  if (r.theme) fx.theme(r.theme); // /theme <name> → live restyle
   if (r.output) fx.note(r.output);
   if (r.resend) fx.send(r.resend);
 }
@@ -37,6 +39,7 @@ export type SlashDeps = {
   dispatch: Dispatch<Action>;
   send: (text: string) => void;
   exit: () => void;
+  setTheme: (name: string) => void;
 };
 
 export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } {
@@ -52,6 +55,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     note: (text) => deps.dispatch({ t: "note", text }),
     send: deps.send,
     exit: deps.exit,
+    theme: deps.setTheme,
   };
   const runSlash = (line: string): void => {
     if (!deps.convoRef.current) return;

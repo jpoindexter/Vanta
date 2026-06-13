@@ -43,10 +43,10 @@ describe("completeSlash + isPartialSlash + slashHead", () => {
 });
 
 describe("applySlashResult", () => {
-  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; exits: number } => {
-    const notes: string[] = [], sends: string[] = [];
+  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; themes: string[]; exits: number } => {
+    const notes: string[] = [], sends: string[] = [], themes: string[] = [];
     let exits = 0;
-    return { notes, sends, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), exit: () => { exits += 1; } };
+    return { notes, sends, themes, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), theme: (t) => themes.push(t), exit: () => { exits += 1; } };
   };
   it("routes output to a note", () => {
     const fx = spyFx();
@@ -62,5 +62,12 @@ describe("applySlashResult", () => {
     const fx = spyFx();
     applySlashResult({ exit: true }, fx);
     expect(fx.exits).toBe(1);
+  });
+
+  it("routes a theme signal to the theme effect", () => {
+    const fx = spyFx();
+    applySlashResult({ theme: "muted", output: "  ✓ theme set to muted" }, fx);
+    expect(fx.themes).toEqual(["muted"]);
+    expect(fx.notes).toEqual(["  ✓ theme set to muted"]);
   });
 });

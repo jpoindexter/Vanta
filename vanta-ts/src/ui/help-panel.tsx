@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text, useInput } from "inkr";
+import { useTheme } from "./theme.js";
 
 // Inline quick-help (`?` or /help). The full command list lives behind the `/`
 // palette; this is the orientation card — prefixes, key chords, and where to
@@ -18,16 +19,17 @@ const ROWS: ReadonlyArray<[string, string]> = [
 
 export function HelpPanel(props: { onClose: () => void }): ReactElement {
   useInput((_input, key) => { if (key.escape || key.return) props.onClose(); });
+  const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color="cyan" bold>Shortcuts</Text>
+      <Text color={t.accent} bold>Shortcuts</Text>
       {ROWS.map(([k, desc]) => (
         <Box key={k}>
-          <Text color="cyan">{`  ${k}`.padEnd(12)}</Text>
-          <Text dimColor>{desc}</Text>
+          <Text color={t.accent}>{`  ${k}`.padEnd(12)}</Text>
+          <Text dimColor={t.dimText}>{desc}</Text>
         </Box>
       ))}
-      <Text dimColor>  Esc close · /help in scrollback for the full command list</Text>
+      <Text dimColor={t.dimText}>  Esc close · /help in scrollback for the full command list</Text>
     </Box>
   );
 }

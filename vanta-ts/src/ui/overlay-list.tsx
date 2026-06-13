@@ -1,5 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "inkr";
+import { useTheme } from "./theme.js";
 import type { OverlayRow } from "./overlays.js";
 
 // A generic inline list overlay rendered ABOVE the composer (live region, not
@@ -22,25 +23,27 @@ export function OverlayList(props: {
     if (key.downArrow) return void setSel(Math.min(props.rows.length - 1, clamped + 1));
     if (key.return) { const r = props.rows[clamped]; if (r) props.onSelect(r); }
   });
+  const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color="cyan" bold>{props.title}</Text>
+      <Text color={t.accent} bold>{props.title}</Text>
       {props.rows.length === 0
-        ? <Text dimColor>  (empty)</Text>
+        ? <Text dimColor={t.dimText}>  (empty)</Text>
         : props.rows.map((r, i) => <Row key={r.command} row={r} active={i === clamped} />)}
-      <Text dimColor>  ↑/↓ select · ⏎ choose · Esc close</Text>
+      <Text dimColor={t.dimText}>  ↑/↓ select · ⏎ choose · Esc close</Text>
     </Box>
   );
 }
 
 function Row(props: { row: OverlayRow; active: boolean }): ReactElement {
   const { row, active } = props;
+  const t = useTheme();
   const hint = row.hint && row.hint.length > HINT_MAX ? `${row.hint.slice(0, HINT_MAX - 1)}…` : row.hint;
   return (
     <Box>
-      <Text color={active ? "cyan" : undefined}>{active ? "❯ " : "  "}</Text>
-      <Text color={active ? "cyan" : undefined}>{row.label}</Text>
-      {hint ? <Text dimColor>  {hint}</Text> : null}
+      <Text color={active ? t.accent : undefined}>{active ? "❯ " : "  "}</Text>
+      <Text color={active ? t.accent : undefined}>{row.label}</Text>
+      {hint ? <Text dimColor={t.dimText}>  {hint}</Text> : null}
     </Box>
   );
 }
