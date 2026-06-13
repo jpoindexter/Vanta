@@ -208,6 +208,20 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
+## Session additions (2026-06-14) — keep current
+
+**TUI parity grind + research intake.** Built the Claude-Code-shaped surfaces on the 06-13 rebuild and reversed two of its "not built" notes.
+
+- **Approval → Claude-style numbered menu** (`ui/approval-prompt.tsx`): `Do you want to proceed? ❯1 Yes / 2 Yes,don't ask again / 3 No (esc)`, ↑↓/Enter/1-3/Esc. Option 2 persists a tool-scoped allow rule (`ui/grant.ts` → permissions); kernel **block** stays immovable.
+- **Shift+Tab mode cycle** (`normal → auto-accept → plan → normal`, `▶▶/⏸` indicator). Auto-accept auto-approves the kernel **ask** tier only (block refused upstream → safe by construction) — this **reverses the "auto-approve/yolo skipped" note**. Plan reuses real `/planmode` enforcement.
+- **Transcript:** tool calls render `⏺ Verb(detail)` / `⎿ result` (dropped the grouped header) + clean labels for grep/glob/background/refs; **syntax-highlighted** fenced code (`ui/highlight.ts`); **no** Goal/Expected preamble (prompt rule reframed) and **no** per-turn token dump.
+- **Chrome:** rounded composer box + **blinking cursor** (`ui/use-blink.ts`); truecolor **hex theme** (matches `docs/design-refs`); active-goal `◇` line + compact PLAN `▰▰▱▱ ✓◐○` bar + status chips (live `◷` timer via `ui/use-clock`, `MCP ✓`); rich pickers (`●` current).
+- **New overlays/commands:** `/loops` (loop dashboard over the real store), `/changes` (interactive edit-review with git keep/undo), `/context` (visual per-category token breakdown), styled `/goals` ledger.
+- **Anti-ghosting (2nd vector):** streamed text commits to `<Static>` the moment a tool call follows it (`ui/reducer.ts commitText`) — see ERRORS.md.
+- **Carried-goal-paused-on-launch:** a prior-session goal starts PAUSED (no silent re-run on restart); `/goal resume` activates, `/goal clear|drop` drops; `VANTA_GOAL_RESUME=auto` restores old behavior.
+- **Research intake → roadmap (now ~741 cards):** three reference docs in `docs/research/` + ~37 cards from *Dive into Claude Code* (arXiv:2604.14228, `PAPER-*`), *Anatomy of an Agent Harness* (`HARNESS-*`), and *Self-Correcting Agent Harness* (`SELFHARNESS-*`).
+- **Built-not-wired:** `term/json-format.ts` (Vanta summarizes tool output, so no raw-output display surface yet — `CC-SHELL-JSON-FORMAT` stays next).
+
 ## Session additions (2026-06-13) — keep current
 
 **TUI full rebuild (Claude method) + command/persistence work.** The vendored `hermes-ink` fork never had a `<Static>` layer (root cause of the ghosting — see [[vanta-tui-rootcause]] in memory); rebuilt the whole interactive surface on **real Ink 7** the Claude way: inline render + React `<Static>` committed scrollback, so the terminal owns history (native selection/scroll/copy, zero ghosting) — no AlternateScreen, ScrollBox, mouse-capture, or virtual-history.
