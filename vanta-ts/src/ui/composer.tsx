@@ -1,7 +1,6 @@
 import { useRef, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
-import { Rule } from "./rule.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
 import { matchSlash, completeSlash, isPartialSlash } from "./slash.js";
@@ -76,16 +75,16 @@ function ComposerView(props: {
   placeholder: string;
 }): ReactElement {
   const t = useTheme();
+  // The Claude-method input: a single rounded-border box (not bare ─ rules), the
+  // signature shape of the reference TUI. Stretches full-width in the column.
   return (
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
-      <Rule />
-      <Box>
-        <Text color={t.accent}>› </Text>
+      <Box borderStyle="round" borderColor={t.border} paddingX={1}>
+        <Text color={t.accent}>{"> "}</Text>
         {props.value.length === 0 ? <Text dimColor={t.dimText}>{props.placeholder}</Text> : <CursorText value={props.value} cursor={props.cursor} />}
       </Box>
-      <Rule />
     </Box>
   );
 }

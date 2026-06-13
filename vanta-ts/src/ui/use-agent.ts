@@ -4,7 +4,6 @@ import { buildSummarizer } from "../session.js";
 import { toolDisplay } from "../term/tool-display.js";
 import { summarizeResult } from "../term/tool-result.js";
 import { readTodos } from "../todo/store.js";
-import { formatTally } from "./turn-metrics.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -78,18 +77,15 @@ export function useAgent(deps: AgentDeps): { send: (text: string) => Promise<voi
     deps.replStateRef.current.turnIndex += 1;
     deps.dispatch({ t: "submit", text });
     deps.dispatch({ t: "turnStart" });
-    let tally: string | null = null;
     try {
-      const outcome = await conv.send(text, undefined, ctrl.signal);
-      tally = formatTally(outcome.usage, outcome.tokensSaved);
+      await conv.send(text, undefined, ctrl.signal);
     } catch (err) {
       deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
     } finally {
-      deps.dispatch({ t: "turnEnd" }); // commit assistant text first…
-      if (tally) deps.dispatch({ t: "note", text: tally }); // …then the tally below it
-      // NOTE: no blind todo reload here — the panel reflects only what the agent
-      // writes via the todo tool THIS session (onToolResult), so a fresh launch
-      // never shows a previous session's stale plan.
+      deps.dispatch({ t: "turnEnd" });
+      // No per-turn token dump in the transcript (Claude shows none) — context
+      // usage lives in the status bar. No blind todo reload either: the panel
+      // reflects only what the agent writes via the todo tool this session.
       deps.interruptRef.current = null;
     }
   };
