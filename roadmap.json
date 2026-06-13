@@ -803,14 +803,15 @@
       "id": "CC-CONTEXT-VIZ",
       "track": "Operator",
       "title": "Context visualization — per-category breakdown + autocompact buffer + suggestions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's ContextVisualization shows context usage broken down per category (tools, memory, messages, autocompact buffer, etc.) with a CollapseStatus showing what context-collapse did. ContextSuggestions offers proactive actions to reduce context. Vanta shows a context % number (CC-S-CONTEXT shipped) but no breakdown.",
-      "done": "A /context view shows per-category context usage as bars with labels; autocompact buffer size is called out; ContextSuggestions appear when context is >70% used; CollapseStatus shows if collapse happened.",
+      "done": "/context opens a visual overlay: per-category token breakdown (system/tools/user/assistant/tool-results) with a bar + count + % each, total vs context window in the title. contextBreakdown (pure) + ContextPanel, wired as an overlay kind reading the live convo via getContext. 178 ui tests green.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-14"
     },
     {
       "id": "CC-SANDBOX-UI",
@@ -3052,13 +3053,13 @@
       "title": "Shell output JSON auto-format — pretty-print JSON lines in bash output",
       "status": "next",
       "size": "S",
-      "summary": "CC's shell output renderer (`OutputLine`) attempts to parse each output line as JSON and re-serializes it for readability when successful. Checks for precision loss on large integers before substituting. Turns compact JSON API responses in bash output into human-readable formatted output without user action.",
+      "summary": "CC's shell output renderer (`OutputLine`) attempts to parse each output line as JSON and re-serializes it for readability when successful. Checks for precision loss on large integers before substituting. Turns compact JSON API responses in bash output into human-readable formatted output without user action. [MODULE BUILT — formatJsonInOutput shipped + tested (term/json-format.ts); wiring deferred: Vanta summarizes tool output rather than showing raw lines, so there is no high-value display surface yet — needs a raw-output/expand view first.]",
       "done": "A bash command that outputs `{\"status\":\"ok\",\"count\":42}` renders as nicely formatted JSON in the transcript instead of raw string.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-14"
     },
     {
       "id": "CC-TERMINAL-HYPERLINKS",

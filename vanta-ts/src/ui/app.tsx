@@ -16,6 +16,7 @@ import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
 import { LoopsPanel } from "./loops-panel.js";
 import { ReviewPanel } from "./review-panel.js";
+import { ContextPanel } from "./context-panel.js";
 import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { busyLabel, contextPct, formatElapsed } from "./busy.js";
@@ -48,7 +49,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const setTheme = (name: string): void => setThemeState(resolveThemeByName(name));
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme });
-  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash });
+  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
@@ -119,6 +120,11 @@ export function ModeLine(props: { mode: Mode }): ReactElement | null {
   if (props.mode === "auto") return <Text color={t.warning} bold>▶▶ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
   if (props.mode === "plan") return <Text color={t.accent} bold>⏸ plan mode on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
   return null;
+}
+
+/** Live conversation snapshot for the /context overlay breakdown. */
+function ctxSnapshot(setup: RunSetup, convo: Conversation | null): { messages: { role: string; content?: string }[]; contextWindow: number } {
+  return { messages: (convo?.messages ?? []) as { role: string; content?: string }[], contextWindow: setup.provider.contextWindow() };
 }
 
 /** Clip the active goal to one line so the footer never wraps (which would ghost). */
@@ -238,6 +244,7 @@ function BottomRegion(props: {
   if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
   if (overlay?.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={props.onClose} />;
   if (overlay?.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={props.onClose} />;
+  if (overlay?.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={props.onClose} />;
   if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
   return (
     <Box flexDirection="column">
