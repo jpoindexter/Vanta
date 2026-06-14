@@ -34,7 +34,7 @@ export function sectionHeader(title: string): string {
   return `\n  ◆ ${title}\n`;
 }
 
-/** Where Vanta's settings + data live (shown up front, like Hermes). Pure. */
+/** Where Vanta's settings + data live (shown up front). Pure. */
 export function configLocation(repoRoot: string, env: NodeJS.ProcessEnv): string {
   return [
     `  ◆ Configuration Location`,
