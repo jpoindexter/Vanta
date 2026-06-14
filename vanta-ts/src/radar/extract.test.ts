@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { extractOpportunities } from "./extract.js";
+import { extractOpportunities, fromReddit, fromFeed } from "./extract.js";
 import type { SearchResult } from "../search/interface.js";
+import type { RedditPost } from "../reach/reddit-parse.js";
+import type { FeedItem } from "../reach/rss-parse.js";
 
 // Inline fixtures — no network, deterministic.
 
@@ -101,3 +103,37 @@ describe("extractOpportunities", () => {
 // Helper constants for the clamp test
 const MANY_PAIN_TITLE = "frustrated hate broken manual waste slow expensive painful annoying tedious";
 const MANY_PAIN_SNIPPET = "impossible nightmare struggle struggling problem issue bug fail failing crash crashes sucks terrible awful";
+
+describe("source label + adapters", () => {
+  it("prefixes the id + note with the source", () => {
+    const r: SearchResult = { title: "Manual deploys are a nightmare", url: "https://reddit.com/r/devops/x", snippet: "team waste hours" };
+    const [opp] = extractOpportunities([r], "deploys", "reddit");
+    expect(opp!.id.startsWith("reddit-")).toBe(true);
+    expect(opp!.note).toContain("via reddit scan");
+  });
+
+  it("fromReddit maps posts to the common result shape (permalink url, body snippet)", () => {
+    const posts: RedditPost[] = [
+      { title: "X is broken", author: "a", subreddit: "saas", score: 9, comments: 3, permalink: "/r/saas/1", body: "we waste money" },
+      { title: "No body", author: "b", subreddit: "saas", score: 1, comments: 0, permalink: "/r/saas/2", body: "" },
+    ];
+    const results = fromReddit(posts);
+    expect(results[0]).toEqual({ title: "X is broken", url: "https://www.reddit.com/r/saas/1", snippet: "we waste money" });
+    expect(results[1]!.snippet).toContain("r/saas · ↑1"); // falls back to meta when body empty
+  });
+
+  it("fromFeed maps items to the common result shape", () => {
+    const items: FeedItem[] = [{ title: "Release 2.0", link: "https://blog/2", date: "", summary: "fixes a painful bug" }];
+    expect(fromFeed(items)[0]).toEqual({ title: "Release 2.0", url: "https://blog/2", snippet: "fixes a painful bug" });
+  });
+
+  it("end-to-end: reddit posts → opportunities scored from pain/buyer", () => {
+    const posts: RedditPost[] = [
+      { title: "Our team wastes budget on a broken manual process", author: "a", subreddit: "startups", score: 50, comments: 12, permalink: "/r/startups/abc", body: "expensive and slow" },
+    ];
+    const [opp] = extractOpportunities(fromReddit(posts), "process pain", "reddit");
+    expect(opp!.pain!).toBeGreaterThan(0);
+    expect(opp!.buyer!).toBeGreaterThan(0);
+    expect(opp!.source).toBe("https://www.reddit.com/r/startups/abc");
+  });
+});

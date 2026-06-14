@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { radarTool } from "./radar.js";
+import { saveCookie } from "../reach/cookie.js";
 import type { ToolContext } from "./types.js";
 
 const ctx = {} as unknown as ToolContext;
@@ -66,5 +67,42 @@ describe("radarTool", () => {
   it("describeForSafety returns radar + action", () => {
     expect(radarTool.describeForSafety?.({ action: "record" })).toBe("radar record");
     expect(radarTool.describeForSafety?.({ action: "list" })).toBe("radar list");
+  });
+
+  it("scan_web from:reddit asks for a cookie when none is configured", async () => {
+    const r = await radarTool.execute({ action: "scan_web", from: "reddit", query: "pain" }, ctx);
+    expect(r.ok).toBe(false);
+    expect(r.output).toContain("no reddit cookie");
+  });
+
+  it("scan_web from:reddit pulls posts → scored opportunities (mocked fetch)", async () => {
+    saveCookie("reddit", "session=abc");
+    const listing = { data: { children: [
+      { kind: "t3", data: { title: "Our team wastes budget on a broken manual tool", subreddit: "startups", score: 40, num_comments: 9, permalink: "/r/startups/abc", selftext: "expensive and slow" } },
+    ] } };
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => listing })));
+    try {
+      const r = await radarTool.execute({ action: "scan_web", from: "reddit", query: "budget", subreddit: "startups" }, ctx);
+      expect(r.ok).toBe(true);
+      expect(r.output).toContain("reddit:");
+      expect(r.output).toContain("added 1 candidate");
+      const list = await radarTool.execute({ action: "list" }, ctx);
+      expect(list.output).toContain("reddit-"); // reddit-sourced id prefix
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("scan_web from:rss reads a feed → opportunities (mocked fetch)", async () => {
+    const xml = `<rss><channel><title>Indie</title><item><title>Painful manual deploys waste time</title><link>https://b/1</link><description>teams struggle</description></item></channel></rss>`;
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, text: async () => xml })));
+    try {
+      const r = await radarTool.execute({ action: "scan_web", from: "rss", feed: "https://b/feed.xml" }, ctx);
+      expect(r.ok).toBe(true);
+      expect(r.output).toContain("rss:");
+      expect(r.output).toContain("added 1 candidate");
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });

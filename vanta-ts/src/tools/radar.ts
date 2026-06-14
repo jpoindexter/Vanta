@@ -4,8 +4,11 @@ import { appendRadar, readRadar, ranked, type Opportunity } from "../radar/store
 import { rankOpportunities, draftOffer } from "../radar/scan.js";
 import { toProspect } from "../radar/promote.js";
 import { appendMoney } from "../money/store.js";
-import { extractOpportunities } from "../radar/extract.js";
+import { extractOpportunities, fromReddit, fromFeed } from "../radar/extract.js";
 import { resolveSearchProvider } from "../search/index.js";
+import { loadCookie } from "../reach/cookie.js";
+import { searchReddit } from "../reach/reddit.js";
+import { fetchFeed } from "../reach/rss.js";
 
 const Args = z.object({
   action: z.enum(["record", "score", "list", "scan", "offer", "promote", "scan_web"]),
@@ -16,6 +19,10 @@ const Args = z.object({
   pain: z.number().min(0).max(1).optional(),
   buyer: z.number().min(0).max(1).optional(),
   query: z.string().optional(),
+  // scan_web source routing
+  from: z.enum(["web", "reddit", "rss"]).optional(),
+  subreddit: z.string().optional(),
+  feed: z.string().optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -99,24 +106,49 @@ async function doPromote(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: `promoted "${opp.title}" → prospect "${prospect.name}" (id:${prospect.id}) at stage:lead` };
 }
 
-async function doScanWeb(query: string | undefined): Promise<ToolResult> {
+/** Append candidates to the radar + summarize. Shared by every scan source. */
+async function appendCandidates(candidates: Opportunity[], label: string): Promise<ToolResult> {
+  if (!candidates.length) return { ok: true, output: `scan_web (${label}): no candidates found — nothing added` };
+  for (const opp of candidates) await appendRadar(opp);
+  const summary = candidates
+    .slice(0, 5)
+    .map((o) => `  • ${o.id} — ${o.title} (pain=${o.pain?.toFixed(1)} buyer=${o.buyer?.toFixed(1)})`)
+    .join("\n");
+  return { ok: true, output: `scan_web (${label}): added ${candidates.length} candidate(s)\n${summary}` };
+}
+
+async function scanWebSearch(query: string | undefined): Promise<ToolResult> {
   if (!query) return { ok: false, output: "scan_web needs query" };
   try {
     const provider = resolveSearchProvider(process.env);
     const results = await provider.search(query, { maxResults: 10 });
-    if (!results.length) {
-      return { ok: true, output: `scan_web: search returned no results for "${query}" — no opportunities added` };
-    }
-    const candidates = extractOpportunities(results, query);
-    for (const opp of candidates) await appendRadar(opp);
-    const summary = candidates
-      .slice(0, 5)
-      .map((o) => `  • ${o.id} — ${o.title} (pain=${o.pain?.toFixed(1)} buyer=${o.buyer?.toFixed(1)})`)
-      .join("\n");
-    return { ok: true, output: `scan_web: added ${candidates.length} candidate(s) for "${query}"\n${summary}` };
+    return appendCandidates(extractOpportunities(results, query, "web"), `web: ${query}`);
   } catch (err) {
     return { ok: true, output: `scan_web: search unavailable: ${(err as Error).message} — no opportunities added` };
   }
+}
+
+async function scanReddit(a: Parsed): Promise<ToolResult> {
+  if (!a.query) return { ok: false, output: "scan_web from:reddit needs query" };
+  const cookie = loadCookie("reddit");
+  if (!cookie) return { ok: false, output: "no reddit cookie — import one (see /cookie) to scan reddit" };
+  const r = await searchReddit({ query: a.query, subreddit: a.subreddit, limit: 10 }, cookie);
+  if (!r.ok) return { ok: true, output: `scan_web reddit unavailable: ${r.error} — no opportunities added` };
+  const where = a.subreddit ? `r/${a.subreddit} ` : "";
+  return appendCandidates(extractOpportunities(fromReddit(r.posts), a.query, "reddit"), `reddit: ${where}${a.query}`);
+}
+
+async function scanRss(a: Parsed): Promise<ToolResult> {
+  if (!a.feed) return { ok: false, output: "scan_web from:rss needs feed (a feed url)" };
+  const r = await fetchFeed(a.feed);
+  if (!r.ok) return { ok: true, output: `scan_web rss unavailable: ${r.error} — no opportunities added` };
+  return appendCandidates(extractOpportunities(fromFeed(r.items), r.title, "rss"), `rss: ${r.title}`);
+}
+
+function doScanWeb(a: Parsed): Promise<ToolResult> {
+  if (a.from === "reddit") return scanReddit(a);
+  if (a.from === "rss") return scanRss(a);
+  return scanWebSearch(a.query);
 }
 
 export const radarTool: Tool = {
@@ -131,9 +163,10 @@ export const radarTool: Tool = {
       "action:scan returns a ranked scan with composite scores and position numbers; " +
       "action:offer drafts a short offer pitch for a given opportunity (id required); " +
       "action:promote promotes a scored opportunity into a Money-OS prospect (id required) at stage:lead. " +
-      "action:scan_web searches the web for a given query (query required), extracts candidate opportunities " +
-      "from the results using pain+buyer heuristics, and appends them to the radar — degrades gracefully " +
-      "when search is unavailable. " +
+      "action:scan_web pulls live candidate opportunities from a reach source and appends them, scored by pain+buyer " +
+      "heuristics (degrades gracefully when a source is unavailable). from:web (default) searches the web (query required); " +
+      "from:reddit searches Reddit for pain signals (query required, optional subreddit — needs a reddit cookie); " +
+      "from:rss reads a feed (feed url required). " +
       "Use it to track, score, surface, and act on the highest-signal opportunities.",
     parameters: {
       type: "object",
@@ -145,7 +178,10 @@ export const radarTool: Tool = {
         note: { type: "string", description: "optional detail" },
         pain: { type: "number", description: "0..1 — problem severity: expensive/urgent/repeated/reachable" },
         buyer: { type: "number", description: "0..1 — buyer readiness: reachable/has-budget/good-timing" },
-        query: { type: "string", description: "search query for scan_web action" },
+        query: { type: "string", description: "search query for scan_web (web/reddit)" },
+        from: { type: "string", enum: ["web", "reddit", "rss"], description: "scan_web source (default web)" },
+        subreddit: { type: "string", description: "scan_web from:reddit — limit to a subreddit (optional)" },
+        feed: { type: "string", description: "scan_web from:rss — the feed url" },
       },
       required: ["action"],
     },
@@ -159,7 +195,7 @@ export const radarTool: Tool = {
     if (p.data.action === "scan") return doScan();
     if (p.data.action === "offer") return doOffer(p.data);
     if (p.data.action === "promote") return doPromote(p.data);
-    if (p.data.action === "scan_web") return doScanWeb(p.data.query);
+    if (p.data.action === "scan_web") return doScanWeb(p.data);
     return doList();
   },
 };

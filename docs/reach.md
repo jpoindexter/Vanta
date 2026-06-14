@@ -30,6 +30,16 @@ type ReachChannel = {
 };
 ```
 
+## Wired into Opportunity-Radar
+
+The reach channels feed the radar's pain-signal hunt. `radar scan_web` routes by source:
+
+- `from:web` (default) — `query` → the search provider.
+- `from:reddit` — `query` (+ optional `subreddit`) → Reddit search (needs a cookie); each post becomes a scored candidate.
+- `from:rss` — `feed` (a feed url) → each item becomes a candidate.
+
+All three normalize to a common `{title, url, snippet}` (`radar/extract.ts` `fromReddit`/`fromFeed`) and run through the same pain/buyer scorer; the source prefixes the opportunity id + note (`reddit-…`, `rss-…`). The fetchers (`reach/reddit.ts searchReddit`, `reach/rss.ts fetchFeed`) are shared by the `reddit_read`/`rss_read` tools and the radar.
+
 ## Adding a channel
 
 1. `reach/channels/<name>.ts` exporting a `ReachChannel` — `check()` should *really probe* its backend (via `probe.ts`) and set the active backend (or `off` + a `fix`).

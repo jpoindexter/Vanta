@@ -1,13 +1,13 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
-import { parseFeed, feedTitle, type FeedItem } from "../reach/rss-parse.js";
+import { type FeedItem } from "../reach/rss-parse.js";
+import { fetchFeed } from "../reach/rss.js";
 
 const Args = z.object({
   url: z.string().url(),
   limit: z.number().int().min(1).max(100).optional(),
 });
 
-const FETCH_TIMEOUT_MS = 15_000;
 const DEFAULT_LIMIT = 20;
 
 function formatItems(title: string, items: FeedItem[]): string {
@@ -40,17 +40,8 @@ export const rssReadTool: Tool = {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'rss_read needs a valid "url"' };
     const { url, limit = DEFAULT_LIMIT } = parsed.data;
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
-      const res = await fetch(url, { signal: ctrl.signal, headers: { "user-agent": "vanta-rss/1.0" } });
-      clearTimeout(timer);
-      if (!res.ok) return { ok: false, output: `rss_read: ${url} returned HTTP ${res.status}` };
-      const xml = await res.text();
-      const items = parseFeed(xml).slice(0, limit);
-      return { ok: true, output: formatItems(feedTitle(xml), items) };
-    } catch (err) {
-      return { ok: false, output: `rss_read failed: ${(err as Error).message}` };
-    }
+    const r = await fetchFeed(url);
+    if (!r.ok) return { ok: false, output: `rss_read failed: ${r.error}` };
+    return { ok: true, output: formatItems(r.title, r.items.slice(0, limit)) };
   },
 };
