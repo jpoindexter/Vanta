@@ -24,7 +24,8 @@ export function usage(): void {
     [
       "Usage: vanta                              start an interactive session",
       "       vanta sessions | resume <id>       list past sessions, or resume one",
-      "       vanta setup                        first-run wizard: pick a model backend",
+      "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
+      "       vanta setup model                  just the model/provider picker",
       "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
       "       vanta status | doctor              health check (kernel, provider, keys, store)",
       '       vanta run "<instruction>"          run one instruction and exit',
