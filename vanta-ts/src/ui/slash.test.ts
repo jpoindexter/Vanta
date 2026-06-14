@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSlashLine, slashHead, matchSlash, completeSlash, isPartialSlash } from "./slash.js";
+import { isSlashLine, slashHead, matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { applySlashResult, type SlashEffects } from "./use-slash.js";
 
 describe("isSlashLine", () => {

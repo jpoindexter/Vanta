@@ -1,7 +1,8 @@
 import type { Message } from "../types.js";
 import type { LLMProvider } from "../providers/interface.js";
-import { compressMessages, trimMessages, compactConversation, type Summarizer } from "../context.js";
+import { compactConversation, type Summarizer } from "../context.js";
 import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microcompact.js";
+import { graduatedCompaction } from "../context/graduated-compaction.js";
 
 // The per-call + per-turn context-window management for the agent loop, kept out
 // of agent.ts so runTurn stays focused on iteration. `ContextDeps` is the minimal
@@ -81,7 +82,12 @@ export async function prepareCallMessages(
 ): Promise<Message[]> {
   // Idle-clear only at the genuinely-idle turn start (time-based micro-compaction).
   const fresh = iter === 1 ? clearStaleToolResults(messages, tc.idleMs, tc.idleCfg) : messages;
-  return tc.trackedSummarize
-    ? compressMessages(fresh, deps.provider.contextWindow(), tc.trackedSummarize, { activeGoalText: deps.activeGoalText, sessionMemory: deps.sessionMemory, thresholdPct: tc.thresholdPct })
-    : trimMessages(fresh, deps.provider.contextWindow(), { thresholdPct: tc.thresholdPct });
+  const result = await graduatedCompaction(fresh, {
+    contextWindow: deps.provider.contextWindow(),
+    summarize: tc.trackedSummarize,
+    activeGoalText: deps.activeGoalText,
+    sessionMemory: deps.sessionMemory,
+    thresholdPct: tc.thresholdPct,
+  });
+  return result.messages;
 }
