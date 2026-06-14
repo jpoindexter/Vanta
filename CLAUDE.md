@@ -19,7 +19,7 @@ The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS la
 
 ```bash
 # Kernel (Rust)
-cargo build && cargo test                 # 16 tests
+cargo build && cargo test                 # 37 tests
 cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
@@ -67,7 +67,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 
 ## Status
 
-**v0.2.0 — roadmap-grind in progress.** Full v1 parity + Phase 2 EF + all S/M/L extensions, plus 4 Harness rocks shipped 2026-06-11 (session-memory, streaming tool-exec, message-display hook, shell-hooks engine), plus the **TUI build plan Phases 1–4** shipped 2026-06-12 (design tokens + glyphs, interactive footer, keybinding registry, mission-control `/cockpit` + slot composer — see `docs/design-refs/tui-buildplan.html`). **All editable TS passes the size gate** (file ≤300 / fn ≤50 / params ≤4 / cx ≤10; only kernel-protected `factory/*` excepted). **51 tools** · **41 slash commands** · **27 Rust tests** · **2771 TS tests** (all green; `tsc` clean). Per-card statuses + notes in `roadmap.json`; full changelog in `vanta-ts/CLAUDE.md` §"Session additions".
+**v0.2.0 — roadmap-grind in progress.** Full v1 parity + Phase 2 EF + all S/M/L extensions, plus 4 Harness rocks shipped 2026-06-11 (session-memory, streaming tool-exec, message-display hook, shell-hooks engine), plus the **TUI build plan Phases 1–4** shipped 2026-06-12 (design tokens + glyphs, interactive footer, keybinding registry, mission-control `/cockpit` + slot composer — see `docs/design-refs/tui-buildplan.html`), plus **TUI full rebuild on real Ink 7** shipped 2026-06-13 (vendored `hermes-ink` fork + old `vanta-ts/src/tui/` render layer deleted; render now in `vanta-ts/src/ui/` + `vanta-ts/src/term/`; inline + `<Static>` scrollback, no AlternateScreen; `VANTA_UI2` gate removed — new render is the default; features: borderless wordmark title, markdown+tables, grouped tool-call headers + token tally, context gauge, bordered approval prompt, rotating busy verb + elapsed, responsive status bar, light/dark auto-detect, todo panel). **terminal-love MCP** wired via `.mcp.json` (12 Terminal Trove design-reference tools as kernel-gated Vanta tools). **Resume persistence age-gated**: restart carries prior thread only if recent (`VANTA_RESUME_MAX_AGE_MIN`, default 120; 0 = always clean). **All editable TS passes the size gate** (file ≤300 / fn ≤50 / params ≤4 / cx ≤10; only kernel-protected `factory/*` excepted). **65 tools** · **75 slash commands** · **37 Rust tests** · **2548 TS tests** (all green; `tsc` clean). Per-card statuses + notes in `roadmap.json`; full changelog in `vanta-ts/CLAUDE.md` §"Session additions".
 
 **Direction:** `STRATEGY.md` — 5 pillars (**Harness > Operator > Solutioning > Extensibility > Cofounder engine**); CC parity is a quarry, not a goal (DECISIONS 2026-06-11; 166 cards parked, see PARKED.md). Top open rocks: `CC-GOAL-CMD` · `CC-HOOK-ADDITIONAL-CTX` · `CC-BG-AGENTS` · `TUI-V2` · `DESKTOP-P3` · `SOLUTIONING-MODE` · `PLUGIN-FRAMEWORK`. Build-order export: `node scripts/build-order.mjs`.
 

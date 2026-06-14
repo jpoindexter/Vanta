@@ -18,7 +18,7 @@ export type SearchConfig = {
  * crashes on a failed search.
  */
 export interface SearchProvider {
-  /** Stable id: "ddg" | "searxng" | "serpapi" | "brave". */
+  /** Stable id: "ddg" | "bing" | "jina_ddg" | "searxng" | "serpapi" | "brave". */
   readonly id: string;
   search(query: string, config?: SearchConfig): Promise<SearchResult[]>;
 }

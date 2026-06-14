@@ -1,0 +1,144 @@
+// TUI-SMOOTH — pure render rules for the activity feed. Computes a clean
+// { icon, verb, detail } from a tool's structured args at DISPATCH time, so the
+// transcript never sees raw JSON or temp paths. Design note: docs/tui-smooth-design.md.
+
+const HOME = process.env.HOME ?? "";
+const TEMP_MARKERS = ["/var/folders", "/tmp/", "NSIRD", "/T/"];
+
+const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/**
+ * Extract the display label from the first `# label`
+ * comment line of a shell command. Returns null when the command has no comment.
+ */
+export function bashLabel(cmd: string): string | null {
+  const first = (cmd.trim().split("\n")[0] ?? "").trim();
+  if (!first.startsWith("#")) return null;
+  const label = first.slice(1).trim();
+  return label || null;
+}
+
+/** Abbreviate a path: temp dirs → basename, $HOME → ~, deep paths → …/last/two. */
+export function abbrevPath(p: string): string {
+  if (!p) return "";
+  if (TEMP_MARKERS.some((m) => p.includes(m))) {
+    return p.split("/").filter(Boolean).pop() ?? p;
+  }
+  let s = p;
+  if (HOME && s.startsWith(HOME)) s = `~${s.slice(HOME.length)}`;
+  if (s.startsWith("~")) return s;
+  const segs = s.split("/").filter(Boolean);
+  if (segs.length <= 2) return s;
+  return `…/${segs.slice(-2).join("/")}`;
+}
+
+function host(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return abbrevPath(url);
+  }
+}
+
+/** Compact an unknown tool's args to `key:val` pairs — never raw JSON. */
+function compactArgs(args: Record<string, unknown>): string {
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(args)) {
+    let val: string;
+    if (typeof v === "string") val = abbrevPath(v);
+    else if (typeof v === "number" || typeof v === "boolean") val = String(v);
+    else val = "…";
+    parts.push(`${k}:${trunc(val, 24)}`);
+  }
+  return trunc(parts.join(" "), 50);
+}
+
+export type ToolDisplay = { icon: string; verb: string; detail: string };
+
+/** Match tool names that are prefixed namespaces (git_, gmail_, etc.). Returns null on no match. */
+function toolDisplayByPrefix(name: string): ToolDisplay | null {
+  if (name.startsWith("git_")) return { icon: "⎇", verb: "git", detail: name.slice(4) };
+  if (name.startsWith("gmail_")) return { icon: "✉", verb: "gmail", detail: name.slice(6) };
+  if (name.startsWith("calendar_")) return { icon: "📅", verb: "calendar", detail: name.slice(9) };
+  if (name.startsWith("drive_")) return { icon: "📁", verb: "drive", detail: name.slice(6) };
+  if (name.startsWith("lsp_")) return { icon: "🔧", verb: "lsp", detail: name.slice(4) };
+  if (name.startsWith("ref_")) return { icon: "📚", verb: "ref", detail: name.slice(4) };
+  if (name.startsWith("roadmap_")) return { icon: "🗺", verb: "roadmap", detail: name.slice(8) };
+  return null;
+}
+
+/** Display for search + background/utility tools (otherwise they fall back to a
+ * raw `grep_files(key:val …)` dump). Returns null when not in this group. */
+function toolDisplayUtilGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "grep_files":  return { icon: "🔎", verb: "grep", detail: trunc(str("pattern"), 50) };
+    case "glob_files":  return { icon: "🔎", verb: "glob", detail: trunc(str("pattern"), 50) };
+    case "bg_status":
+    case "bg_list":     return { icon: "⏱", verb: "background", detail: "" };
+    case "sleep":       return { icon: "⏾", verb: "slept", detail: "" };
+    case "loop":        return { icon: "🔁", verb: "loop", detail: str("action") || str("id") };
+    case "tool_search": return { icon: "🔎", verb: "found tools", detail: trunc(str("query"), 40) };
+    case "graph_query": return { icon: "🕸", verb: "graph", detail: trunc(str("query"), 40) };
+    default:            return null;
+  }
+}
+
+/** Display for file/shell/web/code tools. Returns null when name is not in this group. */
+function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "read_file": return { icon: "📖", verb: "read", detail: abbrevPath(str("path")) };
+    case "write_file": return { icon: "✎", verb: "wrote", detail: abbrevPath(str("path")) };
+    case "shell_cmd": {
+      const label = bashLabel(str("command"));
+      return { icon: "❯", verb: "ran", detail: label ?? trunc(str("command"), 60) };
+    }
+    case "run_code": return { icon: "▶", verb: "ran", detail: str("language") };
+    case "web_search": return { icon: "🔎", verb: "searched", detail: trunc(str("query"), 60) };
+    case "web_fetch": return { icon: "🌐", verb: "fetched", detail: host(str("url")) };
+    case "browser_navigate": return { icon: "🌐", verb: "opened", detail: host(str("url")) };
+    case "browser_extract": return { icon: "🌐", verb: "read page", detail: "" };
+    default: return null;
+  }
+}
+
+/** Display for media/sensing tools. Returns null when name is not in this group. */
+function toolDisplayMediaGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "look_at_screen":
+    case "screenshot":   return { icon: "📸", verb: "saw screen", detail: "" };
+    case "look_at_camera": return { icon: "📷", verb: "saw camera", detail: "" };
+    case "watch_video":  return { icon: "🎬", verb: "watched", detail: abbrevPath(str("path")) };
+    case "describe_image": return { icon: "🖼", verb: "saw", detail: abbrevPath(str("path")) };
+    case "speak":        return { icon: "🔊", verb: "spoke", detail: "" };
+    case "transcribe":   return { icon: "🎙", verb: "transcribed", detail: "" };
+    default:             return null;
+  }
+}
+
+/** Display for memory/skill/brain/delegate tools. Returns null when name is not in this group. */
+function toolDisplayMemoryGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "recall":       return { icon: "🧠", verb: "recalled", detail: trunc(str("query"), 50) };
+    case "write_skill":  return { icon: "🧩", verb: "learned", detail: str("name") };
+    case "brain":        return { icon: "🧠", verb: str("action") || "brain", detail: str("region") };
+    case "delegate":     return { icon: "🤝", verb: "delegated", detail: trunc(str("goal") || str("prompt"), 50) };
+    default:             return null;
+  }
+}
+
+/** Display for utility/task/MCP tools. Returns null when name is not in this group. */
+function toolDisplayAgentGroup(name: string, str: (k: string) => string): ToolDisplay | null {
+  switch (name) {
+    case "swarm":        return { icon: "🐝", verb: "swarm", detail: "" };
+    case "todo":         return { icon: "☑", verb: "todo", detail: "" };
+    case "inspect_state": return { icon: "🔍", verb: "inspected", detail: "" };
+    case "mount_mcp":    return { icon: "🔌", verb: "mounted", detail: str("name") };
+    default:             return null;
+  }
+}
+
+/** Clean display parts for a tool call. Detail comes from ARGS, never raw output. */
+export function toolDisplay(name: string, args: Record<string, unknown>): ToolDisplay {
+  const str = (k: string): string => (typeof args[k] === "string" ? (args[k] as string) : "");
+  return toolDisplayCoreGroup(name, str) ?? toolDisplayMediaGroup(name, str) ?? toolDisplayMemoryGroup(name, str) ?? toolDisplayAgentGroup(name, str) ?? toolDisplayUtilGroup(name, str) ?? toolDisplayByPrefix(name) ?? { icon: "•", verb: name, detail: compactArgs(args) };
+}

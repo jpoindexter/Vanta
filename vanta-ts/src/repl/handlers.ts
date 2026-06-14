@@ -43,6 +43,10 @@ import { focusCommand } from "./focus-cmd.js";
 import { permissions } from "./permissions-cmd.js";
 import { now } from "./now-cmd.js";
 import { contextCmd } from "./context-cmd.js";
+import { CLI_PASSTHROUGH } from "./cli-bridge.js";
+import { formatGoalLedger } from "./goal-ledger.js";
+import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
+import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
 // Each slash command is a small handler keyed in HANDLERS. executeSlash parses
 // the input and dispatches here — no giant switch. Handlers stay pure of console
 // side effects (they return text); they may mutate ctx.convo / ctx.state when
@@ -149,8 +153,7 @@ const memory: SlashHandler = async (arg, ctx) => {
 
 const goals: SlashHandler = async (_arg, ctx) => {
   const g = await ctx.setup.safety.getGoals().catch(() => []);
-  const active = g.filter((x) => x.status === "active");
-  return { output: lines(active.map((x) => `  [${x.id}] ${x.text}`), "  (no active goals)") };
+  return { output: formatGoalLedger(g) };
 };
 
 const sessions: SlashHandler = async (arg, ctx) => {
@@ -278,12 +281,13 @@ const cron: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, retry, undo, skills, tools, model, status, doctor: status,
+  export: exportConvo, retry, undo, skills, tools, model, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run,
   routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand,
-  "add-dir": addDir,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie,
+  "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 
 /** Look up + run a parsed command; returns null for an unknown command. */

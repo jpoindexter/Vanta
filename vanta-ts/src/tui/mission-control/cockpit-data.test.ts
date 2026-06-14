@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gatherCockpitData } from "./cockpit-data.js";
 import { saveDef, saveState } from "../../loop/store.js";
-import { newState } from "../../loop/types.js";
+import { newState, LoopDefSchema } from "../../loop/types.js";
 import type { SafetyClient } from "../../safety-client.js";
 import type { Goal } from "../../types.js";
 
@@ -24,13 +24,11 @@ afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
 describe("gatherCockpitData", () => {
   it("returns live goals and loop summaries", async () => {
-    await saveDef(dir, {
+    await saveDef(dir, LoopDefSchema.parse({
       id: "nightly", goal: "keep green", trigger: { kind: "manual" },
       stages: [{ name: "s", prompt: "p" }],
-      rubric: { items: [], passScore: 0.8 },
-      stop: { maxIterations: 10, noProgressWakes: 3 },
       status: "active", createdAt: "2026-06-12T00:00:00Z",
-    });
+    }));
     const state = { ...newState("nightly"), iterations: 3 };
     await saveState(dir, state);
 

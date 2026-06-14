@@ -13,16 +13,30 @@ import { recallTool } from "./recall.js";
 import { screenshotTool } from "./screenshot.js";
 import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
+import { browserActTool } from "./browser-act.js";
+import { browserReadTool } from "./browser-read.js";
 import { describeImageTool } from "./describe-image.js";
 import { compareVisionTool } from "./compare-vision.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
 import { lookAtCameraTool } from "./look-at-camera.js";
 import { brainTool } from "./brain.js";
 import { todoTool } from "./todo.js";
+import { worldTool } from "./world.js";
+import { moneyTool } from "./money.js";
+import { radarTool } from "./radar.js";
+import { reachTool } from "./reach-tool.js";
+import { teamTool } from "./team.js";
+import { lifeSearchTool } from "./life-search.js";
+import { linkedinReadTool } from "./linkedin-read.js";
+import { redditReadTool } from "./reddit-read.js";
+import { regressionLockTool } from "./regression-lock.js";
+import { rssReadTool } from "./rss-read.js";
+import { selfRepairTool } from "./self-repair.js";
 import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
 import { transcribeTool } from "./transcribe.js";
+import { twitterReadTool } from "./twitter-read.js";
 import { runCodeTool } from "./run-code.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
@@ -46,6 +60,7 @@ import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { sleepTool } from "./sleep.js";
 import { configTool } from "./config.js";
+import { cookieImportTool } from "./cookie-import.js";
 import { briefTool } from "./brief.js";
 import { listMcpResourcesTool, readMcpResourceTool } from "./mcp-resources.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
@@ -84,6 +99,7 @@ const ALL_TOOLS: readonly Tool[] = [
   inspectStateTool,
   clarifyTool,
   configTool,
+  cookieImportTool,
   sleepTool,
   roadmapMoveTool,
   roadmapAddTool,
@@ -91,9 +107,12 @@ const ALL_TOOLS: readonly Tool[] = [
   webFetchTool,
   writeSkillTool,
   recallTool,
+  redditReadTool,
   screenshotTool,
   browserNavigateTool,
   browserExtractTool,
+  browserActTool,
+  browserReadTool,
   describeImageTool,
   compareVisionTool,
   lookAtScreenTool,
@@ -101,12 +120,23 @@ const ALL_TOOLS: readonly Tool[] = [
   brainTool,
   briefTool,
   todoTool,
+  worldTool,
+  moneyTool,
+  radarTool,
+  reachTool,
+  teamTool,
+  lifeSearchTool,
+  linkedinReadTool,
+  regressionLockTool,
+  rssReadTool,
+  selfRepairTool,
   watchVideoTool,
   speakTool,
   swarmTool,
   workflowTool,
   graphQueryTool,
   transcribeTool,
+  twitterReadTool,
   runCodeTool,
   lspDiagnosticsTool,
   lspDefinitionTool,

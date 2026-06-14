@@ -1,5 +1,5 @@
 import type { SlashHandler } from "./types.js";
-import { THEME_NAMES, currentThemeName } from "../tui/theme.js";
+import { THEME_NAMES, currentThemeName } from "../term/theme.js";
 
 // /theme — switch the TUI colour theme live. Returns a `theme` signal the TUI
 // host applies to its theme state (status bar + composer restyle immediately;

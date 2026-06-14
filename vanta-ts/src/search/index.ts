@@ -2,6 +2,8 @@ import { DuckDuckGoProvider } from "./duckduckgo.js";
 import { SearxngProvider } from "./searxng.js";
 import { SerpapiProvider } from "./serpapi.js";
 import { BraveProvider } from "./brave.js";
+import { BingProvider } from "./bing.js";
+import { JinaDdgProvider } from "./jina.js";
 import type { SearchProvider } from "./interface.js";
 
 /**
@@ -10,6 +12,8 @@ import type { SearchProvider } from "./interface.js";
  *   VANTA_SEARCH_PROVIDER=searxng → self-hosted SearXNG (needs VANTA_SEARCH_URL)
  *   VANTA_SEARCH_PROVIDER=serpapi → SerpApi (needs SERPAPI_KEY)
  *   VANTA_SEARCH_PROVIDER=brave   → Brave Search API (needs BRAVE_KEY)
+ *   VANTA_SEARCH_PROVIDER=bing    → Bing HTML scrape (keyless fallback)
+ *   VANTA_SEARCH_PROVIDER=jina_ddg → Jina Reader over DuckDuckGo HTML (keyless fallback)
  *   VANTA_SEARCH_PROVIDER=ddg     → DuckDuckGo HTML scrape (explicit fallback only)
  */
 export function resolveSearchProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
@@ -30,6 +34,8 @@ function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
   if (env.BRAVE_KEY) providers.push(new BraveProvider({ apiKey: env.BRAVE_KEY }));
   if (env.SERPAPI_KEY) providers.push(new SerpapiProvider({ apiKey: env.SERPAPI_KEY }));
   if (env.VANTA_SEARCH_URL) providers.push(new SearxngProvider({ baseUrl: env.VANTA_SEARCH_URL }));
+  providers.push(new BingProvider());
+  providers.push(new JinaDdgProvider());
   providers.push(new DuckDuckGoProvider());
   return providers;
 }
@@ -38,6 +44,10 @@ function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchP
   switch (provider) {
     case "ddg":
       return new DuckDuckGoProvider();
+    case "bing":
+      return new BingProvider();
+    case "jina_ddg":
+      return new JinaDdgProvider();
     case "searxng": {
       const baseUrl = env.VANTA_SEARCH_URL;
       if (!baseUrl) throw new Error("VANTA_SEARCH_URL is required for searxng. Set it in vanta-ts/.env (e.g. http://localhost:8080).");
@@ -54,7 +64,7 @@ function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchP
       return new BraveProvider({ apiKey });
     }
     default:
-      throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use auto, searxng, serpapi, brave, or ddg.`);
+      throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use auto, searxng, serpapi, brave, bing, jina_ddg, or ddg.`);
   }
 }
 

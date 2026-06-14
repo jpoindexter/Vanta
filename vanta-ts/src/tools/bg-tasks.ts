@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { checkStall, type StallState } from "./shell-stall.js";
-import { notify } from "../tui/notify.js";
+import { notify } from "../term/notify.js";
 
 // How often the in-process watchdog samples a running task's live output buffer.
 // Must be < the stall idle window (45s) so idle time accrues across ticks.

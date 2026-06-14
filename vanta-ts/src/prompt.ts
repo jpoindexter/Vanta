@@ -31,7 +31,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
     `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
     `\nAvailable tools:\n${toolList}`,
     `\nHow you operate — no exceptions:`,
-    `1. Goal before tool: before any tool call, state which active goal it serves and what you expect it to return. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
+    `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
     `3. If verification fails, stop and report. Do not continue or fake success.`,
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
@@ -90,15 +90,21 @@ function errorsLogTier(errorsLog?: string): string {
 function volatileTier(
   goals: Goal[],
   now: string,
-  extra: { memory?: string; moimNote?: string; projectId?: string } = {},
+  extra: { memory?: string; moimNote?: string; projectId?: string; goalsPaused?: boolean } = {},
 ): string {
-  const { memory, moimNote, projectId } = extra;
+  const { memory, moimNote, projectId, goalsPaused } = extra;
   const active = goals.filter((g) => g.status === "active");
-  const goalText = active.length
-    ? active.map((g) => `- [${g.id}] ${g.text}`).join("\n")
-    : "(no active goals — ask the user what to work toward)";
+  const goalLines = active.map((g) => `- [${g.id}] ${g.text}`).join("\n");
+  // A goal carried from a previous session starts PAUSED: the agent must not
+  // silently resume last session's task on a fresh launch. It activates only when
+  // the user resumes (/goal resume) or references it. Set this session → active.
+  const goalBlock = !active.length
+    ? "Active goals:\n(no active goals — ask the user what to work toward)"
+    : goalsPaused
+      ? `Carried goal from a previous session — PAUSED. Do NOT act on it or steer toward it until the user resumes it (/goal resume) or references it; otherwise treat this turn as having no active goal:\n${goalLines}`
+      : `Active goals:\n${goalLines}`;
   const idLine = projectId ? `Project ID: ${projectId} (stable across machines and worktrees)\n\n` : "";
-  const base = `${idLine}Active goals:\n${goalText}\n\nSession started: ${now}`;
+  const base = `${idLine}${goalBlock}\n\nSession started: ${now}`;
   const withMemory = memory?.trim()
     ? `${base}\n\nRecent memory toward your goals:\n${memory}`
     : base;
@@ -121,6 +127,8 @@ export async function buildSystemPrompt(opts: {
   brain?: string;
   errorsLog?: string;
   projectId?: string;
+  /** True → a carried goal is framed as paused (not the active directive). */
+  goalsPaused?: boolean;
   /** SCAFFOLD: versioned identity/values/honesty from ~/.vanta/self/ */
   selfContent?: string;
 }): Promise<string> {
@@ -142,7 +150,7 @@ export async function buildSystemPrompt(opts: {
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
     tasksTier,
-    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId }),
+    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused }),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
 }

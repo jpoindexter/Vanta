@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, stat } from "node:fs/promises";
 import type { Interface as Readline } from "node:readline/promises";
 import { SafetyClient } from "./safety-client.js";
 import { ensureKernel } from "./kernel-launcher.js";
@@ -16,6 +16,7 @@ import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
+import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import type { Summarizer } from "./context.js";
 import type { AgentDeps } from "./agent.js";
 import type { Goal } from "./types.js";
@@ -70,17 +71,42 @@ async function loadPromptContext(repoRoot: string, activeGoalIds: number[]): Pro
   return { memory, skills, brain, selfContent, moimNote, errorsLog, projectId };
 }
 
+/** True if `path` was modified within `maxAgeMs` (0/negative = never resume). */
+async function recentlyWritten(path: string, maxAgeMs: number): Promise<boolean> {
+  if (maxAgeMs <= 0) return false;
+  try {
+    const s = await stat(path);
+    return Date.now() - s.mtimeMs <= maxAgeMs;
+  } catch {
+    return false;
+  }
+}
+
+// Carry the prior thread (auto-handoff + session-memory) into a restart ONLY when
+// it was recent — a fresh start hours later should be clean, not stuck on a stale
+// goal/thread. Window: VANTA_RESUME_MAX_AGE_MIN (default 120; 0 disables resume).
 async function injectResume(systemPrompt: string, repoRoot: string): Promise<string> {
   const { readAutoHandoff, clearAutoHandoff } = await import("./repl/auto-handoff.js");
   const dataDir = join(repoRoot, ".vanta");
-  const resume = await readAutoHandoff(dataDir).catch(() => null);
-  if (resume) {
-    systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
-    await clearAutoHandoff(dataDir);
+  const maxAgeMs = (Number(process.env.VANTA_RESUME_MAX_AGE_MIN ?? 120) || 0) * 60_000;
+  if (await recentlyWritten(join(dataDir, "handoff.md"), maxAgeMs)) {
+    const resume = await readAutoHandoff(dataDir).catch(() => null);
+    if (resume) {
+      systemPrompt += `\n\nResume from your last session (auto-saved when context filled up — continue from here; don't re-ask the user for state):\n${resume}`;
+      await clearAutoHandoff(dataDir);
+    }
   }
-  const scratch = await readSessionMemory(dataDir).catch(() => "");
-  if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+  if (await recentlyWritten(join(dataDir, "session-memory.md"), maxAgeMs)) {
+    const scratch = await readSessionMemory(dataDir).catch(() => "");
+    if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
+  }
   return systemPrompt;
+}
+
+/** Best-effort: log the resolved session config to events.jsonl for reproducibility. */
+function logSessionConfig(safety: { logEvent: (e: string) => Promise<void> }, provider: { modelId: () => string; contextWindow: () => number }, registry: { schemas: () => unknown[] }, systemPrompt: string): void {
+  const cfg = sessionConfig({ provider: process.env.VANTA_PROVIDER ?? "unknown", model: provider.modelId(), contextWindow: provider.contextWindow(), tools: registry.schemas().length, systemPrompt });
+  void safety.logEvent(sessionConfigEvent(cfg, new Date().toISOString()));
 }
 
 export async function prepareRun(
@@ -120,6 +146,8 @@ export async function prepareRun(
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
+    // Carried goal starts PAUSED (no silent resume on a fresh launch); VANTA_GOAL_RESUME=auto = old behavior.
+    goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
   });
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved
@@ -127,6 +155,7 @@ export async function prepareRun(
   if (instruction === "interactive session") {
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
+  logSessionConfig(safety, provider, registry, systemPrompt); // reproducibility (SELFHARNESS-CONFIG-REPRO)
   return { safety, registry, provider, goals, systemPrompt };
 }
 
