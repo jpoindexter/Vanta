@@ -42,21 +42,22 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 
 (`./vanta` is an alias for `./run.sh`. Prereqs: Rust + Node 22.)
 
-## What works now (all 7 PRD phases — 32 tools, 290 tests green)
+## What works now
 
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic providers; 4 core tools (read/write/shell/inspect)
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter/Claude-Code-style providers; 81 built-in tools and 93 slash commands
 - **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
-- **Browser & vision** — screenshot / navigate / extract (Playwright) + image understanding
-- **Code & dev** — `run_code`, LSP diagnostics/definition (TS), git tools
-- **Autonomous** — cron scheduler, subagent delegation, A2A bus
-- **Digital person** — project rooms, operator modes, model routing, mode learning
+- **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
+- **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
+- **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
+- **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
+- **Digital person** — project rooms, operator modes, model routing, mode learning, brain/memory layers
 - **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 
-Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).
+Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client, login cookies for gated reach channels) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).
 
 ## Rule zero
 

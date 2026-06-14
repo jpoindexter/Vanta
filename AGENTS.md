@@ -11,20 +11,20 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 46 tools, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 81 built-in tools, 93 slash commands, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
 ## Build + test
 
 ```bash
-cargo build && cargo test                     # Rust kernel (27 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (1822 tests + typecheck)
+cargo build && cargo test                     # Rust kernel (41 tests)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 2998 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-09):** v1 complete; roadmap-grind in progress on `main`. **1822 TS + 27 Rust tests green; 46 tools.** Recent: COMPRESS-NATIVE (in-house context compression, zero-dep TS), self-locating global launcher. Still open: EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD · VISION-COMPARE · AUX-MAP · AUTO-ROUTER. Gated on Jason: SCRUB-AI · VOICE-NATURAL. Horizon: DESKTOP. Per-card detail in `roadmap.json`.
+> **Status (2026-06-14):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **81 built-in tools** and **93 slash commands**; last recorded full verify is **2998 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, `/init` project-context generation, auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback, and teams live-spawn. Remaining horizon: self-repair sandbox-test-before-attach and browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
 
 ## Key files
 
@@ -32,7 +32,7 @@ vanta                                          # launch TUI (TTY) or readline RE
 - `ROADMAP.md` — build order, what's done, what's next
 - `DECISIONS.md` — locked choices (append-only)
 - `PARKED.md` — deferred ideas
-- `HANDOFF.md` — cold-start context for new sessions
+- `HANDOFF.md` — current cold-start snapshot for new sessions
 - `docs/superpowers/specs/` — approved design specs
 - `docs/superpowers/plans/` — implementation plans
 
@@ -43,7 +43,7 @@ vanta                                          # launch TUI (TTY) or readline RE
 ## Safety rules (non-negotiable)
 
 - Kernel `src/*.rs` — never edit autonomously. Human approval required.
-- `vanta-ts/src/factory/*.ts` — same (once factory module exists).
+- `vanta-ts/src/factory/*.ts` — same.
 - `MANIFESTO.md` — human-only, never modify.
 - Never commit secrets, never `rm -rf`, never `git push --force` shared branches.
 

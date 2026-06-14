@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { editCommand, editText } from "./edit-text.js";
@@ -34,13 +34,16 @@ describe("editText", () => {
   });
 
   it("returns the modified content after the editor rewrites the file", async () => {
-    // Write a small shell script that overwrites its first argument
-    const script = join(tmpdir(), "vanta-test-editor.sh");
-    await writeFile(script, "#!/bin/sh\nprintf 'updated text' > \"$1\"\n", { mode: 0o755 });
-
-    const result = await editText("original", { VANTA_EDITOR: script });
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.text).toBe("updated text");
+    const dir = await mkdtemp(join(tmpdir(), "vanta-test-editor-"));
+    try {
+      const script = join(dir, "editor.sh");
+      await writeFile(script, "#!/bin/sh\nprintf 'updated text' > \"$1\"\n", { mode: 0o755 });
+      const result = await editText("original", { VANTA_EDITOR: script });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.text).toBe("updated text");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("returns ok:false when the editor exits non-zero", async () => {

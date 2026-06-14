@@ -1,102 +1,56 @@
-# Vanta — Session Handoff (2026-06-07)
+# Vanta — Session Handoff (2026-06-14)
 
-Cold-start context for the next thread. Read this + `CLAUDE.md` + `ROADMAP.md` first.
+Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` first.
 
----
+## Start Here
 
-## ⚑ DO THIS FIRST (offline — no Vanta session running)
+- **Repo:** `/Users/jasonpoindexter/Documents/GitHub/_active/Vanta`
+- **Branch:** `main`
+- **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
+- **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
+- **Last recorded full verify:** 2998 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
 
-You chose to rename the on-disk repo folder `Argo/ → Vanta/`. It's cosmetic (the
-code finds its root via `Cargo.toml`), but both global launchers hardcode the old
-path, so the folder mv + launcher fix must happen together, with nothing running.
+## Run + Verify
 
-```sh
-# 1. Quit any Vanta session. Free port 7788 if a stale kernel holds it:
-lsof -nP -iTCP:7788 -sTCP:LISTEN        # note the PID, then: kill <PID>
+```bash
+./run.sh                                   # interactive session; first run launches setup if needed
+./run.sh setup                             # provider/model setup wizard
+./run.sh doctor                            # kernel/provider/store health
+./run.sh run "<instruction>"               # one-shot, kernel auto-starts
 
-# 2. Rename the folder:
-mv ~/Documents/GitHub/Argo ~/Documents/GitHub/Vanta
-
-# 3. Re-register the launcher from the NEW location (regenerates ~/.local/bin/vanta
-#    with the correct path + symlinks the gitleaks/size pre-commit hook):
-cd ~/Documents/GitHub/Vanta && ./install.sh
-
-# 4. Drop the stale old launcher (vanta replaces it):
-rm -f ~/.local/bin/argo
-
-# 5. Verify:
-which vanta && vanta doctor
+cargo build && cargo test
+cd vanta-ts && npx vitest run && npx tsc --noEmit
 ```
 
-**Optional (carries this session's auto-memory to the new path):** Claude Code keys
-project memory by folder path, so a session in `Vanta/` starts a fresh memory dir.
-To keep the index:
-`mv ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Argo ~/.claude/projects/-Users-jasonpoindexter-Documents-GitHub-Vanta`
+## Current Architecture
 
-**Note:** CodeGraph (`.codegraph/`) moves with the folder; if queries look stale after
-the mv, run `codegraph index` once from `~/Documents/GitHub/Vanta`.
+- **Kernel:** `src/*.rs` is the enforced security boundary. Do not edit autonomously.
+- **Agent loop:** `vanta-ts/src/agent.ts`, `session.ts`, `prompt.ts`, `providers/`, `safety-client.ts`.
+- **Tools:** `vanta-ts/src/tools/index.ts` registers built-ins; runtime MCP mounts can add more.
+- **Slash commands:** `vanta-ts/src/repl/catalog.ts` is canonical; handlers live in `vanta-ts/src/repl/handlers.ts` and related `*-cmd.ts` files.
+- **Project init:** `/init` writes `.claude/CLAUDE.md` for the current project; use `--print` to preview and `--force` to replace.
+- **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
+- **Desktop:** seed localhost surface in `vanta-ts/src/desktop/`; still denies approval-required actions until an explicit approval UI exists.
+- **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
 
----
+## Recent Shipped Surface
 
-## Where things are (2026-06-07)
+- Real Ink 7 TUI rebuild with `<Static>` transcript, composer, overlays, Claude-style approval menu, context/loops/changes panels, goal status, and no alternate screen.
+- Auto minimalism skill + `/auto`; plan-mode and task-boundary EF surfaces; 14 bundled `nd-*` skills.
+- Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.
+- Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback, teams live-spawn.
+- Reach layer: channel doctor, RSS, Reddit, cookie import; deferred reach channels tracked as `REACH-*`.
 
-- **Repo:** currently `~/Documents/GitHub/Argo` (→ `Vanta/` after the mv above). Rust kernel `src/*.rs`; TS agent `vanta-ts/`.
-- **Branch:** `main` — all work merged. Remote: `github.com/jpoindexter/Vanta`.
-- **Tests:** **1227 TS (vitest) + 27 Rust = 1254 green**; `tsc --noEmit` clean. 46 tools.
-  - Run: `cd vanta-ts && npx vitest run && npx tsc --noEmit` · `cd .. && cargo test`
-  - **Always run `git` from the repo root** (tsx/test commands cd into `vanta-ts/` and the shell cwd persists).
-- **`vanta` command:** now works (`~/.local/bin/vanta` created this session; `argo` still works as a back-compat alias until step 4 above).
+## Current Open Edges
 
-## What shipped this session (20 roadmap cards — all in `roadmap.json`, status `shipped`)
+- Self-repair sandbox-test-before-attach.
+- Browser OS-level control beyond Playwright page actions.
+- Deferred reach channels: Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu.
+- Live setup still requires external credentials/binaries for some surfaces: Playwright Chromium, API keys, Google OAuth, login cookies.
 
-UX-MODEL-FIX · RESTART · TOOL-RETRY · BEHAVIOR-VOICE · GOAL-ACTION · STALL-UNBLOCK ·
-ROADMAP-ADD · BUG-CAPTURE · HANDOFF-PACKET · COST-VISIBLE · MODE-DETECT · AUTO-HANDOFF ·
-ACTION-PROOF · CODE-SIZE-GATE (+ wired into `write_file`) · CC-EDITOR · CLI-DX-PACK ·
-and VERIFY-RIGHT/TRUST-LABELS/REF-FIDELITY/BETTER-ENDINGS folded into prompt rules 1/4/7.
-Per-card notes live in each card's `summary` in `roadmap.json`. Module detail:
-`vanta-ts/CLAUDE.md` §"Session additions (2026-06-07)".
+## Discipline
 
-## SIZE-PAYDOWN — 85→69 done; remainder is brainstem/REPL (next-session)
-
-`vanta lint` surfaced ~85 violations. **DONE 2026-06-07 (→69):** cli.ts (worst —
-428→175L, `main` → `COMMANDS` table, handlers → `cli/commands.ts`) · interactive.ts
-file-size (335→286L; gates → tested `runPostTurnGates` in `repl/post-turn-gates.ts`) ·
-`writeRunMemory` → options object · plus safe pure-fn cx fixes (each extract-helper,
-behavior preserved, tested): `memory/compress` extractObservations, `schedule/cron`
-parseField, `util/diff` withContext, `skills/bundle` parseBundle, `repl/wm-manip`
-detectWmMode, `search/serpapi` mapSerpapiJson, `repl/closure-gate` hasCommitAfterIndex.
-
-**Remaining 69 — a focused pass (weak/no test nets or high blast radius):**
-- interactive.ts `runChat` (206L/cx29) + `runUserTurn` (78L) — un-live-smokeable readline path.
-- session.ts (473L file + `prepareRun` 64L) — split into modules.
-- **brainstem** (high blast radius): `providers/index.ts` `resolveProvider` cx24, `agent.ts` `runTurn` cx23.
-- `factory/run.ts` `runCycle`, `desktop/server.ts` cx27, `tools/{mount-mcp,browser-navigate,screenshot}` long fns, + a tail of param/cx.
-- Easy-safe leftovers if you want quick wins: `graph/store.ts` makeRelation (5 params), `skills/library.ts` installOne (5 params), `repl/plan-mode.ts` (cx12), `skills/lint.ts` lintSkills (cx13), `gateway/run.ts` runGateway, `status.ts` gatherStatus, `voice/loop.ts` runVoiceLoop, `review/background-review.ts` serializeTranscript.
-Proven pattern: lookup-table for dispatchers, extract-helper for long fns, options-object for >4 params, **full suite (gated on exit code) per file**. Then set `VANTA_LINT_BLOCK=1`.
-
-**Remaining (78), tackle incrementally — full suite + live smoke per file:**
-- **Limbs (lower risk, do first):** `interactive.ts` (335L; `runChat` 240L + nested
-  `runUserTurn` 107L — extract the post-turn-gate pipeline + the slash-dispatch block),
-  `desktop/server.ts`, `memory/compress.ts`.
-- **Brainstem (higher blast radius per the factory compartment map — do carefully,
-  not rushed):** `providers/index.ts` (`resolveProvider` cx-24 — a provider table like
-  cli's), `agent.ts` (`runTurn` 129L/cx-23), `factory/run.ts` (`runCycle` 134L).
-- Goal: `vanta lint` 0 on `src/`, then set `VANTA_LINT_BLOCK=1` so the gate stays green.
-Pattern proven on cli.ts: lookup-table for dispatchers, extract helpers for long fns,
-verify each file with the full suite. Tracked as the `SIZE-PAYDOWN` card.
-
-## Backlog shape (`roadmap.json` — 270 cards: 158 shipped · 86 next · 26 horizon)
-
-- **Gated on you:** SCRUB-AI (force-push history rewrite) · VOICE-NATURAL (3-sample approval).
-- **External setup:** COMMS-TRIAGE (OAuth) · AUTH-BROWSER (Playwright login) · MSG-* (daemons/perms).
-- **Big-design Rocks (brainstorm first):** EF-TASKSTACK · MEM-RELEVANCE · OPERATOR-DASHBOARD (L) · AGENT-COUNCIL (L) · AUTO-ROUTER · PROJECT-RADAR · the MEM-* / TASTE arc.
-- **Model-in-loop S cards:** SELF-EVAL · ANTI-SLOP · ENERGY-PLAN · DECISION-GUARD · CC-LINKS.
-- **Platform:** DESKTOP-P0…P11, TUI-V2* (12 cards).
-
-## Discipline that worked (keep it)
-
-- One card = real code + co-located test + `tsc` clean + full `vitest` run + `roadmap.json` marked + commit + push.
-- Fold related prompt cards into existing rules — don't append rules 11+ (prompt is per-turn).
-- Run the **full** suite on any host/shared-file change (pure-unit + tsc aren't enough for two-host wiring).
-- Honest bar: code-only/prompt-only cards are "wired + unit-tested, live-verify pending" — not "proven."
-- `roadmap.html` is gitignored — regenerate via `roadmap/build.ts buildRoadmap`, never `git add` it.
+- One slice = real code + colocated tests + `tsc`/cargo clean + docs sync + commit + push.
+- Every touched folder must have accurate `CLAUDE.md` and `AGENTS.md`.
+- Use source-derived facts for counts and file maps; session notes are historical unless verified.
+- Never edit `MANIFESTO.md`, `src/*.rs`, or `vanta-ts/src/factory/*.ts` without explicit human approval.

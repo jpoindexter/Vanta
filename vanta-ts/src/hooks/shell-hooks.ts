@@ -124,6 +124,7 @@ export function runShellHook(
     }, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
     child.stdout?.on("data", (d) => { stdout += String(d); });
     child.stderr?.on("data", (d) => { stderr += String(d); });
+    child.stdin?.on("error", () => {});
     child.on("error", () => { clearTimeout(timer); resolve({ code: 0, stdout, stderr }); });
     child.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 0, stdout, stderr }); });
     child.stdin?.end(contextJson);

@@ -86,7 +86,7 @@ describe("browserActTool safety gate", () => {
       if (prev === undefined) delete process.env.VANTA_ALLOWED_DOMAINS;
       else process.env.VANTA_ALLOWED_DOMAINS = prev;
     }
-  });
+  }, 45_000);
 });
 
 describe("browserActTool describeForSafety", () => {

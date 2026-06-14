@@ -122,6 +122,11 @@ describe("runShellHook", () => {
     const r = await runShellHook("cat", '{"tool":"write_file"}');
     expect(r.stdout).toContain("write_file");
   });
+
+  it("does not surface EPIPE when a hook exits before reading stdin", async () => {
+    const r = await runShellHook("true", "x".repeat(1_000_000));
+    expect(r.code).toBe(0);
+  });
 });
 
 describe("firePreToolUse — gates execution by exit code", () => {

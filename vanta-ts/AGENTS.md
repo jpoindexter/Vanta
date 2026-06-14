@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # 1822 tests (from vanta-ts/)
+npx vitest run                   # last full green: 2998 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -18,7 +18,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 | Command | File |
 |---------|------|
-| `vanta` (TUI) | `src/tui/launch.tsx` → `src/tui/app.tsx` |
+| `vanta` (TUI) | `src/ui/launch.tsx` → `src/ui/app.tsx` |
 | `vanta` (readline fallback) | `src/interactive.ts` |
 | `vanta run "<instr>"` | `src/cli.ts` → `src/session.ts` → `src/agent.ts` |
 | `vanta gateway` | `src/gateway/run.ts` |
@@ -29,26 +29,31 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/index.ts` — register every new tool here AND in `tools/tools.test.ts` sorted list
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl-commands.ts` — all `/` slash command handlers + `maybeDroppedImage`
-- `src/tui/app.tsx` — TUI reducer + drag-drop + slash command wiring
+- `src/repl/catalog.ts` — canonical list of 93 slash commands for `/help`, TUI palette, and validation
+- `src/repl/handlers.ts` — slash command dispatcher and handler registry
+- `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
+- `src/ui/app.tsx` — Ink 7 TUI shell: `<Static>` transcript, composer, overlays, slash palette, approval UI
+- `src/ui/reducer.ts` — pure transcript/UI reducer
+- `src/ui/use-agent.ts` — agent I/O hook for the TUI
 - `src/interactive.ts` — readline REPL (fallback to TUI)
 
 ## Slash command / drop-file wiring
 
-**TUI** (`src/tui/app.tsx`):
+**TUI** (`src/ui/app.tsx`):
 - Calls `maybeDroppedImage(line)` before the slash check → dropped image paths work.
 - `/`-prefixed input that isn't a known command → routed through `executeSlash`.
 
 **Readline REPL** (`src/interactive.ts`):
 - Calls `runUserTurn(line)` → `maybeDroppedImage` inside `runUserTurn`.
-- Slash handlers live in `repl/handlers.ts` (`HANDLERS` registry); `repl-commands.ts` re-exports `executeSlash`/`SLASH_COMMANDS`. The slash *execution* path is verified end-to-end (`tui/app.test.tsx` drives `/help`+Enter).
+- Slash handlers live in `repl/handlers.ts` (`HANDLERS` registry); `repl-commands.ts` re-exports `executeSlash`/`SLASH_COMMANDS`. TUI slash parsing/palette behavior is covered in `ui/slash.test.ts` and related `ui/use-*` tests.
 
-## Open bugs / in-flight (roadmap.json)
+## Current surface
 
-- **AUX-MAP** — generalize AUX-VISION (`routing/vision.ts`) to a per-function aux-task model map (vision · summarize · title · embed); AUTO-ROUTER absorbs it.
-- **SCRUB-AI** — strip legacy agent mentions from the published surface before going public (keep research docs). ✅ SHIPPED 2026-06-09.
-- **VOICE-NATURAL** — warmth substance is in prompt rule 10; **gated on Jason** (done = 3 before/after sample approvals).
-- *(Recent ships: COMPRESS-NATIVE (in-house context compression, `src/compress/`), self-locating global launcher. 2026-06-07 batch: UX-MODEL-FIX, GOAL-ACTION, RESTART, TOOL-RETRY, BEHAVIOR-VOICE, STALL-UNBLOCK, ROADMAP-ADD, BUG-CAPTURE, HANDOFF-PACKET, COST-VISIBLE, MODE-DETECT, AUTO-HANDOFF, ACTION-PROOF — see roadmap.json + CLAUDE.md §"Session additions".)*
+- `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
+- `src/repl/catalog.ts` currently exposes **93 slash commands**.
+- TUI rendering is real Ink 7 under `src/ui/`; the old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
+- Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
+- Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: self-repair sandbox-test-before-attach and browser OS-level control.
 
 ## Adding a tool (checklist)
 
@@ -63,6 +68,6 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN`
 
 Full env list: `CLAUDE.md §Env`.

@@ -8,11 +8,11 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 
 ## Where we are
 
-**v0 = "has all the parts".** All 7 original PRD phases done — agent loop, skills+memory,
-web search, browser+vision, code/dev, autonomy primitives, comms. Interactive banner+REPL.
-32 tools · 290 tests green (16 Rust + 274 TS) · typecheck clean.
-
-**v1 = done.** All v1.1–v1.5 tracks shipped. 1243 tests green (27 Rust + 1216 TS) · tsc clean · pushed.
+**v0/v1 = done.** All 7 original PRD phases and v1.1–v1.5 tracks shipped — agent loop,
+skills+memory, web/reach, browser+vision, code/dev, autonomy primitives, comms,
+operator systems, and the real Ink 7 TUI. Current source counts: **81 built-in tools**
+and **93 slash commands**. Last recorded full verify: **2998 TS tests**, `tsc` clean,
+kernel tests green.
 
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and
 self-improvement layer* is thin: no setup, no Gemini, no memory of past conversations,
@@ -31,7 +31,8 @@ doing, what is blocked, and what closes loops before opening new ones.
 | 4 | **Command infrastructure** — ambient awareness, life-wide search, proactive triage, world model | 🔜 horizon |
 
 Level 3 shipped with EF-TASKSTACK, MEM-RELEVANCE, OPERATOR-DASHBOARD, AUTO-ROUTER, VISION-COMPARE.
-Level 4 target state maps to `COMMAND-CENTER`, `WORLD-MODEL`, `LIFE-SEARCH`, `AMBIENT` in the horizon bucket.
+Level 4 has started: world model, money, radar, teams, life-search, reach, verification locks,
+self-repair, and `/init` are live slices; browser OS-level control and deeper ambient channels remain horizon.
 
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family) yields token deltas; `agent.ts` emits them via `onTextDelta` (falls back to non-streaming `complete()` when unused — all prior paths unchanged). Pure `foldToolCallDeltas` assembles streamed tool calls.
