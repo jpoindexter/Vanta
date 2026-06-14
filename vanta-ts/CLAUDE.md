@@ -210,6 +210,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 ## Session additions (2026-06-14) — keep current
 
+**Ponytail port (lazy-senior-dev minimalism, from ponytail MIT).** Took only what's non-redundant with Vanta's stack (the size gate already enforces the floor mechanically; CLAUDE.md already enforces anti-drift). Two pieces, one command + one skill: `skills-library/ponytail/SKILL.md` (the generative YAGNI→stdlib→native→dep→one-line ladder + the `ponytail:` ceiling-comment convention; auto-installs to `~/.vanta/skills` **and** `~/.claude/skills` → covers Vanta + global Claude Code) and `/ponytail [lite|full|ultra|off|review]` (`repl/ponytail-cmd.ts`: live system-prompt directive injection mirroring `/planmode`'s marker pattern; `review` resends a deletion-accounting rubric — distinct from `/simplify`'s general cleanup). Skipped the upstream's JS hooks, 6 framework rule-copies, benchmarks, pi-extension. Pure helpers (`parsePonytailArg`/`buildDirective`/`stripDirective`) unit-tested.
+
 **TUI parity grind + research intake.** Built the Claude-Code-shaped surfaces on the 06-13 rebuild and reversed two of its "not built" notes.
 
 - **Approval → Claude-style numbered menu** (`ui/approval-prompt.tsx`): `Do you want to proceed? ❯1 Yes / 2 Yes,don't ask again / 3 No (esc)`, ↑↓/Enter/1-3/Esc. Option 2 persists a tool-scoped allow rule (`ui/grant.ts` → permissions); kernel **block** stays immovable.
