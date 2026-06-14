@@ -1,5 +1,6 @@
 import { readWorld, queryEntities, latestEntities, relations, type WorldRecord } from "../world/store.js";
 import { findConflicts } from "../world/conflicts.js";
+import { findDuplicates } from "../world/merge.js";
 import type { SlashHandler } from "./types.js";
 
 // `/world [query]` — view Vanta's world model (entities + relations). With a
@@ -10,8 +11,11 @@ export function formatWorld(recs: WorldRecord[], q: string): string {
   const ents = latestEntities(recs);
   const rels = relations(recs);
   const conflicts = findConflicts(rels);
+  const dups = findDuplicates(ents);
   const conflictLine = conflicts.length ? `  ⚠ ${conflicts.length} conflict(s) — run world(action:conflicts) to inspect` : "";
-  const head = `World model — ${ents.length} entit${ents.length === 1 ? "y" : "ies"} · ${rels.length} relation(s)${conflictLine ? "\n" + conflictLine : ""}`;
+  const dupLine = dups.length ? `  ⚡ ${dups.length} possible duplicate(s) — run world(action:duplicates) to review` : "";
+  const notes = [conflictLine, dupLine].filter(Boolean).join("\n");
+  const head = `World model — ${ents.length} entit${ents.length === 1 ? "y" : "ies"} · ${rels.length} relation(s)${notes ? "\n" + notes : ""}`;
 
   const found = queryEntities(recs, q);
   if (!found.length) {

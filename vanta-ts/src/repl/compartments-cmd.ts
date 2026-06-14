@@ -4,6 +4,7 @@ import { classifyPath, compartmentMap } from "../self/compartments.js";
 import { detectBroken, lastKnownGood, readMarkers } from "../self/detect.js";
 import type { CompartmentHealth, CapCheck } from "../self/detect.js";
 import type { Compartment, CompartmentInfo } from "../self/compartments.js";
+import { proposeRollback, formatRollbackProposal, isCompartment } from "../self/rollback.js";
 import { resolveVantaHome } from "../store/home.js";
 import { gatherStatus } from "../status.js";
 import type { SlashHandler } from "./types.js";
@@ -106,7 +107,22 @@ function describe(info: CompartmentInfo, path: string): string {
 export const compartments: SlashHandler = async (arg, ctx) => {
   const trimmed = arg.trim();
 
-  // classify a path
+  // /compartments rollback <compartment>
+  if (trimmed.startsWith("rollback")) {
+    const part = trimmed.replace(/^rollback\s*/, "").trim();
+    if (!part) {
+      return { output: "Usage: /compartments rollback <compartment>\nCompartments: brainstem skeleton reflexes limbs memory" };
+    }
+    if (!isCompartment(part)) {
+      return { output: `Unknown compartment: '${part}'\nKnown: brainstem, skeleton, reflexes, limbs, memory` };
+    }
+    const env = ctx?.env ?? process.env;
+    const markers = await readMarkers(env);
+    const proposal = proposeRollback(part, markers);
+    return { output: formatRollbackProposal(proposal) };
+  }
+
+  // classify a path (bare non-subcommand arg)
   if (trimmed) {
     return { output: describe(classifyPath(trimmed), trimmed) };
   }
