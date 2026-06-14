@@ -75,7 +75,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "brief", desc: "JARVIS-style today brief — tasks, goals, calendar, episodic" },
   { name: "review", arg: "[effort]", desc: "review changed code for bugs and cleanups (low|medium|high)" },
   { name: "simplify", desc: "reuse/simplify/efficiency/altitude pass on changed code" },
-  { name: "ponytail", arg: "[lite|full|ultra|off|review]", desc: "lazy-senior-dev minimalism mode — stdlib>deps, deletion>addition; 'review' audits a diff for deletable code" },
+  { name: "auto", arg: "[lite|full|ultra|off|review]", desc: "auto-minimalism mode — do the least that works (stdlib>deps, deletion>addition); 'review' audits a diff for deletable code" },
   { name: "verify", desc: "run the app and confirm a change actually works" },
   { name: "run", desc: "launch and drive this project's app" },
   { name: "add-dir", arg: "<path>", desc: "add a directory to this session's readable/writable scope" },

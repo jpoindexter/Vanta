@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
-  ponytail,
-  parsePonytailArg,
+  auto,
+  parseAutoArg,
   buildDirective,
   stripDirective,
-  PONYTAIL_MARKER,
+  AUTO_MARKER,
   REVIEW_RUBRIC,
-} from "./ponytail-cmd.js";
+} from "./auto-cmd.js";
 import type { ReplCtx } from "./types.js";
 
 function mkCtx(content: string | null): ReplCtx {
@@ -15,15 +15,15 @@ function mkCtx(content: string | null): ReplCtx {
 }
 const sysContent = (ctx: ReplCtx) => (ctx.convo.messages[0] as { content: string }).content;
 
-describe("parsePonytailArg", () => {
+describe("parseAutoArg", () => {
   it("maps known args; unknown/empty/on default to full", () => {
-    expect(parsePonytailArg("review")).toBe("review");
-    expect(parsePonytailArg("off")).toBe("off");
-    expect(parsePonytailArg("lite")).toBe("lite");
-    expect(parsePonytailArg("ULTRA")).toBe("ultra");
-    expect(parsePonytailArg("")).toBe("full");
-    expect(parsePonytailArg("on")).toBe("full");
-    expect(parsePonytailArg("wat")).toBe("full");
+    expect(parseAutoArg("review")).toBe("review");
+    expect(parseAutoArg("off")).toBe("off");
+    expect(parseAutoArg("lite")).toBe("lite");
+    expect(parseAutoArg("ULTRA")).toBe("ultra");
+    expect(parseAutoArg("")).toBe("full");
+    expect(parseAutoArg("on")).toBe("full");
+    expect(parseAutoArg("wat")).toBe("full");
   });
 });
 
@@ -31,48 +31,48 @@ describe("buildDirective / stripDirective", () => {
   it("builds a delimited block and strips it cleanly (idempotent when absent)", () => {
     const base = "SYSTEM PROMPT";
     const withDir = base + buildDirective("full");
-    expect(withDir).toContain(PONYTAIL_MARKER);
-    expect(withDir).toContain("lazy senior developer");
+    expect(withDir).toContain(AUTO_MARKER);
+    expect(withDir).toContain("do the least that works");
     expect(stripDirective(withDir)).toBe(base);
     expect(stripDirective(base)).toBe(base);
   });
 });
 
-describe("/ponytail handler", () => {
+describe("/auto handler", () => {
   it("review → resends the deletion rubric, leaves the prompt untouched", async () => {
     const ctx = mkCtx("BASE");
-    const r = await ponytail("review", ctx);
+    const r = await auto("review", ctx);
     expect(r).toEqual({ resend: REVIEW_RUBRIC });
     expect(sysContent(ctx)).toBe("BASE");
   });
 
   it("turns the mode on by injecting the directive once", async () => {
     const ctx = mkCtx("BASE");
-    const r = await ponytail("full", ctx);
+    const r = await auto("full", ctx);
     expect(r.output).toContain("ON");
-    expect(sysContent(ctx)).toContain(PONYTAIL_MARKER);
+    expect(sysContent(ctx)).toContain(AUTO_MARKER);
   });
 
   it("switching intensity does not duplicate the block", async () => {
     const ctx = mkCtx("BASE");
-    await ponytail("full", ctx);
-    await ponytail("ultra", ctx);
+    await auto("full", ctx);
+    await auto("ultra", ctx);
     const content = sysContent(ctx);
-    expect(content.split(PONYTAIL_MARKER).length - 1).toBe(1);
+    expect(content.split(AUTO_MARKER).length - 1).toBe(1);
     expect(content).toContain("ultra");
   });
 
   it("off removes the directive and reports state (and 'already off' when clean)", async () => {
     const ctx = mkCtx("BASE");
-    await ponytail("full", ctx);
-    const off = await ponytail("off", ctx);
+    await auto("full", ctx);
+    const off = await auto("off", ctx);
     expect(off.output).toContain("OFF");
     expect(sysContent(ctx)).toBe("BASE");
-    expect((await ponytail("off", ctx)).output).toContain("already off");
+    expect((await auto("off", ctx)).output).toContain("already off");
   });
 
   it("reports unavailable when there is no system message", async () => {
-    const r = await ponytail("full", mkCtx(null));
+    const r = await auto("full", mkCtx(null));
     expect(r.output).toContain("unavailable");
   });
 });
