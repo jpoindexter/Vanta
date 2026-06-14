@@ -21,17 +21,18 @@ const THEMES: Readonly<Record<string, Theme>> = {
   // Truecolor hex (not ANSI names) so the render is identical across terminals
   // and matches the design reference (docs/agent-model.html) instead of inheriting
   // the user's washed-out palette.
+  // Dark terminal — warm off-white body, muted warm-grey accent (VNT-A: ink on paper)
   default: {
-    primary: "#c9d4e0",
-    accent: "#56c8db",
-    border: "#2f8f9e",
+    primary: "#e4e0db",
+    accent: "#a09890",
+    border: "#5a5550",
     dimText: true,
-    success: "#7ec76b",
-    error: "#e06c75",
-    warning: "#e0b341",
-    info: "#6cb6ff",
-    marker: "#56c8db",
-    userMarker: "#c9d4e0",
+    success: "#7eb87a",
+    error: "#c97070",
+    warning: "#c9a860",
+    info: "#88afc8",
+    marker: "#a09890",
+    userMarker: "#787068",
   },
   // Off-white / light-grey terminal (VNT-A aesthetic: dark charcoal on near-white,
   // blueprint-style teal accent hairlines, muted status colours — no pure black/white).
