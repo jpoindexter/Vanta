@@ -223,23 +223,23 @@ export async function runPairingCommand(rest: string[]): Promise<void> {
 /** `vanta config [show | edit | migrate]` — manage Vanta configuration. */
 export async function runConfigCommand(repoRoot: string, rest: string[]): Promise<void> {
   const sub = rest[0] ?? "show";
-  const { showConfig, editConfig, migrateConfig } = await import("../cli-dx/config.js");
-
+  const m = await import("../cli-dx/config.js");
+  const run = async (): Promise<string | void> => {
+    if (sub === "show") return m.showConfig(repoRoot);
+    if (sub === "edit") return m.editConfig(repoRoot);
+    if (sub === "migrate") return m.migrateConfig(repoRoot);
+    if (sub === "get") return rest[1] ? m.getConfig(repoRoot, rest[1]) : "Usage: vanta config get KEY";
+    if (sub === "set") {
+      return rest[1] && rest[2] !== undefined
+        ? m.setConfig(repoRoot, rest[1], rest.slice(2).join(" "))
+        : "Usage: vanta config set KEY VALUE";
+    }
+    if (sub === "check") return m.checkConfig(repoRoot);
+    return "Usage: vanta config [show | get KEY | set KEY VALUE | edit | check | migrate]";
+  };
   try {
-    if (sub === "show") {
-      await showConfig(repoRoot);
-      return;
-    }
-    if (sub === "edit") {
-      await editConfig(repoRoot);
-      return;
-    }
-    if (sub === "migrate") {
-      await migrateConfig(repoRoot);
-      return;
-    }
-    console.error("Usage: vanta config [show | edit | migrate]");
-    process.exit(1);
+    const out = await run();
+    if (typeof out === "string") console.log(out);
   } catch (err: unknown) {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);

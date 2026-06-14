@@ -27,6 +27,7 @@ export function usage(): void {
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
       "       vanta setup model                  just the model/provider picker",
       "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
+      "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",
       "       vanta status | doctor              health check (kernel, provider, keys, store)",
       '       vanta run "<instruction>"          run one instruction and exit',
       "       vanta skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",

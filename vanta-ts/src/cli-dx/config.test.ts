@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { showConfig, migrateConfig, envPath } from "./config.js";
+import { showConfig, migrateConfig, envPath, getConfig, setConfig, checkConfig } from "./config.js";
 
 describe("config command", () => {
   let tmpDir: string;
@@ -108,5 +108,33 @@ describe("config command", () => {
     } finally {
       console.log = originalLog;
     }
+  });
+
+  it("setConfig + getConfig round-trip a normal setting", async () => {
+    expect(await setConfig(tmpDir, "VANTA_THEME", "dark")).toContain("VANTA_THEME=dark");
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toBe("VANTA_THEME=dark");
+  });
+
+  it("setConfig stores a secret but never echoes it; getConfig masks it", async () => {
+    const msg = await setConfig(tmpDir, "OPENAI_API_KEY", "sk-secret");
+    expect(msg).not.toContain("sk-secret");
+    expect(msg).toContain("hidden");
+    expect(await getConfig(tmpDir, "OPENAI_API_KEY")).toBe("OPENAI_API_KEY=[REDACTED]");
+    expect(await readFile(envPath(tmpDir), "utf-8")).toContain("OPENAI_API_KEY=sk-secret"); // really stored
+  });
+
+  it("setConfig rejects a malformed key; getConfig reports unset", async () => {
+    expect(await setConfig(tmpDir, "bad key", "x")).toContain("invalid key");
+    expect(await getConfig(tmpDir, "VANTA_NOPE")).toContain("unset");
+  });
+
+  it("checkConfig reports no .env, missing provider, missing key, then passes", async () => {
+    expect(await checkConfig(tmpDir)).toContain("no .env"); // nothing written yet
+    await writeFile(envPath(tmpDir), "VANTA_MODEL=x\n"); // .env exists but no provider
+    expect(await checkConfig(tmpDir)).toContain("VANTA_PROVIDER not set");
+    await writeFile(envPath(tmpDir), "VANTA_PROVIDER=openai\n");
+    expect(await checkConfig(tmpDir)).toContain("OPENAI_API_KEY");
+    await writeFile(envPath(tmpDir), "VANTA_PROVIDER=openai\nOPENAI_API_KEY=sk-x\n");
+    expect(await checkConfig(tmpDir)).toContain("valid");
   });
 });

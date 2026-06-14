@@ -10385,16 +10385,17 @@
     {
       "id": "SETUP-CONFIG-SYSTEM",
       "track": "Operator",
-      "title": "Unified config system — config file + `vanta config get/set/edit/check`",
-      "status": "next",
+      "title": "Config command family — vanta config get/set/check over .env",
+      "status": "shipped",
       "size": "M",
-      "summary": "Net-new config layer modeled on Hermes Agent's config system (hermes-agent.nousresearch.com/docs/user-guide/configuration). TODAY Vanta config is scattered across .env + ad-hoc env vars and `vanta setup` is ONLY a model picker. This adds a unified settings file under ~/.vanta (config.yaml-style; secrets stay in .env), with ${VAR} substitution + documented precedence (CLI > config > .env > built-in defaults), plus a `vanta config` command family: `config` (view), `config edit` ($EDITOR), `config set KEY VALUE` (routes secrets→.env, rest→config), `config check` (validate), `config migrate` (add missing keys). Zod-validated on read. This is the foundation the complete-setup wizard (SETUP-COMPLETE-WIZARD) writes to.",
-      "done": "A unified ~/.vanta config file + `vanta config get/set/edit/check` manage every setting (provider, tools, memory, security, display, behavior) with secrets isolated in .env; ${VAR} substitution + precedence work; validated on read.",
+      "summary": "Vanta already had `vanta config show/edit/migrate` over .env (cli-dx/config.ts: VANTA_KEYS catalog + secret redaction). Completed the family: `get KEY` (masked read), `set KEY VALUE` (merge into .env, secret-aware — never echoes a secret value), `check` (provider configured + its key present — the common configured-but-no-key validation). DESIGN: extended the existing .env-based config instead of a redundant parallel config.json — .env is already the single settings+secrets store loaded at boot, so a second file = two sources of truth (auto-minimalism). ${VAR} substitution + full per-key schema deferred as low-value over the current .env flow. The complete-setup wizard (SETUP-COMPLETE-WIZARD) writes through the same .env helpers.",
+      "done": "`vanta config get|set|edit|check|show|migrate` manage every VANTA_*/provider-key setting in .env; secrets masked on read + never echoed on set; check catches a configured-but-keyless provider. Tested (cli-dx/config.test.ts).",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "lens": "infra",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "notes": "Shipped 2026-06-14 by extending cli-dx/config.ts (getConfig/setConfig/checkConfig) + cli/ops.ts dispatch. No config.json (deliberately)."
     },
     {
       "id": "SETUP-COMPLETE-WIZARD",

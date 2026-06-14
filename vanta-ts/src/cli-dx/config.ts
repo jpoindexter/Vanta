@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { envPath as getEnvPath, upsertEnvMigratingLegacy, removeEnvKeys } from "../setup.js";
 import { mirrorLegacyEnv } from "../env-compat.js";
+import { PROVIDER_CATALOG } from "../providers/catalog.js";
 
 export const envPath = getEnvPath;
 
@@ -148,4 +149,39 @@ export async function migrateConfig(repoRoot: string): Promise<void> {
   await writeFile(path, final, { mode: 0o600 });
   console.log(`Migrated ${Object.keys(updates).length} ARGO_* keys to VANTA_*.`);
   console.log("Removed legacy ARGO_* entries.");
+}
+
+/** Read one setting from .env (secrets masked). Returns the printable line. */
+export async function getConfig(repoRoot: string, key: string): Promise<string> {
+  const path = getEnvPath(repoRoot);
+  const env = parseEnvText(existsSync(path) ? await readFile(path, "utf-8") : "");
+  const v = env[key];
+  if (!v) return `${key} is unset`;
+  return `${key}=${isSensitive(key) ? "[REDACTED]" : v}`;
+}
+
+/** Set one setting in .env (merges; never echoes a secret value). */
+export async function setConfig(repoRoot: string, key: string, value: string): Promise<string> {
+  if (!/^[A-Z][A-Z0-9_]*$/.test(key)) return `invalid key "${key}" — use UPPER_SNAKE_CASE`;
+  const path = getEnvPath(repoRoot);
+  const existing = existsSync(path) ? await readFile(path, "utf-8") : "";
+  await writeFile(path, upsertEnvMigratingLegacy(existing, { [key]: value }), { mode: 0o600 });
+  return isSensitive(key) ? `✓ ${key} set (hidden) → .env` : `✓ ${key}=${value} → .env`;
+}
+
+/** Validate .env: provider chosen + its key present. The common "configured but no key" check. */
+export async function checkConfig(repoRoot: string): Promise<string> {
+  const path = getEnvPath(repoRoot);
+  if (!existsSync(path)) return "no .env — run `vanta setup`";
+  const env = parseEnvText(await readFile(path, "utf-8"));
+  const provider = env.VANTA_PROVIDER;
+  const issues: string[] = [];
+  if (!provider) issues.push("VANTA_PROVIDER not set — run `vanta setup`");
+  else {
+    const entry = PROVIDER_CATALOG.find((p) => p.id === provider);
+    if (!entry) issues.push(`VANTA_PROVIDER="${provider}" is not a known provider`);
+    else if (entry.envVar && !env[entry.envVar]) issues.push(`${entry.label} needs ${entry.envVar} — not set`);
+  }
+  const n = Object.keys(env).filter((k) => k.startsWith("VANTA_") && env[k]).length;
+  return issues.length ? "⚠ " + issues.join("; ") : `✓ config valid — ${n} VANTA_* settings, provider ${provider} ready`;
 }
