@@ -8,12 +8,13 @@ import {
   prepareRun,
   buildSummarizer,
   writeRunMemory,
-  consoleCallbacks,
   approver,
   reviewAfterTurn,
   maybeCurate,
 } from "../session.js";
 import { loadSchema, sendWithSchemaRetry } from "../output/json-schema.js";
+import { runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
+import { buildCallbacks } from "./output-callbacks.js";
 
 // The `vanta <command>` handlers, extracted from cli.ts so the entry point stays
 // a thin dispatcher (CODE-SIZE-GATE). cli.ts keeps only bootstrap + the
@@ -23,7 +24,8 @@ export function usage(): void {
   console.log(
     [
       "Usage: vanta                              start an interactive session",
-      "       vanta sessions | resume <id>       list past sessions, or resume one",
+      "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
+      "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
       "       vanta setup model                  just the model/provider picker",
       "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
@@ -84,23 +86,15 @@ function emitOutput(format: OutputFormat, finalText: string, modelId: string): v
   }
 }
 
-/** Build the callbacks object for a conversation, based on output format. */
-function buildCallbacks(format: OutputFormat): Partial<Parameters<typeof createConversation>[1]> {
-  if (format === "stream-json") {
-    return { onTextDelta: (d: string) => process.stdout.write(JSON.stringify({ type: "delta", text: d }) + "\n") };
-  }
-  if (format === "json") return {};
-  return consoleCallbacks();
-}
-
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
-  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat; jsonSchema?: string } = {},
+  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat; jsonSchema?: string; lifecycle?: LifecycleFlags } = {},
 ): Promise<void> {
   const format: OutputFormat = opts.outputFormat ?? "text";
   const structured = format !== "text";
   const root = opts.root ?? repoRoot;
+  if (opts.lifecycle && await runLifecycleHooks(root, opts.lifecycle, "one-shot")) return;
   const schema = loadSchema(opts.jsonSchema ?? process.env.VANTA_JSON_SCHEMA);
   const setup = await prepareRun(root, instruction, opts.skillBody);
   await maybeCurate(); // session-start skill maintenance (best-effort, interval-gated)
@@ -123,9 +117,7 @@ export async function runInstruction(
       signal: controller.signal,
       ...buildCallbacks(format),
     });
-    const outcome = schema
-      ? await sendWithSchemaRetry(convo, instruction, schema)
-      : await convo.send(instruction);
+    const outcome = schema ? await sendWithSchemaRetry(convo, instruction, schema) : await convo.send(instruction);
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });

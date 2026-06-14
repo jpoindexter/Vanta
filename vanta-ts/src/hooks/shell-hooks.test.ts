@@ -105,6 +105,18 @@ describe("matchingHooks", () => {
     expect(matchingHooks(c, "UserPromptSubmit", { sessionType: "one-shot" }).map((h) => h.command)).toEqual(["run-hook", "always"]);
     expect(matchingHooks(c, "UserPromptSubmit", {}).map((h) => h.command)).toEqual(["int-hook", "run-hook", "always"]);
   });
+
+  it("maintenance filters Setup hooks", () => {
+    const c = {
+      Setup: [
+        { maintenance: true, command: "maintenance" },
+        { maintenance: false, command: "normal" },
+        { command: "always" },
+      ],
+    };
+    expect(matchingHooks(c, "Setup", { maintenance: true }).map((h) => h.command)).toEqual(["maintenance", "always"]);
+    expect(matchingHooks(c, "Setup", { maintenance: false }).map((h) => h.command)).toEqual(["normal", "always"]);
+  });
 });
 
 describe("runShellHook", () => {
@@ -178,6 +190,17 @@ describe("fireHooks — non-blocking events run to completion", () => {
     const marker = join(dir, "stopped");
     await writeHooks(dir, { Stop: [{ matcher: "ignored", command: `touch ${marker}` }] });
     await fireHooks(dir, "Stop", { sessionId: "s1" });
+    await expect(access(marker)).resolves.toBeUndefined();
+  });
+
+  it("runs Setup and SessionStart lifecycle hooks", async () => {
+    const marker = join(dir, "lifecycle");
+    await writeHooks(dir, {
+      Setup: [{ command: `printf setup >> ${marker}` }],
+      SessionStart: [{ command: `printf start >> ${marker}` }],
+    });
+    await fireHooks(dir, "Setup", { sessionId: "s1" });
+    await fireHooks(dir, "SessionStart", { sessionId: "s1" });
     await expect(access(marker)).resolves.toBeUndefined();
   });
 });

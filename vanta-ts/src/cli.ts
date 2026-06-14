@@ -51,6 +51,7 @@ import {
   runBriefCommand,
 } from "./cli/extra-cmds.js";
 import { runLoopCommand } from "./cli/loop-cmd.js";
+import { parseLifecycleFlags, runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -85,19 +86,29 @@ function isConfigured(env: NodeJS.ProcessEnv): boolean {
  * backend is configured. The auto-launch is TTY-gated: a non-interactive caller
  * (piped/cron) is told to run `vanta setup` rather than blocking on a prompt.
  */
-async function startInteractive(
-  repoRoot: string,
-  opts: { resumeId?: string; noTui?: boolean } = {},
-): Promise<void> {
+async function maybeRunStartupLifecycle(repoRoot: string, lifecycle?: LifecycleFlags): Promise<boolean> {
+  return lifecycle ? runLifecycleHooks(repoRoot, lifecycle, "interactive") : false;
+}
+
+async function ensureConfiguredOrSetup(repoRoot: string): Promise<boolean> {
   if (!isConfigured(process.env)) {
     if (!process.stdin.isTTY) {
       console.log("No model backend configured. Run `vanta setup` in a terminal first.");
       process.exit(1);
     }
     const wrote = await runFullSetup(repoRoot);
-    if (!wrote) return;
+    if (!wrote) return false;
     loadEnv(repoRoot); // pick up the freshly written .env
   }
+  return true;
+}
+
+async function startInteractive(
+  repoRoot: string,
+  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags } = {},
+): Promise<void> {
+  if (await maybeRunStartupLifecycle(repoRoot, opts.lifecycle)) return;
+  if (!await ensureConfiguredOrSetup(repoRoot)) return;
   // The Claude-method Ink TUI is the default interactive surface; fall back to the
   // readline REPL for resume (the TUI doesn't rehydrate), --no-tui, VANTA_NO_TUI,
   // or no TTY.
@@ -119,6 +130,10 @@ async function startInteractive(
 function resumeIdFrom(args: string[]): string | undefined {
   const i = args.indexOf("--resume");
   return i >= 0 ? args[i + 1] : undefined;
+}
+
+function hasForkSession(args: string[]): boolean {
+  return args.includes("--fork-session");
 }
 
 /** A subcommand handler. A returned number is used as the process exit code. */
@@ -212,15 +227,17 @@ async function main(): Promise<void> {
   loadEnv(repoRoot);
   await ensureVantaStore();
 
-  const [cmd, ...rest] = process.argv.slice(2);
+  const lifecycleParse = parseLifecycleFlags(process.argv.slice(2));
+  const lifecycle = lifecycleParse.flags;
+  const [cmd, ...rest] = lifecycleParse.rest;
 
   // Interactive entry points parse flags, so they stay explicit.
   if (cmd === undefined || cmd === "chat")
-    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui") });
-  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0] });
+    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui"), forkSession: hasForkSession(rest), lifecycle });
+  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle });
   if (cmd === "run" && rest.length > 0) {
     const { instruction, outputFormat, jsonSchema } = parseRunArgs(rest);
-    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema });
+    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle });
   }
 
   const handler = COMMANDS[cmd];

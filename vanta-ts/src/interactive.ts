@@ -15,9 +15,10 @@ import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
-import { loadSession, newSessionId } from "./sessions/store.js";
+import { forkSession, loadSession, newSessionId } from "./sessions/store.js";
 import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
+import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 
 const LOGO = String.raw`
    █████╗ ██████╗  ██████╗  ██████╗
@@ -163,11 +164,12 @@ async function runReplLoop(d: ReplDeps): Promise<void> {
  * Launch the interactive session: print the banner, then a REPL that holds a
  * single conversation (history persists across turns) until /exit.
  */
-export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}): Promise<void> {
+export async function runChat(repoRoot: string, opts: { resumeId?: string; forkSession?: boolean; lifecycle?: LifecycleFlags } = {}): Promise<void> {
+  if (opts.lifecycle && await runLifecycleHooks(repoRoot, opts.lifecycle, "interactive")) return;
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate();
   const skills = await listSkills();
-  const resumed = opts.resumeId ? await loadSession(opts.resumeId) : null;
+  const resumed = opts.resumeId ? await loadResumeTarget(opts.resumeId, opts.forkSession) : null;
   const state: ReplState = {
     sessionId: resumed?.id ?? newSessionId(),
     started: resumed?.started ?? new Date().toISOString(),
@@ -198,6 +200,10 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string } = {}
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
+}
+
+async function loadResumeTarget(id: string, fork: boolean | undefined): Promise<Awaited<ReturnType<typeof loadSession>>> {
+  return fork ? forkSession(id) : loadSession(id);
 }
 
 type ConvoOpts = {

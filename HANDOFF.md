@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 2998 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
+- **Last recorded full verify:** 3234 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
 
 ## Run + Verify
 
@@ -29,6 +29,8 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **Tools:** `vanta-ts/src/tools/index.ts` registers built-ins; runtime MCP mounts can add more.
 - **Slash commands:** `vanta-ts/src/repl/catalog.ts` is canonical; handlers live in `vanta-ts/src/repl/handlers.ts` and related `*-cmd.ts` files.
 - **Project init:** `/init` writes `.claude/CLAUDE.md` for the current project; use `--print` to preview and `--force` to replace.
+- **Lifecycle init:** `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits; `--maintenance` adds maintenance context.
+- **Session fork:** `resume <id> --fork-session` / `--resume <id> --fork-session` seeds a new session file from prior history and leaves the original intact.
 - **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
 - **Desktop:** seed localhost surface in `vanta-ts/src/desktop/`; still denies approval-required actions until an explicit approval UI exists.
 - **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
@@ -36,6 +38,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 ## Recent Shipped Surface
 
 - Real Ink 7 TUI rebuild with `<Static>` transcript, composer, overlays, Claude-style approval menu, context/loops/changes panels, goal status, and no alternate screen.
+- `/init`, lifecycle init flags, and resume forking: `vanta-ts/src/repl/init-cmd.ts`, `vanta-ts/src/cli/lifecycle.ts`, `vanta-ts/src/sessions/store.ts`.
 - Auto minimalism skill + `/auto`; plan-mode and task-boundary EF surfaces; 14 bundled `nd-*` skills.
 - Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.
 - Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback, teams live-spawn.

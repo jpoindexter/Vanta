@@ -4,14 +4,14 @@ import { join } from "node:path";
 import { z } from "zod";
 
 // Shell-command hooks. Configured in .vanta/hooks.json, these fire external shell
-// commands at agent lifecycle events: PreToolUse (before a tool runs), PostToolUse
-// (after), UserPromptSubmit (on user input), Stop (on session end). Each hook
+// commands at agent lifecycle events: Setup (bootstrap), SessionStart, PreToolUse
+// (before a tool runs), PostToolUse (after), UserPromptSubmit (on user input), Stop (on session end). Each hook
 // receives a JSON context on stdin. A PreToolUse hook that exits non-zero BLOCKS
 // the tool (fail-closed — a gate that errors should still gate); the other events
 // are fire-and-forget. Distinct from plugins/hooks.ts (the in-process JS bus): this
 // runs ARBITRARY shell, so it is opt-in via the config file and nothing else.
 
-export type ShellHookEvent = "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
+export type ShellHookEvent = "Setup" | "SessionStart" | "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
 
 const ShellHookSchema = z.object({
   /** Regex on tool name. Applies to PreToolUse / PostToolUse. Absent = match all.
@@ -30,6 +30,8 @@ const ShellHookSchema = z.object({
   /** Session type filter. Absent = fire in both modes.
    *  "interactive" = REPL / TUI session; "one-shot" = `vanta run`. */
   sessionType: z.enum(["interactive", "one-shot"]).optional(),
+  /** If set, only fire when lifecycle context has the same maintenance flag. */
+  maintenance: z.boolean().optional(),
   /** Shell command to run; the JSON context is piped to its stdin. */
   command: z.string().min(1),
 });
@@ -42,9 +44,12 @@ export type MatchContext = {
   prompt?: string;
   isError?: boolean;
   sessionType?: "interactive" | "one-shot";
+  maintenance?: boolean;
 };
 
 const ShellHooksConfigSchema = z.object({
+  Setup: z.array(ShellHookSchema).optional(),
+  SessionStart: z.array(ShellHookSchema).optional(),
   PreToolUse: z.array(ShellHookSchema).optional(),
   PostToolUse: z.array(ShellHookSchema).optional(),
   UserPromptSubmit: z.array(ShellHookSchema).optional(),
@@ -88,12 +93,17 @@ function sessionTypeBlocked(hook: ShellHook, ctx: MatchContext): boolean {
   return !!(hook.sessionType && ctx.sessionType && hook.sessionType !== ctx.sessionType);
 }
 
+function maintenanceBlocked(hook: ShellHook, ctx: MatchContext): boolean {
+  return hook.maintenance !== undefined && hook.maintenance !== (ctx.maintenance ?? false);
+}
+
 function hookMatches(hook: ShellHook, ctx: MatchContext): boolean {
   if (namePatternBlocked(hook, ctx)) return false;
   if (!matchesPattern(hook.inputPattern, ctx.toolInputJson)) return false;
   if (!matchesPattern(hook.promptPattern, ctx.prompt)) return false;
   if (hook.onError && ctx.isError !== true) return false;
   if (sessionTypeBlocked(hook, ctx)) return false;
+  if (maintenanceBlocked(hook, ctx)) return false;
   return true;
 }
 
@@ -193,10 +203,10 @@ export async function fireHooks(
   dataDir: string,
   event: Exclude<ShellHookEvent, "PreToolUse">,
   context: Record<string, unknown>,
-  opts: { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; cwd?: string } = {},
+  opts: { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; maintenance?: boolean; cwd?: string } = {},
 ): Promise<void> {
   try {
-    const matchCtx: MatchContext = { toolName: opts.toolName, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType };
+    const matchCtx: MatchContext = { toolName: opts.toolName, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType, maintenance: opts.maintenance };
     const hooks = matchingHooks(await loadShellHooks(dataDir), event, matchCtx);
     if (!hooks.length) return;
     const ctx = JSON.stringify({ event, ...context });

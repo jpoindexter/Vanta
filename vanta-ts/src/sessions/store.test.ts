@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { saveSession, loadSession, listSessions, newSessionId } from "./store.js";
+import { saveSession, loadSession, listSessions, newSessionId, forkSession } from "./store.js";
 import type { Message } from "../types.js";
 
 const TRANSCRIPT: Message[] = [
@@ -54,5 +54,15 @@ describe("session store", () => {
   it("generates a sortable timestamp id", () => {
     const id = newSessionId(new Date("2026-06-02T14:30:52.000Z"));
     expect(id).toMatch(/^\d{8}-\d{6}$/);
+  });
+
+  it("forks a session into a new id without changing the original", async () => {
+    await saveSession("20260602-120000", TRANSCRIPT, { env: env(), now: "2026-06-02T12:00:00.000Z" });
+    const fork = await forkSession("20260602-120000", { env: env(), now: new Date(2026, 5, 3, 12, 0, 0) });
+    const original = await loadSession("20260602-120000", env());
+    expect(fork?.id).toBe("20260603-120000");
+    expect(fork?.messages).toEqual(TRANSCRIPT);
+    expect(original?.updated).toBe("2026-06-02T12:00:00.000Z");
+    expect((await listSessions(env())).map((s) => s.id)).toEqual(["20260603-120000", "20260602-120000"]);
   });
 });

@@ -1,6 +1,8 @@
 # CLAUDE.md — cli operations
 
 `ops.ts` contains top-level command handlers for gateway/service/MCP/roadmap/factory/desktop.
+`lifecycle.ts` owns startup lifecycle flags: `--init`, `--init-only`, and `--maintenance`.
+`output-callbacks.ts` owns output-format callback wiring for `vanta run`.
 
 Conventions:
 - Lazy-import heavier subsystems inside command handlers.

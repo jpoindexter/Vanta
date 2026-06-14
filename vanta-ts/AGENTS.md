@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 2998 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3234 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -20,7 +20,7 @@ npx tsc --noEmit                 # must be clean before any commit
 |---------|------|
 | `vanta` (TUI) | `src/ui/launch.tsx` → `src/ui/app.tsx` |
 | `vanta` (readline fallback) | `src/interactive.ts` |
-| `vanta run "<instr>"` | `src/cli.ts` → `src/session.ts` → `src/agent.ts` |
+| `vanta run "<instr>"` | `src/cli.ts` → `src/cli/lifecycle.ts` → `src/session.ts` → `src/agent.ts` |
 | `vanta gateway` | `src/gateway/run.ts` |
 | `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
@@ -32,6 +32,8 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/repl/catalog.ts` — canonical list of 93 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
+- `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
+- `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
 - `src/ui/app.tsx` — Ink 7 TUI shell: `<Static>` transcript, composer, overlays, slash palette, approval UI
 - `src/ui/reducer.ts` — pure transcript/UI reducer
 - `src/ui/use-agent.ts` — agent I/O hook for the TUI
@@ -51,6 +53,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 - `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **93 slash commands**.
+- Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - TUI rendering is real Ink 7 under `src/ui/`; the old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
 - Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: self-repair sandbox-test-before-attach and browser OS-level control.

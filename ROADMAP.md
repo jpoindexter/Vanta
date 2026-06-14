@@ -11,7 +11,7 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 **v0/v1 = done.** All 7 original PRD phases and v1.1–v1.5 tracks shipped — agent loop,
 skills+memory, web/reach, browser+vision, code/dev, autonomy primitives, comms,
 operator systems, and the real Ink 7 TUI. Current source counts: **81 built-in tools**
-and **93 slash commands**. Last recorded full verify: **2998 TS tests**, `tsc` clean,
+and **93 slash commands**. Last recorded full verify: **3234 TS tests**, `tsc` clean,
 kernel tests green.
 
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and
@@ -32,7 +32,8 @@ doing, what is blocked, and what closes loops before opening new ones.
 
 Level 3 shipped with EF-TASKSTACK, MEM-RELEVANCE, OPERATOR-DASHBOARD, AUTO-ROUTER, VISION-COMPARE.
 Level 4 has started: world model, money, radar, teams, life-search, reach, verification locks,
-self-repair, and `/init` are live slices; browser OS-level control and deeper ambient channels remain horizon.
+self-repair, `/init`, lifecycle init flags, and resume forking are live slices; browser OS-level control
+and deeper ambient channels remain horizon.
 
 ## TUI — real terminal UI (shipped 2026-06-02)
 - **Streaming engine**: `LLMProvider.stream()` (OpenAI family) yields token deltas; `agent.ts` emits them via `onTextDelta` (falls back to non-streaming `complete()` when unused — all prior paths unchanged). Pure `foldToolCallDeltas` assembles streamed tool calls.

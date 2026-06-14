@@ -33,6 +33,8 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 ```bash
 ./run.sh                                   # list all commands
 ./run.sh run "<instruction>"               # the agent loop
+./run.sh --init-only                       # run Setup + SessionStart hooks, then exit
+./run.sh resume <id> --fork-session        # resume history into a new session id
 ./run.sh skills | skill <name> ["<instr>"] # learned skills
 ./run.sh modes install                     # the 6 operator modes
 ./run.sh rooms | room <name> "<instr>"     # per-project goal streams
@@ -55,6 +57,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
 - **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
 - **Digital person** — project rooms, operator modes, model routing, mode learning, brain/memory layers
+- **Session lifecycle** — `/init`, Setup/SessionStart shell hooks, `--init`/`--init-only`/`--maintenance`, resume `--fork-session`
 - **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 
 Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client, login cookies for gated reach channels) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).

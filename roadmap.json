@@ -1425,15 +1425,16 @@
       "id": "CC-FORK-SESSION",
       "track": "Harness",
       "title": "--fork-session — create a new session ID on resume",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC's `--fork-session` creates a fresh session ID when resuming a prior session, keeping the original intact for later comparison or fallback. Vanta's resume overwrites the active session.",
+      "summary": "SHIPPED 2026-06-14. `--fork-session` with resume creates a fresh session file seeded with the prior history while leaving the source session untouched. Store-level `forkSession()` is tested and the CLI passes the flag through the resume launch path.",
       "done": "`--fork-session` combined with `--resume` creates a new session file seeded with the prior history; `vanta sessions list` shows both the original and the fork.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "CC-PURGE",
@@ -1467,15 +1468,16 @@
       "id": "CC-INIT-FLAGS",
       "track": "Harness",
       "title": "--init / --init-only / --maintenance — lifecycle hook flags",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "CC's `--init` runs Setup hooks before the session; `--init-only` runs Setup + SessionStart then exits (for one-time environment prep); `--maintenance` runs Setup with a maintenance matcher (for periodic housekeeping crons). Vanta has no equivalent lifecycle bootstrap flags.",
+      "summary": "SHIPPED 2026-06-14. `--init` runs Setup shell hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` runs the same lifecycle path with maintenance context for hook matchers. Shared parser/runner lives in `vanta-ts/src/cli/lifecycle.ts`.",
       "done": "`--init` triggers Setup hooks before the first turn; `--init-only` runs Setup + SessionStart then exits 0; `--maintenance` adds a `maintenance: true` matcher context to Setup hooks.",
       "tier": "sand",
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-14"
     },
     {
       "id": "CC-SETTINGS-GIT",

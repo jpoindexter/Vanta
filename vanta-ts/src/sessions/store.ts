@@ -102,6 +102,20 @@ export async function loadSession(
   }
 }
 
+/** Create a new session seeded with an existing session's messages. */
+export async function forkSession(
+  sourceId: string,
+  opts: { env?: NodeJS.ProcessEnv; now?: Date } = {},
+): Promise<Session | null> {
+  const source = await loadSession(sourceId, opts.env);
+  if (!source) return null;
+  const now = opts.now ?? new Date();
+  const id = newSessionId(now);
+  const started = now.toISOString();
+  await saveSession(id, source.messages, { env: opts.env, now: started, started, title: source.title });
+  return loadSession(id, opts.env);
+}
+
 /** Delete a session file. Idempotent — a missing file is not an error. */
 export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promise<void> {
   await rm(join(sessionsDir(env), `${id}.json`), { force: true });
