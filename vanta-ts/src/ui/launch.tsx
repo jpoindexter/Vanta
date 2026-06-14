@@ -1,18 +1,24 @@
 import { render } from "ink";
 import { App } from "./app.js";
+import { AppV2 } from "./v2/app-v2.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 
+export type TuiSurface = "v1" | "v2";
+
+export function selectTuiSurface(env: { VANTA_TUI?: string }): TuiSurface {
+  return env.VANTA_TUI?.trim().toLowerCase() === "v2" ? "v2" : "v1";
+}
+
 /**
- * Launch the v2 Claude-method UI (real Ink, inline + <Static>). No alternate
- * screen — output commits to native scrollback, so terminal selection, scroll,
- * and copy work without any in-app machinery. Reuses prepareRun (kernel up,
- * provider, goals, system prompt) — only the render surface is new.
+ * Launch the Claude-method UI (real Ink, inline + <Static>). v1 remains the
+ * default; VANTA_TUI=v2 opts into the separate mission-control surface.
  */
 export async function runTuiV2(repoRoot: string): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate();
-  const instance = render(<App setup={setup} repoRoot={repoRoot} />);
+  const surface = selectTuiSurface(process.env);
+  const instance = render(surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />);
   await instance.waitUntilExit();
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
 }

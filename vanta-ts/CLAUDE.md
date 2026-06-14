@@ -13,12 +13,13 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
-| `ui/app.tsx` | The TUI App: `<Static>` committed scrollback + live composer/status rows. Delegates state to `ui/reducer.ts`, agent I/O to `ui/use-agent.ts` |
+| `ui/app.tsx` | The default TUI App: `<Static>` committed scrollback + live composer/status rows. Delegates state to `ui/reducer.ts`, agent I/O to `ui/use-agent.ts` |
+| `ui/v2/` | Opt-in mission-control shell selected by `VANTA_TUI=v2`; wraps the shared v1 engine in durable-state / safety+memory+telemetry rails |
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
 | `ui/composer.tsx` | Composer: custom readline (Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline) |
-| `ui/launch.tsx` | `runTui(repoRoot)` — prepareRun + maybeCurate + `render(<App/>)`. `vanta` uses it on a TTY; readline REPL is the fallback |
+| `ui/launch.tsx` | `runTuiV2(repoRoot)` — prepareRun + maybeCurate + env-selected render. Default is `ui/app.tsx`; `VANTA_TUI=v2` renders `ui/v2/app-v2.tsx`. `vanta` uses it on a TTY; readline REPL is the fallback |
 | `ui/test-render.tsx` | Test harness replacing ink-testing-library: `renderSync` + fake stdio (paused-mode stdin w/ `readableLength`) + a terminal-grid emulator |
 | `ui/theme.tsx` | Semantic design tokens (success/error/warning/info/marker/userMarker; `primary`=text/white, identity in accent/border/marker); `VANTA_THEME` switch |
 | `ui/types.ts` | UI-local types (`TuiState`, action unions, overlay descriptors) |
@@ -196,7 +197,7 @@ ESM `.js` imports · zod at every LLM/HTTP boundary · errors-as-values in tools
 
 ## Env
 
-`VANTA_PROVIDER` (openai|ollama|anthropic) · `VANTA_MODEL` · `OPENAI_API_KEY` · `VANTA_OLLAMA_URL` · `VANTA_KERNEL_URL` · `VANTA_MAX_ITER`. Defaults in `.env.example`. Local `.env` (gitignored) defaults to Ollama qwen2.5:14b.
+`VANTA_PROVIDER` (openai|ollama|anthropic) · `VANTA_MODEL` · `OPENAI_API_KEY` · `VANTA_OLLAMA_URL` · `VANTA_KERNEL_URL` · `VANTA_MAX_ITER` · `VANTA_TUI=v2` (opt-in mission-control shell). Defaults in `.env.example`. Local `.env` (gitignored) defaults to Ollama qwen2.5:14b.
 
 Search (Phase 2B): `VANTA_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default ddg) · `VANTA_SEARCH_URL` (searxng) · `SERPAPI_KEY` · `BRAVE_KEY`.
 
@@ -265,6 +266,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 **Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **81 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
 
 **CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. **93 slash commands.**
+
+- **TUI-V2 shell:** `VANTA_TUI=v2` now selects `src/ui/v2/app-v2.tsx`, a separate mission-control frame (`MissionControlFrame`) with durable-state, center transcript/engine, safety/working-memory/telemetry, and command-risk labels. Default and unknown values stay on v1. `TUI-V2-RAILS` remains open for making every rail value live from session state.
 
 - **Test isolation fix:** `agent.test.ts` now isolates `VANTA_HOME` to a temp dir — dispatch reads `loadRules(process.env)` from `~/.vanta/permissions.tsv`, so a real `allow shell_cmd` rule (the "always allow" feature, working as designed) was auto-approving the action the ask-risk integration test expects to prompt on. Pre-existing flake; full suite now deterministic. **Full suite: 345 files / 2998 tests green; typecheck clean; size gate clean.**
 

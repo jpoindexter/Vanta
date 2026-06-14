@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3266 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3271 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -18,7 +18,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 | Command | File |
 |---------|------|
-| `vanta` (TUI) | `src/ui/launch.tsx` → `src/ui/app.tsx` |
+| `vanta` (TUI) | `src/ui/launch.tsx` → `src/ui/app.tsx` by default; `VANTA_TUI=v2` → `src/ui/v2/app-v2.tsx` |
 | `vanta` (readline fallback) | `src/interactive.ts` |
 | `vanta run "<instr>"` | `src/cli.ts` → `src/cli/lifecycle.ts` → `src/session.ts` → `src/agent.ts` |
 | `vanta gateway` | `src/gateway/run.ts` |
@@ -38,6 +38,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
 - `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
 - `src/ui/app.tsx` — Ink 7 TUI shell: `<Static>` transcript, composer, overlays, slash palette, approval UI
+- `src/ui/v2/` — opt-in mission-control shell (`VANTA_TUI=v2`), wrapping the shared v1 engine in left/right operator rails
 - `src/ui/reducer.ts` — pure transcript/UI reducer
 - `src/ui/use-agent.ts` — agent I/O hook for the TUI
 - `src/interactive.ts` — readline REPL (fallback to TUI)
@@ -60,7 +61,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
-- TUI rendering is real Ink 7 under `src/ui/`; the old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
+- TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
 - Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: browser OS-level control.
 
@@ -77,6 +78,6 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN`
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_TUI` (`v2` opt-in mission-control shell)
 
 Full env list: `CLAUDE.md §Env`.

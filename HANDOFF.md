@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3266 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
+- **Last recorded full verify:** 3271 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
 
 ## Run + Verify
 
@@ -31,7 +31,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **Project init:** `/init` writes `.claude/CLAUDE.md` for the current project; use `--print` to preview and `--force` to replace.
 - **Lifecycle init:** `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits; `--maintenance` adds maintenance context.
 - **Session fork:** `resume <id> --fork-session` / `--resume <id> --fork-session` seeds a new session file from prior history and leaves the original intact.
-- **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
+- **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. Default v1 is `src/ui/app.tsx`; `VANTA_TUI=v2` opts into `src/ui/v2/app-v2.tsx` mission-control rails. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
 - **Desktop:** seed localhost surface in `vanta-ts/src/desktop/`; still denies approval-required actions until an explicit approval UI exists.
 - **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
 - **Background agents:** `vanta-ts/src/cli/agents-cmd.ts` manages `~/.vanta/team-tasks.jsonl`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop`. `disableAgentView` / `VANTA_DISABLE_AGENT_VIEW=1` disables the surface.
@@ -39,7 +39,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 
 ## Recent Shipped Surface
 
-- Real Ink 7 TUI rebuild with `<Static>` transcript, composer, overlays, Claude-style approval menu, context/loops/changes panels, goal status, and no alternate screen.
+- Real Ink 7 TUI rebuild with `<Static>` transcript, composer, overlays, Claude-style approval menu, context/loops/changes panels, goal status, no alternate screen, and opt-in TUI v2 mission-control rails.
 - `/init`, lifecycle init flags, and resume forking: `vanta-ts/src/repl/init-cmd.ts`, `vanta-ts/src/cli/lifecycle.ts`, `vanta-ts/src/sessions/store.ts`.
 - Auto minimalism skill + `/auto`; plan-mode and task-boundary EF surfaces; 14 bundled `nd-*` skills.
 - Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.

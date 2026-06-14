@@ -171,16 +171,17 @@
       "id": "TUI-V2",
       "track": "Operator",
       "title": "TUI v2 — mission-control surface (non-destructive)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
-      "summary": "3-column operator/mission-control TUI from the mockup Vanta built (docs/-model-v2.html): left durable-state rail, center goal+risk-tagged transcript, right safety-rail + working-memory + live telemetry. CRITICAL constraint: build WITHOUT overwriting the working v1 TUI — new tui/v2/ module, opt-in via VANTA_TUI=v2 (default stays v1), reuse the shared engine read-only, promote only after Jason confirms. Mostly a surface over already-built state. Detail: docs/tui-v2.md.",
+      "summary": "SHIPPED 2026-06-14. `VANTA_TUI=v2` selects a separate `src/ui/v2/` mission-control shell: left durable-state rail, center existing interactive TUI engine/transcript, right safety + working-memory + telemetry rail plus command-risk labels. Default/unknown `VANTA_TUI` values still launch v1 through the existing path; v2 reuses the shared engine read-only. The stricter live-session rail hardening remains tracked by `TUI-V2-RAILS`.",
       "done": "VANTA_TUI=v2 launches the 3-column mission-control TUI while the default v1 TUI is byte-for-byte unchanged and still default; v2 is a separate module, zero v1 files edited.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "tui",
-      "notes": "Design references captured 2026-06-11 in docs/design-refs/ (edit-review-panel.png, lipgloss-layout-bar.png) — TUI-EDIT-REVIEW and TUI-DESIGN-LANGUAGE are the concrete first slices."
+      "updated": "2026-06-14",
+      "notes": "Implemented in `vanta-ts/src/ui/v2/` with `MissionControlFrame` + `AppV2`, selected by `selectTuiSurface()` in `src/ui/launch.tsx`. Tests: `src/ui/launch.test.ts`, `src/ui/v2/mission-control.test.tsx`. Default remains v1; `TUI-V2-RAILS` stays open for making every rail value live from session state."
     },
     {
       "id": "CC-TAB-NAV",
