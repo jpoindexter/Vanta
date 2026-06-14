@@ -117,10 +117,11 @@ function renderProviderMenu(): string {
 export async function runSetup(
   repoRoot: string,
   rl?: Readline,
+  opts: { quiet?: boolean } = {},
 ): Promise<boolean> {
   const ownRl = rl ?? createInterface({ input: process.stdin, output: process.stdout });
   try {
-    console.log("\n  Vanta setup — pick a model backend.\n");
+    if (!opts.quiet) console.log("\n  Vanta setup — pick a model backend.\n");
     console.log(renderProviderMenu());
 
     const pick = (await ownRl.question(`\n  Provider [1-${PROVIDER_CATALOG.length}]: `)).trim();

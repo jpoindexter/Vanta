@@ -10401,7 +10401,7 @@
       "id": "SETUP-COMPLETE-WIZARD",
       "track": "Operator",
       "title": "Complete setup wizard (Hermes-parity) — one guided pass, not just a model picker",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "A complete guided setup experience modeled on NousResearch Hermes Agent (MIT, github.com/NousResearch/hermes-agent). TODAY `vanta setup` is ONLY a model picker. Hermes's `hermes setup` (+ `--portal` one-command OAuth) configures the full surface; this brings parity: ONE guided `vanta setup` pass covering (1) model/provider + auxiliary models (vision/summarize/embed) + fallback chain, (2) tools/toolsets enable-disable, (3) messaging gateway (already `vanta setup messaging`), (4) MCP servers, (5) memory/brain (enable, budgets, write-approval), (6) skills (guard + write-approval), (7) SOUL/personality, (8) security/approvals + PII redaction, (9) context/compression thresholds, (10) display/UX, (11) agent behavior (max-iter, reasoning effort), ending in (12) a `vanta doctor` green-check. Writes through SETUP-CONFIG-SYSTEM. Absorbs/relates WANT-SETUP-ASSISTANT + INSTALL-PARITY; NOT a hosted portal (Vanta is local-first — HP-NOUS-PORTAL is parked as anti-strategy). Ref: docs/user-guide/configuration.",
       "done": "`vanta setup` runs ONE guided pass configuring provider/model → tools → gateway → MCP → memory → skills → SOUL → security → context → display → behavior, ending in a green `vanta doctor` — a new user goes from install to a fully-configured agent in one flow, not just a model picker.",
@@ -10413,7 +10413,7 @@
       "after": [
         "SETUP-CONFIG-SYSTEM"
       ],
-      "notes": "Slice 1 shipped 2026-06-14: runFullSetup orchestrator (src/setup-full.ts) — `vanta setup` now runs model→messaging→MCP→personality→doctor (was model-only); `vanta setup model` keeps the bare picker. Remaining per-setting areas (tools/memory/security/context/display/behavior) ride on SETUP-CONFIG-SYSTEM."
+      "notes": "Shipped 2026-06-14. Read the real Hermes wizard source (hermes_cli/setup.py run_setup_wizard) and mirrored its structure: boxed banner → Quick/Full first-run choice → ◆-headed sections (model → capabilities[tools+MCP] → messaging → personality[SOUL] → health) → summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Like Hermes, deeper per-setting tuning is deferred to `vanta config` rather than prompted (Hermes applies agent-setting defaults silently too). `vanta setup model` = bare picker; runSetup gained a quiet mode to embed cleanly."
     }
   ]
 }
