@@ -20,7 +20,9 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("SETTINGS catalog", () => {
   it("covers Vanta's non-trash knobs; no Nous/Spotify/TTS", () => {
-    expect(SETTINGS.map((s) => s.key)).toEqual(["VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_THEME"]);
+    expect(SETTINGS.map((s) => s.key)).toEqual([
+      "VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS", "VANTA_THEME", "VANTA_SPINNER",
+    ]);
     const blob = JSON.stringify(SETTINGS).toLowerCase();
     expect(blob).not.toContain("nous");
     expect(blob).not.toContain("spotify");

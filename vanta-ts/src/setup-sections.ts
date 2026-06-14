@@ -58,6 +58,17 @@ export const SETTINGS: SettingSection[] = [
     custom: true,
   },
   {
+    header: "Memory budget (per goal)",
+    key: "VANTA_MEMORY_MAX_BLOCKS",
+    intro: "  How many memory blocks Vanta keeps per goal (older ones stay in git).",
+    choices: [
+      { label: "50 — default", value: "50" },
+      { label: "25 — lean", value: "25" },
+      { label: "100 — generous", value: "100" },
+    ],
+    custom: true,
+  },
+  {
     header: "Display theme",
     key: "VANTA_THEME",
     intro: "  TUI color theme.",
@@ -65,6 +76,19 @@ export const SETTINGS: SettingSection[] = [
       { label: "auto — match your terminal", value: "auto" },
       { label: "dark", value: "dark" },
       { label: "light", value: "light" },
+    ],
+  },
+  {
+    header: "Busy spinner style",
+    key: "VANTA_SPINNER",
+    intro: "  The animation shown while Vanta is thinking.",
+    choices: [
+      { label: "Keep default (braille)" },
+      { label: "orbit", value: "orbit" },
+      { label: "dots", value: "dots" },
+      { label: "pulse", value: "pulse" },
+      { label: "snake", value: "snake" },
+      { label: "wave", value: "wave" },
     ],
   },
 ];
