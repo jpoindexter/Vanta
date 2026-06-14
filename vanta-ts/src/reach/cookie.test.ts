@@ -28,6 +28,16 @@ describe("parseCookieInput", () => {
     expect(parseCookieInput("a=1;\n b=2")).toBe("a=1; b=2");
   });
 
+  it("parses a Netscape cookies.txt (tab-separated), keeping #HttpOnly_ rows", () => {
+    const txt = [
+      "# Netscape HTTP Cookie File",
+      "# a comment",
+      ".reddit.com\tTRUE\t/\tTRUE\t1700000000\tsession\tabc123",
+      "#HttpOnly_www.reddit.com\tFALSE\t/\tTRUE\t0\tcsrf\txyz",
+    ].join("\n");
+    expect(parseCookieInput(txt)).toBe("session=abc123; csrf=xyz");
+  });
+
   it("returns null for junk / empty / a JSON array with no name+value", () => {
     expect(parseCookieInput("")).toBeNull();
     expect(parseCookieInput("just some words")).toBeNull();

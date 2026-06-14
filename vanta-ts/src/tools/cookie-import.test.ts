@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cookieImportTool } from "./cookie-import.js";
@@ -33,6 +33,20 @@ describe("cookie_import", () => {
   it("rejects missing args + an unparseable cookie", async () => {
     expect((await cookieImportTool.execute({ channel: "reddit" }, ctx)).ok).toBe(false);
     expect((await cookieImportTool.execute({ channel: "reddit", cookie: "garbage" }, ctx)).ok).toBe(false);
+  });
+
+  it("reads a cookie from a saved export file (no secret in chat)", async () => {
+    const f = join(home, "reddit-export.txt");
+    writeFileSync(f, ".reddit.com\tTRUE\t/\tTRUE\t0\tsession\tfromfile");
+    const r = await cookieImportTool.execute({ channel: "reddit", file: f }, ctx);
+    expect(r.ok).toBe(true);
+    expect(loadCookie("reddit")).toBe("session=fromfile");
+  });
+
+  it("errors clearly when the file is missing", async () => {
+    const r = await cookieImportTool.execute({ channel: "reddit", file: "/nope/missing.txt" }, ctx);
+    expect(r.ok).toBe(false);
+    expect(r.output).toContain("could not read cookie file");
   });
 
   it("describeForSafety signals credential handling (kernel gates it) without the value", () => {

@@ -36,15 +36,17 @@ type ReachChannel = {
 2. Append it to `REACH_CHANNELS` in `registry.ts`.
 3. If it reads/searches content, add a kernel-gated tool (`tools/<name>-read.ts`) that the agent calls; the channel is the routing/health half.
 
-## Auth (login-walled channels)
+## Auth (login-walled channels) — universal by design
 
 Channels like Reddit and Twitter need a logged-in session. The shared path (`reach/cookie.ts`):
 
 1. `/cookie` shows which channels have a stored cookie + the export guide.
-2. You export your browser session with the **Cookie-Editor** extension (Export → JSON) and paste it.
-3. The agent calls **`cookie_import {channel, cookie}`** — kernel-gated (its `describeForSafety` signals credential handling so the kernel asks first). The cookie is normalized to a `k=v; k2=v2` header and stored **0600** at `~/.vanta/cookies/<channel>.cookie` — local only, **never logged or echoed**.
+2. Export your browser session with a **Cookie-Editor** or **"Get cookies.txt LOCALLY"** extension — works in **any** browser (Brave/Chrome/Edge/Firefox) on **any** OS. The extension does the decryption locally.
+3. Save the export to a file and run **`cookie_import {channel, file:"~/Downloads/<export>"}`** (preferred — no secret in chat), or paste it inline as `cookie`. Kernel-gated: `describeForSafety` signals credential handling so the kernel asks first; stored **0600** at `~/.vanta/cookies/<channel>.cookie`, **never logged or echoed**.
 
-`parseCookieInput` accepts either a Cookie-Editor JSON export or a raw header; channel names are slug-validated (no path traversal). Channel tools read their cookie via `loadCookie(channel)`.
+**Formats:** `parseCookieInput` accepts a **Cookie-Editor JSON** export, a **Netscape `cookies.txt`** (the de-facto standard used by yt-dlp / "Get cookies.txt"), or a raw `k=v; k2=v2` header — so whatever any user's browser/extension produces just works. Channel names are slug-validated (no path traversal); channel tools read their cookie via `loadCookie(channel)`.
+
+**Why not auto-read the browser's cookie store?** Because it can't be universal: every browser × OS encrypts cookies differently (macOS Keychain + AES-CBC, Windows DPAPI + app-bound AES-GCM, Linux gnome-keyring/kwallet, Safari binarycookies), and it breaks on browser updates — yt-dlp's `--cookies-from-browser` is a perpetual maintenance fire for exactly this reason. The export-and-hand-over flow pushes the per-platform decryption into the browser extension (which always tracks its own format), keeping Vanta portable and low-maintenance.
 
 ## Channels
 

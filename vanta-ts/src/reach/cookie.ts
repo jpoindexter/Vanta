@@ -16,26 +16,50 @@ export function isSafeChannel(name: string): boolean {
 
 /**
  * Normalize a pasted cookie to a request `Cookie:` header value. Accepts either
- * a Cookie-Editor JSON export (`[{name,value,…}]`) or an already-formed
- * `k=v; k2=v2` header. Returns null when it can't make sense of the input. Pure.
+ * any browser/OS export — a Cookie-Editor JSON export (`[{name,value,…}]`), a
+ * Netscape `cookies.txt` (the de-facto standard used by "Get cookies.txt" /
+ * yt-dlp), or an already-formed `k=v; k2=v2` header. Universal by design: the
+ * browser extension does the local decryption; we only normalize the export.
+ * Returns null when it can't make sense of the input. Pure.
  */
 export function parseCookieInput(raw: string): string | null {
   const t = raw.trim();
   if (!t) return null;
-  if (t.startsWith("[")) {
-    try {
-      const arr: unknown = JSON.parse(t);
-      if (!Array.isArray(arr)) return null;
-      const pairs = arr
-        .filter((c): c is { name: string; value: string } =>
-          Boolean(c) && typeof (c as { name?: unknown }).name === "string" && typeof (c as { value?: unknown }).value === "string")
-        .map((c) => `${c.name}=${c.value}`);
-      return pairs.length ? pairs.join("; ") : null;
-    } catch {
-      return null;
-    }
-  }
+  if (t.startsWith("[")) return parseJsonExport(t);
+  if (looksNetscape(t)) return parseNetscape(t);
   return /[^\s=]+=/.test(t) ? t.replace(/\s*\n\s*/g, " ").trim() : null;
+}
+
+/** Cookie-Editor (and most extensions) export a JSON array of cookie objects. */
+function parseJsonExport(t: string): string | null {
+  try {
+    const arr: unknown = JSON.parse(t);
+    if (!Array.isArray(arr)) return null;
+    const pairs = arr
+      .filter((c): c is { name: string; value: string } =>
+        Boolean(c) && typeof (c as { name?: unknown }).name === "string" && typeof (c as { value?: unknown }).value === "string")
+      .map((c) => `${c.name}=${c.value}`);
+    return pairs.length ? pairs.join("; ") : null;
+  } catch {
+    return null;
+  }
+}
+
+function looksNetscape(t: string): boolean {
+  return t.includes("Netscape HTTP Cookie File") || t.split("\n").some((l) => l.split("\t").length >= 7);
+}
+
+/** Netscape cookies.txt: tab-separated domain,flag,path,secure,expiry,NAME,VALUE. */
+function parseNetscape(t: string): string | null {
+  const pairs: string[] = [];
+  for (const line of t.split("\n")) {
+    const l = line.trim();
+    // skip blank + comment lines, but keep "#HttpOnly_" rows (real cookies)
+    if (!l || (l.startsWith("#") && !l.startsWith("#HttpOnly_"))) continue;
+    const f = line.split("\t");
+    if (f.length >= 7 && f[5]) pairs.push(`${f[5]}=${f[6] ?? ""}`);
+  }
+  return pairs.length ? pairs.join("; ") : null;
 }
 
 function cookieDir(env: NodeJS.ProcessEnv): string {
