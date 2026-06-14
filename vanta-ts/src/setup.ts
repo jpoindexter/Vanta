@@ -131,18 +131,23 @@ export async function askSecret(question: string): Promise<string> {
 async function chooseProviderStep(): Promise<ProviderEntry> {
   const labels = PROVIDER_CATALOG.map((p) => `${p.label}${p.note ? `  (${p.note})` : ""}`);
   const current = PROVIDER_CATALOG.findIndex((p) => p.id === process.env.VANTA_PROVIDER);
-  const i = await select("Pick a model backend (↑/↓ · Enter):", labels, { initial: Math.max(0, current) });
-  const entry = PROVIDER_CATALOG[i] ?? PROVIDER_CATALOG[0];
+  const i = await select("Select provider:", labels, {
+    initial: Math.max(0, current),
+    current: current >= 0 ? current : undefined,
+  });
+  const entry = PROVIDER_CATALOG[i < 0 ? Math.max(0, current) : i] ?? PROVIDER_CATALOG[0]; // ESC = keep current
   if (!entry) throw new Error("provider catalog is empty"); // unreachable — non-empty const
   return entry;
 }
 
-/** Model picker (↑/↓ · Enter · Esc = back). Returns the model id, or "" for back. */
+/** Model picker (↑↓ · Enter · Esc = back). Returns the model id, or "" for back. */
 async function chooseModelStep(entry: ProviderEntry): Promise<string> {
   const opts = [...entry.models, CUSTOM];
-  const i = await select(`Model for ${entry.short} (Esc = back):`, opts, {
+  const cur = entry.models.indexOf(process.env.VANTA_MODEL ?? "");
+  const i = await select(`Select model for ${entry.short}:`, opts, {
     canBack: true,
-    initial: Math.max(0, entry.models.indexOf(entry.defaultModel)),
+    initial: cur >= 0 ? cur : Math.max(0, entry.models.indexOf(entry.defaultModel)),
+    current: cur >= 0 ? cur : undefined,
   });
   if (i < 0) return "";
   if (i === opts.length - 1) return askLine(`  Custom model id [${entry.defaultModel}]: `, entry.defaultModel);
