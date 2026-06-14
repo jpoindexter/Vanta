@@ -210,3 +210,29 @@ Audited Claude Code's full feature set (~250 features) for the roadmap; 19 in-sc
 **Captured:** 2026-06-11 (BRAIN-COHESIVE consolidation).
 **Why parked:** Speculative bootstrap scaffold (Vanta designs her own brain format — jsonl/sqlite/graph/vector). The cohesive facade + structured entries layer covers current needs; self-designed substrates are platform-thinking before evidence.
 **Cost to revisit:** Low — the scaffold (`BrainV2Spec`, `evolveSpec`) stays in-tree; wiring it = implementing a spec + injecting its digest through the existing facade.
+
+## Parked agent-worktree builds (pruned 2026-06-14)
+**Captured:** 2026-06-14. A 2026-06-10 parallel-agent fanout left 16 isolated `worktree-agent-*` worktrees, each with one CC-parity feature commit, never integrated. The worktrees were pruned for a clean repo; **every commit is preserved as a `parked/<id>` git tag** (recoverable, not on any branch). They were built against the **pre-rebuild** codebase (before the 06-13 real-Ink TUI rebuild deleted `src/tui/` and the size-gate decomposition reshaped `repl/`/`context.ts`/`compress/`), so all conflict with current main — recover = re-port onto current main, not merge.
+
+**Why parked, not merged:** stale (4 days, built on since-deleted/refactored code) + all conflict with main + several likely already superseded. Recover any with `git checkout -b recover-<x> parked/<id>` then re-port the diff by hand.
+
+| Tag | Feature | Likely status |
+|-----|---------|---------------|
+| `parked/a6217a9b43934ee79` | CC-SANDBOX — opt-in OS isolation for shell_cmd + run_code | still missing, valuable |
+| `parked/ac9ecf1ed89da1e0e` | AUTH-BROWSER — persistent profile for logged-in sites | still missing, valuable |
+| `parked/a5ffcc69a49c6ae86` | CC-TOOL-RESULT-DISK — persist oversized tool outputs to disk | still missing, valuable |
+| `parked/af2e5090de92795ba` | CC-SHELL-STALL-DETECT — background shell stall watchdog | still missing, valuable |
+| `parked/a8130bd4887679171` | time-based microcompact — clear stale tool results after idle | still missing, valuable |
+| `parked/ac637030536a45f69` | client-side secret scanner blocks secrets from memory sync | still missing, valuable |
+| `parked/a25c364f2bcccce87` | LSP diagnostic-delta + edit-file tool (was uncommitted; preserved) | check vs current lsp/ |
+| `parked/a54f3a6bcaf32c2f7` | compaction-remind + context.ts (was uncommitted; preserved) | check vs current context.ts |
+| `parked/a26e763a2529de5ca` | actionable suggestions when context fills (CC-CONTEXT-SUGGESTIONS) | check vs current context UX |
+| `parked/a8130bd…` / `parked/aac5129481d980bab` | /compress focus instructions + VANTA_DISABLE_COMPACT gate | check vs current /compress |
+| `parked/a9499176bf8ac114a` | 'keep going' resumes prior task; negative-keyword recognition | maybe useful |
+| `parked/a3f814553d37a522d` | actionable notice when a config file is invalid JSON | maybe useful |
+| `parked/acfb2e69ab2f55425` | CC-MEM-FRESHNESS — staleness caveat for memories >1 day | likely superseded (brain has confidence/recency) |
+| `parked/a30937211b2e36851` | warn when active model id is a known-deprecated model | maybe useful |
+| `parked/a2ed381d918efc514` | TUI-KEYS — readline/Emacs composer keybindings | **obsolete** (built on deleted `src/tui/`) |
+| `parked/ad52d4ad12952fd6c` | CC-PERMISSIONS — pure rule layer + /permissions cmd | likely superseded (`permissions.tsv` + `loadRules` + `ui/grant.ts` exist) |
+
+All are tracked as `CC-*` roadmap cards; per `STRATEGY.md`, CC parity is "a quarry, not a goal."
