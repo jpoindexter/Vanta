@@ -57,6 +57,7 @@ import {
 export type { WmManipState } from "../repl/wm-manip.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { Message } from "../types.js";
+import { extractLastTurnCalls, detectAnomalies, formatAnomalyNote } from "../observe/trace.js";
 
 // Post-turn gates — best-effort, non-blocking checks the hosts run after each
 // turn (review, session-memory, nudge, EF detectors, anti-slop). Extracted from
@@ -229,6 +230,24 @@ export async function wmManipAfterTurn(
   } catch {
     return state;
   }
+}
+
+/**
+ * After a turn, scan the tool-call trace for structural anomalies (loops,
+ * error-spikes, blind-writes). Stateless and free — no LLM, no threshold state.
+ * Opt-out via VANTA_TRACE_ANOMALY=0.
+ */
+export function traceAnomalyAfterTurn(
+  messages: Message[],
+  onNote: (text: string) => void,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  if (env.VANTA_TRACE_ANOMALY === "0") return;
+  try {
+    const calls = extractLastTurnCalls(messages);
+    const anomalies = detectAnomalies(calls);
+    if (anomalies.length) onNote(formatAnomalyNote(anomalies));
+  } catch { /* best-effort */ }
 }
 
 /**

@@ -87,6 +87,10 @@ function errorsLogTier(errorsLog?: string): string {
   return `Prior failures log (ERRORS.md — consult before approaching similar tasks):\n${trimmed}`;
 }
 
+function playbookTier(playbook?: string): string {
+  return playbook?.trim() ? playbook.trim() : "";
+}
+
 function volatileTier(
   goals: Goal[],
   now: string,
@@ -131,6 +135,8 @@ export async function buildSystemPrompt(opts: {
   goalsPaused?: boolean;
   /** SCAFFOLD: versioned identity/values/honesty from ~/.vanta/self/ */
   selfContent?: string;
+  /** PAPER-EXPERIENTIAL-MEMORY: matching plays from ~/.vanta/playbook.jsonl */
+  playbook?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -149,6 +155,7 @@ export async function buildSystemPrompt(opts: {
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
+    playbookTier(opts.playbook),
     tasksTier,
     volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused }),
   ].filter(Boolean);

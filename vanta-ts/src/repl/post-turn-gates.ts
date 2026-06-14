@@ -5,6 +5,7 @@ import {
   stallAfterTurn,
   scopeDeltaAfterTurn,
   wmManipAfterTurn,
+  traceAnomalyAfterTurn,
   type ResearchGateState,
   type InhibitState,
   type SetShiftState,
@@ -48,6 +49,7 @@ export async function runPostTurnGates(
 ): Promise<GateState> {
   const { messages, safety, dataDir, onNote } = o;
   const env = o.env ?? process.env;
+  traceAnomalyAfterTurn(messages, onNote, env);
   return {
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
     inhibit: await inhibitAfterTurn(g.inhibit, messages, { safety, onNote, env }),

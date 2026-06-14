@@ -11,6 +11,7 @@ import { listSkills } from "./skills/store.js";
 import { brainDigest } from "./brain/brain.js";
 import { readSessionMemory, sessionMemoryBlock } from "./memory/session-memory.js";
 import { installMessageDisplayHooks } from "./agent/message-display.js";
+import { playbookDigest } from "./memory/playbook.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { mountMcpServers } from "./mcp/mount.js";
 import type { LLMProvider } from "./providers/interface.js";
@@ -134,6 +135,7 @@ export async function prepareRun(
   installMessageDisplayHooks(globalHookBus, process.env);
 
   const ctx = await loadPromptContext(repoRoot, activeIds);
+  const playbook = await playbookDigest(instruction).catch(() => "");
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -147,6 +149,7 @@ export async function prepareRun(
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
+    playbook,
     // Carried goal starts PAUSED (no silent resume on a fresh launch); VANTA_GOAL_RESUME=auto = old behavior.
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
   });

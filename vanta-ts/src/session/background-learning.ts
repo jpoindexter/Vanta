@@ -1,6 +1,7 @@
 import { reviewTurn, shouldReview } from "../review/background-review.js";
 import { shouldUpdateSessionMemory, updateSessionMemory } from "../memory/session-memory.js";
 import { shouldLearn, learnFromTranscript } from "../brain/learn.js";
+import { scoreTurn, formatCriticNote } from "../observe/critic.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
@@ -78,4 +79,24 @@ export async function brainLearnAfterTurn(opts: {
   const env = opts.env ?? process.env;
   if (!shouldLearn(opts.turnIndex, opts.toolIterations, env)) return [];
   return learnFromTranscript({ provider: opts.provider, transcript: opts.transcript, env });
+}
+
+/**
+ * Independent critic pass (PAPER-OBSERVABILITY). Scores the last turn with a
+ * separate LLM call — generator/evaluator separation. Opt-in: VANTA_CRITIC=1.
+ * Only fires when the turn used substantive tool calls. Best-effort and silent.
+ */
+export async function criticAfterTurn(opts: {
+  provider: LLMProvider;
+  goal: string;
+  messages: Message[];
+  onNote: (text: string) => void;
+  env?: NodeJS.ProcessEnv;
+}): Promise<void> {
+  const env = opts.env ?? process.env;
+  if (env.VANTA_CRITIC !== "1") return;
+  try {
+    const score = await scoreTurn({ provider: opts.provider, goal: opts.goal, messages: opts.messages, env });
+    if (score) opts.onNote(formatCriticNote(score));
+  } catch { /* best-effort — never surface a critic failure to the user */ }
 }

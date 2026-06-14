@@ -78,6 +78,7 @@ describe("registry", () => {
       "lsp_diagnostics",
       "money",
       "mount_mcp",
+      "playbook",
       "protect",
       "radar",
       "reach",

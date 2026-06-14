@@ -66,6 +66,7 @@ import { listMcpResourcesTool, readMcpResourceTool } from "./mcp-resources.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
 import { loopTool } from "./loop.js";
 import { sendMessageTool } from "./send-message.js";
+import { playbookTool } from "./playbook.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -168,6 +169,7 @@ const ALL_TOOLS: readonly Tool[] = [
   retrieveOriginalTool,
   loopTool,
   sendMessageTool,
+  playbookTool,
 ];
 
 /**
