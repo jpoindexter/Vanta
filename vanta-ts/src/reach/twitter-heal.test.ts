@@ -47,6 +47,23 @@ describe("refreshQueryIds (mocked network)", () => {
     expect(loadQids(process.env)).toMatchObject({ Bookmarks: "Q_BM", SearchTimeline: "Q_ST" });
   });
 
+  it("crawls level 2 — follows a bundle that references another bundle (the Bookmarks case)", async () => {
+    const homepage = `<script src="https://abs.twimg.com/responsive-web/client-web/main.x.js"></script>`;
+    // main references a lazily-loaded route bundle that holds the Bookmarks id
+    const main = `loadRoute("https://abs.twimg.com/responsive-web/client-web/bundle.Bookmarks.y.js");e={queryId:"Q_ST",operationName:"SearchTimeline"}`;
+    const bookmarksChunk = `z={queryId:"Q_BM",operationName:"Bookmarks"}`;
+    const byUrl: Record<string, string> = {
+      "https://x.com/": homepage,
+      "https://abs.twimg.com/responsive-web/client-web/main.x.js": main,
+      "https://abs.twimg.com/responsive-web/client-web/bundle.Bookmarks.y.js": bookmarksChunk,
+    };
+    vi.stubGlobal("fetch", vi.fn(async (u: string) => ({ ok: true, text: async () => byUrl[u] ?? "" })));
+
+    const r = await refreshQueryIds("auth_token=a; ct0=b", process.env);
+    expect(r.ok).toBe(true);
+    expect(loadQids(process.env)).toMatchObject({ SearchTimeline: "Q_ST", Bookmarks: "Q_BM" });
+  });
+
   it("reports clearly when x.com can't be reached", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 403, text: async () => "" })));
     const r = await refreshQueryIds(null, process.env);
