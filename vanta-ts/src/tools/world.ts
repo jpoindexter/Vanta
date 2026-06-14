@@ -7,6 +7,7 @@ import {
 } from "../world/store.js";
 import { findConflicts, recallWithSources, type CitedMatch } from "../world/conflicts.js";
 import { mergeEntities, mergeRecords, findDuplicates } from "../world/merge.js";
+import { confidence, labelUncertainty } from "../world/confidence.js";
 
 const Args = z.object({
   action: z.enum(["record", "relate", "query", "conflicts", "merge", "duplicates"]),
@@ -42,8 +43,9 @@ function formatEntity(e: WorldEntity, rels: WorldRelation[]): string {
   return `${e.type}:${e.id} — ${e.name}${e.note ? ` · ${e.note}` : ""}${conf}${relStr}`;
 }
 
-function formatCited(match: CitedMatch): string {
-  return `  ${match.text}  [source:${match.ts}]`;
+function formatCited(match: CitedMatch, score: number, label: string): string {
+  const pct = Math.round(score * 100);
+  return `  ${match.text}  [${label} · ${pct}% · source:${match.ts}]`;
 }
 
 async function doQuery(a: Parsed): Promise<ToolResult> {
@@ -56,9 +58,17 @@ async function doQuery(a: Parsed): Promise<ToolResult> {
   }
   const ents = latestEntities(recs);
   const rels = relations(recs);
+  const conflicts = findConflicts(rels);
+  const conflictSubjects = new Set(conflicts.map((c) => `${c.subject}\0${c.predicate}`));
   const cited = recallWithSources(ents, rels, q);
   if (!cited.length) return { ok: true, output: `no entities match "${q}"` };
-  return { ok: true, output: cited.slice(0, 20).map(formatCited).join("\n") };
+  const now = Date.now();
+  const lines = cited.slice(0, 20).map((m) => {
+    const contradicted = conflictSubjects.has(m.id) || conflicts.some((c) => c.objects.includes(m.id));
+    const score = confidence({ ts: m.ts, now, corroboration: 1, contradicted });
+    return formatCited(m, score, labelUncertainty(score));
+  });
+  return { ok: true, output: lines.join("\n") };
 }
 
 async function doConflicts(): Promise<ToolResult> {

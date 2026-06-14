@@ -31,9 +31,10 @@ describe("worldTool", () => {
     await worldTool.execute({ action: "record", id: "jason", type: "person", name: "Jason" }, ctx);
     await worldTool.execute({ action: "relate", from: "jason", to: "indx", rel: "owns" }, ctx);
     const q = await worldTool.execute({ action: "query", q: "jason" }, ctx);
-    // cited format: "jason —owns→ indx  [source:<ts>]"
+    // cited format (slice 4): "jason —owns→ indx  [certain · 100% · source:<ts>]"
     expect(q.output).toContain("—owns→");
-    expect(q.output).toContain("[source:");
+    expect(q.output).toContain("source:");
+    expect(q.output).toMatch(/\[(certain|likely|uncertain|stale) · \d+% · source:/);
   });
 
   it("validates required fields for record", async () => {

@@ -2,14 +2,16 @@ import { appendFile, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
 
-// Structured money-making ledger — offers, prospects, and revenue.
+// Structured money-making ledger — offers, prospects, revenue, deliverables, follow-ups.
 // Append-only JSONL (~/.vanta/money.jsonl), global across projects.
-// Latest-write-wins per prospect id; pure query helpers.
+// Latest-write-wins per id; pure query helpers.
 
 export type Offer = { kind: "offer"; id: string; name: string; price?: string; note?: string; ts: string };
 export type Prospect = { kind: "prospect"; id: string; name: string; stage: "lead" | "contacted" | "replied" | "booked" | "won" | "lost"; note?: string; ts: string };
 export type Revenue = { kind: "revenue"; amount: number; source?: string; note?: string; ts: string };
-export type MoneyRecord = Offer | Prospect | Revenue;
+export type Deliverable = { kind: "deliverable"; id: string; prospectId?: string; title: string; status: "todo" | "doing" | "done"; due?: string; created: string; updated: string };
+export type Followup = { kind: "followup"; id: string; prospectId: string; note: string; due: string; done?: string; created: string; updated: string };
+export type MoneyRecord = Offer | Prospect | Revenue | Deliverable | Followup;
 
 function moneyPath(env: NodeJS.ProcessEnv): string {
   return join(resolveVantaHome(env), "money.jsonl");

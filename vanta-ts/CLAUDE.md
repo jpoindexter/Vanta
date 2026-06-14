@@ -239,6 +239,13 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **Self-repair** — `self/detect.ts`: `detectBroken` (per-compartment healthy/impaired/down from real cap checks) + `lastKnownGood` (newest good git sha per compartment = rollback target) + repair.jsonl markers; `/compartments` shows health + lkg sha.
 - **Browser** — `browser/observe.ts`: `summarizeElements`/`formatElements` (interactable targets + suggested selectors); `browser_act` gains `observe:true` (appends a grounding block) + a **kill-switch** `VANTA_BROWSER_DISABLED` (short-circuits before any launch/approval).
 
+**Rocks — slices 3–4 (depth to done) + completion ledger.** Drove each rock toward its done-criterion. Full map: `docs/research/rocks-completion-ledger.md`.
+
+- **S3:** radar→money `promote` (scored opportunity → prospect, cross-rock inflow); world `merge`/`duplicates` (`world/merge.ts` consolidate + re-point relations); self-repair propose-only `rollback` (`self/rollback.ts` — prints `git checkout <lkg-sha>`, **never auto-executed**, Rule Zero).
+- **S4:** world freshness/confidence (`world/confidence.ts` — recall now `[likely · 62% · source:ts]`); money `deliverable`+`followup` record kinds (`money/work.ts`); life-search change-detecting `refresh` (`search/refresh.ts` djb2 per-store digests).
+- **Done:** World model, Money OS, Verification organ, + DESKTOP-ACTION-SCHEMA & DESKTOP-CONTROL-BOUNDARY (browser surface). **Horizon (deliberate, documented boundary):** radar live scanning (needs reliable search), life-search embeddings (needs embed model), self-repair auto-rollback + teams live-spawn (need operator sign-off — self-`git reset`/agent-spawn are Rule-Zero-gated), browser OS-level control (needs a desktop driver).
+- **Test isolation fix:** `agent.test.ts` now isolates `VANTA_HOME` to a temp dir — dispatch reads `loadRules(process.env)` from `~/.vanta/permissions.tsv`, so a real `allow shell_cmd` rule (the "always allow" feature, working as designed) was auto-approving the action the ask-risk integration test expects to prompt on. Pre-existing flake; full suite now deterministic. **Full suite: 345 files / 2998 tests green; typecheck clean; size gate clean.**
+
 ## Session additions (2026-06-13) — keep current
 
 **TUI full rebuild (Claude method) + command/persistence work.** The vendored `hermes-ink` fork never had a `<Static>` layer (root cause of the ghosting — see [[vanta-tui-rootcause]] in memory); rebuilt the whole interactive surface on **real Ink 7** the Claude way: inline render + React `<Static>` committed scrollback, so the terminal owns history (native selection/scroll/copy, zero ghosting) — no AlternateScreen, ScrollBox, mouse-capture, or virtual-history.

@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { runAgent, createConversation } from "./agent.js";
 import { SafetyClient } from "./safety-client.js";
 import { buildRegistry } from "./tools/index.js";
@@ -24,8 +27,23 @@ class FakeProvider implements LLMProvider {
 }
 
 let kernelUp = false;
+let home = "";
+let prevHome: string | undefined;
 beforeAll(async () => {
+  // Isolate the permission store: dispatch reads loadRules(process.env) from
+  // ~/.vanta/permissions.tsv, so a real `allow shell_cmd` rule (from the
+  // "always allow" feature) would auto-approve the ask-risk action this test
+  // expects to prompt on. A clean temp VANTA_HOME makes the gate deterministic.
+  prevHome = process.env.VANTA_HOME;
+  home = mkdtempSync(join(tmpdir(), "vanta-agent-test-"));
+  process.env.VANTA_HOME = home;
   kernelUp = await new SafetyClient(KERNEL_URL).status();
+});
+
+afterAll(() => {
+  if (prevHome === undefined) delete process.env.VANTA_HOME;
+  else process.env.VANTA_HOME = prevHome;
+  if (home) rmSync(home, { recursive: true, force: true });
 });
 
 describe("agent dispatch against the live kernel", () => {
