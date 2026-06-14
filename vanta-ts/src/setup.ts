@@ -127,10 +127,12 @@ export async function askSecret(question: string): Promise<string> {
   }
 }
 
-/** Provider picker (↑/↓ · Enter). Always returns an entry. */
+/** Provider picker (↑/↓ · Enter). Cursor starts on the current provider. Always returns an entry. */
 async function chooseProviderStep(): Promise<ProviderEntry> {
   const labels = PROVIDER_CATALOG.map((p) => `${p.label}${p.note ? `  (${p.note})` : ""}`);
-  const entry = PROVIDER_CATALOG[await select("Pick a model backend (↑/↓ · Enter):", labels)] ?? PROVIDER_CATALOG[0];
+  const current = PROVIDER_CATALOG.findIndex((p) => p.id === process.env.VANTA_PROVIDER);
+  const i = await select("Pick a model backend (↑/↓ · Enter):", labels, { initial: Math.max(0, current) });
+  const entry = PROVIDER_CATALOG[i] ?? PROVIDER_CATALOG[0];
   if (!entry) throw new Error("provider catalog is empty"); // unreachable — non-empty const
   return entry;
 }
