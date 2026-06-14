@@ -1,4 +1,5 @@
 import type { Message } from "./types.js";
+import { compactionReminder } from "./repl/compaction-remind.js";
 
 const CHARS_PER_TOKEN = 4;
 
@@ -100,7 +101,15 @@ export async function compressMessages(
   const protectLast = opts.protectLast ?? 6;
   const threshold = (opts.thresholdPct ?? 75) / 100;
 
-  if (estimateTokens(messages) <= contextWindow * threshold) return messages;
+  const estTokens = estimateTokens(messages);
+  const reminder = compactionReminder(estTokens, contextWindow);
+  const reminderNote: Message[] = reminder ? [{ role: "user", content: reminder }] : [];
+
+  if (estTokens <= contextWindow * threshold) {
+    // Below the compress threshold but in the reminder band (70–75% by default):
+    // surface the nudge without dropping any history.
+    return reminder ? [...messages, ...reminderNote] : messages;
+  }
 
   const system = messages.filter((m) => m.role === "system");
   const rest = messages.filter((m) => m.role !== "system");
@@ -118,7 +127,9 @@ export async function compressMessages(
       role: "user",
       content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
     };
-    const compressed = [...system, ...head, note, ...tail];
+    // Interior placement (after the summary, before the tail) keeps head at
+    // index 1 and the goalNote prepend at index 1 — both pinned by tests.
+    const compressed = [...system, ...head, note, ...reminderNote, ...tail];
     if (!opts.activeGoalText) return compressed;
     const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
     return [...system, goalNote, ...compressed.slice(system.length)];

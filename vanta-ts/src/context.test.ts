@@ -101,6 +101,30 @@ describe("compressMessages", () => {
     expect(result.every((m) => !m.content.includes("Active goal"))).toBe(true);
   });
 
+  it("injects a compaction reminder when context is over the window", async () => {
+    const msgs = manyMessages(); // ~4500 tokens vs window 1000 → well over full
+    const result = await compressMessages(msgs, 1000, async () => "summary", {
+      protectFirst: 3,
+      protectLast: 6,
+    });
+    const note = result.find(
+      (m) => m.content.includes("compress") && m.content.includes("%"),
+    );
+    expect(note).toBeDefined();
+    // The reminder is interior — never at index 1 (head) nor the last slot (tail).
+    expect(result[1]).toEqual(msgs[1]);
+    expect(result[result.length - 1]).toEqual(msgs[msgs.length - 1]);
+  });
+
+  it("does not inject a compaction reminder when context is under the window", async () => {
+    const msgs: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "hi" },
+    ];
+    const result = await compressMessages(msgs, 100_000, async () => "summary");
+    expect(result.every((m) => !m.content.includes("consider /compress"))).toBe(true);
+  });
+
   it("falls back to a trimmed result when the summarizer throws", async () => {
     const msgs = manyMessages();
     const summarize = async (): Promise<string> => {
