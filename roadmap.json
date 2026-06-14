@@ -10279,10 +10279,11 @@
       "id": "REACH-COOKIE-IMPORT",
       "size": "S",
       "effort": "small",
-      "status": "next",
+      "status": "done",
       "title": "Cookie import flow — browser-exported cookie → channel auth",
       "summary": "From Agent-Reach cookie_extract.py: the shared auth path for login-walled channels (Reddit, Twitter, Xiaohongshu). User exports a cookie via the Cookie-Editor extension and hands it to Vanta; stored 0600 in ~/.vanta, never uploaded. Underpins REACH-REDDIT + REACH-TWITTER — build before them. (Agent-Reach prefers cookie export over QR scan: simpler + more reliable.)",
-      "done": "A cookie import command stores a browser-exported cookie for a named channel at ~/.vanta (0600), validated, with a clear export-and-paste guide; the auth'd channels read it."
+      "done": "A cookie import command stores a browser-exported cookie for a named channel at ~/.vanta (0600), validated, with a clear export-and-paste guide; the auth'd channels read it.",
+      "note": "DONE. reach/cookie.ts — parseCookieInput (Cookie-Editor JSON export OR k=v header → header, pure), slug-validated channel names (no traversal), 0600 store at ~/.vanta/cookies/<channel>.cookie. cookie_import tool (kernel-gated via credential-signaling describeForSafety; never echoes the value) + /cookie guide. 17 tests. 75 tools. Underpins REACH-REDDIT/REACH-TWITTER."
     },
     {
       "track": "Harness",

@@ -36,6 +36,16 @@ type ReachChannel = {
 2. Append it to `REACH_CHANNELS` in `registry.ts`.
 3. If it reads/searches content, add a kernel-gated tool (`tools/<name>-read.ts`) that the agent calls; the channel is the routing/health half.
 
+## Auth (login-walled channels)
+
+Channels like Reddit and Twitter need a logged-in session. The shared path (`reach/cookie.ts`):
+
+1. `/cookie` shows which channels have a stored cookie + the export guide.
+2. You export your browser session with the **Cookie-Editor** extension (Export → JSON) and paste it.
+3. The agent calls **`cookie_import {channel, cookie}`** — kernel-gated (its `describeForSafety` signals credential handling so the kernel asks first). The cookie is normalized to a `k=v; k2=v2` header and stored **0600** at `~/.vanta/cookies/<channel>.cookie` — local only, **never logged or echoed**.
+
+`parseCookieInput` accepts either a Cookie-Editor JSON export or a raw header; channel names are slug-validated (no path traversal). Channel tools read their cookie via `loadCookie(channel)`.
+
 ## Channels
 
 | Channel | Status | Backends | Notes |

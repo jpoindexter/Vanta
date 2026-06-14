@@ -46,6 +46,7 @@ describe("registry", () => {
       "compare_vision",
       "compose_workflow",
       "config",
+      "cookie_import",
       "delegate",
       "describe_image",
       "drive_create",

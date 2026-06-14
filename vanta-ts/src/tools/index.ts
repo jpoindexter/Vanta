@@ -55,6 +55,7 @@ import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { sleepTool } from "./sleep.js";
 import { configTool } from "./config.js";
+import { cookieImportTool } from "./cookie-import.js";
 import { briefTool } from "./brief.js";
 import { listMcpResourcesTool, readMcpResourceTool } from "./mcp-resources.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
@@ -93,6 +94,7 @@ const ALL_TOOLS: readonly Tool[] = [
   inspectStateTool,
   clarifyTool,
   configTool,
+  cookieImportTool,
   sleepTool,
   roadmapMoveTool,
   roadmapAddTool,

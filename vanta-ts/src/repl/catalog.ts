@@ -22,6 +22,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "skeptic", arg: "<claim>", desc: "adversarially verify a claim — refute by default, demand evidence" },
   { name: "locks", desc: "regression locks — verified behaviors + passing/regressed status (verification organ)" },
   { name: "reach", desc: "internet-reach doctor — each channel's active backend + status + the exact fix per gap" },
+  { name: "cookie", desc: "show login-walled reach channels with a stored cookie + the export guide" },
   { name: "goals", desc: "active goals from the kernel" },
   { name: "goal", arg: "<text|status|resume|clear|done N>", desc: "set / resume / drop a standing goal (a carried goal starts paused)" },
   { name: "plan", desc: "show the agent's current task plan (todo list)" },
