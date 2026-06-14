@@ -18,6 +18,11 @@ export type Model = (typeof MODEL)[number];
 export const EFFORT = ["low", "medium", "high"] as const;
 export type Effort = (typeof EFFORT)[number];
 
+// Advisory Codex build-routing tag. This is the model Vanta would hand to Codex
+// for the item, separate from the older Claude-tier `model` field.
+export const CODEX = ["gpt-5.4-mini", "gpt-5.4", "gpt-5.5"] as const;
+export type Codex = (typeof CODEX)[number];
+
 // Strategic lens — what this item serves for Vanta as a do-everything
 // operator, independent of track. Lets the board separate
 // the autonomous-agent spine from coding-harness leftovers and pure polish.
@@ -52,6 +57,7 @@ export const RoadmapItemSchema = z.object({
   tier: z.enum(TIER).optional(),
   model: z.enum(MODEL).optional(),
   effort: z.enum(EFFORT).optional(),
+  codex: z.enum(CODEX).optional(),
   lens: z.enum(LENS).optional(),
   // Metadata written by ship/triage tooling. Declared so RoadmapSchema.parse →
   // write round-trips (moveRoadmapItem) don't silently strip them (zod drops

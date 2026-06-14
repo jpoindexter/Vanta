@@ -34,6 +34,15 @@ describe("RoadmapItemSchema", () => {
     expect(() => RoadmapItemSchema.parse(validItem)).not.toThrow();
   });
 
+  it("accepts the optional codex routing tag", () => {
+    const parsed = RoadmapItemSchema.parse({ ...validItem, codex: "gpt-5.4-mini" });
+    expect(parsed.codex).toBe("gpt-5.4-mini");
+  });
+
+  it("rejects an unknown codex routing tag", () => {
+    expect(() => RoadmapItemSchema.parse({ ...validItem, codex: "gpt-4.5" })).toThrow();
+  });
+
   it("rejects an unknown tier/model value", () => {
     expect(() => RoadmapItemSchema.parse({ ...validItem, tier: "boulder" })).toThrow();
     expect(() => RoadmapItemSchema.parse({ ...validItem, model: "gpt" })).toThrow();

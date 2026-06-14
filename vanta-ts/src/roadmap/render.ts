@@ -21,9 +21,13 @@ const TIER_LABEL: Record<string, string> = {
 
 // model·effort build-routing badge — only when tagged
 function routing(item: RoadmapItem): string {
-  if (!item.model) return "";
-  const effort = item.effort ? ` · ${esc(item.effort)}` : "";
-  return `<span class="me m-${esc(item.model)}">${esc(item.model)}${effort}</span>`;
+  const badges: string[] = [];
+  if (item.model) {
+    const effort = item.effort ? ` · ${esc(item.effort)}` : "";
+    badges.push(`<span class="me m-${esc(item.model)}">${esc(item.model)}${effort}</span>`);
+  }
+  if (item.codex) badges.push(`<span class="me cx">codex: ${esc(item.codex)}</span>`);
+  return badges.join("");
 }
 
 function card(item: RoadmapItem): string {
@@ -85,6 +89,7 @@ h2.s-shipped{color:#475569;border-left-color:#475569}
 .m-haiku{border-color:#4ade80;color:#4ade80}
 .m-sonnet{border-color:#60a5fa;color:#60a5fa}
 .m-opus{border-color:#c084fc;color:#c084fc}
+.cx{border-color:#f59e0b;color:#f59e0b}
 .card{background:#10141b;border:1px solid #1e2737;padding:.65rem;margin-bottom:.4rem;color:#c8cdd8}
 .card:hover{border-color:#384454}
 .hd{display:flex;align-items:baseline;gap:.4rem;margin-bottom:.3rem}

@@ -7,7 +7,7 @@ const fixture: Roadmap = {
   items: [
     { id: "T1", track: "Core", title: "Shipped thing", status: "shipped", size: "S", summary: "Done.", done: "Shipped." },
     { id: "T2", track: "Core", title: "Building now", status: "building", size: "M", summary: "In progress.", done: "When done." },
-    { id: "T3", track: "MCP", title: "Next up", status: "next", size: "S", summary: "Coming.", done: "When shipped.", tier: "rock", model: "sonnet", effort: "medium" },
+    { id: "T3", track: "MCP", title: "Next up", status: "next", size: "S", summary: "Coming.", done: "When shipped.", tier: "rock", model: "sonnet", effort: "medium", codex: "gpt-5.4-mini" },
     { id: "T4", track: "Vision", title: "Future thing", status: "horizon", size: "L", summary: "Aspirational.", done: "Someday.", tier: "sand", model: "haiku", effort: "low" },
   ],
 };
@@ -50,10 +50,12 @@ describe("renderRoadmap", () => {
     expect(html).toContain("Vision");
   });
 
-  it("shows a model·effort badge for tagged items", () => {
+  it("shows model·effort and codex routing badges for tagged items", () => {
     const html = renderRoadmap(fixture);
     expect(html).toContain('class="me m-sonnet"');
     expect(html).toContain("sonnet · medium");
+    expect(html).toContain('class="me cx"');
+    expect(html).toContain("codex: gpt-5.4-mini");
   });
 
   it("groups a column by pickle-jar tier", () => {
