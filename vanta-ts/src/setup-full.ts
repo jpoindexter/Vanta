@@ -6,11 +6,11 @@ import { writeRegion } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
 import { gatherCapabilities, formatHealth } from "./repl/health-cmd.js";
 
-// `vanta setup` — the complete guided wizard, modeled on the real Hermes Agent
-// wizard (hermes_cli/setup.py): boxed banner → ◆ Configuration Location →
-// ◆ Inference provider → ◆ Messaging → ◆ Personality → ◆ Capability availability
-// (✓/✗ per capability + the exact fix) → boxed ✓ Setup complete + a summary with
-// file locations and the management commands. Model is required; the rest skip on Enter.
+// `vanta setup` — the complete guided wizard: boxed banner → ◆ Configuration
+// Location → ◆ Inference provider → settings sections → ◆ Messaging → ◆ Personality
+// → ◆ Capability availability (✓/✗ per capability + the exact fix) → boxed ✓ Setup
+// complete + a summary with file locations and the management commands.
+// Model is required; the rest skip on Enter.
 
 /** Explicit yes? Pure — empty or anything else is no. */
 export function isYes(answer: string): boolean {
@@ -29,7 +29,7 @@ export function wizardBanner(): string {
   return "\n" + box(["◆ Vanta Setup Wizard", "Configure your operator end to end · Ctrl+C to exit"]);
 }
 
-/** A section header (Hermes `print_header` analogue). Pure. */
+/** A section header (`◆ Title`). Pure. */
 export function sectionHeader(title: string): string {
   return `\n  ◆ ${title}\n`;
 }

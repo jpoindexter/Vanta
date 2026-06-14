@@ -1,10 +1,9 @@
 import { select } from "./term/select.js";
 import { askLine, askSecret, setEnv } from "./setup.js";
 
-// Hermes-parity settings sections for `vanta setup` — Vanta's real knobs, each an
-// arrow-key menu (Esc = skip). Maps Hermes's Agent/Tools/Display settings onto
-// Vanta's VANTA_* env. Excludes Hermes-only trash (Nous Portal, Spotify, TTS,
-// cloud terminal backends).
+// Settings sections for `vanta setup` — Vanta's real knobs, each an arrow-key
+// menu (Esc = skip): vision · web search · agent max-iter · memory · display ·
+// spinner, each writing the matching VANTA_* env var.
 
 export type Choice = {
   label: string;

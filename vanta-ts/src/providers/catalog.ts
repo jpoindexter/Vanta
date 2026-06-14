@@ -144,6 +144,21 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     signupUrl: "https://build.nvidia.com/settings/api-keys",
     note: "NVIDIA NIM — cloud inference at integrate.api.nvidia.com",
   },
+  { id: "deepseek", label: "DeepSeek (V3, R1, coder)", short: "DeepSeek", envVar: "DEEPSEEK_API_KEY", defaultModel: "deepseek-chat", models: ["deepseek-chat", "deepseek-reasoner"], signupUrl: "https://platform.deepseek.com/api_keys" },
+  { id: "xai", label: "xAI Grok (direct API)", short: "Grok", envVar: "XAI_API_KEY", defaultModel: "grok-4", models: ["grok-4", "grok-3", "grok-3-mini", "grok-2-1212"], signupUrl: "https://console.x.ai" },
+  { id: "groq", label: "Groq (fast inference)", short: "Groq", envVar: "GROQ_API_KEY", defaultModel: "llama-3.3-70b-versatile", models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "deepseek-r1-distill-llama-70b", "qwen-2.5-32b"], signupUrl: "https://console.groq.com/keys" },
+  { id: "mistral", label: "Mistral AI", short: "Mistral", envVar: "MISTRAL_API_KEY", defaultModel: "mistral-large-latest", models: ["mistral-large-latest", "mistral-small-latest", "codestral-latest", "ministral-8b-latest"], signupUrl: "https://console.mistral.ai/api-keys" },
+  { id: "together", label: "Together AI (open models)", short: "Together", envVar: "TOGETHER_API_KEY", defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo", models: ["meta-llama/Llama-3.3-70B-Instruct-Turbo", "deepseek-ai/DeepSeek-V3", "Qwen/Qwen2.5-72B-Instruct-Turbo"], signupUrl: "https://api.together.ai" },
+  { id: "fireworks", label: "Fireworks AI", short: "Fireworks", envVar: "FIREWORKS_API_KEY", defaultModel: "accounts/fireworks/models/llama-v3p3-70b-instruct", models: ["accounts/fireworks/models/llama-v3p3-70b-instruct", "accounts/fireworks/models/deepseek-v3", "accounts/fireworks/models/qwen2p5-72b-instruct"], signupUrl: "https://fireworks.ai/account/api-keys" },
+  { id: "cerebras", label: "Cerebras (ultra-fast)", short: "Cerebras", envVar: "CEREBRAS_API_KEY", defaultModel: "llama-3.3-70b", models: ["llama-3.3-70b", "llama3.1-8b", "qwen-3-32b"], signupUrl: "https://cloud.cerebras.ai" },
+  { id: "moonshot", label: "Moonshot / Kimi", short: "Kimi", envVar: "MOONSHOT_API_KEY", defaultModel: "kimi-k2-0905-preview", models: ["kimi-k2-0905-preview", "moonshot-v1-128k", "moonshot-v1-32k"], signupUrl: "https://platform.moonshot.ai/console/api-keys" },
+  { id: "minimax", label: "MiniMax", short: "MiniMax", envVar: "MINIMAX_API_KEY", defaultModel: "MiniMax-M2", models: ["MiniMax-M2", "abab6.5s-chat"], signupUrl: "https://www.minimax.io/platform" },
+  { id: "zai", label: "Z.AI / GLM (Zhipu)", short: "GLM", envVar: "ZAI_API_KEY", defaultModel: "glm-4.6", models: ["glm-4.6", "glm-4.5", "glm-4-flash"], signupUrl: "https://z.ai/manage-apikey/apikey-list" },
+  { id: "qwen", label: "Qwen / DashScope (Alibaba)", short: "Qwen", envVar: "DASHSCOPE_API_KEY", defaultModel: "qwen-max", models: ["qwen-max", "qwen-plus", "qwen-turbo", "qwen2.5-72b-instruct"], signupUrl: "https://dashscope.console.aliyun.com" },
+  { id: "novita", label: "NovitaAI (open models)", short: "Novita", envVar: "NOVITA_API_KEY", defaultModel: "deepseek/deepseek-v3-0324", models: ["deepseek/deepseek-v3-0324", "meta-llama/llama-3.3-70b-instruct", "qwen/qwen-2.5-72b-instruct"], signupUrl: "https://novita.ai/settings/key-management" },
+  { id: "perplexity", label: "Perplexity (Sonar, web-grounded)", short: "Perplexity", envVar: "PERPLEXITY_API_KEY", defaultModel: "sonar", models: ["sonar", "sonar-pro", "sonar-reasoning", "sonar-reasoning-pro"], signupUrl: "https://www.perplexity.ai/settings/api" },
+  { id: "huggingface", label: "Hugging Face (Inference Providers)", short: "HF", envVar: "HF_TOKEN", defaultModel: "meta-llama/Llama-3.3-70B-Instruct", models: ["meta-llama/Llama-3.3-70B-Instruct", "Qwen/Qwen2.5-72B-Instruct", "deepseek-ai/DeepSeek-V3"], signupUrl: "https://huggingface.co/settings/tokens" },
+  { id: "lmstudio", label: "LM Studio (local desktop server)", short: "LM Studio", envVar: null, defaultModel: "local-model", models: ["local-model"], note: "LM Studio → Developer → Start Server (localhost:1234), no key" },
 ];
 
 export function providerById(id: string): ProviderEntry | undefined {

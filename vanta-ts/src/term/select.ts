@@ -1,7 +1,7 @@
 import { emitKeypressEvents, type Key } from "node:readline";
 
-// Arrow-key single-select for the setup wizard — Hermes-style (↑/↓ move, Enter
-// select, Esc back). Zero-dep raw-keypress over stdin; the render is pure and the
+// Arrow-key single-select for the setup wizard (↑/↓ move, Enter/Space select,
+// Esc back). Zero-dep raw-keypress over stdin; the render is pure and the
 // input/output are injectable so the loop is unit-testable without a real TTY.
 
 export type SelectInput = NodeJS.EventEmitter & {
@@ -30,7 +30,7 @@ export function renderMenu(
 ): string {
   const width = Math.max(20, opts.width ?? 80);
   const clip = (s: string) => ([...s].length > width ? [...s].slice(0, width - 1).join("") + "…" : s);
-  // Hermes look: ` → (●) label  ← currently active` for the cursor, `   (○) label` otherwise.
+  // ` → (●) label  ← currently active` for the cursor, `   (○) label` otherwise.
   const rows = options.map((o, i) => {
     const cursor = i === active;
     const annot = i === opts.current ? "  ← currently active" : "";
@@ -65,7 +65,7 @@ export function select(title: string, options: string[], opts: SelectOpts = {}):
       prev = frame.split("\n").length;
     };
     const finish = (val: number) => {
-      if (prev) output.write(`\x1b[${prev}A\x1b[0J`); // erase the menu — clean transcript, like Hermes/curses
+      if (prev) output.write(`\x1b[${prev}A\x1b[0J`); // erase the menu — clean transcript (curses-style)
       input.off("keypress", onKey);
       input.setRawMode?.(false);
       input.pause?.();

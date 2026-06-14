@@ -61,6 +61,34 @@ function makeNvidia(env: NodeJS.ProcessEnv): LLMProvider {
   return new OpenAIProvider({ apiKey, baseURL: NVIDIA_NIM_URL, model: env.VANTA_MODEL ?? "meta/llama-3.1-70b-instruct" });
 }
 
+// OpenAI-compatible providers — same SDK, baseURL + key swap. To add one: an entry
+// here + a matching ProviderEntry in catalog.ts. Models are defaults the picker can override.
+const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }> = {
+  deepseek: { url: "https://api.deepseek.com/v1", key: "DEEPSEEK_API_KEY", model: "deepseek-chat" },
+  xai: { url: "https://api.x.ai/v1", key: "XAI_API_KEY", model: "grok-4" },
+  groq: { url: "https://api.groq.com/openai/v1", key: "GROQ_API_KEY", model: "llama-3.3-70b-versatile" },
+  mistral: { url: "https://api.mistral.ai/v1", key: "MISTRAL_API_KEY", model: "mistral-large-latest" },
+  together: { url: "https://api.together.xyz/v1", key: "TOGETHER_API_KEY", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo" },
+  fireworks: { url: "https://api.fireworks.ai/inference/v1", key: "FIREWORKS_API_KEY", model: "accounts/fireworks/models/llama-v3p3-70b-instruct" },
+  cerebras: { url: "https://api.cerebras.ai/v1", key: "CEREBRAS_API_KEY", model: "llama-3.3-70b" },
+  moonshot: { url: "https://api.moonshot.ai/v1", key: "MOONSHOT_API_KEY", model: "kimi-k2-0905-preview" },
+  minimax: { url: "https://api.minimax.io/v1", key: "MINIMAX_API_KEY", model: "MiniMax-M2" },
+  zai: { url: "https://api.z.ai/api/paas/v4", key: "ZAI_API_KEY", model: "glm-4.6" },
+  qwen: { url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1", key: "DASHSCOPE_API_KEY", model: "qwen-max" },
+  novita: { url: "https://api.novita.ai/v3/openai", key: "NOVITA_API_KEY", model: "deepseek/deepseek-v3-0324" },
+  perplexity: { url: "https://api.perplexity.ai", key: "PERPLEXITY_API_KEY", model: "sonar" },
+  huggingface: { url: "https://router.huggingface.co/v1", key: "HF_TOKEN", model: "meta-llama/Llama-3.3-70B-Instruct" },
+  lmstudio: { url: "http://localhost:1234/v1", key: "", model: "local-model" }, // local, no key
+};
+
+function makeCompat(c: { url: string; key: string; model: string }): (env: NodeJS.ProcessEnv) => LLMProvider {
+  return (env) => new OpenAIProvider({
+    apiKey: c.key ? requireKey(env, c.key, `Set ${c.key} in vanta-ts/.env (or run \`vanta setup\`).`) : "local",
+    baseURL: c.url,
+    model: env.VANTA_MODEL ?? c.model,
+  });
+}
+
 const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   openai: makeOpenAI,
   ollama: makeOllama,
@@ -73,6 +101,7 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   openrouter: makeOpenRouter,
   nvidia: makeNvidia,
   nim: makeNvidia,
+  ...Object.fromEntries(Object.entries(OPENAI_COMPAT).map(([id, c]) => [id, makeCompat(c)])),
 };
 
 /**
@@ -88,7 +117,7 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const id = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
   const factory = PROVIDERS[id];
-  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Use openai, ollama, anthropic, gemini, openrouter, codex, claude-code, or nvidia.`);
+  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Run \`vanta setup\` to pick one, or see the list: ${Object.keys(PROVIDERS).join(", ")}.`);
   return factory(env);
 }
 
