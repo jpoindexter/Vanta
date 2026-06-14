@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface, type Interface as Readline } from "node:readline/promises";
 import { PROVIDER_CATALOG, type ProviderEntry } from "./providers/catalog.js";
+import { select } from "./term/select.js";
 
 // `vanta setup` — first-run wizard. Picks a provider, takes a key (if needed) and
 // a model, and MERGES the result into vanta-ts/.env without disturbing any other
@@ -103,58 +104,76 @@ export async function promptSecret(rl: Readline, query: string): Promise<string>
   }
 }
 
-function renderProviderMenu(): string {
-  return PROVIDER_CATALOG.map((p, i) => {
-    const tail = p.note ? `  (${p.note})` : "";
-    return `  ${i + 1}. ${p.label}${tail}`;
-  }).join("\n");
+const CUSTOM = "↳ enter a custom model id";
+
+/** One-shot line prompt (cooked mode), created + closed per call so it never
+ *  fights the raw-mode select(). Returns trimmed input, or `def` if empty. */
+export async function askLine(question: string, def = ""): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return (await rl.question(question)).trim() || def;
+  } finally {
+    rl.close();
+  }
+}
+
+/** One-shot hidden prompt for a secret (created + closed per call). */
+export async function askSecret(question: string): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await promptSecret(rl, question);
+  } finally {
+    rl.close();
+  }
+}
+
+/** Provider picker (↑/↓ · Enter). Always returns an entry. */
+async function chooseProviderStep(): Promise<ProviderEntry> {
+  const labels = PROVIDER_CATALOG.map((p) => `${p.label}${p.note ? `  (${p.note})` : ""}`);
+  const entry = PROVIDER_CATALOG[await select("Pick a model backend (↑/↓ · Enter):", labels)] ?? PROVIDER_CATALOG[0];
+  if (!entry) throw new Error("provider catalog is empty"); // unreachable — non-empty const
+  return entry;
+}
+
+/** Model picker (↑/↓ · Enter · Esc = back). Returns the model id, or "" for back. */
+async function chooseModelStep(entry: ProviderEntry): Promise<string> {
+  const opts = [...entry.models, CUSTOM];
+  const i = await select(`Model for ${entry.short} (Esc = back):`, opts, {
+    canBack: true,
+    initial: Math.max(0, entry.models.indexOf(entry.defaultModel)),
+  });
+  if (i < 0) return "";
+  if (i === opts.length - 1) return askLine(`  Custom model id [${entry.defaultModel}]: `, entry.defaultModel);
+  return entry.models[i] ?? entry.defaultModel;
+}
+
+async function writeProvider(o: {
+  repoRoot: string; entry: ProviderEntry; apiKey?: string; model: string; quiet?: boolean;
+}): Promise<true> {
+  const path = envPath(o.repoRoot);
+  const existing = existsSync(path) ? await readFile(path, "utf8") : "";
+  await writeFile(path, upsertEnvMigratingLegacy(existing, buildEnvUpdates(o.entry, o.apiKey, o.model)), { mode: 0o600 });
+  console.log(`\n  ✓ Wrote ${o.entry.label} · ${o.model} to ${path}`);
+  if (!o.quiet) console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
+  return true;
 }
 
 /**
- * Run the interactive wizard. Returns true if a config was written. `rl` is
- * injectable for testing; a real TTY interface is created when omitted.
+ * Interactive model wizard with arrow-key menus (↑/↓ · Enter · Esc = back):
+ * provider → key (if needed) → model. Returns true when a config is written.
  */
-export async function runSetup(
-  repoRoot: string,
-  rl?: Readline,
-  opts: { quiet?: boolean } = {},
-): Promise<boolean> {
-  const ownRl = rl ?? createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    if (!opts.quiet) console.log("\n  Vanta setup — pick a model backend.\n");
-    console.log(renderProviderMenu());
-
-    const pick = (await ownRl.question(`\n  Provider [1-${PROVIDER_CATALOG.length}]: `)).trim();
-    const idx = Number.parseInt(pick, 10) - 1;
-    const entry = PROVIDER_CATALOG[idx];
-    if (!entry) {
-      console.log("  No valid provider chosen. Nothing written.");
-      return false;
-    }
-
-    let apiKey: string | undefined;
+export async function runSetup(repoRoot: string, opts: { quiet?: boolean } = {}): Promise<boolean> {
+  if (!opts.quiet) console.log("\n  Vanta setup — pick a model backend.\n");
+  let entry = await chooseProviderStep();
+  let apiKey: string | undefined;
+  for (;;) {
     if (entry.envVar) {
-      if (entry.signupUrl) console.log(`\n  Get a key: ${entry.signupUrl}`);
-      apiKey = await promptSecret(ownRl, `  Paste your ${entry.envVar} (hidden): `);
-      if (!apiKey) {
-        console.log("  No key entered. Nothing written.");
-        return false;
-      }
+      console.log(`\n  Get a key: ${entry.signupUrl ?? "(provider console)"}`);
+      apiKey = await askSecret(`  Paste your ${entry.envVar} (hidden · empty = back to providers): `);
+      if (!apiKey) { entry = await chooseProviderStep(); continue; }
     }
-
-    const model =
-      (await ownRl.question(`  Model [${entry.defaultModel}]: `)).trim() ||
-      entry.defaultModel;
-
-    const path = envPath(repoRoot);
-    const existing = existsSync(path) ? await readFile(path, "utf8") : "";
-    const merged = upsertEnvMigratingLegacy(existing, buildEnvUpdates(entry, apiKey, model));
-    await writeFile(path, merged, { mode: 0o600 });
-
-    console.log(`\n  ✓ Wrote ${entry.label} · ${model} to ${path}`);
-    console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
-    return true;
-  } finally {
-    if (!rl) ownRl.close();
+    const model = await chooseModelStep(entry);
+    if (model) return writeProvider({ repoRoot, entry, apiKey, model, quiet: opts.quiet });
+    if (!entry.envVar) entry = await chooseProviderStep(); // keyless: model-back re-picks provider
   }
 }

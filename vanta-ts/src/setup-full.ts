@@ -1,5 +1,5 @@
-import { createInterface, type Interface as Readline } from "node:readline/promises";
-import { runSetup, envPath } from "./setup.js";
+import { runSetup, envPath, askLine } from "./setup.js";
+import { select } from "./term/select.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
@@ -61,43 +61,37 @@ export function summaryText(repoRoot: string, env: NodeJS.ProcessEnv): string {
   ].join("\n");
 }
 
-export async function runFullSetup(
-  repoRoot: string,
-  rl?: Readline,
-  env: NodeJS.ProcessEnv = process.env,
-): Promise<boolean> {
-  const ownRl = rl ?? createInterface({ input: process.stdin, output: process.stdout });
-  const ask = (q: string) => ownRl.question(q).then((a) => a.trim());
-  try {
-    console.log(wizardBanner());
-    console.log("\n" + configLocation(repoRoot, env));
+export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+  console.log(wizardBanner());
+  console.log("\n" + configLocation(repoRoot, env));
 
+  for (;;) { // model → messaging, with Esc-back from messaging to the model step
     console.log(sectionHeader("Inference provider"));
     if (env.VANTA_PROVIDER) console.log(`  Current: ${env.VANTA_PROVIDER} · ${env.VANTA_MODEL ?? "?"}\n`);
-    if (!(await runSetup(repoRoot, ownRl, { quiet: true }))) {
+    if (!(await runSetup(repoRoot, { quiet: true }))) {
       console.log("\n  Setup needs a model backend. Re-run `vanta setup` when ready.\n");
       return false;
     }
     try { process.loadEnvFile(envPath(repoRoot)); } catch { /* fresh env unavailable */ }
 
     console.log(sectionHeader("Messaging gateway"));
-    if (isYes(await ask("  Connect a messaging gateway (Telegram, …)? [y/N]: "))) await runMessagingSetup(repoRoot, ownRl);
+    const m = await select("Connect a messaging gateway?", ["Connect Telegram / …", "Skip for now"], { canBack: true });
+    if (m === -1) continue; // Esc → back to the provider/model step
+    if (m === 0) await runMessagingSetup(repoRoot);
     else console.log("  Skipped — `vanta setup messaging` anytime.");
-
-    console.log(sectionHeader("Personality"));
-    const persona = await ask("  One line on how Vanta should act (Enter to skip): ");
-    if (persona) {
-      await writeRegion("identity", `The operator describes how I should act: ${persona}`, { append: true, env });
-      console.log("  ✓ Added to Vanta's identity.");
-    } else console.log("  Skipped — Vanta forms its personality as you work.");
-
-    console.log(sectionHeader("Capability availability"));
-    console.log(formatHealth(await gatherCapabilities(env)));
-
-    console.log("\n" + box(["✓ Setup complete!"]) + "\n");
-    console.log(summaryText(repoRoot, env) + "\n");
-    return true;
-  } finally {
-    if (!rl) ownRl.close();
+    break;
   }
+
+  console.log(sectionHeader("Personality"));
+  const persona = await askLine("  One line on how Vanta should act (Enter to skip): ");
+  if (persona) {
+    await writeRegion("identity", `The operator describes how I should act: ${persona}`, { append: true, env });
+    console.log("  ✓ Added to Vanta's identity.");
+  } else console.log("  Skipped — Vanta forms its personality as you work.");
+
+  console.log(sectionHeader("Capability availability"));
+  console.log(formatHealth(await gatherCapabilities(env)));
+  console.log("\n" + box(["✓ Setup complete!"]) + "\n");
+  console.log(summaryText(repoRoot, env) + "\n");
+  return true;
 }

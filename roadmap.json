@@ -10413,7 +10413,7 @@
       "after": [
         "SETUP-CONFIG-SYSTEM"
       ],
-      "notes": "Shipped 2026-06-14. Mirrors the real Hermes wizard (verified against a live `hermes setup` run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (Hermes setup_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix."
+      "notes": "Shipped 2026-06-14. Mirrors the real Hermes wizard (verified against a live `hermes setup` run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (Hermes setup_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix. · 2026-06-14: arrow-key navigation (term/select.ts — ↑/↓ move, Enter select, Esc=back, j/k vim) for provider + model menus + messaging; zero-dep raw-keypress, pure renderMenu + injectable IO (7 select tests). Replaces typed-number prompts; one-shot readline for hidden key/personality so it never fights raw mode."
     },
     {
       "id": "HERMES-WIZARD-REFERENCE",

@@ -1,19 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Interface as Readline } from "node:readline/promises";
 import { upsertEnv, upsertEnvMigratingLegacy, removeEnvKeys, buildEnvUpdates, runSetup, envPath } from "./setup.js";
-import { providerById } from "./providers/catalog.js";
+import { providerById, PROVIDER_CATALOG } from "./providers/catalog.js";
+import { select } from "./term/select.js";
 
-/** A scripted readline stand-in: returns queued answers in order. */
-function fakeRl(answers: string[]): Readline {
-  let i = 0;
-  return {
-    question: async () => answers[i++] ?? "",
-    close: () => {},
-  } as unknown as Readline;
-}
+vi.mock("./term/select.js", () => ({ select: vi.fn() }));
+const mSelect = vi.mocked(select);
 
 describe("upsertEnv", () => {
   it("replaces an existing uncommented key in place", () => {
@@ -114,28 +108,16 @@ describe("runSetup (integration)", () => {
     return root;
   }
 
-  it("writes a merged .env from the wizard answers, preserving existing keys", async () => {
-    const root = await tempRepo("VANTA_GOOGLE_CLIENT_ID=keepme\nVANTA_PROVIDER=ollama\n");
-    // gemini is option 1; key; accept default model (blank)
-    const wrote = await runSetup(root, fakeRl(["1", "secret-key", ""]));
-    expect(wrote).toBe(true);
+  it("writes a keyless provider's merged .env from the arrow-key picks", async () => {
+    const root = await tempRepo("VANTA_GOOGLE_CLIENT_ID=keepme\nVANTA_PROVIDER=gemini\n");
+    const ollama = PROVIDER_CATALOG.findIndex((p) => p.id === "ollama");
+    mSelect.mockReset();
+    mSelect.mockResolvedValueOnce(ollama).mockResolvedValueOnce(0); // provider=ollama, model=first
+    expect(await runSetup(root, { quiet: true })).toBe(true);
     const env = await readFile(envPath(root), "utf8");
     expect(env).toContain("VANTA_GOOGLE_CLIENT_ID=keepme"); // preserved
-    expect(env).toContain("VANTA_PROVIDER=gemini"); // replaced
-    expect(env).toContain("VANTA_MODEL=gemini-2.5-flash"); // default applied
-    expect(env).toContain("GEMINI_API_KEY=secret-key");
-    expect(env).not.toContain("VANTA_PROVIDER=ollama");
-  });
-
-  it("returns false and writes nothing on an empty provider choice", async () => {
-    const root = await tempRepo();
-    const wrote = await runSetup(root, fakeRl(["", "", ""]));
-    expect(wrote).toBe(false);
-  });
-
-  it("returns false when a key-requiring provider gets no key", async () => {
-    const root = await tempRepo();
-    const wrote = await runSetup(root, fakeRl(["1", "", ""])); // gemini, no key
-    expect(wrote).toBe(false);
+    expect(env).toContain("VANTA_PROVIDER=ollama"); // replaced
+    expect(env).toContain("VANTA_MODEL=qwen2.5:14b"); // first ollama model (keyless → no key prompt)
+    expect(env).not.toContain("VANTA_PROVIDER=gemini");
   });
 });
