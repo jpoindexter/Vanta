@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { resolveWritablePath } from "./writable-zones.js";
 import { computeDiff } from "../util/diff.js";
+import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -44,16 +45,18 @@ async function verifyWrite(abs: string, content: string): Promise<string> {
   }
 }
 
-/** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
+/** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE + diagnostic-delta note. */
 async function writeAndReport(o: { abs: string; displayPath: string; content: string; isExisting: boolean; oldContent: string }): Promise<ToolResult> {
   try {
+    const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting);
     await mkdir(dirname(o.abs), { recursive: true });
     await writeFile(o.abs, o.content, "utf8");
     const kind = o.isExisting ? "overwritten" : "new file";
     const diff = computeDiff(o.oldContent, o.content);
     const proof = await verifyWrite(o.abs, o.content);
     const sizeNote = await sizeNoteFor(o.displayPath, o.abs, o.content);
-    return { ok: true, output: `wrote ${Buffer.byteLength(o.content)} bytes to ${o.displayPath} (${kind})${proof}${sizeNote}`, diff: diff.length ? diff : undefined };
+    const diagNote = await finishDiag();
+    return { ok: true, output: `wrote ${Buffer.byteLength(o.content)} bytes to ${o.displayPath} (${kind})${proof}${sizeNote}${diagNote}`, diff: diff.length ? diff : undefined };
   } catch (err) {
     return { ok: false, output: `could not write ${o.displayPath}: ${(err as Error).message}` };
   }

@@ -180,6 +180,37 @@ describe("write_file", () => {
     expect(txt.output).not.toContain("size gate");
   });
 
+  it("CC-DIAGNOSTIC-BASELINE: a new TS type error introduced by an overwrite is surfaced", async () => {
+    // Start clean (empty baseline), then overwrite with a fresh type error.
+    await writeFileTool.execute({ path: "intro.ts", content: "export const n: number = 1;\n" }, ctx());
+    const res = await writeFileTool.execute(
+      { path: "intro.ts", content: "export const n: number = 'oops';\n" },
+      ctx({ requestApproval: async () => true }),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("new diagnostic(s) from this edit");
+    expect(res.output).toMatch(/not assignable/i);
+  });
+
+  it("CC-DIAGNOSTIC-BASELINE: a pre-existing error untouched by the edit is filtered as baseline", async () => {
+    // Seed a file that already has a type error.
+    await writeFile(join(root, "pre.ts"), "export const n: number = 'oops';\n");
+    // Overwrite, keeping the SAME pre-existing error, adding only clean lines.
+    const res = await writeFileTool.execute(
+      { path: "pre.ts", content: "export const n: number = 'oops';\nexport const ok = 1;\n" },
+      ctx({ requestApproval: async () => true }),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.output).not.toContain("new diagnostic(s) from this edit");
+  });
+
+  it("CC-DIAGNOSTIC-BASELINE: non-TS and clean TS writes get no diagnostic note", async () => {
+    const txt = await writeFileTool.execute({ path: "note.txt", content: "const x: number = 'x';" }, ctx());
+    expect(txt.output).not.toContain("new diagnostic(s)");
+    const clean = await writeFileTool.execute({ path: "good.ts", content: "export const x: number = 1;\n" }, ctx());
+    expect(clean.output).not.toContain("new diagnostic(s)");
+  });
+
   it("requires approval to overwrite, and respects denial", async () => {
     await writeFile(join(root, "exists.txt"), "original");
     const res = await writeFileTool.execute(
