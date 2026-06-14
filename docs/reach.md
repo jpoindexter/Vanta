@@ -73,6 +73,9 @@ Native GraphQL (no Python). Setup: (1) `cookie_import` an x.com Cookie-Editor ex
 
 Channels like Reddit and Twitter need a logged-in session. The shared path (`reach/cookie.ts`):
 
+**Automatic (no paste) — read the live browser session.** `cookie_import {channel, browser:"brave"}` reads the logged-in cookies straight from the browser's encrypted store (`reach/browser-cookies.ts`: macOS Keychain key → AES-128-CBC decrypt, zero deps). One Keychain approval the first time. macOS + Chromium-family (brave/chrome/edge); falls back to the manual paths below on any browser/OS. Channel→host map in `cookie-import.ts` (`twitter`→`%x.com`, `reddit`→`%reddit.com`).
+
+**Manual (any browser/OS):**
 1. `/cookie` shows which channels have a stored cookie + the export guide.
 2. Export your browser session with a **Cookie-Editor** or **"Get cookies.txt LOCALLY"** extension — works in **any** browser (Brave/Chrome/Edge/Firefox) on **any** OS. The extension does the decryption locally.
 3. Save the export to a file and run **`cookie_import {channel, file:"~/Downloads/<export>"}`** (preferred — no secret in chat), or paste it inline as `cookie`. Kernel-gated: `describeForSafety` signals credential handling so the kernel asks first; stored **0600** at `~/.vanta/cookies/<channel>.cookie`, **never logged or echoed**.
