@@ -42,7 +42,7 @@ type ReachChannel = {
 |---------|--------|----------|-------|
 | `web` | ✅ | web_fetch (Readability) | zero-config, built-in |
 | `search` | ✅ | auto ▸ ddg ▸ searxng ▸ serpapi ▸ brave ▸ bing ▸ jina | provider via `VANTA_SEARCH_PROVIDER` |
-| `rss` | _next_ | feedparser-equivalent (pure TS) | `REACH-RSS` |
+| `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | _next_ | opencli ▸ rdt-cli | `REACH-REDDIT` (needs cookie) |
 
 Build queue + the deferred platforms (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) are tracked as `REACH-*` cards in `roadmap.json`.

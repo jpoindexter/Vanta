@@ -87,6 +87,7 @@ describe("registry", () => {
       "retrieve_original",
       "roadmap_add",
       "roadmap_move",
+      "rss_read",
       "run_code",
       "screenshot",
       "self_repair",

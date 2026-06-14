@@ -43,10 +43,15 @@ describe("resolveChannel", () => {
 });
 
 describe("checkAll + formatDoctor", () => {
-  it("returns a status for every seed channel", async () => {
+  it("returns a status for every registered channel", async () => {
     const statuses = await checkAll({}, REACH_CHANNELS);
-    expect(statuses.map((s) => s.name).sort()).toEqual(["search", "web"]);
+    expect(statuses.map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
     expect(statuses.every((s) => s.status === "ok")).toBe(true);
+  });
+
+  it("routes a feed URL to the rss channel, not web", () => {
+    expect(resolveChannel("https://blog.test/feed.xml")?.name).toBe("rss");
+    expect(resolveChannel("https://reddit.com/r/x.rss")?.name).toBe("rss");
   });
 
   it("renders an off channel with its fix line", () => {

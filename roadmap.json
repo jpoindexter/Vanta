@@ -10222,10 +10222,11 @@
       "tier": "pebble",
       "size": "S",
       "effort": "small",
-      "status": "next",
+      "status": "done",
       "title": "RSS/Atom channel — subscribe + read feeds",
       "summary": "From Agent-Reach rss.py (feedparser): a zero-config, pure-TS RSS/Atom read tool (native fetch + parse, no external CLI). First reach channel to build — cheapest, and feeds Opportunity-Radar's scan_web with curated pain-signal feeds (subreddits-as-RSS, HN, indie-hacker blogs).",
-      "done": "An rss_read tool fetches + parses an RSS/Atom feed to clean items (title/link/date/summary); errors-as-values; tested with an inline fixture (no network)."
+      "done": "An rss_read tool fetches + parses an RSS/Atom feed to clean items (title/link/date/summary); errors-as-values; tested with an inline fixture (no network).",
+      "note": "DONE. reach/rss-parse.ts — dependency-free RSS 2.0 + Atom parser (block+tag extractor, CDATA/entity clean, tolerant). rss_read tool (native fetch, limit, errors-as-values) + rss reach channel (canHandle feed URLs, routes before web). 20 tests. 74 tools."
     },
     {
       "track": "Harness",

@@ -1,9 +1,11 @@
 import type { ReachChannel, ChannelStatus } from "./channel.js";
 import { webChannel } from "./channels/web.js";
 import { searchChannel } from "./channels/search.js";
+import { rssChannel } from "./channels/rss.js";
 
-/** Every registered reach channel. Add a platform = append its channel here. */
-export const REACH_CHANNELS: ReachChannel[] = [webChannel, searchChannel];
+// Order matters for resolveChannel: more specific URL matchers (rss) come before
+// the catch-all `web` so a feed link routes to rss, not the generic reader.
+export const REACH_CHANNELS: ReachChannel[] = [rssChannel, webChannel, searchChannel];
 
 /** The first channel that handles a URL (URL-routed read), or undefined. */
 export function resolveChannel(
