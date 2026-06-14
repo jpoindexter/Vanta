@@ -47,4 +47,34 @@ describe("resolveProvider", () => {
       /Unknown VANTA_PROVIDER.*gemini.*openrouter/s,
     );
   });
+
+  it("resolves OpenAI-compatible backends via baseURL swap", () => {
+    expect(resolveProvider({ VANTA_PROVIDER: "deepseek", DEEPSEEK_API_KEY: "k" }).modelId()).toBe("deepseek-chat");
+    expect(resolveProvider({ VANTA_PROVIDER: "groq", GROQ_API_KEY: "k" }).modelId()).toBe("llama-3.3-70b-versatile");
+    expect(resolveProvider({ VANTA_PROVIDER: "stepfun", STEPFUN_API_KEY: "k" }).modelId()).toBe("step-2-16k");
+  });
+
+  it("resolves LM Studio locally with no key", () => {
+    expect(resolveProvider({ VANTA_PROVIDER: "lmstudio" }).modelId()).toBe("local-model");
+  });
+
+  it("resolves Azure with the deployment as the default model", () => {
+    const p = resolveProvider({
+      VANTA_PROVIDER: "azure",
+      AZURE_OPENAI_ENDPOINT: "https://r.openai.azure.com",
+      AZURE_OPENAI_DEPLOYMENT: "gpt4o",
+      AZURE_OPENAI_API_KEY: "k",
+    });
+    expect(p.modelId()).toBe("gpt4o");
+  });
+
+  it("resolves a custom OpenAI-compatible endpoint via VANTA_OPENAI_BASE_URL", () => {
+    const p = resolveProvider({ VANTA_PROVIDER: "custom", VANTA_OPENAI_BASE_URL: "https://api.example.com/v1", VANTA_MODEL: "x" });
+    expect(p.modelId()).toBe("x");
+  });
+
+  it("throws actionably when a compat key or the custom base URL is missing", () => {
+    expect(() => resolveProvider({ VANTA_PROVIDER: "deepseek" })).toThrow(/DEEPSEEK_API_KEY/);
+    expect(() => resolveProvider({ VANTA_PROVIDER: "custom" })).toThrow(/VANTA_OPENAI_BASE_URL/);
+  });
 });

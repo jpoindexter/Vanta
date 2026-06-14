@@ -10433,15 +10433,16 @@
       "id": "SETUP-PROVIDERS-BESPOKE",
       "track": "Operator",
       "title": "Providers — bespoke-adapter backends",
-      "status": "next",
+      "status": "building",
       "size": "M",
       "tier": "pebble",
       "lens": "infra",
       "effort": "high",
-      "summary": "Remaining backends that need their own adapter (not OpenAI-compatible): AWS Bedrock (AWS SDK / SigV4), Azure Foundry (Azure auth), StepFun, Arcee AI, GMI Cloud, Kilo Code, OpenCode. Catalog + a per-provider adapter each.",
-      "done": "Bedrock + Azure + the niche backends selectable in `vanta setup`.",
+      "summary": "StepFun + Azure OpenAI/AI-Foundry (OpenAIProvider extended with defaultQuery/defaultHeaders for the api-version + api-key quirks) shipped, plus a generic `custom` OpenAI-compatible endpoint (VANTA_OPENAI_BASE_URL) that covers Arcee/GMI/Kilo/OpenCode and any other OpenAI-compatible API without hardcoding each baseURL. Remaining: AWS Bedrock — NOT OpenAI-compatible (SigV4 + the Converse API), needs the @aws-sdk/client-bedrock-runtime dependency (~MBs) — a deliberate dep decision, flagged not silently added.",
+      "done": "Azure + StepFun selectable in `vanta setup`; `custom` endpoint covers any OpenAI-compatible backend; Bedrock pending a dep decision.",
       "updated": "2026-06-14",
-      "model": "opus"
+      "model": "opus",
+      "notes": "26 providers in the catalog. Bedrock is the only non-OpenAI-compatible one left — decide on @aws-sdk before building it."
     },
     {
       "id": "SETUP-EXPLORER",

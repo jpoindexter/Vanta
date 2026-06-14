@@ -32,8 +32,14 @@ export class OpenAIProvider implements LLMProvider {
   private readonly model: string;
   private readonly ctxWindow: number;
 
-  constructor(opts: { apiKey: string; baseURL?: string; model: string }) {
-    this.client = new OpenAI({ apiKey: opts.apiKey, baseURL: opts.baseURL });
+  constructor(opts: {
+    apiKey: string; baseURL?: string; model: string;
+    defaultQuery?: Record<string, string>; defaultHeaders?: Record<string, string>;
+  }) {
+    this.client = new OpenAI({
+      apiKey: opts.apiKey, baseURL: opts.baseURL,
+      defaultQuery: opts.defaultQuery, defaultHeaders: opts.defaultHeaders,
+    });
     this.model = opts.model;
     this.ctxWindow = CONTEXT_WINDOWS[opts.model] ?? 32_000;
   }

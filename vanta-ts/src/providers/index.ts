@@ -78,8 +78,33 @@ const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }>
   novita: { url: "https://api.novita.ai/v3/openai", key: "NOVITA_API_KEY", model: "deepseek/deepseek-v3-0324" },
   perplexity: { url: "https://api.perplexity.ai", key: "PERPLEXITY_API_KEY", model: "sonar" },
   huggingface: { url: "https://router.huggingface.co/v1", key: "HF_TOKEN", model: "meta-llama/Llama-3.3-70B-Instruct" },
+  stepfun: { url: "https://api.stepfun.com/v1", key: "STEPFUN_API_KEY", model: "step-2-16k" },
   lmstudio: { url: "http://localhost:1234/v1", key: "", model: "local-model" }, // local, no key
 };
+
+/** Azure OpenAI / AI Foundry — OpenAI-compatible but with an api-version query + api-key header. */
+function makeAzure(env: NodeJS.ProcessEnv): LLMProvider {
+  const endpoint = requireKey(env, "AZURE_OPENAI_ENDPOINT", "e.g. https://<resource>.openai.azure.com");
+  const deployment = requireKey(env, "AZURE_OPENAI_DEPLOYMENT", "your Azure deployment name");
+  const apiKey = requireKey(env, "AZURE_OPENAI_API_KEY", "your Azure OpenAI key");
+  return new OpenAIProvider({
+    apiKey,
+    baseURL: `${endpoint.replace(/\/$/, "")}/openai/deployments/${deployment}`,
+    model: env.VANTA_MODEL ?? deployment,
+    defaultQuery: { "api-version": env.AZURE_OPENAI_API_VERSION ?? "2024-10-21" },
+    defaultHeaders: { "api-key": apiKey },
+  });
+}
+
+/** Any OpenAI-compatible endpoint — point VANTA_OPENAI_BASE_URL at it (covers Arcee, GMI, Kilo, OpenCode, …). */
+function makeCustom(env: NodeJS.ProcessEnv): LLMProvider {
+  const baseURL = requireKey(env, "VANTA_OPENAI_BASE_URL", "Set the OpenAI-compatible endpoint URL (e.g. https://api.example.com/v1).");
+  return new OpenAIProvider({
+    apiKey: env.VANTA_OPENAI_KEY ?? env.OPENAI_API_KEY ?? "none",
+    baseURL,
+    model: env.VANTA_MODEL ?? "default",
+  });
+}
 
 function makeCompat(c: { url: string; key: string; model: string }): (env: NodeJS.ProcessEnv) => LLMProvider {
   return (env) => new OpenAIProvider({
@@ -101,6 +126,8 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
   openrouter: makeOpenRouter,
   nvidia: makeNvidia,
   nim: makeNvidia,
+  azure: makeAzure,
+  custom: makeCustom,
   ...Object.fromEntries(Object.entries(OPENAI_COMPAT).map(([id, c]) => [id, makeCompat(c)])),
 };
 

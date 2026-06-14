@@ -159,6 +159,9 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
   { id: "perplexity", label: "Perplexity (Sonar, web-grounded)", short: "Perplexity", envVar: "PERPLEXITY_API_KEY", defaultModel: "sonar", models: ["sonar", "sonar-pro", "sonar-reasoning", "sonar-reasoning-pro"], signupUrl: "https://www.perplexity.ai/settings/api" },
   { id: "huggingface", label: "Hugging Face (Inference Providers)", short: "HF", envVar: "HF_TOKEN", defaultModel: "meta-llama/Llama-3.3-70B-Instruct", models: ["meta-llama/Llama-3.3-70B-Instruct", "Qwen/Qwen2.5-72B-Instruct", "deepseek-ai/DeepSeek-V3"], signupUrl: "https://huggingface.co/settings/tokens" },
   { id: "lmstudio", label: "LM Studio (local desktop server)", short: "LM Studio", envVar: null, defaultModel: "local-model", models: ["local-model"], note: "LM Studio → Developer → Start Server (localhost:1234), no key" },
+  { id: "stepfun", label: "StepFun (Step models)", short: "StepFun", envVar: "STEPFUN_API_KEY", defaultModel: "step-2-16k", models: ["step-2-16k", "step-1-8k", "step-1-32k"], signupUrl: "https://platform.stepfun.com" },
+  { id: "azure", label: "Azure OpenAI / AI Foundry", short: "Azure", envVar: "AZURE_OPENAI_API_KEY", defaultModel: "gpt-4o", models: ["gpt-4o", "gpt-4o-mini", "o1", "o1-mini"], note: "also set AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_DEPLOYMENT" },
+  { id: "custom", label: "Custom OpenAI-compatible endpoint", short: "Custom", envVar: null, defaultModel: "default", models: ["default"], note: "set VANTA_OPENAI_BASE_URL (+ VANTA_OPENAI_KEY) — covers Arcee · GMI · Kilo · OpenCode · any OpenAI-compatible API" },
 ];
 
 export function providerById(id: string): ProviderEntry | undefined {
