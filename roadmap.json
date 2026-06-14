@@ -10504,15 +10504,16 @@
       "id": "SETUP-MESSAGING-PLATFORMS",
       "track": "Operator",
       "title": "Messaging — full platform set",
-      "status": "next",
+      "status": "building",
       "size": "L",
       "tier": "pebble",
       "lens": "infra",
       "effort": "high",
-      "summary": "Telegram is live. Expand the gateway to the broader platform set (Slack, Matrix, Discord, Signal, WhatsApp, Email, Teams, …) via the BaseAdapter pattern — surfaced as a `vanta setup` checklist.",
-      "done": "`vanta setup` messaging checklist covers the major platforms.",
+      "summary": "Expanded MESSAGING_CATALOG (gateway/platforms/registry.ts) to 14 platforms so `vanta setup messaging` + the wizard checklist surface the full set: live adapters = Telegram, iMessage (macOS), Signal (signal-cli); preview (catalog + setup steps, adapter pending) = WhatsApp, Slack, Discord, Matrix, Email (IMAP+SMTP), Microsoft Teams, Mattermost, Google Chat, IRC, ntfy, LINE. The `implemented` honesty flag means the wizard only CONFIGURES live ones and PREVIEWS the rest. Real per-platform adapters (each needs its own client/dep + live testing) are follow-up cards.",
+      "done": "The messaging menu covers 14 platforms with per-platform setup steps; live adapters configure, planned ones preview honestly.",
       "updated": "2026-06-14",
-      "model": "opus"
+      "model": "opus",
+      "notes": "Discovery/menu done; building the per-platform PlatformAdapters (Slack/Discord/Matrix/etc.) is the remaining work — one card each."
     },
     {
       "id": "SETUP-TOOLS-CONFIG",

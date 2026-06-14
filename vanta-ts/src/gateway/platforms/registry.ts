@@ -86,6 +86,94 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
       "Credentials are stored in ~/.vanta/whatsapp/ (outside the repo).",
     ],
   },
+  {
+    id: "slack", label: "Slack", implemented: false,
+    requiredEnv: ["VANTA_SLACK_BOT_TOKEN", "VANTA_SLACK_APP_TOKEN"], secretEnv: "VANTA_SLACK_BOT_TOKEN",
+    signupUrl: "https://api.slack.com/apps",
+    setupSteps: [
+      "Create a Slack app at api.slack.com/apps; enable Socket Mode.",
+      "Add bot scopes (chat:write, app_mentions:read, im:history) and install to your workspace.",
+      "Set VANTA_SLACK_BOT_TOKEN (xoxb-…) and VANTA_SLACK_APP_TOKEN (xapp-…).",
+    ],
+  },
+  {
+    id: "discord", label: "Discord", implemented: false,
+    requiredEnv: ["VANTA_DISCORD_TOKEN"], secretEnv: "VANTA_DISCORD_TOKEN",
+    signupUrl: "https://discord.com/developers/applications",
+    setupSteps: [
+      "Create an application + bot in the Discord Developer Portal.",
+      "Enable the MESSAGE CONTENT intent under Bot → Privileged Gateway Intents.",
+      "Invite the bot to your server, then set VANTA_DISCORD_TOKEN.",
+    ],
+  },
+  {
+    id: "matrix", label: "Matrix", implemented: false,
+    requiredEnv: ["VANTA_MATRIX_HOMESERVER", "VANTA_MATRIX_TOKEN"], secretEnv: "VANTA_MATRIX_TOKEN",
+    setupSteps: [
+      "Pick a homeserver (matrix.org or self-hosted) and create a bot account.",
+      "Get an access token for that account.",
+      "Set VANTA_MATRIX_HOMESERVER (https URL) and VANTA_MATRIX_TOKEN.",
+    ],
+  },
+  {
+    id: "email", label: "Email (IMAP + SMTP)", implemented: false,
+    requiredEnv: ["VANTA_EMAIL_IMAP", "VANTA_EMAIL_SMTP", "VANTA_EMAIL_USER", "VANTA_EMAIL_PASS"], secretEnv: "VANTA_EMAIL_PASS",
+    setupSteps: [
+      "Get IMAP + SMTP host/port for your mailbox (an app password for Gmail/Outlook).",
+      "Set VANTA_EMAIL_IMAP, VANTA_EMAIL_SMTP, VANTA_EMAIL_USER, VANTA_EMAIL_PASS.",
+    ],
+  },
+  {
+    id: "teams", label: "Microsoft Teams", implemented: false,
+    requiredEnv: ["VANTA_TEAMS_APP_ID", "VANTA_TEAMS_APP_PASSWORD"], secretEnv: "VANTA_TEAMS_APP_PASSWORD",
+    signupUrl: "https://dev.teams.microsoft.com",
+    setupSteps: [
+      "Register an Azure Bot + Teams app (Bot Framework).",
+      "Set VANTA_TEAMS_APP_ID and VANTA_TEAMS_APP_PASSWORD; expose the messaging endpoint.",
+    ],
+  },
+  {
+    id: "mattermost", label: "Mattermost", implemented: false,
+    requiredEnv: ["VANTA_MATTERMOST_URL", "VANTA_MATTERMOST_TOKEN"], secretEnv: "VANTA_MATTERMOST_TOKEN",
+    setupSteps: [
+      "Create a bot account in your Mattermost (System Console → Integrations).",
+      "Set VANTA_MATTERMOST_URL (server URL) and VANTA_MATTERMOST_TOKEN.",
+    ],
+  },
+  {
+    id: "googlechat", label: "Google Chat", implemented: false,
+    requiredEnv: ["VANTA_GOOGLECHAT_SA"], secretEnv: "VANTA_GOOGLECHAT_SA",
+    setupSteps: [
+      "Enable the Google Chat API in a Google Cloud project; create a service account.",
+      "Set VANTA_GOOGLECHAT_SA to the service-account JSON path.",
+    ],
+  },
+  {
+    id: "irc", label: "IRC", implemented: false,
+    requiredEnv: ["VANTA_IRC_SERVER", "VANTA_IRC_NICK"],
+    setupSteps: [
+      "Pick an IRC server + nick (and a NickServ password if registered).",
+      "Set VANTA_IRC_SERVER (host:port) and VANTA_IRC_NICK.",
+    ],
+  },
+  {
+    id: "ntfy", label: "ntfy (push notifications)", implemented: false,
+    requiredEnv: ["VANTA_NTFY_TOPIC"],
+    signupUrl: "https://ntfy.sh",
+    setupSteps: [
+      "Pick a topic on ntfy.sh (or self-host); subscribe in the ntfy app.",
+      "Set VANTA_NTFY_TOPIC to the topic URL.",
+    ],
+  },
+  {
+    id: "line", label: "LINE", implemented: false,
+    requiredEnv: ["VANTA_LINE_TOKEN", "VANTA_LINE_SECRET"], secretEnv: "VANTA_LINE_TOKEN",
+    signupUrl: "https://developers.line.biz",
+    setupSteps: [
+      "Create a LINE Messaging API channel in the LINE Developers console.",
+      "Set VANTA_LINE_TOKEN (channel access token) and VANTA_LINE_SECRET.",
+    ],
+  },
 ];
 
 export function messagingPlatformById(id: string): MessagingPlatform | undefined {
