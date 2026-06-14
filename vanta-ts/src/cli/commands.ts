@@ -38,6 +38,8 @@ export function usage(): void {
       "       vanta cron                         run due tasks once (for launchd/cron)",
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
+      "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
+      "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
       "       vanta auth google                  one-time Google OAuth",

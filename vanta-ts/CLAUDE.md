@@ -131,6 +131,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `lint/size.ts` | CODE-SIZE-GATE — pure `analyzeSource` (TS compiler API): file≤300, fn≤50, params≤4, cyclomatic≤10 → `Violation[]` (file:line+limit+fix). `LIMITS`, `formatViolation` |
 | `lint/run.ts` | `vanta lint [files\|--staged]` — `resolveTargets` (explicit=cwd-relative, git=root-relative), `lintFiles` (reports analyzed vs missing), `runLint` (exit 1 on violations/missing) |
 | `cli.ts` | Thin entry point: bootstrap (`findRepoRoot`/`loadEnv`/`ensureVantaStore`) + `startInteractive` (TTY-gated first-run wizard) + a `COMMANDS` lookup table (a returned number = exit code). `chat`/`--resume`/`resume`/`run` stay explicit for global flags (`--init*`, `--fork-session`). Add a command = one table entry. |
+| `cli/agents-cmd.ts` | `vanta agents` management surface over `team/tasks.ts`: list/logs/attach/stop/rm/respawn, top-level aliases (`attach`, `logs`, `respawn`, `stop`, `rm`), plus `vanta daemon status/stop`. Gated by settings `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1`. |
 | `cli/commands.ts` | The `vanta <cmd>` handlers extracted from cli.ts (CODE-SIZE-GATE): `usage`/`usageExit`, `runInstruction` (shared run/skill/room path), `runSessionsList`/`runSkillsCommand`/`runMemoryCommand`/`runVoiceCommand`/`runHooksCommand`/`runSkillCommand`/`runRoomCommand` |
 | `cli/lifecycle.ts` | `parseLifecycleFlags` + `runLifecycleHooks`: `--init` runs Setup hooks, `--init-only` runs Setup + SessionStart and exits, `--maintenance` sets maintenance context and exits |
 | `cli/output-callbacks.ts` | Output callback builder for `vanta run` (`text`/`json`/`stream-json`) split out to keep `commands.ts` under size limits |
@@ -201,7 +202,7 @@ Store (Phase 2A): `VANTA_HOME` overrides the global store dir (default `~/.vanta
 
 Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `VANTA_VISION_MODEL` (describe_image, default gpt-4o-mini) · `VANTA_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
 
-Phase 7: `VANTA_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` (task-routed models; unset = no routing).
+Phase 7: `VANTA_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` (task-routed models; unset = no routing) · `VANTA_DISABLE_AGENT_VIEW=1` (kill switch for the background agent CLI surface; settings also supports `disableAgentView`).
 
 Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-time OAuth client — provision once in Google Cloud Console, then `vanta auth google` is one click per user). Tokens stored per-user in `~/.vanta/google-tokens.json`. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.
 
@@ -241,7 +242,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **World** — `world/conflicts.ts`: `findConflicts` (contradiction = same subject+predicate, different object) + `recallWithSources` (cited recall); `world` tool `conflicts` action, `query` now cited, `/world` ⚠-flags conflicts.
 - **Money** — `money/review.ts`: `suggestPrice` (median band) + `weeklyReview`; `money` tool `price`+`weekly`, `/money` weekly snapshot.
 - **Radar** — `radar/scan.ts`: `rankOpportunities` (composite pain×signal, recency tie-break) + `draftOffer`; `radar` tool `scan`+`offer`, `/radar` ranked.
-- **Teams** — `team/tasks.ts`: a task-assignment + legal-transition status ledger (team-tasks.jsonl); `team` tool `dispatch`/`advance`/`tasks`, `/team` shows per-worker load + running task. (Live agent-spawn = later slice.)
+- **Teams** — `team/tasks.ts`: a task-assignment + legal-transition status ledger (team-tasks.jsonl); `team` tool `dispatch`/`advance`/`tasks`, `/team` shows per-worker load + running task. CLI management is live via `vanta agents`, `attach/logs/respawn/stop/rm <id>`, and `daemon status/stop`; stopped/removed tasks are closed for worker load.
 - **Life-search** — `search/life-rank.ts`: dependency-free relevance ranker (term density + exact-phrase + title-hit + recency, 0..1); results ranked, `/lifesearch` relevance bar. (Vector embeddings = later slice, no embed-dep added.)
 - **Self-repair** — `self/detect.ts`: `detectBroken` (per-compartment healthy/impaired/down from real cap checks) + `lastKnownGood` (newest good git sha per compartment = rollback target) + repair.jsonl markers; `/compartments` shows health + lkg sha.
 - **Browser** — `browser/observe.ts`: `summarizeElements`/`formatElements` (interactable targets + suggested selectors); `browser_act` gains `observe:true` (appends a grounding block) + a **kill-switch** `VANTA_BROWSER_DISABLED` (short-circuits before any launch/approval).

@@ -6,7 +6,7 @@ import { resolveVantaHome } from "../store/home.js";
 // Append-only JSONL (~/.vanta/team-tasks.jsonl), global across projects.
 // Pure transition helpers enforce a legal graph; store fns are the only I/O.
 
-export type TaskStatus = "assigned" | "running" | "done" | "blocked";
+export type TaskStatus = "assigned" | "running" | "done" | "blocked" | "stopped" | "removed";
 
 export type WorkerTask = {
   kind: "task";
@@ -26,11 +26,15 @@ export type TaskResult<T> =
 
 // Legal transition graph.
 const TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  assigned: ["running"],
-  running: ["done", "blocked"],
-  blocked: ["running"],
-  done: [],
+  assigned: ["running", "stopped", "removed"],
+  running: ["done", "blocked", "stopped", "removed"],
+  blocked: ["running", "stopped", "removed"],
+  done: ["removed"],
+  stopped: ["running", "removed"],
+  removed: [],
 };
+
+const OPEN_STATUSES: ReadonlySet<TaskStatus> = new Set(["assigned", "running", "blocked"]);
 
 function tasksPath(env: NodeJS.ProcessEnv): string {
   return join(resolveVantaHome(env), "team-tasks.jsonl");
@@ -96,7 +100,7 @@ export function advanceTask(
   const updated = new Date().toISOString();
   const patch: Partial<WorkerTask> = { status: toStatus, updated };
   if (toStatus === "done") patch.result = detail;
-  if (toStatus === "blocked") patch.blocker = detail;
+  if (toStatus === "blocked" || toStatus === "stopped" || toStatus === "removed") patch.blocker = detail;
   if (toStatus === "running") { patch.result = undefined; patch.blocker = undefined; }
   return { ok: true, value: { ...task, ...patch } };
 }
@@ -110,7 +114,7 @@ export function tasksForWorker(recs: WorkerTask[], workerId: string): WorkerTask
 export function workerLoad(recs: WorkerTask[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const t of latestTasks(recs)) {
-    if (t.status === "done") continue;
+    if (!OPEN_STATUSES.has(t.status)) continue;
     counts.set(t.workerId, (counts.get(t.workerId) ?? 0) + 1);
   }
   return counts;

@@ -27,6 +27,7 @@ import {
 } from "./cli/ops.js";
 import { runModelCommand } from "./cli/model-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
+import { runAgentsCommand } from "./cli/agents-cmd.js";
 import {
   usage,
   usageExit,
@@ -205,6 +206,13 @@ const COMMANDS: Record<string, CommandFn> = {
   ref: (root, rest) => runRefCommand(root, rest),
   settings: (root, rest) => runSettingsCommand(root, rest),
   loop: (root, rest) => runLoopCommand(root, rest),
+  agents: (root, rest) => runAgentsCommand(root, rest),
+  attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
+  logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),
+  respawn: (root, rest) => runAgentsCommand(root, ["respawn", ...rest]),
+  stop: (root, rest) => runAgentsCommand(root, ["stop", ...rest]),
+  rm: (root, rest) => runAgentsCommand(root, ["rm", ...rest]),
+  daemon: (root, rest) => runAgentsCommand(root, ["daemon", ...rest]),
 };
 
 /** Parse the `run` subcommand args into instruction + outputFormat + optional jsonSchema. */

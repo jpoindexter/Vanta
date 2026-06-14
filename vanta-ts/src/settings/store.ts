@@ -22,6 +22,8 @@ export const SettingsSchema = z.object({
     researchGate: z.boolean().optional(),
     stallUnblock: z.boolean().optional(),
   }).optional(),
+  /** Disable the background agent session view and controls. */
+  disableAgentView: z.boolean().optional(),
   /** UI preferences. */
   ui: z.object({
     theme: z.string().optional(),

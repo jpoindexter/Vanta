@@ -40,6 +40,12 @@ describe("loadSettings", () => {
     expect(s.allowedTools).toContain("read_file");
   });
 
+  it("loads the disableAgentView setting", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({ disableAgentView: true }));
+    const s = await loadSettings(root, env);
+    expect(s.disableAgentView).toBe(true);
+  });
+
   it("project settings override user settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
     await writeFile(join(root, ".vanta", "settings.json"), JSON.stringify({ allowedTools: ["write_file"] }));

@@ -100,6 +100,21 @@ describe("advanceTask", () => {
     expect(r.value.blocker).toBe("waiting on api key");
   });
 
+  it("running → stopped succeeds and records the stop reason", () => {
+    const r = advanceTask(makeTask("running"), "stopped", "stopped by operator");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("stopped");
+    expect(r.value.blocker).toBe("stopped by operator");
+  });
+
+  it("done → removed succeeds so old sessions can be hidden", () => {
+    const r = advanceTask(makeTask("done"), "removed", "removed by operator");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("removed");
+  });
+
   it("blocked → running succeeds and clears blocker", () => {
     const base = { ...makeTask("blocked"), blocker: "old blocker" };
     const r = advanceTask(base, "running");
@@ -120,7 +135,7 @@ describe("advanceTask", () => {
     const r = advanceTask(makeTask("done"), "running");
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.error).toMatch(/none/);
+    expect(r.error).toMatch(/illegal transition/);
   });
 
   it("assigned → blocked is rejected", () => {
@@ -147,10 +162,13 @@ describe("tasksForWorker + workerLoad", () => {
       task("t2", "w1", "running"),
       task("t3", "w1", "done"),
       task("t4", "w2", "blocked"),
+      task("t5", "w2", "stopped"),
+      task("t6", "w3", "removed"),
     ];
     const load = workerLoad(recs);
     expect(load.get("w1")).toBe(2); // assigned + running, not done
-    expect(load.get("w2")).toBe(1); // blocked
+    expect(load.get("w2")).toBe(1); // blocked, not stopped
+    expect(load.has("w3")).toBe(false);
   });
 
   it("workerLoad returns empty map when all tasks are done", () => {

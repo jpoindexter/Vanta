@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3234 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
+- **Last recorded full verify:** 3251 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-14 notes)
 
 ## Run + Verify
 
@@ -34,6 +34,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
 - **Desktop:** seed localhost surface in `vanta-ts/src/desktop/`; still denies approval-required actions until an explicit approval UI exists.
 - **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
+- **Background agents:** `vanta-ts/src/cli/agents-cmd.ts` manages `~/.vanta/team-tasks.jsonl`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop`. `disableAgentView` / `VANTA_DISABLE_AGENT_VIEW=1` disables the surface.
 
 ## Recent Shipped Surface
 
@@ -41,7 +42,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - `/init`, lifecycle init flags, and resume forking: `vanta-ts/src/repl/init-cmd.ts`, `vanta-ts/src/cli/lifecycle.ts`, `vanta-ts/src/sessions/store.ts`.
 - Auto minimalism skill + `/auto`; plan-mode and task-boundary EF surfaces; 14 bundled `nd-*` skills.
 - Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.
-- Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback + limb sandbox-test, teams live-spawn.
+- Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management.
 - Reach layer: channel doctor, RSS, Reddit, cookie import; deferred reach channels tracked as `REACH-*`.
 
 ## Current Open Edges
