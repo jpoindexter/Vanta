@@ -12,13 +12,20 @@ const press = (em: SelectInput, name: string, mods: object = {}) => (em as Event
 
 describe("renderMenu", () => {
   it("marks the active row with ❯ and shows the hint", () => {
-    const f = renderMenu("Pick", ["a", "b", "c"], 1, true);
+    const f = renderMenu("Pick", ["a", "b", "c"], 1, { canBack: true });
     expect(f).toContain("  ❯ b");
     expect(f).toContain("    a");
     expect(f).toContain("Esc back");
   });
   it("omits Esc-back when canBack is false", () => {
-    expect(renderMenu("Pick", ["a"], 0, false)).not.toContain("Esc back");
+    expect(renderMenu("Pick", ["a"], 0, {})).not.toContain("Esc back");
+  });
+  it("clips a long row to the width so it never wraps", () => {
+    const long = "x".repeat(200);
+    const f = renderMenu("t", [long], 0, { width: 40 });
+    const rowLine = f.split("\n").find((l) => l.includes("x")) ?? "";
+    expect([...rowLine].length).toBeLessThanOrEqual(40);
+    expect(rowLine.endsWith("…")).toBe(true);
   });
 });
 
