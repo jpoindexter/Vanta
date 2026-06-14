@@ -15,6 +15,7 @@ import { readSessionMemory, sessionMemoryBlock } from "./memory/session-memory.j
 import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { mountMcpServers } from "./mcp/mount.js";
+import { toolProgressMode } from "./repl/tool-progress.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import type { Summarizer } from "./context.js";
@@ -226,15 +227,17 @@ function firstLine(text: string): string {
   return line.length > 100 ? `${line.slice(0, 97)}...` : line;
 }
 
-/** Live tool-activity printers shared by run + chat. */
-export function consoleCallbacks(): Pick<
+/** Live tool-activity printers shared by run + chat. Verbosity: VANTA_TOOL_PROGRESS. */
+export function consoleCallbacks(env: NodeJS.ProcessEnv = process.env): Pick<
   AgentDeps,
   "onText" | "onToolCall" | "onToolResult"
 > {
+  const mode = toolProgressMode(env);
   return {
     onText: (t) => console.log(t),
-    onToolCall: (n, a) => console.log(`  → ${n}(${shortArgs(a)})`),
+    onToolCall: (n, a) => { if (mode === "full") console.log(`  → ${n}(${shortArgs(a)})`); },
     onToolResult: (n, ok, out) => {
+      if (mode === "off") return;
       console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`);
       // Print the live checklist every time the agent updates it.
       if (n === "todo" && ok && out.includes("done)")) {

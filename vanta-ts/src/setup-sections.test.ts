@@ -21,7 +21,9 @@ beforeEach(() => vi.clearAllMocks());
 describe("SETTINGS catalog", () => {
   it("covers Vanta's non-trash knobs; no Nous/Spotify/TTS", () => {
     expect(SETTINGS.map((s) => s.key)).toEqual([
-      "VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS", "VANTA_THEME", "VANTA_SPINNER",
+      "VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS",
+      "VANTA_THINKING_BUDGET", "VANTA_AUTO_COMPACT_THRESHOLD", "VANTA_RESUME_MAX_AGE_MIN", "VANTA_TOOL_PROGRESS",
+      "VANTA_THEME", "VANTA_SPINNER",
     ]);
     const blob = JSON.stringify(SETTINGS).toLowerCase();
     expect(blob).not.toContain("nous");
@@ -61,5 +63,19 @@ describe("runSettingSection", () => {
     mAskLine.mockResolvedValue("my-vision-model");
     await runSettingSection("/repo", vision);
     expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_VISION_MODEL: "my-vision-model" });
+  });
+
+  it("an agent-knob section (tool-progress) writes its value", async () => {
+    mSelect.mockResolvedValue(2); // tool-progress[2] = off
+    await runSettingSection("/repo", byKey("VANTA_TOOL_PROGRESS")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_TOOL_PROGRESS: "off" });
+  });
+
+  it("a custom agent-knob (thinking budget) writes the typed value", async () => {
+    const tb = byKey("VANTA_THINKING_BUDGET")!;
+    mSelect.mockResolvedValue(tb.choices.length); // custom index = after the 3 choices
+    mAskLine.mockResolvedValue("6000");
+    await runSettingSection("/repo", tb);
+    expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_THINKING_BUDGET: "6000" });
   });
 });

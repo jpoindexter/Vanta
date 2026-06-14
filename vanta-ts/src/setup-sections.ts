@@ -68,6 +68,49 @@ export const SETTINGS: SettingSection[] = [
     custom: true,
   },
   {
+    header: "Reasoning depth (extended thinking)",
+    key: "VANTA_THINKING_BUDGET",
+    intro: "  Token budget for step-by-step reasoning on Anthropic/Claude models. 0 = off.",
+    choices: [
+      { label: "Off — no extended thinking [default]", value: "0" },
+      { label: "4000 — light reasoning", value: "4000" },
+      { label: "10000 — deep reasoning", value: "10000" },
+    ],
+    custom: true,
+  },
+  {
+    header: "Context compaction threshold",
+    key: "VANTA_AUTO_COMPACT_THRESHOLD",
+    intro: "  Fraction of the context window that triggers auto-compaction (default 0.75).",
+    choices: [
+      { label: "Keep default (0.75)" },
+      { label: "0.6 — compact earlier (leaner context)", value: "0.6" },
+      { label: "0.85 — compact later (more live context)", value: "0.85" },
+    ],
+    custom: true,
+  },
+  {
+    header: "Session resume window",
+    key: "VANTA_RESUME_MAX_AGE_MIN",
+    intro: "  Carry a prior thread into a restart only if newer than N minutes. 0 = always start clean.",
+    choices: [
+      { label: "120 — default", value: "120" },
+      { label: "30 — only very recent", value: "30" },
+      { label: "0 — always start clean", value: "0" },
+    ],
+    custom: true,
+  },
+  {
+    header: "Tool-progress display (CLI runs)",
+    key: "VANTA_TOOL_PROGRESS",
+    intro: "  How much tool activity one-shot `vanta run` prints (the TUI always shows progress).",
+    choices: [
+      { label: "full — calls + results [default]", value: "full" },
+      { label: "compact — results only", value: "compact" },
+      { label: "off — text only", value: "off" },
+    ],
+  },
+  {
     header: "Display theme",
     key: "VANTA_THEME",
     intro: "  TUI color theme.",

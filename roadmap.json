@@ -10410,10 +10410,10 @@
       "effort": "medium",
       "lens": "infra",
       "updated": "2026-06-14",
+      "notes": "Shipped 2026-06-14. Mirrors the reference wizard (verified against a live reference run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (the reference wizard_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix. · 2026-06-14: arrow-key navigation (term/select.ts — ↑/↓ move, Enter select, Esc=back, j/k vim) for provider + model menus + messaging; zero-dep raw-keypress, pure renderMenu + injectable IO (7 select tests). Replaces typed-number prompts; one-shot readline for hidden key/personality so it never fights raw mode. · 2026-06-14: parity settings sections (setup-sections.ts SETTINGS) — vision model, web-search backend (+keys: serpapi/brave, searxng url), agent max-iterations, display theme — each an arrow-key Esc-skip menu writing the VANTA_* env via setEnv. Maps the reference wizard/Tools/Display settings onto Vanta config; excludes the trash (Nous Portal, Spotify, TTS, cloud terminal backends).",
       "after": [
         "SETUP-CONFIG-SYSTEM"
-      ],
-      "notes": "Shipped 2026-06-14. Mirrors the reference wizard (verified against a live reference run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (the reference wizard_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix. · 2026-06-14: arrow-key navigation (term/select.ts — ↑/↓ move, Enter select, Esc=back, j/k vim) for provider + model menus + messaging; zero-dep raw-keypress, pure renderMenu + injectable IO (7 select tests). Replaces typed-number prompts; one-shot readline for hidden key/personality so it never fights raw mode. · 2026-06-14: parity settings sections (setup-sections.ts SETTINGS) — vision model, web-search backend (+keys: serpapi/brave, searxng url), agent max-iterations, display theme — each an arrow-key Esc-skip menu writing the VANTA_* env via setEnv. Maps the reference wizard/Tools/Display settings onto Vanta config; excludes the trash (Nous Portal, Spotify, TTS, cloud terminal backends)."
+      ]
     },
     {
       "id": "SETUP-PROVIDERS-COMPAT",
@@ -10421,13 +10421,13 @@
       "title": "Providers — 15 OpenAI-compatible backends",
       "status": "shipped",
       "size": "M",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "Added DeepSeek, xAI Grok, Groq, Mistral, Together, Fireworks, Cerebras, Moonshot/Kimi, MiniMax, Z.AI/GLM, Qwen/DashScope, NovitaAI, Perplexity, Hugging Face, LM Studio — all via the OpenAI adapter + baseURL swap (providers/index.ts OPENAI_COMPAT map + catalog.ts). PROVIDER_CATALOG now 23. Each resolves (104 provider tests green).",
       "done": "23 providers in `vanta setup`; all OpenAI-compatible ones resolve via baseURL.",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-PROVIDERS-BESPOKE",
@@ -10435,13 +10435,13 @@
       "title": "Providers — bespoke-adapter backends",
       "status": "building",
       "size": "M",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "high",
       "summary": "StepFun + Azure OpenAI/AI-Foundry (OpenAIProvider extended with defaultQuery/defaultHeaders for the api-version + api-key quirks) shipped, plus a generic `custom` OpenAI-compatible endpoint (VANTA_OPENAI_BASE_URL) that covers Arcee/GMI/Kilo/OpenCode and any other OpenAI-compatible API without hardcoding each baseURL. Remaining: AWS Bedrock — NOT OpenAI-compatible (SigV4 + the Converse API), needs the @aws-sdk/client-bedrock-runtime dependency (~MBs) — a deliberate dep decision, flagged not silently added.",
       "done": "Azure + StepFun selectable in `vanta setup`; `custom` endpoint covers any OpenAI-compatible backend; Bedrock pending a dep decision.",
-      "updated": "2026-06-14",
+      "tier": "pebble",
       "model": "opus",
+      "effort": "high",
+      "lens": "infra",
+      "updated": "2026-06-14",
       "notes": "26 providers shipped. Bedrock broken out as SETUP-PROVIDER-BEDROCK (needs an AWS-SDK dep decision)."
     },
     {
@@ -10450,13 +10450,13 @@
       "title": "Interactive setup explorer (HTML demo)",
       "status": "shipped",
       "size": "S",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "docs/design-refs/vanta-setup-explorer.html — dropdown nav over every setup page, each showing all options in the real terminal look (●/○ menus, [✓] checklists). Vanta-branded, full provider/terminal/TTS/agent/messaging/tools lists, minus consumer toys.",
       "done": "Dropdown-navigable explorer of every setup section + all options.",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-TERMINAL-BACKEND",
@@ -10464,13 +10464,13 @@
       "title": "Terminal / execution backend selection",
       "status": "next",
       "size": "M",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "A `vanta setup` section to choose where shell + code run: local (default) · sandboxed (CC-SANDBOX) · docker · ssh. Optional cloud sandboxes later.",
       "done": "`vanta setup` offers local/sandbox/docker/ssh execution.",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-TTS",
@@ -10478,27 +10478,27 @@
       "title": "TTS provider section",
       "status": "next",
       "size": "S",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "A `vanta setup` section for the voice/TTS provider (Edge keyless default · OpenAI · ElevenLabs · local). Vanta has speak/transcribe tools; this wires provider choice + keys.",
       "done": "`vanta setup` configures a TTS provider for spoken replies.",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-AGENT-SETTINGS",
       "track": "Operator",
       "title": "Agent settings — full section set",
-      "status": "building",
+      "status": "shipped",
       "size": "M",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "Agent-settings sections in `vanta setup`. Max-iterations shipped (VANTA_MAX_ITER). Remaining: tool-progress display, reasoning effort, compression threshold, session-reset policy.",
-      "done": "All agent knobs configurable in `vanta setup` (max-iter shipped).",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "done": "All agent knobs now configurable in `vanta setup`: max-iter + memory budget (prior), plus reasoning depth (VANTA_THINKING_BUDGET), context-compaction threshold (VANTA_AUTO_COMPACT_THRESHOLD), session-resume window (VANTA_RESUME_MAX_AGE_MIN), and CLI tool-progress display (VANTA_TOOL_PROGRESS: full/compact/off, wired into consoleCallbacks). 4 new SETTINGS sections + a tool-progress helper; tests + .env.example updated.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-MESSAGING-PLATFORMS",
@@ -10506,13 +10506,13 @@
       "title": "Messaging — full platform set",
       "status": "building",
       "size": "L",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "high",
       "summary": "Expanded MESSAGING_CATALOG (gateway/platforms/registry.ts) to 14 platforms so `vanta setup messaging` + the wizard checklist surface the full set: live adapters = Telegram, iMessage (macOS), Signal (signal-cli); preview (catalog + setup steps, adapter pending) = WhatsApp, Slack, Discord, Matrix, Email (IMAP+SMTP), Microsoft Teams, Mattermost, Google Chat, IRC, ntfy, LINE. The `implemented` honesty flag means the wizard only CONFIGURES live ones and PREVIEWS the rest. Real per-platform adapters (each needs its own client/dep + live testing) are follow-up cards.",
       "done": "The messaging menu covers 14 platforms with per-platform setup steps; live adapters configure, planned ones preview honestly.",
-      "updated": "2026-06-14",
+      "tier": "pebble",
       "model": "opus",
+      "effort": "high",
+      "lens": "infra",
+      "updated": "2026-06-14",
       "notes": "Catalog/menu done (14 platforms). The 11 per-platform adapters are broken out as MSG-ADAPTER-* cards."
     },
     {
@@ -10521,13 +10521,13 @@
       "title": "Tools — enable/disable + provider sub-menus",
       "status": "next",
       "size": "M",
-      "tier": "pebble",
-      "lens": "infra",
-      "effort": "medium",
       "summary": "A `vanta setup` tools section: toggle toolsets on/off + per-tool provider menus (search ✓, vision ✓ shipped; browser/image-gen providers next). Minus consumer toys (Spotify, smart-home).",
       "done": "`vanta setup` tools checklist + per-tool provider selection.",
-      "updated": "2026-06-14",
-      "model": "sonnet"
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-14"
     },
     {
       "id": "SETUP-PROVIDER-BEDROCK",
@@ -10535,16 +10535,16 @@
       "title": "Provider — AWS Bedrock adapter",
       "status": "next",
       "size": "M",
+      "summary": "AWS Bedrock is the one provider that's NOT OpenAI-compatible (SigV4 request signing + the Bedrock Converse API, streaming via the event-stream format). Needs a dedicated adapter implementing LLMProvider — either via @aws-sdk/client-bedrock-runtime (multi-MB dep) or hand-rolled SigV4 + fetch (zero-dep). Decide the dep first. Catalog entry + a `bedrock` branch in resolveProvider.",
+      "done": "VANTA_PROVIDER=bedrock works with AWS creds (region + access keys / IAM); Claude/Nova/Llama models on Bedrock respond + stream.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
       "lens": "infra",
-      "summary": "AWS Bedrock is the one provider that's NOT OpenAI-compatible (SigV4 request signing + the Bedrock Converse API, streaming via the event-stream format). Needs a dedicated adapter implementing LLMProvider — either via @aws-sdk/client-bedrock-runtime (multi-MB dep) or hand-rolled SigV4 + fetch (zero-dep). Decide the dep first. Catalog entry + a `bedrock` branch in resolveProvider.",
-      "done": "VANTA_PROVIDER=bedrock works with AWS creds (region + access keys / IAM); Claude/Nova/Llama models on Bedrock respond + stream.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-PROVIDERS-BESPOKE"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-SLACK",
@@ -10552,16 +10552,16 @@
       "title": "Messaging adapter — Slack",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for Slack (gateway/platforms/slack.ts) — connect/disconnect/send/poll over the Slack API, wired to the catalog entry (registry.ts id 'slack'). Approach: @slack/bolt or Socket Mode (xoxb + xapp tokens). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Slack works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Slack (gateway/platforms/slack.ts) — connect/disconnect/send/poll over the Slack API, wired to the catalog entry (registry.ts id 'slack'). Approach: @slack/bolt or Socket Mode (xoxb + xapp tokens). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Slack works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-DISCORD",
@@ -10569,16 +10569,16 @@
       "title": "Messaging adapter — Discord",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for Discord (gateway/platforms/discord.ts) — connect/disconnect/send/poll over the Discord API, wired to the catalog entry (registry.ts id 'discord'). Approach: discord.js gateway + MESSAGE CONTENT intent. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Discord works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Discord (gateway/platforms/discord.ts) — connect/disconnect/send/poll over the Discord API, wired to the catalog entry (registry.ts id 'discord'). Approach: discord.js gateway + MESSAGE CONTENT intent. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Discord works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-MATRIX",
@@ -10586,16 +10586,16 @@
       "title": "Messaging adapter — Matrix",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for Matrix (gateway/platforms/matrix.ts) — connect/disconnect/send/poll over the Matrix API, wired to the catalog entry (registry.ts id 'matrix'). Approach: matrix-js-sdk; sync loop + send (E2EE optional, later). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Matrix works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Matrix (gateway/platforms/matrix.ts) — connect/disconnect/send/poll over the Matrix API, wired to the catalog entry (registry.ts id 'matrix'). Approach: matrix-js-sdk; sync loop + send (E2EE optional, later). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Matrix works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-EMAIL",
@@ -10603,16 +10603,16 @@
       "title": "Messaging adapter — Email (IMAP + SMTP)",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for Email (IMAP + SMTP) (gateway/platforms/email.ts) — connect/disconnect/send/poll over the Email (IMAP + SMTP) API, wired to the catalog entry (registry.ts id 'email'). Approach: IMAP IDLE/poll for inbound + SMTP send (imapflow + nodemailer, or zero-dep). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Email (IMAP + SMTP) works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Email (IMAP + SMTP) (gateway/platforms/email.ts) — connect/disconnect/send/poll over the Email (IMAP + SMTP) API, wired to the catalog entry (registry.ts id 'email'). Approach: IMAP IDLE/poll for inbound + SMTP send (imapflow + nodemailer, or zero-dep). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Email (IMAP + SMTP) works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-TEAMS",
@@ -10620,16 +10620,16 @@
       "title": "Messaging adapter — Microsoft Teams",
       "status": "next",
       "size": "L",
+      "summary": "Build the live PlatformAdapter for Microsoft Teams (gateway/platforms/teams.ts) — connect/disconnect/send/poll over the Microsoft Teams API, wired to the catalog entry (registry.ts id 'teams'). Approach: Azure Bot Framework registration + messaging endpoint webhook. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Microsoft Teams works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Microsoft Teams (gateway/platforms/teams.ts) — connect/disconnect/send/poll over the Microsoft Teams API, wired to the catalog entry (registry.ts id 'teams'). Approach: Azure Bot Framework registration + messaging endpoint webhook. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Microsoft Teams works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-MATTERMOST",
@@ -10637,16 +10637,16 @@
       "title": "Messaging adapter — Mattermost",
       "status": "next",
       "size": "S",
+      "summary": "Build the live PlatformAdapter for Mattermost (gateway/platforms/mattermost.ts) — connect/disconnect/send/poll over the Mattermost API, wired to the catalog entry (registry.ts id 'mattermost'). Approach: bot token + the Mattermost REST/WS API. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Mattermost works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Mattermost (gateway/platforms/mattermost.ts) — connect/disconnect/send/poll over the Mattermost API, wired to the catalog entry (registry.ts id 'mattermost'). Approach: bot token + the Mattermost REST/WS API. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Mattermost works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-GOOGLECHAT",
@@ -10654,16 +10654,16 @@
       "title": "Messaging adapter — Google Chat",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for Google Chat (gateway/platforms/googlechat.ts) — connect/disconnect/send/poll over the Google Chat API, wired to the catalog entry (registry.ts id 'googlechat'). Approach: service-account auth + the Google Chat API. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "Google Chat works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for Google Chat (gateway/platforms/googlechat.ts) — connect/disconnect/send/poll over the Google Chat API, wired to the catalog entry (registry.ts id 'googlechat'). Approach: service-account auth + the Google Chat API. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "Google Chat works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-IRC",
@@ -10671,16 +10671,16 @@
       "title": "Messaging adapter — IRC",
       "status": "next",
       "size": "S",
+      "summary": "Build the live PlatformAdapter for IRC (gateway/platforms/irc.ts) — connect/disconnect/send/poll over the IRC API, wired to the catalog entry (registry.ts id 'irc'). Approach: raw IRC socket (zero-dep) — connect/join/PRIVMSG/poll. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "IRC works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for IRC (gateway/platforms/irc.ts) — connect/disconnect/send/poll over the IRC API, wired to the catalog entry (registry.ts id 'irc'). Approach: raw IRC socket (zero-dep) — connect/join/PRIVMSG/poll. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "IRC works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-NTFY",
@@ -10688,16 +10688,16 @@
       "title": "Messaging adapter — ntfy",
       "status": "next",
       "size": "S",
+      "summary": "Build the live PlatformAdapter for ntfy (gateway/platforms/ntfy.ts) — connect/disconnect/send/poll over the ntfy API, wired to the catalog entry (registry.ts id 'ntfy'). Approach: simplest: HTTP POST to topic for send + the JSON stream endpoint for poll (zero-dep). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "ntfy works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for ntfy (gateway/platforms/ntfy.ts) — connect/disconnect/send/poll over the ntfy API, wired to the catalog entry (registry.ts id 'ntfy'). Approach: simplest: HTTP POST to topic for send + the JSON stream endpoint for poll (zero-dep). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "ntfy works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-LINE",
@@ -10705,16 +10705,16 @@
       "title": "Messaging adapter — LINE",
       "status": "next",
       "size": "M",
+      "summary": "Build the live PlatformAdapter for LINE (gateway/platforms/line.ts) — connect/disconnect/send/poll over the LINE API, wired to the catalog entry (registry.ts id 'line'). Approach: LINE Messaging API channel token + webhook. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "LINE works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for LINE (gateway/platforms/line.ts) — connect/disconnect/send/poll over the LINE API, wired to the catalog entry (registry.ts id 'line'). Approach: LINE Messaging API channel token + webhook. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "LINE works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     },
     {
       "id": "MSG-ADAPTER-WHATSAPP",
@@ -10722,16 +10722,16 @@
       "title": "Messaging adapter — WhatsApp",
       "status": "next",
       "size": "L",
+      "summary": "Build the live PlatformAdapter for WhatsApp (gateway/platforms/whatsapp.ts) — connect/disconnect/send/poll over the WhatsApp API, wired to the catalog entry (registry.ts id 'whatsapp'). Approach: unofficial QR-paired bridge (ban risk) — subprocess + credential store. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
+      "done": "WhatsApp works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
       "tier": "pebble",
       "model": "opus",
       "effort": "high",
       "lens": "reach",
-      "summary": "Build the live PlatformAdapter for WhatsApp (gateway/platforms/whatsapp.ts) — connect/disconnect/send/poll over the WhatsApp API, wired to the catalog entry (registry.ts id 'whatsapp'). Approach: unofficial QR-paired bridge (ban risk) — subprocess + credential store. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
-      "done": "WhatsApp works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
+      "updated": "2026-06-14",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "updated": "2026-06-14"
+      ]
     }
   ]
 }
