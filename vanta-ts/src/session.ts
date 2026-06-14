@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { readFile, writeFile, stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import type { Interface as Readline } from "node:readline/promises";
 import { SafetyClient } from "./safety-client.js";
 import { ensureKernel } from "./kernel-launcher.js";
@@ -7,25 +7,25 @@ import { buildRegistry } from "./tools/index.js";
 import { buildSystemPrompt } from "./prompt.js";
 import { recentMemory, appendMemory } from "./memory/store.js";
 import { resolveRoutedProvider } from "./routing/model-router.js";
-import { curate } from "./skills/curator.js";
 import { listSkills } from "./skills/store.js";
 import { brainDigest } from "./brain/brain.js";
-import { resolveVantaHome } from "./store/home.js";
 import { readSessionMemory, sessionMemoryBlock } from "./memory/session-memory.js";
 import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { mountMcpServers } from "./mcp/mount.js";
-import { toolProgressMode } from "./repl/tool-progress.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import type { Summarizer } from "./context.js";
-import type { AgentDeps } from "./agent.js";
 import type { Goal } from "./types.js";
 
-// Post-turn gates (reviewAfterTurn, sessionMemoryAfterTurn, the EF detectors,
-// antiSlopAfterText) live in ./session/after-turn.js — re-exported here so the
-// hosts keep importing them from "./session.js" unchanged.
+// Post-turn gates (reviewAfterTurn, the EF detectors, …) live in
+// ./session/after-turn.js; the console printers (consoleCallbacks) in
+// ./session/console-callbacks.js; the curator scheduler (maybeCurate) in
+// ./session/curate.js — all re-exported here so the hosts keep importing them
+// from "./session.js" unchanged.
 export * from "./session/after-turn.js";
+export * from "./session/console-callbacks.js";
+export * from "./session/curate.js";
 
 // Shared run setup used by both the one-shot CLI (`vanta run`) and the
 // interactive session (`vanta` / `vanta chat`). Kept here so neither imports the
@@ -214,71 +214,6 @@ export async function writeRunMemory(
     console.warn(
       `warn: could not write memory: ${err instanceof Error ? err.message : String(err)}`,
     );
-  }
-}
-
-function shortArgs(args: Record<string, unknown>): string {
-  const s = JSON.stringify(args);
-  return s.length > 80 ? `${s.slice(0, 77)}...` : s;
-}
-
-function firstLine(text: string): string {
-  const line = text.split("\n")[0] ?? "";
-  return line.length > 100 ? `${line.slice(0, 97)}...` : line;
-}
-
-/** Live tool-activity printers shared by run + chat. Verbosity: VANTA_TOOL_PROGRESS. */
-export function consoleCallbacks(env: NodeJS.ProcessEnv = process.env): Pick<
-  AgentDeps,
-  "onText" | "onToolCall" | "onToolResult"
-> {
-  const mode = toolProgressMode(env);
-  return {
-    onText: (t) => console.log(t),
-    onToolCall: (n, a) => { if (mode === "full") console.log(`  → ${n}(${shortArgs(a)})`); },
-    onToolResult: (n, ok, out) => {
-      if (mode === "off") return;
-      console.log(`  ${ok ? "✓" : "✗"} ${n}: ${firstLine(out)}`);
-      // Print the live checklist every time the agent updates it.
-      if (n === "todo" && ok && out.includes("done)")) {
-        console.log(out.split("\n").map((l) => `  ${l}`).join("\n"));
-      }
-    },
-  };
-}
-
-const CURATOR_INTERVAL_MS = 7 * 86_400_000; // 7 days
-
-/**
- * Run the skill curator at most once per interval, at session start. Best-effort
- * and non-destructive (see curator.ts): a failure here never affects the session.
- * State (last-run time) lives in ~/.vanta/.curator_state.json.
- */
-export async function maybeCurate(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  try {
-    const statePath = join(resolveVantaHome(env), ".curator_state.json");
-    const now = Date.now();
-    let lastRunMs = 0;
-    try {
-      const parsed: unknown = JSON.parse(await readFile(statePath, "utf8"));
-      if (parsed && typeof parsed === "object" && "lastRunMs" in parsed) {
-        lastRunMs = Number((parsed as { lastRunMs: unknown }).lastRunMs) || 0;
-      }
-    } catch {
-      // no state yet — first run
-    }
-    if (now - lastRunMs < CURATOR_INTERVAL_MS) return;
-
-    const r = await curate({ env });
-    await writeFile(statePath, JSON.stringify({ lastRunMs: now }), "utf8");
-    const flagged = r.staleUnowned.length + r.prunable.length + r.overlaps.length;
-    if (r.archived.length || flagged) {
-      console.log(
-        `  · curator: archived ${r.archived.length}, ${flagged} flagged for review`,
-      );
-    }
-  } catch {
-    // best-effort maintenance — never break a session on it
   }
 }
 
