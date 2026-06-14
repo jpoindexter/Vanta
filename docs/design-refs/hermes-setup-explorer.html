@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hermes Setup — full interactive explorer</title>
+<style>
+  :root{--bg:#0a0a0f;--panel:#0e0e14;--bar:#16161e;--text:#d4d4d8;--dim:#6a6a78;
+    --cyan:#34d3eb;--green:#5ee06a;--red:#ff6b6b;--yellow:#f4c542;--magenta:#c678dd;--blue:#61afef;--border:#21212b;}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 560px at 50% -8%,#15151f,var(--bg));color:var(--text);
+    font:13.5px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:22px 14px}
+  .head{text-align:center;margin-bottom:12px}
+  .head h1{margin:0 0 3px;font-size:17px;font-weight:600}.head h1 b{color:var(--magenta)}
+  .head p{margin:0;color:var(--dim);font-size:12px}.head a{color:var(--blue);text-decoration:none}
+  .term{width:min(940px,100%);background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+  .titlebar{background:var(--bar);padding:8px 12px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .dot{width:11px;height:11px;border-radius:50%}.dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+  .titlebar .t{color:var(--dim);font-size:12px;margin-right:auto;margin-left:6px}
+  select{font:inherit;background:#1a1a24;color:var(--text);border:1px solid #2b2b3a;border-radius:6px;padding:5px 9px;cursor:pointer;max-width:320px}
+  select:focus{outline:none;border-color:var(--magenta)}
+  .nav{display:flex;gap:6px;align-items:center}
+  .navbtn{font:inherit;background:#15151e;color:var(--text);border:1px solid #29293a;border-radius:6px;padding:5px 9px;cursor:pointer}
+  .navbtn:hover{border-color:var(--magenta)}
+  .screen{padding:15px 17px;height:480px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .screen::-webkit-scrollbar{width:9px}.screen::-webkit-scrollbar-thumb{background:#2a2a36;border-radius:6px}
+  .line{animation:f .14s ease}@keyframes f{from{opacity:0}to{opacity:1}}
+  .cyan{color:var(--cyan)}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}
+  .dim{color:var(--dim)}.magenta{color:var(--magenta)}.blue{color:var(--blue)}.bold{font-weight:700}
+  .opt{display:block;width:100%;text-align:left;font:inherit;background:transparent;color:var(--text);border:1px solid transparent;border-radius:5px;padding:3px 8px;cursor:pointer;margin:1px 0}
+  .opt:hover{background:#14141d;border-color:#29293a}
+  .opt.sel{color:var(--green);font-weight:700}
+  .opt.sel .mk{color:var(--green)}
+  .foot{margin-top:9px;color:var(--dim);font-size:11.5px;text-align:center}
+  .foot b{color:var(--magenta)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>⚕ <b>hermes setup</b> — full interactive explorer</h1>
+    <p>Every page of NousResearch <a href="https://github.com/NousResearch/hermes-agent">hermes-agent</a>'s setup wizard. Use the dropdown to jump to any section and see all options.</p>
+  </div>
+  <div class="term">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="t">hermes setup</span>
+      <div class="nav">
+        <button class="navbtn" id="prev">‹ Prev</button>
+        <select id="nav"></select>
+        <button class="navbtn" id="next">Next ›</button>
+      </div>
+    </div>
+    <div class="screen" id="screen"></div>
+  </div>
+  <div class="foot">Reproduces <b>hermes_cli/setup.py</b> @ 2c174bc · ● selected / ○ option · click options to explore · not affiliated with Nous Research</div>
+
+<script>
+const PROVIDERS=["Nous Portal (Everything your agent needs, 300+ models with bundled tool use)","OpenRouter (Pay-per-use API aggregator)","NovitaAI (Cloud: Model API, Agent Sandbox, GPU Cloud)","LM Studio (Local desktop app with built-in model server)","Anthropic (Claude models via API key or Claude Code)","OpenAI ▸ (Codex CLI or direct OpenAI API)","Qwen Cloud / DashScope (Qwen + multi-provider)","xAI Grok ▸ (Direct API or SuperGrok / Premium+ OAuth)","Xiaomi MiMo (MiMo-V2.5 and V2 models: pro, omni, flash)","Tencent TokenHub (Hy3 Preview)","NVIDIA NIM (Nemotron models via build.nvidia.com or local NIM)","GitHub Copilot ▸ (GitHub token API or copilot --acp process)","Hugging Face Inference Providers","Google Gemini ▸ (AI Studio API or OAuth + Code Assist)","DeepSeek (V3, R1, coder, direct API)","Z.AI / GLM (Zhipu direct API)","Kimi / Moonshot ▸ (Coding Plan, Moonshot global & China endpoints)","StepFun Step Plan (Agent / coding models)","MiniMax ▸ (Global, OAuth Coding Plan & China endpoints)","Ollama Cloud (Cloud-hosted open models)","Arcee AI (Trinity models, direct API)","GMI Cloud (Multi-model direct API)","Kilo Code (Kilo Gateway API)","OpenCode ▸ (Zen pay-as-you-go or Go subscription)","AWS Bedrock (Claude, Nova, Llama, DeepSeek; IAM or API key)","Azure Foundry (OpenAI-style or Anthropic-style endpoint)","Qwen OAuth (Reuses local Qwen CLI login)","Custom endpoint (enter URL manually)","Configure auxiliary models...","Leave unchanged"];
+const TERMINALS=["Local - run directly on this machine (default)","Docker - isolated container with configurable resources","Modal - serverless cloud sandbox","SSH - run on a remote machine","Daytona - persistent cloud development environment","Singularity/Apptainer - HPC-friendly container","Keep current (local)"];
+const TTS=["Nous Subscription (managed OpenAI TTS, billed to your subscription)","Edge TTS (free, cloud-based, no setup needed)","ElevenLabs (premium quality, needs API key)","OpenAI TTS (good quality, needs API key)","xAI TTS (Grok voices — OAuth login or API key)","MiniMax TTS (high quality with voice cloning, needs API key)","Mistral Voxtral TTS (multilingual, native Opus, needs API key)","Google Gemini TTS (30 prebuilt voices, prompt-controllable)","NeuTTS (local on-device, free, ~300MB model download)","KittenTTS (local on-device, free, lightweight ~25-80MB ONNX)","Keep current (Edge TTS)"];
+const PLATFORMS=["💬 Telegram","#️⃣ Slack","🎮 Discord","🔗 Matrix","💙 BlueBubbles (iMessage)","🐧 QQBot","🪝 Webhooks"];
+const TOOLSETS=[["🔍 Web Search & Scraping",1],["🌐 Browser Automation",1],["💻 Terminal & Processes",1],["📁 File Operations",1],["⚡ Code Execution",1],["👁️  Vision / Image Analysis",1],["🎬 Video Analysis",0],["🎨 Image Generation",1],["🎬 Video Generation",0],["🐦 X (Twitter) Search",0],["🧠 Mixture of Agents",0],["🔊 Text-to-Speech",1],["📚 Skills",1],["📋 Task Planning",1],["💾 Memory",1],["🧩 Context Engine",1],["🔎 Session Search",1],["❓ Clarifying Questions",1],["👥 Task Delegation",1],["⏰ Cron Jobs",1],["📨 Cross-Platform Messaging",1],["🏠 Home Assistant",0],["🎵 Spotify",0],["🖱️  Computer Use (macOS)",1]];
+const TOOL_PROVIDERS={"🌐 Browser Automation":["Local Browser [★ free] — Headless Chromium, no API key","Nous Subscription (Browser Use cloud) [subscription]","Camofox [free · local] — Anti-detection browser","Browserbase [paid] — Cloud browser with stealth/proxies","Browser Use [paid] — Cloud browser, remote execution"],"🎨 Image Generation":["Nous Subscription [subscription] — Managed FAL","FAL.ai [paid] — flux-2, gpt-image, nano-banana","OpenAI [paid] — gpt-image-2 (low/medium/high)","xAI Grok Imagine [paid] — grok-imagine-image"],"🎬 Video Generation":["Nous Subscription [subscription] — Managed FAL","FAL [paid] — LTX, Pixverse, Veo 3.1, Seedance, Kling"],"🔊 Text-to-Speech":["Microsoft Edge TTS [★ free] — no API key","Nous Subscription [subscription] — Managed OpenAI TTS","OpenAI TTS [paid]","xAI TTS — Grok voices (OAuth or XAI_API_KEY)","ElevenLabs [paid] — most natural","KittenTTS [local · free] — ~25MB ONNX"],"🔍 Web Search & Scraping":["Nous Subscription [subscription] — Managed Firecrawl","Exa [paid] — semantic + neural","Firecrawl [paid] — full search + extract","Parallel [free] — hosted Search MCP","SearXNG [free · self-hosted]","Tavily [paid] — search + extract","DuckDuckGo (ddgs) [free · no key]"],"🐦 X (Twitter) Search":["xAI Grok OAuth (SuperGrok / Premium+) [subscription]","xAI API key [paid] — via XAI_API_KEY"]};
+const SUMMARY=[["✓","Vision (image analysis)",""],["✗","Mixture of Agents","missing OPENROUTER_API_KEY"],["✓","Web Search & Extract (Firecrawl)",""],["✓","Browser Automation (Local browser)",""],["✓","Image Generation (Nous subscription)",""],["✓","Video Generation (FAL)",""],["✓","Text-to-Speech (Edge TTS)",""],["✓","Modal Execution (Nous subscription)",""],["✗","Skills Hub (GitHub)","missing GITHUB_TOKEN"],["✓","Terminal/Commands",""],["✓","Task Planning (todo)",""],["✓","Skills (view, create, edit)",""]];
+
+const PAGES=[
+  {id:"mode",nm:"1 · Setup Mode",render:p=>{
+    head("⚕ Hermes Agent Setup Wizard","Let's configure your Hermes Agent installation.");
+    menu("How would you like to set up Hermes?",["Quick Setup (Nous Portal) — free OAuth login, no API keys, model + tools (recommended)","Full setup — configure every provider, tool & option yourself (bring your own keys)"],0,p);
+  }},
+  {id:"config",nm:"2 · Configuration Location",render:()=>{
+    hdr("Configuration Location");
+    info("Config file:  ~/.hermes/config.yaml");info("Secrets file: ~/.hermes/.env");
+    info("Data folder:  ~/.hermes");info("Install dir:  ~/.hermes/hermes-agent");blank();
+    info("You can edit these files directly or use 'hermes config edit'");
+  }},
+  {id:"provider",nm:"3 · Inference Provider (27)",render:p=>{
+    hdr("Inference Provider");dimln("Choose how to connect to your main chat model.");
+    dimln("   Guide: …/docs/integrations/providers");blank();
+    menu("Select provider:",PROVIDERS,13,p,13); // Gemini default + currently active
+  }},
+  {id:"terminal",nm:"4 · Terminal Backend",render:p=>{
+    hdr("Terminal Backend");dimln("Choose where Hermes runs shell commands and code.");blank();
+    menu("Select terminal backend:",TERMINALS,0,p);
+  }},
+  {id:"tts",nm:"5 · Text-to-Speech",render:p=>{
+    hdr("Text-to-Speech Provider (optional)");dimln("Current: Edge TTS");blank();
+    menu("Select TTS provider:",TTS,1,p);
+  }},
+  {id:"agent",nm:"6 · Agent Settings",render:p=>{
+    hdr("Agent Settings");
+    out("  Max iterations: 150     (Enter a number; 90 typical, 150+ exploration)","dim");blank();
+    menu("Tool progress mode:",["off — silent, just the final response","new — show tool name only when it changes","all — show every tool call with a short preview","verbose — full args, results, debug logs"],2,p,-1,"tp");
+    blank();out("  Context compression threshold (0.5-0.95): 0.50","dim");blank();
+    menu("Session reset mode:",["Inactivity + daily reset (recommended)","Inactivity only (after N minutes idle)","Daily only (at a fixed hour)","Never auto-reset (until /reset or compression)","Keep current"],0,p,-1,"sr");
+  }},
+  {id:"messaging",nm:"7 · Messaging Platforms",render:p=>{
+    hdr("Messaging Platforms");dimln("Connect to messaging platforms to chat from anywhere.");
+    dimln("Toggle with Space, confirm with Enter.");blank();
+    checklist("Select platforms to configure:",PLATFORMS,[],p);
+  }},
+  {id:"tools",nm:"8 · Tools (24)",render:p=>{
+    out("⚕ Hermes Tool Configuration","cyan bold");dimln("  Enable or disable tools per platform.");
+    dimln("  Tools that need API keys will be configured when enabled.");blank();
+    checklist("Select toolsets:",TOOLSETS.map(t=>t[0]),TOOLSETS.map((t,i)=>t[1]?i:-1).filter(i=>i>=0),p);
+  }},
+  {id:"toolprov",nm:"9 · Tool Provider menus",render:p=>{
+    out("Per-tool provider sub-menus (shown when a tool is enabled):","cyan bold");blank();
+    Object.entries(TOOL_PROVIDERS).forEach(([tool,provs])=>{
+      out("  --- "+tool+" - Choose a provider ---","cyan");
+      provs.forEach((pr,i)=>optline(pr,i===0,()=>{},p));blank();
+    });
+  }},
+  {id:"summary",nm:"10 · Tool Availability Summary",render:()=>{
+    hdr("Tool Availability Summary");
+    const ok=SUMMARY.filter(r=>r[0]==="✓").length;
+    out("  "+ok+"/"+SUMMARY.length+" tool categories available:","dim");blank();
+    SUMMARY.forEach(([m,n,miss])=>m==="✓"?out("   ✓ "+n,"green"):out("   ✗ "+n+" (missing "+miss+")","red"));
+  }},
+  {id:"portal",nm:"11 · Nous Portal (quick)",render:()=>{
+    hdr("Nous Portal");dimln("One subscription, 300+ models, plus the Tool Gateway:");
+    dimln("  web search, image generation, TTS, browser automation.");
+    out("Sign up: https://portal.nousresearch.com/manage-subscription","blue");blank();
+    dimln("Device-code OAuth: open the URL, enter the code, done.");
+  }},
+  {id:"complete",nm:"12 · Setup Complete",render:()=>{
+    box(["✓ Setup Complete!"],"green");blank();
+    out("📁 All your files are in ~/.hermes/:","cyan bold");blank();
+    out("   Settings:  ~/.hermes/config.yaml","yellow");out("   API Keys:  ~/.hermes/.env","yellow");
+    out("   Data:      ~/.hermes/cron/, sessions/, logs/","yellow");blank();
+    out("📝 To edit your configuration:","cyan bold");blank();
+    [["hermes setup","Re-run the full wizard"],["hermes setup model","Change model/provider"],["hermes setup gateway","Configure messaging"],["hermes setup tools","Configure tool providers"],["hermes config set <k> <v>","Set a specific value"]].forEach(([c,d])=>out("   "+c.padEnd(26)+d,"green"));
+    blank();out("🚀 Ready to go!","cyan bold");blank();
+    out("   hermes              Start chatting","green");out("   hermes doctor       Check for issues","green");
+  }},
+];
+
+// ── render helpers ──
+const screen=document.getElementById("screen");
+let cur=0;
+function out(t,c){const d=document.createElement("div");d.className="line"+(c?" "+c:"");d.textContent=t;screen.appendChild(d);}
+function blank(){out("​");}
+function info(t){out("  "+t,"dim");}
+function dimln(t){out(t,"dim");}
+function box(lines,cls){const inner=Math.max(...lines.map(l=>[...l].length))+2;const bar=(l,r)=>"  "+l+"─".repeat(inner)+r;
+  out([bar("┌","┐"),...lines.map(l=>"  │ "+l+" ".repeat(inner-1-[...l].length)+"│"),bar("└","┘")].join("\n"),cls);}
+function head(title,sub){box(["⚕ "+title,sub],"magenta");blank();}
+function hdr(t){out("◆ "+t,"cyan bold");}
+function optline(label,selected,onclick,page){
+  const b=document.createElement("button");b.className="opt"+(selected?" sel":"");
+  b.innerHTML=`<span class="mk">${selected?" → (●)":"   (○)"}</span> ${label}`;
+  b.onclick=()=>{page._sel=label;renderCur();};
+  screen.appendChild(b);
+}
+function menu(title,options,def,page,current=-1,grp){
+  out("  "+title,"yellow");dimln("  ↑↓ navigate  ENTER/SPACE select  ESC cancel");blank();
+  const selKey=grp?("_sel_"+grp):"_sel";
+  const chosen=page[selKey]!==undefined?page[selKey]:def;
+  options.forEach((o,i)=>{
+    const sel=i===chosen;
+    const b=document.createElement("button");b.className="opt"+(sel?" sel":"");
+    const annot=i===current?'  ← currently active':'';
+    b.innerHTML=`<span class="mk">${sel?" → (●)":"   (○)"}</span> ${o}${annot}`;
+    b.onclick=()=>{page[selKey]=i;renderCur();};
+    screen.appendChild(b);
+  });
+}
+function checklist(title,options,preSel,page){
+  out("  "+title,"yellow");dimln("  Space toggles · Enter on 'Continue →' confirms");blank();
+  if(!page._chk)page._chk=new Set(preSel);
+  options.forEach((o,i)=>{
+    const on=page._chk.has(i);
+    const b=document.createElement("button");b.className="opt"+(on?" sel":"");
+    b.innerHTML=`<span class="mk">[${on?"✓":" "}]</span> ${o}`;
+    b.onclick=()=>{on?page._chk.delete(i):page._chk.add(i);renderCur();};
+    screen.appendChild(b);
+  });
+  const c=document.createElement("button");c.className="opt";c.innerHTML='<span class="mk">  </span> Continue →';screen.appendChild(c);
+}
+function renderCur(){
+  screen.innerHTML="";
+  const p=PAGES[cur];
+  p.render(p);
+  document.getElementById("nav").value=String(cur);
+  screen.scrollTop=0;
+}
+// build dropdown + nav
+const navSel=document.getElementById("nav");
+PAGES.forEach((p,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=p.nm;navSel.appendChild(o);});
+navSel.onchange=e=>{cur=+e.target.value;renderCur();};
+document.getElementById("prev").onclick=()=>{cur=(cur-1+PAGES.length)%PAGES.length;renderCur();};
+document.getElementById("next").onclick=()=>{cur=(cur+1)%PAGES.length;renderCur();};
+renderCur();
+</script>
+</body>
+</html>
