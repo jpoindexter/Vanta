@@ -19,7 +19,7 @@ The kernel is the boundary — `assess()` is a gate, not a suggestion. The TS la
 
 ```bash
 # Kernel (Rust)
-cargo build && cargo test                 # 37 tests
+cargo build && cargo test                 # 41 tests
 cargo run -- doctor                       # health check, creates .vanta/
 cargo run -- goals add "..."              # seed a goal
 cargo run -- serve 7788                   # cockpit + JSON API
@@ -48,7 +48,7 @@ npm run typecheck                         # tsc --noEmit (must be clean)
 | Module | Purpose |
 |--------|---------|
 | `app` | `State` (root + data_dir), `doctor`, `append_event`/`log_event`, `esc()` JSON escaper, legacy data dir migration |
-| `safety` | `assess_action() → Verdict{Risk::Allow/Ask/Block}`. Keyword blocklist (destructive/exfiltration=Block), scope check (outside root=Ask), system/credential keywords=Ask, else Allow |
+| `safety` | `assess_action() → Verdict{Risk::Allow/Ask/Block}`. Keyword blocklist (destructive/exfiltration=Block), scope check (outside root=Ask), system/credential keywords=Ask, then a **reversibility** pass on the Allow tail (irreversible push/migrate/publish/deploy/history-rewrite escalate Allow→Ask; read-only/reversible stay Allow; file-writes are reversible authoring). Block floor runs first, never downgraded |
 | `approvals` | `ApprovalQueue`, persisted `.vanta/approvals.tsv`. Only `Ask` actions queue; `Block` errors, `Allow` errors |
 | `goals` | `GoalLedger`, `.vanta/goals.tsv` |
 | `runtime` | `run_native()` — safety-gates then dispatches; returns `Unsupported` rather than silently falling back |

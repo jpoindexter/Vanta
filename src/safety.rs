@@ -45,6 +45,25 @@ const EXEC_VECTORS: &[&str] = &[
     "base64 --decode", "curl ", "wget ", "osascript",
 ];
 const MACHINE_CONFIG: &[&str] = &["install", "sudo", "launchctl", "system", "profile", "credential", "token", "auth.json", ".ssh"];
+// Irreversible-but-not-destructive operations: publishing, pushing, applying
+// migrations, deploying, rewriting history. They don't lose local data (so they're
+// NOT Block), but they can't be cleanly undone — so they escalate Allow → Ask.
+// `delete`/`overwrite` are the card's other irreversible examples and are already
+// Block above; this set covers the `push`/`migrate` families that otherwise Allow.
+const IRREVERSIBLE: &[&str] = &[
+    "git push", "push origin", "push -u", "git rebase", "rebase -i", "git restore",
+    "checkout --", "git checkout .", "branch -d", "tag -d", "stash drop", "stash clear",
+    "filter-branch", "npm publish", "yarn publish", "pnpm publish", "cargo publish",
+    "npm unpublish", "twine upload", "gh release", "migrate", "migration", "db push",
+    "alembic upgrade", "flyway", "liquibase", "terraform apply", "terraform destroy",
+    "kubectl apply", "helm install", "helm upgrade", "deploy",
+];
+// Clearly read-only verbs — labeled as such so reversible work gets a confident,
+// lighter Allow. (Purely for the verdict reason; both ReadOnly and Reversible Allow.)
+const READ_ONLY: &[&str] = &[
+    "read file ", "git status", "git diff", "git log", "git show", "ls ", "cat ",
+    "list ", "search ", "inspect ", "view ", "grep ", "describe ",
+];
 
 pub fn assess_action(text: &str, root: &Path) -> Verdict {
     let raw = text.to_lowercase();
@@ -80,11 +99,40 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
             return block("protected path — only out-of-band human approval can authorize this write");
         }
     }
-    Verdict {
-        risk: Risk::Allow,
-        reason: "safe inside trusted-operator boundary".into(),
-        needs_human: false,
+    // Reversibility dimension (PAPER-REVERSIBILITY-RISK): the action has cleared every
+    // Block/Ask floor above, so it WOULD Allow. Refine that tail by reversibility —
+    // irreversible ops escalate to Ask, reversible ones stay Allow. This only ever
+    // tightens the Allow tail; it can never downgrade a Block (those returned already).
+    match classify_reversibility(&t) {
+        Reversibility::Irreversible => ask(
+            "irreversible action (push/migrate/publish/deploy/history-rewrite) — confirm before proceeding; it can't be cleanly undone",
+        ),
+        Reversibility::ReadOnly => allow("read-only — reversible, safe inside boundary"),
+        Reversibility::Reversible => allow("reversible action inside trusted-operator boundary"),
     }
+}
+
+#[derive(Debug, PartialEq)]
+enum Reversibility {
+    ReadOnly,
+    Reversible,
+    Irreversible,
+}
+
+/// Classify an action that has already cleared the Block/Ask floors. Authoring a
+/// file is reversible (overwrite/data-loss is Block above), so a migration *filename*
+/// never trips the irreversible-command escalation — only an applied command does.
+fn classify_reversibility(t: &str) -> Reversibility {
+    if extract_write_path(t).is_some() {
+        return Reversibility::Reversible;
+    }
+    if has_any(t, IRREVERSIBLE) {
+        return Reversibility::Irreversible;
+    }
+    if has_any(t, READ_ONLY) {
+        return Reversibility::ReadOnly;
+    }
+    Reversibility::Reversible
 }
 
 /// Remove quote/backslash escapes and collapse whitespace so keyword matching can't
@@ -202,6 +250,14 @@ fn ask(reason: &str) -> Verdict {
     }
 }
 
+fn allow(reason: &str) -> Verdict {
+    Verdict {
+        risk: Risk::Allow,
+        reason: reason.into(),
+        needs_human: false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -313,5 +369,58 @@ mod tests {
 
         let v2 = assess_action("write file vanta-ts/src/tools/new-tool.ts", &r);
         assert_eq!(v2.risk, Risk::Allow);
+    }
+
+    // --- reversibility dimension (PAPER-REVERSIBILITY-RISK) ---
+
+    #[test]
+    fn escalates_irreversible_push_and_migrate_to_ask() {
+        let r = root();
+        for cmd in [
+            "run shell command: git push origin main",
+            "run shell command: npm run migrate",
+            "run shell command: prisma migrate deploy",
+            "run shell command: npm publish",
+            "run shell command: cargo publish",
+            "run shell command: terraform apply",
+            "run shell command: git rebase -i HEAD~3",
+            "run shell command: gh release create v1.0.0",
+        ] {
+            let v = assess_action(cmd, &r);
+            assert_eq!(v.risk, Risk::Ask, "expected Ask for {cmd}");
+            assert!(v.reason.contains("irreversible"), "reason for {cmd}");
+        }
+    }
+
+    #[test]
+    fn reversible_and_readonly_ops_stay_allow() {
+        let r = root();
+        // read-only
+        assert_eq!(assess_action("run shell command: git log --oneline", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("read file vanta-ts/src/session.ts", &r).risk, Risk::Allow);
+        // reversible local work
+        assert_eq!(assess_action("run shell command: git commit -m wip", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("run shell command: git checkout main", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("run shell command: cargo build", &r).risk, Risk::Allow);
+    }
+
+    #[test]
+    fn authoring_a_migration_file_is_reversible_not_escalated() {
+        // Writing a migration FILE is reversible authoring — only an applied
+        // migration COMMAND should escalate. The filename must not trip the gate.
+        let r = root();
+        let v = assess_action("write file vanta-ts/src/db/migrations/001_init.ts", &r);
+        assert_eq!(v.risk, Risk::Allow);
+    }
+
+    #[test]
+    fn block_floor_unchanged_by_reversibility() {
+        // The reversibility tail only tightens Allow → Ask; it must never downgrade
+        // a Block. Destructive + data-loss irreversible ops stay Block.
+        let r = root();
+        assert_eq!(assess_action("run shell command: rm -rf build", &r).risk, Risk::Block);
+        assert_eq!(assess_action("run shell command: git push --force origin main", &r).risk, Risk::Block);
+        assert_eq!(assess_action("delete the old branch", &r).risk, Risk::Block);
+        assert_eq!(assess_action("write file src/safety.rs", &r).risk, Risk::Block);
     }
 }
