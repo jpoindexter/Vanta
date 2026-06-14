@@ -20,7 +20,7 @@ export type Theme = {
 const THEMES: Readonly<Record<string, Theme>> = {
   // Truecolor hex (not ANSI names) so the render is identical across terminals
   // and matches the design reference (docs/agent-model.html) instead of inheriting
-  // the user's washed-out palette. Light terminals still fall back to high-contrast.
+  // the user's washed-out palette.
   default: {
     primary: "#c9d4e0",
     accent: "#56c8db",
@@ -32,6 +32,20 @@ const THEMES: Readonly<Record<string, Theme>> = {
     info: "#6cb6ff",
     marker: "#56c8db",
     userMarker: "#c9d4e0",
+  },
+  // Off-white / light-grey terminal (VNT-A aesthetic: dark charcoal on near-white,
+  // blueprint-style teal accent hairlines, muted status colours — no pure black/white).
+  light: {
+    primary: "#1a1a1a",      // near-black for body text
+    accent: "#2d6680",       // dark muted teal (annotation lines)
+    border: "#888888",       // medium grey hairline (like the circle annotations)
+    dimText: true,           // dim → lighter charcoal for secondary content
+    success: "#2d7a3a",      // dark forest green
+    error: "#8b2222",        // dark crimson
+    warning: "#7a6200",      // dark amber
+    info: "#2d4a8a",         // dark steel blue
+    marker: "#2d6680",       // matches accent — assistant turn mark
+    userMarker: "#555555",   // medium charcoal — user turn mark
   },
   "high-contrast": {
     primary: "white",
@@ -102,13 +116,13 @@ export function detectBackground(
 /**
  * Resolve the best theme name given the environment.
  * Precedence: explicit VANTA_THEME (validated) → light-bg fallback → "default".
- * Note: all current themes are dark-oriented; for light terminals we use
- * "high-contrast" (most legible on light BG) — a dedicated light theme is future work.
+ * Light terminals use the "light" theme (off-white/near-black VNT-A palette).
+ * Dark terminals use the "default" truecolor dark palette.
  */
 export function detectThemeName(env: NodeJS.ProcessEnv = process.env): string {
   const explicit = env.VANTA_THEME?.toLowerCase();
   if (explicit && THEME_NAMES.includes(explicit)) return explicit;
-  if (detectBackground(env) === "light") return "high-contrast";
+  if (detectBackground(env) === "light") return "light";
   return "default";
 }
 

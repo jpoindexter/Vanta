@@ -50,7 +50,7 @@ describe("resolveTheme", () => {
 
 describe("THEME_NAMES + resolveThemeByName", () => {
   it("lists the real selectable theme names", () => {
-    expect(THEME_NAMES).toEqual(["default", "high-contrast", "muted", "dyslexia"]);
+    expect(THEME_NAMES).toEqual(["default", "light", "high-contrast", "muted", "dyslexia"]);
   });
   it("resolves a theme by name, case-insensitively", () => {
     expect(resolveThemeByName("DYSLEXIA").accent).toBe("yellow");
@@ -115,8 +115,8 @@ describe("detectThemeName", () => {
     expect(detectThemeName({ COLORFGBG: "15;0" })).toBe("default");
   });
 
-  it("returns 'high-contrast' on light terminal with no override", () => {
-    expect(detectThemeName({ COLORFGBG: "0;7" })).toBe("high-contrast");
+  it("returns 'light' on light terminal with no override", () => {
+    expect(detectThemeName({ COLORFGBG: "0;7" })).toBe("light");
   });
 
   it("returns 'default' when COLORFGBG is unknown and no override", () => {
@@ -131,8 +131,8 @@ describe("detectThemeName", () => {
     expect(detectThemeName({ COLORFGBG: "15;0", VANTA_THEME: "dyslexia" })).toBe("dyslexia");
   });
 
-  it("invalid VANTA_THEME falls through to bg detection (light → high-contrast)", () => {
-    expect(detectThemeName({ COLORFGBG: "0;7", VANTA_THEME: "neon" })).toBe("high-contrast");
+  it("invalid VANTA_THEME falls through to bg detection (light → light)", () => {
+    expect(detectThemeName({ COLORFGBG: "0;7", VANTA_THEME: "neon" })).toBe("light");
   });
 
   it("invalid VANTA_THEME falls through to bg detection (dark → default)", () => {
@@ -141,10 +141,10 @@ describe("detectThemeName", () => {
 });
 
 describe("resolveTheme auto-detect integration", () => {
-  it("light terminal with no override yields high-contrast theme", () => {
+  it("light terminal with no override yields light theme", () => {
     const t = resolveTheme({ COLORFGBG: "0;7" });
-    expect(t.accent).toBe("yellow");   // high-contrast accent
-    expect(t.dimText).toBe(false);
+    expect(t.accent).toBe("#2d6680");  // light theme accent (dark muted teal)
+    expect(t.dimText).toBe(true);
   });
 
   it("dark terminal with no override yields default theme", () => {
