@@ -13,16 +13,16 @@ describe("domainOf", () => {
 });
 
 describe("cookieToPlaywright", () => {
-  it("parses a header into domain-scoped cookie objects", () => {
-    const out = cookieToPlaywright("auth_token=abc; ct0=def", "x.com");
+  it("parses a header into url-scoped cookie objects (origin only)", () => {
+    const out = cookieToPlaywright("auth_token=abc; ct0=def", "https://x.com/i/bookmarks");
     expect(out).toEqual([
-      { name: "auth_token", value: "abc", domain: ".x.com", path: "/", secure: true },
-      { name: "ct0", value: "def", domain: ".x.com", path: "/", secure: true },
+      { name: "auth_token", value: "abc", url: "https://x.com" },
+      { name: "ct0", value: "def", url: "https://x.com" },
     ]);
   });
-  it("keeps a leading-dot domain + skips malformed pairs", () => {
-    const out = cookieToPlaywright("a=1; broken; b=2", ".reddit.com");
-    expect(out.map((c) => c.name)).toEqual(["a", "b"]);
-    expect(out[0]?.domain).toBe(".reddit.com");
+  it("keeps __Host-/__Secure- prefixed names (valid tokens) + skips malformed pairs", () => {
+    const out = cookieToPlaywright("a=1; broken; __Host-xx=2; bad name=3", "https://reddit.com/");
+    expect(out.map((c) => c.name)).toEqual(["a", "__Host-xx"]); // "broken" (no =) + "bad name" (space) dropped
+    expect(out[0]?.url).toBe("https://reddit.com");
   });
 });

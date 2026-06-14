@@ -30,6 +30,18 @@ function deriveKey(password: string): Buffer {
   return pbkdf2Sync(password, "saltysalt", 1003, 16, "sha1");
 }
 
+/** Is the buffer's head mostly printable ASCII (i.e. a real cookie value)? */
+function headPrintable(buf: Buffer): boolean {
+  const n = Math.min(16, buf.length);
+  if (n === 0) return true;
+  let ok = 0;
+  for (let i = 0; i < n; i++) {
+    const b = buf[i] ?? 0;
+    if (b >= 0x20 && b < 0x7f) ok++;
+  }
+  return ok / n >= 0.9;
+}
+
 /** Decrypt one v10/v11 cookie value (AES-128-CBC, IV = 16 spaces). Pure. */
 export function decryptCookie(encHex: string, key: Buffer): string {
   const buf = Buffer.from(encHex, "hex");
@@ -40,8 +52,9 @@ export function decryptCookie(encHex: string, key: Buffer): string {
   let dec = Buffer.concat([decipher.update(body), decipher.final()]);
   const pad = dec[dec.length - 1] ?? 0;
   if (pad > 0 && pad <= 16) dec = dec.subarray(0, dec.length - pad);
-  // Newer Chromium prepends a 32-byte SHA256(host) — strip when the head is non-printable.
-  if (dec.length > 32 && (dec[0] ?? 0) < 0x09) return dec.subarray(32).toString("utf8");
+  // Newer Chromium prepends a 32-byte SHA256(host) to the plaintext; strip it when
+  // the head isn't printable (a real cookie value is printable ASCII, a hash isn't).
+  if (dec.length > 32 && !headPrintable(dec)) dec = dec.subarray(32);
   return dec.toString("utf8");
 }
 

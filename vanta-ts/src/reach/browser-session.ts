@@ -8,7 +8,7 @@ const UA =
 const NAV_TIMEOUT_MS = 30_000;
 const DEFAULT_SETTLE_MS = 3500;
 
-type PwCookie = { name: string; value: string; domain: string; path: string; secure: boolean };
+type PwCookie = { name: string; value: string; url: string };
 
 /** Registrable domain of a URL (drops a leading www.). Pure. */
 export function domainOf(url: string): string {
@@ -19,17 +19,40 @@ export function domainOf(url: string): string {
   }
 }
 
-/** A cookie header → playwright cookie objects scoped to a domain. Pure. */
-export function cookieToPlaywright(header: string, domain: string): PwCookie[] {
-  const dot = domain.startsWith(".") ? domain : `.${domain}`;
-  return header
-    .split(";")
-    .map((p) => p.trim())
-    .map((p) => {
-      const i = p.indexOf("=");
-      return i > 0 ? { name: p.slice(0, i), value: p.slice(i + 1), domain: dot, path: "/", secure: true } : null;
-    })
-    .filter((c): c is PwCookie => c !== null);
+// RFC 6265 cookie-name token chars; anything else (a stray byte) is skipped so one
+// bad cookie can't fail playwright's whole addCookies batch.
+const COOKIE_NAME = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
+/** A value with control chars came from a bad decrypt — drop those cookies. */
+function hasControlChars(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x20 || c === 0x7f) return true;
+  }
+  return false;
+}
+
+/**
+ * A cookie header → playwright cookies scoped via the page `url` (so __Host-/
+ * __Secure- prefixes resolve correctly, unlike a raw domain). Pure.
+ */
+export function cookieToPlaywright(header: string, url: string): PwCookie[] {
+  let origin: string;
+  try {
+    origin = new URL(url).origin;
+  } catch {
+    return [];
+  }
+  const out: PwCookie[] = [];
+  for (const part of header.split(";")) {
+    const p = part.trim();
+    const i = p.indexOf("=");
+    if (i <= 0) continue;
+    const name = p.slice(0, i);
+    const value = p.slice(i + 1);
+    if (COOKIE_NAME.test(name) && !hasControlChars(value)) out.push({ name, value, url: origin });
+  }
+  return out;
 }
 
 export type SessionResult =
@@ -38,7 +61,7 @@ export type SessionResult =
 
 /**
  * Open `url` in a headless browser, injecting `cookie` (if given) for the url's
- * domain, and return the body text + every request URL the page issued. Needs
+ * origin, and return the body text + every request URL the page issued. Needs
  * playwright-core + chromium; errors-as-values otherwise.
  */
 export async function openWithSession(
@@ -56,7 +79,7 @@ export async function openWithSession(
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ userAgent: UA });
-    if (cookie) await context.addCookies(cookieToPlaywright(cookie, domainOf(url)));
+    if (cookie) await context.addCookies(cookieToPlaywright(cookie, url));
     const page = await context.newPage();
     const requests: string[] = [];
     page.on("request", (req) => requests.push(req.url()));
