@@ -149,13 +149,18 @@ async function chooseModelStep(entry: ProviderEntry): Promise<string> {
   return entry.models[i] ?? entry.defaultModel;
 }
 
+/** Merge `updates` into vanta-ts/.env (0600), preserving everything else. */
+export async function setEnv(repoRoot: string, updates: Record<string, string>): Promise<void> {
+  const path = envPath(repoRoot);
+  const existing = existsSync(path) ? await readFile(path, "utf8") : "";
+  await writeFile(path, upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
+}
+
 async function writeProvider(o: {
   repoRoot: string; entry: ProviderEntry; apiKey?: string; model: string; quiet?: boolean;
 }): Promise<true> {
-  const path = envPath(o.repoRoot);
-  const existing = existsSync(path) ? await readFile(path, "utf8") : "";
-  await writeFile(path, upsertEnvMigratingLegacy(existing, buildEnvUpdates(o.entry, o.apiKey, o.model)), { mode: 0o600 });
-  console.log(`\n  ✓ Wrote ${o.entry.label} · ${o.model} to ${path}`);
+  await setEnv(o.repoRoot, buildEnvUpdates(o.entry, o.apiKey, o.model));
+  console.log(`\n  ✓ Wrote ${o.entry.label} · ${o.model} to ${envPath(o.repoRoot)}`);
   if (!o.quiet) console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
   return true;
 }

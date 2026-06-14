@@ -6,6 +6,7 @@ vi.mock("./setup-messaging.js", () => ({ runMessagingSetup: vi.fn(async () => tr
 vi.mock("./brain/store.js", () => ({ writeRegion: vi.fn(async () => {}) }));
 vi.mock("./repl/health-cmd.js", () => ({ gatherCapabilities: vi.fn(async () => []), formatHealth: vi.fn(() => "  CAPS-OK") }));
 vi.mock("./term/select.js", () => ({ select: vi.fn(async () => 1) }));
+vi.mock("./setup-sections.js", () => ({ SETTINGS: [], runSettingSection: vi.fn(async () => {}) }));
 
 import { runFullSetup, isYes, box, wizardBanner, sectionHeader, configLocation, summaryText } from "./setup-full.js";
 import { runSetup, askLine } from "./setup.js";
@@ -70,10 +71,10 @@ describe("runFullSetup", () => {
     expect(mWrite).toHaveBeenCalledWith("identity", expect.stringContaining("be terse"), { append: true, env });
   });
 
-  it("Esc on messaging (−1) loops back and re-runs the model step", async () => {
-    mSelect.mockResolvedValueOnce(-1).mockResolvedValue(1); // back once, then skip
+  it("treats messaging Esc/skip (≠0) as 'skip' — no messaging launched", async () => {
+    mSelect.mockResolvedValue(-1); // Esc on messaging
     const r = await runFullSetup("/repo", env);
     expect(r).toBe(true);
-    expect(mRunSetup).toHaveBeenCalledTimes(2);
+    expect(mMsg).not.toHaveBeenCalled();
   });
 });

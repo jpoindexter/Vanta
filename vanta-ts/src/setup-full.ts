@@ -1,5 +1,6 @@
 import { runSetup, envPath, askLine } from "./setup.js";
 import { select } from "./term/select.js";
+import { SETTINGS, runSettingSection } from "./setup-sections.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
@@ -65,22 +66,19 @@ export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = pr
   console.log(wizardBanner());
   console.log("\n" + configLocation(repoRoot, env));
 
-  for (;;) { // model → messaging, with Esc-back from messaging to the model step
-    console.log(sectionHeader("Inference provider"));
-    if (env.VANTA_PROVIDER) console.log(`  Current: ${env.VANTA_PROVIDER} · ${env.VANTA_MODEL ?? "?"}\n`);
-    if (!(await runSetup(repoRoot, { quiet: true }))) {
-      console.log("\n  Setup needs a model backend. Re-run `vanta setup` when ready.\n");
-      return false;
-    }
-    try { process.loadEnvFile(envPath(repoRoot)); } catch { /* fresh env unavailable */ }
-
-    console.log(sectionHeader("Messaging gateway"));
-    const m = await select("Connect a messaging gateway?", ["Connect Telegram / …", "Skip for now"], { canBack: true });
-    if (m === -1) continue; // Esc → back to the provider/model step
-    if (m === 0) await runMessagingSetup(repoRoot);
-    else console.log("  Skipped — `vanta setup messaging` anytime.");
-    break;
+  console.log(sectionHeader("Inference provider"));
+  if (env.VANTA_PROVIDER) console.log(`  Current: ${env.VANTA_PROVIDER} · ${env.VANTA_MODEL ?? "?"}\n`);
+  if (!(await runSetup(repoRoot, { quiet: true }))) {
+    console.log("\n  Setup needs a model backend. Re-run `vanta setup` when ready.\n");
+    return false;
   }
+
+  for (const s of SETTINGS) await runSettingSection(repoRoot, s); // vision · search · max-iter · theme (Esc skips each)
+  try { process.loadEnvFile(envPath(repoRoot)); } catch { /* fresh env unavailable */ }
+
+  console.log(sectionHeader("Messaging gateway"));
+  if ((await select("Connect a messaging gateway?", ["Connect Telegram / …", "Skip for now"])) === 0) await runMessagingSetup(repoRoot);
+  else console.log("  Skipped — `vanta setup messaging` anytime.");
 
   console.log(sectionHeader("Personality"));
   const persona = await askLine("  One line on how Vanta should act (Enter to skip): ");
