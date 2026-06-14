@@ -10414,6 +10414,20 @@
         "SETUP-CONFIG-SYSTEM"
       ],
       "notes": "Shipped 2026-06-14. Mirrors the real Hermes wizard (verified against a live `hermes setup` run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (Hermes setup_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix."
+    },
+    {
+      "id": "HERMES-WIZARD-REFERENCE",
+      "track": "Operator",
+      "title": "Hermes setup-wizard 1:1 reference + interactive demo",
+      "status": "shipped",
+      "size": "S",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "infra",
+      "summary": "1:1 reference of the Hermes Agent setup wizard for vanta setup parity. Vendored the wizard source (hermes_cli/setup.py + colors/banner/config/default_soul + LICENSE, commit 2c174bc) under docs/design-refs/hermes-setup-reference/ (MIT, attributed, not imported), and built a faithful interactive HTML replica (docs/design-refs/hermes-setup-wizard.html) of EVERY section: magenta ⚕ banner → Quick/Full choice → ◆ Configuration Location → 27-provider Inference menu + auth branches (Google OAuth warning, Anthropic 1/2/3 auth-method, API-key entry) → 6 terminal backends → agent-defaults block → messaging-platform checklist → 24-toolset checklist + per-tool provider menus (Browser/Image/Video/TTS/Web/X) → Tool Availability Summary (✓/✗ + missing-key) → ✓ Setup Complete box + management commands. Extracted via 5 parallel readers over the source.",
+      "done": "Hermes wizard source vendored as reference + a clickable 1:1 HTML demo of the full flow; both under docs/design-refs/.",
+      "updated": "2026-06-14"
     }
   ]
 }
