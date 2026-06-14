@@ -4,15 +4,18 @@ import { appendRadar, readRadar, ranked, type Opportunity } from "../radar/store
 import { rankOpportunities, draftOffer } from "../radar/scan.js";
 import { toProspect } from "../radar/promote.js";
 import { appendMoney } from "../money/store.js";
+import { extractOpportunities } from "../radar/extract.js";
+import { resolveSearchProvider } from "../search/index.js";
 
 const Args = z.object({
-  action: z.enum(["record", "score", "list", "scan", "offer", "promote"]),
+  action: z.enum(["record", "score", "list", "scan", "offer", "promote", "scan_web"]),
   id: z.string().optional(),
   title: z.string().optional(),
   source: z.string().optional(),
   note: z.string().optional(),
   pain: z.number().min(0).max(1).optional(),
   buyer: z.number().min(0).max(1).optional(),
+  query: z.string().optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -96,6 +99,26 @@ async function doPromote(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: `promoted "${opp.title}" → prospect "${prospect.name}" (id:${prospect.id}) at stage:lead` };
 }
 
+async function doScanWeb(query: string | undefined): Promise<ToolResult> {
+  if (!query) return { ok: false, output: "scan_web needs query" };
+  try {
+    const provider = resolveSearchProvider(process.env);
+    const results = await provider.search(query, { maxResults: 10 });
+    if (!results.length) {
+      return { ok: true, output: `scan_web: search returned no results for "${query}" — no opportunities added` };
+    }
+    const candidates = extractOpportunities(results, query);
+    for (const opp of candidates) await appendRadar(opp);
+    const summary = candidates
+      .slice(0, 5)
+      .map((o) => `  • ${o.id} — ${o.title} (pain=${o.pain?.toFixed(1)} buyer=${o.buyer?.toFixed(1)})`)
+      .join("\n");
+    return { ok: true, output: `scan_web: added ${candidates.length} candidate(s) for "${query}"\n${summary}` };
+  } catch (err) {
+    return { ok: true, output: `scan_web: search unavailable: ${(err as Error).message} — no opportunities added` };
+  }
+}
+
 export const radarTool: Tool = {
   schema: {
     name: "radar",
@@ -108,17 +131,21 @@ export const radarTool: Tool = {
       "action:scan returns a ranked scan with composite scores and position numbers; " +
       "action:offer drafts a short offer pitch for a given opportunity (id required); " +
       "action:promote promotes a scored opportunity into a Money-OS prospect (id required) at stage:lead. " +
+      "action:scan_web searches the web for a given query (query required), extracts candidate opportunities " +
+      "from the results using pain+buyer heuristics, and appends them to the radar — degrades gracefully " +
+      "when search is unavailable. " +
       "Use it to track, score, surface, and act on the highest-signal opportunities.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["record", "score", "list", "scan", "offer", "promote"], description: "record | score pain+buyer | list ranked | scan ranked | offer draft | promote to Money-OS prospect" },
+        action: { type: "string", enum: ["record", "score", "list", "scan", "offer", "promote", "scan_web"], description: "record | score pain+buyer | list ranked | scan ranked | offer draft | promote to Money-OS prospect | scan_web live web scan" },
         id: { type: "string", description: "stable opportunity id slug" },
         title: { type: "string", description: "human label (for record)" },
         source: { type: "string", description: "where the signal came from (optional)" },
         note: { type: "string", description: "optional detail" },
         pain: { type: "number", description: "0..1 — problem severity: expensive/urgent/repeated/reachable" },
         buyer: { type: "number", description: "0..1 — buyer readiness: reachable/has-budget/good-timing" },
+        query: { type: "string", description: "search query for scan_web action" },
       },
       required: ["action"],
     },
@@ -126,12 +153,13 @@ export const radarTool: Tool = {
   describeForSafety: (a) => `radar ${String(a.action ?? "")}`,
   async execute(raw) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "radar needs action: record | score | list | scan | offer | promote" };
+    if (!p.success) return { ok: false, output: "radar needs action: record | score | list | scan | offer | promote | scan_web" };
     if (p.data.action === "record") return doRecord(p.data);
     if (p.data.action === "score") return doScore(p.data);
     if (p.data.action === "scan") return doScan();
     if (p.data.action === "offer") return doOffer(p.data);
     if (p.data.action === "promote") return doPromote(p.data);
+    if (p.data.action === "scan_web") return doScanWeb(p.data.query);
     return doList();
   },
 };

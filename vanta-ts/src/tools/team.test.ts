@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { teamTool } from "./team.js";
+import { appendTask } from "../team/tasks.js";
 import type { ToolContext } from "./types.js";
 
 const ctx = {} as unknown as ToolContext; // teamTool reads/writes via process.env.VANTA_HOME
@@ -61,5 +62,27 @@ describe("teamTool", () => {
   it("describeForSafety returns team + action", () => {
     expect(teamTool.describeForSafety?.({ action: "define" })).toBe("team define");
     expect(teamTool.describeForSafety?.({ action: "list" })).toBe("team list");
+  });
+
+  // run guards return before resolving a provider or spawning a worker, so they
+  // are deterministic and need no live LLM (the spawn path runs in real use).
+  it("run requires a taskId", async () => {
+    const res = await teamTool.execute({ action: "run" }, ctx);
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("needs taskId");
+  });
+
+  it("run rejects an unknown taskId", async () => {
+    const res = await teamTool.execute({ action: "run", taskId: "ghost" }, ctx);
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("unknown task id");
+  });
+
+  it("run refuses an already-done task", async () => {
+    const now = new Date().toISOString();
+    await appendTask({ kind: "task", id: "t-done", workerId: "w1", title: "ship", status: "done", created: now, updated: now });
+    const res = await teamTool.execute({ action: "run", taskId: "t-done" }, ctx);
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("already done");
   });
 });

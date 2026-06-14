@@ -89,6 +89,7 @@ describe("registry", () => {
       "roadmap_move",
       "run_code",
       "screenshot",
+      "self_repair",
       "send_message",
       "shell_cmd",
       "sleep",

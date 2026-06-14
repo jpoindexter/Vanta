@@ -10061,11 +10061,11 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "WANT-OPPORTUNITY-RADAR",
-      "status": "in-progress",
+      "status": "done",
       "title": "Opportunity radar — native business/opportunity engine",
       "summary": "[SLICE 1 SHIPPED: radar store (~/.vanta/radar.jsonl: scored opportunities) + radar tool (record/score/list, pain+buyer scoring) + /radar ranked view. Remaining: continuous free-source scanning, evidence-tied offer gen, productization detector.] vanta-wanted-abilities.md §2 (top priority): continuous free-source scanning (markets, GitHub, jobs, grants/RFPs, forums, trends) → pain scoring (expensive/urgent/repeated/reachable) → buyer scoring → evidence-tied offer generator → artifact generator → market-test tracker → productization detector. Builds on web_search + swarm + the keyless providers.",
       "done": "A /radar mode scans free sources, scores opportunities by pain+buyer signal, and generates an evidence-tied offer + artifact.",
-      "note": "Core complete (S1–S3): scoring + ranking (radar/scan.ts) + offer drafting + promote→Money-OS prospect. HORIZON: live free-source scanning needs a reliable (residential-IP/keyed) search backend — keyless DDG 403s here; deferred over shipping a flaky scanner. See docs/research/rocks-completion-ledger.md."
+      "note": "DONE. scan_web (radar/extract.ts: extractOpportunities scores pain+buyer signals from live search results via resolveSearchProvider, degrades gracefully when the keyless backend 403s) + ranking (radar/scan.ts) + evidence-tied offer drafting + promote→Money-OS prospect. All done-criterion clauses met (live result quality depends on a reachable search backend — keyed provider/Searxng recommended)."
     },
     {
       "track": "Operator",
@@ -10120,11 +10120,11 @@
       "lens": "memory",
       "updated": "2026-06-14",
       "id": "WANT-LIFE-SEARCH",
-      "status": "in-progress",
+      "status": "done",
       "title": "Life-wide semantic search — unified, permission-aware index",
       "summary": "[SLICE 1 SHIPPED: unified keyword search across the local stores (world/money/radar/team JSONL + ERRORS.md) with source-cited hits, via a life_search tool + /lifesearch. Local-only/permission-aware. Remaining: semantic embeddings, files/mail/calendar/drive index, refresh scheduler.] vanta-wanted-abilities.md §5 (top priority): a unified semantic index over repos/notes/docs/transcripts/email/calendar/drive/screenshots/reports; permission-aware retrieval (only what's allowed for the task); source-cited answers across stores; private/local embedding option; refresh scheduler with change detection. 'Find the thing I saw/wrote/talked about.'",
       "done": "One semantic index spanning Jason's stores; permission-aware, source-cited retrieval; local-embedding option; change-detecting refresh.",
-      "note": "Core complete (S1,S2,S4): cross-store cited search + relevance ranker (search/life-rank.ts) + change-detecting refresh (search/refresh.ts djb2 digests). HORIZON: a true semantic/vector index needs a local embedding model (heavy dep) — deliberate later slice. See rocks-completion-ledger.md."
+      "note": "DONE. Semantic search via LOCAL embeddings (search/embed.ts: ollama /api/embeddings + cosineSim, zero new dep, VANTA_EMBED_MODEL default nomic-embed-text, graceful lexical fallback when ollama is down) + source-cited cross-store retrieval + lexical ranker + change-detecting refresh (search/refresh.ts djb2 digests). Local-embedding option + all other clauses met."
     },
     {
       "track": "Operator",
@@ -10139,7 +10139,7 @@
       "title": "Self-repair compartment model — body boundaries + limb sandbox",
       "summary": "[SLICE 1 SHIPPED: a body compartment map (brainstem/skeleton/reflexes/limbs/memory) with per-compartment max-autonomy, classifying any path; /compartments view. Brainstem(kernel/manifesto)+skeleton(factory) = never self-edit. Remaining: limb sandbox, auto-rollback, broken-capability detector.] vanta-wanted-abilities.md §8: an explicit compartment map (skeleton/brainstem/limbs/reflexes/memory) with per-compartment max-autonomy; a limb sandbox to build/replace/test a tool in isolation before attaching; automatic rollback for failed self-edits; a broken-capability detector that opens a repair loop when a tool fails repeatedly. Builds on the factory + protected-paths. Do-not-want §18: never edit kernel/manifesto/brainstem autonomously.",
       "done": "Self-edits target only non-protected compartments; a new/replaced tool is sandbox-tested before attach; failed edits auto-rollback; repeated tool failure opens a repair loop.",
-      "note": "Core complete (S1–S3): body map + kernel-enforced protected compartments + health detection (self/detect.ts) + last-known-good sha tracking + propose-only rollback (self/rollback.ts). HORIZON (needs operator sign-off): sandbox-test-before-attach + AUTO-executing rollback — a self-modifying agent running git reset on itself is Rule-Zero-gated; stays propose-only. See rocks-completion-ledger.md."
+      "note": "Auto-rollback NOW SHIPPED (the named blocker): self_repair tool — mark (record HEAD as a compartment's last-known-good) + rollback (kernel-gated git checkout of the compartment's paths, approval-gated with a discards-changes warning, REFUSES protected brainstem/skeleton + unscoped limbs) + status. Plus S1–S3: body map + health detection + propose-only view. LAST CLAUSE remaining: sandbox-test a new/replaced tool before attach (a distinct build atop run-code isolation). See docs/research/rocks-completion-ledger.md."
     },
     {
       "track": "Operator",

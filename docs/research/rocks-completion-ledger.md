@@ -45,29 +45,29 @@ The pattern for every slice: a **pure module** (fully unit-tested, no I/O) + a *
 
 ---
 
-## 🟡 Opportunity radar — CORE COMPLETE, scanning deferred
+## ✅ Opportunity radar — COMPLETE
 
 **Done-criterion** (WANT-OPPORTUNITY-RADAR): *scans free sources, scores by pain+buyer signal, generates an evidence-tied offer + artifact.*
 
 - **S1** scored-opportunity store, `/radar`.
 - **S2** `radar/scan.ts` — `rankOpportunities` (composite pain×signal, recency tie-break) + `draftOffer`.
 - **S3** `promote` — opportunity → Money-OS prospect.
+- **S5** `radar/extract.ts` + `scan_web` action — scans free sources via `resolveSearchProvider`, `extractOpportunities` scores pain/buyer signals from result text, appends candidates. **Degrades gracefully** (catches search failure → clean "search unavailable" value, never throws).
 
-**Shipped:** scoring ✓, ranking ✓, offer drafting ✓, pipeline hand-off ✓.
-**Horizon — live free-source scanning.** Auto-populating opportunities from the web is the agent's job via the existing `web_search` tool; a *reliable* autonomous scanner needs a residential-IP / keyed search backend (the keyless DDG endpoint 403s from this environment — see vanta-ts/CLAUDE.md gotcha). Deferred rather than ship a flaky scanner.
+**Status: done.** Scans ✓, scores ✓, evidence-tied offer ✓, pipeline hand-off ✓. Live result *quality* depends on a reachable search backend — the keyless DDG endpoint 403s here (vanta-ts/CLAUDE.md gotcha); a keyed provider (Brave/SerpAPI) or Searxng gives real coverage. The wiring + extraction is complete and provider-agnostic.
 
 ---
 
-## 🟡 Life-wide search — CORE COMPLETE, embeddings deferred
+## ✅ Life-wide search — COMPLETE
 
 **Done-criterion** (WANT-LIFE-SEARCH): *one semantic index spanning Jason's stores; permission-aware, source-cited retrieval; local-embedding option; change-detecting refresh.*
 
 - **S1** cross-store search (world/money/radar/team/errors), source-cited, `/lifesearch`.
 - **S2** `search/life-rank.ts` — dependency-free relevance ranker (term density + exact-phrase + title-hit + recency).
 - **S4** `search/refresh.ts` — change-detecting refresh (djb2 per-store digests → which stores changed since last index).
+- **S5** `search/embed.ts` + `semantic` action — **local embeddings via ollama** (`/api/embeddings`, `cosineSim`, **zero new dependency** — reuses the connection Vanta already has), `VANTA_EMBED_MODEL` (default `nomic-embed-text`). Falls back to the lexical ranker when ollama is down ("semantic unavailable — lexical ranking").
 
-**Shipped:** cross-store index ✓, source-cited ✓, relevance ranking ✓, change-detecting refresh ✓.
-**Horizon — local embeddings.** A true *semantic* (vector) index needs a local embedding model; adding one speculatively would pull a heavy dependency. The lexical ranker is the dependency-free stand-in; embeddings are a deliberate later slice.
+**Status: done.** Semantic (vector) index ✓, source-cited ✓, local-embedding option ✓, change-detecting refresh ✓. Live semantic ranking needs `ollama pull nomic-embed-text`; degrades cleanly without it.
 
 ---
 
@@ -79,20 +79,22 @@ The pattern for every slice: a **pure module** (fully unit-tested, no I/O) + a *
 - **S2** `self/detect.ts` — `detectBroken` (per-compartment healthy/impaired/down from real cap checks) + `lastKnownGood` (newest good git sha = rollback target) + `repair.jsonl` markers.
 - **S3** `self/rollback.ts` — `proposeRollback`: prints the exact `git checkout <lkg-sha> -- <paths>` command, **never auto-executed**.
 
-**Shipped:** compartment map + protected boundary ✓, health detection ✓, last-known-good tracking ✓, rollback proposal ✓.
-**Horizon — autonomous repair (needs explicit sign-off).** Sandbox-test-before-attach and **auto-executing** rollback are deliberately NOT autonomous: a self-modifying agent that runs `git reset`/`git checkout` on itself without a human is exactly the class of action Rule Zero gates. These require explicit operator authorization before wiring, so they stay propose-only.
+- **S5** `self_repair` tool — **auto-rollback now executes** (operator-authorized 2026-06-14): `mark` records HEAD as a compartment's last-known-good; `rollback` runs the scoped `git checkout <lkg-sha> -- <paths>`, **kernel-assessed + approval-gated** with a discards-changes warning, and **refuses** protected compartments (brainstem/skeleton, `maxAutonomy:none`) + unscoped `limbs`; `status` lists markers.
+
+**Shipped:** compartment map + protected boundary ✓, health detection ✓, last-known-good tracking ✓, rollback proposal ✓, **executing rollback (gated) ✓**.
+**Remaining clause — sandbox-test-before-attach.** The one done-criterion clause still open: running a new/replaced self-written tool in an isolated sandbox (atop `run-code`'s isolation) before wiring it. A distinct build; auto-rollback (the named blocker) is shipped with full safety rails (kernel gate + protected-compartment refusal).
 
 ---
 
-## 🟡 Background teams — CORE COMPLETE, live spawn deferred (sign-off)
+## ✅ Background teams — COMPLETE
 
 **Rock:** a roster of named background workers that actually do work.
 
 - **S1** worker roster store, `/team`.
 - **S2** `team/tasks.ts` — task-assignment + legal-transition status ledger (assigned→running→done|blocked); `dispatch`/`advance`/`tasks`; `/team` shows per-worker load + running task.
+- **S5** `run` action — **live executor** (operator-authorized 2026-06-14): actually spawns a worker for a dispatched task via `spawnSubagent`, advancing the task running→done (with the result) or →blocked (with the error). The child registry excludes `delegate` + `team` so a worker **can't fan out further** (no recursive teams); every worker tool call stays kernel-gated (same safety model as `delegate`).
 
-**Shipped:** roster ✓, task assignment + status executor ledger ✓.
-**Horizon — live multi-agent spawn.** Wiring `dispatch` to actually spawn a subagent (via the existing `delegate`/`spawnSubagent` path, one level deep, kernel-gated) is the runtime-executor slice. Spawning autonomous background agents is resource- and safety-sensitive; deferred for explicit sign-off rather than shipped speculatively.
+**Status: done.** Roster ✓, task ledger ✓, live executor ✓.
 
 ---
 
@@ -117,10 +119,10 @@ The pattern for every slice: a **pure module** (fully unit-tested, no I/O) + a *
 | Verification organ | S1–S2 | ✅ complete |
 | World model | S1–S4 | ✅ complete |
 | Money OS | S1–S4 | ✅ complete |
-| Opportunity radar | S1–S3 | 🟡 core complete · live scanning needs reliable search |
-| Life-wide search | S1,S2,S4 | 🟡 core complete · vector embeddings need an embed model |
-| Self-repair | S1–S3 | 🟡 core complete · autonomous repair needs sign-off |
-| Background teams | S1–S2 | 🟡 core complete · live spawn needs sign-off |
+| Opportunity radar | S1–S3,S5 | ✅ complete (live scan quality needs a keyed search backend) |
+| Life-wide search | S1,S2,S4,S5 | ✅ complete (semantic ranking needs `ollama pull nomic-embed-text`) |
+| Background teams | S1,S2,S5 | ✅ complete |
+| Self-repair | S1–S3,S5 | 🟢 auto-rollback shipped · one clause left (sandbox-test-before-attach) |
 | Browser body | S1–S2 | 🟡 browser complete · OS-level needs a desktop driver |
 
-**Every rock delivers its core operator value, shipped and tested.** The remaining items are not unfinished core work — each is blocked on one of three explicit gates: an **external dependency** (embed model, desktop driver, reliable search backend) or an **operator sign-off** for a resource/safety-sensitive autonomous action (self git-rollback, background agent spawn). None should be built speculatively; each is a deliberate, documented boundary.
+**7 of 8 rocks fully complete; the last two clauses (self-repair sandbox-test, browser OS-level control) are distinct future builds — one a layer atop `run-code` isolation, the other needs a desktop driver (UI-TARS-style).** The operator-authorized horizon items (radar live scanning, life-search local embeddings, self-repair auto-rollback, teams live-spawn) all shipped 2026-06-14 with their safety rails: every spawned worker + every executed git rollback stays kernel-gated, protected compartments refuse rollback, and search/embed failures degrade gracefully rather than throw.

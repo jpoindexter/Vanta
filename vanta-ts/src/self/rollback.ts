@@ -116,3 +116,8 @@ export function formatRollbackProposal(proposal: RollbackProposal): string {
 export function isCompartment(value: string): value is Compartment {
   return compartmentMap().some((c) => c.compartment === value);
 }
+
+/** The repo paths a compartment owns (for a scoped `git checkout <sha> -- <paths>`). Pure. */
+export function rollbackPaths(compartment: Compartment): string[] {
+  return COMPARTMENT_PATHS[compartment];
+}
