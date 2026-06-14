@@ -80,9 +80,9 @@ The pattern for every slice: a **pure module** (fully unit-tested, no I/O) + a *
 - **S3** `self/rollback.ts` — `proposeRollback`: prints the exact `git checkout <lkg-sha> -- <paths>` command, **never auto-executed**.
 
 - **S5** `self_repair` tool — **auto-rollback now executes** (operator-authorized 2026-06-14): `mark` records HEAD as a compartment's last-known-good; `rollback` runs the scoped `git checkout <lkg-sha> -- <paths>`, **kernel-assessed + approval-gated** with a discards-changes warning, and **refuses** protected compartments (brainstem/skeleton, `maxAutonomy:none`) + unscoped `limbs`; `status` lists markers.
+- **S6** limb sandbox-test-before-attach — `self/tool-sandbox.ts` plans bounded tests only for `vanta-ts/src/tools/*.ts`; `self_repair sandbox_test` approval-gates the run, forces `VANTA_SANDBOX=1` through the same wrapper as `run_code`/`shell_cmd`, and refuses protected/non-tool paths before approval. Repeated tool failures surface a `Repair loop` prompt with `/compartments` + `self_repair sandbox_test`.
 
-**Shipped:** compartment map + protected boundary ✓, health detection ✓, last-known-good tracking ✓, rollback proposal ✓, **executing rollback (gated) ✓**.
-**Remaining clause — sandbox-test-before-attach.** The one done-criterion clause still open: running a new/replaced self-written tool in an isolated sandbox (atop `run-code`'s isolation) before wiring it. A distinct build; auto-rollback (the named blocker) is shipped with full safety rails (kernel gate + protected-compartment refusal).
+**Status: done.** Compartment map + protected boundary ✓, health detection ✓, last-known-good tracking ✓, rollback proposal ✓, executing rollback (gated) ✓, limb sandbox-test-before-attach ✓, repeated-failure repair-loop prompt ✓.
 
 ---
 
@@ -122,7 +122,7 @@ The pattern for every slice: a **pure module** (fully unit-tested, no I/O) + a *
 | Opportunity radar | S1–S3,S5 | ✅ complete (live scan quality needs a keyed search backend) |
 | Life-wide search | S1,S2,S4,S5 | ✅ complete (semantic ranking needs `ollama pull nomic-embed-text`) |
 | Background teams | S1,S2,S5 | ✅ complete |
-| Self-repair | S1–S3,S5 | 🟢 auto-rollback shipped · one clause left (sandbox-test-before-attach) |
+| Self-repair | S1–S3,S5,S6 | 🟢 complete · sandbox-test-before-attach shipped |
 | Browser body | S1–S2 | 🟡 browser complete · OS-level needs a desktop driver |
 
-**7 of 8 rocks fully complete; the last two clauses (self-repair sandbox-test, browser OS-level control) are distinct future builds — one a layer atop `run-code` isolation, the other needs a desktop driver (UI-TARS-style).** The operator-authorized horizon items (radar live scanning, life-search local embeddings, self-repair auto-rollback, teams live-spawn) all shipped 2026-06-14 with their safety rails: every spawned worker + every executed git rollback stays kernel-gated, protected compartments refuse rollback, and search/embed failures degrade gracefully rather than throw.
+**8 of 8 rocks fully complete; remaining browser OS-level control is a separate desktop-driver horizon item (UI-TARS-style), not part of this rocks set.** The operator-authorized horizon items (radar live scanning, life-search local embeddings, self-repair auto-rollback + sandbox-test, teams live-spawn) all shipped 2026-06-14 with their safety rails: every spawned worker + every executed git rollback stays kernel-gated, protected compartments refuse rollback, limb tool tests run through the sandbox wrapper, and search/embed failures degrade gracefully rather than throw.

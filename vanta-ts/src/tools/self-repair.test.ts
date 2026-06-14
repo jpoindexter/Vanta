@@ -41,6 +41,14 @@ describe("self_repair validation", () => {
     expect(r.ok).toBe(false);
     expect(r.output).toContain("valid compartment");
   });
+
+  it("rejects sandbox_test without a valid limb tool path", async () => {
+    const ctx = makeCtx(true);
+    const r = await selfRepairTool.execute({ action: "sandbox_test", toolPath: "vanta-ts/src/agent.ts" }, ctx);
+    expect(r.ok).toBe(false);
+    expect(r.output).toContain("limb tool path");
+    expect(ctx.requestApproval).not.toHaveBeenCalled();
+  });
 });
 
 describe("self_repair rollback safety rails", () => {
@@ -99,9 +107,28 @@ describe("self_repair mark + status", () => {
   });
 });
 
+describe("self_repair sandbox_test", () => {
+  it("asks before running the sandboxed test command and aborts on denial", async () => {
+    const ctx = makeCtx(false);
+    const r = await selfRepairTool.execute(
+      { action: "sandbox_test", toolPath: "vanta-ts/src/tools/web-fetch.ts" },
+      ctx,
+    );
+
+    expect(ctx.requestApproval).toHaveBeenCalledOnce();
+    const [prompt, reason] = (ctx.requestApproval as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
+    expect(prompt).toContain("sandbox-test");
+    expect(prompt).toContain("npm --prefix vanta-ts test -- src/tools/web-fetch.test.ts");
+    expect(reason).toContain("before attach");
+    expect(r.ok).toBe(false);
+    expect(r.output).toBe("denied");
+  });
+});
+
 describe("self_repair describeForSafety", () => {
   it("surfaces the git op for rollback so the kernel assesses it", () => {
     expect(selfRepairTool.describeForSafety?.({ action: "rollback", compartment: "memory" })).toContain("git checkout");
     expect(selfRepairTool.describeForSafety?.({ action: "mark", compartment: "memory" })).toBe("record self-repair marker");
+    expect(selfRepairTool.describeForSafety?.({ action: "sandbox_test", toolPath: "vanta-ts/src/tools/web-fetch.ts" })).toContain("sandbox-test");
   });
 });

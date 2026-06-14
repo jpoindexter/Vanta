@@ -36,4 +36,12 @@ describe("buildErrorDetectText", () => {
     const text = buildErrorDetectText(3);
     expect(text).toMatch(/reassess|different approach|pause/i);
   });
+
+  it("opens the self-repair loop when repeated failures hit the threshold", () => {
+    const text = buildErrorDetectText(3);
+    expect(text).toContain("Repair loop");
+    expect(text).toContain("/compartments");
+    expect(text).toContain("self_repair");
+    expect(text).toContain("sandbox_test");
+  });
 });

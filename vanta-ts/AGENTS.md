@@ -53,10 +53,11 @@ npx tsc --noEmit                 # must be clean before any commit
 
 - `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **93 slash commands**.
+- `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - TUI rendering is real Ink 7 under `src/ui/`; the old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
-- Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: self-repair sandbox-test-before-attach and browser OS-level control.
+- Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: browser OS-level control.
 
 ## Adding a tool (checklist)
 

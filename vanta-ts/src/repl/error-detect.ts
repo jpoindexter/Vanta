@@ -9,7 +9,8 @@ export function isErrorResult(ok: boolean, output: string): boolean {
 }
 
 export function buildErrorDetectText(consecutiveFailures: number): string {
-  return (
-    `⚠ ${consecutiveFailures} consecutive tool failures. Pausing — want me to reassess the approach before continuing?`
-  );
+  return [
+    `⚠ ${consecutiveFailures} consecutive tool failures. Pause — Repair loop opened.`,
+    "Next: run /compartments, inspect the failing capability, then use self_repair sandbox_test for any new/replaced limb tool before attach.",
+  ].join("\n");
 }

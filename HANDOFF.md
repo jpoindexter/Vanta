@@ -41,12 +41,11 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - `/init`, lifecycle init flags, and resume forking: `vanta-ts/src/repl/init-cmd.ts`, `vanta-ts/src/cli/lifecycle.ts`, `vanta-ts/src/sessions/store.ts`.
 - Auto minimalism skill + `/auto`; plan-mode and task-boundary EF surfaces; 14 bundled `nd-*` skills.
 - Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.
-- Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback, teams live-spawn.
+- Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback + limb sandbox-test, teams live-spawn.
 - Reach layer: channel doctor, RSS, Reddit, cookie import; deferred reach channels tracked as `REACH-*`.
 
 ## Current Open Edges
 
-- Self-repair sandbox-test-before-attach.
 - Browser OS-level control beyond Playwright page actions.
 - Deferred reach channels: Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu.
 - Live setup still requires external credentials/binaries for some surfaces: Playwright Chromium, API keys, Google OAuth, login cookies.

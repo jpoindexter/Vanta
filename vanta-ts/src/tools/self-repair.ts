@@ -4,10 +4,13 @@ import { runGit } from "./git.js";
 import { recordGood, readMarkers, lastKnownGood } from "../self/detect.js";
 import { isCompartment, rollbackPaths } from "../self/rollback.js";
 import type { Compartment } from "../self/compartments.js";
+import { planToolSandboxTest, runToolSandboxTest } from "../self/tool-sandbox.js";
 
 const Args = z.object({
-  action: z.enum(["mark", "rollback", "status"]),
+  action: z.enum(["mark", "rollback", "status", "sandbox_test"]),
   compartment: z.string().min(1).optional(),
+  toolPath: z.string().min(1).optional(),
+  command: z.string().min(1).optional(),
 });
 
 // Protected compartments (maxAutonomy "none") are kernel-enforced and never
@@ -56,6 +59,20 @@ async function doStatus(): Promise<ToolResult> {
     : { ok: true, output: "No last-known-good markers recorded yet." };
 }
 
+async function doSandboxTest(raw: { toolPath?: string; command?: string }, ctx: ToolContext): Promise<ToolResult> {
+  const plan = planToolSandboxTest(raw);
+  if (!plan.ok) return { ok: false, output: plan.reason };
+  const approved = await ctx.requestApproval(
+    `sandbox-test ${plan.toolPath}\n    ${plan.command}`,
+    "runs the isolated pre-attach test for a new/replaced limb tool before attach",
+  );
+  if (!approved) return { ok: false, output: "denied" };
+  const result = await runToolSandboxTest(ctx.root, plan.command);
+  return result.ok
+    ? { ok: true, output: `sandbox PASS for ${plan.toolPath}\n${result.output}` }
+    : { ok: false, output: `sandbox FAIL for ${plan.toolPath}\n${result.output}` };
+}
+
 export const selfRepairTool: Tool = {
   schema: {
     name: "self_repair",
@@ -64,15 +81,24 @@ export const selfRepairTool: Tool = {
       "action:mark {compartment} records the current HEAD as the compartment's good state. " +
       "action:rollback {compartment} restores it (git checkout of the compartment's paths) — approval-gated, " +
       "refuses protected compartments (brainstem/skeleton) and discards uncommitted changes under those paths. " +
+      "action:sandbox_test {toolPath} runs a bounded OS-sandboxed test for a new/replaced limb tool before attach. " +
       "action:status lists recorded markers. Compartments: brainstem, skeleton, reflexes, memory, limbs.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["mark", "rollback", "status"] },
+        action: { type: "string", enum: ["mark", "rollback", "status", "sandbox_test"] },
         compartment: {
           type: "string",
           enum: ["brainstem", "skeleton", "reflexes", "memory", "limbs"],
           description: "the body compartment (required for mark/rollback)",
+        },
+        toolPath: {
+          type: "string",
+          description: "repo-relative vanta-ts/src/tools/*.ts path (required for sandbox_test)",
+        },
+        command: {
+          type: "string",
+          description: "optional bounded vanta-ts test command for sandbox_test",
         },
       },
       required: ["action"],
@@ -84,12 +110,15 @@ export const selfRepairTool: Tool = {
       ? `git checkout — rollback ${String(a.compartment ?? "")} to last-known-good`
       : a.action === "mark"
         ? "record self-repair marker"
-        : "list self-repair markers",
+        : a.action === "sandbox_test"
+          ? `sandbox-test tool before attach: ${String(a.toolPath ?? "")}`
+          : "list self-repair markers",
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
-    if (!parsed.success) return { ok: false, output: 'self_repair needs an "action" (mark|rollback|status)' };
-    const { action, compartment } = parsed.data;
+    if (!parsed.success) return { ok: false, output: 'self_repair needs an "action" (mark|rollback|status|sandbox_test)' };
+    const { action, compartment, toolPath, command } = parsed.data;
     if (action === "status") return doStatus();
+    if (action === "sandbox_test") return doSandboxTest({ toolPath, command }, ctx);
     if (!compartment || !isCompartment(compartment)) {
       return { ok: false, output: `${action} needs a valid compartment (brainstem|skeleton|reflexes|memory|limbs)` };
     }
