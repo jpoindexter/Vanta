@@ -10413,7 +10413,7 @@
       "after": [
         "SETUP-CONFIG-SYSTEM"
       ],
-      "notes": "Shipped 2026-06-14. Read the real Hermes wizard source (hermes_cli/setup.py run_setup_wizard) and mirrored its structure: boxed banner → Quick/Full first-run choice → ◆-headed sections (model → capabilities[tools+MCP] → messaging → personality[SOUL] → health) → summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Like Hermes, deeper per-setting tuning is deferred to `vanta config` rather than prompted (Hermes applies agent-setting defaults silently too). `vanta setup model` = bare picker; runSetup gained a quiet mode to embed cleanly."
+      "notes": "Shipped 2026-06-14. Mirrors the real Hermes wizard (verified against a live `hermes setup` run): boxed banner → ◆ Configuration Location → ◆ Inference provider (shows current model) → ◆ Messaging → ◆ Personality → ◆ Capability availability (✓/✗ per capability + exact fix, reuses gatherCapabilities/formatHealth) → boxed ✓ Setup complete + summary with file locations + management commands (vanta setup model|messaging, vanta config get/set/check). Local-first: no hosted-portal Quick path. Per-tool provider selection (Hermes setup_tools) deferred — Vanta tools have few provider sub-choices; the capability summary surfaces each + its fix."
     }
   ]
 }

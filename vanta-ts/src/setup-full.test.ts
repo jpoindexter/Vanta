@@ -4,10 +4,10 @@ import type { Interface as Readline } from "node:readline/promises";
 // Mock the heavy steps so the orchestration is testable without prompts/IO.
 vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn(() => "/nonexistent/.env") }));
 vi.mock("./setup-messaging.js", () => ({ runMessagingSetup: vi.fn(async () => true) }));
-vi.mock("./status.js", () => ({ gatherStatus: vi.fn(async () => ({})), formatStatus: vi.fn(() => "STATUS-OK") }));
 vi.mock("./brain/store.js", () => ({ writeRegion: vi.fn(async () => {}) }));
+vi.mock("./repl/health-cmd.js", () => ({ gatherCapabilities: vi.fn(async () => []), formatHealth: vi.fn(() => "  CAPS-OK") }));
 
-import { runFullSetup, isYes, capabilitiesStep, wizardBanner, sectionHeader, summaryText } from "./setup-full.js";
+import { runFullSetup, isYes, box, wizardBanner, sectionHeader, configLocation, summaryText } from "./setup-full.js";
 import { runSetup } from "./setup.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
@@ -32,58 +32,50 @@ describe("pure builders", () => {
     for (const y of ["y", "Y", "yes", " yes "]) expect(isYes(y)).toBe(true);
     for (const n of ["", "n", "no", "nope", "yeah"]) expect(isYes(n)).toBe(false);
   });
+  it("box draws corners + contains the content", () => {
+    const b = box(["hello"]);
+    expect(b).toContain("┌");
+    expect(b).toContain("┐");
+    expect(b).toContain("└");
+    expect(b).toContain("hello");
+  });
   it("banner + section header carry the ◆ marker", () => {
     expect(wizardBanner()).toContain("◆ Vanta Setup Wizard");
     expect(sectionHeader("Messaging")).toContain("◆ Messaging");
   });
-  it("summary shows provider/model, file locations, and management commands", () => {
-    const s = summaryText("/repo", mkEnv({ VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt" }));
-    expect(s).toContain("Provider: openai");
-    expect(s).toContain("vanta setup model");
+  it("configLocation shows the file paths", () => {
+    const c = configLocation("/repo", mkEnv({ VANTA_HOME: "/home/.vanta" }));
+    expect(c).toContain("Configuration Location");
+    expect(c).toContain("/home/.vanta");
+  });
+  it("summary shows files + management commands", () => {
+    const s = summaryText("/repo", mkEnv({}));
+    expect(s).toContain("📁 Your files");
     expect(s).toContain("vanta config");
   });
 });
 
-describe("capabilitiesStep", () => {
-  it("reports tools + the configured MCP count", async () => {
-    const env = mkEnv({ VANTA_MCP_SERVERS: JSON.stringify({ servers: { foo: { command: "echo" } } }) });
-    const out = await capabilitiesStep(env, ".");
-    expect(out).toContain("Tools:");
-    expect(out).toContain("1 server(s) connected");
-  });
-  it("reports no MCP when empty", async () => {
-    expect(await capabilitiesStep(mkEnv({ VANTA_MCP_SERVERS: '{"servers":{}}' }), ".")).toContain("MCP: none");
-  });
-});
-
 describe("runFullSetup", () => {
-  const env = mkEnv({ VANTA_MCP_SERVERS: '{"servers":{}}' });
+  const env = mkEnv({});
 
   it("bails when the model step is declined", async () => {
     mockedRunSetup.mockResolvedValue(false);
-    expect(await runFullSetup("/repo", fakeRl(["2"]), env)).toBe(false); // chose Full, but model declined
+    expect(await runFullSetup("/repo", fakeRl([]), env)).toBe(false);
     expect(mockedMessaging).not.toHaveBeenCalled();
   });
 
-  it("Quick mode configures the model only, no optional prompts", async () => {
-    const r = await runFullSetup("/repo", fakeRl(["1"]), env); // Quick
+  it("skips optional steps on no/empty answers", async () => {
+    const r = await runFullSetup("/repo", fakeRl(["n", ""]), env); // messaging no, persona empty
     expect(r).toBe(true);
     expect(mockedRunSetup).toHaveBeenCalledOnce();
     expect(mockedMessaging).not.toHaveBeenCalled();
     expect(mockedWriteRegion).not.toHaveBeenCalled();
   });
 
-  it("Full mode runs messaging + saves personality when opted in", async () => {
-    const r = await runFullSetup("/repo", fakeRl(["2", "y", "be terse"]), env); // Full, messaging yes, persona
+  it("runs messaging + saves personality when opted in", async () => {
+    const r = await runFullSetup("/repo", fakeRl(["y", "be terse"]), env);
     expect(r).toBe(true);
     expect(mockedMessaging).toHaveBeenCalledOnce();
     expect(mockedWriteRegion).toHaveBeenCalledWith("identity", expect.stringContaining("be terse"), { append: true, env });
-  });
-
-  it("Full mode skips optionals on no/empty answers", async () => {
-    const r = await runFullSetup("/repo", fakeRl(["2", "n", ""]), env); // Full, messaging no, persona empty
-    expect(r).toBe(true);
-    expect(mockedMessaging).not.toHaveBeenCalled();
-    expect(mockedWriteRegion).not.toHaveBeenCalled();
   });
 });

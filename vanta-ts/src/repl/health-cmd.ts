@@ -57,7 +57,7 @@ async function mcpCap(env: NodeJS.ProcessEnv): Promise<Cap> {
   return { name: "mcp servers", ok: n > 0, detail: n > 0 ? `${n} configured` : "none (optional)", fix: n > 0 ? undefined : "add .mcp.json or VANTA_MCP_SERVERS" };
 }
 
-async function gatherCapabilities(env: NodeJS.ProcessEnv): Promise<Cap[]> {
+export async function gatherCapabilities(env: NodeJS.ProcessEnv): Promise<Cap[]> {
   const st = await gatherStatus(env);
   const home = resolveVantaHome(env);
   return [kernelCap(st), modelCap(st), searchCap(), googleCap(env, home), visionCap(env), await browserCap(), await mcpCap(env)];
