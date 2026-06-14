@@ -1,7 +1,7 @@
 import type { ReachChannel } from "../channel.js";
-import { hasCookie, loadCookie } from "../cookie.js";
+import { hasCookie } from "../cookie.js";
 import { loadQids } from "../twitter.js";
-import { refreshQueryIds } from "../twitter-heal.js";
+import { healTwitter } from "../twitter-capture.js";
 
 // The X/Twitter channel — native GraphQL (no external tool). Needs a stored
 // cookie (auth_token + ct0) and current GraphQL query IDs. check() reports both;
@@ -27,6 +27,7 @@ export const twitterChannel: ReachChannel = {
       ? { name: "twitter", status: "ok", activeBackend: "x-graphql (cookie)", detail: "cookie + query ids" }
       : { name: "twitter", status: "warn", activeBackend: "x-graphql (cookie)", detail: "no query ids cached", fix: "reach heal twitter" };
   },
-  // Self-heal: re-scrape X's current GraphQL query IDs from its web bundles.
-  heal: (env) => refreshQueryIds(loadCookie("twitter", env), env),
+  // Self-heal: capture live query IDs via a real browser (browser-session),
+  // falling back to the static bundle scrape.
+  heal: (env) => healTwitter(env),
 };

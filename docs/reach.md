@@ -46,17 +46,17 @@ All sources normalize to a common `{title, url, snippet}` (`radar/extract.ts` `f
 Brittle backends (twitter-cli especially — X rotates its GraphQL query IDs every few weeks) *will* break. A channel can declare `heal()`; the kernel-gated **`reach` tool** runs it:
 
 - `reach doctor` — the doctor report (also `/reach`).
-- `reach heal <channel>` — rebuilds the channel's backend, then re-checks. For `twitter` (native GraphQL), heal **re-scrapes X's current query IDs** from X's own web JS bundles into `~/.vanta/twitter-qids.json` (`reach/twitter-heal.ts`) — so when X rotates a query ID, Vanta rebuilds it itself, no external tool. Kernel-gated.
+- `reach heal <channel>` — rebuilds the channel's backend, then re-checks. For `twitter`, heal **captures X's current query IDs from a real browser** (`reach/twitter-capture.ts healTwitter`): it drives a headless browser to x.com pages with your cookie injected and reads the live `Bookmarks`/`SearchTimeline` IDs out of the GraphQL requests the page makes — solving the rotation completely, including the lazy-loaded Bookmarks ID. Falls back to the static bundle scrape (`reach/twitter-heal.ts`) when playwright isn't available. Kernel-gated.
 
-This is the reach analogue of the self-repair organ: *detect off → heal → re-check*. Built-in channels (web/search/rss) have no `heal`. `reach/heal.ts` `tryUpgrade` is the generic CLI-upgrade ladder for any future shell-backed channel.
+This is the reach analogue of the self-repair organ: *detect off → heal → re-check*. The browser drive is the general `reach/browser-session.ts` primitive (see below); `reach/heal.ts tryUpgrade` is a generic CLI-upgrade ladder for any future shell-backed channel.
 
-### X/Twitter setup + the bookmarks caveat
+### Authenticated browser — a general capability (any site)
 
-Native GraphQL (no Python). Setup: (1) `cookie_import` an x.com Cookie-Editor export (`auth_token` + `ct0`) as channel `twitter`; (2) `reach heal twitter` to scrape current query IDs. Bearer/features/query IDs are all env-overridable (`VANTA_TWITTER_BEARER`, `VANTA_TWITTER_FEATURES`, `VANTA_TWITTER_QID_<OP>`).
+`reach/browser-session.ts openWithSession(url, cookie)` opens **any** url in a real headless browser with session cookies injected, returning the rendered text + every request the page made. The **`browser_read`** tool wraps it: `browser_read {url, browser:"brave"}` reads any login-walled / JS-rendered page (x.com, reddit, linkedin, internal apps) by auto-injecting your logged-in cookies for that domain. Not X-specific — the X query-id capture is just one consumer.
 
-- **Search works** — the heal reliably finds `SearchTimeline` (it's in a homepage bundle).
-- **Bookmarks** — the `Bookmarks` query ID lives in a lazy chunk X loads only on the bookmarks route at runtime, so the homepage scrape doesn't catch it. Get it once from your browser devtools (open `x.com/i/bookmarks`, copy the query id from the `Bookmarks` GraphQL request URL) and set `VANTA_TWITTER_QID_BOOKMARKS`, or wait for a deeper chunk-scraper.
-- **Caveat:** X is anti-bot; native fetch lacks twitter-cli's TLS-fingerprint impersonation, so X may rate-limit/403 from some IPs. The wiring is correct; coverage depends on X + the cookie.
+### X/Twitter setup
+
+Native GraphQL (no Python). Setup: (1) `cookie_import {channel:"twitter", browser:"brave"}` (auto-reads your live session — no export), or paste/file a Cookie-Editor export with `auth_token` + `ct0`; (2) `reach heal twitter` captures the live query IDs via the browser. Then `twitter_read bookmarks` / `search`. Bearer/features/query IDs stay env-overridable (`VANTA_TWITTER_BEARER`, `VANTA_TWITTER_FEATURES`, `VANTA_TWITTER_QID_<OP>`) as escape hatches. Live-verified: the browser capture pulls the same `Bookmarks` ID DevTools shows, and `twitter_read bookmarks` returns real bookmarks.
 
 ## Lessons applied from Agent-Reach issues
 
