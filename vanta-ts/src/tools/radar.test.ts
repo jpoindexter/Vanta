@@ -93,16 +93,11 @@ describe("radarTool", () => {
     }
   });
 
-  it("scan_web from:twitter degrades gracefully when twitter-cli is absent", async () => {
-    const prevPath = process.env.PATH;
-    process.env.PATH = "/nonexistent";
-    try {
-      const r = await radarTool.execute({ action: "scan_web", from: "twitter", query: "manual work" }, ctx);
-      expect(r.ok).toBe(true); // graceful — never throws
-      expect(r.output).toContain("twitter unavailable");
-    } finally {
-      process.env.PATH = prevPath;
-    }
+  it("scan_web from:twitter degrades gracefully without a twitter cookie", async () => {
+    // temp VANTA_HOME (from beforeEach) → no twitter cookie → graceful skip
+    const r = await radarTool.execute({ action: "scan_web", from: "twitter", query: "manual work" }, ctx);
+    expect(r.ok).toBe(true); // never throws
+    expect(r.output).toContain("twitter unavailable");
   });
 
   it("scan_web from:rss reads a feed → opportunities (mocked fetch)", async () => {

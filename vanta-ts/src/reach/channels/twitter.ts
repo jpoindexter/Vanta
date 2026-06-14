@@ -1,37 +1,32 @@
 import type { ReachChannel } from "../channel.js";
-import { hasCookie } from "../cookie.js";
-import { probeCommand } from "../probe.js";
-import { tryUpgrade, pyToolUpgradeCommands } from "../heal.js";
+import { hasCookie, loadCookie } from "../cookie.js";
+import { loadQids } from "../twitter.js";
+import { refreshQueryIds } from "../twitter-heal.js";
 
-// The X/Twitter channel — search via twitter-cli (keyless cookie auth). Unlike
-// reddit, a stored cookie is optional: twitter-cli can auto-extract the session
-// from the browser. check() probes the CLI and reports the auth path.
+// The X/Twitter channel — native GraphQL (no external tool). Needs a stored
+// cookie (auth_token + ct0) and current GraphQL query IDs. check() reports both;
+// heal() re-scrapes the query IDs from X's web bundles when X rotates them.
 export const twitterChannel: ReachChannel = {
   name: "twitter",
-  description: "Search X/Twitter",
-  backends: ["twitter-cli"],
+  description: "Search + read X/Twitter (native GraphQL)",
+  backends: ["x-graphql (cookie)"],
   tier: 2,
   canHandle: (url) => /^https?:\/\/(www\.)?(twitter\.com|x\.com)\//i.test(url),
   async check(env) {
-    const probe = await probeCommand("twitter", ["--help"], env);
-    if (!probe.available) {
+    if (!hasCookie("twitter", env)) {
       return {
         name: "twitter",
         status: "off",
         activeBackend: null,
-        detail: "twitter-cli not installed",
-        fix: "uv tool install twitter-cli  (or pipx install twitter-cli)",
+        detail: "no cookie",
+        fix: "export your x.com session via Cookie-Editor → cookie_import channel \"twitter\"",
       };
     }
-    const cookie = hasCookie("twitter", env);
-    return {
-      name: "twitter",
-      status: "ok",
-      activeBackend: "twitter-cli",
-      detail: cookie ? "stored cookie" : "browser session",
-    };
+    const haveQids = Boolean(loadQids(env).SearchTimeline || loadQids(env).Bookmarks);
+    return haveQids
+      ? { name: "twitter", status: "ok", activeBackend: "x-graphql (cookie)", detail: "cookie + query ids" }
+      : { name: "twitter", status: "warn", activeBackend: "x-graphql (cookie)", detail: "no query ids cached", fix: "reach heal twitter" };
   },
-  // Self-heal: re-pull twitter-cli (the maintainer tracks X's API churn), so a
-  // broken X channel rebuilds itself to the latest working version.
-  heal: (env) => tryUpgrade(pyToolUpgradeCommands("twitter-cli"), env),
+  // Self-heal: re-scrape X's current GraphQL query IDs from its web bundles.
+  heal: (env) => refreshQueryIds(loadCookie("twitter", env), env),
 };

@@ -46,9 +46,17 @@ All sources normalize to a common `{title, url, snippet}` (`radar/extract.ts` `f
 Brittle backends (twitter-cli especially — X rotates its GraphQL query IDs every few weeks) *will* break. A channel can declare `heal()`; the kernel-gated **`reach` tool** runs it:
 
 - `reach doctor` — the doctor report (also `/reach`).
-- `reach heal <channel>` — rebuilds the channel's backend, then re-checks. For `twitter`, heal re-pulls **twitter-cli** (`uv tool install --upgrade ▸ pipx ▸ pip`, first that works), since the maintainer tracks X's churn — so a broken X channel **rebuilds itself to the latest working version**. Kernel-gated (it runs an install/upgrade → approval).
+- `reach heal <channel>` — rebuilds the channel's backend, then re-checks. For `twitter` (native GraphQL), heal **re-scrapes X's current query IDs** from X's own web JS bundles into `~/.vanta/twitter-qids.json` (`reach/twitter-heal.ts`) — so when X rotates a query ID, Vanta rebuilds it itself, no external tool. Kernel-gated.
 
-This is the reach analogue of the self-repair organ: *detect off → heal → re-check*. Built-in channels (web/search/rss) have no `heal` (they can't break this way). `reach/heal.ts` `tryUpgrade` runs an ordered installer ladder, skipping missing installers and degrading cleanly.
+This is the reach analogue of the self-repair organ: *detect off → heal → re-check*. Built-in channels (web/search/rss) have no `heal`. `reach/heal.ts` `tryUpgrade` is the generic CLI-upgrade ladder for any future shell-backed channel.
+
+### X/Twitter setup + the bookmarks caveat
+
+Native GraphQL (no Python). Setup: (1) `cookie_import` an x.com Cookie-Editor export (`auth_token` + `ct0`) as channel `twitter`; (2) `reach heal twitter` to scrape current query IDs. Bearer/features/query IDs are all env-overridable (`VANTA_TWITTER_BEARER`, `VANTA_TWITTER_FEATURES`, `VANTA_TWITTER_QID_<OP>`).
+
+- **Search works** — the heal reliably finds `SearchTimeline` (it's in a homepage bundle).
+- **Bookmarks** — the `Bookmarks` query ID lives in a lazy chunk X loads only on the bookmarks route at runtime, so the homepage scrape doesn't catch it. Get it once from your browser devtools (open `x.com/i/bookmarks`, copy the query id from the `Bookmarks` GraphQL request URL) and set `VANTA_TWITTER_QID_BOOKMARKS`, or wait for a deeper chunk-scraper.
+- **Caveat:** X is anti-bot; native fetch lacks twitter-cli's TLS-fingerprint impersonation, so X may rate-limit/403 from some IPs. The wiring is correct; coverage depends on X + the cookie.
 
 ## Lessons applied from Agent-Reach issues
 
@@ -81,7 +89,7 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | `search` | ✅ | auto ▸ ddg ▸ searxng ▸ serpapi ▸ brave ▸ bing ▸ jina | provider via `VANTA_SEARCH_PROVIDER` |
 | `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | ✅ | reddit.json + cookie ▸ rdt-cli | `reddit_read` (search/read) — needs a cookie via `cookie_import`; anonymous is blocked |
-| `twitter` | ✅ | twitter-cli | `twitter_read` (search) — keyless; auth via stored cookie (env vars) or browser session; `uv tool install twitter-cli`. Self-heals (see below) |
+| `twitter` | ✅ | x-graphql (native, cookie) | `twitter_read` (search + bookmarks) — **native TS GraphQL, no Python**. Needs an x.com cookie (`cookie_import twitter`) + query ids (`reach heal twitter`). Self-heals (see below) |
 
 The `reddit` channel reads Reddit's own `.json` endpoints authenticated with the stored cookie (no external CLI to install — anonymous access is blocked, so a cookie is required; `reddit_read` returns the exact setup step when none is configured). `rdt-cli` is the documented fallback backend (not wired). Live coverage of `.json` from a datacenter IP can still be rate-limited — the wiring is correct and works on a residential IP with a valid cookie, same caveat as `web_search`.
 

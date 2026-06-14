@@ -44,10 +44,10 @@ describe("resolveChannel", () => {
 
 describe("checkAll + formatDoctor", () => {
   it("returns a status for every registered channel", async () => {
-    // empty home → reddit has no cookie; no twitter-cli on CI → both `off`
-    const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test", PATH: "/nonexistent" }, REACH_CHANNELS);
+    // empty home → reddit + twitter have no cookie, so both report not-ok
+    const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test" }, REACH_CHANNELS);
     expect(statuses.map((s) => s.name).sort()).toEqual(["reddit", "rss", "search", "twitter", "web"]);
-    // web/search/rss are always ok; reddit/twitter need setup
+    // web/search/rss are always ok; reddit/twitter need a cookie
     expect(statuses.filter((s) => s.status === "ok").map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
   });
 
