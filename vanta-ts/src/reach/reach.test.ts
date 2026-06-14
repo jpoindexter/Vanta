@@ -44,14 +44,18 @@ describe("resolveChannel", () => {
 
 describe("checkAll + formatDoctor", () => {
   it("returns a status for every registered channel", async () => {
-    const statuses = await checkAll({}, REACH_CHANNELS);
-    expect(statuses.map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
-    expect(statuses.every((s) => s.status === "ok")).toBe(true);
+    // empty home → reddit has no cookie, so it reports `off` deterministically
+    const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test" }, REACH_CHANNELS);
+    expect(statuses.map((s) => s.name).sort()).toEqual(["reddit", "rss", "search", "web"]);
+    // reddit is `off` without a cookie; web/search/rss are always ok
+    expect(statuses.filter((s) => s.status === "ok").map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
   });
 
-  it("routes a feed URL to the rss channel, not web", () => {
+  it("routes a feed URL to rss, a reddit URL to reddit, else web", () => {
     expect(resolveChannel("https://blog.test/feed.xml")?.name).toBe("rss");
-    expect(resolveChannel("https://reddit.com/r/x.rss")?.name).toBe("rss");
+    expect(resolveChannel("https://reddit.com/r/x.rss")?.name).toBe("rss"); // .rss wins (it's a feed)
+    expect(resolveChannel("https://www.reddit.com/r/rust/comments/abc")?.name).toBe("reddit");
+    expect(resolveChannel("https://example.com")?.name).toBe("web");
   });
 
   it("renders an off channel with its fix line", () => {

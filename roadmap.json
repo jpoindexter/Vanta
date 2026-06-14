@@ -10237,10 +10237,11 @@
       "tier": "pebble",
       "size": "M",
       "effort": "medium",
-      "status": "next",
+      "status": "done",
       "title": "Reddit channel — search + read posts/comments",
       "summary": "From Agent-Reach reddit.py (OpenCLI ▸ rdt-cli, login-state required — anonymous API is blocked). Highest-leverage new channel: feeds Opportunity-Radar (pain signals) AND the gripe project (Reddit complaint DB). Shell out to the upstream CLI (kernel-gated), cookie/login config, degrade gracefully when absent (like the browser tools).",
-      "done": "A reddit_read tool searches + reads posts/comments via the upstream CLI when present, returns clean cited results, and gives the exact setup step when not configured."
+      "done": "A reddit_read tool searches + reads posts/comments via the upstream CLI when present, returns clean cited results, and gives the exact setup step when not configured.",
+      "note": "DONE. reddit_read tool (search + read post/comments) via Reddit's .json API authenticated with the stored cookie (reach/cookie.ts) — no external CLI; anonymous is blocked, so returns the exact cookie_import setup step when none configured. Pure reach/reddit-parse.ts (parseListing/parseThread/format, tolerant). reddit reach channel routes reddit.com URLs, check() reports cookie status + fix. Source-cited (permalinks). 19 tests. 76 tools."
     },
     {
       "track": "Harness",

@@ -81,6 +81,7 @@ describe("registry", () => {
       "read_file",
       "read_mcp_resource",
       "recall",
+      "reddit_read",
       "ref_ingest",
       "ref_list",
       "ref_search",
