@@ -12,7 +12,7 @@ function Probe(): ReactElement {
 
 describe("theme plumbing", () => {
   it("ships the 4 canonical themes", () => {
-    expect(THEME_NAMES).toEqual(["default", "high-contrast", "muted", "dyslexia"]);
+    expect(THEME_NAMES).toEqual(["default", "light", "high-contrast", "muted", "dyslexia"]);
   });
 
   it("delivers the selected theme's tokens to children", async () => {
@@ -25,7 +25,7 @@ describe("theme plumbing", () => {
   it("falls back to the default theme without a provider", async () => {
     const inst = renderUi(h(Probe));
     await tick();
-    expect(inst.lastFrame()).toContain("#56c8db"); // default accent
+    expect(inst.lastFrame()).toContain("#a09890"); // default accent
     inst.unmount();
   });
 });

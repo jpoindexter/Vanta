@@ -149,7 +149,7 @@ const memory: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /memory <something to remember>" };
   const { writeRegion } = await import("../brain/brain.js");
   await writeRegion("semantic", `- ${arg}`, { append: true, env: ctx.env });
-  return { output: `  🧠 remembered: ${oneLine(arg, 80)}` };
+  return { output: `  ◈ remembered: ${oneLine(arg, 80)}` };
 };
 
 const goals: SlashHandler = async (_arg, ctx) => {
@@ -249,7 +249,7 @@ const image: SlashHandler = async (arg, ctx) => {
     const buf = await readFile(abs);
     const mime = mimeFromPath(abs);
     (ctx.state.pendingImages ??= []).push({ mime, dataBase64: buf.toString("base64") });
-    return { output: `  🖼  attached ${basename(abs)} (${mime}, ${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
+    return { output: `  ◫  attached ${basename(abs)} (${mime}, ${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
   } catch (err) {
     return { output: `  could not read image: ${(err as Error).message.split("\n")[0]}` };
   }
@@ -268,7 +268,7 @@ const paste: SlashHandler = async (_arg, ctx) => {
     await rm(tmp, { force: true }).catch(() => {});
     if (!buf.length) return { output: "  (no image on the clipboard — copy one, or use /image <path>)" };
     (ctx.state.pendingImages ??= []).push({ mime: "image/png", dataBase64: buf.toString("base64") });
-    return { output: `  🖼  pasted clipboard image (${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
+    return { output: `  ◫  pasted clipboard image (${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
   } catch (err) {
     return { output: `  paste failed (macOS only): ${(err as Error).message.split("\n")[0]} — try /image <path>` };
   }

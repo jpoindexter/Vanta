@@ -41,8 +41,11 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
   // by the skill body; with no argument, print the skill so the user can inspect
   // it. Explicit HANDLERS above always win, so built-in slash commands are stable.
   if (skill) {
-    if (!arg) return { output: `# ${skill.meta.name}\n\n${skill.body}` };
-    return { resend: `${skill.body}\n\n${arg}` };
+    if (!arg) {
+      const desc = skill.meta.description ? ` — ${skill.meta.description}` : "";
+      return { output: `◈ [${skill.meta.name}]${desc}\n  /${skill.meta.name} <instruction> to run it` };
+    }
+    return { resend: `${skill.body}\n\n${arg}`, resendDisplay: arg };
   }
 
   return { output: `  unknown command /${name} — /help for the list`, unknown: true };

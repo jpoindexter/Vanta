@@ -48,17 +48,17 @@ export function configLocation(repoRoot: string, env: NodeJS.ProcessEnv): string
 /** The closing summary — where files live + how to change things later. Pure. */
 export function summaryText(repoRoot: string, env: NodeJS.ProcessEnv): string {
   return [
-    "  📁 Your files:",
+    "  ◆ Your files:",
     `     Settings + secrets:  ${envPath(repoRoot)}`,
     `     Data + brain:        ${resolveVantaHome(env)}/`,
     "",
-    "  📝 Manage later:",
+    "  ◆ Manage later:",
     "     vanta setup model       change model / provider",
     "     vanta setup messaging   configure a messaging gateway",
     "     vanta config get|set    view / change a setting (secrets → .env)",
     "     vanta config check      validate your config",
     "",
-    "  🚀 Run `vanta` to start.",
+    "  · Run `vanta` to start.",
   ].join("\n");
 }
 

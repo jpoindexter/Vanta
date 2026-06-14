@@ -63,19 +63,19 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
  * reducer; requestApproval surfaces a Pending the App resolves from a keypress.
  * The conversation is the SAME engine the old TUI used — only the render changed.
  */
-export function useAgent(deps: AgentDeps): { send: (text: string) => Promise<void> } {
+export function useAgent(deps: AgentDeps): { send: (text: string, display?: string) => Promise<void> } {
   const convoRef = deps.convoRef;
   if (convoRef.current === null) {
     convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps));
   }
 
-  const send = async (text: string): Promise<void> => {
+  const send = async (text: string, display?: string): Promise<void> => {
     const conv = convoRef.current;
     if (!conv) return;
     const ctrl = new AbortController();
     deps.interruptRef.current = ctrl;
     deps.replStateRef.current.turnIndex += 1;
-    deps.dispatch({ t: "submit", text });
+    deps.dispatch({ t: "submit", text: display ?? text });
     deps.dispatch({ t: "turnStart" });
     try {
       await conv.send(text, undefined, ctrl.signal);

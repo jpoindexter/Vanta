@@ -59,11 +59,11 @@ export type ToolDisplay = { icon: string; verb: string; detail: string };
 function toolDisplayByPrefix(name: string): ToolDisplay | null {
   if (name.startsWith("git_")) return { icon: "⎇", verb: "git", detail: name.slice(4) };
   if (name.startsWith("gmail_")) return { icon: "✉", verb: "gmail", detail: name.slice(6) };
-  if (name.startsWith("calendar_")) return { icon: "📅", verb: "calendar", detail: name.slice(9) };
-  if (name.startsWith("drive_")) return { icon: "📁", verb: "drive", detail: name.slice(6) };
-  if (name.startsWith("lsp_")) return { icon: "🔧", verb: "lsp", detail: name.slice(4) };
-  if (name.startsWith("ref_")) return { icon: "📚", verb: "ref", detail: name.slice(4) };
-  if (name.startsWith("roadmap_")) return { icon: "🗺", verb: "roadmap", detail: name.slice(8) };
+  if (name.startsWith("calendar_")) return { icon: "◦", verb: "calendar", detail: name.slice(9) };
+  if (name.startsWith("drive_")) return { icon: "◦", verb: "drive", detail: name.slice(6) };
+  if (name.startsWith("lsp_")) return { icon: "◦", verb: "lsp", detail: name.slice(4) };
+  if (name.startsWith("ref_")) return { icon: "◦", verb: "ref", detail: name.slice(4) };
+  if (name.startsWith("roadmap_")) return { icon: "◦", verb: "roadmap", detail: name.slice(8) };
   return null;
 }
 
@@ -71,13 +71,13 @@ function toolDisplayByPrefix(name: string): ToolDisplay | null {
  * raw `grep_files(key:val …)` dump). Returns null when not in this group. */
 function toolDisplayUtilGroup(name: string, str: (k: string) => string): ToolDisplay | null {
   switch (name) {
-    case "grep_files":  return { icon: "🔎", verb: "grep", detail: trunc(str("pattern"), 50) };
-    case "glob_files":  return { icon: "🔎", verb: "glob", detail: trunc(str("pattern"), 50) };
+    case "grep_files":  return { icon: "◦", verb: "grep", detail: trunc(str("pattern"), 50) };
+    case "glob_files":  return { icon: "◦", verb: "glob", detail: trunc(str("pattern"), 50) };
     case "bg_status":
     case "bg_list":     return { icon: "⏱", verb: "background", detail: "" };
     case "sleep":       return { icon: "⏾", verb: "slept", detail: "" };
-    case "loop":        return { icon: "🔁", verb: "loop", detail: str("action") || str("id") };
-    case "tool_search": return { icon: "🔎", verb: "found tools", detail: trunc(str("query"), 40) };
+    case "loop":        return { icon: "↺", verb: "loop", detail: str("action") || str("id") };
+    case "tool_search": return { icon: "◦", verb: "found tools", detail: trunc(str("query"), 40) };
     case "graph_query": return { icon: "🕸", verb: "graph", detail: trunc(str("query"), 40) };
     default:            return null;
   }
@@ -93,10 +93,10 @@ function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDis
       return { icon: "❯", verb: "ran", detail: label ?? trunc(str("command"), 60) };
     }
     case "run_code": return { icon: "▶", verb: "ran", detail: str("language") };
-    case "web_search": return { icon: "🔎", verb: "searched", detail: trunc(str("query"), 60) };
-    case "web_fetch": return { icon: "🌐", verb: "fetched", detail: host(str("url")) };
-    case "browser_navigate": return { icon: "🌐", verb: "opened", detail: host(str("url")) };
-    case "browser_extract": return { icon: "🌐", verb: "read page", detail: "" };
+    case "web_search": return { icon: "◦", verb: "searched", detail: trunc(str("query"), 60) };
+    case "web_fetch": return { icon: "↗", verb: "fetched", detail: host(str("url")) };
+    case "browser_navigate": return { icon: "↗", verb: "opened", detail: host(str("url")) };
+    case "browser_extract": return { icon: "↗", verb: "read page", detail: "" };
     default: return null;
   }
 }
@@ -105,12 +105,12 @@ function toolDisplayCoreGroup(name: string, str: (k: string) => string): ToolDis
 function toolDisplayMediaGroup(name: string, str: (k: string) => string): ToolDisplay | null {
   switch (name) {
     case "look_at_screen":
-    case "screenshot":   return { icon: "📸", verb: "saw screen", detail: "" };
-    case "look_at_camera": return { icon: "📷", verb: "saw camera", detail: "" };
-    case "watch_video":  return { icon: "🎬", verb: "watched", detail: abbrevPath(str("path")) };
-    case "describe_image": return { icon: "🖼", verb: "saw", detail: abbrevPath(str("path")) };
-    case "speak":        return { icon: "🔊", verb: "spoke", detail: "" };
-    case "transcribe":   return { icon: "🎙", verb: "transcribed", detail: "" };
+    case "screenshot":   return { icon: "◫", verb: "saw screen", detail: "" };
+    case "look_at_camera": return { icon: "◫", verb: "saw camera", detail: "" };
+    case "watch_video":  return { icon: "▶", verb: "watched", detail: abbrevPath(str("path")) };
+    case "describe_image": return { icon: "◫", verb: "saw", detail: abbrevPath(str("path")) };
+    case "speak":        return { icon: "◦", verb: "spoke", detail: "" };
+    case "transcribe":   return { icon: "◦", verb: "transcribed", detail: "" };
     default:             return null;
   }
 }
@@ -118,10 +118,10 @@ function toolDisplayMediaGroup(name: string, str: (k: string) => string): ToolDi
 /** Display for memory/skill/brain/delegate tools. Returns null when name is not in this group. */
 function toolDisplayMemoryGroup(name: string, str: (k: string) => string): ToolDisplay | null {
   switch (name) {
-    case "recall":       return { icon: "🧠", verb: "recalled", detail: trunc(str("query"), 50) };
-    case "write_skill":  return { icon: "🧩", verb: "learned", detail: str("name") };
-    case "brain":        return { icon: "🧠", verb: str("action") || "brain", detail: str("region") };
-    case "delegate":     return { icon: "🤝", verb: "delegated", detail: trunc(str("goal") || str("prompt"), 50) };
+    case "recall":       return { icon: "◈", verb: "recalled", detail: trunc(str("query"), 50) };
+    case "write_skill":  return { icon: "◈", verb: "learned", detail: str("name") };
+    case "brain":        return { icon: "◈", verb: str("action") || "brain", detail: str("region") };
+    case "delegate":     return { icon: "↝", verb: "delegated", detail: trunc(str("goal") || str("prompt"), 50) };
     default:             return null;
   }
 }
@@ -129,10 +129,10 @@ function toolDisplayMemoryGroup(name: string, str: (k: string) => string): ToolD
 /** Display for utility/task/MCP tools. Returns null when name is not in this group. */
 function toolDisplayAgentGroup(name: string, str: (k: string) => string): ToolDisplay | null {
   switch (name) {
-    case "swarm":        return { icon: "🐝", verb: "swarm", detail: "" };
+    case "swarm":        return { icon: "↝", verb: "swarm", detail: "" };
     case "todo":         return { icon: "☑", verb: "todo", detail: "" };
-    case "inspect_state": return { icon: "🔍", verb: "inspected", detail: "" };
-    case "mount_mcp":    return { icon: "🔌", verb: "mounted", detail: str("name") };
+    case "inspect_state": return { icon: "◦", verb: "inspected", detail: "" };
+    case "mount_mcp":    return { icon: "◦", verb: "mounted", detail: str("name") };
     default:             return null;
   }
 }

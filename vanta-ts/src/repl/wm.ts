@@ -8,5 +8,5 @@ export const wm: SlashHandler = (arg, ctx) => {
     return { output: `  Working memory:\n${wmem.getAll().map((s, i) => `    ${i + 1}. ${s}`).join("\n")}` };
   }
   wmem.add(arg);
-  return { output: `  🧠 ${arg.slice(0, 80)}` };
+  return { output: `  ◈ ${arg.slice(0, 80)}` };
 };

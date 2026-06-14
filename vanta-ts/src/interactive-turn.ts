@@ -109,7 +109,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (newScratch) convo.setSessionMemory(newScratch);
   const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
-  if (learned.length) console.log(`  🧠 learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
+  if (learned.length) console.log(`  ◈ learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
   const activeGoalText = setup.goals.find((g) => g.status === "active")?.text ?? "";
   await criticAfterTurn({ provider: setup.provider, goal: activeGoalText, messages: convo.messages, onNote: (note) => console.log(`\n${note}`) });
   gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });

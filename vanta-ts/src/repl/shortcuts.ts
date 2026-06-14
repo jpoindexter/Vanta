@@ -61,5 +61,5 @@ export async function runMemoryShortcut(
   const { writeRegion } = await import("../brain/brain.js");
   await writeRegion("semantic", `- ${text}`, { append: true, env });
   const preview = text.length > 80 ? `${text.slice(0, 80)}…` : text;
-  return `🧠 remembered: ${preview}`;
+  return `◈ remembered: ${preview}`;
 }

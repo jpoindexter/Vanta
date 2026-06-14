@@ -33,7 +33,7 @@ export async function reviewAfterTurn(opts: {
     root: opts.root,
     transcript: opts.transcript,
   });
-  if (wrote.length) console.log(`  💾 self-improvement: learned ${wrote.join(", ")}`);
+  if (wrote.length) console.log(`  ▸ self-improvement: learned ${wrote.join(", ")}`);
 }
 
 /**

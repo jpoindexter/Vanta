@@ -38,7 +38,7 @@ export function shouldAlertSetShift(
 
 export function buildSetShiftText(tool: string, consecutiveRuns: number): string {
   return (
-    `🔄 Stuck loop: \`${tool}\` called ${consecutiveRuns} consecutive turns.\n` +
+    `↺ Stuck loop: \`${tool}\` called ${consecutiveRuns} consecutive turns.\n` +
     `Same approach, no breakthrough. Want to try a different angle?`
   );
 }

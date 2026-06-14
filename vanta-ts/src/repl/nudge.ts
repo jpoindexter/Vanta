@@ -21,5 +21,5 @@ export function buildNudgeText(goals: Goal[]): string | null {
   if (active.length === 0) return null;
   const g = active[0]!;
   const label = g.text.length > 60 ? `${g.text.slice(0, 57)}…` : g.text;
-  return `💡 Still on: "${label}" — /next for a micro-step`;
+  return `◇ Still on: "${label}" — /next for a micro-step`;
 }

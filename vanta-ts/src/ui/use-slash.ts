@@ -15,7 +15,7 @@ import type { Action } from "./reducer.js";
 /** Side effects applySlashResult drives — explicit closures so it stays pure + testable. */
 export type SlashEffects = {
   note: (text: string) => void;
-  send: (text: string) => void;
+  send: (text: string, display?: string) => void;
   exit: () => void;
   theme: (name: string) => void;
 };
@@ -28,7 +28,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
   }
   if (r.theme) fx.theme(r.theme); // /theme <name> → live restyle
   if (r.output) fx.note(r.output);
-  if (r.resend) fx.send(r.resend);
+  if (r.resend) fx.send(r.resend, r.resendDisplay);
 }
 
 export type SlashDeps = {
@@ -37,7 +37,7 @@ export type SlashDeps = {
   setup: RunSetup;
   repoRoot: string;
   dispatch: Dispatch<Action>;
-  send: (text: string) => void;
+  send: (text: string, display?: string) => void;
   exit: () => void;
   setTheme: (name: string) => void;
 };

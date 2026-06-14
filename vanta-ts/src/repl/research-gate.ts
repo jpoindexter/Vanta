@@ -52,7 +52,7 @@ export function extractLastTurnToolNames(messages: Message[]): string[] {
 export function buildGateText(consecutiveTurns: number, activeGoal: Goal | null): string {
   const goalLine = activeGoal ? `\nOriginal goal: "${activeGoal.text}"` : "";
   return (
-    `💡 ${consecutiveTurns} research turns since last concrete output.${goalLine}\n` +
+    `◇ ${consecutiveTurns} research turns since last concrete output.${goalLine}\n` +
     `Want to pick one finding to build now? (or keep exploring — just checking in)`
   );
 }

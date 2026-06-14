@@ -42,6 +42,8 @@ export type SlashResult = {
   unknown?: boolean;
   /** Text the host should send to the agent as a fresh turn (drives /retry). */
   resend?: string;
+  /** Compact display label for the TUI transcript when resend carries injected context (e.g. a skill body). */
+  resendDisplay?: string;
   /** A hot-swapped provider (drives /model <arg>) so the TUI banner refreshes. */
   provider?: LLMProvider;
   /** Reload the instance in place (drives /restart) — host exits with code 75. */

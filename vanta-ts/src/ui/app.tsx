@@ -117,8 +117,8 @@ function useModeState(pending: Pending | null, setPending: (p: Pending | null) =
 /** The Shift+Tab mode indicator above the composer (hidden in normal mode). */
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
   const t = useTheme();
-  if (props.mode === "auto") return <Text color={t.warning} bold>▶▶ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "plan") return <Text color={t.accent} bold>⏸ plan mode on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "auto") return <Text color={t.warning} bold>≫ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "plan") return <Text color={t.accent} bold>◧ plan mode on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
   return null;
 }
 
