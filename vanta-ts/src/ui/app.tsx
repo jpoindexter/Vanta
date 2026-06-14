@@ -27,6 +27,9 @@ import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";
+import { listSkills } from "../skills/store.js";
+import { slugifySkillName } from "../store/home.js";
+import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
@@ -54,7 +57,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
 
+  const [skillMatches, setSkillMatches] = useState<SlashMatch[]>([]);
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  useEffect(() => {
+    void listSkills(process.env).then((skills) =>
+      setSkillMatches(skills.map((s) => ({ name: slugifySkillName(s.meta.name), desc: s.meta.description ?? "" })))
+    ).catch(() => {});
+  }, []);
   const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started, dispatch);
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
@@ -79,7 +88,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           ? <ApprovalPrompt pending={pending} onDone={() => setPending(null)} />
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
-        <BottomRegion overlay={overlay} pending={pending} mode={mode} files={files} history={history} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+        <BottomRegion overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
         {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
       </Box>
     </ThemeProvider>
@@ -233,6 +242,7 @@ function BottomRegion(props: {
   mode: Mode;
   files: string[];
   history: string[];
+  skills: SlashMatch[];
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
@@ -249,7 +259,7 @@ function BottomRegion(props: {
   return (
     <Box flexDirection="column">
       <ModeLine mode={props.mode} />
-      <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} onPaste={props.onPaste} />
+      <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} />
     </Box>
   );
 }

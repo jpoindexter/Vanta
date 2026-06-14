@@ -3,7 +3,7 @@ import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
-import { matchSlash, completeSlash, isPartialSlash } from "./slash.js";
+import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
 import { readlineEdit, navigateHistory, type Key, type Edit, type HistState } from "./composer-keys.js";
 import { editInEditor } from "./composer-editor.js";
@@ -24,6 +24,7 @@ export function Composer(props: {
   files: string[];
   history: string[];
   onPaste?: () => void;
+  skills?: SlashMatch[];
 }): ReactElement {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -32,7 +33,7 @@ export function Composer(props: {
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
 
-  const slashMatches = matchSlash(value);
+  const slashMatches = matchSlash(value, props.skills ?? []);
   const atPartial = slashMatches.length === 0 ? activeAtRef(value) : null;
   const atMatches = atPartial !== null ? matchAtFiles(props.files, atPartial) : [];
   const activeLen = slashMatches.length || atMatches.length;

@@ -25,6 +25,17 @@ describe("matchSlash", () => {
     expect(matchSlash("/model ")).toEqual([]);
     expect(matchSlash("/model gpt-4o")).toEqual([]);
   });
+  it("includes skill entries after builtins", () => {
+    const skills: SlashMatch[] = [{ name: "hill-climb", desc: "Iterate toward a target." }];
+    const m = matchSlash("/hi", skills);
+    expect(m.some((c) => c.name === "hill-climb")).toBe(true);
+  });
+  it("builtins win on name collision with a skill", () => {
+    const skills: SlashMatch[] = [{ name: "help", desc: "shadowed" }];
+    const m = matchSlash("/help", skills);
+    const helpEntry = m.find((c) => c.name === "help");
+    expect(helpEntry?.desc).not.toBe("shadowed");
+  });
 });
 
 describe("completeSlash + isPartialSlash + slashHead", () => {

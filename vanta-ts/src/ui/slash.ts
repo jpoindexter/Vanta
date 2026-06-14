@@ -22,11 +22,15 @@ export function slashHead(line: string): string {
 }
 
 /** Catalog entries whose name starts with the partial — only while the name is
- * still being typed (no space yet). Empty once an argument is being entered. */
-export function matchSlash(line: string, limit = PALETTE_LIMIT): SlashMatch[] {
+ * still being typed (no space yet). Empty once an argument is being entered.
+ * `extra` (skill entries) appear after builtins; builtins win on name collision. */
+export function matchSlash(line: string, extra: SlashMatch[] = [], limit = PALETTE_LIMIT): SlashMatch[] {
   if (!line.startsWith("/") || line.slice(1).includes(" ")) return [];
   const head = slashHead(line);
-  return SLASH_COMMANDS.filter((c) => c.name.startsWith(head)).slice(0, limit);
+  const builtins = SLASH_COMMANDS.filter((c) => c.name.startsWith(head));
+  const buildinNames = new Set(builtins.map((c) => c.name));
+  const skills = extra.filter((s) => s.name.startsWith(head) && !buildinNames.has(s.name));
+  return [...builtins, ...skills].slice(0, limit);
 }
 
 /** Expand a partial to the selected match's full command (`/mo` → `/model`). */
