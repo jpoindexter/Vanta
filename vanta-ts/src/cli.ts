@@ -53,6 +53,8 @@ import {
 } from "./cli/extra-cmds.js";
 import { runLoopCommand } from "./cli/loop-cmd.js";
 import { parseLifecycleFlags, runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
+import { parsePermissionModeFlags } from "./cli/permission-mode.js";
+import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -213,6 +215,7 @@ const COMMANDS: Record<string, CommandFn> = {
   stop: (root, rest) => runAgentsCommand(root, ["stop", ...rest]),
   rm: (root, rest) => runAgentsCommand(root, ["rm", ...rest]),
   daemon: (root, rest) => runAgentsCommand(root, ["daemon", ...rest]),
+  "auto-mode": (root, rest) => runAutoModeCommand(root, rest),
 };
 
 /** Parse the `run` subcommand args into instruction + outputFormat + optional jsonSchema. */
@@ -235,7 +238,13 @@ async function main(): Promise<void> {
   loadEnv(repoRoot);
   await ensureVantaStore();
 
-  const lifecycleParse = parseLifecycleFlags(process.argv.slice(2));
+  const permissionParse = parsePermissionModeFlags(process.argv.slice(2), process.env);
+  if (permissionParse.error) {
+    console.error(permissionParse.error);
+    process.exit(1);
+  }
+  process.env = permissionParse.env;
+  const lifecycleParse = parseLifecycleFlags(permissionParse.rest);
   const lifecycle = lifecycleParse.flags;
   const [cmd, ...rest] = lifecycleParse.rest;
 

@@ -19,12 +19,12 @@ The kernel is the enforced security boundary — `assess()` blocks, it doesn't a
 
 ```bash
 cargo build && cargo test                     # Rust kernel (41 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3251 tests + typecheck)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3266 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-14):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **81 built-in tools** and **93 slash commands**; last recorded full verify is **3251 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, `/init` project-context generation, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, and background agent CLI management. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
+> **Status (2026-06-14):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **81 built-in tools** and **93 slash commands**; last recorded full verify is **3266 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, `/init` project-context generation, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, and auto permission mode. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
 
 ## Key files
 

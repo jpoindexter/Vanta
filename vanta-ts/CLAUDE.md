@@ -132,6 +132,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `lint/run.ts` | `vanta lint [files\|--staged]` — `resolveTargets` (explicit=cwd-relative, git=root-relative), `lintFiles` (reports analyzed vs missing), `runLint` (exit 1 on violations/missing) |
 | `cli.ts` | Thin entry point: bootstrap (`findRepoRoot`/`loadEnv`/`ensureVantaStore`) + `startInteractive` (TTY-gated first-run wizard) + a `COMMANDS` lookup table (a returned number = exit code). `chat`/`--resume`/`resume`/`run` stay explicit for global flags (`--init*`, `--fork-session`). Add a command = one table entry. |
 | `cli/agents-cmd.ts` | `vanta agents` management surface over `team/tasks.ts`: list/logs/attach/stop/rm/respawn, top-level aliases (`attach`, `logs`, `respawn`, `stop`, `rm`), plus `vanta daemon status/stop`. Gated by settings `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1`. |
+| `cli/auto-mode-cmd.ts` + `cli/permission-mode.ts` | `vanta auto-mode defaults/config` plus `--permission-mode auto|default` parsing (`VANTA_AUTO_MODE`). |
 | `cli/commands.ts` | The `vanta <cmd>` handlers extracted from cli.ts (CODE-SIZE-GATE): `usage`/`usageExit`, `runInstruction` (shared run/skill/room path), `runSessionsList`/`runSkillsCommand`/`runMemoryCommand`/`runVoiceCommand`/`runHooksCommand`/`runSkillCommand`/`runRoomCommand` |
 | `cli/lifecycle.ts` | `parseLifecycleFlags` + `runLifecycleHooks`: `--init` runs Setup hooks, `--init-only` runs Setup + SessionStart and exits, `--maintenance` sets maintenance context and exits |
 | `cli/output-callbacks.ts` | Output callback builder for `vanta run` (`text`/`json`/`stream-json`) split out to keep `commands.ts` under size limits |
@@ -143,6 +144,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `compress/apply.ts` | `compressEnabled(env)` + `COMPRESS_TOOLS` allowlist + `shouldCompressTool(name)` + `applyCompression(toolName,output,opts)` — wired into `agent.ts dispatchTool`; only compresses tools on the allowlist |
 | `cli/ops.ts` | Larger op handlers: `dataDirFor`/`buildCronRunTask`/`runGatewayCommand`/`runServiceCommand`/`runMcpCommand`/`runRoadmapCommand`/`runFactoryCommand`/`runDesktopCommand` |
 | `cli-dx/` | CLI-DX-PACK: `prompt-size.ts` (token breakdown), `completion.ts` (shell completion + CLI_COMMANDS), `backup.ts` (tar ~/.vanta) |
+| `permissions/auto-mode.ts` | Auto permission classifier: default read-only allows, soft-deny presets, and `settings.autoMode.rules` overrides. Applied after kernel + permission rules; kernel block remains immovable |
 
 ## The loop (`agent.ts`)
 
@@ -155,7 +157,7 @@ each iteration (max VANTA_MAX_ITER=50):
   for each tool call → dispatchTool:
     describeForSafety(args) → safety.assess()
       block → tool_result "blocked", no exec
-      ask   → requestApproval(y/n); propose+approve|deny in kernel
+      ask   → permission rules + auto-mode may tighten/auto-confirm; otherwise requestApproval(y/n); propose+approve|deny in kernel
       allow → execute
     append tool_result; logEvent
   3 consecutive empty results → stop

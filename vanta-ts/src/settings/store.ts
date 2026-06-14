@@ -24,6 +24,17 @@ export const SettingsSchema = z.object({
   }).optional(),
   /** Disable the background agent session view and controls. */
   disableAgentView: z.boolean().optional(),
+  /** Auto permission mode classifier settings. */
+  autoMode: z.object({
+    enabled: z.boolean().optional(),
+    softDeny: z.boolean().optional(),
+    rules: z.array(z.object({
+      action: z.enum(["allow", "ask", "soft_deny"]),
+      tool: z.string().optional(),
+      pattern: z.string().optional(),
+      label: z.string().optional(),
+    })).optional(),
+  }).optional(),
   /** UI preferences. */
   ui: z.object({
     theme: z.string().optional(),

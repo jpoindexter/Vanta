@@ -46,6 +46,19 @@ describe("loadSettings", () => {
     expect(s.disableAgentView).toBe(true);
   });
 
+  it("loads autoMode settings", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      autoMode: {
+        enabled: true,
+        softDeny: true,
+        rules: [{ action: "allow", tool: "shell_cmd", pattern: "git status", label: "status check" }],
+      },
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.autoMode?.enabled).toBe(true);
+    expect(s.autoMode?.rules?.[0]?.label).toBe("status check");
+  });
+
   it("project settings override user settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
     await writeFile(join(root, ".vanta", "settings.json"), JSON.stringify({ allowedTools: ["write_file"] }));

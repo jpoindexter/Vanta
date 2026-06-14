@@ -8,6 +8,8 @@ import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
+import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
+import { loadSettings } from "../settings/store.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -43,19 +45,37 @@ export async function applySafetyGate(
   // Permissions: the kernel verdict is the floor. User rules may TIGHTEN it
   // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
   // tighten() returns "block" for any kernel block regardless of the rule.
-  const decision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+  const decision = await applyAutoMode(ruleDecision, call.name, action, ctx);
 
-  if (decision === "block") {
-    const reason = verdict.risk === "block" ? verdict.reason : "denied by a permission rule";
+  if (decision.decision === "block") {
+    const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
     deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
     return { approved: false, reason: `blocked: ${reason}` };
   }
 
-  if (decision === "ask") {
+  if (decision.decision === "ask") {
     return handleApprovalRequest(call, action, verdict, deps);
   }
 
   return { approved: true };
+}
+
+async function applyAutoMode(
+  decision: "allow" | "ask" | "block",
+  toolName: string,
+  descriptor: string,
+  ctx: ToolContext,
+): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
+  if (decision === "block") return { decision, reason: "denied by a permission rule" };
+  const settings = await loadSettings(ctx.root ?? process.cwd(), process.env);
+  if (!isAutoModeEnabled(process.env, settings)) return { decision, reason: "kernel or permission rule" };
+  return classifyAutoModeAction({
+    kernelRisk: decision,
+    toolName,
+    descriptor,
+    config: resolveAutoModeConfig(settings),
+  });
 }
 
 async function handleApprovalRequest(

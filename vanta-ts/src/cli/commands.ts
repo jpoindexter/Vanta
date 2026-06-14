@@ -40,6 +40,7 @@ export function usage(): void {
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
+      "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
       "       vanta auth google                  one-time Google OAuth",
