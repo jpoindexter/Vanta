@@ -10,3 +10,4 @@ export { team } from "./team-cmd.js";
 export { lifesearch } from "./lifesearch-cmd.js";
 export { compartments } from "./compartments-cmd.js";
 export { locks } from "./verify-cmd.js";
+export { reach } from "./reach-cmd.js";

@@ -10192,10 +10192,11 @@
       "tier": "rock",
       "size": "M",
       "effort": "medium",
-      "status": "next",
+      "status": "done",
       "title": "Reach capability layer — channels with probed backends + doctor",
       "summary": "From Agent-Reach (MIT, docs/research/agent-reach-eval.md): a `reach/` layer where each platform is a channel with an ORDERED backend list (primary + fallbacks), a real-probe check() that sets the active backend, an env override, and a fix prescription. Mirrors Vanta's resolveSearchProvider/provider pattern. Generalize search+web+video+browser under one reach contract so adding a platform = one channel file.",
-      "done": "A reach channel contract (canHandle/read/search/check + ordered backends + override) exists in TS, kernel-gated, with the existing web/search/video tools expressible as channels; one new channel proves the pattern."
+      "done": "A reach channel contract (canHandle/read/search/check + ordered backends + override) exists in TS, kernel-gated, with the existing web/search/video tools expressible as channels; one new channel proves the pattern.",
+      "note": "DONE. reach/ layer: ReachChannel contract (canHandle/check/ordered backends + <NAME>_BACKEND override), probe.ts (really-executes not which()), registry (resolveChannel + checkAll), web + search seed channels, /reach doctor. 9 tests."
     },
     {
       "track": "Harness",
@@ -10206,10 +10207,11 @@
       "tier": "pebble",
       "size": "S",
       "effort": "small",
-      "status": "next",
+      "status": "done",
       "title": "Per-channel reach doctor — active backend + exact fix",
       "summary": "From Agent-Reach `doctor`: upgrade /health into a per-channel reach report — for each channel show the active backend, ok/warn/off status from a real probe, and the EXACT enabling command on a gap. Extends the existing /health capability view.",
-      "done": "/health (or /reach) reports each reach channel's active backend + status + the exact fix command for any gap."
+      "done": "/health (or /reach) reports each reach channel's active backend + status + the exact fix command for any gap.",
+      "note": "DONE (folded into REACH-LAYER). /reach: per-channel status + active backend + exact fix command."
     },
     {
       "track": "Harness",
