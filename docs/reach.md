@@ -92,6 +92,7 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | `search` | ✅ | auto ▸ ddg ▸ searxng ▸ serpapi ▸ brave ▸ bing ▸ jina | provider via `VANTA_SEARCH_PROVIDER` |
 | `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | ✅ | reddit.json + cookie ▸ rdt-cli | `reddit_read` (search/read) — needs a cookie via `cookie_import`; anonymous is blocked |
+| `linkedin` | ✅ | browser-session | `linkedin_read {url, browser?}` — reads profiles/companies/posts via the headless browser session (login-walled + JS); `browser:"brave"` auto-uses your LinkedIn login |
 | `twitter` | ✅ | x-graphql (native, cookie) | `twitter_read` (search + bookmarks) — **native TS GraphQL, no Python**. Needs an x.com cookie (`cookie_import twitter`) + query ids (`reach heal twitter`). Self-heals (see below) |
 
 The `reddit` channel reads Reddit's own `.json` endpoints authenticated with the stored cookie (no external CLI to install — anonymous access is blocked, so a cookie is required; `reddit_read` returns the exact setup step when none is configured). `rdt-cli` is the documented fallback backend (not wired). Live coverage of `.json` from a datacenter IP can still be rate-limited — the wiring is correct and works on a residential IP with a valid cookie, same caveat as `web_search`.

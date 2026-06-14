@@ -10267,10 +10267,11 @@
       "tier": "pebble",
       "size": "S",
       "effort": "small",
-      "status": "horizon",
+      "status": "done",
       "title": "LinkedIn channel — public pages via Jina Reader",
       "summary": "From Agent-Reach linkedin.py (linkedin-mcp ▸ Jina Reader). The Jina-Reader path reads public LinkedIn profile/company pages with zero auth — Vanta already has Readable web fetch, so this is mostly a canHandle + read mapping. Deeper profile/job-search needs the MCP backend (later).",
-      "done": "A LinkedIn reach path reads public profile/company pages via the Readable fetch backend; deeper access documented as the MCP-backed follow-up."
+      "done": "A LinkedIn reach path reads public profile/company pages via the Readable fetch backend; deeper access documented as the MCP-backed follow-up.",
+      "note": "DONE. linkedin reach channel + linkedin_read tool, powered by the browser-session capability (reach/browser-session.ts openWithSession + browser-cookies). Reads login-walled/JS LinkedIn (profiles/companies/posts) via a headless browser using your logged-in session (browser:'brave' auto-reads cookies, or cookie_import linkedin). Routes linkedin.com URLs; /reach reports it. 80 tools."
     },
     {
       "track": "Harness",

@@ -46,17 +46,17 @@ describe("checkAll + formatDoctor", () => {
   it("returns a status for every registered channel", async () => {
     // empty home → reddit + twitter have no cookie, so both report not-ok
     const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test" }, REACH_CHANNELS);
-    expect(statuses.map((s) => s.name).sort()).toEqual(["reddit", "rss", "search", "twitter", "web"]);
-    // web/search/rss are always ok; reddit/twitter need a cookie
+    expect(statuses.map((s) => s.name).sort()).toEqual(["linkedin", "reddit", "rss", "search", "twitter", "web"]);
+    // web/search/rss are always ok; reddit/twitter/linkedin need a session
     expect(statuses.filter((s) => s.status === "ok").map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
   });
 
-  it("routes by URL: feed→rss, reddit→reddit, x/twitter→twitter, else web", () => {
+  it("routes by URL: feed→rss, reddit→reddit, x→twitter, linkedin→linkedin, else web", () => {
     expect(resolveChannel("https://blog.test/feed.xml")?.name).toBe("rss");
     expect(resolveChannel("https://reddit.com/r/x.rss")?.name).toBe("rss"); // .rss wins (it's a feed)
     expect(resolveChannel("https://www.reddit.com/r/rust/comments/abc")?.name).toBe("reddit");
     expect(resolveChannel("https://x.com/foo/status/123")?.name).toBe("twitter");
-    expect(resolveChannel("https://twitter.com/foo")?.name).toBe("twitter");
+    expect(resolveChannel("https://www.linkedin.com/in/someone")?.name).toBe("linkedin");
     expect(resolveChannel("https://example.com")?.name).toBe("web");
   });
 

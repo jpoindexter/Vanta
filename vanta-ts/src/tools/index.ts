@@ -27,6 +27,7 @@ import { radarTool } from "./radar.js";
 import { reachTool } from "./reach-tool.js";
 import { teamTool } from "./team.js";
 import { lifeSearchTool } from "./life-search.js";
+import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
 import { rssReadTool } from "./rss-read.js";
@@ -125,6 +126,7 @@ const ALL_TOOLS: readonly Tool[] = [
   reachTool,
   teamTool,
   lifeSearchTool,
+  linkedinReadTool,
   regressionLockTool,
   rssReadTool,
   selfRepairTool,
