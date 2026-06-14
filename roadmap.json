@@ -10406,8 +10406,8 @@
       "summary": "A complete guided setup experience a complete guided setup wizard. TODAY `vanta setup` is ONLY a model picker. the reference wizard's `reference` (+ `--portal` one-command OAuth) configures the full surface; this brings parity: ONE guided `vanta setup` pass covering (1) model/provider + auxiliary models (vision/summarize/embed) + fallback chain, (2) tools/toolsets enable-disable, (3) messaging gateway (already `vanta setup messaging`), (4) MCP servers, (5) memory/brain (enable, budgets, write-approval), (6) skills (guard + write-approval), (7) SOUL/personality, (8) security/approvals + PII redaction, (9) context/compression thresholds, (10) display/UX, (11) agent behavior (max-iter, reasoning effort), ending in (12) a `vanta doctor` green-check. Writes through SETUP-CONFIG-SYSTEM. Absorbs/relates WANT-SETUP-ASSISTANT + INSTALL-PARITY; NOT a hosted portal (Vanta is local-first — HP-NOUS-PORTAL is parked as anti-strategy). Ref: docs/user-guide/configuration.",
       "done": "`vanta setup` runs ONE guided pass configuring provider/model → tools → gateway → MCP → memory → skills → SOUL → security → context → display → behavior, ending in a green `vanta doctor` — a new user goes from install to a fully-configured agent in one flow, not just a model picker.",
       "tier": "rock",
-      "model": "opus",
-      "effort": "high",
+      "model": "sonnet",
+      "effort": "medium",
       "lens": "infra",
       "updated": "2026-06-14",
       "after": [
@@ -10426,7 +10426,8 @@
       "effort": "medium",
       "summary": "Added DeepSeek, xAI Grok, Groq, Mistral, Together, Fireworks, Cerebras, Moonshot/Kimi, MiniMax, Z.AI/GLM, Qwen/DashScope, NovitaAI, Perplexity, Hugging Face, LM Studio — all via the OpenAI adapter + baseURL swap (providers/index.ts OPENAI_COMPAT map + catalog.ts). PROVIDER_CATALOG now 23. Each resolves (104 provider tests green).",
       "done": "23 providers in `vanta setup`; all OpenAI-compatible ones resolve via baseURL.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     },
     {
       "id": "SETUP-PROVIDERS-BESPOKE",
@@ -10436,10 +10437,11 @@
       "size": "M",
       "tier": "pebble",
       "lens": "infra",
-      "effort": "medium",
+      "effort": "high",
       "summary": "Remaining backends that need their own adapter (not OpenAI-compatible): AWS Bedrock (AWS SDK / SigV4), Azure Foundry (Azure auth), StepFun, Arcee AI, GMI Cloud, Kilo Code, OpenCode. Catalog + a per-provider adapter each.",
       "done": "Bedrock + Azure + the niche backends selectable in `vanta setup`.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "opus"
     },
     {
       "id": "SETUP-EXPLORER",
@@ -10452,7 +10454,8 @@
       "effort": "medium",
       "summary": "docs/design-refs/vanta-setup-explorer.html — dropdown nav over every setup page, each showing all options in the real terminal look (●/○ menus, [✓] checklists). Vanta-branded, full provider/terminal/TTS/agent/messaging/tools lists, minus consumer toys.",
       "done": "Dropdown-navigable explorer of every setup section + all options.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     },
     {
       "id": "SETUP-TERMINAL-BACKEND",
@@ -10465,7 +10468,8 @@
       "effort": "medium",
       "summary": "A `vanta setup` section to choose where shell + code run: local (default) · sandboxed (CC-SANDBOX) · docker · ssh. Optional cloud sandboxes later.",
       "done": "`vanta setup` offers local/sandbox/docker/ssh execution.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     },
     {
       "id": "SETUP-TTS",
@@ -10478,7 +10482,8 @@
       "effort": "medium",
       "summary": "A `vanta setup` section for the voice/TTS provider (Edge keyless default · OpenAI · ElevenLabs · local). Vanta has speak/transcribe tools; this wires provider choice + keys.",
       "done": "`vanta setup` configures a TTS provider for spoken replies.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     },
     {
       "id": "SETUP-AGENT-SETTINGS",
@@ -10491,7 +10496,8 @@
       "effort": "medium",
       "summary": "Agent-settings sections in `vanta setup`. Max-iterations shipped (VANTA_MAX_ITER). Remaining: tool-progress display, reasoning effort, compression threshold, session-reset policy.",
       "done": "All agent knobs configurable in `vanta setup` (max-iter shipped).",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     },
     {
       "id": "SETUP-MESSAGING-PLATFORMS",
@@ -10501,10 +10507,11 @@
       "size": "L",
       "tier": "pebble",
       "lens": "infra",
-      "effort": "medium",
+      "effort": "high",
       "summary": "Telegram is live. Expand the gateway to the broader platform set (Slack, Matrix, Discord, Signal, WhatsApp, Email, Teams, …) via the BaseAdapter pattern — surfaced as a `vanta setup` checklist.",
       "done": "`vanta setup` messaging checklist covers the major platforms.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "opus"
     },
     {
       "id": "SETUP-TOOLS-CONFIG",
@@ -10517,7 +10524,8 @@
       "effort": "medium",
       "summary": "A `vanta setup` tools section: toggle toolsets on/off + per-tool provider menus (search ✓, vision ✓ shipped; browser/image-gen providers next). Minus consumer toys (Spotify, smart-home).",
       "done": "`vanta setup` tools checklist + per-tool provider selection.",
-      "updated": "2026-06-14"
+      "updated": "2026-06-14",
+      "model": "sonnet"
     }
   ]
 }
