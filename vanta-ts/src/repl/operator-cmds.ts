@@ -9,3 +9,4 @@ export { radar } from "./radar-cmd.js";
 export { team } from "./team-cmd.js";
 export { lifesearch } from "./lifesearch-cmd.js";
 export { compartments } from "./compartments-cmd.js";
+export { locks } from "./verify-cmd.js";

@@ -1,9 +1,10 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { appendRadar, readRadar, ranked, type Opportunity } from "../radar/store.js";
+import { rankOpportunities, draftOffer } from "../radar/scan.js";
 
 const Args = z.object({
-  action: z.enum(["record", "score", "list"]),
+  action: z.enum(["record", "score", "list", "scan", "offer"]),
   id: z.string().optional(),
   title: z.string().optional(),
   source: z.string().optional(),
@@ -64,6 +65,25 @@ async function doList(): Promise<ToolResult> {
   return { ok: true, output: rows.join("\n") };
 }
 
+async function doScan(): Promise<ToolResult> {
+  const recs = await readRadar();
+  const ranked = rankOpportunities(recs);
+  if (!ranked.length) return { ok: true, output: "no opportunities recorded — use action:record" };
+  const rows = ranked.slice(0, 20).map((o, i) => {
+    const s = o.compositeScore.toFixed(2);
+    return `#${i + 1} [${s}] ${o.id} — ${o.title} (${o.status}) pain=${o.pain ?? 0} buyer=${o.buyer ?? 0}`;
+  });
+  return { ok: true, output: `Ranked scan (${ranked.length} opportunities):\n${rows.join("\n")}` };
+}
+
+async function doOffer(a: Parsed): Promise<ToolResult> {
+  if (!a.id) return { ok: false, output: "offer needs id" };
+  const recs = await readRadar();
+  const opp = recs.findLast((o) => o.id === a.id);
+  if (!opp) return { ok: false, output: `opportunity "${a.id}" not found — record it first` };
+  return { ok: true, output: draftOffer(opp) };
+}
+
 export const radarTool: Tool = {
   schema: {
     name: "radar",
@@ -72,12 +92,14 @@ export const radarTool: Tool = {
       "action:record adds/updates an opportunity (id, title, optional source/note); " +
       "action:score sets pain (0..1 — how expensive/urgent/repeated/reachable the problem is) and/or buyer " +
       "(0..1 — how reachable/budgeted/timing-ready the buyer is) on an existing opportunity (id required); " +
-      "action:list returns all opportunities ranked by composite score (pain + buyer, 0..2). " +
-      "Use it to track, score, and surface the highest-signal opportunities.",
+      "action:list returns all opportunities ranked by composite score (pain + buyer, 0..2); " +
+      "action:scan returns a ranked scan with composite scores and position numbers; " +
+      "action:offer drafts a short offer pitch for a given opportunity (id required). " +
+      "Use it to track, score, surface, and act on the highest-signal opportunities.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["record", "score", "list"], description: "record an opportunity | score pain+buyer | list ranked" },
+        action: { type: "string", enum: ["record", "score", "list", "scan", "offer"], description: "record | score pain+buyer | list ranked | scan ranked | offer draft" },
         id: { type: "string", description: "stable opportunity id slug" },
         title: { type: "string", description: "human label (for record)" },
         source: { type: "string", description: "where the signal came from (optional)" },
@@ -91,9 +113,11 @@ export const radarTool: Tool = {
   describeForSafety: (a) => `radar ${String(a.action ?? "")}`,
   async execute(raw) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "radar needs action: record | score | list" };
+    if (!p.success) return { ok: false, output: "radar needs action: record | score | list | scan | offer" };
     if (p.data.action === "record") return doRecord(p.data);
     if (p.data.action === "score") return doScore(p.data);
+    if (p.data.action === "scan") return doScan();
+    if (p.data.action === "offer") return doOffer(p.data);
     return doList();
   },
 };

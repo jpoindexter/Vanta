@@ -1,4 +1,5 @@
 import { readMoney, offers, revenueTotal, pipelineByStage, latestProspects, type MoneyRecord } from "../money/store.js";
+import { weeklyReview } from "../money/review.js";
 import type { SlashHandler } from "./types.js";
 
 // `/money` — view the money-making ledger (revenue · pipeline · offers).
@@ -27,4 +28,14 @@ export function formatMoney(recs: MoneyRecord[]): string {
   return [head, pipelineRow, ...offerRows].join("\n");
 }
 
-export const money: SlashHandler = async (_arg, ctx) => ({ output: formatMoney(await readMoney(ctx.env)) });
+/** Pure: one-line weekly snapshot appended to the money view. */
+export function formatWeeklySnapshot(recs: MoneyRecord[], now: number): string {
+  const r = weeklyReview(recs, now);
+  return `  Week: $${r.revenueThisWeek} revenue · ${r.pipelineValue} open · top: ${r.topProspect ?? "(none)"}`;
+}
+
+export const money: SlashHandler = async (_arg, ctx) => {
+  const recs = await readMoney(ctx.env);
+  const now = ctx.now().getTime();
+  return { output: formatMoney(recs) + "\n" + formatWeeklySnapshot(recs, now) };
+};

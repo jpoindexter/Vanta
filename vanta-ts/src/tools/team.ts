@@ -1,15 +1,33 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { appendTeam, readTeam, latestWorkers, type Worker } from "../team/store.js";
+import {
+  appendTask,
+  readTasks,
+  latestTasks,
+  assignTask,
+  advanceTask,
+  tasksForWorker,
+  workerLoad,
+  type TaskStatus,
+} from "../team/tasks.js";
+
+const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
 
 const Args = z.object({
-  action: z.enum(["define", "status", "list"]),
+  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks"]),
   id: z.string().optional(),
   role: z.string().optional(),
   model: z.string().optional(),
   tools: z.array(z.string()).optional(),
   note: z.string().optional(),
   status: z.enum(["idle", "running", "blocked", "done"]).optional(),
+  // task fields
+  taskId: z.string().optional(),
+  workerId: z.string().optional(),
+  title: z.string().optional(),
+  taskStatus: z.enum(TASK_STATUSES).optional(),
+  detail: z.string().optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -49,25 +67,80 @@ async function doList(): Promise<ToolResult> {
   return { ok: true, output: formatRoster(workers) };
 }
 
+async function doDispatch(a: Parsed): Promise<ToolResult> {
+  if (!a.taskId || !a.workerId || !a.title) {
+    return { ok: false, output: "dispatch needs taskId, workerId, title" };
+  }
+  const existing = await readTasks();
+  const result = assignTask(existing, a.taskId, a.workerId, a.title);
+  if (!result.ok) return { ok: false, output: result.error };
+  await appendTask(result.value);
+  return { ok: true, output: `task ${a.taskId} assigned to ${a.workerId}: ${a.title}` };
+}
+
+async function doAdvance(a: Parsed): Promise<ToolResult> {
+  if (!a.taskId || !a.taskStatus) {
+    return { ok: false, output: "advance needs taskId, taskStatus" };
+  }
+  const all = latestTasks(await readTasks());
+  const task = all.find((t) => t.id === a.taskId);
+  if (!task) return { ok: false, output: `unknown task id "${a.taskId}" — dispatch it first` };
+  const result = advanceTask(task, a.taskStatus as TaskStatus, a.detail);
+  if (!result.ok) return { ok: false, output: result.error };
+  await appendTask(result.value);
+  return { ok: true, output: `task ${a.taskId} → ${a.taskStatus}${a.detail ? `: ${a.detail}` : ""}` };
+}
+
+async function doTasks(a: Parsed): Promise<ToolResult> {
+  const recs = await readTasks();
+  const tasks = a.workerId ? tasksForWorker(recs, a.workerId) : latestTasks(recs);
+  if (!tasks.length) return { ok: true, output: "no tasks found" };
+  const lines = tasks.map((t) => {
+    const extra = t.result ? ` → ${t.result}` : t.blocker ? ` ⚠ ${t.blocker}` : "";
+    return `${t.id} · ${t.workerId} · ${t.status} · ${t.title}${extra}`;
+  });
+  return { ok: true, output: lines.join("\n") };
+}
+
+function dispatchAction(a: Parsed): Promise<ToolResult> {
+  if (a.action === "define") return doDefine(a);
+  if (a.action === "status") return doStatus(a);
+  if (a.action === "dispatch") return doDispatch(a);
+  if (a.action === "advance") return doAdvance(a);
+  if (a.action === "tasks") return doTasks(a);
+  return doList();
+}
+
 export const teamTool: Tool = {
   schema: {
     name: "team",
     description:
-      "A durable roster of named workers (role/model/tools/status) — definitions only; " +
-      "the runtime executor is a later slice. " +
-      "action:define adds/updates a worker (id, role, model?, tools?, note?); " +
-      "action:status updates a worker's status (id, status: idle|running|blocked|done); " +
-      "action:list returns the full roster with statuses.",
+      "Worker roster + task ledger. " +
+      "action:define — add/update a worker (id, role, model?, tools?, note?); " +
+      "action:status — update worker status (id, status: idle|running|blocked|done); " +
+      "action:list — list roster; " +
+      "action:dispatch — assign a task to a worker (taskId, workerId, title); " +
+      "action:advance — move a task to a new status (taskId, taskStatus: assigned|running|done|blocked, detail?); " +
+      "action:tasks — list tasks (optional: workerId to filter).",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["define", "status", "list"], description: "define a worker | update status | list roster" },
-        id: { type: "string", description: "stable worker id slug" },
-        role: { type: "string", description: "worker role description (for define)" },
-        model: { type: "string", description: "model id the worker runs on (optional)" },
-        tools: { type: "array", items: { type: "string" }, description: "tool names available to the worker (optional)" },
-        note: { type: "string", description: "optional detail or current task note" },
-        status: { type: "string", enum: ["idle", "running", "blocked", "done"], description: "new status (for status action)" },
+        action: {
+          type: "string",
+          enum: ["define", "status", "list", "dispatch", "advance", "tasks"],
+          description: "define worker | update worker status | list roster | dispatch task | advance task | list tasks",
+        },
+        id: { type: "string", description: "worker id (define/status)" },
+        role: { type: "string", description: "worker role (define)" },
+        model: { type: "string", description: "model id the worker runs on (define, optional)" },
+        tools: { type: "array", items: { type: "string" }, description: "tool names (define, optional)" },
+        note: { type: "string", description: "worker note (define, optional)" },
+        status: { type: "string", enum: ["idle", "running", "blocked", "done"], description: "worker status (status action)" },
+        taskId: { type: "string", description: "stable task id slug (dispatch/advance)" },
+        workerId: { type: "string", description: "worker id target (dispatch/tasks)" },
+        title: { type: "string", description: "task description (dispatch)" },
+        taskStatus: { type: "string", enum: TASK_STATUSES, description: "target task status (advance)" },
+        detail: { type: "string", description: "result or blocker text (advance, optional)" },
       },
       required: ["action"],
     },
@@ -75,9 +148,7 @@ export const teamTool: Tool = {
   describeForSafety: (a) => `team ${String(a.action ?? "")}`,
   async execute(raw) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "team needs action: define | status | list" };
-    if (p.data.action === "define") return doDefine(p.data);
-    if (p.data.action === "status") return doStatus(p.data);
-    return doList();
+    if (!p.success) return { ok: false, output: "team needs action: define|status|list|dispatch|advance|tasks" };
+    return dispatchAction(p.data);
   },
 };

@@ -8,8 +8,12 @@ import {
   previewActions,
   riskyActions,
 } from "../browser/act.js";
+import { summarizeElements, formatElements, type RawElement } from "../browser/observe.js";
 
-const Args = z.object({ actions: z.array(BrowserActionSchema).min(1) });
+const Args = z.object({
+  actions: z.array(BrowserActionSchema).min(1),
+  observe: z.boolean().optional(),
+});
 
 const GOTO_TIMEOUT_MS = 30_000;
 const ACTION_TIMEOUT_MS = 10_000;
@@ -31,6 +35,9 @@ type ActPage = {
   waitForTimeout: (ms: number) => Promise<void>;
   evaluate: (fn: () => void) => Promise<void>;
   innerText: (selector: string) => Promise<string>;
+  // $$eval serialises the result of a page-context function for each matched
+  // element back to Node — used by the observe feature to collect interactables.
+  $$eval: <T>(selector: string, fn: (els: Element[]) => T) => Promise<T>;
 };
 
 async function applyAct(page: ActPage, a: BrowserAction): Promise<void> {
@@ -47,10 +54,49 @@ async function applyAct(page: ActPage, a: BrowserAction): Promise<void> {
   });
 }
 
+// Minimal structural shape we extract from each DOM element inside the
+// $$eval page context. Declared without DOM lib types (Node-side tsconfig has
+// no lib:dom) by casting through unknown inside the page-context function.
+type PageEl = {
+  tagName: string;
+  innerText?: string;
+  name?: string;
+  type?: string;
+  id?: string;
+  getAttribute: (name: string) => string | null;
+};
+
+/**
+ * Collect interactable elements from the live page via $$eval. Returns the
+ * formatted observe block, or empty string on any non-fatal error — page text
+ * is still returned; observe is best-effort grounding data.
+ */
+async function collectElements(page: ActPage): Promise<string> {
+  try {
+    const raw = await page.$$eval(
+      "a,button,input,select,textarea,[role=link],[role=button],[role=textbox],[role=combobox]",
+      (els) =>
+        (els as unknown as PageEl[]).map((el) => ({
+          tag: el.tagName.toLowerCase(),
+          text: (el.innerText ?? "").slice(0, 80),
+          role: el.getAttribute("role") ?? undefined,
+          name: el.name || el.getAttribute("aria-label") || undefined,
+          type: el.type ?? undefined,
+          selectorHint: el.id ? `#${el.id}` : undefined,
+        })),
+    ) as RawElement[];
+    const elements = summarizeElements(raw);
+    return `\n\n--- interactable elements ---\n${formatElements(elements)}`;
+  } catch {
+    return "";
+  }
+}
+
 async function runActions(
   chromium: typeof import("playwright-core").chromium,
   env: NodeJS.ProcessEnv,
   actions: BrowserAction[],
+  observe?: boolean,
 ): Promise<ToolResult> {
   let close: (() => Promise<void>) | null = null;
   try {
@@ -58,7 +104,9 @@ async function runActions(
     close = acquired.close;
     const page = acquired.page as unknown as ActPage;
     for (const a of actions) await applyAct(page, a);
-    return { ok: true, output: cap(await page.innerText("body")) };
+    const bodyText = cap(await page.innerText("body"));
+    const observeBlock = observe ? await collectElements(page) : "";
+    return { ok: true, output: bodyText + observeBlock };
   } catch (err) {
     const message = (err as Error).message;
     if (MISSING_BROWSER.test(message)) {
@@ -84,7 +132,11 @@ export const browserActTool: Tool = {
     description:
       "Drive a browser page — navigate, click, type, press a key, scroll, or wait. " +
       "Irreversible actions (submit, buy, delete, login, send) and credential entry stop and ask first. " +
-      "Returns the resulting page's visible text. Pass a `secret:true` flag on a type action to mask + gate it.",
+      "Returns the resulting page's visible text. " +
+      "Set observe:true to also return a numbered list of interactable elements (links, buttons, inputs) " +
+      "with suggested selectors — use this to ground the next click before issuing it. " +
+      "Pass a `secret:true` flag on a type action to mask + gate it. " +
+      "Disabled when VANTA_BROWSER_DISABLED is set.",
     parameters: {
       type: "object",
       properties: {
@@ -106,6 +158,12 @@ export const browserActTool: Tool = {
             required: ["type"],
           },
         },
+        observe: {
+          type: "boolean",
+          description:
+            "When true, append a numbered list of the page's interactable elements after the body text. " +
+            "Use this to identify selectors before clicking. Default false.",
+        },
       },
       required: ["actions"],
     },
@@ -114,11 +172,16 @@ export const browserActTool: Tool = {
   // unlisted-domain approval below (routed through the kernel's approval queue).
   describeForSafety: (a) => `drive browser: ${(a.actions as unknown[])?.length ?? 0} action(s)`,
   async execute(raw, ctx) {
+    // Kill-switch: VANTA_BROWSER_DISABLED disables all browser body actions.
+    if (process.env.VANTA_BROWSER_DISABLED) {
+      return { ok: false, output: "browser body disabled (VANTA_BROWSER_DISABLED)" };
+    }
+
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
       return { ok: false, output: 'browser_act needs an "actions" array (navigate/click/type/press/scroll/wait)' };
     }
-    const { actions } = parsed.data;
+    const { actions, observe } = parsed.data;
 
     const risky = riskyActions(actions);
     const newDomains = unlistedDomains(actions);
@@ -142,6 +205,6 @@ export const browserActTool: Tool = {
     } catch {
       return { ok: false, output: "playwright-core is not installed. Run `npm i playwright-core`." };
     }
-    return runActions(chromium, process.env, actions);
+    return runActions(chromium, process.env, actions, observe);
   },
 };

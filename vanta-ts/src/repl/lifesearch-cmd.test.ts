@@ -1,6 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { formatLife } from "./lifesearch-cmd.js";
-import type { LifeHit } from "../search/life.js";
+import { formatLife, relevanceBar } from "./lifesearch-cmd.js";
+import type { RankedResult } from "../search/life-rank.js";
+
+describe("relevanceBar", () => {
+  it("returns all filled for score 1", () => {
+    const bar = relevanceBar(1);
+    expect(bar).not.toContain("░");
+  });
+
+  it("returns all empty for score 0", () => {
+    const bar = relevanceBar(0);
+    expect(bar).not.toContain("█");
+  });
+
+  it("clamps values outside [0,1]", () => {
+    expect(() => relevanceBar(-0.5)).not.toThrow();
+    expect(() => relevanceBar(1.5)).not.toThrow();
+  });
+});
 
 describe("formatLife", () => {
   it("returns a no-hits line for empty hits array", () => {
@@ -8,10 +25,10 @@ describe("formatLife", () => {
     expect(out).toBe('no local hits for "acme"');
   });
 
-  it("returns header + rows for hits", () => {
-    const hits: LifeHit[] = [
-      { source: "world", snippet: "Bob works at Acme" },
-      { source: "money", snippet: "Invoice from Acme" },
+  it("returns header + ranked rows for hits", () => {
+    const hits: RankedResult[] = [
+      { source: "world", snippet: "Bob works at Acme", relevance: 0.82 },
+      { source: "money", snippet: "Invoice from Acme", relevance: 0.45 },
     ];
     const out = formatLife(hits, "acme");
     expect(out).toContain('life search: "acme"');
@@ -21,8 +38,16 @@ describe("formatLife", () => {
   });
 
   it("shows singular hit count in header", () => {
-    const hits: LifeHit[] = [{ source: "world", snippet: "Alice" }];
+    const hits: RankedResult[] = [{ source: "world", snippet: "Alice", relevance: 0.5 }];
     const out = formatLife(hits, "alice");
     expect(out).toContain("1 hit(s)");
+  });
+
+  it("includes relevance percentage in each row", () => {
+    const hits: RankedResult[] = [
+      { source: "radar", snippet: "opportunity score", relevance: 0.75 },
+    ];
+    const out = formatLife(hits, "opportunity");
+    expect(out).toContain("75%");
   });
 });

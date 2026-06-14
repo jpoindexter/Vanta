@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { gatherLifeBlobs, searchBlobs } from "../search/life.js";
+import { rankResults } from "../search/life-rank.js";
 
 const Args = z.object({ q: z.string() });
 
@@ -9,7 +10,7 @@ export const lifeSearchTool: Tool = {
     name: "life_search",
     description:
       "Search Vanta's own local stores (world/money/radar/team JSONL + ERRORS.md) " +
-      "for a keyword and return source-cited snippets. Local only — no external or web access.",
+      "for a keyword and return source-cited snippets ranked by relevance. Local only — no external or web access.",
     parameters: {
       type: "object",
       properties: {
@@ -26,7 +27,8 @@ export const lifeSearchTool: Tool = {
     const blobs = await gatherLifeBlobs(process.env, process.cwd());
     const hits = searchBlobs(blobs, q);
     if (!hits.length) return { ok: true, output: `no local hits for "${q}"` };
-    const lines = hits.map((h) => `${h.source}: ${h.snippet}`).join("\n");
+    const ranked = rankResults(hits, q, Date.now());
+    const lines = ranked.map((h) => `[${h.relevance.toFixed(2)}] ${h.source}: ${h.snippet}`).join("\n");
     return { ok: true, output: lines };
   },
 };

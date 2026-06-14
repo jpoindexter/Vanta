@@ -83,6 +83,7 @@ describe("registry", () => {
       "ref_ingest",
       "ref_list",
       "ref_search",
+      "regression_lock",
       "retrieve_original",
       "roadmap_add",
       "roadmap_move",

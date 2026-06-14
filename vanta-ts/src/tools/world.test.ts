@@ -27,14 +27,32 @@ describe("worldTool", () => {
     expect(q.output).toContain("project:indx");
   });
 
-  it("relates two entities and shows the edge on query", async () => {
+  it("relates two entities and shows the edge on query (cited)", async () => {
     await worldTool.execute({ action: "record", id: "jason", type: "person", name: "Jason" }, ctx);
     await worldTool.execute({ action: "relate", from: "jason", to: "indx", rel: "owns" }, ctx);
     const q = await worldTool.execute({ action: "query", q: "jason" }, ctx);
-    expect(q.output).toContain("owns→indx");
+    // cited format: "jason —owns→ indx  [source:<ts>]"
+    expect(q.output).toContain("—owns→");
+    expect(q.output).toContain("[source:");
   });
 
   it("validates required fields for record", async () => {
     expect((await worldTool.execute({ action: "record", id: "x" }, ctx)).output).toContain("needs id, type, name");
+  });
+
+  it("conflicts returns none when world is empty", async () => {
+    const r = await worldTool.execute({ action: "conflicts" }, ctx);
+    expect(r.ok).toBe(true);
+    expect(r.output).toContain("no conflicts");
+  });
+
+  it("conflicts detects a contradiction", async () => {
+    await worldTool.execute({ action: "relate", from: "jason", to: "indx", rel: "owns" }, ctx);
+    await worldTool.execute({ action: "relate", from: "jason", to: "brutal", rel: "owns" }, ctx);
+    const r = await worldTool.execute({ action: "conflicts" }, ctx);
+    expect(r.ok).toBe(true);
+    expect(r.output).toContain("⚠");
+    expect(r.output).toContain("jason");
+    expect(r.output).toContain("owns");
   });
 });

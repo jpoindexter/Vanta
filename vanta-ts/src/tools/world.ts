@@ -2,11 +2,13 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import {
   appendWorld, readWorld, queryEntities, relationsOf,
+  latestEntities, relations,
   type WorldEntity, type WorldRelation,
 } from "../world/store.js";
+import { findConflicts, recallWithSources, type CitedMatch } from "../world/conflicts.js";
 
 const Args = z.object({
-  action: z.enum(["record", "relate", "query"]),
+  action: z.enum(["record", "relate", "query", "conflicts"]),
   id: z.string().optional(),
   type: z.string().optional(),
   name: z.string().optional(),
@@ -37,11 +39,34 @@ function formatEntity(e: WorldEntity, rels: WorldRelation[]): string {
   return `${e.type}:${e.id} — ${e.name}${e.note ? ` · ${e.note}` : ""}${conf}${relStr}`;
 }
 
+function formatCited(match: CitedMatch): string {
+  return `  ${match.text}  [source:${match.ts}]`;
+}
+
 async function doQuery(a: Parsed): Promise<ToolResult> {
   const recs = await readWorld();
-  const found = queryEntities(recs, a.q ?? "");
-  if (!found.length) return { ok: true, output: a.q ? `no entities match "${a.q}"` : "world model is empty — record entities first (action:record)" };
-  return { ok: true, output: found.slice(0, 20).map((e) => formatEntity(e, relationsOf(recs, e.id))).join("\n") };
+  const q = a.q ?? "";
+  if (!q) {
+    const found = queryEntities(recs, "");
+    if (!found.length) return { ok: true, output: "world model is empty — record entities first (action:record)" };
+    return { ok: true, output: found.slice(0, 20).map((e) => formatEntity(e, relationsOf(recs, e.id))).join("\n") };
+  }
+  const ents = latestEntities(recs);
+  const rels = relations(recs);
+  const cited = recallWithSources(ents, rels, q);
+  if (!cited.length) return { ok: true, output: `no entities match "${q}"` };
+  return { ok: true, output: cited.slice(0, 20).map(formatCited).join("\n") };
+}
+
+async function doConflicts(): Promise<ToolResult> {
+  const recs = await readWorld();
+  const rels = relations(recs);
+  const cs = findConflicts(rels);
+  if (!cs.length) return { ok: true, output: "no conflicts detected in world model" };
+  const lines = cs.map(
+    (c) => `⚠ ${c.subject} —${c.predicate}→ [${c.objects.join(" | ")}]  (${c.recordIds.length} records)`,
+  );
+  return { ok: true, output: `${cs.length} conflict(s):\n${lines.join("\n")}` };
 }
 
 export const worldTool: Tool = {
@@ -51,11 +76,12 @@ export const worldTool: Tool = {
       "Vanta's world model: a durable graph of entities (people, projects, repos, companies, goals, accounts, commitments) " +
       "and their relationships, persisted across sessions. action:record adds/updates an entity (id, type, name, optional note/confidence); " +
       "action:relate links two entities (from, to, rel like owns/depends-on/blocked-by/promised-to/next-action-for); " +
-      "action:query searches entities (q over type/name/note). Use it to remember and reason about the user's systems coherently.",
+      "action:query searches entities with source citations (q over type/name/note/relation); " +
+      "action:conflicts lists contradictions (same subject+predicate with different objects). Use it to remember and reason about the user's systems coherently.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["record", "relate", "query"], description: "record an entity | relate two | query" },
+        action: { type: "string", enum: ["record", "relate", "query", "conflicts"], description: "record an entity | relate two | query (cited) | conflicts" },
         id: { type: "string", description: "stable entity id slug (for record)" },
         type: { type: "string", description: "person | project | repo | company | goal | account | commitment | tool | asset" },
         name: { type: "string", description: "human name/label (for record)" },
@@ -64,7 +90,7 @@ export const worldTool: Tool = {
         from: { type: "string", description: "source entity id (for relate)" },
         to: { type: "string", description: "target entity id (for relate)" },
         rel: { type: "string", description: "owns | depends-on | blocked-by | promised-to | relevant-to | next-action-for" },
-        q: { type: "string", description: "query string (for query; empty = all)" },
+        q: { type: "string", description: "query string (for query; empty = all without citations)" },
       },
       required: ["action"],
     },
@@ -72,9 +98,10 @@ export const worldTool: Tool = {
   describeForSafety: (a) => `world ${String(a.action ?? "")}`,
   async execute(raw) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "world needs action: record | relate | query" };
+    if (!p.success) return { ok: false, output: "world needs action: record | relate | query | conflicts" };
     if (p.data.action === "record") return doRecord(p.data);
     if (p.data.action === "relate") return doRelate(p.data);
+    if (p.data.action === "conflicts") return doConflicts();
     return doQuery(p.data);
   },
 };

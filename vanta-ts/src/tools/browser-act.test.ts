@@ -97,3 +97,24 @@ describe("browserActTool describeForSafety", () => {
     expect(desc).toBe("drive browser: 2 action(s)");
   });
 });
+
+describe("browserActTool kill-switch (VANTA_BROWSER_DISABLED)", () => {
+  it("short-circuits before requestApproval when the flag is set", async () => {
+    const prev = process.env.VANTA_BROWSER_DISABLED;
+    process.env.VANTA_BROWSER_DISABLED = "1";
+    try {
+      const ctx = makeCtx(true);
+      const result = await browserActTool.execute(
+        { actions: [{ type: "navigate", url: "https://example.com" }] },
+        ctx,
+      );
+      // Must not reach the approval gate
+      expect(ctx.requestApproval).not.toHaveBeenCalled();
+      expect(result.ok).toBe(false);
+      expect(result.output).toContain("VANTA_BROWSER_DISABLED");
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_BROWSER_DISABLED;
+      else process.env.VANTA_BROWSER_DISABLED = prev;
+    }
+  });
+});

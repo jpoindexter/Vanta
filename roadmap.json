@@ -9847,10 +9847,11 @@
       "lens": "coding",
       "updated": "2026-06-14",
       "id": "SELFHARNESS-FAILURE-TO-TEST",
-      "status": "next",
+      "status": "in-progress",
       "title": "Failing run to regression test — the trace-as-asset principle",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): every debugged failure auto-becomes a regression test, so the suite grows from REAL production failures not synthetic scenarios; diagnosis without a locked test just means debugging the same thing next month. Vanta logs failures to ERRORS.md (passive); extend it so a resolved failure auto-emits a regression case (the failing input + the expected behavior) into a growing suite.",
-      "done": "Resolving a failure produces a regression test (failing input + expected behavior) added to a suite; the suite grows from real failures."
+      "done": "Resolving a failure produces a regression test (failing input + expected behavior) added to a suite; the suite grows from real failures.",
+      "note": "Verification organ keystone: regression_lock tool (lock {claim, command, expect} = a regression case; check re-runs the locked commands, flags a regression if the substring is gone or the command fails, each run approval-gated; list shows status) + verify/store.ts (verify.jsonl) + pure verify/check.ts grading + /locks view. A debugged failure becomes a locked, re-runnable regression case; the suite grows from real failures. 14 tests."
     },
     {
       "track": "Harness",
@@ -9974,10 +9975,11 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "DESKTOP-VISION-TO-ACTION",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Vision-to-action loop — screenshot → grounded, safe action",
       "summary": "From UI-TARS: turn a screenshot into a grounded action (locate the target element, choose the action) with a re-observe cadence (act, screenshot, verify the screen changed as expected, recover on mis-click). Vanta has the perception tools; build the perceive→ground→act→verify loop, kernel-gated per action.",
-      "done": "Vanta can locate a UI target from a screenshot and execute one grounded action, re-observe, and detect a mis-click."
+      "done": "Vanta can locate a UI target from a screenshot and execute one grounded action, re-observe, and detect a mis-click.",
+      "note": "Slice precursor: browser/observe.ts — summarizeElements collects/dedups/ranks the page's interactable elements (links/buttons/inputs) with suggested selectors (text= for links/buttons, [name=] for inputs); browser_act gains observe:true to append this grounding block after the body text. The perceive→ground step of perceive→ground→act→verify; full re-observe/mis-click loop remains. 12 tests."
     },
     {
       "track": "Harness",
@@ -9992,7 +9994,7 @@
       "title": "Local desktop control within the kernel boundary (no feral agent)",
       "summary": "From UI-TARS: let an agent drive a real desktop WITHOUT going feral — scope which apps/regions it may touch, confirm irreversible UI actions, a kill-switch. This is exactly where Vanta's kernel assess() belongs: every click/type assessed, destructive/irreversible UI actions (close-without-save, send, delete, purchase) escalate to ask/block.",
       "done": "Desktop actions route through the kernel; irreversible UI actions escalate; a kill-switch halts; scope limits which surfaces are touchable.",
-      "note": "Slice 1 (web surface): browser_act gates every sequence containing an irreversible control (submit/buy/delete/login/send) or a secret/Enter via ctx.requestApproval (kernel approval queue), showing a masked numbered dry-run preview before launch; unlisted domains also escalate. riskyActions/previewActions pure + tested. OS-level kill-switch/region-scope remain."
+      "note": "Slice 1: browser_act gates irreversible controls/secret/Enter + unlisted domains via approval with a masked dry-run preview. Slice 2: kill-switch — VANTA_BROWSER_DISABLED short-circuits all browser-body actions before any launch/approval (the scope/kill-switch the card asks for). OS-level region-scope remains."
     },
     {
       "track": "Harness",
@@ -10059,10 +10061,11 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "WANT-OPPORTUNITY-RADAR",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Opportunity radar — native business/opportunity engine",
       "summary": "[SLICE 1 SHIPPED: radar store (~/.vanta/radar.jsonl: scored opportunities) + radar tool (record/score/list, pain+buyer scoring) + /radar ranked view. Remaining: continuous free-source scanning, evidence-tied offer gen, productization detector.] vanta-wanted-abilities.md §2 (top priority): continuous free-source scanning (markets, GitHub, jobs, grants/RFPs, forums, trends) → pain scoring (expensive/urgent/repeated/reachable) → buyer scoring → evidence-tied offer generator → artifact generator → market-test tracker → productization detector. Builds on web_search + swarm + the keyless providers.",
-      "done": "A /radar mode scans free sources, scores opportunities by pain+buyer signal, and generates an evidence-tied offer + artifact."
+      "done": "A /radar mode scans free sources, scores opportunities by pain+buyer signal, and generates an evidence-tied offer + artifact.",
+      "note": "Slice 2: radar/scan.ts — rankOpportunities (composite pain×signal, recency tie-break) + draftOffer (problem→solution→audience). radar tool gains `scan` + `offer`; /radar renders ranked. 12 tests."
     },
     {
       "track": "Operator",
@@ -10073,10 +10076,11 @@
       "lens": "reach",
       "updated": "2026-06-14",
       "id": "WANT-MONEY-OS",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Money OS — structured money-making operating system",
       "summary": "[SLICE 1 SHIPPED: money store (~/.vanta/money.jsonl: offers/prospects/revenue) + money tool (offer/prospect/revenue/review) + /money ledger. Remaining: pricing experiments, deliverable templates, case-study gen, weekly review.] vanta-wanted-abilities.md §16 (top priority): offer library + pricing experiments, prospect/reply pipeline, deliverable templates (reports/audits/demos/microtools), revenue ledger, follow-up scheduler, case-study generator, weekly business review. Ethical guardrails: no deception/spam/fake identity. Pairs with WANT-OPPORTUNITY-RADAR + WANT-OUTREACH-WORKSPACE.",
-      "done": "Machinery (not vibes) for: offers, prospects, deliverables, revenue ledger, follow-ups, weekly review — ethically guardrailed."
+      "done": "Machinery (not vibes) for: offers, prospects, deliverables, revenue ledger, follow-ups, weekly review — ethically guardrailed.",
+      "note": "Slice 2: money/review.ts — suggestPrice (median low/median/high band from comparables) + weeklyReview (in-week revenue, open pipeline, top prospect, new offers). money tool gains `price` + `weekly`; /money shows a weekly snapshot. 14 tests."
     },
     {
       "track": "Operator",
@@ -10101,10 +10105,11 @@
       "lens": "memory",
       "updated": "2026-06-14",
       "id": "WANT-WORLD-MODEL",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "World model graph — entities + relationships across Jason's systems",
       "summary": "[SLICE 1 SHIPPED: append-only world store (~/.vanta/world.jsonl) + a kernel-gated `world` tool (record/relate/query) + a /world view; latest-write-wins per entity, relations, confidence. Remaining: conflict detection, cited what-do-I-know-about-X, approval-sensitive auto-updates from email/calendar/files, project dashboards.] vanta-wanted-abilities.md §4 (top priority): a coherent graph (people/projects/repos/companies/goals/assets/accounts/commitments) with relationships (owns/depends-on/blocked-by/promised-to/next-action-for), freshness timestamps + confidence labels, conflict detection on contradicting facts, cited 'what do I know about X?', approval-sensitive auto-updates from email/calendar/files/repos. Beyond the current brain (snippets) → a reasoned map. Overlaps HARNESS-MEMORY-GUARDRAILS.",
-      "done": "A queryable entity-relationship graph with freshness/confidence + conflict detection; 'what do I know about X' returns cited facts with uncertainty."
+      "done": "A queryable entity-relationship graph with freshness/confidence + conflict detection; 'what do I know about X' returns cited facts with uncertainty.",
+      "note": "Slice 2: world/conflicts.ts — findConflicts (same subject+predicate, different object = contradiction) + recallWithSources (every match cites its source record id+ts). world tool gains a `conflicts` action; `query` now source-cited; /world shows ⚠ N conflicts. 21 tests."
     },
     {
       "track": "Operator",
@@ -10115,10 +10120,11 @@
       "lens": "memory",
       "updated": "2026-06-14",
       "id": "WANT-LIFE-SEARCH",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Life-wide semantic search — unified, permission-aware index",
       "summary": "[SLICE 1 SHIPPED: unified keyword search across the local stores (world/money/radar/team JSONL + ERRORS.md) with source-cited hits, via a life_search tool + /lifesearch. Local-only/permission-aware. Remaining: semantic embeddings, files/mail/calendar/drive index, refresh scheduler.] vanta-wanted-abilities.md §5 (top priority): a unified semantic index over repos/notes/docs/transcripts/email/calendar/drive/screenshots/reports; permission-aware retrieval (only what's allowed for the task); source-cited answers across stores; private/local embedding option; refresh scheduler with change detection. 'Find the thing I saw/wrote/talked about.'",
-      "done": "One semantic index spanning Jason's stores; permission-aware, source-cited retrieval; local-embedding option; change-detecting refresh."
+      "done": "One semantic index spanning Jason's stores; permission-aware, source-cited retrieval; local-embedding option; change-detecting refresh.",
+      "note": "Slice 2: search/life-rank.ts — dependency-free relevance ranker (term-match density 0.5 + exact-phrase 0.3 + source/title hit 0.2 + recency 0.1, clamped 0..1). life_search results ranked; /lifesearch shows a relevance bar. (True vector embeddings remain a later slice — no embed-model dep added.) 11 tests."
     },
     {
       "track": "Operator",
@@ -10129,10 +10135,11 @@
       "lens": "selfhood",
       "updated": "2026-06-14",
       "id": "WANT-SELF-REPAIR-COMPARTMENTS",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Self-repair compartment model — body boundaries + limb sandbox",
       "summary": "[SLICE 1 SHIPPED: a body compartment map (brainstem/skeleton/reflexes/limbs/memory) with per-compartment max-autonomy, classifying any path; /compartments view. Brainstem(kernel/manifesto)+skeleton(factory) = never self-edit. Remaining: limb sandbox, auto-rollback, broken-capability detector.] vanta-wanted-abilities.md §8: an explicit compartment map (skeleton/brainstem/limbs/reflexes/memory) with per-compartment max-autonomy; a limb sandbox to build/replace/test a tool in isolation before attaching; automatic rollback for failed self-edits; a broken-capability detector that opens a repair loop when a tool fails repeatedly. Builds on the factory + protected-paths. Do-not-want §18: never edit kernel/manifesto/brainstem autonomously.",
-      "done": "Self-edits target only non-protected compartments; a new/replaced tool is sandbox-tested before attach; failed edits auto-rollback; repeated tool failure opens a repair loop."
+      "done": "Self-edits target only non-protected compartments; a new/replaced tool is sandbox-tested before attach; failed edits auto-rollback; repeated tool failure opens a repair loop.",
+      "note": "Slice 2: self/detect.ts — detectBroken (per-compartment health healthy/impaired/down from real cap checks) + lastKnownGood (newest good git sha per compartment = rollback target) + repair.jsonl markers. /compartments shows ✓/~/✘ health + lkg sha. 14 tests."
     },
     {
       "track": "Operator",
