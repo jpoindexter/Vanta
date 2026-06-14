@@ -10252,10 +10252,10 @@
       "tier": "pebble",
       "size": "M",
       "effort": "medium",
-      "status": "in-progress",
-      "title": "Twitter/X channel — read tweet + search via cookie CLI",
-      "summary": "From Agent-Reach twitter.py (twitter-cli ▸ OpenCLI, cookie auth, free — no paid API). Reads a tweet + searches the timeline via the upstream CLI with a browser-exported cookie. Pain-signal + sentiment source for the radar. Cookie via Cookie-Editor export (their recommended flow), stored 0600 locally.",
-      "done": "A twitter_read tool reads a tweet + searches via the upstream CLI when a cookie is configured; clear setup guidance + graceful degradation otherwise.",
+      "status": "done",
+      "title": "Twitter/X channel — native GraphQL (no Python), search + bookmarks, self-healing query IDs",
+      "summary": "Native TS X GraphQL client (reach/twitter.ts) — NO Python, no upstream CLI: public bearer + ct0 CSRF from the stored cookie + rotating query IDs. twitter_read search + bookmarks. Self-heals query-id rotation by capturing live IDs from a real browser (reach/twitter-capture.ts healTwitter, via browser-session), falling back to a static bundle scrape. Bearer/features/query-ids env-overridable. Extracted as the standalone MIT repo 'x-native' (github.com/jpoindexter/x-native).",
+      "done": "twitter_read bookmarks/search return real results with a cookie + captured query IDs; query-id rotation self-heals via browser capture; live-verified (67 bookmarks pulled).",
       "note": "PORTED TO NATIVE TS (no Python — twitter-cli dropped per 'we aren't gonna use python in this agent'). reach/twitter.ts native X GraphQL client (bearer + ct0 CSRF + cookie), reach/twitter-parse.ts pure parsers (extractAuth/parseTimeline tree-walk/extractQueryIds/graphqlError). twitter_read: search + bookmarks. Query ids resolved env → ~/.vanta/twitter-qids.json cache → scrape. SELF-HEAL works live: reach heal twitter scraped 157 query ids incl SearchTimeline. OPEN: Bookmarks query id is in a lazy chunk not on the homepage — set VANTA_TWITTER_QID_BOOKMARKS (devtools) or build a deeper chunk-scraper. Caveat: native fetch lacks TLS-impersonation so X may 403 some IPs."
     },
     {
@@ -10372,6 +10372,45 @@
       "summary": "A reach channel declares heal(); the kernel-gated `reach` tool runs `reach doctor` + `reach heal <channel>` to rebuild a broken CLI-backed channel and re-check. twitter heal re-pulls twitter-cli (uv ▸ pipx ▸ pip ladder) since the maintainer tracks X's rotating GraphQL query IDs. The reach analogue of the self-repair organ (detect off → heal → re-check). reach/heal.ts tryUpgrade + channel.heal contract.",
       "done": "A broken CLI-backed reach channel can rebuild its backend via reach heal (kernel-gated), then re-check; built-in channels correctly refuse. Tested.",
       "note": "DONE. reach/heal.ts (tryUpgrade + pyToolUpgradeCommands), channel.heal contract, twitter channel heal, reach tool (doctor+heal). Answers 'if Vanta can fix itself it should rebuild the twitter thing every time it changes.' 9 tests."
+    },
+    {
+      "id": "AUTO-MINIMALISM",
+      "track": "Harness",
+      "title": "Auto-minimalism mode — /auto command + skill (do the least that works)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Rewritten from ponytail (MIT) as `auto`: a 'do the least that works' coding discipline (YAGNI→stdlib→native→installed-dep→one-line ladder; deletion over addition; `auto:` ceiling-comments naming the upgrade path). Vanta: /auto [lite|full|ultra|off|review] injects a live system-prompt directive (mirrors /planmode's marker); review resends a deletion-accounting rubric, distinct from /simplify's general cleanup. Skill skills-library/auto auto-installs to ~/.vanta + ~/.claude. Also shipped GLOBAL for Claude Code: ~/.claude/commands/auto.md (a /auto command in any project) + ~/.claude/skills/auto.",
+      "done": "/auto toggles minimalism mode live (7 unit tests); /auto review audits a diff; the global /auto works in any Claude Code project; full suite green, size gate clean.",
+      "tier": "sand",
+      "lens": "coding",
+      "effort": "low",
+      "updated": "2026-06-14"
+    },
+    {
+      "id": "REACH-BROWSER-SESSION",
+      "track": "Harness",
+      "title": "Authenticated browser read — browser_read + browser-session primitive (any login-walled/JS page)",
+      "status": "done",
+      "size": "M",
+      "summary": "reach/browser-session.ts openWithSession(url, cookie): opens ANY url in a headless browser with session cookies injected (url-scoped, handles __Host-/__Secure-, drops control-char values), returns rendered text + every request the page made. browser_read {url, browser:'brave'} wraps it — reads login-walled / JS-rendered pages (x.com, reddit, linkedin, internal apps) by auto-injecting your logged-in cookies for that domain. General primitive; the X query-id capture + the reddit fallback are consumers. Distinct from AUTH-BROWSER (persistent manual-login profile). Extracted as the standalone MIT repo 'browser-session' (github.com/jpoindexter/browser-session).",
+      "done": "browser_read renders any logged-in page headlessly with the injected session; proven live on X / Reddit / HN / vercel; wired as the reddit channel's fallback + the linkedin channel's backend.",
+      "tier": "pebble",
+      "lens": "reach",
+      "effort": "medium",
+      "updated": "2026-06-14"
+    },
+    {
+      "id": "REACH-COOKIE-AUTOREAD",
+      "track": "Harness",
+      "title": "Zero-paste cookie import — auto-read the live browser cookie store",
+      "status": "done",
+      "size": "S",
+      "summary": "reach/browser-cookies.ts: cookie_import {channel, browser:'brave'} reads logged-in cookies straight from the browser's encrypted store (macOS Keychain key → PBKDF2 → AES-128-CBC decrypt, 32-byte SHA256(host)-prefix handling, zero deps) — no Cookie-Editor export/paste. One Keychain approval the first time; falls back to the paste/file flow (REACH-COOKIE-IMPORT) on any other browser/OS. Channel→host map (twitter→x.com, reddit→reddit.com).",
+      "done": "cookie_import {browser:'brave'} stores a channel cookie with no manual export (verified: 35 x.com cookies auto-read from Brave); kernel-gated, stored 0600, never echoed.",
+      "tier": "sand",
+      "lens": "reach",
+      "effort": "low",
+      "updated": "2026-06-14"
     }
   ]
 }
