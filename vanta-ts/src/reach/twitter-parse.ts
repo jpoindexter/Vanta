@@ -45,8 +45,9 @@ function tweetFrom(result: Record<string, unknown>): TwitterPost {
   const inner = result.tweet ? rec(result.tweet) : result; // TweetWithVisibilityResults wraps .tweet
   const legacy = rec(inner.legacy);
   const id = str(inner, "rest_id") || str(legacy, "id_str");
-  const userLegacy = rec(rec(rec(rec(inner.core).user_results).result).legacy);
-  const handle = str(userLegacy, "screen_name");
+  const userResult = rec(rec(rec(inner.core).user_results).result);
+  // X moved screen_name from the user's legacy → its core; try both.
+  const handle = str(rec(userResult.core), "screen_name") || str(rec(userResult.legacy), "screen_name");
   return {
     text: str(legacy, "full_text"),
     handle,

@@ -38,7 +38,7 @@ const TIMELINE = {
                     tweet_results: {
                       result: {
                         rest_id: "123",
-                        core: { user_results: { result: { legacy: { screen_name: "jane" } } } },
+                        core: { user_results: { result: { core: { screen_name: "jane" } } } }, // new X shape: handle in user core
                         legacy: { full_text: "doing invoices manually is painful", favorite_count: 7 },
                       },
                     },
