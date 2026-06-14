@@ -10226,7 +10226,7 @@
       "title": "RSS/Atom channel — subscribe + read feeds",
       "summary": "From Agent-Reach rss.py (feedparser): a zero-config, pure-TS RSS/Atom read tool (native fetch + parse, no external CLI). First reach channel to build — cheapest, and feeds Opportunity-Radar's scan_web with curated pain-signal feeds (subreddits-as-RSS, HN, indie-hacker blogs).",
       "done": "An rss_read tool fetches + parses an RSS/Atom feed to clean items (title/link/date/summary); errors-as-values; tested with an inline fixture (no network).",
-      "note": "DONE. reach/rss-parse.ts — dependency-free RSS 2.0 + Atom parser (block+tag extractor, CDATA/entity clean, tolerant). rss_read tool (native fetch, limit, errors-as-values) + rss reach channel (canHandle feed URLs, routes before web). 20 tests. 74 tools."
+      "note": "DONE. reach/rss-parse.ts — dependency-free RSS 2.0 + Atom parser (block+tag extractor, CDATA/entity clean, tolerant). rss_read tool (native fetch, limit, errors-as-values) + rss reach channel (canHandle feed URLs, routes before web). 20 tests. 74 tools. + feed auto-discovery (Agent-Reach #322): fetchFeed follows a site page's <link rel=alternate> feed."
     },
     {
       "track": "Harness",
@@ -10252,10 +10252,11 @@
       "tier": "pebble",
       "size": "M",
       "effort": "medium",
-      "status": "horizon",
+      "status": "in-progress",
       "title": "Twitter/X channel — read tweet + search via cookie CLI",
       "summary": "From Agent-Reach twitter.py (twitter-cli ▸ OpenCLI, cookie auth, free — no paid API). Reads a tweet + searches the timeline via the upstream CLI with a browser-exported cookie. Pain-signal + sentiment source for the radar. Cookie via Cookie-Editor export (their recommended flow), stored 0600 locally.",
-      "done": "A twitter_read tool reads a tweet + searches via the upstream CLI when a cookie is configured; clear setup guidance + graceful degradation otherwise."
+      "done": "A twitter_read tool reads a tweet + searches via the upstream CLI when a cookie is configured; clear setup guidance + graceful degradation otherwise.",
+      "note": "BUILT. twitter_read tool (search via twitter-cli, --json envelope, keyless) + twitter reach channel + scan_web from:twitter feeds the radar. Auth: TWITTER_AUTH_TOKEN/TWITTER_CT0 pulled from a stored twitter cookie (headless; sidesteps Agent-Reach #368 Windows app-bound encryption) or twitter-cli's browser session. Self-healing (re-pulls twitter-cli). Pure parsers (extractAuth/mapTweet/parseTwitterJson) tested; graceful when CLI absent. LIVE needs `uv tool install twitter-cli` + a twitter cookie/login."
     },
     {
       "track": "Harness",
@@ -10355,6 +10356,21 @@
       "title": "Xueqiu (雪球) channel — quotes, stock search, hot posts",
       "summary": "From Agent-Reach xueqiu.py: stock quotes, search, hot posts, hot-stock ranking (needs light config). Finance/market signal source, China-centric. Defer unless a concrete need (e.g. a markets/finance use case appears).",
       "done": "A xueqiu reach path returns quotes + stock search + hot posts when configured; errors-as-values; setup guidance on a gap."
+    },
+    {
+      "track": "Harness",
+      "model": "sonnet",
+      "lens": "reach",
+      "tier": "rock",
+      "size": "M",
+      "effort": "medium",
+      "updated": "2026-06-14",
+      "id": "REACH-SELFHEAL",
+      "status": "done",
+      "title": "Self-healing reach backends — rebuild when the platform changes",
+      "summary": "A reach channel declares heal(); the kernel-gated `reach` tool runs `reach doctor` + `reach heal <channel>` to rebuild a broken CLI-backed channel and re-check. twitter heal re-pulls twitter-cli (uv ▸ pipx ▸ pip ladder) since the maintainer tracks X's rotating GraphQL query IDs. The reach analogue of the self-repair organ (detect off → heal → re-check). reach/heal.ts tryUpgrade + channel.heal contract.",
+      "done": "A broken CLI-backed reach channel can rebuild its backend via reach heal (kernel-gated), then re-check; built-in channels correctly refuse. Tested.",
+      "note": "DONE. reach/heal.ts (tryUpgrade + pyToolUpgradeCommands), channel.heal contract, twitter channel heal, reach tool (doctor+heal). Answers 'if Vanta can fix itself it should rebuild the twitter thing every time it changes.' 9 tests."
     }
   ]
 }

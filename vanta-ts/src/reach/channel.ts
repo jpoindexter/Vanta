@@ -30,6 +30,12 @@ export type ReachChannel = {
   canHandle: (url: string) => boolean;
   /** Really probe the channel's backends and report the active one. */
   check: (env: NodeJS.ProcessEnv) => Promise<ChannelStatus>;
+  /**
+   * Self-heal: rebuild/upgrade the backend when the platform changed and broke
+   * it (CLI-backed channels). Absent for built-in channels that can't break.
+   * Returns what it ran + the outcome. Kernel-gated by the caller.
+   */
+  heal?: (env: NodeJS.ProcessEnv) => Promise<import("./heal.js").HealResult>;
 };
 
 /**

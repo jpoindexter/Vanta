@@ -23,6 +23,7 @@ import { todoTool } from "./todo.js";
 import { worldTool } from "./world.js";
 import { moneyTool } from "./money.js";
 import { radarTool } from "./radar.js";
+import { reachTool } from "./reach-tool.js";
 import { teamTool } from "./team.js";
 import { lifeSearchTool } from "./life-search.js";
 import { redditReadTool } from "./reddit-read.js";
@@ -33,6 +34,7 @@ import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
 import { transcribeTool } from "./transcribe.js";
+import { twitterReadTool } from "./twitter-read.js";
 import { runCodeTool } from "./run-code.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
@@ -118,6 +120,7 @@ const ALL_TOOLS: readonly Tool[] = [
   worldTool,
   moneyTool,
   radarTool,
+  reachTool,
   teamTool,
   lifeSearchTool,
   regressionLockTool,
@@ -129,6 +132,7 @@ const ALL_TOOLS: readonly Tool[] = [
   workflowTool,
   graphQueryTool,
   transcribeTool,
+  twitterReadTool,
   runCodeTool,
   lspDiagnosticsTool,
   lspDefinitionTool,

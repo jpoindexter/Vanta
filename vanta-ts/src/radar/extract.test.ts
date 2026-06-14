@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { extractOpportunities, fromReddit, fromFeed } from "./extract.js";
+import { extractOpportunities, fromReddit, fromFeed, fromTwitter } from "./extract.js";
 import type { SearchResult } from "../search/interface.js";
 import type { RedditPost } from "../reach/reddit-parse.js";
 import type { FeedItem } from "../reach/rss-parse.js";
+import type { TwitterPost } from "../reach/twitter.js";
 
 // Inline fixtures — no network, deterministic.
 
@@ -125,6 +126,14 @@ describe("source label + adapters", () => {
   it("fromFeed maps items to the common result shape", () => {
     const items: FeedItem[] = [{ title: "Release 2.0", link: "https://blog/2", date: "", summary: "fixes a painful bug" }];
     expect(fromFeed(items)[0]).toEqual({ title: "Release 2.0", url: "https://blog/2", snippet: "fixes a painful bug" });
+  });
+
+  it("fromTwitter maps tweets (title = text, snippet carries handle + likes)", () => {
+    const posts: TwitterPost[] = [{ text: "manual invoicing wastes my whole week", handle: "founder", url: "https://x.com/founder/status/1", likes: 42 }];
+    const r = fromTwitter(posts)[0]!;
+    expect(r.url).toBe("https://x.com/founder/status/1");
+    expect(r.snippet).toContain("@founder · ♥42");
+    expect(r.title).toContain("manual invoicing");
   });
 
   it("end-to-end: reddit posts → opportunities scored from pain/buyer", () => {

@@ -36,9 +36,24 @@ The reach channels feed the radar's pain-signal hunt. `radar scan_web` routes by
 
 - `from:web` (default) — `query` → the search provider.
 - `from:reddit` — `query` (+ optional `subreddit`) → Reddit search (needs a cookie); each post becomes a scored candidate.
-- `from:rss` — `feed` (a feed url) → each item becomes a candidate.
+- `from:rss` — `feed` (a feed url, or a site URL — feeds are auto-discovered) → each item becomes a candidate.
+- `from:twitter` — `query` → X/Twitter search via twitter-cli.
 
-All three normalize to a common `{title, url, snippet}` (`radar/extract.ts` `fromReddit`/`fromFeed`) and run through the same pain/buyer scorer; the source prefixes the opportunity id + note (`reddit-…`, `rss-…`). The fetchers (`reach/reddit.ts searchReddit`, `reach/rss.ts fetchFeed`) are shared by the `reddit_read`/`rss_read` tools and the radar.
+All sources normalize to a common `{title, url, snippet}` (`radar/extract.ts` `fromReddit`/`fromFeed`/`fromTwitter`) and run through the same pain/buyer scorer; the source prefixes the opportunity id + note (`reddit-…`, `rss-…`, `twitter-…`). The fetchers (`reach/reddit.ts`, `reach/rss.ts`, `reach/twitter.ts`) are shared by the `*_read` tools and the radar.
+
+## Self-heal — backends that rebuild when the platform changes
+
+Brittle backends (twitter-cli especially — X rotates its GraphQL query IDs every few weeks) *will* break. A channel can declare `heal()`; the kernel-gated **`reach` tool** runs it:
+
+- `reach doctor` — the doctor report (also `/reach`).
+- `reach heal <channel>` — rebuilds the channel's backend, then re-checks. For `twitter`, heal re-pulls **twitter-cli** (`uv tool install --upgrade ▸ pipx ▸ pip`, first that works), since the maintainer tracks X's churn — so a broken X channel **rebuilds itself to the latest working version**. Kernel-gated (it runs an install/upgrade → approval).
+
+This is the reach analogue of the self-repair organ: *detect off → heal → re-check*. Built-in channels (web/search/rss) have no `heal` (they can't break this way). `reach/heal.ts` `tryUpgrade` runs an ordered installer ladder, skipping missing installers and degrading cleanly.
+
+## Lessons applied from Agent-Reach issues
+
+- **#368** (twitter cookie auth breaks on Windows — browser app-bound encryption): sidestepped by design — we pass `TWITTER_AUTH_TOKEN`/`TWITTER_CT0` from the stored cookie instead of relying on browser extraction, so it works headless + on Windows.
+- **#322** (auto-discover feed sources): implemented — `fetchFeed` follows a site page's `<link rel=alternate>` feed (`reach/rss.ts discoverFeed`).
 
 ## Adding a channel
 
@@ -66,6 +81,7 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | `search` | ✅ | auto ▸ ddg ▸ searxng ▸ serpapi ▸ brave ▸ bing ▸ jina | provider via `VANTA_SEARCH_PROVIDER` |
 | `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | ✅ | reddit.json + cookie ▸ rdt-cli | `reddit_read` (search/read) — needs a cookie via `cookie_import`; anonymous is blocked |
+| `twitter` | ✅ | twitter-cli | `twitter_read` (search) — keyless; auth via stored cookie (env vars) or browser session; `uv tool install twitter-cli`. Self-heals (see below) |
 
 The `reddit` channel reads Reddit's own `.json` endpoints authenticated with the stored cookie (no external CLI to install — anonymous access is blocked, so a cookie is required; `reddit_read` returns the exact setup step when none is configured). `rdt-cli` is the documented fallback backend (not wired). Live coverage of `.json` from a datacenter IP can still be rate-limited — the wiring is correct and works on a residential IP with a valid cookie, same caveat as `web_search`.
 

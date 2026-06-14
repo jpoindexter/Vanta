@@ -93,6 +93,18 @@ describe("radarTool", () => {
     }
   });
 
+  it("scan_web from:twitter degrades gracefully when twitter-cli is absent", async () => {
+    const prevPath = process.env.PATH;
+    process.env.PATH = "/nonexistent";
+    try {
+      const r = await radarTool.execute({ action: "scan_web", from: "twitter", query: "manual work" }, ctx);
+      expect(r.ok).toBe(true); // graceful — never throws
+      expect(r.output).toContain("twitter unavailable");
+    } finally {
+      process.env.PATH = prevPath;
+    }
+  });
+
   it("scan_web from:rss reads a feed → opportunities (mocked fetch)", async () => {
     const xml = `<rss><channel><title>Indie</title><item><title>Painful manual deploys waste time</title><link>https://b/1</link><description>teams struggle</description></item></channel></rss>`;
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, text: async () => xml })));

@@ -2,6 +2,7 @@ import type { SearchResult } from "../search/interface.js";
 import type { Opportunity } from "./store.js";
 import type { RedditPost } from "../reach/reddit-parse.js";
 import type { FeedItem } from "../reach/rss-parse.js";
+import type { TwitterPost } from "../reach/twitter.js";
 
 // Pure module — no I/O. Converts reach-channel results (web search, Reddit, RSS)
 // into candidate Opportunities, scored from pain/buyer signals.
@@ -60,6 +61,15 @@ export function fromReddit(posts: RedditPost[]): SearchResult[] {
 /** RSS/Atom items → the common result shape. */
 export function fromFeed(items: FeedItem[]): SearchResult[] {
   return items.map((it) => ({ title: it.title, url: it.link, snippet: it.summary }));
+}
+
+/** Tweets → the common result shape (title = tweet text, snippet carries the handle + likes). */
+export function fromTwitter(posts: TwitterPost[]): SearchResult[] {
+  return posts.map((p) => ({
+    title: p.text.slice(0, 100),
+    url: p.url,
+    snippet: `@${p.handle} · ♥${p.likes}: ${p.text}`,
+  }));
 }
 
 /**
