@@ -8,7 +8,7 @@ import { hasCookie } from "../cookie.js";
 export const redditChannel: ReachChannel = {
   name: "reddit",
   description: "Search + read Reddit posts and comments",
-  backends: ["reddit.json+cookie", "rdt-cli"],
+  backends: ["reddit.json+cookie", "browser-session"],
   tier: 2,
   canHandle: (url) => /^https?:\/\/(www\.)?reddit\.com\//i.test(url),
   async check(env) {

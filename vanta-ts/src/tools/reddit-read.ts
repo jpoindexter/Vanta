@@ -3,6 +3,7 @@ import type { Tool, ToolResult } from "./types.js";
 import { loadCookie } from "../reach/cookie.js";
 import { formatPosts, formatThread } from "../reach/reddit-parse.js";
 import { searchReddit, readRedditThread } from "../reach/reddit.js";
+import { openWithSession } from "../reach/browser-session.js";
 
 const Args = z.object({
   action: z.enum(["search", "read"]),
@@ -12,19 +13,39 @@ const Args = z.object({
   limit: z.number().int().min(1).max(50).optional(),
 });
 
-const NO_COOKIE =
-  "No Reddit cookie configured (anonymous access is blocked). Export your reddit.com session with Cookie-Editor and store it: see /cookie, then cookie_import for channel \"reddit\".";
+const FALLBACK_MAX = 12_000;
+const COOKIE_HINT = ' — store one: cookie_import {channel:"reddit", browser:"brave"} (or see /cookie)';
 
-async function doSearch(a: z.infer<typeof Args>, cookie: string): Promise<ToolResult> {
-  if (!a.query) return { ok: false, output: "search needs a query" };
-  const r = await searchReddit({ query: a.query, subreddit: a.subreddit, limit: a.limit }, cookie);
-  return r.ok ? { ok: true, output: formatPosts(r.posts) } : { ok: false, output: `reddit search failed: ${r.error}` };
+/** The reddit search PAGE url (rendered in the browser fallback). Pure. */
+export function redditSearchPageUrl(query: string, subreddit?: string): string {
+  const base = subreddit
+    ? `https://www.reddit.com/r/${encodeURIComponent(subreddit)}/search/`
+    : "https://www.reddit.com/search/";
+  return `${base}?q=${encodeURIComponent(query)}${subreddit ? "&restrict_sr=1" : ""}&sort=relevance`;
 }
 
-async function doRead(a: z.infer<typeof Args>, cookie: string): Promise<ToolResult> {
+/** Fallback: render the page in a real browser with the session when .json is blocked. */
+async function browserFallback(url: string, cookie: string | null): Promise<ToolResult> {
+  const r = await openWithSession(url, cookie);
+  if (!r.ok) return { ok: false, output: r.error };
+  const text = r.text.slice(0, FALLBACK_MAX);
+  return { ok: true, output: text ? `(reddit .json blocked — via browser session)\n${text}` : "(browser rendered no visible text)" };
+}
+
+async function doSearch(a: z.infer<typeof Args>, cookie: string | null): Promise<ToolResult> {
+  if (!a.query) return { ok: false, output: "search needs a query" };
+  const r = await searchReddit({ query: a.query, subreddit: a.subreddit, limit: a.limit }, cookie ?? "");
+  if (r.ok) return { ok: true, output: formatPosts(r.posts) };
+  const fb = await browserFallback(redditSearchPageUrl(a.query, a.subreddit), cookie);
+  return fb.ok ? fb : { ok: false, output: `reddit search failed: ${r.error}; browser fallback: ${fb.output}${cookie ? "" : COOKIE_HINT}` };
+}
+
+async function doRead(a: z.infer<typeof Args>, cookie: string | null): Promise<ToolResult> {
   if (!a.url) return { ok: false, output: "read needs a url (a reddit post permalink)" };
-  const r = await readRedditThread(a.url, cookie);
-  return r.ok ? { ok: true, output: formatThread(r.thread) } : { ok: false, output: `reddit read failed: ${r.error}` };
+  const r = await readRedditThread(a.url, cookie ?? "");
+  if (r.ok) return { ok: true, output: formatThread(r.thread) };
+  const fb = await browserFallback(a.url, cookie);
+  return fb.ok ? fb : { ok: false, output: `reddit read failed: ${r.error}; browser fallback: ${fb.output}${cookie ? "" : COOKIE_HINT}` };
 }
 
 export const redditReadTool: Tool = {
@@ -32,8 +53,8 @@ export const redditReadTool: Tool = {
     name: "reddit_read",
     description:
       "Search Reddit or read a post + its top comments. action:search {query, subreddit?, limit?} finds posts; " +
-      "action:read {url} reads a post permalink + comments. Uses your stored reddit cookie (Reddit blocks anonymous access) — " +
-      "returns the exact setup step if none is configured. Source-cited (permalinks).",
+      "action:read {url} reads a post permalink + comments. Uses Reddit's .json API with your stored cookie; if that's " +
+      "blocked (403 / no cookie), FALLS BACK to rendering the page in a real browser with your session. Source-cited.",
     parameters: {
       type: "object",
       properties: {
@@ -51,7 +72,6 @@ export const redditReadTool: Tool = {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'reddit_read needs an "action" (search|read)' };
     const cookie = loadCookie("reddit");
-    if (!cookie) return { ok: false, output: NO_COOKIE };
     return parsed.data.action === "search" ? doSearch(parsed.data, cookie) : doRead(parsed.data, cookie);
   },
 };
