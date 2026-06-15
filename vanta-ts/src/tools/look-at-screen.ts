@@ -63,7 +63,13 @@ export const lookAtScreenTool: Tool = {
     } catch (err) {
       const msg = (err as Error).message;
       if (/could not create image/i.test(msg)) {
-        return { ok: false, output: "look_at_screen needs Screen Recording permission — open System Settings → Privacy & Security → Screen Recording and enable your terminal, then try again." };
+        // macOS won't re-prompt once dismissed — open the exact settings pane instead.
+        const { execFile: ef } = await import("node:child_process");
+        const { promisify: pf } = await import("node:util");
+        await pf(ef)("open", [
+          "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture",
+        ]).catch(() => {});
+        return { ok: false, output: "Screen Recording permission needed — opening System Settings to the right pane now. Toggle on your terminal app, then run look_at_screen again." };
       }
       return { ok: false, output: `look_at_screen failed: ${msg}` };
     }
