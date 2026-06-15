@@ -562,7 +562,7 @@
       "id": "CC-REACTIVE-COMPACT",
       "track": "Harness",
       "title": "Reactive compact — proactive compaction triggered by context analysis warnings",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC (feature-gated `REACTIVE_COMPACT`) adds reactive compaction: when `analyzeContext` detects that specific context categories (tool results, file reads) are consuming disproportionate tokens, it triggers compaction proactively before the context window fills. Distinct from auto-compact (threshold-based) and microcompact (cache-based).",
       "done": "When a large tool result is detected consuming >40% of context, reactive compact runs automatically to trim it before the agent's next turn.",
@@ -571,7 +571,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-15"
     },
     {
       "id": "CC-INIT-CMD",

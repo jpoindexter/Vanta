@@ -14,6 +14,7 @@ import type { DispatchOutcome } from "./agent/dispatch-tool.js";
 import { scopeToolSchemas, toolScopeContext } from "./agent/tool-scope.js";
 import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./agent/structured-output.js";
 import { buildStructuredOutputInstruction } from "./tools/structured-output.js";
+import { compactOversizedResult } from "./compress/reactive.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
 import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
@@ -139,8 +140,10 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
     const outcome = inFlight ? await inFlight : await dispatchTool(call, deps, ctx);
     state.toolIterations++;
     if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
-    messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: outcome.output });
-    await deps.safety.logEvent(`${call.name}: ${outcome.output.slice(0, 120)}`);
+    const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
+    if (reactive.tokensSaved) state.tokensSaved += reactive.tokensSaved;
+    messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: reactive.output });
+    await deps.safety.logEvent(`${call.name}: ${reactive.output.slice(0, 120)}`);
     const stuck = recordToolOutcome(state, call, outcome, deps);
     if (stuck) return stuck;
   }
