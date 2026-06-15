@@ -11,7 +11,7 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 83 built-in tools, 97 slash commands, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 86 built-in tools, 97 slash commands, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
@@ -24,7 +24,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-15):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **83 built-in tools** and **97 slash commands**; last recorded full verify is **3420 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, Tab/Shift+Tab focus traversal, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, `/rewind`, `/hooks`, durable cron tasks, structured-output SDK tool calls, reactive compaction for oversized tool results, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, auto/acceptEdits permission modes, and session effort levels. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
+> **Status (2026-06-15):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **86 built-in tools** and **97 slash commands**; last recorded full verify is **3420 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, Tab/Shift+Tab focus traversal, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, `/rewind`, `/hooks`, durable cron tasks, structured-output SDK tool calls, reactive compaction for oversized tool results, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, auto/acceptEdits permission modes, and session effort levels. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
 
 ## Key files
 

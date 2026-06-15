@@ -44,11 +44,23 @@ describe("resolveChannel", () => {
 
 describe("checkAll + formatDoctor", () => {
   it("returns a status for every registered channel", async () => {
-    // empty home → reddit + twitter have no cookie, so both report not-ok
+    // empty home -> auth/session-backed channels report not-ok; local CLI-backed channels depend on host tools.
     const statuses = await checkAll({ VANTA_HOME: "/nonexistent-vanta-reach-test" }, REACH_CHANNELS);
-    expect(statuses.map((s) => s.name).sort()).toEqual(["linkedin", "reddit", "rss", "search", "twitter", "web"]);
-    // web/search/rss are always ok; reddit/twitter/linkedin need a session
-    expect(statuses.filter((s) => s.status === "ok").map((s) => s.name).sort()).toEqual(["rss", "search", "web"]);
+    expect(statuses.map((s) => s.name).sort()).toEqual([
+      "github",
+      "linkedin",
+      "podcast",
+      "reddit",
+      "rss",
+      "search",
+      "twitter",
+      "web",
+      "youtube",
+    ]);
+    // web/search/rss are always ok; other channels may require sessions, API keys, or local CLIs.
+    expect(statuses.filter((s) => s.status === "ok").map((s) => s.name).sort()).toEqual(
+      expect.arrayContaining(["rss", "search", "web"]),
+    );
   });
 
   it("routes by URL: feed→rss, reddit→reddit, x→twitter, linkedin→linkedin, else web", () => {

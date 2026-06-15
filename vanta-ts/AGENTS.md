@@ -74,7 +74,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/index.ts` currently registers **83 built-in tools**; runtime MCP mounts can add more.
+- `src/tools/index.ts` currently registers **86 built-in tools**; runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **97 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
