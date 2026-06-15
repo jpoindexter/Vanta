@@ -39,6 +39,7 @@ import { theme } from "./theme-cmd.js";
 import { rename } from "./rename-cmd.js";
 import { branch } from "./branch-cmd.js";
 import { summary } from "./summary-cmd.js";
+import { rewind } from "./rewind-cmd.js";
 import { outputStyle } from "./output-style-cmd.js";
 import { tuiCommand } from "./tui-cmd.js";
 import { focusCommand } from "./focus-cmd.js";
@@ -280,7 +281,7 @@ const cron: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, retry, undo, skills, tools, model, effort, setup: model, status, doctor: status,
+  export: exportConvo, retry, undo, rewind, skills, tools, model, effort, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,

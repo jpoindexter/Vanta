@@ -326,7 +326,7 @@
       "id": "CC-REWIND",
       "track": "Harness",
       "title": "Checkpoint + rewind code & conversation",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Claude Code snapshots files before each edit and rewinds code and/or conversation to a prior point (Esc-Esc / /rewind). Vanta has /undo (drops the last turn) but no code restore. Add per-edit checkpoints and a rewind that restores both.",
       "done": "/rewind lists recent checkpoints; selecting one restores the file(s) to that snapshot and optionally truncates the conversation; a checkpoint is written before every write_file.",
@@ -334,7 +334,8 @@
       "model": "opus",
       "effort": "medium",
       "codex": "gpt-5.5",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-15"
     },
     {
       "id": "COMPRESS-CODE-AST",

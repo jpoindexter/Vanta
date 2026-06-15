@@ -4,6 +4,7 @@ import type { Tool } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
+import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -42,6 +43,7 @@ async function applyEdit(
   const diff = computeDiff(content, updated);
   try {
     const finishDiag = await beginDiagnosticDelta(abs, true);
+    globalFileCheckpointStore.save({ path, absPath: abs, content });
     await writeFile(abs, updated, "utf8");
     const occurrences = replace_all ? content.split(old_string).length - 1 : 1;
     const diagNote = await finishDiag();

@@ -5,6 +5,7 @@ import type { Tool, ToolResult } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
+import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -50,6 +51,11 @@ async function writeAndReport(o: { abs: string; displayPath: string; content: st
   try {
     const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting); // diagnostic baseline (opt-in)
     await mkdir(dirname(o.abs), { recursive: true });
+    globalFileCheckpointStore.save({
+      path: o.displayPath,
+      absPath: o.abs,
+      content: o.isExisting ? o.oldContent : null,
+    });
     await writeFile(o.abs, o.content, "utf8");
     const kind = o.isExisting ? "overwritten" : "new file";
     const diff = computeDiff(o.oldContent, o.content);
