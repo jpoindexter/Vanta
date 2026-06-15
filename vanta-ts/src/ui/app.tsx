@@ -131,8 +131,8 @@ function Footer(props: { model: string; effortLevel: EffortLevel; ctxPct: number
   const t = useTheme();
   return (
     <Box flexDirection="column">
-      {/* Always render this line — height must be constant or useClock re-renders ghost-stack the live region */}
-      <Text dimColor={t.dimText}>{props.goal ? <><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</> : ""}</Text>
+      {/* Space (not "") keeps this line height=1 even when goal is null — "" renders as 0 lines in Ink */}
+      <Text dimColor={t.dimText}>{props.goal ? <><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
       <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
