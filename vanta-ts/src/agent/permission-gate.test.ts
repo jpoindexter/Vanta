@@ -167,6 +167,25 @@ describe("applySafetyGate + permissions", () => {
     expect(prompted).toBe(false);
   });
 
+  it("acceptEdits does not override internal approval for non-file tools", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    let prompted = false;
+    const deps = makeDeps({ risk: "allow", onAsk: () => { prompted = true; } });
+    deps.registry = {
+      get: () => ({
+        execute: async (_raw: unknown, toolCtx: ToolContext) => ({
+          ok: await toolCtx.requestApproval("Run command", "test", "shell_cmd"),
+          output: "ran",
+        }),
+        describeForSafety: () => "run command",
+      }),
+    } as unknown as AgentDeps["registry"];
+
+    const res = await dispatchTool({ id: "4", name: "shell_cmd", arguments: { cmd: "echo hi" } }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
+    expect(res.ok).toBe(true);
+    expect(prompted).toBe(true);
+  });
+
   it("auto mode soft-denies classified borderline asks without prompting", async () => {
     process.env.VANTA_AUTO_MODE = "1";
     let prompted = false;
