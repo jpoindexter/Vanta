@@ -1,6 +1,6 @@
 # CLAUDE.md — desktop interface
 
-First slice of the Vanta desktop experience: session sidebar, central chat, right preview/files/terminal rail, command palette, and command-center overlay.
+Localhost host for the Vanta desktop experience. The browser renderer is the Vite app in `vanta-ts/desktop-app/`; this folder owns the server/API boundary.
 
 ## Run
 
@@ -8,18 +8,21 @@ First slice of the Vanta desktop experience: session sidebar, central chat, righ
 cd vanta-ts
 npm run vanta -- desktop        # opens http://127.0.0.1:7790
 npm run vanta -- desktop 7791   # custom port
+npm run desktop:build           # rebuilds the React app served at /
 ```
 
 ## Shape
 
 - `server.ts` starts a localhost HTTP server with:
-  - `GET /` static command-center UI
+  - `GET /` built React command-center UI from `desktop-app/dist/index.html` when present
+  - `GET /assets/*` built Vite assets
   - `GET /api/status` kernel/model/tool/goal snapshot
   - `GET /api/sessions` saved Vanta sessions
   - `GET /api/tools` tool catalog for the right rail
   - `POST /api/chat` persistent in-process Vanta conversation
-- `page.ts` is dependency-free static HTML/CSS/JS using the Vanta dossier/operator visual language.
-- This is not packaged Electron/Tauri yet. It is the seed surface; native shell, streaming, true session resume/sidebar selection, file preview/PTY, and approval prompts are next.
+- `assets.ts` resolves built files safely under `desktop-app/dist` and falls back to `page.ts`.
+- `page.ts` is only the small fallback page shown when the React app has not been built.
+- This is not packaged Electron/Tauri yet. It is the seed surface; native shell and richer approval prompts are next.
 
 ## Safety
 

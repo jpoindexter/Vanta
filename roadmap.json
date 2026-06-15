@@ -201,15 +201,17 @@
       "id": "DESKTOP-P3",
       "track": "Operator",
       "title": "Desktop P3 — real React/Vite renderer",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
-      "summary": "Phase 3: replace the giant-string UI with a real Vite+React app (AppShell/SessionSidebar/ChatThread/Composer/RightRail) under vanta-ts/desktop-app/. Vanta operator/dossier aesthetic, not generic SaaS.",
+      "summary": "SHIPPED 2026-06-15. Replaced the giant static desktop UI source with a real Vite+React renderer under `vanta-ts/desktop-app/` (`AppShell`, `SessionSidebar`, `ChatThread`, `Composer`, `RightRail`). `src/desktop/assets.ts` serves `desktop-app/dist` when built; `page.ts` is now only a small fallback notice. Vanta operator/dossier aesthetic preserved, not generic SaaS.",
       "done": "No giant-string UI; current functionality preserved in real components; builds via Vite.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-15",
+      "notes": "Build: `npm run desktop:build` (Vite). Server root serves built `desktop-app/dist/index.html` + `/assets/*`; fallback tells the user to build. Verified with focused desktop tests, `tsc`, Vite build, curl asset fetch, and headless Chrome screenshot `/private/tmp/vanta-desktop-p3.png`."
     },
     {
       "id": "CC-PERM-PER-TOOL-UI",

@@ -1,0 +1,9 @@
+export type Session = { id: string; title: string; turns: number; updated: string };
+export type Tool = { name: string; desc: string };
+export type Goal = { text: string };
+export type Status = { kernel: string; model: string; tools: number; sessionId: string; goals: Goal[] };
+export type Message = { role: string; content?: string; name?: string };
+export type Provider = { id: string; label: string; short: string; models: string[] };
+export type EventRow = { label: string; ok?: boolean };
+export type Approval = { id: string; action: string; reason: string; toolName?: string };
+export type RailTab = "preview" | "files" | "terminal";

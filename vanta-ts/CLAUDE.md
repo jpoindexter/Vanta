@@ -144,6 +144,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `compress/store.ts` | CCR (Context-Compression Retrieval) stash: `ccrId(text)` (hash) + `storeCcr`/`retrieveCcr` — `.vanta/ccr/` files so the agent can ask for the full text after compression |
 | `compress/apply.ts` | `compressEnabled(env)` + `COMPRESS_TOOLS` allowlist + `shouldCompressTool(name)` + `applyCompression(toolName,output,opts)` — wired into `agent.ts dispatchTool`; only compresses tools on the allowlist |
 | `cli/ops.ts` | Larger op handlers: `dataDirFor`/`buildCronRunTask`/`runGatewayCommand`/`runServiceCommand`/`runMcpCommand`/`runRoadmapCommand`/`runFactoryCommand`/`runDesktopCommand` |
+| `desktop-app/` | Vite + React desktop renderer (`AppShell`, session sidebar, chat thread, composer, right rail). Build with `npm run desktop:build`; served from `desktop-app/dist/` |
+| `desktop/assets.ts` | Safe built-asset resolver for desktop root + `/assets/*`; falls back to `desktop/page.ts` when dist is missing |
 | `cli-dx/` | CLI-DX-PACK: `prompt-size.ts` (token breakdown), `completion.ts` (shell completion + CLI_COMMANDS), `backup.ts` (tar ~/.vanta) |
 | `permissions/auto-mode.ts` | Auto permission classifier: default read-only allows, soft-deny presets, and `settings.autoMode.rules` overrides. Applied after kernel + permission rules; kernel block remains immovable |
 

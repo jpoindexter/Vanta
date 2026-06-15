@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3271 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3276 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -23,6 +23,7 @@ npx tsc --noEmit                 # must be clean before any commit
 | `vanta run "<instr>"` | `src/cli.ts` → `src/cli/lifecycle.ts` → `src/session.ts` → `src/agent.ts` |
 | `vanta gateway` | `src/gateway/run.ts` |
 | `vanta agents` / `attach` / `logs` / `respawn` / `stop` / `rm` | `src/cli/agents-cmd.ts` over `src/team/tasks.ts` |
+| `vanta desktop` | `src/desktop/server.ts` serving `desktop-app/dist/` |
 | `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
 ## Critical files for new work
@@ -41,6 +42,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/ui/v2/` — opt-in mission-control shell (`VANTA_TUI=v2`), wrapping the shared v1 engine in left/right operator rails
 - `src/ui/reducer.ts` — pure transcript/UI reducer
 - `src/ui/use-agent.ts` — agent I/O hook for the TUI
+- `src/desktop/` + `desktop-app/` — localhost desktop API host + Vite/React renderer
 - `src/interactive.ts` — readline REPL (fallback to TUI)
 
 ## Slash command / drop-file wiring
@@ -62,6 +64,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
+- Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
 - Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: browser OS-level control.
 

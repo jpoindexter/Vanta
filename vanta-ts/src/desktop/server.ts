@@ -1,7 +1,6 @@
 import http from "node:http";
 import { createConversation, type StreamEvent } from "../agent.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
-import { desktopHtml } from "./page.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
@@ -15,6 +14,7 @@ import {
   getSession, attachSse, pushSseEvent, sessionIdFromRequest,
   type SessionMap, type SseClients,
 } from "./session-state.js";
+import { writeDesktopAsset } from "./assets.js";
 
 export type DesktopEvent = { label: string; ok?: boolean };
 export type PendingApproval = {
@@ -243,7 +243,7 @@ type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: De
 /** Dispatch GET routes. Returns true when handled. */
 async function routeGet(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
-  if (p === "/") { res.writeHead(200, { "content-type": "text/html; charset=utf-8" }); res.end(desktopHtml()); return true; }
+  if (await writeDesktopAsset(state.root, p, res)) return true;
   // DESKTOP-P1: SSE event stream — live tool/text events during a run.
   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
   if (p === "/api/status") { await handleStatus(state, res); return true; }
