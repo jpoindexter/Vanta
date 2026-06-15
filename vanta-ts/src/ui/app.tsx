@@ -68,22 +68,16 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
-  const focusScope = pending ? "approval" : overlay?.kind ?? "composer";
-  useEffect(() => {
-    if (!isFocusable(focus, focusTargets)) setFocus(focusTargets[0]?.id ?? "composer");
-  }, [focusScope]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
   useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus });
-
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
-  const committedRows = estimateCommittedRows(state.entries, vp.cols);
 
   return (
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-        <PinnedRegion viewportRows={vp.rows} committedRows={committedRows}>
+        <PinnedRegion viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
@@ -164,6 +158,13 @@ function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void 
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
   if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
   if (escInterrupts(key, d)) return void d.abort();
+}
+
+/** Reset focus to the first valid target whenever the focus scope changes. */
+function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[], scope: string, setFocus: (t: FocusTarget) => void): void {
+  useEffect(() => {
+    if (!isFocusable(focus, targets)) setFocus(targets[0]?.id ?? "composer");
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null): FocusTargetSpec[] {
