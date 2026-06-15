@@ -5,6 +5,7 @@
  */
 export class SessionWorkingMemory {
   private readonly items: string[] = [];
+  private readonly editedFiles: string[] = [];
 
   add(note: string): void {
     const trimmed = note.trim();
@@ -13,6 +14,18 @@ export class SessionWorkingMemory {
 
   getAll(): readonly string[] {
     return this.items;
+  }
+
+  recordEditedFile(path: string): void {
+    const trimmed = path.trim();
+    if (!trimmed) return;
+    const existing = this.editedFiles.indexOf(trimmed);
+    if (existing !== -1) this.editedFiles.splice(existing, 1);
+    this.editedFiles.push(trimmed);
+  }
+
+  getEditedFiles(limit = 5): readonly string[] {
+    return this.editedFiles.slice(-limit).reverse();
   }
 
   isEmpty(): boolean {

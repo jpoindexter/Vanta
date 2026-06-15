@@ -3,6 +3,8 @@ import type { LLMProvider } from "../providers/interface.js";
 import { compactConversation, type Summarizer } from "../context.js";
 import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microcompact.js";
 import { graduatedCompaction } from "../context/graduated-compaction.js";
+import { recordCompactedEdits, runPostCompactRestore } from "../compress/post-compact-restore.js";
+import type { SessionWorkingMemory } from "../memory/working.js";
 
 // The per-call + per-turn context-window management for the agent loop, kept out
 // of agent.ts so runTurn stays focused on iteration. `ContextDeps` is the minimal
@@ -10,12 +12,16 @@ import { graduatedCompaction } from "../context/graduated-compaction.js";
 
 export type ContextDeps = {
   provider: LLMProvider;
+  root: string;
   summarize?: Summarizer;
   onAutoCompact?: (dropped: number, summary: string) => void;
   activeGoalText?: string;
   /** The live session scratchpad, re-injected on compaction. */
   sessionMemory?: string;
+  workingMemory?: SessionWorkingMemory;
 };
+
+const RESTORE_MARKER = "<!-- vanta-post-compact-restore -->";
 
 /** Per-conversation last-turn time (GC-safe; keyed by the stable messages array). */
 const lastTurnAt = new WeakMap<Message[], number>();
@@ -37,10 +43,24 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
       thresholdPct: resolveCompactThresholdPct(process.env),
     });
     if (r.compacted) {
-      messages.splice(0, messages.length, ...r.messages);
+      recordCompactedEdits(deps.workingMemory, r.compactedWindow);
+      const restore = await runPostCompactRestore({
+        root: deps.root,
+        workingMemory: deps.workingMemory,
+        env: process.env,
+      });
+      messages.splice(0, messages.length, ...withRestore(r.messages, restore));
       deps.onAutoCompact?.(r.dropped, r.summary);
     }
   } catch { /* compaction is best-effort — a failure must never block the turn */ }
+}
+
+function withRestore(messages: Message[], restore: string): Message[] {
+  const clean = messages.filter((m) => !(m.role === "system" && m.content.includes(RESTORE_MARKER)));
+  if (!restore) return clean;
+  const idx = clean.findIndex((m) => m.role !== "system");
+  const insertAt = idx === -1 ? clean.length : idx;
+  return [...clean.slice(0, insertAt), { role: "system" as const, content: restore }, ...clean.slice(insertAt)];
 }
 
 /** Wrap the summarizer to fire onAutoCompact when in-loop compaction triggers. */

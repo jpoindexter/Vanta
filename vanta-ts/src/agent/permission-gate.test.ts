@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applySafetyGate } from "./dispatch-helpers.js";
+import { dispatchTool } from "./dispatch-tool.js";
 import { defaultOperatorProfile, writeOperatorProfile } from "../operator-profile/profile.js";
 import { readPreferenceSignals } from "../preferences/signals.js";
 import type { AgentDeps } from "../agent.js";
@@ -16,6 +17,7 @@ import type { ToolCall } from "../types.js";
 let home: string;
 const savedHome = process.env.VANTA_HOME;
 const savedAutoMode = process.env.VANTA_AUTO_MODE;
+const savedPermissionMode = process.env.VANTA_PERMISSION_MODE;
 
 beforeEach(async () => {
   home = await mkdtemp(join(tmpdir(), "vanta-perm-gate-"));
@@ -26,6 +28,8 @@ afterEach(async () => {
   else process.env.VANTA_HOME = savedHome;
   if (savedAutoMode === undefined) delete process.env.VANTA_AUTO_MODE;
   else process.env.VANTA_AUTO_MODE = savedAutoMode;
+  if (savedPermissionMode === undefined) delete process.env.VANTA_PERMISSION_MODE;
+  else process.env.VANTA_PERMISSION_MODE = savedPermissionMode;
   await rm(home, { recursive: true, force: true });
 });
 
@@ -108,6 +112,58 @@ describe("applySafetyGate + permissions", () => {
     deps.registry = { get: () => ({ describeForSafety: () => "read file /repo/README.md" }) } as unknown as AgentDeps["registry"];
     const res = await applySafetyGate({ ...call, name: "read_file" }, deps, ctx);
     expect(res.approved).toBe(true);
+    expect(prompted).toBe(false);
+  });
+
+  it("acceptEdits allows file writes without calling the kernel", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    let assessed = false;
+    const deps = makeDeps({ risk: "ask" });
+    deps.registry = { get: () => ({ describeForSafety: () => "write file /repo/out.txt" }) } as unknown as AgentDeps["registry"];
+    deps.safety.assess = async () => {
+      assessed = true;
+      throw new Error("kernel should not be called");
+    };
+    const res = await applySafetyGate({ id: "2", name: "write_file", arguments: { path: "out.txt", content: "x" } }, deps, ctx);
+    expect(res.approved).toBe(true);
+    expect(assessed).toBe(false);
+  });
+
+  it("acceptEdits keeps shell_cmd on the normal approval flow", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    let assessed = false;
+    let prompted = false;
+    const deps = makeDeps({
+      risk: "ask",
+      approve: true,
+      onAsk: () => { prompted = true; },
+    });
+    deps.safety.assess = async () => {
+      assessed = true;
+      return { risk: "ask", needsHuman: true, reason: "kernel" };
+    };
+    const res = await applySafetyGate(call, deps, ctx);
+    expect(res.approved).toBe(true);
+    expect(assessed).toBe(true);
+    expect(prompted).toBe(true);
+  });
+
+  it("acceptEdits auto-confirms a file tool's internal edit approval", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    let prompted = false;
+    const deps = makeDeps({ risk: "ask", onAsk: () => { prompted = true; } });
+    deps.registry = {
+      get: () => ({
+        execute: async (_raw: unknown, toolCtx: ToolContext) => ({
+          ok: await toolCtx.requestApproval("Edit file x", "test", "edit_file"),
+          output: "edited",
+        }),
+        describeForSafety: () => "edit file x",
+      }),
+    } as unknown as AgentDeps["registry"];
+
+    const res = await dispatchTool({ id: "3", name: "edit_file", arguments: { path: "x" } }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
+    expect(res.ok).toBe(true);
     expect(prompted).toBe(false);
   });
 

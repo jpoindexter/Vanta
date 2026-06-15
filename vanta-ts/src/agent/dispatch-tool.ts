@@ -5,6 +5,7 @@ import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-he
 import { offloadResult } from "../compress/result-offload.js";
 import { isPlanBlocked } from "./plan-gate.js";
 import { firePreToolUse, fireHooks } from "../hooks/shell-hooks.js";
+import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
 
 export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };
@@ -43,7 +44,8 @@ export async function dispatchTool(
     return { executed: false, empty: false, ok: false, output };
   }
 
-  const res = await executeWithRetry(call, deps, ctx, tool);
+  const execCtx = executionContext(call.name, ctx);
+  const res = await executeWithRetry(call, deps, execCtx, tool);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   // PostToolUse shell hooks — fire-and-forget, never block the turn.
@@ -55,4 +57,9 @@ export async function dispatchTool(
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+}
+
+function executionContext(toolName: string, ctx: ToolContext): ToolContext {
+  if (!acceptsEditsWithoutKernel(resolvePermissionMode(process.env), toolName)) return ctx;
+  return { ...ctx, requestApproval: async () => true };
 }

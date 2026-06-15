@@ -16,6 +16,7 @@ import { boundary } from "./boundary.js";
 import { where } from "./where.js";
 import { wm } from "./wm.js";
 import { model } from "./model-cmd.js";
+import { effort } from "./effort-cmd.js";
 import { moim } from "./moim-cmd.js";
 import { restart } from "./restart-cmd.js";
 import { bug } from "./bug-cmd.js";
@@ -49,8 +50,6 @@ import { CLI_PASSTHROUGH } from "./cli-bridge.js";
 import { formatGoalLedger } from "./goal-ledger.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
-// Slash commands are small handlers keyed in HANDLERS; executeSlash parses and dispatches here.
-// Handlers return text and may mutate ctx only when that is the command's job.
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
 
@@ -281,7 +280,7 @@ const cron: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, retry, undo, skills, tools, model, setup: model, status, doctor: status,
+  export: exportConvo, retry, undo, skills, tools, model, effort, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,

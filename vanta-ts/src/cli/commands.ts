@@ -10,6 +10,7 @@ import {
   writeRunMemory,
   approver,
   reviewAfterTurn,
+  memoryExtractAfterTurn,
   maybeCurate,
 } from "../session.js";
 import { loadSchema, sendWithSchemaRetry } from "../output/json-schema.js";
@@ -24,6 +25,7 @@ export function usage(): void {
   console.log(
     [
       "Usage: vanta                              start an interactive session",
+      "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
@@ -78,7 +80,6 @@ export async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Pro
 
 export type OutputFormat = "text" | "json" | "stream-json";
 
-/** Emit the final result in the requested format. Pure: no side-effects besides stdout. */
 function emitOutput(format: OutputFormat, finalText: string, modelId: string): void {
   if (format === "json") {
     console.log(JSON.stringify({ text: finalText, model: modelId }));
@@ -87,6 +88,22 @@ function emitOutput(format: OutputFormat, finalText: string, modelId: string): v
   } else {
     console.log(`\n${finalText}`);
   }
+}
+
+function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: string; rl: ReturnType<typeof createInterface>; signal: AbortSignal; format: OutputFormat }) {
+  return createConversation(o.setup.systemPrompt, {
+    provider: o.setup.provider,
+    safety: o.setup.safety,
+    registry: o.setup.registry,
+    root: o.root,
+    requestApproval: approver(o.rl),
+    maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
+    summarize: buildSummarizer(o.setup.provider),
+    getEffortLevel: () => o.setup.effortLevel,
+    activeGoalText: o.setup.goals.find((g) => g.status === "active")?.text,
+    signal: o.signal,
+    ...buildCallbacks(o.format),
+  });
 }
 
 export async function runInstruction(
@@ -108,18 +125,7 @@ export async function runInstruction(
   const onSigint = (): void => controller.abort();
   process.once("SIGINT", onSigint);
   try {
-    const convo = createConversation(setup.systemPrompt, {
-      provider: setup.provider,
-      safety: setup.safety,
-      registry: setup.registry,
-      root,
-      requestApproval: approver(rl),
-      maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
-      summarize: buildSummarizer(setup.provider),
-      activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
-      signal: controller.signal,
-      ...buildCallbacks(format),
-    });
+    const convo = oneShotConversation({ setup, root, rl, signal: controller.signal, format });
     const outcome = schema ? await sendWithSchemaRetry(convo, instruction, schema) : await convo.send(instruction);
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
@@ -133,6 +139,7 @@ export async function runInstruction(
       toolIterations: outcome.toolIterations,
       turnIndex: 1,
     });
+    memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
   } finally {
     process.removeListener("SIGINT", onSigint);
     rl.close();

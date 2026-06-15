@@ -5,12 +5,21 @@ describe("parsePermissionModeFlags", () => {
   it("strips --permission-mode auto and enables VANTA_AUTO_MODE", () => {
     const parsed = parsePermissionModeFlags(["--permission-mode", "auto", "run", "hi"], {});
     expect(parsed.rest).toEqual(["run", "hi"]);
+    expect(parsed.env.VANTA_PERMISSION_MODE).toBe("auto");
     expect(parsed.env.VANTA_AUTO_MODE).toBe("1");
+  });
+
+  it("strips --permission-mode acceptEdits and records that mode", () => {
+    const parsed = parsePermissionModeFlags(["--permission-mode=acceptEdits", "run", "hi"], {});
+    expect(parsed.rest).toEqual(["run", "hi"]);
+    expect(parsed.env.VANTA_PERMISSION_MODE).toBe("acceptEdits");
+    expect(parsed.env.VANTA_AUTO_MODE).toBe("0");
   });
 
   it("supports --permission-mode=default as an explicit off switch", () => {
     const parsed = parsePermissionModeFlags(["--permission-mode=default", "chat"], { VANTA_AUTO_MODE: "1" });
     expect(parsed.rest).toEqual(["chat"]);
+    expect(parsed.env.VANTA_PERMISSION_MODE).toBe("default");
     expect(parsed.env.VANTA_AUTO_MODE).toBe("0");
   });
 

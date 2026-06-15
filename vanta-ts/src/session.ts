@@ -19,8 +19,9 @@ import type { Settings } from "./settings/store.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } from "./ralph/state.js";
+import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
-import type { Goal } from "./types.js";
+import type { EffortLevel, Goal } from "./types.js";
 
 // Post-turn gates (reviewAfterTurn, the EF detectors, …) live in
 // ./session/after-turn.js; the console printers (consoleCallbacks) in
@@ -40,6 +41,7 @@ export type RunSetup = {
   registry: ReturnType<typeof buildRegistry>;
   pluginCommands: PluginCommandRegistry;
   provider: LLMProvider;
+  effortLevel: EffortLevel;
   goals: Goal[];
   systemPrompt: string;
   ralphContinuity?: string;
@@ -131,6 +133,36 @@ function logSessionConfig(safety: { logEvent: (e: string) => Promise<void> }, pr
   void safety.logEvent(sessionConfigEvent(cfg, new Date().toISOString()));
 }
 
+async function buildRunPrompt(o: {
+  repoRoot: string;
+  instruction: string;
+  goals: Goal[];
+  registry: ReturnType<typeof buildRegistry>;
+  activeIds: number[];
+}): Promise<{ systemPrompt: string; ralphContinuity?: string }> {
+  const ctx = await loadPromptContext(o.repoRoot, o.activeIds);
+  const playbook = await playbookDigest(o.instruction).catch(() => "");
+  const ralphContinuity = await loadRalphContinuity(o.repoRoot);
+  const systemPrompt = await buildSystemPrompt({
+    root: o.repoRoot,
+    soulPath: join(o.repoRoot, "SOUL.md"),
+    goals: o.goals,
+    tools: o.registry.schemas(),
+    now: new Date().toISOString(),
+    memory: ctx.memory,
+    moimNote: ctx.moimNote,
+    skills: ctx.skills,
+    brain: ctx.brain,
+    errorsLog: ctx.errorsLog,
+    projectId: ctx.projectId,
+    selfContent: ctx.selfContent,
+    playbook,
+    ralphContinuity,
+    goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
+  });
+  return { systemPrompt, ralphContinuity };
+}
+
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
@@ -143,6 +175,7 @@ export async function prepareRun(
   const safety = new SafetyClient(baseUrl);
   const registry = buildRegistry();
   const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry);
+  const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
@@ -151,27 +184,8 @@ export async function prepareRun(
   await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
 
-  const ctx = await loadPromptContext(repoRoot, activeIds);
-  const playbook = await playbookDigest(instruction).catch(() => "");
-  const ralphContinuity = await loadRalphContinuity(repoRoot);
-  let systemPrompt = await buildSystemPrompt({
-    root: repoRoot,
-    soulPath: join(repoRoot, "SOUL.md"),
-    goals,
-    tools: registry.schemas(),
-    now: new Date().toISOString(),
-    memory: ctx.memory,
-    moimNote: ctx.moimNote,
-    skills: ctx.skills,
-    brain: ctx.brain,
-    errorsLog: ctx.errorsLog,
-    projectId: ctx.projectId,
-    selfContent: ctx.selfContent,
-    playbook,
-    ralphContinuity,
-    // Carried goal starts PAUSED (no silent resume on a fresh launch); VANTA_GOAL_RESUME=auto = old behavior.
-    goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
-  });
+  const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds });
+  let systemPrompt = prompt.systemPrompt;
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   // AUTO-HANDOFF: on an interactive launch, inject + consume a recent auto-saved
   // resume block so a restart/fresh session continues without a manual handoff.
@@ -179,7 +193,7 @@ export async function prepareRun(
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
   logSessionConfig(safety, provider, registry, systemPrompt); // reproducibility (SELFHARNESS-CONFIG-REPRO)
-  return { safety, registry, pluginCommands, provider, goals, systemPrompt, ralphContinuity };
+  return { safety, registry, pluginCommands, provider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }
 
 export async function loadRalphContinuity(repoRoot: string): Promise<string | undefined> {

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { EFFORT_LEVELS } from "../types.js";
 
 // Layered settings.json (user → project → local).
 // Non-secret config (permissions, allowed tools, ui prefs).
@@ -24,6 +25,8 @@ export const SettingsSchema = z.object({
   }).optional(),
   /** Disable the background agent session view and controls. */
   disableAgentView: z.boolean().optional(),
+  /** Default model effort for new sessions. */
+  effortLevel: z.enum(EFFORT_LEVELS).optional(),
   /** Auto permission mode classifier settings. */
   autoMode: z.object({
     enabled: z.boolean().optional(),

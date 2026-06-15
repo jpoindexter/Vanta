@@ -6,6 +6,7 @@ import type {
 } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
 import { splitStableVolatile } from "../prompt.js";
+import { buildAnthropicEffortParams, debugEffort } from "./effort.js";
 
 type AnthropicTextBlock = {
   type: "text";
@@ -122,13 +123,9 @@ type CreateParamsOpts = {
   config?: CompletionConfig;
 };
 
-/** Build createParams including optional thinking extension. */
 function buildCreateParams(opts: CreateParamsOpts): Record<string, unknown> {
-  const thinkingBudget = parseInt(process.env.VANTA_THINKING_BUDGET ?? "", 10);
-  const thinkingParam = !isNaN(thinkingBudget) && thinkingBudget > 0
-    ? { type: "enabled" as const, budget_tokens: thinkingBudget }
-    : undefined;
-  const maxTokens = opts.config?.maxTokens ?? (thinkingParam ? Math.max(DEFAULT_MAX_TOKENS, thinkingBudget + 1024) : DEFAULT_MAX_TOKENS);
+  const effortParams = buildAnthropicEffortParams(opts.model, opts.config, process.env, debugEffort);
+  const maxTokens = effortParams.max_tokens ?? opts.config?.maxTokens ?? DEFAULT_MAX_TOKENS;
   const params: Record<string, unknown> = {
     model: opts.model,
     max_tokens: maxTokens,
@@ -136,7 +133,7 @@ function buildCreateParams(opts: CreateParamsOpts): Record<string, unknown> {
     messages: opts.amsgs,
     tools: opts.tools.length ? opts.tools.map(toAnthropicTool) : undefined,
   };
-  if (thinkingParam) params.thinking = thinkingParam;
+  if (effortParams.thinking) params.thinking = effortParams.thinking;
   return params;
 }
 

@@ -4,46 +4,48 @@ import { renderUi, tick } from "./test-render.js";
 import { ModeLine, cycleMode } from "./app.js";
 
 describe("cycleMode — Shift+Tab autonomy cycle", () => {
-  it("cycles normal → auto → plan → normal", () => {
+  it("cycles default → acceptEdits → auto → default", () => {
     const set = vi.fn();
     const run = vi.fn();
 
-    cycleMode("normal", set, run);
-    expect(set).toHaveBeenCalledWith("auto");
-    expect(run).not.toHaveBeenCalled(); // entering auto is TUI-local
+    cycleMode("default", set, run);
+    expect(set).toHaveBeenCalledWith("acceptEdits");
+    expect(run).not.toHaveBeenCalled();
 
     set.mockClear();
-    cycleMode("auto", set, run);
-    expect(set).toHaveBeenCalledWith("plan");
-    expect(run).toHaveBeenCalledWith("/planmode on"); // entering plan enforces
+    cycleMode("acceptEdits", set, run);
+    expect(set).toHaveBeenCalledWith("auto");
+    expect(run).not.toHaveBeenCalled();
 
     set.mockClear();
     run.mockClear();
-    cycleMode("plan", set, run);
-    expect(set).toHaveBeenCalledWith("normal");
-    expect(run).toHaveBeenCalledWith("/planmode off"); // leaving plan releases
+    cycleMode("auto", set, run);
+    expect(set).toHaveBeenCalledWith("default");
+    expect(run).not.toHaveBeenCalled();
   });
 });
 
 describe("ModeLine", () => {
-  it("shows the auto-accept indicator with the cycle hint", async () => {
-    const inst = renderUi(h(ModeLine, { mode: "auto" }));
+  it("shows the accept-edits badge with the cycle hint", async () => {
+    const inst = renderUi(h(ModeLine, { mode: "acceptEdits" }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("auto-accept on");
+    expect(out).toContain("EDITS");
     expect(out).toContain("shift+tab");
     inst.unmount();
   });
 
-  it("shows the plan-mode indicator", async () => {
-    const inst = renderUi(h(ModeLine, { mode: "plan" }));
+  it("shows the auto badge with the cycle hint", async () => {
+    const inst = renderUi(h(ModeLine, { mode: "auto" }));
     await tick();
-    expect(inst.lastFrame()).toContain("plan mode on");
+    const out = inst.lastFrame();
+    expect(out).toContain("AUTO");
+    expect(out).toContain("shift+tab");
     inst.unmount();
   });
 
-  it("renders nothing in normal mode", async () => {
-    const inst = renderUi(h(ModeLine, { mode: "normal" }));
+  it("renders nothing in default mode", async () => {
+    const inst = renderUi(h(ModeLine, { mode: "default" }));
     await tick();
     expect(inst.lastFrame().trim()).toBe("");
     inst.unmount();

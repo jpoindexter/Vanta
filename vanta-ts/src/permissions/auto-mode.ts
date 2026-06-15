@@ -1,4 +1,5 @@
 import type { Settings } from "../settings/store.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
 
 export type AutoModeRuleAction = "allow" | "ask" | "soft_deny";
 
@@ -69,8 +70,10 @@ export function resolveAutoModeConfig(settings: Pick<Settings, "autoMode">): Aut
 }
 
 export function isAutoModeEnabled(env: NodeJS.ProcessEnv, settings: Pick<Settings, "autoMode">): boolean {
-  if (env.VANTA_AUTO_MODE === "0") return false;
-  if (env.VANTA_AUTO_MODE === "1") return true;
+  if (env.VANTA_PERMISSION_MODE !== undefined) return resolvePermissionMode(env) === "auto";
+  const mode = resolvePermissionMode(env);
+  if (mode === "auto") return true;
+  if (mode !== "default" || env.VANTA_AUTO_MODE === "0") return false;
   return settings.autoMode?.enabled === true;
 }
 

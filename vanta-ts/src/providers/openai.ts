@@ -11,6 +11,7 @@ import type {
   ToolSchema,
 } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
+import { buildOpenAIEffortParams, debugEffort } from "./effort.js";
 
 const CONTEXT_WINDOWS: Record<string, number> = {
   "gpt-4o": 128_000,
@@ -66,6 +67,7 @@ export class OpenAIProvider implements LLMProvider {
           tools: tools.length ? tools.map(toOpenAITool) : undefined,
           temperature: config?.temperature ?? 0.2,
           max_tokens: config?.maxTokens,
+          ...buildOpenAIEffortParams(this.model, config, debugEffort),
         },
         { signal: config?.signal },
       );
@@ -122,6 +124,7 @@ export class OpenAIProvider implements LLMProvider {
           tools: tools.length ? tools.map(toOpenAITool) : undefined,
           temperature: config?.temperature ?? 0.2,
           max_tokens: config?.maxTokens,
+          ...buildOpenAIEffortParams(this.model, config, debugEffort),
           stream: true,
           stream_options: { include_usage: true },
         },

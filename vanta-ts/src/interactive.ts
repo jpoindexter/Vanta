@@ -174,6 +174,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     sessionId: resumed?.id ?? newSessionId(),
     started: resumed?.started ?? new Date().toISOString(),
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
+    effortLevel: setup.effortLevel,
   };
   console.log(renderBanner({ modelId: setup.provider.modelId(), root: repoRoot, goals: setup.goals, toolNames: setup.registry.schemas().map((s) => s.name), skillNames: skills.map((s) => s.meta.name) }));
   printRalphContinuityNotice(setup.ralphContinuity);
@@ -182,7 +183,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
 
   const workingMemory = new SessionWorkingMemory();
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const convo = buildConversation({ repoRoot, setup, state, rl, history: resumed?.messages });
+  const convo = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
 
   const checkpoints = new CheckpointStore();
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
@@ -216,17 +217,20 @@ type ConvoOpts = {
   setup: Awaited<ReturnType<typeof prepareRun>>;
   state: ReplState;
   rl: ReturnType<typeof createInterface>;
+  workingMemory: SessionWorkingMemory;
   history?: NonNullable<Parameters<typeof createConversation>[2]>["history"];
 };
 
 function buildConversation(o: ConvoOpts): ReturnType<typeof createConversation> {
-  const { repoRoot, setup, state, rl } = o;
+  const { repoRoot, setup, state, rl, workingMemory } = o;
   // Declare before assign so planGate closure can capture the ref.
   let convo!: ReturnType<typeof createConversation>;
   convo = createConversation(setup.systemPrompt, {
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: repoRoot,
     requestApproval: approver(rl), maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider), activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
+    getEffortLevel: () => state.effortLevel ?? setup.effortLevel,
+    workingMemory,
     onAutoCompact: (dropped, summary) => console.log(`  ⟳ auto-compacted ${dropped} messages — ${summary.length > 80 ? summary.slice(0, 77) + "…" : summary}`),
     ...consoleCallbacks(),
     onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),

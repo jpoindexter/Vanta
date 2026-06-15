@@ -12,6 +12,7 @@ import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from
 import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
+import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -28,6 +29,9 @@ export async function applySafetyGate(
   const tool = deps.registry.get(call.name);
   if (!tool) {
     return { approved: false, reason: `unknown tool: ${call.name}` };
+  }
+  if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+    return { approved: true, reason: "acceptEdits" };
   }
 
   const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;

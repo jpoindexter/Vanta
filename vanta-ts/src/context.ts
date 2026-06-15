@@ -180,7 +180,7 @@ export async function compressMessages(
   }
 }
 
-export type CompactResult = { messages: Message[]; compacted: boolean; dropped: number; summary: string };
+export type CompactResult = { messages: Message[]; compacted: boolean; dropped: number; summary: string; compactedWindow: Message[] };
 
 /**
  * PERSISTENT compaction. Unlike compressMessages (which returns a transient
@@ -196,7 +196,7 @@ export async function compactConversation(
   summarize: Summarizer,
   opts: TrimOptions = {},
 ): Promise<CompactResult> {
-  const none: CompactResult = { messages, compacted: false, dropped: 0, summary: "" };
+  const none: CompactResult = { messages, compacted: false, dropped: 0, summary: "", compactedWindow: [] };
   if (contextWindow <= 0) return none;
 
   const split = splitForCompaction(messages, contextWindow, opts);
@@ -207,7 +207,7 @@ export async function compactConversation(
   try {
     const summary = await summarize(middle);
     const note: Message = { role: "user", content: `[Summary of ${middle.length} earlier messages]: ${summary}` };
-    return { messages: [...system, ...head, note, ...tail], compacted: true, dropped: middle.length, summary };
+    return { messages: [...system, ...head, note, ...tail], compacted: true, dropped: middle.length, summary, compactedWindow: middle };
   } catch {
     return none;
   }

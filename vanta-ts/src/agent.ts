@@ -253,7 +253,7 @@ async function getCompletion(
   pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>> },
 ): Promise<CompletionResult> {
   const schemas = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
-  const cfg = signal ? { signal } : undefined;
+  const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
   if (deps.provider.stream && deps.onTextDelta) {
     const onSafeToolCall = pf
       ? (call: ToolCall) => {

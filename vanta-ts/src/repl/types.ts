@@ -1,5 +1,5 @@
 import type { Conversation } from "../agent.js";
-import type { ImageAttachment } from "../types.js";
+import type { EffortLevel, ImageAttachment } from "../types.js";
 import type { RunSetup } from "../session.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -15,6 +15,8 @@ export type ReplState = {
   pendingImages?: ImageAttachment[];
   /** COST-VISIBLE: running session cost split (local free vs frontier metered). */
   sessionCost?: SessionCost;
+  /** Current session model-effort setting; /effort mutates it live. */
+  effortLevel?: EffortLevel;
   /**
    * Plan-mode approval flag: true after the user runs /planmode approve.
    * Reset to false whenever /planmode is toggled or the session clears.

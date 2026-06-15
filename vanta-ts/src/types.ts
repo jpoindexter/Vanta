@@ -1,5 +1,8 @@
 // Core types shared across the Vanta agent layer.
 
+export const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
+export type EffortLevel = typeof EFFORT_LEVELS[number];
+
 export type ToolCall = {
   id: string;
   name: string;

@@ -1,10 +1,11 @@
 import type { LLMProvider } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
 import type { ToolRegistry } from "../tools/registry.js";
-import type { Message, ImageAttachment } from "../types.js";
+import type { EffortLevel, Message, ImageAttachment } from "../types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { Summarizer } from "../context.js";
 import type { HookBus } from "../plugins/hooks.js";
+import type { SessionWorkingMemory } from "../memory/working.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
@@ -31,9 +32,13 @@ export type AgentDeps = {
   summarize?: Summarizer;
   /** When set, a goal-reminder note is re-injected after context compression. */
   activeGoalText?: string;
+  /** Per-turn model effort, read live so /effort changes apply next call. */
+  getEffortLevel?: () => EffortLevel;
   /** The live session scratchpad, re-injected on compaction. Hosts refresh it
    * post-turn via Conversation.setSessionMemory. */
   sessionMemory?: string;
+  /** Hot working set for files edited in compacted-away turns. */
+  workingMemory?: SessionWorkingMemory;
   /** Called when consecutive tool failures hit the threshold; fire a note or interrupt. */
   onIterationCheck?: (consecutiveFailures: number) => void;
   /** Called when a compression round runs, with the dropped count and summary. */

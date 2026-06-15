@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3357 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3379 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -31,17 +31,20 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/index.ts` — register every new tool here AND in `tools/tools.test.ts` sorted list
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 94 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 95 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
+- `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
 - `src/operator-profile/profile.ts` — durable declared/inferred operator preferences plus tighten-only approval preference decisions
 - `src/preferences/signals.ts` — `~/.vanta/preferences.jsonl` chosen-vs-rejected operator preference signal store
+- `src/verify/completion-verifier.ts` — opt-in `VANTA_VERIFY=1` post-turn completion claim verifier; timeout-bound, logs pass, appends fail evidence as a system message
 - `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
 - `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
+- `src/memory/extractor.ts` — opt-in `VANTA_EXTRACT_MEMORIES=1` post-turn fact extractor; JSON array only, deduped against brain entries, persists `semantic` facts with `auto-extracted` provenance
 - `src/ralph/state.ts` — `.vanta/ralph-loop.json` continuity: ordered long-task features, paused startup block, `/goal resume|drop` support
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
 - `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
@@ -66,8 +69,9 @@ npx tsc --noEmit                 # must be clean before any commit
 ## Current surface
 
 - `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **94 slash commands**.
+- `src/repl/catalog.ts` currently exposes **95 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
+- Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.
@@ -97,6 +101,6 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_TUI` (`v2` opt-in mission-control shell)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VERIFY` (opt-in completion verifier) · `VANTA_EXTRACT_MEMORIES` (opt-in post-turn fact extraction) · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_TUI` (`v2` opt-in mission-control shell)
 
 Full env list: `CLAUDE.md §Env`.

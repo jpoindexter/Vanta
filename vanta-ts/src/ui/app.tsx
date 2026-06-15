@@ -28,6 +28,7 @@ import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";
+import { envForPermissionMode, resolvePermissionMode, type PermissionMode } from "../modes/permission-mode.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
 import type { SlashMatch } from "./slash.js";
@@ -35,6 +36,7 @@ import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
+import type { EffortLevel } from "../types.js";
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const app = useApp();
@@ -42,7 +44,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [pending, setPending] = useState<Pending | null>(null);
   const interruptRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
-  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0 });
+  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel });
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [theme, setThemeState] = useState<Theme>(() => resolveTheme(process.env));
@@ -81,19 +83,18 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
         <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
+        {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
       </Box>
     </ThemeProvider>
   );
 }
 
-type Mode = "normal" | "auto" | "plan";
-const NEXT_MODE: Record<Mode, Mode> = { normal: "auto", auto: "plan", plan: "normal" };
+type Mode = PermissionMode;
+const NEXT_MODE: Record<Mode, Mode> = { default: "acceptEdits", acceptEdits: "auto", auto: "default" };
 
 export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
   const next = NEXT_MODE[mode];
-  if (next === "plan") runSlash("/planmode on");
-  else if (mode === "plan") runSlash("/planmode off");
+  void runSlash;
   setMode(next);
 }
 
@@ -104,15 +105,16 @@ function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pen
 }
 
 function useModeState(pending: Pending | null, setPending: (p: Pending | null) => void, runSlash: (s: string) => void): { mode: Mode; cycle: () => void } {
-  const [mode, setMode] = useState<Mode>("normal");
+  const [mode, setMode] = useState<Mode>(() => resolvePermissionMode(process.env));
   useAutoApprove(pending, mode, setPending);
+  useEffect(() => { Object.assign(process.env, envForPermissionMode(mode)); }, [mode]);
   return { mode, cycle: () => cycleMode(mode, setMode, runSlash) };
 }
 
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
   const t = useTheme();
-  if (props.mode === "auto") return <Text color={t.warning} bold>≫ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "plan") return <Text color={t.accent} bold>◧ plan mode on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "acceptEdits") return <Text color={t.warning} bold>EDITS <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "auto") return <Text color={t.warning} bold>AUTO <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
   return null;
 }
 
@@ -125,12 +127,12 @@ function goalClip(s: string): string {
   return l.length > 88 ? `${l.slice(0, 87)}…` : l;
 }
 
-function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
+function Footer(props: { model: string; effortLevel: EffortLevel; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
   const t = useTheme();
   return (
     <Box flexDirection="column">
       {props.goal ? <Text dimColor={t.dimText}><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</Text> : null}
-      <StatusBar model={props.model} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
+      <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
       <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
     </Box>
   );

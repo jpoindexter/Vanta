@@ -1,4 +1,4 @@
-import type { Message, ToolCall } from "../types.js";
+import type { EffortLevel, Message, ToolCall } from "../types.js";
 
 /** A tool advertised to the model, in JSON-schema form. */
 export type ToolSchema = {
@@ -10,6 +10,7 @@ export type ToolSchema = {
 export type CompletionConfig = {
   temperature?: number;
   maxTokens?: number;
+  effortLevel?: EffortLevel;
   /** Abort signal — cancels the in-flight HTTP request when set. */
   signal?: AbortSignal;
 };

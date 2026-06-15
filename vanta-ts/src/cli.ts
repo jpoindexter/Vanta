@@ -55,6 +55,7 @@ import { runLoopCommand } from "./cli/loop-cmd.js";
 import { parseLifecycleFlags, runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 import { parsePermissionModeFlags } from "./cli/permission-mode.js";
 import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
+import { parseEffortFlag } from "./effort.js";
 
 function findRepoRoot(): string {
   let dir = dirname(fileURLToPath(import.meta.url));
@@ -233,20 +234,30 @@ function parseRunArgs(rest: string[]): { instruction: string; outputFormat: Outp
   return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
 }
 
-async function main(): Promise<void> {
-  const repoRoot = findRepoRoot();
-  loadEnv(repoRoot);
-  await ensureVantaStore();
-
-  const permissionParse = parsePermissionModeFlags(process.argv.slice(2), process.env);
+function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags } {
+  const permissionParse = parsePermissionModeFlags(args, process.env);
   if (permissionParse.error) {
     console.error(permissionParse.error);
     process.exit(1);
   }
   process.env = permissionParse.env;
-  const lifecycleParse = parseLifecycleFlags(permissionParse.rest);
-  const lifecycle = lifecycleParse.flags;
-  const [cmd, ...rest] = lifecycleParse.rest;
+  const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
+  if (effortParse.error) {
+    console.error(effortParse.error);
+    process.exit(1);
+  }
+  process.env = effortParse.env;
+  const lifecycleParse = parseLifecycleFlags(effortParse.rest);
+  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags };
+}
+
+async function main(): Promise<void> {
+  const repoRoot = findRepoRoot();
+  loadEnv(repoRoot);
+  await ensureVantaStore();
+
+  const { rest: parsedArgs, lifecycle } = parseStartupFlags(process.argv.slice(2));
+  const [cmd, ...rest] = parsedArgs;
 
   // Interactive entry points parse flags, so they stay explicit.
   if (cmd === undefined || cmd === "chat")

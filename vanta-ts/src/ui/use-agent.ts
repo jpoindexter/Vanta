@@ -42,6 +42,7 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     root: deps.repoRoot,
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
+    getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
     onThinking: (text) => deps.dispatch({ t: "thinking", text }),
     onTextDelta: (d) => deps.dispatch({ t: "delta", d }),
     onToolCall: (name, args) => {

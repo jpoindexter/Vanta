@@ -98,7 +98,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `brain/assoc.ts` | Association: memories auto-link to similar neighbors at write time (zero-dep token-overlap similarity, capped sparse graph) + spreading-activation recall — direct hits surface linked neighbors at damped strength (`↪`, primed not reinforced). Relevance floor keeps one-token noise out of direct hits |
 | `brain/consolidate.ts` | The sleep pass: near-duplicate memories gist-merge (strength/links/retrievals carried, marked crystallized), decayed swept, hard entry budget (`VANTA_BRAIN_MAX_ENTRIES`, default 400) drops weakest-first, links healed. Auto-runs from the digest when over budget |
 | `brain/learn.ts` | Auto-learning: post-turn background pass distils 0–3 durable memories from the transcript (user patterns → user_model, facts → semantic, events → episodic, **Vanta's own forming personality → identity/reflections**; ND-first guidance patterns prioritized). `VANTA_BRAIN_LEARN[_EVERY\|_MIN_TOOLS]`. Hosts surface a `🧠 learned:` line |
-| `session/background-learning.ts` | The three post-turn LLM forks (skill review, session scratchpad, brain learning) — gated, best-effort, re-exported via session/after-turn |
+| `session/background-learning.ts` | Post-turn LLM forks (skill review, session scratchpad, brain learning, completion verifier, critic; memory extraction when enabled) — gated, best-effort, re-exported via session/after-turn |
+| `verify/completion-verifier.ts` | CC-VERIFICATION-AGENT — `VANTA_VERIFY=1` trigger detector + timeout-bound verifier call. Completion claims (`done`/`complete`/`finished`/`shipped` or TaskUpdate completed) get original task/goals + recent tool output evidence; pass logs only, fail appends a `⚠ Verifier:` system message. |
 | `sessions/store.ts` | Session persist/resume/fork: `saveSession`/`loadSession`/`forkSession`/`listSessions`/`newSessionId`. JSON files `~/.vanta/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `vanta sessions`/`resume <id>`/`--resume`; `--fork-session` creates a new seeded session. `createConversation(...,{history})` seeds resumed turns |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
@@ -207,7 +208,7 @@ ESM `.js` imports · zod at every LLM/HTTP boundary · errors-as-values in tools
 
 ## Env
 
-`VANTA_PROVIDER` (openai|ollama|anthropic) · `VANTA_MODEL` · `OPENAI_API_KEY` · `VANTA_OLLAMA_URL` · `VANTA_KERNEL_URL` · `VANTA_MAX_ITER` · `VANTA_TUI=v2` (opt-in mission-control shell). Defaults in `.env.example`. Local `.env` (gitignored) defaults to Ollama qwen2.5:14b.
+`VANTA_PROVIDER` (openai|ollama|anthropic) · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` (low|medium|high|max) · `OPENAI_API_KEY` · `VANTA_OLLAMA_URL` · `VANTA_KERNEL_URL` · `VANTA_MAX_ITER` · `VANTA_TUI=v2` (opt-in mission-control shell). Defaults in `.env.example`. Local `.env` (gitignored) defaults to Ollama qwen2.5:14b.
 
 Search (Phase 2B): `VANTA_SEARCH_PROVIDER` (ddg|searxng|serpapi|brave, default ddg) · `VANTA_SEARCH_URL` (searxng) · `SERPAPI_KEY` · `BRAVE_KEY`.
 
@@ -215,7 +216,7 @@ Store (Phase 2A): `VANTA_HOME` overrides the global store dir (default `~/.vanta
 
 Phase 3/4: `ANTHROPIC_API_KEY` (anthropic provider) · `VANTA_VISION_MODEL` (describe_image, default gpt-4o-mini) · `VANTA_ALLOWED_DOMAINS` (comma list; browser tools prompt-approve unlisted domains). Browser tools need `npx playwright install chromium` for live use (degrade gracefully without it). LSP tools cover .ts/.tsx only.
 
-Phase 7: `VANTA_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` (task-routed models; unset = no routing) · `VANTA_DISABLE_AGENT_VIEW=1` (kill switch for the background agent CLI surface; settings also supports `disableAgentView`).
+Phase 7: `VANTA_PROJECTS_DIR` (project rooms, default `~/Documents/GitHub/_active`) · `VANTA_MODEL_CHEAP` / `VANTA_MODEL_EXPENSIVE` (task-routed models; unset = no routing) · `VANTA_DISABLE_AGENT_VIEW=1` (kill switch for the background agent CLI surface; settings also supports `disableAgentView`) · `VANTA_VERIFY=1` (opt-in post-turn completion verifier).
 
 Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-time OAuth client — provision once in Google Cloud Console, then `vanta auth google` is one click per user). Tokens stored per-user in `~/.vanta/google-tokens.json`. Every outbound (send/draft/create/update) is always approval-gated. Comms tools are offline-unit-tested only; live use needs the OAuth client + consent.
 
@@ -285,7 +286,9 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **81 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
 
-**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **94 slash commands**.
+**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **95 slash commands**.
+
+**CC-EFFORT.** Effort levels are `low|medium|high|max`, set by CLI `--effort`, `settings.effortLevel`, `VANTA_EFFORT_LEVEL`, or live `/effort <level>`. OpenAI o-series receives `reasoning_effort` for low/high/max; Anthropic Claude thinking-capable models use extended thinking for high/max (8000/32000 budget tokens), while low forces `max_tokens=4096`.
 
 - **TUI-V2 shell:** `VANTA_TUI=v2` now selects `src/ui/v2/app-v2.tsx`, a separate mission-control frame (`MissionControlFrame`) with durable-state, center transcript/engine, safety/working-memory/telemetry, and command-risk labels. Default and unknown values stay on v1. `TUI-V2-RAILS` remains open for making every rail value live from session state.
 

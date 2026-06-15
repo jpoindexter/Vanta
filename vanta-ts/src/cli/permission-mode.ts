@@ -1,3 +1,5 @@
+import { envForPermissionMode, parsePermissionMode } from "../modes/permission-mode.js";
+
 export type PermissionModeParse = {
   rest: string[];
   env: NodeJS.ProcessEnv;
@@ -5,9 +7,8 @@ export type PermissionModeParse = {
 };
 
 function envForMode(mode: string | undefined): NodeJS.ProcessEnv {
-  if (mode === "auto") return { VANTA_AUTO_MODE: "1" };
-  if (mode === "default" || mode === "normal" || mode === "manual") return { VANTA_AUTO_MODE: "0" };
-  return {};
+  const parsed = parsePermissionMode(mode);
+  return parsed ? envForPermissionMode(parsed) : {};
 }
 
 export function parsePermissionModeFlags(args: string[], baseEnv: NodeJS.ProcessEnv): PermissionModeParse {
@@ -26,8 +27,8 @@ export function parsePermissionModeFlags(args: string[], baseEnv: NodeJS.Process
       continue;
     }
     const next = envForMode(mode);
-    if (next.VANTA_AUTO_MODE === undefined) error = `unsupported permission mode: ${mode ?? "(missing)"}`;
-    else env.VANTA_AUTO_MODE = next.VANTA_AUTO_MODE;
+    if (next.VANTA_PERMISSION_MODE === undefined) error = `unsupported permission mode: ${mode ?? "(missing)"}`;
+    else Object.assign(env, next);
   }
   return { rest, env, error };
 }

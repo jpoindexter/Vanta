@@ -11,6 +11,7 @@ import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
   writeRunMemory,
   reviewAfterTurn,
+  memoryExtractAfterTurn,
   sessionMemoryAfterTurn,
   brainLearnAfterTurn,
   criticAfterTurn,
@@ -106,6 +107,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   await suggestSkillFromRun(text, process.env);
   await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
   await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
+  memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
   const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
   if (newScratch) convo.setSessionMemory(newScratch);
   const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
