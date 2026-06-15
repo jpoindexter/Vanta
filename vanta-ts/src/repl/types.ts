@@ -58,6 +58,8 @@ export type SlashResult = {
   toggleFocusMode?: true;
   /** A new TUI theme name (drives /theme <name>) so the host restyles live. */
   theme?: string;
+  /** Composer anchor (drives /composer) so the host repositions the input live. */
+  composerAnchor?: "float" | "bottom";
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */

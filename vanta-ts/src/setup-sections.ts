@@ -121,6 +121,15 @@ export const SETTINGS: SettingSection[] = [
     ],
   },
   {
+    header: "Input box position",
+    key: "VANTA_COMPOSER_ANCHOR",
+    intro: "  Where the input box sits in the TUI.",
+    choices: [
+      { label: "float — just below the last line [default]", value: "float" },
+      { label: "bottom — pinned to the terminal floor (chat box)", value: "bottom" },
+    ],
+  },
+  {
     header: "Busy spinner style",
     key: "VANTA_SPINNER",
     intro: "  The animation shown while Vanta is thinking.",

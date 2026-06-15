@@ -54,10 +54,10 @@ describe("completeSlash + isPartialSlash + slashHead", () => {
 });
 
 describe("applySlashResult", () => {
-  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; themes: string[]; exits: number } => {
-    const notes: string[] = [], sends: string[] = [], themes: string[] = [];
+  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; themes: string[]; anchors: string[]; exits: number } => {
+    const notes: string[] = [], sends: string[] = [], themes: string[] = [], anchors: string[] = [];
     let exits = 0;
-    return { notes, sends, themes, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), theme: (t) => themes.push(t), exit: () => { exits += 1; } };
+    return { notes, sends, themes, anchors, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), theme: (t) => themes.push(t), composerAnchor: (m) => anchors.push(m), exit: () => { exits += 1; } };
   };
   it("routes output to a note", () => {
     const fx = spyFx();
@@ -80,5 +80,12 @@ describe("applySlashResult", () => {
     applySlashResult({ theme: "muted", output: "  ✓ theme set to muted" }, fx);
     expect(fx.themes).toEqual(["muted"]);
     expect(fx.notes).toEqual(["  ✓ theme set to muted"]);
+  });
+
+  it("routes a composerAnchor signal to the composerAnchor effect", () => {
+    const fx = spyFx();
+    applySlashResult({ composerAnchor: "bottom", output: "  ✓ composer bottom" }, fx);
+    expect(fx.anchors).toEqual(["bottom"]);
+    expect(fx.notes).toEqual(["  ✓ composer bottom"]);
   });
 });

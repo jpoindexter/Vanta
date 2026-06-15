@@ -23,7 +23,7 @@ import { busyLabel, contextPct, formatElapsed } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
 import { StreamPreview } from "./stream-view.js";
-import { PinnedRegion } from "./pinned-region.js";
+import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinned-region.js";
 import { useViewportRows } from "./use-viewport-rows.js";
 import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
@@ -52,9 +52,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [history, setHistory] = useState<string[]>([]);
   const [theme, setThemeState] = useState<Theme>(() => resolveTheme(process.env));
   const [focus, setFocus] = useState<FocusTarget>("composer");
+  const [composerAnchor, setComposerAnchor] = useState<ComposerAnchor>(() => resolveComposerAnchor(process.env));
   const setTheme = (name: string): void => setThemeState(resolveThemeByName(name));
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
-  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme });
+  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme, setComposerAnchor });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
@@ -77,7 +78,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-        <PinnedRegion viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
+        <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}

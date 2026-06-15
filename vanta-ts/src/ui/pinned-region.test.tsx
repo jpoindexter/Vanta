@@ -16,14 +16,23 @@ describe("pinSpacerHeight", () => {
 });
 
 describe("PinnedRegion", () => {
-  it("pushes children to the bottom: spacer fills the gap above the content", async () => {
-    const inst = renderUi(h(PinnedRegion, { viewportRows: 10, committedRows: 0, children: h(Text, null, "BOTTOM") }));
+  it("pushes children to the bottom when enabled: spacer fills the gap above", async () => {
+    const inst = renderUi(h(PinnedRegion, { enabled: true, viewportRows: 10, committedRows: 0, children: h(Text, null, "BOTTOM") }));
     await tick();
     const lines = inst.lastFrame().split("\n");
     // The content sits on the last rendered line; everything above it is blank spacer.
     const idx = lines.findIndex((l) => l.includes("BOTTOM"));
     expect(idx).toBeGreaterThan(0); // not at the top — pushed down by the spacer
     expect(lines.slice(0, idx).every((l) => l.trim() === "")).toBe(true);
+    inst.unmount();
+  });
+
+  it("renders flat (no spacer) when disabled — float behavior", async () => {
+    const inst = renderUi(h(PinnedRegion, { enabled: false, viewportRows: 10, committedRows: 0, children: h(Text, null, "TOP") }));
+    await tick();
+    const lines = inst.lastFrame().split("\n").filter((l) => l.length > 0);
+    // No spacer: content is on the first rendered line, nothing pushed down.
+    expect(lines[0]).toContain("TOP");
     inst.unmount();
   });
 });

@@ -12,12 +12,24 @@ import { Box } from "ink";
 // Self-adjusting: once committed content reaches the viewport, minHeight clamps to
 // 0, the spacer collapses, and the composer flows naturally just below the latest
 // line (where inline rendering already puts it at the bottom).
+//
+// OPT-IN: the default is "float" (composer sits just below the last line, like
+// Claude Code). `enabled` (VANTA_COMPOSER_ANCHOR=bottom or /composer bottom) turns
+// on the bottom-pin. When off, children render in a plain column (float behavior).
+
+export type ComposerAnchor = "float" | "bottom";
+
+/** Resolve the composer anchor from env. Default "float" (Claude-Code behavior). */
+export function resolveComposerAnchor(env: NodeJS.ProcessEnv): ComposerAnchor {
+  return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "bottom" ? "bottom" : "float";
+}
 
 export function pinSpacerHeight(viewportRows: number, committedRows: number): number {
   return Math.max(0, viewportRows - committedRows);
 }
 
-export function PinnedRegion(props: { viewportRows: number; committedRows: number; children: ReactNode }): ReactElement {
+export function PinnedRegion(props: { enabled?: boolean; viewportRows: number; committedRows: number; children: ReactNode }): ReactElement {
+  if (props.enabled === false) return <Box flexDirection="column">{props.children}</Box>;
   const minHeight = pinSpacerHeight(props.viewportRows, props.committedRows);
   return (
     <Box flexDirection="column" minHeight={minHeight}>

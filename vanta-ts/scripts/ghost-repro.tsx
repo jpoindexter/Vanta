@@ -8,7 +8,7 @@ import { ThemeProvider } from "../src/ui/theme.js";
 import { resolveTheme } from "../src/term/theme.js";
 import { installResizeGhostFix } from "../src/term/resize-fix.js";
 import { EntryView } from "../src/ui/transcript.js";
-import { PinnedRegion } from "../src/ui/pinned-region.js";
+import { PinnedRegion, resolveComposerAnchor } from "../src/ui/pinned-region.js";
 import { useViewportRows } from "../src/ui/use-viewport-rows.js";
 import { estimateCommittedRows } from "../src/ui/layout-rows.js";
 import type { Entry } from "../src/ui/types.js";
@@ -44,7 +44,7 @@ function Repro(): ReactElement {
   const committedRows = estimateCommittedRows(entries, vp.cols);
   return h(ThemeProvider, { theme }, h(Box, { flexDirection: "column" },
     h(Static, { items: staticItems }, (item: { key: string; node: ReactElement }) => h(Box, { key: item.key }, item.node)),
-    h(PinnedRegion, { viewportRows: vp.rows, committedRows },
+    h(PinnedRegion, { enabled: resolveComposerAnchor(process.env) === "bottom", viewportRows: vp.rows, committedRows },
       h(TodoPanel, { todos: [] }),
       h(Box, { flexDirection: "column" },
         h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask Vanta anything — /help for commands", files: [], history: [] })),

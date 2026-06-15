@@ -43,6 +43,8 @@ export const SettingsSchema = z.object({
     theme: z.string().optional(),
     spinner: z.string().optional(),
     noTui: z.boolean().optional(),
+    /** Input box position: "float" (default) or "bottom" (pinned chat box). */
+    composerAnchor: z.enum(["float", "bottom"]).optional(),
   }).optional(),
   /** Opt-in runtime plugin framework config. Plugin code is disabled by default. */
   plugins: z.object({

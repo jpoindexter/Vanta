@@ -36,6 +36,7 @@ import { addDir } from "./add-dir-cmd.js";
 import { routes } from "./routes-cmd.js";
 import { files } from "./files-cmd.js";
 import { theme } from "./theme-cmd.js";
+import { composer } from "./composer-cmd.js";
 import { rename } from "./rename-cmd.js";
 import { branch } from "./branch-cmd.js";
 import { summary } from "./summary-cmd.js";
@@ -285,7 +286,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   export: exportConvo, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
-  routes, files, theme, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,
+  routes, files, theme, composer, cockpit, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
