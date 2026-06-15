@@ -43,13 +43,23 @@ export function forceFullRepaint(ink: InkInternals): void {
 }
 
 /**
- * Append a resize listener that force-repaints via the absolute-clear path.
- * Appended (not replacing) so Ink's own `resized()` and use-window-size's
- * listener still run; ours runs last and overwrites any ghost with a clean
- * absolute repaint. Returns the listener so callers can detach it in tests.
+ * Append a resize listener that force-repaints via the absolute-clear path —
+ * but ONLY on a WIDTH change, which is what rewraps displayed lines and ghosts.
+ * A height-only resize has no rewrap, so we leave Ink's normal relative
+ * re-render in place (it keeps content naturally bottom-anchored; force-clearing
+ * would jump it to the top with a gap below). Appended (not replacing) so Ink's
+ * own `resized()` and use-window-size's listener still run; ours runs last and
+ * overwrites any ghost with a clean absolute repaint. Returns the listener so
+ * callers can detach it in tests.
  */
-export function attachResizeRepaint(stdout: Pick<NodeJS.WriteStream, "on">, ink: InkInternals): () => void {
-  const listener = (): void => forceFullRepaint(ink);
+export function attachResizeRepaint(stdout: Pick<NodeJS.WriteStream, "on" | "columns">, ink: InkInternals): () => void {
+  let lastWidth = stdout.columns;
+  const listener = (): void => {
+    const width = stdout.columns;
+    if (width === lastWidth) return; // height-only resize: no rewrap, no ghost
+    lastWidth = width;
+    forceFullRepaint(ink);
+  };
   stdout.on("resize", listener);
   return listener;
 }

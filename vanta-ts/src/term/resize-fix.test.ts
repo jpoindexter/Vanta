@@ -28,16 +28,31 @@ describe("forceFullRepaint", () => {
   });
 });
 
+/** EventEmitter with a mutable `columns` to simulate terminal width changes. */
+function fakeStdout(columns: number): EventEmitter & { columns: number } {
+  return Object.assign(new EventEmitter(), { columns });
+}
+
 describe("attachResizeRepaint", () => {
-  it("force-repaints on every resize event (both grow and shrink)", () => {
+  it("force-repaints on every WIDTH change (both grow and shrink)", () => {
     const ink = fakeInk();
-    const stdout = new EventEmitter();
-    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on">, ink);
-    stdout.emit("resize"); // shrink
-    stdout.emit("resize"); // grow
-    stdout.emit("resize"); // shrink
+    const stdout = fakeStdout(100);
+    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "columns">, ink);
+    stdout.columns = 80; stdout.emit("resize"); // shrink
+    stdout.columns = 120; stdout.emit("resize"); // grow
+    stdout.columns = 90; stdout.emit("resize"); // shrink
     const renders = ink.calls.filter((c) => c.startsWith("render@"));
-    expect(renders).toHaveLength(3); // one absolute repaint per resize
+    expect(renders).toHaveLength(3); // one absolute repaint per width change
+  });
+
+  it("does NOT repaint on a height-only resize (no rewrap, no ghost — keeps bottom-anchor)", () => {
+    const ink = fakeInk();
+    const stdout = fakeStdout(100);
+    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "columns">, ink);
+    stdout.emit("resize"); // height changed, width unchanged
+    stdout.emit("resize");
+    const renders = ink.calls.filter((c) => c.startsWith("render@"));
+    expect(renders).toHaveLength(0);
   });
 });
 
