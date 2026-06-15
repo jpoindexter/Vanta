@@ -4,7 +4,7 @@ import { listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus } from "../status.js";
 import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
 import { loadCron } from "../schedule/cron.js";
-import { SLASH_HELP } from "./catalog.js";
+import { slashHelp } from "./catalog.js";
 import { oneLine, lastUserIndex, formatExport, formatHistory, mimeFromPath, lines } from "./format.js";
 import { formatSessionCost } from "../pricing.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
@@ -49,11 +49,9 @@ import { CLI_PASSTHROUGH } from "./cli-bridge.js";
 import { formatGoalLedger } from "./goal-ledger.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
-// Each slash command is a small handler keyed in HANDLERS. executeSlash parses
-// the input and dispatches here — no giant switch. Handlers stay pure of console
-// side effects (they return text); they may mutate ctx.convo / ctx.state when
-// that IS the command's job (/clear, /resume). Reuses existing subsystems.
-const help: SlashHandler = () => ({ output: SLASH_HELP });
+// Slash commands are small handlers keyed in HANDLERS; executeSlash parses and dispatches here.
+// Handlers return text and may mutate ctx only when that is the command's job.
+const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
 
 const clear: SlashHandler = (_arg, ctx) => {
@@ -295,5 +293,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
 /** Look up + run a parsed command; returns null for an unknown command. */
 export async function dispatch(cmd: string, arg: string, ctx: ReplCtx): Promise<SlashResult | null> {
   const handler = HANDLERS[cmd];
-  return handler ? handler(arg, ctx) : null;
+  if (handler) return handler(arg, ctx);
+  const pluginCommand = ctx.setup.pluginCommands?.get(cmd);
+  return pluginCommand ? pluginCommand.handler(arg, ctx) : null;
 }

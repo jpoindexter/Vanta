@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, maybeDroppedVideo, type ReplCtx } from "./repl-commands.js";
 import { saveSession, loadSession } from "./sessions/store.js";
+import { PluginCommandRegistry } from "./plugins/commands.js";
 import type { Message } from "./types.js";
 
 function makeCtx(home: string, messages: Message[]): ReplCtx {
@@ -90,6 +91,25 @@ describe("runSlashCommand", () => {
   it("unknown commands are reported, not sent to the model", async () => {
     expect(await runSlashCommand("/bogus", makeCtx(home, []))).toBe(false);
     expect(log.mock.calls.flat().join("\n")).toContain("unknown command /bogus");
+  });
+
+  it("runs plugin slash commands from the setup registry", async () => {
+    const ctx = makeCtx(home, []);
+    const commands = new PluginCommandRegistry(new Set(["help"]));
+    commands.register("echo", "echo-plugin", () => ({ output: "  echo command" }), { desc: "echo plugin command" });
+    (ctx.setup as any).pluginCommands = commands;
+    const r = await executeSlash("/echo-plugin", ctx);
+    expect(r.output).toContain("echo command");
+  });
+
+  it("/help includes plugin slash command metadata", async () => {
+    const ctx = makeCtx(home, []);
+    const commands = new PluginCommandRegistry(new Set(["help"]));
+    commands.register("echo", "echo-plugin", () => ({ output: "x" }), { desc: "echo plugin command" });
+    (ctx.setup as any).pluginCommands = commands;
+    const r = await executeSlash("/help", ctx);
+    expect(r.output).toContain("Plugin commands");
+    expect(r.output).toContain("/echo-plugin");
   });
 });
 

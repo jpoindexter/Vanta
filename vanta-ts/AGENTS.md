@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3291 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3313 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -33,6 +33,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
 - `src/repl/catalog.ts` — canonical list of 93 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
+- `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
@@ -62,6 +63,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 - `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **93 slash commands**.
+- Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.

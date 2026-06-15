@@ -29,9 +29,9 @@ export async function executeSlash(input: string, ctx: ReplCtx): Promise<SlashRe
   const skill = name ? await readSkill(name, ctx.env) : null;
   const result = await dispatch(name, arg, ctx);
   if (result) {
-    // Built-in wins. Warn if a same-named skill exists so the user knows it's shadowed.
+    // Built-in/plugin commands win. Warn if a same-named skill exists so the user knows it's shadowed.
     if (skill) {
-      return { ...result, output: `  ⚠ /${name} matches an installed skill but the built-in command takes precedence.\n${result.output ?? ""}`.trimEnd() };
+      return { ...result, output: `  ⚠ /${name} matches an installed skill but a command takes precedence.\n${result.output ?? ""}`.trimEnd() };
     }
     return result;
   }

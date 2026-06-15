@@ -41,6 +41,11 @@ export const SettingsSchema = z.object({
     spinner: z.string().optional(),
     noTui: z.boolean().optional(),
   }).optional(),
+  /** Opt-in runtime plugin framework config. Plugin code is disabled by default. */
+  plugins: z.object({
+    enabled: z.array(z.string()).optional(),
+    trustProjectPlugins: z.boolean().optional(),
+  }).optional(),
   /** Shell command whose stdout is used as the API key for the active provider.
    *  Executed at startup; cached for 5 minutes. Example: `'op read op://vault/anthropic/key'` */
   api_key_helper: z.string().optional(),

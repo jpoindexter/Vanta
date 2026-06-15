@@ -264,15 +264,17 @@
       "id": "PLUGIN-FRAMEWORK",
       "track": "Extensibility",
       "title": "Plugin framework (register(ctx) + PluginContext, like Claude/Codex)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
-      "summary": "A unified plugin framework so Vanta extends without core edits, like Claude/Codex: a register(ctx) entry + PluginContext API (register_tool/hook/command/cli/skill/provider/platform, llm.complete, dispatch_tool). Discovery precedence bundled(vanta-ts/plugins/) -> user(~/.vanta/plugins/) -> project(.vanta/plugins/, env-gated) -> npm; opt-in plugins.enabled allow-list. Ties together the pieces Vanta already has (tool registry, MCP/mount_mcp, hooks, MSG-REGISTRY, skills) under one contract. Vanta's kernel stays the boundary — every plugin tool routes through assess() (unlike other agents that run plugins unsandboxed). Builds on PLUGIN-SYSTEM (install hygiene). 'vanta plugins install/enable/disable/remove/list'. Detail: docs/plugin-framework.md.",
+      "summary": "SHIPPED 2026-06-15. Vanta now has an opt-in in-process plugin framework: strict plugin.json manifests, deterministic bundled/user/project discovery, plugins.enabled allow-list, PluginContext.registerTool/registerCommand, and runtime slash-command registration. Plugin tools register through the normal ToolRegistry path and remain kernel-gated via assess(); disabled plugins do not import. Project plugins require both plugins.trustProjectPlugins=true and VANTA_ENABLE_PROJECT_PLUGINS=true. npm loading, provider/platform hooks, and CLI runtime-plugin management remain deferred.",
       "done": "A third-party plugin dropped in ~/.vanta/plugins/ and added to plugins.enabled registers a kernel-gated tool + a slash command that work next session; disabled/not-enabled plugins don't load.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-15",
+      "notes": "Verified with focused vitest coverage: plugin manifest parsing, enabled user plugin registration, disabled plugin no-import behavior, project plugin trust/env gate, tool namespace/collision/describeForSafety rejection, plugin command dispatch/help, settings parsing, and dispatchTool kernel-block behavior. Also ran neighboring plugin/settings/repl/tools tests and tsc clean."
     },
     {
       "id": "CC-JSON-SCHEMA",

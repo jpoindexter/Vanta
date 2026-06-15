@@ -13,7 +13,9 @@ import { readSessionMemory, sessionMemoryBlock } from "./memory/session-memory.j
 import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { playbookDigest } from "./memory/playbook.js";
 import { globalHookBus } from "./plugins/hooks.js";
+import { PluginCommandRegistry } from "./plugins/commands.js";
 import { mountMcpServers } from "./mcp/mount.js";
+import type { Settings } from "./settings/store.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
 import type { Summarizer } from "./context.js";
@@ -35,6 +37,7 @@ export * from "./session/curate.js";
 export type RunSetup = {
   safety: SafetyClient;
   registry: ReturnType<typeof buildRegistry>;
+  pluginCommands: PluginCommandRegistry;
   provider: LLMProvider;
   goals: Goal[];
   systemPrompt: string;
@@ -105,6 +108,21 @@ async function injectResume(systemPrompt: string, repoRoot: string): Promise<str
   return systemPrompt;
 }
 
+async function loadRuntimeExtensions(
+  repoRoot: string,
+  registry: ReturnType<typeof buildRegistry>,
+): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry }> {
+  const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
+  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
+  applySettingsEnv(settings, process.env);
+  await mountMcpServers(registry, process.env, (m) => console.log(m));
+  const { SLASH_COMMANDS } = await import("./repl/catalog.js");
+  const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
+  const { loadEnabledPlugins } = await import("./plugins/loader.js");
+  await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, log: (m) => console.log(m) });
+  return { settings, pluginCommands };
+}
+
 /** Best-effort: log the resolved session config to events.jsonl for reproducibility. */
 function logSessionConfig(safety: { logEvent: (e: string) => Promise<void> }, provider: { modelId: () => string; contextWindow: () => number }, registry: { schemas: () => unknown[] }, systemPrompt: string): void {
   const cfg = sessionConfig({ provider: process.env.VANTA_PROVIDER ?? "unknown", model: provider.modelId(), contextWindow: provider.contextWindow(), tools: registry.schemas().length, systemPrompt });
@@ -122,14 +140,11 @@ export async function prepareRun(
 
   const safety = new SafetyClient(baseUrl);
   const registry = buildRegistry();
-  await mountMcpServers(registry, process.env, (m) => console.log(m));
+  const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry);
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
 
-  const { loadSettings, applySettingsEnv } = await import("./settings/store.js");
-  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
-  applySettingsEnv(settings, process.env);
   const { prefetchApiKeyHelper } = await import("./api-key-helper.js");
   await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
@@ -160,7 +175,7 @@ export async function prepareRun(
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
   logSessionConfig(safety, provider, registry, systemPrompt); // reproducibility (SELFHARNESS-CONFIG-REPRO)
-  return { safety, registry, provider, goals, systemPrompt };
+  return { safety, registry, pluginCommands, provider, goals, systemPrompt };
 }
 
 const SUMMARIZE_SYS =

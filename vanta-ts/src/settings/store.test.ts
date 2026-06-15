@@ -59,6 +59,15 @@ describe("loadSettings", () => {
     expect(s.autoMode?.rules?.[0]?.label).toBe("status check");
   });
 
+  it("loads plugin allow-list settings", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      plugins: { enabled: ["echo"], trustProjectPlugins: true },
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.plugins?.enabled).toEqual(["echo"]);
+    expect(s.plugins?.trustProjectPlugins).toBe(true);
+  });
+
   it("project settings override user settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
     await writeFile(join(root, ".vanta", "settings.json"), JSON.stringify({ allowedTools: ["write_file"] }));
@@ -84,6 +93,12 @@ describe("loadSettings", () => {
 
   it("silently drops invalid settings keys", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ invalidKey: true }));
+    const s = await loadSettings(root, env);
+    expect(s).toEqual({});
+  });
+
+  it("silently drops malformed plugin settings", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({ plugins: { enabled: [123] } }));
     const s = await loadSettings(root, env);
     expect(s).toEqual({});
   });
