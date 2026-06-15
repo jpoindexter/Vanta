@@ -1,11 +1,12 @@
 import { useRef, useState, type ReactElement } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, usePaste } from "ink";
 import { useTheme } from "./theme.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
 import { readlineEdit, navigateHistory, type Key, type Edit, type HistState } from "./composer-keys.js";
+import { execSync } from "node:child_process";
 import { editInEditor } from "./composer-editor.js";
 import { useBlink } from "./use-blink.js";
 
@@ -41,11 +42,7 @@ export function Composer(props: {
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
   const { pill, clearPill } = usePastePill(value);
-
-  const slashMatches = matchSlash(value, props.skills ?? []);
-  const atPartial = slashMatches.length === 0 ? activeAtRef(value) : null;
-  const atMatches = atPartial !== null ? matchAtFiles(props.files, atPartial) : [];
-  const activeLen = slashMatches.length || atMatches.length;
+  const { slashMatches, atMatches, activeLen } = useComposerPalettes(value, props.files, props.skills);
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
 
   const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
@@ -61,13 +58,14 @@ export function Composer(props: {
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
+  const pasteText = useTextPaste(value, cursor, setBuf);
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
     if (key.return) return void (key.shift ? insertNewline() : submitNow());
-    if (handleSpecialChord(input, key, { openEditor, undo, paste: props.onPaste })) return;
+    if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
     const edit = readlineEdit({ value, cursor, killRing: killRef.current }, input, key);
@@ -75,6 +73,23 @@ export function Composer(props: {
   });
 
   return <ComposerView slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} />;
+}
+
+function useComposerPalettes(value: string, files: string[], skills?: SlashMatch[]): { slashMatches: SlashMatch[]; atMatches: string[]; activeLen: number } {
+  const slashMatches = matchSlash(value, skills ?? []);
+  const atPartial = slashMatches.length === 0 ? activeAtRef(value) : null;
+  const atMatches = atPartial !== null ? matchAtFiles(files, atPartial) : [];
+  return { slashMatches, atMatches, activeLen: slashMatches.length || atMatches.length };
+}
+
+function useTextPaste(value: string, cursor: number, setBuf: (v: string, c: number) => void): (text: string) => void {
+  const pasteText = (text: string): void => {
+    const next = value.slice(0, cursor) + text + value.slice(cursor);
+    setBuf(next, cursor + text.length);
+  };
+  // Bracketed paste mode: text with newlines arrives as one string, not returns.
+  usePaste(pasteText);
+  return pasteText;
 }
 
 function usePastePill(value: string): { pill?: { count: number; lines: number }; clearPill: () => void } {
@@ -132,11 +147,18 @@ function PastedTextPill({ count, lines, blink }: { count: number; lines: number;
   );
 }
 
-/** ^G edit-in-$EDITOR · ^Z undo/redo · ^V paste image. True when handled. */
-function handleSpecialChord(input: string, key: Key, a: { openEditor: () => void; undo: () => void; paste?: () => void }): boolean {
+/** ^G edit-in-$EDITOR · ^Z undo/redo · ^V paste text (then image fallback). True when handled. */
+function handleSpecialChord(input: string, key: Key, a: { openEditor: () => void; undo: () => void; pasteText: (t: string) => void; paste?: () => void }): boolean {
   if (key.ctrl && input === "g") { a.openEditor(); return true; }
   if (key.ctrl && input === "z") { a.undo(); return true; }
-  if (key.ctrl && input === "v") { a.paste?.(); return true; }
+  if (key.ctrl && input === "v") {
+    try {
+      const text = execSync("pbpaste", { encoding: "utf8", timeout: 1000 });
+      if (text) { a.pasteText(text); return true; }
+    } catch { /* pbpaste unavailable (non-macOS) — fall through */ }
+    a.paste?.();
+    return true;
+  }
   return false;
 }
 
