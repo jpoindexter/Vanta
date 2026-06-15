@@ -11,7 +11,7 @@ import { z } from "zod";
 // are fire-and-forget. Distinct from plugins/hooks.ts (the in-process JS bus): this
 // runs ARBITRARY shell, so it is opt-in via the config file and nothing else.
 
-export type ShellHookEvent = "Setup" | "SessionStart" | "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
+export type ShellHookEvent = "Setup" | "SessionStart" | "SessionEnd" | "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
 
 const ShellHookSchema = z.object({
   /** Regex on tool name. Applies to PreToolUse / PostToolUse. Absent = match all.
@@ -50,6 +50,7 @@ export type MatchContext = {
 const ShellHooksConfigSchema = z.object({
   Setup: z.array(ShellHookSchema).optional(),
   SessionStart: z.array(ShellHookSchema).optional(),
+  SessionEnd: z.array(ShellHookSchema).optional(),
   PreToolUse: z.array(ShellHookSchema).optional(),
   PostToolUse: z.array(ShellHookSchema).optional(),
   UserPromptSubmit: z.array(ShellHookSchema).optional(),

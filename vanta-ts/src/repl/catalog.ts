@@ -9,6 +9,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "retry", desc: "re-run your last message" },
   { name: "undo", desc: "drop the last turn from the conversation" },
   { name: "rewind", arg: "[id]", desc: "list or restore recent per-edit file checkpoints" },
+  { name: "hooks", arg: "[add|remove]", desc: "list, add, or remove shell hooks in .vanta/hooks.json" },
   { name: "model", desc: "change provider & model — interactive picker" },
   { name: "effort", arg: "<low|medium|high|max>", desc: "set model effort for this session" },
   { name: "setup", desc: "configure the model backend — opens the provider/model picker" },

@@ -369,7 +369,7 @@
       "id": "CC-HOOKS-CMD",
       "track": "Harness",
       "title": "/hooks — manage shell hooks from the REPL",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC has a /hooks command to list, add, edit, and delete hooks (PreToolUse, PostToolUse, Stop, UserPromptSubmit) from within the session. Vanta has no hook system at all. This card is the config surface — CC-HOOKS-ENGINE (the runtime) is a separate prerequisite card. Add /hooks to list configured hooks and open .vanta/hooks.json for editing.",
       "done": "`/hooks` lists configured hooks by event type; user can add/remove entries that persist to .vanta/hooks.json.",
@@ -377,7 +377,8 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-15"
     },
     {
       "id": "CC-PR-COMMENTS",
