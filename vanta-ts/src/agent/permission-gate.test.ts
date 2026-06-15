@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applySafetyGate } from "./dispatch-helpers.js";
 import { defaultOperatorProfile, writeOperatorProfile } from "../operator-profile/profile.js";
+import { readPreferenceSignals } from "../preferences/signals.js";
 import type { AgentDeps } from "../agent.js";
 import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
@@ -141,5 +142,37 @@ describe("applySafetyGate + permissions", () => {
     const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, onAsk: () => { prompted = true; } }), ctx);
     expect(res.approved).toBe(true);
     expect(prompted).toBe(true);
+  });
+
+  it("records one human approval preference signal", async () => {
+    const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true }), ctx);
+    const signals = await readPreferenceSignals();
+    expect(res.approved).toBe(true);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]?.chosen.label).toBe("allow");
+    expect(signals[0]?.provenance.source).toBe("human_approval");
+  });
+
+  it("records one human denial preference signal", async () => {
+    const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: false }), ctx);
+    const signals = await readPreferenceSignals();
+    expect(res.approved).toBe(false);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]?.chosen.label).toBe("deny");
+  });
+
+  it("does not record a signal for kernel Block", async () => {
+    await applySafetyGate(call, makeDeps({ risk: "block" }), ctx);
+    await expect(readPreferenceSignals()).resolves.toEqual([]);
+  });
+
+  it("does not record a human signal for rule or auto decisions without a prompt", async () => {
+    await writeRules("allow\tshell_cmd\t\n");
+    await applySafetyGate(call, makeDeps({ risk: "ask" }), ctx);
+    process.env.VANTA_AUTO_MODE = "1";
+    const deps = makeDeps({ risk: "ask" });
+    deps.registry = { get: () => ({ describeForSafety: () => "read file /repo/README.md" }) } as unknown as AgentDeps["registry"];
+    await applySafetyGate({ ...call, name: "read_file" }, deps, ctx);
+    await expect(readPreferenceSignals()).resolves.toEqual([]);
   });
 });

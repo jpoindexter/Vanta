@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { readPreferenceSignals } from "../preferences/signals.js";
 
 const FILE = "operator-profile.json";
 
@@ -76,6 +77,17 @@ export function inferProfileFromSignals(signals: ProfileSignal[]): InferredProfi
     riskTolerance: riskyDenied > 0 ? "conservative" : "balanced",
     confidence: signals.length ? Math.min(1, signals.length / 5) : 0,
   };
+}
+
+export async function inferProfileFromPreferenceSignals(env: NodeJS.ProcessEnv = process.env): Promise<InferredProfile> {
+  const rows = await readPreferenceSignals(env);
+  return inferProfileFromSignals(rows
+    .filter((s) => s.kind === "approval_decision")
+    .map((s) => ({
+      toolName: s.provenance.toolName ?? "",
+      action: s.context,
+      approved: s.chosen.label === "allow",
+    })));
 }
 
 export function detectProfileDrift(

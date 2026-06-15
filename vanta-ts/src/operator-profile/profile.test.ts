@@ -2,10 +2,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import {
   approvalPreferenceFor,
   defaultOperatorProfile,
   detectProfileDrift,
+  inferProfileFromPreferenceSignals,
   inferProfileFromSignals,
   loadOperatorProfile,
   operatorProfilePath,
@@ -63,6 +65,15 @@ describe("operator profile inference + drift", () => {
     ]);
     expect(inferred.riskTolerance).toBe("conservative");
     expect(inferred.scopeAppetite).toBe("narrow");
+  });
+
+  it("reads durable preference signals into profile inference", async () => {
+    await appendPreferenceSignal(signalFromApprovalDecision({ approved: false, action: "run deploy production", reason: "kernel", toolName: "shell_cmd" }));
+    await appendPreferenceSignal(signalFromApprovalDecision({ approved: false, action: "edit every file", reason: "kernel", toolName: "write_file" }));
+    const inferred = await inferProfileFromPreferenceSignals();
+    expect(inferred.riskTolerance).toBe("conservative");
+    expect(inferred.scopeAppetite).toBe("narrow");
+    expect(inferred.confidence).toBeGreaterThan(0);
   });
 
   it("returns no drift for matching declared and inferred profile", () => {

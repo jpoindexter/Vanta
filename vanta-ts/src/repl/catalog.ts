@@ -47,6 +47,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "changes", desc: "review changed files — per-file keep/undo (TUI)" },
   { name: "mcp", desc: "list configured MCP servers" },
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
+  { name: "preferences", arg: "export", desc: "export operator preference signals (~/.vanta/preferences.jsonl)" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Vanta (then ./install.sh to rebuild)" },

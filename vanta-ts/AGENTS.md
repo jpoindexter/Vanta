@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3334 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3347 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -31,7 +31,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/index.ts` — register every new tool here AND in `tools/tools.test.ts` sorted list
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 93 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 94 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
@@ -39,6 +39,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
 - `src/operator-profile/profile.ts` — durable declared/inferred operator preferences plus tighten-only approval preference decisions
+- `src/preferences/signals.ts` — `~/.vanta/preferences.jsonl` chosen-vs-rejected operator preference signal store
 - `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
 - `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
 - `src/ralph/state.ts` — `.vanta/ralph-loop.json` continuity: ordered long-task features, paused startup block, `/goal resume|drop` support
@@ -64,12 +65,13 @@ npx tsc --noEmit                 # must be clean before any commit
 ## Current surface
 
 - `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **93 slash commands**.
+- `src/repl/catalog.ts` currently exposes **94 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.
 - Operator profile preferences live in `~/.vanta/operator-profile.json` and are applied after kernel + rules + auto-mode. They can only preserve/escalate decisions; one-way doors always ask and kernel Block remains immovable.
+- Preference signals live in `~/.vanta/preferences.jsonl`. Human approval/denial prompts append chosen-vs-rejected rows; kernel blocks and non-human auto/rule/profile decisions do not.
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
 - Tool schemas are scoped per turn when the registry is large; `tool_search` remains available and `VANTA_TOOL_SCOPE=0` restores full exposure.
 - Recalled brain memories are guarded before use: stale/conflicting/weak-provenance entries are flagged as not-used hypotheses.

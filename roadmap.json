@@ -9924,7 +9924,7 @@
       "id": "PREFERENCE-SIGNALS",
       "track": "Operator",
       "title": "Preference capture — accept/reject/edit decisions become chosen-vs-rejected pairs",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "DPO-style data from daily use, no training required yet: approvals granted/denied, /retry, /undo, edits to Vanta output, tournament winners — each captured as a preference pair (chosen vs rejected, with context) in ~/.vanta/preferences.jsonl. Feeds OPERATOR-PROFILE inference and the brain user_model immediately, and accumulates a fine-tune-ready dataset for PERSONAL-MODEL-TUNE later.",
       "done": "Operator decisions persist as preference pairs with provenance; profile inference reads them; export to JSONL works.",
@@ -9933,7 +9933,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-11"
+      "updated": "2026-06-15",
+      "notes": "SHIPPED 2026-06-15. Added src/preferences/signals.ts with ~/.vanta/preferences.jsonl append/read/export helpers, zod row validation, corrupt-line skipping, approval-decision chosen-vs-rejected signal factory, and context sanitization. Wired agent/dispatch-helpers.ts to record only human approval/denial prompts as preference pairs; kernel Block, rule/auto/profile non-human decisions remain unrecorded and safety behavior is unchanged. operator-profile/profile.ts can infer from durable preference signals, and /preferences export exposes the JSONL path/content. Verified with signal/profile/permission/repl tests, full TS suite, tsc --noEmit, and size lint."
     },
     {
       "id": "BEST-OF-EXEMPLARS",

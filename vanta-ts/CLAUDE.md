@@ -19,6 +19,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
 | `permissions/request.ts` / `permissions/grant.ts` | Typed approval request model + allow/deny rule helpers shared by Ink and desktop |
 | `operator-profile/profile.ts` | OPERATOR-PROFILE — `~/.vanta/operator-profile.json` declared vs inferred preferences, drift detection, and tighten-only approval preferences. |
+| `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
@@ -223,7 +224,11 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-14 context sync, `buildRegistry()` reports 81 built-in tools and `SLASH_COMMANDS.length` reports 93 commands. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-15 context sync, `buildRegistry()` reports 81 built-in tools and `SLASH_COMMANDS.length` reports 94 commands. Older counts in session history are milestones, not current truth.
+
+## Session additions (2026-06-15) — keep current
+
+**Operator profile + preference signals.** `operator-profile/profile.ts` ships declared vs inferred autonomy/scope/detail/risk preferences and tighten-only approval preferences. `preferences/signals.ts` appends zod-validated chosen-vs-rejected rows to `~/.vanta/preferences.jsonl`; `dispatch-helpers.ts` records only human approval/denial prompts, never kernel blocks or auto/rule/profile non-human decisions. `/preferences export` prints the JSONL path/content. Profile inference can read preference rows and infer conservative/narrow behavior from denial-heavy broad/risky actions.
 
 ## Session additions (2026-06-14) — keep current
 
@@ -277,7 +282,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **81 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
 
-**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. **93 slash commands.**
+**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **94 slash commands**.
 
 - **TUI-V2 shell:** `VANTA_TUI=v2` now selects `src/ui/v2/app-v2.tsx`, a separate mission-control frame (`MissionControlFrame`) with durable-state, center transcript/engine, safety/working-memory/telemetry, and command-risk labels. Default and unknown values stay on v1. `TUI-V2-RAILS` remains open for making every rail value live from session state.
 

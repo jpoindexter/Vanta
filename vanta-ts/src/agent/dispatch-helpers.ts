@@ -11,6 +11,7 @@ import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
 import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
+import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -101,6 +102,7 @@ async function handleApprovalRequest(
 ): Promise<SafetyGateResult> {
   const why = verdict.reason || "permission rule";
   const approved = await deps.requestApproval(action, why, call.name);
+  await recordApprovalSignal(call.name, action, why, approved);
   // Reconcile the kernel approval queue ONLY when the kernel itself asked.
   // Queue bookkeeping is best-effort — a kernel hiccup must not abort the turn.
   const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action).catch(() => null) : null;
@@ -111,6 +113,10 @@ async function handleApprovalRequest(
   }
   if (id) await deps.safety.approve(id).catch(() => {});
   return { approved: true };
+}
+
+async function recordApprovalSignal(toolName: string, action: string, reason: string, approved: boolean): Promise<void> {
+  await appendPreferenceSignal(signalFromApprovalDecision({ approved, action, reason, toolName })).catch(() => {});
 }
 
 /**
