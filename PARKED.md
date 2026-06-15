@@ -211,6 +211,23 @@ Audited Claude Code's full feature set (~250 features) for the roadmap; 19 in-sc
 **Why parked:** Speculative bootstrap scaffold (Vanta designs her own brain format — jsonl/sqlite/graph/vector). The cohesive facade + structured entries layer covers current needs; self-designed substrates are platform-thinking before evidence.
 **Cost to revisit:** Low — the scaffold (`BrainV2Spec`, `evolveSpec`) stays in-tree; wiring it = implementing a spec + injecting its digest through the existing facade.
 
+## REFLECT-CORRECT — cross-session correction persistence (2026-06-14)
+
+**Captured:** 2026-06-14.
+**Core insight:** In-session adaptation already works — Vanta adjusts tone, corrects mistakes, and follows feedback within a conversation via context. What doesn't work: that correction evaporating when the session ends. Same mistake next session.
+
+**The gap:** The background review (B3/B4) watches for reusable patterns in tool use and writes skills. It does NOT detect when a user corrects the agent mid-conversation ("no, don't do X" / "you got the tone wrong" / "that approach is wrong because...") and persist that correction to the brain's `reflections` or `user_model` region. The correction lands, takes effect for the session, then disappears.
+
+**What closing this looks like:**
+- Post-turn hook that detects correction signals in user messages (negation of a prior action, explicit "don't do that", rephrasing of a failed output)
+- Writes a structured entry to `~/.vanta/brain/reflections.md` and/or `user_model.md`: what was tried, what the correction was, what to do differently
+- Pre-turn injection surface already exists (brain is injected into the system prompt each session)
+- The self-improvement loop (B3) is the natural integration point: add correction-detection as a second reviewer pass alongside the skill-writing pass
+
+**Why parked:** `REFLECT-CORRECT` is already a named pebble in ROADMAP.md Arc A. This entry adds the concrete spec so the pebble has a done-condition when it's picked up. No new infrastructure needed — `writeRunMemory`, brain regions, and B3's post-turn hook are all live; this is wiring + prompt work.
+
+**Cost to revisit:** S — add correction-signal detector in `review/background-review.ts` (or a new `review/correction-detector.ts`), write to `brain/reflections.md` on match, add to `buildSystemPrompt` injection. 1–2 days including tests.
+
 ## Parked agent-worktree builds (pruned 2026-06-14)
 **Captured:** 2026-06-14. A 2026-06-10 parallel-agent fanout left 16 isolated `worktree-agent-*` worktrees, each with one CC-parity feature commit, never integrated. The worktrees were pruned for a clean repo; **every commit is preserved as a `parked/<id>` git tag** (recoverable, not on any branch). They were built against the **pre-rebuild** codebase (before the 06-13 real-Ink TUI rebuild deleted `src/tui/` and the size-gate decomposition reshaped `repl/`/`context.ts`/`compress/`), so all conflict with current main — recover = re-port onto current main, not merge.
 

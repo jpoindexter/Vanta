@@ -168,10 +168,28 @@ connective tissue + a few organs, not a new brain.
 
 - **Arc A — Living operator (spine, near-term).** Continuity/honesty/learning that makes Vanta
   trustworthy + alive-like. Rocks: `MEM-CURATOR` (the named first slice — compress sessions →
-  durable notes), `MEM-FORGET`, `TRUST-LABELS`, `SCAFFOLD`, `VOICE-NATURAL`, `CHARTER`. Pebbles/sand:
-  `REFLECT-CORRECT`, `TASTE-ENGINE`, `ANTI-SLOP`, `SELF-EVAL`, `PROJECT-RADAR`, `ENERGY-PLAN`,
+  durable notes), `MEM-FORGET`, `TRUST-LABELS`, `SCAFFOLD`, `VOICE-NATURAL`, `CHARTER`, **`REFLECT-CORRECT`** (promoted from pebble — see below). Pebbles/sand:
+  `TASTE-ENGINE`, `ANTI-SLOP`, `SELF-EVAL`, `PROJECT-RADAR`, `ENERGY-PLAN`,
   `COMMS-TRIAGE`, `PROTOCOLS`, `RESEARCH-LOOP`, `BETTER-ENDINGS`, `ACTION-PROOF`, `COST-VISIBLE`,
   `DECISION-GUARD`. Horizon: `WORLD-MODEL`, `LIFE-SEARCH`, `AMBIENT`.
+
+### REFLECT-CORRECT — conversation-to-memory correction loop (Arc A rock)
+
+**The problem this solves:** LLMs can adapt within a conversation — adjust tone, correct a mistake, follow feedback, improve an answer in real time. What they can't do is rewrite their own weights or persist that learning across sessions. Each conversation starts fresh. The same mistake recurs. The same correction has to be given again.
+
+Vanta is in a unique position to close this gap: it has a persistent brain (`~/.vanta/brain/`), a post-turn write hook (`writeRunMemory`), and a background review process (B3) that already fires after turns. It can do what the underlying model can't — detect when a correction happened in-session and write it to durable memory so next session starts with that lesson already loaded.
+
+**Done =** when a user corrects Vanta's output mid-session (explicit "don't do X", negation of a prior action, or rephrasing of a failed output), that correction is automatically written to `brain/reflections.md` and/or `brain/user_model.md` and injected into the next session's system prompt. Same mistake should not recur across sessions.
+
+**Implementation path (S — ~1–2 days):**
+- Add `correction-detector.ts` to `review/`: scans the user's last N messages for correction signals (negation patterns, explicit instruction to change approach, "that's wrong because X")
+- On detection, write a structured entry: `[date] — correction: [what was wrong] → [what to do instead]`
+- Target region: `brain/reflections.md` for behavioral corrections, `brain/user_model.md` for preference corrections
+- Hook into B3's post-turn flow (`review/background-review.ts`) alongside existing skill-writing logic
+- Pre-turn injection already works — brain is injected into the system prompt; no new plumbing needed
+- `VANTA_CORRECTION_DETECT=0` disables (same pattern as `VANTA_SELF_IMPROVE=0`)
+
+**Why this matters beyond Vanta:** This is the practical answer to a real AI limitation — not "train the model" (requires Anthropic), not "hope the model adapts" (session-scoped only), but "build the feedback loop at the operator layer." The operator catches what the model forgets.
 - **Arc B — JARVIS / command center (breadth, build small, later).** Omni-capable, non-evil,
   human-aligned life/world partner; business is *one facet*, not the identity. `LIFE-OS-SCHEMA`,
   `AGENT-COUNCIL` (15 bounded roles), `PROTECTION-AGENT`, `BRIEF-CMD` (`vanta today`/`brief`),

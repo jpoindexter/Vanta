@@ -94,7 +94,7 @@
       "id": "CC-TEAMS",
       "track": "Harness",
       "title": "Teams tool — named multi-agent squads",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC has TeamCreateTool/TeamDeleteTool: define a named team of agents with roles, spawn them, coordinate work. More structured than Vanta's delegate/swarm. Add team_create (name + member roles + task) and team_delete; teams persist in .vanta/teams.json and can be addressed by send_message. Depends on CC-SEND-MSG.",
       "done": "`team_create` spins up a named squad of agents with defined roles; `team_delete` tears it down. Teams are addressable via send_message.",
