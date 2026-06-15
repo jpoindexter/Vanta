@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { loadDurableCron } from "./durable-cron.js";
 
 export type CronEntry = {
   id: number;
@@ -111,11 +112,11 @@ function parseLine(line: string): CronEntry | null {
 
 /** Read all cron entries from <dataDir>/cron.tsv, or [] if absent. */
 export async function loadCron(dataDir: string): Promise<CronEntry[]> {
-  let raw: string;
+  let raw = "";
   try {
     raw = await readFile(cronPath(dataDir), "utf8");
   } catch {
-    return [];
+    raw = "";
   }
   const entries: CronEntry[] = [];
   for (const line of raw.split("\n")) {
@@ -123,7 +124,7 @@ export async function loadCron(dataDir: string): Promise<CronEntry[]> {
     const entry = parseLine(line);
     if (entry !== null) entries.push(entry);
   }
-  return entries;
+  return [...entries, ...await loadDurableCron(dataDir)];
 }
 
 /** Rewrite <dataDir>/cron.tsv with the given entries (creating the dir). */

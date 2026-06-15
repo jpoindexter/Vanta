@@ -48,6 +48,8 @@ describe("registry", () => {
       "compose_workflow",
       "config",
       "cookie_import",
+      "cron_create",
+      "cron_list",
       "delegate",
       "describe_image",
       "drive_create",

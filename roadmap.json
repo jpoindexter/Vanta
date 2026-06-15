@@ -457,7 +457,7 @@
       "id": "CC-LSP-DIAGNOSTIC-PUSH",
       "track": "Harness",
       "title": "LSP async diagnostic push — publishDiagnostics notifications as conversation attachments",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's LSP layer registers a `publishDiagnostics` notification handler. When LSP servers push diagnostics asynchronously (not just on request), they're stored in an LRU-based registry and delivered to the conversation as attachments automatically. The agent doesn't need to explicitly poll for errors — they appear as context when LSP pushes them.",
       "done": "After a file write, new LSP errors pushed via publishDiagnostics appear in the next turn as an attachment, without the agent having to call an LSP tool.",
@@ -466,7 +466,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-15"
     },
     {
       "id": "CC-STRUCTURED-OUTPUT-TOOL",

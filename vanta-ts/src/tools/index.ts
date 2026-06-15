@@ -59,6 +59,7 @@ import { buildToolSearchTool } from "./tool-search.js";
 import { graphQueryTool } from "./graph-query.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { sleepTool } from "./sleep.js";
+import { cronCreateTool, cronListTool } from "./cron.js";
 import { configTool } from "./config.js";
 import { cookieImportTool } from "./cookie-import.js";
 import { briefTool } from "./brief.js";
@@ -101,6 +102,8 @@ const ALL_TOOLS: readonly Tool[] = [
   clarifyTool,
   configTool,
   cookieImportTool,
+  cronCreateTool,
+  cronListTool,
   sleepTool,
   roadmapMoveTool,
   roadmapAddTool,
