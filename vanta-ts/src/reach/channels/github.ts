@@ -7,8 +7,8 @@ const run = promisify(execFile);
 
 export const githubChannel: ReachChannel = {
   name: "github",
-  description: "GitHub repos, issues, PRs (gh CLI)",
-  backends: ["gh"],
+  description: "GitHub repos, issues, PRs (gh CLI); browser-session for login-walled GHE pages",
+  backends: ["gh", "browser-session"],
   tier: 0,
   canHandle: (url) => /^https?:\/\/(www\.)?github\.com\//i.test(url),
   async check(env) {
