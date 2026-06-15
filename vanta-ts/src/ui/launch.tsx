@@ -3,6 +3,7 @@ import { App } from "./app.js";
 import { AppV2 } from "./v2/app-v2.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
+import { installResizeGhostFix } from "../term/resize-fix.js";
 
 export type TuiSurface = "v1" | "v2";
 
@@ -19,6 +20,7 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
   const instance = render(surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />);
+  await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
   await instance.waitUntilExit();
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
 }
