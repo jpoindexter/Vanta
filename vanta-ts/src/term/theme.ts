@@ -18,10 +18,21 @@ export type Theme = {
 };
 
 const THEMES: Readonly<Record<string, Theme>> = {
-  // Truecolor hex (not ANSI names) so the render is identical across terminals
-  // and matches the design reference (docs/agent-model.html) instead of inheriting
-  // the user's washed-out palette.
-  // Dark terminal — warm off-white body, muted warm-grey accent (VNT-A: ink on paper)
+  // Pure monochrome — white text, grey secondary, no hue anywhere.
+  // Glyphs (✔ ✘ ⚠ ⏺ ❯) carry semantics; color doesn't.
+  mono: {
+    primary: "white",
+    accent: "#888888",
+    border: "#555555",
+    dimText: true,
+    success: "white",
+    error: "white",
+    warning: "white",
+    info: "#aaaaaa",
+    marker: "white",
+    userMarker: "#888888",
+  },
+  // Warm off-white body, muted warm-grey accent (VNT-A: ink on paper).
   default: {
     primary: "#e4e0db",
     accent: "#a09890",
@@ -89,9 +100,9 @@ const THEMES: Readonly<Record<string, Theme>> = {
 /** The selectable theme names, in declaration order — drives `/theme` listing. */
 export const THEME_NAMES: readonly string[] = Object.keys(THEMES);
 
-/** Resolve a theme by name; falls back to "default" for unknown names. */
+/** Resolve a theme by name; falls back to "mono" for unknown names. */
 export function resolveThemeByName(name: string): Theme {
-  return THEMES[name.toLowerCase()] ?? THEMES.default!;
+  return THEMES[name.toLowerCase()] ?? THEMES.mono!;
 }
 
 /**
@@ -116,21 +127,21 @@ export function detectBackground(
 
 /**
  * Resolve the best theme name given the environment.
- * Precedence: explicit VANTA_THEME (validated) → light-bg fallback → "default".
- * Light terminals use the "light" theme (off-white/near-black VNT-A palette).
- * Dark terminals use the "default" truecolor dark palette.
+ * Precedence: explicit VANTA_THEME (validated) → light-bg → "mono".
+ * Light terminals get the "light" theme (dark-on-white) so primary text stays visible.
+ * Dark and unknown terminals use "mono".
  */
 export function detectThemeName(env: NodeJS.ProcessEnv = process.env): string {
   const explicit = env.VANTA_THEME?.toLowerCase();
   if (explicit && THEME_NAMES.includes(explicit)) return explicit;
   if (detectBackground(env) === "light") return "light";
-  return "default";
+  return "mono";
 }
 
-/** The active theme NAME from env, validated to a known name (else "default"). */
+/** The active theme NAME from env, validated to a known name (else "mono"). */
 export function currentThemeName(env: NodeJS.ProcessEnv = process.env): string {
-  const name = (env.VANTA_THEME ?? "default").toLowerCase();
-  return THEME_NAMES.includes(name) ? name : "default";
+  const name = (env.VANTA_THEME ?? "mono").toLowerCase();
+  return THEME_NAMES.includes(name) ? name : "mono";
 }
 
 /** Reads VANTA_THEME env var; if unset, detects terminal background and picks accordingly. */

@@ -9,12 +9,12 @@ import {
 } from "./theme.js";
 
 describe("resolveTheme", () => {
-  it("returns default theme when VANTA_THEME is unset", () => {
+  it("returns mono theme when VANTA_THEME is unset (dark/unknown terminal)", () => {
     const t = resolveTheme({});
-    expect(t.primary).toBe("#e4e0db");
-    expect(t.accent).toBe("#a09890");
-    expect(t.border).toBe("#5a5550");
-    expect(t.marker).toBe("#a09890");
+    expect(t.primary).toBe("white");
+    expect(t.accent).toBe("#888888");
+    expect(t.border).toBe("#555555");
+    expect(t.marker).toBe("white");
   });
 
   it("returns high-contrast theme", () => {
@@ -37,9 +37,9 @@ describe("resolveTheme", () => {
     expect(t.dimText).toBe(false);
   });
 
-  it("falls back to default for unknown theme names", () => {
+  it("falls back to mono for unknown theme names", () => {
     const t = resolveTheme({ VANTA_THEME: "nonexistent" });
-    expect(t.accent).toBe("#a09890");
+    expect(t.accent).toBe("#888888");
   });
 
   it("is case-insensitive", () => {
@@ -50,25 +50,25 @@ describe("resolveTheme", () => {
 
 describe("THEME_NAMES + resolveThemeByName", () => {
   it("lists the real selectable theme names", () => {
-    expect(THEME_NAMES).toEqual(["default", "light", "high-contrast", "muted", "dyslexia"]);
+    expect(THEME_NAMES).toEqual(["mono", "default", "light", "high-contrast", "muted", "dyslexia"]);
   });
   it("resolves a theme by name, case-insensitively", () => {
     expect(resolveThemeByName("DYSLEXIA").accent).toBe("yellow");
   });
-  it("falls back to default for an unknown name", () => {
-    expect(resolveThemeByName("nope").accent).toBe("#a09890");
+  it("falls back to mono for an unknown name", () => {
+    expect(resolveThemeByName("nope").accent).toBe("#888888");
   });
 });
 
 describe("currentThemeName", () => {
-  it("defaults to 'default' when unset", () => {
-    expect(currentThemeName({})).toBe("default");
+  it("defaults to 'mono' when unset", () => {
+    expect(currentThemeName({})).toBe("mono");
   });
   it("returns a known name from env, lower-cased", () => {
     expect(currentThemeName({ VANTA_THEME: "Muted" } as unknown as NodeJS.ProcessEnv)).toBe("muted");
   });
-  it("falls back to 'default' for an unknown env value", () => {
-    expect(currentThemeName({ VANTA_THEME: "neon" } as unknown as NodeJS.ProcessEnv)).toBe("default");
+  it("falls back to 'mono' for an unknown env value", () => {
+    expect(currentThemeName({ VANTA_THEME: "neon" } as unknown as NodeJS.ProcessEnv)).toBe("mono");
   });
 });
 
@@ -111,16 +111,16 @@ describe("detectBackground", () => {
 });
 
 describe("detectThemeName", () => {
-  it("returns 'default' on dark terminal with no override", () => {
-    expect(detectThemeName({ COLORFGBG: "15;0" })).toBe("default");
+  it("returns 'mono' on dark terminal with no override", () => {
+    expect(detectThemeName({ COLORFGBG: "15;0" })).toBe("mono");
   });
 
   it("returns 'light' on light terminal with no override", () => {
     expect(detectThemeName({ COLORFGBG: "0;7" })).toBe("light");
   });
 
-  it("returns 'default' when COLORFGBG is unknown and no override", () => {
-    expect(detectThemeName({})).toBe("default");
+  it("returns 'mono' when COLORFGBG is unknown and no override", () => {
+    expect(detectThemeName({})).toBe("mono");
   });
 
   it("VANTA_THEME override beats light-bg detection", () => {
@@ -135,8 +135,8 @@ describe("detectThemeName", () => {
     expect(detectThemeName({ COLORFGBG: "0;7", VANTA_THEME: "neon" })).toBe("light");
   });
 
-  it("invalid VANTA_THEME falls through to bg detection (dark → default)", () => {
-    expect(detectThemeName({ COLORFGBG: "15;0", VANTA_THEME: "neon" })).toBe("default");
+  it("invalid VANTA_THEME falls through to bg detection (dark → mono)", () => {
+    expect(detectThemeName({ COLORFGBG: "15;0", VANTA_THEME: "neon" })).toBe("mono");
   });
 });
 
@@ -147,9 +147,9 @@ describe("resolveTheme auto-detect integration", () => {
     expect(t.dimText).toBe(true);
   });
 
-  it("dark terminal with no override yields default theme", () => {
+  it("dark terminal with no override yields mono theme", () => {
     const t = resolveTheme({ COLORFGBG: "15;0" });
-    expect(t.accent).toBe("#a09890");  // default accent
+    expect(t.accent).toBe("#888888");  // mono accent
   });
 
   it("VANTA_THEME override on light terminal uses the explicit theme", () => {
