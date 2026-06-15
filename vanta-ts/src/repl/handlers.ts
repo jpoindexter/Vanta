@@ -76,7 +76,6 @@ const attachments: SlashHandler = (arg, ctx) => {
 };
 
 const history: SlashHandler = (_arg, ctx) => ({ output: formatHistory(ctx.convo.messages) || "  (no history yet)" });
-
 const exportConvo: SlashHandler = async (_arg, ctx) => {
   const { writeFile, mkdir } = await import("node:fs/promises");
   const dir = join(ctx.dataDir, "exports");
