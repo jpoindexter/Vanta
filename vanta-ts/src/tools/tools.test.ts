@@ -62,6 +62,7 @@ describe("registry", () => {
       "git_diff",
       "git_push",
       "git_status",
+      "github_read",
       "glob_files",
       "gmail_draft",
       "gmail_read",
@@ -81,6 +82,7 @@ describe("registry", () => {
       "money",
       "mount_mcp",
       "playbook",
+      "podcast_read",
       "protect",
       "radar",
       "reach",
@@ -115,6 +117,7 @@ describe("registry", () => {
       "world",
       "write_file",
       "write_skill",
+      "youtube_read",
     ]);
   });
 

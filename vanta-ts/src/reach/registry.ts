@@ -5,11 +5,23 @@ import { rssChannel } from "./channels/rss.js";
 import { redditChannel } from "./channels/reddit.js";
 import { twitterChannel } from "./channels/twitter.js";
 import { linkedinChannel } from "./channels/linkedin.js";
+import { youtubeChannel } from "./channels/youtube.js";
+import { githubChannel } from "./channels/github.js";
+import { podcastChannel } from "./channels/podcast.js";
 
-// Order matters for resolveChannel: more specific URL matchers (rss, reddit,
-// twitter, linkedin) come before the catch-all `web` so a feed/reddit/x/linkedin
-// link routes to the right channel, not the generic reader.
-export const REACH_CHANNELS: ReachChannel[] = [rssChannel, redditChannel, twitterChannel, linkedinChannel, webChannel, searchChannel];
+// Order: most-specific URL matchers first (youtube/github/podcast/rss/reddit/twitter/linkedin)
+// so a YouTube link routes to youtube, not the generic web reader.
+export const REACH_CHANNELS: ReachChannel[] = [
+  youtubeChannel,
+  githubChannel,
+  podcastChannel,
+  rssChannel,
+  redditChannel,
+  twitterChannel,
+  linkedinChannel,
+  webChannel,
+  searchChannel,
+];
 
 /** The first channel that handles a URL (URL-routed read), or undefined. */
 export function resolveChannel(

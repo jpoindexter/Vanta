@@ -11046,25 +11046,55 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "REACH-PODCAST",
+      "id": "REACH-YOUTUBE",
       "track": "Harness",
-      "title": "Podcast channel — episode audio → transcript (Whisper)",
-      "status": "horizon",
+      "title": "YouTube channel — video info + subtitles via yt-dlp",
+      "status": "shipped",
       "size": "M",
-      "summary": "From Agent-Reach xiaoyuzhou.py (小宇宙 + Whisper): fetch a podcast episode's audio and transcribe it to text for the agent to read/summarize. Vanta already has a `transcribe` tool (audio→text); this channel adds episode resolution + the podcast source. Generalize beyond 小宇宙 to any podcast/audio URL.",
-      "done": "A podcast reach path resolves an episode to audio and returns a transcript via the existing transcribe tool; degrades clearly when the transcribe backend is unavailable.",
+      "summary": "youtube_read tool (reach/youtube.ts): yt-dlp -j for metadata, --write-auto-subs for captions, VTT dedup parser. youtubeChannel: canHandle youtube.com/watch|youtu.be, probes yt-dlp + JS runtime, tier 0. mode=info|subtitles|both (default).",
+      "done": "youtube_read returns title/description/metadata and/or deduplicated subtitle text; youtubeChannel in the registry; errors-as-values; zero auth required.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14"
+      "updated": "2026-06-15"
+    },
+    {
+      "id": "REACH-GITHUB",
+      "track": "Harness",
+      "title": "GitHub channel — repos, issues, PRs, READMEs via gh CLI",
+      "status": "shipped",
+      "size": "S",
+      "summary": "github_read tool (tools/github-read.ts): actions repo/issues/prs/readme/search via gh CLI. githubChannel: canHandle github.com/* URLs, probes gh + auth status, tier 0. Zero-config for public repos; gh auth login unlocks private repos.",
+      "done": "github_read returns repo metadata, issue/PR lists, README content, or search results; githubChannel in the registry; errors-as-values.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "reach",
+      "updated": "2026-06-15"
+    },
+    {
+      "id": "REACH-PODCAST",
+      "track": "Harness",
+      "title": "Podcast channel — episode audio → transcript (Groq Whisper)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "podcast_read tool (tools/podcast.ts + reach/podcast.ts): downloads audio URL to tmp, POSTs to Groq Whisper API (whisper-large-v3, free tier). podcastChannel: canHandle audio extensions + major podcast platforms, probes GROQ_API_KEY, tier 0. Replaced xiaoyuzhou-specific origin with generic audio-URL transcription.",
+      "done": "podcast_read transcribes a direct audio URL via Groq Whisper; podcastChannel in the registry; fails clearly when GROQ_API_KEY absent or audio > 24 MB.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "reach",
+      "updated": "2026-06-15"
     },
     {
       "id": "REACH-V2EX",
       "track": "Harness",
       "title": "V2EX channel — hot/node threads + replies (zero-config)",
-      "status": "horizon",
+      "status": "parked",
       "size": "S",
       "summary": "From Agent-Reach v2ex.py: zero-config read of V2EX hot posts, node posts, thread detail + replies, user info (public API, no auth). Cheap pure-TS channel (native fetch + parse). Niche for Jason but zero-config, so low-cost to add for dev-community signal.",
       "done": "A v2ex reach path reads hot/node threads + a thread's detail and replies via the public API; errors-as-values; tested with an inline fixture.",
@@ -11073,13 +11103,13 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-14"
+      "updated": "2026-06-15"
     },
     {
       "id": "REACH-BILIBILI",
       "track": "Harness",
       "title": "Bilibili channel — search + video detail + subtitles",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "From Agent-Reach bilibili.py (bili-cli ▸ OpenCLI ▸ search API; yt-dlp retired after Bilibili 412 anti-scrape). Search + video detail with no login; subtitles via OpenCLI. Shows the multi-backend re-routing value (the channel survived an upstream break by swapping backends). China-centric — defer unless a concrete need.",
       "done": "A bilibili reach path searches + reads video detail via the upstream CLI when present, with the documented fallback order and a fix prescription on a gap.",
@@ -11088,13 +11118,13 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14"
+      "updated": "2026-06-15"
     },
     {
       "id": "REACH-XIAOHONGSHU",
       "track": "Harness",
       "title": "Xiaohongshu (小红书) channel — search + read notes",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "From Agent-Reach xiaohongshu.py (OpenCLI desktop ▸ xiaohongshu-mcp server ▸ xhs-cli). Login-state required; reuses browser login via OpenCLI or scan-login via the MCP server. China-centric consumer-product sentiment source. Defer unless a concrete need; needs REACH-COOKIE-IMPORT / OpenCLI.",
       "done": "A xiaohongshu reach path searches + reads notes via the upstream backend when configured, with the setup guide and graceful degradation otherwise.",
@@ -11103,13 +11133,13 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14"
+      "updated": "2026-06-15"
     },
     {
       "id": "REACH-XUEQIU",
       "track": "Harness",
       "title": "Xueqiu (雪球) channel — quotes, stock search, hot posts",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "From Agent-Reach xueqiu.py: stock quotes, search, hot posts, hot-stock ranking (needs light config). Finance/market signal source, China-centric. Defer unless a concrete need (e.g. a markets/finance use case appears).",
       "done": "A xueqiu reach path returns quotes + stock search + hot posts when configured; errors-as-values; setup guidance on a gap.",
@@ -11118,7 +11148,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14"
+      "updated": "2026-06-15"
     },
     {
       "id": "REACH-SELFHEAL",

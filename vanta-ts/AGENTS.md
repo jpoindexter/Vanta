@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3402 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3420 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -31,11 +31,16 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/index.ts` — register every new tool here AND in `tools/tools.test.ts` sorted list
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 95 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 97 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
+- `src/repl/rewind-cmd.ts` + `src/sessions/file-checkpoint.ts` — `/rewind`: in-memory per-edit file checkpoints, max 20 snapshots
+- `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` shell hooks
+- `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
+- `src/tools/structured-output.ts` + `src/agent/structured-output.ts` — synthetic `StructuredOutput` tool for SDK `outputSchema`
+- `src/compress/reactive.ts` — reactive trimming for oversized tool results before the next model turn
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
 - `src/modes/permission-mode.ts` — `default|acceptEdits|auto` mode parsing/env sync; acceptEdits bypasses the kernel only for six filesystem tools
@@ -69,8 +74,8 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/index.ts` currently registers **81 built-in tools**; runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **95 slash commands**.
+- `src/tools/index.ts` currently registers **83 built-in tools**; runtime MCP mounts can add more.
+- `src/repl/catalog.ts` currently exposes **97 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
@@ -80,6 +85,8 @@ npx tsc --noEmit                 # must be clean before any commit
 - Preference signals live in `~/.vanta/preferences.jsonl`. Human approval/denial prompts append chosen-vs-rejected rows; kernel blocks and non-human auto/rule/profile decisions do not.
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
 - Tool schemas are scoped per turn when the registry is large; `tool_search` remains available and `VANTA_TOOL_SCOPE=0` restores full exposure.
+- SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
+- Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.
 - Recalled brain memories are guarded before use: stale/conflicting/weak-provenance entries are flagged as not-used hypotheses.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - Ralph-loop continuity is project-scoped at `.vanta/ralph-loop.json`: fresh launches surface it as PAUSED, and `/goal resume|drop` explicitly activates or discards carried work.

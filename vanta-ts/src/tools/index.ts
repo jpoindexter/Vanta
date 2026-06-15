@@ -37,6 +37,9 @@ import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
 import { transcribeTool } from "./transcribe.js";
 import { twitterReadTool } from "./twitter-read.js";
+import { youtubeReadTool } from "./youtube.js";
+import { githubReadTool } from "./github-read.js";
+import { podcastReadTool } from "./podcast.js";
 import { runCodeTool } from "./run-code.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
@@ -141,6 +144,9 @@ const ALL_TOOLS: readonly Tool[] = [
   graphQueryTool,
   transcribeTool,
   twitterReadTool,
+  youtubeReadTool,
+  githubReadTool,
+  podcastReadTool,
   runCodeTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
