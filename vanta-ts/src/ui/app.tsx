@@ -127,7 +127,7 @@ function goalClip(s: string): string {
   return l.length > 88 ? `${l.slice(0, 87)}…` : l;
 }
 
-function Footer(props: { model: string; effortLevel: EffortLevel; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
+export function Footer(props: { model: string; effortLevel: EffortLevel; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
   const t = useTheme();
   return (
     <Box flexDirection="column">

@@ -10,6 +10,7 @@ import { CockpitPanel } from "./cockpit-panel.js";
 import { HelpPanel } from "./help-panel.js";
 import { TodoPanel, planMeter } from "./todo-panel.js";
 import { StatusBar } from "./status-bar.js";
+import { Footer } from "./app.js";
 import { matchSlash } from "./slash.js";
 import { EMPTY_COCKPIT } from "../tui/mission-control/cockpit-data.js";
 
@@ -189,6 +190,36 @@ describe("inline overlays", () => {
     await tick();
     expect(inst.lastFrame().trim()).toBe("");
     inst.unmount();
+  });
+});
+
+describe("Footer", () => {
+  const baseProps = { model: "gpt-4o", effortLevel: "medium" as const, ctxPct: 0, tokens: 0, contextWindow: 128000, turns: 0, busy: false, queued: 0, mcp: false, elapsed: "0s" };
+
+  it("renders 3 physical lines when goal is null (space placeholder keeps height=1)", async () => {
+    const inst = renderUi(h(Footer, { ...baseProps, goal: null }));
+    await tick();
+    // Count \n characters — the space placeholder renders as a blank row ("\n") that
+    // l.length>0 and l.trim() both incorrectly discard, so we count newlines directly.
+    // Before the fix, "" collapsed to 0 lines in Ink: 2 \n here instead of 3, causing
+    // clock-tick re-renders to accumulate 1 ghost line per second.
+    const nlCount = (inst.lastFrame().match(/\n/g) ?? []).length;
+    expect(nlCount).toBe(3);
+    inst.unmount();
+  });
+
+  it("renders the same number of lines with goal=null as with a real goal (height stable)", async () => {
+    const withGoal = renderUi(h(Footer, { ...baseProps, goal: "Analyze Vanta roadmap" }));
+    await tick();
+    const goalNl = (withGoal.lastFrame().match(/\n/g) ?? []).length;
+    withGoal.unmount();
+
+    const noGoal = renderUi(h(Footer, { ...baseProps, goal: null }));
+    await tick();
+    const noGoalNl = (noGoal.lastFrame().match(/\n/g) ?? []).length;
+    noGoal.unmount();
+
+    expect(noGoalNl).toBe(goalNl);
   });
 });
 
