@@ -10,6 +10,7 @@ import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
 import { loadSettings } from "../settings/store.js";
+import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -46,7 +47,8 @@ export async function applySafetyGate(
   // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
   // tighten() returns "block" for any kernel block regardless of the rule.
   const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
-  const decision = await applyAutoMode(ruleDecision, call.name, action, ctx);
+  const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
+  const decision = await applyOperatorProfile(autoDecision, verdict.risk, call.name, action);
 
   if (decision.decision === "block") {
     const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
@@ -59,6 +61,19 @@ export async function applySafetyGate(
   }
 
   return { approved: true };
+}
+
+async function applyOperatorProfile(
+  current: { decision: "allow" | "ask" | "block"; reason: string },
+  kernelRisk: "allow" | "ask" | "block",
+  toolName: string,
+  action: string,
+): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
+  if (current.decision === "block") return current;
+  const profile = await loadOperatorProfile(process.env).catch(() => null);
+  if (!profile) return current;
+  const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
+  return next.decision === current.decision ? current : next;
 }
 
 async function applyAutoMode(

@@ -18,6 +18,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
 | `permissions/request.ts` / `permissions/grant.ts` | Typed approval request model + allow/deny rule helpers shared by Ink and desktop |
+| `operator-profile/profile.ts` | OPERATOR-PROFILE — `~/.vanta/operator-profile.json` declared vs inferred preferences, drift detection, and tighten-only approval preferences. |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
@@ -152,7 +153,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `desktop-app/` | Vite + React desktop renderer (`AppShell`, session sidebar, chat thread, composer, right rail). Build with `npm run desktop:build`; served from `desktop-app/dist/` |
 | `desktop/assets.ts` | Safe built-asset resolver for desktop root + `/assets/*`; falls back to `desktop/page.ts` when dist is missing |
 | `cli-dx/` | CLI-DX-PACK: `prompt-size.ts` (token breakdown), `completion.ts` (shell completion + CLI_COMMANDS), `backup.ts` (tar ~/.vanta) |
-| `permissions/auto-mode.ts` | Auto permission classifier: default read-only allows, soft-deny presets, and `settings.autoMode.rules` overrides. Applied after kernel + permission rules; kernel block remains immovable |
+| `permissions/auto-mode.ts` | Auto permission classifier: default read-only allows, soft-deny presets, and `settings.autoMode.rules` overrides. Applied after kernel + permission rules; kernel block remains immovable. Operator profile preferences run after this and can only preserve/escalate. |
 
 ## The loop (`agent.ts`)
 

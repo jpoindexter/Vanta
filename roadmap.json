@@ -9809,7 +9809,7 @@
       "id": "OPERATOR-PROFILE",
       "track": "Operator",
       "title": "Operator profile — declared vs inferred autonomy preferences + drift detection",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "A declared profile (autonomy level, scope appetite, detail, risk tolerance) beside an inferred one built from observed overrides; drift over threshold surfaces a one-line flag. Per-question ask-preferences (never-ask / always-ask / ask-only-one-way); one-way doors override never-ask unconditionally. Lives in the brain user_model region (rides BRAIN-AUTOLEARN). Steals plan-tune.",
       "done": "Approval prompts respect per-question preferences; declared-vs-inferred drift is flagged; one-way doors always ask.",
@@ -9818,7 +9818,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-11"
+      "updated": "2026-06-15",
+      "notes": "SHIPPED 2026-06-15. Added `src/operator-profile/profile.ts` with `~/.vanta/operator-profile.json` store, zod schemas for declared/inferred profiles and approval preferences, signal-based inference, drift detection, and `approvalPreferenceFor`. Wired `agent/dispatch-helpers.ts` to apply profile preferences after kernel + permission rules + auto-mode: `always_ask` can escalate allowed actions, `never_ask` cannot bypass Ask/Block, one-way-door actions always ask, and kernel Block remains immovable. Verified with profile tests, permission-gate tests, desktop server tests, full TS suite (3334 green), `tsc --noEmit`, and size lint."
     },
     {
       "id": "LEARNINGS-INDEX",

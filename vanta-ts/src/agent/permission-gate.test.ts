@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applySafetyGate } from "./dispatch-helpers.js";
+import { defaultOperatorProfile, writeOperatorProfile } from "../operator-profile/profile.js";
 import type { AgentDeps } from "../agent.js";
 import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
@@ -118,5 +119,27 @@ describe("applySafetyGate + permissions", () => {
     expect(res.approved).toBe(false);
     expect(res.reason).toContain("soft-deny");
     expect(prompted).toBe(false);
+  });
+
+  it("operator profile always_ask escalates an otherwise-allowed matching action", async () => {
+    await writeOperatorProfile({
+      ...defaultOperatorProfile(),
+      approvalPreferences: { shell_cmd: "always_ask" },
+    });
+    let prompted = false;
+    const res = await applySafetyGate(call, makeDeps({ risk: "allow", approve: true, onAsk: () => { prompted = true; } }), ctx);
+    expect(res.approved).toBe(true);
+    expect(prompted).toBe(true);
+  });
+
+  it("operator profile never_ask does not bypass a kernel Ask", async () => {
+    await writeOperatorProfile({
+      ...defaultOperatorProfile(),
+      approvalPreferences: { shell_cmd: "never_ask" },
+    });
+    let prompted = false;
+    const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, onAsk: () => { prompted = true; } }), ctx);
+    expect(res.approved).toBe(true);
+    expect(prompted).toBe(true);
   });
 });
