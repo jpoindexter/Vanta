@@ -11,7 +11,7 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 **v0/v1 = done.** All 7 original PRD phases and v1.1–v1.5 tracks shipped — agent loop,
 skills+memory, web/reach, browser+vision, code/dev, autonomy primitives, comms,
 operator systems, and the real Ink 7 TUI. Current source counts: **81 built-in tools**
-and **93 slash commands**. Last recorded full verify: **3313 TS tests**, `tsc` clean,
+and **93 slash commands**. Last recorded full verify: **3323 TS tests**, `tsc` clean,
 kernel tests green.
 
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and

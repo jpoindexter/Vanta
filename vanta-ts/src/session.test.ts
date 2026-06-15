@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { buildSummarizer } from "./session.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildSummarizer, loadRalphContinuity } from "./session.js";
+import { writeRalphState } from "./ralph/state.js";
 import type { LLMProvider, CompletionResult, ToolSchema } from "./providers/interface.js";
 import type { Message } from "./types.js";
 
@@ -40,5 +44,25 @@ describe("buildSummarizer", () => {
     const { provider, lastMessages } = captureProvider();
     await buildSummarizer(provider, "   ")(msgs);
     expect(sysPrompt(lastMessages())).not.toContain("Focus especially on");
+  });
+});
+
+describe("loadRalphContinuity", () => {
+  it("returns a paused block only when project Ralph state has incomplete work", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-session-ralph-"));
+    try {
+      await expect(loadRalphContinuity(root)).resolves.toBeUndefined();
+      await writeRalphState(join(root, ".vanta"), {
+        goal: "Ship Ralph loop",
+        features: [{ id: "prompt", title: "Paused prompt injection", status: "pending" }],
+        updatedAt: "2026-06-15T10:00:00.000Z",
+      });
+      const block = await loadRalphContinuity(root);
+      expect(block).toContain("PAUSED");
+      expect(block).toContain("Ship Ralph loop");
+      expect(block).toContain("/goal resume");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

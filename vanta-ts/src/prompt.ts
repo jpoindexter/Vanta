@@ -99,9 +99,9 @@ function playbookTier(playbook?: string): string {
 function volatileTier(
   goals: Goal[],
   now: string,
-  extra: { memory?: string; moimNote?: string; projectId?: string; goalsPaused?: boolean } = {},
+  extra: { memory?: string; moimNote?: string; projectId?: string; goalsPaused?: boolean; ralphContinuity?: string } = {},
 ): string {
-  const { memory, moimNote, projectId, goalsPaused } = extra;
+  const { memory, moimNote, projectId, goalsPaused, ralphContinuity } = extra;
   const active = goals.filter((g) => g.status === "active");
   const goalLines = active.map((g) => `- [${g.id}] ${g.text}`).join("\n");
   // A goal carried from a previous session starts PAUSED: the agent must not
@@ -113,7 +113,8 @@ function volatileTier(
       ? `Carried goal from a previous session — PAUSED. Do NOT act on it or steer toward it until the user resumes it (/goal resume) or references it; otherwise treat this turn as having no active goal:\n${goalLines}`
       : `Active goals:\n${goalLines}`;
   const idLine = projectId ? `Project ID: ${projectId} (stable across machines and worktrees)\n\n` : "";
-  const base = `${idLine}${goalBlock}\n\nSession started: ${now}`;
+  const continuity = ralphContinuity?.trim() ? `${ralphContinuity.trim()}\n\n` : "";
+  const base = `${idLine}${continuity}${goalBlock}\n\nSession started: ${now}`;
   const withMemory = memory?.trim()
     ? `${base}\n\nRecent memory toward your goals:\n${memory}`
     : base;
@@ -138,6 +139,8 @@ export async function buildSystemPrompt(opts: {
   projectId?: string;
   /** True → a carried goal is framed as paused (not the active directive). */
   goalsPaused?: boolean;
+  /** Paused Ralph-loop filesystem continuity block, if present. */
+  ralphContinuity?: string;
   /** SCAFFOLD: versioned identity/values/honesty from ~/.vanta/self/ */
   selfContent?: string;
   /** PAPER-EXPERIENTIAL-MEMORY: matching plays from ~/.vanta/playbook.jsonl */
@@ -162,7 +165,7 @@ export async function buildSystemPrompt(opts: {
     errorsLogTier(opts.errorsLog),
     playbookTier(opts.playbook),
     tasksTier,
-    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused }),
+    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused, ralphContinuity: opts.ralphContinuity }),
   ].filter(Boolean);
   return tiers.join(TIER_SEP);
 }

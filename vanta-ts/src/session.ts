@@ -18,6 +18,7 @@ import { mountMcpServers } from "./mcp/mount.js";
 import type { Settings } from "./settings/store.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { sessionConfig, sessionConfigEvent } from "./sessions/config-event.js";
+import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } from "./ralph/state.js";
 import type { Summarizer } from "./context.js";
 import type { Goal } from "./types.js";
 
@@ -41,6 +42,7 @@ export type RunSetup = {
   provider: LLMProvider;
   goals: Goal[];
   systemPrompt: string;
+  ralphContinuity?: string;
 };
 
 /**
@@ -151,6 +153,7 @@ export async function prepareRun(
 
   const ctx = await loadPromptContext(repoRoot, activeIds);
   const playbook = await playbookDigest(instruction).catch(() => "");
+  const ralphContinuity = await loadRalphContinuity(repoRoot);
   let systemPrompt = await buildSystemPrompt({
     root: repoRoot,
     soulPath: join(repoRoot, "SOUL.md"),
@@ -165,6 +168,7 @@ export async function prepareRun(
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
     playbook,
+    ralphContinuity,
     // Carried goal starts PAUSED (no silent resume on a fresh launch); VANTA_GOAL_RESUME=auto = old behavior.
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
   });
@@ -175,7 +179,12 @@ export async function prepareRun(
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
   logSessionConfig(safety, provider, registry, systemPrompt); // reproducibility (SELFHARNESS-CONFIG-REPRO)
-  return { safety, registry, pluginCommands, provider, goals, systemPrompt };
+  return { safety, registry, pluginCommands, provider, goals, systemPrompt, ralphContinuity };
+}
+
+export async function loadRalphContinuity(repoRoot: string): Promise<string | undefined> {
+  const state = await readRalphState(join(repoRoot, ".vanta"));
+  return state && hasIncompleteRalphWork(state) ? formatRalphContinuityBlock(state) : undefined;
 }
 
 const SUMMARIZE_SYS =

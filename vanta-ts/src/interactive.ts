@@ -176,6 +176,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
   };
   console.log(renderBanner({ modelId: setup.provider.modelId(), root: repoRoot, goals: setup.goals, toolNames: setup.registry.schemas().map((s) => s.name), skillNames: skills.map((s) => s.meta.name) }));
+  printRalphContinuityNotice(setup.ralphContinuity);
   if (resumed) console.log(`  ↻ Resumed session ${resumed.id} "${resumed.title}" (${resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
   else if (opts.resumeId) console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
 
@@ -200,6 +201,10 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
+}
+
+function printRalphContinuityNotice(block?: string): void {
+  if (block) console.log(`  ↻ ${block.split("\n")[0]} Use /goal resume to continue or /goal drop to discard.\n`);
 }
 
 async function loadResumeTarget(id: string, fork: boolean | undefined): Promise<Awaited<ReturnType<typeof loadSession>>> {

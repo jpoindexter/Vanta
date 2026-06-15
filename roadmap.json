@@ -10439,7 +10439,7 @@
       "id": "HARNESS-RALPH-LOOP",
       "track": "Harness",
       "title": "Ralph Loop — two-phase long-running pattern with filesystem continuity",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The Anatomy of an Agent Harness (Pachaar, 2026): long tasks spanning many context windows use an Initializer agent (env + progress file + feature list + initial git commit), then a Coding agent each session that reads git logs + progress files, picks the highest-priority incomplete feature, works, commits, summarizes. The filesystem provides continuity — the agent re-derives 'where was I' from durable state, not a carried transcript. Vanta has loops + snapshots + handoff; formalize a progress-file + feature-list resume so a fresh session orients from durable state and chooses what to pick up.",
       "done": "A long task persists a progress file + feature list; a fresh session orients from it and resumes the top incomplete item (or drops it) rather than inheriting a stale transcript.",
@@ -10448,7 +10448,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-13"
+      "updated": "2026-06-15",
+      "notes": "SHIPPED 2026-06-15. Added `src/ralph/state.ts` for `.vanta/ralph-loop.json` with zod-validated goal, ordered feature list, feature status, summaries, next action, relevant files, and timestamp. `prepareRun` reads incomplete Ralph state and injects a PAUSED continuity block into the system prompt; TUI/readline surface a visible notice. `/goal resume` activates the next incomplete feature and patches the live prompt; `/goal drop` marks incomplete Ralph features dropped. Verified with Ralph state tests, prompt tests, goal-command tests, full TS suite (3323 green), and `tsc --noEmit`."
     },
     {
       "id": "HARNESS-MEMORY-GUARDRAILS",

@@ -75,6 +75,21 @@ describe("buildSystemPrompt", () => {
     expect(active).not.toContain("PAUSED");
   });
 
+  it("injects Ralph loop continuity as paused work, not an active directive", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+      ralphContinuity: "Ralph loop progress found — PAUSED. Use /goal resume or /goal drop.",
+    });
+    expect(prompt).toContain("Ralph loop progress found");
+    expect(prompt).toContain("PAUSED");
+    expect(prompt).toContain("/goal resume");
+    expect(prompt).not.toContain("work toward it now");
+  });
+
   it("carries the operator voice rule and the hardened done-claim discipline (BEHAVIOR-VOICE)", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",

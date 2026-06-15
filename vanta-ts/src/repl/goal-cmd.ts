@@ -1,5 +1,6 @@
 import { lines } from "./format.js";
 import { isVagueGoal, buildNextStepResend } from "./next.js";
+import { dropIncompleteRalphWork, hasIncompleteRalphWork, readRalphState, selectNextIncompleteFeature, updateFeatureStatus, writeRalphState } from "../ralph/state.js";
 import type { ReplCtx, SlashResult } from "./types.js";
 import type { SlashHandler } from "./types.js";
 
@@ -36,10 +37,26 @@ async function goalResume(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   return { output: `  ▶ resumed goal: ${text}` };
 }
 
-async function goalDrop(safety: Safety): Promise<SlashResult> {
+async function goalResumeRalph(ctx: ReplCtx): Promise<SlashResult | null> {
+  const state = await readRalphState(ctx.dataDir);
+  if (!state || !hasIncompleteRalphWork(state)) return null;
+  const next = selectNextIncompleteFeature(state);
+  const resumed = next ? updateFeatureStatus(state, next.id, "in_progress") : state;
+  await writeRalphState(ctx.dataDir, resumed);
+  const sys = ctx.convo.messages[0];
+  if (sys && sys.role === "system") {
+    sys.content += `\n\nResumed Ralph loop — work toward it now:\nGoal: ${resumed.goal}${next ? `\nCurrent feature: [${next.id}] ${next.title}` : ""}`;
+  }
+  return { output: `  ▶ resumed Ralph loop: ${state.goal}${next ? ` — ${next.title}` : ""}` };
+}
+
+async function goalDrop(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   const active = await activeGoals(safety);
   for (const g of active) await safety.completeGoal(g.id);
-  return { output: `  · dropped ${active.length} active goal(s) — starting fresh` };
+  const state = await readRalphState(ctx.dataDir);
+  if (!state || !hasIncompleteRalphWork(state)) return { output: `  · dropped ${active.length} active goal(s) — starting fresh` };
+  await writeRalphState(ctx.dataDir, dropIncompleteRalphWork(state));
+  return { output: `  · dropped ${active.length} active goal(s) and dropped Ralph loop — starting fresh` };
 }
 
 async function goalDone(arg: string, safety: Safety): Promise<SlashResult> {
@@ -56,8 +73,8 @@ export const goal: SlashHandler = async (arg, ctx) => {
   const safety = ctx.setup.safety;
   const sub = arg.split(/\s+/)[0]?.toLowerCase() ?? "";
   if (!arg || sub === "status") return goalStatus(safety);
-  if (sub === "resume") return goalResume(safety, ctx);
-  if (sub === "clear" || sub === "drop") return goalDrop(safety);
+  if (sub === "resume") return (await goalResumeRalph(ctx)) ?? goalResume(safety, ctx);
+  if (sub === "clear" || sub === "drop") return goalDrop(safety, ctx);
   if (sub === "done") return goalDone(arg, safety);
   return setNewGoal(arg, ctx); // anything else is new goal text
 };

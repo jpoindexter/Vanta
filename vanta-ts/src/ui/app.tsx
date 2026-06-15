@@ -57,14 +57,9 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
 
-  const [skillMatches, setSkillMatches] = useState<SlashMatch[]>([]);
+  const skillMatches = useSkillMatches();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
-  useEffect(() => {
-    void listSkills(process.env).then((skills) =>
-      setSkillMatches(skills.map((s) => ({ name: slugifySkillName(s.meta.name), desc: s.meta.description ?? "" })))
-    ).catch(() => {});
-  }, []);
-  const { goal, mcp, elapsed } = useSessionStatus(props.setup.safety, state.busy, replStateRef.current.started, dispatch);
+  const { goal, mcp, elapsed } = useSessionStatus(props.setup, state.busy, replStateRef.current.started, dispatch);
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
@@ -203,20 +198,37 @@ function useMcpPresent(): boolean {
   return present;
 }
 
+function useSkillMatches(): SlashMatch[] {
+  const [matches, setMatches] = useState<SlashMatch[]>([]);
+  useEffect(() => {
+    void listSkills(process.env).then((skills) =>
+      setMatches(skills.map((s) => ({ name: slugifySkillName(s.meta.name), desc: s.meta.description ?? "" })))
+    ).catch(() => {});
+  }, []);
+  return matches;
+}
+
 /** The footer's live status: active goal + MCP presence + a 1 Hz session timer.
  * Also surfaces a one-time carried-goal notice (a prior goal starts paused). */
-function useSessionStatus(safety: RunSetup["safety"], busy: boolean, startedIso: string, dispatch: Dispatch<Action>): { goal: string | null; mcp: boolean; elapsed: string } {
-  const goal = useActiveGoal(safety, busy);
+function useSessionStatus(setup: RunSetup, busy: boolean, startedIso: string, dispatch: Dispatch<Action>): { goal: string | null; mcp: boolean; elapsed: string } {
+  const goal = useActiveGoal(setup.safety, busy);
   const mcp = useMcpPresent();
   useClock();
   useEffect(() => {
     if (process.env.VANTA_GOAL_RESUME === "auto") return;
-    void safety.getGoals().then((gs) => {
+    if (setup.ralphContinuity) dispatch({ t: "note", text: firstRalphNotice(setup.ralphContinuity) });
+    void setup.safety.getGoals().then((gs) => {
       const g = gs.find((x) => x.status === "active");
       if (g) dispatch({ t: "note", text: `↻ Carried goal (paused): ${g.text.slice(0, 78)} — /goal resume to pick up · /goal clear to drop` });
     }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return { goal, mcp, elapsed: formatElapsed(Date.now() - Date.parse(startedIso)) };
+}
+
+function firstRalphNotice(block: string): string {
+  const goal = block.match(/^Goal: (.+)$/m)?.[1] ?? "carried work";
+  const next = block.match(/^Next incomplete: (.+)$/m)?.[1] ?? "next item";
+  return `↻ Ralph loop progress found: ${goal.slice(0, 60)} — ${next.slice(0, 60)} · /goal resume to continue · /goal drop to discard`;
 }
 
 /** Drain one queued message per turn once the agent is idle again. */

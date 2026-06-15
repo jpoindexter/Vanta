@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { HANDLERS } from "./handlers.js";
+import { writeRalphState, readRalphState } from "../ralph/state.js";
 import type { ReplCtx } from "./types.js";
 
 function makeCtx(env: NodeJS.ProcessEnv): ReplCtx {
@@ -66,5 +70,45 @@ describe("/goal resume + drop", () => {
     const r = await HANDLERS.goal!("drop", ctxFor([{ id: 1, text: "X", status: "active" }, { id: 2, text: "Y", status: "active" }], completed));
     expect(r.output).toContain("dropped 2");
     expect(completed).toEqual([1, 2]);
+  });
+
+  it("resume activates Ralph continuity when no carried kernel goal exists", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-ralph-goal-"));
+    try {
+      await writeRalphState(dataDir, {
+        goal: "Ship Ralph loop",
+        features: [{ id: "prompt", title: "Paused prompt injection", status: "pending" }],
+        nextAction: "Update prompt.ts",
+        relevantFiles: ["src/prompt.ts"],
+        updatedAt: "2026-06-15T10:00:00.000Z",
+      });
+      const ctx = { ...ctxFor([], []), dataDir };
+      const r = await HANDLERS.goal!("resume", ctx);
+      expect(r.output).toContain("resumed Ralph loop");
+      expect((ctx.convo.messages[0] as { content: string }).content).toContain("Resumed Ralph loop");
+      expect((ctx.convo.messages[0] as { content: string }).content).toContain("Paused prompt injection");
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
+  });
+
+  it("drop marks incomplete Ralph features dropped", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-ralph-drop-"));
+    try {
+      await writeRalphState(dataDir, {
+        goal: "Ship Ralph loop",
+        features: [
+          { id: "a", title: "Done item", status: "done" },
+          { id: "b", title: "Pending item", status: "pending" },
+        ],
+        updatedAt: "2026-06-15T10:00:00.000Z",
+      });
+      const r = await HANDLERS.goal!("drop", { ...ctxFor([], []), dataDir });
+      expect(r.output).toContain("dropped Ralph loop");
+      const state = await readRalphState(dataDir);
+      expect(state?.features.map((f) => f.status)).toEqual(["done", "dropped"]);
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
   });
 });
