@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3283 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3291 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -37,6 +37,8 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
+- `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
+- `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
 - `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
 - `src/ui/app.tsx` — Ink 7 TUI shell: `<Static>` transcript, composer, overlays, slash palette, approval UI
@@ -64,6 +66,8 @@ npx tsc --noEmit                 # must be clean before any commit
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Auto permission mode is opt-in: `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs the classifier after kernel + permission rules; `vanta auto-mode defaults|config` inspects rules.
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
+- Tool schemas are scoped per turn when the registry is large; `tool_search` remains available and `VANTA_TOOL_SCOPE=0` restores full exposure.
+- Recalled brain memories are guarded before use: stale/conflicting/weak-provenance entries are flagged as not-used hypotheses.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
 - Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.

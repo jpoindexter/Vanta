@@ -11,6 +11,7 @@ import { applyMessageDisplay } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { dispatchTool } from "./agent/dispatch-tool.js";
 import type { DispatchOutcome } from "./agent/dispatch-tool.js";
+import { scopeToolSchemas, toolScopeContext } from "./agent/tool-scope.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
 import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
@@ -251,7 +252,7 @@ async function getCompletion(
   signal?: AbortSignal,
   pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>> },
 ): Promise<CompletionResult> {
-  const schemas = deps.registry.schemas();
+  const schemas = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
   const cfg = signal ? { signal } : undefined;
   if (deps.provider.stream && deps.onTextDelta) {
     const onSafeToolCall = pf
@@ -269,4 +270,3 @@ async function getCompletion(
   }
   return deps.provider.complete(messages, schemas, cfg);
 }
-

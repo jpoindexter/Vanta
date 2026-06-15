@@ -17,6 +17,7 @@ const EXPECTED_NAMES = [
   "revenue-push",
   "pre-ship-review",
   "inspect-opportunity",
+  "solutioning-mode",
   "body-double",
 ];
 
@@ -29,24 +30,32 @@ describe("operator modes", () => {
     await rm(HOME, { recursive: true, force: true });
   });
 
-  it("defines exactly the seven expected modes", () => {
+  it("defines exactly the eight expected modes", () => {
     expect(OPERATOR_MODES.map((m) => m.name).sort()).toEqual(
       [...EXPECTED_NAMES].sort(),
     );
   });
 
-  it("installs all seven modes and returns their names", async () => {
+  it("installs all eight modes and returns their names", async () => {
     const installed = await installModes({ env, now: NOW });
     expect(installed.sort()).toEqual([...EXPECTED_NAMES].sort());
   });
 
-  it("writes seven skills retrievable via listSkills", async () => {
+  it("writes eight skills retrievable via listSkills", async () => {
     await installModes({ env, now: NOW });
     const names = (await listSkills(env)).map((s) => s.meta.name);
     for (const expected of EXPECTED_NAMES) {
       expect(names).toContain(expected);
     }
     expect(names.length).toBe(EXPECTED_NAMES.length);
+  });
+
+  it("solutioning mode ranks what to build with sources before build action", () => {
+    const mode = OPERATOR_MODES.find((m) => m.name === "solutioning-mode");
+    expect(mode?.body).toContain("ranked recommendation");
+    expect(mode?.body).toContain("what to build");
+    expect(mode?.body).toContain("sources");
+    expect(mode?.body).toContain("before any build action");
   });
 
   it("stores a real multi-step body for build-product-slice", async () => {

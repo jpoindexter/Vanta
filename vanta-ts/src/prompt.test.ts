@@ -43,6 +43,24 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Never declare a task complete without verified");
   });
 
+  it("summarizes a large tool catalog instead of listing every tool in the stable prompt", async () => {
+    const manyTools = [
+      "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
+      "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "lsp_diagnostics",
+      "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move",
+    ].map((name) => ({ name, description: `${name} tool`, parameters: {} }));
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools: manyTools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    expect(prompt).toContain("Available tools (scoped)");
+    expect(prompt).toContain("tool_search");
+    expect(prompt).not.toContain("gmail_send");
+  });
+
   it("frames a carried goal as PAUSED when goalsPaused, active otherwise", async () => {
     const goals: Goal[] = [{ id: 1, text: "Ship Vanta v0", status: "active" }];
     const base = { root: "/tmp/vanta", soulPath: "/nonexistent/SOUL.md", goals, tools, now: "2026-06-02T00:00:00Z" };

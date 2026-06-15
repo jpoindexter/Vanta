@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
 import { readRegion, writeRegion, remember, recall } from "../brain/brain.js";
+import { guardMemoryRecall } from "../memory/guardrails.js";
 
 // The `brain` tool: Vanta reads and grows its own brain (~/.vanta/brain/). A digest
 // is already in the system prompt; use this to work a region in full (read/append/
@@ -54,7 +55,8 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
 
 async function handleRecall(a: ParsedArgs): Promise<ToolResult> {
   const r = await recall({ query: a.query, region: a.region, topK: a.top_k ?? 10 });
-  return { ok: true, output: r.entries.length ? r.formatted : "(no matching memories)" };
+  if (!r.entries.length) return { ok: true, output: "(no matching memories)" };
+  return { ok: true, output: guardMemoryRecall(r.entries).formatted };
 }
 
 export const brainTool: Tool = {

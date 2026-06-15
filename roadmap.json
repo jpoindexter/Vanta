@@ -248,16 +248,17 @@
       "id": "SOLUTIONING-MODE",
       "track": "Solutioning",
       "title": "Solutioning mode — research → decide what to build + how to win",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
-      "summary": "A 7th operator mode (alongside modes/builtin.ts) running the FRONT half of rocket.new's loop, Vanta-native: web research + browser + brain + goals → an evidence-backed, RANKED 'what to build and why it wins' recommendation, not just execution. Local + kernel-gated; no platform, no SaaS. Pairs with AUTO-WATCH (the 'watch what's next' half) on one shared brain. From the rocket.new 'Solve' layer; the part Jason actually wants.",
+      "summary": "SHIPPED 2026-06-15. `solutioning-mode` is now an installable operator mode in `modes/builtin.ts`: it grounds a vague objective in goals/brain/project notes, researches with web/life/local context, ranks 3-5 candidate solutions, cites sources, scores win factors, recommends what to build and why, and stops before any build action.",
       "done": "From a vague objective, Vanta returns a ranked recommendation (what to build + why it wins) grounded in goals+brain, with sources, before any build action.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-10"
+      "updated": "2026-06-15",
+      "notes": "Verified by operator-mode tests covering installability and the required ranked recommendation/source/before-build contract."
     },
     {
       "id": "PLUGIN-FRAMEWORK",
@@ -10451,16 +10452,17 @@
       "id": "HARNESS-MEMORY-GUARDRAILS",
       "track": "Harness",
       "title": "Memory-level guardrails — freshness / conflict / provenance before acting",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
-      "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) (comment gap on component 9) + the 'memory is a hint, verify against state' principle: before the agent acts on a retrieved memory, check it is fresh, non-conflicting, and provenanced — embeddings return topically similar but contextually wrong items (where context rot starts). Vanta has brain (semantic/episodic/user_model) + recall; add a guard that validates a recalled memory against current state before it drives an action.",
+      "summary": "SHIPPED 2026-06-15. `memory/guardrails.ts` classifies recalled brain entries for freshness, conflict, and provenance. `brain` recall now returns guarded output: usable memories are marked `use`, stale/conflicting/weak-provenance memories are marked `not used`, and the prompt requires current-state verification before acting from flagged memory.",
       "done": "Recalled memories pass a freshness/conflict/provenance guard before influencing a tool call; stale/conflicting ones are flagged not used.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-13"
+      "updated": "2026-06-15",
+      "notes": "Guard treats non-crystallized entries older than 30 days as stale, entries with contradictions/low adjusted confidence as conflicting, and unsupported inference as weak provenance. Flagged memories are hypotheses only."
     },
     {
       "id": "HARNESS-OBSERVATION-MASKING",
@@ -10481,16 +10483,17 @@
       "id": "HARNESS-TOOL-SCOPING",
       "track": "Harness",
       "title": "Per-task tool scoping — expose the minimum tool set per step",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
-      "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) decision 6: more tools = worse performance (Vercel removed 80% of tools and improved; Claude lazy-loads for 95% context reduction). Vanta exposes a large tool set every turn. Scope the exposed set to the task/step (e.g. by goal lens or a relevance pass), revealing more on demand. Complements PAPER-DEFERRED-SCHEMAS (lazy schemas) with subsetting.",
+      "summary": "SHIPPED 2026-06-15. `agent/tool-scope.ts` scopes large registries to a task-relevant schema subset on each provider call and the stable prompt lists a scoped catalog instead of every tool. `tool_search` remains exposed for on-demand expansion, explicit full-tool requests bypass scoping, and `VANTA_TOOL_SCOPE=0` restores full exposure.",
       "done": "The model sees a task-relevant tool subset per turn, not every built-in tool; the full set is reachable on demand; measured context reduction.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-13"
+      "updated": "2026-06-15",
+      "notes": "Verified with provider-call tests proving schema reduction and prompt tests proving the full catalog is not listed in large-registry prompts. `toolScopeSummary` reports exposed/total schema count and percent reduction."
     },
     {
       "id": "HARNESS-VISUAL-VERIFY",

@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3283 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-15 notes)
+- **Last recorded full verify:** 3291 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-15 notes)
 
 ## Run + Verify
 
@@ -34,6 +34,8 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. Default v1 is `src/ui/app.tsx`; `VANTA_TUI=v2` opts into `src/ui/v2/app-v2.tsx` mission-control rails. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
 - **Desktop:** localhost host in `vanta-ts/src/desktop/` serves built Vite/React assets from `vanta-ts/desktop-app/dist/`; `page.ts` is only the fallback build notice. Approval-required actions still use the explicit pending-approval flow.
 - **Permission UI:** `vanta-ts/src/permissions/request.ts` builds typed approval views (bash/file edit/file write/web/computer/sandbox/skill). TUI and desktop both render Allow once / Always allow / Deny / Never allow; always/never persist tool-scoped rules.
+- **Harness guardrails:** `vanta-ts/src/memory/guardrails.ts` marks stale/conflicting/weak-provenance recalled memories as not-used hypotheses; `agent/tool-scope.ts` exposes task-relevant tool schemas per turn plus `tool_search`.
+- **Solutioning:** `solutioning-mode` is an installed operator mode: research -> ranked what-to-build recommendation with sources -> stop before build.
 - **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
 - **Background agents:** `vanta-ts/src/cli/agents-cmd.ts` manages `~/.vanta/team-tasks.jsonl`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop`. `disableAgentView` / `VANTA_DISABLE_AGENT_VIEW=1` disables the surface.
 - **Auto permission mode:** `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled` runs `vanta-ts/src/permissions/auto-mode.ts` after kernel + permission rules; `vanta auto-mode defaults/config` inspects classifier config.

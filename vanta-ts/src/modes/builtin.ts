@@ -14,12 +14,30 @@ export type OperatorMode = {
 };
 
 /**
- * The six operator modes. Each body is a numbered procedure that names real
+ * The operator modes. Each body is a numbered procedure that names real
  * Vanta tools (read_file, web_search, web_fetch, run_code, git_status, git_diff,
  * lsp_diagnostics, write_skill) and enforces the two house rules: state the goal
  * before reaching for a tool, and verify the result before declaring done.
  */
 export const OPERATOR_MODES: OperatorMode[] = [
+  {
+    name: "solutioning-mode",
+    description: "Research a vague objective and rank what to build before execution.",
+    tags: ["mode", "solutioning", "strategy"],
+    body: [
+      "# Solutioning Mode",
+      "",
+      "Goal first: turn the vague objective into a decision question: what should be built, for whom, and what outcome would make it worth building?",
+      "",
+      "1. Read the active goals, brain, and any provided project notes first. If the objective is still ambiguous, clarify the target user and success measure before researching.",
+      "2. Use web_search, web_fetch, life_search, and relevant local files to gather evidence. Prefer primary sources, real competitors, customer pain signals, pricing, and distribution constraints.",
+      "3. Produce 3-5 candidate solutions. For each candidate, cite sources and state: target user, pain, proposed build, why now, likely channel, risk, and smallest validating slice.",
+      "4. Score each candidate 1-5 on pain intensity, willingness to pay or urgency, founder/product fit, distribution path, differentiation, and implementation effort.",
+      "5. Return a ranked recommendation: what to build, why it wins, why lower-ranked options lose, and the first no-code or smallest-code validation step.",
+      "6. Verify before done: every major claim has a source or is explicitly labeled as inferred from brain/goals; unsupported claims are marked uncertain.",
+      "7. Stop before any build action. Do not edit files, scaffold product code, or open implementation work until the user accepts the ranked recommendation.",
+    ].join("\n"),
+  },
   {
     name: "build-product-slice",
     description: "Ship one vertical slice: PRD to code to test to PR.",

@@ -18,6 +18,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
 | `permissions/request.ts` / `permissions/grant.ts` | Typed approval request model + allow/deny rule helpers shared by Ink and desktop |
+| `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
+| `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
 | `ui/composer.tsx` | Composer: custom readline (Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline) |
 | `ui/launch.tsx` | `runTuiV2(repoRoot)` — prepareRun + maybeCurate + env-selected render. Default is `ui/app.tsx`; `VANTA_TUI=v2` renders `ui/v2/app-v2.tsx`. `vanta` uses it on a TTY; readline REPL is the fallback |
@@ -66,7 +68,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `a2a/{types,local}.ts` | Phase 6 — local in-process A2A message bus (`A2ABus`, `makeMessage`). Networked transport = future |
 | `projects/rooms.ts` | Phase 7 — `listRooms`/`resolveRoom` over `VANTA_PROJECTS_DIR` (default `~/Documents/GitHub/_active`). `vanta room <name>` runs rooted there → per-project goal stream |
 | `projects/commands.ts` | Phase 7 — `vanta rooms`/`room`/`modes` CLI handlers + learning suggestion (keeps cli.ts ≤300) |
-| `modes/builtin.ts` | Phase 7 — 6 operator modes as real skills (`OPERATOR_MODES`, `installModes`). Run via `vanta skill <mode> "<instr>"` |
+| `modes/builtin.ts` | Phase 7 — 8 operator modes as real skills (`OPERATOR_MODES`, `installModes`), including `solutioning-mode`. Run via `vanta skill <mode> "<instr>"` |
 | `modes/learning.ts` | Phase 7 — `recordRun`/`shouldProposeSkill`; after a pattern recurs 3× proposes capturing it as a skill (`~/.vanta/usage.tsv`) |
 | `routing/model-router.ts` | Phase 7 — `classifyTask` (cheap/expensive) + `resolveRoutedProvider` (`VANTA_MODEL_CHEAP`/`_EXPENSIVE`; no-op when unset) |
 | `routing/vision.ts` | AUX-VISION — `visionEnv` (pure) + `resolveVisionProvider`: image tools resolve a dedicated vision model via `VANTA_VISION_MODEL` (+ optional `VANTA_VISION_PROVIDER`), else the active provider. Used by `describe_image`/`look_at_screen`/`look_at_camera` so a text-only main model doesn't break sight. The auxiliary-task pattern, scoped to vision |
@@ -223,6 +225,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 ## Session additions (2026-06-14) — keep current
 
 **Auto minimalism (rewritten from ponytail MIT, renamed `auto`).** A "do the least that works" discipline, taken non-redundant with Vanta's stack (the size gate already enforces the floor mechanically; CLAUDE.md already enforces anti-drift). **Vanta:** `skills-library/auto/SKILL.md` (the generative YAGNI→stdlib→native→dep→one-line ladder + the `auto:` ceiling-comment convention; auto-installs to `~/.vanta/skills` **and** `~/.claude/skills`) + `/auto [lite|full|ultra|off|review]` (`repl/auto-cmd.ts`: live system-prompt directive injection mirroring `/planmode`'s marker; `review` resends a deletion-accounting rubric — distinct from `/simplify`'s general cleanup). Pure helpers (`parseAutoArg`/`buildDirective`/`stripDirective`) unit-tested. **Global Claude Code:** `~/.claude/commands/auto.md` (a `/auto` slash command — works in every project) + `~/.claude/skills/auto/SKILL.md`. Skipped the upstream's JS hooks, 6 framework rule-copies, benchmarks, pi-extension.
+
+**Harness guardrails + solutioning.** `memory/guardrails.ts` labels recalled brain entries as usable only when fresh, non-conflicting, and provenanced; `brain` recall returns flagged stale/conflicting/weak-provenance entries as "not used" hypotheses and the prompt requires current-state verification before acting. `agent/tool-scope.ts` scopes large tool catalogs per provider call and the stable prompt lists a scoped catalog; `tool_search` remains available for full-catalog discovery and `VANTA_TOOL_SCOPE=0` restores full exposure. `modes/builtin.ts` now includes `solutioning-mode`: goals/brain/research -> ranked what-to-build recommendation with sources -> stop before implementation.
 
 **TUI parity grind + research intake.** Built the Claude-Code-shaped surfaces on the 06-13 rebuild and reversed two of its "not built" notes.
 

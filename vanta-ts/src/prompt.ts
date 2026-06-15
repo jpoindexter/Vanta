@@ -4,6 +4,8 @@ import type { Goal } from "./types.js";
 import type { ToolSchema } from "./providers/interface.js";
 import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
+import { memoryGuardPromptLine } from "./memory/guardrails.js";
+import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
@@ -22,14 +24,17 @@ async function readIfExists(path: string): Promise<string | null> {
 }
 
 function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
-  const toolList = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const scopedTools = scopeToolSchemas(tools, "", { env: process.env });
+  const scoped = scopedTools.length < tools.length;
+  const toolList = scopedTools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const toolHeader = scoped ? `Available tools (scoped):\n${toolList}\n${toolScopeSummary(tools, scopedTools)}` : `Available tools:\n${toolList}`;
   return [
     soul.trim(),
     // Vanta is a personal operator, not a repo-confined coding tool: file work is
     // scoped to the working directory for safety, but its reach spans the user's
     // digital life through the approved tools — all gated by the safety kernel.
     `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
-    `\nAvailable tools:\n${toolList}`,
+    `\n${toolHeader}`,
     `\nHow you operate — no exceptions:`,
     `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
@@ -39,7 +44,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
     `6. Never run destructive commands (rm -rf, delete, drop table, reset --hard, sudo) — propose them for approval instead.`,
     `7. Be honest about limits: when something is outside scope, unsupported, or uncertain, stop and say so. Stopping beats faking. Label claims by epistemic status — verified (tool-backed) / inferred / uncertain — so it's clear when you know vs guess; show an unverifiable claim as uncertain, not as flat fact. Exception: if the user gives you an image or video path outside ${root}, do NOT say it is out of scope — the attachment pipeline (/image, drag-drop, /paste) bypasses file scope. Tell them to use /image <path> or drag it into the terminal.`,
     `8. Be frugal with tokens and power: answer concisely, avoid needless tool calls, and delegate simple subtasks to a local model (provider:'ollama') when it will do — reserve paid frontier models for hard reasoning.`,
-    `9. Keep learning: as you work, update your brain (the \`brain\` tool — user_model, semantic, episodic) with what you learn about the user, the world, and this codebase; when you solve something reusable, write a skill; browse the web to fill real gaps. Grow a little every session.`,
+    `9. Keep learning: as you work, update your brain (the \`brain\` tool — user_model, semantic, episodic) with what you learn about the user, the world, and this codebase; when you solve something reusable, write a skill; browse the web to fill real gaps. Grow a little every session. ${memoryGuardPromptLine()}`,
     `10. Voice: direct, warm, structured, and high-agency. Lead with the answer, but do not sand off all human signal. Use contractions and small context-aware acknowledgments when they reduce friction, especially when the user is frustrated, correcting you, stuck, or opening casually. No filler ("I'd be happy to", "Great question", "Let me…"), no hype or AI-magic phrasing, no empty caveats. Plain operator register — say what is, what you did, and what's next. Warmth is not glaze; sterile minimalism is not the goal. Never fake-cheerful or robotic.`,
     `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
