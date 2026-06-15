@@ -1,7 +1,8 @@
 import { createElement as h } from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderUi, tick } from "./test-render.js";
-import { countLines, ComposerView, PASTE_PILL_THRESHOLD } from "./composer.js";
+import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD } from "./composer.js";
+import { matchSlash } from "./slash.js";
 
 describe("countLines — pure helper", () => {
   it("returns 0 for empty string", () => expect(countLines("")).toBe(0));
@@ -55,6 +56,31 @@ describe("ComposerView — paste pill", () => {
     }));
     await tick();
     expect(inst.lastFrame()).toContain("Pasted text #3 +5 lines");
+    inst.unmount();
+  });
+});
+
+describe("Composer focus handling", () => {
+  it("does not insert printable keys when the composer is not focused", async () => {
+    const inst = renderUi(h(Composer, { focused: false, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("x");
+    await tick();
+    expect(inst.lastFrame()).not.toContain("x");
+    inst.unmount();
+  });
+
+  it("keeps slash palette arrow and Enter behavior when focused", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("/mo");
+    await tick();
+    inst.input("\x1b[B");
+    await tick();
+    inst.input("\r");
+    await tick();
+    expect(onSubmit).toHaveBeenCalledWith(`/${matchSlash("/mo")[1]!.name}`);
     inst.unmount();
   });
 });

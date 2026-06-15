@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3347 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3357 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -46,6 +46,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
 - `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
 - `src/ui/app.tsx` — Ink 7 TUI shell: `<Static>` transcript, composer, overlays, slash palette, approval UI
+- `src/ui/focus.ts` — Tab/Shift+Tab focus traversal targets for composer, overlays, and approval actions
 - `src/ui/v2/` — opt-in mission-control shell (`VANTA_TUI=v2`), wrapping the shared v1 engine in left/right operator rails
 - `src/ui/reducer.ts` — pure transcript/UI reducer
 - `src/ui/use-agent.ts` — agent I/O hook for the TUI
@@ -78,6 +79,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - Ralph-loop continuity is project-scoped at `.vanta/ralph-loop.json`: fresh launches surface it as PAUSED, and `/goal resume|drop` explicitly activates or discards carried work.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.
+- TUI focus traversal lives in `src/ui/focus.ts`: Tab moves forward, Shift+Tab moves backward when multiple focus targets are visible; Shift+Tab still cycles mode when the composer is the only target.
 - Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
 - Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: browser OS-level control.

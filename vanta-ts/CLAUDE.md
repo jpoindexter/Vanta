@@ -14,6 +14,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
 | `ui/app.tsx` | The default TUI App: `<Static>` committed scrollback + live composer/status rows. Delegates state to `ui/reducer.ts`, agent I/O to `ui/use-agent.ts` |
+| `ui/focus.ts` | CC-TAB-NAV — pure focus targets/traversal for Tab/Shift+Tab across composer, overlays, and approval actions. |
 | `ui/v2/` | Opt-in mission-control shell selected by `VANTA_TUI=v2`; wraps the shared v1 engine in durable-state / safety+memory+telemetry rails |
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
@@ -229,6 +230,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 ## Session additions (2026-06-15) — keep current
 
 **Operator profile + preference signals.** `operator-profile/profile.ts` ships declared vs inferred autonomy/scope/detail/risk preferences and tighten-only approval preferences. `preferences/signals.ts` appends zod-validated chosen-vs-rejected rows to `~/.vanta/preferences.jsonl`; `dispatch-helpers.ts` records only human approval/denial prompts, never kernel blocks or auto/rule/profile non-human decisions. `/preferences export` prints the JSONL path/content. Profile inference can read preference rows and infer conservative/narrow behavior from denial-heavy broad/risky actions.
+
+**CC-TAB-NAV.** `ui/focus.ts` adds the small focus manager; `ui/app.tsx` builds the visible focus target list and routes Tab/Shift+Tab through it. Composer input is active only when focused; approval actions expose focus IDs (`approval-allow|always|deny|never`) and Enter activates the focused row. Shift+Tab keeps the legacy mode cycle when the composer is the only focus target.
 
 ## Session additions (2026-06-14) — keep current
 

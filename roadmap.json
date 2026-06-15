@@ -187,7 +187,7 @@
       "id": "CC-TAB-NAV",
       "track": "Operator",
       "title": "Tab navigation — focus management between UI elements",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "CC's tabstops.ts + use-tab-status.ts enable Tab/Shift+Tab focus traversal between interactive elements (buttons, inputs, list items). Required for the settings UI, MCP panel, hooks config, and agent wizard to be keyboard-navigable. Vanta's TUI has no focus traversal.",
       "done": "Tab moves focus to the next interactive element; Shift+Tab moves back; focused elements show a visual indicator; Enter activates; all dialogs and panels are fully keyboard-navigable.",
@@ -195,7 +195,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-15",
+      "notes": "SHIPPED 2026-06-15. Added src/ui/focus.ts with pure focus target traversal helpers and wired ui/app.tsx so Tab moves forward through visible targets and Shift+Tab moves backward when dialogs/panels are active. Preserved the existing Shift+Tab mode cycle when the composer is the only focus target. Composer input is inactive while unfocused, focused elements show visible markers, approval actions expose focus targets and Enter activates the focused action, and overlay lists show focus while preserving arrow/Enter selection. Verified with focus/composer/approval/UI tests, full TS suite (3357 green), tsc --noEmit, and size lint."
     },
     {
       "id": "DESKTOP-P3",

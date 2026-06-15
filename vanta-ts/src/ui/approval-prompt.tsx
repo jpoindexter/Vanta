@@ -1,6 +1,7 @@
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
+import { focusIndicator, type FocusTarget } from "./focus.js";
 import { grantAlways, grantNever } from "./grant.js";
 import type { Pending } from "./use-agent.js";
 import { buildPermissionRequest, type PermissionSection } from "../permissions/request.js";
@@ -11,13 +12,13 @@ import { buildPermissionRequest, type PermissionSection } from "../permissions/r
 // rules; the kernel block stays immovable.
 
 export type Outcome = "allow" | "always" | "deny" | "never";
-type Choice = { n: number; label: string; outcome: Outcome };
+type Choice = { focus: FocusTarget; n: number; label: string; outcome: Outcome };
 
 const CHOICES: Choice[] = [
-  { n: 1, label: "Yes", outcome: "allow" },
-  { n: 2, label: "Yes, and don't ask again", outcome: "always" },
-  { n: 3, label: "No, and tell Vanta what to do", outcome: "deny" },
-  { n: 4, label: "Never allow this tool", outcome: "never" },
+  { focus: "approval-allow", n: 1, label: "Yes", outcome: "allow" },
+  { focus: "approval-always", n: 2, label: "Yes, and don't ask again", outcome: "always" },
+  { focus: "approval-deny", n: 3, label: "No, and tell Vanta what to do", outcome: "deny" },
+  { focus: "approval-never", n: 4, label: "Never allow this tool", outcome: "never" },
 ];
 
 /** Whether an outcome lets the tool run (allow + always → yes, deny → no). Pure. */
@@ -30,16 +31,20 @@ export function decide(pending: Pending, outcome: Outcome): void {
   pending.resolve(approves(outcome));
 }
 
-export function ApprovalPrompt(props: { pending: Pending; onDone: () => void }): ReactElement {
+export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
   const { pending, onDone } = props;
   const t = useTheme();
-  const [sel, setSel] = useState(0);
+  const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget)));
   const request = buildPermissionRequest(pending);
   const pick = (i: number): void => { decide(pending, CHOICES[i]!.outcome); onDone(); };
+  useEffect(() => {
+    const idx = choiceIndex(props.focusedTarget);
+    if (idx >= 0) setSel(idx);
+  }, [props.focusedTarget]);
 
   useInput((input, key) => {
-    if (key.upArrow) setSel((s) => (s + CHOICES.length - 1) % CHOICES.length);
-    else if (key.downArrow) setSel((s) => (s + 1) % CHOICES.length);
+    if (key.upArrow) moveChoice(sel, -1, setSel, props.onFocusTargetChange);
+    else if (key.downArrow) moveChoice(sel, 1, setSel, props.onFocusTargetChange);
     else if (key.return) pick(sel);
     else if (key.escape) pick(2);
     else if (/^[1-4]$/.test(input)) pick(Number(input) - 1);
@@ -59,6 +64,16 @@ export function ApprovalPrompt(props: { pending: Pending; onDone: () => void }):
   );
 }
 
+function choiceIndex(target: FocusTarget | undefined): number {
+  return CHOICES.findIndex((c) => c.focus === target);
+}
+
+function moveChoice(sel: number, step: 1 | -1, setSel: (n: number) => void, onFocus?: (target: FocusTarget) => void): void {
+  const next = (sel + step + CHOICES.length) % CHOICES.length;
+  setSel(next);
+  onFocus?.(CHOICES[next]!.focus);
+}
+
 function RequestSection(props: { section: PermissionSection }): ReactElement {
   const color = props.section.tone === "danger" ? "yellow" : undefined;
   return <Text color={color}><Text bold>{props.section.label}:</Text> {props.section.value}</Text>;
@@ -67,8 +82,8 @@ function RequestSection(props: { section: PermissionSection }): ReactElement {
 function ChoiceRow(props: { choice: Choice; selected: boolean; accent: string; primary: string }): ReactElement {
   const { choice, selected, accent, primary } = props;
   return (
-    <Text color={selected ? primary : undefined}>
-      <Text color={accent}>{selected ? "❯ " : "  "}{choice.n}.</Text> {choice.label}
+      <Text color={selected ? primary : undefined}>
+      <Text color={accent}>{focusIndicator(selected)} {choice.n}.</Text> {choice.label}
       {choice.outcome === "deny" ? <Text dimColor>  (esc)</Text> : null}
     </Text>
   );

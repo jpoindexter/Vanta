@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactElement } from "react";
 import { Box, Text, useInput, usePaste } from "ink";
 import { useTheme } from "./theme.js";
+import { focusIndicator } from "./focus.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
@@ -34,6 +35,7 @@ export function Composer(props: {
   history: string[];
   onPaste?: () => void;
   skills?: SlashMatch[];
+  focused?: boolean;
 }): ReactElement {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -58,7 +60,8 @@ export function Composer(props: {
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const pasteText = useTextPaste(value, cursor, setBuf);
+  const focused = props.focused ?? true;
+  const pasteText = useTextPaste(value, cursor, setBuf, focused);
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
@@ -70,9 +73,9 @@ export function Composer(props: {
     if (handleHistory(input, key, histNav)) return;
     const edit = readlineEdit({ value, cursor, killRing: killRef.current }, input, key);
     if (edit) applyEdit(edit);
-  });
+  }, { isActive: focused });
 
-  return <ComposerView slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} />;
 }
 
 function useComposerPalettes(value: string, files: string[], skills?: SlashMatch[]): { slashMatches: SlashMatch[]; atMatches: string[]; activeLen: number } {
@@ -82,8 +85,9 @@ function useComposerPalettes(value: string, files: string[], skills?: SlashMatch
   return { slashMatches, atMatches, activeLen: slashMatches.length || atMatches.length };
 }
 
-function useTextPaste(value: string, cursor: number, setBuf: (v: string, c: number) => void): (text: string) => void {
+function useTextPaste(value: string, cursor: number, setBuf: (v: string, c: number) => void, focused: boolean): (text: string) => void {
   const pasteText = (text: string): void => {
+    if (!focused) return;
     const next = value.slice(0, cursor) + text + value.slice(cursor);
     setBuf(next, cursor + text.length);
   };
@@ -110,6 +114,7 @@ export function ComposerView(props: {
   slashMatches: ReturnType<typeof matchSlash>;
   atMatches: string[];
   sel: number;
+  focused?: boolean;
   value: string;
   cursor: number;
   placeholder: string;
@@ -124,8 +129,8 @@ export function ComposerView(props: {
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
-      <Box borderStyle="round" borderColor={t.border} paddingX={1}>
-        <Text color={t.accent}>{"> "}</Text>
+      <Box borderStyle="round" borderColor={props.focused === false ? t.border : t.accent} paddingX={1}>
+        <Text color={t.accent}>{focusIndicator(props.focused !== false)}{" "}</Text>
         {props.value.length === 0
           ? <Text><Text inverse={blink}> </Text><Text dimColor={t.dimText}>{props.placeholder}</Text></Text>
           : props.pill

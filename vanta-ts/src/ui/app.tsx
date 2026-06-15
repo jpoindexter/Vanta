@@ -21,6 +21,7 @@ import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { busyLabel, contextPct, formatElapsed } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
+import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
 import { StreamPreview } from "./stream-view.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
@@ -35,10 +36,6 @@ import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
 
-// The Claude-method App. <Static> commits finished history to native scrollback
-// (selection/scroll/copy free, zero ghosting); only the live region below redraws.
-// No AlternateScreen, no ScrollBox, no mouse capture, no virtual-history math.
-
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const app = useApp();
   const [state, dispatch] = useReducer(reduce, initialState);
@@ -49,6 +46,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [theme, setThemeState] = useState<Theme>(() => resolveTheme(process.env));
+  const [focus, setFocus] = useState<FocusTarget>("composer");
   const setTheme = (name: string): void => setThemeState(resolveThemeByName(name));
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme });
@@ -56,7 +54,6 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
-
   const skillMatches = useSkillMatches();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
   const { goal, mcp, elapsed } = useSessionStatus(props.setup, state.busy, replStateRef.current.started, dispatch);
@@ -65,13 +62,13 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
 
   const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
+  const focusTargets = buildFocusTargets(pending, overlay);
+  const focusScope = pending ? "approval" : overlay?.kind ?? "composer";
+  useEffect(() => {
+    if (!isFocusable(focus, focusTargets)) setFocus(focusTargets[0]?.id ?? "composer");
+  }, [focusScope]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useInput((input, key) =>
-    handleGlobalKey(input, key, {
-      busy: state.busy, pending, overlayOpen: overlay !== null,
-      abort: () => interruptRef.current?.abort(), exit: app.exit, cycle,
-    }),
-  );
+  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus });
 
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
 
@@ -80,22 +77,19 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
         {pending && mode !== "auto"
-          ? <ApprovalPrompt pending={pending} onDone={() => setPending(null)} />
+          ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
           : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
         {overlay ? null : <TodoPanel todos={state.todos} />}
-        <BottomRegion overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+        <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
         {!pending && !overlay ? <Footer model={provider.modelId()} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
       </Box>
     </ThemeProvider>
   );
 }
 
-// Shift+Tab mode cycle (Claude-parity): normal → auto-accept → plan → normal.
 type Mode = "normal" | "auto" | "plan";
 const NEXT_MODE: Record<Mode, Mode> = { normal: "auto", auto: "plan", plan: "normal" };
 
-/** Advance the cycle. Entering/leaving plan reuses the real /planmode enforcement
- * (write + shell tools blocked until /planmode approve); auto is TUI-local. */
 export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
   const next = NEXT_MODE[mode];
   if (next === "plan") runSlash("/planmode on");
@@ -103,22 +97,18 @@ export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: 
   setMode(next);
 }
 
-/** Auto-approve kernel Asks while in auto mode. Safe by construction: the kernel
- * refuses the Block tier upstream, so only Ask-tier actions ever reach a prompt. */
 function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pending | null) => void): void {
   useEffect(() => {
     if (pending && mode === "auto") { pending.resolve(true); setPending(null); }
   }, [pending, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-/** Mode state + the Shift+Tab cycle action, with auto-approve wired in. */
 function useModeState(pending: Pending | null, setPending: (p: Pending | null) => void, runSlash: (s: string) => void): { mode: Mode; cycle: () => void } {
   const [mode, setMode] = useState<Mode>("normal");
   useAutoApprove(pending, mode, setPending);
   return { mode, cycle: () => cycleMode(mode, setMode, runSlash) };
 }
 
-/** The Shift+Tab mode indicator above the composer (hidden in normal mode). */
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
   const t = useTheme();
   if (props.mode === "auto") return <Text color={t.warning} bold>≫ auto-accept on <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
@@ -126,18 +116,15 @@ export function ModeLine(props: { mode: Mode }): ReactElement | null {
   return null;
 }
 
-/** Live conversation snapshot for the /context overlay breakdown. */
 function ctxSnapshot(setup: RunSetup, convo: Conversation | null): { messages: { role: string; content?: string }[]; contextWindow: number } {
   return { messages: (convo?.messages ?? []) as { role: string; content?: string }[], contextWindow: setup.provider.contextWindow() };
 }
 
-/** Clip the active goal to one line so the footer never wraps (which would ghost). */
 function goalClip(s: string): string {
   const l = s.split("\n")[0] ?? "";
   return l.length > 88 ? `${l.slice(0, 87)}…` : l;
 }
 
-/** Active-goal line (when set) + status line + the dim prefix-affordance line. */
 function Footer(props: { model: string; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
   const t = useTheme();
   return (
@@ -153,21 +140,28 @@ type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: bool
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
+  focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
 };
 
 const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
   Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
 
-/** App-level keys: ^C interrupt/exit, Shift+Tab cycles the autonomy mode, Esc
- * interrupts a running turn. An open approval/overlay owns its own keys. */
+function useGlobalKeys(deps: GlobalKeyDeps): void {
+  useInput((input, key) => handleGlobalKey(input, key, deps));
+}
+
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
-  if (key.tab && key.shift && !d.pending && !d.overlayOpen) return void d.cycle();
+  if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
   if (escInterrupts(key, d)) return void d.abort();
 }
 
-/** Read the kernel's active goal on mount + when a turn settles (cheap goals.tsv
- * read), so the footer shows what Vanta is working toward. */
+function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null): FocusTargetSpec[] {
+  if (pending) return ["approval-allow", "approval-always", "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
+  if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
+  return [{ id: "composer" }];
+}
+
 function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null {
   const [goal, setGoal] = useState<string | null>(null);
   useEffect(() => {
@@ -176,8 +170,6 @@ function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null
   return goal;
 }
 
-/** Re-render once per second so the live session timer stays current even when
- * idle (Ink only repaints on change; without this the clock would freeze). */
 function useClock(): void {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -186,7 +178,6 @@ function useClock(): void {
   }, []);
 }
 
-/** Are any MCP servers configured? One-shot read at mount → the MCP ✓ chip. */
 function useMcpPresent(): boolean {
   const [present, setPresent] = useState(false);
   useEffect(() => {
@@ -208,8 +199,6 @@ function useSkillMatches(): SlashMatch[] {
   return matches;
 }
 
-/** The footer's live status: active goal + MCP presence + a 1 Hz session timer.
- * Also surfaces a one-time carried-goal notice (a prior goal starts paused). */
 function useSessionStatus(setup: RunSetup, busy: boolean, startedIso: string, dispatch: Dispatch<Action>): { goal: string | null; mcp: boolean; elapsed: string } {
   const goal = useActiveGoal(setup.safety, busy);
   const mcp = useMcpPresent();
@@ -231,14 +220,12 @@ function firstRalphNotice(block: string): string {
   return `↻ Ralph loop progress found: ${goal.slice(0, 60)} — ${next.slice(0, 60)} · /goal resume to continue · /goal drop to discard`;
 }
 
-/** Drain one queued message per turn once the agent is idle again. */
 function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Action>, send: (t: string) => void): void {
   useEffect(() => {
     if (!busy && queued.length > 0) { const next = queued[0]!; dispatch({ t: "dequeue" }); void send(next); }
   }, [busy, queued.length]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-/** Banner + committed entries as <Static> items (banner scrolls into history too). */
 function buildStaticItems(model: string, repoRoot: string, entries: Entry[], caps: { tools: number; cmds: number }): Array<{ key: string; node: ReactElement }> {
   return [
     { key: "banner", node: <Banner model={model} cwd={repoRoot} kernel="127.0.0.1:7788" tools={caps.tools} cmds={caps.cmds} /> },
@@ -246,9 +233,8 @@ function buildStaticItems(model: string, repoRoot: string, entries: Entry[], cap
   ];
 }
 
-/** Below the live region: an open overlay owns the keys, else the composer.
- * An active approval (pending) suppresses both — its keys live in App. */
 function BottomRegion(props: {
+  focused: FocusTarget;
   overlay: OverlayView | null;
   pending: Pending | null;
   mode: Mode;
@@ -262,7 +248,7 @@ function BottomRegion(props: {
 }): ReactElement | null {
   const { overlay } = props;
   if (props.pending) return null;
-  if (overlay?.kind === "list") return <OverlayList title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
+  if (overlay?.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
   if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
   if (overlay?.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={props.onClose} />;
   if (overlay?.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={props.onClose} />;
@@ -271,12 +257,11 @@ function BottomRegion(props: {
   return (
     <Box flexDirection="column">
       <ModeLine mode={props.mode} />
-      <Composer onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} />
+      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} />
     </Box>
   );
 }
 
-/** The small dynamic tail: streaming text, in-flight tool line(s). */
 function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number }): ReactElement | null {
   const { streaming, activeTools, busy, tick } = props;
   const theme = useTheme();

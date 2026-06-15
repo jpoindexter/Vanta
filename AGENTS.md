@@ -19,12 +19,12 @@ The kernel is the enforced security boundary — `assess()` blocks, it doesn't a
 
 ```bash
 cargo build && cargo test                     # Rust kernel (41 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3347 tests + typecheck)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3357 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-15):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **81 built-in tools** and **94 slash commands**; last recorded full verify is **3347 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, and auto permission mode. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
+> **Status (2026-06-15):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **81 built-in tools** and **94 slash commands**; last recorded full verify is **3357 TS tests green**, `tsc` clean, plus kernel tests. Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, Tab/Shift+Tab focus traversal, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, and auto permission mode. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
 
 ## Key files
 

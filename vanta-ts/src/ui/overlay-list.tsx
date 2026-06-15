@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { useTheme } from "./theme.js";
+import { focusIndicator } from "./focus.js";
 import type { OverlayRow } from "./overlays.js";
 
 // A generic inline list overlay rendered ABOVE the composer (live region, not
@@ -12,6 +13,7 @@ const HINT_MAX = 52;
 export function OverlayList(props: {
   title: string;
   rows: OverlayRow[];
+  focused?: boolean;
   onSelect: (row: OverlayRow) => void;
   onClose: () => void;
 }): ReactElement {
@@ -26,7 +28,7 @@ export function OverlayList(props: {
   const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={t.accent} bold>{props.title}</Text>
+      <Text color={t.accent} bold>{focusIndicator(props.focused !== false)} {props.title}</Text>
       {props.rows.length === 0
         ? <Text dimColor={t.dimText}>  (empty)</Text>
         : props.rows.map((r, i) => <Row key={r.command} row={r} active={i === clamped} />)}

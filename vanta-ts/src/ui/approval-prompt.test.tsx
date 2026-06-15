@@ -8,6 +8,7 @@ const mkPending = (over: Partial<Pending> = {}): Pending => ({
   action: "write src/router.ts", reason: "may touch a path outside the approved root",
   resolve: vi.fn(), ...over,
 });
+const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 describe("ApprovalPrompt — Claude-method numbered menu", () => {
   it("renders the question and the three numbered choices with a cursor on the first", async () => {
@@ -23,6 +24,30 @@ describe("ApprovalPrompt — Claude-method numbered menu", () => {
     expect(out).toContain("No, and tell Vanta what to do");
     expect(out).toContain("Never allow this tool");
     expect(out).toContain("(esc)");
+    inst.unmount();
+  });
+
+  it("Enter activates the focused approval action", async () => {
+    const pending = mkPending();
+    const done = vi.fn();
+    const inst = renderUi(h(ApprovalPrompt, { pending, focusedTarget: "approval-deny", onDone: done }));
+    await tick();
+    expect(inst.lastFrame()).toContain("❯ 3.");
+    inst.input("\r");
+    await tick();
+    expect(pending.resolve).toHaveBeenCalledWith(false);
+    expect(done).toHaveBeenCalled();
+    inst.unmount();
+  });
+
+  it("Esc still denies the approval prompt", async () => {
+    const pending = mkPending();
+    const inst = renderUi(h(ApprovalPrompt, { pending, onDone: () => {} }));
+    await tick();
+    inst.input("\x1b");
+    await wait(130);
+    await tick();
+    expect(pending.resolve).toHaveBeenCalledWith(false);
     inst.unmount();
   });
 });
