@@ -39,6 +39,48 @@ function formatSearch(json: string): string {
   }
 }
 
+import type { ToolResult } from "./types.js";
+
+async function actionSearch(query: string, limit: number): Promise<ToolResult> {
+  const r = await gh(["search", "repos", query, "--limit", String(limit), "--json", "fullName,description,stargazerCount,url"]);
+  return r.ok ? { ok: true, output: formatSearch(r.out) } : { ok: false, output: r.error };
+}
+
+async function actionRepo(slug: string): Promise<ToolResult> {
+  const r = await gh(["repo", "view", slug, "--json", "name,description,stargazerCount,forkCount,language,topics,url"]);
+  return r.ok ? { ok: true, output: r.out } : { ok: false, output: r.error };
+}
+
+async function actionReadme(slug: string): Promise<ToolResult> {
+  const r = await gh(["api", `repos/${slug}/readme`, "--jq", ".content"]);
+  if (!r.ok) return { ok: false, output: r.error };
+  const content = Buffer.from(r.out.replace(/\n/g, ""), "base64").toString("utf8");
+  return { ok: true, output: content.slice(0, 8_000) };
+}
+
+async function actionList(action: "issues" | "prs", slug: string, limit: number): Promise<ToolResult> {
+  const cmd = action === "issues" ? "issue" : "pr";
+  const r = await gh([cmd, "list", "--repo", slug, "--limit", String(limit), "--json", "number,title,state,url,createdAt"]);
+  return r.ok ? { ok: true, output: r.out } : { ok: false, output: r.error };
+}
+
+async function dispatch(
+  action: "repo" | "issues" | "prs" | "readme" | "search",
+  repo: string | undefined,
+  query: string | undefined,
+  limit: number,
+): Promise<ToolResult> {
+  if (action === "search") {
+    if (!query) return { ok: false, output: "github_read search needs a query" };
+    return actionSearch(query, limit);
+  }
+  if (!repo) return { ok: false, output: `github_read ${action} needs a repo (owner/repo or URL)` };
+  const slug = slugify(repo);
+  if (action === "repo") return actionRepo(slug);
+  if (action === "readme") return actionReadme(slug);
+  return actionList(action, slug, limit);
+}
+
 export const githubReadTool: Tool = {
   schema: {
     name: "github_read",
@@ -65,35 +107,6 @@ export const githubReadTool: Tool = {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: "github_read: invalid args" };
     const { action, repo, query, limit = 10 } = parsed.data;
-
-    if (action === "search") {
-      if (!query) return { ok: false, output: "github_read search needs a query" };
-      const r = await gh(["search", "repos", query, "--limit", String(limit), "--json", "fullName,description,stargazerCount,url"]);
-      return r.ok ? { ok: true, output: formatSearch(r.out) } : { ok: false, output: r.error };
-    }
-
-    if (!repo) return { ok: false, output: `github_read ${action} needs a repo (owner/repo or URL)` };
-    const slug = slugify(repo);
-
-    if (action === "repo") {
-      const r = await gh(["repo", "view", slug, "--json", "name,description,stargazerCount,forkCount,language,topics,url"]);
-      return r.ok ? { ok: true, output: r.out } : { ok: false, output: r.error };
-    }
-
-    if (action === "readme") {
-      const r = await gh(["api", `repos/${slug}/readme`, "--jq", ".content"]);
-      if (!r.ok) return { ok: false, output: r.error };
-      const content = Buffer.from(r.out.replace(/\n/g, ""), "base64").toString("utf8");
-      return { ok: true, output: content.slice(0, 8_000) };
-    }
-
-    if (action === "issues") {
-      const r = await gh(["issue", "list", "--repo", slug, "--limit", String(limit), "--json", "number,title,state,url,createdAt"]);
-      return r.ok ? { ok: true, output: r.out } : { ok: false, output: r.error };
-    }
-
-    // prs
-    const r = await gh(["pr", "list", "--repo", slug, "--limit", String(limit), "--json", "number,title,state,url,createdAt"]);
-    return r.ok ? { ok: true, output: r.out } : { ok: false, output: r.error };
+    return dispatch(action, repo, query, limit);
   },
 };
