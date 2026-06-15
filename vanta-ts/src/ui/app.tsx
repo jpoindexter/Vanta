@@ -23,6 +23,9 @@ import { busyLabel, contextPct, formatElapsed } from "./busy.js";
 import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
 import { StreamPreview } from "./stream-view.js";
+import { PinnedRegion } from "./pinned-region.js";
+import { useViewportRows } from "./use-viewport-rows.js";
+import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
@@ -73,17 +76,21 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus });
 
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
+  const vp = useViewportRows();
+  const committedRows = estimateCommittedRows(state.entries, vp.cols);
 
   return (
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
-        {pending && mode !== "auto"
-          ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
-          : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
-        {overlay ? null : <TodoPanel todos={state.todos} />}
-        <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-        {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
+        <PinnedRegion viewportRows={vp.rows} committedRows={committedRows}>
+          {pending && mode !== "auto"
+            ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
+            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
+          {overlay ? null : <TodoPanel todos={state.todos} />}
+          <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
+        </PinnedRegion>
       </Box>
     </ThemeProvider>
   );
