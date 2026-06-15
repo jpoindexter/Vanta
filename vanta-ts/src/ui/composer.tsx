@@ -18,6 +18,14 @@ import { useBlink } from "./use-blink.js";
 
 const EMPTY_HIST: HistState = { histIdx: -1, draft: "", value: "" };
 
+/** Lines in value (0 for empty string, 1 for single-line, N for N-1 newlines). */
+export function countLines(value: string): number {
+  if (value === "") return 0;
+  return (value.match(/\n/g) ?? []).length + 1;
+}
+
+export const PASTE_PILL_THRESHOLD = 3;
+
 export function Composer(props: {
   onSubmit: (text: string) => void;
   placeholder: string;
@@ -32,6 +40,7 @@ export function Composer(props: {
   const killRef = useRef("");
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
+  const { pill, clearPill } = usePastePill(value);
 
   const slashMatches = matchSlash(value, props.skills ?? []);
   const atPartial = slashMatches.length === 0 ? activeAtRef(value) : null;
@@ -42,7 +51,7 @@ export function Composer(props: {
   const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
   const submitNow = (): void => {
     const text = (isPartialSlash(value, slashMatches) ? completeSlash(value, slashMatches, selClamped) : value).trim();
-    setBuf("", 0); histRef.current = EMPTY_HIST;
+    setBuf("", 0); histRef.current = EMPTY_HIST; clearPill();
     if (text) props.onSubmit(text);
   };
   const completeNow = (): void => setBuf(
@@ -65,17 +74,31 @@ export function Composer(props: {
     if (edit) applyEdit(edit);
   });
 
-  return <ComposerView slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} />;
+  return <ComposerView slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} />;
+}
+
+function usePastePill(value: string): { pill?: { count: number; lines: number }; clearPill: () => void } {
+  const pasteCountRef = useRef(0);
+  const wasPillRef = useRef(false);
+  const lineCount = countLines(value);
+  const isPill = lineCount > PASTE_PILL_THRESHOLD;
+  if (isPill && !wasPillRef.current) pasteCountRef.current++;
+  wasPillRef.current = isPill;
+  return {
+    pill: isPill ? { count: pasteCountRef.current, lines: lineCount } : undefined,
+    clearPill: () => { wasPillRef.current = false; },
+  };
 }
 
 /** The palettes + the input line — pure render, split out to keep Composer small. */
-function ComposerView(props: {
+export function ComposerView(props: {
   slashMatches: ReturnType<typeof matchSlash>;
   atMatches: string[];
   sel: number;
   value: string;
   cursor: number;
   placeholder: string;
+  pill?: { count: number; lines: number };
 }): ReactElement {
   const t = useTheme();
   const blink = useBlink();
@@ -90,9 +113,22 @@ function ComposerView(props: {
         <Text color={t.accent}>{"> "}</Text>
         {props.value.length === 0
           ? <Text><Text inverse={blink}> </Text><Text dimColor={t.dimText}>{props.placeholder}</Text></Text>
-          : <CursorText value={props.value} cursor={props.cursor} blink={blink} />}
+          : props.pill
+            ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
+            : <CursorText value={props.value} cursor={props.cursor} blink={blink} />}
       </Box>
     </Box>
+  );
+}
+
+function PastedTextPill({ count, lines, blink }: { count: number; lines: number; blink: boolean }): ReactElement {
+  return (
+    <Text>
+      <Text dimColor>{"["}</Text>
+      <Text>Pasted text #{count} +{lines} lines</Text>
+      <Text dimColor>{"]"}</Text>
+      <Text inverse={blink}>{" "}</Text>
+    </Text>
   );
 }
 
