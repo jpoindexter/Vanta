@@ -13,13 +13,11 @@ import {
   memoryExtractAfterTurn,
   maybeCurate,
 } from "../session.js";
-import { loadSchema, sendWithSchemaRetry } from "../output/json-schema.js";
+import { loadSchema } from "../output/json-schema.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
 import { buildCallbacks } from "./output-callbacks.js";
 
-// The `vanta <command>` handlers, extracted from cli.ts so the entry point stays
-// a thin dispatcher (CODE-SIZE-GATE). cli.ts keeps only bootstrap + the
-// interactive launch + the COMMANDS table.
+// `vanta <command>` handlers; cli.ts stays a thin bootstrap + dispatcher.
 
 export function usage(): void {
   console.log(
@@ -90,7 +88,7 @@ function emitOutput(format: OutputFormat, finalText: string, modelId: string): v
   }
 }
 
-function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: string; rl: ReturnType<typeof createInterface>; signal: AbortSignal; format: OutputFormat }) {
+function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: string; rl: ReturnType<typeof createInterface>; signal: AbortSignal; format: OutputFormat; outputSchema?: Record<string, unknown> }) {
   return createConversation(o.setup.systemPrompt, {
     provider: o.setup.provider,
     safety: o.setup.safety,
@@ -102,6 +100,7 @@ function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>;
     getEffortLevel: () => o.setup.effortLevel,
     activeGoalText: o.setup.goals.find((g) => g.status === "active")?.text,
     signal: o.signal,
+    outputSchema: o.outputSchema,
     ...buildCallbacks(o.format),
   });
 }
@@ -125,8 +124,8 @@ export async function runInstruction(
   const onSigint = (): void => controller.abort();
   process.once("SIGINT", onSigint);
   try {
-    const convo = oneShotConversation({ setup, root, rl, signal: controller.signal, format });
-    const outcome = schema ? await sendWithSchemaRetry(convo, instruction, schema) : await convo.send(instruction);
+    const convo = oneShotConversation({ setup, root, rl, signal: controller.signal, format, outputSchema: schema });
+    const outcome = await convo.send(instruction);
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });

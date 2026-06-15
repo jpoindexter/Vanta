@@ -384,7 +384,7 @@
       "id": "CC-PR-COMMENTS",
       "track": "Harness",
       "title": "/pr-comments — view and resolve GitHub PR comments",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC has /pr_comments to fetch PR review comments from GitHub and surface them in-session. Pair with autofix: the agent reads each comment, proposes a fix, applies on approval. Requires GITHUB_TOKEN. Add /pr-comments [PR-url|number] that fetches review threads and queues them as tasks.",
       "done": "`/pr-comments <PR>` fetches review comments and queues each as a task; agent works through them one at a time.",
@@ -451,7 +451,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-15"
     },
     {
       "id": "CC-LSP-DIAGNOSTIC-PUSH",

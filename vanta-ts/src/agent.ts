@@ -12,6 +12,8 @@ import { globalHookBus } from "./plugins/hooks.js";
 import { dispatchTool } from "./agent/dispatch-tool.js";
 import type { DispatchOutcome } from "./agent/dispatch-tool.js";
 import { scopeToolSchemas, toolScopeContext } from "./agent/tool-scope.js";
+import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./agent/structured-output.js";
+import { buildStructuredOutputInstruction } from "./tools/structured-output.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
 import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
@@ -36,7 +38,8 @@ export function createConversation(
 ) {
   // Fresh system prompt (goals/time may have changed) + any prior non-system
   // turns, so a resumed session keeps its transcript but re-grounds its rules.
-  const messages: Message[] = [{ role: "system", content: systemPrompt }];
+  const prompt = deps.outputSchema ? `${systemPrompt}${buildStructuredOutputInstruction(deps.outputSchema)}` : systemPrompt;
+  const messages: Message[] = [{ role: "system", content: prompt }];
   if (opts?.history?.length) {
     messages.push(...opts.history.filter((m) => m.role !== "system"));
   }
@@ -189,6 +192,11 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
   const shownText = result.text.trim() ? await displayText(deps, result.text) : "";
   if (shownText) { deps.onText?.(shownText); deps.onEvent?.({ type: "text_complete", text: shownText }); }
   messages.push({ role: "assistant", content: result.text, toolCalls: result.toolCalls }); // raw → model + tools
+  const structured = maybeStructuredOutput(result.toolCalls, deps.outputSchema);
+  if (structured.handled) {
+    messages.push({ role: "tool", toolCallId: result.toolCalls.find((c) => c.name === "StructuredOutput")?.id ?? "structured-output", name: "StructuredOutput", content: structured.output });
+    return structuredOutcome(structured, iter, usage());
+  }
 
   const stuckTool = await processToolCalls({ calls: result.toolCalls, deps, ctx, state, messages, prefetched });
   if (stuckTool)
@@ -252,7 +260,8 @@ async function getCompletion(
   signal?: AbortSignal,
   pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>> },
 ): Promise<CompletionResult> {
-  const schemas = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
+  const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
+  const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
   const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
   if (deps.provider.stream && deps.onTextDelta) {
     const onSafeToolCall = pf

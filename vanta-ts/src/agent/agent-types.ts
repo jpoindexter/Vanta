@@ -45,6 +45,8 @@ export type AgentDeps = {
   onAutoCompact?: (dropped: number, summary: string) => void;
   /** Abort the run between iterations (Ctrl+C, gateway shutdown, caller cancel). */
   signal?: AbortSignal;
+  /** SDK/non-interactive structured output schema. Adds the StructuredOutput synthetic tool. */
+  outputSchema?: Record<string, unknown>;
   /**
    * Plan mode: when this returns true, only read-only tools are allowed.
    * Write/shell tools return a "blocked: plan mode" result without executing.
@@ -83,6 +85,8 @@ export type AgentOutcome = {
   usage?: { inputTokens: number; outputTokens: number };
   /** Tokens saved by native compression this turn. */
   tokensSaved?: number;
+  /** Validated StructuredOutput arguments when outputSchema is active. */
+  structuredResult?: unknown;
 };
 
 /** A stateful multi-turn conversation that retains history across `send` calls. */
