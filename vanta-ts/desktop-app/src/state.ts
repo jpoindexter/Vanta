@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
-import type { Approval, EventRow, Message, Provider, RailTab, Session, Status, Tool } from "./types.js";
+import type { Approval, ApprovalDecision, EventRow, Message, Provider, RailTab, Session, Status, Tool } from "./types.js";
 
 export function useDesktopData() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -58,9 +58,9 @@ export function useApproval() {
   async function pollApproval() {
     setApproval(await api<Approval | null>("/api/approval").catch(() => null));
   }
-  async function answerApproval(approved: boolean) {
+  async function answerApproval(decision: ApprovalDecision) {
     if (!approval) return;
-    await api("/api/approval", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id: approval.id, approved }) });
+    await api("/api/approval", { method: "POST", headers: jsonHeaders(), body: JSON.stringify({ id: approval.id, decision }) });
     setApproval(null);
   }
   useEffect(() => {

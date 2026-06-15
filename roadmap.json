@@ -217,15 +217,17 @@
       "id": "CC-PERM-PER-TOOL-UI",
       "track": "Operator",
       "title": "Per-tool permission request UIs — dedicated dialogs per tool type",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
-      "summary": "CC has dedicated permission request components for each tool: BashPermissionRequest (shows command + options), FileEditPermissionRequest (shows diff), FileWritePermissionRequest (shows new content), NotebookEdit, PowerShell, Sandbox, Sed, Skill, WebFetch, ComputerUse. Each shows the relevant context for informed approval. Vanta shows a generic y/n prompt.",
+      "summary": "SHIPPED 2026-06-15. `permissions/request.ts` maps approval descriptors into typed request models for Bash, FileEdit, FileWrite, WebFetch, ComputerUse, Sandbox, Skill, and fallback Generic. Ink and desktop approval UIs render those purpose-built sections and expose Allow once / Always allow / Deny / Never allow. Always/Never persist tool-scoped allow/deny rules; kernel block remains immovable.",
       "done": "Each tool type has a purpose-built permission dialog: Bash shows the command with syntax highlight + options; FileEdit shows a diff; FileWrite shows new content; all support Allow/Deny/Always/Never rules.",
       "tier": "rock",
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-15",
+      "notes": "Current approval callback carries `{toolName, action, reason}` rather than raw tool args/content, so FileEdit/FileWrite dialogs show typed target/change context now; raw diff/full-content preview belongs to later tool-args plumbing. Verified with focused permission UI tests, typecheck, size lint, and Vite build."
     },
     {
       "id": "CC-TYPEAHEAD",

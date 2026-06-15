@@ -1,4 +1,4 @@
-import type { Approval, Provider, RailTab } from "./types.js";
+import type { Approval, ApprovalDecision, PermissionSection, Provider, RailTab } from "./types.js";
 
 export function CommandPalette(props: { open: boolean; onClose: () => void; onNew: () => void; onModel: () => void; onTab: (tab: RailTab) => void }) {
   if (!props.open) return null;
@@ -38,19 +38,31 @@ function ModelButton(props: { provider: Provider; model: string; onSelect: (prov
   return <button type="button" onClick={() => props.onSelect(props.provider.id, props.model)}>{props.provider.short} · {props.model}</button>;
 }
 
-export function ApprovalOverlay(props: { approval: Approval | null; onAnswer: (approved: boolean) => void }) {
+export function ApprovalOverlay(props: { approval: Approval | null; onAnswer: (decision: ApprovalDecision) => void }) {
   if (!props.approval) return null;
+  const request = props.approval.request;
   return (
     <div className="overlay">
-      <div className="approval">
-        <h2>Approval Needed</h2>
-        <p>{props.approval.reason}</p>
-        <pre>{props.approval.action}</pre>
+      <div className={`approval ${request?.kind ?? "generic"}`}>
+        <h2>{request?.title ?? "Approval Needed"}</h2>
+        <p className="approval-subject">{request?.subject ?? props.approval.action}</p>
+        <p>{request?.reason ?? props.approval.reason}</p>
+        {(request?.sections ?? fallbackSections(props.approval)).map((section) => <ApprovalSection key={section.label} section={section} />)}
         <div>
-          <button type="button" onClick={() => props.onAnswer(false)}>Deny</button>
-          <button type="button" onClick={() => props.onAnswer(true)}>Approve</button>
+          <button type="button" onClick={() => props.onAnswer("allow")}>Allow once</button>
+          <button type="button" onClick={() => props.onAnswer("always")}>Always allow</button>
+          <button type="button" onClick={() => props.onAnswer("deny")}>Deny</button>
+          <button type="button" onClick={() => props.onAnswer("never")}>Never allow</button>
         </div>
       </div>
     </div>
   );
+}
+
+function ApprovalSection({ section }: { section: PermissionSection }) {
+  return <p className={`approval-section ${section.tone ?? ""}`}><strong>{section.label}</strong><code>{section.value}</code></p>;
+}
+
+function fallbackSections(approval: Approval): PermissionSection[] {
+  return [{ label: "Action", value: approval.action, tone: "code" }];
 }

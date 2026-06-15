@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventLabel, type DesktopState, type PendingApproval } from "./server.js";
+import { approvalDecision, eventLabel, type DesktopState, type PendingApproval } from "./server.js";
 
 const args = {};
 
@@ -61,5 +61,14 @@ describe("desktop server module exports", () => {
     expect(typeof mod.createDesktopServer).toBe("function");
     expect(typeof mod.serveDesktop).toBe("function");
     expect(typeof mod.eventLabel).toBe("function");
+  });
+});
+
+describe("approvalDecision", () => {
+  it("accepts new explicit decisions and old approved booleans", () => {
+    expect(approvalDecision("always", undefined)).toBe("always");
+    expect(approvalDecision("never", undefined)).toBe("never");
+    expect(approvalDecision(undefined, true)).toBe("allow");
+    expect(approvalDecision(undefined, false)).toBe("deny");
   });
 });

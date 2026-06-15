@@ -17,6 +17,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `ui/v2/` | Opt-in mission-control shell selected by `VANTA_TUI=v2`; wraps the shared v1 engine in durable-state / safety+memory+telemetry rails |
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
+| `permissions/request.ts` / `permissions/grant.ts` | Typed approval request model + allow/deny rule helpers shared by Ink and desktop |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
 | `ui/composer.tsx` | Composer: custom readline (Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline) |
 | `ui/launch.tsx` | `runTuiV2(repoRoot)` — prepareRun + maybeCurate + env-selected render. Default is `ui/app.tsx`; `VANTA_TUI=v2` renders `ui/v2/app-v2.tsx`. `vanta` uses it on a TTY; readline REPL is the fallback |
@@ -225,7 +226,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **TUI parity grind + research intake.** Built the Claude-Code-shaped surfaces on the 06-13 rebuild and reversed two of its "not built" notes.
 
-- **Approval → Claude-style numbered menu** (`ui/approval-prompt.tsx`): `Do you want to proceed? ❯1 Yes / 2 Yes,don't ask again / 3 No (esc)`, ↑↓/Enter/1-3/Esc. Option 2 persists a tool-scoped allow rule (`ui/grant.ts` → permissions); kernel **block** stays immovable.
+- **Approval → per-tool numbered menu** (`ui/approval-prompt.tsx`): typed request context from `permissions/request.ts` (bash/file edit/file write/web/computer/sandbox/skill), `Do you want to proceed? ❯1 Yes / 2 Yes,don't ask again / 3 No / 4 Never allow`, ↑↓/Enter/1-4/Esc. Always/Never persist tool-scoped allow/deny rules; kernel **block** stays immovable.
 - **Shift+Tab mode cycle** (`normal → auto-accept → plan → normal`, `▶▶/⏸` indicator). Auto-accept auto-approves the kernel **ask** tier only (block refused upstream → safe by construction) — this **reverses the "auto-approve/yolo skipped" note**. Plan reuses real `/planmode` enforcement.
 - **Transcript:** tool calls render `⏺ Verb(detail)` / `⎿ result` (dropped the grouped header) + clean labels for grep/glob/background/refs; **syntax-highlighted** fenced code (`ui/highlight.ts`); **no** Goal/Expected preamble (prompt rule reframed) and **no** per-turn token dump.
 - **Chrome:** rounded composer box + **blinking cursor** (`ui/use-blink.ts`); truecolor **hex theme** (matches `docs/design-refs`); active-goal `◇` line + compact PLAN `▰▰▱▱ ✓◐○` bar + status chips (live `◷` timer via `ui/use-clock`, `MCP ✓`); rich pickers (`●` current).

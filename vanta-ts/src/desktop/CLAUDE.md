@@ -21,6 +21,7 @@ npm run desktop:build           # rebuilds the React app served at /
   - `GET /api/tools` tool catalog for the right rail
   - `POST /api/chat` persistent in-process Vanta conversation
 - `assets.ts` resolves built files safely under `desktop-app/dist` and falls back to `page.ts`.
+- `approval.ts` adapts pending approvals into typed permission request payloads and resolves allow/always/deny/never decisions.
 - `page.ts` is only the small fallback page shown when the React app has not been built.
 - This is not packaged Electron/Tauri yet. It is the seed surface; native shell and richer approval prompts are next.
 

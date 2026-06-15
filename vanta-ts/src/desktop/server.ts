@@ -15,15 +15,10 @@ import {
   type SessionMap, type SseClients,
 } from "./session-state.js";
 import { writeDesktopAsset } from "./assets.js";
+import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
+export { approvalDecision, type PendingApproval } from "./approval.js";
 
 export type DesktopEvent = { label: string; ok?: boolean };
-export type PendingApproval = {
-  id: string;
-  action: string;
-  reason: string;
-  toolName?: string;
-  resolve: (approved: boolean) => void;
-};
 export type DesktopState = {
   setup?: RunSetup;
   convo?: Conversation;
@@ -54,13 +49,6 @@ async function readJson(req: http.IncomingMessage): Promise<unknown> {
 function sendJson(res: http.ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { "content-type": "application/json" });
   res.end(JSON.stringify(body));
-}
-
-async function requestWebApproval(state: DesktopState, action: string, reason: string, toolName?: string): Promise<boolean> {
-  if (state.pendingApproval) return false;
-  return new Promise<boolean>((resolve) => {
-    state.pendingApproval = { id: `${Date.now()}`, action, reason, toolName, resolve };
-  });
 }
 
 function attachConversation(state: DesktopState, setup: RunSetup, history?: Parameters<typeof createConversation>[2]): void {
@@ -188,13 +176,14 @@ async function handleSetModel(state: DesktopState, req: http.IncomingMessage, re
 async function handleApproval(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   if (req.method === "GET") {
     const p = state.pendingApproval;
-    return sendJson(res, 200, p ? { id: p.id, action: p.action, reason: p.reason, toolName: p.toolName } : null);
+    return sendJson(res, 200, p ? approvalPayload(p) : null);
   }
-  const body = await readJson(req) as { id?: unknown; approved?: unknown };
+  const body = await readJson(req) as { id?: unknown; approved?: unknown; decision?: unknown };
   const p = state.pendingApproval;
   if (!p || body.id !== p.id) return sendJson(res, 404, { error: "approval not found" });
   state.pendingApproval = undefined;
-  p.resolve(Boolean(body.approved));
+  const decision = approvalDecision(body.decision, body.approved);
+  await resolveApproval(p, decision);
   sendJson(res, 200, { ok: true });
 }
 

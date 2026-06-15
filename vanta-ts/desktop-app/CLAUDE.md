@@ -20,4 +20,4 @@ The app calls the existing `/api/*` desktop endpoints. Do not import Vanta runti
 - `src/state.ts` / `src/api.ts` — browser state hooks and fetch helper.
 - `src/chat.tsx` — session sidebar, chat thread, composer.
 - `src/rail.tsx` — preview/files/terminal right rail.
-- `src/overlays.tsx` — command palette, model picker, approval modal.
+- `src/overlays.tsx` — command palette, model picker, typed approval modal with allow/always/deny/never.

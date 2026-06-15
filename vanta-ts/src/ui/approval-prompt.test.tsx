@@ -11,14 +11,17 @@ const mkPending = (over: Partial<Pending> = {}): Pending => ({
 
 describe("ApprovalPrompt — Claude-method numbered menu", () => {
   it("renders the question and the three numbered choices with a cursor on the first", async () => {
-    const inst = renderUi(h(ApprovalPrompt, { pending: mkPending(), onDone: () => {} }));
+    const inst = renderUi(h(ApprovalPrompt, { pending: mkPending({ toolName: "shell_cmd", action: "run shell command: git status --short" }), onDone: () => {} }));
     await tick();
     const out = inst.lastFrame();
-    expect(out).toContain("write src/router.ts"); // titled header
+    expect(out).toContain("Bash permission request");
+    expect(out).toContain("Command");
+    expect(out).toContain("git status --short");
     expect(out).toContain("Do you want to proceed?");
     expect(out).toContain("❯ 1."); // cursor on the selected (first) row
     expect(out).toContain("Yes, and don't ask again");
     expect(out).toContain("No, and tell Vanta what to do");
+    expect(out).toContain("Never allow this tool");
     expect(out).toContain("(esc)");
     inst.unmount();
   });
@@ -29,6 +32,7 @@ describe("approves — outcome → run-or-not (pure)", () => {
     expect(approves("allow")).toBe(true);
     expect(approves("always")).toBe(true);
     expect(approves("deny")).toBe(false);
+    expect(approves("never")).toBe(false);
   });
 });
 
