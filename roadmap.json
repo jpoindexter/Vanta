@@ -592,7 +592,7 @@
       "id": "CC-TOKEN-COUNT-API",
       "track": "Harness",
       "title": "Token count API — pre-compute context size before API call (Anthropic/Bedrock/Vertex)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's `tokenEstimation.ts` provides `countTokensWithAPI()`, `countTokensViaHaikuFallback()`, and `countTokensWithBedrock()`. These allow pre-computing the token count of a conversation before sending to avoid context window overruns. Supports Anthropic API, AWS Bedrock, and Vertex AI backends. Used internally for context budget management and proactive compaction decisions.",
       "done": "Before sending a large conversation, CC calls countTokens to check if it fits. If it exceeds budget, compaction runs first. All three providers (Anthropic, Bedrock, Vertex) return token estimates.",
@@ -601,7 +601,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-16"
     },
     {
       "id": "CC-BG-FLAG-PRESERVE",

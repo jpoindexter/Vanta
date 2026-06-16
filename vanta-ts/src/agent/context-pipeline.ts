@@ -19,6 +19,8 @@ export type ContextDeps = {
   /** The live session scratchpad, re-injected on compaction. */
   sessionMemory?: string;
   workingMemory?: SessionWorkingMemory;
+  /** Current tool schemas — used by countTokens for an accurate pre-call count. */
+  currentTools?: import("../providers/interface.js").ToolSchema[];
 };
 
 const RESTORE_MARKER = "<!-- vanta-post-compact-restore -->";
@@ -102,12 +104,22 @@ export async function prepareCallMessages(
 ): Promise<Message[]> {
   // Idle-clear only at the genuinely-idle turn start (time-based micro-compaction).
   const fresh = iter === 1 ? clearStaleToolResults(messages, tc.idleMs, tc.idleCfg) : messages;
+  // If the provider supports exact token counting, use it to tighten the compaction threshold.
+  let overrideThresholdPct: number | undefined;
+  if (deps.provider.countTokens && deps.currentTools) {
+    try {
+      const exact = await deps.provider.countTokens(fresh, deps.currentTools);
+      const pct = Math.round((exact / deps.provider.contextWindow()) * 100);
+      // Force compaction sooner when real count already exceeds 80% of window.
+      if (pct >= 80) overrideThresholdPct = Math.min(pct - 5, 80);
+    } catch { /* best-effort — fall through to estimate-based threshold */ }
+  }
   const result = await graduatedCompaction(fresh, {
     contextWindow: deps.provider.contextWindow(),
     summarize: tc.trackedSummarize,
     activeGoalText: deps.activeGoalText,
     sessionMemory: deps.sessionMemory,
-    thresholdPct: tc.thresholdPct,
+    thresholdPct: overrideThresholdPct ?? tc.thresholdPct,
   });
   return result.messages;
 }

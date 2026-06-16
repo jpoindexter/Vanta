@@ -1,6 +1,17 @@
-import { describe, expect, it } from "vitest";
-import { toAnthropicMessages, parseResponse, promptCache1hEnabled } from "./anthropic.js";
+import { describe, expect, it, vi } from "vitest";
+import { toAnthropicMessages, parseResponse, promptCache1hEnabled, AnthropicProvider } from "./anthropic.js";
 import type { Message } from "../types.js";
+import type { ToolSchema } from "./interface.js";
+
+// Hoisted mock fn so the vi.mock factory can reference it.
+const mockSdkCountTokens = vi.hoisted(() => vi.fn());
+
+vi.mock("@anthropic-ai/sdk", () => ({
+  default: class MockAnthropic {
+    constructor() {}
+    messages = { countTokens: mockSdkCountTokens, create: vi.fn() };
+  },
+}));
 
 describe("parseResponse", () => {
   it("extracts text blocks", () => {
@@ -180,5 +191,29 @@ describe("1-hour prompt cache", () => {
     expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "yes" } as NodeJS.ProcessEnv)).toBe(true);
     expect(promptCache1hEnabled({ ENABLE_PROMPT_CACHING_1H: "0" } as NodeJS.ProcessEnv)).toBe(false);
     expect(promptCache1hEnabled({} as NodeJS.ProcessEnv)).toBe(false);
+  });
+});
+
+describe("AnthropicProvider.countTokens", () => {
+  const msgs: Message[] = [{ role: "user", content: "hello" }];
+  const tools: ToolSchema[] = [{ name: "shell", description: "run a command", parameters: {} }];
+
+  it("returns exact count from SDK", async () => {
+    mockSdkCountTokens.mockResolvedValueOnce({ input_tokens: 1234 });
+    const provider = new AnthropicProvider({ apiKey: "test-key" });
+    expect(await provider.countTokens(msgs, tools)).toBe(1234);
+  });
+
+  it("falls back to char estimate when SDK throws", async () => {
+    mockSdkCountTokens.mockRejectedValueOnce(new Error("network error"));
+    const provider = new AnthropicProvider({ apiKey: "test-key" });
+    const estimate = Math.round(JSON.stringify(msgs).length / 4);
+    expect(await provider.countTokens(msgs, tools)).toBe(estimate);
+  });
+
+  it("falls back to char estimate when SDK returns no input_tokens", async () => {
+    mockSdkCountTokens.mockResolvedValueOnce({});
+    const provider = new AnthropicProvider({ apiKey: "test-key" });
+    expect(await provider.countTokens(msgs, [])).toBe(0);
   });
 });

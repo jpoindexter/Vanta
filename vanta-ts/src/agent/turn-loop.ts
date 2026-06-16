@@ -145,9 +145,13 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)
       return { finalText: "Interrupted.", iterations: iter - 1, stoppedReason: "interrupted", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
-    const trimmed = await prepareCallMessages(messages, deps, iter, turnCtx);
+    // Scope schemas once per iteration so countTokens and getCompletion use the same set.
+    const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
+    const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
+    const depsWithTools = { ...deps, currentTools: schemas };
+    const trimmed = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
-    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal, { ctx, prefetched });
+    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal, { ctx, prefetched, schemas });
     if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state });
@@ -168,10 +172,12 @@ async function getCompletion(
   deps: AgentDeps,
   messages: Message[],
   signal?: AbortSignal,
-  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>> },
+  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: import("../providers/interface.js").ToolSchema[] },
 ): Promise<CompletionResult> {
-  const scoped = scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env });
-  const schemas = schemasWithStructuredOutput(scoped, deps.outputSchema);
+  const schemas = pf?.schemas ?? schemasWithStructuredOutput(
+    scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
+    deps.outputSchema,
+  );
   const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
   if (deps.provider.stream && deps.onTextDelta) {
     const onSafeToolCall = pf

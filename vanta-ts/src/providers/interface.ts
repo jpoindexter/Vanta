@@ -66,4 +66,12 @@ export interface LLMProvider {
     tools: ToolSchema[],
     config?: CompletionConfig,
   ): AsyncIterable<StreamChunk>;
+  /**
+   * Optional pre-flight token counter. Returns the exact input token count the
+   * provider would bill for this request, without generating a response. Used by
+   * context-pipeline to proactively compact before a call that would overflow.
+   * Providers that don't implement this return undefined; callers fall back to
+   * char-based estimation.
+   */
+  countTokens?(messages: Message[], tools: ToolSchema[]): Promise<number>;
 }
