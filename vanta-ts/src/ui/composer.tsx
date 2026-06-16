@@ -44,9 +44,7 @@ export function Composer(props: {
   const { pill, clearPill } = usePastePill(value);
   const { slashMatches, atMatches, activeLen } = useComposerPalettes(value, props.files, props.skills);
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
-  const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length
-    ? historyTypeahead(props.history, value)
-    : "";
+  const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length ? historyTypeahead(props.history, value) : "";
 
   const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
   const submitNow = (): void => {
@@ -54,10 +52,7 @@ export function Composer(props: {
     setBuf("", 0); histRef.current = EMPTY_HIST; clearPill();
     if (text) props.onSubmit(text);
   };
-  const completeNow = (): void => setBuf(
-    slashMatches.length ? completeSlash(value, slashMatches, selClamped) : completeAtRef(value, atMatches, selClamped),
-    value.length,
-  );
+  const completeNow = (): void => setBuf(slashMatches.length ? completeSlash(value, slashMatches, selClamped) : completeAtRef(value, atMatches, selClamped), value.length);
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
@@ -68,11 +63,11 @@ export function Composer(props: {
 
   useInput((input, key) => {
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
-    if (key.return) return void (key.shift ? insertNewline() : submitNow());
+    if (handleReturnKey(key, insertNewline, submitNow)) return;
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
-    if (key.rightArrow && cursor === value.length && ghost) { setBuf(value + ghost, value.length + ghost.length); return; }
+    if (handleGhostAccept(key, ghost, value + ghost, setBuf)) return;
     const edit = readlineEdit({ value, cursor, killRing: killRef.current }, input, key);
     if (edit) applyEdit(edit);
   }, { isActive: focused });
@@ -109,6 +104,20 @@ function usePastePill(value: string): { pill?: { count: number; lines: number };
     pill: isPill ? { count: pasteCountRef.current, lines: lineCount } : undefined,
     clearPill: () => { wasPillRef.current = false; },
   };
+}
+
+/** Enter submits (or shift+enter newlines). True when handled. */
+function handleReturnKey(key: Key, insertNewline: () => void, submitNow: () => void): boolean {
+  if (!key.return) return false;
+  key.shift ? insertNewline() : submitNow();
+  return true;
+}
+
+/** Right-arrow accepts the ghost suggestion. `ghost` is "" when no match — guard is cheap. */
+function handleGhostAccept(key: Key, ghost: string, accepted: string, setBuf: (v: string, c: number) => void): boolean {
+  if (!key.rightArrow || !ghost) return false;
+  setBuf(accepted, accepted.length);
+  return true;
 }
 
 /** ^G edit-in-$EDITOR · ^Z undo/redo · ^V paste text (then image fallback). True when handled. */
