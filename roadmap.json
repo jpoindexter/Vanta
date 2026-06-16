@@ -11699,7 +11699,7 @@
       "size": "L",
       "effort": "high",
       "title": "Evolve agent — proposes falsifiable, evidence-backed edits",
-      "summary": "Meta-agent that reads a distilled root-cause report and proposes a component edit carrying failure-evidence -> root-cause -> fix -> PREDICTED impact. One change at a time, scoped to the evolve workspace. Part of AHE-SELF-EVOLVE.",
+      "summary": "Meta-agent that reads a distilled root-cause report and proposes a component edit carrying failure-evidence -> root-cause -> fix -> PREDICTED impact. One change at a time, scoped to the evolve workspace. Part of AHE-SELF-EVOLVE. Empirical (arXiv 2604.25850): bias edits toward TOOLS / MIDDLEWARE / LONG-TERM MEMORY — that's where the measured gain concentrates and transfers across tasks/models; prose-level system-prompt edits don't transfer (the prompt alone regresses -2.3pp).",
       "done": "Given a distilled report, the agent emits a single scoped edit + a written, checkable impact prediction.",
       "after": [
         "AHE-TRACE-DISTILLER",
@@ -11772,6 +11772,51 @@
       "title": "Calibrated solutioning — ranged/ensembled recommendations + revisit triggers",
       "summary": "From 'From AGI to ASI' (recurring): entertain a range of possibilities, attach uncertainty estimates to forecasts, ensemble, and frequently revisit. Make Vanta's solutioning recommendations carry calibrated ranges (best/realistic/worst) instead of point estimates, and emit a revisit trigger when a key assumption is cheap to check or likely stale. See docs/from-agi-to-asi-notes.md.",
       "done": "A solutioning recommendation ships with a range + named uncertainty drivers + a concrete revisit trigger, not a single-point claim.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-REGRESSION-FORESIGHT",
+      "track": "Cofounder engine",
+      "status": "horizon",
+      "tier": "pebble",
+      "size": "M",
+      "effort": "high",
+      "title": "Regression foresight — predict what an evolve edit will BREAK, not just fix",
+      "summary": "The AHE paper's #1 open problem (arXiv 2604.25850): the evolve loop predicts fixes well (~5x baseline) but is blind to regressions (~2x baseline) — it can't name the tasks an edit is about to break, which causes non-monotone evolution. Add a regression-foresight pass: before applying an edit, predict at-risk tasks (from the trace corpus + edit scope) and gate/scope/targeted-re-eval accordingly. Closes the gap the paper calls the clearest direction for future self-evolution loops. See docs/agentic-harness-engineering.md.",
+      "done": "Before an edit is committed, the loop emits a ranked at-risk-task set; measured regression-recall beats the current ~11% baseline and the evolution curve trends monotone.",
+      "after": [
+        "AHE-EVOLVE-AGENT"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVOLVE-GUARDRAILS",
+      "track": "Cofounder engine",
+      "status": "horizon",
+      "tier": "rock",
+      "size": "M",
+      "effort": "medium",
+      "title": "Evolve guardrails — kernel-enforced no-reward-hacking (verifier/model/budget read-only)",
+      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md.",
+      "done": "An evolve run cannot modify the verifier, model selection, or budget; attempts are kernel-blocked and logged; the seed system prompt cannot be deleted.",
+      "after": [
+        "AHE-EVOLVE-WORKSPACE"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-INTERACTION-AWARE",
+      "track": "Cofounder engine",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "M",
+      "effort": "high",
+      "title": "Interaction-aware evolution — account for non-additive component effects",
+      "summary": "From the AHE paper (arXiv 2604.25850): single-component gains don't stack cleanly (3 edits summing +11.1pp net only +7.3pp together) because components spend turns on redundant re-checks. Make the evolve loop interaction-aware — consider cross-component effects when composing edits, dedupe redundant verification, rather than greedily stacking single-component fixes. Named as future work in the paper. See docs/agentic-harness-engineering.md.",
+      "done": "When two edits touch interacting components, the loop composes them without redundant re-checks and the combined lift approaches the sum of their isolated gains.",
+      "after": [
+        "AHE-EVOLVE-LOOP"
+      ],
       "updated": "2026-06-16"
     }
   ]

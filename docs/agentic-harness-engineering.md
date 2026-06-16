@@ -71,3 +71,36 @@ against §4 of the operating rules.
   - `AHE-SELF-EVOLVE` (Cofounder engine) — the full evaluate→analyze→improve loop on Vanta's own 7 components, kernel-enforced workspace boundary. Depends on the two above.
 - **Reject (PARKED):** importing AHE's code/stack (Python/uv/E2B/NexAU vs Rust/TS).
   It's a methodology to borrow, not a dependency.
+
+## Paper findings (arXiv 2604.25850v4, 2026) — net-new beyond the repo README
+
+The full paper (Lin et al., Fudan/Peking/Shanghai Qiji Zhifeng — same authors as the
+repo) adds empirical detail the README lacked. Headline: 10 AHE iterations lift pass@1 on
+Terminal-Bench 2 from 69.7→77.0% (beats human-designed Codex 71.9% and self-evolve
+baselines ACE/TF-GRPO); the frozen harness transfers to SWE-bench-verified (+ uses 12%
+fewer tokens) and to 3 other base-model families (+5.1 to +10.1pp). Four findings change
+how we'd build the AHE-* initiative:
+
+1. **Regression blindness (the #1 open problem).** The evolve loop predicts *fixes* well
+   (fix-precision 33.7% / recall 51.4%, ~5× a random baseline) but is **blind to
+   regressions** (precision 11.8% / recall 11.1%, only ~2× baseline). "It can justify why
+   an edit should help, but cannot name the tasks the same edit is about to break" — this
+   causes the non-monotone evolution curve. The paper names *regression foresight* as the
+   clearest direction for future loops. → **`AHE-REGRESSION-FORESIGHT`**.
+2. **Controllability / no reward-hacking.** The evolve agent writes ONLY in the harness
+   workspace; the tracer, verifier, and LLM config are **read-only** and the seed system
+   prompt is **non-deletable** — specifically to block an unconstrained self-modifier from
+   "disabling the verifier, swapping the model, or raising the reasoning budget." Vanta's
+   kernel is the natural enforcer (rule zero). → **`AHE-EVOLVE-GUARDRAILS`**.
+3. **Where the gain lives.** Component ablation: the lift concentrates in **tools,
+   middleware, and long-term memory**; the **system prompt alone REGRESSES −2.3pp**.
+   Factual harness structure transfers across tasks/models; prose-level prompt edits don't.
+   → bias `AHE-EVOLVE-AGENT` edits toward structure over prompt prose (card refined).
+4. **Non-additive stacking.** Three single-component gains sum to +11.1pp but full AHE only
+   nets +7.3pp — stacked edits spend turns on redundant re-checks. "Interaction-aware
+   evolution" is future work. → **`AHE-INTERACTION-AWARE`** (low priority).
+
+Other reinforcements (no new cards): k≥2 rollouts/task for a stable pass-rate signal
+(→ `AHE-EVAL-SANDBOX`); progressive-disclosure trace files, raw + cleaned (→
+`AHE-TRACE-DISTILLER`); a deliberately minimal seed so every added component must earn its
+place against measured rollouts (→ the falsifiable-edit decision, DECISIONS 2026-06-16).
