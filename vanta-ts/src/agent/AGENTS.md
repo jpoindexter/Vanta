@@ -2,6 +2,7 @@
 
 Agent-loop internals split out from `../agent.ts`. Keep this layer orchestrational: no provider-specific logic and no Rust-kernel policy changes here.
 
+- `turn-loop.ts` owns `runTurn`: the iteration loop driving completion → tool-call dispatch → stop conditions (consecutive failures, identical-call, max-iter). Extracted from `../agent.ts`; calls into `dispatch-tool.ts`.
 - `dispatch-tool.ts` runs plan gate → safety gate → PreToolUse hooks → tool execution → PostToolUse hooks → compression/offload.
 - `dispatch-helpers.ts` owns safety-gate composition: kernel verdict first, user permission rules second, auto-mode classifier third. Kernel `block` is immovable.
 - `tool-scope.ts` reduces exposed schemas per provider call; `tool_search` stays reachable so the full catalog is discoverable on demand.

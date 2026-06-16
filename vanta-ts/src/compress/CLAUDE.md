@@ -2,7 +2,7 @@
 
 Compression layer for reducing context pressure without breaking the agent loop.
 
-- Tool-result compression is opt-in by tool name in `apply.ts`; precision reads stay uncompressed.
+- Tool-result compression is opt-in by tool name in `apply.ts`; precision reads stay uncompressed — except read_file TS/JS source, which `applyCodeCompression` elides to a signature skeleton via `ast-compress.ts` and stashes in CCR (recoverable, not lossy).
 - Persistent conversation compaction is owned by `../context.ts` and `../agent/context-pipeline.ts`; this folder supplies restore/offload helpers.
 - `post-compact-restore.ts` is best-effort: reads the session working set, bounds files to 5 files × 5 KB, bounds skill bodies to 25 KB total, and emits one markdown system block.
 - Never make compression mandatory for correctness. If a read, parse, CCR write, or restore fails, return the smaller safe surface or nothing.

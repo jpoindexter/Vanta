@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3420 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3471 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -28,10 +28,10 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Critical files for new work
 
-- `src/tools/index.ts` — register every new tool here AND in `tools/tools.test.ts` sorted list
+- `src/tools/all-tools.ts` — register every new tool in the `ALL_TOOLS` array here AND in `tools/tools.test.ts` sorted list (`index.ts` is now just `buildRegistry`)
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 97 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 98 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
@@ -74,8 +74,8 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/index.ts` currently registers **86 built-in tools**; runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **97 slash commands**.
+- `src/tools/all-tools.ts` currently lists **84 built-in tools** (86 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
+- `src/repl/catalog.ts` currently exposes **98 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
@@ -102,7 +102,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - [ ] Zod `safeParse` on all args
 - [ ] `describeForSafety` returns the risk-relevant string (path/command, not content)
 - [ ] Path args → `resolveInScope(arg, ctx.root)` — return `{ok:false}` if outside
-- [ ] Register in `src/tools/index.ts`
+- [ ] Add to the `ALL_TOOLS` array in `src/tools/all-tools.ts`
 - [ ] Add tool name to sorted list in `src/tools/tools.test.ts`
 - [ ] Co-located `src/tools/<name>.test.ts`
 - [ ] `npx tsc --noEmit` clean

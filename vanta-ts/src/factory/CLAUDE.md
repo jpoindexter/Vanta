@@ -8,9 +8,12 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase. On
 |------|----------------|
 | `types.ts` | `WorkItem`, `FactoryPlan`, `SliceArtifact`, `VerifyResult`, `CycleResult`, `FactoryConfig` |
 | `triage.ts` | Reads vitest JSON + tsc stderr + ROADMAP + PARKED → `WorkItem \| null`. Pure parsers exported. |
+| `preflight.ts` | `scoreAmbiguity`/`shouldClarify`/`buildPrefightNote` — pre-execution ambiguity gate (`run.ts` skips + surfaces too-vague items). `VANTA_PREFLIGHT_THRESHOLD` (default 0.5). Pure. |
 | `planner.ts` | `buildPlan(item, root)` → `FactoryPlan`. Per-category agent instructions. Pure. |
 | `executor.ts` | `execute(root, plan, budget)` → `SliceArtifact`. Runs agent + harvests touched files. |
 | `verifier.ts` | `verify(root, artifact, preExisting)` → `VerifyResult`. All checks must pass. |
+| `intent-judge.ts` | `checkIntentSatisfied` — LLM-as-judge intent gate (called by `verifier.ts`); fails OPEN so tests/tsc stay the hard floor. Pure `parseJudgeResponse`. |
+| `holdout.ts` | FAC-HOLDOUT author-separation: `generateHoldout`/`validateAgainstHoldout` — a SEPARATE provider authors acceptance criteria + reviews the result. Built, **not yet wired** into `run.ts`. |
 | `compartments.ts` | O11 — `classifyCompartment(file)` → tier · `compartmentMaxAutonomy(tier)` → max L · `autonomyCapForFiles(files)` → most-restrictive cap. Pure. |
 | `run.ts` | `runCycle(config, log)` → `CycleResult`. Orchestrates the full cycle. |
 

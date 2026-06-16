@@ -1,8 +1,12 @@
 # CLAUDE.md — cli operations
 
-`ops.ts` contains top-level command handlers for gateway/service/MCP/roadmap/factory/desktop.
+`ops.ts` contains top-level command handlers for gateway/service/MCP; `ops-app.ts` holds the desktop/factory/pairing/config handlers it re-exports; `roadmap-cmd.ts` the roadmap one.
+`startup.ts` owns bootstrap + `startInteractive` (repo-root find, env load, TTY setup wizard, run-arg/startup-flag parsing).
 `lifecycle.ts` owns startup lifecycle flags: `--init`, `--init-only`, and `--maintenance`.
 `output-callbacks.ts` owns output-format callback wiring for `vanta run`.
+`memory-cmd.ts`/`skills-cmd.ts`/`hooks-cmd.ts` hold the `vanta memory`/`skills`+`skill`/`hooks` handlers.
+`extra-cmds.ts`+`extra-cmds-2.ts` hold smaller command handlers (plugins/taste/models/acp/proxy; ref/settings/brief).
+`loop-cmd.ts` owns loop CRUD (add/list/run); `loop-cmd-ops.ts` holds its state-mutation handlers (escalations/clear/pause/resume/kill/show).
 
 Conventions:
 - Lazy-import heavier subsystems inside command handlers.

@@ -81,7 +81,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers 81 built-in tools in current source (including factory-built `mount_mcp`; workers exclude recursive tools such as `delegate` as needed); `roadmap_add` files new cards, `roadmap_move` changes status |
+| `tools/all-tools.ts` | The `ALL_TOOLS` array (84 built-in tool imports) — the registration site for new tools, extracted from `index.ts` for the size gate |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers the 84 `ALL_TOOLS` (86 with factory-built `mount_mcp`/`tool_search`; workers exclude recursive tools such as `delegate` as needed); `roadmap_add` files new cards, `roadmap_move` changes status |
 | `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter) |
@@ -183,7 +184,7 @@ each iteration (max VANTA_MAX_ITER=50):
 2. Parse `args` with **zod** (`safeParse`) — it's an LLM boundary.
 3. Path args → `resolveInScope`; return `{ok:false}` if outside.
 4. Return `ToolResult` (errors-as-values, never throw across the boundary).
-5. Register in `tools/index.ts`. Add a test in `tools/tools.test.ts`.
+5. Add it to the `ALL_TOOLS` array in `tools/all-tools.ts` (not `index.ts` — that's just `buildRegistry` now). Add a test in `tools/tools.test.ts`.
 
 ## How to add a provider
 
@@ -226,7 +227,11 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-15 context sync, `buildRegistry()` reports 81 built-in tools and `SLASH_COMMANDS.length` reports 94 commands. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-16 context sync, `ALL_TOOLS` has 84 built-in tools (86 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 98 commands. Older counts in session history are milestones, not current truth.
+
+## Session additions (2026-06-16) — keep current
+
+**Size-gate split (file ≤200 soft / ≤300 hard).** A refactor pass brought every editable TS file under the soft gate by extracting cohesive seams (no behavior change, re-export for back-compat). New structural files: `tools/all-tools.ts` (the `ALL_TOOLS` array — the new tool-registration site; `index.ts` is now just `buildRegistry`), `tools/{team-run,radar-scan,browser-act-run,drive-write,git-write,calendar-write,gmail-helpers}.ts`, `context/sanitize.ts`, `cli/{extra-cmds-2,memory-cmd,skills-cmd,hooks-cmd,loop-cmd-ops,ops-app,startup}.ts`, `agent/turn-loop.ts`, `session/{ef-gates,prepare-helpers}.ts`, `repl/{context-cmds,media-cmds,session-cmds}.ts`, `providers/{codex-codec,model-caps,anthropic-convert,openai-convert}.ts`, `google/auth-store.ts`, `hooks/shell-hook-run.ts`, `loop/{parsers,stages,stop}.ts`, `brain/entry-types.ts`, `desktop/handlers.ts`, `roadmap/render-assets.ts`, `ui/{app-regions,mode-line}.tsx` + `ui/use-session-status.ts`. Only `factory/*` stays exempt. Counts refreshed: **84 built-in tools** (86 registered) · **98 slash commands** · **3471 TS tests** (425 files) · **56 kernel tests**.
 
 ## Session additions (2026-06-15) — keep current
 
@@ -284,9 +289,9 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **Self-repair compartments complete.** `self/tool-sandbox.ts` plans bounded pre-attach tests for `vanta-ts/src/tools/*.ts`; `self_repair sandbox_test` forces `VANTA_SANDBOX=1` through the shared sandbox wrapper before a new/replaced limb tool is attached; repeated tool failures now surface a `Repair loop` prompt with `/compartments` + `self_repair sandbox_test`.
 - **8/8 operator rocks complete.** Remaining horizon: browser OS-level control (needs a desktop driver). Full map: `docs/research/rocks-completion-ledger.md`.
 
-**Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **81 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
+**Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **84 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
 
-**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **95 slash commands**.
+**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **98 slash commands**.
 
 **CC-EFFORT.** Effort levels are `low|medium|high|max`, set by CLI `--effort`, `settings.effortLevel`, `VANTA_EFFORT_LEVEL`, or live `/effort <level>`. OpenAI o-series receives `reasoning_effort` for low/high/max; Anthropic Claude thinking-capable models use extended thinking for high/max (8000/32000 budget tokens), while low forces `max_tokens=4096`.
 
