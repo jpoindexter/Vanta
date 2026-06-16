@@ -11930,12 +11930,12 @@
     {
       "id": "KERNEL-WRITE-PATH-ROBUST",
       "track": "Harness",
-      "status": "horizon",
+      "status": "shipped",
       "tier": "sand",
       "size": "S",
       "effort": "medium",
       "title": "Kernel: robust write-path extraction for the protected-path check",
-      "summary": "extract_write_path() only recognizes 3 prefixes ('write file ', 'write to ', 'overwrite '); other phrasings skip the is_protected_path check. Broaden extraction so a write to a protected path (kernel src, factory/, manifesto) can't be evaded by wording. See docs/vanta-hermes-gap-and-nd.md.",
+      "summary": "extract_write_path() only recognizes 3 prefixes ('write file ', 'write to ', 'overwrite '); other phrasings skip the is_protected_path check. Broaden extraction so a write to a protected path (kernel src, factory/, manifesto) can't be evaded by wording. See docs/vanta-hermes-gap-and-nd.md. SHIPPED 2026-06-16: broadened extract_write_path to a WRITE_VERBS set (incl. \"edit file\" which edit-file.ts actually emits — closing a real bypass where editing src/safety.rs Allowed). Generic verbs require a path-like target (looks_like_path) so the reversibility classifier is not weakened. 47 kernel tests green (+2).",
       "done": "Writes to protected paths are caught across varied phrasings; tests cover the new phrasings.",
       "updated": "2026-06-16"
     },

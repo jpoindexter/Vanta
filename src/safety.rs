@@ -267,14 +267,38 @@ pub fn is_protected_path(path: &Path, root: &Path) -> bool {
     false
 }
 
-/// Extract the target path from a safety-description string like "write file src/foo.ts".
-/// Returns `None` if the text doesn't look like a write action.
+// Write-action verbs the kernel must recognize so the protected-path check can't be
+// evaded by phrasing. Longest/most-specific first so "edit file X" yields "X", not
+// "file". These mirror the TS tools' describeForSafety strings ("write file",
+// "edit file") plus defensive coverage.
+const WRITE_VERBS: &[&str] = &[
+    "write file ", "edit file ", "create file ", "update file ", "append to ",
+    "write to ", "overwrite ", "edit ", "modify ", "patch ", "create ", "save ", "write ",
+];
+
+/// A token that looks like a file path (has a separator or a short extension) — used
+/// so generic verbs ("create", "save") only count as a file-write when the target is
+/// actually a path. This keeps the reversibility classifier honest: "create a
+/// migration" must NOT read as a reversible file-write (it stays Irreversible→Ask).
+fn looks_like_path(tok: &str) -> bool {
+    if tok.contains('/') {
+        return true;
+    }
+    match tok.rsplit_once('.') {
+        Some((stem, ext)) => !stem.is_empty() && !ext.is_empty() && ext.len() <= 5,
+        None => false,
+    }
+}
+
+/// Extract the target path from a safety-description string like "edit file src/foo.ts".
+/// Returns `None` if the text doesn't look like a file-write action. For generic verbs
+/// the target must look like a path (so "create a plan" is not a write).
 fn extract_write_path(text: &str) -> Option<String> {
-    for prefix in &["write file ", "write to ", "overwrite "] {
+    for prefix in WRITE_VERBS {
         if let Some(rest) = text.strip_prefix(prefix) {
-            let path = rest.split_whitespace().next().unwrap_or("").to_string();
-            if !path.is_empty() {
-                return Some(path);
+            let tok = rest.split_whitespace().next().unwrap_or("");
+            if !tok.is_empty() && (prefix.contains("file") || looks_like_path(tok)) {
+                return Some(tok.to_string());
             }
         }
     }
@@ -481,6 +505,29 @@ mod tests {
         assert_eq!(assess_action("run shell command: git commit -m wip", &r).risk, Risk::Allow);
         assert_eq!(assess_action("run shell command: git checkout main", &r).risk, Risk::Allow);
         assert_eq!(assess_action("run shell command: cargo build", &r).risk, Risk::Allow);
+    }
+
+    #[test]
+    fn protected_path_caught_via_edit_verb_not_just_write() {
+        // KERNEL-WRITE-PATH-ROBUST: edit_file emits "edit file X" — that must hit the
+        // protected-path Block too, not just "write file X" (the old bypass).
+        let r = root();
+        assert_eq!(assess_action("edit file src/safety.rs", &r).risk, Risk::Block);
+        assert_eq!(assess_action("edit file vanta-ts/src/factory/run.ts", &r).risk, Risk::Block);
+        // a writable file via the edit verb still Allows
+        assert_eq!(assess_action("edit file vanta-ts/src/tools/new.ts", &r).risk, Risk::Allow);
+    }
+
+    #[test]
+    fn generic_verb_without_a_path_is_not_a_write() {
+        // "create a migration" must NOT read as a reversible file-write — it has to
+        // stay Irreversible→Ask via the IRREVERSIBLE list. Guards the reversibility
+        // classifier against the broadened write-verb set.
+        let r = root();
+        assert_eq!(assess_action("create a migration", &r).risk, Risk::Ask);
+        assert_eq!(assess_action("save the deployment", &r).risk, Risk::Ask);
+        assert!(extract_write_path("create a plan").is_none());
+        assert_eq!(extract_write_path("edit file src/x.rs").as_deref(), Some("src/x.rs"));
     }
 
     #[test]
