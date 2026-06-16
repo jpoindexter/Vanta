@@ -1,18 +1,11 @@
-import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { mirrorLegacyEnv } from "./env-compat.js";
 import { ensureVantaStore } from "./store/home.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import { runRoomsList, runModes } from "./projects/commands.js";
 import { runAuthCommand } from "./google/commands.js";
-import { runChat } from "./interactive.js";
-import { runTuiV2 } from "./ui/launch.js";
 import { runSetup } from "./setup.js";
 import { runFullSetup } from "./setup-full.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { runStatus } from "./status.js";
-import { resolveProvider } from "./providers/index.js";
 import {
   dataDirFor,
   buildCronRunTask,
@@ -35,14 +28,12 @@ import {
   usageExit,
   runSessionsList,
   runInstruction,
-  runSkillsCommand,
-  runMemoryCommand,
   runVoiceCommand,
-  runHooksCommand,
-  runSkillCommand,
   runRoomCommand,
-  type OutputFormat,
 } from "./cli/commands.js";
+import { runSkillsCommand, runSkillCommand } from "./cli/skills-cmd.js";
+import { runMemoryCommand } from "./cli/memory-cmd.js";
+import { runHooksCommand } from "./cli/hooks-cmd.js";
 import {
   runPluginsCommand,
   runTasteCommand,
@@ -54,93 +45,11 @@ import {
   runBriefCommand,
 } from "./cli/extra-cmds.js";
 import { runLoopCommand } from "./cli/loop-cmd.js";
-import { parseLifecycleFlags, runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
-import { parsePermissionModeFlags } from "./cli/permission-mode.js";
 import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
-import { parseEffortFlag } from "./effort.js";
-
-function findRepoRoot(): string {
-  let dir = dirname(fileURLToPath(import.meta.url));
-  for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, "Cargo.toml"))) return dir;
-    dir = dirname(dir);
-  }
-  return process.cwd();
-}
-
-function loadEnv(repoRoot: string): void {
-  try {
-    process.loadEnvFile(join(repoRoot, "vanta-ts", ".env"));
-  } catch {
-    // no .env file — rely on the ambient environment
-  }
-  mirrorLegacyEnv(); // back-compat: existing ARGO_* configs → VANTA_*
-}
-
-/** True when a model backend resolves from the current env (a usable config exists). */
-function isConfigured(env: NodeJS.ProcessEnv): boolean {
-  try {
-    resolveProvider(env);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Launch the interactive session, running the first-run wizard first if no
- * backend is configured. The auto-launch is TTY-gated: a non-interactive caller
- * (piped/cron) is told to run `vanta setup` rather than blocking on a prompt.
- */
-async function maybeRunStartupLifecycle(repoRoot: string, lifecycle?: LifecycleFlags): Promise<boolean> {
-  return lifecycle ? runLifecycleHooks(repoRoot, lifecycle, "interactive") : false;
-}
-
-async function ensureConfiguredOrSetup(repoRoot: string): Promise<boolean> {
-  if (!isConfigured(process.env)) {
-    if (!process.stdin.isTTY) {
-      console.log("No model backend configured. Run `vanta setup` in a terminal first.");
-      process.exit(1);
-    }
-    const wrote = await runFullSetup(repoRoot);
-    if (!wrote) return false;
-    loadEnv(repoRoot); // pick up the freshly written .env
-  }
-  return true;
-}
-
-async function startInteractive(
-  repoRoot: string,
-  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags } = {},
-): Promise<void> {
-  if (await maybeRunStartupLifecycle(repoRoot, opts.lifecycle)) return;
-  if (!await ensureConfiguredOrSetup(repoRoot)) return;
-  // The Claude-method Ink TUI is the default interactive surface; fall back to the
-  // readline REPL for resume (the TUI doesn't rehydrate), --no-tui, VANTA_NO_TUI,
-  // or no TTY.
-  const useTui =
-    Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
-  if (!useTui) return runChat(repoRoot, opts);
-  // REL3: wrap TUI launch in a try-catch; fall back to readline REPL if Ink
-  // fails to render (bad TERM, missing native deps, restricted environment).
-  try {
-    return await runTuiV2(repoRoot);
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`\nTUI unavailable (${msg.split("\n")[0]}); falling back to readline REPL.\nSet VANTA_NO_TUI=1 to suppress this warning.\n`);
-    return runChat(repoRoot, opts);
-  }
-}
-
-/** Extract a `--resume <id>` value from args, if present. */
-function resumeIdFrom(args: string[]): string | undefined {
-  const i = args.indexOf("--resume");
-  return i >= 0 ? args[i + 1] : undefined;
-}
-
-function hasForkSession(args: string[]): boolean {
-  return args.includes("--fork-session");
-}
+import {
+  findRepoRoot, loadEnv, startInteractive,
+  resumeIdFrom, hasForkSession, parseRunArgs, parseStartupFlags,
+} from "./cli/startup.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -222,38 +131,6 @@ const COMMANDS: Record<string, CommandFn> = {
   daemon: (root, rest) => runAgentsCommand(root, ["daemon", ...rest]),
   "auto-mode": (root, rest) => runAutoModeCommand(root, rest),
 };
-
-/** Parse the `run` subcommand args into instruction + outputFormat + optional jsonSchema. */
-function parseRunArgs(rest: string[]): { instruction: string; outputFormat: OutputFormat; jsonSchema?: string } {
-  const fmtIdx = rest.indexOf("--output-format");
-  const rawFmt = fmtIdx >= 0 ? rest[fmtIdx + 1] : undefined;
-  const outputFormat: OutputFormat =
-    rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
-  const schemaIdx = rest.indexOf("--json-schema");
-  const jsonSchema = schemaIdx >= 0 ? rest[schemaIdx + 1] : undefined;
-  const skipIdxs = new Set<number>([
-    fmtIdx, fmtIdx + 1, schemaIdx, schemaIdx + 1,
-  ].filter((i) => i >= 0));
-  const instrArgs = rest.filter((_, i) => !skipIdxs.has(i));
-  return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
-}
-
-function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags } {
-  const permissionParse = parsePermissionModeFlags(args, process.env);
-  if (permissionParse.error) {
-    console.error(permissionParse.error);
-    process.exit(1);
-  }
-  process.env = permissionParse.env;
-  const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
-  if (effortParse.error) {
-    console.error(effortParse.error);
-    process.exit(1);
-  }
-  process.env = effortParse.env;
-  const lifecycleParse = parseLifecycleFlags(effortParse.rest);
-  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags };
-}
 
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();

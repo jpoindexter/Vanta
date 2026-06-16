@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { parseScore, parseEscalation, parseReasoning, runLoopIteration } from "./runner.js";
+import { parseScore, parseEscalation, parseReasoning } from "./parsers.js";
+import { runLoopIteration } from "./runner.js";
 import { LoopDefSchema, newState } from "./types.js";
 import { raiseEscalation, markInProgress } from "./state.js";
 

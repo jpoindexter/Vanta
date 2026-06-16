@@ -1,11 +1,8 @@
 import { createServer } from "node:http";
-import { join } from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { z } from "zod";
 import type { AddressInfo } from "node:net";
 import type { OAuth2Client, Credentials } from "google-auth-library";
-import { resolveVantaHome, ensureVantaStore } from "../store/home.js";
+import { parseTokenFile, loadTokens, saveTokens, type StoredTokens } from "./auth-store.js";
+export { parseTokenFile } from "./auth-store.js";
 
 /**
  * One-time Google OAuth (loopback redirect consent) and token persistence.
@@ -19,56 +16,6 @@ const SCOPES = [
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/drive",
 ];
-
-const TOKEN_FILE = "google-tokens.json";
-
-/** Defensive shape — token files are external JSON, never trusted blindly. */
-const TokenSchema = z
-  .object({
-    refresh_token: z.string().optional(),
-    access_token: z.string().optional(),
-    expiry_date: z.number().optional(),
-  })
-  .passthrough();
-
-type StoredTokens = z.infer<typeof TokenSchema>;
-
-function tokenPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), TOKEN_FILE);
-}
-
-/**
- * Defensive parse of an unknown JSON value into the token shape. Returns null
- * for anything that isn't an object with the expected (optional) fields.
- */
-export function parseTokenFile(json: unknown): StoredTokens | null {
-  const parsed = TokenSchema.safeParse(json);
-  return parsed.success ? parsed.data : null;
-}
-
-async function loadTokens(
-  env: NodeJS.ProcessEnv,
-): Promise<StoredTokens | null> {
-  const file = tokenPath(env);
-  if (!existsSync(file)) return null;
-  try {
-    return parseTokenFile(JSON.parse(await readFile(file, "utf8")));
-  } catch {
-    return null; // corrupt/unreadable token file is treated as "not authorized"
-  }
-}
-
-async function saveTokens(
-  tokens: StoredTokens,
-  env: NodeJS.ProcessEnv,
-): Promise<void> {
-  await ensureVantaStore(env);
-  // 0o600 — the file holds a refresh_token (a long-lived secret).
-  await writeFile(tokenPath(env), JSON.stringify(tokens, null, 2), {
-    encoding: "utf8",
-    mode: 0o600,
-  });
-}
 
 function readClientCreds(env: NodeJS.ProcessEnv): {
   clientId: string;

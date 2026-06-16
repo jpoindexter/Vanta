@@ -1,0 +1,150 @@
+export const CSS = `*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0c0f14;color:#c8cdd8;padding:1.5rem}
+h1{font-size:1.25rem;margin-bottom:.35rem;font-weight:600}
+.meta{color:#3e4a5c;font-size:.72rem;margin-bottom:1.25rem;font-family:ui-monospace,monospace}
+.filters{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;align-items:center}
+.filters label{font-size:.65rem;color:#3e4a5c;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:.09em;text-transform:uppercase}
+select{background:#10141b;border:1px solid #1e2737;color:#5e6e82;padding:.35rem .6rem;border-radius:0;cursor:pointer;font-size:.72rem;font-family:ui-monospace,monospace;min-width:120px}
+select:hover{border-color:#384454;color:#a0aab8}
+select:focus{outline:none;border-color:#f59e0b;color:#e8eaf0}
+option{background:#0c0f14;color:#c8cdd8;padding:.3rem}
+button{background:#10141b;border:1px solid #1e2737;color:#3e4a5c;padding:.25rem .6rem;border-radius:0;cursor:pointer;font-size:.7rem;font-family:ui-monospace,monospace}
+button.active,button:hover{background:#f59e0b;border-color:#f59e0b;color:#0c0f14;font-weight:700}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
+.col h2{font-size:.65rem;font-weight:700;padding:.3rem .65rem;margin-bottom:.75rem;letter-spacing:.1em;text-transform:uppercase;font-family:ui-monospace,monospace;background:transparent;border-left:3px solid}
+h2.s-building{color:#4ade80;border-left-color:#4ade80}
+h2.s-next{color:#60a5fa;border-left-color:#60a5fa}
+h2.s-horizon{color:#c084fc;border-left-color:#c084fc}
+h2.s-shipped{color:#475569;border-left-color:#475569}
+.tg{margin-bottom:.75rem}
+.tg h3{font-size:.62rem;font-weight:700;color:#3e4a5c;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem;padding:.15rem .5rem;border-left:2px solid #1e2737;font-family:ui-monospace,monospace}
+.t-rock h3{color:#f59e0b;border-left-color:#f59e0b}
+.t-pebble h3{color:#60a5fa;border-left-color:#60a5fa}
+.t-sand h3{color:#4ade80;border-left-color:#4ade80}
+.badges{display:flex;gap:.35rem;margin-bottom:.35rem}
+.me{font-family:ui-monospace,monospace;font-size:.62rem;padding:.1rem .3rem;border-radius:0;border:1px solid #1e2737;color:#5e6e82}
+.m-haiku{border-color:#4ade80;color:#4ade80}
+.m-sonnet{border-color:#60a5fa;color:#60a5fa}
+.m-opus{border-color:#c084fc;color:#c084fc}
+.cx{border-color:#f59e0b;color:#f59e0b}
+.card{background:#10141b;border:1px solid #1e2737;padding:.65rem;margin-bottom:.4rem;color:#c8cdd8}
+.card:hover{border-color:#384454}
+.hd{display:flex;align-items:baseline;gap:.4rem;margin-bottom:.3rem}
+.sz{background:transparent;border:1px solid #1e2737;font-size:.62rem;padding:.1rem .3rem;color:#3e4a5c;flex-shrink:0;font-family:ui-monospace,monospace}
+.ttl{font-size:.82rem;font-weight:600;flex:1;line-height:1.3;color:#dce0e8}
+.trk{font-size:.6rem;color:#3e4a5c;flex-shrink:0;max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace}
+.lens{font-size:.56rem;padding:.05rem .3rem;flex-shrink:0;font-family:ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase;border:1px solid}
+.l-agent-loop{color:#f59e0b;border-color:#4a3408;background:#171002}
+.l-tui{color:#60a5fa;border-color:#1e3a5c;background:#0a1320}
+.l-memory{color:#c084fc;border-color:#3a2452;background:#140a1f}
+.l-reach{color:#4ade80;border-color:#1e4a32;background:#08160e}
+.l-selfhood{color:#f472b6;border-color:#5a2440;background:#1a0810}
+.l-coding{color:#5e6e82;border-color:#1e2737;background:#0d1117}
+.l-infra{color:#7a8898;border-color:#2a323e;background:#10141b}
+.l-cosmetic{color:#475569;border-color:#1e2737;background:#0d1117}
+.sum{font-size:.73rem;color:#5e6e82;line-height:1.5;margin-bottom:.35rem}
+details>summary{font-size:.68rem;color:#3e4a5c;cursor:pointer;list-style:none;padding:.15rem 0;font-family:ui-monospace,monospace}
+details>summary::marker,details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ "}
+details[open]>summary::before{content:"▾ "}
+.done{font-size:.72rem;color:#7a8898;margin-top:.3rem;padding:.35rem .5rem;background:#0c0f14;border-left:2px solid #1e2737;line-height:1.5}
+.sh-section{margin-top:1.75rem}
+.sh-section>summary{color:#3e4a5c;cursor:pointer;font-size:.78rem;padding:.45rem .7rem;background:#10141b;border:1px solid #1e2737;list-style:none;font-family:ui-monospace,monospace}
+.sh-section>summary::before{content:"▸ "}
+.sh-section[open]>summary::before{content:"▾ "}
+.sh-grid{columns:3;column-gap:1rem;margin-top:.75rem}
+.sh-grid .card{break-inside:avoid}
+.hidden{display:none!important}
+@media(max-width:880px){.board{grid-template-columns:1fr 1fr}.sh-grid{columns:2}}
+@media(max-width:560px){.board{grid-template-columns:1fr}.sh-grid{columns:1}}
+.col.drag-over{outline:2px dashed #f59e0b;background:#0d1018}
+.card[draggable=true]{cursor:grab}
+.card.dragging{opacity:.4}
+.wip{font-size:.62rem;font-weight:400;color:#5e6e82;background:#0c0f14;padding:.1rem .3rem;margin-left:.4rem;font-family:ui-monospace,monospace;vertical-align:middle}
+.wip.at-limit{color:#f87171;background:#1c0a0a}`;
+
+export const DRAG_JS = `(function(){
+var served=location.protocol==='http:'||location.protocol==='https:';
+if(!served){
+var b=document.createElement('div');
+b.textContent='Read-only view. To drag cards between columns, run  vanta roadmap serve  then open  http://localhost:7789/roadmap/board';
+b.style.cssText='position:sticky;top:0;z-index:99;background:#1e293b;border:1px solid #334155;border-left:3px solid #fbbf24;color:#cbd5e1;font:.75rem/1.5 ui-monospace,monospace;padding:.5rem .75rem;margin-bottom:.75rem;border-radius:4px';
+document.body.insertBefore(b,document.body.firstChild);
+return;
+}
+var dragging=null;
+document.querySelectorAll('.card').forEach(function(card){
+card.setAttribute('draggable','true');
+card.addEventListener('dragstart',function(){dragging=this.dataset.id;this.classList.add('dragging');});
+card.addEventListener('dragend',function(){this.classList.remove('dragging');dragging=null;});
+});
+document.querySelectorAll('.col[data-status]').forEach(function(col){
+col.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+col.addEventListener('dragleave',function(e){if(!this.contains(e.relatedTarget)){this.classList.remove('drag-over');}});
+col.addEventListener('drop',function(e){
+e.preventDefault();this.classList.remove('drag-over');
+var id=dragging;var status=this.dataset.status;
+if(!id||!status)return;
+fetch('/roadmap/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,status:status})})
+.then(function(r){return r.json();})
+.then(function(j){if(j.ok)location.reload();else alert('Move failed: '+j.error);})
+.catch(function(err){alert('Move error: '+err);});
+});
+});
+})();`;
+
+export const FILTER_JS = `(function(){
+var cards=document.querySelectorAll('.card');
+var tgs=document.querySelectorAll('.tg');
+var cols=document.querySelectorAll('.col');
+var activeTrack='all';
+var activeSize='all';
+var activeModel='all';
+var activePriority='all';
+var activeLens='all';
+function applyFilters(){
+cards.forEach(function(c){
+var tm=activeTrack==='all'||c.dataset.track===activeTrack;
+var sm=activeSize==='all'||c.dataset.size===activeSize;
+var mm=activeModel==='all'||c.querySelector('.m-'+activeModel);
+var pm=activePriority==='all'||c.dataset.tier===activePriority;
+var lm=activeLens==='all'||c.dataset.lens===activeLens;
+c.classList.toggle('hidden',!(tm&&sm&&mm&&pm&&lm));
+});
+tgs.forEach(function(t){
+var vis=[].some.call(t.querySelectorAll('.card'),function(c){return !c.classList.contains('hidden');});
+t.style.display=vis?'':'none';
+});
+cols.forEach(function(c){
+var vis=[].some.call(c.querySelectorAll('.tg'),function(t){return t.style.display!=='none';});
+c.style.display=vis?'':'none';
+});
+}
+document.getElementById('lens-filter').addEventListener('change',function(){activeLens=this.value;applyFilters();});
+document.getElementById('track-filter').addEventListener('change',function(){activeTrack=this.value;applyFilters();});
+document.getElementById('size-filter').addEventListener('change',function(){activeSize=this.value;applyFilters();});
+document.getElementById('model-filter').addEventListener('change',function(){activeModel=this.value;applyFilters();});
+document.getElementById('priority-filter').addEventListener('change',function(){activePriority=this.value;applyFilters();});
+})();`;
+
+export const SIZE_ORDER = ["XS", "S", "M", "L", "XL"] as const;
+export const MODEL_ORDER = ["haiku", "sonnet", "opus"] as const;
+export const PRIORITY_ORDER = ["rock", "pebble", "sand"] as const;
+export const PRIORITY_LABEL: Record<string, string> = {
+  rock: "Rock (foundational)",
+  pebble: "Pebble (substantial)",
+  sand: "Sand (quick wins)",
+};
+export const LENS_ORDER = [
+  "agent-loop", "tui", "memory", "reach", "selfhood", "infra", "coding", "cosmetic",
+] as const;
+export const LENS_LABEL: Record<string, string> = {
+  "agent-loop": "Agent loop (autonomy)",
+  tui: "TUI (display)",
+  memory: "Memory + context",
+  reach: "Reach (comms/senses)",
+  selfhood: "Selfhood + EF",
+  infra: "Infra + setup",
+  coding: "Coding harness",
+  cosmetic: "Cosmetic",
+};

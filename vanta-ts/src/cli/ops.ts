@@ -13,6 +13,8 @@ import type { RunTask } from "../schedule/runner.js";
 // cli.ts owns the interactive + run/skill/room paths and the main() dispatch.
 // runRoadmapCommand lives in roadmap-cmd.ts (CODE-SIZE-GATE).
 export { runRoadmapCommand } from "./roadmap-cmd.js";
+// Desktop/factory/pairing/config handlers live in ops-app.ts (size gate).
+export { runDesktopCommand, runFactoryCommand, runPairingCommand, runConfigCommand } from "./ops-app.js";
 
 export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta");
 
@@ -140,108 +142,3 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
 }
 
 
-export async function runDesktopCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const port = Number(rest[0] ?? process.env.VANTA_DESKTOP_PORT) || 7790;
-  const { serveDesktop } = await import("../desktop/server.js");
-  setTimeout(() => {
-    void import("node:child_process").then(({ execSync }) => {
-      try { execSync(`open "http://127.0.0.1:${port}"`); } catch {}
-    });
-  }, 300);
-  await serveDesktop(repoRoot, port);
-}
-
-export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {
-  const { runCycle, formatCycleLog, resolveAutonomyLevel } = await import("../factory/run.js");
-  const budget = Number(process.env.VANTA_FACTORY_BUDGET) || 80_000;
-  const dataDir = resolveVantaHome(process.env);
-
-  if (sub === "approve") {
-    // L4 by default (commit + push); VANTA_AUTONOMY_LEVEL=2|3 stops earlier.
-    const autonomyLevel = resolveAutonomyLevel("approve", process.env);
-    const result = await runCycle(
-      { vantaRoot: repoRoot, dataDir, autonomyLevel, budgetTokens: budget, interactive: true },
-      console.log,
-    );
-    console.log(`\n${formatCycleLog(result)}`);
-    return;
-  }
-
-  if (sub === "status") {
-    const { access, readFile } = await import("node:fs/promises");
-    const locked = await access(join(dataDir, "factory.lock")).then(() => true).catch(() => false);
-    console.log(locked ? "factory: RUNNING (lockfile present)" : "factory: idle");
-    const logDir = join(dataDir, "logs");
-    try {
-      const { readdirSync } = await import("node:fs");
-      const logs = readdirSync(logDir).filter((f: string) => f.startsWith("factory-")).sort().reverse();
-      if (logs[0]) {
-        const last = await readFile(join(logDir, logs[0]!), "utf8");
-        console.log(`last cycle: ${last.trim().split("\n").at(-1) ?? ""}`);
-      }
-    } catch { /* no logs yet */ }
-    return;
-  }
-
-  if (sub === "review" || sub === "") {
-    // vanta improve or vanta factory (no sub): L1 suggest — print plan, don't execute
-    const result = await runCycle(
-      { vantaRoot: repoRoot, dataDir, autonomyLevel: 1, budgetTokens: budget, interactive: true },
-      console.log,
-    );
-    console.log(`\n${formatCycleLog(result)}`);
-    return;
-  }
-
-  console.log("Usage: vanta factory [approve|status]");
-}
-
-/** `vanta pairing [list | approve <chatId>]` — manage messaging platform pairings. */
-export async function runPairingCommand(rest: string[]): Promise<void> {
-  const home = resolveVantaHome();
-  const { listPairings, approvePairing } = await import("../gateway/pairing.js");
-  const sub = rest[0] ?? "list";
-
-  if (sub === "approve") {
-    const chatId = rest[1];
-    if (!chatId) { console.error("usage: vanta pairing approve <chatId>"); process.exit(1); }
-    const ok = await approvePairing(chatId, "cli", home);
-    console.log(ok ? `✓ approved: ${chatId}` : `not found: ${chatId}`);
-    return;
-  }
-
-  const records = await listPairings(home);
-  if (!records.length) { console.log("(no pairing records)"); return; }
-  for (const r of records) {
-    const age = r.status === "approved"
-      ? `approved ${new Date(r.approvedAt ?? r.issuedAt).toISOString()}`
-      : `expires ${new Date(r.expiresAt).toISOString()} · ${r.attempts} attempt(s)`;
-    console.log(`${r.platform.padEnd(10)} ${r.chatId.padEnd(20)} [${r.status}]  ${age}`);
-  }
-}
-
-/** `vanta config [show | edit | migrate]` — manage Vanta configuration. */
-export async function runConfigCommand(repoRoot: string, rest: string[]): Promise<void> {
-  const sub = rest[0] ?? "show";
-  const m = await import("../cli-dx/config.js");
-  const run = async (): Promise<string | void> => {
-    if (sub === "show") return m.showConfig(repoRoot);
-    if (sub === "edit") return m.editConfig(repoRoot);
-    if (sub === "migrate") return m.migrateConfig(repoRoot);
-    if (sub === "get") return rest[1] ? m.getConfig(repoRoot, rest[1]) : "Usage: vanta config get KEY";
-    if (sub === "set") {
-      return rest[1] && rest[2] !== undefined
-        ? m.setConfig(repoRoot, rest[1], rest.slice(2).join(" "))
-        : "Usage: vanta config set KEY VALUE";
-    }
-    if (sub === "check") return m.checkConfig(repoRoot);
-    return "Usage: vanta config [show | get KEY | set KEY VALUE | edit | check | migrate]";
-  };
-  try {
-    const out = await run();
-    if (typeof out === "string") console.log(out);
-  } catch (err: unknown) {
-    console.error(err instanceof Error ? err.message : String(err));
-    process.exit(1);
-  }
-}

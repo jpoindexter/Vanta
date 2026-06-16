@@ -1,11 +1,9 @@
 import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactElement } from "react";
-import { Box, Static, Text, useApp, useInput } from "ink";
-import { Banner } from "./banner.js";
-import { EntryView } from "./transcript.js";
+import { Box, Static, useApp, useInput } from "ink";
 import { Composer } from "./composer.js";
 import { TodoPanel } from "./todo-panel.js";
 import { reduce, type Action } from "./reducer.js";
-import { initialState, type Entry, type PendingTool } from "./types.js";
+import { initialState } from "./types.js";
 import { useAgent, type Pending } from "./use-agent.js";
 import { ApprovalPrompt } from "./approval-prompt.js";
 import { useSlash } from "./use-slash.js";
@@ -17,12 +15,10 @@ import { HelpPanel } from "./help-panel.js";
 import { LoopsPanel } from "./loops-panel.js";
 import { ReviewPanel } from "./review-panel.js";
 import { ContextPanel } from "./context-panel.js";
-import { StatusBar } from "./status-bar.js";
 import { useBusyTick } from "./use-busy-tick.js";
-import { busyLabel, contextPct, formatElapsed } from "./busy.js";
-import { ThemeProvider, useTheme, resolveThemeByName, type Theme } from "./theme.js";
+import { contextPct } from "./busy.js";
+import { ThemeProvider, resolveThemeByName, type Theme } from "./theme.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
-import { StreamPreview } from "./stream-view.js";
 import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinned-region.js";
 import { useViewportRows } from "./use-viewport-rows.js";
 import { estimateCommittedRows } from "./layout-rows.js";
@@ -31,15 +27,16 @@ import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";
-import { envForPermissionMode, resolvePermissionMode, type PermissionMode } from "../modes/permission-mode.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
+import { useSessionStatus } from "./use-session-status.js";
+import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
+import { type Mode, cycleMode, useModeState, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
-import type { EffortLevel } from "../types.js";
 
 export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement {
   const app = useApp();
@@ -66,7 +63,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
-  const provider = props.setup.provider; // mutated in place on a /model swap, so this stays current
+  const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
@@ -91,54 +88,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   );
 }
 
-type Mode = PermissionMode;
-const NEXT_MODE: Record<Mode, Mode> = { default: "acceptEdits", acceptEdits: "auto", auto: "default" };
-
-export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
-  const next = NEXT_MODE[mode];
-  void runSlash;
-  setMode(next);
-}
-
-function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pending | null) => void): void {
-  useEffect(() => {
-    if (pending && mode === "auto") { pending.resolve(true); setPending(null); }
-  }, [pending, mode]); // eslint-disable-line react-hooks/exhaustive-deps
-}
-
-function useModeState(pending: Pending | null, setPending: (p: Pending | null) => void, runSlash: (s: string) => void): { mode: Mode; cycle: () => void } {
-  const [mode, setMode] = useState<Mode>(() => resolvePermissionMode(process.env));
-  useAutoApprove(pending, mode, setPending);
-  useEffect(() => { Object.assign(process.env, envForPermissionMode(mode)); }, [mode]);
-  return { mode, cycle: () => cycleMode(mode, setMode, runSlash) };
-}
-
-export function ModeLine(props: { mode: Mode }): ReactElement | null {
-  const t = useTheme();
-  if (props.mode === "acceptEdits") return <Text color={t.warning} bold>EDITS <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "auto") return <Text color={t.warning} bold>AUTO <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
-  return null;
-}
-
 function ctxSnapshot(setup: RunSetup, convo: Conversation | null): { messages: { role: string; content?: string }[]; contextWindow: number } {
   return { messages: (convo?.messages ?? []) as { role: string; content?: string }[], contextWindow: setup.provider.contextWindow() };
-}
-
-function goalClip(s: string): string {
-  const l = s.split("\n")[0] ?? "";
-  return l.length > 88 ? `${l.slice(0, 87)}…` : l;
-}
-
-export function Footer(props: { model: string; effortLevel: EffortLevel; ctxPct: number; tokens: number; contextWindow: number; turns: number; busy: boolean; queued: number; goal: string | null; mcp: boolean; elapsed: string }): ReactElement {
-  const t = useTheme();
-  return (
-    <Box flexDirection="column">
-      {/* Space (not "") keeps this line height=1 even when goal is null — "" renders as 0 lines in Ink */}
-      <Text dimColor={t.dimText}>{props.goal ? <><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
-      <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
-      <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
-    </Box>
-  );
 }
 
 type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean };
@@ -161,7 +112,6 @@ function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void 
   if (escInterrupts(key, d)) return void d.abort();
 }
 
-/** Reset focus to the first valid target whenever the focus scope changes. */
 function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[], scope: string, setFocus: (t: FocusTarget) => void): void {
   useEffect(() => {
     if (!isFocusable(focus, targets)) setFocus(targets[0]?.id ?? "composer");
@@ -174,33 +124,6 @@ function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null)
   return [{ id: "composer" }];
 }
 
-function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null {
-  const [goal, setGoal] = useState<string | null>(null);
-  useEffect(() => {
-    void safety.getGoals().then((gs) => setGoal(gs.find((g) => g.status === "active")?.text ?? null)).catch(() => {});
-  }, [busy]); // eslint-disable-line react-hooks/exhaustive-deps
-  return goal;
-}
-
-function useClock(): void {
-  const [, setN] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setN((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-}
-
-function useMcpPresent(): boolean {
-  const [present, setPresent] = useState(false);
-  useEffect(() => {
-    void import("../mcp/mount.js")
-      .then(({ readMcpConfig }) => readMcpConfig(process.env))
-      .then((cfg) => setPresent(Object.keys(cfg.servers ?? {}).length > 0))
-      .catch(() => {});
-  }, []);
-  return present;
-}
-
 function useSkillMatches(): SlashMatch[] {
   const [matches, setMatches] = useState<SlashMatch[]>([]);
   useEffect(() => {
@@ -211,38 +134,10 @@ function useSkillMatches(): SlashMatch[] {
   return matches;
 }
 
-function useSessionStatus(setup: RunSetup, busy: boolean, startedIso: string, dispatch: Dispatch<Action>): { goal: string | null; mcp: boolean; elapsed: string } {
-  const goal = useActiveGoal(setup.safety, busy);
-  const mcp = useMcpPresent();
-  useClock();
-  useEffect(() => {
-    if (process.env.VANTA_GOAL_RESUME === "auto") return;
-    if (setup.ralphContinuity) dispatch({ t: "note", text: firstRalphNotice(setup.ralphContinuity) });
-    void setup.safety.getGoals().then((gs) => {
-      const g = gs.find((x) => x.status === "active");
-      if (g) dispatch({ t: "note", text: `↻ Carried goal (paused): ${g.text.slice(0, 78)} — /goal resume to pick up · /goal clear to drop` });
-    }).catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return { goal, mcp, elapsed: formatElapsed(Date.now() - Date.parse(startedIso)) };
-}
-
-function firstRalphNotice(block: string): string {
-  const goal = block.match(/^Goal: (.+)$/m)?.[1] ?? "carried work";
-  const next = block.match(/^Next incomplete: (.+)$/m)?.[1] ?? "next item";
-  return `↻ Ralph loop progress found: ${goal.slice(0, 60)} — ${next.slice(0, 60)} · /goal resume to continue · /goal drop to discard`;
-}
-
 function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Action>, send: (t: string) => void): void {
   useEffect(() => {
     if (!busy && queued.length > 0) { const next = queued[0]!; dispatch({ t: "dequeue" }); void send(next); }
   }, [busy, queued.length]); // eslint-disable-line react-hooks/exhaustive-deps
-}
-
-function buildStaticItems(model: string, repoRoot: string, entries: Entry[], caps: { tools: number; cmds: number }): Array<{ key: string; node: ReactElement }> {
-  return [
-    { key: "banner", node: <Banner model={model} cwd={repoRoot} kernel="127.0.0.1:7788" tools={caps.tools} cmds={caps.cmds} /> },
-    ...entries.map((e, i) => ({ key: `e${i}`, node: <EntryView entry={e} /> })),
-  ];
 }
 
 function BottomRegion(props: {
@@ -274,18 +169,5 @@ function BottomRegion(props: {
   );
 }
 
-function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number }): ReactElement | null {
-  const { streaming, activeTools, busy, tick } = props;
-  const theme = useTheme();
-  if (!busy && !streaming) return null;
-  const active = activeTools[activeTools.length - 1];
-  const { frame, verb } = busyLabel(tick);
-  const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
-  const secs = Math.round(tick * 0.15); // tick advances ~every 150ms
-  return (
-    <Box flexDirection="column">
-      {streaming ? <StreamPreview text={streaming} /> : null}
-      {busy && !streaming ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
-    </Box>
-  );
-}
+export { Footer } from "./app-regions.js";
+export { ModeLine, cycleMode } from "./mode-line.js";
