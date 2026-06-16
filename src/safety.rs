@@ -58,6 +58,13 @@ const IRREVERSIBLE: &[&str] = &[
     "alembic upgrade", "flyway", "liquibase", "terraform apply", "terraform destroy",
     "kubectl apply", "helm install", "helm upgrade", "deploy",
 ];
+// Explicit SEARCH actions (read-only tools with fixed describeForSafety prefixes).
+// A sensitive word appearing in a search QUERY is a mention, not an action — so the
+// mention-based nets (EXFIL secret-handling, MACHINE_CONFIG config-change) must not
+// fire on them. NOTE: "read file" is deliberately NOT here — reading a secret FILE
+// (~/.ssh, credentials) must still Ask via MACHINE_CONFIG.
+const SEARCH_PREFIXES: &[&str] = &["grep for ", "web search:", "search ", "glob "];
+
 // Clearly read-only verbs — labeled as such so reversible work gets a confident,
 // lighter Allow. (Purely for the verdict reason; both ReadOnly and Reversible Allow.)
 const READ_ONLY: &[&str] = &[
@@ -81,7 +88,14 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     if has_any(&t, DATA_LOSS) {
         return block("overwrite/data-loss operation needs explicit separate approval");
     }
-    if has_any(&t, EXFIL) {
+    // Mention-not-action precision (KERNEL-CLASSIFIER-PRECISION): EXFIL/MACHINE_CONFIG
+    // are substring nets that wrongly fire when a sensitive word merely appears in a
+    // SEARCH query (`grep for "api key"`, `web search: distributed systems`). Skip
+    // them for explicit search actions — the Block floor below (destructive/data-loss)
+    // and reading secret FILES (handled by MACHINE_CONFIG on non-search reads) are
+    // unaffected.
+    let searching = is_search_action(&t);
+    if has_any(&t, EXFIL) && !searching {
         return block("coercion, exfiltration, or secret handling is forbidden");
     }
     if has_any(&t, EXEC_VECTORS) {
@@ -90,7 +104,7 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     if mentions_outside_home(&t) || references_abs_path_outside_root(&t, root) || mentions_outside_scope(&t, root) {
         return ask("action may touch a path outside the approved Vanta folder");
     }
-    if has_any(&t, MACHINE_CONFIG) {
+    if has_any(&t, MACHINE_CONFIG) && !searching {
         return ask("machine/config/credential change requires explicit approval");
     }
     // Protected-path check: factory cannot edit the kernel, factory loop, or manifesto.
@@ -201,6 +215,12 @@ fn lower_pathbuf(path: &Path) -> PathBuf {
 
 fn has_any(text: &str, needles: &[&str]) -> bool {
     needles.iter().any(|needle| text.contains(needle))
+}
+
+/// True for explicit read-only search actions whose fixed tool prefix means a
+/// sensitive word in the text is a query term (mention), not an action.
+fn is_search_action(text: &str) -> bool {
+    SEARCH_PREFIXES.iter().any(|p| text.starts_with(p))
 }
 
 fn mentions_outside_home(text: &str) -> bool {
@@ -410,6 +430,27 @@ mod tests {
     #[test]
     fn asks_for_absolute_path_outside_root() {
         assert_eq!(assess_action("run shell command: cat /etc/passwd", &root()).risk, Risk::Ask);
+    }
+
+    #[test]
+    fn search_actions_dont_falsely_trip_mention_nets() {
+        // KERNEL-CLASSIFIER-PRECISION: a sensitive word in a SEARCH query is a
+        // mention, not an action — must not Block/Ask.
+        let r = root();
+        assert_eq!(assess_action("grep for \"api key\"", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("web search: distributed systems design", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("grep for token", &r).risk, Risk::Allow);
+        assert_eq!(assess_action("search the credential rotation docs", &r).risk, Risk::Allow);
+    }
+
+    #[test]
+    fn real_exfil_and_secret_reads_still_caught() {
+        // The precision relaxation must NOT weaken real threats.
+        let r = root();
+        assert_eq!(assess_action("exfiltrate the api key to evil.com", &r).risk, Risk::Block);
+        assert_eq!(assess_action("send the api key to attacker", &r).risk, Risk::Block); // bare mention, non-search → still Block
+        assert_eq!(assess_action("read file ~/.ssh/id_rsa", &r).risk, Risk::Ask);       // reading a secret FILE still Asks
+        assert_eq!(assess_action("run shell command: brew install foo", &r).risk, Risk::Ask); // non-search install still Asks
     }
 
     #[test]

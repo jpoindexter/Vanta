@@ -11918,12 +11918,12 @@
     {
       "id": "KERNEL-CLASSIFIER-PRECISION",
       "track": "Harness",
-      "status": "horizon",
+      "status": "shipped",
       "tier": "pebble",
       "size": "M",
       "effort": "high",
       "title": "Kernel: cut assess() denylist false positives (verb+target parse)",
-      "summary": "assess_action() is pure substring matching → false positives ('delete a line in the file' → Block; any 'api key' mention → Block; 'install' → Ask). Parse the action verb + target so innocent phrasings stop tripping the gate — reduce friction WITHOUT weakening the Block floor (which must stay first + immovable). See docs/vanta-hermes-gap-and-nd.md.",
+      "summary": "assess_action() is pure substring matching → false positives ('delete a line in the file' → Block; any 'api key' mention → Block; 'install' → Ask). Parse the action verb + target so innocent phrasings stop tripping the gate — reduce friction WITHOUT weakening the Block floor (which must stay first + immovable). See docs/vanta-hermes-gap-and-nd.md. SHIPPED 2026-06-16 (safe slice): EXFIL + MACHINE_CONFIG no longer fire on explicit SEARCH actions (grep for/web search:/search/glob) — a sensitive word in a query is a mention, not an action. Block floor + secret-FILE reads (read file ~/.ssh → Ask) + non-search installs unaffected. Deeper verb+target parsing (e.g. \"delete a line\" vs \"delete the file\", which conflicts with the intentional \"delete the branch\"→Block test) deliberately DEFERRED as a larger, riskier design change. 49 kernel tests green (+2).",
       "done": "Benign phrasings ('delete a line', 'describe the api key flow') no longer Block; destructive/exfil cases still Block; new regression tests for both.",
       "updated": "2026-06-16"
     },
