@@ -12048,6 +12048,18 @@
       "effort": "medium",
       "lens": "reach",
       "updated": "2026-06-16"
+    },
+    {
+      "id": "TUI-COMPOSER-TYPEAHEAD",
+      "track": "Operator",
+      "title": "TUI composer: fish-shell-style history typeahead (ghost text)",
+      "status": "next",
+      "size": "S",
+      "summary": "As the user types in the composer, show the most likely completion from input history as dim ghost text (same pattern as fish shell and zsh-autosuggestions). Right-arrow or End accepts the full suggestion; any other key ignores it. Match against the full history array already maintained by the composer (up/down history exists; typeahead reuses the same data). Ghost text should render after the cursor in a muted colour from the theme (e.g. dim white) and disappear as soon as the typed prefix no longer matches. Only surface a suggestion when the prefix matches the beginning of a recent entry — no fuzzy matching on the first pass. Impl site: vanta-ts/src/ui/composer.tsx + the history hook.",
+      "done": "Typing a prefix in the composer shows a dim ghost-text completion from history; right-arrow or End accepts it; mismatches clear the ghost immediately; no suggestion shown on empty input.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-16"
     }
   ]
 }

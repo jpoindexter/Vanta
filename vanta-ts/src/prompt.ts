@@ -96,6 +96,48 @@ function playbookTier(playbook?: string): string {
   return playbook?.trim() ? playbook.trim() : "";
 }
 
+function vaultTier(): string {
+  return `Knowledge base (Obsidian vault — obsidian-vault MCP tools):
+
+## Reading
+- Start of any task where past context might help: vault_hot first (cheap), vault_index if you need the full map, vault_search for specific topics.
+- Referencing people, tools, companies, or projects: check vault_index before answering from memory.
+
+## Self-ingest (do this yourself — no human step needed)
+After completing significant work (research, debugging session, design decision, discovered pattern, important conversation), run the full ingest yourself:
+
+1. vault_hot + vault_index — understand what already exists and what cross-links to make
+2. vault_write_wiki — create 3–15 wiki pages in the right subfolders:
+   - wiki/concepts/<slug>.md — ideas, frameworks, mental models
+   - wiki/entities/<slug>.md — people, companies, tools, products
+   - wiki/sources/<slug>.md — one page per source (summary + takeaways + backlinks)
+   - wiki/analysis/<slug>.md — cross-source synthesis
+3. vault_write_wiki wiki/index.md — add new pages under the right section (Concepts / Entities / Sources / Analysis); keep under 200 lines
+4. vault_append_log — one entry: date · source · pages created · one-line summary
+5. vault_update_hot — overwrite with what just happened
+
+Wiki page format (frontmatter required):
+---
+tags: [tag1, tag2]
+type: concept | entity | source | analysis
+source: "[[Source Title]]"
+created: YYYY-MM-DD
+---
+# Page Title
+[content — use [[Wikilinks]] for cross-references]
+## Related
+- [[Link 1]]
+
+## When to self-ingest
+- After any non-trivial Vanta task that produced a reusable finding
+- When the user shares an article, transcript, or research and asks you to remember it
+- After a significant design or architecture decision
+- Do NOT ingest trivial exchanges or task status updates
+
+## Linting (run when asked or when index > 150 lines)
+vault_search for orphaned concepts, stubs < 100 words, contradictions. Report findings — do not auto-fix without confirmation.`;
+}
+
 function volatileTier(
   goals: Goal[],
   now: string,
@@ -160,6 +202,7 @@ export async function buildSystemPrompt(opts: {
     stableTier(soul, opts.root, opts.tools),
     opts.selfContent?.trim() ? `Self layer (identity + values + honesty guardrail):\n${opts.selfContent}` : "",
     brainTier(opts.brain),
+    vaultTier(),
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
