@@ -18,19 +18,19 @@ export type Theme = {
 };
 
 const THEMES: Readonly<Record<string, Theme>> = {
-  // Pure monochrome — white text, grey secondary, no hue anywhere.
-  // Glyphs (✔ ✘ ⚠ ⏺ ❯) carry semantics; color doesn't.
+  // Pure black/white — terminal-native colors only, no hex. White for everything
+  // active; gray for structure/secondary. Glyphs carry semantics, not color.
   mono: {
     primary: "white",
-    accent: "#888888",
-    border: "#555555",
+    accent: "white",
+    border: "gray",
     dimText: true,
     success: "white",
     error: "white",
     warning: "white",
-    info: "#aaaaaa",
+    info: "gray",
     marker: "white",
-    userMarker: "#888888",
+    userMarker: "gray",
   },
   // Warm off-white body, muted warm-grey accent (VNT-A: ink on paper).
   default: {
