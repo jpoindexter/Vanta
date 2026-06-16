@@ -5,6 +5,7 @@ import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microc
 import { graduatedCompaction } from "../context/graduated-compaction.js";
 import { recordCompactedEdits, runPostCompactRestore } from "../compress/post-compact-restore.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
+import { maskStaleToolOutputs, resolveObservationMaskKeep } from "./observation-mask.js";
 
 // The per-call + per-turn context-window management for the agent loop, kept out
 // of agent.ts so runTurn stays focused on iteration. `ContextDeps` is the minimal
@@ -103,7 +104,10 @@ export async function prepareCallMessages(
   tc: TurnContext,
 ): Promise<Message[]> {
   // Idle-clear only at the genuinely-idle turn start (time-based micro-compaction).
-  const fresh = iter === 1 ? clearStaleToolResults(messages, tc.idleMs, tc.idleCfg) : messages;
+  const afterIdle = iter === 1 ? clearStaleToolResults(messages, tc.idleMs, tc.idleCfg) : messages;
+  // Observation masking: replace stale tool outputs with a placeholder while keeping calls.
+  const keepRecent = resolveObservationMaskKeep(process.env);
+  const fresh = keepRecent !== undefined ? maskStaleToolOutputs(afterIdle, { keepRecent }) : afterIdle;
   // If the provider supports exact token counting, use it to tighten the compaction threshold.
   let overrideThresholdPct: number | undefined;
   if (deps.provider.countTokens && deps.currentTools) {

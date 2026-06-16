@@ -10478,7 +10478,7 @@
       "id": "HARNESS-OBSERVATION-MASKING",
       "track": "Harness",
       "title": "Observation masking — hide stale tool outputs, keep the tool calls",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) component 4 (JetBrains Junie strategy): a context strategy distinct from compaction — old tool OUTPUTS are masked from the model's context while the tool CALLS stay visible, so the agent remembers what it did without re-paying for voluminous outputs. Vanta has compress/CCR; add masking of superseded tool outputs as a cheap pre-compaction layer.",
       "done": "Superseded tool outputs are masked from context (calls retained); reduces tokens before heavier compaction runs.",
@@ -10487,7 +10487,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-13"
+      "updated": "2026-06-16"
     },
     {
       "id": "HARNESS-TOOL-SCOPING",
