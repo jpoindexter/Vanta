@@ -46,6 +46,28 @@ function buildTurnSummary(
  * Returns null on any failure — caller treats null as "no score this turn".
  * Opt-in: VANTA_CRITIC=1. Only fires when the turn used ≥MIN_CALLS_TO_SCORE tools.
  */
+/** Last user + assistant message of the turn, or null if the pair is incomplete. */
+function lastTurnIO(messages: Message[]): { user: string; assistant: string } | null {
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+  if (!lastUser || !lastAssistant || lastAssistant.role !== "assistant") return null;
+  return { user: lastUser.role === "user" ? lastUser.content : "", assistant: lastAssistant.content };
+}
+
+/** Parse the critic LLM's JSON reply into a CriticScore; null on malformed output. */
+function parseCriticScore(text: string): CriticScore | null {
+  try {
+    const raw: unknown = JSON.parse(text.trim());
+    if (typeof raw !== "object" || raw === null) return null;
+    const r = raw as Record<string, unknown>;
+    return {
+      score: Number(r.score ?? 0),
+      issues: Array.isArray(r.issues) ? r.issues.map(String) : [],
+      summary: String(r.summary ?? ""),
+    };
+  } catch { return null; }
+}
+
 export async function scoreTurn(opts: {
   provider: LLMProvider;
   goal: string;
@@ -57,31 +79,14 @@ export async function scoreTurn(opts: {
   try {
     const calls = extractLastTurnCalls(opts.messages);
     if (calls.length < MIN_CALLS_TO_SCORE) return null;
-
-    const lastUser = [...opts.messages].reverse().find((m) => m.role === "user");
-    const lastAssistant = [...opts.messages].reverse().find((m) => m.role === "assistant");
-    if (!lastUser || !lastAssistant || lastAssistant.role !== "assistant") return null;
-
-    const userMsg = lastUser.role === "user" ? lastUser.content : "";
-    const assistantText = lastAssistant.content;
-    const turnSummary = buildTurnSummary(opts.goal, userMsg, assistantText, calls);
-
+    const io = lastTurnIO(opts.messages);
+    if (!io) return null;
+    const turnSummary = buildTurnSummary(opts.goal, io.user, io.assistant, calls);
     const { text } = await opts.provider.complete(
-      [
-        { role: "system", content: CRITIC_SYS },
-        { role: "user", content: turnSummary },
-      ],
+      [{ role: "system", content: CRITIC_SYS }, { role: "user", content: turnSummary }],
       [],
     );
-
-    const raw: unknown = JSON.parse(text.trim());
-    if (typeof raw !== "object" || raw === null) return null;
-    const r = raw as Record<string, unknown>;
-    return {
-      score: Number(r.score ?? 0),
-      issues: Array.isArray(r.issues) ? r.issues.map(String) : [],
-      summary: String(r.summary ?? ""),
-    };
+    return parseCriticScore(text);
   } catch { return null; }
 }
 

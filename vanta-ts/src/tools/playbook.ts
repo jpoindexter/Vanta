@@ -15,6 +15,32 @@ const Args = z.object({
   query: z.string().optional(),
   limit: z.number().int().positive().max(20).optional(),
 });
+type PlaybookArgs = z.infer<typeof Args>;
+
+/** action=record — append a strategy that worked. */
+function doRecord(a: PlaybookArgs): ToolResult {
+  if (!a.task?.trim() || !a.strategy?.trim() || !a.outcome?.trim()) {
+    return { ok: false, output: "record requires: task, strategy, outcome" };
+  }
+  const p = appendPlay({ task: a.task, strategy: a.strategy, outcome: a.outcome, tags: a.tags ?? [] });
+  return { ok: true, output: `play recorded (${p.id.slice(0, 8)})` };
+}
+
+/** action=recall — find matching plays for a query. */
+function doRecall(a: PlaybookArgs): ToolResult {
+  if (!a.query?.trim()) return { ok: false, output: "recall requires: query" };
+  const matches = matchingPlays(a.query, loadPlays(), a.limit ?? 5);
+  return { ok: true, output: matches.length ? matches.map(formatPlay).join("\n\n") : "(no matching plays)" };
+}
+
+/** action=list — most recent plays. */
+function doList(a: PlaybookArgs): ToolResult {
+  const plays = loadPlays().slice(0, a.limit ?? 10);
+  return {
+    ok: true,
+    output: plays.length ? plays.map(formatPlay).join("\n\n") : "(no plays recorded yet — use action=record after completing a task)",
+  };
+}
 
 export const playbookTool: Tool = {
   schema: {
@@ -41,30 +67,8 @@ export const playbookTool: Tool = {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: parsed.error.message };
     const a = parsed.data;
-
-    if (a.action === "record") {
-      if (!a.task?.trim() || !a.strategy?.trim() || !a.outcome?.trim()) {
-        return { ok: false, output: "record requires: task, strategy, outcome" };
-      }
-      const p = appendPlay({ task: a.task, strategy: a.strategy, outcome: a.outcome, tags: a.tags ?? [] });
-      return { ok: true, output: `play recorded (${p.id.slice(0, 8)})` };
-    }
-
-    if (a.action === "recall") {
-      if (!a.query?.trim()) return { ok: false, output: "recall requires: query" };
-      const plays = loadPlays();
-      const matches = matchingPlays(a.query, plays, a.limit ?? 5);
-      return {
-        ok: true,
-        output: matches.length ? matches.map(formatPlay).join("\n\n") : "(no matching plays)",
-      };
-    }
-
-    // list
-    const plays = loadPlays().slice(0, a.limit ?? 10);
-    return {
-      ok: true,
-      output: plays.length ? plays.map(formatPlay).join("\n\n") : "(no plays recorded yet — use action=record after completing a task)",
-    };
+    if (a.action === "record") return doRecord(a);
+    if (a.action === "recall") return doRecall(a);
+    return doList(a);
   },
 };

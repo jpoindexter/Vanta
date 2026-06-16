@@ -46,46 +46,48 @@ export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
   return [];
 }
 
-/** Pure: analyse calls for structural anomalies; returns all found. */
-export function detectAnomalies(calls: TurnCall[]): TraceAnomaly[] {
-  if (!calls.length) return [];
-  const anomalies: TraceAnomaly[] = [];
-
-  // Loop: same tool called ≥LOOP_THRESHOLD times
+/** Same tool called ≥LOOP_THRESHOLD times in one turn. */
+function detectLoops(calls: TurnCall[]): TraceAnomaly[] {
   const counts = new Map<string, number>();
   for (const { name } of calls) counts.set(name, (counts.get(name) ?? 0) + 1);
+  const out: TraceAnomaly[] = [];
   for (const [name, n] of counts) {
     if (n >= LOOP_THRESHOLD) {
-      anomalies.push({
-        type: "loop",
-        detail: `${name} called ${n}× in one turn`,
-        severity: n >= 6 ? "alert" : "warn",
-      });
+      out.push({ type: "loop", detail: `${name} called ${n}× in one turn`, severity: n >= 6 ? "alert" : "warn" });
     }
   }
+  return out;
+}
 
-  // Error spike: ≥ERROR_THRESHOLD consecutive errors
+/** ≥ERROR_THRESHOLD consecutive errors. */
+function detectErrorSpike(calls: TurnCall[]): TraceAnomaly[] {
   let errRun = 0;
   let maxErr = 0;
   for (const { isError } of calls) {
     errRun = isError ? errRun + 1 : 0;
     maxErr = Math.max(maxErr, errRun);
   }
-  if (maxErr >= ERROR_THRESHOLD) {
-    anomalies.push({ type: "error-spike", detail: `${maxErr} consecutive errors`, severity: "alert" });
-  }
+  return maxErr >= ERROR_THRESHOLD
+    ? [{ type: "error-spike", detail: `${maxErr} consecutive errors`, severity: "alert" }]
+    : [];
+}
 
-  // Blind write: first write-class tool appears before any read-class tool
+/** First write-class tool appears before any read-class tool. */
+function detectBlindWrite(calls: TurnCall[]): TraceAnomaly[] {
   let hadRead = false;
   for (const { name, isError } of calls) {
     if (READ_TOOLS.has(name)) { hadRead = true; continue; }
     if (WRITE_TOOLS.has(name) && !hadRead && !isError) {
-      anomalies.push({ type: "blind-write", detail: `${name} before any read`, severity: "warn" });
-      break;
+      return [{ type: "blind-write", detail: `${name} before any read`, severity: "warn" }];
     }
   }
+  return [];
+}
 
-  return anomalies;
+/** Pure: analyse calls for structural anomalies; returns all found. */
+export function detectAnomalies(calls: TurnCall[]): TraceAnomaly[] {
+  if (!calls.length) return [];
+  return [...detectLoops(calls), ...detectErrorSpike(calls), ...detectBlindWrite(calls)];
 }
 
 export function formatAnomalyNote(anomalies: TraceAnomaly[]): string {
