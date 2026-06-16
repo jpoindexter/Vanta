@@ -5,6 +5,7 @@ import {
   reinforceEntries,
   sweepDecayed,
   loadEntries,
+  saveEntries,
   isDecayed,
   formatEntry,
   type BrainEntry,
@@ -13,6 +14,7 @@ import {
 import { autoLink, associativeRecall, type Activation } from "./assoc.js";
 import { maybeConsolidate, consolidate, resolveMaxEntries } from "./consolidate.js";
 import { BRAIN_REGIONS } from "./regions.js";
+import { resolveVaultPath, writeVaultPage, isPromotable } from "./vault-bridge.js";
 
 export { consolidate };
 
@@ -58,12 +60,34 @@ export async function recall(
   const directIds = activations.filter((a) => a.via === "direct").map((a) => a.entry.id);
   if (reinforce && directIds.length) {
     await reinforceEntries(directIds, opts.env).catch(() => {});
+    await promoteCrystallized(opts.env).catch(() => {}); // graduate proven knowledge → vault
   }
   const entries = activations.map((a) => a.entry);
   const formatted = activations
     .map((a) => (a.via === "association" ? `↪ ${formatEntry(a.entry)}` : formatEntry(a.entry)))
     .join("\n");
   return { entries, formatted, activations };
+}
+
+/**
+ * Graduate crystallized semantic knowledge to the Obsidian vault as wiki pages
+ * (the brain↔vault bridge). Deterministic: any entry that proves durable enough
+ * to crystallize is written once and stamped `sourceRef: vault:<path>` so it
+ * never duplicates. No-op when no vault is configured. Best-effort per entry.
+ */
+export async function promoteCrystallized(env: NodeJS.ProcessEnv = process.env): Promise<number> {
+  const vault = await resolveVaultPath(env);
+  if (!vault) return 0;
+  const entries = await loadEntries(env);
+  const date = new Date().toISOString().slice(0, 10);
+  let promoted = 0;
+  for (const e of entries) {
+    if (!isPromotable(e)) continue;
+    const rel = await writeVaultPage(vault, e, date);
+    if (rel) { e.sourceRef = `vault:${rel}`; promoted++; }
+  }
+  if (promoted) await saveEntries(entries, env);
+  return promoted;
 }
 
 /** Drop decayed entries (lazy hygiene — digest calls this best-effort). */

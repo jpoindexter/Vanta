@@ -99,6 +99,12 @@ function playbookTier(playbook?: string): string {
 function vaultTier(): string {
   return `Knowledge base (Obsidian vault — obsidian-vault MCP tools):
 
+## Brain vs vault — one memory system, two organs
+- Brain (the brain tool / digest above) = your self, your model of the user, working + episodic memory. Fast, decays, about *you and the user*.
+- Vault (these tools) = durable, searchable world-knowledge. Permanent, about *what you know*.
+- Division of labor: facts about the user or yourself → brain; durable domain knowledge → vault. Don't store the same thing in both.
+- Auto-graduation: when a brain semantic memory proves durable (recalled enough to crystallize) it is written to the vault automatically — never hand-copy crystallized brain facts here.
+
 ## Reading
 - Start of any task where past context might help: vault_hot first (cheap), vault_index if you need the full map, vault_search for specific topics.
 - Referencing people, tools, companies, or projects: check vault_index before answering from memory.
