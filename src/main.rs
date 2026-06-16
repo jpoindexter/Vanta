@@ -7,6 +7,7 @@ mod jsonv;
 mod loops;
 mod runtime;
 mod safety;
+mod scope;
 mod server;
 
 use std::{env, process};
