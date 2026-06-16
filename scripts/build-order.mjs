@@ -23,7 +23,7 @@ const S_PILLAR = Object.fromEntries(PILLARS.map((p, i) => [p, i]));
 const S_SIZE = { XS: 0, S: 1, M: 2, L: 3, XL: 4 };
 const S_EFFORT = { low: 0, medium: 1, high: 2 };
 
-const open = r.items.filter((i) => i.status !== "shipped");
+const open = r.items.filter((i) => i.status !== "shipped" && i.status !== "parked");
 open.forEach((it, i) => (it.__i = i));
 open.sort(
   (a, b) =>
