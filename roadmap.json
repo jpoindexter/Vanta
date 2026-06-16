@@ -11818,6 +11818,66 @@
         "AHE-EVOLVE-LOOP"
       ],
       "updated": "2026-06-16"
+    },
+    {
+      "id": "HERMES-KANBAN",
+      "track": "Harness",
+      "status": "horizon",
+      "tier": "pebble",
+      "size": "L",
+      "effort": "high",
+      "title": "Live kanban — decompose a goal into lanes + run a subagent swarm",
+      "summary": "From hermes-agent (kanban + kanban_decompose/_swarm/_specify/_diagnostics): a live work board that auto-decomposes a goal into board lanes, optionally generates a spec per lane, and runs a subagent SWARM across them in parallel — distinct from Vanta's static roadmap.json (strategy backlog) and the one-shot Workflow tool. Serves the Harness 'multi-agent mechanics' pillar as a durable, inspectable execution surface. Local-first (no cloud). See docs/hermes-agent-notes.md.",
+      "done": "A goal becomes a kanban with auto-decomposed lanes; a swarm runs lanes in parallel; progress + blockers are inspectable and resumable.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "HERMES-BLUEPRINTS",
+      "track": "Extensibility",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "M",
+      "effort": "medium",
+      "title": "Blueprints — reusable project/agent scaffolds you instantiate",
+      "summary": "From hermes-agent (blueprint_cmd): named, parameterized scaffolds (project + agent setup + tools/skills config) you instantiate in one command, instead of hand-rolling each new setup. Grows Vanta without core edits (Extensibility pillar). See docs/hermes-agent-notes.md.",
+      "done": "`vanta blueprint <name>` scaffolds a configured project/agent from a reusable template; new blueprints are addable without touching src/.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "HERMES-SKILLS-HUB",
+      "track": "Extensibility",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "M",
+      "effort": "medium",
+      "title": "Skills hub — discover/share skills + agentskills.io standard compat",
+      "summary": "From hermes-agent (skills_hub + agentskills.io open standard): beyond authoring skills locally, discover/import/share skills via a hub and stay compatible with the agentskills.io open format so Vanta skills interop with the wider ecosystem. See docs/hermes-agent-notes.md.",
+      "done": "Vanta can import/export skills in the agentskills.io format and pull from a hub; a third-party skill loads without code changes.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "HERMES-COST-GUARD",
+      "track": "Operator",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "S",
+      "effort": "medium",
+      "title": "Cost guard — hard per-run/session budget ceiling that warns/blocks",
+      "summary": "From hermes-agent (model_cost_guard): Vanta TRACKS cost but doesn't gate on it. Add a configurable ceiling (per run / per session) that warns as it approaches and blocks/asks before exceeding — so an autonomous run can't silently overspend. Operator-trust feature. See docs/hermes-agent-notes.md.",
+      "done": "A run with a budget set warns near the ceiling and halts (or asks) before exceeding it; the limit is configurable per run/session.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "HERMES-SUGGESTIONS",
+      "track": "Operator",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "S",
+      "effort": "medium",
+      "title": "Proactive suggestions + session recap",
+      "summary": "From hermes-agent (suggestions_cmd + tips + session_recap): surface proactive next-step suggestions during a session and a concise recap on resume (what happened, where you left off, what's next) — beyond Vanta's existing handoff/resume block. Operator daily-driver polish. See docs/hermes-agent-notes.md.",
+      "done": "On resume Vanta shows a recap (done / in-progress / next); during a session it can offer a ranked next-step suggestion on request.",
+      "updated": "2026-06-16"
     }
   ]
 }
