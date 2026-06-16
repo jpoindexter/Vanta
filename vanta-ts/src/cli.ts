@@ -25,6 +25,7 @@ import {
   runPairingCommand,
   runConfigCommand,
 } from "./cli/ops.js";
+import { runEvalCommand } from "./cli/eval-cmd.js";
 import { runModelCommand } from "./cli/model-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
 import { runAgentsCommand } from "./cli/agents-cmd.js";
@@ -172,6 +173,7 @@ const COMMANDS: Record<string, CommandFn> = {
   hooks: (_root, rest) => runHooksCommand(rest),
   mcp: (root, rest) => runMcpCommand(root, rest),
   roadmap: (root, rest) => runRoadmapCommand(root, rest),
+  eval: (root, rest) => runEvalCommand(root, rest),
   desktop: (root, rest) => runDesktopCommand(root, rest),
   browser: async (_root, rest) => (await import("./cli/browser-cmd.js")).runBrowserCommand(rest),
   memory: (_root, rest) => runMemoryCommand(rest),

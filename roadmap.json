@@ -11583,7 +11583,7 @@
     {
       "id": "AHE-EVAL-HARNESS",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "L",
       "effort": "high",
@@ -11622,7 +11622,7 @@
     {
       "id": "AHE-EVAL-CORPUS",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "S",
       "effort": "medium",
@@ -11635,7 +11635,7 @@
     {
       "id": "AHE-EVAL-SANDBOX",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "M",
       "effort": "high",
@@ -11650,7 +11650,7 @@
     {
       "id": "AHE-EVAL-VERIFIER",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "pebble",
       "size": "M",
       "effort": "medium",
@@ -11665,7 +11665,7 @@
     {
       "id": "AHE-EVAL-CLI",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "pebble",
       "size": "S",
       "effort": "medium",
@@ -11686,7 +11686,7 @@
       "size": "M",
       "effort": "medium",
       "title": "Evolve workspace — kernel-bounded write surface over the 7 components",
-      "summary": "Expose Vanta's 7 evolvable components (3-tier prompt, config, tools+schemas, hooks/EF gates, skills, subagents, brain/memory) as the ONLY paths the evolve agent may write — enforced by the kernel (Vanta's edge over AHE's plain workspace/ dir). Part of AHE-SELF-EVOLVE.",
+      "summary": "Expose Vanta's 7 evolvable components (3-tier prompt, config, tools+schemas, hooks/EF gates, skills, subagents, brain/memory) as the ONLY paths the evolve agent may write — enforced by the kernel (Vanta's edge over AHE's plain workspace/ dir). Part of AHE-SELF-EVOLVE. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta.",
       "done": "An evolve-scoped run can write only the 7 component paths; any other write is kernel-blocked.",
       "after": [],
       "updated": "2026-06-16"
@@ -11797,7 +11797,7 @@
       "size": "M",
       "effort": "medium",
       "title": "Evolve guardrails — kernel-enforced no-reward-hacking (verifier/model/budget read-only)",
-      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md.",
+      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta.",
       "done": "An evolve run cannot modify the verifier, model selection, or budget; attempts are kernel-blocked and logged; the seed system prompt cannot be deleted.",
       "after": [
         "AHE-EVOLVE-WORKSPACE"

@@ -1,0 +1,6 @@
+{
+  "id": "count-lines",
+  "instruction": "Count the number of lines in data.txt and write ONLY that number into a file named count.txt.",
+  "seed": { "data.txt": "alpha\nbeta\ngamma\ndelta\n" },
+  "check": { "kind": "file_contains", "path": "count.txt", "text": "4" }
+}

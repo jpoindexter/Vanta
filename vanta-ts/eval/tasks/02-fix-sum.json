@@ -1,0 +1,9 @@
+{
+  "id": "fix-sum",
+  "instruction": "sum.mjs has a bug: sum(a, b) must return a + b but returns the wrong value. Fix sum.mjs so that running `node check.mjs` exits 0. Do not edit check.mjs.",
+  "seed": {
+    "sum.mjs": "export const sum = (a, b) => a - b;\n",
+    "check.mjs": "import { sum } from './sum.mjs';\nif (sum(2, 3) !== 5) { console.error('FAIL: sum(2,3) =', sum(2,3)); process.exit(1); }\nconsole.log('ok');\n"
+  },
+  "check": { "kind": "shell_ok", "cmd": "node check.mjs" }
+}

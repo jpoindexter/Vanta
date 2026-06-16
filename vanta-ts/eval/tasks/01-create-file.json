@@ -1,0 +1,5 @@
+{
+  "id": "create-file",
+  "instruction": "Create a file named report.md whose contents include the word DONE.",
+  "check": { "kind": "file_contains", "path": "report.md", "text": "DONE" }
+}

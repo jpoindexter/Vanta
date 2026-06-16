@@ -1,7 +1,27 @@
 # Agentic Harness Engineering (AHE) — quarry notes for Vanta
 
-> Source: https://github.com/china-qijizhifeng/agentic-harness-engineering
+> Source: https://github.com/china-qijizhifeng/agentic-harness-engineering · paper arXiv 2604.25850v4.
 > Captured 2026-06-16. Quarry doc (per STRATEGY.md): steal what serves the pillars, leave the rest.
+
+## Build status (2026-06-16)
+
+**Vanta already HAS a self-improving loop: the `factory/` subsystem** ("bounded
+autonomous loop that improves Vanta's own codebase, kernel-enforced"). It maps onto AHE:
+factory **compartments** (skeleton/brainstem/reflexes/memory/limbs) = the kernel-bounded
+evolve workspace; kernel-protected `factory/*`/skeleton + `holdout.ts` (separate-author
+acceptance) = the controllability guardrails; execute→verify→retry/escalate→autonomy-ladder
+commit/merge = apply→verify→keep/rollback. So `AHE-EVOLVE-WORKSPACE`/`-GUARDRAILS` and much
+of `-AGENT`/`-LOOP` are effectively done.
+
+The genuine gap was a **measured reward**: the factory only checks "didn't break" (tests +
+tsc + intent), not a capability score. **Phase 1 SHIPPED** — `vanta eval` (`src/eval/`):
+a deterministic task corpus → isolated in-`.vanta` sandbox → real agent run → deterministic
+grade → **pass@1 baseline** (`.vanta/eval-baseline.json`). Cards `AHE-EVAL-*` → shipped.
+
+**Next (chosen direction — build on the factory):** Phase 2 = an `evolve` factory objective
+that triages the lowest-scoring eval tasks, edits harness components (reflexes/memory/limbs,
+compartment-bound), re-evals, and keeps/rolls-back by score delta. Phase 3 = trace-distilled
+triage (`AHE-TRACE-DISTILLER`) + regression foresight (`AHE-REGRESSION-FORESIGHT`).
 
 ## What AHE is
 
