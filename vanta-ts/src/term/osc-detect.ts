@@ -1,9 +1,12 @@
 import { openSync, readSync, writeSync, closeSync, constants } from "node:fs";
+import { ReadStream } from "node:tty";
 
 // Query the terminal background color via OSC 11 before the TUI starts.
-// Opens /dev/tty with O_NONBLOCK so readSync returns EAGAIN instead of
-// blocking, then polls until the response arrives or the 100ms deadline
-// passes. Must be called before Ink touches stdin (see launch.tsx pre-warm).
+// Opens /dev/tty with O_NONBLOCK (readSync → EAGAIN instead of blocking) AND
+// puts it in raw mode first: cooked mode would echo the response BEL to the
+// terminal (the ping) and buffer the reply until a newline that never comes
+// (the text leak into the composer). Raw mode = no echo, immediate delivery.
+// Must be called before Ink claims stdin (see launch.tsx pre-warm).
 
 /** Parse OSC color response: rgb:rrrr/gggg/bbbb (16-bit) or rgb:rr/gg/bb (8-bit). */
 export function parseOscRgb(raw: string): { r: number; g: number; b: number } | null {
@@ -48,24 +51,33 @@ function pollOscResponse(fd: number): string {
 
 let _cached: "light" | "dark" | "unknown" | undefined;
 
+/** Run a fn with /dev/tty in raw mode, restoring cooked mode + closing after. */
+function withRawTty<T>(work: (fd: number) => T, fallback: T): T {
+  let fd = -1;
+  let stream: ReadStream | undefined;
+  try {
+    fd = openSync("/dev/tty", constants.O_RDWR | constants.O_NONBLOCK);
+    stream = new ReadStream(fd);
+    stream.setRawMode(true); // no echo (kills the ping), immediate byte delivery
+    return work(fd);
+  } catch {
+    return fallback;
+  } finally {
+    try { stream?.setRawMode(false); } catch { /**/ }
+    if (fd >= 0) try { closeSync(fd); } catch { /**/ }
+  }
+}
+
 /**
- * Query terminal background via OSC 11. Reads directly from /dev/tty with
- * O_NONBLOCK — no subprocess, no bell, no race with Node's stdin reader.
- * Uses ST terminator (ESC \) so unsupported terminals stay silent.
+ * Query terminal background via OSC 11. Reads directly from a raw /dev/tty —
+ * no subprocess, no bell, no text leak, no race with Node's stdin reader.
  * Result is cached; first call takes up to 100ms, subsequent calls are free.
  */
 export function queryOscBackground(): "light" | "dark" | "unknown" {
   if (_cached !== undefined) return _cached;
   if (!process.stdout.isTTY || !("O_NONBLOCK" in constants)) return (_cached = "unknown");
-  let fd = -1;
-  try {
-    fd = openSync("/dev/tty", constants.O_RDWR | constants.O_NONBLOCK);
-    writeSync(fd, "\x1b]11;?\x1b\\"); // OSC 11 query, ST-terminated (no BEL)
-    _cached = lightOrDark(parseOscRgb(pollOscResponse(fd)));
-  } catch {
-    _cached = "unknown";
-  } finally {
-    if (fd >= 0) try { closeSync(fd); } catch { /**/ }
-  }
-  return _cached;
+  return (_cached = withRawTty((fd) => {
+    writeSync(fd, "\x1b]11;?\x07"); // OSC 11 query (response consumed by us, never echoed)
+    return lightOrDark(parseOscRgb(pollOscResponse(fd)));
+  }, "unknown"));
 }
