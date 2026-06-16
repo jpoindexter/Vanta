@@ -12050,6 +12050,18 @@
       "updated": "2026-06-16"
     },
     {
+      "id": "TUI-THEME-OSC-DETECT",
+      "track": "Operator",
+      "title": "TUI: OSC 10/11 terminal color auto-detection",
+      "status": "next",
+      "size": "S",
+      "summary": "Query the terminal's actual foreground/background colors via OSC 10/11 escape sequences at startup, giving a precise light/dark reading without relying on COLORFGBG (which many terminals don't set). Parse the xterm-style rgb: response, compute luminance, and feed it into resolveTheme() so the mono/light theme selection is accurate out-of-the-box for any terminal (iTerm, WezTerm, Ghostty, kitty, etc.). Fall back to COLORFGBG → mono if the terminal doesn't respond within a tight timeout (~50ms). Impl site: vanta-ts/src/term/theme.ts detectBackground + new oscQuery helper.",
+      "done": "On a light-background terminal with no VANTA_THEME set, Vanta automatically selects the light theme; on a dark terminal it selects mono — without requiring COLORFGBG to be set. Falls back gracefully when the terminal doesn't support OSC queries.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-16"
+    },
+    {
       "id": "TUI-COMPOSER-TYPEAHEAD",
       "track": "Operator",
       "title": "TUI composer: fish-shell-style history typeahead (ghost text)",
