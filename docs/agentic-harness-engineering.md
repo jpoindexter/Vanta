@@ -44,8 +44,19 @@ pure AHE methodology):
    component under evolution. Each rollout now snapshots→restores the brain, so only the
    evolve agent's deliberate edit changes the score (AHE controllability).
 
-v0 scope still open: corpus is tiny (3 tasks; `create-file` is flaky — likely a sandbox/
-shell-cwd rooting issue worth a look); regression *detection* works but *foresight*
+**Reward reliability FIXED (2026-06-16, hill-climb).** Root cause of the `create-file`
+flakiness (ground-truthed by running it and inspecting the sandbox): the eval instruction
+leaked the ABSOLUTE sandbox path, and the agent — whose system prompt carries the *repo*
+context — re-expressed it relative to the repo root (`.vanta/eval-diag/task-X/report.md`),
+which the sandbox-rooted write tool then nested INSIDE the sandbox, where the verifier never
+looked. Fix: the instruction now tells the agent to use BARE relative paths (its tools are
+already sandbox-rooted). Result: **3/3 tasks pass 2/2 reliably — pass@1 100%** (was flaky
+0/2…1/2). The shell-cwd and double-join hypotheses were both DISPROVEN by reading the code
+first. Lesson: a leaked absolute path + an agent that thinks it's in the repo = silent
+mis-rooting.
+
+v0 scope still open: the corpus now SOLVES at 100% → too easy, zero headroom for evolve to
+improve → **needs harder tasks** (open item #3). Regression *detection* works but *foresight*
 (predict-before-edit) does not yet.
 
 **Next — Phase 3b:** regression foresight with real predicted-fix/at-risk sets

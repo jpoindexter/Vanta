@@ -31,11 +31,18 @@ export function formatReport(r: EvalReport): string {
   return `pass@1: ${r.passAt1}%  (${r.passed}/${r.total})   output tokens: ${r.outputTokens.toLocaleString()}`;
 }
 
+// Tell the agent to use BARE relative paths. Its tools are already rooted at the
+// sandbox, but its system prompt carries the repo context — so leaking the
+// absolute sandbox path made it re-express paths relative to the repo root, which
+// then nested INSIDE the sandbox (sandbox/.vanta/…/report.md) and the verifier
+// missed them. Bare "report.md" resolves to sandbox/report.md, where we grade.
+const SANDBOX_HINT = '\n\n(Create and edit files using plain relative paths like "report.md" — your working directory is already set correctly. Do NOT use absolute paths or directory prefixes.)';
+
 /** One rollout: fresh sandbox → agent turn → deterministic grade. */
 async function rollout(task: EvalTask, baseDir: string, run: TaskRunner): Promise<{ pass: boolean; detail: string; outputTokens: number }> {
   const sb = makeSandbox(baseDir, task.seed);
   try {
-    const usage = await run(`${task.instruction}\n\nWork only inside this directory: ${sb.root}`, sb.root);
+    const usage = await run(`${task.instruction}${SANDBOX_HINT}`, sb.root);
     const check = runCheck(task.check, sb.root);
     return { pass: check.pass, detail: check.detail, outputTokens: usage.outputTokens ?? 0 };
   } catch (e) {
