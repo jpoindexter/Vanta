@@ -12050,6 +12050,30 @@
       "updated": "2026-06-16"
     },
     {
+      "id": "BRAIN-VAULT-BRIDGE",
+      "track": "Operator",
+      "title": "Brain↔vault bridge: auto-graduate crystallized knowledge to the Obsidian vault",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Make the in-core brain and the obsidian-vault MCP work as one memory system, two organs. Write-side, deterministic (not model-dependent): when a brain SEMANTIC memory crystallizes (≥10 retrievals via repeated recall), it's auto-written to the vault as wiki/concepts/<slug>.md with brain-provenance frontmatter, and the brain entry is stamped sourceRef:vault:<path> so it never duplicates. Division of labor: facts about the user or self → brain (decays, auto); durable domain knowledge → vault (permanent, searchable). Core reads the vault path from ~/.vanta/mcp.json (no subprocess, writes the file directly) and no-ops cleanly when the vault MCP isn't configured. Prompt vaultTier now states the labor split so Vanta stops hand-copying. Impl: brain/vault-bridge.ts (resolveVaultPath/isPromotable/writeVaultPage), brain/brain.ts promoteCrystallized hooked into recall(), prompt.ts.",
+      "done": "A crystallized semantic brain fact is written once to the vault as a wiki page (provenance frontmatter), stamped promoted so it never duplicates; no-ops without a configured vault; prompt states the brain/vault division of labor. Unit-tested (12 bridge + 71 brain green).",
+      "tier": "pebble",
+      "effort": "medium",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "BRAIN-VAULT-RECALL",
+      "track": "Operator",
+      "title": "Brain↔vault read-side bridge: unified recall + vault→brain priming",
+      "status": "next",
+      "size": "M",
+      "summary": "Complete the bridge on the read side (write-side shipped in BRAIN-VAULT-BRIDGE). Today recall consulting both organs is prompt-level only — the agent uses brain recall + vault_search separately, by choice. Harden it: (1) a unified recall path that queries brain entries AND the vault in one call, merged + deduped by provenance (brain sourceRef:vault: pointers collapse to the vault page); (2) vault→brain priming — when Vanta reads a vault page that's about the user or a standing project, seed a brain salience/user_model entry so self-relevant knowledge flows back; (3) brain digest optionally surfaces a 'relevant vault pages' pointer line for the active goal. Keep core decoupled from the optional MCP vault (read the vault filesystem directly like vault-bridge.ts, or go through the MCP client when mounted). No-op without a vault.",
+      "done": "A single recall surfaces relevant brain memories AND vault pages, deduped against brain→vault pointers; reading a user/project-relevant vault page primes a brain entry; degrades cleanly when no vault is configured. Unit-tested.",
+      "tier": "pebble",
+      "effort": "medium",
+      "updated": "2026-06-16"
+    },
+    {
       "id": "TUI-THEME-OSC-DETECT",
       "track": "Operator",
       "title": "TUI: OSC 10/11 terminal color auto-detection",
