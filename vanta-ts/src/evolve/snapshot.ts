@@ -9,6 +9,21 @@ import { tmpdir } from "node:os";
 
 export type Snapshot = { restore: () => void; discard: () => void };
 
+/**
+ * Run `fn` with `dir` FROZEN: snapshot it first, restore it after no matter what.
+ * Controllability (AHE): the harness component under evolution must not change
+ * DURING measurement — the eval/task agent's own "keep learning" brain writes are
+ * reverted so the score reflects only the evolve agent's deliberate edit.
+ */
+export async function withFrozen<T>(dir: string, fn: () => Promise<T>): Promise<T> {
+  const snap = snapshotDir(dir);
+  try {
+    return await fn();
+  } finally {
+    snap.restore();
+  }
+}
+
 export function snapshotDir(dir: string): Snapshot {
   if (!existsSync(dir)) {
     return {

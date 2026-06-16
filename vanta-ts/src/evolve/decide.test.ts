@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { shouldKeep, diffOutcomes, predictionPrecision } from "./decide.js";
 import type { EvalResult } from "../eval/types.js";
 
-const R = (id: string, pass: boolean): EvalResult => ({ id, pass, detail: "" });
+const R = (id: string, pass: boolean): EvalResult => ({ id, pass, passes: pass ? 1 : 0, runs: 1, detail: "" });
 
 describe("shouldKeep", () => {
   it("keeps only on a strict score improvement (ties revert)", () => {

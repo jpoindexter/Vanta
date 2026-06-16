@@ -1,9 +1,9 @@
 import { join } from "node:path";
 import { loadCorpus } from "../eval/corpus.js";
 import { runEval } from "../eval/run.js";
-import { buildRunner } from "./eval-cmd.js";
+import { buildRunner, evalRollouts } from "./eval-cmd.js";
 import { evolve, type Proposal } from "../evolve/loop.js";
-import { snapshotDir } from "../evolve/snapshot.js";
+import { snapshotDir, withFrozen } from "../evolve/snapshot.js";
 import { appendJournal } from "../evolve/journal.js";
 import { resolveVantaHome } from "../store/home.js";
 import type { EvalReport } from "../eval/types.js";
@@ -56,11 +56,14 @@ export async function runEvolveCommand(repoRoot: string, rest: string[] = []): P
   }
   const baseDir = join(repoRoot, RUNS_SUBDIR);
   const run = buildRunner(repoRoot);
+  const rollouts = evalRollouts();
   const brainDir = join(resolveVantaHome(process.env), "brain");
   const journal = join(repoRoot, JOURNAL);
-  console.log(`vanta evolve: ${iters} iteration(s) over ${tasks.length} task(s) · target = brain (${brainDir})\n`);
+  console.log(`vanta evolve: ${iters} iteration(s) over ${tasks.length} task(s) × ${rollouts} rollout(s) · target = brain (${brainDir})\n`);
   const out = await evolve(iters, {
-    evalOnce: () => runEval({ tasks, baseDir, run }),
+    // Freeze the brain around each rollout: only the propose step (below) mutates
+    // the harness; measurement restores it so the score reflects that edit, not drift.
+    evalOnce: () => runEval({ tasks, baseDir, run, rollouts, isolateRollout: (fn) => withFrozen(brainDir, fn) }),
     propose: (cur) => proposeEdit(repoRoot, cur),
     snapshot: () => snapshotDir(brainDir),
     onIteration: (it) => {

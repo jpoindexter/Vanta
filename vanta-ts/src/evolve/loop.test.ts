@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { evolve, type EvolveDeps } from "./loop.js";
 import type { EvalReport, EvalResult } from "../eval/types.js";
 
-const result = (id: string, pass: boolean): EvalResult => ({ id, pass, detail: "" });
+const result = (id: string, pass: boolean): EvalResult => ({ id, pass, passes: pass ? 1 : 0, runs: 1, detail: "" });
 const report = (results: EvalResult[]): EvalReport => {
   const passed = results.filter((r) => r.pass).length;
   return { total: results.length, passed, passAt1: Math.round((passed / results.length) * 1000) / 10, outputTokens: 0, results };

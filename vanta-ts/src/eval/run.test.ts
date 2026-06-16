@@ -6,16 +6,16 @@ import { aggregate, runEval, formatReport, type TaskRunner } from "./run.js";
 import type { EvalResult, EvalTask } from "./types.js";
 
 describe("aggregate", () => {
-  it("computes pass@1 and sums tokens", () => {
+  it("computes pass@1 as the mean per-task pass fraction and sums tokens", () => {
     const results: EvalResult[] = [
-      { id: "a", pass: true, detail: "", outputTokens: 100 },
-      { id: "b", pass: false, detail: "", outputTokens: 50 },
-      { id: "c", pass: true, detail: "", outputTokens: 25 },
+      { id: "a", pass: true, passes: 2, runs: 2, detail: "", outputTokens: 100 },  // 1.0
+      { id: "b", pass: false, passes: 0, runs: 2, detail: "", outputTokens: 50 },  // 0.0
+      { id: "c", pass: false, passes: 1, runs: 2, detail: "", outputTokens: 25 },  // 0.5
     ];
     const r = aggregate(results);
     expect(r.total).toBe(3);
-    expect(r.passed).toBe(2);
-    expect(r.passAt1).toBe(66.7);
+    expect(r.passed).toBe(1);          // only "a" solidly passed all rollouts
+    expect(r.passAt1).toBe(50);        // mean(1.0, 0.0, 0.5) = 0.5
     expect(r.outputTokens).toBe(175);
   });
 
@@ -27,8 +27,8 @@ describe("aggregate", () => {
 describe("formatReport", () => {
   it("renders the one-line score summary", () => {
     const s = formatReport(aggregate([
-      { id: "a", pass: true, detail: "", outputTokens: 1000 },
-      { id: "b", pass: false, detail: "", outputTokens: 200 },
+      { id: "a", pass: true, passes: 1, runs: 1, detail: "", outputTokens: 1000 },
+      { id: "b", pass: false, passes: 0, runs: 1, detail: "", outputTokens: 200 },
     ]));
     expect(s).toContain("pass@1: 50%");
     expect(s).toContain("(1/2)");

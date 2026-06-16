@@ -11782,7 +11782,7 @@
       "size": "M",
       "effort": "high",
       "title": "Regression foresight — predict what an evolve edit will BREAK, not just fix",
-      "summary": "The AHE paper's #1 open problem (arXiv 2604.25850): the evolve loop predicts fixes well (~5x baseline) but is blind to regressions (~2x baseline) — it can't name the tasks an edit is about to break, which causes non-monotone evolution. Add a regression-foresight pass: before applying an edit, predict at-risk tasks (from the trace corpus + edit scope) and gate/scope/targeted-re-eval accordingly. Closes the gap the paper calls the clearest direction for future self-evolution loops. See docs/agentic-harness-engineering.md.",
+      "summary": "The AHE paper's #1 open problem (arXiv 2604.25850): the evolve loop predicts fixes well (~5x baseline) but is blind to regressions (~2x baseline) — it can't name the tasks an edit is about to break, which causes non-monotone evolution. Add a regression-foresight pass: before applying an edit, predict at-risk tasks (from the trace corpus + edit scope) and gate/scope/targeted-re-eval accordingly. Closes the gap the paper calls the clearest direction for future self-evolution loops. See docs/agentic-harness-engineering.md. UPDATE 2026-06-16: regression DETECTION now works (live run reverted a fix-sum regression). Still open: FORESIGHT (predict at-risk tasks BEFORE the edit) — this card's core.",
       "done": "Before an edit is committed, the loop emits a ranked at-risk-task set; measured regression-recall beats the current ~11% baseline and the evolution curve trends monotone.",
       "after": [
         "AHE-EVOLVE-AGENT"
@@ -11792,12 +11792,12 @@
     {
       "id": "AHE-EVOLVE-GUARDRAILS",
       "track": "Cofounder engine",
-      "status": "horizon",
+      "status": "shipped",
       "tier": "rock",
       "size": "M",
       "effort": "medium",
       "title": "Evolve guardrails — kernel-enforced no-reward-hacking (verifier/model/budget read-only)",
-      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta. V0 2026-06-16: evolve loop ships with brain-only target + kernel Block floor + eval/verifier running OUTSIDE the agent (un-tamperable). Still TODO: explicit enforcement that the evolve agent can't raise its own budget / swap model.",
+      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta. V0 2026-06-16: evolve loop ships with brain-only target + kernel Block floor + eval/verifier running OUTSIDE the agent (un-tamperable). Still TODO: explicit enforcement that the evolve agent can't raise its own budget / swap model. SHIPPED 2026-06-16: per-rollout brain freeze (withFrozen) keeps the component-under-evolution frozen DURING measurement; eval/verifier run outside the agent; the evolve agent's only persisted change is its deliberate edit.",
       "done": "An evolve run cannot modify the verifier, model selection, or budget; attempts are kernel-blocked and logged; the seed system prompt cannot be deleted.",
       "after": [
         "AHE-EVOLVE-WORKSPACE"

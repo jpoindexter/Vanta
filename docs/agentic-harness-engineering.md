@@ -26,14 +26,32 @@ edit). Pure decision logic (`decide.ts`: shouldKeep / diffOutcomes / predictionP
 and the loop (`loop.ts`, injected IO) are unit-tested. Cards `AHE-SELF-EVOLVE`,
 `AHE-EVOLVE-LOOP`, `AHE-EVOLVE-AGENT`, `AHE-EVOLVE-WORKSPACE` → shipped.
 
-v0 scope (honest): the evolve target is the **brain only** (the paper's "memory carries the
-gain" + simplest rollback); the prediction set is empty (the falsifiable-prediction +
-foresight is Phase 3); live lift is unvalidated until run against a real provider.
+**Phase 3a SHIPPED — validated LIVE (gpt-5.5, 2026-06-16):**
+```
+baseline 33.3%
+  iter 1: KEPT     33.3% → 50%   (brain edit lifted the score → persisted)
+  iter 2: reverted 50%  → 50%    (no lift + regressed fix-sum → rolled back)
+final 50%  (1/2 edits kept)
+```
+The loop measured → edited the brain → re-measured → **kept the lifting edit and reverted
+the regressing one**. Two fixes the live run forced (the loop's own behavior named them —
+pure AHE methodology):
+1. **k≥2 rollouts** (`VANTA_EVAL_ROLLOUTS`, default 2) — a single rollout was pure noise
+   (66.7% standalone vs 33.3% moments later). pass@1 is now the mean per-task pass fraction
+   over k rollouts.
+2. **Per-rollout brain freeze** (`withFrozen`, `isolateRollout`) — Vanta's "keep learning"
+   makes the TASK agent write to the brain *while being measured*, drifting the very
+   component under evolution. Each rollout now snapshots→restores the brain, so only the
+   evolve agent's deliberate edit changes the score (AHE controllability).
 
-**Next — Phase 3:** trace-distilled triage (`AHE-TRACE-DISTILLER`) + regression foresight
-with real predicted-fix/at-risk sets (`AHE-REGRESSION-FORESIGHT`, the paper's #1 open
-problem) + formalize `AHE-EVOLVE-GUARDRAILS` for the evolve path (budget/model tamper-proof)
-+ broaden the evolve target to skills/tools (`AHE-INTERACTION-AWARE`).
+v0 scope still open: corpus is tiny (3 tasks; `create-file` is flaky — likely a sandbox/
+shell-cwd rooting issue worth a look); regression *detection* works but *foresight*
+(predict-before-edit) does not yet.
+
+**Next — Phase 3b:** regression foresight with real predicted-fix/at-risk sets
+(`AHE-REGRESSION-FORESIGHT`, the paper's #1 open problem) · trace-distilled triage
+(`AHE-TRACE-DISTILLER`) · broaden the evolve target to skills/tools (`AHE-INTERACTION-AWARE`)
+· grow the corpus.
 
 ## What AHE is
 

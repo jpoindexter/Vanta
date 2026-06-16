@@ -24,16 +24,20 @@ export type EvalTask = z.infer<typeof EvalTaskSchema>;
 
 export type EvalResult = {
   id: string;
+  /** Solid pass = passed ALL rollouts (passes === runs). */
   pass: boolean;
+  /** Rollouts that passed / attempted — k≥2 stabilizes the noisy single-rollout signal. */
+  passes: number;
+  runs: number;
   detail: string;
-  iterations?: number;
   outputTokens?: number;
 };
 
 export type EvalReport = {
   total: number;
+  /** Tasks that solidly passed (all rollouts). */
   passed: number;
-  /** pass@1 as a percentage, one decimal. */
+  /** pass@1 = mean over tasks of (passes/runs), as a percentage, one decimal. */
   passAt1: number;
   outputTokens: number;
   results: EvalResult[];

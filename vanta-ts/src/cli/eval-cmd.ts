@@ -2,6 +2,8 @@ import { join } from "node:path";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { loadCorpus } from "../eval/corpus.js";
 import { runEval, formatReport, type TaskRunner } from "../eval/run.js";
+import { withFrozen } from "../evolve/snapshot.js";
+import { resolveVantaHome } from "../store/home.js";
 
 // `vanta eval` — run the task corpus through the real agent in isolated sandboxes
 // and report a pass@1 baseline. This is the reward signal the self-improving loop
@@ -12,6 +14,8 @@ const DEFAULT_CORPUS = "eval/tasks";
 const RUNS_SUBDIR = join(".vanta", "eval-runs");
 const BASELINE = join(".vanta", "eval-baseline.json");
 const MAX_ITER = 40;
+/** k≥2 rollouts/task stabilizes the noisy single-rollout signal (override: VANTA_EVAL_ROLLOUTS). */
+export const evalRollouts = (env: NodeJS.ProcessEnv = process.env): number => Math.max(1, parseInt(env.VANTA_EVAL_ROLLOUTS ?? "2", 10) || 2);
 
 /** Real runner: kernel at repoRoot (binary + scope), tools rooted in the sandbox.
  * Exported so the evolve loop reuses the exact same eval path. */
@@ -41,12 +45,18 @@ export async function runEvalCommand(repoRoot: string, rest: string[] = []): Pro
     console.error(`vanta eval: no tasks found in ${corpusDir} (add *.json tasks or pass a dir)`);
     process.exit(1);
   }
-  console.log(`vanta eval: ${tasks.length} task(s) from ${corpusDir}\n`);
+  const rollouts = evalRollouts();
+  console.log(`vanta eval: ${tasks.length} task(s) × ${rollouts} rollout(s) from ${corpusDir}\n`);
+  // Freeze the brain around EACH rollout so the task agent's own "keep learning"
+  // writes can't drift the harness mid-eval (controllability — reproducible score).
+  const brainDir = join(resolveVantaHome(process.env), "brain");
   const report = await runEval({
     tasks,
     baseDir: join(repoRoot, RUNS_SUBDIR),
     run: buildRunner(repoRoot),
-    onResult: (r) => console.log(`  ${r.pass ? "✓" : "✗"} ${r.id} — ${r.detail}`),
+    rollouts,
+    isolateRollout: (fn) => withFrozen(brainDir, fn),
+    onResult: (r) => console.log(`  ${r.pass ? "✓" : r.passes > 0 ? "~" : "✗"} ${r.id} — ${r.detail}`),
   });
   console.log(`\n${formatReport(report)}`);
   mkdirSync(join(repoRoot, ".vanta"), { recursive: true });
