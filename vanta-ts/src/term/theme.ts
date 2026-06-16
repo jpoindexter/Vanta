@@ -1,3 +1,5 @@
+import { queryOscBackground } from "./osc-detect.js";
+
 export type Theme = {
   primary: string;
   accent: string;
@@ -134,8 +136,9 @@ export function detectBackground(
 export function detectThemeName(env: NodeJS.ProcessEnv = process.env): string {
   const explicit = env.VANTA_THEME?.toLowerCase();
   if (explicit && THEME_NAMES.includes(explicit)) return explicit;
-  if (detectBackground(env) === "light") return "light";
-  return "mono";
+  const osc = queryOscBackground();
+  const bg = osc !== "unknown" ? osc : detectBackground(env);
+  return bg === "light" ? "light" : "mono";
 }
 
 /** The active theme NAME from env, validated to a known name (else "mono"). */
