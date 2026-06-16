@@ -52,15 +52,17 @@ async function rollout(task: EvalTask, baseDir: string, run: TaskRunner): Promis
   }
 }
 
-async function runOne(task: EvalTask, baseDir: string, run: TaskRunner, rollouts: number, isolate: Isolate): Promise<EvalResult> {
+type RunCtx = { baseDir: string; run: TaskRunner; rollouts: number; isolate: Isolate };
+
+async function runOne(task: EvalTask, c: RunCtx): Promise<EvalResult> {
   let passes = 0, outputTokens = 0, lastDetail = "";
-  for (let r = 0; r < rollouts; r++) {
-    const out = await isolate(() => rollout(task, baseDir, run));
+  for (let r = 0; r < c.rollouts; r++) {
+    const out = await c.isolate(() => rollout(task, c.baseDir, c.run));
     if (out.pass) passes++;
     outputTokens += out.outputTokens;
     lastDetail = out.detail;
   }
-  return { id: task.id, pass: passes === rollouts, passes, runs: rollouts, detail: `${passes}/${rollouts} — ${lastDetail}`, outputTokens };
+  return { id: task.id, pass: passes === c.rollouts, passes, runs: c.rollouts, detail: `${passes}/${c.rollouts} — ${lastDetail}`, outputTokens };
 }
 
 export async function runEval(opts: {
@@ -75,7 +77,7 @@ export async function runEval(opts: {
   const isolate = opts.isolateRollout ?? identityIsolate;
   const results: EvalResult[] = [];
   for (const task of opts.tasks) {
-    const r = await runOne(task, opts.baseDir, opts.run, rollouts, isolate);
+    const r = await runOne(task, { baseDir: opts.baseDir, run: opts.run, rollouts, isolate });
     results.push(r);
     opts.onResult?.(r);
   }
