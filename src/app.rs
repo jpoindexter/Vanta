@@ -88,7 +88,14 @@ pub fn append_event(state: &State, text: &str) -> Result<(), String> {
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
         .as_secs();
-    let line = format!("{{\"ts\":{},\"event\":\"{}\"}}\n", ts, esc(text));
+    // KERNEL-AUDIT-CHAIN: hash each event over (key + prev_hash + payload) so the
+    // log is tamper-evident. Payload is the line WITHOUT the trailing `,"h":"..."`,
+    // which is exactly what audit::verify_chain reconstructs.
+    let payload = format!("{{\"ts\":{},\"event\":\"{}\"}}", ts, esc(text));
+    let prev = crate::audit::last_hash(&state.data_dir);
+    let key = crate::audit::load_or_create_key(&state.data_dir)?;
+    let h = crate::audit::chain_hash(&key, &prev, &payload);
+    let line = format!("{{\"ts\":{},\"event\":\"{}\",\"h\":\"{}\"}}\n", ts, esc(text), h);
     fs::OpenOptions::new()
         .create(true)
         .append(true)

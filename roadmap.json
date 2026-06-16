@@ -11906,12 +11906,12 @@
     {
       "id": "KERNEL-AUDIT-CHAIN",
       "track": "Harness",
-      "status": "horizon",
+      "status": "shipped",
       "tier": "pebble",
       "size": "M",
       "effort": "high",
       "title": "Kernel: tamper-evident audit log (hash-chained events.jsonl)",
-      "summary": "events.jsonl is append-only plaintext with no integrity guarantee. Hash-chain each event (prev-hash → this-event) so the audit trail is tamper-evident — strengthens the 'trusted operator, only verified output' story and makes after-the-fact review trustworthy. See docs/vanta-hermes-gap-and-nd.md.",
+      "summary": "events.jsonl is append-only plaintext with no integrity guarantee. Hash-chain each event (prev-hash → this-event) so the audit trail is tamper-evident — strengthens the 'trusted operator, only verified output' story and makes after-the-fact review trustworthy. See docs/vanta-hermes-gap-and-nd.md. SHIPPED 2026-06-16: src/audit.rs — vendored zero-dep SHA-256 (NIST-vector tested) + hash chain h=sha256(key+prev+payload) over every events.jsonl line, per-install secret key (.vanta/audit.key, 0600). `vanta-kernel audit verify` walks+recomputes the chain; any edit/insert/delete/reorder is rejected. 53 kernel tests green (+4). Threat model: detects tampering by accidental edits, other users, and key-less processes; a same-user attacker who reads audit.key could forge (future: TPM/keychain-held key or HMAC).",
       "done": "Each event records a hash over (prev-hash + payload); a verifier detects any insert/edit/delete in the chain.",
       "updated": "2026-06-16"
     },

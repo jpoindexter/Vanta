@@ -1,5 +1,6 @@
 mod app;
 mod approvals;
+mod audit;
 mod bridge;
 mod goals;
 mod jsonv;
@@ -84,12 +85,22 @@ fn main() {
             println!("{}", runtime::run_native(&state.root, &instruction).to_json());
             Ok(())
         }
+        "audit" => match args.next().as_deref() {
+            Some("verify") | None => match audit::verify_chain(&state.data_dir) {
+                Ok(n) => {
+                    println!("{{\"audit_chain\":\"intact\",\"events\":{n}}}");
+                    Ok(())
+                }
+                Err(e) => Err(format!("audit chain BROKEN: {e}")),
+            },
+            _ => Err("try: audit verify".to_string()),
+        },
         "serve" => {
             let port = args.next().and_then(|p| p.parse().ok()).unwrap_or(7788);
             server::serve(state, port)
         }
         _ => Err(format!(
-            "unknown command: {command}\ntry: doctor | assess | scope | log | bridge | approvals | goals | run | serve"
+            "unknown command: {command}\ntry: doctor | assess | scope | log | bridge | approvals | goals | run | serve | audit"
         )),
     };
 
