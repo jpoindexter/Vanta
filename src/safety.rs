@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Risk {
@@ -142,25 +142,61 @@ fn normalize_cmd(s: &str) -> String {
     stripped.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
-/// True if any whitespace token is an absolute path not under `root` — generic,
-/// not hardcoded to one user's home.
+/// True if any whitespace token is an absolute path not under `root`. Each token is
+/// lexically normalized first, so `root/../escape` (`..` traversal) and a
+/// sibling-prefix path (`/a/vanta-evil` vs `/a/vanta`) can no longer slip through.
 fn references_abs_path_outside_root(text: &str, root: &Path) -> bool {
-    let base = root.display().to_string().to_lowercase();
-    text.split_whitespace().any(|tok| tok.starts_with('/') && tok.len() > 1 && !tok.starts_with(&base))
+    let base = lex_norm_str(root);
+    text.split_whitespace()
+        .any(|tok| tok.starts_with('/') && tok.len() > 1 && !is_inside(&lex_norm_str(Path::new(tok)), &base))
 }
 
+/// Is `path` inside `root`? Resolves symlinks + `..` via the filesystem when the
+/// path EXISTS (so an in-root symlink can't point out of bounds undetected); else
+/// falls back to lexical `..`/`.` resolution. Containment is checked with a
+/// trailing separator so a sibling prefix is NOT counted as inside.
 pub fn inside_scope(path: &Path, root: &Path) -> bool {
-    let abs = normalize(path);
-    let base = normalize(root);
-    abs.starts_with(base)
+    let abs = if path.is_absolute() { path.to_path_buf() } else { root.join(path) };
+    is_inside(&resolve_scope_path(&abs), &resolve_scope_path(root))
 }
 
-fn normalize(path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        std::env::current_dir().unwrap_or_default().join(path)
+/// Resolve `.`/`..` components WITHOUT the filesystem (works on paths that don't
+/// exist yet). Does NOT resolve symlinks.
+fn lexically_normalize(path: &Path) -> PathBuf {
+    let mut out = PathBuf::new();
+    for comp in path.components() {
+        match comp {
+            Component::ParentDir => { out.pop(); }
+            Component::CurDir => {}
+            other => out.push(other.as_os_str()),
+        }
     }
+    out
+}
+
+/// Lowercased, lexically-normalized string form for case-insensitive containment.
+fn lex_norm_str(path: &Path) -> String {
+    lexically_normalize(path).display().to_string().to_lowercase()
+}
+
+/// Real path for a scope check: canonicalize (symlinks + `..`) when it exists,
+/// else lexical fallback. Lowercased.
+fn resolve_scope_path(path: &Path) -> String {
+    match std::fs::canonicalize(path) {
+        Ok(real) => real.display().to_string().to_lowercase(),
+        Err(_) => lex_norm_str(path),
+    }
+}
+
+/// True when `child` equals `base` or sits strictly under it. The trailing
+/// separator stops a sibling prefix (`/a/vanta-evil` under `/a/vanta`).
+fn is_inside(child: &str, base: &str) -> bool {
+    child == base || child.starts_with(&format!("{base}/"))
+}
+
+/// Lowercased copy of a path (component case-folding for case-insensitive compares).
+fn lower_pathbuf(path: &Path) -> PathBuf {
+    PathBuf::from(path.to_string_lossy().to_lowercase())
 }
 
 fn has_any(text: &str, needles: &[&str]) -> bool {
@@ -202,14 +238,14 @@ fn mentions_outside_scope(text: &str, root: &Path) -> bool {
 /// Protected: kernel source, factory loop files, human MANIFESTO. Writable: ROADMAP,
 /// AGENT-MANIFESTO, all feature code outside this set.
 pub fn is_protected_path(path: &Path, root: &Path) -> bool {
-    let abs = if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        normalize(root).join(path)
-    };
-    let base = normalize(root);
+    // Lexically normalize + lowercase BOTH so a `..` traversal can't escape the
+    // check ("vanta-ts/src/factory/../../../src/safety.rs" → "src/safety.rs") and
+    // the prefix match is component-wise + case-insensitive.
+    let joined = if path.is_absolute() { path.to_path_buf() } else { root.join(path) };
+    let abs = lower_pathbuf(&lexically_normalize(&joined));
+    let base = lower_pathbuf(&lexically_normalize(root));
     let rel = match abs.strip_prefix(&base) {
-        Ok(r) => r.to_string_lossy().to_lowercase(),
+        Ok(r) => r.to_string_lossy().to_string(),
         Err(_) => return false,
     };
     let s: &str = rel.as_ref();
@@ -286,6 +322,38 @@ mod tests {
     fn asks_for_outside_scope() {
         let v = assess_action("edit /repo/projects/other", &root());
         assert_eq!(v.risk, Risk::Ask);
+    }
+
+    // --- KERNEL-PATH-CANON: scope-bypass closures ---
+
+    #[test]
+    fn dotdot_traversal_escapes_scope_to_ask() {
+        // root/../secret resolves OUT of root — must not be treated as inside.
+        let v = assess_action("read file /repo/projects/vanta/../secret/data", &root());
+        assert_eq!(v.risk, Risk::Ask, "`..` traversal out of root must Ask");
+    }
+
+    #[test]
+    fn sibling_prefix_is_not_inside_scope() {
+        // "/repo/projects/vanta-evil" must NOT count as inside "/repo/projects/vanta".
+        let v = assess_action("edit /repo/projects/vanta-evil/x", &root());
+        assert_eq!(v.risk, Risk::Ask, "sibling-prefix path must Ask");
+        assert!(!inside_scope(Path::new("/repo/projects/vanta-evil/x"), &root()));
+        assert!(inside_scope(Path::new("/repo/projects/vanta/src/x"), &root()));
+    }
+
+    #[test]
+    fn protected_path_survives_dotdot_traversal() {
+        let r = root();
+        // A `..` walk that lands back on kernel source must still be protected.
+        assert!(is_protected_path(&r.join("vanta-ts/src/factory/../../../src/safety.rs"), &r));
+        assert!(is_protected_path(Path::new("/repo/projects/vanta/x/../src/main.rs"), &r));
+    }
+
+    #[test]
+    fn lexically_normalize_resolves_dotdot() {
+        assert_eq!(lexically_normalize(Path::new("/a/b/../c")), PathBuf::from("/a/c"));
+        assert_eq!(lexically_normalize(Path::new("/a/./b")), PathBuf::from("/a/b"));
     }
 
     #[test]

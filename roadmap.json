@@ -11894,12 +11894,12 @@
     {
       "id": "KERNEL-PATH-CANON",
       "track": "Harness",
-      "status": "horizon",
+      "status": "shipped",
       "tier": "pebble",
       "size": "M",
       "effort": "high",
       "title": "Kernel: canonicalize paths + resolve symlinks in scope checks",
-      "summary": "normalize() in safety.rs joins but doesn't canonicalize — a symlink inside root pointing out, or a `..` traversal, can defeat inside_scope/references_abs_path_outside_root. Canonicalize + resolve symlinks (TOCTOU-aware) so the scope boundary can't be walked out of. See docs/vanta-hermes-gap-and-nd.md.",
+      "summary": "normalize() in safety.rs joins but doesn't canonicalize — a symlink inside root pointing out, or a `..` traversal, can defeat inside_scope/references_abs_path_outside_root. Canonicalize + resolve symlinks (TOCTOU-aware) so the scope boundary can't be walked out of. See docs/vanta-hermes-gap-and-nd.md. SHIPPED 2026-06-16: added lexically_normalize (resolves ../.) + resolve_scope_path (fs canonicalize/symlink when path exists, else lexical) + is_inside (trailing-sep containment, kills sibling-prefix bypass). inside_scope/references_abs_path_outside_root/is_protected_path all routed through it; .. traversal + sibling-prefix + symlink bypasses closed. 45 kernel tests green (+4).",
       "done": "A symlink/`..` path that escapes root is correctly classified Ask/Block; added kernel tests for symlink + traversal bypass.",
       "updated": "2026-06-16"
     },
