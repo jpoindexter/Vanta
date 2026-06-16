@@ -37,8 +37,22 @@ describe("loadShellHooks", () => {
     expect(c.PreToolUse?.[0]?.command).toBe("exit 1");
   });
 
-  it("rejects a hook with no command (zod) → {}", async () => {
+  it("rejects a hook with no command and no mcp_tool type (zod) → {}", async () => {
     await writeHooks(dir, { PreToolUse: [{ matcher: "x" }] });
+    expect(await loadShellHooks(dir)).toEqual({});
+  });
+
+  it("parses an mcp_tool hook without a command field", async () => {
+    await writeHooks(dir, { PostToolUse: [{ type: "mcp_tool", server: "notify", tool: "send_notification" }] });
+    const c = await loadShellHooks(dir);
+    expect(c.PostToolUse).toHaveLength(1);
+    expect(c.PostToolUse?.[0]?.type).toBe("mcp_tool");
+    expect(c.PostToolUse?.[0]?.server).toBe("notify");
+    expect(c.PostToolUse?.[0]?.tool).toBe("send_notification");
+  });
+
+  it("rejects an mcp_tool hook with missing server (zod) → {}", async () => {
+    await writeHooks(dir, { PostToolUse: [{ type: "mcp_tool", tool: "t" }] });
     expect(await loadShellHooks(dir)).toEqual({});
   });
 });

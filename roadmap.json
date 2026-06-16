@@ -622,7 +622,7 @@
       "id": "CC-HOOK-MCP-TOOL-TYPE",
       "track": "Harness",
       "title": "Hook MCP tool invocation — `type: 'mcp_tool'` in hook config calls MCP tools directly",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC (v2.1.118) allows hooks to invoke MCP tools directly via `type: 'mcp_tool'` in hook config. Hooks no longer need a shell command to call an MCP server — they reference the tool by server name and tool name. Enables tight hook↔MCP integration without subprocess overhead.",
       "done": "A PostToolUse hook with `type: 'mcp_tool', server: 'notify', tool: 'send_notification'` triggers the MCP notification tool directly.",
@@ -631,7 +631,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-16"
     },
     {
       "id": "CC-ADVISOR-ESCALATE",
