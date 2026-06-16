@@ -472,7 +472,7 @@
       "id": "CC-STRUCTURED-OUTPUT-TOOL",
       "track": "Harness",
       "title": "StructuredOutput tool — schema-validated JSON output for SDK/non-interactive sessions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC has a SyntheticOutputTool (`StructuredOutput`) enabled only in non-interactive/SDK sessions. When an SDK caller provides a JSON schema, the model is forced to call this tool as its final action, and the output is validated against the schema before returning. This is how workflow agents return structured data instead of free text — and how `agent({schema})` in workflows works.",
       "done": "SDK sessions with a schema constraint receive a validated JSON object as the agent's return value. The agent calls `StructuredOutput({...})` as its terminal action.",
@@ -487,7 +487,7 @@
       "id": "CC-CRON-DURABLE",
       "track": "Harness",
       "title": "Durable cron jobs — persist scheduled tasks across session restarts",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CC's CronCreate tool has a `durable` flag (default false). Durable crons are written to `.claude/scheduled_tasks.json` and survive session restarts — OS-triggered cron invocations can fire them. Non-durable (default) crons are in-memory only and die when the session ends. The `recurring` flag (default true) controls one-shot vs repeating. Vanta's cron is in-memory only.",
       "done": "`cron_create(durable: true)` persists the job to `.vanta/scheduled_tasks.json`. After a session restart, `cron_list` shows the job and it fires at the next scheduled time.",
@@ -637,7 +637,7 @@
       "id": "CC-ADVISOR-ESCALATE",
       "track": "Harness",
       "title": "Advisor escalation — read-only stronger model after repeated failure",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Steal rocket.new's 'Advisor Agent': after the loop fails the same fix N times (Vanta has onIterationCheck + error-detect), escalate to a stronger READ-ONLY model that returns root cause + numbered steps + a trade-off table and NEVER writes code. Wires the escalation trigger + read-only contract around the existing advisorModel config.",
       "done": "On the 2nd+ consecutive failed fix, Vanta consults a read-only advisor and surfaces root-cause + numbered next steps; the advisor cannot call write/edit tools.",
@@ -11943,13 +11943,14 @@
       "id": "ND-EF-GATE-ENGINE",
       "track": "Operator",
       "title": "ND: full executive-function gate engine (user-facing, configurable)",
-      "status": "next",
+      "status": "building",
       "size": "L",
       "summary": "Vanta's EF gates today are antiSlop/modeDetect/researchGate/stallUnblock. Promote to the full neurodivergent support set as FIRST-CLASS, per-user-configurable product behaviors (the way the assistant's own ND skills work, but FOR the user): research-gate, complexity-gate, task-initiation, hyperfocus-guard, time-blindness, closure-gate, velocity-check, set-shift, inhibit. This is the core of the ND-first positioning. Stay lean — one engine, gates as small pure rules. See docs/vanta-hermes-gap-and-nd.md.",
       "done": "The EF-gate set is configurable per user and fires in-session (e.g. research-gate nudges after N read-only turns; hyperfocus-guard after long single-area runs); each gate is independently toggleable.",
       "tier": "rock",
       "effort": "high",
-      "updated": "2026-06-16"
+      "updated": "2026-06-16",
+      "notes": "Slice 1 started 2026-06-16: add per-user EF config + gate registry, rewire existing gates only, and preserve default behavior. Deferred slice 2: /ef live toggle UI, new EF gates (hyperfocus/task-initiation/time-blindness/velocity), broader threshold generalization."
     },
     {
       "id": "ND-WORKING-MEMORY-RAIL",
@@ -12033,6 +12034,19 @@
       "done": "cmd+backspace deletes to line start and opt+backspace deletes the previous word in the composer (or the documented equivalent where the terminal intercepts cmd).",
       "tier": "sand",
       "effort": "medium",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "GOOGLE-AUTH-ONBOARDING",
+      "track": "Operator",
+      "title": "Frictionless Google/comms auth onboarding — client.json ingest, publish-state + 7-day-token handling",
+      "status": "next",
+      "size": "M",
+      "summary": "Per-user Google comms setup is too heavy and has two footguns: (1) a Testing-status OAuth consent screen makes refresh tokens for restricted scopes (gmail.modify, drive) + sensitive (calendar) expire after 7 days, silently breaking ~/.vanta/google-tokens.json roughly weekly; (2) the current flow makes users copy-paste client_id/secret — a real leak vector (already leaked once into chat). Near-term fix (THIS card): make `vanta auth google` a guided wizard — accept Google's downloaded client_secret.json directly (`--client <path>`, no copy-paste), detect Testing-vs-Published status and warn about the 7-day expiry, and walk the user through Publish App + the unverified-app 'Advanced -> Continue' click-through. Makes BYO-app onboarding bearable + safe WITHOUT owning a verified app. Two documented scale paths, both decision-gated and NOT built here: (A) Theft Studio owns ONE verified Google app -> every user just clicks Authorize, zero console work (best UX) — but gmail.modify/drive are restricted scopes requiring an annual third-party CASA security assessment + makes Theft the data controller for users' mail; gate on a real 2nd comms user (-> DECISIONS). (B) MCP-delegation (Hermes posture, see CC-MCP-AUTH): drop native Google, point at a Google MCP server — but Google does NOT support OAuth dynamic client registration, so MCP only RELOCATES the verification cost to whoever runs that server, it does not remove it; Vanta MCP tools stay kernel-gated so no thesis break. When verifying: switch Drive to drive.file (sensitive, no assessment) vs full drive (restricted). Impl site: vanta-ts/src/google/auth.ts (runGoogleAuth reads env-only today).",
+      "done": "`vanta auth google --client <client_secret.json>` ingests Google's downloaded client JSON (no id/secret copy-paste); the flow detects Testing-vs-Published publishing status and warns that Testing-status refresh tokens expire in 7 days, then guides Publish App + the unverified-app click-through. Verified-app and MCP-delegation scale paths are captured in the summary as decision-gated (not built in this card).",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "reach",
       "updated": "2026-06-16"
     }
   ]

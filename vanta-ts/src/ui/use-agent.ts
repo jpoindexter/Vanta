@@ -37,6 +37,7 @@ type AgentDeps = {
 function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] {
   return {
     provider: deps.setup.provider,
+    advisorProvider: deps.setup.advisorProvider,
     safety: deps.setup.safety,
     registry: deps.setup.registry,
     root: deps.repoRoot,

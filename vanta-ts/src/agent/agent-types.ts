@@ -47,6 +47,8 @@ export type AgentDeps = {
   signal?: AbortSignal;
   /** SDK/non-interactive structured output schema. Adds the StructuredOutput synthetic tool. */
   outputSchema?: Record<string, unknown>;
+  /** Optional stronger read-only provider to consult after repeated tool failures (VANTA_ADVISOR_MODEL). */
+  advisorProvider?: LLMProvider;
   /**
    * Plan mode: when this returns true, only read-only tools are allowed.
    * Write/shell tools return a "blocked: plan mode" result without executing.
