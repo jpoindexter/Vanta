@@ -253,3 +253,6 @@ Audited Claude Code's full feature set (~250 features) for the roadmap; 19 in-sc
 | `parked/ad52d4ad12952fd6c` | CC-PERMISSIONS — pure rule layer + /permissions cmd | likely superseded (`permissions.tsv` + `loadRules` + `ui/grant.ts` exist) |
 
 All are tracked as `CC-*` roadmap cards; per `STRATEGY.md`, CC parity is "a quarry, not a goal."
+
+## AHE stack import — methodology only, not the code (2026-06-16)
+Agentic Harness Engineering (https://github.com/china-qijizhifeng/agentic-harness-engineering) is a strong fit for Vanta's harness/Cofounder pillars, but its **implementation stack is parked, deliberately**: Python 3.13 + `uv` + E2B sandboxes + the NexAU component framework — none of it fits Rust+TS. We steal the *ideas* (falsifiable edits → DECISIONS 2026-06-16; the evaluate→analyze→improve loop → roadmap `AHE-EVAL-HARNESS` / `AHE-TRACE-DISTILLER` / `AHE-SELF-EVOLVE`, all horizon). The auto-evolution loop itself stays unbuilt until Vanta has real users + an eval task set + a reward signal (building it sooner = platform-thinking-before-users). Quarry notes: `docs/agentic-harness-engineering.md`. Cost to revisit: re-read the doc; the loop's prerequisites are the two Harness cards.

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-15",
+  "updated": "2026-06-16",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -11579,6 +11579,46 @@
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
       ]
+    },
+    {
+      "id": "AHE-EVAL-HARNESS",
+      "track": "Harness",
+      "status": "horizon",
+      "tier": "pebble",
+      "size": "L",
+      "effort": "high",
+      "title": "Eval harness — task set + sandboxed run + reward/verifier signal",
+      "summary": "Prerequisite for any harness self-improvement (and a regression eval Vanta lacks today). A small curated task set, each run in an isolated sandbox, producing pass/fail (or scored) reward plus a step-level trace. Mirrors AHE's Evaluate stage (E2B sandboxes -> traces + reward). Reuses Vanta's tool/kernel loop; new parts are the task corpus, the sandbox runner, and the verifier. See docs/agentic-harness-engineering.md.",
+      "done": "`vanta eval` runs the task set in sandboxes and emits per-task pass/fail + a trace file; a baseline score is recorded.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-TRACE-DISTILLER",
+      "track": "Harness",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "M",
+      "effort": "medium",
+      "title": "Trace distiller — events.jsonl to sourced root-cause report (Agent Debugger analog)",
+      "summary": "AHE's 'Experience Observability': compress large execution traces into a layered, sourced root-cause report where each claim links back to the raw trace line. Vanta already emits .vanta/events.jsonl + session memory; this adds the distillation pass turning a failed/long run into an overview + per-issue detail with evidence pointers. Useful for debugging on its own, and the input the self-evolve loop consumes. See docs/agentic-harness-engineering.md.",
+      "done": "Given a run's events.jsonl, the distiller produces an overview.md + per-issue detail with each claim citing the source trace line(s).",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-SELF-EVOLVE",
+      "track": "Cofounder engine",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "XL",
+      "effort": "high",
+      "title": "Self-evolving harness loop — evaluate/analyze/improve over Vanta's own components",
+      "summary": "Pillar-5 capstone, gated behind AHE-EVAL-HARNESS + AHE-TRACE-DISTILLER. An Evolve meta-agent proposes evidence-backed, FALSIFIABLE edits (failure-evidence -> root-cause -> fix -> predicted impact -> verified next iteration, auto-rollback on regression) to Vanta's 7 evolvable components (3-tier prompt, config, tools+schemas, hooks/EF gates, skills, subagents, brain/memory). Vanta edge over AHE: the kernel ENFORCES the evolve-agent's write boundary, safer-by-construction than AHE's plain workspace dir. Do NOT build before real users + an eval set + a reward signal exist. See docs/agentic-harness-engineering.md.",
+      "done": "Over N iterations against the eval set, the loop raises the baseline score with each accepted edit attributed to a confirmed prediction, and regressions auto-roll-back.",
+      "after": [
+        "AHE-EVAL-HARNESS",
+        "AHE-TRACE-DISTILLER"
+      ],
+      "updated": "2026-06-16"
     }
   ]
 }
