@@ -11722,6 +11722,57 @@
         "AHE-EVOLVE-AGENT"
       ],
       "updated": "2026-06-16"
+    },
+    {
+      "id": "ASI-CHECKPOINT-RESTORE",
+      "track": "Harness",
+      "status": "horizon",
+      "tier": "pebble",
+      "size": "M",
+      "effort": "medium",
+      "title": "Full-state checkpoints — snapshot + restore/branch a session's complete state",
+      "summary": "From 'From AGI to ASI' Table 1 (lossless replication: backup & restore arbitrarily; spawn/halt/resume). Beyond today's resume/fork: named checkpoints capturing the COMPLETE state (messages + brain/memory + goals + todos), restorable or branchable mid-run. Gives an autonomous run a rollback floor — return to a known-good point after a bad turn. See docs/from-agi-to-asi-notes.md.",
+      "done": "`/checkpoint <name>` snapshots full state; `/restore <name>` returns to it (or branches a new session); verified across an autonomous run.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "ASI-FLEET-DIGEST",
+      "track": "Operator",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "M",
+      "effort": "medium",
+      "title": "Fleet digest — steerable summary when agents output more than a human can read",
+      "summary": "From 'From AGI to ASI' pathway-4 open question: how humans meaningfully interact with and steer large groups of agents producing volumes of artifacts impossible to consume in full. When a multi-agent run exceeds human reading capacity, surface a digest (what each agent found, conflicts, decisions needing input) + steering controls instead of raw volume. See docs/from-agi-to-asi-notes.md.",
+      "done": "A run with N subagents shows a digest (per-agent finding + conflicts + pending decisions) the operator can act on without reading every raw trace.",
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "ASI-RECURSION-METRICS",
+      "track": "Cofounder engine",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "S",
+      "effort": "medium",
+      "title": "Self-evolve metrics — lift-per-iteration + human-in-loop ratio + spend",
+      "summary": "From 'From AGI to ASI' pathway-3 research: monitor how much AI facilitates AI R&D, the degree of human-in-the-loop, and formulate recursive-improvement scaling laws. Instrument the AHE self-evolve loop to record per-iteration lift vs baseline, human-in-loop ratio, and compute/token spend — so the loop's own returns are observable (and diminishing returns are visible). See docs/from-agi-to-asi-notes.md.",
+      "done": "Each evolve iteration logs lift-vs-baseline, human-in-loop ratio, and spend; a trend view shows whether returns are compounding or tapering.",
+      "after": [
+        "AHE-EVOLVE-LOOP"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "ASI-FORECAST-CALIBRATION",
+      "track": "Solutioning",
+      "status": "horizon",
+      "tier": "sand",
+      "size": "S",
+      "effort": "medium",
+      "title": "Calibrated solutioning — ranged/ensembled recommendations + revisit triggers",
+      "summary": "From 'From AGI to ASI' (recurring): entertain a range of possibilities, attach uncertainty estimates to forecasts, ensemble, and frequently revisit. Make Vanta's solutioning recommendations carry calibrated ranges (best/realistic/worst) instead of point estimates, and emit a revisit trigger when a key assumption is cheap to check or likely stale. See docs/from-agi-to-asi-notes.md.",
+      "done": "A solutioning recommendation ships with a range + named uncertainty drivers + a concrete revisit trigger, not a single-point claim.",
+      "updated": "2026-06-16"
     }
   ]
 }
