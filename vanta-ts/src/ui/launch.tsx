@@ -4,6 +4,7 @@ import { AppV2 } from "./v2/app-v2.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { installResizeGhostFix } from "../term/resize-fix.js";
+import { queryOscBackground } from "../term/osc-detect.js";
 
 export type TuiSurface = "v1" | "v2";
 
@@ -18,6 +19,7 @@ export function selectTuiSurface(env: { VANTA_TUI?: string }): TuiSurface {
 export async function runTuiV2(repoRoot: string): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session");
   await maybeCurate();
+  queryOscBackground(); // warm the cache before Ink claims stdin
   const surface = selectTuiSurface(process.env);
   const instance = render(surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />);
   await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)

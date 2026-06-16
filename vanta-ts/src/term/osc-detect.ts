@@ -1,14 +1,14 @@
-import { execFileSync } from "node:child_process";
+import { openSync, readSync, writeSync, closeSync, constants } from "node:fs";
 
-// Query the terminal's background color via OSC 11 escape sequence, then
-// compute relative luminance to decide light vs dark. Falls back gracefully
-// when the terminal doesn't respond (tmux pass-through, dumb terminals, CI).
+// Query the terminal background color via OSC 11 before the TUI starts.
+// Opens /dev/tty with O_NONBLOCK so readSync returns EAGAIN instead of
+// blocking, then polls until the response arrives or the 100ms deadline
+// passes. Must be called before Ink touches stdin (see launch.tsx pre-warm).
 
 /** Parse OSC color response: rgb:rrrr/gggg/bbbb (16-bit) or rgb:rr/gg/bb (8-bit). */
 export function parseOscRgb(raw: string): { r: number; g: number; b: number } | null {
   const m = raw.match(/rgb:([0-9a-f]+)\/([0-9a-f]+)\/([0-9a-f]+)/i);
   if (!m) return null;
-  // 4-char hex = 16-bit (0xffff → 255); 2-char = 8-bit already.
   const norm = (s: string): number => Math.round(parseInt(s, 16) / (s.length === 4 ? 257 : 1));
   return { r: norm(m[1]!), g: norm(m[2]!), b: norm(m[3]!) };
 }
@@ -23,32 +23,49 @@ export function luminance({ r, g, b }: { r: number; g: number; b: number }): num
   return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
 }
 
+function lightOrDark(rgb: { r: number; g: number; b: number } | null): "light" | "dark" | "unknown" {
+  if (!rgb) return "unknown";
+  return luminance(rgb) > 0.5 ? "light" : "dark";
+}
+
+/** Poll fd for an OSC response (BEL or ST terminated) for up to 100ms. */
+function pollOscResponse(fd: number): string {
+  const deadline = Date.now() + 100;
+  const buf = Buffer.alloc(1);
+  const bytes: number[] = [];
+  while (Date.now() < deadline) {
+    let n = 0;
+    try { n = readSync(fd, buf, 0, 1, null); } catch { /* EAGAIN — no data yet */ }
+    if (n > 0) {
+      const b = buf[0]!;
+      bytes.push(b);
+      if (b === 0x07) break; // BEL terminator
+      if (bytes.length >= 2 && bytes[bytes.length - 2] === 0x1b && b === 0x5c) break; // ST
+    }
+  }
+  return Buffer.from(bytes).toString("latin1");
+}
+
 let _cached: "light" | "dark" | "unknown" | undefined;
 
 /**
- * Query the terminal background via OSC 11. Spawns a minimal bash one-liner
- * that writes to /dev/tty and reads back the response with a 50ms timeout.
- * Result is cached for the process lifetime (~80ms worst-case on first call).
+ * Query terminal background via OSC 11. Reads directly from /dev/tty with
+ * O_NONBLOCK — no subprocess, no bell, no race with Node's stdin reader.
+ * Uses ST terminator (ESC \) so unsupported terminals stay silent.
+ * Result is cached; first call takes up to 100ms, subsequent calls are free.
  */
 export function queryOscBackground(): "light" | "dark" | "unknown" {
   if (_cached !== undefined) return _cached;
-  if (!process.stdout.isTTY) return (_cached = "unknown");
+  if (!process.stdout.isTTY || !("O_NONBLOCK" in constants)) return (_cached = "unknown");
+  let fd = -1;
   try {
-    const script = [
-      "printf '\\033]11;?\\007' >/dev/tty",
-      "IFS= read -r -d $'\\a' -s -t 0.05 resp </dev/tty 2>/dev/null",
-      "printf '%s' \"$resp\"",
-    ].join("; ");
-    const raw = execFileSync("/bin/bash", ["-c", script], {
-      encoding: "utf8",
-      timeout: 200,
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-    const rgb = parseOscRgb(raw);
-    if (!rgb) { _cached = "unknown"; return _cached; }
-    _cached = luminance(rgb) > 0.5 ? "light" : "dark";
+    fd = openSync("/dev/tty", constants.O_RDWR | constants.O_NONBLOCK);
+    writeSync(fd, "\x1b]11;?\x1b\\"); // OSC 11 query, ST-terminated (no BEL)
+    _cached = lightOrDark(parseOscRgb(pollOscResponse(fd)));
   } catch {
     _cached = "unknown";
+  } finally {
+    if (fd >= 0) try { closeSync(fd); } catch { /**/ }
   }
   return _cached;
 }
