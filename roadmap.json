@@ -11583,8 +11583,8 @@
     {
       "id": "AHE-EVAL-HARNESS",
       "track": "Harness",
-      "status": "horizon",
-      "tier": "pebble",
+      "status": "next",
+      "tier": "rock",
       "size": "L",
       "effort": "high",
       "title": "Eval harness — task set + sandboxed run + reward/verifier signal",
@@ -11595,8 +11595,8 @@
     {
       "id": "AHE-TRACE-DISTILLER",
       "track": "Harness",
-      "status": "horizon",
-      "tier": "sand",
+      "status": "next",
+      "tier": "pebble",
       "size": "M",
       "effort": "medium",
       "title": "Trace distiller — events.jsonl to sourced root-cause report (Agent Debugger analog)",
@@ -11607,16 +11607,119 @@
     {
       "id": "AHE-SELF-EVOLVE",
       "track": "Cofounder engine",
-      "status": "horizon",
-      "tier": "sand",
+      "status": "next",
+      "tier": "rock",
       "size": "XL",
       "effort": "high",
       "title": "Self-evolving harness loop — evaluate/analyze/improve over Vanta's own components",
       "summary": "Pillar-5 capstone, gated behind AHE-EVAL-HARNESS + AHE-TRACE-DISTILLER. An Evolve meta-agent proposes evidence-backed, FALSIFIABLE edits (failure-evidence -> root-cause -> fix -> predicted impact -> verified next iteration, auto-rollback on regression) to Vanta's 7 evolvable components (3-tier prompt, config, tools+schemas, hooks/EF gates, skills, subagents, brain/memory). Vanta edge over AHE: the kernel ENFORCES the evolve-agent's write boundary, safer-by-construction than AHE's plain workspace dir. Do NOT build before real users + an eval set + a reward signal exist. See docs/agentic-harness-engineering.md.",
       "done": "Over N iterations against the eval set, the loop raises the baseline score with each accepted edit attributed to a confirmed prediction, and regressions auto-roll-back.",
       "after": [
-        "AHE-EVAL-HARNESS",
-        "AHE-TRACE-DISTILLER"
+        "AHE-EVOLVE-LOOP"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVAL-CORPUS",
+      "track": "Harness",
+      "status": "next",
+      "tier": "rock",
+      "size": "S",
+      "effort": "medium",
+      "title": "Eval corpus — small curated task set with deterministic checks",
+      "summary": "The task set the eval harness runs. ~10-20 self-contained tasks each with a deterministic pass check (file exists / output matches / test passes). Start tiny; this is the signal everything else optimizes against. Part of AHE-EVAL-HARNESS.",
+      "done": "A versioned corpus dir with N tasks, each defining setup + a deterministic verifier check.",
+      "after": [],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVAL-SANDBOX",
+      "track": "Harness",
+      "status": "next",
+      "tier": "rock",
+      "size": "M",
+      "effort": "high",
+      "title": "Eval sandbox runner — isolated per-task execution",
+      "summary": "Run each corpus task in an isolated env (temp dir + kernel scope, or a container) so runs don't bleed into each other or the real repo. Mirrors AHE's E2B stage; reuses Vanta's tool/kernel loop. Part of AHE-EVAL-HARNESS.",
+      "done": "A task runs end-to-end in a fresh sandbox and produces a step-level trace; cleanup leaves no residue.",
+      "after": [
+        "AHE-EVAL-CORPUS"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVAL-VERIFIER",
+      "track": "Harness",
+      "status": "next",
+      "tier": "pebble",
+      "size": "M",
+      "effort": "medium",
+      "title": "Eval verifier — per-task reward/score signal",
+      "summary": "Run each task's deterministic check after a sandboxed run and emit pass/fail (or a score) — the reward signal the evolve loop maximizes. Part of AHE-EVAL-HARNESS.",
+      "done": "Each run yields a reward (pass/fail or 0..1) written alongside its trace.",
+      "after": [
+        "AHE-EVAL-CORPUS"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVAL-CLI",
+      "track": "Harness",
+      "status": "next",
+      "tier": "pebble",
+      "size": "S",
+      "effort": "medium",
+      "title": "`vanta eval` — run the corpus, record a baseline score",
+      "summary": "CLI that runs the whole corpus through sandbox+verifier and reports an aggregate score + per-task results, recording a baseline to track regressions/lifts. Part of AHE-EVAL-HARNESS.",
+      "done": "`vanta eval` prints aggregate + per-task pass/fail and writes a baseline score file.",
+      "after": [
+        "AHE-EVAL-SANDBOX",
+        "AHE-EVAL-VERIFIER"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVOLVE-WORKSPACE",
+      "track": "Cofounder engine",
+      "status": "next",
+      "tier": "rock",
+      "size": "M",
+      "effort": "medium",
+      "title": "Evolve workspace — kernel-bounded write surface over the 7 components",
+      "summary": "Expose Vanta's 7 evolvable components (3-tier prompt, config, tools+schemas, hooks/EF gates, skills, subagents, brain/memory) as the ONLY paths the evolve agent may write — enforced by the kernel (Vanta's edge over AHE's plain workspace/ dir). Part of AHE-SELF-EVOLVE.",
+      "done": "An evolve-scoped run can write only the 7 component paths; any other write is kernel-blocked.",
+      "after": [],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVOLVE-AGENT",
+      "track": "Cofounder engine",
+      "status": "next",
+      "tier": "pebble",
+      "size": "L",
+      "effort": "high",
+      "title": "Evolve agent — proposes falsifiable, evidence-backed edits",
+      "summary": "Meta-agent that reads a distilled root-cause report and proposes a component edit carrying failure-evidence -> root-cause -> fix -> PREDICTED impact. One change at a time, scoped to the evolve workspace. Part of AHE-SELF-EVOLVE.",
+      "done": "Given a distilled report, the agent emits a single scoped edit + a written, checkable impact prediction.",
+      "after": [
+        "AHE-TRACE-DISTILLER",
+        "AHE-EVOLVE-WORKSPACE"
+      ],
+      "updated": "2026-06-16"
+    },
+    {
+      "id": "AHE-EVOLVE-LOOP",
+      "track": "Cofounder engine",
+      "status": "next",
+      "tier": "pebble",
+      "size": "L",
+      "effort": "high",
+      "title": "Evolve loop — apply, re-eval, confirm/falsify prediction, auto-rollback",
+      "summary": "Orchestrate the iteration: apply the evolve agent's edit, re-run `vanta eval`, compare to baseline, confirm or falsify the edit's prediction, keep on lift / roll back on regression, repeat. Part of AHE-SELF-EVOLVE.",
+      "done": "Over N iterations the loop accepts lifts, rolls back regressions, and logs each prediction as held/failed.",
+      "after": [
+        "AHE-EVAL-CLI",
+        "AHE-EVOLVE-AGENT"
       ],
       "updated": "2026-06-16"
     }
