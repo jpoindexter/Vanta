@@ -32,7 +32,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `providers/index.ts` | `resolveProvider(env)` — reads `VANTA_PROVIDER`/`VANTA_MODEL`. openai/ollama/anthropic/**gemini**/**openrouter**/**claude-code** (gemini+openrouter = OpenAI adapter w/ baseURL swap; claude-code = Anthropic adapter w/ OAuth token) |
 | `providers/claude-code-auth.ts` | v1 G1 — `resolveClaudeCodeToken` reads a Claude Pro/Max OAuth token (env or `~/.claude/.credentials.json`), `isTokenExpired`. **Grey area** (ToS); `VANTA_PROVIDER=claude-code`. No refresh (Claude Code keeps creds fresh). See DECISIONS 2026-06-02 |
 | `providers/catalog.ts` | `PROVIDER_CATALOG` — small shared `{id,label,envVar,defaultModel,signupUrl}` list the setup wizard + `doctor` read. **Not** the full registry (deferred); extend alongside `resolveProvider` |
-| `setup.ts` | `vanta setup` first-run wizard. Pure `upsertEnv(existing, updates)` (merges into `.env`, preserves other keys) + `buildEnvUpdates` + interactive `runSetup(repoRoot, rl?)` (hidden key prompt, 0600 write) |
+| `setup.ts` | `vanta setup` provider/model picker. Pure `upsertEnv(existing, updates)` (merges into `.env`, preserves other keys) + `buildEnvUpdates`; `runSetup` can receive a live validation hook and only writes after it passes (hidden key prompt, 0600 write) |
+| `setup/assistant.ts` | Setup assistant probes: provider completion, Google OAuth token check/loopback path, MCP mount/list-tools, and configured Telegram Bot API validation. Returns errors-as-values with secret redaction. |
 | `status.ts` | `vanta status`/`doctor`. Pure `formatStatus(report)` + `gatherStatus(env)` (kernel **ping only**, provider try/catch, key **presence**, store/goal counts) |
 | `safety-client.ts` | `fetch` client → kernel. `assess/getGoals/proposeApproval/approve/deny/logEvent/status`. Zod-validates responses |
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `VANTA_ROOT` + cwd, poll 5s |

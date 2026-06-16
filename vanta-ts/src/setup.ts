@@ -10,6 +10,8 @@ import { select } from "./term/select.js";
 // keys (Google OAuth, search keys, etc.). No config file, no .env regeneration.
 
 const KEY_LINE = /^(\s*)([A-Z0-9_]+)=/;
+type SetupProbe = { ok: boolean; detail: string };
+type SetupOpts = { quiet?: boolean; validate?: (updates: Record<string, string>) => Promise<SetupProbe> };
 
 export function envPath(repoRoot: string): string {
   return join(repoRoot, "vanta-ts", ".env");
@@ -162,11 +164,17 @@ export async function setEnv(repoRoot: string, updates: Record<string, string>):
 }
 
 async function writeProvider(o: {
-  repoRoot: string; entry: ProviderEntry; apiKey?: string; model: string; quiet?: boolean;
-}): Promise<true> {
-  await setEnv(o.repoRoot, buildEnvUpdates(o.entry, o.apiKey, o.model));
+  repoRoot: string; entry: ProviderEntry; apiKey?: string; model: string; opts?: SetupOpts;
+}): Promise<boolean> {
+  const updates = buildEnvUpdates(o.entry, o.apiKey, o.model);
+  const probe = o.opts?.validate ? await o.opts.validate(updates) : { ok: true, detail: "not checked" };
+  if (!probe.ok) {
+    console.log(`\n  ✗ ${o.entry.label} validation failed: ${probe.detail}`);
+    return false;
+  }
+  await setEnv(o.repoRoot, updates);
   console.log(`\n  ✓ Wrote ${o.entry.label} · ${o.model} to ${envPath(o.repoRoot)}`);
-  if (!o.quiet) console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
+  if (!o.opts?.quiet) console.log("  Run `vanta` to start, or `vanta doctor` to check health.\n");
   return true;
 }
 
@@ -174,7 +182,7 @@ async function writeProvider(o: {
  * Interactive model wizard with arrow-key menus (↑/↓ · Enter · Esc = back):
  * provider → key (if needed) → model. Returns true when a config is written.
  */
-export async function runSetup(repoRoot: string, opts: { quiet?: boolean } = {}): Promise<boolean> {
+export async function runSetup(repoRoot: string, opts: SetupOpts = {}): Promise<boolean> {
   if (!opts.quiet) console.log("\n  Vanta setup — pick a model backend.\n");
   let entry = await chooseProviderStep();
   let apiKey: string | undefined;
@@ -185,7 +193,7 @@ export async function runSetup(repoRoot: string, opts: { quiet?: boolean } = {})
       if (!apiKey) { entry = await chooseProviderStep(); continue; }
     }
     const model = await chooseModelStep(entry);
-    if (model) return writeProvider({ repoRoot, entry, apiKey, model, quiet: opts.quiet });
+    if (model) return writeProvider({ repoRoot, entry, apiKey, model, opts });
     if (!entry.envVar) entry = await chooseProviderStep(); // keyless: model-back re-picks provider
   }
 }

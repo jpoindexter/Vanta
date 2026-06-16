@@ -5,6 +5,13 @@ import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
 import { gatherCapabilities, formatHealth } from "./repl/health-cmd.js";
+import {
+  probeProvider,
+  runGoogleStep,
+  probeMcp,
+  probeMessaging,
+  type ProbeResult,
+} from "./setup/assistant.js";
 
 // `vanta setup` — the complete guided wizard: boxed banner → ◆ Configuration
 // Location → ◆ Inference provider → settings sections → ◆ Messaging → ◆ Personality
@@ -62,23 +69,43 @@ export function summaryText(repoRoot: string, env: NodeJS.ProcessEnv): string {
   ].join("\n");
 }
 
+function printProbe(label: string, result: ProbeResult, fix: string): void {
+  console.log(`  ${result.ok ? "✓" : "✗"} ${label}: ${result.detail}`);
+  if (!result.ok) console.log(`      → ${fix}`);
+}
+
+function loadFreshEnv(repoRoot: string): void {
+  try { process.loadEnvFile(envPath(repoRoot)); } catch { /* fresh env unavailable */ }
+}
+
 export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
   console.log(wizardBanner());
   console.log("\n" + configLocation(repoRoot, env));
 
   console.log(sectionHeader("Inference provider"));
   if (env.VANTA_PROVIDER) console.log(`  Current: ${env.VANTA_PROVIDER} · ${env.VANTA_MODEL ?? "?"}\n`);
-  if (!(await runSetup(repoRoot, { quiet: true }))) {
+  if (!(await runSetup(repoRoot, { quiet: true, validate: (u) => probeProvider({ ...env, ...u }) }))) {
     console.log("\n  Setup needs a model backend. Re-run `vanta setup` when ready.\n");
     return false;
   }
+  loadFreshEnv(repoRoot);
 
-  for (const s of SETTINGS) await runSettingSection(repoRoot, s); // vision · search · max-iter · theme (Esc skips each)
-  try { process.loadEnvFile(envPath(repoRoot)); } catch { /* fresh env unavailable */ }
+  console.log(sectionHeader("Google OAuth"));
+  printProbe("Google", await runGoogleStep({ env }), "set VANTA_GOOGLE_CLIENT_ID/SECRET, then authorize");
+
+  console.log(sectionHeader("MCP servers"));
+  printProbe("MCP", await probeMcp({ env, cwd: repoRoot }), "add .mcp.json or VANTA_MCP_SERVERS");
 
   console.log(sectionHeader("Messaging gateway"));
-  if ((await select("Connect a messaging gateway?", ["Connect Telegram / …", "Skip for now"])) === 0) await runMessagingSetup(repoRoot);
+  if ((await select("Connect a messaging gateway?", ["Connect Telegram / …", "Skip for now"])) === 0) {
+    await runMessagingSetup(repoRoot);
+    loadFreshEnv(repoRoot);
+  }
   else console.log("  Skipped — `vanta setup messaging` anytime.");
+  printProbe("Messaging", await probeMessaging(env), "run `vanta setup messaging`");
+
+  for (const s of SETTINGS) await runSettingSection(repoRoot, s); // vision · search · max-iter · theme (Esc skips each)
+  loadFreshEnv(repoRoot);
 
   console.log(sectionHeader("Personality"));
   const persona = await askLine("  One line on how Vanta should act (Enter to skip): ");

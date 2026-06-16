@@ -45,6 +45,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/permissions/auto-mode.ts` — auto permission classifier config and decision helper
 - `src/modes/permission-mode.ts` — `default|acceptEdits|auto` mode parsing/env sync; acceptEdits bypasses the kernel only for six filesystem tools
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
+- `src/setup/assistant.ts` — live first-run setup probes for provider, Google OAuth, MCP, and messaging; returns redacted `{ok, detail}` values.
 - `src/operator-profile/profile.ts` — durable declared/inferred operator preferences plus tighten-only approval preference decisions
 - `src/preferences/signals.ts` — `~/.vanta/preferences.jsonl` chosen-vs-rejected operator preference signal store
 - `src/verify/completion-verifier.ts` — opt-in `VANTA_VERIFY=1` post-turn completion claim verifier; timeout-bound, logs pass, appends fail evidence as a system message
@@ -94,6 +95,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - TUI focus traversal lives in `src/ui/focus.ts`: Tab moves forward, Shift+Tab moves backward when multiple focus targets are visible; Shift+Tab still cycles mode when the composer is the only target.
 - Desktop root serving is Vite-first: `npm run desktop:build` writes `desktop-app/dist/`, and `src/desktop/assets.ts` serves it before falling back to the small `page.ts` build notice.
 - Reach layer lives under `src/reach/` with tools for RSS, Reddit, cookies, and channel health. Deferred channels are tracked as `REACH-*`.
+- `vanta setup` now validates the provider before writing `.env`, offers Google OAuth, probes configured MCP servers by mounting/listing tools, and probes Telegram when configured; optional steps report exact fixes rather than fake enables.
 - Operator rocks now include world, money, radar, team, life-search, self-repair, verification locks, and browser action surfaces. Remaining horizon: browser OS-level control.
 
 ## Adding a tool (checklist)

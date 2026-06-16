@@ -7,18 +7,29 @@ vi.mock("./brain/store.js", () => ({ writeRegion: vi.fn(async () => {}) }));
 vi.mock("./repl/health-cmd.js", () => ({ gatherCapabilities: vi.fn(async () => []), formatHealth: vi.fn(() => "  CAPS-OK") }));
 vi.mock("./term/select.js", () => ({ select: vi.fn(async () => 1) }));
 vi.mock("./setup-sections.js", () => ({ SETTINGS: [], runSettingSection: vi.fn(async () => {}) }));
+vi.mock("./setup/assistant.js", () => ({
+  probeProvider: vi.fn(async () => ({ ok: true, detail: "model responded" })),
+  runGoogleStep: vi.fn(async () => ({ ok: false, detail: "not authorized" })),
+  probeMcp: vi.fn(async () => ({ ok: false, detail: "no MCP servers configured" })),
+  probeMessaging: vi.fn(async () => ({ ok: false, detail: "no messaging platform configured" })),
+}));
 
 import { runFullSetup, isYes, box, wizardBanner, sectionHeader, configLocation, summaryText } from "./setup-full.js";
 import { runSetup, askLine } from "./setup.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { select } from "./term/select.js";
+import { probeProvider, runGoogleStep, probeMcp, probeMessaging } from "./setup/assistant.js";
 
 const mRunSetup = vi.mocked(runSetup);
 const mMsg = vi.mocked(runMessagingSetup);
 const mWrite = vi.mocked(writeRegion);
 const mSelect = vi.mocked(select);
 const mAsk = vi.mocked(askLine);
+const mProbeProvider = vi.mocked(probeProvider);
+const mGoogle = vi.mocked(runGoogleStep);
+const mMcp = vi.mocked(probeMcp);
+const mProbeMessaging = vi.mocked(probeMessaging);
 const mkEnv = (o: Record<string, string>) => o as NodeJS.ProcessEnv;
 
 beforeEach(() => {
@@ -69,6 +80,17 @@ describe("runFullSetup", () => {
     expect(r).toBe(true);
     expect(mMsg).toHaveBeenCalledOnce();
     expect(mWrite).toHaveBeenCalledWith("identity", expect.stringContaining("be terse"), { append: true, env });
+  });
+
+  it("wires live setup probes into the guided flow", async () => {
+    const env = mkEnv({ BASE: "1" });
+    await runFullSetup("/repo", env);
+    const opts = mRunSetup.mock.calls[0]?.[1] as { validate: (u: Record<string, string>) => Promise<unknown> };
+    await opts.validate({ VANTA_PROVIDER: "ollama", VANTA_MODEL: "qwen2.5:14b" });
+    expect(mProbeProvider).toHaveBeenCalledWith(expect.objectContaining({ BASE: "1", VANTA_PROVIDER: "ollama" }));
+    expect(mGoogle).toHaveBeenCalledWith(expect.objectContaining({ env }));
+    expect(mMcp).toHaveBeenCalledWith(expect.objectContaining({ env, cwd: "/repo" }));
+    expect(mProbeMessaging).toHaveBeenCalledWith(env);
   });
 
   it("treats messaging Esc/skip (≠0) as 'skip' — no messaging launched", async () => {

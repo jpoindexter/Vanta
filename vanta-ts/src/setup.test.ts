@@ -120,4 +120,16 @@ describe("runSetup (integration)", () => {
     expect(env).toContain("VANTA_MODEL=qwen2.5:14b"); // first ollama model (keyless → no key prompt)
     expect(env).not.toContain("VANTA_PROVIDER=gemini");
   });
+
+  it("does not write provider config when validation fails", async () => {
+    const root = await tempRepo("VANTA_PROVIDER=gemini\n");
+    const ollama = PROVIDER_CATALOG.findIndex((p) => p.id === "ollama");
+    mSelect.mockReset();
+    mSelect.mockResolvedValueOnce(ollama).mockResolvedValueOnce(0);
+    const validate = vi.fn(async () => ({ ok: false, detail: "model did not respond" }));
+    expect(await runSetup(root, { quiet: true, validate })).toBe(false);
+    const env = await readFile(envPath(root), "utf8");
+    expect(validate).toHaveBeenCalledWith({ VANTA_PROVIDER: "ollama", VANTA_MODEL: "qwen2.5:14b" });
+    expect(env).toBe("VANTA_PROVIDER=gemini\n");
+  });
 });
