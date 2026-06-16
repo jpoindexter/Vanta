@@ -11607,7 +11607,7 @@
     {
       "id": "AHE-SELF-EVOLVE",
       "track": "Cofounder engine",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "XL",
       "effort": "high",
@@ -11681,7 +11681,7 @@
     {
       "id": "AHE-EVOLVE-WORKSPACE",
       "track": "Cofounder engine",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "M",
       "effort": "medium",
@@ -11694,7 +11694,7 @@
     {
       "id": "AHE-EVOLVE-AGENT",
       "track": "Cofounder engine",
-      "status": "next",
+      "status": "shipped",
       "tier": "pebble",
       "size": "L",
       "effort": "high",
@@ -11710,7 +11710,7 @@
     {
       "id": "AHE-EVOLVE-LOOP",
       "track": "Cofounder engine",
-      "status": "next",
+      "status": "shipped",
       "tier": "pebble",
       "size": "L",
       "effort": "high",
@@ -11797,7 +11797,7 @@
       "size": "M",
       "effort": "medium",
       "title": "Evolve guardrails — kernel-enforced no-reward-hacking (verifier/model/budget read-only)",
-      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta.",
+      "summary": "Controllability from the AHE paper (arXiv 2604.25850): the evolve agent must be UNABLE to game its own score — no disabling the verifier, swapping the base model, or raising the reasoning/token budget; tracer + verifier + LLM config are read-only and the seed system prompt is non-deletable. Vanta's kernel is the natural enforcer (rule zero: it already gates every write). Distinct from AHE-EVOLVE-WORKSPACE (which bounds WHICH components are writable) — this protects the EVALUATION machinery from the thing being evaluated. See docs/agentic-harness-engineering.md. NOTE 2026-06-16: largely provided by the existing `factory/` loop — compartments = the kernel-bounded evolve workspace; kernel-protected factory/skeleton + holdout.ts = the guardrails. Remaining work = wire an 'evolve' factory objective that optimizes the new `vanta eval` score by editing reflexes/memory/limbs, keep/rollback by score delta. V0 2026-06-16: evolve loop ships with brain-only target + kernel Block floor + eval/verifier running OUTSIDE the agent (un-tamperable). Still TODO: explicit enforcement that the evolve agent can't raise its own budget / swap model.",
       "done": "An evolve run cannot modify the verifier, model selection, or budget; attempts are kernel-blocked and logged; the seed system prompt cannot be deleted.",
       "after": [
         "AHE-EVOLVE-WORKSPACE"

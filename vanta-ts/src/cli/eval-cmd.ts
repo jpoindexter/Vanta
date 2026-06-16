@@ -13,8 +13,9 @@ const RUNS_SUBDIR = join(".vanta", "eval-runs");
 const BASELINE = join(".vanta", "eval-baseline.json");
 const MAX_ITER = 40;
 
-/** Real runner: kernel at repoRoot (binary + scope), tools rooted in the sandbox. */
-function buildRunner(repoRoot: string): TaskRunner {
+/** Real runner: kernel at repoRoot (binary + scope), tools rooted in the sandbox.
+ * Exported so the evolve loop reuses the exact same eval path. */
+export function buildRunner(repoRoot: string): TaskRunner {
   return async (instruction, sandboxRoot) => {
     const { createConversation } = await import("../agent.js");
     const { prepareRun, buildSummarizer } = await import("../session.js");

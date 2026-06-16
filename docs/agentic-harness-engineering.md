@@ -18,10 +18,22 @@ tsc + intent), not a capability score. **Phase 1 SHIPPED** — `vanta eval` (`sr
 a deterministic task corpus → isolated in-`.vanta` sandbox → real agent run → deterministic
 grade → **pass@1 baseline** (`.vanta/eval-baseline.json`). Cards `AHE-EVAL-*` → shipped.
 
-**Next (chosen direction — build on the factory):** Phase 2 = an `evolve` factory objective
-that triages the lowest-scoring eval tasks, edits harness components (reflexes/memory/limbs,
-compartment-bound), re-evals, and keeps/rolls-back by score delta. Phase 3 = trace-distilled
-triage (`AHE-TRACE-DISTILLER`) + regression foresight (`AHE-REGRESSION-FORESIGHT`).
+**Phase 2 SHIPPED** — `vanta evolve [iters]` (`src/evolve/`): the closed loop. Each
+iteration snapshots the brain → an agent turn edits the brain (memory compartment, L5) to
+fix the failing eval tasks → re-runs `vanta eval` → **keeps on score lift, rolls back on
+drop** → journals it (`.vanta/evolve-journal.jsonl`, with actual fixes + regressions per
+edit). Pure decision logic (`decide.ts`: shouldKeep / diffOutcomes / predictionPrecision)
+and the loop (`loop.ts`, injected IO) are unit-tested. Cards `AHE-SELF-EVOLVE`,
+`AHE-EVOLVE-LOOP`, `AHE-EVOLVE-AGENT`, `AHE-EVOLVE-WORKSPACE` → shipped.
+
+v0 scope (honest): the evolve target is the **brain only** (the paper's "memory carries the
+gain" + simplest rollback); the prediction set is empty (the falsifiable-prediction +
+foresight is Phase 3); live lift is unvalidated until run against a real provider.
+
+**Next — Phase 3:** trace-distilled triage (`AHE-TRACE-DISTILLER`) + regression foresight
+with real predicted-fix/at-risk sets (`AHE-REGRESSION-FORESIGHT`, the paper's #1 open
+problem) + formalize `AHE-EVOLVE-GUARDRAILS` for the evolve path (budget/model tamper-proof)
++ broaden the evolve target to skills/tools (`AHE-INTERACTION-AWARE`).
 
 ## What AHE is
 
