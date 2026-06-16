@@ -37,7 +37,7 @@ export async function probeProvider(
     await provider.complete(
       [{ role: "user", content: "Vanta setup check. Reply with OK." }],
       [],
-      { maxTokens: 8, signal },
+      { signal },
     );
     return { ok: true, detail: `${provider.modelId()} responded` };
   } catch (err) {

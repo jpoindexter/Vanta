@@ -22,8 +22,10 @@ describe("setup assistant probes", () => {
     expect(complete).toHaveBeenCalledWith(
       [{ role: "user", content: expect.stringContaining("setup check") }],
       [],
-      expect.objectContaining({ maxTokens: 8 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+    const calls = complete.mock.calls as unknown as Array<[unknown, unknown, Record<string, unknown>]>;
+    expect(calls[0]?.[2]).not.toHaveProperty("maxTokens");
   });
 
   it("provider probe returns an error value instead of throwing", async () => {
