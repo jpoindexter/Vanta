@@ -1,9 +1,6 @@
 import { z } from "zod";
 import type { Tool, ToolResult, ToolContext } from "./types.js";
 import { appendTeam, readTeam, latestWorkers, type Worker } from "../team/store.js";
-import { spawnSubagent } from "../subagent/spawn.js";
-import { resolveProvider } from "../providers/index.js";
-import { buildRegistry } from "./index.js";
 import {
   appendTask,
   readTasks,
@@ -11,13 +8,11 @@ import {
   assignTask,
   advanceTask,
   tasksForWorker,
-  workerLoad,
   type TaskStatus,
-  type WorkerTask,
 } from "../team/tasks.js";
+import { doRun } from "./team-run.js";
 
 const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
-const WORKER_MAX_ITER = 20;
 
 const Args = z.object({
   action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run"]),
@@ -107,60 +102,13 @@ async function doTasks(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: lines.join("\n") };
 }
 
-/** Move a task to a new status from an assumed-current `from`, best-effort. */
-async function settle(task: WorkerTask, from: TaskStatus, to: TaskStatus, detail?: string): Promise<void> {
-  const r = advanceTask({ ...task, status: from }, to, detail);
-  if (r.ok) await appendTask(r.value);
-}
-
-// Live executor: actually run a dispatched task by spawning a worker agent.
-// The child registry excludes delegate + team so a worker can't fan out further
-// (no recursive teams); every worker tool call is still kernel-gated.
-async function doRun(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
-  if (!a.taskId) return { ok: false, output: "run needs taskId (dispatch the task first)" };
-  const task = latestTasks(await readTasks()).find((t) => t.id === a.taskId);
-  if (!task) return { ok: false, output: `unknown task id "${a.taskId}" — dispatch it first` };
-  if (task.status === "done") return { ok: false, output: `task ${a.taskId} already done` };
-
-  let provider;
-  try {
-    provider = resolveProvider(process.env);
-  } catch (err) {
-    return { ok: false, output: `cannot run: ${(err as Error).message}` };
-  }
-
-  await settle(task, "assigned", "running");
-  try {
-    const outcome = await spawnSubagent({
-      goal: task.title,
-      instruction: a.detail ?? `Complete this task: ${task.title}`,
-      deps: {
-        provider,
-        safety: ctx.safety,
-        registry: buildRegistry({ exclude: ["delegate", "team"] }),
-        root: ctx.root,
-        requestApproval: ctx.requestApproval,
-        maxIterations: WORKER_MAX_ITER,
-      },
-      maxIterations: WORKER_MAX_ITER,
-    });
-    const result = (outcome.finalText ?? "").slice(0, 500) || `(worker ${outcome.stoppedReason})`;
-    await settle(task, "running", "done", result);
-    return { ok: true, output: `task ${a.taskId} done by ${task.workerId}: ${result}` };
-  } catch (err) {
-    const msg = (err as Error).message;
-    await settle(task, "running", "blocked", msg);
-    return { ok: false, output: `task ${a.taskId} blocked: ${msg}` };
-  }
-}
-
 function dispatchAction(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
   if (a.action === "define") return doDefine(a);
   if (a.action === "status") return doStatus(a);
   if (a.action === "dispatch") return doDispatch(a);
   if (a.action === "advance") return doAdvance(a);
   if (a.action === "tasks") return doTasks(a);
-  if (a.action === "run") return doRun(a, ctx);
+  if (a.action === "run") return doRun(a.taskId, a.detail, ctx);
   return doList();
 }
 
