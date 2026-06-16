@@ -181,9 +181,20 @@ fn mentions_outside_home(text: &str) -> bool {
     )
 }
 
+/// True if the text references something under root's PARENT dir but not the root
+/// itself — i.e., a sibling project outside scope. Derived entirely from `root`,
+/// never hardcoded to a user/machine. (Clean absolute paths outside root are
+/// already caught by `references_abs_path_outside_root`; this also catches the
+/// embedded-sibling case where the path isn't a clean whitespace token.)
 fn mentions_outside_scope(text: &str, root: &Path) -> bool {
     let marker = root.display().to_string().to_lowercase();
-    text.contains("/users/jasonpoindexter/documents/github") && !text.contains(&marker)
+    match root.parent() {
+        Some(parent) => {
+            let p = parent.display().to_string().to_lowercase();
+            !p.is_empty() && p != "/" && text.contains(&p) && !text.contains(&marker)
+        }
+        None => false,
+    }
 }
 
 /// True for paths that autonomous writes are permanently forbidden from touching.
@@ -263,7 +274,7 @@ mod tests {
     use super::*;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
+        PathBuf::from("/repo/projects/vanta")
     }
 
     #[test]
@@ -273,7 +284,7 @@ mod tests {
 
     #[test]
     fn asks_for_outside_scope() {
-        let v = assess_action("edit /Users/jasonpoindexter/Documents/GitHub/Other", &root());
+        let v = assess_action("edit /repo/projects/other", &root());
         assert_eq!(v.risk, Risk::Ask);
     }
 

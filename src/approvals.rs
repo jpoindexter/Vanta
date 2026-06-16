@@ -213,7 +213,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn root() -> PathBuf {
-        PathBuf::from("/Users/jasonpoindexter/Documents/GitHub/Vanta")
+        PathBuf::from("/repo/projects/vanta")
     }
 
     #[test]

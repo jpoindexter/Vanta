@@ -11882,12 +11882,12 @@
     {
       "id": "KERNEL-DEJASONIFY",
       "track": "Harness",
-      "status": "next",
+      "status": "shipped",
       "tier": "rock",
       "size": "S",
       "effort": "medium",
       "title": "Kernel: remove the hardcoded Jason path from the scope check",
-      "summary": "safety.rs mentions_outside_scope() hardcodes '/users/jasonpoindexter/documents/github' — a Jason-specific leak in the SAFETY BOUNDARY. Derive scope purely from `root`. Blocks the neurodivergent-agent-for-anyone reframe and is a latent correctness bug (wrong on any other machine/user). Small, high-priority. cargo test must stay green. See docs/vanta-hermes-gap-and-nd.md.",
+      "summary": "safety.rs mentions_outside_scope() hardcodes '/users/jasonpoindexter/documents/github' — a Jason-specific leak in the SAFETY BOUNDARY. Derive scope purely from `root`. Blocks the neurodivergent-agent-for-anyone reframe and is a latent correctness bug (wrong on any other machine/user). Small, high-priority. cargo test must stay green. See docs/vanta-hermes-gap-and-nd.md. SHIPPED 2026-06-16: mentions_outside_scope now derives from root.parent() (generic); all test fixtures use a neutral /repo/projects/vanta path; zero jasonpoindexter refs remain in src/; 41 kernel tests green.",
       "done": "safety.rs has no hardcoded user/path; scope checks derive from root only; kernel tests green on a non-Jason root.",
       "updated": "2026-06-16"
     },
