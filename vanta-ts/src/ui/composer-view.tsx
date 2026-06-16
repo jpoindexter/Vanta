@@ -20,6 +20,7 @@ export function ComposerView(props: {
   cursor: number;
   placeholder: string;
   pill?: { count: number; lines: number };
+  ghost?: string;
 }): ReactElement {
   const t = useTheme();
   const blink = useBlink();
@@ -36,7 +37,7 @@ export function ComposerView(props: {
           ? <Text><Text inverse={blink}> </Text><Text dimColor={t.dimText}>{props.placeholder}</Text></Text>
           : props.pill
             ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
-            : <CursorText value={props.value} cursor={props.cursor} blink={blink} />}
+            : <CursorText value={props.value} cursor={props.cursor} blink={blink} ghost={props.ghost} />}
       </Box>
     </Box>
   );
@@ -55,15 +56,17 @@ function PastedTextPill({ count, lines, blink }: { count: number; lines: number;
 
 /** Render the value with a blinking inverse-video block at the cursor column
  * (when `blink` is on; the bare glyph when off — that's the cursor's dark phase). */
-function CursorText(props: { value: string; cursor: number; blink: boolean }): ReactElement {
-  const { value, cursor, blink } = props;
+function CursorText(props: { value: string; cursor: number; blink: boolean; ghost?: string }): ReactElement {
+  const { value, cursor, blink, ghost } = props;
   const before = value.slice(0, cursor);
   const at = value[cursor] ?? " ";
   const after = value.slice(cursor + 1);
   const glyph = at === "\n" ? " " : at;
+  const atEnd = cursor >= value.length;
   return (
     <Text>
       {before}<Text inverse={blink}>{glyph}</Text>{at === "\n" ? "\n" : ""}{after}
+      {atEnd && ghost ? <Text dimColor>{ghost}</Text> : null}
     </Text>
   );
 }

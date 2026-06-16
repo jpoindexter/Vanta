@@ -2,7 +2,7 @@ import { useRef, useState, type ReactElement } from "react";
 import { useInput, usePaste } from "ink";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
-import { readlineEdit, navigateHistory, type Key, type Edit, type HistState } from "./composer-keys.js";
+import { readlineEdit, navigateHistory, historyTypeahead, type Key, type Edit, type HistState } from "./composer-keys.js";
 import { execSync } from "node:child_process";
 import { editInEditor } from "./composer-editor.js";
 import { ComposerView } from "./composer-view.js";
@@ -44,6 +44,9 @@ export function Composer(props: {
   const { pill, clearPill } = usePastePill(value);
   const { slashMatches, atMatches, activeLen } = useComposerPalettes(value, props.files, props.skills);
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
+  const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length
+    ? historyTypeahead(props.history, value)
+    : "";
 
   const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
   const submitNow = (): void => {
@@ -69,11 +72,12 @@ export function Composer(props: {
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
+    if (key.rightArrow && cursor === value.length && ghost) { setBuf(value + ghost, value.length + ghost.length); return; }
     const edit = readlineEdit({ value, cursor, killRing: killRef.current }, input, key);
     if (edit) applyEdit(edit);
   }, { isActive: focused });
 
-  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} />;
 }
 
 function useComposerPalettes(value: string, files: string[], skills?: SlashMatch[]): { slashMatches: SlashMatch[]; atMatches: string[]; activeLen: number } {

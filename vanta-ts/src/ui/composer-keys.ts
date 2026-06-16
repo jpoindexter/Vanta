@@ -47,6 +47,17 @@ const TABLE: Entry[] = [
   { match: (i, k) => Boolean(k.ctrl) && i === "y", run: (s) => { const r = yank(s.value, s.cursor, s.killRing); return { value: r.value, cursor: r.cursor }; } },
 ];
 
+/** Most-recent history entry that extends `prefix` — returns the suffix to append,
+ *  or "" when no match, prefix is empty, or the entry equals the prefix exactly. */
+export function historyTypeahead(history: string[], prefix: string): string {
+  if (!prefix || prefix.includes("\n")) return "";
+  for (let i = history.length - 1; i >= 0; i--) {
+    const entry = history[i];
+    if (entry !== undefined && entry !== prefix && entry.startsWith(prefix)) return entry.slice(prefix.length);
+  }
+  return "";
+}
+
 /** Apply one keypress to the buffer. Returns null for keys this layer ignores
  * (Enter, arrows used for history/palette, and other non-printables). */
 export function readlineEdit(s: S, input: string, key: Key): Edit | null {

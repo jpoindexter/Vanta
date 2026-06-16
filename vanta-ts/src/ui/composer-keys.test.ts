@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readlineEdit, navigateHistory, type Key, type HistState } from "./composer-keys.js";
+import { readlineEdit, navigateHistory, historyTypeahead, type Key, type HistState } from "./composer-keys.js";
 
 const s = (value: string, cursor: number, killRing = "") => ({ value, cursor, killRing });
 const k = (over: Partial<Key>): Key => ({ ...over });
@@ -24,6 +24,27 @@ describe("readlineEdit chords", () => {
   it("ignores Enter and bare arrows (handled elsewhere)", () => {
     expect(readlineEdit(s("x", 1), "", k({ return: true }))).toBeNull();
     expect(readlineEdit(s("x", 1), "", k({ upArrow: true }))).toBeNull();
+  });
+});
+
+describe("historyTypeahead", () => {
+  it("returns the suffix of the most recent match", () => {
+    expect(historyTypeahead(["git commit -m", "git commit -am"], "git commit")).toBe(" -am");
+  });
+  it("returns empty string when prefix has no match", () => {
+    expect(historyTypeahead(["npm install", "npm test"], "git")).toBe("");
+  });
+  it("returns empty string when prefix is empty", () => {
+    expect(historyTypeahead(["npm install"], "")).toBe("");
+  });
+  it("skips entries that equal the prefix exactly", () => {
+    expect(historyTypeahead(["git status", "git status"], "git status")).toBe("");
+  });
+  it("does not match multiline prefix", () => {
+    expect(historyTypeahead(["git\nstatus"], "git\n")).toBe("");
+  });
+  it("returns empty when history is empty", () => {
+    expect(historyTypeahead([], "git")).toBe("");
   });
 });
 
