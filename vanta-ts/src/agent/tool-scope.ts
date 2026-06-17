@@ -2,7 +2,13 @@ import type { Message } from "../types.js";
 import type { ToolSchema } from "../providers/interface.js";
 
 const MIN_SCOPE_THRESHOLD = 16;
-const CORE = ["tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files"];
+// Always in scope — the universal primitives an operator needs every turn,
+// regardless of the request's keywords. WRITING a file or running a command must
+// never require a tool_search round-trip (that flailing stalled real tasks).
+const CORE = [
+  "tool_search", "clarify", "brain", "recall", "inspect_state",
+  "read_file", "write_file", "edit_file", "shell_cmd", "grep_files", "glob_files",
+];
 
 const GROUPS: Record<string, string[]> = {
   code: ["git_status", "git_diff", "lsp_diagnostics", "lsp_definition", "edit_file", "write_file", "shell_cmd", "run_code"],

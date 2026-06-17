@@ -11,7 +11,7 @@ function schema(name: string, description = `${name} tool`): ToolSchema {
 
 const manySchemas = [
   "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
-  "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "lsp_diagnostics",
+  "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics",
   "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move",
 ].map((name) => schema(name));
 
@@ -28,6 +28,13 @@ describe("per-task tool scoping", () => {
     expect(names).toEqual(expect.arrayContaining(["tool_search", "read_file", "grep_files", "git_status", "git_diff", "lsp_diagnostics"]));
     expect(names).not.toContain("gmail_send");
     expect(toolScopeSummary(manySchemas, scoped)).toContain("reduction");
+  });
+
+  it("always keeps the action primitives (write_file/edit_file/shell_cmd) in scope, even for a non-code request", () => {
+    const scoped = scopeToolSchemas(manySchemas, "send an email to bob about the meeting").map((s) => s.name);
+    for (const core of ["read_file", "write_file", "edit_file", "shell_cmd"]) {
+      expect(scoped).toContain(core); // never hidden behind tool_search
+    }
   });
 
   it("returns the full set when the user explicitly asks for all tools", () => {
