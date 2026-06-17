@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { useTheme } from "./theme.js";
 import type { TodoItem } from "../todo/store.js";
 
 // The agent's live plan. Lives in the live region (not <Static>) so it updates in
@@ -16,7 +15,6 @@ export function planMeter(done: number, total: number): string {
 }
 
 export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
-  const t = useTheme();
   if (props.todos.length === 0) return null;
   const done = props.todos.filter((x) => x.status === "done").length;
   // A fully-complete plan is stale clutter ("stuck at ✓4") — hide it. It returns
@@ -31,9 +29,9 @@ export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const extra = ordered.length - shown.length;
   return (
     <Box flexDirection="column" marginTop={1}>
-      <Text dimColor={t.dimText}>plan <Text color={t.accent}>{planMeter(done, props.todos.length)}</Text> · ✓{done} ◐{running} ○{pending}</Text>
+      <Text dimColor={true}>plan <Text color={"white"}>{planMeter(done, props.todos.length)}</Text> · ✓{done} ◐{running} ○{pending}</Text>
       {shown.map((x, i) => <TodoRow key={i} todo={x} />)}
-      {extra > 0 ? <Text dimColor={t.dimText}>  +{extra} more</Text> : null}
+      {extra > 0 ? <Text dimColor={true}>  +{extra} more</Text> : null}
     </Box>
   );
 }
@@ -43,9 +41,8 @@ const rank = (s: TodoItem["status"]): number => (s === "in_progress" ? 0 : s ===
 
 function TodoRow(props: { todo: TodoItem }): ReactElement {
   const { todo } = props;
-  const t = useTheme();
   const mark = todo.status === "done" ? "✓" : todo.status === "in_progress" ? "▸" : "○";
-  const color = todo.status === "done" ? t.success : todo.status === "in_progress" ? t.accent : undefined;
+  const color = todo.status === "done" ? "white" : todo.status === "in_progress" ? "white" : undefined;
   return (
     <Box>
       <Text color={color}>  {mark} </Text>

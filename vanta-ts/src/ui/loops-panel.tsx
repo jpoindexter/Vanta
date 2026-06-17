@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import { useTheme } from "./theme.js";
 import type { LoopSummary } from "../loop/summary.js";
 
 // Read-only inline panel — lists all loops with status glyphs, scores, and
@@ -14,25 +13,24 @@ function clip(s: string): string {
 
 type GlyphResult = { glyph: string; color: string };
 
-function statusGlyph(loop: LoopSummary, t: ReturnType<typeof useTheme>): GlyphResult {
-  if (loop.inProgress || loop.status === "active") return { glyph: "▶", color: t.success };
-  if (loop.status === "paused" || loop.openEscalations > 0) return { glyph: "⏸", color: t.warning };
-  if (loop.status === "done") return { glyph: "✓", color: t.success };
-  return { glyph: "✗", color: t.error };
+function statusGlyph(loop: LoopSummary): GlyphResult {
+  if (loop.inProgress || loop.status === "active") return { glyph: "▶", color: "white" };
+  if (loop.status === "paused" || loop.openEscalations > 0) return { glyph: "⏸", color: "white" };
+  if (loop.status === "done") return { glyph: "✓", color: "white" };
+  return { glyph: "✗", color: "white" };
 }
 
 function LoopRow(props: { loop: LoopSummary }): ReactElement {
-  const t = useTheme();
   const { loop } = props;
-  const { glyph, color } = statusGlyph(loop, t);
+  const { glyph, color } = statusGlyph(loop);
   const score = loop.lastScore !== null ? String(loop.lastScore) : "—";
   return (
     <Box>
       <Text color={color}>{glyph} </Text>
       <Text>{clip(loop.goal)}</Text>
-      <Text dimColor={t.dimText}>{"  "}iter {loop.iterations} · score {score}</Text>
+      <Text dimColor={true}>{"  "}iter {loop.iterations} · score {score}</Text>
       {loop.openEscalations > 0
-        ? <Text color={t.warning}>{" "}· ⚠ {loop.openEscalations} escalation{loop.openEscalations === 1 ? "" : "s"}</Text>
+        ? <Text color={"white"}>{" "}· ⚠ {loop.openEscalations} escalation{loop.openEscalations === 1 ? "" : "s"}</Text>
         : null}
     </Box>
   );
@@ -40,14 +38,13 @@ function LoopRow(props: { loop: LoopSummary }): ReactElement {
 
 export function LoopsPanel(props: { loops: LoopSummary[]; onClose: () => void }): ReactElement {
   useInput((_input, key) => { if (key.escape) props.onClose(); });
-  const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={t.accent} bold>Loops</Text>
+      <Text color={"white"} bold>Loops</Text>
       {props.loops.length === 0
-        ? <Text dimColor={t.dimText}>{"  "}(no loops — design one with /loop)</Text>
+        ? <Text dimColor={true}>{"  "}(no loops — design one with /loop)</Text>
         : props.loops.map((l) => <LoopRow key={l.id} loop={l} />)}
-      <Text dimColor={t.dimText}>{"  "}Esc close</Text>
+      <Text dimColor={true}>{"  "}Esc close</Text>
     </Box>
   );
 }

@@ -44,7 +44,6 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "branch", arg: "<name>", desc: "create or switch git branch (kernel-gated)" },
   { name: "context", desc: "visual context-budget breakdown" },
   { name: "files", desc: "list files in the current conversation context" },
-  { name: "theme", arg: "<name>", desc: "switch TUI color theme" },
   { name: "composer", arg: "<float|bottom>", desc: "input box position: float (default) or bottom-pinned" },
   { name: "cockpit", desc: "open mission-control — kernel verdict ladder, goals, loops (TUI)" },
   { name: "loops", desc: "live loops + escalations dashboard (TUI)" },

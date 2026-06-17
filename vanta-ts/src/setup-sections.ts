@@ -111,16 +111,6 @@ export const SETTINGS: SettingSection[] = [
     ],
   },
   {
-    header: "Display theme",
-    key: "VANTA_THEME",
-    intro: "  TUI color theme.",
-    choices: [
-      { label: "auto — match your terminal", value: "auto" },
-      { label: "dark", value: "dark" },
-      { label: "light", value: "light" },
-    ],
-  },
-  {
     header: "Input box position",
     key: "VANTA_COMPOSER_ANCHOR",
     intro: "  Where the input box sits in the TUI.",

@@ -1,5 +1,4 @@
 import { PROVIDER_CATALOG } from "../providers/catalog.js";
-import { THEME_NAMES } from "../term/theme.js";
 import type { SessionMeta } from "../sessions/store.js";
 import type { Skill } from "../skills/types.js";
 
@@ -8,14 +7,14 @@ import type { Skill } from "../skills/types.js";
 // runSlash path the typed command uses, and the two can never diverge. cockpit
 // + help are read-only panels (no rows).
 
-export type OverlayKind = "model" | "sessions" | "skills" | "theme" | "cockpit" | "help" | "loops" | "review" | "context";
+export type OverlayKind = "model" | "sessions" | "skills" | "cockpit" | "help" | "loops" | "review" | "context";
 /** `mark` is an optional status glyph (● current) shown in its own column, left
  * of the label and distinct from the ❯ selection cursor. */
 export type OverlayRow = { label: string; hint?: string; command: string; mark?: string };
 
 /** Bare slash commands that open an inline overlay instead of printing text. */
 export const PICKER_KINDS: Readonly<Record<string, OverlayKind>> = {
-  model: "model", setup: "model", sessions: "sessions", skills: "skills", theme: "theme", cockpit: "cockpit", help: "help",
+  model: "model", setup: "model", sessions: "sessions", skills: "skills", cockpit: "cockpit", help: "help",
   loops: "loops", changes: "review", context: "context",
 };
 
@@ -36,6 +35,3 @@ export function modelRows(currentProviderId: string): OverlayRow[] {
   }));
 }
 
-export function themeRows(current: string): OverlayRow[] {
-  return THEME_NAMES.map((t) => ({ mark: t === current ? "●" : undefined, label: t, command: `/theme ${t}` }));
-}

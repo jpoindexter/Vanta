@@ -142,3 +142,8 @@ Append-only. Locked choices. Don't re-litigate without new info.
 **Hard constraint — clean removability:** ripping out or replacing any adapter = swap/delete one file + one registration, ZERO edits to consumers/core. The kernel (Rust `src/`) is the deliberate exception: it stays a FIXED security boundary and is NOT made swappable — only the TS-side client to it is ported.
 **Alternatives:** (a) make all of Vanta modular in one pass — rejected as platform-thinking/over-engineering (rule §4); modularity is converged on per-seam when a real second impl exists (rule of 3), not retrofitted everywhere on spec. (b) enforce via skills/hooks only — rejected; guidance doesn't enforce, a failing test does.
 **Reversible?** Yes — the convention is cards + one test harness; drop it by deleting the fitness test. But the ports themselves are the point and should stay.
+
+## 2026-06-17 — Theme system removed (landed on main)
+**Choice:** Remove the TUI theme system entirely — deleted `term/theme.ts`, `ui/theme.tsx`, `repl/theme-cmd.ts`, `term/osc-detect.ts` (+ their tests); no `Theme`/`ThemeProvider`/`useTheme`, no `VANTA_THEME`, no `/theme`, no terminal-bg detection. UI components use literal Ink colors (white/gray + `dimColor`).
+**Why:** Jason: "kinda stupid to have themes." For a single-user local TUI, multiple palettes + terminal-bg auto-detection were pure overhead (a React context threaded through ~20 components, a setup section, flaky detection tests). Glyphs carry the meaning; color was decoration.
+**Reversible?** Yes via git history — but the detection was the flaky part; don't restore it.

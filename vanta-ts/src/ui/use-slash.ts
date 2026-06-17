@@ -17,7 +17,6 @@ export type SlashEffects = {
   note: (text: string) => void;
   send: (text: string, display?: string) => void;
   exit: () => void;
-  theme: (name: string) => void;
   composerAnchor: (mode: "float" | "bottom") => void;
 };
 
@@ -27,7 +26,6 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
     if (r.restart) process.exitCode = RESTART_EXIT_CODE;
     return void fx.exit();
   }
-  if (r.theme) fx.theme(r.theme); // /theme <name> → live restyle
   if (r.composerAnchor) fx.composerAnchor(r.composerAnchor); // /composer → reposition input live
   if (r.output) fx.note(r.output);
   if (r.resend) fx.send(r.resend, r.resendDisplay);
@@ -41,7 +39,6 @@ export type SlashDeps = {
   dispatch: Dispatch<Action>;
   send: (text: string, display?: string) => void;
   exit: () => void;
-  setTheme: (name: string) => void;
   setComposerAnchor: (mode: "float" | "bottom") => void;
 };
 
@@ -58,7 +55,6 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     note: (text) => deps.dispatch({ t: "note", text }),
     send: deps.send,
     exit: deps.exit,
-    theme: deps.setTheme,
     composerAnchor: deps.setComposerAnchor,
   };
   const runSlash = (line: string): void => {

@@ -2,7 +2,6 @@ import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import { StatusBar } from "./status-bar.js";
 import { StreamPreview } from "./stream-view.js";
-import { useTheme } from "./theme.js";
 import { busyLabel } from "./busy.js";
 import type { PendingTool, Entry } from "./types.js";
 import { Banner } from "./banner.js";
@@ -27,19 +26,17 @@ export function Footer(props: {
   mcp: boolean;
   elapsed: string;
 }): ReactElement {
-  const t = useTheme();
   return (
     <Box flexDirection="column">
-      <Text dimColor={t.dimText}>{props.goal ? <><Text color={t.accent}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
+      <Text dimColor={true}>{props.goal ? <><Text color={"white"}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
       <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
-      <Text dimColor={t.dimText}>  <Text color={t.accent}>/</Text> commands  ·  <Text color={t.accent}>@</Text> files  ·  <Text color={t.accent}>!</Text> shell  ·  <Text color={t.accent}>#</Text> memory</Text>
+      <Text dimColor={true}>  <Text color={"white"}>/</Text> commands  ·  <Text color={"white"}>@</Text> files  ·  <Text color={"white"}>!</Text> shell  ·  <Text color={"white"}>#</Text> memory</Text>
     </Box>
   );
 }
 
 export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number }): ReactElement | null {
   const { streaming, activeTools, busy, tick } = props;
-  const theme = useTheme();
   if (!busy && !streaming) return null;
   const active = activeTools[activeTools.length - 1];
   const { frame, verb } = busyLabel(tick);
@@ -48,7 +45,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
   return (
     <Box flexDirection="column">
       {streaming ? <StreamPreview text={streaming} /> : null}
-      {busy && !streaming ? <Text color={theme.accent}>{frame} <Text dimColor={theme.dimText}>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
+      {busy && !streaming ? <Text color={"white"}>{frame} <Text dimColor={true}>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
     </Box>
   );
 }

@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { useTheme } from "./theme.js";
 import type { SlashMatch } from "./slash.js";
 
 // The inline command palette: a small list above the composer while you type a
@@ -23,13 +22,12 @@ export function SlashPalette(props: { matches: SlashMatch[]; sel: number }): Rea
 
 function PaletteRow(props: { match: SlashMatch; active: boolean }): ReactElement {
   const { match, active } = props;
-  const t = useTheme();
   const label = `/${match.name}${match.arg ? ` ${match.arg}` : ""}`;
   const desc = match.desc.length > DESC_MAX ? `${match.desc.slice(0, DESC_MAX - 1)}…` : match.desc;
   return (
     <Box>
-      <Text color={active ? t.accent : undefined} inverse={active}>{label.padEnd(NAME_COL)}</Text>
-      <Text dimColor={t.dimText}> {desc}</Text>
+      <Text color={active ? "white" : undefined} inverse={active}>{label.padEnd(NAME_COL)}</Text>
+      <Text dimColor={true}> {desc}</Text>
     </Box>
   );
 }

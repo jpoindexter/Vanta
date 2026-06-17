@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text, useStdout } from "ink";
-import { useTheme } from "./theme.js";
 import { contextBar, kfmt } from "./busy.js";
 import type { EffortLevel } from "../types.js";
 
@@ -40,25 +39,25 @@ function buildKeys(props: {
   };
 }
 
-type RenderKeptOpts = { kept: Set<string>; k: Keys; gauge: string; bar: string; ctxPct: number; t: ReturnType<typeof useTheme> };
+type RenderKeptOpts = { kept: Set<string>; k: Keys; gauge: string; bar: string; ctxPct: number };
 
 function textIf(kept: Set<string>, key: string, color: string | undefined, text: string): ReactElement | null {
   return kept.has(key) && text ? <Text color={color} dimColor={color ? undefined : true}>{text}</Text> : null;
 }
 
 function renderKept(o: RenderKeptOpts): ReactElement {
-  const { kept, k, gauge, bar, ctxPct, t } = o;
+  const { kept, k, gauge, bar, ctxPct } = o;
   return (
     <Box>
       {textIf(kept, k.MODEL, undefined, k.MODEL)}
       {textIf(kept, k.EFFORT, undefined, k.EFFORT)}
       {kept.has(k.CTX) && (
-        <><Text dimColor={t.dimText}>{"  ·  "}{gauge} </Text><Text color={t.accent}>[{bar}]</Text><Text dimColor={t.dimText}> {ctxPct}%</Text></>
+        <><Text dimColor={true}>{"  ·  "}{gauge} </Text><Text color={"white"}>[{bar}]</Text><Text dimColor={true}> {ctxPct}%</Text></>
       )}
       {textIf(kept, k.ELAPSED, undefined, k.ELAPSED)}
       {textIf(kept, k.TURNS, undefined, k.TURNS)}
-      {textIf(kept, k.QUEUED, t.warning, k.QUEUED)}
-      {textIf(kept, k.MCP, t.success, k.MCP)}
+      {textIf(kept, k.QUEUED, "white", k.QUEUED)}
+      {textIf(kept, k.MCP, "white", k.MCP)}
       {textIf(kept, k.HINT, undefined, k.HINT)}
     </Box>
   );
@@ -76,7 +75,6 @@ export function StatusBar(props: {
   elapsed?: string;
   mcp?: boolean;
 }): ReactElement {
-  const t = useTheme();
   const cols = (useStdout().stdout?.columns) ?? 80;
   const gauge = `${kfmt(props.tokens)}/${kfmt(props.contextWindow)}`;
   const bar   = contextBar(props.ctxPct);
@@ -94,5 +92,5 @@ export function StatusBar(props: {
     ...(props.mcp ? [{ text: k.MCP, priority: 1 }] : []),
   ];
   const kept = new Set(fitSegments(segs, cols));
-  return renderKept({ kept, k, gauge, bar, ctxPct: props.ctxPct, t });
+  return renderKept({ kept, k, gauge, bar, ctxPct: props.ctxPct });
 }

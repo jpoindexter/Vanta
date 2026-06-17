@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import { useTheme } from "./theme.js";
 import { contextBar, kfmt } from "./busy.js";
 import type { CtxCategory } from "./context-breakdown.js";
 
@@ -16,7 +15,6 @@ export function ContextPanel(props: {
   onClose: () => void;
 }): ReactElement {
   const { categories, total, contextWindow, onClose } = props;
-  const t = useTheme();
 
   useInput((_input, key) => {
     if (key.escape) onClose();
@@ -27,10 +25,10 @@ export function ContextPanel(props: {
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={t.accent} bold>{title}</Text>
+      <Text color={"white"} bold>{title}</Text>
       <Text> </Text>
       {categories.length === 0 ? (
-        <Text dimColor={t.dimText}>(context is empty)</Text>
+        <Text dimColor={true}>(context is empty)</Text>
       ) : (
         categories.map((cat) => {
           const catPct = total > 0 ? Math.round((cat.tokens / total) * 100) : 0;
@@ -39,15 +37,15 @@ export function ContextPanel(props: {
           return (
             <Text key={cat.label}>
               <Text>{label}</Text>
-              <Text color={t.accent}>{bar}</Text>
+              <Text color={"white"}>{bar}</Text>
               <Text>{"  "}</Text>
-              <Text dimColor={t.dimText}>{kfmt(cat.tokens)}  {catPct}%</Text>
+              <Text dimColor={true}>{kfmt(cat.tokens)}  {catPct}%</Text>
             </Text>
           );
         })
       )}
       <Text> </Text>
-      <Text dimColor={t.dimText}>  Esc close</Text>
+      <Text dimColor={true}>  Esc close</Text>
     </Box>
   );
 }

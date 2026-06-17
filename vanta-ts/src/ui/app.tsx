@@ -17,7 +17,6 @@ import { ReviewPanel } from "./review-panel.js";
 import { ContextPanel } from "./context-panel.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
-import { ThemeProvider, resolveThemeByName, type Theme } from "./theme.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
 import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinned-region.js";
 import { useViewportRows } from "./use-viewport-rows.js";
@@ -26,7 +25,6 @@ import { listRepoFiles } from "./at.js";
 import { newSessionId } from "../sessions/store.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
-import { resolveTheme } from "../term/theme.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
 import { useSessionStatus } from "./use-session-status.js";
@@ -47,12 +45,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel });
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
-  const [theme, setThemeState] = useState<Theme>(() => resolveTheme(process.env));
   const [focus, setFocus] = useState<FocusTarget>("composer");
   const [composerAnchor, setComposerAnchor] = useState<ComposerAnchor>(() => resolveComposerAnchor(process.env));
-  const setTheme = (name: string): void => setThemeState(resolveThemeByName(name));
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef });
-  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setTheme, setComposerAnchor });
+  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
@@ -72,8 +68,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const vp = useViewportRows();
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box flexDirection="column">
+    <Box flexDirection="column">
         <Static items={staticItems}>{(item) => <Box key={item.key}>{item.node}</Box>}</Static>
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pending && mode !== "auto"
@@ -83,8 +78,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
         </PinnedRegion>
-      </Box>
-    </ThemeProvider>
+    </Box>
   );
 }
 

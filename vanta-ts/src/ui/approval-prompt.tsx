@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import { useTheme } from "./theme.js";
 import { focusIndicator, type FocusTarget } from "./focus.js";
 import { grantAlways, grantNever } from "./grant.js";
 import type { Pending } from "./use-agent.js";
@@ -33,7 +32,6 @@ export function decide(pending: Pending, outcome: Outcome): void {
 
 export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
   const { pending, onDone } = props;
-  const t = useTheme();
   const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget)));
   const request = buildPermissionRequest(pending);
   const pick = (i: number): void => { decide(pending, CHOICES[i]!.outcome); onDone(); };
@@ -51,14 +49,14 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
   });
 
   return (
-    <Box borderStyle="round" borderColor={t.warning} flexDirection="column" paddingX={1} marginTop={1}>
-      <Text color={t.warning} bold>⚠ {request.title}</Text>
+    <Box borderStyle="round" borderColor={"white"} flexDirection="column" paddingX={1} marginTop={1}>
+      <Text color={"white"} bold>⚠ {request.title}</Text>
       <Text>{request.subject}</Text>
-      {request.reason ? <Text dimColor={t.dimText}>{request.reason}</Text> : null}
+      {request.reason ? <Text dimColor={true}>{request.reason}</Text> : null}
       {request.sections.map((section) => <RequestSection key={section.label} section={section} />)}
       <Box marginTop={1} flexDirection="column">
         <Text bold>Do you want to proceed?</Text>
-        {CHOICES.map((c, i) => <ChoiceRow key={c.n} choice={c} selected={i === sel} accent={t.warning} primary={t.primary} />)}
+        {CHOICES.map((c, i) => <ChoiceRow key={c.n} choice={c} selected={i === sel} accent={"white"} primary={"white"} />)}
       </Box>
     </Box>
   );

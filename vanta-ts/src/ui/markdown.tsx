@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { useTheme, type Theme } from "./theme.js";
 import { highlightLine, type HlSeg } from "./highlight.js";
 
 // Minimal markdown renderer for the transcript: fenced code blocks, h1–h3,
@@ -96,21 +95,19 @@ export function parseBlocks(markdown: string): Block[] {
 }
 
 function Inline(props: { tokens: InlineToken[] }): ReactElement {
-  const t = useTheme();
   return (
     <>
       {props.tokens.map((tok, i) => {
-        if (tok.code) return <Text key={i} color={t.info}>{tok.text}</Text>;
-        if (tok.bold) return <Text key={i} bold color={t.primary}>{tok.text}</Text>;
-        return <Text key={i} color={t.primary}>{tok.text}</Text>;
+        if (tok.code) return <Text key={i} color={"gray"}>{tok.text}</Text>;
+        if (tok.bold) return <Text key={i} bold color={"white"}>{tok.text}</Text>;
+        return <Text key={i} color={"white"}>{tok.text}</Text>;
       })}
     </>
   );
 }
 
-function TableView(props: { block: Extract<Block, { type: "table" }>; theme: Theme }): ReactElement {
+function TableView(props: { block: Extract<Block, { type: "table" }> }): ReactElement {
   const { headers, rows } = props.block;
-  const t = props.theme;
   const colWidths = headers.map((h, ci) => {
     const dataMax = rows.reduce((acc, r) => Math.max(acc, (r[ci] ?? "").length), 0);
     return Math.min(Math.max(h.length, dataMax), MAX_CELL);
@@ -119,12 +116,12 @@ function TableView(props: { block: Extract<Block, { type: "table" }>; theme: The
   const sep = colWidths.map((w) => "─".repeat(w)).join("  ");
   return (
     <Box flexDirection="column">
-      <Text bold color={t.accent}>
+      <Text bold color={"white"}>
         {headers.map((h, ci) => pad(h, colWidths[ci]!)).join("  ")}
       </Text>
       <Text dimColor>{sep}</Text>
       {rows.map((row, ri) => (
-        <Text key={ri} color={t.primary}>
+        <Text key={ri} color={"white"}>
           {headers.map((_, ci) => pad(row[ci] ?? "", colWidths[ci]!)).join("  ")}
         </Text>
       ))}
@@ -134,41 +131,39 @@ function TableView(props: { block: Extract<Block, { type: "table" }>; theme: The
 
 /** A syntax-highlighted code line: keyword→accent, string→success, number→
  * warning, comment→dim, plain→primary. Two-space indent matches the block. */
-function CodeLine(props: { line: string; lang: string; theme: Theme }): ReactElement {
+function CodeLine(props: { line: string; lang: string }): ReactElement {
   const segs = highlightLine(props.line, props.lang);
-  return <Text>{"  "}{segs.map((s, i) => <Seg key={i} seg={s} theme={props.theme} />)}</Text>;
+  return <Text>{"  "}{segs.map((s, i) => <Seg key={i} seg={s} />)}</Text>;
 }
 
-function Seg(props: { seg: HlSeg; theme: Theme }): ReactElement {
-  const { seg, theme: t } = props;
-  if (seg.cls === "comment") return <Text dimColor={t.dimText}>{seg.text}</Text>;
-  const color = seg.cls === "keyword" ? t.accent : seg.cls === "string" ? t.success : seg.cls === "number" ? t.warning : t.primary;
+function Seg(props: { seg: HlSeg }): ReactElement {
+  const { seg } = props;
+  if (seg.cls === "comment") return <Text dimColor={true}>{seg.text}</Text>;
+  const color = seg.cls === "keyword" ? "white" : seg.cls === "string" ? "white" : seg.cls === "number" ? "white" : "white";
   return <Text color={color}>{seg.text}</Text>;
 }
 
-function BlockView(props: { block: Block; theme: Theme }): ReactElement {
+function BlockView(props: { block: Block }): ReactElement {
   const b = props.block;
-  const t = props.theme;
   if (b.type === "spacer") return <Text> </Text>;
   if (b.type === "code") return (
     <Box flexDirection="column">
-      {b.lang ? <Text dimColor={t.dimText}>{`  ${b.lang}`}</Text> : null}
-      {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} theme={t} />)}
+      {b.lang ? <Text dimColor={true}>{`  ${b.lang}`}</Text> : null}
+      {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} />)}
     </Box>
   );
-  if (b.type === "heading") return <Box marginTop={1}><Text bold color={t.accent}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
+  if (b.type === "heading") return <Box marginTop={1}><Text bold color={"white"}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
   if (b.type === "bullet") return <Text>{"  • "}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "numbered") return <Text>{`  ${b.n}. `}<Inline tokens={tokenizeInline(b.text)} /></Text>;
-  if (b.type === "table") return <TableView block={b} theme={t} />;
+  if (b.type === "table") return <TableView block={b} />;
   return <Text><Inline tokens={tokenizeInline(b.text)} /></Text>;
 }
 
 export function Markdown(props: { text: string }): ReactElement {
-  const theme = useTheme();
   const blocks = parseBlocks(props.text);
   return (
     <Box flexDirection="column">
-      {blocks.map((b, i) => <BlockView key={i} block={b} theme={theme} />)}
+      {blocks.map((b, i) => <BlockView key={i} block={b} />)}
     </Box>
   );
 }

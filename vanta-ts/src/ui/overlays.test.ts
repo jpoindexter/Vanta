@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sessionRows, skillRows, modelRows, themeRows, PICKER_KINDS } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, PICKER_KINDS } from "./overlays.js";
 import type { SessionMeta } from "../sessions/store.js";
 import type { Skill } from "../skills/types.js";
 
@@ -24,12 +24,6 @@ describe("overlay row builders", () => {
     expect(openai!.mark).toBe("●"); // current marker, its own column
     const other = rows.find((r) => r.command !== "/model openai");
     expect(other!.mark).toBeUndefined(); // non-current rows carry no mark
-  });
-
-  it("themeRows carries /theme <name> and marks the current with ●", () => {
-    const rows = themeRows("default");
-    expect(rows.some((r) => r.command === "/theme default")).toBe(true);
-    expect(rows.find((r) => r.command === "/theme default")!.mark).toBe("●");
   });
 
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {

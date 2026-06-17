@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { useTheme } from "./theme.js";
 import { focusIndicator } from "./focus.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
@@ -22,7 +21,6 @@ export function ComposerView(props: {
   pill?: { count: number; lines: number };
   ghost?: string;
 }): ReactElement {
-  const t = useTheme();
   const blink = useBlink();
   // The Claude-method input: a single rounded-border box (not bare ─ rules), the
   // signature shape of the reference TUI. A blinking block cursor (empty + typing)
@@ -31,10 +29,10 @@ export function ComposerView(props: {
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
-      <Box borderStyle="round" borderColor={props.focused === false ? t.border : t.accent} paddingX={1}>
-        <Text color={t.accent}>{focusIndicator(props.focused !== false)}{" "}</Text>
+      <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
+        <Text color={"white"}>{focusIndicator(props.focused !== false)}{" "}</Text>
         {props.value.length === 0
-          ? <Text><Text inverse={blink}> </Text><Text dimColor={t.dimText}>{props.placeholder}</Text></Text>
+          ? <Text><Text inverse={blink}> </Text><Text dimColor={true}>{props.placeholder}</Text></Text>
           : props.pill
             ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
             : <CursorText value={props.value} cursor={props.cursor} blink={blink} ghost={props.ghost} />}

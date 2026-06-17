@@ -1,6 +1,5 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import { useTheme } from "./theme.js";
 import { focusIndicator } from "./focus.js";
 import type { OverlayRow } from "./overlays.js";
 
@@ -25,28 +24,26 @@ export function OverlayList(props: {
     if (key.downArrow) return void setSel(Math.min(props.rows.length - 1, clamped + 1));
     if (key.return) { const r = props.rows[clamped]; if (r) props.onSelect(r); }
   });
-  const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={t.accent} bold>{focusIndicator(props.focused !== false)} {props.title}</Text>
+      <Text color={"white"} bold>{focusIndicator(props.focused !== false)} {props.title}</Text>
       {props.rows.length === 0
-        ? <Text dimColor={t.dimText}>  (empty)</Text>
+        ? <Text dimColor={true}>  (empty)</Text>
         : props.rows.map((r, i) => <Row key={r.command} row={r} active={i === clamped} />)}
-      <Text dimColor={t.dimText}>  ↑/↓ select · ⏎ choose · Esc close</Text>
+      <Text dimColor={true}>  ↑/↓ select · ⏎ choose · Esc close</Text>
     </Box>
   );
 }
 
 function Row(props: { row: OverlayRow; active: boolean }): ReactElement {
   const { row, active } = props;
-  const t = useTheme();
   const hint = row.hint && row.hint.length > HINT_MAX ? `${row.hint.slice(0, HINT_MAX - 1)}…` : row.hint;
   return (
     <Box>
-      <Text color={active ? t.accent : undefined}>{active ? "❯ " : "  "}</Text>
-      {row.mark ? <Text color={t.success}>{row.mark} </Text> : <Text>{"  "}</Text>}
-      <Text color={active ? t.accent : undefined}>{row.label}</Text>
-      {hint ? <Text dimColor={t.dimText}>  {hint}</Text> : null}
+      <Text color={active ? "white" : undefined}>{active ? "❯ " : "  "}</Text>
+      {row.mark ? <Text color={"white"}>{row.mark} </Text> : <Text>{"  "}</Text>}
+      <Text color={active ? "white" : undefined}>{row.label}</Text>
+      {hint ? <Text dimColor={true}>  {hint}</Text> : null}
     </Box>
   );
 }

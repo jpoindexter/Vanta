@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
-import { useTheme } from "./theme.js";
 import { WORDMARK, TAGLINE } from "./wordmark.js";
 
 // The launch title screen — the VANTA block wordmark + tagline + dim metadata.
@@ -8,14 +7,13 @@ import { WORDMARK, TAGLINE } from "./wordmark.js";
 // splash as the conversation grows. Borderless; the wordmark is the brand.
 
 export function Banner(props: { model: string; cwd: string; kernel: string; tools: number; cmds: number }): ReactElement {
-  const t = useTheme();
   return (
     <Box flexDirection="column" marginBottom={1}>
-      {WORDMARK.map((line, i) => <Text key={i} color={t.accent} bold>{line}</Text>)}
+      {WORDMARK.map((line, i) => <Text key={i} color={"white"} bold>{line}</Text>)}
       <Box flexDirection="column" marginTop={1}>
-        <Text dimColor={t.dimText}>{TAGLINE}</Text>
-        <Text dimColor={t.dimText}>{props.model} · kernel {props.kernel} · {props.tools} tools · {props.cmds} commands · /help</Text>
-        <Text dimColor={t.dimText}>{props.cwd}</Text>
+        <Text dimColor={true}>{TAGLINE}</Text>
+        <Text dimColor={true}>{props.model} · kernel {props.kernel} · {props.tools} tools · {props.cmds} commands · /help</Text>
+        <Text dimColor={true}>{props.cwd}</Text>
       </Box>
     </Box>
   );

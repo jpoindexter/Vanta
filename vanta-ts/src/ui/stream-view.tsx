@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import { Box, Text, useStdout } from "ink";
-import { useTheme } from "./theme.js";
 
 // The live streaming preview. CRITICAL: Ink re-renders the non-<Static> region in
 // place, which only works while that region fits the viewport. So we never render
@@ -18,14 +17,13 @@ export function streamingTail(text: string, cols: number, maxLines = STREAM_TAIL
 }
 
 export function StreamPreview(props: { text: string }): ReactElement {
-  const t = useTheme();
   const cols = useStdout().stdout?.columns ?? 80;
   const lines = streamingTail(props.text, cols);
   return (
     <Box flexDirection="column">
       {lines.map((l, i) => (
-        <Text key={i} color={t.primary}>
-          <Text color={t.marker}>{i === 0 ? "⏺ " : "  "}</Text>{l}
+        <Text key={i} color={"white"}>
+          <Text color={"white"}>{i === 0 ? "⏺ " : "  "}</Text>{l}
         </Text>
       ))}
     </Box>

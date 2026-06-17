@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import { useTheme, type Theme } from "./theme.js";
 import { fileDiff, undoFile, type ChangedFile } from "../repl/changed-files.js";
 
 // Interactive edit-review: the session's changed files with per-file keep/undo.
@@ -13,7 +12,6 @@ const DIFF_ROWS = 12;
 const MAX_W = 92;
 
 export function ReviewPanel(props: { files: ChangedFile[]; cwd: string; onClose: () => void }): ReactElement {
-  const t = useTheme();
   const [files, setFiles] = useState<ChangedFile[]>(props.files);
   const [sel, setSel] = useState(0);
   const [diff, setDiff] = useState("");
@@ -42,32 +40,29 @@ export function ReviewPanel(props: { files: ChangedFile[]; cwd: string; onClose:
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={t.accent} bold>Review changes · {files.length} file{files.length === 1 ? "" : "s"}</Text>
+      <Text color={"white"} bold>Review changes · {files.length} file{files.length === 1 ? "" : "s"}</Text>
       {files.length === 0
-        ? <Text dimColor={t.dimText}>  (no changes — working tree clean)</Text>
+        ? <Text dimColor={true}>  (no changes — working tree clean)</Text>
         : files.map((f, i) => <FileRow key={f.file} file={f} active={i === clamped} />)}
       {current ? <DiffPreview diff={diff} /> : null}
-      <Text dimColor={t.dimText}>  ↑/↓ select · u undo (restore to HEAD) · Esc close</Text>
+      <Text dimColor={true}>  ↑/↓ select · u undo (restore to HEAD) · Esc close</Text>
     </Box>
   );
 }
 
-function statusColor(status: ChangedFile["status"], t: Theme): string {
-  if (status === "A" || status === "?") return t.success;
-  if (status === "D") return t.error;
-  return t.warning;
+function statusColor(_status: ChangedFile["status"]): string {
+  return "white";
 }
 
 function FileRow(props: { file: ChangedFile; active: boolean }): ReactElement {
-  const t = useTheme();
   const { file, active } = props;
   return (
     <Box>
-      <Text color={active ? t.accent : undefined}>{active ? "❯ " : "  "}</Text>
-      <Text color={statusColor(file.status, t)}>{file.status} </Text>
-      <Text color={active ? t.accent : undefined}>{file.file}</Text>
-      <Text color={t.success}>  +{file.added}</Text>
-      <Text color={t.error}> -{file.removed}</Text>
+      <Text color={active ? "white" : undefined}>{active ? "❯ " : "  "}</Text>
+      <Text color={statusColor(file.status)}>{file.status} </Text>
+      <Text color={active ? "white" : undefined}>{file.file}</Text>
+      <Text color={"white"}>  +{file.added}</Text>
+      <Text color={"white"}> -{file.removed}</Text>
     </Box>
   );
 }
@@ -83,12 +78,11 @@ function DiffPreview(props: { diff: string }): ReactElement | null {
 }
 
 function DiffLineView(props: { line: string }): ReactElement {
-  const t = useTheme();
   const l = clip(props.line, MAX_W);
-  if (l.startsWith("+")) return <Text color={t.success}>  {l}</Text>;
-  if (l.startsWith("-")) return <Text color={t.error}>  {l}</Text>;
-  if (l.startsWith("@@")) return <Text color={t.accent}>  {l}</Text>;
-  return <Text dimColor={t.dimText}>  {l}</Text>;
+  if (l.startsWith("+")) return <Text color={"white"}>  {l}</Text>;
+  if (l.startsWith("-")) return <Text color={"white"}>  {l}</Text>;
+  if (l.startsWith("@@")) return <Text color={"white"}>  {l}</Text>;
+  return <Text dimColor={true}>  {l}</Text>;
 }
 
 function clip(s: string, max: number): string {

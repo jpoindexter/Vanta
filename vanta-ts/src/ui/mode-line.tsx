@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { Text } from "ink";
-import { useTheme } from "./theme.js";
 import { envForPermissionMode, resolvePermissionMode, type PermissionMode } from "../modes/permission-mode.js";
 import type { Pending } from "./use-agent.js";
 
@@ -31,8 +30,7 @@ export function useModeState(
 }
 
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
-  const t = useTheme();
-  if (props.mode === "acceptEdits") return <Text color={t.warning} bold>EDITS <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "auto") return <Text color={t.warning} bold>AUTO <Text dimColor={t.dimText}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "acceptEdits") return <Text color={"white"} bold>EDITS <Text dimColor={true}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "auto") return <Text color={"white"} bold>AUTO <Text dimColor={true}>(shift+tab to cycle)</Text></Text>;
   return null;
 }
