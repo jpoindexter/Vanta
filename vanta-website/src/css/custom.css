@@ -188,6 +188,48 @@ code { border-radius: 0.4rem; }
 .markdown table thead { background: var(--ifm-color-emphasis-100); }
 .markdown table th, .markdown table td { border-color: var(--vanta-border); }
 
+/* ---------- Use-case card grid (Hermes-style) ---------- */
+.uc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1rem;
+  margin: 1.75rem 0;
+}
+.uc-card {
+  border: 1px solid var(--vanta-border);
+  border-top-width: 3px;
+  border-radius: 0.9rem;
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--vanta-card-bg);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.uc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+}
+.uc-card h3 { margin: 0.55rem 0 0.4rem; font-size: 1.02rem; line-height: 1.3; }
+.uc-card p { font-size: 0.86rem; color: var(--ifm-color-emphasis-700); margin: 0; line-height: 1.55; }
+.uc-tag {
+  display: inline-block; font-size: 0.64rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0.16rem 0.5rem; border-radius: 0.4rem;
+}
+.uc-card.dev      { border-top-color: var(--vanta-focus); }
+.uc-card.dev .uc-tag      { background: rgba(107,220,255,0.14); color: #0b86a3; }
+.uc-card.assistant{ border-top-color: var(--vanta-health); }
+.uc-card.assistant .uc-tag{ background: rgba(131,242,176,0.16); color: #1f9d57; }
+.uc-card.ops      { border-top-color: var(--vanta-activity); }
+.uc-card.ops .uc-tag      { background: rgba(255,184,107,0.16); color: #b9701a; }
+.uc-card.research { border-top-color: var(--vanta-goal); }
+.uc-card.research .uc-tag { background: rgba(183,164,255,0.16); color: #6a55c7; }
+.uc-card.auto     { border-top-color: var(--vanta-risk); }
+.uc-card.auto .uc-tag     { background: rgba(255,107,122,0.14); color: #c8475a; }
+[data-theme='dark'] .uc-card.dev .uc-tag      { color: var(--vanta-focus); }
+[data-theme='dark'] .uc-card.assistant .uc-tag{ color: var(--vanta-health); }
+[data-theme='dark'] .uc-card.ops .uc-tag      { color: var(--vanta-activity); }
+[data-theme='dark'] .uc-card.research .uc-tag { color: var(--vanta-goal); }
+[data-theme='dark'] .uc-card.auto .uc-tag     { color: var(--vanta-risk); }
+
 /* ---------- Mermaid: let diagrams breathe ---------- */
 .docusaurus-mermaid-container { margin: 1.5rem 0; text-align: center; }
 

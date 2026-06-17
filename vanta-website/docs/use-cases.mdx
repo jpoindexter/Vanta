@@ -1,0 +1,135 @@
+---
+id: use-cases
+title: Use cases
+sidebar_position: 2
+---
+
+# Use cases
+
+What you can build with Vanta — grounded in its actual capabilities, each linking to the feature that powers it. These are illustrative use cases, not community testimonials; every one maps to shipped functionality.
+
+<div className="uc-grid">
+
+<div className="uc-card dev">
+<span className="uc-tag">Dev workflow</span>
+<h3>Scoped code edits with a safety net</h3>
+<p>Read, grep, and edit across a repo while the kernel gates every write and out-of-scope path. See <a href="/tools">Tools</a> and the <a href="/safety-model">safety model</a>.</p>
+</div>
+
+<div className="uc-card dev">
+<span className="uc-tag">Dev workflow</span>
+<h3>Lock a bug so it never regresses</h3>
+<p>Turn a fixed bug into a re-runnable proof with <code>regression_lock</code> — re-check it any time from <code>/locks</code>. See <a href="/operator-systems">Operator systems</a>.</p>
+</div>
+
+<div className="uc-card dev">
+<span className="uc-tag">Dev workflow</span>
+<h3>Drive your editor over a local server</h3>
+<p>Expose the agent loop to Zed and other editors via <code>vanta acp</code>, or point any OpenAI-API tool at <code>vanta proxy</code>. See <a href="/integrations">Integrations</a>.</p>
+</div>
+
+<div className="uc-card dev">
+<span className="uc-tag">Dev workflow</span>
+<h3>Let Vanta improve its own codebase</h3>
+<p><code>vanta improve</code> suggests fixes; <code>vanta factory approve</code> implements them at your autonomy level, each verified. See <a href="/self-improvement">Self-improvement</a>.</p>
+</div>
+
+<div className="uc-card assistant">
+<span className="uc-tag">Personal assistant</span>
+<h3>Summarize my inbox every morning</h3>
+<p>A scheduled task reads Gmail and posts a brief — every send/draft is approval-gated. See <a href="/comms-and-gateway">Comms & gateway</a> and <a href="/autonomy">Autonomy</a>.</p>
+</div>
+
+<div className="uc-card assistant">
+<span className="uc-tag">Personal assistant</span>
+<h3>Text my agent from Telegram</h3>
+<p>Run the always-on gateway and message Vanta from your phone; it replies through the kernel-gated loop. See <a href="/comms-and-gateway">Comms & gateway</a>.</p>
+</div>
+
+<div className="uc-card assistant">
+<span className="uc-tag">Personal assistant</span>
+<h3>A today brief across goals + calendar</h3>
+<p><code>/today</code> pulls tasks, goals, calendar, and recent memory into one JARVIS-style brief. See <a href="/reference/commands-list">Commands</a>.</p>
+</div>
+
+<div className="uc-card assistant">
+<span className="uc-tag">Personal assistant</span>
+<h3>Remember me across sessions</h3>
+<p>The brain distils durable memories and a knowledge graph of facts, recalled on later turns. See <a href="/skills-and-memory">Skills & memory</a> and <a href="/knowledge-and-refs">Knowledge graph</a>.</p>
+</div>
+
+<div className="uc-card ops">
+<span className="uc-tag">Business ops</span>
+<h3>Run a lightweight Money OS</h3>
+<p>Track offers, prospects, and revenue; get a weekly review and a price band. See <a href="/operator-systems">Operator systems</a>.</p>
+</div>
+
+<div className="uc-card ops">
+<span className="uc-tag">Business ops</span>
+<h3>Scan for opportunities, draft the offer</h3>
+<p>The opportunity radar scores leads by pain × buyer-signal and drafts an offer you can promote into the pipeline. See <a href="/operator-systems">Operator systems</a>.</p>
+</div>
+
+<div className="uc-card ops">
+<span className="uc-tag">Business ops</span>
+<h3>Vet a contract or offer before you sign</h3>
+<p>The <code>protect</code> tool flags scams, credential leaks, pressure tactics, and contract traps. See <a href="/security">Security</a>.</p>
+</div>
+
+<div className="uc-card ops">
+<span className="uc-tag">Business ops</span>
+<h3>A chief-of-staff per project</h3>
+<p>Project rooms give each codebase its own goal stream; background teams dispatch scoped workers. See <a href="/modes-rooms-routing">Modes & rooms</a> and <a href="/autonomy">Autonomy</a>.</p>
+</div>
+
+<div className="uc-card research">
+<span className="uc-tag">Research</span>
+<h3>Cited, fact-checked deep research</h3>
+<p><code>/deep-research</code> fans out searches, fetches sources, adversarially verifies, and synthesizes a cited report. See <a href="/reference/commands-list">Commands</a>.</p>
+</div>
+
+<div className="uc-card research">
+<span className="uc-tag">Research</span>
+<h3>Build a durable reference library</h3>
+<p>Ingest URLs, files, and transcripts with <code>ref_ingest</code>; search them later without re-pasting. See <a href="/knowledge-and-refs">Knowledge graph & references</a>.</p>
+</div>
+
+<div className="uc-card research">
+<span className="uc-tag">Research</span>
+<h3>See and hear, not just read</h3>
+<p>Describe images, read the screen or camera, transcribe audio, and speak — routed to a vision model when needed. See <a href="/tools">Tools</a>.</p>
+</div>
+
+<div className="uc-card research">
+<span className="uc-tag">Research</span>
+<h3>Decide what to build before building</h3>
+<p>Solutioning mode turns goals + research into a ranked recommendation, then stops. See <a href="/modes-rooms-routing">Modes & routing</a>.</p>
+</div>
+
+<div className="uc-card auto">
+<span className="uc-tag">Automation</span>
+<h3>Run unattended on a schedule</h3>
+<p>Cron tasks + the gateway daemon let Vanta act while you're away — kept on-task by standing loops. See <a href="/autonomy">Autonomy</a>.</p>
+</div>
+
+<div className="uc-card auto">
+<span className="uc-tag">Automation</span>
+<h3>Self-host it, keep keys out of files</h3>
+<p>Run offline on local Ollama; fetch keys from 1Password/Vault via <code>api_key_helper</code>; sandbox execution. See <a href="/settings">Settings & secrets</a>.</p>
+</div>
+
+<div className="uc-card auto">
+<span className="uc-tag">Automation</span>
+<h3>Tune autonomy to your comfort</h3>
+<p>Permission + auto modes decide what prompts vs runs; the operator profile only ever tightens. See <a href="/permissions-and-hooks">Permissions & hooks</a>.</p>
+</div>
+
+<div className="uc-card auto">
+<span className="uc-tag">Automation</span>
+<h3>Hook into your own tooling</h3>
+<p>Shell hooks fire on tool/session events; plugins add tools and commands; MCP servers mount as tools. See <a href="/plugins">Plugins</a> and <a href="/mcp">MCP</a>.</p>
+</div>
+
+</div>
+
+> Want to add a real use case here? These map to shipped features — see the [Examples](./examples.md) page for runnable versions, or the [Tool reference](./reference/tools-list.md) for everything available.
