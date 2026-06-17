@@ -53,12 +53,12 @@ describe("RoadmapItemSchema", () => {
       ...validItem,
       updated: "2026-06-11",
       notes: "shipped via triage",
-      after: ["CC-SEND-MSG"],
+      after: ["VANTA-SEND-MSG"],
     };
     const parsed = RoadmapItemSchema.parse(tagged);
     expect(parsed.updated).toBe("2026-06-11");
     expect(parsed.notes).toBe("shipped via triage");
-    expect(parsed.after).toEqual(["CC-SEND-MSG"]);
+    expect(parsed.after).toEqual(["VANTA-SEND-MSG"]);
   });
 });
 

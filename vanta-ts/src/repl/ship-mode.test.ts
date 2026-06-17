@@ -16,8 +16,8 @@ describe("ship-mode", () => {
   });
 
   it("extractShipTarget returns the target from the prompt", () => {
-    const prompt = buildShipPrompt("CC-LINKS");
-    expect(extractShipTarget(prompt)).toBe("CC-LINKS");
+    const prompt = buildShipPrompt("VANTA-LINKS");
+    expect(extractShipTarget(prompt)).toBe("VANTA-LINKS");
   });
 
   it("extractShipTarget returns null when not in ship mode", () => {

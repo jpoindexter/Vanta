@@ -36,7 +36,7 @@ state + choice load — pairs with `EF-CHOICEREDUCE`.
 ### `TUI-V2-RAILS` — state/safety/memory/telemetry rails
 The left durable-state rail + right safety-rail + working-memory + telemetry. Composes existing
 shipped/captured work: `COST-VISIBLE` (telemetry), `EF-WORKINGMEM` (working memory),
-`AUTO-ROUTER` (visible model routing), `THINK-FOLD`/`CC-TRANSCRIPT` (risk-tagged collapsible tool
+`AUTO-ROUTER` (visible model routing), `THINK-FOLD`/`VANTA-TRANSCRIPT` (risk-tagged collapsible tool
 calls). v2 is mostly a *surface* that makes already-built state visible.
 
 ## Done

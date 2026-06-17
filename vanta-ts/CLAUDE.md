@@ -14,7 +14,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
 | `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
 | `ui/app.tsx` | The default TUI App: `<Static>` committed scrollback + live composer/status rows. Delegates state to `ui/reducer.ts`, agent I/O to `ui/use-agent.ts` |
-| `ui/focus.ts` | CC-TAB-NAV — pure focus targets/traversal for Tab/Shift+Tab across composer, overlays, and approval actions. |
+| `ui/focus.ts` | VANTA-TAB-NAV — pure focus targets/traversal for Tab/Shift+Tab across composer, overlays, and approval actions. |
 | `ui/v2/` | Opt-in mission-control shell selected by `VANTA_TUI=v2`; wraps the shared v1 engine in durable-state / safety+memory+telemetry rails |
 | `ui/reducer.ts` | `State`, `Action`, `reduce` — pure reducer for the TUI transcript (tested via `reducer.test.ts`) |
 | `ui/use-agent.ts` | `useAgent` hook — `sendToAgent` fn, queue-drain effect, Esc-abort `useInput`. Returns `{sendToAgent, abortRef}` |
@@ -101,7 +101,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `brain/consolidate.ts` | The sleep pass: near-duplicate memories gist-merge (strength/links/retrievals carried, marked crystallized), decayed swept, hard entry budget (`VANTA_BRAIN_MAX_ENTRIES`, default 400) drops weakest-first, links healed. Auto-runs from the digest when over budget |
 | `brain/learn.ts` | Auto-learning: post-turn background pass distils 0–3 durable memories from the transcript (user patterns → user_model, facts → semantic, events → episodic, **Vanta's own forming personality → identity/reflections**; ND-first guidance patterns prioritized). `VANTA_BRAIN_LEARN[_EVERY\|_MIN_TOOLS]`. Hosts surface a `🧠 learned:` line |
 | `session/background-learning.ts` | Post-turn LLM forks (skill review, session scratchpad, brain learning, completion verifier, critic; memory extraction when enabled) — gated, best-effort, re-exported via session/after-turn |
-| `verify/completion-verifier.ts` | CC-VERIFICATION-AGENT — `VANTA_VERIFY=1` trigger detector + timeout-bound verifier call. Completion claims (`done`/`complete`/`finished`/`shipped` or TaskUpdate completed) get original task/goals + recent tool output evidence; pass logs only, fail appends a `⚠ Verifier:` system message. |
+| `verify/completion-verifier.ts` | VANTA-VERIFICATION-AGENT — `VANTA_VERIFY=1` trigger detector + timeout-bound verifier call. Completion claims (`done`/`complete`/`finished`/`shipped` or TaskUpdate completed) get original task/goals + recent tool output evidence; pass logs only, fail appends a `⚠ Verifier:` system message. |
 | `sessions/store.ts` | Session persist/resume/fork: `saveSession`/`loadSession`/`forkSession`/`listSessions`/`newSessionId`. JSON files `~/.vanta/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `vanta sessions`/`resume <id>`/`--resume`; `--fork-session` creates a new seeded session. `createConversation(...,{history})` seeds resumed turns |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
@@ -115,7 +115,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `repl-commands.ts` | REPL slash commands dispatcher — re-exports `SLASH_COMMANDS`, `executeSlash`, `runSlashCommand`. Handlers live in `repl/handlers.ts` |
 | `repl/catalog.ts` | `SLASH_COMMANDS` array + `SLASH_HELP` — canonical command list driving `/help`, TUI palette, and validation |
 | `repl/handlers.ts` | `HANDLERS` registry + `dispatch(cmd, arg, ctx)` — every slash handler, each a `SlashHandler` const |
-| `repl/init-cmd.ts` | `CC-INIT-CMD` — `/init [--force|--print]` writes `.claude/CLAUDE.md` with detected stack, visible structure, existing context docs, and working rules; refuses overwrite by default |
+| `repl/init-cmd.ts` | `VANTA-INIT-CMD` — `/init [--force|--print]` writes `.claude/CLAUDE.md` with detected stack, visible structure, existing context docs, and working rules; refuses overwrite by default |
 | `repl/next.ts` | ND1 — `next` handler: reads active kernel goals → `resend` prompt asking agent for one concrete next micro-step |
 | `repl/plan-mode.ts` | ND3 — `planMode` handler: toggles plan-first mode via `PLAN_MARKER` injection into live system prompt (`/planmode [on|off]`) |
 | `repl/where.ts` | EF-WORKINGMEM — `/where` handler: `lastIntent` (last user message) + `lastToolCalls` (last 5 tool names) as a breadcrumb |
@@ -138,8 +138,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `roadmap/add.ts` | ROADMAP-ADD — `addRoadmapItem` (validate, refuse dup id, append, bump `updated`, rebuild HTML) — companion to `roadmap/move.ts` |
 | `tools/roadmap-add.ts` | `roadmap_add` tool (required id+title; defaults status=next/track=Backlog/size=M) → `addRoadmapItem` |
 | `repl/goal-cmd.ts` | `/goal` handler (extracted) — show/set/clear/done; `setNewGoal` persists + patches the live prompt + fires GOAL-ACTION on a vague goal |
-| `repl/open-cmd.ts` | CC-EDITOR — `/open <file[:line]>` → `openInEditor` |
-| `editor/open.ts` | CC-EDITOR — pure `parseFileLine` + `resolveEditor` (VANTA_EDITOR>VISUAL>EDITOR, default code) + `editorCommand` (code -g / +line / file:line) + `openInEditor` (detached spawn). `vanta open` CLI |
+| `repl/open-cmd.ts` | VANTA-EDITOR — `/open <file[:line]>` → `openInEditor` |
+| `editor/open.ts` | VANTA-EDITOR — pure `parseFileLine` + `resolveEditor` (VANTA_EDITOR>VISUAL>EDITOR, default code) + `editorCommand` (code -g / +line / file:line) + `openInEditor` (detached spawn). `vanta open` CLI |
 | `lint/size.ts` | CODE-SIZE-GATE — pure `analyzeSource` (TS compiler API): file≤300, fn≤50, params≤4, cyclomatic≤10 → `Violation[]` (file:line+limit+fix). `LIMITS`, `formatViolation` |
 | `lint/run.ts` | `vanta lint [files\|--staged]` — `resolveTargets` (explicit=cwd-relative, git=root-relative), `lintFiles` (reports analyzed vs missing), `runLint` (exit 1 on violations/missing) |
 | `cli.ts` | Thin entry point: bootstrap (`findRepoRoot`/`loadEnv`/`ensureVantaStore`) + `startInteractive` (TTY-gated first-run wizard) + a `COMMANDS` lookup table (a returned number = exit code). `chat`/`--resume`/`resume`/`run` stay explicit for global flags (`--init*`, `--fork-session`). Add a command = one table entry. |
@@ -238,7 +238,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Operator profile + preference signals.** `operator-profile/profile.ts` ships declared vs inferred autonomy/scope/detail/risk preferences and tighten-only approval preferences. `preferences/signals.ts` appends zod-validated chosen-vs-rejected rows to `~/.vanta/preferences.jsonl`; `dispatch-helpers.ts` records only human approval/denial prompts, never kernel blocks or auto/rule/profile non-human decisions. `/preferences export` prints the JSONL path/content. Profile inference can read preference rows and infer conservative/narrow behavior from denial-heavy broad/risky actions.
 
-**CC-TAB-NAV.** `ui/focus.ts` adds the small focus manager; `ui/app.tsx` builds the visible focus target list and routes Tab/Shift+Tab through it. Composer input is active only when focused; approval actions expose focus IDs (`approval-allow|always|deny|never`) and Enter activates the focused row. Shift+Tab keeps the legacy mode cycle when the composer is the only focus target.
+**VANTA-TAB-NAV.** `ui/focus.ts` adds the small focus manager; `ui/app.tsx` builds the visible focus target list and routes Tab/Shift+Tab through it. Composer input is active only when focused; approval actions expose focus IDs (`approval-allow|always|deny|never`) and Enter activates the focused row. Shift+Tab keeps the legacy mode cycle when the composer is the only focus target.
 
 ## Session additions (2026-06-14) — keep current
 
@@ -258,7 +258,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **Anti-ghosting (2nd vector):** streamed text commits to `<Static>` the moment a tool call follows it (`ui/reducer.ts commitText`) — see ERRORS.md.
 - **Carried-goal-paused-on-launch:** a prior-session goal starts PAUSED (no silent re-run on restart); `/goal resume` activates, `/goal clear|drop` drops; `VANTA_GOAL_RESUME=auto` restores old behavior.
 - **Research intake → roadmap (now ~741 cards):** three reference docs in `docs/research/` + ~37 cards from *Dive into Claude Code* (arXiv:2604.14228, `PAPER-*`), *Anatomy of an Agent Harness* (`HARNESS-*`), and *Self-Correcting Agent Harness* (`SELFHARNESS-*`).
-- **Built-not-wired:** `term/json-format.ts` (Vanta summarizes tool output, so no raw-output display surface yet — `CC-SHELL-JSON-FORMAT` stays next).
+- **Built-not-wired:** `term/json-format.ts` (Vanta summarizes tool output, so no raw-output display surface yet — `VANTA-SHELL-JSON-FORMAT` stays next).
 
 **8 large rocks — slice 1 of each shipped (operator capabilities).** Each rock got one vertical slice: a `~/.vanta/*.jsonl` store + a kernel-gated tool + a `/`-command view, following the `world` reference pattern. All 8 now have a shipped slice; later slices tracked per-card in `roadmap.json`.
 
@@ -292,9 +292,9 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 **Reach layer (Agent-Reach pattern, MIT — `docs/reach.md` + `docs/research/agent-reach-eval.md`).** Vanta's internet-reach capability layer: a channel = ordered, real-probed backends + a doctor. `src/reach/`: `channel.ts` (ReachChannel contract + `orderedBackends` env override), `probe.ts` (really-executes, not which()), `registry.ts` (`resolveChannel`/`checkAll`), `doctor.ts` (`/reach` report), `cookie.ts` (shared 0600 cookie store for login-walled channels + `parseCookieInput` for Cookie-Editor JSON/header), `channels/{web,search,rss,reddit}.ts`. Tools: `rss_read` (dependency-free RSS/Atom via `reach/rss-parse.ts`), `cookie_import` (kernel-gated credential store, never echoes), `reddit_read` (search/read via Reddit `.json` + cookie, `reach/reddit-parse.ts`). Commands: `/reach` (doctor), `/cookie` (export guide). Source now reports **84 built-in tools**. Deferred channels (Twitter, LinkedIn, podcast, V2EX, Bilibili, Xiaohongshu, Xueqiu) = `REACH-*` cards.
 
-**CC-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `CC-INIT-CMD`, `CC-INIT-FLAGS`, and `CC-FORK-SESSION` shipped. Current command count is **97 slash commands**.
+**VANTA-INIT-CMD + lifecycle/session flags.** `/init [--force|--print]` generates `.claude/CLAUDE.md` for the current project. `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits 0; `--maintenance` adds maintenance context for Setup hooks. `--fork-session` with resume creates a new seeded session while leaving the original intact. `roadmap.json` marks `VANTA-INIT-CMD`, `VANTA-INIT-FLAGS`, and `VANTA-FORK-SESSION` shipped. Current command count is **97 slash commands**.
 
-**CC-EFFORT.** Effort levels are `low|medium|high|max`, set by CLI `--effort`, `settings.effortLevel`, `VANTA_EFFORT_LEVEL`, or live `/effort <level>`. OpenAI o-series receives `reasoning_effort` for low/high/max; Anthropic Claude thinking-capable models use extended thinking for high/max (8000/32000 budget tokens), while low forces `max_tokens=4096`.
+**VANTA-EFFORT.** Effort levels are `low|medium|high|max`, set by CLI `--effort`, `settings.effortLevel`, `VANTA_EFFORT_LEVEL`, or live `/effort <level>`. OpenAI o-series receives `reasoning_effort` for low/high/max; Anthropic Claude thinking-capable models use extended thinking for high/max (8000/32000 budget tokens), while low forces `max_tokens=4096`.
 
 - **TUI-V2 shell:** `VANTA_TUI=v2` now selects `src/ui/v2/app-v2.tsx`, a separate mission-control frame (`MissionControlFrame`) with durable-state, center transcript/engine, safety/working-memory/telemetry, and command-risk labels. Default and unknown values stay on v1. `TUI-V2-RAILS` remains open for making every rail value live from session state.
 
@@ -317,7 +317,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **Design-token + glyph layer (P1):** `term/figures.ts` (named glyphs ⏺ ❯ ✻ ✔ ✘ ▶ + ASTERISK_FRAMES + verbs). `ui/theme.tsx` semantic tokens (success/error/warning/info/marker/userMarker; `primary` = text/white, identity in accent/border/marker). Glyphs wired through `ui/transcript.tsx` (⏺ assistant marker, ❯ user, ✻ boundary), `ui/status-bar.tsx` (● ready), spinners (`asterisk` cycle).
 - **Interactive footer (P2):** `ui/status-bar.tsx` — one dim line above the composer: ○/◐/● permission mode · model · "? for shortcuts".
-- **Keybinding registry (P3):** `ui/shortcuts.ts` + `ui/composer-keys.ts` — chord parse/match/format (`ctrl+o`→`^O`, `shift+tab`→`⇧⇥`), `DEFAULT_BINDINGS` grouped by `KeyContext` (global/transcript/composer/palette/at-palette/modal/tabs), `useKeybinding(action, handler, {isActive})` + cached merged chord map, optional `~/.vanta/keybindings.json` overrides (zod-validated, fail-soft). `ui/help-panel.tsx` renders from the registry. (Composer emacs/readline + history edge-fall-through already existed.) **Not** done vs the stricter CC-KEYBINDING-* roadmap cards: no hot-reload watcher, no `/doctor` report, no conflict warnings.
+- **Keybinding registry (P3):** `ui/shortcuts.ts` + `ui/composer-keys.ts` — chord parse/match/format (`ctrl+o`→`^O`, `shift+tab`→`⇧⇥`), `DEFAULT_BINDINGS` grouped by `KeyContext` (global/transcript/composer/palette/at-palette/modal/tabs), `useKeybinding(action, handler, {isActive})` + cached merged chord map, optional `~/.vanta/keybindings.json` overrides (zod-validated, fail-soft). `ui/help-panel.tsx` renders from the registry. (Composer emacs/readline + history edge-fall-through already existed.) **Not** done vs the stricter VANTA-KEYBINDING-* roadmap cards: no hot-reload watcher, no `/doctor` report, no conflict warnings.
 - **Layout & mission-control (P4, opt-in):** `ui/app.tsx` `<Static>` + live bottom rows. `ui/cockpit-panel.tsx` — tabbed Kernel verdict ladder / live Goals / live Loops (`gatherCockpitData` in `tui/mission-control/cockpit-data.ts`: getGoals + listDefs/loadState/openEscalations, best-effort), opened via `/cockpit`, switched by the `tabs` keybinding context. `ui/transcript.tsx` `toolGroupRole` brackets consecutive tool calls into one ┌│└ block. ⇧⇥ approval-cycle suppressed while an overlay is open so tabs owns ⇧⇥. **Note:** this is a lighter opt-in overlay, NOT the TUI-V2 card's always-on 3-column rail surface (that card stays open).
 - **Env:** documented `VANTA_THEME` / `VANTA_SPINNER` / `VANTA_VIM` + `~/.vanta/keybindings.json` in `.env.example`.
 
@@ -378,7 +378,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 Autonomous roadmap-grind session: 20 cards shipped (statuses + per-card notes in `roadmap.json`). **1216 TS + 27 Rust tests green; tsc clean; 46 registered tools.** New files are in the file-map table above. Highlights:
 
-- **Code-size discipline:** CODE-SIZE-GATE (`lint/size.ts` analyzeSource via TS compiler API: file≤300/fn≤50/params≤4/cx≤10) → `vanta lint [--staged]` + warn-only pre-commit (`VANTA_LINT_BLOCK=1` enforces) + **in-agent**: `write_file` runs the gate on every TS write and surfaces violations in the result so the agent born-small/self-corrects. Surfaced 85 pre-existing violations (debt for a paydown card). CC-EDITOR (`editor/open.ts` + `vanta open` + `/open`).
+- **Code-size discipline:** CODE-SIZE-GATE (`lint/size.ts` analyzeSource via TS compiler API: file≤300/fn≤50/params≤4/cx≤10) → `vanta lint [--staged]` + warn-only pre-commit (`VANTA_LINT_BLOCK=1` enforces) + **in-agent**: `write_file` runs the gate on every TS write and surfaces violations in the result so the agent born-small/self-corrects. Surfaced 85 pre-existing violations (debt for a paydown card). VANTA-EDITOR (`editor/open.ts` + `vanta open` + `/open`).
 - (earlier in the session):
 
 - **Continuity:** `repl/handoff-cmd.ts` (`/handoff` + shared `assembleHandoff`) + `repl/auto-handoff.ts` (AUTO-HANDOFF: writes `.vanta/handoff.md` at context fill ≥ threshold, `prepareRun` reloads + consumes it on interactive launches only — gated on `instruction === "interactive session"`).
@@ -388,6 +388,6 @@ Autonomous roadmap-grind session: 20 cards shipped (statuses + per-card notes in
 - **Prompt rules:** rule 10 = Voice (BEHAVIOR-VOICE); rules 1/4/7 folded in REF-FIDELITY / VERIFY-RIGHT + BETTER-ENDINGS / TRUST-LABELS (no new rule numbers — folding avoids prompt bloat).
 - **Tooling:** `roadmap_add` tool + `roadmap/add.ts`.
 
-**Env added:** `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh) · `VANTA_LINT_BLOCK` (pre-commit size enforce) · `VANTA_EDITOR` (CC-EDITOR). All documented in `.env.example`.
+**Env added:** `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh) · `VANTA_LINT_BLOCK` (pre-commit size enforce) · `VANTA_EDITOR` (VANTA-EDITOR). All documented in `.env.example`.
 
 **Gotcha:** run `git` from the repo ROOT — the `tsx`/test commands `cd` into `vanta-ts/` and the shell cwd persists. `roadmap.html` is gitignored (regenerate via `roadmap/build.ts buildRoadmap`).

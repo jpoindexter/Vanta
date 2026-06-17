@@ -1,7 +1,6 @@
 mod app;
 mod approvals;
 mod audit;
-mod bridge;
 mod goals;
 mod jsonv;
 mod loops;
@@ -41,18 +40,6 @@ fn main() {
             let text = args.collect::<Vec<_>>().join(" ");
             app::log_event(&state, &text)
         }
-        "bridge" => match args.next().as_deref() {
-            Some("status") => {
-                println!("{}", bridge::detect_agent_bridge().to_json());
-                Ok(())
-            }
-            Some("plan") => {
-                let prompt = args.collect::<Vec<_>>().join(" ");
-                println!("{}", bridge::plan_prompt(&state.root, &prompt).to_json());
-                Ok(())
-            }
-            _ => Err("try: bridge status | bridge plan <prompt>".to_string()),
-        },
         "approvals" => match args.next().as_deref() {
             Some("propose") => {
                 let text = args.collect::<Vec<_>>().join(" ");
@@ -101,7 +88,7 @@ fn main() {
             server::serve(state, port)
         }
         _ => Err(format!(
-            "unknown command: {command}\ntry: doctor | assess | scope | log | bridge | approvals | goals | run | serve | audit"
+            "unknown command: {command}\ntry: doctor | assess | scope | log | approvals | goals | run | serve | audit"
         )),
     };
 

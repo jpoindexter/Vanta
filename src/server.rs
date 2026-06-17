@@ -1,4 +1,4 @@
-use crate::{app, approvals, bridge, goals, loops, runtime, safety};
+use crate::{app, approvals, goals, loops, runtime, safety};
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
@@ -30,17 +30,9 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
         json(
             stream,
             &format!(
-                "{{\"status\":\"ready\",\"root\":\"{}\",\"bridge\":{}}}",
-                app::esc(&state.root.display().to_string()),
-                bridge::detect_agent_bridge().to_json()
+                "{{\"status\":\"ready\",\"root\":\"{}\"}}",
+                app::esc(&state.root.display().to_string())
             ),
-        )
-    } else if head.starts_with("GET /api/bridge/status") {
-        json(stream, &bridge::detect_agent_bridge().to_json())
-    } else if head.starts_with("POST /api/bridge/plan") {
-        json(
-            stream,
-            &bridge::plan_prompt(&state.root, body.trim()).to_json(),
         )
     } else if head.starts_with("GET /api/approvals") {
         json(stream, &approvals::list_file_json(state)?)

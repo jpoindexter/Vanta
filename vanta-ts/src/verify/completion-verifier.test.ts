@@ -48,7 +48,7 @@ describe("runCompletionVerifier", () => {
     const provider = new ReplyProvider("YES - files were written and tests passed.");
     const result = await runCompletionVerifier(turn, {
       provider,
-      goals: [{ id: 1, text: "Implement CC-VERIFICATION-AGENT", status: "active" }],
+      goals: [{ id: 1, text: "Implement VANTA-VERIFICATION-AGENT", status: "active" }],
       env: { VANTA_VERIFY: "1" },
     });
 
@@ -60,7 +60,7 @@ describe("runCompletionVerifier", () => {
     const provider = new ReplyProvider("NO - no targeted test output is present.");
     const result = await runCompletionVerifier(turn, {
       provider,
-      goals: [{ id: 1, text: "Implement CC-VERIFICATION-AGENT", status: "active" }],
+      goals: [{ id: 1, text: "Implement VANTA-VERIFICATION-AGENT", status: "active" }],
       env: { VANTA_VERIFY: "1" },
     });
 

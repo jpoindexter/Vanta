@@ -61,7 +61,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 | Computer-use (desktop control) | `cua-driver` | Browser tools + screenshot/vision | ⬜ | Horizon; browser covers web |
 | LSP | status/list/install | LSP tools (.ts/.tsx via TS compiler API) | ✅ | |
 | Cron / scheduled jobs | `cron` / scheduled jobs | `vanta cron` + schedule runner | ✅ | |
-| Hooks | Shell-script, list/test/revoke | Claude Code hooks integration (shipped) | 🟡 | Revokeable user hooks = later (CC-HOOKS, M, next) |
+| Hooks | Shell-script, list/test/revoke | Claude Code hooks integration (shipped) | 🟡 | Revokeable user hooks = later (VANTA-HOOKS, M, next) |
 | Prompt-size breakdown | CLI breakdown command | Prompt tiers, no breakdown cmd | ❌ | → CLI-DX-PACK |
 | RL datagen pipeline | batch_runner, mini-swe, trajectory | none | ⬜ | Operator, not a training harvester — off-thesis |
 
@@ -141,7 +141,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 
 | Capability area | Prior agent | Vanta | Status | Notes |
 |---|---|---|---|---|
-| Rich slash command set | ~75 commands + skills | ~37 commands (help/clear/model/tools/skills/status/goals/sessions/resume/cron + all EF set) | 🟡 | TUI parity track: 7 items in next (THINK-FOLD, TUI-V2-PALETTE, TUI-V2-RAILS, TUI-KEYS, TUI-SELECT, CC-TRANSCRIPT, CC-TODO) |
+| Rich slash command set | ~75 commands + skills | ~37 commands (help/clear/model/tools/skills/status/goals/sessions/resume/cron + all EF set) | 🟡 | TUI parity track: 7 items in next (THINK-FOLD, TUI-V2-PALETTE, TUI-V2-RAILS, TUI-KEYS, TUI-SELECT, VANTA-TRANSCRIPT, VANTA-TODO) |
 | Streaming deltas | `stream_dispatch.py` | `LLMProvider.stream()` + TUI deltas | ✅ | |
 | Multi-session switcher | Live session switcher overlay | Single session in process | 🟡 | By design (single trusted operator) |
 
@@ -159,7 +159,7 @@ Nine actionable missing items — all have roadmap cards, all status `next`:
 8. **CLI-DX-PACK** — Bundles: shell completion, prompt-size, send, recap, backup. Small, sand.
 9. **MODEL-CMD** — CLI provider/model pulldown (complements TUI picker). Small, sand.
 
-Thirteen partial items have narrower follow-on cards (SKILL-UMBRELLA, HP-21-PLATFORMS, HP-MCP-CATALOG-PICKER, CC-HOOKS, etc.) and are covered by existing roadmap entries.
+Thirteen partial items have narrower follow-on cards (SKILL-UMBRELLA, HP-21-PLATFORMS, HP-MCP-CATALOG-PICKER, VANTA-HOOKS, etc.) and are covered by existing roadmap entries.
 
 Six "missing" items are deliberate skips (Bitwarden, pairing codes, computer-use desktop, RL datagen, plugin framework, infographic) — off-thesis for a local trusted operator.
 

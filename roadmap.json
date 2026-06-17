@@ -2,7 +2,7 @@
   "updated": "2026-06-17",
   "items": [
     {
-      "id": "CC-SESSION-MEMORY-SVC",
+      "id": "VANTA-SESSION-MEMORY-SVC",
       "track": "Harness",
       "title": "Session Memory service — background LLM notes file maintained during conversation",
       "status": "shipped",
@@ -17,7 +17,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-STREAMING-TOOL-EXEC",
+      "id": "VANTA-STREAMING-TOOL-EXEC",
       "track": "Harness",
       "title": "Streaming tool execution — start tools as tool_use blocks arrive in stream",
       "status": "shipped",
@@ -32,7 +32,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-MESSAGE-DISPLAY",
+      "id": "VANTA-HOOK-MESSAGE-DISPLAY",
       "track": "Harness",
       "title": "`MessageDisplay` hook event — transform or hide assistant messages before rendering",
       "status": "shipped",
@@ -47,7 +47,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOKS-ENGINE",
+      "id": "VANTA-HOOKS-ENGINE",
       "track": "Harness",
       "title": "Hooks engine — shell commands on agent events",
       "status": "shipped",
@@ -61,7 +61,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-GOAL-CMD",
+      "id": "VANTA-GOAL-CMD",
       "track": "Harness",
       "title": "`/goal` — set a completion condition; agent works until it's met",
       "status": "shipped",
@@ -76,7 +76,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-ADDITIONAL-CTX",
+      "id": "VANTA-HOOK-ADDITIONAL-CTX",
       "track": "Harness",
       "title": "Hook `additionalContext` — hooks return context to keep the turn going",
       "status": "shipped",
@@ -91,12 +91,12 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TEAMS",
+      "id": "VANTA-TEAMS",
       "track": "Harness",
       "title": "Teams tool — named multi-agent squads",
       "status": "shipped",
       "size": "L",
-      "summary": "CC has TeamCreateTool/TeamDeleteTool: define a named team of agents with roles, spawn them, coordinate work. More structured than Vanta's delegate/swarm. Add team_create (name + member roles + task) and team_delete; teams persist in .vanta/teams.json and can be addressed by send_message. Depends on CC-SEND-MSG.",
+      "summary": "CC has TeamCreateTool/TeamDeleteTool: define a named team of agents with roles, spawn them, coordinate work. More structured than Vanta's delegate/swarm. Add team_create (name + member roles + task) and team_delete; teams persist in .vanta/teams.json and can be addressed by send_message. Depends on VANTA-SEND-MSG.",
       "done": "`team_create` spins up a named squad of agents with defined roles; `team_delete` tears it down. Teams are addressable via send_message.",
       "tier": "rock",
       "model": "sonnet",
@@ -104,11 +104,11 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "after": [
-        "CC-SEND-MSG"
+        "VANTA-SEND-MSG"
       ]
     },
     {
-      "id": "CC-BG-AGENTS",
+      "id": "VANTA-BG-AGENTS",
       "track": "Harness",
       "title": "Background agent management — agents view, attach, logs, respawn, daemon",
       "status": "shipped",
@@ -123,7 +123,7 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-AUTO-MODE",
+      "id": "VANTA-AUTO-MODE",
       "track": "Harness",
       "title": "Auto permission mode — ML action classification + soft-deny preset",
       "status": "shipped",
@@ -142,7 +142,7 @@
       "title": "Interactive edit-review panel — per-change keep/undo with keyboard nav",
       "status": "shipped",
       "size": "M",
-      "summary": "A review surface for a turn's file edits, modeled on the reference in docs/design-refs/edit-review-panel.png: header 'N files edited · esc when done', per-file diff cards (old/new line numbers, green adds, red removes), focused-card highlight, ↑↓ moves between changes, 'a' keeps, 'z' undoes (kernel-gated restore of the pre-edit content), and an 'Add a follow-up' input that sends straight to the agent. Builds on the existing per-tool diff data (write_file diffs already render in the transcript) and the vendored fork's ScrollBox. Pairs with CC-STRUCTURED-DIFF (horizon) for the renderer; this card is the interaction loop.",
+      "summary": "A review surface for a turn's file edits, modeled on the reference in docs/design-refs/edit-review-panel.png: header 'N files edited · esc when done', per-file diff cards (old/new line numbers, green adds, red removes), focused-card highlight, ↑↓ moves between changes, 'a' keeps, 'z' undoes (kernel-gated restore of the pre-edit content), and an 'Add a follow-up' input that sends straight to the agent. Builds on the existing per-tool diff data (write_file diffs already render in the transcript) and the vendored fork's ScrollBox. Pairs with VANTA-STRUCTURED-DIFF (horizon) for the renderer; this card is the interaction loop.",
       "done": "/changes opens an interactive review overlay: changed files from git (changed-files.ts) with +/- stats, ↑↓ navigate, the selected file diff previews, u=undo (git checkout for tracked / delete for untracked — keypress is the per-action consent), Esc close. Per-file granularity (hunk-level deferred).",
       "tier": "pebble",
       "model": "sonnet",
@@ -184,7 +184,7 @@
       "notes": "Implemented in `vanta-ts/src/ui/v2/` with `MissionControlFrame` + `AppV2`, selected by `selectTuiSurface()` in `src/ui/launch.tsx`. Tests: `src/ui/launch.test.ts`, `src/ui/v2/mission-control.test.tsx`. Default remains v1; `TUI-V2-RAILS` stays open for making every rail value live from session state."
     },
     {
-      "id": "CC-TAB-NAV",
+      "id": "VANTA-TAB-NAV",
       "track": "Operator",
       "title": "Tab navigation — focus management between UI elements",
       "status": "shipped",
@@ -216,7 +216,7 @@
       "notes": "Build: `npm run desktop:build` (Vite). Server root serves built `desktop-app/dist/index.html` + `/assets/*`; fallback tells the user to build. Verified with focused desktop tests, `tsc`, Vite build, curl asset fetch, and headless Chrome screenshot `/private/tmp/vanta-desktop-p3.png`."
     },
     {
-      "id": "CC-PERM-PER-TOOL-UI",
+      "id": "VANTA-PERM-PER-TOOL-UI",
       "track": "Operator",
       "title": "Per-tool permission request UIs — dedicated dialogs per tool type",
       "status": "shipped",
@@ -232,7 +232,7 @@
       "notes": "Current approval callback carries `{toolName, action, reason}` rather than raw tool args/content, so FileEdit/FileWrite dialogs show typed target/change context now; raw diff/full-content preview belongs to later tool-args plumbing. Verified with focused permission UI tests, typecheck, size lint, and Vite build."
     },
     {
-      "id": "CC-TYPEAHEAD",
+      "id": "VANTA-TYPEAHEAD",
       "track": "Operator",
       "title": "Unified @-completion typeahead — files, MCP resources, agents, slash, Slack, shell history",
       "status": "shipped",
@@ -279,7 +279,7 @@
       "notes": "Verified with focused vitest coverage: plugin manifest parsing, enabled user plugin registration, disabled plugin no-import behavior, project plugin trust/env gate, tool namespace/collision/describeForSafety rejection, plugin command dispatch/help, settings parsing, and dispatchTool kernel-block behavior. Also ran neighboring plugin/settings/repl/tools tests and tsc clean."
     },
     {
-      "id": "CC-JSON-SCHEMA",
+      "id": "VANTA-JSON-SCHEMA",
       "track": "Harness",
       "title": "--json-schema — structured output + JSON Schema validation",
       "status": "shipped",
@@ -294,7 +294,7 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-HOOK-MATCHERS",
+      "id": "VANTA-HOOK-MATCHERS",
       "track": "Harness",
       "title": "Hook matcher depth — all conditional hook matchers",
       "status": "shipped",
@@ -308,7 +308,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-API-KEY-HELPER",
+      "id": "VANTA-API-KEY-HELPER",
       "track": "Harness",
       "title": "API key helper script — dynamic API key via shell command or project settings",
       "status": "shipped",
@@ -323,7 +323,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-REWIND",
+      "id": "VANTA-REWIND",
       "track": "Harness",
       "title": "Checkpoint + rewind code & conversation",
       "status": "shipped",
@@ -352,7 +352,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SEND-MSG",
+      "id": "VANTA-SEND-MSG",
       "track": "Harness",
       "title": "Send message tool — agent-to-agent messaging",
       "status": "shipped",
@@ -366,12 +366,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-HOOKS-CMD",
+      "id": "VANTA-HOOKS-CMD",
       "track": "Harness",
       "title": "/hooks — manage shell hooks from the REPL",
       "status": "shipped",
       "size": "M",
-      "summary": "CC has a /hooks command to list, add, edit, and delete hooks (PreToolUse, PostToolUse, Stop, UserPromptSubmit) from within the session. Vanta has no hook system at all. This card is the config surface — CC-HOOKS-ENGINE (the runtime) is a separate prerequisite card. Add /hooks to list configured hooks and open .vanta/hooks.json for editing.",
+      "summary": "CC has a /hooks command to list, add, edit, and delete hooks (PreToolUse, PostToolUse, Stop, UserPromptSubmit) from within the session. Vanta has no hook system at all. This card is the config surface — VANTA-HOOKS-ENGINE (the runtime) is a separate prerequisite card. Add /hooks to list configured hooks and open .vanta/hooks.json for editing.",
       "done": "`/hooks` lists configured hooks by event type; user can add/remove entries that persist to .vanta/hooks.json.",
       "tier": "pebble",
       "model": "sonnet",
@@ -381,7 +381,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-PR-COMMENTS",
+      "id": "VANTA-PR-COMMENTS",
       "track": "Harness",
       "title": "/pr-comments — view and resolve GitHub PR comments",
       "status": "shipped",
@@ -395,7 +395,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-EFFORT",
+      "id": "VANTA-EFFORT",
       "track": "Harness",
       "title": "Effort levels — --effort flag, effortLevel setting, extended thinking controls",
       "status": "shipped",
@@ -410,7 +410,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-RULES-FILES",
+      "id": "VANTA-RULES-FILES",
       "track": "Harness",
       "title": "Path-scoped rules system — .vanta/rules/ with YAML frontmatter + globs",
       "status": "shipped",
@@ -424,7 +424,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-ACCEPT-EDITS-MODE",
+      "id": "VANTA-ACCEPT-EDITS-MODE",
       "track": "Harness",
       "title": "Accept Edits permission mode — auto-approve filesystem ops without prompt",
       "status": "shipped",
@@ -439,7 +439,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-TEAM-SECRET-GUARD",
+      "id": "VANTA-TEAM-SECRET-GUARD",
       "track": "Harness",
       "title": "Team memory secret scanner — block file edits that introduce secrets to team memory",
       "status": "shipped",
@@ -454,7 +454,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-LSP-DIAGNOSTIC-PUSH",
+      "id": "VANTA-LSP-DIAGNOSTIC-PUSH",
       "track": "Harness",
       "title": "LSP async diagnostic push — publishDiagnostics notifications as conversation attachments",
       "status": "shipped",
@@ -469,7 +469,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-STRUCTURED-OUTPUT-TOOL",
+      "id": "VANTA-STRUCTURED-OUTPUT-TOOL",
       "track": "Harness",
       "title": "StructuredOutput tool — schema-validated JSON output for SDK/non-interactive sessions",
       "status": "shipped",
@@ -484,7 +484,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CRON-DURABLE",
+      "id": "VANTA-CRON-DURABLE",
       "track": "Harness",
       "title": "Durable cron jobs — persist scheduled tasks across session restarts",
       "status": "shipped",
@@ -499,7 +499,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-AGENT-TYPE",
+      "id": "VANTA-HOOK-AGENT-TYPE",
       "track": "Harness",
       "title": "Agent hook type — hooks backed by a full multi-turn LLM agent",
       "status": "next",
@@ -514,7 +514,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-POST-COMPACT-RESTORE",
+      "id": "VANTA-POST-COMPACT-RESTORE",
       "track": "Harness",
       "title": "Post-compact file restoration — re-inject top files and skills after compaction",
       "status": "shipped",
@@ -529,7 +529,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-HISTORY-SNIP",
+      "id": "VANTA-HISTORY-SNIP",
       "track": "Harness",
       "title": "History snipping — automatic SDK conversation pruning for long-running sessions",
       "status": "shipped",
@@ -544,7 +544,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-VERIFICATION-AGENT",
+      "id": "VANTA-VERIFICATION-AGENT",
       "track": "Harness",
       "title": "Verification agent — built-in agent that auto-verifies task completion",
       "status": "shipped",
@@ -559,7 +559,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-REACTIVE-COMPACT",
+      "id": "VANTA-REACTIVE-COMPACT",
       "track": "Harness",
       "title": "Reactive compact — proactive compaction triggered by context analysis warnings",
       "status": "shipped",
@@ -574,7 +574,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-INIT-CMD",
+      "id": "VANTA-INIT-CMD",
       "track": "Harness",
       "title": "`/init` command — generate a CLAUDE.md project context file",
       "status": "shipped",
@@ -589,7 +589,7 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-TOKEN-COUNT-API",
+      "id": "VANTA-TOKEN-COUNT-API",
       "track": "Harness",
       "title": "Token count API — pre-compute context size before API call (Anthropic/Bedrock/Vertex)",
       "status": "shipped",
@@ -604,7 +604,7 @@
       "updated": "2026-06-16"
     },
     {
-      "id": "CC-BG-FLAG-PRESERVE",
+      "id": "VANTA-BG-FLAG-PRESERVE",
       "track": "Harness",
       "title": "`/bg` flag preservation — backgrounded sessions keep all startup flags",
       "status": "next",
@@ -619,7 +619,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-MCP-TOOL-TYPE",
+      "id": "VANTA-HOOK-MCP-TOOL-TYPE",
       "track": "Harness",
       "title": "Hook MCP tool invocation — `type: 'mcp_tool'` in hook config calls MCP tools directly",
       "status": "shipped",
@@ -634,7 +634,7 @@
       "updated": "2026-06-16"
     },
     {
-      "id": "CC-ADVISOR-ESCALATE",
+      "id": "VANTA-ADVISOR-ESCALATE",
       "track": "Harness",
       "title": "Advisor escalation — read-only stronger model after repeated failure",
       "status": "shipped",
@@ -649,12 +649,12 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-HOOK-TYPES",
+      "id": "VANTA-HOOK-TYPES",
       "track": "Harness",
       "title": "Hook type parity — http, mcp_tool, prompt, agent hook types",
       "status": "next",
       "size": "M",
-      "summary": "CC has 5 hook types: command (shell), http (POST to remote endpoint), mcp_tool (call a tool on an MCP server), prompt (send a prompt to Claude for evaluation), and agent (spawn a subagent with tools). Vanta's CC-HOOKS-ENGINE covers command hooks; the other 4 types are unimplemented.",
+      "summary": "CC has 5 hook types: command (shell), http (POST to remote endpoint), mcp_tool (call a tool on an MCP server), prompt (send a prompt to Claude for evaluation), and agent (spawn a subagent with tools). Vanta's VANTA-HOOKS-ENGINE covers command hooks; the other 4 types are unimplemented.",
       "done": "All 5 CC hook types are implemented: command (exists), http (POST with headers + allowedEnvVars), mcp_tool (call a named MCP tool), prompt (evaluate with a model), and agent (spawn a tool-enabled subagent); all respect the timeout + once + statusMessage fields.",
       "tier": "pebble",
       "model": "sonnet",
@@ -663,7 +663,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-HOOK-EVENTS",
+      "id": "VANTA-HOOK-EVENTS",
       "track": "Harness",
       "title": "Extended hook event coverage — all 30 CC hook events",
       "status": "next",
@@ -677,7 +677,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-TOOL-LOADER",
+      "id": "VANTA-TOOL-LOADER",
       "track": "Operator",
       "title": "ToolUseLoader — dedicated loading animation per tool call",
       "status": "next",
@@ -691,7 +691,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-TUI-FULLSCREEN-CMD",
+      "id": "VANTA-TUI-FULLSCREEN-CMD",
       "track": "Operator",
       "title": "`/tui` — toggle fullscreen flicker-free rendering mode in the same session",
       "status": "shipped",
@@ -706,7 +706,7 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-FOCUS-CMD",
+      "id": "VANTA-FOCUS-CMD",
       "track": "Operator",
       "title": "`/focus` command — separate focus view toggle (split from Ctrl+O)",
       "status": "shipped",
@@ -736,7 +736,7 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-SCROLL-DURING-RUN",
+      "id": "VANTA-SCROLL-DURING-RUN",
       "track": "Operator",
       "title": "Scroll up while agent is streaming (normal mode)",
       "status": "shipped",
@@ -751,12 +751,12 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-HIGHLIGHTED-CODE",
+      "id": "VANTA-HIGHLIGHTED-CODE",
       "track": "Operator",
       "title": "Syntax-highlighted code blocks — HighlightedCode with language detection",
       "status": "shipped",
       "size": "S",
-      "summary": "CC's HighlightedCode renders code blocks with full syntax highlighting (language-specific token coloring) and a Fallback for unsupported languages. Vanta shows code in fenced blocks (CC-S-MARKDOWN) but without syntax-token coloring.",
+      "summary": "CC's HighlightedCode renders code blocks with full syntax highlighting (language-specific token coloring) and a Fallback for unsupported languages. Vanta shows code in fenced blocks (VANTA-S-MARKDOWN) but without syntax-token coloring.",
       "done": "Fenced code blocks in the transcript are syntax-highlighted: keyword→accent, string→success, number→warning, comment→dim, plain→primary. Lightweight lossless tokenizer (ui/highlight.ts) for ts/js/json/bash/py/rust/go wired into markdown.tsx. 72 tests green.",
       "tier": "pebble",
       "model": "sonnet",
@@ -766,7 +766,7 @@
       "updated": "2026-06-13"
     },
     {
-      "id": "CC-TRUST-DIALOG",
+      "id": "VANTA-TRUST-DIALOG",
       "track": "Operator",
       "title": "TrustDialog — project trust + MCP server trust confirmation",
       "status": "next",
@@ -780,7 +780,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-AGENT-SUMMARY",
+      "id": "VANTA-AGENT-SUMMARY",
       "track": "Operator",
       "title": "Sub-agent progress summaries — periodic 3-5 word status in footer pill",
       "status": "next",
@@ -811,7 +811,7 @@
     {
       "id": "TUI-IMAGE-CLICKABLE",
       "track": "Operator",
-      "title": "TUI image paste + clickable links and file paths (CC-CLI parity)",
+      "title": "TUI image paste + clickable links and file paths (VANTA-CLI parity)",
       "status": "next",
       "size": "M",
       "summary": "Match Claude Code CLI ergonomics in the Ink TUI. Two parts: (1) paste an image directly into the composer (clipboard → ImageAttachment, like the existing /paste macOS path but on a paste keystroke) so vision works without a file path; (2) make links (http/https) and file paths (incl. file:line) in transcript output clickable — open the URL in the browser / the file in $VANTA_EDITOR (reuse editor/open.ts openInEditor + the file:line parser). OSC-8 hyperlinks where the terminal supports them, with a key-to-open fallback.",
@@ -823,7 +823,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-VIM-MODE",
+      "id": "VANTA-VIM-MODE",
       "track": "Operator",
       "title": "Vim mode — vi keybindings in the composer",
       "status": "next",
@@ -837,12 +837,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-STATUSLINE-RICH",
+      "id": "VANTA-STATUSLINE-RICH",
       "track": "Operator",
       "title": "Rich status line parity — rate limits, lines diff, session name, worktree",
       "status": "next",
       "size": "M",
-      "summary": "CC's StatusLine shows: 5-hour and 7-day rate limit utilization % + resets_at timestamps, lines added/removed in the session, session name, output style name, worktree context, vim mode state, and hooks into the hook system for custom fields. Vanta's status line (CC-S-STATUSLINE shipped) shows model + mode; missing the rest.",
+      "summary": "CC's StatusLine shows: 5-hour and 7-day rate limit utilization % + resets_at timestamps, lines added/removed in the session, session name, output style name, worktree context, vim mode state, and hooks into the hook system for custom fields. Vanta's status line (VANTA-S-STATUSLINE shipped) shows model + mode; missing the rest.",
       "done": "Status line includes rate-limit utilization bars, lines-added/removed delta, session name, worktree indicator, and a hook call point for custom status segments.",
       "tier": "pebble",
       "model": "sonnet",
@@ -851,7 +851,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-SPINNER-TEAMMATE",
+      "id": "VANTA-SPINNER-TEAMMATE",
       "track": "Operator",
       "title": "Teammate spinner tree — parallel agent visualization",
       "status": "next",
@@ -865,12 +865,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-CONTEXT-VIZ",
+      "id": "VANTA-CONTEXT-VIZ",
       "track": "Operator",
       "title": "Context visualization — per-category breakdown + autocompact buffer + suggestions",
       "status": "shipped",
       "size": "M",
-      "summary": "CC's ContextVisualization shows context usage broken down per category (tools, memory, messages, autocompact buffer, etc.) with a CollapseStatus showing what context-collapse did. ContextSuggestions offers proactive actions to reduce context. Vanta shows a context % number (CC-S-CONTEXT shipped) but no breakdown.",
+      "summary": "CC's ContextVisualization shows context usage broken down per category (tools, memory, messages, autocompact buffer, etc.) with a CollapseStatus showing what context-collapse did. ContextSuggestions offers proactive actions to reduce context. Vanta shows a context % number (VANTA-S-CONTEXT shipped) but no breakdown.",
       "done": "/context opens a visual overlay: per-category token breakdown (system/tools/user/assistant/tool-results) with a bar + count + % each, total vs context window in the title. contextBreakdown (pure) + ContextPanel, wired as an overlay kind reading the live convo via getContext. 178 ui tests green.",
       "tier": "pebble",
       "model": "sonnet",
@@ -880,12 +880,12 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-SANDBOX-UI",
+      "id": "VANTA-SANDBOX-UI",
       "track": "Operator",
       "title": "Sandbox settings UI — config, dependencies, doctor, overrides tabs",
       "status": "next",
       "size": "M",
-      "summary": "CC's SandboxSettings UI has 4 tabs: Config (enable/disable, filesystem/network isolation), Dependencies (packages to pre-install), Doctor (health diagnostics), Overrides (per-tool sandbox rules). Pairs with CC-SANDBOX (next). Vanta has no sandbox UI.",
+      "summary": "CC's SandboxSettings UI has 4 tabs: Config (enable/disable, filesystem/network isolation), Dependencies (packages to pre-install), Doctor (health diagnostics), Overrides (per-tool sandbox rules). Pairs with VANTA-SANDBOX (next). Vanta has no sandbox UI.",
       "done": "/sandbox opens the settings UI; Config tab toggles sandbox + isolation levels; Dependencies lists pre-installed packages; Doctor diagnoses issues; Overrides lets specific tools bypass or enforce.",
       "tier": "pebble",
       "model": "sonnet",
@@ -894,7 +894,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-MCP-PANEL",
+      "id": "VANTA-MCP-PANEL",
       "track": "Operator",
       "title": "MCP management panel — list, tool detail, reconnect, elicitation",
       "status": "next",
@@ -908,12 +908,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-HOOKS-CONFIG-UI",
+      "id": "VANTA-HOOKS-CONFIG-UI",
       "track": "Operator",
       "title": "Hooks configuration menu — event/hook/matcher mode selectors",
       "status": "next",
       "size": "M",
-      "summary": "CC's hooks UI has: HooksConfigMenu (list all hooks), SelectEventMode (pick event type), SelectHookMode (pick hook type: command/http/etc), SelectMatcherMode (configure matchers), ViewHookMode (inspect a hook). Pairs with CC-HOOKS-CMD (next) for /hooks command. Vanta will have /hooks but needs this interactive config UI.",
+      "summary": "CC's hooks UI has: HooksConfigMenu (list all hooks), SelectEventMode (pick event type), SelectHookMode (pick hook type: command/http/etc), SelectMatcherMode (configure matchers), ViewHookMode (inspect a hook). Pairs with VANTA-HOOKS-CMD (next) for /hooks command. Vanta will have /hooks but needs this interactive config UI.",
       "done": "/hooks opens the config menu; arrow keys navigate; selecting a hook opens view mode; new hook wizard walks through event → type → matcher → action; all hooks are editable without touching settings.json.",
       "tier": "pebble",
       "model": "sonnet",
@@ -922,7 +922,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-QUICK-OPEN",
+      "id": "VANTA-QUICK-OPEN",
       "track": "Operator",
       "title": "QuickOpenDialog — Ctrl+P fuzzy open for files, sessions, commands",
       "status": "next",
@@ -936,12 +936,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-TASKS-PANEL",
+      "id": "VANTA-TASKS-PANEL",
       "track": "Operator",
       "title": "Task management panel — TaskListV2, background task dialogs",
       "status": "next",
       "size": "M",
-      "summary": "CC has TaskListV2 (live list of all tasks with status badges), BackgroundTasksDialog, BackgroundTask + BackgroundTaskStatus components, plus detail dialogs: AsyncAgentDetailDialog, DreamDetailDialog, InProcessTeammateDetailDialog, RemoteSessionDetailDialog, ShellDetailDialog. Vanta has CC-TASKS-CMD (next) for the /tasks command; this is the full panel UI.",
+      "summary": "CC has TaskListV2 (live list of all tasks with status badges), BackgroundTasksDialog, BackgroundTask + BackgroundTaskStatus components, plus detail dialogs: AsyncAgentDetailDialog, DreamDetailDialog, InProcessTeammateDetailDialog, RemoteSessionDetailDialog, ShellDetailDialog. Vanta has VANTA-TASKS-CMD (next) for the /tasks command; this is the full panel UI.",
       "done": "/tasks opens the panel; each task shows type (agent/shell/remote) + status + elapsed; selecting a task opens the detail dialog with full output log; tasks can be stopped/respawned from the panel.",
       "tier": "pebble",
       "model": "sonnet",
@@ -950,12 +950,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-TEAMS-UI",
+      "id": "VANTA-TEAMS-UI",
       "track": "Operator",
       "title": "Teams UI — TeamsDialog, TeamStatus, task assignment messages",
       "status": "next",
       "size": "M",
-      "summary": "CC has TeamsDialog (create/manage agent teams), TeamStatus (live team state), TaskAssignmentMessage (shows task assignment in transcript), UserTeammateMessage (teammate-to-leader comms). Pairs with CC-TEAMS (next tool). Vanta has no teams management UI.",
+      "summary": "CC has TeamsDialog (create/manage agent teams), TeamStatus (live team state), TaskAssignmentMessage (shows task assignment in transcript), UserTeammateMessage (teammate-to-leader comms). Pairs with VANTA-TEAMS (next tool). Vanta has no teams management UI.",
       "done": "/teams opens TeamsDialog for creating and managing agent teams; running teams show TeamStatus in the spinner area; task assignments and teammate messages appear distinctly in the transcript.",
       "tier": "pebble",
       "model": "sonnet",
@@ -964,12 +964,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-AGENT-DETAIL-UI",
+      "id": "VANTA-AGENT-DETAIL-UI",
       "track": "Operator",
       "title": "Agent management UI — AgentDetail, AgentEditor, AgentsList, AgentsMenu",
       "status": "next",
       "size": "M",
-      "summary": "CC has AgentDetail (full agent view with model/tools/memory), AgentEditor (edit agent config inline), AgentsList + AgentsMenu (browse all defined agents), plus the full creation wizard. Pairs with CC-BG-AGENTS (next) and CC-AGENT-WIZARD (horizon). Vanta has no agent management UI.",
+      "summary": "CC has AgentDetail (full agent view with model/tools/memory), AgentEditor (edit agent config inline), AgentsList + AgentsMenu (browse all defined agents), plus the full creation wizard. Pairs with VANTA-BG-AGENTS (next) and VANTA-AGENT-WIZARD (horizon). Vanta has no agent management UI.",
       "done": "/agents list shows all defined agents; selecting one opens AgentDetail with config; AgentEditor allows inline editing; a ColorPicker and ModelSelector are embedded within the editor.",
       "tier": "pebble",
       "model": "sonnet",
@@ -978,7 +978,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-BASH-IMAGE-OUTPUT",
+      "id": "VANTA-BASH-IMAGE-OUTPUT",
       "track": "Operator",
       "title": "Bash image output — base64 data URI in stdout renders as inline image",
       "status": "next",
@@ -993,7 +993,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PERMISSION-EXPLAINER",
+      "id": "VANTA-PERMISSION-EXPLAINER",
       "track": "Operator",
       "title": "AI-powered permission explanation — risk level + reasoning for tool calls",
       "status": "next",
@@ -1008,7 +1008,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BASH-SHELL-COMPLETION",
+      "id": "VANTA-BASH-SHELL-COMPLETION",
       "track": "Operator",
       "title": "Shell tab-completion in bash input — command, variable, and file suggestions",
       "status": "next",
@@ -1023,7 +1023,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-STATS-CMD",
+      "id": "VANTA-STATS-CMD",
       "track": "Operator",
       "title": "/stats — usage statistics and activity dashboard in-session",
       "status": "next",
@@ -1038,7 +1038,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-ASK-USER-TOOL",
+      "id": "VANTA-ASK-USER-TOOL",
       "track": "Operator",
       "title": "AskUserQuestion tool — structured multi-question UI with options, previews, multi-select",
       "status": "next",
@@ -1053,7 +1053,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-ASCIICAST",
+      "id": "VANTA-ASCIICAST",
       "track": "Operator",
       "title": "Asciicast session recording — record sessions as terminal replay files",
       "status": "next",
@@ -1068,7 +1068,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SCREENSHOT-CLIPBOARD",
+      "id": "VANTA-SCREENSHOT-CLIPBOARD",
       "track": "Operator",
       "title": "Screenshot to clipboard — copy ANSI terminal output as PNG image",
       "status": "next",
@@ -1083,7 +1083,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PDF-READ",
+      "id": "VANTA-PDF-READ",
       "track": "Operator",
       "title": "PDF reading — extract text from PDFs as context with size/error handling",
       "status": "next",
@@ -1098,7 +1098,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENT-EDITOR",
+      "id": "VANTA-AGENT-EDITOR",
       "track": "Operator",
       "title": "In-TUI agent editor — edit agent tools, color, model, and file from /agents menu",
       "status": "next",
@@ -1113,7 +1113,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENT-SNAPSHOT",
+      "id": "VANTA-AGENT-SNAPSHOT",
       "track": "Operator",
       "title": "Agent memory snapshot — update dialog after custom agent sessions",
       "status": "next",
@@ -1128,7 +1128,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MESSAGE-ACTIONS",
+      "id": "VANTA-MESSAGE-ACTIONS",
       "track": "Operator",
       "title": "Message actions panel — shift+up keybinding to act on previous messages",
       "status": "next",
@@ -1157,7 +1157,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-TEXT-SELECT-TUI",
+      "id": "VANTA-TEXT-SELECT-TUI",
       "track": "Operator",
       "title": "Text selection + clipboard in TUI",
       "status": "next",
@@ -1171,12 +1171,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SETTINGS-PANEL",
+      "id": "VANTA-SETTINGS-PANEL",
       "track": "Operator",
       "title": "Settings panel UI — Config, Status, Usage tabs",
       "status": "next",
       "size": "M",
-      "summary": "CC's Settings UI has four tabs: Config (all settings as an editable form), Status (connection status for providers/MCP/IDE), Usage (token/cost breakdown per session and total). Vanta has /config (CC-CONFIG next) but no full panel UI. The Settings panel makes settings discoverable without editing JSON.",
+      "summary": "CC's Settings UI has four tabs: Config (all settings as an editable form), Status (connection status for providers/MCP/IDE), Usage (token/cost breakdown per session and total). Vanta has /config (VANTA-CONFIG next) but no full panel UI. The Settings panel makes settings discoverable without editing JSON.",
       "done": "/settings opens the panel; Config tab lists all settings with types + current values editable inline; Status tab shows provider/MCP/IDE connection states; Usage tab shows token + cost charts.",
       "tier": "pebble",
       "model": "sonnet",
@@ -1185,12 +1185,12 @@
       "lens": "coding"
     },
     {
-      "id": "CC-VIM-OPERATORS",
+      "id": "VANTA-VIM-OPERATORS",
       "track": "Operator",
       "title": "Vim operator system — text objects, find motions, counts, dot-repeat, yank register",
       "status": "next",
       "size": "M",
-      "summary": "Full vim operator system beyond basic hjkl: operators (d/c/y/>/< with motion), text objects (iw/aw/i''/a''/i(/a(/i[/a[/i{/a{), find motions (f/F/t/T with ; repeat), count prefix (3w, 2dd), dot-repeat (.), yank register, r replace, linewise vs characterwise resolution. Extends CC-VIM-MODE.",
+      "summary": "Full vim operator system beyond basic hjkl: operators (d/c/y/>/< with motion), text objects (iw/aw/i''/a''/i(/a(/i[/a[/i{/a{), find motions (f/F/t/T with ; repeat), count prefix (3w, 2dd), dot-repeat (.), yank register, r replace, linewise vs characterwise resolution. Extends VANTA-VIM-MODE.",
       "done": "Operators with motions and counts work (3dw deletes 3 words); text objects work (ci' changes inside quotes); find motions work (f( moves to next '('); dot-repeat re-applies last change; yank register shared across d/c/y.",
       "tier": "pebble",
       "model": "sonnet",
@@ -1228,7 +1228,7 @@
       "lens": "reach"
     },
     {
-      "id": "CC-RESEARCH-DECOMPOSE",
+      "id": "VANTA-RESEARCH-DECOMPOSE",
       "track": "Solutioning",
       "title": "Query decomposition — parallel research with tool transparency",
       "status": "next",
@@ -1243,7 +1243,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-CLARITY-GATE",
+      "id": "VANTA-CLARITY-GATE",
       "track": "Solutioning",
       "title": "Clarity gate — score instruction, auto-clarify below threshold",
       "status": "next",
@@ -1258,7 +1258,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-LAUNCHPAD",
+      "id": "VANTA-LAUNCHPAD",
       "track": "Solutioning",
       "title": "Launchpad — ground a task in real source docs before acting",
       "status": "next",
@@ -1288,7 +1288,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-PLUGIN-URL",
+      "id": "VANTA-PLUGIN-URL",
       "track": "Extensibility",
       "title": "--plugin-url / --plugin-dir — load plugins from URL or local path",
       "status": "next",
@@ -1302,7 +1302,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-MCP-AUTH",
+      "id": "VANTA-MCP-AUTH",
       "track": "Extensibility",
       "title": "MCP OAuth auth tool — authenticate MCP servers inline",
       "status": "next",
@@ -1316,7 +1316,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-CLAUDE-CODE-HINTS",
+      "id": "VANTA-CLAUDE-CODE-HINTS",
       "track": "Extensibility",
       "title": "claude-code-hint protocol — subprocess plugin recommendations via stderr tag",
       "status": "next",
@@ -1331,7 +1331,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-GENERATE-AGENT",
+      "id": "VANTA-GENERATE-AGENT",
       "track": "Extensibility",
       "title": "AI agent generator — LLM-powered creation of agent definitions from description",
       "status": "next",
@@ -1346,7 +1346,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-CLI",
+      "id": "VANTA-PLUGIN-CLI",
       "track": "Extensibility",
       "title": "`claude plugin` CLI — install/uninstall/enable/disable/update plugins from terminal",
       "status": "next",
@@ -1361,7 +1361,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-SKILLS",
+      "id": "VANTA-MCP-SKILLS",
       "track": "Extensibility",
       "title": "MCP skills — MCP servers can provide slash commands and skills",
       "status": "next",
@@ -1376,7 +1376,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-RUN-SKILL-GEN",
+      "id": "VANTA-RUN-SKILL-GEN",
       "track": "Extensibility",
       "title": "Skill generator skill — built-in skill for creating new skills from description",
       "status": "next",
@@ -1391,7 +1391,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-DESKTOP-IMPORT",
+      "id": "VANTA-MCP-DESKTOP-IMPORT",
       "track": "Extensibility",
       "title": "Import MCP servers from Claude Desktop — one-click import of Claude Desktop MCP config",
       "status": "next",
@@ -1406,7 +1406,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-MONITORS",
+      "id": "VANTA-PLUGIN-MONITORS",
       "track": "Extensibility",
       "title": "Plugin background monitors — auto-armed monitoring scripts per session",
       "status": "next",
@@ -1421,7 +1421,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BUDGET-CAP",
+      "id": "VANTA-BUDGET-CAP",
       "track": "Harness",
       "title": "--max-budget-usd — per-session spend cap",
       "status": "next",
@@ -1435,7 +1435,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-FORK-SESSION",
+      "id": "VANTA-FORK-SESSION",
       "track": "Harness",
       "title": "--fork-session — create a new session ID on resume",
       "status": "shipped",
@@ -1450,7 +1450,7 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-PURGE",
+      "id": "VANTA-PURGE",
       "track": "Harness",
       "title": "vanta project purge — delete local project state",
       "status": "next",
@@ -1464,7 +1464,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SAFE-MODE",
+      "id": "VANTA-SAFE-MODE",
       "track": "Harness",
       "title": "--safe-mode + --bare — troubleshooting isolation modes",
       "status": "next",
@@ -1478,7 +1478,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-INIT-FLAGS",
+      "id": "VANTA-INIT-FLAGS",
       "track": "Harness",
       "title": "--init / --init-only / --maintenance — lifecycle hook flags",
       "status": "shipped",
@@ -1493,7 +1493,7 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-SETTINGS-GIT",
+      "id": "VANTA-SETTINGS-GIT",
       "track": "Harness",
       "title": "Git settings parity — attribution, PR template, gitignore",
       "status": "next",
@@ -1507,7 +1507,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MD-IMPORTS",
+      "id": "VANTA-MD-IMPORTS",
       "track": "Harness",
       "title": "CLAUDE.md / VANTA.md @-import syntax — include external files by reference",
       "status": "next",
@@ -1521,7 +1521,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-FROM-PR",
+      "id": "VANTA-FROM-PR",
       "track": "Harness",
       "title": "--from-pr — resume sessions linked to a specific pull request",
       "status": "next",
@@ -1535,7 +1535,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-SESSION-CLEANUP",
+      "id": "VANTA-SESSION-CLEANUP",
       "track": "Harness",
       "title": "Session cleanup period — cleanupPeriodDays setting",
       "status": "next",
@@ -1549,7 +1549,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-WEBFETCH-SKIP",
+      "id": "VANTA-WEBFETCH-SKIP",
       "track": "Harness",
       "title": "skipWebFetchPreflight — bypass web fetch domain safety check",
       "status": "next",
@@ -1563,7 +1563,7 @@
       "lens": "reach"
     },
     {
-      "id": "CC-TASKS-CMD",
+      "id": "VANTA-TASKS-CMD",
       "track": "Harness",
       "title": "/tasks slash command — list and manage background tasks from the REPL",
       "status": "next",
@@ -1577,7 +1577,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-DESCRIBE-CMD",
+      "id": "VANTA-DESCRIBE-CMD",
       "track": "Harness",
       "title": "/describe slash command — generate file and directory descriptions",
       "status": "next",
@@ -1591,7 +1591,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-STOP-CMD",
+      "id": "VANTA-STOP-CMD",
       "track": "Harness",
       "title": "/stop slash command — gracefully stop the current agent turn",
       "status": "next",
@@ -1605,7 +1605,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-PR-STATUS-POLL",
+      "id": "VANTA-PR-STATUS-POLL",
       "track": "Harness",
       "title": "PR status polling — live review state during session",
       "status": "next",
@@ -1620,7 +1620,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-LOOP",
+      "id": "VANTA-SKILL-LOOP",
       "track": "Harness",
       "title": "/loop — recurring cron task from natural-language interval",
       "status": "next",
@@ -1635,7 +1635,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PREVENT-SLEEP",
+      "id": "VANTA-PREVENT-SLEEP",
       "track": "Harness",
       "title": "macOS caffeinate — prevent system sleep during long operations",
       "status": "next",
@@ -1650,7 +1650,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CONFIG-TOOL",
+      "id": "VANTA-CONFIG-TOOL",
       "track": "Harness",
       "title": "ConfigTool — agent reads and updates user settings during session",
       "status": "next",
@@ -1665,7 +1665,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TOOL-SEARCH-DEFERRED",
+      "id": "VANTA-TOOL-SEARCH-DEFERRED",
       "track": "Harness",
       "title": "ToolSearchTool — on-demand deferred tool loading by keyword",
       "status": "next",
@@ -1680,7 +1680,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CONTEXT-UPGRADE",
+      "id": "VANTA-CONTEXT-UPGRADE",
       "track": "Harness",
       "title": "1M context upgrade prompt — suggest extended-context model when approaching limit",
       "status": "next",
@@ -1695,7 +1695,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-KEYCHAIN-STORAGE",
+      "id": "VANTA-KEYCHAIN-STORAGE",
       "track": "Harness",
       "title": "macOS Keychain credential storage — secure OAuth token persistence",
       "status": "next",
@@ -1710,7 +1710,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-DANGEROUS-PATTERNS",
+      "id": "VANTA-DANGEROUS-PATTERNS",
       "track": "Harness",
       "title": "Dangerous bash patterns — strip interpreter allow-rules at auto-mode entry",
       "status": "next",
@@ -1725,7 +1725,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HISTORY-PASTE-STORE",
+      "id": "VANTA-HISTORY-PASTE-STORE",
       "track": "Harness",
       "title": "Conversation history with large-paste external storage",
       "status": "next",
@@ -1740,7 +1740,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SCRATCHPAD",
+      "id": "VANTA-SCRATCHPAD",
       "track": "Harness",
       "title": "Agent scratchpad directory — gated workspace for temporary files",
       "status": "next",
@@ -1755,7 +1755,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-SSRF-GUARD",
+      "id": "VANTA-HOOK-SSRF-GUARD",
       "track": "Harness",
       "title": "SSRF guard for HTTP hooks — block private/cloud-metadata IPs",
       "status": "next",
@@ -1770,7 +1770,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-FILE-CHANGED-HOOKS",
+      "id": "VANTA-FILE-CHANGED-HOOKS",
       "track": "Harness",
       "title": "FileChanged + CwdChanged hook events — file watcher triggers",
       "status": "next",
@@ -1785,7 +1785,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TEAMMATE-DEFAULT-MODEL",
+      "id": "VANTA-TEAMMATE-DEFAULT-MODEL",
       "track": "Harness",
       "title": "Teammate default model — Opus 4.6 for swarm agents, provider-aware",
       "status": "next",
@@ -1800,7 +1800,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SECURITY-REVIEW-CMD",
+      "id": "VANTA-SECURITY-REVIEW-CMD",
       "track": "Harness",
       "title": "/security-review — built-in security audit of current branch changes",
       "status": "next",
@@ -1815,7 +1815,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CYBER-RISK-INSTRUCTION",
+      "id": "VANTA-CYBER-RISK-INSTRUCTION",
       "track": "Harness",
       "title": "Cyber risk instruction — system prompt section for security task safety",
       "status": "next",
@@ -1830,7 +1830,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BASH-OUTPUT-LIMIT",
+      "id": "VANTA-BASH-OUTPUT-LIMIT",
       "track": "Harness",
       "title": "Shell output size limits — 30K default, 150K cap, BASH_MAX_OUTPUT_LENGTH override",
       "status": "next",
@@ -1845,7 +1845,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SETTINGS-HOT-RELOAD",
+      "id": "VANTA-SETTINGS-HOT-RELOAD",
       "track": "Harness",
       "title": "Settings live reload — detect and apply settings changes without restart",
       "status": "next",
@@ -1860,7 +1860,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CROSS-PROJECT-RESUME",
+      "id": "VANTA-CROSS-PROJECT-RESUME",
       "track": "Harness",
       "title": "Cross-project session resume — resume sessions from different projects",
       "status": "next",
@@ -1875,7 +1875,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-COMMIT-ATTRIBUTION",
+      "id": "VANTA-COMMIT-ATTRIBUTION",
       "track": "Harness",
       "title": "Commit attribution — track CC-modified files for git co-authorship",
       "status": "next",
@@ -1890,7 +1890,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CONCURRENT-SESSIONS",
+      "id": "VANTA-CONCURRENT-SESSIONS",
       "track": "Harness",
       "title": "Concurrent session management — track multiple running CC instances",
       "status": "next",
@@ -1905,7 +1905,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-PROMPT-TYPE",
+      "id": "VANTA-HOOK-PROMPT-TYPE",
       "track": "Harness",
       "title": "Prompt hook type — hooks backed by a single LLM query",
       "status": "next",
@@ -1920,7 +1920,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-FRONTMATTER",
+      "id": "VANTA-HOOK-FRONTMATTER",
       "track": "Harness",
       "title": "Frontmatter hooks — agents and skills declare hooks in YAML frontmatter",
       "status": "next",
@@ -1935,7 +1935,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-ONCE",
+      "id": "VANTA-HOOK-ONCE",
       "track": "Harness",
       "title": "Once-only hooks — `once: true` hooks auto-deregister after first fire",
       "status": "next",
@@ -1950,7 +1950,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-EXIT-CODES",
+      "id": "VANTA-HOOK-EXIT-CODES",
       "track": "Harness",
       "title": "Hook exit code semantics — exit 0 silent, exit 2 blocks + shows model, other shows user",
       "status": "next",
@@ -1965,7 +1965,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AUTO-UPDATER",
+      "id": "VANTA-AUTO-UPDATER",
       "track": "Harness",
       "title": "CLI auto-updater — version notification + background update with semver comparison",
       "status": "next",
@@ -1980,7 +1980,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-DEFERRED-SESSION-HOOKS",
+      "id": "VANTA-DEFERRED-SESSION-HOOKS",
       "track": "Harness",
       "title": "Deferred SessionStart hooks — async hook execution without blocking REPL startup",
       "status": "next",
@@ -1995,7 +1995,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MEMORY-WARN",
+      "id": "VANTA-MEMORY-WARN",
       "track": "Harness",
       "title": "Memory usage monitor — high/critical heap warnings at 1.5GB / 2.5GB",
       "status": "next",
@@ -2010,7 +2010,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TOKEN-BUDGET-PARSE",
+      "id": "VANTA-TOKEN-BUDGET-PARSE",
       "track": "Harness",
       "title": "Token budget directives — parse +500k / use 2M tokens from user messages",
       "status": "next",
@@ -2025,7 +2025,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PARALLEL-TOOL-EXEC",
+      "id": "VANTA-PARALLEL-TOOL-EXEC",
       "track": "Harness",
       "title": "Parallel tool execution — concurrent read-only tool calls with configurable cap",
       "status": "next",
@@ -2040,7 +2040,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-VCR-MODE",
+      "id": "VANTA-VCR-MODE",
       "track": "Harness",
       "title": "VCR record/replay — record API request/response cassettes for test replay",
       "status": "next",
@@ -2055,7 +2055,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-API-PRECONNECT",
+      "id": "VANTA-API-PRECONNECT",
       "track": "Harness",
       "title": "API preconnect — pre-warm TCP+TLS during startup for 100-200ms first-request savings",
       "status": "next",
@@ -2070,7 +2070,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-THINKING-ADAPTIVE",
+      "id": "VANTA-THINKING-ADAPTIVE",
       "track": "Harness",
       "title": "Adaptive thinking mode — let model self-budget tokens + `ultrathink` max-budget keyword",
       "status": "next",
@@ -2085,7 +2085,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-TIMING",
+      "id": "VANTA-HOOK-TIMING",
       "track": "Harness",
       "title": "Hook timing indicator — show elapsed time when hooks take >500ms",
       "status": "next",
@@ -2100,7 +2100,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-UNDERCOVER-MODE",
+      "id": "VANTA-UNDERCOVER-MODE",
       "track": "Harness",
       "title": "Undercover mode — safety strip for public/open-source repo contributions",
       "status": "next",
@@ -2115,7 +2115,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SESSION-ENV",
+      "id": "VANTA-SESSION-ENV",
       "track": "Harness",
       "title": "/env — set session-scoped environment variables for child processes",
       "status": "next",
@@ -2130,7 +2130,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PRIVACY-LEVELS",
+      "id": "VANTA-PRIVACY-LEVELS",
       "track": "Harness",
       "title": "Privacy levels — default/no-telemetry/essential-traffic to control network traffic",
       "status": "next",
@@ -2145,7 +2145,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-INTERLEAVED-THINKING",
+      "id": "VANTA-INTERLEAVED-THINKING",
       "track": "Harness",
       "title": "Interleaved thinking — thinking tokens between tool calls, not just before response",
       "status": "next",
@@ -2160,7 +2160,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MODEL-TIER-OVERRIDE",
+      "id": "VANTA-MODEL-TIER-OVERRIDE",
       "track": "Harness",
       "title": "Model tier env overrides — pin opus/sonnet/haiku to specific model versions",
       "status": "next",
@@ -2175,7 +2175,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SHADOWED-RULE-DETECT",
+      "id": "VANTA-SHADOWED-RULE-DETECT",
       "track": "Harness",
       "title": "Shadowed permission rule detection — warn about unreachable allow/deny rules",
       "status": "next",
@@ -2190,7 +2190,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TOOL-SEARCH-AUTO",
+      "id": "VANTA-TOOL-SEARCH-AUTO",
       "track": "Harness",
       "title": "Auto tool-search mode — defer tools only when they exceed the context threshold",
       "status": "next",
@@ -2205,7 +2205,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BARE-MODE",
+      "id": "VANTA-BARE-MODE",
       "track": "Harness",
       "title": "`--bare` mode — minimal output format for scripting and pipelines",
       "status": "next",
@@ -2220,7 +2220,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PROMPT-CACHE-BREAK",
+      "id": "VANTA-PROMPT-CACHE-BREAK",
       "track": "Harness",
       "title": "Prompt cache break detection — detect invalidation, trigger microcompact cleanup",
       "status": "next",
@@ -2235,7 +2235,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-DUMP-SYS-PROMPT",
+      "id": "VANTA-DUMP-SYS-PROMPT",
       "track": "Harness",
       "title": "--dump-system-prompt — CLI flag to print the assembled system prompt and exit",
       "status": "next",
@@ -2250,7 +2250,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CD-CMD",
+      "id": "VANTA-CD-CMD",
       "track": "Harness",
       "title": "`/cd` — change working directory mid-session without breaking prompt cache",
       "status": "next",
@@ -2265,7 +2265,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-PERM-DENIED",
+      "id": "VANTA-HOOK-PERM-DENIED",
       "track": "Harness",
       "title": "`PermissionDenied` hook — fire on auto-mode classifier denials with retry option",
       "status": "next",
@@ -2280,7 +2280,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-EXEC-FORM",
+      "id": "VANTA-HOOK-EXEC-FORM",
       "track": "Harness",
       "title": "Hook exec form — `args: string[]` spawns hook directly without a shell",
       "status": "next",
@@ -2295,7 +2295,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-CONTINUE-BLOCK",
+      "id": "VANTA-HOOK-CONTINUE-BLOCK",
       "track": "Harness",
       "title": "Hook `continueOnBlock` — feed PostToolUse rejection reason back to model",
       "status": "next",
@@ -2310,7 +2310,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SANDBOX-NETWORK-DENY",
+      "id": "VANTA-SANDBOX-NETWORK-DENY",
       "track": "Harness",
       "title": "`sandbox.network.deniedDomains` — block specific domains under a broader allowlist",
       "status": "next",
@@ -2325,7 +2325,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-ULTRACODE-TRIGGER",
+      "id": "VANTA-ULTRACODE-TRIGGER",
       "track": "Harness",
       "title": "Ultracode trigger keyword — `ultracode` in prompt launches dynamic workflow",
       "status": "next",
@@ -2340,7 +2340,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BG-RESPOND-CONTINUE",
+      "id": "VANTA-BG-RESPOND-CONTINUE",
       "track": "Harness",
       "title": "`/bg` while responding — active response continues in background, not dropped",
       "status": "next",
@@ -2355,7 +2355,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HOOK-SESSION-TITLE",
+      "id": "VANTA-HOOK-SESSION-TITLE",
       "track": "Harness",
       "title": "Hook `sessionTitle` output — `UserPromptSubmit` hooks can set the session title",
       "status": "next",
@@ -2370,7 +2370,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-GREP-READ-EDIT",
+      "id": "VANTA-GREP-READ-EDIT",
       "track": "Harness",
       "title": "grep satisfies read-before-edit — single-file grep counts as a read for Edit tool",
       "status": "next",
@@ -2385,7 +2385,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-LESS-PERMS-SKILL",
+      "id": "VANTA-LESS-PERMS-SKILL",
       "track": "Harness",
       "title": "`/less-permission-prompts` — scan transcript and propose read-only allow rules",
       "status": "next",
@@ -2400,7 +2400,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SHELL-STARTUP-WRITE-PROMPT",
+      "id": "VANTA-SHELL-STARTUP-WRITE-PROMPT",
       "track": "Harness",
       "title": "Shell startup file write prompt — confirm before writing `.zshenv`, `.bash_login`, etc.",
       "status": "next",
@@ -2415,7 +2415,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PROACTIVE-ALIAS",
+      "id": "VANTA-PROACTIVE-ALIAS",
       "track": "Harness",
       "title": "`/proactive` alias for `/loop` — proactive autonomy mode discoverability",
       "status": "next",
@@ -2430,7 +2430,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-ACCEPTEDITS-HUSKY",
+      "id": "VANTA-ACCEPTEDITS-HUSKY",
       "track": "Harness",
       "title": "`.husky` in acceptEdits protected dirs — git hooks directory is write-protected",
       "status": "next",
@@ -2445,7 +2445,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-MONITOR",
+      "id": "VANTA-MONITOR",
       "track": "Harness",
       "title": "Monitor tool — reactive line-by-line command monitoring",
       "status": "next",
@@ -2459,7 +2459,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-EXEC-BG",
+      "id": "VANTA-EXEC-BG",
       "track": "Harness",
       "title": "--exec — run a shell command as a background job alongside the session",
       "status": "next",
@@ -2473,7 +2473,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-CACHE-HINTS",
+      "id": "VANTA-CACHE-HINTS",
       "track": "Harness",
       "title": "--exclude-dynamic-system-prompt-sections — prompt cache optimization",
       "status": "next",
@@ -2487,7 +2487,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SETTINGS-MEM",
+      "id": "VANTA-SETTINGS-MEM",
       "track": "Harness",
       "title": "Memory settings parity — autoMemory, excludes, plans dir",
       "status": "next",
@@ -2516,7 +2516,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-SWARM-PERM-ROUTING",
+      "id": "VANTA-SWARM-PERM-ROUTING",
       "track": "Harness",
       "title": "Swarm permission routing — workers forward permission asks to lead agent",
       "status": "next",
@@ -2531,7 +2531,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MEM-TEAM",
+      "id": "VANTA-MEM-TEAM",
       "track": "Harness",
       "title": "Team memory directory — shared memory namespace for swarm agents",
       "status": "next",
@@ -2546,7 +2546,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MAGIC-DOCS",
+      "id": "VANTA-MAGIC-DOCS",
       "track": "Harness",
       "title": "Magic Docs — auto-maintained markdown files updated after each turn",
       "status": "next",
@@ -2561,7 +2561,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-COORDINATOR-MODE",
+      "id": "VANTA-COORDINATOR-MODE",
       "track": "Harness",
       "title": "Coordinator mode — env-controlled lead-agent persona with restricted tool set",
       "status": "next",
@@ -2576,7 +2576,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-LSP-TOOL-FULL",
+      "id": "VANTA-LSP-TOOL-FULL",
       "track": "Harness",
       "title": "LSPTool full parity — call hierarchy, find references, hover, document symbols",
       "status": "next",
@@ -2591,7 +2591,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TASK-TOOLS",
+      "id": "VANTA-TASK-TOOLS",
       "track": "Harness",
       "title": "Task management tools — TaskCreate/Get/List/Update/Stop/Output for agent loops",
       "status": "next",
@@ -2606,7 +2606,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SHELL-SNAPSHOT",
+      "id": "VANTA-SHELL-SNAPSHOT",
       "track": "Harness",
       "title": "Shell snapshot — capture aliases, functions, PATH for shell completions",
       "status": "next",
@@ -2621,7 +2621,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BUILTIN-AGENTS",
+      "id": "VANTA-BUILTIN-AGENTS",
       "track": "Harness",
       "title": "Built-in agent types — Explore, Plan, Verification, Claude Code Guide, General Purpose",
       "status": "next",
@@ -2636,7 +2636,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENT-MEMORY",
+      "id": "VANTA-AGENT-MEMORY",
       "track": "Harness",
       "title": "Per-agent-type memory — scoped memory dirs per agent (user/project/local)",
       "status": "next",
@@ -2651,7 +2651,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SWARM-IN-PROCESS",
+      "id": "VANTA-SWARM-IN-PROCESS",
       "track": "Harness",
       "title": "In-process swarm backend — agents share Node.js process via AsyncLocalStorage",
       "status": "next",
@@ -2666,7 +2666,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-READ-ONLY-CMD-MAP",
+      "id": "VANTA-READ-ONLY-CMD-MAP",
       "track": "Harness",
       "title": "Read-only command validation maps — git/gh/shell safe-flag allowlists",
       "status": "next",
@@ -2681,7 +2681,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BASH-SECURITY-BLOCKS",
+      "id": "VANTA-BASH-SECURITY-BLOCKS",
       "track": "Harness",
       "title": "Bash security blocks — process substitution, Zsh expansions, heredoc injection",
       "status": "next",
@@ -2696,7 +2696,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-FORK-SUBAGENT",
+      "id": "VANTA-FORK-SUBAGENT",
       "track": "Harness",
       "title": "Fork subagent — implicit context inheritance when subagent_type omitted",
       "status": "next",
@@ -2711,7 +2711,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SPINNER-STALLED",
+      "id": "VANTA-SPINNER-STALLED",
       "track": "Operator",
       "title": "Stalled spinner animation — visual state change when agent is stuck",
       "status": "next",
@@ -2725,7 +2725,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SPINNER-GLIMMER",
+      "id": "VANTA-SPINNER-GLIMMER",
       "track": "Operator",
       "title": "Glimmer / shimmer text animation during processing",
       "status": "next",
@@ -2739,12 +2739,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MSG-HOOK-PROGRESS",
+      "id": "VANTA-MSG-HOOK-PROGRESS",
       "track": "Operator",
       "title": "Hook progress message — live hook execution in transcript",
       "status": "next",
       "size": "S",
-      "summary": "CC's HookProgressMessage shows hook execution status inline in the transcript (running, completed, error) with the hook name and statusMessage. Vanta will run hooks (CC-HOOKS-ENGINE next) but has no visual feedback for hook execution.",
+      "summary": "CC's HookProgressMessage shows hook execution status inline in the transcript (running, completed, error) with the hook name and statusMessage. Vanta will run hooks (VANTA-HOOKS-ENGINE next) but has no visual feedback for hook execution.",
       "done": "Running hooks show a progress line with hook name + statusMessage; on completion the line updates to success/error; multiple concurrent hooks show stacked.",
       "tier": "sand",
       "model": "sonnet",
@@ -2753,7 +2753,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-MSG-TIMESTAMPS",
+      "id": "VANTA-MSG-TIMESTAMPS",
       "track": "Operator",
       "title": "Message timestamps — per-message time display",
       "status": "next",
@@ -2767,7 +2767,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SHELL-TIMING",
+      "id": "VANTA-SHELL-TIMING",
       "track": "Operator",
       "title": "Shell command timing — elapsed time display per command",
       "status": "next",
@@ -2781,7 +2781,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-CHANNEL-MSG",
+      "id": "VANTA-CHANNEL-MSG",
       "track": "Operator",
       "title": "Channel message display — incoming platform messages in transcript",
       "status": "next",
@@ -2795,12 +2795,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-EFFORT-INDICATOR",
+      "id": "VANTA-EFFORT-INDICATOR",
       "track": "Operator",
       "title": "Effort indicator — visual effort level callout in TUI",
       "status": "next",
       "size": "S",
-      "summary": "CC's EffortCallout + EffortIndicator render the active effort level visually (low/medium/high/xhigh/max) with a colored indicator. Pairs with CC-EFFORT (next) for the flag/setting. Vanta has no effort-level display even once the setting is added.",
+      "summary": "CC's EffortCallout + EffortIndicator render the active effort level visually (low/medium/high/xhigh/max) with a colored indicator. Pairs with VANTA-EFFORT (next) for the flag/setting. Vanta has no effort-level display even once the setting is added.",
       "done": "The status line (or spinner area) shows the active effort level as a colored indicator; /effort <level> changes it with immediate visual feedback.",
       "tier": "sand",
       "model": "sonnet",
@@ -2809,7 +2809,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-BYPASS-DIALOG",
+      "id": "VANTA-BYPASS-DIALOG",
       "track": "Operator",
       "title": "BypassPermissions confirmation dialog — explicit gate for dangerous mode",
       "status": "next",
@@ -2823,12 +2823,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-COST-THRESHOLD-UI",
+      "id": "VANTA-COST-THRESHOLD-UI",
       "track": "Operator",
       "title": "Cost threshold dialog — alert when approaching budget cap",
       "status": "next",
       "size": "S",
-      "summary": "CC's CostThresholdDialog alerts when cumulative session cost approaches a threshold (80% and 100% of --max-budget-usd). Pairs with CC-BUDGET-CAP (next). Without this UI, the agent silently stops at budget without user awareness.",
+      "summary": "CC's CostThresholdDialog alerts when cumulative session cost approaches a threshold (80% and 100% of --max-budget-usd). Pairs with VANTA-BUDGET-CAP (next). Without this UI, the agent silently stops at budget without user awareness.",
       "done": "At 80% of the budget cap, a non-blocking warning shows in the status; at 100%, a dialog offers to continue with a new cap, stop now, or ignore; actual stop behavior is configurable.",
       "tier": "sand",
       "model": "sonnet",
@@ -2837,7 +2837,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-TERMINAL-TITLE",
+      "id": "VANTA-TERMINAL-TITLE",
       "track": "Operator",
       "title": "Terminal window title — session name / active task in title bar",
       "status": "next",
@@ -2851,7 +2851,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-STATUS-NOTICES",
+      "id": "VANTA-STATUS-NOTICES",
       "track": "Operator",
       "title": "Status notices — notices area above the status line",
       "status": "next",
@@ -2865,12 +2865,12 @@
       "lens": "coding"
     },
     {
-      "id": "CC-THINKING-TOGGLE",
+      "id": "VANTA-THINKING-TOGGLE",
       "track": "Operator",
       "title": "ThinkingToggle — dedicated expand/collapse control for reasoning",
       "status": "next",
       "size": "S",
-      "summary": "CC has a standalone ThinkingToggle component separate from the thinking display itself — a dedicated control that toggles all thinking sections at once, with state persisted across the session. CC-S-THINKING (shipped) shows thinking collapsible; this is the persistent global toggle.",
+      "summary": "CC has a standalone ThinkingToggle component separate from the thinking display itself — a dedicated control that toggles all thinking sections at once, with state persisted across the session. VANTA-S-THINKING (shipped) shows thinking collapsible; this is the persistent global toggle.",
       "done": "A ThinkingToggle in the status or footer toggles all thinking sections at once; state persists in settings; keyboard shortcut cycles thinking display (hidden / summary / full).",
       "tier": "sand",
       "model": "sonnet",
@@ -2879,7 +2879,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SKILLS-MENU",
+      "id": "VANTA-SKILLS-MENU",
       "track": "Operator",
       "title": "SkillsMenu — in-TUI skill browser and picker",
       "status": "shipped",
@@ -2894,7 +2894,7 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-ADVISOR-MSG",
+      "id": "VANTA-ADVISOR-MSG",
       "track": "Operator",
       "title": "Advisor message — stronger-model reviewer response in transcript",
       "status": "next",
@@ -2908,7 +2908,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-SHUTDOWN-MSG",
+      "id": "VANTA-SHUTDOWN-MSG",
       "track": "Operator",
       "title": "ShutdownMessage — graceful session end display",
       "status": "next",
@@ -2922,12 +2922,12 @@
       "lens": "memory"
     },
     {
-      "id": "CC-AUTO-MODE-OPTIN",
+      "id": "VANTA-AUTO-MODE-OPTIN",
       "track": "Operator",
       "title": "Auto mode opt-in dialog — confirmation flow for ML permission mode",
       "status": "next",
       "size": "S",
-      "summary": "CC's AutoModeOptInDialog walks users through enabling auto mode with an explanation of how ML classification works, what actions it auto-approves, and a soft_deny preview. Pairs with CC-AUTO-MODE (next). Without this dialog, auto mode activation has no UX scaffolding.",
+      "summary": "CC's AutoModeOptInDialog walks users through enabling auto mode with an explanation of how ML classification works, what actions it auto-approves, and a soft_deny preview. Pairs with VANTA-AUTO-MODE (next). Without this dialog, auto mode activation has no UX scaffolding.",
       "done": "Enabling auto mode shows AutoModeOptInDialog: explains ML classification, shows the soft_deny preset, previews which actions would be auto-approved in the current session, then confirms.",
       "tier": "sand",
       "model": "sonnet",
@@ -2936,12 +2936,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-KEYBINDING-WARNINGS",
+      "id": "VANTA-KEYBINDING-WARNINGS",
       "track": "Operator",
       "title": "KeybindingWarnings — conflict detection and resolution hints",
       "status": "next",
       "size": "S",
-      "summary": "CC's KeybindingWarnings detects and surfaces conflicting keybindings (e.g. user-defined bindings that shadow built-ins) with a notice and suggestions to resolve. Pairs with CC-TMUX (horizon) and TUI-KEYS (next). Without conflict detection, users silently lose bindings.",
+      "summary": "CC's KeybindingWarnings detects and surfaces conflicting keybindings (e.g. user-defined bindings that shadow built-ins) with a notice and suggestions to resolve. Pairs with VANTA-TMUX (horizon) and TUI-KEYS (next). Without conflict detection, users silently lose bindings.",
       "done": "On session start, KeybindingWarnings checks for conflicts; StatusNotices shows a warning for each conflict with the conflicting keys and a resolution hint; /keybindings shows the full conflict report.",
       "tier": "sand",
       "model": "sonnet",
@@ -2950,12 +2950,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-RESOURCE-UPDATE-MSG",
+      "id": "VANTA-RESOURCE-UPDATE-MSG",
       "track": "Operator",
       "title": "Resource update message — MCP resource change in transcript",
       "status": "next",
       "size": "S",
-      "summary": "CC's UserResourceUpdateMessage renders MCP resource subscription updates (when a subscribed MCP resource changes) as a distinct message type in the transcript, showing what changed and from which server. Pairs with CC-MCP-RESOURCES (next).",
+      "summary": "CC's UserResourceUpdateMessage renders MCP resource subscription updates (when a subscribed MCP resource changes) as a distinct message type in the transcript, showing what changed and from which server. Pairs with VANTA-MCP-RESOURCES (next).",
       "done": "When an MCP resource changes, a UserResourceUpdateMessage appears in the transcript: server name, resource URI, and a summary of what changed; these can be filtered from the transcript view.",
       "tier": "sand",
       "model": "sonnet",
@@ -2964,7 +2964,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-KEYBINDING-CONTEXTS",
+      "id": "VANTA-KEYBINDING-CONTEXTS",
       "track": "Operator",
       "title": "Keybinding contexts — 17+ named UI contexts for context-sensitive bindings",
       "status": "next",
@@ -2979,7 +2979,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-OUTPUT-STYLE-DIR",
+      "id": "VANTA-OUTPUT-STYLE-DIR",
       "track": "Operator",
       "title": "Custom output styles via .claude/output-styles/ — markdown-file-defined styles",
       "status": "next",
@@ -2994,7 +2994,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-COPY-CMD",
+      "id": "VANTA-COPY-CMD",
       "track": "Operator",
       "title": "/copy — copy last response as markdown, HTML, or RTF to clipboard",
       "status": "next",
@@ -3009,7 +3009,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PROJECT-ONBOARDING",
+      "id": "VANTA-PROJECT-ONBOARDING",
       "track": "Operator",
       "title": "Project onboarding wizard — first-run step-by-step setup for new workspaces",
       "status": "next",
@@ -3024,7 +3024,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TODO-ACTIVE-FORM",
+      "id": "VANTA-TODO-ACTIVE-FORM",
       "track": "Operator",
       "title": "TodoItem activeForm field — track current action verb in todo items",
       "status": "next",
@@ -3039,7 +3039,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TEAMMATE-COLOR",
+      "id": "VANTA-TEAMMATE-COLOR",
       "track": "Operator",
       "title": "Teammate color coding — unique color per agent in swarm UI",
       "status": "next",
@@ -3054,7 +3054,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-RECONNECT-TOGGLE",
+      "id": "VANTA-MCP-RECONNECT-TOGGLE",
       "track": "Operator",
       "title": "MCP server reconnect + enable/disable toggle in live session",
       "status": "next",
@@ -3069,7 +3069,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SPINNER-VERBS",
+      "id": "VANTA-SPINNER-VERBS",
       "track": "Operator",
       "title": "Custom spinner verbs — user-configurable loading message verbs",
       "status": "next",
@@ -3084,7 +3084,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TERMINAL-SETUP-CMD",
+      "id": "VANTA-TERMINAL-SETUP-CMD",
       "track": "Operator",
       "title": "/terminal-setup — install Shift+Enter keybinding for terminal newlines",
       "status": "next",
@@ -3099,7 +3099,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AWAY-SUMMARY",
+      "id": "VANTA-AWAY-SUMMARY",
       "track": "Operator",
       "title": "Away summary — auto-generate context recap when terminal regains focus after 5+ min",
       "status": "next",
@@ -3114,7 +3114,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-OS-NOTIFY",
+      "id": "VANTA-OS-NOTIFY",
       "track": "Operator",
       "title": "OS system notification — desktop alert after long tool runs when terminal is inactive",
       "status": "next",
@@ -3129,7 +3129,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-COPY-ON-SELECT",
+      "id": "VANTA-COPY-ON-SELECT",
       "track": "Operator",
       "title": "Copy-on-select — auto-copy terminal text selection to clipboard (iTerm2-style)",
       "status": "next",
@@ -3144,7 +3144,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CLIPBOARD-IMAGE-HINT",
+      "id": "VANTA-CLIPBOARD-IMAGE-HINT",
       "track": "Operator",
       "title": "Clipboard image hint — notification on focus when clipboard has an image",
       "status": "next",
@@ -3159,7 +3159,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SESSION-TITLE",
+      "id": "VANTA-SESSION-TITLE",
       "track": "Operator",
       "title": "AI session title — auto-generate session name via Haiku from conversation content",
       "status": "next",
@@ -3174,7 +3174,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TRANSCRIPT-SEARCH",
+      "id": "VANTA-TRANSCRIPT-SEARCH",
       "track": "Operator",
       "title": "In-session transcript search — full-text search across conversation messages",
       "status": "next",
@@ -3189,7 +3189,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-STANDALONE-AGENT-NAME",
+      "id": "VANTA-STANDALONE-AGENT-NAME",
       "track": "Operator",
       "title": "Standalone agent name/color — custom identity for non-swarm agent sessions",
       "status": "next",
@@ -3204,7 +3204,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AUTO-MODE-DENIALS",
+      "id": "VANTA-AUTO-MODE-DENIALS",
       "track": "Operator",
       "title": "Auto-mode denial history — /permissions tab showing recently blocked commands",
       "status": "next",
@@ -3219,7 +3219,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CHROME-GIF-RECORDER",
+      "id": "VANTA-CHROME-GIF-RECORDER",
       "track": "Operator",
       "title": "Chrome automation GIF recorder — capture multi-step browser interactions as GIF",
       "status": "next",
@@ -3234,7 +3234,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-EXAMPLE-COMMANDS",
+      "id": "VANTA-EXAMPLE-COMMANDS",
       "track": "Operator",
       "title": "Smart first-run example commands — git-history-aware prompt suggestions on empty input",
       "status": "next",
@@ -3249,7 +3249,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AUTO-ISSUE",
+      "id": "VANTA-AUTO-ISSUE",
       "track": "Operator",
       "title": "Auto-run /issue — proactive GitHub issue creation with ESC cancellation window",
       "status": "next",
@@ -3264,7 +3264,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PROMPT-EDITOR",
+      "id": "VANTA-PROMPT-EDITOR",
       "track": "Operator",
       "title": "External prompt editor — open $EDITOR to compose multi-line input",
       "status": "next",
@@ -3279,7 +3279,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SHELL-JSON-FORMAT",
+      "id": "VANTA-SHELL-JSON-FORMAT",
       "track": "Operator",
       "title": "Shell output JSON auto-format — pretty-print JSON lines in bash output",
       "status": "next",
@@ -3294,7 +3294,7 @@
       "updated": "2026-06-14"
     },
     {
-      "id": "CC-TERMINAL-HYPERLINKS",
+      "id": "VANTA-TERMINAL-HYPERLINKS",
       "track": "Operator",
       "title": "Terminal hyperlinks — OSC 8 clickable links in tool output and messages",
       "status": "next",
@@ -3309,7 +3309,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-STATS-SPARKLINE",
+      "id": "VANTA-STATS-SPARKLINE",
       "track": "Operator",
       "title": "/stats sparkline charts — ASCII activity charts and heatmap in stats view",
       "status": "next",
@@ -3324,7 +3324,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-HISTORY-PICKER",
+      "id": "VANTA-HISTORY-PICKER",
       "track": "Operator",
       "title": "History picker — searchable input history overlay in the prompt bar",
       "status": "next",
@@ -3339,7 +3339,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-RICH-OUTPUT",
+      "id": "VANTA-MCP-RICH-OUTPUT",
       "track": "Operator",
       "title": "MCP rich output — enhanced rendering for large MCP tool results",
       "status": "next",
@@ -3354,7 +3354,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-NATIVE-CLIPBOARD",
+      "id": "VANTA-NATIVE-CLIPBOARD",
       "track": "Operator",
       "title": "Native clipboard image — capture images without external tools (xclip/pbpaste)",
       "status": "next",
@@ -3369,7 +3369,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AUTO-THEME",
+      "id": "VANTA-AUTO-THEME",
       "track": "Operator",
       "title": "Auto theme — dynamic OS-aware theme switching ('auto' option in theme settings)",
       "status": "next",
@@ -3384,12 +3384,12 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-IDLE-RETURN",
+      "id": "VANTA-IDLE-RETURN",
       "track": "Operator",
       "title": "Idle return dialog — re-engagement prompt after session inactivity",
       "status": "next",
       "size": "S",
-      "summary": "CC shows an `IdleReturnDialog` when the user returns to an idle session. Distinct from the away summary (CC-AWAY-SUMMARY), which generates a recap text — the idle return dialog is an interactive prompt offering to resume, start fresh, or see what happened while away.",
+      "summary": "CC shows an `IdleReturnDialog` when the user returns to an idle session. Distinct from the away summary (VANTA-AWAY-SUMMARY), which generates a recap text — the idle return dialog is an interactive prompt offering to resume, start fresh, or see what happened while away.",
       "done": "After 30+ min idle, returning to the terminal shows a dialog with 'Resume session', 'Start fresh', and 'Show what happened' options.",
       "tier": "sand",
       "model": "sonnet",
@@ -3399,7 +3399,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SANDBOX-VIOLATION",
+      "id": "VANTA-SANDBOX-VIOLATION",
       "track": "Operator",
       "title": "Sandbox violation expanded view — detailed breakdown of blocked sandbox actions",
       "status": "next",
@@ -3414,7 +3414,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-MULTISELECT",
+      "id": "VANTA-MCP-MULTISELECT",
       "track": "Operator",
       "title": "MCP server multiselect dialog — batch-enable project MCP servers",
       "status": "next",
@@ -3429,7 +3429,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-PROJECT-APPROVE",
+      "id": "VANTA-MCP-PROJECT-APPROVE",
       "track": "Operator",
       "title": "MCP project server approval — per-project approval dialog for .mcp.json servers",
       "status": "next",
@@ -3444,7 +3444,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SHELL-HISTORY-COMPLETE",
+      "id": "VANTA-SHELL-HISTORY-COMPLETE",
       "track": "Operator",
       "title": "Shell history ghost text — inline completion from zsh/bash history in prompt input",
       "status": "next",
@@ -3459,7 +3459,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PATH-COMPLETE",
+      "id": "VANTA-PATH-COMPLETE",
       "track": "Operator",
       "title": "File path completion — tab-autocomplete for directory and file paths in prompt",
       "status": "next",
@@ -3474,7 +3474,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-VIM-UNDO-REDO",
+      "id": "VANTA-VIM-UNDO-REDO",
       "track": "Operator",
       "title": "`/undo` as alias for `/rewind` — consistent session rollback UX",
       "status": "next",
@@ -3489,7 +3489,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-USAGE-MERGED",
+      "id": "VANTA-USAGE-MERGED",
       "track": "Operator",
       "title": "`/usage` — merged `/cost` and `/stats` into tabbed view",
       "status": "next",
@@ -3504,7 +3504,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-STATUS-LINE-GITHUB",
+      "id": "VANTA-STATUS-LINE-GITHUB",
       "track": "Operator",
       "title": "Status line GitHub PR info — repo and PR data in status line JSON input",
       "status": "next",
@@ -3519,7 +3519,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CTRL-U-CLEAR-ALL",
+      "id": "VANTA-CTRL-U-CLEAR-ALL",
       "track": "Operator",
       "title": "`Ctrl+U` clears entire input; `Ctrl+Y` restores — readline kill-buffer update",
       "status": "next",
@@ -3534,7 +3534,7 @@
       "updated": "2026-06-10"
     },
     {
-      "id": "CC-SETTINGS-UX",
+      "id": "VANTA-SETTINGS-UX",
       "track": "Operator",
       "title": "Display/UX settings parity — spinner tips, turn duration, away recap, etc.",
       "status": "next",
@@ -3548,12 +3548,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MSG-PLAN-APPROVAL",
+      "id": "VANTA-MSG-PLAN-APPROVAL",
       "track": "Operator",
       "title": "Plan approval message — rendered plan + approve/reject in transcript",
       "status": "next",
       "size": "S",
-      "summary": "CC renders plan-mode plans inline in the transcript with a dashed box border + plan file path reference + approve/reject controls. The approval response also appears as a message. Vanta's plan mode (CC-PLAN-MODE-REAL next) needs this visual layer to be complete.",
+      "summary": "CC renders plan-mode plans inline in the transcript with a dashed box border + plan file path reference + approve/reject controls. The approval response also appears as a message. Vanta's plan mode (VANTA-PLAN-MODE-REAL next) needs this visual layer to be complete.",
       "done": "Plan-mode plans render in a boxed 'planMode' border with markdown content; approve/reject updates the transcript with a response message; plan file path shows dimmed.",
       "tier": "sand",
       "model": "sonnet",
@@ -3562,7 +3562,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MSG-SELECTOR",
+      "id": "VANTA-MSG-SELECTOR",
       "track": "Operator",
       "title": "Message selector — select and copy transcript messages",
       "status": "next",
@@ -3576,7 +3576,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-BASH-IO-MSGS",
+      "id": "VANTA-BASH-IO-MSGS",
       "track": "Operator",
       "title": "Distinct bash input/output message types",
       "status": "next",
@@ -3590,7 +3590,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MEMORY-MGMT-UI",
+      "id": "VANTA-MEMORY-MGMT-UI",
       "track": "Operator",
       "title": "Memory management UI — file selector + update notifications",
       "status": "next",
@@ -3604,12 +3604,12 @@
       "lens": "memory"
     },
     {
-      "id": "CC-EXPORT-DIALOG-UI",
+      "id": "VANTA-EXPORT-DIALOG-UI",
       "track": "Operator",
       "title": "Export dialog — conversation export UI",
       "status": "next",
       "size": "S",
-      "summary": "CC's ExportDialog lets users export the transcript in multiple formats (markdown, JSON, plain text) with options to include/exclude tool calls, thinking, and metadata. Vanta has /export (CC-S-EXPORT shipped) but no format-selection dialog.",
+      "summary": "CC's ExportDialog lets users export the transcript in multiple formats (markdown, JSON, plain text) with options to include/exclude tool calls, thinking, and metadata. Vanta has /export (VANTA-S-EXPORT shipped) but no format-selection dialog.",
       "done": "/export opens a dialog with format options (markdown/JSON/text), include/exclude toggles for tool calls and thinking, and destination (file/clipboard); a preview shows the first N lines of the export.",
       "tier": "sand",
       "model": "sonnet",
@@ -3618,7 +3618,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SESSION-PREVIEW",
+      "id": "VANTA-SESSION-PREVIEW",
       "track": "Operator",
       "title": "Session preview — visual session content preview in resume picker",
       "status": "next",
@@ -3632,7 +3632,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SEARCH-BOX",
+      "id": "VANTA-SEARCH-BOX",
       "track": "Operator",
       "title": "SearchBox — in-transcript search with highlight and navigation",
       "status": "next",
@@ -3646,7 +3646,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-FILE-INDEX",
+      "id": "VANTA-FILE-INDEX",
       "track": "Operator",
       "title": "Background file index — lazy singleton for @-mention completions",
       "status": "next",
@@ -3661,7 +3661,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-KEYBINDING-SYSTEM",
+      "id": "VANTA-KEYBINDING-SYSTEM",
       "track": "Operator",
       "title": "User keybinding customization — ~/.claude/keybindings.json with hot-reload",
       "status": "next",
@@ -3676,7 +3676,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CHORD-BINDINGS",
+      "id": "VANTA-CHORD-BINDINGS",
       "track": "Operator",
       "title": "Chord bindings — multi-keystroke sequences (e.g. ctrl+k ctrl+s)",
       "status": "next",
@@ -3691,7 +3691,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MEM-RELEVANCE-LLM",
+      "id": "VANTA-MEM-RELEVANCE-LLM",
       "track": "Operator",
       "title": "Memory relevance via Sonnet side-query — LLM-selected memory files per turn",
       "status": "next",
@@ -3706,7 +3706,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SESSION-BACKGROUNDING",
+      "id": "VANTA-SESSION-BACKGROUNDING",
       "track": "Operator",
       "title": "Session backgrounding — Ctrl+B to background/foreground running queries",
       "status": "next",
@@ -3721,7 +3721,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PROMPT-SUGGEST-UI",
+      "id": "VANTA-PROMPT-SUGGEST-UI",
       "track": "Operator",
       "title": "In-TUI next-prompt suggestions — tappable predicted prompts after each turn",
       "status": "next",
@@ -3736,7 +3736,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AUTO-DREAM-SVC",
+      "id": "VANTA-AUTO-DREAM-SVC",
       "track": "Operator",
       "title": "Auto-dream — periodic background memory consolidation across sessions",
       "status": "next",
@@ -3751,7 +3751,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-COST-TRACKER-DETAIL",
+      "id": "VANTA-COST-TRACKER-DETAIL",
       "track": "Operator",
       "title": "Detailed session cost tracker — per-model usage, cache tokens, tool+API duration, lines changed",
       "status": "next",
@@ -3766,7 +3766,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENTIC-SESSION-SEARCH",
+      "id": "VANTA-AGENTIC-SESSION-SEARCH",
       "track": "Operator",
       "title": "Agentic session search — LLM-powered semantic search across past sessions",
       "status": "next",
@@ -3781,7 +3781,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-WAIT-MCP",
+      "id": "VANTA-WAIT-MCP",
       "track": "Extensibility",
       "title": "WaitForMcpServers tool — block until MCP connections are ready",
       "status": "next",
@@ -3795,7 +3795,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-RELOAD-PLUGINS",
+      "id": "VANTA-RELOAD-PLUGINS",
       "track": "Extensibility",
       "title": "/reload-plugins — activate plugins installed during the current session",
       "status": "next",
@@ -3809,7 +3809,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-PLUGIN-HINTS",
+      "id": "VANTA-PLUGIN-HINTS",
       "track": "Extensibility",
       "title": "Plugin install hints via <claude-code-hint> — stderr-driven plugin prompts",
       "status": "next",
@@ -3824,7 +3824,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-FILE-ASSETS",
+      "id": "VANTA-SKILL-FILE-ASSETS",
       "track": "Extensibility",
       "title": "Skill companion files — bundled assets extracted to disk on first use",
       "status": "next",
@@ -3839,7 +3839,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-ALLOWEDTOOLS",
+      "id": "VANTA-SKILL-ALLOWEDTOOLS",
       "track": "Extensibility",
       "title": "allowedTools + disableModelInvocation in skill frontmatter",
       "status": "next",
@@ -3854,7 +3854,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-LSP",
+      "id": "VANTA-PLUGIN-LSP",
       "track": "Extensibility",
       "title": "Plugins can ship LSP server configs — auto-mount language servers",
       "status": "next",
@@ -3869,7 +3869,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-INIT-VERIFIERS",
+      "id": "VANTA-INIT-VERIFIERS",
       "track": "Extensibility",
       "title": "/init-verifiers — create project-specific verifier skills",
       "status": "next",
@@ -3884,7 +3884,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-USAGE-RANK",
+      "id": "VANTA-SKILL-USAGE-RANK",
       "track": "Extensibility",
       "title": "Skill usage tracking — 7-day half-life ranking by usage count + recency",
       "status": "next",
@@ -3899,7 +3899,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-CONDITIONAL-ACTIVATE",
+      "id": "VANTA-SKILL-CONDITIONAL-ACTIVATE",
       "track": "Extensibility",
       "title": "Conditional skill activation on file edit — skills auto-load for matched paths",
       "status": "next",
@@ -3914,7 +3914,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-OFFICIAL-REGISTRY",
+      "id": "VANTA-MCP-OFFICIAL-REGISTRY",
       "track": "Extensibility",
       "title": "Official MCP registry — prefetch Anthropic's server registry for trust lookups",
       "status": "next",
@@ -3929,7 +3929,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-RECOMMEND",
+      "id": "VANTA-PLUGIN-RECOMMEND",
       "track": "Extensibility",
       "title": "Plugin recommendation engine — proactive install suggestions for LSP and hint plugins",
       "status": "next",
@@ -3944,7 +3944,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-AUTOUPDATE",
+      "id": "VANTA-PLUGIN-AUTOUPDATE",
       "track": "Extensibility",
       "title": "Plugin auto-update — background marketplace and plugin update check on startup",
       "status": "next",
@@ -3959,7 +3959,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-RELOAD-SKILLS-CMD",
+      "id": "VANTA-RELOAD-SKILLS-CMD",
       "track": "Extensibility",
       "title": "`/reload-skills` — re-scan skill directories without restarting the session",
       "status": "next",
@@ -3974,7 +3974,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-BIN-EXEC",
+      "id": "VANTA-PLUGIN-BIN-EXEC",
       "track": "Extensibility",
       "title": "Plugin `bin/` executables — plugins ship binaries invocable from Bash tool",
       "status": "next",
@@ -3989,7 +3989,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-ALWAYS-LOAD",
+      "id": "VANTA-MCP-ALWAYS-LOAD",
       "track": "Extensibility",
       "title": "MCP `alwaysLoad` option — skip tool-search deferral for trusted servers",
       "status": "next",
@@ -4004,7 +4004,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-RESULT-SIZE",
+      "id": "VANTA-MCP-RESULT-SIZE",
       "track": "Extensibility",
       "title": "MCP result `maxResultSizeChars` — allow up to 500K chars via `_meta` annotation",
       "status": "next",
@@ -4019,7 +4019,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-OVERRIDE-SETTING",
+      "id": "VANTA-SKILL-OVERRIDE-SETTING",
       "track": "Extensibility",
       "title": "`skillOverrides` setting — control per-skill visibility to model and menu",
       "status": "next",
@@ -4034,7 +4034,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-DOLLAR-ESCAPE",
+      "id": "VANTA-SKILL-DOLLAR-ESCAPE",
       "track": "Extensibility",
       "title": "Skill `\\$` escape — include literal `$` before a digit in skill command bodies",
       "status": "next",
@@ -4049,7 +4049,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SETTINGS-MCP",
+      "id": "VANTA-SETTINGS-MCP",
       "track": "Extensibility",
       "title": "MCP allowlist/denylist settings — per-session server access control",
       "status": "next",
@@ -4063,7 +4063,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-SETTINGS-SKILL",
+      "id": "VANTA-SETTINGS-SKILL",
       "track": "Extensibility",
       "title": "Skill context budget + management settings parity",
       "status": "next",
@@ -4077,7 +4077,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SKILLIFY",
+      "id": "VANTA-SKILLIFY",
       "track": "Extensibility",
       "title": "/skillify — capture current session as a reusable skill",
       "status": "next",
@@ -4092,7 +4092,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MCP-ELICITATION",
+      "id": "VANTA-MCP-ELICITATION",
       "track": "Extensibility",
       "title": "MCP elicitation — in-session user input prompts from MCP servers (2025-11-05 spec)",
       "status": "next",
@@ -4107,7 +4107,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-DXT",
+      "id": "VANTA-DXT",
       "track": "Extensibility",
       "title": ".dxt extension packages — single-file MCP server installer",
       "status": "next",
@@ -4122,7 +4122,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-MARKETPLACE",
+      "id": "VANTA-PLUGIN-MARKETPLACE",
       "track": "Extensibility",
       "title": "Plugin marketplace — multi-source plugin registry with local cache",
       "status": "next",
@@ -4137,7 +4137,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENTS-DIR",
+      "id": "VANTA-AGENTS-DIR",
       "track": "Extensibility",
       "title": ".claude/agents/ — custom agent definitions from markdown files",
       "status": "next",
@@ -4152,7 +4152,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-IMPROVEMENT",
+      "id": "VANTA-SKILL-IMPROVEMENT",
       "track": "Extensibility",
       "title": "Auto skill improvement — periodic LLM review of invoked skills from session turns",
       "status": "next",
@@ -4167,7 +4167,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLUGIN-DEPS",
+      "id": "VANTA-PLUGIN-DEPS",
       "track": "Extensibility",
       "title": "Plugin dependency resolution — apt-style presence guarantees with cycle detection",
       "status": "next",
@@ -4182,7 +4182,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MONITOR-MCP-TASK",
+      "id": "VANTA-MONITOR-MCP-TASK",
       "track": "Harness",
       "title": "MonitorMcpTask — background MCP monitoring task (MONITOR_TOOL gate)",
       "status": "shipped",
@@ -4197,7 +4197,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SWARM-IDLE-NOTIFY",
+      "id": "VANTA-SWARM-IDLE-NOTIFY",
       "track": "Harness",
       "title": "Swarm idle notification — teammate sends idle state to leader on Stop",
       "status": "horizon",
@@ -4212,7 +4212,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-WORKFLOW-TASK-TYPE",
+      "id": "VANTA-WORKFLOW-TASK-TYPE",
       "track": "Harness",
       "title": "LocalWorkflowTask — workflow script task type (WORKFLOW_SCRIPTS gate)",
       "status": "horizon",
@@ -4227,7 +4227,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-WORKTREE",
+      "id": "VANTA-WORKTREE",
       "track": "Harness",
       "title": "Git worktree tool — isolated branch workspaces",
       "status": "horizon",
@@ -4241,7 +4241,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-BASH-CLASSIFIER",
+      "id": "VANTA-BASH-CLASSIFIER",
       "track": "Harness",
       "title": "Bash auto-classifier — ML-based auto-approval for safe bash commands",
       "status": "horizon",
@@ -4256,7 +4256,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SKILL-BATCH",
+      "id": "VANTA-SKILL-BATCH",
       "track": "Harness",
       "title": "/batch — parallel multi-agent code implementation skill",
       "status": "horizon",
@@ -4271,7 +4271,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SWARM-TMUX",
+      "id": "VANTA-SWARM-TMUX",
       "track": "Harness",
       "title": "Tmux swarm backend — spawn agents in tmux panes with locking + color coding",
       "status": "horizon",
@@ -4286,7 +4286,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLAN-MODE-V2",
+      "id": "VANTA-PLAN-MODE-V2",
       "track": "Harness",
       "title": "Plan mode v2 — multi-agent plan execution (Max=3 agents, enterprise=3)",
       "status": "horizon",
@@ -4301,7 +4301,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SESSION-MEMORY-COMPACT",
+      "id": "VANTA-SESSION-MEMORY-COMPACT",
       "track": "Harness",
       "title": "Session memory compact — compact into persistent session memory files (not just summary)",
       "status": "horizon",
@@ -4316,7 +4316,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-UDS-PEERS",
+      "id": "VANTA-UDS-PEERS",
       "track": "Harness",
       "title": "UDS peer agents — `/peers` command and ListPeersTool for agent discovery via Unix sockets",
       "status": "horizon",
@@ -4331,7 +4331,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-TEMPLATES",
+      "id": "VANTA-TEMPLATES",
       "track": "Harness",
       "title": "Templates — prompt classification and template injection for common task patterns",
       "status": "horizon",
@@ -4346,7 +4346,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-DEEP-LINK",
+      "id": "VANTA-DEEP-LINK",
       "track": "Operator",
       "title": "Deep link protocol — claude-cli:// URL opens CC with pre-filled context",
       "status": "horizon",
@@ -4361,7 +4361,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SLACK-CHANNEL-SUGGEST",
+      "id": "VANTA-SLACK-CHANNEL-SUGGEST",
       "track": "Operator",
       "title": "Slack channel autocomplete — `#channel` mention suggestions in prompt input",
       "status": "horizon",
@@ -4376,7 +4376,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BIDI-TEXT",
+      "id": "VANTA-BIDI-TEXT",
       "track": "Operator",
       "title": "Bidirectional text — RTL/LTR mixing in TUI output",
       "status": "horizon",
@@ -4390,7 +4390,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-TERMINAL-CAPTURE",
+      "id": "VANTA-TERMINAL-CAPTURE",
       "track": "Operator",
       "title": "Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle",
       "status": "horizon",
@@ -4405,7 +4405,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-AGENT-WIZARD",
+      "id": "VANTA-AGENT-WIZARD",
       "track": "Operator",
       "title": "Agent creation wizard — guided multi-step agent definition UI",
       "status": "horizon",
@@ -4419,7 +4419,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-GLOBAL-SEARCH-UI",
+      "id": "VANTA-GLOBAL-SEARCH-UI",
       "track": "Operator",
       "title": "Global search dialog — search across all sessions and messages",
       "status": "horizon",
@@ -4433,7 +4433,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-MOUSE-SUPPORT",
+      "id": "VANTA-MOUSE-SUPPORT",
       "track": "Operator",
       "title": "Mouse support — click events, hit testing, focus in TUI",
       "status": "horizon",
@@ -4447,7 +4447,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-DESIGN-SYSTEM",
+      "id": "VANTA-DESIGN-SYSTEM",
       "track": "Operator",
       "title": "TUI design system — Byline, Dialog, Divider, FuzzyPicker, ProgressBar, Ratchet, Tabs, themed components",
       "status": "horizon",
@@ -4461,7 +4461,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-CHANNEL-PERMISSIONS",
+      "id": "VANTA-CHANNEL-PERMISSIONS",
       "track": "Operator",
       "title": "Channel permission relay — approve permissions via Telegram/iMessage/Discord",
       "status": "horizon",
@@ -4476,7 +4476,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SSH-SESSION",
+      "id": "VANTA-SSH-SESSION",
       "track": "Operator",
       "title": "`claude ssh` — remote session over SSH with SSHSessionManager",
       "status": "horizon",
@@ -4491,7 +4491,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-EXTRACT-MEMORIES",
+      "id": "VANTA-EXTRACT-MEMORIES",
       "track": "Operator",
       "title": "Auto memory extraction — background LLM extraction of facts from session turns",
       "status": "shipped",
@@ -4506,7 +4506,7 @@
       "updated": "2026-06-15"
     },
     {
-      "id": "CC-VOICE-STT",
+      "id": "VANTA-VOICE-STT",
       "track": "Operator",
       "title": "Push-to-talk voice input — native CoreAudio/cpal + SoX/arecord fallback",
       "status": "horizon",
@@ -4521,7 +4521,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-REVIEW-ARTIFACT",
+      "id": "VANTA-REVIEW-ARTIFACT",
       "track": "Operator",
       "title": "ReviewArtifactTool — review and approve generated code/file artifacts in UI",
       "status": "horizon",
@@ -4536,7 +4536,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-PLAN-INTERVIEW-PHASE",
+      "id": "VANTA-PLAN-INTERVIEW-PHASE",
       "track": "Solutioning",
       "title": "Plan mode interview phase — clarifying questions before plan execution",
       "status": "horizon",
@@ -4551,7 +4551,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-CHICAGO-MCP",
+      "id": "VANTA-CHICAGO-MCP",
       "track": "Extensibility",
       "title": "Computer use via MCP (CHICAGO) — route computer-use tool calls through MCP server",
       "status": "horizon",
@@ -4581,7 +4581,7 @@
       "updated": "2026-06-11"
     },
     {
-      "id": "CC-TREE-SITTER-BASH",
+      "id": "VANTA-TREE-SITTER-BASH",
       "track": "Harness",
       "title": "Tree-sitter bash parser — AST-accurate security validation for bash commands",
       "status": "horizon",
@@ -4596,7 +4596,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SELF-HOSTED",
+      "id": "VANTA-SELF-HOSTED",
       "track": "Harness",
       "title": "Self-hosted runner — dedicated entrypoint for running CC as a CI/CD runner",
       "status": "horizon",
@@ -4611,7 +4611,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SSH-CONFIGS",
+      "id": "VANTA-SSH-CONFIGS",
       "track": "Operator",
       "title": "SSH pre-configured connections in settings",
       "status": "horizon",
@@ -4625,7 +4625,7 @@
       "lens": "reach"
     },
     {
-      "id": "CC-H-GITHUB",
+      "id": "VANTA-H-GITHUB",
       "track": "Operator",
       "title": "GitHub integration",
       "status": "horizon",
@@ -4639,7 +4639,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-H-SLACK",
+      "id": "VANTA-H-SLACK",
       "track": "Operator",
       "title": "Slack app",
       "status": "horizon",
@@ -4653,12 +4653,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-STRUCTURED-DIFF",
+      "id": "VANTA-STRUCTURED-DIFF",
       "track": "Operator",
       "title": "Structured diff renderer — color diff, file list, detail view",
       "status": "horizon",
       "size": "M",
-      "summary": "CC has StructuredDiff (colorized inline diff with context lines), StructuredDiffList, DiffDetailView (expandable hunk view), DiffDialog, and DiffFileList (multi-file diff navigator). The /diff command uses these. CC-DIFF-VIEWER (shipped) covers the basic /diff command; Vanta is missing the proper color diff renderer and file-list navigator.",
+      "summary": "CC has StructuredDiff (colorized inline diff with context lines), StructuredDiffList, DiffDetailView (expandable hunk view), DiffDialog, and DiffFileList (multi-file diff navigator). The /diff command uses these. VANTA-DIFF-VIEWER (shipped) covers the basic /diff command; Vanta is missing the proper color diff renderer and file-list navigator.",
       "done": "File edits render with color-diff (red/green lines, context collapse); /diff opens a multi-file navigator with DiffFileList; DiffDetailView shows individual hunks with expand/collapse.",
       "tier": "pebble",
       "model": "sonnet",
@@ -4821,12 +4821,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-OUTPUT-STYLE-UI",
+      "id": "VANTA-OUTPUT-STYLE-UI",
       "track": "Operator",
       "title": "Output style picker UI — in-TUI style switcher",
       "status": "horizon",
       "size": "S",
-      "summary": "CC's OutputStylePicker renders an interactive in-TUI list of available output styles (default + custom from settings) with live preview. Pairs with CC-OUTPUT-STYLE (next) for the /output-style command. Vanta needs the visual picker to make the feature usable.",
+      "summary": "CC's OutputStylePicker renders an interactive in-TUI list of available output styles (default + custom from settings) with live preview. Pairs with VANTA-OUTPUT-STYLE (next) for the /output-style command. Vanta needs the visual picker to make the feature usable.",
       "done": "/output-style opens the picker; arrow keys preview each style; Enter applies; the active style shows in the status line; custom styles defined in settings appear alongside built-ins.",
       "tier": "sand",
       "model": "sonnet",
@@ -4835,7 +4835,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-SHORTCUT-DISPLAY",
+      "id": "VANTA-SHORTCUT-DISPLAY",
       "track": "Operator",
       "title": "useShortcutDisplay — render user-configured keybinding hints in UI",
       "status": "horizon",
@@ -4850,7 +4850,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-VIM-VISUAL-MODE",
+      "id": "VANTA-VIM-VISUAL-MODE",
       "track": "Operator",
       "title": "Vim visual mode — `v`/`V` selection with operators in the prompt input",
       "status": "horizon",
@@ -4865,12 +4865,12 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-MARKDOWN-TABLES",
+      "id": "VANTA-MARKDOWN-TABLES",
       "track": "Operator",
       "title": "Markdown table rendering — GFM table support in terminal output",
       "status": "horizon",
       "size": "S",
-      "summary": "CC's MarkdownTable renders GitHub-Flavored Markdown tables with aligned columns, borders, and header separators in the terminal. Vanta's markdown renderer (CC-S-MARKDOWN shipped) handles headers/bullets/code but not tables.",
+      "summary": "CC's MarkdownTable renders GitHub-Flavored Markdown tables with aligned columns, borders, and header separators in the terminal. Vanta's markdown renderer (VANTA-S-MARKDOWN shipped) handles headers/bullets/code but not tables.",
       "done": "GFM table syntax renders as aligned terminal tables with column borders; wide tables wrap or scroll; empty cells and alignment directives (left/right/center) are respected.",
       "tier": "sand",
       "model": "sonnet",
@@ -4879,7 +4879,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-WORKFLOW-MULTISELECT",
+      "id": "VANTA-WORKFLOW-MULTISELECT",
       "track": "Operator",
       "title": "WorkflowMultiselectDialog — multi-select UI for workflow steps",
       "status": "horizon",
@@ -5033,7 +5033,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-PROMPT-CACHE-1H",
+      "id": "VANTA-PROMPT-CACHE-1H",
       "track": "Harness",
       "title": "`ENABLE_PROMPT_CACHING_1H` — opt into 1-hour prompt cache TTL",
       "status": "shipped",
@@ -5049,7 +5049,7 @@
       "notes": "Shipped. Caching already existed (ephemeral cache_control on the stable system prefix in providers/anthropic.ts); this gates the 1h TTL behind ENABLE_PROMPT_CACHING_1H (Claude Code's env name). toSystemBlocks stamps {type:ephemeral,ttl:1h} on the stable breakpoint + complete() adds the extended-cache-ttl-2025-04-11 beta header (combined with the OAuth beta when both apply). Off by default: 1h cache WRITE costs 2x base, so it only wins on long sessions with ~3+ reads/hour. Pure path unit-tested (toAnthropicMessages cache1h on/off + promptCache1hEnabled)."
     },
     {
-      "id": "CC-PERMISSIONS",
+      "id": "VANTA-PERMISSIONS",
       "track": "Harness",
       "title": "In-session permission rules (allow/ask/deny)",
       "status": "shipped",
@@ -5062,10 +5062,10 @@
       "codex": "gpt-5.5",
       "lens": "agent-loop",
       "updated": "2026-06-10",
-      "notes": "SHIPPED 2026-06-10 (design-first: docs/design-cc-permissions.md → agent pure layer + parent security wiring). User-tunable allow/ask/deny rules layered on the kernel, TIGHTEN-only. permissions/rules.ts: pure matchRule(rules, tool, descriptor) (specificity: tool+pattern > tool > pattern > any; first-match) + tighten(kernelVerdict, ruleAction) — kernel \"block\" is IMMOVABLE (returns block for any rule), kernel \"ask\"+allow→allow / +deny→block, kernel \"allow\"+deny→block / +ask→ask. permissions/store.ts: ~/.vanta/permissions.tsv (auto-commits). /permissions list|allow|ask|deny <tool> [pattern]|remove <n>. Wired into agent/dispatch-helpers.ts applySafetyGate: decision = tighten(verdict.risk, matchRule(loadRules,...)); kernel approval queue reconciled ONLY when the kernel itself asked (rule-escalated asks just prompt; rule-allow auto-confirms a kernel ask). +35 tests incl. the exhaustive 3×4 tighten matrix (block-immovable) + a gate integration test (deny blocks / block immovable / allow auto-confirms). full suite 2153 green, tsc clean. Unblocks CC-AUTO-MODE + CC-PERM-PER-TOOL-UI."
+      "notes": "SHIPPED 2026-06-10 (design-first: docs/design-cc-permissions.md → agent pure layer + parent security wiring). User-tunable allow/ask/deny rules layered on the kernel, TIGHTEN-only. permissions/rules.ts: pure matchRule(rules, tool, descriptor) (specificity: tool+pattern > tool > pattern > any; first-match) + tighten(kernelVerdict, ruleAction) — kernel \"block\" is IMMOVABLE (returns block for any rule), kernel \"ask\"+allow→allow / +deny→block, kernel \"allow\"+deny→block / +ask→ask. permissions/store.ts: ~/.vanta/permissions.tsv (auto-commits). /permissions list|allow|ask|deny <tool> [pattern]|remove <n>. Wired into agent/dispatch-helpers.ts applySafetyGate: decision = tighten(verdict.risk, matchRule(loadRules,...)); kernel approval queue reconciled ONLY when the kernel itself asked (rule-escalated asks just prompt; rule-allow auto-confirms a kernel ask). +35 tests incl. the exhaustive 3×4 tighten matrix (block-immovable) + a gate integration test (deny blocks / block immovable / allow auto-confirms). full suite 2153 green, tsc clean. Unblocks VANTA-AUTO-MODE + VANTA-PERM-PER-TOOL-UI."
     },
     {
-      "id": "CC-SANDBOX",
+      "id": "VANTA-SANDBOX",
       "track": "Harness",
       "title": "OS sandbox for tool execution",
       "status": "shipped",
@@ -5081,7 +5081,7 @@
       "notes": "SHIPPED 2026-06-10 (design-first: docs/design-cc-sandbox.md → agent + parent integration). OPT-IN (VANTA_SANDBOX=1, default OFF; default path byte-identical). sandbox/profile.ts: pure buildSeatbeltProfile / buildBwrapArgs / detectBackend / wrapCommand — deny-default, write only under root + resolveWritableZones (+ tmpdir for run_code), DENY the SAME DANGEROUS_DIRS the file tools use (exported from writable-zones.ts — single source, can't drift), network denied unless VANTA_SANDBOX_NET=1. sandbox/run.ts: maybeSandbox({env,root,baseCmd,baseArgs}) wraps under the flag (writes Seatbelt profile to a temp file + cleanup) or returns base unchanged; when VANTA_SANDBOX=1 but no backend → error sentinel (fail-closed, never silent-unsandboxed). Wired into shell-cmd.ts + run-code.ts exec seams (rust compile step sandboxed too); detached background tasks REFUSE under the flag (no exit-time cleanup for unref'd children). +35 unit tests; full suite 2229 green, tsc clean. ⚠ LIVE OS ENFORCEMENT UNVERIFIED — sandbox-exec/bwrap couldn't run in the build env; only the generated profile/argv SHAPE is tested. Fail-closed (deny-default → a wrong profile fails LOUD, not a silent hole). MUST run the manual acceptance checks before relying on it: under VANTA_SANDBOX=1 — echo>~/Desktop/ok allowed; echo>~/.ssh/evil + cat ~/.ssh/id_rsa blocked; curl blocked unless VANTA_SANDBOX_NET=1. If `sandbox-exec -f profile sh -c 'echo hi'` fails first, the process-exec allows need widening."
     },
     {
-      "id": "CC-AUTO-COMPACT",
+      "id": "VANTA-AUTO-COMPACT",
       "track": "Harness",
       "title": "Auto-compact — automatic context compaction when window fills to threshold",
       "status": "shipped",
@@ -5153,7 +5153,7 @@
       "lens": "selfhood"
     },
     {
-      "id": "CC-BASH-COMMENT-LABEL",
+      "id": "VANTA-BASH-COMMENT-LABEL",
       "track": "Operator",
       "title": "Bash comment-as-label — first # line becomes tool-use display label",
       "status": "shipped",
@@ -5267,7 +5267,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-LINKS",
+      "id": "VANTA-LINKS",
       "track": "Operator",
       "title": "Clickable links + file:line refs (OSC-8 / desktop anchors)",
       "status": "shipped",
@@ -5337,12 +5337,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-TRANSCRIPT",
+      "id": "VANTA-TRANSCRIPT",
       "track": "Operator",
       "title": "Collapsible tool calls + clean transcript",
       "status": "shipped",
       "size": "M",
-      "summary": "SHIPPED 2026-06-08. ToolEntry gains resultOutput?: string (CC-TRANSCRIPT: truncated first 500 chars of ok results). onToolResult in app.tsx captures it; toolResult reducer stores it. ToolLine shows [^O for output] hint when collapsed, full output when expanded. hasFoldable updated to include resultOutput entries. tsc clean; 1627 tests.",
+      "summary": "SHIPPED 2026-06-08. ToolEntry gains resultOutput?: string (VANTA-TRANSCRIPT: truncated first 500 chars of ok results). onToolResult in app.tsx captures it; toolResult reducer stores it. ToolLine shows [^O for output] hint when collapsed, full output when expanded. hasFoldable updated to include resultOutput entries. tsc clean; 1627 tests.",
       "done": "Tool calls render as one-line collapsed summaries by default, expandable on demand; the transcript no longer floods the screen.",
       "tier": "rock",
       "model": "sonnet",
@@ -5379,7 +5379,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-MSG-GROUPED-TOOLS",
+      "id": "VANTA-MSG-GROUPED-TOOLS",
       "track": "Operator",
       "title": "Grouped parallel tool calls — batch visual rendering",
       "status": "shipped",
@@ -5391,10 +5391,10 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "notes": "isGrouped on ToolEntry (set in reducer); EntryRow renders │ connector for grouped tools. True collapse-to-one-row deferred to CC-VIRTUAL-LIST."
+      "notes": "isGrouped on ToolEntry (set in reducer); EntryRow renders │ connector for grouped tools. True collapse-to-one-row deferred to VANTA-VIRTUAL-LIST."
     },
     {
-      "id": "CC-COLLAPSED-READ",
+      "id": "VANTA-COLLAPSED-READ",
       "track": "Operator",
       "title": "Collapsed read/search content — auto-fold long tool output",
       "status": "shipped",
@@ -5539,7 +5539,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-ALT-SCREEN",
+      "id": "VANTA-ALT-SCREEN",
       "track": "Operator",
       "title": "Alternate terminal screen — fullscreen mode for dialogs",
       "status": "shipped",
@@ -5554,7 +5554,7 @@
       "notes": "VirtualTranscript renders viewport slice (maxVisible=termRows-12) in alt-screen mode. scrollBy/scrollReset actions + pgup/pgdn keys. Static kept for non-alt-screen. All three resolved by one implementation. 2026-06-10: resize ghost-frame regression killed + banner restored via tui/alt-frame.tsx (always-overflow blank-filler viewport forces Ink's clearTerminal full-rewrite path instead of the cursor-relative eraseLines path that under-erases after a resize rewrap; a redraw nonce defeats log-update's identical-string skip) + tui/use-term-size.ts (reactive rows/cols + debounced resize redraw). Banner unified as a title-bordered two-column card across both screen modes. Commits a07f84c + 8b10fa6; see ERRORS.md 2026-06-10 pt 2."
     },
     {
-      "id": "CC-SCROLL-BOX",
+      "id": "VANTA-SCROLL-BOX",
       "track": "Operator",
       "title": "ScrollBox — proper scrollable content containers",
       "status": "shipped",
@@ -5625,7 +5625,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-VIRTUAL-LIST",
+      "id": "VANTA-VIRTUAL-LIST",
       "track": "Operator",
       "title": "Virtual message list — scrolling, in-transcript search, jump navigation",
       "status": "shipped",
@@ -5864,7 +5864,7 @@
       "lens": "selfhood"
     },
     {
-      "id": "CC-PLAN-MODE-REAL",
+      "id": "VANTA-PLAN-MODE-REAL",
       "track": "Harness",
       "title": "Enforced read-only plan mode",
       "status": "shipped",
@@ -5879,7 +5879,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-BG-TASKS",
+      "id": "VANTA-BG-TASKS",
       "track": "Harness",
       "title": "Background shell tasks",
       "status": "shipped",
@@ -5893,7 +5893,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-SETTINGS",
+      "id": "VANTA-SETTINGS",
       "track": "Harness",
       "title": "Layered settings.json",
       "status": "shipped",
@@ -5907,7 +5907,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-ADD-DIR",
+      "id": "VANTA-ADD-DIR",
       "track": "Harness",
       "title": "Multi-directory roots (/add-dir)",
       "status": "shipped",
@@ -5921,7 +5921,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-HEADLESS",
+      "id": "VANTA-HEADLESS",
       "track": "Harness",
       "title": "Print/headless mode + output formats",
       "status": "shipped",
@@ -5935,7 +5935,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-MCP-REMOTE",
+      "id": "VANTA-MCP-REMOTE",
       "track": "Harness",
       "title": "Remote MCP servers (HTTP + OAuth)",
       "status": "shipped",
@@ -5949,7 +5949,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-MCP-TOOLSEARCH",
+      "id": "VANTA-MCP-TOOLSEARCH",
       "track": "Harness",
       "title": "Deferred MCP tool schemas",
       "status": "shipped",
@@ -5963,7 +5963,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SKILL-FORMAT",
+      "id": "VANTA-SKILL-FORMAT",
       "track": "Harness",
       "title": "Skill frontmatter parity",
       "status": "shipped",
@@ -5977,7 +5977,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-WORKTREE-AGENTS",
+      "id": "VANTA-WORKTREE-AGENTS",
       "track": "Harness",
       "title": "Worktree-isolated subagents",
       "status": "shipped",
@@ -6005,7 +6005,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-DIAGNOSTIC-BASELINE",
+      "id": "VANTA-DIAGNOSTIC-BASELINE",
       "track": "Harness",
       "title": "Diagnostic baseline tracking — surface only new LSP errors after file edits",
       "status": "shipped",
@@ -6133,12 +6133,12 @@
       "lens": "selfhood"
     },
     {
-      "id": "CC-EDITOR",
+      "id": "VANTA-EDITOR",
       "track": "Operator",
       "title": "Open file:line in the user's editor",
       "status": "shipped",
       "size": "S",
-      "summary": "SHIPPED 2026-06-07. editor/open.ts (pure): parseFileLine (file / file:line / file:line:col), resolveEditor (VANTA_EDITOR > VISUAL > EDITOR, default code), editorCommand (VS Code-family → 'code -g file:line'; vim/nano/emacs → '+line file'; subl → 'file:line'; unknown → flags+file) + openInEditor (detached spawn). `vanta open <file[:line]>` CLI + `/open` slash (repl/open-cmd.ts). 6 unit tests; all new files pass the size gate; full suite 1216 green; tsc clean. (Desktop anchors = CC-LINKS, still open.)",
+      "summary": "SHIPPED 2026-06-07. editor/open.ts (pure): parseFileLine (file / file:line / file:line:col), resolveEditor (VANTA_EDITOR > VISUAL > EDITOR, default code), editorCommand (VS Code-family → 'code -g file:line'; vim/nano/emacs → '+line file'; subl → 'file:line'; unknown → flags+file) + openInEditor (detached spawn). `vanta open <file[:line]>` CLI + `/open` slash (repl/open-cmd.ts). 6 unit tests; all new files pass the size gate; full suite 1216 green; tsc clean. (Desktop anchors = VANTA-LINKS, still open.)",
       "done": "Clicking/invoking a file:line opens it at that line in the configured editor.",
       "tier": "pebble",
       "model": "sonnet",
@@ -6203,7 +6203,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-NO-FLICKER-ENV",
+      "id": "VANTA-NO-FLICKER-ENV",
       "track": "Operator",
       "title": "`CLAUDE_CODE_NO_FLICKER=1` — opt into flicker-free alt-screen rendering globally",
       "status": "shipped",
@@ -6219,7 +6219,7 @@
       "notes": "Alt-screen enter/leave in launch.tsx; VANTA_NO_FLICKER=1 + CLAUDE_CODE_NO_FLICKER=1 both accepted. Documented in .env.example."
     },
     {
-      "id": "CC-ESC-INTERRUPT",
+      "id": "VANTA-ESC-INTERRUPT",
       "track": "Operator",
       "title": "Esc interrupts the running agent",
       "status": "shipped",
@@ -6556,7 +6556,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-TODO",
+      "id": "VANTA-TODO",
       "track": "Operator",
       "title": "Live todo / progress checklist (TodoWrite pattern)",
       "status": "shipped",
@@ -7606,7 +7606,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-EDIT-MODES",
+      "id": "VANTA-EDIT-MODES",
       "track": "Harness",
       "title": "Accept-edits mode + full approval cycle",
       "status": "shipped",
@@ -7620,7 +7620,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-BTW",
+      "id": "VANTA-BTW",
       "track": "Harness",
       "title": "Side question without history (/btw)",
       "status": "shipped",
@@ -7634,7 +7634,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-REAL-USAGE",
+      "id": "VANTA-REAL-USAGE",
       "track": "Harness",
       "title": "Exact token/cost from provider usage",
       "status": "shipped",
@@ -7648,7 +7648,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-RULES",
+      "id": "VANTA-RULES",
       "track": "Harness",
       "title": "Path-scoped rule files",
       "status": "shipped",
@@ -7662,7 +7662,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-QUEUE",
+      "id": "VANTA-S-QUEUE",
       "track": "Harness",
       "title": "Queued input while busy (shipped)",
       "status": "shipped",
@@ -7676,7 +7676,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-COMPACT",
+      "id": "VANTA-S-COMPACT",
       "track": "Harness",
       "title": "Manual compaction (shipped)",
       "status": "shipped",
@@ -7690,7 +7690,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-S-MCP",
+      "id": "VANTA-S-MCP",
       "track": "Harness",
       "title": "MCP servers (shipped)",
       "status": "shipped",
@@ -7704,12 +7704,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-USAGE",
+      "id": "VANTA-S-USAGE",
       "track": "Harness",
       "title": "Cost/usage tracking (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: /usage cost + breakdown. Vanta: shipped (COST-VISIBLE per-turn footer + /usage session split; CC-REAL-USAGE upgrades to exact counts).",
+      "summary": "CC: /usage cost + breakdown. Vanta: shipped (COST-VISIBLE per-turn footer + /usage session split; VANTA-REAL-USAGE upgrades to exact counts).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -7718,12 +7718,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-SUBAGENTS",
+      "id": "VANTA-S-SUBAGENTS",
       "track": "Harness",
       "title": "Subagents (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: Task tool spawns isolated subagents. Vanta: shipped (tools/delegate + subagent/spawn, isolated goal/budget; CC-WORKTREE-AGENTS adds worktree isolation).",
+      "summary": "CC: Task tool spawns isolated subagents. Vanta: shipped (tools/delegate + subagent/spawn, isolated goal/budget; VANTA-WORKTREE-AGENTS adds worktree isolation).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -7732,7 +7732,7 @@
       "lens": "coding"
     },
     {
-      "id": "CC-S-CRON",
+      "id": "VANTA-S-CRON",
       "track": "Harness",
       "title": "Scheduled / loop agents (shipped)",
       "status": "shipped",
@@ -7746,12 +7746,12 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-S-MEMORY",
+      "id": "VANTA-S-MEMORY",
       "track": "Harness",
       "title": "Layered memory (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: CLAUDE.md (project/user) + auto-memory. Vanta: shipped (brain/* regions + memory/* per-goal, git-versioned; CC-RULES adds path-scoped rules).",
+      "summary": "CC: CLAUDE.md (project/user) + auto-memory. Vanta: shipped (brain/* regions + memory/* per-goal, git-versioned; VANTA-RULES adds path-scoped rules).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -7760,7 +7760,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-S-GIT",
+      "id": "VANTA-S-GIT",
       "track": "Harness",
       "title": "Git tools (shipped)",
       "status": "shipped",
@@ -7774,7 +7774,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-S-MODEL",
+      "id": "VANTA-S-MODEL",
       "track": "Harness",
       "title": "Model picker + switch (shipped)",
       "status": "shipped",
@@ -7788,7 +7788,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-DOCTOR",
+      "id": "VANTA-S-DOCTOR",
       "track": "Harness",
       "title": "Doctor / status (shipped)",
       "status": "shipped",
@@ -7802,12 +7802,12 @@
       "lens": "infra"
     },
     {
-      "id": "CC-S-RUNCODE",
+      "id": "VANTA-S-RUNCODE",
       "track": "Harness",
       "title": "Run code sandboxed (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: code execution. Vanta: shipped (tools/run-code — python/node/rust in isolated temp dir, approval-gated; CC-SANDBOX adds OS-level isolation).",
+      "summary": "CC: code execution. Vanta: shipped (tools/run-code — python/node/rust in isolated temp dir, approval-gated; VANTA-SANDBOX adds OS-level isolation).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -7816,7 +7816,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-S-LSP",
+      "id": "VANTA-S-LSP",
       "track": "Harness",
       "title": "LSP code intelligence (shipped)",
       "status": "shipped",
@@ -7858,7 +7858,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-GLOB",
+      "id": "VANTA-GLOB",
       "track": "Harness",
       "title": "Glob tool — file pattern search",
       "status": "shipped",
@@ -7873,7 +7873,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-GREP",
+      "id": "VANTA-GREP",
       "track": "Harness",
       "title": "Grep tool — fast code search",
       "status": "shipped",
@@ -7888,7 +7888,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-FILE-EDIT",
+      "id": "VANTA-FILE-EDIT",
       "track": "Harness",
       "title": "Targeted file edit — old/new string replacement",
       "status": "shipped",
@@ -7903,7 +7903,7 @@
       "updated": "2026-06-09"
     },
     {
-      "id": "CC-SLEEP",
+      "id": "VANTA-SLEEP",
       "track": "Harness",
       "title": "Sleep tool — pause execution",
       "status": "shipped",
@@ -7917,7 +7917,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-PERMISSIONS-CMD",
+      "id": "VANTA-PERMISSIONS-CMD",
       "track": "Harness",
       "title": "/permissions — manage tool allow/block rules",
       "status": "shipped",
@@ -7931,7 +7931,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-FILES-CMD",
+      "id": "VANTA-FILES-CMD",
       "track": "Harness",
       "title": "/files — list files in current context",
       "status": "shipped",
@@ -7945,7 +7945,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-BRANCH-CMD",
+      "id": "VANTA-BRANCH-CMD",
       "track": "Harness",
       "title": "/branch — create or switch git branches from REPL",
       "status": "shipped",
@@ -7959,7 +7959,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-SUMMARY-CMD",
+      "id": "VANTA-SUMMARY-CMD",
       "track": "Harness",
       "title": "/summary — summarize the current conversation",
       "status": "shipped",
@@ -7973,7 +7973,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-BRIEF-TOOL",
+      "id": "VANTA-BRIEF-TOOL",
       "track": "Harness",
       "title": "Brief tool — proactive user notifications with attachments",
       "status": "shipped",
@@ -7987,7 +7987,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-MEM-FRESHNESS",
+      "id": "VANTA-MEM-FRESHNESS",
       "track": "Harness",
       "title": "Memory freshness caveat — staleness annotation for memories > 1 day old",
       "status": "shipped",
@@ -8003,7 +8003,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). memory/freshness.ts: pure humanAge(ageMs) (\"today\"/\"yesterday\"/\"N days ago\") + freshnessCaveat(ageMs) (null when <2 days, else a point-in-time caveat) + annotateMemory(content, ageMs). Wired into memory/store.ts recentMemory: each block's own ISO timestamp → age → stale blocks get the caveat prepended at the injection path (per-block granularity). +14 unit + 1 store integration test; full suite 2019 green, tsc clean."
     },
     {
-      "id": "CC-SHELL-STALL-DETECT",
+      "id": "VANTA-SHELL-STALL-DETECT",
       "track": "Harness",
       "title": "Shell task stall detection — notification when background command awaits input",
       "status": "shipped",
@@ -8019,7 +8019,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). tools/shell-stall.ts: pure detectInteractivePrompt(tail) (matches the trimmed/lowercased LAST non-empty line against a needle list + a ?-ending-with-y/n branch; near-zero prose FP) + StallState + checkStall(prev, curLen, tail, nowMs, idleMs=45000) (resets on output growth, fires once after idle+interactive, never refires; nowMs injected). Wired into bg-tasks.ts spawnBackground: startStallWatchdog polls the live in-memory chunks buffer every 5s (the log file is empty until close, so the watchdog lives at the spawn site), notify()s once when stalled-on-prompt, cleared on close. +32 tests; full suite green, tsc clean. (checkStall has 5 params — card-mandated signature, size gate warn-only.)"
     },
     {
-      "id": "CC-TOOL-SUMMARY",
+      "id": "VANTA-TOOL-SUMMARY",
       "track": "Harness",
       "title": "Tool batch summary — Haiku-generated ~30-char label for completed tool batches",
       "status": "shipped",
@@ -8033,7 +8033,7 @@
       "lens": "agent-loop"
     },
     {
-      "id": "CC-TIME-BASED-MC",
+      "id": "VANTA-TIME-BASED-MC",
       "track": "Harness",
       "title": "Time-based microcompact — auto-clear stale tool results after cache TTL expiry",
       "status": "shipped",
@@ -8049,7 +8049,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent verified-integration). context/time-microcompact.ts: pure clearStaleToolResults(messages, idleMs, opts?) — under idle threshold (default 60min, VANTA_MICROCOMPACT_IDLE_MS) returns the same array ref; over it, stubs old role:\"tool\" contents to \"[old tool result cleared after idle]\" IN PLACE (position preserved → tool_call/tool_result pairing valid), keeps the last N (default 4, VANTA_MICROCOMPACT_KEEP). + resolveIdleConfig(env). Wired into agent.ts runTurn: a GC-safe WeakMap<messages,number> tracks last-turn time; on iter 1 (the genuinely-idle turn start) clearStaleToolResults feeds the transient compress/trim copy — stored messages keep full content (no visible disruption). Agent's sandbox couldn't run tests; parent verified (typecheck + 12 module tests + full suite 2096 green). Completes the auto-context set: persistent size-compaction + >50k offload + idle clearing."
     },
     {
-      "id": "CC-RENAME-CMD",
+      "id": "VANTA-RENAME-CMD",
       "track": "Harness",
       "title": "/rename — set session title",
       "status": "shipped",
@@ -8079,7 +8079,7 @@
       "notes": "SHIPPED 2026-06-10. Root cause: describe_image (and compare_vision) called resolveInScope WITHOUT expandHome — '~/Desktop/x.png' resolved to a bogus '<root>/~/Desktop/x.png' that passed the in-scope test then ENOENTed; an absolute Desktop path was refused outright though ~/Desktop is a default readable zone. Fix mirrors read_file exactly: expandHome() first, then allow out-of-root paths that isInZone(resolveReadableZones()). Tool descriptions updated to say ~-paths / readable zones are OK. Fixed BOTH describe_image and compare_vision (same bug). The drag-drop attach path (repl/format.ts maybeDroppedImage) already expanded ~ and was fine. +~6 tests across describe-image/compare-vision; suite green, tsc clean. (screenshot.ts/lsp.ts keep the old in-root-only message by design — not image-from-Desktop.)"
     },
     {
-      "id": "CC-DESTRUCTIVE-WARN",
+      "id": "VANTA-DESTRUCTIVE-WARN",
       "track": "Harness",
       "title": "Destructive bash command warnings — informational notes in permission dialog",
       "status": "shipped",
@@ -8095,7 +8095,7 @@
       "notes": "SHIPPED 2026-06-10. tools/destructive-warn.ts: pure destructiveWarning(command) → curated note for allowed-but-destructive git commands (reset --hard, push --force [but NOT --force-with-lease], clean -f, checkout . / -f, restore ., branch -D, stash drop/clear), else null. shell-cmd.ts prepends \"⚠ <note>\" to the result (success or failure) so the user/agent sees it in the transcript. Purely informational — never blocks (rm -rf etc. stay hard-refused by the DESTRUCTIVE gate). +7 tests; suite green, tsc clean."
     },
     {
-      "id": "CC-CONTEXT-USAGE-CMD",
+      "id": "VANTA-CONTEXT-USAGE-CMD",
       "track": "Harness",
       "title": "/context — show context window usage breakdown with microcompact option",
       "status": "shipped",
@@ -8111,7 +8111,7 @@
       "notes": "SHIPPED 2026-06-10. Replaced the untested inline /context handler with repl/context-cmd.ts: pure contextBreakdown(messages, window) → per-category token estimates (system/user/assistant[+tool-call args]/tool results) + total + pct, and formatContextBreakdown() rendering a usage bar + each category's token count and % share. Richer than the old role-count version AND now unit-tested; also shrinks handlers.ts (inline handler removed, registered via import). +5 tests; full suite 1985 green, tsc clean."
     },
     {
-      "id": "CC-BASH-CMD-SEMANTICS",
+      "id": "VANTA-BASH-CMD-SEMANTICS",
       "track": "Harness",
       "title": "Bash per-command exit code semantics — grep exit 1 = no-match, not error",
       "status": "shipped",
@@ -8143,7 +8143,7 @@
       "notes": "Provider adapter + /routes command done. Auto-delegation (VANTA_ROUTE_SUMMARIZE) parked — needs routing infra, scope exceeds S/low-effort."
     },
     {
-      "id": "CC-MODEL-DEPRECATION",
+      "id": "VANTA-MODEL-DEPRECATION",
       "track": "Harness",
       "title": "Model deprecation warnings — show retirement date when user is on a deprecated model",
       "status": "shipped",
@@ -8159,7 +8159,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). providers/model-deprecation.ts: pure modelDeprecationNotice(modelId, now) over a curated DEPRECATIONS map of clearly-legacy ids (claude-1/2/2.0/2.1/instant, gpt-4-0314/0613, gpt-3.5-turbo-0301/0613, gemini-1.0-pro/pro) → \"model 'X' is deprecated (retires DATE) — switch to Y\"; case-insensitive + prefix match (gpt-4-0314-preview matches). modelDeprecationNotices(env, now) reads VANTA_MODEL. Wired into status.ts notices: [...detectAuthConflicts, ...modelDeprecationNotices] → shown by vanta status/doctor under \"⚠ notices:\". Dates are best-effort/illustrative. +7 tests; full suite 1985 green, tsc clean."
     },
     {
-      "id": "CC-AUTH-CONFLICT-NOTICE",
+      "id": "VANTA-AUTH-CONFLICT-NOTICE",
       "track": "Harness",
       "title": "Auth conflict notice — warn when both API key and OAuth credentials are configured",
       "status": "shipped",
@@ -8175,7 +8175,7 @@
       "notes": "SHIPPED 2026-06-10. providers/auth-conflict.ts: pure authConflictNotices(env, {claude,codex}) + detectAuthConflicts(env) (detects OAuth via CLAUDE_CODE_OAUTH_TOKEN/ANTHROPIC_AUTH_TOKEN env or ~/.claude/.credentials.json, and ~/.codex/auth.json). Flags ANTHROPIC_API_KEY+Claude-OAuth and OPENAI_API_KEY+Codex-OAuth coexistence with a 'remove one' notice naming which provider uses which. Surfaced in StatusReport.notices → rendered by `vanta status`/`doctor` under \"⚠ notices:\". Reused existing path helpers (exported credentialsPath from claude-code-auth.ts; defaultCodexAuthPath already exported). Whitespace-only keys treated as unset. +9 tests; suite green, tsc clean."
     },
     {
-      "id": "CC-COMPACT-INSTRUCTIONS",
+      "id": "VANTA-COMPACT-INSTRUCTIONS",
       "track": "Harness",
       "title": "/compact with custom instructions — control what the summary preserves",
       "status": "shipped",
@@ -8191,7 +8191,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). /compress now accepts an optional instruction: session.ts buildSummarizer(provider, instructions?) prepends \"Focus especially on: <instr>\" to the summary system prompt (summarizeSys helper); all other callers unchanged via the optional param. handlers.ts compress handler threads arg.trim() → buildSummarizer. New repl/compact-gate.ts: compactionDisabled(env) (VANTA_DISABLE_COMPACT/DISABLE_COMPACT === \"1\") short-circuits the manual /compress with a \"compaction disabled\" notice (auto-compaction not gated — out of scope). +7 tests; full suite 2032 green, tsc clean."
     },
     {
-      "id": "CC-DANGEROUS-PATHS",
+      "id": "VANTA-DANGEROUS-PATHS",
       "track": "Harness",
       "title": "Dangerous paths blocklist — hardcoded files/dirs Claude never writes to",
       "status": "shipped",
@@ -8207,7 +8207,7 @@
       "notes": "SHIPPED 2026-06-10. tools/writable-zones.ts: isDangerousPath(abs) — an unconditional floor beneath zones, scope AND approval mode. Blocks DANGEROUS_DIRS (~/.ssh ~/.gnupg ~/.aws ~/.config/gcloud /etc /private/etc /System /var/db/sudo) + DANGEROUS_FILES (~/.netrc ~/.npmrc ~/.pypirc ~/.docker/config.json ~/.kube/config ~/.codex/auth.json ~/.claude/.credentials.json ~/.vanta/google-tokens.json + shell rc files). Checked FIRST in both resolveReadablePath (reads) and a new resolveWritablePath (writes), so write_file/edit_file/read_file/describe_image/compare_vision all refuse these paths even in auto-approve mode. Also DRY'd write_file+edit_file onto resolveWritablePath (mirrors the read helper; the security floor now lives in one place per direction). Prefix-collision safe (~/.ssh-backup not blocked). +~15 tests; suite green, tsc clean."
     },
     {
-      "id": "CC-COMPACTION-REMIND",
+      "id": "VANTA-COMPACTION-REMIND",
       "track": "Harness",
       "title": "Compaction reminders — inject compaction_reminder attachment into context",
       "status": "shipped",
@@ -8265,7 +8265,7 @@
       "lens": "infra"
     },
     {
-      "id": "CC-CODING-SKILLS",
+      "id": "VANTA-CODING-SKILLS",
       "track": "Harness",
       "title": "Port CC bundled coding skills",
       "status": "shipped",
@@ -8587,7 +8587,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-DIFF-VIEWER",
+      "id": "VANTA-DIFF-VIEWER",
       "track": "Operator",
       "title": "Interactive diff viewer (/diff)",
       "status": "shipped",
@@ -8601,7 +8601,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-HISTORY-SEARCH",
+      "id": "VANTA-HISTORY-SEARCH",
       "track": "Operator",
       "title": "Reverse prompt search (Ctrl+R)",
       "status": "shipped",
@@ -8615,7 +8615,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-INTERRUPT",
+      "id": "VANTA-S-INTERRUPT",
       "track": "Operator",
       "title": "Esc to interrupt (shipped)",
       "status": "shipped",
@@ -8629,7 +8629,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-AT-MENTION",
+      "id": "VANTA-S-AT-MENTION",
       "track": "Operator",
       "title": "@-file mentions (shipped)",
       "status": "shipped",
@@ -8643,7 +8643,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-IMAGE",
+      "id": "VANTA-S-IMAGE",
       "track": "Operator",
       "title": "Image paste + drag-drop (shipped)",
       "status": "shipped",
@@ -8657,7 +8657,7 @@
       "lens": "reach"
     },
     {
-      "id": "CC-S-SHELL-BANG",
+      "id": "VANTA-S-SHELL-BANG",
       "track": "Operator",
       "title": "! shell prefix (shipped)",
       "status": "shipped",
@@ -8671,7 +8671,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-MEMORY-HASH",
+      "id": "VANTA-S-MEMORY-HASH",
       "track": "Operator",
       "title": "# memory prefix (shipped)",
       "status": "shipped",
@@ -8685,7 +8685,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-MULTILINE",
+      "id": "VANTA-S-MULTILINE",
       "track": "Operator",
       "title": "Multiline composer (shipped)",
       "status": "shipped",
@@ -8699,7 +8699,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-VIM",
+      "id": "VANTA-S-VIM",
       "track": "Operator",
       "title": "Vim mode (shipped)",
       "status": "shipped",
@@ -8713,7 +8713,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-READLINE",
+      "id": "VANTA-S-READLINE",
       "track": "Operator",
       "title": "Readline keybindings (shipped/partial)",
       "status": "shipped",
@@ -8727,7 +8727,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-THINKING",
+      "id": "VANTA-S-THINKING",
       "track": "Operator",
       "title": "Thinking display (shipped)",
       "status": "shipped",
@@ -8741,7 +8741,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-MARKDOWN",
+      "id": "VANTA-S-MARKDOWN",
       "track": "Operator",
       "title": "Markdown transcript (shipped)",
       "status": "shipped",
@@ -8755,7 +8755,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-PALETTE",
+      "id": "VANTA-S-PALETTE",
       "track": "Operator",
       "title": "Slash palette + autocomplete (shipped)",
       "status": "shipped",
@@ -8769,7 +8769,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-THEMES",
+      "id": "VANTA-S-THEMES",
       "track": "Operator",
       "title": "Themes incl. accessibility (shipped)",
       "status": "shipped",
@@ -8783,7 +8783,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-NOTIFY",
+      "id": "VANTA-S-NOTIFY",
       "track": "Operator",
       "title": "Notifications (shipped)",
       "status": "shipped",
@@ -8797,7 +8797,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-CONTEXT",
+      "id": "VANTA-S-CONTEXT",
       "track": "Operator",
       "title": "Context budget view (shipped)",
       "status": "shipped",
@@ -8811,7 +8811,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-S-EXPORT",
+      "id": "VANTA-S-EXPORT",
       "track": "Operator",
       "title": "Export conversation (shipped)",
       "status": "shipped",
@@ -8825,7 +8825,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-SESSIONS",
+      "id": "VANTA-S-SESSIONS",
       "track": "Operator",
       "title": "Sessions resume/fork/title (shipped)",
       "status": "shipped",
@@ -8839,12 +8839,12 @@
       "lens": "memory"
     },
     {
-      "id": "CC-S-SKILLS",
+      "id": "VANTA-S-SKILLS",
       "track": "Operator",
       "title": "Skills + custom commands (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: SKILL.md skills + custom slash commands. Vanta: shipped (skills/* index+recall+curator, 35 bundled; TUI-CMD custom commands; CC-SKILL-FORMAT adds frontmatter parity).",
+      "summary": "CC: SKILL.md skills + custom slash commands. Vanta: shipped (skills/* index+recall+curator, 35 bundled; TUI-CMD custom commands; VANTA-SKILL-FORMAT adds frontmatter parity).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -8853,12 +8853,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-DIFF",
+      "id": "VANTA-S-DIFF",
       "track": "Operator",
       "title": "Edit diff rendering (shipped)",
       "status": "shipped",
       "size": "S",
-      "summary": "CC: /diff viewer. Vanta: shipped (TUI-DIFF renders per-edit diffs; interactive viewer planned CC-DIFF-VIEWER).",
+      "summary": "CC: /diff viewer. Vanta: shipped (TUI-DIFF renders per-edit diffs; interactive viewer planned VANTA-DIFF-VIEWER).",
       "done": "Shipped — parity met.",
       "tier": "sand",
       "model": "sonnet",
@@ -8867,7 +8867,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-STATUSLINE",
+      "id": "VANTA-S-STATUSLINE",
       "track": "Operator",
       "title": "Status line (shipped)",
       "status": "shipped",
@@ -8881,7 +8881,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-S-RECAP",
+      "id": "VANTA-S-RECAP",
       "track": "Operator",
       "title": "Session recap / handoff (shipped)",
       "status": "shipped",
@@ -8895,7 +8895,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-CONFIG",
+      "id": "VANTA-CONFIG",
       "track": "Operator",
       "title": "Config tool — read/write Vanta settings",
       "status": "shipped",
@@ -8909,7 +8909,7 @@
       "lens": "memory"
     },
     {
-      "id": "CC-MCP-RESOURCES",
+      "id": "VANTA-MCP-RESOURCES",
       "track": "Operator",
       "title": "MCP resource tools — list and read resources",
       "status": "shipped",
@@ -8923,7 +8923,7 @@
       "lens": "selfhood"
     },
     {
-      "id": "CC-THEME-CMD",
+      "id": "VANTA-THEME-CMD",
       "track": "Operator",
       "title": "/theme — switch TUI color theme",
       "status": "shipped",
@@ -8937,7 +8937,7 @@
       "lens": "tui"
     },
     {
-      "id": "CC-OUTPUT-STYLE",
+      "id": "VANTA-OUTPUT-STYLE",
       "track": "Operator",
       "title": "/output-style — control response verbosity",
       "status": "shipped",
@@ -8951,12 +8951,12 @@
       "lens": "tui"
     },
     {
-      "id": "CC-MSG-COMPACT-BOUNDARY",
+      "id": "VANTA-MSG-COMPACT-BOUNDARY",
       "track": "Operator",
       "title": "Compact boundary message — visual separator after context compaction",
       "status": "shipped",
       "size": "S",
-      "summary": "CC renders a distinct '✻ Conversation compacted (Ctrl+O for history)' message at the compaction point, with a dynamic shortcut hint. Vanta compacts context (CC-S-COMPACT shipped) but shows no in-transcript marker where compaction occurred.",
+      "summary": "CC renders a distinct '✻ Conversation compacted (Ctrl+O for history)' message at the compaction point, with a dynamic shortcut hint. Vanta compacts context (VANTA-S-COMPACT shipped) but shows no in-transcript marker where compaction occurred.",
       "done": "After compaction, a separator line appears in the transcript at the compaction boundary with the shortcut to view full history; it uses the active keybinding, not a hardcoded key.",
       "tier": "sand",
       "model": "sonnet",
@@ -8967,7 +8967,7 @@
       "notes": "SHIPPED 2026-06-10. New transcript Entry kind \"compactBoundary\" (magenta ──── ✻ … ──── separator) + reducer action { t: \"compactBoundary\"; text }. app.tsx onAutoCompact now dispatches the boundary (was a plain note) with \"compacted N messages · <summary preview>\", so the transcript shows a distinct visual marker where the model's context was summarized. +2 tests (reducer + EntryRow render); full TUI suite 226 green, tsc clean."
     },
     {
-      "id": "CC-MSG-INTERRUPTED",
+      "id": "VANTA-MSG-INTERRUPTED",
       "track": "Operator",
       "title": "Interrupted message — distinct visual when user interrupts a turn",
       "status": "shipped",
@@ -8983,12 +8983,12 @@
       "notes": "SHIPPED 2026-06-10. New transcript Entry kind \"interrupted\" (yellow ⎋ marker) + reducer action { t: \"interrupted\" } that preserves partial streamed text as an assistant entry, appends the marker, and ends the turn (busy=false, idle). use-agent-send.ts Esc handler now dispatches \"interrupted\" (was a generic note) and sets interruptedRef; the send .catch short-circuits on interruptedRef so the AbortError no longer also surfaces as a noisy \"error:\" note. interruptedRef reset at each turn start. +3 tests (reducer preserves-partial + EntryRow render); full TUI suite 224 green, tsc clean."
     },
     {
-      "id": "CC-TOKEN-WARN-UI",
+      "id": "VANTA-TOKEN-WARN-UI",
       "track": "Operator",
       "title": "Token warning — approaching context limit alert",
       "status": "shipped",
       "size": "S",
-      "summary": "CC's TokenWarning renders a visible alert when the conversation is approaching the context window limit (e.g. >85% full), prompting the user to compact or start a new session. Vanta tracks context % (CC-S-CONTEXT) but has no alert threshold UI.",
+      "summary": "CC's TokenWarning renders a visible alert when the conversation is approaching the context window limit (e.g. >85% full), prompting the user to compact or start a new session. Vanta tracks context % (VANTA-S-CONTEXT) but has no alert threshold UI.",
       "done": "When context fill crosses a configurable threshold (default 85%), a persistent warning appears near the composer with context % and a /compact shortcut; at 95% the warning turns urgent.",
       "tier": "sand",
       "model": "sonnet",
@@ -8999,7 +8999,7 @@
       "notes": "SHIPPED 2026-06-10. tui/status-bar.tsx: pure tokenWarningLevel(estTokens, contextWindow, env) → none/warn/urgent + tokenWarnFractions(env) (VANTA_TOKEN_WARN_FRAC default 0.85, VANTA_TOKEN_URGENT_FRAC default 0.95). The status bar (already below the composer, receiving estTokens+contextWindow) colors the % yellow and appends '▲ /compact' at warn, red 'context full · /compact' at urgent — zero app.tsx changes (StatusBar self-computes; env read at render time, not module load). +12 tests; full TUI suite 218 green, tsc clean. Documented in .env.example."
     },
     {
-      "id": "CC-INVALID-SETTINGS-UI",
+      "id": "VANTA-INVALID-SETTINGS-UI",
       "track": "Operator",
       "title": "InvalidConfigDialog + InvalidSettingsDialog — actionable config error UX",
       "status": "shipped",
@@ -9015,7 +9015,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). config/validate.ts: pure describeConfigError(file, raw, err) → \"<file>: invalid JSON at line N — <reason> — fix it or remove it\" + validateConfigFiles(env) which independently re-parses the known config files (./.mcp.json, ~/.vanta/mcp.json, the three settings scopes via settings/store path exports) and returns one notice per broken file ([] when clean/absent). Surfaced via status.ts notices → shown in vanta status/doctor under \"⚠ notices:\" (same mechanism as auth-conflict/model-deprecation) instead of a silent fallback. Reader injected for fs-free tests. Adapted to Vanta (no Ink dialog system — doctor surfacing, not a CC-style InvalidConfigDialog). +8 tests; full suite 2104 green, tsc clean."
     },
     {
-      "id": "CC-SECRET-SCANNER",
+      "id": "VANTA-SECRET-SCANNER",
       "track": "Operator",
       "title": "Secret scanner — block credentials from cloud memory sync",
       "status": "shipped",
@@ -9031,7 +9031,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). store/secret-scan.ts: pure scanForSecrets(text)→deduped rule ids (never the values) + hasSecrets(), 7 high-confidence near-zero-FP rules (github-pat, github-fine-grained-pat, aws-access-key-id, slack-token, google-api-key, private-key, openai-key). Wired into memory/store.ts appendMemory: scans the summary FIRST and returns {skipped:true, rules} without writing/committing if a secret is found — credential content never reaches ~/.vanta or its git store. Caller (session.ts) ignores the new return (void→object compatible). +17 unit + 2 store integration tests; full suite 2019 green, tsc clean."
     },
     {
-      "id": "CC-TOOL-RESULT-DISK",
+      "id": "VANTA-TOOL-RESULT-DISK",
       "track": "Operator",
       "title": "Tool result disk storage — persist large outputs (>50K chars) to disk",
       "status": "shipped",
@@ -9047,12 +9047,12 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). compress/result-offload.ts: offloadResult(text, {toolName, dataDir}) — when a tool output exceeds resolveMaxResultChars (default 50k, VANTA_MAX_RESULT_CHARS / per-tool override) it stashes the full text via the existing CCR store (stashOriginal → .vanta/ccr/<id>.txt, reused — no parallel system) and returns a ~2k preview + retrieval id (the model's existing retrieve_original tool reads it back). Wired into agent.ts dispatchTool AFTER compressOutput, so it backstops non-allow-listed oversized outputs (read_file/shell_cmd/grep). Best-effort (stash failure → original text). +7 tests; full suite 2080 green, tsc clean."
     },
     {
-      "id": "CC-CONTEXT-SUGGESTIONS",
+      "id": "VANTA-CONTEXT-SUGGESTIONS",
       "track": "Operator",
       "title": "Context suggestions — actionable recommendations when context window fills up",
       "status": "shipped",
       "size": "S",
-      "summary": "CC's `contextSuggestions.ts` generates actionable suggestions when context fills: identifies which tools (bash, read, grep, web-fetch) are consuming tokens, shows estimated savings, and suggests /compact or specific file removal. Surfaced in the ContextVisualization component (CC-CONTEXT-VIZ) with severity levels (info/warning).",
+      "summary": "CC's `contextSuggestions.ts` generates actionable suggestions when context fills: identifies which tools (bash, read, grep, web-fetch) are consuming tokens, shows estimated savings, and suggests /compact or specific file removal. Surfaced in the ContextVisualization component (VANTA-CONTEXT-VIZ) with severity levels (info/warning).",
       "done": "When context is 70%+ full, the context visualization shows specific items to remove with token counts: 'Remove 3 bash outputs (~4k tokens)'.",
       "tier": "sand",
       "model": "sonnet",
@@ -9063,7 +9063,7 @@
       "notes": "SHIPPED 2026-06-10 (parallel agent + parent integration). repl/context-suggestions.ts: pure contextSuggestions(messages, window) → ContextSuggestion[] — returns [] below 70% fill; at ≥70% groups role:\"tool\" messages by name and emits \"Remove N <name> output(s) (~Xk tokens)\" for each ≥1k-token group (savedTokens desc), always appends a /compress entry; severity warning ≥85% else info. Wired into the /context command (context-cmd.ts contextCmd): appends the suggestions (⚠/· prefixed) under the breakdown when context is high. +6 tests; full suite 2032 green, tsc clean."
     },
     {
-      "id": "CC-PROMPT-KEYWORDS",
+      "id": "VANTA-PROMPT-KEYWORDS",
       "track": "Operator",
       "title": "Prompt keyword detection — 'keep going' resumes, negative keywords stop agent",
       "status": "shipped",
@@ -10148,7 +10148,7 @@
       "title": "Styled /sessions + /model pickers (vs plain list overlays)",
       "status": "shipped",
       "size": "S",
-      "summary": "Demo tabs 6-7: /sessions and /model render via the generic list overlay; upgrade to the styled pickers in the demo (mark glyphs, key chips, current-● indicators, advisor/vision/routes footer). /skills already shipped (CC-SKILLS-MENU).",
+      "summary": "Demo tabs 6-7: /sessions and /model render via the generic list overlay; upgrade to the styled pickers in the demo (mark glyphs, key chips, current-● indicators, advisor/vision/routes footer). /skills already shipped (VANTA-SKILLS-MENU).",
       "done": "OverlayRow gained a `mark` field rendered in its own column (● current) — separate from the ❯ selection cursor; model + theme pickers mark the current entry instead of baking › into the label. overlays.test + render tests green.",
       "tier": "pebble",
       "model": "sonnet",
@@ -10158,7 +10158,7 @@
       "updated": "2026-06-13"
     },
     {
-      "id": "TUI-TOOL-CALL-CC-STYLE",
+      "id": "TUI-TOOL-CALL-VANTA-STYLE",
       "track": "Harness",
       "title": "Render tool calls as ⏺ Tool(args) / ⎿ result (Claude grammar)",
       "status": "shipped",
@@ -11294,7 +11294,7 @@
       "title": "Terminal / execution backend selection",
       "status": "next",
       "size": "M",
-      "summary": "A `vanta setup` section to choose where shell + code run: local (default) · sandboxed (CC-SANDBOX) · docker · ssh. Optional cloud sandboxes later.",
+      "summary": "A `vanta setup` section to choose where shell + code run: local (default) · sandboxed (VANTA-SANDBOX) · docker · ssh. Optional cloud sandboxes later.",
       "done": "`vanta setup` offers local/sandbox/docker/ssh execution.",
       "tier": "pebble",
       "model": "sonnet",
@@ -12042,7 +12042,7 @@
       "title": "Frictionless Google/comms auth onboarding — client.json ingest, publish-state + 7-day-token handling",
       "status": "next",
       "size": "M",
-      "summary": "Per-user Google comms setup is too heavy and has two footguns: (1) a Testing-status OAuth consent screen makes refresh tokens for restricted scopes (gmail.modify, drive) + sensitive (calendar) expire after 7 days, silently breaking ~/.vanta/google-tokens.json roughly weekly; (2) the current flow makes users copy-paste client_id/secret — a real leak vector (already leaked once into chat). Near-term fix (THIS card): make `vanta auth google` a guided wizard — accept Google's downloaded client_secret.json directly (`--client <path>`, no copy-paste), detect Testing-vs-Published status and warn about the 7-day expiry, and walk the user through Publish App + the unverified-app 'Advanced -> Continue' click-through. Makes BYO-app onboarding bearable + safe WITHOUT owning a verified app. Two documented scale paths, both decision-gated and NOT built here: (A) Theft Studio owns ONE verified Google app -> every user just clicks Authorize, zero console work (best UX) — but gmail.modify/drive are restricted scopes requiring an annual third-party CASA security assessment + makes Theft the data controller for users' mail; gate on a real 2nd comms user (-> DECISIONS). (B) MCP-delegation (Hermes posture, see CC-MCP-AUTH): drop native Google, point at a Google MCP server — but Google does NOT support OAuth dynamic client registration, so MCP only RELOCATES the verification cost to whoever runs that server, it does not remove it; Vanta MCP tools stay kernel-gated so no thesis break. When verifying: switch Drive to drive.file (sensitive, no assessment) vs full drive (restricted). Impl site: vanta-ts/src/google/auth.ts (runGoogleAuth reads env-only today).",
+      "summary": "Per-user Google comms setup is too heavy and has two footguns: (1) a Testing-status OAuth consent screen makes refresh tokens for restricted scopes (gmail.modify, drive) + sensitive (calendar) expire after 7 days, silently breaking ~/.vanta/google-tokens.json roughly weekly; (2) the current flow makes users copy-paste client_id/secret — a real leak vector (already leaked once into chat). Near-term fix (THIS card): make `vanta auth google` a guided wizard — accept Google's downloaded client_secret.json directly (`--client <path>`, no copy-paste), detect Testing-vs-Published status and warn about the 7-day expiry, and walk the user through Publish App + the unverified-app 'Advanced -> Continue' click-through. Makes BYO-app onboarding bearable + safe WITHOUT owning a verified app. Two documented scale paths, both decision-gated and NOT built here: (A) Theft Studio owns ONE verified Google app -> every user just clicks Authorize, zero console work (best UX) — but gmail.modify/drive are restricted scopes requiring an annual third-party CASA security assessment + makes Theft the data controller for users' mail; gate on a real 2nd comms user (-> DECISIONS). (B) MCP-delegation (Hermes posture, see VANTA-MCP-AUTH): drop native Google, point at a Google MCP server — but Google does NOT support OAuth dynamic client registration, so MCP only RELOCATES the verification cost to whoever runs that server, it does not remove it; Vanta MCP tools stay kernel-gated so no thesis break. When verifying: switch Drive to drive.file (sensitive, no assessment) vs full drive (restricted). Impl site: vanta-ts/src/google/auth.ts (runGoogleAuth reads env-only today).",
       "done": "`vanta auth google --client <client_secret.json>` ingests Google's downloaded client JSON (no id/secret copy-paste); the flow detects Testing-vs-Published publishing status and warns that Testing-status refresh tokens expire in 7 days, then guides Publish App + the unverified-app click-through. Verified-app and MCP-delegation scale paths are captured in the summary as decision-gated (not built in this card).",
       "tier": "pebble",
       "effort": "medium",

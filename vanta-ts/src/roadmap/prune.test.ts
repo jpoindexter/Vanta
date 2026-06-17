@@ -80,7 +80,7 @@ describe("pruneAnalysis", () => {
   it("does NOT flag 'Live todo / progress checklist' (todo as common noun)", () => {
     const items: RoadmapItem[] = [
       makeItem({
-        id: "CC-TODO",
+        id: "VANTA-TODO",
         title: "Live todo / progress checklist (TodoWrite pattern)",
       }),
     ];

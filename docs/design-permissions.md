@@ -1,4 +1,4 @@
-# Design — CC-PERMISSIONS (in-session allow/ask/deny rules)
+# Design — VANTA-PERMISSIONS (in-session allow/ask/deny rules)
 
 Status: **designed, ready to build** (2026-06-10). The #1 rock per `~/Desktop/vanta-relevant-roadmap-priorities.md`. Build it as ONE vertical slice in a fresh session — it can't ship in pieces (a rule list that doesn't enforce is a stub).
 
@@ -36,7 +36,7 @@ Pure TS layer on top of the kernel (no Rust change). The kernel still runs first
 ## Risks
 - The one that matters: a bug letting a rule loosen a Block. Mitigation: `tighten()` is a tiny pure fn with an exhaustive matrix test; the kernel Block branch returns block unconditionally before consulting rules.
 - Rule-load perf: cache per turn.
-- Scope creep into CC-AUTO-MODE (auto-approve) — that's a SEPARATE card that builds on this; don't fold it in.
+- Scope creep into VANTA-AUTO-MODE (auto-approve) — that's a SEPARATE card that builds on this; don't fold it in.
 
 ## Why not done this session
-Security-critical + multi-file; correctness here matters more than speed. Build it fresh with `/planmode`, not at the tail of a long thread. Once shipped, CC-AUTO-MODE and CC-PERM-PER-TOOL-UI unblock.
+Security-critical + multi-file; correctness here matters more than speed. Build it fresh with `/planmode`, not at the tail of a long thread. Once shipped, VANTA-AUTO-MODE and VANTA-PERM-PER-TOOL-UI unblock.
