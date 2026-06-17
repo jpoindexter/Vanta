@@ -74,10 +74,50 @@ export const RULES: BoundaryRule[] = [
     appliesTo: (rel) => !rel.startsWith("gateway/platforms/") && rel !== "lint/boundaries.ts",
     forbid: /\b(TelegramAdapter|IMessageAdapter|SignalAdapter)\b/,
   },
+  {
+    id: "home-store-direct",
+    desc: "Persist via the MemoryStore port (resolveMemoryStore), not store/home.ts directly. Remaining direct importers are fs-bound (sync API, file-mode 0600, raw absolute paths for external processes, or absolute-path exports) and are grandfathered — the list only shrinks.",
+    severity: "error",
+    appliesTo: (rel) => !rel.startsWith("store/") && rel !== "lint/boundaries.ts",
+    forbid: /(from\s+|import\(\s*)["'][^"']*store\/home(\.js)?["']/,
+  },
 ];
 
 /** Grandfathered `${ruleId}::${relPath}` keys — warn, never error. Shrink only. */
-export const GRANDFATHER = new Set<string>([]);
+export const GRANDFATHER = new Set<string>([
+  // home-store-direct: fs-bound consumers (sync API / file-mode / raw absolute
+  // path for an external process / absolute-path public export / dir-ops). Each
+  // can migrate to the MemoryStore port only when the port grows the matching
+  // affordance or the consumer's contract changes. NEVER add to this list — it
+  // only shrinks (PORT-MEMORY-STORE).
+  "home-store-direct::brain/store.ts",
+  "home-store-direct::brain/v2.ts",
+  "home-store-direct::browser/profile.ts",
+  "home-store-direct::cli/eval-cmd.ts",
+  "home-store-direct::cli/evolve-cmd.ts",
+  "home-store-direct::cli/ops-app.ts",
+  "home-store-direct::cli/ops.ts",
+  "home-store-direct::config/validate.ts",
+  "home-store-direct::google/auth-store.ts",
+  "home-store-direct::memory/playbook.ts",
+  "home-store-direct::operator-profile/profile.ts",
+  "home-store-direct::plugins/catalog.ts",
+  "home-store-direct::plugins/loader.ts",
+  "home-store-direct::preferences/signals.ts",
+  "home-store-direct::reach/cookie.ts",
+  "home-store-direct::reach/twitter.ts",
+  "home-store-direct::refs/store.ts",
+  "home-store-direct::repl/compartments-cmd.ts",
+  "home-store-direct::repl/health-cmd.ts",
+  "home-store-direct::service/manager.ts",
+  "home-store-direct::settings/store.ts",
+  "home-store-direct::setup-full.ts",
+  "home-store-direct::skills/curator.ts",
+  "home-store-direct::skills/lint.ts",
+  "home-store-direct::skills/store.ts",
+  "home-store-direct::status.ts",
+  "home-store-direct::verify/store.ts",
+]);
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");
 
