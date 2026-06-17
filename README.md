@@ -49,7 +49,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter/Claude-Code-style providers; 81 built-in tools and 93 slash commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 86 built-in tools and 97 slash commands
 - **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding

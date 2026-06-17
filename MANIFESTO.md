@@ -73,9 +73,9 @@ Vanta inherits the breadth and discipline those runtimes established (*"the deli
 
 ---
 
-## What "at least parity" means
+## The capability floor
 
-Match the best local agents — breadth of tools, memory, self-improvement, the command surface a full agent has — **then exceed them on the kernel-safety thesis that is Vanta's entire reason to exist.** Parity is the floor. The differentiator is the ceiling. Sequenced in [`ROADMAP.md`](ROADMAP.md) §v1.1.
+Carry what a full local agent needs — breadth of tools, memory, self-improvement, a complete command surface — **then exceed it on the kernel-safety thesis that is Vanta's entire reason to exist.** The capability floor is table stakes; the differentiator is the ceiling. Sequenced in [`ROADMAP.md`](ROADMAP.md) §v1.1.
 
 ---
 
