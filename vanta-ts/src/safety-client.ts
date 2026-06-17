@@ -17,8 +17,37 @@ const GoalsResponse = z.array(
 
 const ApprovalResponse = z.object({ id: z.number() }).passthrough();
 
-/** HTTP client for the Rust safety kernel sidecar. */
-export class SafetyClient {
+/**
+ * The kernel-client PORT — the TS layer's surface onto the Rust safety kernel.
+ * Consumers depend on this interface; construction funnels through
+ * {@link createKernelClient}. The kernel itself stays a fixed boundary (only its
+ * client is ported). Swap the transport (IPC, in-process, a test stub) = a new
+ * adapter + the factory. `SafetyClient` is kept as an alias so existing imports
+ * keep working. (DECISIONS 2026-06-17, ports/adapters.)
+ */
+export interface KernelClient {
+  status(): Promise<boolean>;
+  assess(action: string): Promise<Verdict>;
+  getGoals(): Promise<Goal[]>;
+  addGoal(text: string): Promise<boolean>;
+  completeGoal(id: number): Promise<boolean>;
+  getApprovals(): Promise<unknown[]>;
+  proposeApproval(action: string): Promise<number | null>;
+  approve(id: number): Promise<void>;
+  deny(id: number): Promise<void>;
+  logEvent(event: string): Promise<void>;
+}
+
+/** Back-compat alias for the port. Prefer `KernelClient` in new code. */
+export type SafetyClient = KernelClient;
+
+/** Build the default kernel client. The one place that constructs a transport. */
+export function createKernelClient(baseUrl: string): KernelClient {
+  return new HttpSafetyClient(baseUrl);
+}
+
+/** HTTP adapter for the Rust safety kernel sidecar. The only KernelClient impl. */
+export class HttpSafetyClient implements KernelClient {
   constructor(private readonly baseUrl: string) {}
 
   async status(): Promise<boolean> {

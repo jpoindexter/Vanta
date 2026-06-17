@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { Interface as Readline } from "node:readline/promises";
-import { SafetyClient } from "./safety-client.js";
+import { createKernelClient, type SafetyClient } from "./safety-client.js";
 import { ensureKernel } from "./kernel-launcher.js";
 import { buildRegistry } from "./tools/index.js";
 import { appendMemory } from "./memory/store.js";
@@ -44,7 +44,7 @@ export async function prepareRun(
   const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
   await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
-  const safety = new SafetyClient(baseUrl);
+  const safety = createKernelClient(baseUrl);
   const registry = buildRegistry();
   const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);

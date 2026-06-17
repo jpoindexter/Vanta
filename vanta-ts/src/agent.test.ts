@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runAgent, createConversation } from "./agent.js";
-import { SafetyClient } from "./safety-client.js";
+import { createKernelClient } from "./safety-client.js";
 import { buildRegistry } from "./tools/index.js";
 import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 
@@ -37,7 +37,7 @@ beforeAll(async () => {
   prevHome = process.env.VANTA_HOME;
   home = mkdtempSync(join(tmpdir(), "vanta-agent-test-"));
   process.env.VANTA_HOME = home;
-  kernelUp = await new SafetyClient(KERNEL_URL).status();
+  kernelUp = await createKernelClient(KERNEL_URL).status();
 });
 
 afterAll(() => {
@@ -48,7 +48,7 @@ afterAll(() => {
 
 describe("agent dispatch against the live kernel", () => {
   const baseDeps = () => ({
-    safety: new SafetyClient(KERNEL_URL),
+    safety: createKernelClient(KERNEL_URL),
     registry: buildRegistry(),
     root: process.cwd(),
   });
@@ -159,7 +159,7 @@ describe("auto-compact onAutoCompact callback", () => {
       "sys",
       {
         provider: tinyWindow,
-        safety: new SafetyClient("http://127.0.0.1:7788"),
+        safety: createKernelClient("http://127.0.0.1:7788"),
         registry: buildRegistry(),
         root: process.cwd(),
         requestApproval: async () => true,
@@ -193,7 +193,7 @@ describe("setProvider hot-swap", () => {
 
     const convo = createConversation("system", {
       provider: original,
-      safety: new SafetyClient(KERNEL_URL), // constructed, never called (no tools)
+      safety: createKernelClient(KERNEL_URL), // constructed, never called (no tools)
       registry: buildRegistry(),
       root: process.cwd(),
       requestApproval: async () => true,

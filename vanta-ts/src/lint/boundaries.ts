@@ -46,6 +46,13 @@ export const RULES: BoundaryRule[] = [
     appliesTo: (rel) => !rel.startsWith("brain/"),
     forbid: /(from\s+|import\(\s*)["'][^"']*brain\/brain(\.js)?["']/,
   },
+  {
+    id: "kernel-client-port",
+    desc: "Consumers must use the KernelClient port + createKernelClient factory, never the HttpSafetyClient adapter directly.",
+    severity: "error",
+    appliesTo: (rel) => rel !== "safety-client.ts" && rel !== "lint/boundaries.ts",
+    forbid: /\bHttpSafetyClient\b/,
+  },
 ];
 
 /** Grandfathered `${ruleId}::${relPath}` keys — warn, never error. Shrink only. */

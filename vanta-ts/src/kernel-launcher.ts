@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
-import { SafetyClient } from "./safety-client.js";
+import { createKernelClient } from "./safety-client.js";
 
 /**
  * Ensure the Rust kernel sidecar is running. If not, spawn it detached with an
@@ -12,7 +12,7 @@ export async function ensureKernel(opts: {
   kernelBin: string;
   root: string;
 }): Promise<void> {
-  const client = new SafetyClient(opts.baseUrl);
+  const client = createKernelClient(opts.baseUrl);
   if (await client.status()) return;
 
   if (!existsSync(opts.kernelBin)) {

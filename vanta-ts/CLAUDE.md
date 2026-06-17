@@ -35,7 +35,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `setup.ts` | `vanta setup` provider/model picker. Pure `upsertEnv(existing, updates)` (merges into `.env`, preserves other keys) + `buildEnvUpdates`; `runSetup` can receive a live validation hook and only writes after it passes (hidden key prompt, 0600 write) |
 | `setup/assistant.ts` | Setup assistant probes: provider completion, Google OAuth token check/loopback path, MCP mount/list-tools, and configured Telegram Bot API validation. Returns errors-as-values with secret redaction. |
 | `status.ts` | `vanta status`/`doctor`. Pure `formatStatus(report)` + `gatherStatus(env)` (kernel **ping only**, provider try/catch, key **presence**, store/goal counts) |
-| `safety-client.ts` | `fetch` client → kernel. `assess/getGoals/proposeApproval/approve/deny/logEvent/status`. Zod-validates responses |
+| `safety-client.ts` | The **`KernelClient` port** (`assess/getGoals/proposeApproval/approve/deny/logEvent/status`) + `createKernelClient(baseUrl)` factory + `HttpSafetyClient` adapter (`fetch` → kernel, Zod-validates). `SafetyClient` is a back-compat alias of the port. Consumers type against `KernelClient`/`SafetyClient` and construct via the factory — never `new HttpSafetyClient` (the `kernel-client-port` fitness rule enforces it). The kernel stays a fixed boundary; only its client is swappable |
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `VANTA_ROOT` + cwd, poll 5s |
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
 | `tools/types.ts` | `Tool` (schema + optional `describeForSafety` + `execute`), `ToolContext`, `ToolResult` |

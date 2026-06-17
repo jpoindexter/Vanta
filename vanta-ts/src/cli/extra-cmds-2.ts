@@ -1,7 +1,7 @@
 // Extra CLI command handlers (set B). Extracted from extra-cmds.ts (size gate).
 
 import { dataDirFor } from "./ops.js";
-import { SafetyClient } from "../safety-client.js";
+import { createKernelClient } from "../safety-client.js";
 
 /** `vanta ref [add <url|path> | search <q> | list]` */
 export async function runRefCommand(_root: string, rest: string[]): Promise<number> {
@@ -64,7 +64,7 @@ export async function runBriefCommand(root: string): Promise<void> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const kernelBin = pathJoin(root, "target", "debug", "vanta-kernel");
   await ensureKernel({ baseUrl, kernelBin, root }).catch(() => {});
-  const safety = new SafetyClient(baseUrl);
+  const safety = createKernelClient(baseUrl);
   const out = await buildBrief({ dataDir: dataDirFor(root), env: process.env, getGoals: () => safety.getGoals() });
   console.log(out);
 }
