@@ -40,10 +40,21 @@ export function buildToolSearchTool(
       const parsed = Args.safeParse(raw);
       if (!parsed.success) return { ok: false, output: "tool_search needs a query string" };
       const { query, maxResults = 5 } = parsed.data;
-      const q = query.toLowerCase();
-      const matches = registry.schemas().filter(
-        (s) => s.name.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q),
-      );
+      const q = query.toLowerCase().trim();
+      // Tokenize: a multi-keyword query ("write file create edit shell") matches
+      // tools containing ANY term, ranked by how many terms hit (full-phrase
+      // match wins). Single-substring matching missed multi-word queries —
+      // e.g. it failed to surface write_file, stalling the agent mid-task.
+      const terms = q.split(/\s+/).filter(Boolean);
+      const matches = registry.schemas()
+        .map((s) => {
+          const hay = `${s.name} ${s.description ?? ""}`.toLowerCase();
+          const score = (hay.includes(q) ? 100 : 0) + terms.filter((t) => hay.includes(t)).length;
+          return { s, score };
+        })
+        .filter((x) => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map((x) => x.s);
       if (!matches.length) return { ok: true, output: `(no tools matched "${query}")` };
       const shown = matches.slice(0, maxResults);
       const lines = shown.map((s) => `## ${s.name}\n${s.description ?? "(no description)"}\nSchema: ${JSON.stringify(s.parameters, null, 2)}`);
