@@ -1,4 +1,4 @@
-import { readFile, appendFile, writeFile, readdir, mkdir } from "node:fs/promises";
+import { readFile, appendFile, writeFile, readdir, mkdir, rm } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { resolveVantaHome, ensureVantaStore, commitInHome } from "./home.js";
 
@@ -21,6 +21,8 @@ export interface MemoryStore {
   append(path: string, content: string): Promise<void>;
   /** List filenames in a home-relative directory ("" = the home root). */
   list(dir: string): Promise<string[]>;
+  /** Delete a home-relative path. Idempotent — a missing path is not an error. */
+  remove(path: string): Promise<void>;
   /** Best-effort git commit of a home-relative path. Never throws. */
   commit(path: string, message: string): Promise<void>;
 }
@@ -43,6 +45,9 @@ export function fsMemoryStore(env: NodeJS.ProcessEnv = process.env): MemoryStore
     },
     async list(dir) {
       return readdir(abs(dir)).catch(() => []);
+    },
+    async remove(path) {
+      await rm(abs(path), { force: true });
     },
     commit: (path, message) => commitInHome(path, message, env),
   };

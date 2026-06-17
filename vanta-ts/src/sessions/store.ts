@@ -1,7 +1,4 @@
-import { rm } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
 import { resolveMemoryStore } from "../store/memory-store.js";
 import type { Message } from "../types.js";
 import type { SessionStore } from "./interface.js";
@@ -53,11 +50,6 @@ export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated"> 
 /** Home-relative path to a session's JSON file. */
 function sessionRel(id: string): string {
   return `${SESSIONS_SUBDIR}/${id}.json`;
-}
-
-/** Absolute sessions dir — only for the fs-level delete the port can't express. */
-function sessionsDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), SESSIONS_SUBDIR);
 }
 
 /** Timestamp-based id `YYYYMMDD-HHMMSS`. `now` injectable for tests. */
@@ -126,7 +118,7 @@ export async function forkSession(
 
 /** Delete a session file. Idempotent — a missing file is not an error. */
 export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promise<void> {
-  await rm(join(sessionsDir(env), `${id}.json`), { force: true });
+  await resolveMemoryStore(env).remove(sessionRel(id));
 }
 
 /** List session metadata, newest first. Skips unparseable files. */
