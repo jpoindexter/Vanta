@@ -7,6 +7,10 @@ import { roadmapMoveTool } from "./roadmap-move.js";
 import { roadmapAddTool } from "./roadmap-add.js";
 import { webSearchTool } from "./web-search.js";
 import { webFetchTool } from "./web-fetch.js";
+import { codeContextTool } from "./code-context.js";
+import { codeSearchTool } from "./code-search.js";
+import { codeAffectedTool } from "./code-affected.js";
+import { codeIndexTool } from "./code-index.js";
 import { writeSkillTool } from "./write-skill.js";
 import { recallTool } from "./recall.js";
 import { screenshotTool } from "./screenshot.js";
@@ -109,6 +113,10 @@ export const ALL_TOOLS: readonly Tool[] = [
   roadmapAddTool,
   webSearchTool,
   webFetchTool,
+  codeContextTool,
+  codeSearchTool,
+  codeAffectedTool,
+  codeIndexTool,
   writeSkillTool,
   recallTool,
   redditReadTool,
