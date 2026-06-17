@@ -13,6 +13,9 @@ import {
   type ScopeDeltaState,
   type WmManipState,
 } from "../session.js";
+import { ndGatesAfterTurn } from "../session/nd-gates.js";
+import { emptyEfState } from "../nd/engine.js";
+import type { EfState } from "../nd/types.js";
 import type { Message } from "../types.js";
 import type { SafetyClient } from "../safety-client.js";
 
@@ -29,6 +32,8 @@ export type GateState = {
   stall: StallState;
   scopeDelta: ScopeDeltaState;
   wmManip: WmManipState;
+  /** ND executive-function engine state (the user-configurable gate set). */
+  nd: EfState;
 };
 
 export function freshGateState(): GateState {
@@ -39,16 +44,21 @@ export function freshGateState(): GateState {
     stall: { stalledTurns: 0 },
     scopeDelta: { totalAnnotations: 0 },
     wmManip: { manipTurns: 0 },
+    nd: emptyEfState(),
   };
 }
 
 /** Run every post-turn gate in order, threading + returning the new bundle. Each gate is best-effort. */
 export async function runPostTurnGates(
   g: GateState,
-  o: { messages: Message[]; safety: SafetyClient; dataDir: string; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
+  o: {
+    messages: Message[]; safety: SafetyClient; dataDir: string; onNote: (text: string) => void;
+    env?: NodeJS.ProcessEnv; turnIndex?: number; startedMs?: number; now?: number;
+  },
 ): Promise<GateState> {
   const { messages, safety, dataDir, onNote } = o;
   const env = o.env ?? process.env;
+  const now = o.now ?? Date.now();
   traceAnomalyAfterTurn(messages, onNote, env);
   return {
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
@@ -57,5 +67,10 @@ export async function runPostTurnGates(
     stall: await stallAfterTurn(g.stall, messages, { safety, dataDir, onNote, env }),
     scopeDelta: await scopeDeltaAfterTurn(g.scopeDelta, messages, onNote, env),
     wmManip: await wmManipAfterTurn(g.wmManip, messages, onNote, env),
+    nd: await ndGatesAfterTurn(g.nd, {
+      messages, safety, onNote, env, now,
+      turnIndex: o.turnIndex ?? messages.filter((m) => m.role === "user").length,
+      startedMs: o.startedMs ?? now,
+    }),
   };
 }

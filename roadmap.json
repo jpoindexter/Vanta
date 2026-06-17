@@ -11943,14 +11943,14 @@
       "id": "ND-EF-GATE-ENGINE",
       "track": "Operator",
       "title": "ND: full executive-function gate engine (user-facing, configurable)",
-      "status": "building",
+      "status": "shipped",
       "size": "L",
       "summary": "Vanta's EF gates today are antiSlop/modeDetect/researchGate/stallUnblock. Promote to the full neurodivergent support set as FIRST-CLASS, per-user-configurable product behaviors (the way the assistant's own ND skills work, but FOR the user): research-gate, complexity-gate, task-initiation, hyperfocus-guard, time-blindness, closure-gate, velocity-check, set-shift, inhibit. This is the core of the ND-first positioning. Stay lean — one engine, gates as small pure rules. See .",
       "done": "The EF-gate set is configurable per user and fires in-session (e.g. research-gate nudges after N read-only turns; hyperfocus-guard after long single-area runs); each gate is independently toggleable.",
       "tier": "rock",
       "effort": "high",
-      "updated": "2026-06-16",
-      "notes": "Slice 1 started 2026-06-16: add per-user EF config + gate registry, rewire existing gates only, and preserve default behavior. Deferred slice 2: /ef live toggle UI, new EF gates (hyperfocus/task-initiation/time-blindness/velocity), broader threshold generalization."
+      "updated": "2026-06-17",
+      "notes": "Shipped 2026-06-17. One engine (nd/engine.ts runEfGates) runs all 9 gates as small pure rules (nd/gates.ts): research, complexity, task-initiation, hyperfocus, time-blindness, closure, velocity, set-shift, inhibit. Per-user config persisted in nd/profile.ts — each gate independently enabled + threshold-tunable; engine-level on/off. /nd command views/toggles/tunes (repl/nd-cmd.ts). Fires in-session via session/nd-gates.ts wired into repl/post-turn-gates.ts. 23 unit tests; typecheck + size gate clean. NOTE: post-turn gates currently fire in the readline REPL host only — wiring the engine into the default TUI host (ui/use-agent) is a follow-up card."
     },
     {
       "id": "ND-WORKING-MEMORY-RAIL",

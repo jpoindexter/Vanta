@@ -114,7 +114,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   if (learned.length) console.log(`  ◈ learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
   const activeGoalText = setup.goals.find((g) => g.status === "active")?.text ?? "";
   await criticAfterTurn({ provider: setup.provider, goal: activeGoalText, messages: convo.messages, onNote: (note) => console.log(`\n${note}`) });
-  gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`) });
+  gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`), turnIndex: state.turnIndex, startedMs: Date.parse(state.started) || Date.now(), now: Date.now() });
   const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
   await reflectAfterTurn(lastUserText, process.env);
