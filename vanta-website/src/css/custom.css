@@ -1,30 +1,209 @@
-/**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
- */
+/* Vanta docs theme — Mintlify-style layout in Vanta's palette.
+   Vanta accents: focus #6bdcff · health #83f2b0 · activity #ffb86b · goal #b7a4ff · risk #ff6b7a */
 
-/* You can override the default Infima variables here. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Vanta accent palette */
+  --vanta-focus: #6bdcff;
+  --vanta-health: #83f2b0;
+  --vanta-activity: #ffb86b;
+  --vanta-goal: #b7a4ff;
+  --vanta-risk: #ff6b7a;
+
+  /* Primary = a readable deep cyan in light mode */
+  --ifm-color-primary: #0b86a3;
+  --ifm-color-primary-dark: #0a7992;
+  --ifm-color-primary-darker: #097189;
+  --ifm-color-primary-darkest: #075d71;
+  --ifm-color-primary-light: #0d93b3;
+  --ifm-color-primary-lighter: #0f9ec1;
+  --ifm-color-primary-lightest: #16b6dd;
+
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ifm-heading-font-weight: 700;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.7;
+  --ifm-code-font-size: 90%;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-height: 4rem;
+  --ifm-navbar-shadow: none;
+  --ifm-toc-border-color: transparent;
+  --ifm-color-emphasis-200: #eceef1;
+  --ifm-color-emphasis-300: #e2e5ea;
+
+  --ifm-menu-color: #5b6675;
+  --ifm-menu-color-active: var(--ifm-color-primary);
+  --ifm-menu-color-background-active: rgba(11, 134, 163, 0.08);
+  --ifm-menu-color-background-hover: rgba(11, 134, 163, 0.06);
+
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-decoration: none;
+  --vanta-border: #e7e9ee;
+  --vanta-card-bg: #ffffff;
+  --vanta-eyebrow: var(--ifm-color-primary);
+
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.07);
+  --ifm-global-radius: 0.65rem;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* Dark mode — Vanta terminal vibe: near-black surfaces, bright accents */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #6bdcff;
+  --ifm-color-primary-dark: #4fd2ff;
+  --ifm-color-primary-darker: #3fcdff;
+  --ifm-color-primary-darkest: #12bdff;
+  --ifm-color-primary-light: #87e4ff;
+  --ifm-color-primary-lighter: #97e8ff;
+  --ifm-color-primary-lightest: #c2f2ff;
+
+  --ifm-background-color: #0c0e13;
+  --ifm-background-surface-color: #11141b;
+  --ifm-navbar-background-color: rgba(12, 14, 19, 0.8);
+  --ifm-color-emphasis-200: #20242d;
+  --ifm-color-emphasis-300: #2a2f3a;
+
+  --ifm-menu-color: #9aa4b2;
+  --ifm-menu-color-background-active: rgba(107, 220, 255, 0.12);
+  --ifm-menu-color-background-hover: rgba(107, 220, 255, 0.08);
+
+  --vanta-border: #22262f;
+  --vanta-card-bg: #11141b;
+  --vanta-eyebrow: var(--vanta-focus);
+  --docusaurus-highlighted-code-line-bg: rgba(107, 220, 255, 0.12);
 }
+
+/* ---------- Navbar: clean, blurred, hairline border ---------- */
+.navbar {
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--vanta-border);
+}
+.navbar__title { font-weight: 800; letter-spacing: -0.02em; }
+.navbar__link { font-weight: 500; font-size: 0.92rem; }
+.navbar__link--active { color: var(--ifm-color-primary); }
+
+/* ---------- Sidebar: grouped, Mintlify-style ---------- */
+.theme-doc-sidebar-container { border-right: 1px solid var(--vanta-border) !important; }
+.menu { padding: 1rem 0.75rem !important; font-size: 0.9rem; }
+.menu__list .menu__list { margin-top: 0.1rem; }
+
+.menu__link {
+  border-radius: 0.5rem;
+  padding: 0.36rem 0.6rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 600;
+  background: var(--ifm-menu-color-background-active);
+}
+
+/* Category labels → section headers (muted, uppercase, no chrome) */
+.menu__list-item-collapsible .menu__link--sublist {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.5rem 0.6rem 0.3rem;
+  margin-top: 0.5rem;
+}
+.menu__list-item-collapsible:hover { background: transparent; }
+.menu__list-item-collapsible .menu__link--sublist:hover { background: transparent; }
+.menu__caret { display: none; } /* groups are always open */
+
+/* ---------- Content: eyebrow, headings, spacing ---------- */
+.markdown { --ifm-h1-font-size: 2.4rem; }
+.markdown h1:first-child { font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1.1rem; }
+.markdown h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 2.6rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--vanta-border);
+}
+.markdown h3 { font-weight: 600; margin-top: 1.8rem; }
+.theme-doc-markdown { font-size: 1rem; }
+
+/* Breadcrumbs as a colored eyebrow */
+.breadcrumbs__item--active .breadcrumbs__link { color: var(--ifm-font-color-base); }
+.breadcrumbs__link { color: var(--vanta-eyebrow); font-weight: 600; }
+
+article a { font-weight: 500; }
+article a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Admonitions / callouts: soft, rounded, accent-tinted ---------- */
+.theme-admonition {
+  border-radius: 0.85rem;
+  border: 1px solid var(--vanta-border);
+  border-left-width: 3px;
+  box-shadow: none;
+}
+.theme-admonition-note,
+.theme-admonition-info { border-left-color: var(--vanta-focus); background: rgba(107, 220, 255, 0.07); }
+.theme-admonition-tip { border-left-color: var(--vanta-health); background: rgba(131, 242, 176, 0.08); }
+.theme-admonition-warning,
+.theme-admonition-caution { border-left-color: var(--vanta-activity); background: rgba(255, 184, 107, 0.09); }
+.theme-admonition-danger { border-left-color: var(--vanta-risk); background: rgba(255, 107, 122, 0.08); }
+
+/* ---------- Cards: bordered, hover-lift (Mintlify card grid) ---------- */
+.card {
+  border: 1px solid var(--vanta-border);
+  border-radius: 0.9rem;
+  background: var(--vanta-card-bg);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+}
+
+/* ---------- Code ---------- */
+.theme-code-block, pre[class*='language-'] {
+  border-radius: 0.7rem;
+  border: 1px solid var(--vanta-border);
+}
+code { border-radius: 0.4rem; }
+:not(pre) > code {
+  border: 1px solid var(--vanta-border);
+  background: var(--ifm-color-emphasis-100);
+  padding: 0.12rem 0.36rem;
+}
+
+/* ---------- Right TOC: active accent ---------- */
+.table-of-contents { font-size: 0.82rem; }
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+.table-of-contents__left-border { border-left-color: var(--vanta-border); }
+
+/* ---------- Tables ---------- */
+.markdown table { border-radius: 0.6rem; overflow: hidden; border: 1px solid var(--vanta-border); }
+.markdown table thead { background: var(--ifm-color-emphasis-100); }
+.markdown table th, .markdown table td { border-color: var(--vanta-border); }
+
+/* ---------- Mermaid: let diagrams breathe ---------- */
+.docusaurus-mermaid-container { margin: 1.5rem 0; text-align: center; }
+
+/* ---------- Landing hero: Vanta gradient ---------- */
+.heroBanner_src-pages-index-module,
+header.hero {
+  background: radial-gradient(1200px 400px at 50% -10%, rgba(107, 220, 255, 0.16), transparent 60%),
+              linear-gradient(180deg, #0c0e13 0%, #11141b 100%);
+  color: #f2f5f8;
+}
+header.hero .hero__title { color: #ffffff; font-weight: 800; letter-spacing: -0.03em; }
+header.hero .hero__subtitle { color: #aeb6c2; }
+header.hero .button--secondary {
+  background: var(--vanta-focus);
+  border-color: var(--vanta-focus);
+  color: #06222b;
+  font-weight: 600;
+}
+header.hero .button--secondary:hover { background: #87e4ff; border-color: #87e4ff; }

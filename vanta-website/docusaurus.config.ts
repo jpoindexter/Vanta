@@ -32,7 +32,18 @@ const config: Config = {
     },
   },
 
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexBlog: false,
+        docsRouteBasePath: '/docs',
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
 
   i18n: {
     defaultLocale: 'en',
@@ -58,14 +69,11 @@ const config: Config = {
   themeConfig: {
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: 'light',
+      respectPrefersColorScheme: false,
     },
     navbar: {
       title: 'Vanta',
-      logo: {
-        alt: 'Vanta',
-        src: 'img/logo.svg',
-      },
       items: [
         {
           type: 'docSidebar',
