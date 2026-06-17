@@ -81,6 +81,17 @@ export const RULES: readonly BoundaryRule[] = [
     forbidden: (spec) => /(^|\/)safety-client(\.js)?$/.test(spec),
     hard: true,
   },
+  {
+    // PORT-MEMORY-STORE is migrated in waves; this rule grows file-by-file as
+    // each store lands on the MemoryStore port. Wave 1: brain regions + goal
+    // memory. The fs+git home (store/home.ts) is the default adapter, reachable
+    // only via store/memory-store.ts after a file is migrated.
+    id: "memory-store-port",
+    desc: "Migrated persistence consumers depend on the MemoryStore port (store/memory-store.ts), not store/home.ts directly.",
+    applies: (p) => ["memory/store.ts", "brain/store.ts"].some((m) => norm(p).endsWith(m)),
+    forbidden: (spec) => /(^|\/)store\/home(\.js)?$/.test(spec),
+    hard: true,
+  },
 ];
 
 // Files permitted to cross a (non-hard) boundary today. SHRINK-ONLY: never add a

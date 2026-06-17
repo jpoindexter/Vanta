@@ -12212,13 +12212,14 @@
       "id": "PORT-MEMORY-STORE",
       "track": "Harness",
       "title": "MemoryStore port — replace resolveVantaHome fs coupling (~61 sites)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Audit: the single biggest coupling in the codebase. resolveVantaHome/`~/.vanta` filesystem access is hardwired across ~61 sites (brain, memory, settings, permissions, rules, skills, goals) — independently flagged by 3 auditors. No persistence port: memory/settings/rules can't be backed by sqlite/remote/encrypted without editing every caller. Define a MemoryStore/persistence port (read/write/list/commit, scoped by namespace); the fs+git home becomes the default adapter; migrate call sites in waves (brain+memory first, then settings/permissions/rules/skills/goals). LARGE — schedule deliberately, do NOT bundle with smaller ports. Each wave is independently shippable + verified. Enforced incrementally by fitness rules as each wave completes.",
       "done": "A MemoryStore port exists with the fs+git home as default adapter; brain+memory consumers go through it; remaining stores migrate in subsequent waves; backing memory with an alternate store needs no consumer edits.",
       "tier": "rock",
       "effort": "high",
-      "updated": "2026-06-17"
+      "updated": "2026-06-18",
+      "notes": "Wave 1 shipped 2026-06-18 (done-criterion met). store/memory-store.ts defines the MemoryStore port (ensure/read/write/append/list/exists/commit/abspath, namespaced) + the fs+git ~/.vanta home as the default adapter + resolveMemoryStore(env) (VANTA_STORE, default fs-git) — the one registration point. Wave-1 consumers migrated: brain/store.ts (md regions + archive-on-overwrite) and memory/store.ts (goal memory, capping, secret-scan). Incremental HARD fitness rule `memory-store-port` forbids those files importing store/home directly; it grows file-by-file as later waves land. memory-store.test.ts + full suite (3537) green; typecheck + size gate + all 5 boundaries clean. REMAINING WAVES (subsequent cards): brain/entries.ts + entry-types.ts (entries.json, tolerant reader/quarantine), memory/{curator,forget,session-memory,working}, then settings/permissions/rules/skills/goals + the ~35 other resolveVantaHome sites. Backing memory with sqlite/remote/encrypted is now one adapter + one ADAPTERS entry for migrated consumers."
     },
     {
       "id": "PORT-PROMPT-TIERS",
