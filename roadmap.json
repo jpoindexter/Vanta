@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-16",
+  "updated": "2026-06-17",
   "items": [
     {
       "id": "CC-SESSION-MEMORY-SVC",
@@ -12096,6 +12096,210 @@
       "tier": "sand",
       "effort": "low",
       "updated": "2026-06-16"
+    },
+    {
+      "id": "CODE-INTEL-CODEGRAPH-TOOLS",
+      "track": "Operator",
+      "title": "Code intelligence behind a swappable provider port (codegraph = default adapter)",
+      "status": "next",
+      "size": "M",
+      "summary": "Give Vanta-the-operator code intelligence so the factory/executor stops acting on code blind — built as a SWAPPABLE PORT so a better engine can replace codegraph with nothing breaking. Architecture = ports & adapters: define ONE interface CodeIntelProvider (port) in vanta-ts/src/code-intel/provider.ts with methods context(task)/search(sym)/affected(files)/ensureIndexed(); ship CodegraphProvider as the default adapter (shells out to the already-installed codegraph CLI, which stays a standalone component — not vendored/embedded/forked). A single resolver (code-intel/index.ts) picks the active provider; swapping engines = write a new adapter + change one registration line. Expose 4 kernel-gated tools that call the PORT, never codegraph directly: code_context, code_search, code_affected, code_index. HARD CONSTRAINTS: (1) nothing outside the adapter imports codegraph — core/factory/tools depend only on the CodeIntelProvider interface; (2) provider methods return Result<T,E> and degrade gracefully ('code intelligence unavailable') when no engine is present — never throw, never break a session; (3) absent/unconfigured provider is a silent no-op via a capability check; (4) removal/replacement = swap or delete one adapter file, ZERO changes to tools/core/factory. Impl: vanta-ts/src/code-intel/{provider.ts (port + types + Zod), codegraph.ts (adapter), index.ts (resolver)} + vanta-ts/src/tools/{code-context,code-search,code-affected,code-index}.ts; register in tools/registry.ts + all-tools.ts; vitest mocks the adapter exec and tests the no-engine path. This is the REFERENCE implementation of Vanta's modular port/adapter convention.",
+      "done": "Agent calls code_context/code_search/code_affected/code_index against the operating root, kernel-gated, all routed through the CodeIntelProvider port; codegraph is one adapter behind that port; swapping in a different engine is one new adapter + one registration line with no edits to tools/core/factory; with no provider present the tools return a graceful 'unavailable' Result and nothing else breaks.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "CODE-INTEL-FACTORY-WIRING",
+      "track": "Operator",
+      "title": "Factory uses code intelligence — additive, fully optional, no-op if removed",
+      "status": "next",
+      "size": "S",
+      "summary": "Wire the code-intel tools (see CODE-INTEL-CODEGRAPH-TOOLS) into the factory build pipeline so the executor builds with a code map instead of blind. planner.ts injects code_context output into FactoryPlan.instruction; verifier.ts uses code_affected on the changed files to scope verification to impacted tests. HARD CONSTRAINT — clean removability: every call site is ADDITIVE and GUARDED. If code intelligence is unavailable, planner/verifier behave exactly as today (blind build, full verify) — degraded, never broken. Factory must NOT import codegraph-specific types; it only calls the adapter, which returns plain strings. Removing the feature = delete the guarded injection calls; factory reverts to prior behaviour with no other change. Depends on CODE-INTEL-CODEGRAPH-TOOLS.",
+      "done": "A factory run auto-injects a code map into the executor instruction and scopes verify to affected tests when codegraph is present; when absent, planner/verifier behave identically to before; removing the wiring is just deleting the guarded calls, with no other impact.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "ARCH-BOUNDARY-FITNESS",
+      "track": "Harness",
+      "title": "Architectural fitness function — boundary rules as a CI-failing test",
+      "status": "next",
+      "size": "M",
+      "summary": "THE enforcer for Vanta's ports/adapters standard (skills/hooks only guide; a failing test enforces). Add scripts/check-boundaries.mjs + vanta-ts/src/architecture.test.ts wired into `npm test`. Declarative dependency rules, each a falsifiable assertion over the import graph: (1) nothing outside code-intel/codegraph.ts imports codegraph; (2) no file imports a concrete brain variant — only the Brain port (after PORT-BRAIN-INTERFACE); (3) SafetyClient is import-type-only outside its factory (after PORT-KERNEL-CLIENT); (4) no tool imports another tool's internals (e.g. runGit reach-in); (5) core/factory never import a concrete provider. Implement with ts-morph or a lightweight regex+AST scan over src/; rules live in a data table so adding a boundary = one entry. New violation -> red test. Rules start as warnings for already-violating boundaries (grandfathered list that only shrinks), hard-fail for new code and for ported boundaries.",
+      "done": "`npm test` includes an architecture test that fails when a declared boundary is crossed; the code-intel seam rule is enforced hard; pre-existing violations are an explicit shrink-only grandfather list; adding a new rule is one table entry.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "ARCH-MODULARITY-SKILL",
+      "track": "Harness",
+      "title": "Authoring skill — new Vanta capability = port + adapter",
+      "status": "next",
+      "size": "S",
+      "summary": "A Vanta-authoring skill (under vanta-ts or .claude/skills) that encodes the convention so it's applied while code is written, not caught after. Content: when adding a swappable capability, define an interface (port), ship the default as an adapter, register via one resolver; copy the reference patterns (providers/index.ts resolveProvider, mcp/client.ts Transport, agent-types.ts AgentDeps, loop/types.ts IterationDeps). Names the grandfathered gaps so new code doesn't add to them. Pairs with ARCH-BOUNDARY-FITNESS (skill guides authoring, test enforces).",
+      "done": "A skill exists that, when writing new Vanta code, prescribes the port+adapter pattern with the in-repo reference examples; it is invoked for capability-adding work.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "ARCH-BOUNDARY-PRECOMMIT",
+      "track": "Harness",
+      "title": "Pre-commit hook runs the boundary check",
+      "status": "next",
+      "size": "S",
+      "summary": "Run scripts/check-boundaries.mjs in a pre-commit git hook (and optionally a Claude Code PostToolUse hook) so violations surface before CI. Non-blocking on grandfathered warnings, blocking on hard rules. Depends on ARCH-BOUNDARY-FITNESS.",
+      "done": "Committing a hard boundary violation is blocked locally by a pre-commit hook before it reaches CI.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-BRAIN-INTERFACE",
+      "track": "Harness",
+      "title": "Brain port — route the 3 brain variants behind one interface",
+      "status": "next",
+      "size": "M",
+      "summary": "Audit verdict COUPLED: 3 brain implementations ship (live md-region brain + dormant v2 + brain5d) but consumers hardcode `import { brainDigest } from ../brain/brain.js` (session/prepare-helpers.ts:6, subagent/spawn.ts:5, cli-dx/prompt-size.ts:32) — the dormant variants can't be activated by config. This is the exact failure mode the modularity push targets. Define a Brain port (read/remember/recall/digest/health) in brain/interface.ts; make the live brain the default adapter; a single resolver picks the active brain (env/settings, e.g. VANTA_BRAIN). Consumers depend only on the port. Enforced by an ARCH-BOUNDARY-FITNESS rule. Removability: swapping/removing a brain = one adapter + one registration; zero consumer edits.",
+      "done": "All brain consumers depend on a Brain interface resolved by one registration point; the live brain is the default adapter; an alternate brain can be activated by config with no consumer edits; a fitness rule forbids importing a concrete brain variant.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-KERNEL-CLIENT",
+      "track": "Harness",
+      "title": "KernelClient interface over SafetyClient (~25 sites)",
+      "status": "next",
+      "size": "M",
+      "summary": "Audit verdict PARTIAL: the concrete SafetyClient class (safety-client.ts:21) is named at ~25 sites and has leaked into every *Deps type (tools/types.ts:11, agent/agent-types.ts:12, mcp/server.ts:49, +5 `new SafetyClient` sites). Tests already hand-roll a fakeClient — proof the port is missing. Extract a KernelClient interface (assess/log/goals/approvals/status surface); SafetyClient becomes the default HTTP adapter; consumers type against the interface; construction funnels through one factory. Enables IPC/in-process/stub transports and clean tests. NOTE: the Rust kernel stays the fixed boundary — this ports only the TS-side client, not the kernel. Enforced by a fitness rule (import-type-only outside the factory).",
+      "done": "Consumers depend on a KernelClient interface, not the concrete SafetyClient; SafetyClient is one adapter behind a single factory; tests use a stub adapter via the same port; a fitness rule enforces it.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-FACTORY-DEPS",
+      "track": "Operator",
+      "title": "FactoryDeps injection — make the factory pipeline pluggable",
+      "status": "next",
+      "size": "M",
+      "summary": "Audit verdict PARTIAL: factory/run.ts hardcodes its entire triage->plan->execute->verify->merge pipeline via direct imports (run.ts:2-8) with zero injection, while loop/IterationDeps (loop/types.ts:174-184) and evolve/EvolveDeps right next door are textbook DI. Mirror them: inject a FactoryDeps {triage, plan, execute, verify, merge} into runCycle so the executor/planner/verifier are swappable and testable in isolation; lift the inline git stages (run.ts:86-167) behind a small VCS adapter; make verify a registered check chain (VerifyCheck[]) not a hardcoded 7-gate sequence. Also wire the built-not-wired holdout seam. Removability: swap the executor or add a verifier check without editing the orchestrator.",
+      "done": "runCycle takes a FactoryDeps and calls stages through it; executor/planner/verifier are swappable without editing the orchestrator; verify is a registered check array; git ops sit behind a VCS adapter; existing factory tests pass.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-TOOL-REGISTRY-IFACE",
+      "track": "Harness",
+      "title": "ToolRegistry interface (currently a concrete class)",
+      "status": "next",
+      "size": "S",
+      "summary": "Audit: most consumers already `import type` the registry (good) but there is no ToolRegistry *interface* — tools/registry.ts:4 is a class, and mount-mcp.ts needs the concrete register(). Extract an interface (schemas/get/register) so a namespaced/scoped/test registry can be swapped in. Low blast radius; closes the second-most-coupled core hub after provider.",
+      "done": "A ToolRegistry interface exists; consumers (incl. mount-mcp) depend on it; the concrete class implements it; a scoped/test registry can replace it without consumer edits.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-MEMORY-STORE",
+      "track": "Harness",
+      "title": "MemoryStore port — replace resolveVantaHome fs coupling (~61 sites)",
+      "status": "next",
+      "size": "L",
+      "summary": "Audit: the single biggest coupling in the codebase. resolveVantaHome/`~/.vanta` filesystem access is hardwired across ~61 sites (brain, memory, settings, permissions, rules, skills, goals) — independently flagged by 3 auditors. No persistence port: memory/settings/rules can't be backed by sqlite/remote/encrypted without editing every caller. Define a MemoryStore/persistence port (read/write/list/commit, scoped by namespace); the fs+git home becomes the default adapter; migrate call sites in waves (brain+memory first, then settings/permissions/rules/skills/goals). LARGE — schedule deliberately, do NOT bundle with smaller ports. Each wave is independently shippable + verified. Enforced incrementally by fitness rules as each wave completes.",
+      "done": "A MemoryStore port exists with the fs+git home as default adapter; brain+memory consumers go through it; remaining stores migrate in subsequent waves; backing memory with an alternate store needs no consumer edits.",
+      "tier": "rock",
+      "effort": "high",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-PROMPT-TIERS",
+      "track": "Harness",
+      "title": "Prompt-tier strategy port (3-tier assembly)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: the 3-tier prompt is a core selling point but buildSystemPrompt concatenates private tier fns (prompt.ts:208-217) — can't reorder, replace, or add a tier without editing core. Define a PromptTier interface + ordered registry so tiers are pluggable. Depends on the convention being locked.",
+      "done": "Prompt tiers are registered behind a PromptTier interface in an ordered list; adding/replacing/reordering a tier needs no edit to the assembler's core logic.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-SESSION-STORE",
+      "track": "Harness",
+      "title": "SessionStore port (currently fs + fixed JSON path)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: session persistence is free functions over fs at a fixed JSON path (sessions/store.ts:88,97) with no port. Define a SessionStore interface; fs-JSON is the default adapter; enables DB/remote/encrypted session storage without rewriting callers.",
+      "done": "Session persistence goes through a SessionStore interface with the fs-JSON impl as default adapter; an alternate store can replace it without consumer edits.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-MESSAGING-FACTORY",
+      "track": "Operator",
+      "title": "Messaging adapter factory (mirror resolveProvider)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: PlatformAdapter port exists (gateway/platforms/base.ts:20) and all adapters implement it, but there is no factory — cli/ops.ts:45 hardcodes `new TelegramAdapter(...)`; the registry is metadata-only. Add a create(env)-style factory mirroring resolveProvider so adding Slack/Discord = one registration, not editing cli/ops.ts.",
+      "done": "Messaging platforms resolve through a factory keyed by config; adding a platform is one registration entry; cli/ops.ts no longer hardcodes a concrete adapter.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-DELIVERY-REGISTRY",
+      "track": "Operator",
+      "title": "Delivery-target registry (webhook resolveDeliver switch)",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: gateway/webhook.ts:33 resolveDeliver is a hardcoded prefix switch (local/file/telegram:); a new channel means editing the function. Replace with an extensible target registry so a new delivery channel registers an adapter.",
+      "done": "Delivery targets resolve through a registry; adding a channel (e.g. slack:) is a registration, not a switch edit.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-DISPLAY-FORMATTER",
+      "track": "Operator",
+      "title": "Display/output formatter port across frontends",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: no shared 'format a StreamEvent for display' interface — Ink uses term/toolDisplay, desktop hand-rolls eventLabel (handlers.ts:30), each surface re-derives presentation; the unwired json-format.ts has nowhere to plug in. Define a DisplayFormatter port so frontends share formatting and new output modes register.",
+      "done": "Frontends format StreamEvents via a shared DisplayFormatter port; desktop/Ink stop re-deriving labels independently; json-format plugs into the same port.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "PORT-A2A-TRANSPORT",
+      "track": "Extensibility",
+      "title": "A2A networked transport behind a Transport interface",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Audit: A2ABus register/send is a clean port (a2a/local.ts:12) but only an in-process impl exists; networked transport is deferred and the handler map + dispatch are fused (local.ts:23). Mirror MCP's Transport interface so an HTTP/remote A2A transport drops in under the existing bus.",
+      "done": "A2A has a Transport seam below the bus; a networked transport can be added without editing send(); mirrors mcp/client.ts Transport.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-17"
+    },
+    {
+      "id": "ARCH-DEAD-BRAIN-CLEANUP",
+      "track": "Harness",
+      "title": "Resolve dormant brain variants (v2 + brain5d) under the new port",
+      "status": "next",
+      "size": "S",
+      "summary": "Audit: brain/v2.ts and brain/entries.ts (brain5d) have zero consumers — their presence implies a swappability the code doesn't provide. After PORT-BRAIN-INTERFACE, EITHER wire them as real adapters behind the Brain port OR delete them. Decide per variant: brain5d (ready) -> adapter behind VANTA_BRAIN; v2 scaffold -> delete if not progressing. No dead code masquerading as modularity. Depends on PORT-BRAIN-INTERFACE.",
+      "done": "Each dormant brain variant is either a registered adapter behind the Brain port or deleted; no unreferenced brain implementation remains in the tree.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-17"
     }
   ]
 }
