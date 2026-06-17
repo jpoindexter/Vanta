@@ -110,7 +110,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
 | `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `VANTA_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
-| `prompt.ts` | `buildSystemPrompt()` — tiers: stable (SOUL+tools+rules) / brain / skills / context / `errorsLogTier` (ERRORS.md, capped 3k) / volatile (Ralph paused continuity + goals+time+memory) |
+| `prompt.ts` | `buildSystemPrompt(opts: BuildPromptOptions)` — assembles the `PROMPT_TIERS` ordered registry (stable / self / brain / vault / skills / context / errors / playbook / tasks / volatile). Each tier is a `PromptTier {id, render(ctx)}`; add/replace/reorder a tier by editing the registry, NOT the assembly loop (ports/adapters, DECISIONS 2026-06-17). Empty tiers dropped, joined with TIER_SEP |
 | `ralph/state.ts` | HARNESS-RALPH-LOOP — `.vanta/ralph-loop.json` store: goal, ordered features, status, summaries, files, next action, paused continuity formatter. |
 | `context.ts` | `trimMessages()` (fallback) + `compressMessages(msgs, ctx, summarize, {activeGoalText?})` — injects goal-reminder note after system messages when `activeGoalText` is set |
 | `agent.ts` | `createConversation()` + `runAgent()` + `dispatchTool()`. `AgentDeps`: `activeGoalText?` (goal re-injection), `onIterationCheck?` (consecutive failure hook). `dispatchTool` runs EF-SELFMONITOR heuristic before `tool.execute`. `runTurn` tracks `consecutiveErrorResults` → `onText` note at threshold |

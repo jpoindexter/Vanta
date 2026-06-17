@@ -12229,13 +12229,14 @@
       "id": "PORT-PROMPT-TIERS",
       "track": "Harness",
       "title": "Prompt-tier strategy port (3-tier assembly)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: the 3-tier prompt is a core selling point but buildSystemPrompt concatenates private tier fns (prompt.ts:208-217) — can't reorder, replace, or add a tier without editing core. Define a PromptTier interface + ordered registry so tiers are pluggable. Depends on the convention being locked.",
       "done": "Prompt tiers are registered behind a PromptTier interface in an ordered list; adding/replacing/reordering a tier needs no edit to the assembler's core logic.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: PROMPT_TIERS ordered registry of PromptTier {id, render(ctx)} in prompt.ts; buildSystemPrompt maps it (behavior-identical — same order/filter/join). Add/replace/reorder a tier = edit the registry, not the assembly loop. opts extracted to BuildPromptOptions. tsc clean; full suite green."
     },
     {
       "id": "PORT-SESSION-STORE",
