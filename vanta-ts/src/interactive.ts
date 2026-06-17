@@ -14,7 +14,7 @@ import { loadUserCommands } from "./commands/loader.js";
 import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { PLAN_MARKER } from "./repl/plan-mode.js";
-import { forkSession, loadSession, newSessionId } from "./sessions/store.js";
+import { newSessionId, resolveSessionStore, type Session } from "./sessions/index.js";
 import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
@@ -91,8 +91,9 @@ function printRalphContinuityNotice(block?: string): void {
   if (block) console.log(`  ↻ ${block.split("\n")[0]} Use /goal resume to continue or /goal drop to discard.\n`);
 }
 
-async function loadResumeTarget(id: string, fork: boolean | undefined): Promise<Awaited<ReturnType<typeof loadSession>>> {
-  return fork ? forkSession(id) : loadSession(id);
+async function loadResumeTarget(id: string, fork: boolean | undefined): Promise<Session | null> {
+  const store = resolveSessionStore();
+  return fork ? store.forkSession(id) : store.loadSession(id);
 }
 
 type ConvoOpts = {

@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { useState } from "react";
-import { listSessions } from "../sessions/store.js";
+import { resolveSessionStore } from "../sessions/index.js";
 import { listSkills } from "../skills/store.js";
 import { currentThemeName } from "../term/theme.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
@@ -29,7 +29,7 @@ export type OverlayView =
 async function listOverlay(kind: OverlayKind): Promise<OverlayView | null> {
   if (kind === "model") return { kind: "list", title: "Switch model", rows: modelRows(process.env.VANTA_PROVIDER ?? "openai") };
   if (kind === "theme") return { kind: "list", title: "Theme", rows: themeRows(currentThemeName(process.env)) };
-  if (kind === "sessions") return { kind: "list", title: "Sessions", rows: sessionRows(await listSessions(process.env)) };
+  if (kind === "sessions") return { kind: "list", title: "Sessions", rows: sessionRows(await resolveSessionStore(process.env).listSessions(process.env)) };
   if (kind === "skills") return { kind: "list", title: "Skills", rows: skillRows(await listSkills(process.env)) };
   return null;
 }

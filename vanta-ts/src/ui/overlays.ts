@@ -1,6 +1,6 @@
 import { PROVIDER_CATALOG } from "../providers/catalog.js";
 import { THEME_NAMES } from "../term/theme.js";
-import type { SessionMeta } from "../sessions/store.js";
+import type { SessionMeta } from "../sessions/index.js";
 import type { Skill } from "../skills/types.js";
 
 // Pure builders for the inline overlays. Every selectable row carries the slash

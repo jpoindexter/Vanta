@@ -5,7 +5,7 @@ import { createConversation, type StreamEvent } from "../agent.js";
 import type { Conversation } from "../agent.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
-import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
+import { newSessionId, resolveSessionStore } from "../sessions/index.js";
 import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
@@ -74,7 +74,7 @@ async function ensureDesktopConversation(state: DesktopState): Promise<Required<
 
 async function persistActiveSession(state: DesktopState): Promise<void> {
   if (!state.convo || !state.sessionId) return;
-  await saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted });
+  await resolveSessionStore().saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted });
 }
 
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -84,7 +84,7 @@ export async function handleStatus(state: DesktopState, res: http.ServerResponse
 }
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {
-  sendJson(res, 200, await listSessions(process.env));
+  sendJson(res, 200, await resolveSessionStore(process.env).listSessions(process.env));
 }
 
 export async function handleNewSession(state: DesktopState, res: http.ServerResponse): Promise<void> {
@@ -99,7 +99,7 @@ export async function handleNewSession(state: DesktopState, res: http.ServerResp
 export async function handleOpenSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { id?: unknown };
   const id = typeof body.id === "string" ? body.id : "";
-  const session = id ? await loadSession(id, process.env) : null;
+  const session = id ? await resolveSessionStore(process.env).loadSession(id, process.env) : null;
   if (!session) return sendJson(res, 404, { error: "session not found" });
   const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
   state.setup = setup; state.sessionId = session.id; state.sessionStarted = session.started;

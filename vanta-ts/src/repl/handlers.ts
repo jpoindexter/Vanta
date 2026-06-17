@@ -1,6 +1,6 @@
 import { listSkills } from "../skills/store.js";
 import { gatherStatus, formatStatus } from "../status.js";
-import { newSessionId } from "../sessions/store.js";
+import { newSessionId } from "../sessions/index.js";
 import { slashHelp } from "./catalog.js";
 import { oneLine, lastUserIndex } from "./format.js";
 import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";

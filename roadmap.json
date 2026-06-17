@@ -12241,13 +12241,14 @@
       "id": "PORT-SESSION-STORE",
       "track": "Harness",
       "title": "SessionStore port (currently fs + fixed JSON path)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: session persistence is free functions over fs at a fixed JSON path (sessions/store.ts:88,97) with no port. Define a SessionStore interface; fs-JSON is the default adapter; enables DB/remote/encrypted session storage without rewriting callers.",
       "done": "Session persistence goes through a SessionStore interface with the fs-JSON impl as default adapter; an alternate store can replace it without consumer edits.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: SessionStore port (sessions/interface.ts) + resolveSessionStore (sessions/index.ts, VANTA_SESSION_STORE) + fsSessionStore adapter. 9 consumers migrated off sessions/store to the resolver; session-store-port fitness rule (caught a 9th consumer the grep missed). tsc clean; suite green."
     },
     {
       "id": "PORT-MESSAGING-FACTORY",

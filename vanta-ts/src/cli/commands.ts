@@ -1,6 +1,6 @@
 import { createInterface } from "node:readline/promises";
 import { createConversation } from "../agent.js";
-import { listSessions } from "../sessions/store.js";
+import { resolveSessionStore } from "../sessions/index.js";
 import { resolveRoomOrExit, suggestSkillFromRun } from "../projects/commands.js";
 import {
   prepareRun,
@@ -66,7 +66,7 @@ export function usageExit(): never {
 }
 
 export async function runSessionsList(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  const sessions = await listSessions(env);
+  const sessions = await resolveSessionStore(env).listSessions(env);
   if (sessions.length === 0) return void console.log("(no saved sessions yet)");
   for (const s of sessions) console.log(`${s.id}  ${s.turns} turn(s)  ${s.title}`);
   console.log("\nResume with: vanta resume <id>");

@@ -1,4 +1,4 @@
-import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
+import { newSessionId, resolveSessionStore } from "../sessions/index.js";
 import { lines } from "./format.js";
 import { sessionsSearch } from "./sessions-search-cmd.js";
 import type { SlashHandler } from "./types.js";
@@ -8,13 +8,13 @@ export const sessions: SlashHandler = async (arg, ctx) => {
   if (trimmed.toLowerCase().startsWith("search")) {
     return sessionsSearch(trimmed.slice("search".length).trimStart(), ctx);
   }
-  const ss = await listSessions(ctx.env);
+  const ss = await resolveSessionStore(ctx.env).listSessions(ctx.env);
   return { output: lines(ss.map((s) => `  ${s.id}  ${s.turns} turn(s)  ${s.title}`), "  (no saved sessions)") };
 };
 
 export const resume: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /resume <id>  (see /sessions)" };
-  const s = await loadSession(arg, ctx.env);
+  const s = await resolveSessionStore(ctx.env).loadSession(arg, ctx.env);
   if (!s) return { output: `  no session "${arg}"` };
   ctx.convo.messages.splice(1, Infinity, ...s.messages.filter((m) => m.role !== "system"));
   ctx.state.sessionId = s.id;
@@ -27,14 +27,14 @@ export const resume: SlashHandler = async (arg, ctx) => {
 export const title: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /title <name>" };
   ctx.state.title = arg;
-  await saveSession(ctx.state.sessionId, ctx.convo.messages, { env: ctx.env, started: ctx.state.started, title: arg }).catch(() => {});
+  await resolveSessionStore(ctx.env).saveSession(ctx.state.sessionId, ctx.convo.messages, { env: ctx.env, started: ctx.state.started, title: arg }).catch(() => {});
   return { output: `  · session titled "${arg}"` };
 };
 
 export const fork: SlashHandler = async (_arg, ctx) => {
   const newId = newSessionId(ctx.now());
   const startedAt = ctx.now().toISOString();
-  await saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title }).catch(() => {});
+  await resolveSessionStore(ctx.env).saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title }).catch(() => {});
   ctx.state.sessionId = newId;
   ctx.state.started = startedAt;
   return { output: `  ⑂ forked into new session ${newId} (history carried over)` };

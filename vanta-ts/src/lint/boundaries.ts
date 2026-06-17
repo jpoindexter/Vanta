@@ -60,6 +60,13 @@ export const RULES: BoundaryRule[] = [
     appliesTo: (rel) => rel !== "tools/registry.ts" && rel !== "lint/boundaries.ts",
     forbid: /\bMapToolRegistry\b/,
   },
+  {
+    id: "session-store-port",
+    desc: "Consumers must use the SessionStore port (sessions/index resolveSessionStore), never sessions/store directly.",
+    severity: "error",
+    appliesTo: (rel) => !rel.startsWith("sessions/"),
+    forbid: /(from\s+|import\(\s*)["'][^"']*sessions\/store(\.js)?["']/,
+  },
 ];
 
 /** Grandfathered `${ruleId}::${relPath}` keys — warn, never error. Shrink only. */

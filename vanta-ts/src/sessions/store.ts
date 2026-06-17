@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
+import type { SessionStore } from "./interface.js";
 
 // File-based session persistence: one JSON file per session under
 // ~/.vanta/sessions/<id>.json. Plain files (not SQLite) — dependency-free,
@@ -144,3 +145,12 @@ export async function listSessions(env?: NodeJS.ProcessEnv): Promise<SessionMeta
   }
   return metas.sort((a, b) => b.updated.localeCompare(a.updated));
 }
+
+/** The default fs-JSON session store — the only adapter today. */
+export const fsSessionStore: SessionStore = {
+  saveSession,
+  loadSession,
+  forkSession,
+  deleteSession,
+  listSessions,
+};

@@ -23,7 +23,7 @@ import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinn
 import { useViewportRows } from "./use-viewport-rows.js";
 import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
-import { newSessionId } from "../sessions/store.js";
+import { newSessionId } from "../sessions/index.js";
 import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";

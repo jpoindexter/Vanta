@@ -22,7 +22,7 @@ import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
-import { saveSession } from "./sessions/store.js";
+import { resolveSessionStore } from "./sessions/index.js";
 import { reflectAfterTurn } from "./repl/reflect-correct.js";
 import { checkGoalLoop, buildGoalLoopMax } from "./repl/goal-condition.js";
 import { fireHooks, fireStopHook } from "./hooks/shell-hooks.js";
@@ -102,7 +102,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
     state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
   }
   await handleAutoHandoff(outcome, deps);
-  await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
+  await resolveSessionStore().saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
   await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: text, finalText: outcome.finalText, now: turnStart, sessionId: state.sessionId, turnIndex: state.turnIndex });
   await suggestSkillFromRun(text, process.env);
   await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
