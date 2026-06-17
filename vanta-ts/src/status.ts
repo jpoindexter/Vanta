@@ -1,8 +1,8 @@
-import { readdir } from "node:fs/promises";
 import { createKernelClient } from "./safety-client.js";
 import { resolveProvider } from "./providers/index.js";
 import { PROVIDER_CATALOG } from "./providers/catalog.js";
-import { resolveVantaHome, memoriesDir } from "./store/home.js";
+import { resolveVantaHome } from "./store/home.js";
+import { resolveMemoryStore } from "./store/memory-store.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
 import { detectAuthConflicts } from "./providers/auth-conflict.js";
@@ -74,12 +74,8 @@ export function formatStatus(r: StatusReport): string {
 }
 
 async function countMemories(env: NodeJS.ProcessEnv): Promise<number> {
-  try {
-    const entries = await readdir(memoriesDir(env));
-    return entries.filter((e) => e.endsWith(".md")).length;
-  } catch {
-    return 0;
-  }
+  const entries = await resolveMemoryStore(env).list("memories");
+  return entries.filter((e) => e.endsWith(".md")).length;
 }
 
 /** Resolve the active provider into a status entry. Failure degrades to a flag, never throws. */

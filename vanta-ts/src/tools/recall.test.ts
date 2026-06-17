@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { recallTool } from "./recall.js";
-import { skillsDir, slugifySkillName } from "../store/home.js";
+import { skillsDir } from "../store/home.js";
+import { slugifySkillName } from "../store/slug.js";
 import type { ToolContext } from "./types.js";
 
 // Deterministic temp home derived from the suite name, not time/randomness.

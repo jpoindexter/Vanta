@@ -1,8 +1,5 @@
-import { writeFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // MODEL-BENCH: personal model scorecard.
 // Records latency, cost, and quality notes per model/task type from real runs.
@@ -26,21 +23,21 @@ export type BenchResult = z.infer<typeof BenchResultSchema>;
 
 const BenchFileSchema = z.array(BenchResultSchema);
 
-function benchPath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "model-bench.json");
-}
+const BENCH_FILE = "model-bench.json";
 
 export async function loadBenchResults(env?: NodeJS.ProcessEnv): Promise<BenchResult[]> {
-  if (!existsSync(benchPath(env))) return [];
-  try { return BenchFileSchema.parse(JSON.parse(await readFile(benchPath(env), "utf8"))); }
+  const raw = await resolveMemoryStore(env).read(BENCH_FILE);
+  if (raw === null) return [];
+  try { return BenchFileSchema.parse(JSON.parse(raw)); }
   catch { return []; }
 }
 
 export async function saveBenchResult(result: BenchResult, env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
+  const store = resolveMemoryStore(env);
+  await store.ensure();
   const existing = await loadBenchResults(env);
   existing.push(result);
-  await writeFile(benchPath(env), JSON.stringify(existing, null, 2) + "\n", "utf8");
+  await store.write(BENCH_FILE, JSON.stringify(existing, null, 2) + "\n");
 }
 
 /** Format a scorecard from accumulated results. Pure. */

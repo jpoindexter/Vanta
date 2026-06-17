@@ -26,21 +26,6 @@ export function memoriesDir(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 /**
- * Reduce an arbitrary skill name to a safe directory slug. Strips path
- * separators and traversal so a skill write can never escape skillsDir().
- */
-export function slugifySkillName(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\-_ ]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return slug || "unnamed-skill";
-}
-
-/**
  * Create the store dirs and git-init the home for free versioning. Idempotent.
  * Git is best-effort — versioning never blocks the learning loop.
  */

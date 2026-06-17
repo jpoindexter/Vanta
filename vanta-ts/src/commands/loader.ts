@@ -1,6 +1,5 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join, basename } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { basename } from "node:path";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 export type UserCommand = {
   name: string;
@@ -16,17 +15,13 @@ export type UserCommand = {
  * Returns [] when the directory doesn't exist (no-op on unconfigured installs).
  */
 export async function loadUserCommands(env?: NodeJS.ProcessEnv): Promise<UserCommand[]> {
-  const dir = join(resolveVantaHome(env), "commands");
-  let files: string[] = [];
-  try {
-    files = (await readdir(dir)).filter((f) => f.endsWith(".md"));
-  } catch {
-    return [];
-  }
+  const store = resolveMemoryStore(env);
+  const files = (await store.list("commands")).filter((f) => f.endsWith(".md"));
+  if (files.length === 0) return [];
   const commands: UserCommand[] = [];
   for (const file of files) {
     const name = basename(file, ".md");
-    const raw = await readFile(join(dir, file), "utf8").catch(() => null);
+    const raw = await store.read(`commands/${file}`);
     if (!raw) continue;
     const lines = raw.split("\n");
     const firstLine = lines[0] ?? "";

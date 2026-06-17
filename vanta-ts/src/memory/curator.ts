@@ -1,6 +1,4 @@
-import { readFile, writeFile, appendFile } from "node:fs/promises";
-import { join } from "node:path";
-import { memoriesDir, ensureVantaStore } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { classifyMemory } from "./relevance.js";
 
 export type MemoryCurationResult = {
@@ -55,30 +53,32 @@ function classifyBlocks(blocks: string[]): ClassifiedBlocks {
   return { keptBlocks, archivedBlocks, skipped };
 }
 
-async function persistCuration(
-  mainFile: string,
-  archiveFile: string,
-  kept: string[],
-  archived: string[],
-): Promise<void> {
-  if (archived.length > 0) await appendFile(archiveFile, archived.join("\n\n") + "\n\n", "utf8");
-  if (kept.length > 0) await writeFile(mainFile, kept.join("\n\n") + "\n\n", "utf8");
-  else if (archived.length > 0) await writeFile(mainFile, "", "utf8");
+type PersistArgs = {
+  store: ReturnType<typeof resolveMemoryStore>;
+  mainFile: string;
+  archiveFile: string;
+  kept: string[];
+  archived: string[];
+};
+
+async function persistCuration({ store, mainFile, archiveFile, kept, archived }: PersistArgs): Promise<void> {
+  if (archived.length > 0) await store.append(archiveFile, archived.join("\n\n") + "\n\n");
+  if (kept.length > 0) await store.write(mainFile, kept.join("\n\n") + "\n\n");
+  else if (archived.length > 0) await store.write(mainFile, "");
 }
 
 export async function curateMemory(
   goalId: string,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<MemoryCurationResult> {
-  await ensureVantaStore(env);
-  const dir = memoriesDir(env);
-  const mainFile = join(dir, `${goalId}.md`);
-  const archiveFile = join(dir, `${goalId}.archived.md`);
-  let raw: string;
-  try { raw = await readFile(mainFile, "utf8"); }
-  catch { return { total: 0, kept: 0, archived: 0, skipped: 0 }; }
+  const store = resolveMemoryStore(env);
+  await store.ensure();
+  const mainFile = `memories/${goalId}.md`;
+  const archiveFile = `memories/${goalId}.archived.md`;
+  const raw = await store.read(mainFile);
+  if (raw === null) return { total: 0, kept: 0, archived: 0, skipped: 0 };
   const blocks = splitBlocks(raw);
   const { keptBlocks, archivedBlocks, skipped } = classifyBlocks(blocks);
-  await persistCuration(mainFile, archiveFile, keptBlocks, archivedBlocks);
+  await persistCuration({ store, mainFile, archiveFile, kept: keptBlocks, archived: archivedBlocks });
   return { total: blocks.length, kept: keptBlocks.length - skipped, archived: archivedBlocks.length, skipped };
 }

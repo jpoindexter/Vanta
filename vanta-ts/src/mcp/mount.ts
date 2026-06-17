@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { McpClient, stdioTransport, type McpToolDef, type Transport } from "./client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
@@ -54,7 +54,7 @@ export async function readMcpConfig(env: NodeJS.ProcessEnv, cwd = process.cwd())
   if (inline) return parseOrEmpty(inline);
 
   const projectRaw = await readFile(join(cwd, ".mcp.json"), "utf8").catch(() => "");
-  const userRaw = await readFile(join(resolveVantaHome(env), "mcp.json"), "utf8").catch(() => "");
+  const userRaw = (await resolveMemoryStore(env).read("mcp.json")) ?? "";
 
   const project = projectRaw ? parseOrEmpty(projectRaw) : { servers: {} };
   const user = userRaw ? parseOrEmpty(userRaw) : { servers: {} };

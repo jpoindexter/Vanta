@@ -1,12 +1,11 @@
 async function runMemoryForget(rest: string[]): Promise<void> {
   const { pruneStaleBlocks, getMemoryFootprint, formatForgetSummary } = await import("../memory/forget.js");
-  const { memoriesDir } = await import("../store/home.js");
-  const { readdir } = await import("node:fs/promises");
-  const { existsSync } = await import("node:fs");
+  const { resolveMemoryStore } = await import("../store/memory-store.js");
   const ttlDays = rest[1] ? Number(rest[1]) : undefined;
-  const dir = memoriesDir(process.env);
-  if (!existsSync(dir)) { console.log("(no memories yet)"); return; }
-  const files = (await readdir(dir)).filter((f) => f.endsWith(".md") && !f.endsWith(".archived.md"));
+  const store = resolveMemoryStore(process.env);
+  const entries = await store.list("memories");
+  if (!entries.length) { console.log("(no memories yet)"); return; }
+  const files = entries.filter((f) => f.endsWith(".md") && !f.endsWith(".archived.md"));
   if (!files.length) { console.log("(no memory files)"); return; }
   const before = await getMemoryFootprint(process.env);
   const results = await Promise.all(files.map((f) => pruneStaleBlocks(f.replace(/\.md$/, ""), process.env, { ttlDays })));

@@ -1,11 +1,9 @@
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
-import {
-  skillsDir,
-  slugifySkillName,
-  ensureVantaStore,
-  commitInHome,
-} from "../store/home.js";
+import { slugifySkillName } from "../store/slug.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
+// `skillsDir` is a PURE path resolver (no fs) — used only to build the absolute
+// `path` that writeSkill returns. All persistence goes through resolveMemoryStore.
+import { skillsDir } from "../store/home.js";
 import { parseSkill, serializeSkill } from "./frontmatter.js";
 import type { Skill } from "./types.js";
 
@@ -29,16 +27,23 @@ type WriteInput = {
   tags?: string[];
 };
 
-function skillPath(slug: string, env?: NodeJS.ProcessEnv): string {
-  return join(skillsDir(env), slug, SKILL_FILE);
+/** Home-relative path to a skill's SKILL.md (e.g. "skills/<slug>/SKILL.md"). */
+function skillRelPath(slug: string): string {
+  return `skills/${slug}/${SKILL_FILE}`;
 }
 
-/** Read+parse a SKILL.md, returning null if it does not exist. */
-async function tryReadSkill(path: string): Promise<Skill | null> {
+/** Read+parse a skill at a home-relative path, returning null if absent/unparseable. */
+async function tryReadSkill(
+  relPath: string,
+  env?: NodeJS.ProcessEnv,
+): Promise<Skill | null> {
+  const store = resolveMemoryStore(env);
+  const raw = await store.read(relPath);
+  if (raw === null) return null;
   try {
-    return parseSkill(await readFile(path, "utf8"));
+    return parseSkill(raw);
   } catch {
-    // missing file or unparseable — treat as absent
+    // unparseable — treat as absent
     return null;
   }
 }
@@ -53,13 +58,14 @@ export async function writeSkill(
 ): Promise<{ skill: Skill; path: string }> {
   const env = opts.env;
   const now = opts.now ?? new Date().toISOString();
-  await ensureVantaStore(env);
+  const store = resolveMemoryStore(env);
+  await store.ensure();
 
   const slug = slugifySkillName(input.name);
-  const path = skillPath(slug, env);
+  const relPath = skillRelPath(slug);
 
   // Preserve the first-write timestamp if the skill already exists.
-  const existing = await tryReadSkill(path);
+  const existing = await tryReadSkill(relPath, env);
   const created = existing?.meta.created ?? now;
 
   const skill: Skill = {
@@ -73,11 +79,10 @@ export async function writeSkill(
     body: input.body,
   };
 
-  await mkdir(join(skillsDir(env), slug), { recursive: true });
-  await writeFile(path, serializeSkill(skill), "utf8");
-  await commitInHome(join("skills", slug, SKILL_FILE), `skill: ${slug}`, env);
+  await store.write(relPath, serializeSkill(skill));
+  await store.commit(relPath, `skill: ${slug}`);
 
-  return { skill, path };
+  return { skill, path: join(skillsDir(env), slug, SKILL_FILE) };
 }
 
 /** Load a single skill by name, or null if it has not been written. */
@@ -85,7 +90,7 @@ export async function readSkill(
   name: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Skill | null> {
-  return tryReadSkill(skillPath(slugifySkillName(name), env));
+  return tryReadSkill(skillRelPath(slugifySkillName(name)), env);
 }
 
 /**
@@ -93,20 +98,15 @@ export async function readSkill(
  * subdir lacking a SKILL.md (e.g. a stray file or in-progress write).
  */
 export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
-  await ensureVantaStore(env);
-  const dir = skillsDir(env);
+  const store = resolveMemoryStore(env);
+  await store.ensure();
 
-  let entries;
-  try {
-    entries = await readdir(dir, { withFileTypes: true });
-  } catch {
-    return [];
-  }
+  const entries = await store.list("skills");
 
   const skills: Skill[] = [];
-  for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name === ARCHIVE_DIR) continue;
-    const skill = await tryReadSkill(join(dir, entry.name, SKILL_FILE));
+  for (const name of entries) {
+    if (name === ARCHIVE_DIR) continue;
+    const skill = await tryReadSkill(skillRelPath(name), env);
     if (skill) skills.push(skill);
   }
 

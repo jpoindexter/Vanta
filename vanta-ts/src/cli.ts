@@ -1,4 +1,4 @@
-import { ensureVantaStore } from "./store/home.js";
+import { resolveMemoryStore } from "./store/memory-store.js";
 import { runScheduleCommand, runCron } from "./schedule/commands.js";
 import { runRoomsList, runModes } from "./projects/commands.js";
 import { runAuthCommand } from "./google/commands.js";
@@ -135,7 +135,7 @@ const COMMANDS: Record<string, CommandFn> = {
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot();
   loadEnv(repoRoot);
-  await ensureVantaStore();
+  await resolveMemoryStore().ensure();
 
   const { rest: parsedArgs, lifecycle } = parseStartupFlags(process.argv.slice(2));
   const [cmd, ...rest] = parsedArgs;

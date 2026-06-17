@@ -1,8 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
-import { writeFile, mkdir, readFile } from "node:fs/promises";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // SELF-UPDATE — `vanta update` safe self-updater with rollback.
 // Pattern: autostash → snapshot tag → pull → rebuild → skills sync → service restart.
@@ -10,6 +9,8 @@ import { resolveVantaHome } from "../store/home.js";
 
 const run = promisify(execFile);
 const SNAPSHOT_REF = "vanta-pre-update";
+// Home-relative path (under ~/.vanta) where the pre-update snapshot is stored.
+const SNAPSHOT_PATH = "snapshots/pre-update.json";
 
 type UpdateResult = {
   ok: boolean;
@@ -25,21 +26,17 @@ async function tryGit(args: string[], cwd: string): Promise<string | null> {
   try { return await git(args, cwd); } catch { return null; }
 }
 
-async function snapPath(): Promise<string> {
-  const dir = join(resolveVantaHome(), "snapshots");
-  await mkdir(dir, { recursive: true });
-  return join(dir, "pre-update.json");
-}
-
 async function saveSnapshot(repoRoot: string): Promise<void> {
   const sha = await git(["rev-parse", "HEAD"], repoRoot);
   const branch = await git(["rev-parse", "--abbrev-ref", "HEAD"], repoRoot);
   const snap = { sha, branch, savedAt: new Date().toISOString() };
-  await writeFile(await snapPath(), JSON.stringify(snap, null, 2), "utf8");
+  await resolveMemoryStore().write(SNAPSHOT_PATH, JSON.stringify(snap, null, 2));
 }
 
 async function loadSnapshot(): Promise<{ sha: string; branch: string; savedAt: string } | null> {
-  try { return JSON.parse(await readFile(await snapPath(), "utf8")); } catch { return null; }
+  const raw = await resolveMemoryStore().read(SNAPSHOT_PATH);
+  if (raw === null) return null;
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
 async function runRollback(repoRoot: string): Promise<number> {

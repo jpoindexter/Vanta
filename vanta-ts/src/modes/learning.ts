@@ -1,6 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome, ensureVantaStore } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 /** Recurrences before we suggest encoding a pattern as a skill. */
 const DEFAULT_THRESHOLD = 3;
@@ -20,10 +18,6 @@ const STOPWORDS = new Set([
   "my", "me", "do", "make", "let", "lets", "want", "need", "could",
   "would", "should", "will", "shall", "into", "up", "out",
 ]);
-
-function usagePath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), USAGE_FILE);
-}
 
 /**
  * Reduce an instruction to a stable key so similar instructions cluster:
@@ -57,12 +51,9 @@ function parseUsage(raw: string): Map<string, number> {
 
 /** Read+parse usage.tsv, returning an empty map if absent or unreadable. */
 async function loadUsage(env?: NodeJS.ProcessEnv): Promise<Map<string, number>> {
-  try {
-    return parseUsage(await readFile(usagePath(env), "utf8"));
-  } catch {
-    // missing or unreadable — start fresh, never throw across the surface
-    return new Map();
-  }
+  const raw = await resolveMemoryStore(env ?? process.env).read(USAGE_FILE);
+  // missing or unreadable — start fresh, never throw across the surface
+  return raw === null ? new Map() : parseUsage(raw);
 }
 
 function serializeUsage(counts: Map<string, number>): string {
@@ -82,14 +73,15 @@ export async function recordRun(
 ): Promise<{ pattern: string; count: number }> {
   const env = opts.env;
   const pattern = normalizePattern(instruction);
-  await ensureVantaStore(env);
+  const store = resolveMemoryStore(env ?? process.env);
+  await store.ensure();
 
   const counts = await loadUsage(env);
   const count = (counts.get(pattern) ?? 0) + 1;
   counts.set(pattern, count);
 
   try {
-    await writeFile(usagePath(env), serializeUsage(counts), "utf8");
+    await store.write(USAGE_FILE, serializeUsage(counts));
   } catch {
     // best-effort persistence — still report the increment we computed
   }

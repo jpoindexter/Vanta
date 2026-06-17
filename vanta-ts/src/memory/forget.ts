@@ -1,7 +1,4 @@
-import { readFile, writeFile, readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
-import { memoriesDir, ensureVantaStore } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { classifyMemory } from "./relevance.js";
 
 // MEM-FORGET: aggressive memory lifecycle — TTL prune + durable note compression.
@@ -53,12 +50,12 @@ export async function pruneStaleBlocks(
   env: NodeJS.ProcessEnv = process.env,
   opts: { ttlDays?: number; now?: Date } = {},
 ): Promise<ForgetResult> {
-  await ensureVantaStore(env);
-  const dir = memoriesDir(env);
-  const file = join(dir, `${goalId}.md`);
-  if (!existsSync(file)) return { goalId, totalBefore: 0, totalAfter: 0, pruned: 0, kept: 0 };
+  const store = resolveMemoryStore(env);
+  await store.ensure();
+  const file = `memories/${goalId}.md`;
+  const raw = await store.read(file);
+  if (raw === null) return { goalId, totalBefore: 0, totalAfter: 0, pruned: 0, kept: 0 };
 
-  const raw = await readFile(file, "utf8");
   const blocks = splitBlocks(raw);
   const totalBefore = blocks.length;
   const ttlMs = (opts.ttlDays ?? DEFAULT_TTL_DAYS) * 86_400_000;
@@ -76,7 +73,7 @@ export async function pruneStaleBlocks(
     }
   }
 
-  await writeFile(file, kept.length ? kept.join("\n\n") + "\n\n" : "", "utf8");
+  await store.write(file, kept.length ? kept.join("\n\n") + "\n\n" : "");
   return { goalId, totalBefore, totalAfter: kept.length, pruned, kept: kept.length };
 }
 
@@ -84,18 +81,17 @@ export async function pruneStaleBlocks(
 export async function getMemoryFootprint(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<FootprintResult> {
-  const dir = memoriesDir(env);
-  if (!existsSync(dir)) return { goals: 0, totalBytes: 0, files: [] };
-  const entries = await readdir(dir);
+  const store = resolveMemoryStore(env);
+  const entries = await store.list("memories");
   const mdFiles = entries.filter((f) => f.endsWith(".md") && !f.endsWith(".archived.md"));
   const files: FootprintResult["files"] = [];
   let totalBytes = 0;
   for (const f of mdFiles) {
-    const fpath = join(dir, f);
-    const [content, stats] = await Promise.all([readFile(fpath, "utf8"), stat(fpath)]);
+    const content = (await store.read(`memories/${f}`)) ?? "";
+    const bytes = Buffer.byteLength(content, "utf8");
     const blocks = splitBlocks(content);
-    files.push({ goalId: f.replace(/\.md$/, ""), bytes: stats.size, blocks: blocks.length });
-    totalBytes += stats.size;
+    files.push({ goalId: f.replace(/\.md$/, ""), bytes, blocks: blocks.length });
+    totalBytes += bytes;
   }
   return { goals: files.length, totalBytes, files };
 }

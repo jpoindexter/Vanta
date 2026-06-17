@@ -1,17 +1,12 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { skillsDir } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 export type UmbrellaEntry = {
   name: string;
   pins: string[];
 };
 
-const UMBRELLA_FILE = "umbrellas.json";
-
-function umbrellaPath(env: NodeJS.ProcessEnv = process.env): string {
-  return join(skillsDir(env), UMBRELLA_FILE);
-}
+/** Home-relative path to the umbrella registry. */
+const UMBRELLA_PATH = "skills/umbrellas.json";
 
 /**
  * Read all umbrella entries from disk. Returns [] if the file is missing or
@@ -20,8 +15,9 @@ function umbrellaPath(env: NodeJS.ProcessEnv = process.env): string {
 export async function readUmbrellas(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<UmbrellaEntry[]> {
+  const raw = await resolveMemoryStore(env).read(UMBRELLA_PATH);
+  if (raw === null) return [];
   try {
-    const raw = await readFile(umbrellaPath(env), "utf8");
     const parsed = JSON.parse(raw) as unknown;
     return Array.isArray(parsed) ? (parsed as UmbrellaEntry[]) : [];
   } catch {
@@ -36,8 +32,7 @@ export async function writeUmbrellas(
   umbrellas: UmbrellaEntry[],
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  await mkdir(skillsDir(env), { recursive: true });
-  await writeFile(umbrellaPath(env), JSON.stringify(umbrellas, null, 2), "utf8");
+  await resolveMemoryStore(env).write(UMBRELLA_PATH, JSON.stringify(umbrellas, null, 2));
 }
 
 /**

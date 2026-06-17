@@ -1,8 +1,8 @@
-import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { skillsDir, ensureVantaStore, commitInHome } from "../store/home.js";
+import { resolveMemoryStore, type MemoryStore } from "../store/memory-store.js";
 
 const SKILL_FILE = "SKILL.md";
 
@@ -34,19 +34,22 @@ export function librarySources(): string[] {
 
 export type InstallResult = { installed: string[]; skipped: string[] };
 
-/** Install one slug from a source into dest. Returns its disposition. */
+/**
+ * Install one slug from a bundled `source` (an absolute repo dir, read from fs)
+ * into the home `store` (a home-relative `skills/<name>/SKILL.md` write). Returns
+ * its disposition.
+ */
 async function installOne(
   source: string,
   name: string,
-  dest: string,
+  store: MemoryStore,
   opts: { force?: boolean } = {},
 ): Promise<"installed" | "skipped" | null> {
   const src = join(source, name, SKILL_FILE);
   if (!existsSync(src)) return null;
-  const target = join(dest, name, SKILL_FILE);
-  if (existsSync(target) && !opts.force) return "skipped";
-  await mkdir(join(dest, name), { recursive: true });
-  await writeFile(target, await readFile(src, "utf8"), "utf8");
+  const rel = `skills/${name}/${SKILL_FILE}`;
+  if (!opts.force && (await store.read(rel)) !== null) return "skipped";
+  await store.write(rel, await readFile(src, "utf8"));
   return "installed";
 }
 
@@ -60,8 +63,8 @@ export async function installSkillLibrary(
   opts: { env?: NodeJS.ProcessEnv; force?: boolean; from?: string } = {},
 ): Promise<InstallResult> {
   const sources = opts.from ? [opts.from] : librarySources();
-  const dest = skillsDir(opts.env);
-  await ensureVantaStore(opts.env);
+  const store = resolveMemoryStore(opts.env);
+  await store.ensure();
 
   const installed: string[] = [];
   const skipped: string[] = [];
@@ -75,7 +78,7 @@ export async function installSkillLibrary(
     }
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const r = await installOne(source, entry.name, dest, { force: !!opts.force });
+      const r = await installOne(source, entry.name, store, { force: !!opts.force });
       if (r === "installed") installed.push(entry.name);
       else if (r === "skipped") skipped.push(entry.name);
     }
@@ -86,7 +89,7 @@ export async function installSkillLibrary(
   // ~50s under a loaded machine. Per-skill commit granularity only matters for
   // user edits and learned skills (skills/store.ts), not a bulk bundle copy.
   if (installed.length > 0) {
-    await commitInHome("skills", `skill: install library (${installed.length} new)`, opts.env);
+    await store.commit("skills", `skill: install library (${installed.length} new)`);
   }
 
   return { installed, skipped };

@@ -28,7 +28,7 @@ import { SLASH_COMMANDS } from "../repl/catalog.js";
 import { estimateTokens } from "../term/tokens.js";
 import { resolveTheme } from "../term/theme.js";
 import { listSkills } from "../skills/store.js";
-import { slugifySkillName } from "../store/home.js";
+import { slugifySkillName } from "../store/slug.js";
 import { useSessionStatus } from "./use-session-status.js";
 import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
 import { type Mode, cycleMode, useModeState, ModeLine } from "./mode-line.js";

@@ -1,6 +1,13 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { skillsDir, slugifySkillName } from "../store/home.js";
+import { readdir } from "node:fs/promises";
+import { resolveMemoryStore } from "../store/memory-store.js";
+import { slugifySkillName } from "../store/slug.js";
+// NEEDS-SPECIAL (enumeration only): lint must distinguish a real skill
+// DIRECTORY from a stray file (e.g. umbrellas.json) via `isDirectory()`, which
+// the file-granular MemoryStore port's `list` does not expose — flagging
+// non-dir entries as "missing SKILL.md" would be a behavior change. So the
+// directory enumeration stays on fs; `skillsDir` is the PURE path resolver.
+// The per-skill SKILL.md READ is migrated to the port below.
+import { skillsDir } from "../store/home.js";
 import { parseSkill } from "./frontmatter.js";
 
 // `vanta skills lint` — structural validation of SKILL.md files so rot (name↔dir
@@ -38,14 +45,13 @@ export async function lintSkills(env: NodeJS.ProcessEnv = process.env): Promise<
     return [];
   }
 
+  const store = resolveMemoryStore(env);
   const issues: SkillLintIssue[] = [];
   const err = (skill: string, message: string) => issues.push({ skill, level: "error", message });
 
   for (const slug of slugs) {
-    let md: string;
-    try {
-      md = await readFile(join(dir, slug, "SKILL.md"), "utf8");
-    } catch {
+    const md = await store.read(`skills/${slug}/SKILL.md`);
+    if (md === null) {
       err(slug, "missing SKILL.md");
       continue;
     }

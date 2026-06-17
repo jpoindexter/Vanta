@@ -1,6 +1,13 @@
-import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
-import { join, basename } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { basename } from "node:path";
+import { resolveMemoryStore } from "../store/memory-store.js";
+
+/** Home-relative directory holding bundle YAMLs. */
+const BUNDLES_DIR = "skill-bundles";
+
+/** Home-relative path to a named bundle's YAML. */
+function bundleRelPath(name: string): string {
+  return `${BUNDLES_DIR}/${name}.yaml`;
+}
 
 export type BundleConfig = {
   name: string;
@@ -36,21 +43,12 @@ export function parseBundle(content: string): BundleConfig | null {
   }
 }
 
-function bundlesDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "skill-bundles");
-}
-
 export async function listBundles(env?: NodeJS.ProcessEnv): Promise<BundleConfig[]> {
-  const dir = bundlesDir(env);
-  let entries: string[] = [];
-  try {
-    entries = await readdir(dir);
-  } catch {
-    return [];
-  }
+  const store = resolveMemoryStore(env);
+  const entries = await store.list(BUNDLES_DIR);
   const bundles: BundleConfig[] = [];
   for (const entry of entries.filter((e) => e.endsWith(".yaml"))) {
-    const content = await readFile(join(dir, entry), "utf8").catch(() => null);
+    const content = await store.read(`${BUNDLES_DIR}/${entry}`);
     if (!content) continue;
     const cfg = parseBundle(content);
     if (cfg) bundles.push(cfg);
@@ -59,16 +57,13 @@ export async function listBundles(env?: NodeJS.ProcessEnv): Promise<BundleConfig
 }
 
 export async function readBundle(name: string, env?: NodeJS.ProcessEnv): Promise<BundleConfig | null> {
-  const file = join(bundlesDir(env), `${name}.yaml`);
-  const content = await readFile(file, "utf8").catch(() => null);
+  const content = await resolveMemoryStore(env).read(bundleRelPath(name));
   return content ? parseBundle(content) : null;
 }
 
 /** Write a bundle YAML to ~/.vanta/skill-bundles/<name>.yaml. */
 export async function writeBundle(cfg: BundleConfig, env?: NodeJS.ProcessEnv): Promise<void> {
-  const dir = bundlesDir(env);
-  await mkdir(dir, { recursive: true });
   const skillsList = cfg.skills.map((s) => `  - ${s}`).join("\n");
   const yaml = `name: "${cfg.name}"\ndescription: "${cfg.description}"\nskills:\n${skillsList}\n${cfg.instruction ? `instruction: "${cfg.instruction}"\n` : ""}`;
-  await writeFile(join(dir, `${basename(cfg.name)}.yaml`), yaml, "utf8");
+  await resolveMemoryStore(env).write(bundleRelPath(basename(cfg.name)), yaml);
 }

@@ -1,6 +1,13 @@
 import { readdir, readFile, rename, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { skillsDir, slugifySkillName } from "../store/home.js";
+// NEEDS-SPECIAL: curator archives a skill by `rename`-ing its whole DIRECTORY
+// into `_archive` and enumerates directories with `isDirectory()`. The
+// file-granular MemoryStore port has no directory-move or directory-typed list,
+// and its `remove` is non-recursive (would leave an empty dir behind, breaking
+// the reversible-move contract the tests assert). So the directory ops stay on
+// the fs; `skillsDir` here is the PURE path resolver, not persistence logic.
+import { skillsDir } from "../store/home.js";
+import { slugifySkillName } from "../store/slug.js";
 import { listSkills, LEARNED_TAG } from "./store.js";
 import { parseSkill } from "./frontmatter.js";
 import type { Skill } from "./types.js";
