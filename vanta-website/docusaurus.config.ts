@@ -39,7 +39,7 @@ const config: Config = {
       {
         hashed: true,
         indexBlog: false,
-        docsRouteBasePath: '/docs',
+        docsRouteBasePath: '/',
         highlightSearchTermsOnTargetPage: true,
       },
     ],
@@ -56,7 +56,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // docs served at /docs/* (classic default); landing page at /
+          routeBasePath: '/', // docs ARE the site — root goes straight to them
         },
         blog: false, // docs site — no blog
         theme: {
@@ -94,8 +94,8 @@ const config: Config = {
         {
           title: 'Docs',
           items: [
-            {label: 'Introduction', to: '/docs/intro'},
-            {label: 'Quickstart', to: '/docs/quickstart'},
+            {label: 'Introduction', to: '/'},
+            {label: 'Quickstart', to: '/quickstart'},
           ],
         },
         {
