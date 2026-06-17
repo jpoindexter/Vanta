@@ -208,6 +208,8 @@ Swappable concerns sit behind an interface (port); concrete impls are adapters; 
 
 Other ports: `SessionStore` (`sessions/index.ts`, `VANTA_SESSION_STORE`) · `KernelClient` + `createKernelClient` (`safety-client.ts`) · `ToolRegistry` + `createToolRegistry` (`tools/registry.ts`) · `FactoryDeps` (`factory/run.ts`) · messaging `resolvePlatformAdapter` (`gateway/platforms/index.ts`) · `DELIVERY_TARGETS` registry (`gateway/webhook.ts`) · `PROMPT_TIERS` registry (`prompt.ts`) · `A2ATransport` (`a2a/types.ts`) · `StreamEventFormatter` for string surfaces (`term/event-format.ts`; the Ink TUI renders React and intentionally stays separate).
 
+**`MemoryStore` persistence port** (`store/memory-store.ts`, `resolveMemoryStore`, `VANTA_MEMORY_STORE`) — backend-agnostic read/write/append/list/ensure/commit by namespace over the ~/.vanta home. **Partial (PORT-MEMORY-STORE, status: building):** `memory/store.ts` is migrated; ~37 modules still import `store/home.ts` directly and migrate to `resolveMemoryStore` in later waves. New code persisting under ~/.vanta should use `resolveMemoryStore`, not `store/home.ts`.
+
 ## Key decisions (don't re-litigate without new info)
 
 - **Non-streaming in v0** — the loop waits for the full tool call before executing anyway; streaming only adds live text display. Fits behind the interface later.

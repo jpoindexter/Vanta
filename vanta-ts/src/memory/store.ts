@@ -1,12 +1,9 @@
-import { readFile, appendFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import {
-  memoriesDir,
-  ensureVantaStore,
-  commitInHome,
-} from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { scanForSecrets } from "../store/secret-scan.js";
 import { annotateMemory } from "./freshness.js";
+
+/** Namespace for per-goal memory files in the home store. */
+const MEMORIES_NS = "memories";
 
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
@@ -18,14 +15,10 @@ const BLOCK_DELIM = "## ";
 type AppendOptions = { env?: NodeJS.ProcessEnv; now?: string };
 type RecentOptions = { env?: NodeJS.ProcessEnv; maxPerGoal?: number; now?: number };
 
-function memoryFile(goalId: number, env?: NodeJS.ProcessEnv): string {
-  return join(memoriesDir(env), `${goalId}.md`);
-}
-
 /**
  * Append a timestamped summary block to a goal's memory file, then commit it
  * in the Vanta home. `now` is injected for deterministic tests; defaults to the
- * current ISO 8601 timestamp at runtime.
+ * current ISO 8601 timestamp at runtime. Goes through the MemoryStore port.
  */
 export async function appendMemory(
   goalId: number,
@@ -37,19 +30,20 @@ export async function appendMemory(
   // content that contains a credential. Returns the matched rule ids for diagnosis.
   const rules = scanForSecrets(summary);
   if (rules.length > 0) return { skipped: true, rules };
-  await ensureVantaStore(env);
+  const store = resolveMemoryStore(env);
+  await store.ensure();
   const now = opts.now ?? new Date().toISOString();
-  const file = memoryFile(goalId, env);
+  const fileName = `${goalId}.md`;
   const block = `${BLOCK_DELIM}${now}\n${summary.trim()}\n\n`;
-  await appendFile(file, block, "utf8");
+  await store.append(MEMORIES_NS, fileName, block);
   // Bound the stored file (capped memory): keep the most recent
   // blocks; older ones are pruned from the live file but preserved in git below.
   const cap = Number(env?.VANTA_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
-  const blocks = splitBlocks(await readFile(file, "utf8").catch(() => ""));
+  const blocks = splitBlocks((await store.read(MEMORIES_NS, fileName)) ?? "");
   if (blocks.length > cap) {
-    await writeFile(file, `${blocks.slice(-cap).join("\n\n")}\n\n`, "utf8");
+    await store.write(MEMORIES_NS, fileName, `${blocks.slice(-cap).join("\n\n")}\n\n`);
   }
-  await commitInHome(join("memories", `${goalId}.md`), `memory: goal ${goalId}`, env);
+  await store.commit(MEMORIES_NS, fileName, `memory: goal ${goalId}`);
   return { skipped: false, rules: [] };
 }
 
@@ -58,11 +52,7 @@ export async function readMemory(
   goalId: number,
   env?: NodeJS.ProcessEnv,
 ): Promise<string | null> {
-  try {
-    return await readFile(memoryFile(goalId, env), "utf8");
-  } catch {
-    return null;
-  }
+  return resolveMemoryStore(env).read(MEMORIES_NS, `${goalId}.md`);
 }
 
 /**

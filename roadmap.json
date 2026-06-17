@@ -12217,13 +12217,14 @@
       "id": "PORT-MEMORY-STORE",
       "track": "Harness",
       "title": "MemoryStore port — replace resolveVantaHome fs coupling (~61 sites)",
-      "status": "next",
+      "status": "building",
       "size": "L",
       "summary": "Audit: the single biggest coupling in the codebase. resolveVantaHome/`~/.vanta` filesystem access is hardwired across ~61 sites (brain, memory, settings, permissions, rules, skills, goals) — independently flagged by 3 auditors. No persistence port: memory/settings/rules can't be backed by sqlite/remote/encrypted without editing every caller. Define a MemoryStore/persistence port (read/write/list/commit, scoped by namespace); the fs+git home becomes the default adapter; migrate call sites in waves (brain+memory first, then settings/permissions/rules/skills/goals). LARGE — schedule deliberately, do NOT bundle with smaller ports. Each wave is independently shippable + verified. Enforced incrementally by fitness rules as each wave completes.",
       "done": "A MemoryStore port exists with the fs+git home as default adapter; brain+memory consumers go through it; remaining stores migrate in subsequent waves; backing memory with an alternate store needs no consumer edits.",
       "tier": "rock",
       "effort": "high",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "WAVE 1 SHIPPED: MemoryStore port + fsMemoryStore adapter + resolveMemoryStore (store/memory-store.ts, VANTA_MEMORY_STORE), backend-agnostic (read/write/append/list/ensure/commit by namespace, no fs dir() leak). memory/store.ts migrated as proof (97 memory tests green). REMAINING WAVES: ~37 modules still import store/home.ts directly (brain, settings, permissions, rules, skills, goals, + feature jsonl stores) — migrate per-wave to resolveMemoryStore, then add a home-store-direct fitness rule with the residual as a shrink-only grandfather list. Deliberately staged (data-persistence; do not bundle)."
     },
     {
       "id": "PORT-PROMPT-TIERS",
