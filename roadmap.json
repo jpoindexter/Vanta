@@ -12114,13 +12114,14 @@
       "id": "CODE-INTEL-FACTORY-WIRING",
       "track": "Operator",
       "title": "Factory uses code intelligence — additive, fully optional, no-op if removed",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Wire the code-intel tools (see CODE-INTEL-CODEGRAPH-TOOLS) into the factory build pipeline so the executor builds with a code map instead of blind. planner.ts injects code_context output into FactoryPlan.instruction; verifier.ts uses code_affected on the changed files to scope verification to impacted tests. HARD CONSTRAINT — clean removability: every call site is ADDITIVE and GUARDED. If code intelligence is unavailable, planner/verifier behave exactly as today (blind build, full verify) — degraded, never broken. Factory must NOT import codegraph-specific types; it only calls the adapter, which returns plain strings. Removing the feature = delete the guarded injection calls; factory reverts to prior behaviour with no other change. Depends on CODE-INTEL-CODEGRAPH-TOOLS.",
       "done": "A factory run auto-injects a code map into the executor instruction and scopes verify to affected tests when codegraph is present; when absent, planner/verifier behave identically to before; removing the wiring is just deleting the guarded calls, with no other impact.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped (safety-scoped): factory run.ts withCodeMap prepends a code_context map to the executor instruction (additive + guarded; no-op when codegraph absent; removing it reverts the factory). The verify gate is deliberately NOT scoped down by code_affected — narrowing the factory safety gate on a heuristic could let a regression through, so code intel informs the build, never weakens verification. tsc clean; 102 factory tests pass."
     },
     {
       "id": "ARCH-BOUNDARY-FITNESS",

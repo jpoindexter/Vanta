@@ -6,7 +6,8 @@ import { verify, listPreExistingFiles } from "./verifier.js";
 import { autonomyCapForFiles } from "./compartments.js";
 import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
 import { shouldClarify, buildPrefightNote } from "./preflight.js";
-import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
+import { resolveCodeIntelProvider } from "../code-intel/index.js";
+import type { FactoryConfig, CycleResult, AutonomyLevel, FactoryPlan } from "./types.js";
 
 // --- Pipeline stages (ports/adapters, DECISIONS 2026-06-17) ---
 //
@@ -29,6 +30,28 @@ export const defaultFactoryDeps: FactoryDeps = {
   verify,
   listPreExistingFiles,
 };
+
+// CODE-INTEL-FACTORY-WIRING: prepend a code map to the executor instruction so
+// the factory builds with structure instead of blind. ADDITIVE + GUARDED: if no
+// code-intel engine is available it's a no-op (the factory behaves exactly as
+// before). Removing this function + its one call reverts the factory. Note: the
+// verify gate is deliberately NOT scoped down by code_affected — narrowing the
+// safety gate on a heuristic could let a regression through; code intel informs
+// the build, never weakens verification. (DECISIONS 2026-06-17.)
+async function withCodeMap(plan: FactoryPlan, root: string): Promise<FactoryPlan> {
+  try {
+    const provider = resolveCodeIntelProvider(process.env);
+    if (!(await provider.isAvailable())) return plan;
+    const map = await provider.context(plan.workItem.description, { root, maxNodes: 15 });
+    if (!map.trim()) return plan;
+    return {
+      ...plan,
+      instruction: `${plan.instruction}\n\n## Code map (from code intelligence — current structure relevant to this task)\n${map}`,
+    };
+  } catch {
+    return plan; // code intel is best-effort context, never a blocker
+  }
+}
 
 // --- Pure helpers ---
 
@@ -220,7 +243,7 @@ export async function runCycle(
       return { status: "aborted", reason: "item too vague — add context then re-run" };
     }
 
-    const plan = deps.buildPlan(item, config.vantaRoot);
+    const plan = await withCodeMap(deps.buildPlan(item, config.vantaRoot), config.vantaRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
     const level = config.autonomyLevel;
