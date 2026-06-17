@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { checkGate, formatCycleLog, resolveAutonomyLevel } from "./run.js";
+import { checkGate, formatCycleLog, resolveAutonomyLevel, defaultFactoryDeps } from "./run.js";
 import type { FactoryConfig, CycleResult } from "./types.js";
 
 const baseConfig: FactoryConfig = {
@@ -107,6 +107,21 @@ describe("formatCycleLog", () => {
     };
     expect(formatCycleLog(r)).toContain("verify-failed");
     expect(formatCycleLog(r)).toContain("pre-change");
+  });
+});
+
+describe("defaultFactoryDeps (pipeline injection seam)", () => {
+  it("wires all five pipeline stages as functions", () => {
+    for (const stage of ["triage", "buildPlan", "execute", "verify", "listPreExistingFiles"] as const) {
+      expect(typeof defaultFactoryDeps[stage]).toBe("function");
+    }
+  });
+
+  it("lets a caller swap stages without editing the orchestrator", () => {
+    // The whole point: a test/alt engine supplies its own stages.
+    const custom = { ...defaultFactoryDeps, execute: async () => ({ touchedFiles: [], tokenSpend: 0 }) };
+    expect(custom.execute).not.toBe(defaultFactoryDeps.execute);
+    expect(custom.triage).toBe(defaultFactoryDeps.triage);
   });
 });
 

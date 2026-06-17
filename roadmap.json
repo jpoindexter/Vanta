@@ -12191,13 +12191,14 @@
       "id": "PORT-FACTORY-DEPS",
       "track": "Operator",
       "title": "FactoryDeps injection — make the factory pipeline pluggable",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Audit verdict PARTIAL: factory/run.ts hardcodes its entire triage->plan->execute->verify->merge pipeline via direct imports (run.ts:2-8) with zero injection, while loop/IterationDeps (loop/types.ts:174-184) and evolve/EvolveDeps right next door are textbook DI. Mirror them: inject a FactoryDeps {triage, plan, execute, verify, merge} into runCycle so the executor/planner/verifier are swappable and testable in isolation; lift the inline git stages (run.ts:86-167) behind a small VCS adapter; make verify a registered check chain (VerifyCheck[]) not a hardcoded 7-gate sequence. Also wire the built-not-wired holdout seam. Removability: swap the executor or add a verifier check without editing the orchestrator.",
       "done": "runCycle takes a FactoryDeps and calls stages through it; executor/planner/verifier are swappable without editing the orchestrator; verify is a registered check array; git ops sit behind a VCS adapter; existing factory tests pass.",
       "tier": "rock",
       "effort": "medium",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: FactoryDeps injected into runCycle (triage/buildPlan/execute/verify/listPreExistingFiles), default defaultFactoryDeps = real stages. Stages now swappable/testable without editing the orchestrator. Git lifecycle still inline (VCS adapter = noted follow-on). tsc clean; 102 factory tests pass."
     },
     {
       "id": "PORT-TOOL-REGISTRY-IFACE",

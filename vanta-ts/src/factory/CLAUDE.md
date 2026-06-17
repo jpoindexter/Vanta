@@ -15,7 +15,7 @@ Dark factory: the bounded autonomous loop that improves Vanta's own codebase. On
 | `intent-judge.ts` | `checkIntentSatisfied` — LLM-as-judge intent gate (called by `verifier.ts`); fails OPEN so tests/tsc stay the hard floor. Pure `parseJudgeResponse`. |
 | `holdout.ts` | FAC-HOLDOUT author-separation: `generateHoldout`/`validateAgainstHoldout` — a SEPARATE provider authors acceptance criteria + reviews the result. Built, **not yet wired** into `run.ts`. |
 | `compartments.ts` | O11 — `classifyCompartment(file)` → tier · `compartmentMaxAutonomy(tier)` → max L · `autonomyCapForFiles(files)` → most-restrictive cap. Pure. |
-| `run.ts` | `runCycle(config, log)` → `CycleResult`. Orchestrates the full cycle. |
+| `run.ts` | `runCycle(config, log, deps?)` → `CycleResult`. Orchestrates the full cycle. Pipeline stages (triage/buildPlan/execute/verify/listPreExistingFiles) are injected via `FactoryDeps` (default `defaultFactoryDeps` = the real stages) — swap the executor/planner/verifier without editing the orchestrator (ports/adapters, DECISIONS 2026-06-17). Git lifecycle (branch/commit/push/merge) is still inline — a VCS adapter is a noted follow-on. |
 
 ## Safety invariants (do not change without a kernel update)
 

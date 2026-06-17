@@ -8,6 +8,28 @@ import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
 import { shouldClarify, buildPrefightNote } from "./preflight.js";
 import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
 
+// --- Pipeline stages (ports/adapters, DECISIONS 2026-06-17) ---
+//
+// runCycle takes its pipeline stages as injected deps so the executor, planner,
+// verifier, and triage are swappable (alternate build engine, stubbed in tests)
+// WITHOUT editing the orchestrator. The defaults are the real stages; callers
+// pass nothing and get prior behavior.
+export type FactoryDeps = {
+  triage: typeof triage;
+  buildPlan: typeof buildPlan;
+  execute: typeof execute;
+  verify: typeof verify;
+  listPreExistingFiles: typeof listPreExistingFiles;
+};
+
+export const defaultFactoryDeps: FactoryDeps = {
+  triage,
+  buildPlan,
+  execute,
+  verify,
+  listPreExistingFiles,
+};
+
 // --- Pure helpers ---
 
 export type GateInputs = { disabled: boolean; lockExists: boolean; treeDirty: boolean };
@@ -170,7 +192,11 @@ async function discardSlice(root: string): Promise<void> {
  * Run one complete factory cycle: gate → triage → branch → plan → execute → verify → commit.
  * In review mode, prints the plan and exits for human approval (run `vanta factory approve` to proceed).
  */
-export async function runCycle(config: FactoryConfig, log: (msg: string) => void = console.log): Promise<CycleResult> {
+export async function runCycle(
+  config: FactoryConfig,
+  log: (msg: string) => void = console.log,
+  deps: FactoryDeps = defaultFactoryDeps,
+): Promise<CycleResult> {
   const treeDirty = await isTreeDirty(config.vantaRoot);
   const acquired = await acquireLock(config.dataDir);
   const lockExists = !acquired;
@@ -184,7 +210,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
 
   try {
     log("factory: triaging backlog…");
-    const item = await triage(config.vantaRoot);
+    const item = await deps.triage(config.vantaRoot);
     if (!item) return { status: "nothing-to-do" };
     log(`factory: [${item.category}] ${item.description}`);
 
@@ -194,7 +220,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "aborted", reason: "item too vague — add context then re-run" };
     }
 
-    const plan = buildPlan(item, config.vantaRoot);
+    const plan = deps.buildPlan(item, config.vantaRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
     const level = config.autonomyLevel;
@@ -205,7 +231,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "aborted", reason: "suggest mode (L1) — awaiting approval (run: vanta factory approve)" };
     }
 
-    const preExisting = await listPreExistingFiles(config.vantaRoot);
+    const preExisting = await deps.listPreExistingFiles(config.vantaRoot);
     const startBranch = await currentBranch(config.vantaRoot);
     const branch = await createBranch(config.vantaRoot);
     log(`factory: branched → ${branch}`);
@@ -214,9 +240,9 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     // VANTA_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
     const maxRetries = Math.max(0, parseInt(process.env.VANTA_FACTORY_MAX_RETRIES ?? "1", 10));
     const escalateAfter = Math.max(1, parseInt(process.env.VANTA_FACTORY_ESCALATE_AFTER ?? "1", 10));
-    let artifact = await execute(config.vantaRoot, plan, config.budgetTokens);
+    let artifact = await deps.execute(config.vantaRoot, plan, config.budgetTokens);
     log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
-    let verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+    let verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     let totalTokens = artifact.tokenSpend;
     for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
       const escalate = retry >= escalateAfter && process.env.VANTA_MODEL_EXPENSIVE;
@@ -228,11 +254,11 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
       // FAC-ESCALATE: override VANTA_MODEL to the expensive model when stalled.
       if (escalate) process.env.VANTA_MODEL = process.env.VANTA_MODEL_EXPENSIVE!;
-      artifact = await execute(config.vantaRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
+      artifact = await deps.execute(config.vantaRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
       if (escalate) delete process.env.VANTA_MODEL; // restore default after retry
       totalTokens += artifact.tokenSpend;
       log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
-      verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+      verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     }
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
