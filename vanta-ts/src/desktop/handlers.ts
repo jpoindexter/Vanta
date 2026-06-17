@@ -3,6 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createConversation, type StreamEvent } from "../agent.js";
 import type { Conversation } from "../agent.js";
+import { resolveEventFormatter } from "../term/event-format.js";
 import { buildSummarizer, prepareRun, writeRunMemory } from "../session.js";
 import type { RunSetup } from "../session.js";
 import { newSessionId, resolveSessionStore } from "../sessions/index.js";
@@ -27,11 +28,10 @@ export type DesktopState = {
   _sseClients?: SseClients;
 };
 
+// Delegates to the shared StreamEventFormatter port (term/event-format) so the
+// label presentation lives in one swappable place, not inline per surface.
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
-  if (event.type === "tool_start") return { label: `→ ${event.name}` };
-  if (event.type === "tool_end") return { label: `${event.ok ? "✓" : "✗"} ${event.name}: ${event.output.slice(0, 90)}`, ok: event.ok };
-  if (event.type === "note") return { label: `note: ${event.text.slice(0, 100)}` };
-  return null;
+  return resolveEventFormatter().format(event);
 }
 
 export function readJson(req: http.IncomingMessage): Promise<unknown> {

@@ -206,6 +206,8 @@ Swappable concerns sit behind an interface (port); concrete impls are adapters; 
 - **Swap the brain:** implement the `Brain` port (`brain/interface.ts`), add a case to `resolveBrain` in `brain/index.ts`. Consumers import `resolveBrain` from `brain/index.js` — never `brain/brain.js` (the `brain-port` rule enforces it).
 - **Swap code intelligence:** implement `CodeIntelProvider` (`code-intel/interface.ts`), add a case to `resolveCodeIntelProvider` (`code-intel/index.ts`). `VANTA_CODE_INTEL=auto|codegraph|off`.
 
+Other ports: `SessionStore` (`sessions/index.ts`, `VANTA_SESSION_STORE`) · `KernelClient` + `createKernelClient` (`safety-client.ts`) · `ToolRegistry` + `createToolRegistry` (`tools/registry.ts`) · `FactoryDeps` (`factory/run.ts`) · messaging `resolvePlatformAdapter` (`gateway/platforms/index.ts`) · `DELIVERY_TARGETS` registry (`gateway/webhook.ts`) · `PROMPT_TIERS` registry (`prompt.ts`) · `A2ATransport` (`a2a/types.ts`) · `StreamEventFormatter` for string surfaces (`term/event-format.ts`; the Ink TUI renders React and intentionally stays separate).
+
 ## Key decisions (don't re-litigate without new info)
 
 - **Non-streaming in v0** — the loop waits for the full tool call before executing anyway; streaming only adds live text display. Fits behind the interface later.

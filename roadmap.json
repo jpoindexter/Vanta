@@ -12281,13 +12281,14 @@
       "id": "PORT-DISPLAY-FORMATTER",
       "track": "Operator",
       "title": "Display/output formatter port across frontends",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: no shared 'format a StreamEvent for display' interface — Ink uses term/toolDisplay, desktop hand-rolls eventLabel (handlers.ts:30), each surface re-derives presentation; the unwired json-format.ts has nowhere to plug in. Define a DisplayFormatter port so frontends share formatting and new output modes register.",
       "done": "Frontends format StreamEvents via a shared DisplayFormatter port; desktop/Ink stop re-deriving labels independently; json-format plugs into the same port.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped (scoped honestly): StreamEventFormatter port + defaultEventFormatter + resolveEventFormatter in term/event-format.ts (shared, swappable). desktop eventLabel now delegates to it instead of inline formatting. Ink (React render) intentionally NOT forced into the same abstraction. json-format.ts is a separate tool-output concern (audit conflated them) — left as-is. tsc clean; desktop tests pass."
     },
     {
       "id": "PORT-A2A-TRANSPORT",
