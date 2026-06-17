@@ -21,32 +21,16 @@ Vanta ships as an ordered backlog of small, verified slices (tracked in `roadmap
 ## Milestone timeline
 
 ```mermaid
-timeline
-  title Vanta — shipped milestones → ahead
-  section Foundations
-    Rust safety kernel : assess · approvals · goal ledger · event log
-    Agent loop : goal-aware · kernel-gated · errors-as-values
-  section v0 — all the parts
-    Capabilities : files & code · web · browser & vision · comms
-    Skills & memory : learned skills · per-goal memory · curator
-    Autonomy : cron · subagents · operator modes
-  section v1 — feels like an operator
-    Any model : setup wizard · provider matrix
-    Continuity : age-gated resume · fork · handoff
-    Self-improvement : background skill capture
-    Gateway : service · messaging · webhooks
-  section Selfhood & MCP
-    Brain : md regions + structured entries · guardrails
-    MCP : mount · serve · runtime mount
-  section Operator & runtime
-    Operator systems : world · money · radar · teams · life-search · self-repair · reach
-    Terminal UI : real Ink rebuild · mission-control · approvals
-    Executive-function gates : on-task discipline
-    Modularity : ports-and-adapters as the standard
-  section Now & ahead
-    Now : configurable EF gate engine
-    Next : TUI depth · automation depth · preference engine
-    Later : worktrees · multi-agent plans · cofounder engine
+flowchart TB
+  F["<b>Foundations</b> — shipped<br/>Rust safety kernel · agent loop"]
+  V0["<b>v0 — all the parts</b> — shipped<br/>files & code · web · browser & vision · comms<br/>skills & memory · cron · subagents · operator modes"]
+  V1["<b>v1 — feels like an operator</b> — shipped<br/>any model + setup wizard · age-gated resume · fork · handoff<br/>self-improvement · gateway (service · messaging · webhooks)"]
+  SM["<b>Selfhood & MCP</b> — shipped<br/>brain (regions + structured entries · guardrails)<br/>MCP mount · serve · runtime mount"]
+  OR["<b>Operator & runtime</b> — shipped<br/>operator systems · real Ink terminal UI · mission-control<br/>executive-function gates · ports-and-adapters standard"]
+  NOW["<b>Now</b> — in build<br/>configurable executive-function gate engine"]
+  NEXT["<b>Next</b><br/>TUI depth · automation depth · preference engine · solutioning"]
+  LATER["<b>Later</b><br/>git worktrees · multi-agent plans · cofounder engine"]
+  F --> V0 --> V1 --> SM --> OR --> NOW --> NEXT --> LATER
 ```
 
 ## Status mix
