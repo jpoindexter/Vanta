@@ -1,10 +1,10 @@
 ---
 id: architecture
-title: Architecture
-sidebar_position: 3
+title: Overview
+sidebar_position: 1
 ---
 
-# Architecture
+# Architecture overview
 
 Vanta is two cooperating processes: a **Rust kernel** (the boundary) and a **TypeScript agent** (the orchestrator). They talk over a local HTTP sidecar on `127.0.0.1:7788`.
 
