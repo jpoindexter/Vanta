@@ -3,7 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { buildSystemPrompt } from "../prompt.js";
 import { recentMemory } from "../memory/store.js";
 import { listSkills } from "../skills/store.js";
-import { brainDigest } from "../brain/brain.js";
+import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
 import { playbookDigest } from "../memory/playbook.js";
 import { mountMcpServers } from "../mcp/mount.js";
@@ -34,7 +34,7 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
     name: s.meta.name,
     description: s.meta.description,
   }));
-  const brain = await brainDigest(process.env).catch(() => "");
+  const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
   const { selfDigest } = await import("../self/store.js");
   const selfContent = await selfDigest(process.env).catch(() => "");
   const { readMoim } = await import("../moim/store.js");

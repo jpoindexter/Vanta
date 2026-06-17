@@ -58,8 +58,8 @@ export async function runMemoryShortcut(
   text: string,
   env: NodeJS.ProcessEnv,
 ): Promise<string> {
-  const { writeRegion } = await import("../brain/brain.js");
-  await writeRegion("semantic", `- ${text}`, { append: true, env });
+  const { resolveBrain } = await import("../brain/interface.js");
+  await resolveBrain(env).write("semantic", `- ${text}`, { append: true, env });
   const preview = text.length > 80 ? `${text.slice(0, 80)}…` : text;
   return `◈ remembered: ${preview}`;
 }

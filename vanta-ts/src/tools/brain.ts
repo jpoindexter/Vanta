@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
-import { readRegion, writeRegion, remember, recall } from "../brain/brain.js";
+import { resolveBrain } from "../brain/interface.js";
 import { guardMemoryRecall } from "../memory/guardrails.js";
 
 // The `brain` tool: Vanta reads and grows its own brain (~/.vanta/brain/). A digest
@@ -30,11 +30,11 @@ async function handleRegionAction(a: ParsedArgs): Promise<ToolResult> {
     return { ok: false, output: `unknown region "${region ?? ""}". Use action=list to see valid regions.` };
   }
   if (action === "read") {
-    const body = await readRegion(region);
+    const body = await resolveBrain().read(region);
     return { ok: true, output: body?.trim() || `(${region} is empty)` };
   }
   if (!content?.trim()) return { ok: false, output: `${action} needs content` };
-  await writeRegion(region, content, { append: action === "append" });
+  await resolveBrain().write(region, content, { append: action === "append" });
   return { ok: true, output: `brain.${region} ${action === "append" ? "updated (appended)" : "rewritten"}` };
 }
 
@@ -43,7 +43,7 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
     return { ok: false, output: `remember needs a valid region. Use action=list to see them.` };
   }
   if (!a.content?.trim()) return { ok: false, output: "remember needs content" };
-  const e = await remember({
+  const e = await resolveBrain().remember({
     region: a.region,
     content: a.content,
     entryType: a.entry_type,
@@ -54,7 +54,7 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
 }
 
 async function handleRecall(a: ParsedArgs): Promise<ToolResult> {
-  const r = await recall({ query: a.query, region: a.region, topK: a.top_k ?? 10 });
+  const r = await resolveBrain().recall({ query: a.query, region: a.region, topK: a.top_k ?? 10 });
   if (!r.entries.length) return { ok: true, output: "(no matching memories)" };
   return { ok: true, output: guardMemoryRecall(r.entries).formatted };
 }

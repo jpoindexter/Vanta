@@ -67,9 +67,9 @@ async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
   const ms = now.getTime();
   if (ms - lastHeartbeatMs < HEARTBEAT_EVERY_MS) return;
   lastHeartbeatMs = ms;
-  const { writeRegion } = await import("../brain/brain.js");
+  const { resolveBrain } = await import("../brain/interface.js");
   const note = `\n- [${now.toISOString()}] gateway heartbeat — daemon alive, tasks processed`;
-  await writeRegion("drives", note, { append: true });
+  await resolveBrain().write("drives", note, { append: true });
 }
 
 async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promise<void> {

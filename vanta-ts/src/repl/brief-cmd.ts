@@ -1,7 +1,7 @@
 import type { Goal } from "../types.js";
 import type { SlashHandler } from "./types.js";
 import { readStack } from "../task-stack/store.js";
-import { readRegion } from "../brain/brain.js";
+import { resolveBrain } from "../brain/interface.js";
 
 // BRIEF-CMD — JARVIS-style today brief: tasks, goals, calendar, episodic.
 // Calendar is skipped when VANTA_GOOGLE_CLIENT_ID is unset.
@@ -83,7 +83,7 @@ export async function buildBrief(deps: BriefDeps): Promise<string> {
   const [stack, allGoals, episodic, calendarOut] = await Promise.all([
     readStack(dataDir),
     getGoals().catch(() => [] as Goal[]),
-    readRegion("episodic", env).catch(() => null),
+    resolveBrain(env).read("episodic", env).catch(() => null),
     fetchCalendarEvents(env),
   ]);
   const activeGoals = allGoals.filter((g) => g.status === "active");

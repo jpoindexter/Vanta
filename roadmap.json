@@ -12162,13 +12162,14 @@
       "id": "PORT-BRAIN-INTERFACE",
       "track": "Harness",
       "title": "Brain port — route the 3 brain variants behind one interface",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Audit verdict COUPLED: 3 brain implementations ship (live md-region brain + dormant v2 + brain5d) but consumers hardcode `import { brainDigest } from ../brain/brain.js` (session/prepare-helpers.ts:6, subagent/spawn.ts:5, cli-dx/prompt-size.ts:32) — the dormant variants can't be activated by config. This is the exact failure mode the modularity push targets. Define a Brain port (read/remember/recall/digest/health) in brain/interface.ts; make the live brain the default adapter; a single resolver picks the active brain (env/settings, e.g. VANTA_BRAIN). Consumers depend only on the port. Enforced by an ARCH-BOUNDARY-FITNESS rule. Removability: swapping/removing a brain = one adapter + one registration; zero consumer edits.",
       "done": "All brain consumers depend on a Brain interface resolved by one registration point; the live brain is the default adapter; an alternate brain can be activated by config with no consumer edits; a fitness rule forbids importing a concrete brain variant.",
       "tier": "rock",
       "effort": "medium",
-      "updated": "2026-06-17"
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. brain/interface.ts defines the Brain port (read/write/remember/recall/digest/health) + the live md-region/entries brain as the default adapter + resolveBrain(env) — the one registration point (VANTA_BRAIN, default live). All 12 consumers migrated off direct brain.ts imports (tools/brain, tools/compare-vision, memory/extractor, repl/{reflect-correct,brief-cmd,handlers,shortcuts}, cli/hooks-cmd, gateway/run, subagent/spawn, session/prepare-helpers, cli-dx/prompt-size) — including the dynamic-import sites. New HARD fitness rule `brain-variant-port` (in ARCH-BOUNDARY-FITNESS) forbids importing brain/brain.ts or brain/v2.ts outside brain/ — a new concrete-brain import turns the suite red. interface.test.ts + 653 touched-area tests green; typecheck + size gate clean. Swapping in the dormant v2 (or a remote/stub) is now one adapter + one ADAPTERS entry, zero consumer edits."
     },
     {
       "id": "PORT-KERNEL-CLIENT",

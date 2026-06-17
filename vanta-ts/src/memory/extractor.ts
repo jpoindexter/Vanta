@@ -1,5 +1,5 @@
 import { loadEntries } from "../brain/entries.js";
-import { remember } from "../brain/brain.js";
+import { resolveBrain } from "../brain/interface.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
 
@@ -107,7 +107,7 @@ export async function runMemoryExtractor(
     let stored = 0;
     for (const fact of parsed) {
       if (isDuplicate(fact, storedFacts)) continue;
-      await remember({
+      await resolveBrain().remember({
         region: "semantic",
         content: fact,
         entryType: "fact",

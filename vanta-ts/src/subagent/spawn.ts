@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { runAgent } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
 import { listSkills } from "../skills/store.js";
-import { brainDigest } from "../brain/brain.js";
+import { resolveBrain } from "../brain/interface.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal } from "../types.js";
 
@@ -34,7 +34,7 @@ export async function spawnSubagent(opts: {
     name: s.meta.name,
     description: s.meta.description,
   }));
-  const brain = await brainDigest(process.env).catch(() => "");
+  const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
   const systemPrompt = await buildSystemPrompt({
     root: deps.root,
     soulPath: opts.soulPath ?? join(deps.root, "SOUL.md"),

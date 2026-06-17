@@ -67,6 +67,13 @@ export const RULES: readonly BoundaryRule[] = [
     forbidden: (spec) => CONCRETE_PROVIDERS.some((n) => new RegExp(`providers/${n}(\\.js)?$`).test(spec)),
     hard: true,
   },
+  {
+    id: "brain-variant-port",
+    desc: "Only brain/ may import a concrete brain variant (brain.ts / v2.ts); everything else depends on the Brain port (brain/interface.ts).",
+    applies: (p) => !isTest(p) && !under("brain")(p),
+    forbidden: (spec) => /brain\/(brain|v2)(\.js)?$/.test(spec),
+    hard: true,
+  },
 ];
 
 // Files permitted to cross a (non-hard) boundary today. SHRINK-ONLY: never add a
