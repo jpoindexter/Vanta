@@ -1,5 +1,5 @@
 import { readdir } from "node:fs/promises";
-import { SafetyClient } from "./safety-client.js";
+import { createKernelClient } from "./kernel/client.js";
 import { resolveProvider } from "./providers/index.js";
 import { PROVIDER_CATALOG } from "./providers/catalog.js";
 import { resolveVantaHome, memoriesDir } from "./store/home.js";
@@ -96,7 +96,7 @@ function resolveProviderStatus(env: NodeJS.ProcessEnv): StatusReport["provider"]
 /** Gather the live health report. Best-effort: any probe failure degrades to a flag, never throws. */
 export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport> {
   const url = env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const client = new SafetyClient(url);
+  const client = createKernelClient(url);
   const up = await client.status();
 
   const provider = resolveProviderStatus(env);

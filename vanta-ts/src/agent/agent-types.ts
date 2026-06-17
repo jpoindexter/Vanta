@@ -1,5 +1,5 @@
 import type { LLMProvider } from "../providers/interface.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { EffortLevel, Message, ImageAttachment } from "../types.js";
 import type { DiffLine } from "../util/diff.js";
@@ -9,7 +9,7 @@ import type { SessionWorkingMemory } from "../memory/working.js";
 
 export type AgentDeps = {
   provider: LLMProvider;
-  safety: SafetyClient;
+  safety: KernelClient;
   registry: ToolRegistry;
   root: string;
   /** Ask the human to approve a gated action. `toolName` lets the host key an

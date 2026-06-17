@@ -15,7 +15,7 @@ import {
   DEFAULT_MANIP_THRESHOLD, type WmManipState,
 } from "../repl/wm-manip.js";
 export type { WmManipState } from "../repl/wm-manip.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { Message } from "../types.js";
 import { extractLastTurnCalls, detectAnomalies, formatAnomalyNote } from "../observe/trace.js";
 
@@ -24,7 +24,7 @@ import { extractLastTurnCalls, detectAnomalies, formatAnomalyNote } from "../obs
 
 export async function nudgeAfterTurn(
   turnIndex: number,
-  safety: SafetyClient,
+  safety: KernelClient,
   onNote: (text: string) => void,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {

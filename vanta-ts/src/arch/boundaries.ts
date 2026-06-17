@@ -74,6 +74,13 @@ export const RULES: readonly BoundaryRule[] = [
     forbidden: (spec) => /brain\/(brain|v2)(\.js)?$/.test(spec),
     hard: true,
   },
+  {
+    id: "kernel-client-port",
+    desc: "Only kernel/client.ts (the factory) may import the concrete SafetyClient; consumers depend on the KernelClient port (kernel/client.ts → createKernelClient / type).",
+    applies: (p) => !isTest(p) && !norm(p).endsWith("kernel/client.ts"),
+    forbidden: (spec) => /(^|\/)safety-client(\.js)?$/.test(spec),
+    hard: true,
+  },
 ];
 
 // Files permitted to cross a (non-hard) boundary today. SHRINK-ONLY: never add a

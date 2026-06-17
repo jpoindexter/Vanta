@@ -12181,7 +12181,8 @@
       "done": "Consumers depend on a KernelClient interface, not the concrete SafetyClient; SafetyClient is one adapter behind a single factory; tests use a stub adapter via the same port; a fitness rule enforces it.",
       "tier": "rock",
       "effort": "medium",
-      "updated": "2026-06-17"
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. kernel/client.ts defines the KernelClient port (status/assess/getGoals/addGoal/completeGoal/getApprovals/proposeApproval/approve/deny/logEvent) + createKernelClient factory (the one value-import of SafetyClient). SafetyClient now `implements KernelClient` (default HTTP adapter). All 23 sites migrated: 18 type-only importers now type against KernelClient; 5 `new SafetyClient` sites (status/kernel-launcher/session/cli-extra-cmds-2/cli-ops incl. dynamic) build via createKernelClient. New HARD fitness rule `kernel-client-port` forbids importing safety-client.ts outside the factory. client.test.ts proves the factory surface + a stub adapter satisfies the port. Full suite 3532 tests green; typecheck + size gate + all 4 boundaries clean. IPC/in-process/stub transports now drop in behind the factory; Rust kernel stays the fixed boundary."
     },
     {
       "id": "PORT-FACTORY-DEPS",

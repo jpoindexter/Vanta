@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Goal, Verdict } from "./types.js";
+import type { KernelClient } from "./kernel/client.js";
 
 const VerdictResponse = z.object({
   risk: z.enum(["allow", "ask", "block"]),
@@ -17,8 +18,8 @@ const GoalsResponse = z.array(
 
 const ApprovalResponse = z.object({ id: z.number() }).passthrough();
 
-/** HTTP client for the Rust safety kernel sidecar. */
-export class SafetyClient {
+/** HTTP client for the Rust safety kernel sidecar — the default KernelClient adapter. */
+export class SafetyClient implements KernelClient {
   constructor(private readonly baseUrl: string) {}
 
   async status(): Promise<boolean> {

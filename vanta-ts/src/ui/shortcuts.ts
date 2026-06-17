@@ -1,12 +1,12 @@
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "../repl/shortcuts.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 // The `!cmd` (kernel-gated shell) and `#note` (save to brain) prefixes. Reuses
 // the same parseShortcut/runBashShortcut/runMemoryShortcut the readline REPL +
 // old TUI use; output commits as a note in the v2 transcript.
 
 export type ShortcutDeps = {
-  safety: SafetyClient;
+  safety: KernelClient;
   repoRoot: string;
   note: (text: string) => void;
 };

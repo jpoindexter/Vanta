@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { recordAudio, detectRecorder } from "./recorder.js";
 import type { LLMProvider } from "../providers/interface.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import { runAgent, createConversation } from "../agent.js";
 
@@ -12,7 +12,7 @@ const execAsync = promisify(execFile);
 
 type VoiceDeps = {
   provider: LLMProvider;
-  safety: SafetyClient;
+  safety: KernelClient;
   registry: ToolRegistry;
   root: string;
   systemPrompt: string;

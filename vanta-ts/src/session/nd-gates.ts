@@ -4,7 +4,7 @@ import { extractLastTurnToolNames } from "../repl/research-gate.js";
 import { readVelocityEvents, velocityStats } from "../velocity/store.js";
 import type { EfSignals, EfState } from "../nd/types.js";
 import type { Message } from "../types.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 // Wires the ND executive-function engine into the post-turn rail. Builds the
 // per-turn signal snapshot from the transcript + goal + velocity + timing, runs
@@ -33,7 +33,7 @@ function lastAssistantProducedText(messages: Message[]): boolean {
 
 export type NdGateInputs = {
   messages: Message[];
-  safety: SafetyClient;
+  safety: KernelClient;
   turnIndex: number;
   startedMs: number;
   now: number;

@@ -6,7 +6,7 @@ import { writeSkill, LEARNED_TAG } from "../skills/store.js";
 import { runAgent } from "../agent.js";
 import type { Tool } from "../tools/types.js";
 import type { LLMProvider } from "../providers/interface.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { Message } from "../types.js";
 
 // Track B — the post-turn self-improvement review. After a turn that did real
@@ -118,7 +118,7 @@ function serializeTranscript(messages: Message[]): string {
  */
 export async function reviewTurn(opts: {
   provider: LLMProvider;
-  safety: SafetyClient;
+  safety: KernelClient;
   root: string;
   transcript: Message[];
 }): Promise<{ wrote: string[] }> {

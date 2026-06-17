@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 const execAsync = promisify(execFile);
 
@@ -30,7 +30,7 @@ export function parseShortcut(input: string): Shortcut | null {
  */
 export async function runBashShortcut(
   cmd: string,
-  safety: SafetyClient,
+  safety: KernelClient,
   root: string,
 ): Promise<string> {
   const verdict = await safety

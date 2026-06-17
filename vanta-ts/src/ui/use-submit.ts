@@ -3,7 +3,7 @@ import { isSlashLine, slashHead } from "./slash.js";
 import { maybeRunShortcut } from "./shortcuts.js";
 import { parseAtRefs, buildContextBlock } from "./at.js";
 import { PICKER_KINDS, type OverlayKind } from "./overlays.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { Action } from "./reducer.js";
 
 // The composer submit router for the v2 UI. One place decides what a submitted
@@ -15,7 +15,7 @@ export type SubmitDeps = {
   send: (text: string) => void;
   openOverlay: (kind: OverlayKind) => void;
   busy: boolean;
-  safety: SafetyClient;
+  safety: KernelClient;
   repoRoot: string;
   dispatch: Dispatch<Action>;
 };

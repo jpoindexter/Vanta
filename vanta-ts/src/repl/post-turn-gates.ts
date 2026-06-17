@@ -17,7 +17,7 @@ import { ndGatesAfterTurn } from "../session/nd-gates.js";
 import { emptyEfState } from "../nd/engine.js";
 import type { EfState } from "../nd/types.js";
 import type { Message } from "../types.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 // The bundled post-turn EF/operator gates an interactive turn runs, threaded as
 // one state object so both hosts (readline runChat + TUI use-agent-send) share
@@ -52,7 +52,7 @@ export function freshGateState(): GateState {
 export async function runPostTurnGates(
   g: GateState,
   o: {
-    messages: Message[]; safety: SafetyClient; dataDir: string; onNote: (text: string) => void;
+    messages: Message[]; safety: KernelClient; dataDir: string; onNote: (text: string) => void;
     env?: NodeJS.ProcessEnv; turnIndex?: number; startedMs?: number; now?: number;
   },
 ): Promise<GateState> {

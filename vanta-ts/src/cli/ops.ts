@@ -112,7 +112,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     // else the first diagnostic line corrupts the protocol and the handshake dies.
     console.log = console.error;
     const { ensureKernel } = await import("../kernel-launcher.js");
-    const { SafetyClient } = await import("../safety-client.js");
+    const { createKernelClient } = await import("../kernel/client.js");
     const { buildRegistry } = await import("../tools/index.js");
     const { resolveServeAllowlist, runMcpServer, stdioServerTransport } = await import("../mcp/server.js");
 
@@ -120,7 +120,7 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
     await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
-    const safety = new SafetyClient(baseUrl);
+    const safety = createKernelClient(baseUrl);
     const registry = buildRegistry();
     const allowlist = resolveServeAllowlist(process.env);
     // Headless: no human to prompt, so self-checks (overwrite, new domain) deny.

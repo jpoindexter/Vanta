@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 // GOAL-CONDITION: parse + check "done when `<cmd>`" conditions on active goals.
 // After each turn the host calls checkGoalLoop; if the condition is not met it
@@ -41,7 +41,7 @@ export async function checkCondition(cmd: string, cwd: string): Promise<boolean>
  * Best-effort: any failure returns null so the session is never broken.
  */
 export async function checkGoalLoop(opts: {
-  safety: SafetyClient;
+  safety: KernelClient;
   cwd: string;
   onNote: (text: string) => void;
 }): Promise<string | null> {

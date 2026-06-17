@@ -14,7 +14,7 @@ import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } fr
 import type { LLMProvider } from "../providers/interface.js";
 import type { Goal } from "../types.js";
 import type { buildRegistry } from "../tools/index.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 
 type PromptContext = {
   memory: string;

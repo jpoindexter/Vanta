@@ -20,13 +20,13 @@ import {
 export type { StallState } from "../repl/stall.js";
 import { readNextItems } from "../repl/next.js";
 import { topNextItems } from "../repl/choice-reduce.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { Message } from "../types.js";
 
 export async function researchGateAfterTurn(
   state: ResearchGateState,
   messages: Message[],
-  deps: { safety: SafetyClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
+  deps: { safety: KernelClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<ResearchGateState> {
   const { safety, onNote, env = process.env } = deps;
   try {
@@ -49,7 +49,7 @@ export async function researchGateAfterTurn(
 export async function inhibitAfterTurn(
   state: InhibitState,
   messages: Message[],
-  deps: { safety: SafetyClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
+  deps: { safety: KernelClient; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<InhibitState> {
   const { safety, onNote, env = process.env } = deps;
   try {
@@ -93,7 +93,7 @@ export async function setShiftAfterTurn(
 export async function stallAfterTurn(
   state: StallState,
   messages: Message[],
-  deps: { safety: SafetyClient; dataDir: string; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
+  deps: { safety: KernelClient; dataDir: string; onNote: (text: string) => void; env?: NodeJS.ProcessEnv },
 ): Promise<StallState> {
   const { safety, dataDir, onNote, env = process.env } = deps;
   try {

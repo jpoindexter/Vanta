@@ -4,7 +4,7 @@ import { runMemoryExtractor } from "../memory/extractor.js";
 import { shouldLearn, learnFromTranscript } from "../brain/learn.js";
 import { scoreTurn, formatCriticNote } from "../observe/critic.js";
 import { runCompletionVerifier, shouldVerifyCompletion } from "../verify/completion-verifier.js";
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
 
@@ -21,7 +21,7 @@ import type { Message } from "../types.js";
  */
 export async function reviewAfterTurn(opts: {
   provider: LLMProvider;
-  safety: SafetyClient;
+  safety: KernelClient;
   root: string;
   transcript: Message[];
   toolIterations: number;
@@ -53,7 +53,7 @@ export async function reviewAfterTurn(opts: {
  */
 export function completionVerifierAfterTurn(opts: {
   provider: LLMProvider;
-  safety: SafetyClient;
+  safety: KernelClient;
   transcript: Message[];
   env?: NodeJS.ProcessEnv;
 }): void {
@@ -63,7 +63,7 @@ export function completionVerifierAfterTurn(opts: {
 }
 
 async function runVerifierFork(
-  opts: { provider: LLMProvider; safety: SafetyClient; transcript: Message[] },
+  opts: { provider: LLMProvider; safety: KernelClient; transcript: Message[] },
   env: NodeJS.ProcessEnv,
 ): Promise<void> {
   try {

@@ -1,4 +1,4 @@
-import type { SafetyClient } from "../safety-client.js";
+import type { KernelClient } from "../kernel/client.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool, ToolContext } from "../tools/types.js";
 
@@ -46,7 +46,7 @@ export interface ServerTransport {
 
 export type ServerDeps = {
   registry: ToolRegistry;
-  safety: SafetyClient;
+  safety: KernelClient;
   ctx: ToolContext;
   allowlist: Set<string>;
 };
