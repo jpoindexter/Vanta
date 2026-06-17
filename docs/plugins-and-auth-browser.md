@@ -101,6 +101,6 @@ reads X search results from the profile; cookies stay confined; tests prove it.
 The same capability ships at three reuse levels:
 1. **Tools** (code) — the `browser_*_auth` tools inside Vanta.
 2. **Skill** (portable doc) — an `authenticated-browsing` SKILL.md (Vanta skills-library +
-   Claude Code) teaching the safe pattern, so any agent uses it consistently.
+   another agent) teaching the safe pattern, so any agent uses it consistently.
 3. **Plugin** (install bundle) — tools + skill + lazy Playwright dep, installed via
    `vanta plugins install browser`, deps in OS cache. This is the "universal add-on" form.

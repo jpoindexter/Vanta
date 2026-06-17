@@ -37,7 +37,7 @@ registration, plugin hooks, `llm.complete`, `dispatch_tool`, background monitors
 Vanta has most of the *pieces* — it lacks the unifying framework:
 - **Tool registry** (`tools/registry.ts`, `buildRegistry`) — register tools.
 - **MCP** (`mount_mcp`, MCP-1/2/3) — external tools at runtime (the "external server" plugin half).
-- **Claude Code hooks** (shipped) — lifecycle hooks.
+- **another agent hooks** (shipped) — lifecycle hooks.
 - **MSG-REGISTRY** — the platform-adapter registry pattern (reference `register_platform`).
 - **Skills library** — bundled knowledge (`plugin:skill` equivalent).
 - **Providers** — swap-by-env model backends.
@@ -98,7 +98,7 @@ A plugin can bundle skills, register commands, and dispatch tools/MCP.
    loader + discovery precedence + `plugins.enabled` allow-list. Wraps the existing tool registry
    so a plugin can register a kernel-gated tool and slash command.
 2. **`PLUGIN-HOOKS`** — the lifecycle hook bus (pre/post tool, pre/post LLM, session events,
-   subagent_stop) plugins attach to; fold the existing Claude Code hooks into it.
+   subagent_stop) plugins attach to; fold the existing another agent hooks into it.
 3. Migrate one built-in (e.g. a tool group) to a bundled plugin as the reference example +
    a `build-a-plugin` skill.
 

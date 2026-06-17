@@ -1,5 +1,5 @@
 // One-shot roadmap re-org to the 5-pillar spine (STRATEGY.md, DECISIONS 2026-06-11).
-// Deterministic + auditable: every OPEN "Claude Code parity" card is explicitly
+// Deterministic + auditable: every OPEN "external-agent parity" card is explicitly
 // classified below; the script throws if one is present but unlisted. Parked cards
 // are REMOVED from roadmap.json (one-liners go to PARKED.md via /tmp/parked-section.md;
 // full bodies recoverable from git history @ 02959a1). Re-runnable: already-parked ids
@@ -75,12 +75,12 @@ const NON_CC_PARK = {
   "HP-HOOKS": "duplicate of VANTA-HOOKS-ENGINE",
 };
 
-// ---- OPEN "Claude Code parity" cards: explicit, exhaustive ------------------
+// ---- OPEN "external-agent parity" cards: explicit, exhaustive ------------------
 const P = "PARK";
 const CC_OPEN = {
-  // — PARK: Anthropic cloud / account / billing / CCR / claude.ai coupling —
+  // — PARK: Anthropic cloud / account / billing / CCR / the vendor cloud coupling —
   "VANTA-H-CLOUD-SESSION": [P, "Anthropic cloud VMs"],
-  "VANTA-H-REMOTE-CONTROL": [P, "claude.ai remote control/teleport"],
+  "VANTA-H-REMOTE-CONTROL": [P, "the vendor cloud remote control/teleport"],
   "VANTA-H-MOBILE": [P, "Anthropic mobile app surface"],
   "VANTA-H-CLOUD-REVIEW": [P, "Anthropic cloud review product"],
   "VANTA-H-ACCOUNT": [P, "their account/billing/fun"],
@@ -106,7 +106,7 @@ const CC_OPEN = {
   "VANTA-BOOTSTRAP-MODEL-OPTIONS": [P, "server-side model list from their API"],
   "VANTA-OVERAGE-CREDIT-GRANT": [P, "their billing credits"],
   "VANTA-MSG-RATE-LIMIT": [P, "tier upsell messaging"],
-  "VANTA-USAGE-CMD": [P, "claude.ai plan usage; Vanta /usage (COST-VISIBLE) exists"],
+  "VANTA-USAGE-CMD": [P, "the vendor cloud plan usage; Vanta /usage (COST-VISIBLE) exists"],
   "VANTA-USAGE-UTILIZATION": [P, "their plan rate-limit windows"],
   "VANTA-EXTRA-USAGE-CMD": [P, "overage provisioning — their billing"],
   "VANTA-UPGRADE-CMD": [P, "subscription upsell"],
@@ -146,7 +146,7 @@ const CC_OPEN = {
   "VANTA-BYOC-SETUP": [P, "their BYOC remote setup"],
   "VANTA-REMOTE-VIEWER": [P, "observe a CCR session"],
   "VANTA-GIT-REPO-SESSION": [P, "remote sessions in their cloud"],
-  "VANTA-CCR-MIRROR": [P, "mirror to claude.ai"],
+  "VANTA-CCR-MIRROR": [P, "mirror to the vendor cloud"],
   "VANTA-CCR-AUTO-CONNECT": [P, "GrowthBook-gated CCR autostart"],
   "VANTA-CCR-REMOTE-SETUP": [P, "CCR onboarding wizard"],
   "VANTA-REMOTE-CALLOUT": [P, "CCR onboarding dialog"],
@@ -156,7 +156,7 @@ const CC_OPEN = {
   "VANTA-ULTRAPLAN-CMD": [P, "remote CCR planning command"],
   "VANTA-ULTRAREVIEW-QUOTA": [P, "their quota-tracked cloud review"],
   "VANTA-ULTRAREVIEW-CLI": [P, "their cloud review from CI"],
-  "VANTA-KAIROS": [P, "claude.ai-integrated assistant mode"],
+  "VANTA-KAIROS": [P, "the vendor cloud-integrated assistant mode"],
   "VANTA-KAIROS-CHANNELS": [P, "their push channel subscriptions"],
   "VANTA-KAIROS-GITHUB": [P, "their PR webhook product; AUTO-WATCH covers watching"],
   "VANTA-PUSH-NOTIFY": [P, "mobile push via their Remote Control; Telegram notify exists"],
@@ -418,7 +418,7 @@ const errors = [];
 const kept = [];
 for (const it of r.items) {
   const open = it.status !== "shipped";
-  if (it.track === "Claude Code parity") {
+  if (it.track === "external-agent parity") {
     if (!open) {
       it.track = SHIPPED_LENS_MAP[it.lens] ?? "Harness";
       kept.push(it);

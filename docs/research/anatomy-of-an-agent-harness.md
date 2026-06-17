@@ -1,6 +1,6 @@
 # The Anatomy of an Agent Harness — extract
 
-Source: Akshay Pachaar, *The Anatomy of an Agent Harness* (X/Twitter long-form article, Apr 2026). A practitioner synthesis across Anthropic (Claude Code), OpenAI (Codex/Agents SDK), LangGraph/LangChain, CrewAI, AutoGen. Companion to the academic paper (`dive-into-claude-code.md`); the `HARNESS-*` cards extract the items that paper's `PAPER-*` cards don't already cover.
+Source: Akshay Pachaar, *The Anatomy of an Agent Harness* (X/Twitter long-form article, Apr 2026). A practitioner synthesis across Anthropic (another agent), OpenAI (Codex/Agents SDK), LangGraph/LangChain, CrewAI, AutoGen. Companion to the academic paper (`the harness paper notes`); the `HARNESS-*` cards extract the items that paper's `PAPER-*` cards don't already cover.
 
 Thesis: *"If you're not the model, you're the harness."* The harness is the complete non-model infrastructure (orchestration loop, tools, memory, context, state, guardrails) that turns a stateless LLM into an agent. LangChain moved from outside-top-30 to rank 5 on TerminalBench 2.0 by changing **only** the harness (same model). TAB Platform: same model scored 42% with one harness, 78% with another.
 

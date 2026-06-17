@@ -14,7 +14,7 @@ A **standing loop** is a job that keeps one thing true on a cadence — "keep th
 
 Load this whenever the user wants something to run repeatedly, stay watching, or "keep X true" — **before** you write the job. The other loop skills assume this discipline.
 
-## Vanta's primitives (use the real ones — there is no Claude Code `/loop`)
+## Vanta's primitives (use the real ones — there is no built-in `/loop`)
 
 | Want | Vanta primitive |
 |------|-----------------|

@@ -5,7 +5,7 @@ description: "Scaffold a new MCP server from a tool description, build it, and m
 
 # Build MCP Server
 
-Use this skill when the user wants to expose a capability as an MCP tool — something Vanta or Claude Code can call. The output is a working TypeScript MCP server, built and mounted in one shot.
+Use this skill when the user wants to expose a capability as an MCP tool — something Vanta (or any MCP client) can call. The output is a working TypeScript MCP server, built and mounted in one shot.
 
 Trigger phrases: "make a tool for X", "build an MCP that does Y", "expose Z as an MCP", "create an MCP server", "I need a tool that".
 

@@ -1,6 +1,6 @@
-# Vanta design-space self-audit — vs the 13 Claude Code principles
+# Vanta design-space self-audit — vs 13 agent-harness principles
 
-Scores Vanta against the 13 design principles from *Dive into Claude Code* (arXiv:2604.14228, Table 1; see `dive-into-claude-code.md`). HAVE = real + enforced · PARTIAL = present but incomplete · GAP = missing. The GAPs/PARTIALs are the impact-ranked backlog (`PAPER-*`/`HARNESS-*`/`SELFHARNESS-*` cards).
+Scores Vanta against the 13 design principles from *Dive into another agent* (arXiv:2604.14228, Table 1; see `the harness paper notes`). HAVE = real + enforced · PARTIAL = present but incomplete · GAP = missing. The GAPs/PARTIALs are the impact-ranked backlog (`PAPER-*`/`HARNESS-*`/`SELFHARNESS-*` cards).
 
 | # | Principle | Verdict | Evidence / gap |
 |---|---|---|---|

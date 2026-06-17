@@ -1,7 +1,7 @@
 # EF Network Analysis — Real Patterns from Vanta Sessions
 
 Sources: PMC4455841 (Rabinovici et al.), session handoffs 2026-06-02 through 2026-06-04,
-today's conversation, Claude Code project transcripts.
+today's conversation, another agent project transcripts.
 
 This document maps OBSERVED EF failure patterns from real sessions to clinical EF components,
 then specifies the Vanta counter-measure for each. Jason's sessions are the calibration dataset.

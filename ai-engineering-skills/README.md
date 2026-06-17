@@ -4,7 +4,7 @@
 context engineering through inference serving, caching, RAG, evals, observability, and
 safety. For AI engineers shipping at scale, not prompt-tip lists.
 
-Each skill is a self-contained `SKILL.md` (Claude Code / Vanta format), depth over fluff:
+Each skill is a self-contained `SKILL.md` (Vanta format), depth over fluff:
 real numbers, formulas, pseudocode, comparison tables, do/don't, named production failure
 modes, and attributions to the actual systems and papers (vLLM/PagedAttention,
 FlashAttention, AWQ/GPTQ/SmoothQuant, RAGAS, OWASP LLM Top 10, OpenTelemetry GenAI).

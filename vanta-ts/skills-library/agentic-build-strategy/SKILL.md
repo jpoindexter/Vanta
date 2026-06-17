@@ -14,7 +14,7 @@ Not a procedure — the **judgment layer** that decides *what* to point loops, a
 
 - **Coding is "solved" (for him, since late 2025).** Stop hand-writing; measure **shipped + verified**, not keystrokes. Not yet true for big/complex codebases or weird languages — "wait for the next model".
 - **Product overhang.** "The model can do all the stuff no product has captured yet." Find a capability that's *barely* possible today and build the harness for it.
-- **Build for the next model.** Claude Code "didn't work for the first 6 months" — built pre-PMF on purpose; inflected as models improved. Pick a bet that's ugly now; dogfood until the model catches up.
+- **Build for the next model.** another agent "didn't work for the first 6 months" — built pre-PMF on purpose; inflected as models improved. Pick a bet that's ugly now; dogfood until the model catches up.
 - **Build something people love.** Model vs product is roughly 50/50; "the little details" for all-day use decide love. Obsess one flow's details before adding the second feature.
 - **Domain > coding.** "The best person to write accounting software is a great accountant. Coding is the easy part." Build where you hold domain depth; let agents handle the code.
 - **Everyone's a generalist.** Solo = be the generalist; route depth to specialist agents (see `agent-fanout`).

@@ -5,7 +5,7 @@ design and standard design-system practice through to UX heuristics and the cogn
 behind them. Built for **any screen**: web, iOS/Android app, macOS/Windows desktop, mobile,
 tablet, TV, watch, foldable.
 
-Each skill is a self-contained `SKILL.md` (Claude Code / Vanta skill format — frontmatter +
+Each skill is a self-contained `SKILL.md` (Vanta skill format — frontmatter +
 deep body), depth over fluff: real numbers, copy-pasteable CSS/tokens/HTML, comparison
 tables, do/don't, common mistakes, cross-device notes. Modern (2024–2026): OKLCH, container
 queries, fluid `clamp()` type, variable fonts, W3C DTCG tokens, Material 3, Apple HIG,
@@ -31,7 +31,7 @@ filter box; collapsible cards.
 
 ## Install as skills
 
-These are standard `SKILL.md` files. To use them in Claude Code, copy/symlink a skill dir
+These are standard `SKILL.md` files. Copy/symlink a skill dir
 into `~/.claude/skills/`. To bundle into Vanta, drop a dir into `vanta-ts/skills-library/`
 (auto-installed next session). Each `name:` matches its folder.
 

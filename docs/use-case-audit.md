@@ -61,7 +61,7 @@ Of the 9 actionable missing items, all have roadmap cards (SELF-UPDATE, MODEL-CM
 | Computer-use (desktop control) | `cua-driver` | Browser tools + screenshot/vision | ⬜ | Horizon; browser covers web |
 | LSP | status/list/install | LSP tools (.ts/.tsx via TS compiler API) | ✅ | |
 | Cron / scheduled jobs | `cron` / scheduled jobs | `vanta cron` + schedule runner | ✅ | |
-| Hooks | Shell-script, list/test/revoke | Claude Code hooks integration (shipped) | 🟡 | Revokeable user hooks = later (VANTA-HOOKS, M, next) |
+| Hooks | Shell-script, list/test/revoke | another agent hooks integration (shipped) | 🟡 | Revokeable user hooks = later (VANTA-HOOKS, M, next) |
 | Prompt-size breakdown | CLI breakdown command | Prompt tiers, no breakdown cmd | ❌ | → CLI-DX-PACK |
 | RL datagen pipeline | batch_runner, mini-swe, trajectory | none | ⬜ | Operator, not a training harvester — off-thesis |
 
