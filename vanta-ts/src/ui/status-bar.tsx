@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text, useStdout } from "ink";
 import { contextBar, kfmt } from "./busy.js";
+import { HEALTH, FOCUS } from "../term/palette.js";
 import type { EffortLevel } from "../types.js";
 
 // Footer status line. Segments are dropped lowest-priority-first as the terminal
@@ -52,12 +53,12 @@ function renderKept(o: RenderKeptOpts): ReactElement {
       {textIf(kept, k.MODEL, undefined, k.MODEL)}
       {textIf(kept, k.EFFORT, undefined, k.EFFORT)}
       {kept.has(k.CTX) && (
-        <><Text>{"  ·  "}{gauge} </Text><Text>[{bar}]</Text><Text> {ctxPct}%</Text></>
+        <><Text>{"  ·  "}{gauge} </Text><Text color={FOCUS}>[{bar}]</Text><Text> {ctxPct}%</Text></>
       )}
       {textIf(kept, k.ELAPSED, undefined, k.ELAPSED)}
       {textIf(kept, k.TURNS, undefined, k.TURNS)}
-      {textIf(kept, k.QUEUED, "white", k.QUEUED)}
-      {textIf(kept, k.MCP, "white", k.MCP)}
+      {textIf(kept, k.QUEUED, undefined, k.QUEUED)}
+      {textIf(kept, k.MCP, HEALTH, k.MCP)}
       {textIf(kept, k.HINT, undefined, k.HINT)}
     </Box>
   );

@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Markdown } from "./markdown.js";
+import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 
@@ -15,7 +16,7 @@ const THINK_MAX = 3;
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
   // A blank line above a user turn separates turns visually (Claude/Cursor rhythm).
-  if (e.kind === "user") return <Box marginTop={1}><Text bold>❯ </Text><Text>{e.text}</Text></Box>;
+  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Text>{e.text}</Text></Box>;
   if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <Box marginTop={1}><Text>{e.text}</Text></Box>;
@@ -44,10 +45,10 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
   return (
     <Box flexDirection="column">
       <Box>
-        <Text>⏺ </Text>
+        <Text color={ok ? FOCUS : RISK}>⏺ </Text>
         <Text>{head}</Text>
       </Box>
-      {meta ? <Text>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
+      {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );

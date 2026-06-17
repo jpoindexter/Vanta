@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { focusIndicator } from "./focus.js";
+import { FOCUS } from "../term/palette.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
 import { matchSlash } from "./slash.js";
@@ -30,7 +31,7 @@ export function ComposerView(props: {
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
       <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
-        <Text>{focusIndicator(props.focused !== false)}{" "}</Text>
+        <Text color={FOCUS}>{focusIndicator(props.focused !== false)}</Text><Text>{" "}</Text>
         {props.value.length === 0
           ? <Text><Text inverse={blink}> </Text><Text>{props.placeholder}</Text></Text>
           : props.pill

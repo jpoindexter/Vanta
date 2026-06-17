@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
+import { HEALTH, ACTIVITY, RISK } from "../term/palette.js";
 import type { CockpitData } from "../tui/mission-control/cockpit-data.js";
 
 // Mission control, inline: the kernel's verdict ladder (what each risk tier
@@ -15,9 +16,9 @@ export function CockpitPanel(props: { data: CockpitData; onClose: () => void }):
       <Text bold>Mission control</Text>
       <Text> </Text>
       <Text>Kernel verdict ladder</Text>
-      <Text><Text>  ✓ allow</Text><Text> in-scope, no risk keywords — runs</Text></Text>
-      <Text><Text>  ⚠ ask</Text><Text>   out-of-scope / system / credentials — needs you</Text></Text>
-      <Text><Text>  ✗ block</Text><Text>  destructive / exfiltration — refused</Text></Text>
+      <Text><Text color={HEALTH}>  ✓ allow</Text><Text> in-scope, no risk keywords — runs</Text></Text>
+      <Text><Text color={ACTIVITY}>  ⚠ ask</Text><Text>   out-of-scope / system / credentials — needs you</Text></Text>
+      <Text><Text color={RISK}>  ✗ block</Text><Text>  destructive / exfiltration — refused</Text></Text>
       <Text> </Text>
       <Text>Goals ({goals.length})</Text>
       {goals.length === 0 ? <Text>  (none active)</Text> : goals.slice(0, 6).map((g) => (
