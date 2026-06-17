@@ -33,7 +33,7 @@ export function ComposerView(props: {
       <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
         <Text color={FOCUS}>{focusIndicator(props.focused !== false)}</Text><Text>{" "}</Text>
         {props.value.length === 0
-          ? <Text><Text inverse={blink}> </Text><Text>{props.placeholder}</Text></Text>
+          ? <Text><Text inverse={blink}> </Text><Text dimColor>{props.placeholder}</Text></Text>
           : props.pill
             ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
             : <CursorText value={props.value} cursor={props.cursor} blink={blink} ghost={props.ghost} />}
@@ -65,7 +65,7 @@ function CursorText(props: { value: string; cursor: number; blink: boolean; ghos
   return (
     <Text>
       {before}<Text inverse={blink}>{glyph}</Text>{at === "\n" ? "\n" : ""}{after}
-      {atEnd && ghost ? <Text>{ghost}</Text> : null}
+      {atEnd && ghost ? <Text dimColor>{ghost}</Text> : null}
     </Text>
   );
 }
