@@ -12254,13 +12254,14 @@
       "id": "PORT-MESSAGING-FACTORY",
       "track": "Operator",
       "title": "Messaging adapter factory (mirror resolveProvider)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: PlatformAdapter port exists (gateway/platforms/base.ts:20) and all adapters implement it, but there is no factory — cli/ops.ts:45 hardcodes `new TelegramAdapter(...)`; the registry is metadata-only. Add a create(env)-style factory mirroring resolveProvider so adding Slack/Discord = one registration, not editing cli/ops.ts.",
       "done": "Messaging platforms resolve through a factory keyed by config; adding a platform is one registration entry; cli/ops.ts no longer hardcodes a concrete adapter.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: resolvePlatformAdapter (gateway/platforms/index.ts) mirrors resolveProvider — explicit VANTA_MESSAGING_PLATFORM or cred-inferred (telegram/signal/imessage). cli/ops.ts no longer hardcodes new TelegramAdapter; messaging-platform-port fitness rule. tsc clean; 62 gateway tests pass."
     },
     {
       "id": "PORT-DELIVERY-REGISTRY",

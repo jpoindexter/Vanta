@@ -67,6 +67,13 @@ export const RULES: BoundaryRule[] = [
     appliesTo: (rel) => !rel.startsWith("sessions/"),
     forbid: /(from\s+|import\(\s*)["'][^"']*sessions\/store(\.js)?["']/,
   },
+  {
+    id: "messaging-platform-port",
+    desc: "Consumers must use resolvePlatformAdapter (gateway/platforms/index), never a concrete messaging adapter (Telegram/IMessage/Signal) directly.",
+    severity: "error",
+    appliesTo: (rel) => !rel.startsWith("gateway/platforms/") && rel !== "lint/boundaries.ts",
+    forbid: /\b(TelegramAdapter|IMessageAdapter|SignalAdapter)\b/,
+  },
 ];
 
 /** Grandfathered `${ruleId}::${relPath}` keys — warn, never error. Shrink only. */

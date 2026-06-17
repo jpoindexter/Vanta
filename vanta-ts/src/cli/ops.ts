@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { runAgent } from "../agent.js";
 import { runGateway } from "../gateway/run.js";
-import { TelegramAdapter, parseAllowlist } from "../gateway/platforms/telegram.js";
+import { resolvePlatformAdapter } from "../gateway/platforms/index.js";
 import { resolveDeliver } from "../gateway/webhook.js";
 import { installService, uninstallService, serviceStatus } from "../service/manager.js";
 import { resolveVantaHome } from "../store/home.js";
@@ -40,10 +40,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
   const runTask = buildCronRunTask(repoRoot);
-  const token = process.env.VANTA_TELEGRAM_TOKEN;
-  const platform = token
-    ? new TelegramAdapter({ token, allow: parseAllowlist(process.env.VANTA_TELEGRAM_ALLOW) })
-    : undefined;
+  const platform = resolvePlatformAdapter(process.env);
   const handle = async (text: string): Promise<string> => (await runTask(text)).finalText;
 
   const port = Number(process.env.VANTA_WEBHOOK_PORT);
