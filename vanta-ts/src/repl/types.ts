@@ -56,8 +56,6 @@ export type SlashResult = {
   editMessageIndex?: number;
   /** Toggle focus view (hide tool entries; show only user + final assistant turns). */
   toggleFocusMode?: true;
-  /** A new TUI theme name (drives /theme <name>) so the host restyles live. */
-  theme?: string;
   /** Composer anchor (drives /composer) so the host repositions the input live. */
   composerAnchor?: "float" | "bottom";
 };

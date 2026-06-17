@@ -23,7 +23,7 @@ describe("SETTINGS catalog", () => {
     expect(SETTINGS.map((s) => s.key)).toEqual([
       "VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS",
       "VANTA_THINKING_BUDGET", "VANTA_AUTO_COMPACT_THRESHOLD", "VANTA_RESUME_MAX_AGE_MIN", "VANTA_TOOL_PROGRESS",
-      "VANTA_THEME", "VANTA_COMPOSER_ANCHOR", "VANTA_SPINNER",
+      "VANTA_COMPOSER_ANCHOR", "VANTA_SPINNER",
     ]);
     const blob = JSON.stringify(SETTINGS).toLowerCase();
     expect(blob).not.toContain("nous");
