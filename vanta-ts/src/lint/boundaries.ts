@@ -37,7 +37,14 @@ export const RULES: BoundaryRule[] = [
     desc: "Consumers must depend on the code-intel PORT (code-intel/index or /interface), never the codegraph/null adapters directly.",
     severity: "error",
     appliesTo: (rel) => !rel.startsWith("code-intel/"),
-    forbid: /from\s+["'][^"']*code-intel\/(codegraph|null)(\.js)?["']/,
+    forbid: /(from\s+|import\(\s*)["'][^"']*code-intel\/(codegraph|null)(\.js)?["']/,
+  },
+  {
+    id: "brain-port",
+    desc: "Consumers must depend on the Brain PORT (brain/index or /interface), never the brain facade (brain/brain) directly.",
+    severity: "error",
+    appliesTo: (rel) => !rel.startsWith("brain/"),
+    forbid: /(from\s+|import\(\s*)["'][^"']*brain\/brain(\.js)?["']/,
   },
 ];
 

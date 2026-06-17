@@ -12163,13 +12163,14 @@
       "id": "PORT-BRAIN-INTERFACE",
       "track": "Harness",
       "title": "Brain port — route the 3 brain variants behind one interface",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Audit verdict COUPLED: 3 brain implementations ship (live md-region brain + dormant v2 + brain5d) but consumers hardcode `import { brainDigest } from ../brain/brain.js` (session/prepare-helpers.ts:6, subagent/spawn.ts:5, cli-dx/prompt-size.ts:32) — the dormant variants can't be activated by config. This is the exact failure mode the modularity push targets. Define a Brain port (read/remember/recall/digest/health) in brain/interface.ts; make the live brain the default adapter; a single resolver picks the active brain (env/settings, e.g. VANTA_BRAIN). Consumers depend only on the port. Enforced by an ARCH-BOUNDARY-FITNESS rule. Removability: swapping/removing a brain = one adapter + one registration; zero consumer edits.",
       "done": "All brain consumers depend on a Brain interface resolved by one registration point; the live brain is the default adapter; an alternate brain can be activated by config with no consumer edits; a fitness rule forbids importing a concrete brain variant.",
       "tier": "rock",
       "effort": "medium",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: Brain port (brain/interface.ts) + liveBrain adapter (brain/live.ts) + resolveBrain (brain/index.ts, VANTA_BRAIN). All 12 external consumers migrated off brain/brain.js to the port; brain-port fitness rule enforces it. tsc clean; full suite green (5 pre-existing theme-detect failures unrelated)."
     },
     {
       "id": "PORT-KERNEL-CLIENT",

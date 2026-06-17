@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vanta — The trusted local operator</title>
+  <meta name="description" content="Vanta is a local trusted-operator agent: goal-aware, boundary-enforced, memory-backed, and built to act only with verified control." />
+  <meta name="theme-color" content="#0b0f14" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --bg-2: #101720;
+      --panel: #111923;
+      --panel-2: #0f151d;
+      --ink: #f4efe6;
+      --muted: #9aa6b6;
+      --soft: #5e6b7a;
+      --line: rgba(244, 239, 230, .14);
+      --line-strong: rgba(244, 239, 230, .26);
+      --amber: #f59e0b;
+      --amber-2: #ffd166;
+      --green: #7ddc98;
+      --blue: #7aa8ff;
+      --red: #ff817a;
+      --shadow: 0 30px 90px rgba(0,0,0,.42);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 82% 12%, rgba(245, 158, 11, .18), transparent 28rem),
+        radial-gradient(circle at 15% 8%, rgba(122, 168, 255, .12), transparent 24rem),
+        linear-gradient(180deg, #0b0f14 0%, #0d1219 42%, #090c11 100%);
+      font-family: var(--sans);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .08;
+      z-index: 20;
+      background-image:
+        linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: linear-gradient(to bottom, black, transparent 70%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+
+    .site-shell { min-height: 100vh; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem clamp(1rem, 4vw, 4.5rem);
+      border-bottom: 1px solid rgba(244,239,230,.08);
+      background: rgba(11, 15, 20, .78);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+
+    .mark {
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 1px solid var(--line-strong);
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(245,158,11,.2), rgba(122,168,255,.06));
+      box-shadow: inset 0 0 0 1px rgba(245,158,11,.18);
+    }
+
+    .mark svg { width: 1.35rem; height: 1.35rem; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(.8rem, 2vw, 2rem);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .nav-links a:hover { color: var(--ink); }
+
+    .nav-cta {
+      padding: .75rem 1rem;
+      border: 1px solid rgba(245,158,11,.55);
+      color: var(--amber-2);
+      background: rgba(245,158,11,.08);
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(320px, .78fr);
+      gap: clamp(2rem, 5vw, 6rem);
+      align-items: center;
+      padding: clamp(4rem, 9vw, 8rem) clamp(1rem, 4vw, 4.5rem) 4rem;
+      min-height: calc(100vh - 72px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--amber-2);
+      font-family: var(--mono);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      margin-bottom: 1.35rem;
+    }
+
+    .pulse {
+      width: .55rem;
+      height: .55rem;
+      background: var(--green);
+      box-shadow: 0 0 0 .35rem rgba(125,220,152,.12), 0 0 28px rgba(125,220,152,.5);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 12ch;
+      font-family: var(--serif);
+      font-weight: 520;
+      font-size: clamp(4.2rem, 11vw, 11.5rem);
+      letter-spacing: -.075em;
+      line-height: .82;
+      text-wrap: balance;
+    }
+
+    .hero-copy {
+      max-width: 46rem;
+      margin: 1.8rem 0 0;
+      color: #cbd3dd;
+      font-size: clamp(1.05rem, 1.8vw, 1.42rem);
+      line-height: 1.5;
+      text-wrap: pretty;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .9rem;
+      margin-top: 2.2rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.1rem;
+      padding: .9rem 1.2rem;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: rgba(244,239,230,.05);
+      font-family: var(--mono);
+      font-size: .82rem;
+      letter-spacing: .04em;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); border-color: rgba(245,158,11,.7); }
+    .btn.primary { background: var(--ink); color: #0b0f14; border-color: var(--ink); font-weight: 800; }
+    .btn.primary:hover { background: var(--amber-2); border-color: var(--amber-2); }
+
+    .terminal-card {
+      position: relative;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(17,25,35,.96), rgba(9,13,18,.96));
+      box-shadow: var(--shadow);
+      min-height: 34rem;
+      overflow: hidden;
+    }
+
+    .terminal-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(transparent 50%, rgba(255,255,255,.025) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      opacity: .55;
+    }
+
+    .term-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--soft);
+      font-family: var(--mono);
+      font-size: .76rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .lights { display: flex; gap: .42rem; }
+    .light { width: .55rem; height: .55rem; border: 1px solid var(--line); background: #18212b; }
+    .light:nth-child(1) { background: rgba(255,129,122,.75); }
+    .light:nth-child(2) { background: rgba(255,209,102,.75); }
+    .light:nth-child(3) { background: rgba(125,220,152,.75); }
+
+    .term-body { padding: 1.15rem; font-family: var(--mono); font-size: .86rem; line-height: 1.65; }
+    .row { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; padding: .5rem 0; border-bottom: 1px solid rgba(244,239,230,.06); }
+    .row:last-child { border-bottom: 0; }
+    .label { color: var(--soft); text-transform: uppercase; font-size: .72rem; letter-spacing: .08em; }
+    .ok { color: var(--green); }
+    .warn { color: var(--amber-2); }
+    .blue { color: var(--blue); }
+    .dim { color: var(--muted); }
+
+    .command {
+      margin-top: 1.2rem;
+      padding: 1rem;
+      border: 1px solid rgba(245,158,11,.32);
+      background: rgba(245,158,11,.07);
+      color: var(--amber-2);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      margin: 0 clamp(1rem, 4vw, 4.5rem) 5rem;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .metric { background: rgba(17,25,35,.72); padding: 1.25rem; }
+    .metric strong { display: block; font-family: var(--serif); font-size: clamp(2.1rem, 4vw, 4rem); line-height: .95; letter-spacing: -.05em; }
+    .metric span { display: block; margin-top: .55rem; color: var(--muted); font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+
+    .section { padding: 5rem clamp(1rem, 4vw, 4.5rem); }
+    .section-head { max-width: 58rem; margin-bottom: 2rem; }
+    .section-kicker { color: var(--amber-2); font-family: var(--mono); text-transform: uppercase; letter-spacing: .13em; font-size: .75rem; margin-bottom: .8rem; }
+    h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 6rem); line-height: .92; letter-spacing: -.055em; max-width: 12ch; }
+    .section-head p { color: var(--muted); font-size: 1.1rem; line-height: 1.6; max-width: 45rem; }
+
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .card {
+      min-height: 17rem;
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(17,25,35,.78), rgba(13,18,25,.68));
+    }
+    .card-num { color: var(--soft); font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; }
+    .card h3 { margin: 2.4rem 0 .85rem; font-size: 1.35rem; letter-spacing: -.03em; }
+    .card p { color: var(--muted); line-height: 1.6; margin: 0; }
+
+    .split {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .manifesto {
+      border: 1px solid rgba(245,158,11,.35);
+      background: rgba(245,158,11,.08);
+      padding: 1.5rem;
+    }
+
+    .manifesto p {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4.5vw, 4.4rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+
+    .list-panel {
+      border: 1px solid var(--line);
+      background: rgba(17,25,35,.68);
+    }
+
+    .list-item {
+      display: grid;
+      grid-template-columns: 9rem 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-item:last-child { border-bottom: 0; }
+    .list-item b { color: var(--amber-2); font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+    .list-item span { color: #cbd3dd; line-height: 1.55; }
+
+    .install {
+      margin: 5rem clamp(1rem, 4vw, 4.5rem) 0;
+      padding: clamp(1.25rem, 4vw, 3rem);
+      border: 1px solid rgba(245,158,11,.42);
+      background:
+        linear-gradient(135deg, rgba(245,158,11,.13), transparent 44%),
+        linear-gradient(180deg, rgba(17,25,35,.95), rgba(9,13,18,.95));
+      box-shadow: var(--shadow);
+    }
+
+    .install-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 2rem; align-items: center; }
+    .install h2 { max-width: 9ch; }
+    .copy-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid var(--line-strong);
+      background: #05070a;
+      padding: 1rem;
+      font-family: var(--mono);
+      color: var(--amber-2);
+      overflow: hidden;
+    }
+    .copy-box code { flex: 1; overflow-x: auto; white-space: nowrap; }
+    .copy-box button { border: 1px solid var(--line); background: rgba(244,239,230,.05); color: var(--ink); padding: .7rem .9rem; cursor: pointer; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 2rem clamp(1rem, 4vw, 4.5rem);
+      color: var(--soft);
+      font-family: var(--mono);
+      font-size: .74rem;
+      border-top: 1px solid var(--line);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    @media (max-width: 980px) {
+      .hero, .split, .install-grid { grid-template-columns: 1fr; }
+      .terminal-card { min-height: auto; }
+      .metrics, .cards { grid-template-columns: repeat(2, 1fr); }
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding-top: 3rem; }
+      .metrics, .cards { grid-template-columns: 1fr; }
+      .list-item { grid-template-columns: 1fr; gap: .4rem; }
+      footer { flex-direction: column; }
+      h1 { font-size: 4.2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="Vanta home">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M5 7h22L16 27 5 7Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M11 10h10l-5 10-5-10Z" fill="currentColor" opacity=".75"/>
+          </svg>
+        </span>
+        Vanta
+      </a>
+      <div class="nav-links">
+        <a href="#boundary">Boundary</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#operator">Operator</a>
+        <a class="nav-cta" href="#install">Install</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="eyebrow"><span class="pulse" aria-hidden="true"></span> local trusted operator</div>
+          <h1 id="hero-title">The agent that knows the line.</h1>
+          <p class="hero-copy">Vanta is a goal-aware operator for your code, research, systems, and life admin. It acts through a hard safety boundary, remembers what matters, and reports only what it verified.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#install">Install Vanta</a>
+            <a class="btn" href="#capabilities">See capabilities</a>
+          </div>
+        </div>
+
+        <aside class="terminal-card" aria-label="Vanta terminal preview">
+          <div class="term-top">
+            <span>vanta://session</span>
+            <span class="lights" aria-hidden="true"><span class="light"></span><span class="light"></span><span class="light"></span></span>
+          </div>
+          <div class="term-body">
+            <div class="row"><span class="label">Goal</span><span>Understand the task before choosing tools.</span></div>
+            <div class="row"><span class="label">Kernel</span><span class="ok">allow / ask / block enforced</span></div>
+            <div class="row"><span class="label">Scope</span><span>Local files stay bounded. Risky actions ask first.</span></div>
+            <div class="row"><span class="label">Memory</span><span>Durable brain, skills, references, session notes.</span></div>
+            <div class="row"><span class="label">Reach</span><span class="blue">web, browser, comms, calendar, drive, code</span></div>
+            <div class="row"><span class="label">Verify</span><span class="warn">No “done” without evidence.</span></div>
+            <div class="command">$ vanta run "audit this repo and ship the safest next slice"</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Current Vanta surface">
+        <div class="metric"><strong>86</strong><span>built-in tools</span></div>
+        <div class="metric"><strong>97</strong><span>slash commands</span></div>
+        <div class="metric"><strong>2</strong><span>layers: kernel + agent</span></div>
+        <div class="metric"><strong>0</strong><span>trust without verification</span></div>
+      </section>
+
+      <section class="section" id="boundary">
+        <div class="section-head">
+          <div class="section-kicker">The boundary</div>
+          <h2>Power is only useful when it is inspectable.</h2>
+          <p>Vanta is built around an enforced Rust safety kernel. The TypeScript agent loop can plan, call tools, and coordinate work — but every action crosses the boundary first.</p>
+        </div>
+        <div class="cards">
+          <article class="card"><span class="card-num">01 / Goal-aware</span><h3>It knows what it is serving.</h3><p>Every tool call is tied to an active goal. If the task is unclear, Vanta asks instead of guessing.</p></article>
+          <article class="card"><span class="card-num">02 / Approval-gated</span><h3>One-way doors stop at you.</h3><p>Destructive, external, credential, or irreversible actions are blocked or escalated for approval.</p></article>
+          <article class="card"><span class="card-num">03 / Verified</span><h3>Claims need evidence.</h3><p>Vanta reports what actually ran and what remains, not what it hopes happened.</p></article>
+        </div>
+      </section>
+
+      <section class="section" id="capabilities">
+        <div class="section-head">
+          <div class="section-kicker">What it does</div>
+          <h2>A local operator with real reach.</h2>
+          <p>Use Vanta from the terminal today. It can read, search, edit, browse, schedule, delegate, remember, and coordinate — while keeping risky moves visible.</p>
+        </div>
+        <div class="cards">
+          <article class="card"><span class="card-num">Code</span><h3>Repo-native work</h3><p>Read files, search, edit, run tests, inspect TypeScript diagnostics, use Git, and create regression locks.</p></article>
+          <article class="card"><span class="card-num">Research</span><h3>Web + browser</h3><p>Search, fetch, read rendered pages, capture screenshots, ingest references, and turn findings into reusable plans.</p></article>
+          <article class="card"><span class="card-num">Memory</span><h3>Durable context</h3><p>Brain regions, skills, references, session memory, user preferences, and guarded recall with provenance.</p></article>
+          <article class="card"><span class="card-num">Agents</span><h3>Parallel work</h3><p>Delegate to subagents, run workflows, manage background tasks, and synthesize specialist findings.</p></article>
+          <article class="card"><span class="card-num">Life ops</span><h3>Beyond the repo</h3><p>Calendar, Gmail, Drive, money/world/radar stores, reach channels, and scheduled automations.</p></article>
+          <article class="card"><span class="card-num">Extensible</span><h3>Plugins + MCP</h3><p>Runtime plugins, MCP tools, learned skills, and scoped tool discovery keep the surface expandable.</p></article>
+        </div>
+      </section>
+
+      <section class="section" id="operator">
+        <div class="split">
+          <div class="manifesto">
+            <p>Not a chatbot. Not a black box. A local operator you can interrupt, inspect, and trust.</p>
+          </div>
+          <div class="list-panel">
+            <div class="list-item"><b>For builders</b><span>Plan and ship code slices with tests, diffs, verification, and handoffs.</span></div>
+            <div class="list-item"><b>For research</b><span>Pull signal from source material and convert it into frameworks, artifacts, or decisions.</span></div>
+            <div class="list-item"><b>For focus</b><span>Keep task boundaries explicit, reduce working-memory load, and surface what is paused.</span></div>
+            <div class="list-item"><b>For trust</b><span>Make autonomy conditional: reversible by default, approval-gated when it matters.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="install" id="install" aria-labelledby="install-title">
+        <div class="install-grid">
+          <div>
+            <div class="section-kicker">Install</div>
+            <h2 id="install-title">Run it from your terminal.</h2>
+            <p class="hero-copy">Fresh-machine bootstrap is the target. While the repo is private, clone with GitHub auth and run the local installer.</p>
+          </div>
+          <div class="copy-box">
+            <code id="install-command">curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash</code>
+            <button type="button" id="copy-button">Copy</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Vanta · trusted local operator</span>
+      <span>Goal-aware · boundary-enforced · verified</span>
+    </footer>
+  </div>
+
+  <script>
+    const button = document.getElementById('copy-button');
+    const command = document.getElementById('install-command');
+    button?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(command.textContent.trim());
+        const old = button.textContent;
+        button.textContent = 'Copied';
+        setTimeout(() => { button.textContent = old; }, 1300);
+      } catch {
+        button.textContent = 'Select';
+      }
+    });
+  </script>
+</body>
+</html>

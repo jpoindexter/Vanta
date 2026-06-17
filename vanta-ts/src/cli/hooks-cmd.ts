@@ -7,9 +7,9 @@ export async function runHooksCommand(rest: string[]): Promise<void> {
   if (rest[0] === "run") {
     const event = rest[1] ?? "stop";
     try {
-      const { writeRegion } = await import("../brain/brain.js");
+      const { resolveBrain } = await import("../brain/index.js");
       const note = `\n- [${new Date().toISOString()}] hook: ${event}`;
-      await writeRegion("episodic", note, { append: true });
+      await resolveBrain().writeRegion("episodic", note, { append: true });
     } catch { /* best-effort */ }
     return;
   }

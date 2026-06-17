@@ -29,8 +29,8 @@ export function formatSizes(parts: SizePart[]): string {
 export async function runPromptSize(repoRoot: string): Promise<number> {
   const registry = buildRegistry();
   const tools = registry.schemas();
-  const { brainDigest } = await import("../brain/brain.js");
-  const brain = await brainDigest(process.env).catch(() => "");
+  const { resolveBrain } = await import("../brain/index.js");
+  const brain = await resolveBrain().digest(process.env).catch(() => "");
   const { listSkills } = await import("../skills/store.js");
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({ name: s.meta.name, description: s.meta.description }));
   const prompt = await buildSystemPrompt({

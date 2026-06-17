@@ -111,8 +111,8 @@ const plan: SlashHandler = async (_arg, ctx) => {
 
 const memory: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /memory <something to remember>" };
-  const { writeRegion } = await import("../brain/brain.js");
-  await writeRegion("semantic", `- ${arg}`, { append: true, env: ctx.env });
+  const { resolveBrain } = await import("../brain/index.js");
+  await resolveBrain(ctx.env).writeRegion("semantic", `- ${arg}`, { append: true, env: ctx.env });
   return { output: `  ◈ remembered: ${oneLine(arg, 80)}` };
 };
 

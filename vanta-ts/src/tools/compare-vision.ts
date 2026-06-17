@@ -6,7 +6,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import { resolveReadablePathAsk } from "./writable-zones.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 import { mimeForImage } from "./describe-image.js";
-import { readRegion } from "../brain/brain.js";
+import { resolveBrain } from "../brain/index.js";
 
 const Args = z.object({
   images: z.array(z.string().min(1)).min(1).max(4),
@@ -66,9 +66,10 @@ export async function compareVision(input: CompareVisionInput): Promise<string> 
 
 async function loadPrefs(env: NodeJS.ProcessEnv): Promise<string> {
   const parts: string[] = [];
-  const reflections = await readRegion("reflections", env);
+  const brain = resolveBrain(env);
+  const reflections = await brain.readRegion("reflections", env);
   if (reflections) parts.push(reflections.trim());
-  const userModel = await readRegion("user_model", env);
+  const userModel = await brain.readRegion("user_model", env);
   if (userModel) parts.push(userModel.trim());
   return parts.join("\n\n");
 }

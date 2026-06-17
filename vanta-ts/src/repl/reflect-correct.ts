@@ -2,7 +2,7 @@
 // the brain "reflections" region. Post-turn, best-effort — never throws.
 
 import { classifyMemory } from "../memory/relevance.js";
-import { writeRegion } from "../brain/brain.js";
+import { resolveBrain } from "../brain/index.js";
 
 /**
  * Pure. Returns a normalized rule string if the message looks like a correction,
@@ -32,7 +32,7 @@ export async function reflectAfterTurn(
   try {
     const rule = extractCorrectionRule(userMessage);
     if (!rule) return;
-    await writeRegion("reflections", rule, { append: true, env });
+    await resolveBrain(env).writeRegion("reflections", rule, { append: true, env });
   } catch {
     // best-effort — never surface to the caller
   }

@@ -94,7 +94,10 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `skills/curator.ts` | `curate()` — **non-destructive**: archives only stale `vanta-learned` skills (reversible→`_archive`), reports stale hand-authored + long-archived (never deletes), reports overlaps. Provenance via `LEARNED_TAG` |
 | `review/background-review.ts` | Track B self-improvement. `shouldReview(toolIters, turnIdx, env)` (busy/periodic trigger) + `reviewTurn()` — spawns a tool-restricted agent (`recall`+`write_skill`), replays the transcript, captures a skill tagged `vanta-learned`. Best-effort. Env: `VANTA_SELF_IMPROVE`/`VANTA_REVIEW_MIN_TOOLS`/`VANTA_REVIEW_EVERY` |
 | `memory/store.ts` | `appendMemory`/`readMemory`/`recentMemory` — per-goal summaries `~/.vanta/memories/<goalId>.md` |
-| `brain/brain.ts` | **THE brain — one cohesive unit; everything outside brain/ imports from here.** Composes the md regions + structured entries behind one surface: `remember`/`recall` (recall reinforces)/`brainDigest` (one composed prompt digest)/`sweep`/`brainHealth`. Per-layer best-effort: a broken layer degrades, never breaks |
+| `brain/interface.ts` | **The `Brain` PORT** — the full cognitive+region surface consumers depend on (`readRegion`/`writeRegion`/`ensureBrain`/`remember`/`recall`/`digest`/`sweep`/`health`). Reference of the ports/adapters standard (DECISIONS 2026-06-17) |
+| `brain/live.ts` | `liveBrain` — the default `Brain` adapter; binds the brain.ts functions to the port (no behavior change) |
+| `brain/index.ts` | `resolveBrain(env)` — picks the active brain by `VANTA_BRAIN` (default `live`). **Everything outside brain/ imports the port from here, NOT brain/brain.** Enforced by the `brain-port` fitness rule. Swap/upgrade the brain = a new adapter + one case here |
+| `brain/brain.ts` | **The default brain implementation — one cohesive unit.** Composes the md regions + structured entries behind one surface: `remember`/`recall` (recall reinforces)/`brainDigest`/`sweep`/`brainHealth`. Per-layer best-effort: a broken layer degrades, never breaks. Fronted by the `Brain` port (`live.ts`); only brain/ internals import it directly |
 | `brain/entries.ts` | Structured memory layer (absorbed brain5d store + neuro 12-axis scoring): typed entries, strength × recency × contradiction-penalized confidence, salience/retrieval bonuses, crystallization (raw→compressed→crystallized at 3/10 retrievals), `forgetAfter` decay. Tolerant reader (bad entries dropped, corrupt store quarantined — copied, never deleted), one-time `brain5d.json` migration. `~/.vanta/brain/entries.json`, git-versioned |
 | `brain/regions.ts` + `brain/store.ts` | The md-region layer: 9 seeded regions (`~/.vanta/brain/<region>.md`, archived + git-versioned) + the region read/write/digest internals the facade composes |
 | `brain/assoc.ts` | Association: memories auto-link to similar neighbors at write time (zero-dep token-overlap similarity, capped sparse graph) + spreading-activation recall — direct hits surface linked neighbors at damped strength (`↪`, primed not reinforced). Relevance floor keeps one-token noise out of direct hits |
@@ -194,6 +197,13 @@ Implement `LLMProvider` (`complete`/`modelId`/`contextWindow`), add a branch in 
 ## How to add a search provider (Phase 2B)
 
 Implement `SearchProvider` (`id` + `search(query, config)`) in `search/<name>.ts`; add a branch in `search/index.ts`. Providers MAY throw on network/auth failure — `web-search` catches and returns errors-as-values. Keep parse/shape logic in a pure exported fn (`parseDdgHtml`, `mapSearxngJson`, …) and unit-test it with an inline fixture (no network). HTML scraping (DDG) uses `linkedom`; the JSON-API providers use native `fetch` only.
+
+## Modularity standard — ports & adapters (DECISIONS 2026-06-17)
+
+Swappable concerns sit behind an interface (port); concrete impls are adapters; consumers depend only on the port and resolve the active impl in one place. Swap/upgrade = a new adapter + one registration line, **zero consumer edits**. Reference ports: `providers/` (`resolveProvider`), `search/`, `code-intel/` (`resolveCodeIntelProvider`), `brain/` (`resolveBrain`). **Enforced** by `lint/boundaries.ts` (run in `npm test` via `architecture.test.ts`, and `node scripts/check-boundaries.mjs`): a `from`/`import()` that bypasses a port fails CI. **Add a port:** define `<area>/interface.ts`, ship the default as `<area>/<impl>.ts`, resolve in `<area>/index.ts`, then add a rule to `RULES` in `lint/boundaries.ts`. The kernel (Rust `src/`) is the deliberate exception — a fixed boundary, not swappable; only the TS client to it is ported.
+
+- **Swap the brain:** implement the `Brain` port (`brain/interface.ts`), add a case to `resolveBrain` in `brain/index.ts`. Consumers import `resolveBrain` from `brain/index.js` — never `brain/brain.js` (the `brain-port` rule enforces it).
+- **Swap code intelligence:** implement `CodeIntelProvider` (`code-intel/interface.ts`), add a case to `resolveCodeIntelProvider` (`code-intel/index.ts`). `VANTA_CODE_INTEL=auto|codegraph|off`.
 
 ## Key decisions (don't re-litigate without new info)
 
