@@ -13,8 +13,8 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  // Production URL — update to the real Vercel domain once assigned.
-  url: 'https://vanta-docs.vercel.app',
+  // Production URL — the custom domain served via Vercel (Cloudflare DNS-only).
+  url: 'https://docs.vanta.theft.studio',
   baseUrl: '/',
 
   // GitHub deployment config — update org/repo if these differ.
