@@ -12139,25 +12139,27 @@
       "id": "ARCH-MODULARITY-SKILL",
       "track": "Harness",
       "title": "Authoring skill — new Vanta capability = port + adapter",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A Vanta-authoring skill (under vanta-ts or .claude/skills) that encodes the convention so it's applied while code is written, not caught after. Content: when adding a swappable capability, define an interface (port), ship the default as an adapter, register via one resolver; copy the reference patterns (providers/index.ts resolveProvider, mcp/client.ts Transport, agent-types.ts AgentDeps, loop/types.ts IterationDeps). Names the grandfathered gaps so new code doesn't add to them. Pairs with ARCH-BOUNDARY-FITNESS (skill guides authoring, test enforces).",
       "done": "A skill exists that, when writing new Vanta code, prescribes the port+adapter pattern with the in-repo reference examples; it is invoked for capability-adding work.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: vanta-ts/skills-library/vanta-modularity/SKILL.md — authoring guide for ports/adapters with the in-repo reference ports + the enforce/docs steps; auto-installs each session."
     },
     {
       "id": "ARCH-BOUNDARY-PRECOMMIT",
       "track": "Harness",
       "title": "Pre-commit hook runs the boundary check",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Run scripts/check-boundaries.mjs in a pre-commit git hook (and optionally a Claude Code PostToolUse hook) so violations surface before CI. Non-blocking on grandfathered warnings, blocking on hard rules. Depends on ARCH-BOUNDARY-FITNESS.",
       "done": "Committing a hard boundary violation is blocked locally by a pre-commit hook before it reaches CI.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: scripts/pre-commit runs node scripts/check-boundaries.mjs on staged TS; hard rules block the commit before CI (grandfathered warn)."
     },
     {
       "id": "PORT-BRAIN-INTERFACE",

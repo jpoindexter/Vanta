@@ -29,3 +29,14 @@ if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
     fi
   fi
 fi
+
+# ARCH-BOUNDARY-FITNESS — block ports/adapters boundary violations (DECISIONS 2026-06-17).
+# Hard rules fail the commit; grandfathered ones only warn. Same check runs in
+# `npm test` (architecture.test.ts). Skips when no TS staged or tsx is absent.
+if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
+  if ! node scripts/check-boundaries.mjs; then
+    echo "✗  architectural boundary violations block this commit (see DECISIONS 2026-06-17)."
+    echo "   A consumer is bypassing a port — route through the port/factory, or grandfather it in lint/boundaries.ts."
+    exit 1
+  fi
+fi
