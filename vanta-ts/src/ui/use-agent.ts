@@ -1,6 +1,8 @@
 import { type Dispatch, type MutableRefObject } from "react";
+import { join } from "node:path";
 import { createConversation, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
+import { runPostTurnGates, type GateState } from "../repl/post-turn-gates.js";
 import { toolDisplay } from "../term/tool-display.js";
 import { summarizeResult } from "../term/tool-result.js";
 import { readTodos } from "../todo/store.js";
@@ -31,7 +33,26 @@ type AgentDeps = {
   interruptRef: MutableRefObject<AbortController | null>;
   convoRef: MutableRefObject<Conversation | null>;
   replStateRef: MutableRefObject<ReplState>;
+  gatesRef: MutableRefObject<GateState>;
 };
+
+/** Run the post-turn EF/operator gate bundle (same set as the readline host) so
+ *  the ND executive-function engine fires in the default TUI too. Best-effort —
+ *  a gate failure never breaks the turn; nudges surface as transcript notes. */
+export async function runTurnGates(deps: AgentDeps): Promise<void> {
+  try {
+    const st = deps.replStateRef.current;
+    deps.gatesRef.current = await runPostTurnGates(deps.gatesRef.current, {
+      messages: deps.convoRef.current?.messages ?? [],
+      safety: deps.setup.safety,
+      dataDir: join(deps.repoRoot, ".vanta"),
+      onNote: (text) => deps.dispatch({ t: "note", text: `\n${text}` }),
+      turnIndex: st.turnIndex,
+      startedMs: Date.parse(st.started) || Date.now(),
+      now: Date.now(),
+    });
+  } catch { /* gates are best-effort — never break the turn */ }
+}
 
 /** The Conversation config: every agent callback fans out into the v2 reducer. */
 function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] {
@@ -81,6 +102,7 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     deps.dispatch({ t: "turnStart" });
     try {
       await conv.send(text, undefined, ctrl.signal);
+      await runTurnGates(deps);
     } catch (err) {
       deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
     } finally {

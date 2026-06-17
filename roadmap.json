@@ -11950,7 +11950,7 @@
       "tier": "rock",
       "effort": "high",
       "updated": "2026-06-17",
-      "notes": "Shipped 2026-06-17. One engine (nd/engine.ts runEfGates) runs all 9 gates as small pure rules (nd/gates.ts): research, complexity, task-initiation, hyperfocus, time-blindness, closure, velocity, set-shift, inhibit. Per-user config persisted in nd/profile.ts — each gate independently enabled + threshold-tunable; engine-level on/off. /nd command views/toggles/tunes (repl/nd-cmd.ts). Fires in-session via session/nd-gates.ts wired into repl/post-turn-gates.ts. 23 unit tests; typecheck + size gate clean. NOTE: post-turn gates currently fire in the readline REPL host only — wiring the engine into the default TUI host (ui/use-agent) is a follow-up card."
+      "notes": "Shipped 2026-06-17. One engine (nd/engine.ts runEfGates) runs all 9 gates as small pure rules (nd/gates.ts): research, complexity, task-initiation, hyperfocus, time-blindness, closure, velocity, set-shift, inhibit. Per-user config persisted in nd/profile.ts — each gate independently enabled + threshold-tunable; engine-level on/off. /nd command views/toggles/tunes (repl/nd-cmd.ts). Fires in-session via session/nd-gates.ts wired into repl/post-turn-gates.ts. Now wired into BOTH hosts: readline REPL (interactive-turn.ts) AND the default TUI (ui/use-agent.ts runTurnGates after each successful turn → nudges as transcript notes), closing the prior TUI-parity gap. 26 unit tests (23 engine + 3 TUI-wiring); typecheck + size gate clean; 246 UI+gate tests green."
     },
     {
       "id": "ND-WORKING-MEMORY-RAIL",
