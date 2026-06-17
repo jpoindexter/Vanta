@@ -20,7 +20,7 @@ This writes `VANTA_PROVIDER` + `VANTA_MODEL` to `.env`. The default is local **O
 
 | Variable | Purpose |
 |----------|---------|
-| `VANTA_PROVIDER` | `openai` · `ollama` · `anthropic` · `gemini` · `openrouter` · `claude-code` · `codex` |
+| `VANTA_PROVIDER` | `openai` · `ollama` · `anthropic` · `gemini` · `openrouter` |
 | `VANTA_MODEL` | Model id for the chosen provider |
 | `VANTA_EFFORT_LEVEL` | `low` · `medium` · `high` · `max` (maps to reasoning effort / thinking budget) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Provider keys (only the one you use) |

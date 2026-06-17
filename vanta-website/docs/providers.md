@@ -14,11 +14,9 @@ Vanta is model-agnostic. The agent loop only sees the `LLMProvider` interface, s
 |------------------|-------|
 | `openai` | OpenAI API; o-series gets `reasoning_effort` from the effort level |
 | `ollama` | Local models, no API key — the default (`qwen2.5:14b`) |
-| `anthropic` | Claude; thinking-capable models use extended thinking on high/max effort |
+| `anthropic` | Anthropic Claude models; thinking-capable models use extended thinking on high/max effort |
 | `gemini` | Google, via the OpenAI-compatible adapter (baseURL swap) |
 | `openrouter` | Many models behind one key, via the OpenAI adapter |
-| `claude-code` | Claude Pro/Max OAuth token (grey-area ToS) — no API key |
-| `codex` | ChatGPT-subscription OAuth via the Responses API |
 
 Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 

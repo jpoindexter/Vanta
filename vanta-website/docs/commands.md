@@ -35,6 +35,6 @@ An interactive session exposes **97 slash commands**. `/help` lists them all; be
 `/world` · `/money` · `/radar` · `/team` · `/lifesearch` · `/compartments` · `/locks` · `/reach` — see [Operator systems](./operator-systems.md).
 
 ## Project & lifecycle
-`/init` (generate `.claude/CLAUDE.md` for a project) · `/roadmap` · `/changes` (interactive edit review) · `/loops` · `/open <file:line>`.
+`/init` (generate a project context/instructions file) · `/roadmap` · `/changes` (interactive edit review) · `/loops` · `/open <file:line>`.
 
 > Counts are current as of the latest source sync; `/help` is always the authoritative, live list.

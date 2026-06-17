@@ -21,7 +21,7 @@ The kernel is the boundary — its `assess()` is a gate, not a suggestion. The T
 
 ## What it does
 
-- **Core loop** — goal-inject → plan → assess → execute → verify. Works with OpenAI, Ollama, Anthropic, Gemini, OpenRouter, and Claude-subscription providers.
+- **Core loop** — goal-inject → plan → assess → execute → verify. Works with OpenAI, Ollama, Anthropic, Gemini, and OpenRouter models.
 - **Skills & memory** — learned skills and per-goal memory in `~/.vanta`, git-versioned for free history.
 - **Web, browser & vision** — search (DuckDuckGo/Searxng/SerpAPI/Brave), readable page fetch, Playwright navigate/click/extract, and image understanding.
 - **Code & dev** — scoped file editing, grep/glob, sandboxed code execution, TypeScript LSP diagnostics, git tools, regression locks.
