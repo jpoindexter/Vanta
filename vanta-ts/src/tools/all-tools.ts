@@ -2,6 +2,10 @@ import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
 import { shellCmdTool } from "./shell-cmd.js";
 import { inspectStateTool } from "./inspect-state.js";
+import { codeContextTool } from "./code-context.js";
+import { codeSearchTool } from "./code-search.js";
+import { codeAffectedTool } from "./code-affected.js";
+import { codeIndexTool } from "./code-index.js";
 import { clarifyTool } from "./clarify.js";
 import { roadmapMoveTool } from "./roadmap-move.js";
 import { roadmapAddTool } from "./roadmap-add.js";
@@ -99,6 +103,10 @@ export const ALL_TOOLS: readonly Tool[] = [
   globFilesTool,
   shellCmdTool,
   inspectStateTool,
+  codeContextTool,
+  codeSearchTool,
+  codeAffectedTool,
+  codeIndexTool,
   clarifyTool,
   configTool,
   cookieImportTool,
