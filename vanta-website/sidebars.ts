@@ -11,6 +11,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Guides & tutorials',
+      collapsed: false,
+      items: ['guides/self-host', 'guides/automate-a-briefing', 'guides/extend-vanta'],
+    },
+    {
+      type: 'category',
       label: 'How it works',
       collapsed: false,
       items: ['how-it-works', 'architecture', 'kernel', 'agent-loop', 'safety-model', 'security', 'modularity'],
@@ -57,11 +63,14 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/cli',
         'reference/environment',
+        'reference/api',
         'reference/tools-list',
         'reference/commands-list',
       ],
     },
+    'faq',
     'roadmap',
+    'changelog',
   ],
 };
 
