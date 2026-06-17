@@ -12125,14 +12125,14 @@
       "id": "ARCH-BOUNDARY-FITNESS",
       "track": "Harness",
       "title": "Architectural fitness function — boundary rules as a CI-failing test",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "THE enforcer for Vanta's ports/adapters standard (skills/hooks only guide; a failing test enforces). Add scripts/check-boundaries.mjs + vanta-ts/src/architecture.test.ts wired into `npm test`. Declarative dependency rules, each a falsifiable assertion over the import graph: (1) nothing outside code-intel/codegraph.ts imports codegraph; (2) no file imports a concrete brain variant — only the Brain port (after PORT-BRAIN-INTERFACE); (3) SafetyClient is import-type-only outside its factory (after PORT-KERNEL-CLIENT); (4) no tool imports another tool's internals (e.g. runGit reach-in); (5) core/factory never import a concrete provider. Implement with ts-morph or a lightweight regex+AST scan over src/; rules live in a data table so adding a boundary = one entry. New violation -> red test. Rules start as warnings for already-violating boundaries (grandfathered list that only shrinks), hard-fail for new code and for ported boundaries.",
       "done": "`npm test` includes an architecture test that fails when a declared boundary is crossed; the code-intel seam rule is enforced hard; pre-existing violations are an explicit shrink-only grandfather list; adding a new rule is one table entry.",
       "tier": "rock",
       "effort": "medium",
-      "updated": "2026-06-17"
-    },
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Zero-dep import-graph scanner: arch/boundaries.ts (RULES data table + GRANDFATHER shrink-only map + pure parseImports/evaluateRule/findViolations), arch/collect.ts (recursive src walker), arch/cli.ts. src/architecture.test.ts runs in `npm test` — one assertion per rule, red on a crossed boundary (verified: an injected codegraph import fails the HARD code-intel seam rule). scripts/check-boundaries.mjs is the standalone CI entry. Adding a boundary = one RULES entry. Seeded HARD rules: code-intel-seam, no-concrete-provider-in-factory. Brain-port + SafetyClient-port rules land with PORT-BRAIN-INTERFACE / PORT-KERNEL-CLIENT (one table entry each)."
     {
       "id": "ARCH-MODULARITY-SKILL",
       "track": "Harness",
