@@ -12133,6 +12133,7 @@
       "effort": "medium",
       "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18. Zero-dep import-graph scanner: arch/boundaries.ts (RULES data table + GRANDFATHER shrink-only map + pure parseImports/evaluateRule/findViolations), arch/collect.ts (recursive src walker), arch/cli.ts. src/architecture.test.ts runs in `npm test` — one assertion per rule, red on a crossed boundary (verified: an injected codegraph import fails the HARD code-intel seam rule). scripts/check-boundaries.mjs is the standalone CI entry. Adding a boundary = one RULES entry. Seeded HARD rules: code-intel-seam, no-concrete-provider-in-factory. Brain-port + SafetyClient-port rules land with PORT-BRAIN-INTERFACE / PORT-KERNEL-CLIENT (one table entry each)."
+    },
     {
       "id": "ARCH-MODULARITY-SKILL",
       "track": "Harness",
