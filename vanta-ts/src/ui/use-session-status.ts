@@ -1,15 +1,8 @@
-import { useEffect, useState, type Dispatch } from "react";
+import { useEffect, useState, type Dispatch, type MutableRefObject } from "react";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
+import type { ReplState } from "../repl/types.js";
 import { formatElapsed } from "./busy.js";
-
-function useActiveGoal(safety: RunSetup["safety"], busy: boolean): string | null {
-  const [goal, setGoal] = useState<string | null>(null);
-  useEffect(() => {
-    void safety.getGoals().then((gs) => setGoal(gs.find((g) => g.status === "active")?.text ?? null)).catch(() => {});
-  }, [busy]); // eslint-disable-line react-hooks/exhaustive-deps
-  return goal;
-}
 
 function useClock(): void {
   const [, setN] = useState(0);
@@ -36,22 +29,29 @@ function firstRalphNotice(block: string): string {
   return `↻ Ralph loop progress found: ${goal.slice(0, 60)} — ${next.slice(0, 60)} · /goal resume to continue · /goal drop to discard`;
 }
 
-export function useSessionStatus(
-  setup: RunSetup,
-  busy: boolean,
-  startedIso: string,
-  dispatch: Dispatch<Action>,
-): { goal: string | null; mcp: boolean; elapsed: string } {
-  const goal = useActiveGoal(setup.safety, busy);
-  const mcp = useMcpPresent();
-  useClock();
+/** On launch, resolve the footer's working goal. A carried goal is PAUSED by
+ * default (left null → footer blank; the note tells the user to /goal resume).
+ * Only VANTA_GOAL_RESUME=auto auto-activates it into the footer ◇. */
+function useLaunchGoal(setup: RunSetup, replStateRef: MutableRefObject<ReplState>, dispatch: Dispatch<Action>): void {
   useEffect(() => {
-    if (process.env.VANTA_GOAL_RESUME === "auto") return;
-    if (setup.ralphContinuity) dispatch({ t: "note", text: firstRalphNotice(setup.ralphContinuity) });
+    const auto = process.env.VANTA_GOAL_RESUME === "auto";
+    if (!auto && setup.ralphContinuity) dispatch({ t: "note", text: firstRalphNotice(setup.ralphContinuity) });
     void setup.safety.getGoals().then((gs) => {
       const g = gs.find((x) => x.status === "active");
-      if (g) dispatch({ t: "note", text: `↻ Carried goal (paused): ${g.text.slice(0, 78)} — /goal resume to pick up · /goal clear to drop` });
+      if (!g) return;
+      if (auto) { replStateRef.current.activeGoal = g.text; return; }
+      dispatch({ t: "note", text: `↻ Carried goal (paused): ${g.text.slice(0, 78)} — /goal resume to pick up · /goal clear to drop` });
     }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return { goal, mcp, elapsed: formatElapsed(Date.now() - Date.parse(startedIso)) };
+}
+
+export function useSessionStatus(
+  setup: RunSetup,
+  replStateRef: MutableRefObject<ReplState>,
+  dispatch: Dispatch<Action>,
+): { mcp: boolean; elapsed: string } {
+  const mcp = useMcpPresent();
+  useClock();
+  useLaunchGoal(setup, replStateRef, dispatch);
+  return { mcp, elapsed: formatElapsed(Date.now() - Date.parse(replStateRef.current.started)) };
 }

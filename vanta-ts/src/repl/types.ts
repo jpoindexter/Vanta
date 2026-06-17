@@ -18,6 +18,12 @@ export type ReplState = {
   /** Current session model-effort setting; /effort mutates it live. */
   effortLevel?: EffortLevel;
   /**
+   * The goal the session is actively working toward — the footer's ◇ line reads
+   * this, not the kernel ledger. A carried goal launches PAUSED (null here) so it
+   * doesn't show as active until /goal resume; /goal set|resume sets it, drop clears.
+   */
+  activeGoal?: string | null;
+  /**
    * Plan-mode approval flag: true after the user runs /planmode approve.
    * Reset to false whenever /planmode is toggled or the session clears.
    */

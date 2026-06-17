@@ -42,7 +42,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [pending, setPending] = useState<Pending | null>(null);
   const interruptRef = useRef<AbortController | null>(null);
   const convoRef = useRef<Conversation | null>(null);
-  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel });
+  const replStateRef = useRef<ReplState>({ sessionId: newSessionId(), started: new Date().toISOString(), turnIndex: 0, effortLevel: props.setup.effortLevel, activeGoal: null });
   const [files, setFiles] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [focus, setFocus] = useState<FocusTarget>("composer");
@@ -55,7 +55,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
-  const { goal, mcp, elapsed } = useSessionStatus(props.setup, state.busy, replStateRef.current.started, dispatch);
+  const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
@@ -76,7 +76,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
           {overlay ? null : <TodoPanel todos={state.todos} />}
           <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={goal} mcp={mcp} elapsed={elapsed} /> : null}
+          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} /> : null}
         </PinnedRegion>
     </Box>
   );

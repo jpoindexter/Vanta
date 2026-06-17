@@ -17,6 +17,7 @@ function makeCtx(env: NodeJS.ProcessEnv): ReplCtx {
     } as unknown as ReplCtx["setup"],
     convo: { messages: [{ role: "system", content: "sys" }] } as unknown as ReplCtx["convo"],
     dataDir: "/tmp/nonexistent/.vanta",
+    state: { sessionId: "t", started: new Date().toISOString(), turnIndex: 0, activeGoal: null },
     env,
   } as unknown as ReplCtx;
 }
@@ -50,6 +51,7 @@ describe("/goal resume + drop", () => {
       } } as unknown as ReplCtx["setup"],
       convo: { messages: [{ role: "system", content: "sys" }] } as unknown as ReplCtx["convo"],
       dataDir: "/tmp/x/.vanta", env: {},
+      state: { sessionId: "t", started: new Date().toISOString(), turnIndex: 0, activeGoal: null },
     } as unknown as ReplCtx;
   }
 
@@ -58,6 +60,14 @@ describe("/goal resume + drop", () => {
     const r = await HANDLERS.goal!("resume", ctx);
     expect(r.output).toContain("resumed goal: Add NVIDIA NIM");
     expect((ctx.convo.messages[0] as { content: string }).content).toContain("Resumed standing goal");
+    expect(ctx.state.activeGoal).toBe("Add NVIDIA NIM"); // footer ◇ now tracks the resumed goal
+  });
+
+  it("drop clears the footer working goal", async () => {
+    const ctx = ctxFor([{ id: 1, text: "X", status: "active" }], []);
+    ctx.state.activeGoal = "X";
+    await HANDLERS.goal!("drop", ctx);
+    expect(ctx.state.activeGoal).toBeNull();
   });
 
   it("resume with no carried goal is a no-op message", async () => {

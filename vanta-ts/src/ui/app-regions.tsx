@@ -23,7 +23,7 @@ export function Footer(props: {
   turns: number;
   busy: boolean;
   queued: number;
-  goal: string | null;
+  goal: string | null | undefined;
   mcp: boolean;
   elapsed: string;
 }): ReactElement {

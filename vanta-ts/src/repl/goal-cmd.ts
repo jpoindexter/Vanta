@@ -8,6 +8,7 @@ import type { SlashHandler } from "./types.js";
 async function setNewGoal(arg: string, ctx: ReplCtx): Promise<SlashResult> {
   const ok = await ctx.setup.safety.addGoal(arg);
   if (!ok) return { output: "  could not set goal (kernel unreachable?)" };
+  ctx.state.activeGoal = arg; // footer ◇ tracks the session's working goal
   const sys = ctx.convo.messages[0];
   if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
   if (ctx.env.VANTA_GOAL_ACTION !== "0" && isVagueGoal(arg)) {
@@ -33,6 +34,7 @@ async function goalResume(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   if (!active.length) return { output: "  (no carried goal to resume — /goal <text> to set one)" };
   const sys = ctx.convo.messages[0];
   const text = active.map((g) => g.text).join("; ");
+  ctx.state.activeGoal = text; // paused → active: surface it in the footer ◇
   if (sys && sys.role === "system") sys.content += `\n\nResumed standing goal — work toward it now: ${text}`;
   return { output: `  ▶ resumed goal: ${text}` };
 }
@@ -43,6 +45,7 @@ async function goalResumeRalph(ctx: ReplCtx): Promise<SlashResult | null> {
   const next = selectNextIncompleteFeature(state);
   const resumed = next ? updateFeatureStatus(state, next.id, "in_progress") : state;
   await writeRalphState(ctx.dataDir, resumed);
+  ctx.state.activeGoal = resumed.goal; // resumed Ralph loop is the working goal
   const sys = ctx.convo.messages[0];
   if (sys && sys.role === "system") {
     sys.content += `\n\nResumed Ralph loop — work toward it now:\nGoal: ${resumed.goal}${next ? `\nCurrent feature: [${next.id}] ${next.title}` : ""}`;
@@ -53,6 +56,7 @@ async function goalResumeRalph(ctx: ReplCtx): Promise<SlashResult | null> {
 async function goalDrop(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   const active = await activeGoals(safety);
   for (const g of active) await safety.completeGoal(g.id);
+  ctx.state.activeGoal = null; // cleared: footer ◇ goes blank immediately
   const state = await readRalphState(ctx.dataDir);
   if (!state || !hasIncompleteRalphWork(state)) return { output: `  · dropped ${active.length} active goal(s) — starting fresh` };
   await writeRalphState(ctx.dataDir, dropIncompleteRalphWork(state));
