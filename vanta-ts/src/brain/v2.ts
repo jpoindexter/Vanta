@@ -1,4 +1,9 @@
 // B-v2: Emergent self-designed brain substrate.
+// STATUS: parked (DECISIONS 2026-06-11) — scaffold only, no consumers. NOT dead
+// code: when resumed, it becomes a Brain adapter (brain/interface.ts) registered
+// behind resolveBrain (brain/index.ts) as `VANTA_BRAIN=v2` — one case, no consumer
+// changes, thanks to the Brain port (DECISIONS 2026-06-17). Until then it stays
+// parked, not deleted.
 // This module is the bootstrap scaffold — the v1.4 .md brain is the seed.
 // When VANTA_BRAIN_V2=1, Vanta can read/write this module to design its own
 // brain representation (its own format, its own code). The kernel's

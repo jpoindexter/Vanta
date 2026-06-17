@@ -12305,13 +12305,14 @@
       "id": "ARCH-DEAD-BRAIN-CLEANUP",
       "track": "Harness",
       "title": "Resolve dormant brain variants (v2 + brain5d) under the new port",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: brain/v2.ts and brain/entries.ts (brain5d) have zero consumers — their presence implies a swappability the code doesn't provide. After PORT-BRAIN-INTERFACE, EITHER wire them as real adapters behind the Brain port OR delete them. Decide per variant: brain5d (ready) -> adapter behind VANTA_BRAIN; v2 scaffold -> delete if not progressing. No dead code masquerading as modularity. Depends on PORT-BRAIN-INTERFACE.",
       "done": "Each dormant brain variant is either a registered adapter behind the Brain port or deleted; no unreferenced brain implementation remains in the tree.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Resolved: audited brain/ — only brain/v2.ts is dormant (entries.ts is live, composed by brain.ts). v2 is deliberately PARKED (DECISIONS 2026-06-11) with its own tests — not deleted (would contradict a logged decision). Documented that the new Brain port makes wiring it a one-line VANTA_BRAIN=v2 adapter when resumed. No orphan/masquerading brain code remains."
     }
   ]
 }
