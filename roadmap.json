@@ -12267,13 +12267,14 @@
       "id": "PORT-DELIVERY-REGISTRY",
       "track": "Operator",
       "title": "Delivery-target registry (webhook resolveDeliver switch)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: gateway/webhook.ts:33 resolveDeliver is a hardcoded prefix switch (local/file/telegram:); a new channel means editing the function. Replace with an extensible target registry so a new delivery channel registers an adapter.",
       "done": "Delivery targets resolve through a registry; adding a channel (e.g. slack:) is a registration, not a switch edit.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: resolveDeliver now resolves via the DELIVERY_TARGETS registry (match/build adapters). Adding a channel (slack:) = one entry, not a switch edit. Signature unchanged; 62 gateway tests pass; tsc clean."
     },
     {
       "id": "PORT-DISPLAY-FORMATTER",
