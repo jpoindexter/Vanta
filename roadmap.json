@@ -12175,7 +12175,7 @@
       "id": "PORT-KERNEL-CLIENT",
       "track": "Harness",
       "title": "KernelClient interface over SafetyClient (~25 sites)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Audit verdict PARTIAL: the concrete SafetyClient class (safety-client.ts:21) is named at ~25 sites and has leaked into every *Deps type (tools/types.ts:11, agent/agent-types.ts:12, mcp/server.ts:49, +5 `new SafetyClient` sites). Tests already hand-roll a fakeClient — proof the port is missing. Extract a KernelClient interface (assess/log/goals/approvals/status surface); SafetyClient becomes the default HTTP adapter; consumers type against the interface; construction funnels through one factory. Enables IPC/in-process/stub transports and clean tests. NOTE: the Rust kernel stays the fixed boundary — this ports only the TS-side client, not the kernel. Enforced by a fitness rule (import-type-only outside the factory).",
       "done": "Consumers depend on a KernelClient interface, not the concrete SafetyClient; SafetyClient is one adapter behind a single factory; tests use a stub adapter via the same port; a fitness rule enforces it.",
