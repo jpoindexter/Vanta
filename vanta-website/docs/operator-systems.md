@@ -12,7 +12,7 @@ Beyond code and research, Vanta carries a set of operator subsystems — durable
 `world` tool · `/world` — entities and relations across your systems. Recall is cited and flags contradictions (same subject + predicate, different object); `merge` / `duplicates` consolidate and re-point relations. Confidence is surfaced as `[likely · 62% · source:…]`.
 
 ## Money OS
-`money` tool · `/money` — offers, prospects, revenue. Suggests a price band, runs a weekly review, and records deliverables + follow-ups. Scored opportunities promote from the radar into prospects.
+`money` tool · `/money` — offers, prospects, revenue. Suggests a price band, runs a weekly review, and records deliverables + follow-ups. Scored opportunities promote from the radar into prospects. Backed by a **life-OS** schema store (`~/.vanta/life-os/`) that builds a CFO-style brief (revenue / expenses / opportunities ranked by value) and tracks **Escape Ladder** milestones — the operator's path from current income to target.
 
 ## Opportunity radar
 `radar` tool · `/radar` — scored opportunities ranked by composite pain × signal. `scan_web` runs live search, extracts and scores candidates; `offer` drafts an offer; `promote` pushes a winner into Money OS.

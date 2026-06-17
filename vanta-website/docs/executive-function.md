@@ -30,6 +30,16 @@ Vanta runs a set of always-on, best-effort guardrails that keep a long agent ses
 
 Thresholds are env-tunable (`VANTA_INHIBIT_THRESHOLD`, `VANTA_SETSHIFT_THRESHOLD`, `VANTA_STALL_THRESHOLD`, …), and the whole layer is configurable per operator.
 
+## Task stack
+
+A persistent, project-scoped stack of what you're attending to — the loop-closer that pairs with the closure gate.
+
+- **Command:** `/tasks` (and `/tasks next` for the best move)
+- **Store:** `.vanta/task-stack.json`
+- **Statuses:** pending · active · blocked · parked · closed
+
+`selectNextTask` biases toward **closure** (finishing what's in flight over starting new work), and a summary is injected into the prompt so the agent stays anchored to the open stack. Tasks relate to the closure gate and the roadmap.
+
 ## Bundled discipline skills
 
 The skill library auto-installs a set of `nd-*` executive-function skills (e.g. research-gate, choice-reduce, task-boundary, time-blindness, hyperfocus-guard) plus build-discipline skills — applied as behavioral patterns, not one-off prompts. See [Skills & memory](./skills-and-memory.md).

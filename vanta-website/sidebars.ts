@@ -13,7 +13,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'How it works',
       collapsed: false,
-      items: ['how-it-works', 'architecture', 'kernel', 'agent-loop', 'safety-model'],
+      items: ['how-it-works', 'architecture', 'kernel', 'agent-loop', 'safety-model', 'security', 'modularity'],
     },
     {
       type: 'category',
@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
         'tools',
         'providers',
         'skills-and-memory',
+        'knowledge-and-refs',
         'commands',
         'autonomy',
         'comms-and-gateway',
@@ -36,16 +37,18 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'operator-systems',
+        'self-improvement',
         'sessions-and-continuity',
         'modes-rooms-routing',
         'permissions-and-hooks',
+        'settings',
       ],
     },
     {
       type: 'category',
       label: 'Extensibility',
       collapsed: false,
-      items: ['mcp', 'plugins', 'extending'],
+      items: ['mcp', 'plugins', 'integrations', 'extending'],
     },
     {
       type: 'category',
