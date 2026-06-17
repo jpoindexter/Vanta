@@ -26,11 +26,11 @@ function LoopRow(props: { loop: LoopSummary }): ReactElement {
   const score = loop.lastScore !== null ? String(loop.lastScore) : "—";
   return (
     <Box>
-      <Text color={color}>{glyph} </Text>
+      <Text>{glyph} </Text>
       <Text>{clip(loop.goal)}</Text>
-      <Text dimColor={true}>{"  "}iter {loop.iterations} · score {score}</Text>
+      <Text>{"  "}iter {loop.iterations} · score {score}</Text>
       {loop.openEscalations > 0
-        ? <Text color={"white"}>{" "}· ⚠ {loop.openEscalations} escalation{loop.openEscalations === 1 ? "" : "s"}</Text>
+        ? <Text>{" "}· ⚠ {loop.openEscalations} escalation{loop.openEscalations === 1 ? "" : "s"}</Text>
         : null}
     </Box>
   );
@@ -40,11 +40,11 @@ export function LoopsPanel(props: { loops: LoopSummary[]; onClose: () => void })
   useInput((_input, key) => { if (key.escape) props.onClose(); });
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>Loops</Text>
+      <Text bold>Loops</Text>
       {props.loops.length === 0
-        ? <Text dimColor={true}>{"  "}(no loops — design one with /loop)</Text>
+        ? <Text>{"  "}(no loops — design one with /loop)</Text>
         : props.loops.map((l) => <LoopRow key={l.id} loop={l} />)}
-      <Text dimColor={true}>{"  "}Esc close</Text>
+      <Text>{"  "}Esc close</Text>
     </Box>
   );
 }

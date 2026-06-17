@@ -22,8 +22,8 @@ export function StreamPreview(props: { text: string }): ReactElement {
   return (
     <Box flexDirection="column">
       {lines.map((l, i) => (
-        <Text key={i} color={"white"}>
-          <Text color={"white"}>{i === 0 ? "⏺ " : "  "}</Text>{l}
+        <Text key={i}>
+          <Text>{i === 0 ? "⏺ " : "  "}</Text>{l}
         </Text>
       ))}
     </Box>

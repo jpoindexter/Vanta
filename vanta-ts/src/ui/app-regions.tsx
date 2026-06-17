@@ -28,9 +28,9 @@ export function Footer(props: {
 }): ReactElement {
   return (
     <Box flexDirection="column">
-      <Text dimColor={true}>{props.goal ? <><Text color={"white"}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
+      <Text>{props.goal ? <><Text>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
       <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
-      <Text dimColor={true}>  <Text color={"white"}>/</Text> commands  ·  <Text color={"white"}>@</Text> files  ·  <Text color={"white"}>!</Text> shell  ·  <Text color={"white"}>#</Text> memory</Text>
+      <Text>  <Text>/</Text> commands  ·  <Text>@</Text> files  ·  <Text>!</Text> shell  ·  <Text>#</Text> memory</Text>
     </Box>
   );
 }
@@ -45,7 +45,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
   return (
     <Box flexDirection="column">
       {streaming ? <StreamPreview text={streaming} /> : null}
-      {busy && !streaming ? <Text color={"white"}>{frame} <Text dimColor={true}>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
+      {busy && !streaming ? <Text>{frame} <Text>{label}… ({secs}s · esc to interrupt)</Text></Text> : null}
     </Box>
   );
 }

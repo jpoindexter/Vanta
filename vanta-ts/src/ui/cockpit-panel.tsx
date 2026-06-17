@@ -12,24 +12,24 @@ export function CockpitPanel(props: { data: CockpitData; onClose: () => void }):
   const { goals, loops } = props.data;
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>Mission control</Text>
+      <Text bold>Mission control</Text>
       <Text> </Text>
-      <Text dimColor={true}>Kernel verdict ladder</Text>
-      <Text><Text color={"white"}>  ✓ allow</Text><Text dimColor={true}> in-scope, no risk keywords — runs</Text></Text>
-      <Text><Text color={"white"}>  ⚠ ask</Text><Text dimColor={true}>   out-of-scope / system / credentials — needs you</Text></Text>
-      <Text><Text color={"white"}>  ✗ block</Text><Text dimColor={true}>  destructive / exfiltration — refused</Text></Text>
+      <Text>Kernel verdict ladder</Text>
+      <Text><Text>  ✓ allow</Text><Text> in-scope, no risk keywords — runs</Text></Text>
+      <Text><Text>  ⚠ ask</Text><Text>   out-of-scope / system / credentials — needs you</Text></Text>
+      <Text><Text>  ✗ block</Text><Text>  destructive / exfiltration — refused</Text></Text>
       <Text> </Text>
-      <Text dimColor={true}>Goals ({goals.length})</Text>
-      {goals.length === 0 ? <Text dimColor={true}>  (none active)</Text> : goals.slice(0, 6).map((g) => (
-        <Text key={g.id}>  <Text color={"white"}>[{g.id}]</Text> {clip(g.text)}</Text>
+      <Text>Goals ({goals.length})</Text>
+      {goals.length === 0 ? <Text>  (none active)</Text> : goals.slice(0, 6).map((g) => (
+        <Text key={g.id}>  <Text>[{g.id}]</Text> {clip(g.text)}</Text>
       ))}
       <Text> </Text>
-      <Text dimColor={true}>Loops ({loops.length})</Text>
-      {loops.length === 0 ? <Text dimColor={true}>  (none)</Text> : loops.slice(0, 6).map((l) => (
-        <Text key={l.id}>  <Text color={l.inProgress ? "white" : "gray"}>●</Text> {clip(l.goal)} <Text dimColor={true}>· {l.status} · {l.iterations} iter{l.openEscalations ? ` · ${l.openEscalations} esc` : ""}</Text></Text>
+      <Text>Loops ({loops.length})</Text>
+      {loops.length === 0 ? <Text>  (none)</Text> : loops.slice(0, 6).map((l) => (
+        <Text key={l.id}>  <Text>●</Text> {clip(l.goal)} <Text>· {l.status} · {l.iterations} iter{l.openEscalations ? ` · ${l.openEscalations} esc` : ""}</Text></Text>
       ))}
       <Text> </Text>
-      <Text dimColor={true}>  Esc close</Text>
+      <Text>  Esc close</Text>
     </Box>
   );
 }

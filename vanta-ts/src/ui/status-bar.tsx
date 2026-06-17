@@ -42,7 +42,7 @@ function buildKeys(props: {
 type RenderKeptOpts = { kept: Set<string>; k: Keys; gauge: string; bar: string; ctxPct: number };
 
 function textIf(kept: Set<string>, key: string, color: string | undefined, text: string): ReactElement | null {
-  return kept.has(key) && text ? <Text color={color} dimColor={color ? undefined : true}>{text}</Text> : null;
+  return kept.has(key) && text ? <Text>{text}</Text> : null;
 }
 
 function renderKept(o: RenderKeptOpts): ReactElement {
@@ -52,7 +52,7 @@ function renderKept(o: RenderKeptOpts): ReactElement {
       {textIf(kept, k.MODEL, undefined, k.MODEL)}
       {textIf(kept, k.EFFORT, undefined, k.EFFORT)}
       {kept.has(k.CTX) && (
-        <><Text dimColor={true}>{"  ·  "}{gauge} </Text><Text color={"white"}>[{bar}]</Text><Text dimColor={true}> {ctxPct}%</Text></>
+        <><Text>{"  ·  "}{gauge} </Text><Text>[{bar}]</Text><Text> {ctxPct}%</Text></>
       )}
       {textIf(kept, k.ELAPSED, undefined, k.ELAPSED)}
       {textIf(kept, k.TURNS, undefined, k.TURNS)}

@@ -30,7 +30,7 @@ export function useModeState(
 }
 
 export function ModeLine(props: { mode: Mode }): ReactElement | null {
-  if (props.mode === "acceptEdits") return <Text color={"white"} bold>EDITS <Text dimColor={true}>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "auto") return <Text color={"white"} bold>AUTO <Text dimColor={true}>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "acceptEdits") return <Text bold>EDITS <Text>(shift+tab to cycle)</Text></Text>;
+  if (props.mode === "auto") return <Text bold>AUTO <Text>(shift+tab to cycle)</Text></Text>;
   return null;
 }

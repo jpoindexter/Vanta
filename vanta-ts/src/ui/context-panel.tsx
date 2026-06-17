@@ -25,10 +25,10 @@ export function ContextPanel(props: {
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>{title}</Text>
+      <Text bold>{title}</Text>
       <Text> </Text>
       {categories.length === 0 ? (
-        <Text dimColor={true}>(context is empty)</Text>
+        <Text>(context is empty)</Text>
       ) : (
         categories.map((cat) => {
           const catPct = total > 0 ? Math.round((cat.tokens / total) * 100) : 0;
@@ -37,15 +37,15 @@ export function ContextPanel(props: {
           return (
             <Text key={cat.label}>
               <Text>{label}</Text>
-              <Text color={"white"}>{bar}</Text>
+              <Text>{bar}</Text>
               <Text>{"  "}</Text>
-              <Text dimColor={true}>{kfmt(cat.tokens)}  {catPct}%</Text>
+              <Text>{kfmt(cat.tokens)}  {catPct}%</Text>
             </Text>
           );
         })
       )}
       <Text> </Text>
-      <Text dimColor={true}>  Esc close</Text>
+      <Text>  Esc close</Text>
     </Box>
   );
 }

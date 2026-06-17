@@ -11,7 +11,7 @@ export function AtPalette(props: { files: string[]; sel: number }): ReactElement
     <Box flexDirection="column" marginBottom={1}>
       {props.files.map((f, i) => (
         <Box key={f}>
-          <Text color={i === props.sel ? "white" : undefined} inverse={i === props.sel}>{` @${f} `}</Text>
+          <Text inverse={i === props.sel}>{` @${f} `}</Text>
         </Box>
       ))}
     </Box>

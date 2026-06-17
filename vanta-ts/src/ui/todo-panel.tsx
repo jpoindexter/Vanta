@@ -29,9 +29,9 @@ export function TodoPanel(props: { todos: TodoItem[] }): ReactElement | null {
   const extra = ordered.length - shown.length;
   return (
     <Box flexDirection="column" marginTop={1}>
-      <Text dimColor={true}>plan <Text color={"white"}>{planMeter(done, props.todos.length)}</Text> · ✓{done} ◐{running} ○{pending}</Text>
+      <Text>plan <Text>{planMeter(done, props.todos.length)}</Text> · ✓{done} ◐{running} ○{pending}</Text>
       {shown.map((x, i) => <TodoRow key={i} todo={x} />)}
-      {extra > 0 ? <Text dimColor={true}>  +{extra} more</Text> : null}
+      {extra > 0 ? <Text>  +{extra} more</Text> : null}
     </Box>
   );
 }
@@ -45,8 +45,8 @@ function TodoRow(props: { todo: TodoItem }): ReactElement {
   const color = todo.status === "done" ? "white" : todo.status === "in_progress" ? "white" : undefined;
   return (
     <Box>
-      <Text color={color}>  {mark} </Text>
-      <Text dimColor={todo.status === "done"}>{todo.text}</Text>
+      <Text>  {mark} </Text>
+      <Text>{todo.text}</Text>
     </Box>
   );
 }

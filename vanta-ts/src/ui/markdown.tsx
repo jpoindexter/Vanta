@@ -98,9 +98,9 @@ function Inline(props: { tokens: InlineToken[] }): ReactElement {
   return (
     <>
       {props.tokens.map((tok, i) => {
-        if (tok.code) return <Text key={i} color={"gray"}>{tok.text}</Text>;
-        if (tok.bold) return <Text key={i} bold color={"white"}>{tok.text}</Text>;
-        return <Text key={i} color={"white"}>{tok.text}</Text>;
+        if (tok.code) return <Text key={i}>{tok.text}</Text>;
+        if (tok.bold) return <Text key={i} bold>{tok.text}</Text>;
+        return <Text key={i}>{tok.text}</Text>;
       })}
     </>
   );
@@ -116,12 +116,12 @@ function TableView(props: { block: Extract<Block, { type: "table" }> }): ReactEl
   const sep = colWidths.map((w) => "─".repeat(w)).join("  ");
   return (
     <Box flexDirection="column">
-      <Text bold color={"white"}>
+      <Text bold>
         {headers.map((h, ci) => pad(h, colWidths[ci]!)).join("  ")}
       </Text>
-      <Text dimColor>{sep}</Text>
+      <Text>{sep}</Text>
       {rows.map((row, ri) => (
-        <Text key={ri} color={"white"}>
+        <Text key={ri}>
           {headers.map((_, ci) => pad(row[ci] ?? "", colWidths[ci]!)).join("  ")}
         </Text>
       ))}
@@ -138,9 +138,9 @@ function CodeLine(props: { line: string; lang: string }): ReactElement {
 
 function Seg(props: { seg: HlSeg }): ReactElement {
   const { seg } = props;
-  if (seg.cls === "comment") return <Text dimColor={true}>{seg.text}</Text>;
+  if (seg.cls === "comment") return <Text>{seg.text}</Text>;
   const color = seg.cls === "keyword" ? "white" : seg.cls === "string" ? "white" : seg.cls === "number" ? "white" : "white";
-  return <Text color={color}>{seg.text}</Text>;
+  return <Text>{seg.text}</Text>;
 }
 
 function BlockView(props: { block: Block }): ReactElement {
@@ -148,11 +148,11 @@ function BlockView(props: { block: Block }): ReactElement {
   if (b.type === "spacer") return <Text> </Text>;
   if (b.type === "code") return (
     <Box flexDirection="column">
-      {b.lang ? <Text dimColor={true}>{`  ${b.lang}`}</Text> : null}
+      {b.lang ? <Text>{`  ${b.lang}`}</Text> : null}
       {b.lines.map((l, j) => <CodeLine key={j} line={l} lang={b.lang} />)}
     </Box>
   );
-  if (b.type === "heading") return <Box marginTop={1}><Text bold color={"white"}>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
+  if (b.type === "heading") return <Box marginTop={1}><Text bold>{"#".repeat(b.level)} <Inline tokens={tokenizeInline(b.text)} /></Text></Box>;
   if (b.type === "bullet") return <Text>{"  • "}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "numbered") return <Text>{`  ${b.n}. `}<Inline tokens={tokenizeInline(b.text)} /></Text>;
   if (b.type === "table") return <TableView block={b} />;

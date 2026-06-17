@@ -50,9 +50,9 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
 
   return (
     <Box borderStyle="round" borderColor={"white"} flexDirection="column" paddingX={1} marginTop={1}>
-      <Text color={"white"} bold>⚠ {request.title}</Text>
+      <Text bold>⚠ {request.title}</Text>
       <Text>{request.subject}</Text>
-      {request.reason ? <Text dimColor={true}>{request.reason}</Text> : null}
+      {request.reason ? <Text>{request.reason}</Text> : null}
       {request.sections.map((section) => <RequestSection key={section.label} section={section} />)}
       <Box marginTop={1} flexDirection="column">
         <Text bold>Do you want to proceed?</Text>
@@ -74,15 +74,15 @@ function moveChoice(sel: number, step: 1 | -1, setSel: (n: number) => void, onFo
 
 function RequestSection(props: { section: PermissionSection }): ReactElement {
   const color = props.section.tone === "danger" ? "yellow" : undefined;
-  return <Text color={color}><Text bold>{props.section.label}:</Text> {props.section.value}</Text>;
+  return <Text><Text bold>{props.section.label}:</Text> {props.section.value}</Text>;
 }
 
 function ChoiceRow(props: { choice: Choice; selected: boolean; accent: string; primary: string }): ReactElement {
   const { choice, selected, accent, primary } = props;
   return (
-      <Text color={selected ? primary : undefined}>
-      <Text color={accent}>{focusIndicator(selected)} {choice.n}.</Text> {choice.label}
-      {choice.outcome === "deny" ? <Text dimColor>  (esc)</Text> : null}
+      <Text>
+      <Text>{focusIndicator(selected)} {choice.n}.</Text> {choice.label}
+      {choice.outcome === "deny" ? <Text>  (esc)</Text> : null}
     </Text>
   );
 }

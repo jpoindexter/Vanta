@@ -6,5 +6,5 @@ import { Text, useStdout } from "ink";
 
 export function Rule(): ReactElement {
   const cols = useStdout().stdout?.columns ?? 80;
-  return <Text dimColor={true}>{"─".repeat(Math.max(8, cols - 1))}</Text>;
+  return <Text>{"─".repeat(Math.max(8, cols - 1))}</Text>;
 }

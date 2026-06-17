@@ -20,14 +20,14 @@ export function HelpPanel(props: { onClose: () => void }): ReactElement {
   useInput((_input, key) => { if (key.escape || key.return) props.onClose(); });
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>Shortcuts</Text>
+      <Text bold>Shortcuts</Text>
       {ROWS.map(([k, desc]) => (
         <Box key={k}>
-          <Text color={"white"}>{`  ${k}`.padEnd(12)}</Text>
-          <Text dimColor={true}>{desc}</Text>
+          <Text>{`  ${k}`.padEnd(12)}</Text>
+          <Text>{desc}</Text>
         </Box>
       ))}
-      <Text dimColor={true}>  Esc close · /help in scrollback for the full command list</Text>
+      <Text>  Esc close · /help in scrollback for the full command list</Text>
     </Box>
   );
 }

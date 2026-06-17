@@ -26,8 +26,8 @@ function PaletteRow(props: { match: SlashMatch; active: boolean }): ReactElement
   const desc = match.desc.length > DESC_MAX ? `${match.desc.slice(0, DESC_MAX - 1)}…` : match.desc;
   return (
     <Box>
-      <Text color={active ? "white" : undefined} inverse={active}>{label.padEnd(NAME_COL)}</Text>
-      <Text dimColor={true}> {desc}</Text>
+      <Text inverse={active}>{label.padEnd(NAME_COL)}</Text>
+      <Text> {desc}</Text>
     </Box>
   );
 }

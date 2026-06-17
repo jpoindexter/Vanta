@@ -40,12 +40,12 @@ export function ReviewPanel(props: { files: ChangedFile[]; cwd: string; onClose:
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>Review changes · {files.length} file{files.length === 1 ? "" : "s"}</Text>
+      <Text bold>Review changes · {files.length} file{files.length === 1 ? "" : "s"}</Text>
       {files.length === 0
-        ? <Text dimColor={true}>  (no changes — working tree clean)</Text>
+        ? <Text>  (no changes — working tree clean)</Text>
         : files.map((f, i) => <FileRow key={f.file} file={f} active={i === clamped} />)}
       {current ? <DiffPreview diff={diff} /> : null}
-      <Text dimColor={true}>  ↑/↓ select · u undo (restore to HEAD) · Esc close</Text>
+      <Text>  ↑/↓ select · u undo (restore to HEAD) · Esc close</Text>
     </Box>
   );
 }
@@ -58,11 +58,11 @@ function FileRow(props: { file: ChangedFile; active: boolean }): ReactElement {
   const { file, active } = props;
   return (
     <Box>
-      <Text color={active ? "white" : undefined}>{active ? "❯ " : "  "}</Text>
-      <Text color={statusColor(file.status)}>{file.status} </Text>
-      <Text color={active ? "white" : undefined}>{file.file}</Text>
-      <Text color={"white"}>  +{file.added}</Text>
-      <Text color={"white"}> -{file.removed}</Text>
+      <Text>{active ? "❯ " : "  "}</Text>
+      <Text>{file.status} </Text>
+      <Text>{file.file}</Text>
+      <Text>  +{file.added}</Text>
+      <Text> -{file.removed}</Text>
     </Box>
   );
 }
@@ -79,10 +79,10 @@ function DiffPreview(props: { diff: string }): ReactElement | null {
 
 function DiffLineView(props: { line: string }): ReactElement {
   const l = clip(props.line, MAX_W);
-  if (l.startsWith("+")) return <Text color={"white"}>  {l}</Text>;
-  if (l.startsWith("-")) return <Text color={"white"}>  {l}</Text>;
-  if (l.startsWith("@@")) return <Text color={"white"}>  {l}</Text>;
-  return <Text dimColor={true}>  {l}</Text>;
+  if (l.startsWith("+")) return <Text>  {l}</Text>;
+  if (l.startsWith("-")) return <Text>  {l}</Text>;
+  if (l.startsWith("@@")) return <Text>  {l}</Text>;
+  return <Text>  {l}</Text>;
 }
 
 function clip(s: string, max: number): string {

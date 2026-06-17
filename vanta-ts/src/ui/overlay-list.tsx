@@ -26,11 +26,11 @@ export function OverlayList(props: {
   });
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text color={"white"} bold>{focusIndicator(props.focused !== false)} {props.title}</Text>
+      <Text bold>{focusIndicator(props.focused !== false)} {props.title}</Text>
       {props.rows.length === 0
-        ? <Text dimColor={true}>  (empty)</Text>
+        ? <Text>  (empty)</Text>
         : props.rows.map((r, i) => <Row key={r.command} row={r} active={i === clamped} />)}
-      <Text dimColor={true}>  ↑/↓ select · ⏎ choose · Esc close</Text>
+      <Text>  ↑/↓ select · ⏎ choose · Esc close</Text>
     </Box>
   );
 }
@@ -40,10 +40,10 @@ function Row(props: { row: OverlayRow; active: boolean }): ReactElement {
   const hint = row.hint && row.hint.length > HINT_MAX ? `${row.hint.slice(0, HINT_MAX - 1)}…` : row.hint;
   return (
     <Box>
-      <Text color={active ? "white" : undefined}>{active ? "❯ " : "  "}</Text>
-      {row.mark ? <Text color={"white"}>{row.mark} </Text> : <Text>{"  "}</Text>}
-      <Text color={active ? "white" : undefined}>{row.label}</Text>
-      {hint ? <Text dimColor={true}>  {hint}</Text> : null}
+      <Text>{active ? "❯ " : "  "}</Text>
+      {row.mark ? <Text>{row.mark} </Text> : <Text>{"  "}</Text>}
+      <Text>{row.label}</Text>
+      {hint ? <Text>  {hint}</Text> : null}
     </Box>
   );
 }

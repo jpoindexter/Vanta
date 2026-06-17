@@ -30,9 +30,9 @@ export function ComposerView(props: {
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
       <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
-        <Text color={"white"}>{focusIndicator(props.focused !== false)}{" "}</Text>
+        <Text>{focusIndicator(props.focused !== false)}{" "}</Text>
         {props.value.length === 0
-          ? <Text><Text inverse={blink}> </Text><Text dimColor={true}>{props.placeholder}</Text></Text>
+          ? <Text><Text inverse={blink}> </Text><Text>{props.placeholder}</Text></Text>
           : props.pill
             ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
             : <CursorText value={props.value} cursor={props.cursor} blink={blink} ghost={props.ghost} />}
@@ -44,9 +44,9 @@ export function ComposerView(props: {
 function PastedTextPill({ count, lines, blink }: { count: number; lines: number; blink: boolean }): ReactElement {
   return (
     <Text>
-      <Text dimColor>{"["}</Text>
+      <Text>{"["}</Text>
       <Text>Pasted text #{count} +{lines} lines</Text>
-      <Text dimColor>{"]"}</Text>
+      <Text>{"]"}</Text>
       <Text inverse={blink}>{" "}</Text>
     </Text>
   );
@@ -64,7 +64,7 @@ function CursorText(props: { value: string; cursor: number; blink: boolean; ghos
   return (
     <Text>
       {before}<Text inverse={blink}>{glyph}</Text>{at === "\n" ? "\n" : ""}{after}
-      {atEnd && ghost ? <Text dimColor>{ghost}</Text> : null}
+      {atEnd && ghost ? <Text>{ghost}</Text> : null}
     </Text>
   );
 }
