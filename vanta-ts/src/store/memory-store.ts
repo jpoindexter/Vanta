@@ -1,48 +1,50 @@
 import { readFile, appendFile, writeFile, readdir, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { resolveVantaHome, ensureVantaStore, commitInHome } from "./home.js";
 
 /**
- * The persistence PORT for the Vanta home store. Namespaced file ops
- * (read/write/append/list) + ensure + commit — deliberately backend-agnostic
- * (no filesystem `dir()` leak) so the default fs adapter can later be swapped
- * for sqlite/remote/encrypted WITHOUT touching consumers. (ports/adapters,
- * DECISIONS 2026-06-17.)
+ * The persistence PORT for the Vanta home store. File ops keyed by a path
+ * RELATIVE to the home root (e.g. "world.jsonl", "memories/5.md") + ensure +
+ * commit + list. Deliberately backend-agnostic (a path key, not a filesystem
+ * handle) so the default fs adapter can later be swapped for sqlite/remote/
+ * encrypted WITHOUT touching consumers. (ports/adapters, DECISIONS 2026-06-17.)
  *
- * WAVE 1: the port + fs adapter exist and memory/store.ts is migrated as the
- * proof. The remaining ~37 modules that import store/home.ts directly migrate in
- * later waves (PORT-MEMORY-STORE) — each independently shippable + verified.
+ * Consumers must use {@link resolveMemoryStore} — never store/home.ts directly.
  */
 export interface MemoryStore {
   ensure(): Promise<void>;
-  read(ns: string, file: string): Promise<string | null>;
-  write(ns: string, file: string, content: string): Promise<void>;
-  append(ns: string, file: string, content: string): Promise<void>;
-  list(ns: string): Promise<string[]>;
-  commit(ns: string, file: string, message: string): Promise<void>;
+  /** Read a home-relative path, or null if missing/unreadable. */
+  read(path: string): Promise<string | null>;
+  /** Write (create dirs as needed) a home-relative path. */
+  write(path: string, content: string): Promise<void>;
+  /** Append (create dirs as needed) to a home-relative path. */
+  append(path: string, content: string): Promise<void>;
+  /** List filenames in a home-relative directory ("" = the home root). */
+  list(dir: string): Promise<string[]>;
+  /** Best-effort git commit of a home-relative path. Never throws. */
+  commit(path: string, message: string): Promise<void>;
 }
 
 /** Default adapter: the git-versioned ~/.vanta filesystem (via store/home.ts). */
 export function fsMemoryStore(env: NodeJS.ProcessEnv = process.env): MemoryStore {
-  const path = (ns: string, file?: string): string =>
-    file ? join(resolveVantaHome(env), ns, file) : join(resolveVantaHome(env), ns);
+  const abs = (rel: string): string => join(resolveVantaHome(env), rel);
   return {
     ensure: () => ensureVantaStore(env).then(() => undefined),
-    async read(ns, file) {
-      return readFile(path(ns, file), "utf8").catch(() => null);
+    async read(path) {
+      return readFile(abs(path), "utf8").catch(() => null);
     },
-    async write(ns, file, content) {
-      await mkdir(path(ns), { recursive: true });
-      await writeFile(path(ns, file), content, "utf8");
+    async write(path, content) {
+      await mkdir(dirname(abs(path)), { recursive: true });
+      await writeFile(abs(path), content, "utf8");
     },
-    async append(ns, file, content) {
-      await mkdir(path(ns), { recursive: true });
-      await appendFile(path(ns, file), content, "utf8");
+    async append(path, content) {
+      await mkdir(dirname(abs(path)), { recursive: true });
+      await appendFile(abs(path), content, "utf8");
     },
-    async list(ns) {
-      return readdir(path(ns)).catch(() => []);
+    async list(dir) {
+      return readdir(abs(dir)).catch(() => []);
     },
-    commit: (ns, file, message) => commitInHome(join(ns, file), message, env),
+    commit: (path, message) => commitInHome(path, message, env),
   };
 }
 

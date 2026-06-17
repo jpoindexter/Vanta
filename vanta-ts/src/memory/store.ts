@@ -2,8 +2,8 @@ import { resolveMemoryStore } from "../store/memory-store.js";
 import { scanForSecrets } from "../store/secret-scan.js";
 import { annotateMemory } from "./freshness.js";
 
-/** Namespace for per-goal memory files in the home store. */
-const MEMORIES_NS = "memories";
+/** Home-relative path for a goal's memory file. */
+const memoryPath = (goalId: number): string => `memories/${goalId}.md`;
 
 const DEFAULT_MAX_PER_GOAL = 3;
 // Upper bound on stored blocks per goal. Far above the injection cap — older
@@ -33,17 +33,17 @@ export async function appendMemory(
   const store = resolveMemoryStore(env);
   await store.ensure();
   const now = opts.now ?? new Date().toISOString();
-  const fileName = `${goalId}.md`;
+  const path = memoryPath(goalId);
   const block = `${BLOCK_DELIM}${now}\n${summary.trim()}\n\n`;
-  await store.append(MEMORIES_NS, fileName, block);
+  await store.append(path, block);
   // Bound the stored file (capped memory): keep the most recent
   // blocks; older ones are pruned from the live file but preserved in git below.
   const cap = Number(env?.VANTA_MEMORY_MAX_BLOCKS) || DEFAULT_MAX_STORED_BLOCKS;
-  const blocks = splitBlocks((await store.read(MEMORIES_NS, fileName)) ?? "");
+  const blocks = splitBlocks((await store.read(path)) ?? "");
   if (blocks.length > cap) {
-    await store.write(MEMORIES_NS, fileName, `${blocks.slice(-cap).join("\n\n")}\n\n`);
+    await store.write(path, `${blocks.slice(-cap).join("\n\n")}\n\n`);
   }
-  await store.commit(MEMORIES_NS, fileName, `memory: goal ${goalId}`);
+  await store.commit(path, `memory: goal ${goalId}`);
   return { skipped: false, rules: [] };
 }
 
@@ -52,7 +52,7 @@ export async function readMemory(
   goalId: number,
   env?: NodeJS.ProcessEnv,
 ): Promise<string | null> {
-  return resolveMemoryStore(env).read(MEMORIES_NS, `${goalId}.md`);
+  return resolveMemoryStore(env).read(memoryPath(goalId));
 }
 
 /**

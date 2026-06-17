@@ -15,16 +15,19 @@ describe("resolveMemoryStore", () => {
 });
 
 describe("fsMemoryStore round-trip (temp home)", () => {
-  it("writes, appends, reads, and lists within a namespace", async () => {
+  it("writes, appends, reads root + subdir paths, and lists", async () => {
     const home = await mkdtemp(join(tmpdir(), "vanta-mem-"));
     try {
       const store = fsMemoryStore({ VANTA_HOME: home });
-      expect(await store.read("notes", "a.md")).toBeNull();
-      await store.write("notes", "a.md", "hello");
-      expect(await store.read("notes", "a.md")).toBe("hello");
-      await store.append("notes", "a.md", " world");
-      expect(await store.read("notes", "a.md")).toBe("hello world");
-      expect(await store.list("notes")).toContain("a.md");
+      // root-level file (e.g. world.jsonl)
+      expect(await store.read("world.jsonl")).toBeNull();
+      await store.write("world.jsonl", "x");
+      expect(await store.read("world.jsonl")).toBe("x");
+      // subdir file (e.g. memories/5.md) — dirs auto-created
+      await store.write("memories/5.md", "hello");
+      await store.append("memories/5.md", " world");
+      expect(await store.read("memories/5.md")).toBe("hello world");
+      expect(await store.list("memories")).toContain("5.md");
     } finally {
       await rm(home, { recursive: true, force: true });
     }
