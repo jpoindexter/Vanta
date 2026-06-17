@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { runAgent } from "../agent.js";
 import { createKernelClient } from "../safety-client.js";
-import { ToolRegistry } from "./registry.js";
+import { createToolRegistry } from "./registry.js";
 import { buildStructuredOutputTool } from "./structured-output.js";
 import type { CompletionResult, LLMProvider, ToolSchema } from "../providers/interface.js";
 import type { Message } from "../types.js";
@@ -38,7 +38,7 @@ function deps(provider: LLMProvider) {
   return {
     provider,
     safety: createKernelClient("http://127.0.0.1:7788"),
-    registry: new ToolRegistry(),
+    registry: createToolRegistry(),
     root: process.cwd(),
     requestApproval: async () => false,
     outputSchema: SCHEMA,

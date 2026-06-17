@@ -53,6 +53,13 @@ export const RULES: BoundaryRule[] = [
     appliesTo: (rel) => rel !== "safety-client.ts" && rel !== "lint/boundaries.ts",
     forbid: /\bHttpSafetyClient\b/,
   },
+  {
+    id: "tool-registry-port",
+    desc: "Consumers must use the ToolRegistry port + createToolRegistry factory, never the MapToolRegistry adapter directly.",
+    severity: "error",
+    appliesTo: (rel) => rel !== "tools/registry.ts" && rel !== "lint/boundaries.ts",
+    forbid: /\bMapToolRegistry\b/,
+  },
 ];
 
 /** Grandfathered `${ruleId}::${relPath}` keys — warn, never error. Shrink only. */

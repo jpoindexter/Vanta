@@ -12201,13 +12201,14 @@
       "id": "PORT-TOOL-REGISTRY-IFACE",
       "track": "Harness",
       "title": "ToolRegistry interface (currently a concrete class)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: most consumers already `import type` the registry (good) but there is no ToolRegistry *interface* — tools/registry.ts:4 is a class, and mount-mcp.ts needs the concrete register(). Extract an interface (schemas/get/register) so a namespaced/scoped/test registry can be swapped in. Low blast radius; closes the second-most-coupled core hub after provider.",
       "done": "A ToolRegistry interface exists; consumers (incl. mount-mcp) depend on it; the concrete class implements it; a scoped/test registry can replace it without consumer edits.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-17",
+      "note": "Shipped: ToolRegistry interface + createToolRegistry factory + MapToolRegistry adapter. ~20 import-type sites unchanged; 3 non-test + 7 test construction sites moved to the factory; tool-registry-port fitness rule. tsc clean; suite green."
     },
     {
       "id": "PORT-MEMORY-STORE",

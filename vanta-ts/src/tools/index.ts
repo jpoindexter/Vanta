@@ -1,4 +1,4 @@
-import { ToolRegistry } from "./registry.js";
+import { createToolRegistry, type ToolRegistry } from "./registry.js";
 import { ALL_TOOLS } from "./all-tools.js";
 import { buildToolSearchTool } from "./tool-search.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
@@ -10,7 +10,7 @@ import { buildMountMcpTool } from "./mount-mcp.js";
  * `mount_mcp` is registered via factory (needs a reference to the live registry).
  */
 export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
-  const registry = new ToolRegistry();
+  const registry = createToolRegistry();
   const exclude = new Set(opts?.exclude ?? []);
   for (const tool of ALL_TOOLS) {
     if (!exclude.has(tool.schema.name)) registry.register(tool);
@@ -24,4 +24,5 @@ export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
   return registry;
 }
 
-export { ToolRegistry } from "./registry.js";
+export { createToolRegistry } from "./registry.js";
+export type { ToolRegistry } from "./registry.js";

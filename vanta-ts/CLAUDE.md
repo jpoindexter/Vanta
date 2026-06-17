@@ -39,7 +39,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `VANTA_ROOT` + cwd, poll 5s |
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
 | `tools/types.ts` | `Tool` (schema + optional `describeForSafety` + `execute`), `ToolContext`, `ToolResult` |
-| `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
+| `tools/registry.ts` | **`ToolRegistry` port** (register/get/list/schemas) + `createToolRegistry()` factory + `MapToolRegistry` adapter. Consumers type against the interface and construct via the factory — never `new MapToolRegistry` (the `tool-registry-port` fitness rule enforces it) |
 | `tools/roadmap-move.ts` | KANBAN — `roadmap_move` tool. Moves a roadmap item to a new status, writes `roadmap.json`, regenerates HTML. `describeForSafety` → kernel Allow |
 | `roadmap/move.ts` | `moveRoadmapItem(repoRoot, id, toStatus)` — pure fn: read → validate → patch → write → rebuild |
 | `roadmap/server.ts` | KANBAN-S2 — `createRoadmapServer(repoRoot)` (Node http) + `serveRoadmap(repoRoot, port)`. Routes: `GET /roadmap/board` (serves roadmap.html), `POST /roadmap/move` → `moveRoadmapItem`. `vanta roadmap serve` wires this |

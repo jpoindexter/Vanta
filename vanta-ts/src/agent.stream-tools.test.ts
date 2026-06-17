@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createConversation } from "./agent.js";
-import { ToolRegistry } from "./tools/registry.js";
+import { createToolRegistry } from "./tools/registry.js";
 import type { Tool } from "./tools/types.js";
 import type { LLMProvider, CompletionResult, StreamChunk } from "./providers/interface.js";
 import type { SafetyClient } from "./safety-client.js";
@@ -68,7 +68,7 @@ describe("streaming tool execution", () => {
       },
     };
 
-    const registry = new ToolRegistry();
+    const registry = createToolRegistry();
     registry.register(readTool);
 
     let completeCalls = 0;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createConversation } from "../agent.js";
-import { ToolRegistry } from "../tools/registry.js";
+import { createToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 import type { LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { Message, Verdict } from "../types.js";
@@ -54,7 +54,7 @@ describe("reactive compaction", () => {
   });
 
   it("compacts oversized tool output before it enters the next model call", async () => {
-    const registry = new ToolRegistry();
+    const registry = createToolRegistry();
     const bigTool: Tool = {
       schema: { name: "big_tool", description: "big", parameters: { type: "object", properties: {} } },
       execute: async () => ({ ok: true, output: "x".repeat(240) }),

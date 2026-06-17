@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ToolRegistry } from "../tools/registry.js";
+import { createToolRegistry } from "../tools/registry.js";
 import { recallTool } from "../tools/recall.js";
 import { writeSkillTool } from "../tools/write-skill.js";
 import { writeSkill, LEARNED_TAG } from "../skills/store.js";
@@ -123,7 +123,7 @@ export async function reviewTurn(opts: {
   transcript: Message[];
 }): Promise<{ wrote: string[] }> {
   const written: string[] = [];
-  const registry = new ToolRegistry();
+  const registry = createToolRegistry();
   registry.register(recallTool);
   registry.register(learnedSkillTool(written));
 

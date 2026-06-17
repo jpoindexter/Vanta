@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { ToolRegistry } from "../tools/registry.js";
+import { createToolRegistry, type ToolRegistry } from "../tools/registry.js";
 import { dispatchTool } from "../agent/dispatch-tool.js";
 import { PluginCommandRegistry } from "./commands.js";
 import { discoverPlugins, loadEnabledPlugins } from "./loader.js";
@@ -38,7 +38,7 @@ async function writePlugin(base: string, name: string, code: string, manifest: R
 
 function loaderDeps(settings: Settings): { registry: ToolRegistry; commands: PluginCommandRegistry } {
   return {
-    registry: new ToolRegistry(),
+    registry: createToolRegistry(),
     commands: new PluginCommandRegistry(new Set(["help"])),
   };
 }

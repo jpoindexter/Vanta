@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createConversation } from "../agent.js";
-import { ToolRegistry } from "../tools/registry.js";
+import { createToolRegistry } from "../tools/registry.js";
 import type { ToolSchema, LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
 import { scopeToolSchemas, toolScopeSummary } from "./tool-scope.js";
@@ -36,7 +36,7 @@ describe("per-task tool scoping", () => {
   });
 
   it("passes the scoped schema subset to the provider", async () => {
-    const registry = new ToolRegistry();
+    const registry = createToolRegistry();
     for (const s of manySchemas) registry.register({ schema: s, execute: async () => ({ ok: true, output: "" }) });
     let seen: string[] = [];
     const provider: LLMProvider = {

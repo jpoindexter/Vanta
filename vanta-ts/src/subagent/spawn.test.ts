@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { spawnSubagent } from "./spawn.js";
-import { ToolRegistry } from "../tools/registry.js";
+import { createToolRegistry } from "../tools/registry.js";
 import type { AgentDeps } from "../agent.js";
 import type { LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
@@ -32,7 +32,7 @@ function makeDeps(): AgentDeps {
   return {
     provider: new FakeProvider(),
     safety,
-    registry: new ToolRegistry(),
+    registry: createToolRegistry(),
     root: "/tmp/vanta-test-root",
     requestApproval: async () => true,
   };
