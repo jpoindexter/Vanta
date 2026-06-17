@@ -112,13 +112,13 @@ session-count → background → cost. Right: cwd/branch.
   dropped-path attach, `$EDITOR` launch. (Paste/editor = post-v0.)
 
 ### Transcript
-Reference (`hermes`) used a `ScrollBox` (forked-Ink) virtualized, sticky-to-bottom.
+Reference (`the reference agent`) used a `ScrollBox` (forked-Ink) virtualized, sticky-to-bottom.
 Rows: user `❯`, assistant `┊` (markdown), tool `⚡` (bordered preview), system `·`.
 Streaming markdown re-tokenizes the tail. **Vanta resolved the scroll question** by
 rebuilding on real Ink 7 (`ink`) with an inline + `<Static>` committed-scrollback
 model (no ScrollBox, no AlternateScreen): finished rows are committed once via
 `<Static>` and native terminal scroll/selection/copy work without any custom component.
-The render layer lives in `vanta-ts/src/ui/`; the vendored hermes-ink fork is deleted.
+The render layer lives in `vanta-ts/src/ui/`; the vendored the forked ink renderer fork is deleted.
 
 ---
 

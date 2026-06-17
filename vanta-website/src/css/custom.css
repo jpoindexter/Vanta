@@ -188,7 +188,7 @@ code { border-radius: 0.4rem; }
 .markdown table thead { background: var(--ifm-color-emphasis-100); }
 .markdown table th, .markdown table td { border-color: var(--vanta-border); }
 
-/* ---------- Use-case card grid (Hermes-style) ---------- */
+/* ---------- Use-case card grid ---------- */
 .uc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
