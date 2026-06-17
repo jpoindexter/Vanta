@@ -1,6 +1,4 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Structured money-making ledger — offers, prospects, revenue, deliverables, follow-ups.
 // Append-only JSONL (~/.vanta/money.jsonl), global across projects.
@@ -13,18 +11,17 @@ export type Deliverable = { kind: "deliverable"; id: string; prospectId?: string
 export type Followup = { kind: "followup"; id: string; prospectId: string; note: string; due: string; done?: string; created: string; updated: string };
 export type MoneyRecord = Offer | Prospect | Revenue | Deliverable | Followup;
 
-function moneyPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "money.jsonl");
-}
-
 export async function appendMoney(rec: MoneyRecord, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(moneyPath(env), JSON.stringify(rec) + "\n", "utf8");
+  const store = resolveMemoryStore(env);
+  await store.append("money.jsonl", JSON.stringify(rec) + "\n");
 }
 
 export async function readMoney(env: NodeJS.ProcessEnv = process.env): Promise<MoneyRecord[]> {
+  const store = resolveMemoryStore(env);
   try {
-    return (await readFile(moneyPath(env), "utf8"))
+    const raw = await store.read("money.jsonl");
+    if (raw === null) return [];
+    return raw
       .split("\n")
       .filter(Boolean)
       .map((l) => JSON.parse(l) as MoneyRecord);

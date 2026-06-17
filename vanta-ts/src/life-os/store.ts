@@ -1,22 +1,18 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { LifeOsSchema, type LifeOs } from "./schema.js";
 
 // Life OS store: reads/writes ~/.vanta/life-os.json.
 // Single file, full rewrite on each save (schema is small, JSON is fine).
 
-function lifeOsPath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "life-os.json");
-}
+const LIFE_OS_PATH = "life-os.json";
 
 /** Load the Life OS store, returning defaults if the file is missing or invalid. */
 export async function loadLifeOs(env?: NodeJS.ProcessEnv): Promise<LifeOs> {
-  const path = lifeOsPath(env);
-  if (!existsSync(path)) return LifeOsSchema.parse({});
+  const store = resolveMemoryStore(env ?? process.env);
+  const raw = await store.read(LIFE_OS_PATH);
+  if (raw === null) return LifeOsSchema.parse({});
   try {
-    return LifeOsSchema.parse(JSON.parse(await readFile(path, "utf8")));
+    return LifeOsSchema.parse(JSON.parse(raw));
   } catch {
     return LifeOsSchema.parse({});
   }
@@ -24,11 +20,10 @@ export async function loadLifeOs(env?: NodeJS.ProcessEnv): Promise<LifeOs> {
 
 /** Write the Life OS store. */
 export async function saveLifeOs(data: LifeOs, env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(
-    lifeOsPath(env),
+  const store = resolveMemoryStore(env ?? process.env);
+  await store.write(
+    LIFE_OS_PATH,
     JSON.stringify({ ...data, updatedAt: new Date().toISOString() }, null, 2) + "\n",
-    "utf8",
   );
 }
 

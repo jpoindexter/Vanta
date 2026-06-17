@@ -1,7 +1,5 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // A simple in-session plan (todo list) the agent maintains for multi-step work,
 // stored at ~/.vanta/todo.json and viewable with /plan. TodoWrite-style: the
@@ -14,21 +12,20 @@ export const TodoItemSchema = z.object({
 export type TodoItem = z.infer<typeof TodoItemSchema>;
 const TodoFileSchema = z.array(TodoItemSchema);
 
-function todoPath(env: NodeJS.ProcessEnv = process.env): string {
-  return join(resolveVantaHome(env), "todo.json");
-}
-
 export async function readTodos(env: NodeJS.ProcessEnv = process.env): Promise<TodoItem[]> {
+  const store = resolveMemoryStore(env);
   try {
-    return TodoFileSchema.parse(JSON.parse(await readFile(todoPath(env), "utf8")));
+    const raw = await store.read("todo.json");
+    if (raw === null) return [];
+    return TodoFileSchema.parse(JSON.parse(raw));
   } catch {
     return [];
   }
 }
 
 export async function writeTodos(items: TodoItem[], env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(todoPath(env), JSON.stringify(items, null, 2), "utf8");
+  const store = resolveMemoryStore(env);
+  await store.write("todo.json", JSON.stringify(items, null, 2));
 }
 
 /** Render the plan for /plan and the `todo` list action. */

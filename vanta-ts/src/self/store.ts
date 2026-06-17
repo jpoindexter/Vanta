@@ -1,7 +1,5 @@
-import { readFile, writeFile, mkdir, appendFile } from "node:fs/promises";
 import { join } from "node:path";
-import { existsSync } from "node:fs";
-import { resolveVantaHome, commitInHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // SCAFFOLD: versioned .vanta/self/ identity layer.
 // Three files under ~/.vanta/self/ give Vanta continuity:
@@ -53,25 +51,23 @@ This file is the line. It updates only through a checked path.
 `,
 };
 
-function selfDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "self");
+/** Home-relative path to a self region file (e.g. "self/identity.md"). */
+function selfPath(region: SelfRegion): string {
+  return join("self", `${region}.md`);
 }
 
-function selfPath(region: SelfRegion, env?: NodeJS.ProcessEnv): string {
-  return join(selfDir(env), `${region}.md`);
-}
-
-function changelogPath(env?: NodeJS.ProcessEnv): string {
-  return join(selfDir(env), "changelog.md");
+/** Home-relative path to the self changelog. */
+function changelogPath(): string {
+  return join("self", "changelog.md");
 }
 
 /** Ensure ~/.vanta/self/ exists and seed missing regions. */
 export async function ensureSelf(env?: NodeJS.ProcessEnv): Promise<void> {
-  const dir = selfDir(env);
-  await mkdir(dir, { recursive: true });
+  const store = resolveMemoryStore(env ?? process.env);
   for (const region of REGIONS) {
-    const path = selfPath(region, env);
-    if (!existsSync(path)) await writeFile(path, SEEDS[region], "utf8");
+    if ((await store.read(selfPath(region))) === null) {
+      await store.write(selfPath(region), SEEDS[region]);
+    }
   }
 }
 
@@ -80,11 +76,7 @@ export async function readSelf(
   region: SelfRegion,
   env?: NodeJS.ProcessEnv,
 ): Promise<string | null> {
-  try {
-    return await readFile(selfPath(region, env), "utf8");
-  } catch {
-    return null;
-  }
+  return resolveMemoryStore(env ?? process.env).read(selfPath(region));
 }
 
 /** Read all regions, merging into one string for prompt injection. */
@@ -105,11 +97,12 @@ export async function writeSelfFile(
   reason: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<void> {
+  const store = resolveMemoryStore(env ?? process.env);
   await ensureSelf(env);
   const existing = await readSelf(region, env);
   if (existing?.trim() === content.trim()) return; // no-op
-  await writeFile(selfPath(region, env), content, "utf8");
+  await store.write(selfPath(region), content);
   const entry = `\n## ${new Date().toISOString()} — ${region}\nReason: ${reason}\n`;
-  await appendFile(changelogPath(env), entry, "utf8");
-  await commitInHome(join("self", `${region}.md`), `self/${region}: ${reason.slice(0, 60)}`, env);
+  await store.append(changelogPath(), entry);
+  await store.commit(selfPath(region), `self/${region}: ${reason.slice(0, 60)}`);
 }

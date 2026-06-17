@@ -1,6 +1,4 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 export type VelocityEvent = {
   type: "capture" | "ship";
@@ -8,25 +6,23 @@ export type VelocityEvent = {
   at: string;
 };
 
-function velocityPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "velocity.json");
-}
+const VELOCITY_PATH = "velocity.json";
 
 /** Append a single event to ~/.vanta/velocity.json. Creates the file if absent. */
 export async function appendVelocityEvent(
   env: NodeJS.ProcessEnv,
   event: VelocityEvent,
 ): Promise<void> {
-  const path = velocityPath(env);
-  await mkdir(dirname(path), { recursive: true });
+  const store = resolveMemoryStore(env);
   let events: VelocityEvent[] = [];
   try {
-    events = JSON.parse(await readFile(path, "utf8")) as VelocityEvent[];
+    const raw = await store.read(VELOCITY_PATH);
+    if (raw !== null) events = JSON.parse(raw) as VelocityEvent[];
   } catch {
     // file absent or malformed — start fresh
   }
   events.push(event);
-  await writeFile(path, JSON.stringify(events, null, 2) + "\n", "utf8");
+  await store.write(VELOCITY_PATH, JSON.stringify(events, null, 2) + "\n");
 }
 
 /** Read all recorded events. Returns [] if the file doesn't exist yet. */
@@ -34,7 +30,9 @@ export async function readVelocityEvents(
   env: NodeJS.ProcessEnv,
 ): Promise<VelocityEvent[]> {
   try {
-    return JSON.parse(await readFile(velocityPath(env), "utf8")) as VelocityEvent[];
+    const raw = await resolveMemoryStore(env).read(VELOCITY_PATH);
+    if (raw === null) return [];
+    return JSON.parse(raw) as VelocityEvent[];
   } catch {
     return [];
   }

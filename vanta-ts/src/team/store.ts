@@ -1,6 +1,4 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Durable registry of named background workers/agents. Append-only JSONL
 // (~/.vanta/team.jsonl), global across projects. Latest-write-wins per worker
@@ -17,18 +15,17 @@ export type Worker = {
   ts: string;
 };
 
-function teamPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "team.jsonl");
-}
+const TEAM_PATH = "team.jsonl";
 
 export async function appendTeam(rec: Worker, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(teamPath(env), JSON.stringify(rec) + "\n", "utf8");
+  await resolveMemoryStore(env).append(TEAM_PATH, JSON.stringify(rec) + "\n");
 }
 
 export async function readTeam(env: NodeJS.ProcessEnv = process.env): Promise<Worker[]> {
   try {
-    return (await readFile(teamPath(env), "utf8"))
+    const raw = await resolveMemoryStore(env).read(TEAM_PATH);
+    if (raw === null) return [];
+    return raw
       .split("\n")
       .filter(Boolean)
       .map((l) => JSON.parse(l) as Worker);

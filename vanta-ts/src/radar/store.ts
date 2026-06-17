@@ -1,6 +1,4 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Vanta's opportunity radar — a durable, append-only ledger of scored business
 // opportunities (pain + buyer signals). Append-only JSONL; latest-write-wins
@@ -20,18 +18,17 @@ export type Opportunity = {
   ts: string;
 };
 
-function radarPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "radar.jsonl");
-}
-
 export async function appendRadar(rec: Opportunity, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(radarPath(env), JSON.stringify(rec) + "\n", "utf8");
+  const store = resolveMemoryStore(env);
+  await store.append("radar.jsonl", JSON.stringify(rec) + "\n");
 }
 
 export async function readRadar(env: NodeJS.ProcessEnv = process.env): Promise<Opportunity[]> {
+  const store = resolveMemoryStore(env);
   try {
-    return (await readFile(radarPath(env), "utf8"))
+    const raw = await store.read("radar.jsonl");
+    if (raw === null) return [];
+    return raw
       .split("\n")
       .filter(Boolean)
       .map((l) => JSON.parse(l) as Opportunity);

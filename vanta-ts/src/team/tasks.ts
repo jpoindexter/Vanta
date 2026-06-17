@@ -1,6 +1,4 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Task assignment + status ledger for background workers.
 // Append-only JSONL (~/.vanta/team-tasks.jsonl), global across projects.
@@ -36,23 +34,22 @@ const TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 
 const OPEN_STATUSES: ReadonlySet<TaskStatus> = new Set(["assigned", "running", "blocked"]);
 
-function tasksPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "team-tasks.jsonl");
-}
+const TASKS_PATH = "team-tasks.jsonl";
 
 export async function appendTask(
   rec: WorkerTask,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(tasksPath(env), JSON.stringify(rec) + "\n", "utf8");
+  await resolveMemoryStore(env).append(TASKS_PATH, JSON.stringify(rec) + "\n");
 }
 
 export async function readTasks(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<WorkerTask[]> {
   try {
-    return (await readFile(tasksPath(env), "utf8"))
+    const raw = await resolveMemoryStore(env).read(TASKS_PATH);
+    if (raw === null) return [];
+    return raw
       .split("\n")
       .filter(Boolean)
       .map((l) => JSON.parse(l) as WorkerTask);

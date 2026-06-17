@@ -1,7 +1,5 @@
-import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // MEM-GRAPH: Temporal entity-relationship graph — entity × relationship model
 // stored as append-only JSONL. Enables cross-session queries: what goals mention
@@ -19,9 +17,7 @@ export type QueryResult = {
   relations: Array<{ rel: RelationType; target: GraphEntity; strength: number; ts: string }>;
 };
 
-function graphFile(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "graph.jsonl");
-}
+const GRAPH_PATH = "graph.jsonl";
 
 function entityId(name: string, type: EntityType): string {
   return createHash("sha256").update(`${type}:${name.toLowerCase().trim()}`).digest("hex").slice(0, 12);
@@ -29,9 +25,8 @@ function entityId(name: string, type: EntityType): string {
 
 /** Append one or more graph records. Creates the file if absent. */
 export async function appendGraph(records: GraphRecord[], env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
   const lines = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
-  await appendFile(graphFile(env), lines, "utf8");
+  await resolveMemoryStore(env).append(GRAPH_PATH, lines);
 }
 
 /** Upsert an entity (idempotent by name+type). Returns the entity. */
@@ -54,7 +49,7 @@ export function makeRelation(
 
 /** Load all graph records from disk. */
 async function loadGraph(env?: NodeJS.ProcessEnv): Promise<GraphRecord[]> {
-  const raw = await readFile(graphFile(env), "utf8").catch(() => "");
+  const raw = (await resolveMemoryStore(env).read(GRAPH_PATH)) ?? "";
   return raw
     .split("\n")
     .filter(Boolean)

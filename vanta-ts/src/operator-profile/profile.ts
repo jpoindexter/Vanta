@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { readPreferenceSignals } from "../preferences/signals.js";
 
 const FILE = "operator-profile.json";
@@ -53,7 +53,9 @@ export function operatorProfilePath(env: NodeJS.ProcessEnv = process.env): strin
 
 export async function loadOperatorProfile(env: NodeJS.ProcessEnv = process.env): Promise<OperatorProfile> {
   try {
-    const parsed = OperatorProfileSchema.safeParse(JSON.parse(await readFile(operatorProfilePath(env), "utf8")));
+    const raw = await resolveMemoryStore(env).read(FILE);
+    if (raw === null) return defaultOperatorProfile();
+    const parsed = OperatorProfileSchema.safeParse(JSON.parse(raw));
     return parsed.success ? parsed.data : defaultOperatorProfile();
   } catch {
     return defaultOperatorProfile();
@@ -62,8 +64,7 @@ export async function loadOperatorProfile(env: NodeJS.ProcessEnv = process.env):
 
 export async function writeOperatorProfile(profile: OperatorProfile, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const parsed = OperatorProfileSchema.parse(profile);
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(operatorProfilePath(env), `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+  await resolveMemoryStore(env).write(FILE, `${JSON.stringify(parsed, null, 2)}\n`);
 }
 
 export function inferProfileFromSignals(signals: ProfileSignal[]): InferredProfile {

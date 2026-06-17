@@ -1,8 +1,11 @@
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join, basename, extname } from "node:path";
 import { existsSync } from "node:fs";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
+
+// Home-relative paths for the MemoryStore port (on-disk layout unchanged).
+const REFS_INDEX_REL = "refs/index.json";
 
 // REF-INGEST: durable project-scoped reference store.
 // Ingested references (URLs, files, repo paths, images, transcripts) are
@@ -45,16 +48,19 @@ function generateId(source: string): string {
 }
 
 async function loadIndex(env?: NodeJS.ProcessEnv): Promise<Ref[]> {
+  const store = resolveMemoryStore(env ?? process.env);
+  const raw = await store.read(REFS_INDEX_REL);
+  if (raw === null) return [];
   try {
-    return RefsIndexSchema.parse(JSON.parse(await readFile(indexPath(env), "utf8")));
+    return RefsIndexSchema.parse(JSON.parse(raw));
   } catch {
     return [];
   }
 }
 
 async function saveIndex(refs: Ref[], env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(refsDir(env), { recursive: true });
-  await writeFile(indexPath(env), JSON.stringify(refs, null, 2) + "\n", "utf8");
+  const store = resolveMemoryStore(env ?? process.env);
+  await store.write(REFS_INDEX_REL, JSON.stringify(refs, null, 2) + "\n");
 }
 
 /** Detect the type of a source string. Pure. */

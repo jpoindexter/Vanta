@@ -1,8 +1,7 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
+
+const TASTE_ASSETS_PATH = "taste-assets.json";
 
 // AESTHETIC-ASSET-INDEX: visual reference library for the taste engine.
 // Stores URLs, screenshot paths, and design references with taste tags
@@ -36,19 +35,17 @@ export type Asset = z.infer<typeof AssetSchema>;
 
 const IndexSchema = z.array(AssetSchema);
 
-function indexPath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "taste-assets.json");
-}
-
 export async function loadAssets(env?: NodeJS.ProcessEnv): Promise<Asset[]> {
-  if (!existsSync(indexPath(env))) return [];
-  try { return IndexSchema.parse(JSON.parse(await readFile(indexPath(env), "utf8"))); }
+  const store = resolveMemoryStore(env ?? process.env);
+  const raw = await store.read(TASTE_ASSETS_PATH);
+  if (raw === null) return [];
+  try { return IndexSchema.parse(JSON.parse(raw)); }
   catch { return []; }
 }
 
 async function saveAssets(assets: Asset[], env?: NodeJS.ProcessEnv): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(indexPath(env), JSON.stringify(assets, null, 2) + "\n", "utf8");
+  const store = resolveMemoryStore(env ?? process.env);
+  await store.write(TASTE_ASSETS_PATH, JSON.stringify(assets, null, 2) + "\n");
 }
 
 function genId(source: string): string {

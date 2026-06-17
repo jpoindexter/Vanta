@@ -1,8 +1,8 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 const FILE = "preferences.jsonl";
 const MAX_CONTEXT = 240;
@@ -33,17 +33,11 @@ export function preferenceSignalsPath(env: NodeJS.ProcessEnv = process.env): str
 
 export async function appendPreferenceSignal(signal: PreferenceSignal, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const parsed = PreferenceSignalSchema.parse(signal);
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(preferenceSignalsPath(env), `${JSON.stringify(parsed)}\n`, "utf8");
+  await resolveMemoryStore(env).append(FILE, `${JSON.stringify(parsed)}\n`);
 }
 
 export async function readPreferenceSignals(env: NodeJS.ProcessEnv = process.env): Promise<PreferenceSignal[]> {
-  let raw = "";
-  try {
-    raw = await readFile(preferenceSignalsPath(env), "utf8");
-  } catch {
-    return [];
-  }
+  const raw = (await resolveMemoryStore(env).read(FILE)) ?? "";
   const rows: PreferenceSignal[] = [];
   for (const line of raw.split(/\r?\n/)) {
     if (!line.trim()) continue;

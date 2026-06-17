@@ -1,6 +1,4 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Vanta's world model — a durable, append-only graph of entities (people,
 // projects, repos, companies, goals, accounts, commitments) and relationships.
@@ -20,18 +18,17 @@ export type WorldEntity = {
 export type WorldRelation = { kind: "relation"; from: string; to: string; rel: string; ts: string };
 export type WorldRecord = WorldEntity | WorldRelation;
 
-function worldPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "world.jsonl");
-}
-
 export async function appendWorld(rec: WorldRecord, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(worldPath(env), JSON.stringify(rec) + "\n", "utf8");
+  const store = resolveMemoryStore(env);
+  await store.append("world.jsonl", JSON.stringify(rec) + "\n");
 }
 
 export async function readWorld(env: NodeJS.ProcessEnv = process.env): Promise<WorldRecord[]> {
+  const store = resolveMemoryStore(env);
   try {
-    return (await readFile(worldPath(env), "utf8"))
+    const raw = await store.read("world.jsonl");
+    if (raw === null) return [];
+    return raw
       .split("\n")
       .filter(Boolean)
       .map((l) => JSON.parse(l) as WorldRecord);
