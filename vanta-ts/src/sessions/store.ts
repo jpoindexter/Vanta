@@ -1,7 +1,8 @@
-import { readdir, readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import type { Message } from "../types.js";
 import type { SessionStore } from "./interface.js";
 
@@ -49,6 +50,12 @@ export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated"> 
   turns: number;
 };
 
+/** Home-relative path to a session's JSON file. */
+function sessionRel(id: string): string {
+  return `${SESSIONS_SUBDIR}/${id}.json`;
+}
+
+/** Absolute sessions dir — only for the fs-level delete the port can't express. */
 function sessionsDir(env?: NodeJS.ProcessEnv): string {
   return join(resolveVantaHome(env), SESSIONS_SUBDIR);
 }
@@ -75,8 +82,6 @@ export async function saveSession(
   messages: Message[],
   opts: { env?: NodeJS.ProcessEnv; now?: string; started?: string; title?: string } = {},
 ): Promise<void> {
-  const dir = sessionsDir(opts.env);
-  await mkdir(dir, { recursive: true });
   const now = opts.now ?? new Date().toISOString();
   const session: Session = {
     id,
@@ -86,7 +91,7 @@ export async function saveSession(
     updated: now,
     messages,
   };
-  await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
+  await resolveMemoryStore(opts.env).write(sessionRel(id), JSON.stringify(session, null, 2));
 }
 
 /** Load a session by id, or null if missing/corrupt. */
@@ -94,8 +99,10 @@ export async function loadSession(
   id: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Session | null> {
+  const content = await resolveMemoryStore(env).read(sessionRel(id));
+  if (content === null) return null;
   try {
-    const raw: unknown = JSON.parse(await readFile(join(sessionsDir(env), `${id}.json`), "utf8"));
+    const raw: unknown = JSON.parse(content);
     const parsed = SessionSchema.safeParse(raw);
     return parsed.success ? parsed.data : null;
   } catch {
@@ -124,13 +131,9 @@ export async function deleteSession(id: string, env?: NodeJS.ProcessEnv): Promis
 
 /** List session metadata, newest first. Skips unparseable files. */
 export async function listSessions(env?: NodeJS.ProcessEnv): Promise<SessionMeta[]> {
-  const dir = sessionsDir(env);
-  let files: string[];
-  try {
-    files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
-  } catch {
-    return [];
-  }
+  const files = (await resolveMemoryStore(env).list(SESSIONS_SUBDIR)).filter((f) =>
+    f.endsWith(".json"),
+  );
   const metas: SessionMeta[] = [];
   for (const file of files) {
     const session = await loadSession(file.replace(/\.json$/, ""), env);

@@ -1,6 +1,4 @@
-import { join } from "node:path";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { resolveVantaHome, commitInHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import type { PermAction, PermRule } from "./rules.js";
 
 /** Filename of the persisted rule set inside the ~/.vanta store. */
@@ -37,18 +35,11 @@ export function serializeRules(rules: PermRule[]): string {
   return rules.map((r) => `${r.action}\t${r.tool ?? ""}\t${r.pattern ?? ""}`).join("\n");
 }
 
-function rulesPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), PERMISSIONS_FILE);
-}
-
-/** Load the rule set from ~/.vanta/permissions.tsv. Missing file → `[]`. */
+/** Load the rule set from ~/.vanta/permissions.tsv. Missing/unreadable → `[]`. */
 export async function loadRules(env: NodeJS.ProcessEnv = process.env): Promise<PermRule[]> {
-  try {
-    return parseRules(await readFile(rulesPath(env), "utf8"));
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
-    throw err;
-  }
+  const store = resolveMemoryStore(env);
+  const text = await store.read(PERMISSIONS_FILE);
+  return text === null ? [] : parseRules(text);
 }
 
 /** Persist the rule set, auto-committing in the home store (best-effort). */
@@ -56,9 +47,9 @@ export async function saveRules(
   rules: PermRule[],
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(rulesPath(env), serializeRules(rules), "utf8");
-  await commitInHome(PERMISSIONS_FILE, "permissions: update rules", env);
+  const store = resolveMemoryStore(env);
+  await store.write(PERMISSIONS_FILE, serializeRules(rules));
+  await store.commit(PERMISSIONS_FILE, "permissions: update rules");
 }
 
 /** Append a rule and persist. Returns the new full rule set. */

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 export type LifeHit = { source: string; snippet: string };
 
@@ -42,11 +42,11 @@ export async function gatherLifeBlobs(
   env: NodeJS.ProcessEnv,
   repoRoot: string,
 ): Promise<{ source: string; text: string }[]> {
-  const home = resolveVantaHome(env);
+  const store = resolveMemoryStore(env);
   const blobs: { source: string; text: string }[] = [];
 
   for (const name of LOCAL_STORE_NAMES) {
-    const text = await readBestEffort(join(home, `${name}.jsonl`));
+    const text = await store.read(`${name}.jsonl`);
     if (text !== null) blobs.push({ source: name, text });
   }
 

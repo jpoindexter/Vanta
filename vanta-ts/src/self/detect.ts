@@ -1,8 +1,6 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
 import type { Compartment } from "./compartments.js";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Slice 2 of the self-repair rock: broken-capability detector +
 // last-known-good rollback marker per compartment.
@@ -110,9 +108,7 @@ export function lastKnownGood(
 // Store: repair.jsonl
 // ---------------------------------------------------------------------------
 
-function repairPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "repair.jsonl");
-}
+const REPAIR_FILE = "repair.jsonl";
 
 /**
  * Append a last-known-good marker for a compartment. The caller supplies the
@@ -127,16 +123,16 @@ export async function recordGood(
     sha: opts.sha,
     ts: new Date().toISOString(),
   };
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await appendFile(repairPath(env), JSON.stringify(marker) + "\n", "utf8");
+  await resolveMemoryStore(env).append(REPAIR_FILE, JSON.stringify(marker) + "\n");
 }
 
 /** Read all repair markers from disk. Returns [] on missing file. */
 export async function readMarkers(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<RepairMarker[]> {
+  const raw = await resolveMemoryStore(env).read(REPAIR_FILE);
+  if (raw === null) return [];
   try {
-    const raw = await readFile(repairPath(env), "utf8");
     const results: RepairMarker[] = [];
     for (const line of raw.split("\n").filter(Boolean)) {
       const parsed = RepairMarkerSchema.safeParse(JSON.parse(line));

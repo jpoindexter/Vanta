@@ -1,7 +1,5 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Persistent "always allow <tool>" list for the approval prompt — the only
 // approval choice that must outlive the session. once/session live in app
@@ -11,14 +9,13 @@ import { resolveVantaHome } from "../store/home.js";
 const FILE = "approvals.json";
 const Schema = z.object({ alwaysAllow: z.array(z.string()) });
 
-function filePath(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), FILE);
-}
-
 /** Tool names the user has chosen to always allow. Empty on any read error. */
 export async function loadAlwaysAllow(env?: NodeJS.ProcessEnv): Promise<string[]> {
+  const store = resolveMemoryStore(env);
+  const raw = await store.read(FILE);
+  if (raw === null) return [];
   try {
-    const parsed = Schema.safeParse(JSON.parse(await readFile(filePath(env), "utf8")));
+    const parsed = Schema.safeParse(JSON.parse(raw));
     return parsed.success ? parsed.data.alwaysAllow : [];
   } catch {
     return [];
@@ -29,7 +26,6 @@ export async function loadAlwaysAllow(env?: NodeJS.ProcessEnv): Promise<string[]
 export async function addAlwaysAllow(tool: string, env?: NodeJS.ProcessEnv): Promise<void> {
   const current = await loadAlwaysAllow(env);
   if (current.includes(tool)) return;
-  const dir = resolveVantaHome(env);
-  await mkdir(dir, { recursive: true });
-  await writeFile(filePath(env), JSON.stringify({ alwaysAllow: [...current, tool] }, null, 2), "utf8");
+  const store = resolveMemoryStore(env);
+  await store.write(FILE, JSON.stringify({ alwaysAllow: [...current, tool] }, null, 2));
 }

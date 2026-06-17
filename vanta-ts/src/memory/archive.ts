@@ -1,10 +1,10 @@
-import { readdir, readFile, appendFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import type { Message } from "../types.js";
 
-function archiveDir(env?: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "archive");
+const ARCHIVE_DIR = "archive";
+
+function archiveFile(sessionId: string): string {
+  return `${ARCHIVE_DIR}/${sessionId}.jsonl`;
 }
 
 type ArchiveLine = {
@@ -24,8 +24,7 @@ export async function archiveSession(
   messages: Message[],
   opts: { env?: NodeJS.ProcessEnv; now?: string } = {},
 ): Promise<void> {
-  const dir = archiveDir(opts.env);
-  await mkdir(dir, { recursive: true });
+  const store = resolveMemoryStore(opts.env);
   const ts = opts.now ?? new Date().toISOString();
   const lines: string[] = [];
   let turnIndex = 0;
@@ -36,8 +35,7 @@ export async function archiveSession(
     lines.push(JSON.stringify(line));
   }
   if (!lines.length) return;
-  const file = join(dir, `${sessionId}.jsonl`);
-  await appendFile(file, lines.join("\n") + "\n", "utf8");
+  await store.append(archiveFile(sessionId), lines.join("\n") + "\n");
 }
 
 /**
@@ -48,21 +46,19 @@ export async function searchArchive(
   query: string,
   opts: { env?: NodeJS.ProcessEnv; maxResults?: number } = {},
 ): Promise<Array<{ sessionId: string; role: string; excerpt: string }>> {
-  const dir = archiveDir(opts.env);
+  const store = resolveMemoryStore(opts.env);
   const maxResults = opts.maxResults ?? 10;
   const kw = query.toLowerCase();
   const results: Array<{ sessionId: string; role: string; excerpt: string }> = [];
 
-  let files: string[] = [];
-  try {
-    files = (await readdir(dir)).filter((f) => f.endsWith(".jsonl")).sort().reverse(); // newest first
-  } catch {
-    return [];
-  }
+  const files = (await store.list(ARCHIVE_DIR))
+    .filter((f) => f.endsWith(".jsonl"))
+    .sort()
+    .reverse(); // newest first
 
   for (const file of files) {
     if (results.length >= maxResults) break;
-    const raw = await readFile(join(dir, file), "utf8").catch(() => "");
+    const raw = (await store.read(`${ARCHIVE_DIR}/${file}`)) ?? "";
     for (const line of raw.split("\n").filter(Boolean)) {
       if (results.length >= maxResults) break;
       try {

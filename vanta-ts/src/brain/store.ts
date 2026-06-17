@@ -1,7 +1,6 @@
-import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { resolveVantaHome, commitInHome } from "../store/home.js";
+import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import { BRAIN_REGIONS } from "./regions.js";
 
 // File-backed brain store under ~/.vanta/brain/<region>.md — git-versioned (like
@@ -13,26 +12,25 @@ export function brainDir(env: NodeJS.ProcessEnv = process.env): string {
   return join(resolveVantaHome(env), "brain");
 }
 
-function regionFile(name: string, env?: NodeJS.ProcessEnv): string {
-  return join(brainDir(env), `${name}.md`);
+/** Home-relative path of a region file: `brain/<name>.md`. */
+function regionRel(name: string): string {
+  return join("brain", `${name}.md`);
 }
 
 /** Create the brain dir and seed any missing region files. Idempotent. */
 export async function ensureBrain(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(brainDir(env), { recursive: true });
+  const store = resolveMemoryStore(env);
+  await store.ensure();
   for (const r of BRAIN_REGIONS) {
-    const f = regionFile(r.name, env);
-    if (!existsSync(f)) await writeFile(f, r.seed, "utf8");
+    if ((await store.read(regionRel(r.name))) === null) {
+      await store.write(regionRel(r.name), r.seed);
+    }
   }
 }
 
 /** Read one region's full content, or null if it doesn't exist yet. */
 export async function readRegion(name: string, env: NodeJS.ProcessEnv = process.env): Promise<string | null> {
-  try {
-    return await readFile(regionFile(name, env), "utf8");
-  } catch {
-    return null;
-  }
+  return resolveMemoryStore(env).read(regionRel(name));
 }
 
 /** Replace or append a region's content, then git-commit it in the Vanta home. */
@@ -42,26 +40,23 @@ export async function writeRegion(
   opts: { append?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<void> {
   const env = opts.env;
+  const store = resolveMemoryStore(env);
   await ensureBrain(env);
-  const f = regionFile(name, env);
+  const rel = regionRel(name);
   if (opts.append) {
-    await appendFile(f, `\n${content.trim()}\n`, "utf8");
+    await store.append(rel, `\n${content.trim()}\n`);
   } else {
     // MEM-VERSIONING: archive the old content before overwriting so the version
     // chain is preserved. Files live in brain/archive/<region>/ — the main
     // brain file is the current head; git history is the full chain.
-    try {
-      const old = await readFile(f, "utf8");
-      if (old.trim()) {
-        const archiveDir = join(brainDir(env), "archive", name);
-        await mkdir(archiveDir, { recursive: true });
-        const ts = new Date().toISOString().replace(/[:.]/g, "-");
-        await writeFile(join(archiveDir, `${ts}.md`), old, "utf8");
-      }
-    } catch { /* no prior file — nothing to archive */ }
-    await writeFile(f, `${content.trim()}\n`, "utf8");
+    const old = await store.read(rel);
+    if (old?.trim()) {
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      await store.write(join("brain", "archive", name, `${ts}.md`), old);
+    }
+    await store.write(rel, `${content.trim()}\n`);
   }
-  await commitInHome(join("brain", `${name}.md`), `brain: ${name}`, env);
+  await store.commit(rel, `brain: ${name}`);
 }
 
 /**

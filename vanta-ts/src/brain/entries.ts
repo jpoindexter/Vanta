@@ -1,12 +1,13 @@
-import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveVantaHome, commitInHome } from "../store/home.js";
-import { brainDir } from "./store.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 import {
-  RawEntrySchema, normalizeEntry, entryId, entriesFile,
+  RawEntrySchema, normalizeEntry, entryId,
   type BrainEntry, type CrystalStatus, type UpsertOpts,
 } from "./entry-types.js";
 export * from "./entry-types.js";
+
+/** Home-relative path of the structured-entries store. */
+const ENTRIES_REL = join("brain", "entries.json");
 
 function parseRawEntries(list: unknown[]): BrainEntry[] {
   return list.flatMap((e) => {
@@ -16,8 +17,10 @@ function parseRawEntries(list: unknown[]): BrainEntry[] {
 }
 
 async function migrateLegacy(env: NodeJS.ProcessEnv): Promise<BrainEntry[] | null> {
+  const text = await resolveMemoryStore(env).read("brain5d.json");
+  if (text === null) return null;
   try {
-    const raw: unknown = JSON.parse(await readFile(join(resolveVantaHome(env), "brain5d.json"), "utf8"));
+    const raw: unknown = JSON.parse(text);
     const list = (raw as { entries?: unknown[] }).entries;
     if (!Array.isArray(list)) return null;
     const entries = parseRawEntries(list);
@@ -28,10 +31,9 @@ async function migrateLegacy(env: NodeJS.ProcessEnv): Promise<BrainEntry[] | nul
 }
 
 export async function loadEntries(env: NodeJS.ProcessEnv = process.env): Promise<BrainEntry[]> {
-  let text: string;
-  try {
-    text = await readFile(entriesFile(env), "utf8");
-  } catch {
+  const store = resolveMemoryStore(env);
+  const text = await store.read(ENTRIES_REL);
+  if (text === null) {
     const migrated = await migrateLegacy(env);
     if (migrated) await saveEntries(migrated, env).catch(() => {});
     return migrated ?? [];
@@ -41,16 +43,17 @@ export async function loadEntries(env: NodeJS.ProcessEnv = process.env): Promise
     if (!Array.isArray(raw)) throw new Error("not an array");
     return parseRawEntries(raw);
   } catch {
+    // Corrupt store: quarantine a copy (never delete) before returning empty.
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    await copyFile(entriesFile(env), join(brainDir(env), `entries.corrupt-${ts}.json`)).catch(() => {});
+    await store.write(join("brain", `entries.corrupt-${ts}.json`), text).catch(() => {});
     return [];
   }
 }
 
 export async function saveEntries(entries: BrainEntry[], env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  await mkdir(brainDir(env), { recursive: true });
-  await writeFile(entriesFile(env), JSON.stringify(entries, null, 2), "utf8");
-  await commitInHome(join("brain", "entries.json"), "brain: entries", env);
+  const store = resolveMemoryStore(env);
+  await store.write(ENTRIES_REL, JSON.stringify(entries, null, 2));
+  await store.commit(ENTRIES_REL, "brain: entries");
 }
 
 export function adjustedConfidence(e: BrainEntry): number {

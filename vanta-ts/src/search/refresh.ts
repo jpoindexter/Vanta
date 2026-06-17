@@ -1,7 +1,5 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Change-detecting refresh for life-search. No embed dependency — cheap
 // content hash (djb2) per store, persisted to ~/.vanta/life-index.json.
@@ -46,14 +44,12 @@ export function detectChanges(prev: StoreDigests, next: StoreDigests): ChangeRep
 
 const DigestsSchema = z.record(z.string(), z.string());
 
-function indexPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), INDEX_FILE);
-}
-
 /** Load the last-saved digests. Returns {} when the file is missing or corrupt. */
 export async function loadDigests(env: NodeJS.ProcessEnv = process.env): Promise<StoreDigests> {
+  const store = resolveMemoryStore(env);
+  const raw = await store.read(INDEX_FILE);
+  if (raw === null) return {};
   try {
-    const raw = await readFile(indexPath(env), "utf8");
     const parsed = DigestsSchema.safeParse(JSON.parse(raw));
     return parsed.success ? parsed.data : {};
   } catch {
@@ -66,6 +62,6 @@ export async function saveDigests(
   digests: StoreDigests,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  await mkdir(resolveVantaHome(env), { recursive: true });
-  await writeFile(indexPath(env), JSON.stringify(digests, null, 2) + "\n", "utf8");
+  const store = resolveMemoryStore(env);
+  await store.write(INDEX_FILE, JSON.stringify(digests, null, 2) + "\n");
 }
