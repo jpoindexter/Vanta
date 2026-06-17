@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { join } from "node:path";
-import { appendFileSync, readFileSync, existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 // Cross-session experiential playbook: reusable strategies learned across runs.
 // Sits between static SOUL.md/CLAUDE.md and transient transcripts — durable
@@ -21,26 +19,24 @@ export const PlaySchema = z.object({
 });
 export type Play = z.infer<typeof PlaySchema>;
 
-function storePath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "playbook.jsonl");
-}
+const STORE_FILE = "playbook.jsonl";
 
-export function appendPlay(
+export async function appendPlay(
   play: Omit<Play, "id" | "useCount" | "created" | "updated">,
   env: NodeJS.ProcessEnv = process.env,
-): Play {
+): Promise<Play> {
   const now = Date.now();
   const entry: Play = { id: randomUUID(), useCount: 0, created: now, updated: now, ...play };
-  appendFileSync(storePath(env), JSON.stringify(entry) + "\n");
+  await resolveMemoryStore(env).append(STORE_FILE, JSON.stringify(entry) + "\n");
   return entry;
 }
 
 /** Tolerant reader: drops corrupt lines; latest record per id wins. */
-export function loadPlays(env: NodeJS.ProcessEnv = process.env): Play[] {
-  const path = storePath(env);
-  if (!existsSync(path)) return [];
+export async function loadPlays(env: NodeJS.ProcessEnv = process.env): Promise<Play[]> {
+  const raw = await resolveMemoryStore(env).read(STORE_FILE);
+  if (raw === null) return [];
   const all: Play[] = [];
-  for (const line of readFileSync(path, "utf8").split("\n")) {
+  for (const line of raw.split("\n")) {
     if (!line.trim()) continue;
     try {
       const r = PlaySchema.safeParse(JSON.parse(line));
@@ -79,7 +75,7 @@ export async function playbookDigest(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
   try {
-    const plays = loadPlays(env);
+    const plays = await loadPlays(env);
     const matches = matchingPlays(instruction, plays);
     if (!matches.length) return "";
     return `Playbook — strategies from prior sessions:\n${matches.map(formatPlay).join("\n")}`;

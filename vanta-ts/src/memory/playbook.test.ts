@@ -20,9 +20,9 @@ afterEach(async () => {
 });
 
 describe("appendPlay / loadPlays", () => {
-  it("roundtrips a play through the JSONL store", () => {
-    appendPlay({ task: "deploy to prod", strategy: "blue-green swap", outcome: "zero downtime", tags: ["deploy"] }, env);
-    const plays = loadPlays(env);
+  it("roundtrips a play through the JSONL store", async () => {
+    await appendPlay({ task: "deploy to prod", strategy: "blue-green swap", outcome: "zero downtime", tags: ["deploy"] }, env);
+    const plays = await loadPlays(env);
     expect(plays).toHaveLength(1);
     const p0 = plays[0]!;
     expect(p0.task).toBe("deploy to prod");
@@ -31,17 +31,17 @@ describe("appendPlay / loadPlays", () => {
     expect(p0.useCount).toBe(0);
   });
 
-  it("returns [] when the store file does not exist", () => {
-    expect(loadPlays(env)).toEqual([]);
+  it("returns [] when the store file does not exist", async () => {
+    expect(await loadPlays(env)).toEqual([]);
   });
 
   it("latest record per id wins (idempotent upsert simulation)", async () => {
     const { appendFileSync } = await import("node:fs");
     const { join: pathJoin } = await import("node:path");
-    const p = appendPlay({ task: "t", strategy: "s", outcome: "o", tags: [] }, env);
+    const p = await appendPlay({ task: "t", strategy: "s", outcome: "o", tags: [] }, env);
     const updated = { ...p, strategy: "s2", updated: Date.now() + 1000 };
     appendFileSync(pathJoin(home, "playbook.jsonl"), JSON.stringify(updated) + "\n");
-    const plays = loadPlays(env);
+    const plays = await loadPlays(env);
     expect(plays).toHaveLength(1);
     expect(plays[0]!.strategy).toBe("s2");
   });
@@ -88,13 +88,13 @@ describe("formatPlay", () => {
 
 describe("playbookDigest", () => {
   it("returns empty string when no plays match", async () => {
-    appendPlay({ task: "deploy binary", strategy: "cargo", outcome: "ok", tags: [] }, env);
+    await appendPlay({ task: "deploy binary", strategy: "cargo", outcome: "ok", tags: [] }, env);
     const d = await playbookDigest("write unit tests in typescript", env);
     expect(d).toBe("");
   });
 
   it("returns formatted plays when instruction matches", async () => {
-    appendPlay({ task: "deploy binary", strategy: "cargo build --release", outcome: "shipped", tags: ["deploy"] }, env);
+    await appendPlay({ task: "deploy binary", strategy: "cargo build --release", outcome: "shipped", tags: ["deploy"] }, env);
     const d = await playbookDigest("deploy the release binary", env);
     expect(d).toContain("deploy binary");
     expect(d).toContain("cargo build");

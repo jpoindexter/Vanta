@@ -35,7 +35,7 @@ async function runCommand(command: string): Promise<{ exitCode: number; output: 
   }
 }
 
-function doLock(args: z.infer<typeof Args>, now: number): ToolResult {
+async function doLock(args: z.infer<typeof Args>, now: number): Promise<ToolResult> {
   if (!args.claim || !args.command || !args.expect) {
     return { ok: false, output: "lock needs claim, command, and expect" };
   }
@@ -49,7 +49,7 @@ function doLock(args: z.infer<typeof Args>, now: number): ToolResult {
     created: now,
     updated: now,
   };
-  appendLock(lock);
+  await appendLock(lock);
   return { ok: true, output: `Locked "${id}": ${args.claim}\n  proof: ${args.command} ⊇ "${args.expect}"` };
 }
 
@@ -60,12 +60,12 @@ async function checkOne(lock: Lock, ctx: ToolContext, now: number): Promise<Chec
   );
   if (!approved) return null;
   const result = gradeRun(lock, await runCommand(lock.command));
-  appendLock({ ...lock, status: result.status, detail: result.detail, updated: now });
+  await appendLock({ ...lock, status: result.status, detail: result.detail, updated: now });
   return result;
 }
 
 async function doCheck(args: z.infer<typeof Args>, ctx: ToolContext, now: number): Promise<ToolResult> {
-  const locks = args.id ? [findLock(args.id)].filter((l): l is Lock => Boolean(l)) : latestLocks();
+  const locks = args.id ? [await findLock(args.id)].filter((l): l is Lock => Boolean(l)) : await latestLocks();
   if (locks.length === 0) {
     return { ok: false, output: args.id ? `no lock "${args.id}"` : "no regression locks — lock one first" };
   }
@@ -78,8 +78,8 @@ async function doCheck(args: z.infer<typeof Args>, ctx: ToolContext, now: number
   return { ok: !regressed, output: formatCheckReport(results) };
 }
 
-function doList(): ToolResult {
-  const locks = latestLocks();
+async function doList(): Promise<ToolResult> {
+  const locks = await latestLocks();
   if (locks.length === 0) return { ok: true, output: "No regression locks yet." };
   return { ok: true, output: [`${locks.length} regression lock(s):`, ...locks.map(formatLock)].join("\n") };
 }

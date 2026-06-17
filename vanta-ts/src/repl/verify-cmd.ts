@@ -6,8 +6,8 @@ import type { SlashHandler } from "./types.js";
 // claim, the command that proves it, and its current passing/regressed status.
 // A window onto the `regression_lock` tool's store.
 
-export const locks: SlashHandler = (_arg, ctx) => {
-  const all = latestLocks(ctx.env);
+export const locks: SlashHandler = async (_arg, ctx) => {
+  const all = await latestLocks(ctx.env);
   if (all.length === 0) {
     return {
       output:

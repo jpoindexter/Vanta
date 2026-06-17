@@ -1,7 +1,5 @@
 import { z } from "zod";
-import { appendFileSync, readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { resolveVantaHome } from "../store/home.js";
+import { resolveMemoryStore } from "../store/memory-store.js";
 
 /**
  * A regression lock: a claim the operator has verified true, paired with the
@@ -22,20 +20,18 @@ export const LockSchema = z.object({
 
 export type Lock = z.infer<typeof LockSchema>;
 
-function storePath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), "verify.jsonl");
-}
+const STORE_FILE = "verify.jsonl";
 
-export function appendLock(lock: Lock, env: NodeJS.ProcessEnv = process.env): void {
-  appendFileSync(storePath(env), JSON.stringify(lock) + "\n");
+export async function appendLock(lock: Lock, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  await resolveMemoryStore(env).append(STORE_FILE, JSON.stringify(lock) + "\n");
 }
 
 /** Read every record, dropping corrupt lines (tolerant reader). */
-function readRecords(env: NodeJS.ProcessEnv): Lock[] {
-  const path = storePath(env);
-  if (!existsSync(path)) return [];
+async function readRecords(env: NodeJS.ProcessEnv): Promise<Lock[]> {
+  const raw = await resolveMemoryStore(env).read(STORE_FILE);
+  if (raw === null) return [];
   const out: Lock[] = [];
-  for (const line of readFileSync(path, "utf8").split("\n")) {
+  for (const line of raw.split("\n")) {
     if (!line.trim()) continue;
     try {
       const parsed = LockSchema.safeParse(JSON.parse(line));
@@ -48,12 +44,12 @@ function readRecords(env: NodeJS.ProcessEnv): Lock[] {
 }
 
 /** Latest record per id (status updates supersede earlier ones), id-sorted. */
-export function latestLocks(env: NodeJS.ProcessEnv = process.env): Lock[] {
+export async function latestLocks(env: NodeJS.ProcessEnv = process.env): Promise<Lock[]> {
   const byId = new Map<string, Lock>();
-  for (const rec of readRecords(env)) byId.set(rec.id, rec);
+  for (const rec of await readRecords(env)) byId.set(rec.id, rec);
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
-export function findLock(id: string, env: NodeJS.ProcessEnv = process.env): Lock | undefined {
-  return latestLocks(env).find((l) => l.id === id);
+export async function findLock(id: string, env: NodeJS.ProcessEnv = process.env): Promise<Lock | undefined> {
+  return (await latestLocks(env)).find((l) => l.id === id);
 }

@@ -99,7 +99,6 @@ export const GRANDFATHER = new Set<string>([
   "home-store-direct::cli/ops.ts",
   "home-store-direct::config/validate.ts",
   "home-store-direct::google/auth-store.ts",
-  "home-store-direct::memory/playbook.ts",
   "home-store-direct::operator-profile/profile.ts",
   "home-store-direct::plugins/catalog.ts",
   "home-store-direct::plugins/loader.ts",
@@ -116,7 +115,6 @@ export const GRANDFATHER = new Set<string>([
   "home-store-direct::skills/lint.ts",
   "home-store-direct::skills/store.ts",
   "home-store-direct::status.ts",
-  "home-store-direct::verify/store.ts",
 ]);
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");

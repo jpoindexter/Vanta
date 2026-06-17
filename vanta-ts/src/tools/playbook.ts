@@ -18,24 +18,24 @@ const Args = z.object({
 type PlaybookArgs = z.infer<typeof Args>;
 
 /** action=record — append a strategy that worked. */
-function doRecord(a: PlaybookArgs): ToolResult {
+async function doRecord(a: PlaybookArgs): Promise<ToolResult> {
   if (!a.task?.trim() || !a.strategy?.trim() || !a.outcome?.trim()) {
     return { ok: false, output: "record requires: task, strategy, outcome" };
   }
-  const p = appendPlay({ task: a.task, strategy: a.strategy, outcome: a.outcome, tags: a.tags ?? [] });
+  const p = await appendPlay({ task: a.task, strategy: a.strategy, outcome: a.outcome, tags: a.tags ?? [] });
   return { ok: true, output: `play recorded (${p.id.slice(0, 8)})` };
 }
 
 /** action=recall — find matching plays for a query. */
-function doRecall(a: PlaybookArgs): ToolResult {
+async function doRecall(a: PlaybookArgs): Promise<ToolResult> {
   if (!a.query?.trim()) return { ok: false, output: "recall requires: query" };
-  const matches = matchingPlays(a.query, loadPlays(), a.limit ?? 5);
+  const matches = matchingPlays(a.query, await loadPlays(), a.limit ?? 5);
   return { ok: true, output: matches.length ? matches.map(formatPlay).join("\n\n") : "(no matching plays)" };
 }
 
 /** action=list — most recent plays. */
-function doList(a: PlaybookArgs): ToolResult {
-  const plays = loadPlays().slice(0, a.limit ?? 10);
+async function doList(a: PlaybookArgs): Promise<ToolResult> {
+  const plays = (await loadPlays()).slice(0, a.limit ?? 10);
   return {
     ok: true,
     output: plays.length ? plays.map(formatPlay).join("\n\n") : "(no plays recorded yet — use action=record after completing a task)",

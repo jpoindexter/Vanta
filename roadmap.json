@@ -12225,7 +12225,7 @@
       "tier": "rock",
       "effort": "high",
       "updated": "2026-06-17",
-      "note": "Shipped: MemoryStore port (store/memory-store.ts: read/write/append/list/remove/ensure/commit by home-relative path, backend-agnostic) + fsMemoryStore + resolveMemoryStore (VANTA_MEMORY_STORE). Migrated ~34 data stores off store/home.ts across 5 waves (61->27 direct importers); slugifySkillName extracted to store/slug.ts. home-store-direct fitness rule enforces it: the 27 remaining are genuinely fs-bound (sync API / file-mode 0600 / raw absolute paths for external processes / absolute-path public exports / dir-ops) and are grandfathered shrink-only — new direct imports hard-fail CI. Full suite green."
+      "note": "Shipped: MemoryStore port (store/memory-store.ts: read/write/append/list/remove/ensure/commit by home-relative path, backend-agnostic) + fsMemoryStore + resolveMemoryStore (VANTA_MEMORY_STORE). Migrated ~34 data stores off store/home.ts across 5 waves (61->25 direct importers); slugifySkillName extracted to store/slug.ts. home-store-direct fitness rule enforces it: the 25 remaining are genuinely fs-bound (sync API / file-mode 0600 / raw absolute paths for external processes / absolute-path public exports / dir-ops) and are grandfathered shrink-only — new direct imports hard-fail CI. Full suite green."
     },
     {
       "id": "PORT-PROMPT-TIERS",
