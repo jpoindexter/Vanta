@@ -19,6 +19,33 @@ Vanta follows a ports-and-adapters shape throughout — you swap or add an imple
 4. Never throw across the boundary — return errors as values.
 5. Register it in `tools/all-tools.ts` and add a test.
 
+```ts
+// tools/word-count.ts
+import { z } from "zod";
+import type { Tool } from "./types.js";
+import { resolveInScope } from "../scope.js";
+
+const Args = z.object({ path: z.string() });
+
+export const wordCount: Tool = {
+  schema: {
+    name: "word_count",
+    description: "Count the words in a file.",
+    parameters: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+  },
+  // Only the safety-relevant string is sent to the kernel — never file content.
+  describeForSafety: (a) => `read file ${a.path}`,
+  async execute(rawArgs, ctx) {
+    const parsed = Args.safeParse(rawArgs);
+    if (!parsed.success) return { ok: false, output: "word_count: path is required" };
+    const inScope = resolveInScope(parsed.data.path, ctx.root);
+    if (!inScope.ok) return { ok: false, output: `out of scope: ${parsed.data.path}` };
+    const text = await ctx.readFile(inScope.path);
+    return { ok: true, output: `${text.trim().split(/\s+/).filter(Boolean).length} words` };
+  },
+};
+```
+
 ## Add a provider
 
 Implement `LLMProvider` (`complete` / `modelId` / `contextWindow`) and add a branch in `providers/index.ts`. The loop only sees the interface, so nothing else changes. See [Providers](./providers.md).

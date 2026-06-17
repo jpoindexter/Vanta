@@ -18,8 +18,11 @@ Vanta ships **84 built-in tools** (86 registered, including the factory-built `m
 ### Web & search
 `web_search` (DuckDuckGo / Searxng / SerpAPI / Brave) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed).
 
-### Browser & vision
-`screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `look_at_screen` · `look_at_camera`. Vision routes through a dedicated vision model when configured, so a text-only main model still has eyes.
+### Browser, vision & voice
+`screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears.
+
+### Output compression
+Large tool outputs are optionally compressed before they hit the context window (JSON crush, log squash) and stashed so the agent can retrieve the full text later (`retrieve_original`). Enable per the `compress/*` settings; only allowlisted tools compress.
 
 ### Comms (Google)
 `gmail_search` / `gmail_read` (read) + `gmail_draft` / `gmail_send` (always approval-gated) · `calendar_read` + create/update · `drive_read` + create/update. One-time OAuth via `vanta auth google`.

@@ -34,7 +34,12 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Operating Vanta',
       collapsed: false,
-      items: ['operator-systems', 'sessions-and-continuity'],
+      items: [
+        'operator-systems',
+        'sessions-and-continuity',
+        'modes-rooms-routing',
+        'permissions-and-hooks',
+      ],
     },
     {
       type: 'category',
