@@ -3,8 +3,8 @@ import { resolveProvider } from "../providers/index.js";
 import type { Message } from "../types.js";
 
 // PROXY-ENDPOINT: local OpenAI-compatible endpoint backed by Vanta's resolved providers.
-// Any tool that accepts an OPENAI_API_KEY + OPENAI_BASE_URL can use Claude/Codex
-// subscriptions or local Ollama through this proxy.
+// Any tool that accepts an OPENAI_API_KEY + OPENAI_BASE_URL can reach whatever
+// model Vanta is configured with (cloud or local Ollama) through this proxy.
 // `vanta proxy [port]` starts it; default port 7791.
 
 const DEFAULT_PORT = 7791;

@@ -11,7 +11,7 @@ const sink: SelectOutput = { write: () => {} };
 const press = (em: SelectInput, name: string, mods: object = {}) => (em as EventEmitter).emit("keypress", "", { name, ...mods });
 const noAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
 
-describe("renderMenu (Hermes look)", () => {
+describe("renderMenu", () => {
   it("cursor row is ` → (●) label`; others are `   (○) label`", () => {
     const f = noAnsi(renderMenu("Pick", ["a", "b", "c"], 1, { canBack: true }));
     expect(f).toContain(" → (●) b");

@@ -4,7 +4,7 @@ import { resolveComposerAnchor, type ComposerAnchor } from "../ui/pinned-region.
 import { setConfig } from "../cli-dx/config.js";
 
 // /composer — choose where the input box sits: "float" (default; just below the
-// last line, like Claude Code) or "bottom" (pinned to the terminal floor, chat
+// last line) or "bottom" (pinned to the terminal floor, chat
 // box). Returns a `composerAnchor` signal the TUI applies live, and persists the
 // choice to .env (VANTA_COMPOSER_ANCHOR) so it sticks across sessions.
 

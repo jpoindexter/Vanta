@@ -8,9 +8,8 @@ import type { SlashHandler } from "./types.js";
 // review          : one-shot deletion pass over the current diff (resend).
 // (no arg / "on")  : full.
 //
-// Mirrors the global Claude Code /auto command + ~/.claude/skills/auto; this
-// makes it a session MODE inside Vanta. The skill `auto` (skills-library/auto)
-// carries the same discipline for on-demand recall + Claude Code.
+// A session MODE inside Vanta. The skill `auto` (skills-library/auto) carries
+// the same minimalism discipline for on-demand recall.
 
 export const AUTO_MARKER = "<!-- auto-mode -->";
 const AUTO_END = "<!-- /auto-mode -->";

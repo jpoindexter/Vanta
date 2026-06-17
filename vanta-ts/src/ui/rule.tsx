@@ -1,7 +1,7 @@
 import { type ReactElement } from "react";
 import { Text, useStdout } from "ink";
 
-// A thin full-width horizontal rule — the Claude Code v2 way of bracketing the
+// A thin full-width horizontal rule — a lightweight way of bracketing the
 // input and separating chrome (no heavy boxes). Width tracks the terminal.
 
 export function Rule(): ReactElement {

@@ -13,13 +13,13 @@ import { Box } from "ink";
 // 0, the spacer collapses, and the composer flows naturally just below the latest
 // line (where inline rendering already puts it at the bottom).
 //
-// OPT-IN: the default is "float" (composer sits just below the last line, like
-// Claude Code). `enabled` (VANTA_COMPOSER_ANCHOR=bottom or /composer bottom) turns
+// OPT-IN: the default is "float" (composer sits just below the last line).
+// `enabled` (VANTA_COMPOSER_ANCHOR=bottom or /composer bottom) turns
 // on the bottom-pin. When off, children render in a plain column (float behavior).
 
 export type ComposerAnchor = "float" | "bottom";
 
-/** Resolve the composer anchor from env. Default "float" (Claude-Code behavior). */
+/** Resolve the composer anchor from env. Default "float". */
 export function resolveComposerAnchor(env: NodeJS.ProcessEnv): ComposerAnchor {
   return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "bottom" ? "bottom" : "float";
 }

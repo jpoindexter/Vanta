@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { SafetyClient } from "../safety-client.js";
 
-// CC-GOAL-CMD: parse + check "done when `<cmd>`" conditions on active goals.
+// GOAL-CONDITION: parse + check "done when `<cmd>`" conditions on active goals.
 // After each turn the host calls checkGoalLoop; if the condition is not met it
 // returns a continuation prompt so the host can auto-send the next turn without
 // user input, up to VANTA_GOAL_LOOP_MAX iterations.
