@@ -117,7 +117,11 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
     envVar: null,
     defaultModel: "gpt-5.5",
     models: ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex-spark"],
-    note: "needs `codex login` (ChatGPT Plus/Pro); uses the Responses API",
+    // Model guidance (OpenAI Codex docs, verified 2026-06): gpt-5.5 = default, most
+    // capable, start here · gpt-5.4 = fallback if 5.5 isn't in your account, native
+    // computer-use · gpt-5.4-mini = subagents/lighter, ~2x faster, ~30% quota ·
+    // gpt-5.3-codex-spark = near-instant (1000+ tok/s), text-only, 128K ctx, Pro-only.
+    note: "needs `codex login` (ChatGPT Plus/Pro); Responses API. Default gpt-5.5 (most capable); gpt-5.4-mini for cheap/fast subagents; gpt-5.3-codex-spark for near-instant text-only (Pro).",
   },
   {
     id: "ollama",
