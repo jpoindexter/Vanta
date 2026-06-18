@@ -22,6 +22,7 @@ import {
   assertValidId,
 } from "../cli/loop-cmd-build.js";
 import type { Escalation } from "../loop/types.js";
+import { wakeContextFromLoop, wakeEnv } from "../loop/wake.js";
 
 // `loop` tool — create and manage first-class loops from the agent's own loop.
 // The agent calls `run` to fire a single iteration in a background process
@@ -130,12 +131,13 @@ async function execRun(id: string | undefined, dataDir: string, ctx: ToolContext
   if (!id) return { ok: false, output: "run requires id" };
   const def = await loadDef(dataDir, id);
   if (!def) return { ok: false, output: `unknown loop: ${id}` };
+  const state = await loadState(dataDir, id);
 
   const cliPath = resolveCliPath();
   const child = spawn(
     process.execPath,
     ["--import", "tsx/esm", cliPath, "loop", "run", id],
-    { detached: true, stdio: "ignore", cwd: ctx.root },
+    { detached: true, stdio: "ignore", cwd: ctx.root, env: wakeEnv(wakeContextFromLoop(def, state, new Date(), "manual")) },
   );
   child.unref();
   return { ok: true, output: `started loop ${id} (running in background)` };

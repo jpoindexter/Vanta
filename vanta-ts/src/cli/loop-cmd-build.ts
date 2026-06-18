@@ -7,7 +7,7 @@ import type { LoopDef } from "../loop/types.js";
 // Isolated here to keep loop-cmd.ts and tools/loop.ts under the line cap.
 
 /** Parse a CLI trigger spec into a Trigger discriminated union.
- *  Valid forms: `manual`, `heartbeat`, `heartbeat:<N>`, `cron:"<expr>"`. */
+ *  Valid forms: `manual`, `heartbeat`, `heartbeat:<N>`, `cron:"<expr>"`, `event:<name>`. */
 export function parseTrigger(spec: string): Trigger {
   if (!spec || spec === "manual") return { kind: "manual" };
   if (spec === "heartbeat") return TriggerSchema.parse({ kind: "heartbeat", everyTicks: 1 });
@@ -15,7 +15,9 @@ export function parseTrigger(spec: string): Trigger {
   if (hbMatch) return TriggerSchema.parse({ kind: "heartbeat", everyTicks: Number(hbMatch[1]) });
   const cronMatch = spec.match(/^cron:"(.+)"$/) ?? spec.match(/^cron:(.+)$/);
   if (cronMatch) return TriggerSchema.parse({ kind: "cron", expr: cronMatch[1]!.trim() });
-  throw new Error(`unknown trigger spec "${spec}". Use: manual | heartbeat | heartbeat:<N> | cron:"<expr>"`);
+  const eventMatch = spec.match(/^event:(.+)$/);
+  if (eventMatch) return TriggerSchema.parse({ kind: "event", event: eventMatch[1]!.trim() });
+  throw new Error(`unknown trigger spec "${spec}". Use: manual | heartbeat | heartbeat:<N> | cron:"<expr>" | event:<name>`);
 }
 
 /** Human-readable summary of a trigger for CLI output. */

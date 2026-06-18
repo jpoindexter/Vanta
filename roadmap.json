@@ -9766,7 +9766,7 @@
       "id": "WAKE-CONTEXT",
       "track": "Harness",
       "title": "Scoped wakes — wake reason + delta context instead of full history",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Gateway wakes inject {wake_reason, goal_id, approval_id?, since} so a loop reads only what changed since last wake; resolved approvals become first-class wake triggers reviewed before other work. Cuts long-loop context cost sharply. Steals the paperclip heartbeat model.",
       "done": "A cron/webhook wake carries its reason + delta; an approval resolution wakes the owning loop first.",

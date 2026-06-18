@@ -7,6 +7,7 @@ import { listDefs, loadDef, loadState, saveState } from "../loop/store.js";
 import { parseTrigger } from "./loop-cmd-build.js";
 import { raiseEscalation } from "../loop/state.js";
 import { dataDirFor } from "./ops.js";
+import { drainLoopWakes } from "../loop/wake.js";
 
 // Capture console.log/error output in tests without polluting stdout.
 function captureConsole(): { lines: string[]; restore: () => void } {
@@ -89,6 +90,12 @@ describe("parseTrigger", () => {
   it("parses manual → kind manual", () => {
     const t = parseTrigger("manual");
     expect(t.kind).toBe("manual");
+  });
+
+  it("parses event:<name> → kind event", () => {
+    const t = parseTrigger("event:approval.resolved");
+    expect(t.kind).toBe("event");
+    if (t.kind === "event") expect(t.event).toBe("approval.resolved");
   });
 
   it("defaults empty string to manual", () => {
@@ -285,6 +292,12 @@ describe("loop clear", () => {
     expect(cap.lines.join("\n")).toContain("loop resumed");
     const def = await loadDef(dataDir, id);
     expect(def?.status).toBe("active");
+    const wakes = await drainLoopWakes(dataDir);
+    expect(wakes[0]).toMatchObject({
+      wake_reason: "approval.resolved",
+      goal_id: id,
+      approval_id: "esc-1",
+    });
     await cleanup();
   });
 

@@ -7,8 +7,8 @@ import type { LoopDef, LoopState } from "./types.js";
 // resets `ticksSinceRun` to 0 when an iteration actually runs.
 //
 // - manual: never auto-wakes (only `vanta loop run <id>`).
-// - event:  declared now, fired by the WAKE-CONTEXT card later; treated as
-//           manual until then so an event loop never silently spins.
+// - event:  fired by queued wake context (approval resolutions, etc.); never
+//           clock-driven so an event loop cannot silently spin.
 // - cron:   wall-clock, via the same evaluator the scheduler uses.
 // - heartbeat: every Nth tick, counting `ticksSinceRun`.
 

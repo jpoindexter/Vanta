@@ -7,6 +7,7 @@ import { installService, uninstallService, serviceStatus } from "../service/mana
 import { resolveVantaHome } from "../store/home.js";
 import { prepareRun, buildSummarizer, writeRunMemory } from "../session.js";
 import type { RunTask } from "../schedule/runner.js";
+import { withWakeContext } from "../loop/wake.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -20,9 +21,10 @@ export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta")
 
 // Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
-  return async (instruction) => {
-    const setup = await prepareRun(repoRoot, instruction);
-    const outcome = await runAgent(setup.systemPrompt, instruction, {
+  return async (instruction, wake) => {
+    const prompt = withWakeContext(instruction, wake);
+    const setup = await prepareRun(repoRoot, prompt);
+    const outcome = await runAgent(setup.systemPrompt, prompt, {
       provider: setup.provider,
       safety: setup.safety,
       registry: setup.registry,
@@ -31,7 +33,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
     });
-    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
+    await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
     return { finalText: outcome.finalText };
   };
 }
@@ -140,5 +142,4 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     for (const n of names) console.log(`  ${n}`);
   }
 }
-
 

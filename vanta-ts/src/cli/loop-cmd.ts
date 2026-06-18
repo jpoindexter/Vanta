@@ -10,6 +10,7 @@ import { newState } from "../loop/types.js";
 import { markInProgress, loopStateReminder } from "../loop/state.js";
 import { runLoopIteration } from "../loop/runner.js";
 import { dataDirFor, buildCronRunTask } from "./ops.js";
+import { wakeContextFromEnv, wakeContextFromLoop, withWakeContext } from "../loop/wake.js";
 import {
   parseTrigger,
   triggerSummary,
@@ -94,6 +95,7 @@ async function handleRun(root: string, id: string): Promise<number> {
   // Compute reminder once from the state captured at iteration start so the
   // goal + open blockers survive any compaction that happens inside the turn.
   const reminder = loopStateReminder(def, state);
+  const wake = wakeContextFromEnv() ?? wakeContextFromLoop(def, state, new Date(), "manual");
   const runTask = buildCronRunTask(root);
 
   const runStage: import("../loop/types.js").RunStage = async ({ stage, goal, prior }) => {
@@ -104,7 +106,7 @@ async function handleRun(root: string, id: string): Promise<number> {
       prior ? `\nPrior context:\n${prior}` : "",
     ].filter(Boolean).join("\n");
     // Prepend reminder so the loop goal + blockers survive context compaction.
-    const prompt = `${reminder}\n\n${base}`;
+    const prompt = withWakeContext(`${reminder}\n\n${base}`, wake);
     return (await runTask(prompt)).finalText;
   };
 

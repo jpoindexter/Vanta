@@ -65,10 +65,11 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `providers/anthropic.ts` | Phase 4 full Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). Pure `toAnthropicMessages` |
 | `tools/delegate.ts` | Phase 6 — spawns a scoped subagent. Child registry excludes `delegate` (no runaway recursion) |
 | `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.vanta/cron.tsv` load/add/save |
-| `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks; one failure doesn't abort the batch |
+| `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks, passes compact cron wake context to `RunTask`; one failure doesn't abort the batch |
 | `schedule/commands.ts` | Phase 6 — `vanta schedule`/`cron` CLI handlers (extracted to keep cli.ts ≤300) |
-| `gateway/run.ts` | v1 E1/E2/E3 — `vanta gateway` daemon: `gatewayTick` (cron) + `pollPlatform` (messaging) + webhook listener, in one `runGateway` loop (SIGINT/SIGTERM-clean). `VANTA_GATEWAY_TICK_MS` |
+| `gateway/run.ts` | v1 E1/E2/E3 — `vanta gateway` daemon: drains queued loop wakes first, then `gatewayTick` cron/factory + `pollPlatform` messaging + webhook listener in one `runGateway` loop (SIGINT/SIGTERM-clean). `VANTA_GATEWAY_TICK_MS` |
 | `gateway/webhook.ts` | v1 E3 — pure `verifyGithubSignature` (HMAC sha256, constant-time) + `resolveDeliver` (local/file/telegram) + `startWebhookServer` (POST, HMAC-gated, 200-fast). `VANTA_WEBHOOK_PORT`/`_SECRET`/`_PROMPT`/`_DELIVER` |
+| `loop/wake.ts` | WAKE-CONTEXT — `WakeContext` formatting/encoding, `VANTA_LOOP_WAKE_CONTEXT`, cron/webhook/loop wake builders, and durable `.vanta/loops/wake-events.jsonl` queue. |
 | `service/launchd.ts` + `service/manager.ts` | v1 E1 — pure `buildLaunchdPlist` + `vanta service install\|uninstall\|status` (launchd user agent that keeps `vanta gateway` alive; captures PATH). macOS only for now |
 | `gateway/platforms/base.ts` | v1 E2 — `PlatformAdapter` contract (`connect`/`disconnect`/`send`/`poll`) + `InboundMessage`/`OutboundMessage`. One adapter per messaging platform |
 | `gateway/platforms/telegram.ts` | v1 E2 — `TelegramAdapter` (getUpdates long-poll + sendMessage, no SDK) + pure `parseUpdates`/`parseAllowlist`. `gateway/run.ts pollPlatform` runs inbound→agent→reply. Enabled by `VANTA_TELEGRAM_TOKEN`; offline-tested, live needs a @BotFather token |

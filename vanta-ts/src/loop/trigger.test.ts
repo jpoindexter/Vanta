@@ -22,7 +22,7 @@ describe("isLoopDue", () => {
     expect(isLoopDue(defWith({ kind: "manual" }), newState("t"), NOON)).toBe(false);
   });
 
-  it("event loops are inert until WAKE-CONTEXT (treated as manual)", () => {
+  it("event loops never wake from the clock; queued events target them explicitly", () => {
     expect(isLoopDue(defWith({ kind: "event", event: "approval.resolved" }), newState("t"), NOON)).toBe(false);
   });
 

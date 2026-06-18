@@ -1,6 +1,7 @@
 import { saveDef, loadDef, saveState, loadState, removeLoop } from "../loop/store.js";
 import { clearEscalation, openEscalations } from "../loop/state.js";
 import { dataDirFor } from "./ops.js";
+import { enqueueLoopWake, wakeContextForEscalationClear } from "../loop/wake.js";
 
 // State-mutation handlers for `vanta loop`. Extracted from loop-cmd.ts (size gate).
 // Core CRUD (add/list/run) stays in loop-cmd.ts.
@@ -22,18 +23,21 @@ export async function handleClear(root: string, id: string, escId: string): Prom
   const def = await loadDef(dataDir, id);
   if (!def) { console.error(`unknown loop: ${id}`); return 1; }
   const state = await loadState(dataDir, id);
+  const wake = wakeContextForEscalationClear(id, state, escId);
   const { state: next, cleared } = clearEscalation(state, escId, new Date());
   if (!cleared) {
     console.error(`no open escalation '${escId}' on ${id}`);
     return 1;
   }
   await saveState(dataDir, next);
-  if (def.status === "paused" && openEscalations(next).length === 0) {
+  const unblocked = openEscalations(next).length === 0;
+  if (def.status === "paused" && unblocked) {
     await saveDef(dataDir, { ...def, status: "active" });
     console.log(`cleared ${escId} — loop resumed`);
   } else {
     console.log(`cleared ${escId}`);
   }
+  if (unblocked) await enqueueLoopWake(dataDir, wake);
   return 0;
 }
 

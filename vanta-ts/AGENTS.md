@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3721 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3728 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -44,6 +44,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/hooks/` — `.vanta/hooks.json` 30-event schema + runners for `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types.
 - `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` command hooks; listing labels all hook types.
 - `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
+- `src/loop/wake.ts` — compact wake context contract + durable `.vanta/loops/wake-events.jsonl` queue for loop/cron/webhook wake reasons and deltas.
 - `src/tools/structured-output.ts` + `src/agent/structured-output.ts` — synthetic `StructuredOutput` tool for SDK `outputSchema`
 - `src/workflow/` — FABRO-WORKFLOW-GRAPH core: declarative graph schema/diff/executor for `agent`/`approval`/`interview` nodes and `next`/`branch`/`loop`/`parallel` transitions. Pure; production wiring lives in `src/tools/workflow.ts`.
 - `src/subagent/` — isolated worker conversations; parent outputs stay summary-only and full worker transcripts persist under `.vanta/sidechains/`.
@@ -107,6 +108,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `compose_workflow` accepts legacy step sequences plus declarative workflow graphs; graph runs route every node through the kernel, use approval/interview human gates, diff canonical graph JSON, and execute agent nodes through `spawnSubagent`.
 - `.vanta/hooks.json` supports the 30-event hook vocabulary and hook types `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around live tool/prompt/stop/session events. `VANTA-HOOK-EVENTS` is shipped: file watcher, cwd changes, MCP notification/elicitation, stop-failure, teammate-idle, lifecycle, permission, compaction, config, worktree, fleet, and subagent paths all have Vanta-owned firing points.
 - Goal dependencies live in `.vanta/goal-deps.json`: `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` derive `blocked_by`/`blocks` state without changing kernel storage.
+- Scoped wakes inject compact `{wake_reason, goal_id, approval_id?, since, delta[]}` context for cron, webhook, and loop runs. Cleared loop escalations enqueue `approval.resolved` wakes for the owning loop and `gatewayTick` drains them before due cron work.
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
 - Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.
 - Provider context-window errors trigger one forced compaction retry in the agent loop; a second context error returns a clean stopped outcome.
@@ -134,6 +136,6 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Env vars (key ones)
 
-`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VERIFY` (opt-in completion verifier) · `VANTA_EXTRACT_MEMORIES` (opt-in post-turn fact extraction) · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_PERMISSION_MODE` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_TUI` (`v2` opt-in mission-control shell)
+`VANTA_PROVIDER` · `VANTA_MODEL` · `VANTA_EFFORT_LEVEL` · `VANTA_KERNEL_URL` · `VANTA_HOME` · `VANTA_SELF_IMPROVE` · `VANTA_VERIFY` (opt-in completion verifier) · `VANTA_EXTRACT_MEMORIES` (opt-in post-turn fact extraction) · `VANTA_VISION_MODEL` / `VANTA_VISION_PROVIDER` (auxiliary vision routing) · `VANTA_FACTORY_BUDGET` · `VANTA_FACTORY_DISABLED` (factory kill switch) · `VANTA_TOOL_RETRIES` · `VANTA_STALL_THRESHOLD` · `VANTA_MODE_DETECT` · `VANTA_AUTOHANDOFF` / `VANTA_AUTOHANDOFF_THRESHOLD` · `VANTA_GOAL_ACTION` · `VANTA_RELAUNCH` (set by run.sh; enables /restart) · `VANTA_BROWSER_DISABLED` · `VANTA_DISABLE_AGENT_VIEW` · `VANTA_PERMISSION_MODE` · `VANTA_AUTO_MODE` · `VANTA_EMBED_MODEL` · `VANTA_RESUME_MAX_AGE_MIN` · `VANTA_LOOP_WAKE_CONTEXT` (internal detached-loop wake payload) · `VANTA_TUI` (`v2` opt-in mission-control shell)
 
 Full env list: `CLAUDE.md §Env`.

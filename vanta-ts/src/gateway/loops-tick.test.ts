@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tickLoops } from "./loops-tick.js";
 import { saveDef, saveState, loadState } from "../loop/store.js";
 import { LoopDefSchema, newState } from "../loop/types.js";
+import type { WakeContext } from "../loop/types.js";
 
 // Build a minimal valid LoopDef via the schema parser.
 function makeDef(id: string, trigger: object, status = "active") {
@@ -19,7 +20,7 @@ function makeDef(id: string, trigger: object, status = "active") {
 }
 
 let dataDir: string;
-const spawned: string[] = [];
+const spawned: Array<{ id: string; wake: WakeContext }> = [];
 const noop = () => {};
 
 beforeEach(async () => {
@@ -35,7 +36,7 @@ function deps(now: Date) {
   return {
     dataDir,
     now,
-    spawn: (id: string) => spawned.push(id),
+    spawn: (id: string, wake: WakeContext) => spawned.push({ id, wake }),
     log: noop,
   };
 }
@@ -50,7 +51,8 @@ describe("tickLoops", () => {
     const fired = await tickLoops(deps(now));
 
     expect(fired).toBe(1);
-    expect(spawned).toEqual(["hb-due"]);
+    expect(spawned.map((s) => s.id)).toEqual(["hb-due"]);
+    expect(spawned[0]?.wake.wake_reason).toBe("heartbeat:1");
   });
 
   it("does not fire a heartbeat loop that is not yet due; advances tick counter", async () => {
@@ -93,7 +95,8 @@ describe("tickLoops", () => {
     const fired = await tickLoops(deps(now));
 
     expect(fired).toBe(1);
-    expect(spawned).toContain("cron-match");
+    expect(spawned.map((s) => s.id)).toContain("cron-match");
+    expect(spawned[0]?.wake.wake_reason).toBe("cron:0 9 * * *");
   });
 
   it("does not fire a cron loop whose expression does not match; state unchanged", async () => {

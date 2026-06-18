@@ -1,6 +1,7 @@
 import { listDefs, loadState, saveState } from "../loop/store.js";
 import { isLoopDue, advanceTick } from "../loop/trigger.js";
-import type { LoopDef } from "../loop/types.js";
+import { wakeContextFromLoop } from "../loop/wake.js";
+import type { LoopDef, WakeContext } from "../loop/types.js";
 
 // Wakes any registered loops whose trigger fires on this gateway tick.
 // Each due loop spawns a detached child (injected via deps.spawn) so a
@@ -11,7 +12,7 @@ export type LoopsTickDeps = {
   dataDir: string;
   now: Date;
   /** Fire a loop iteration — caller wires the detached child. */
-  spawn: (id: string) => void;
+  spawn: (id: string, wake: WakeContext) => void;
   log: (msg: string) => void;
 };
 
@@ -20,7 +21,7 @@ async function tickOne(def: LoopDef, deps: LoopsTickDeps): Promise<boolean> {
   const state = await loadState(deps.dataDir, def.id);
 
   if (isLoopDue(def, state, deps.now)) {
-    deps.spawn(def.id);
+    deps.spawn(def.id, wakeContextFromLoop(def, state, deps.now));
     deps.log(`loop ${def.id}: due → spawned`);
     return true;
   }

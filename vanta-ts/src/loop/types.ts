@@ -7,8 +7,8 @@ import { z } from "zod";
 // separate file) so a def can be inspected/edited without racing the runner.
 
 /** What wakes a loop. cron/heartbeat are evaluated on the gateway tick; manual
- *  only via `vanta loop run <id>`; event is declared here but fired later by the
- *  WAKE-CONTEXT card (approval resolutions, etc.) — until then it behaves manual. */
+ *  only via `vanta loop run <id>`; event wakes are delivered through the durable
+ *  wake queue (approval resolutions, etc.) and never spin on clock ticks. */
 export const TriggerSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("manual") }),
   z.object({ kind: z.literal("heartbeat"), everyTicks: z.number().int().positive().default(1) }),
@@ -16,6 +16,17 @@ export const TriggerSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("event"), event: z.string().min(1) }),
 ]);
 export type Trigger = z.infer<typeof TriggerSchema>;
+
+/** The small wake payload injected before loop/cron/webhook work so long-lived
+ *  runs see what changed without replaying full history. */
+export const WakeContextSchema = z.object({
+  wake_reason: z.string().min(1),
+  goal_id: z.string().min(1),
+  approval_id: z.string().min(1).optional(),
+  since: z.string().nullable().default(null),
+  delta: z.array(z.string().min(1)).default([]),
+});
+export type WakeContext = z.infer<typeof WakeContextSchema>;
 
 /** How a stage verifies its own output before advancing. adversarial fans out N
  *  isolated skeptics (majority-refute = fail); tournament runs N candidates and

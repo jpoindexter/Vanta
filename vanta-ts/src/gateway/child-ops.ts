@@ -3,12 +3,14 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import type { PlatformAdapter } from "./platforms/base.js";
 import { startWebhookServer, type Deliver, type WebhookServer } from "./webhook.js";
+import { wakeContextForWebhook, wakeEnv, withWakeContext } from "../loop/wake.js";
+import type { WakeContext } from "../loop/types.js";
 
-export function spawnLoopChild(id: string, log: (msg: string) => void): void {
+export function spawnLoopChild(id: string, log: (msg: string) => void, wake?: WakeContext): void {
   const child = spawn("vanta", ["loop", "run", id], {
     detached: true,
     stdio: "ignore",
-    env: process.env,
+    env: wakeEnv(wake),
   });
   child.unref();
   log(`loop ${id}: spawned detached iteration (pid ${child.pid})`);
@@ -114,7 +116,8 @@ export async function startWebhookIfConfigured(
     secret: webhook.secret,
     log,
     onEvent: async (body) => {
-      const reply = await handle(prompt(body));
+      const text = withWakeContext(prompt(body), wakeContextForWebhook(body));
+      const reply = await handle(text);
       await deliver(reply);
     },
   }).catch((err: unknown) => {

@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { gatewayTick, pollPlatform } from "./run.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
+import { enqueueLoopWake } from "../loop/wake.js";
+import { LoopDefSchema } from "../loop/types.js";
+import { saveDef } from "../loop/store.js";
 
 class FakeAdapter implements PlatformAdapter {
   readonly id = "fake";
@@ -56,6 +62,38 @@ describe("gatewayTick", () => {
     expect(n).toBe(1); // only the active one
     expect(ran).toEqual(["daily brief"]);
     expect(logs.some((l) => l.includes("#1") && l.includes("did: daily brief"))).toBe(true);
+  });
+
+  it("drains queued loop wakes before running due cron work", async () => {
+    const calls: string[] = [];
+    const dataDir = await mkdtemp(join(tmpdir(), "vanta-gateway-wake-"));
+    try {
+      await saveDef(dataDir, LoopDefSchema.parse({
+        id: "owner",
+        goal: "resume",
+        trigger: { kind: "event", event: "approval.resolved" },
+        stages: [{ name: "run", prompt: "go" }],
+        createdAt: "2026-06-18T00:00:00.000Z",
+      }));
+      await enqueueLoopWake(dataDir, { wake_reason: "approval.resolved", goal_id: "owner", since: null, delta: [] });
+
+      const n = await gatewayTick({
+        dataDir,
+        run: async () => {
+          calls.push("cron");
+          return { finalText: "ran" };
+        },
+        spawnLoop: (id) => void calls.push(`wake:${id}`),
+        now: () => new Date("2026-06-02T12:00:00Z"),
+        log: () => {},
+        load: async () => [{ id: 1, cron: "* * * * *", instruction: "daily", status: "active" }],
+      });
+
+      expect(n).toBe(2);
+      expect(calls).toEqual(["wake:owner", "cron"]);
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
   });
 
   it("a throwing task is captured, not fatal (counts as run)", async () => {

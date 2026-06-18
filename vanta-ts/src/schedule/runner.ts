@@ -1,12 +1,14 @@
 import { loadCron as defaultLoadCron, isDue } from "./cron.js";
 import type { CronEntry } from "./cron.js";
+import { wakeContextForCron } from "../loop/wake.js";
+import type { WakeContext } from "../loop/types.js";
 
 /**
  * Runs a single instruction and yields its final text. Injected so the runner
  * stays testable and decoupled from full agent wiring — `cli.ts` passes a real
  * implementation that calls `runAgent` and gates through the kernel.
  */
-export type RunTask = (instruction: string) => Promise<{ finalText: string }>;
+export type RunTask = (instruction: string, wake?: WakeContext) => Promise<{ finalText: string }>;
 
 export type DueTaskResult = { id: number; instruction: string; result: string };
 
@@ -39,7 +41,8 @@ export async function runDueTasks(
   const results: DueTaskResult[] = [];
   for (const entry of due) {
     try {
-      const { finalText } = await opts.run(entry.instruction);
+      const wake = wakeContextForCron(entry, opts.now);
+      const { finalText } = await opts.run(entry.instruction, wake);
       results.push({ id: entry.id, instruction: entry.instruction, result: finalText });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

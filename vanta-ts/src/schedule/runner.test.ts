@@ -93,4 +93,16 @@ describe("runDueTasks", () => {
     expect(seenDir).toBe(DATA_DIR);
     expect(results).toEqual([]);
   });
+
+  it("passes compact cron wake context to the task runner", async () => {
+    const seen: string[] = [];
+    const run: RunTask = async (_instruction, wake) => {
+      seen.push(`${wake?.wake_reason} ${wake?.goal_id}`);
+      return { finalText: "ok" };
+    };
+
+    await runDueTasks({ dataDir: DATA_DIR, now, run, load: loaderFor([entry({ id: 9, cron: ALWAYS })]) });
+
+    expect(seen).toEqual(["cron:* * * * * cron:9"]);
+  });
 });
