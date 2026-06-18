@@ -12542,6 +12542,95 @@
       "summary": "[repo: vanta] Full S2L (arXiv:2606.16769): self-distill each SKILL.md -> demos -> a per-skill QLoRA adapter; at runtime drop skill text, load the adapter by id. Needs QLoRA training + dynamic-LoRA serving (vLLM/Ollama) — local path only, not API providers. SPIKE FIRST: a design doc + feasibility on Vanta's local backend with a go/no-go; honor S2L limits (lossy edge cases, interpretability, one-skill-per-task). Stop-and-surface: needs an infra decision.",
       "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off.",
       "notes": "Shipped 2026-06-18 as a DESIGN SPIKE (per scope — no training/serving infra built). docs/s2l-skill-lora-spike.md: maps S2L (arXiv:2606.16769) 3 stages to Vanta (distill + task-subset already cover the text side; the LoRA-weights half is the open piece); feasibility per backend (API providers infeasible — no custom LoRA; Ollama partial — ADAPTER bakes a variant, no efficient hot-swap; vLLM = real dynamic multi-LoRA but a new serving path Vanta lacks); paper limitations (lossy edge cases, interpretability loss, one-skill-per-task; robust to wrong-skill retrieval). RECOMMENDATION: NO-GO for now — shipped text-side wins capture most of the token benefit with zero infra and no loss of inspectability/losslessness. Revisit when (1) Vanta gains a self-hosted dynamic-LoRA serving path AND (2) the eval/CNG shows text-side skill compression is insufficient; if GO, start with a single-skill spike. Awaiting operator sign-off before any build."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "WINNOW-LOGPROB-SCORER",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "Real LM-logprob scorer for pruneText (genuine LLMLingua-grade)",
+      "summary": "[repo: winnow] pruneTextAsync + makeLmScorer (logprob→surprisal) exist but there's no real logprob source — pruning falls back to the heuristic proxy. Add makeOpenAiLogprobScorer({baseURL,model,apiKey?}): fetch the OpenAI-compatible completions API with logprobs (works for OpenAI / Ollama / vLLM / etc.) to get per-token logprobs for a token list and return an AsyncTokenScorer. This is the SOLID fix to ML pruning — drop low-information tokens by a real model's surprisal, not a frequency heuristic. Fetch-only, no SDK; graceful fallback to the heuristic when logprobs are unavailable.",
+      "done": "makeOpenAiLogprobScorer returns an AsyncTokenScorer from real per-token logprobs; pruneTextAsync does model-scored pruning; tests with a MOCKED logprob endpoint (no network); heuristic fallback when logprobs absent; CHANGELOG + version bump; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "SKILL-EVAL-CORPUS",
+      "track": "Harness",
+      "lens": "eval",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "Skill-sensitive eval corpus — tasks where the right skill lifts pass@1",
+      "summary": "[repo: vanta] The factory eval/tasks corpus is small and not skill-sensitive; a live CNG pass-rate comparison needs tasks where the CORRECT skill measurably changes pass@1. Build eval/skill-tasks: each task pairs an instruction that benefits from a specific installed skill with a deterministic check (file_exists/file_contains/shell_ok), so full vs distilled vs subset skill text produce comparable, gradeable rollouts. The measurement spine for distill/subset (and the trigger-2 signal for S2L).",
+      "done": ">=8 skill-sensitive tasks with deterministic checks tied to real installed skills; a loader + zod validation; documented; tests for the loader; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "SKILL-DISTILL-CLI",
+      "track": "Operator",
+      "lens": "skills",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "vanta skill distill [--all|<name>] — generate DISTILLED.md across the library",
+      "summary": "[repo: vanta] distillSkill exists but nothing generates DISTILLED.md in bulk, so the distilled measurement (and runtime serving) has no data. Add a CLI that distils installed skills via the active provider; idempotent (skip up-to-date), one or all. Prerequisite for measuring SKILL-DISTILL-EXAMPLES end-to-end.",
+      "done": "vanta skill distill --all generates DISTILLED.md for installed skills, <name> for one, idempotent; tests; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "COMPRESSION-EVAL-RUNNER",
+      "track": "Harness",
+      "lens": "eval",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "SKILL-EVAL-CORPUS"
+      ],
+      "title": "vanta eval compress <dim> — repeatable control/treatment CNG measurement",
+      "summary": "[repo: vanta] Replace manual env-toggle eyeballing with a first-class, repeatable runner: vanta eval compress <dimension> runs the corpus TWICE (control vs treatment, frozen per the existing eval isolation) and reports pass@1, output tokens, and CNG (winnow compressionCng) side-by-side, recording a baseline. Dimensions: skill-distilled (VANTA_SKILL_DISTILLED), skill-subset (VANTA_SKILL_SUBSET), prune (VANTA_PRUNE). This is the solid, recorded validation, not a toggle.",
+      "done": "vanta eval compress <dim> runs both arms, prints pass@1/tokens/CNG, writes a recorded result; pure aggregation tested; control/treatment isolated; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "PRUNE-CONTEXT-WIRE",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "WINNOW-LOGPROB-SCORER"
+      ],
+      "title": "Apply pruneText (real scorer) to an opt-in context path — measurable + usable",
+      "summary": "[repo: vanta] pruneTextAsync is a library fn, never applied in the loop, so prune's effect can't be measured or used. Apply it (with the real logprob scorer from WINNOW-LOGPROB-SCORER) to a bounded, opt-in context path (e.g., oversized pasted/inline context) behind VANTA_PRUNE=1, default OFF; reversible/safe — never prune code or precision reads. Makes prune measurable via the runner and usable in production.",
+      "done": "opt-in prune applied to a defined context path, default off, never touches code/precision reads; tests; exercised by vanta eval compress prune; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "COMPRESSION-MEASURE",
+      "track": "Harness",
+      "lens": "eval",
+      "size": "M",
+      "tier": "rock",
+      "effort": "medium",
+      "after": [
+        "COMPRESSION-EVAL-RUNNER",
+        "SKILL-DISTILL-CLI",
+        "PRUNE-CONTEXT-WIRE"
+      ],
+      "title": "Run the live CNG measurement, record results, flip defaults only where CNG>=0",
+      "summary": "[repo: vanta] The payoff: run vanta eval compress for skill-distilled, skill-subset, and prune against a LIVE logprob-capable model, record the CNG results, and flip a default ON only where CNG>=0 (tokens down, pass-rate not down). Resolves the deferred quality-parity measurements for SKILL-DISTILL-EXAMPLES + WINNOW-ML-PRUNE-BACKEND and produces the trigger-2 signal for the S2L go/no-go. Needs a configured logprob-capable model.",
+      "done": "CNG recorded for all three dimensions against a live model; defaults flipped only where CNG>=0; findings written to docs/; S2L trigger-2 assessed. Stop-and-surface if a model isn't available."
     }
   ]
 }
