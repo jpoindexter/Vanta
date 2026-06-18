@@ -1,6 +1,7 @@
 import { rankResults } from "../search/life-rank.js";
 import { cosineSim } from "../search/embed.js";
 import { fuseRrf } from "../search/rrf.js";
+import { buildTemporalIndex, temporalRank } from "../brain/temporal.js";
 import type { MemoryRecord, RetrievalMode } from "./types.js";
 
 // fuseRrf re-exported so the eval and its tests share the production fuser.
@@ -72,10 +73,19 @@ const hybrid: Retriever = {
   },
 };
 
-const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid };
+// Temporal-aware: ranks date/duration-bearing memories first for when/earliest/
+// latest/in-year/duration queries, lexical fallback otherwise. No embeddings.
+const temporal: Retriever = {
+  mode: "temporal",
+  needsEmbeddings: false,
+  canRunWithoutEmbeddings: true,
+  rank: (q, records, ctx) => temporalRank(q, records, buildTemporalIndex(records), ctx.now),
+};
+
+const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid, temporal };
 
 export function resolveRetriever(mode: RetrievalMode): Retriever {
   return RETRIEVERS[mode];
 }
 
-export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid"];
+export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid", "temporal"];

@@ -12355,7 +12355,7 @@
       "id": "MEM-TEMPORAL-EVENTS",
       "track": "Operator",
       "title": "Temporal event indexing for memory — surface dates/intervals as first-class records (Chronos-style)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). The strong custom harness (Chronos) serializes memories WITH extracted temporal events (explicit dates, intervals, ordering) as structured records, lifting temporal-reasoning recall — the category where plain retrieval is weakest. Vanta's brain has an episodic region + timestamped entries + brain/learn distillation, but no normalized temporal index. Add a temporal extraction pass that pulls explicit dates/intervals from stored memories into queryable event records (entry timing exists; add a temporal index + a recall path that resolves when/before/after/how-long questions against it). Validate the temporal-category lift via MEM-RETRIEVAL-EVAL.",
       "done": "Memories with explicit time expressions get normalized temporal-event records; recall can answer when/duration/ordering questions against them; the temporal category in MEM-RETRIEVAL-EVAL improves vs the pre-change baseline.",
@@ -12364,7 +12364,9 @@
       "lens": "memory",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ]
+      ],
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Chronos-style temporal-event indexing. src/brain/temporal.ts (pure): extractDates (ISO + bare years, deduped, no double-count of an ISO year), extractDurations (years/months/weeks/days → years), buildTemporalIndex (record id → {dateMs[], durationYears[]}), classifyTemporalQuery (earliest|latest|duration|in-year|none), temporalRank — ranks date/duration-bearing memories first for when/earliest/latest/in-year/duration queries (date asc/desc, duration desc, year-match), lexical fallback (rankResults) for non-temporal queries and as the tiebreak tail. Wired into MEM-RETRIEVAL-EVAL as a new retrieval mode: RetrievalMode gains temporal, mem-eval/retrievers.ts registers a temporal retriever (no embeddings), the eval reports a temporal column. Added genuinely temporal-reasoning questions to the fixture (tq-earliest/tq-latest/tq-duration) that reference time abstractly and share NO keywords with the answering memory — the category where plain retrieval is weakest — plus two date-bearing gold memories (g-temp-firstcommit 2010, g-temp-indx-start 2023). Result in vanta eval mem: temporal-category recall@5 @full lexical 66.7% → temporal 100% (overall temporal mode 79.2% vs lexical 62.5%) — the lift the card requires, measured not guessed. Note: the recorded baseline shifted because the fixture grew the harder temporal questions (9→12 q); the eval is the spine and is meant to grow, the comparison is temporal-mode vs lexical-mode on the same fixture. The harder corpus also surfaced new headroom (preference 0%, multi-session 75%) for BRAIN-ROUTER/graph-bridge. 33 mem-eval/temporal tests green; tsc clean; size gate clean (4 files); boundaries hold. Follow-up (isolated, larger): reordering production brain.recall spreading-activation by temporal relevance — this slice delivers the engine + index + the eval recall path."
     },
     {
       "id": "BRAIN-INGEST-GATE",

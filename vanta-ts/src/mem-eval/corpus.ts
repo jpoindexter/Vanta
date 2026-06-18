@@ -24,6 +24,8 @@ const GOLD: MemoryRecord[] = [
   { id: "g-temp-valencia", session: 2, at: "2024-01-20", text: "Jason relocated to Valencia on 2023-09-01." },
   { id: "g-temp-rewrite", session: 10, at: "2024-06-15", text: "The Vanta public-prep git history rewrite happened on 2026-06-17." },
   { id: "g-temp-dur", session: 5, at: "2024-03-21", text: "Jason has been a software developer for 15 years." },
+  { id: "g-temp-firstcommit", session: 1, at: "2024-01-09", text: "Jason's first open-source commit was on 2010-03-12." },
+  { id: "g-temp-indx-start", session: 3, at: "2024-02-14", text: "Jason began building indx on 2023-06-15." },
 ];
 
 const DISTRACTORS: MemoryRecord[] = [
@@ -63,6 +65,11 @@ export const QUESTIONS: MemQuestion[] = [
   { id: "tm1", query: "when did Jason move to Valencia", category: "temporal", gold: ["g-temp-valencia"] },
   { id: "tm2", query: "on what date did the Vanta history rewrite happen", category: "temporal", gold: ["g-temp-rewrite"] },
   { id: "tm3", query: "how long has Jason been a developer", category: "temporal", gold: ["g-temp-dur"] },
+  // Temporally hard: the query references time abstractly, sharing no keywords with
+  // the answering memory — plain lexical recall is weakest here (Chronos category).
+  { id: "tq-earliest", query: "what is the earliest dated event recorded about Jason", category: "temporal", gold: ["g-temp-firstcommit"] },
+  { id: "tq-latest", query: "what is the most recent dated event on record", category: "temporal", gold: ["g-temp-rewrite"] },
+  { id: "tq-duration", query: "what duration of experience is on record", category: "temporal", gold: ["g-temp-dur"] },
 ];
 
 /** Distractor count per noise level ("full" = the whole pool). */

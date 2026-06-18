@@ -50,4 +50,11 @@ describe("runMemEval", () => {
     const r = await runMemEval({ modes: ["lexical", "hybrid"], noiseLevels: ["s5", "full"], now: NOW });
     expect(r.cells).toHaveLength(4);
   });
+
+  it("temporal mode improves the temporal category over lexical (MEM-TEMPORAL-EVENTS)", async () => {
+    const r = await runMemEval({ modes: ["lexical", "temporal"], noiseLevels: ["full"], now: NOW });
+    const lex = cell(r, "lexical", "full")?.byCategory.temporal ?? 0;
+    const tmp = cell(r, "temporal", "full")?.byCategory.temporal ?? 0;
+    expect(tmp).toBeGreaterThan(lex); // temporal-aware recall lifts the weak category
+  });
 });
