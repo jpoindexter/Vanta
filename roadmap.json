@@ -12527,7 +12527,7 @@
       "notes": "Shipped 2026-06-18. agent/dispatch-helpers.ts: toonView + compressReadFile now call winnow toonCompress({dictionary: toonDict()}) where toonDict() reads VANTA_TOON_DICT (1/true/on). Default off = plain TOON (unchanged); on = columnar TOONC (constant-column + dictionary), bigger lossless savings on low-cardinality tool output at some readability cost. The model-facing note adapts (plain vs columnar). winnow reinstalled to v0.8.0 in vanta-ts. Test: VANTA_TOON_DICT=1 switches a 150-row low-cardinality read to TOONC and round-trips losslessly via decodeTable. tsc + size gate + boundaries clean; full vanta suite 3634 green."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "S2L-LORA-SKILLS",
       "track": "Operator",
@@ -12540,7 +12540,8 @@
       ],
       "title": "Skill-to-LoRA — per-skill adapters for the local model path (research spike)",
       "summary": "[repo: vanta] Full S2L (arXiv:2606.16769): self-distill each SKILL.md -> demos -> a per-skill QLoRA adapter; at runtime drop skill text, load the adapter by id. Needs QLoRA training + dynamic-LoRA serving (vLLM/Ollama) — local path only, not API providers. SPIKE FIRST: a design doc + feasibility on Vanta's local backend with a go/no-go; honor S2L limits (lossy edge cases, interpretability, one-skill-per-task). Stop-and-surface: needs an infra decision.",
-      "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off."
+      "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off.",
+      "notes": "Shipped 2026-06-18 as a DESIGN SPIKE (per scope — no training/serving infra built). docs/s2l-skill-lora-spike.md: maps S2L (arXiv:2606.16769) 3 stages to Vanta (distill + task-subset already cover the text side; the LoRA-weights half is the open piece); feasibility per backend (API providers infeasible — no custom LoRA; Ollama partial — ADAPTER bakes a variant, no efficient hot-swap; vLLM = real dynamic multi-LoRA but a new serving path Vanta lacks); paper limitations (lossy edge cases, interpretability loss, one-skill-per-task; robust to wrong-skill retrieval). RECOMMENDATION: NO-GO for now — shipped text-side wins capture most of the token benefit with zero infra and no loss of inspectability/losslessness. Revisit when (1) Vanta gains a self-hosted dynamic-LoRA serving path AND (2) the eval/CNG shows text-side skill compression is insufficient; if GO, start with a single-skill spike. Awaiting operator sign-off before any build."
     }
   ]
 }
