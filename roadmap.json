@@ -12479,7 +12479,7 @@
       "notes": "Shipped 2026-06-18 (winnow v0.8.0). prune.ts: pruneTextAsync (async scorer) + makeLmScorer(logprobFn) which maps per-token logprobs to surprisal (= -logprob; surprising/info-dense tokens kept, predictable filler dropped — the LLMLingua principle with your own model). Shared assemble() core keeps sync pruneText unchanged as the zero-dep heuristic default. winnow-only (Vanta does not import prune). Scoped to follow-up (needs a LIVE model, like comms live-tests): ML-vs-heuristic QUALITY comparison on a prose corpus — the mechanism is proven by tests (injected scorer fully controls survival; makeLmScorer keeps high-surprisal tokens), but a real ratio/CNG comparison needs a logprob-capable LM. 94 winnow tests; tsc clean."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "SKILL-DISTILL-EXAMPLES",
       "track": "Operator",
@@ -12492,7 +12492,8 @@
       ],
       "title": "Skill distillation — long SKILL.md -> a few worked demos (text-side S2L)",
       "summary": "[repo: vanta] From S2L (arXiv:2606.16769): a SKILL.md's behavior can be carried by a few synthesized I/O demonstrations instead of the full procedural doc. Add a distillation pass (injected LLM, like the summarizer) that compresses a long skill body into N worked examples; recall serves the distilled form. Measure tokens + pass via CNG. No training (the LoRA route is S2L-LORA-SKILLS).",
-      "done": "a skill-distill pass produces worked demos from a SKILL.md; recall can serve the distilled form; CNG shows tokens down without pass-rate loss on a small skill set; tests; pushed to vanta."
+      "done": "a skill-distill pass produces worked demos from a SKILL.md; recall can serve the distilled form; CNG shows tokens down without pass-rate loss on a small skill set; tests; pushed to vanta.",
+      "notes": "Shipped 2026-06-18. skills/distill.ts: distillSkill({name,body,provider}) calls an injected LLM to compress a SKILL.md into ≤N worked input→output demos and writes DISTILLED.md next to the skill; pure buildDistillPrompt/distilledFromText/distillSavings (token delta via winnow estTokens). tools/recall.ts serves the distilled form when VANTA_SKILL_DISTILLED is on (default = full body). 12 co-located tests incl. end-to-end recall-serves-distilled; tsc + size gate + boundaries clean; full vanta suite 3628 green. Scoped follow-up (needs a live model + task corpus, like the comms live-tests): the CNG pass-rate comparison (distilled vs full on real tasks) — token reduction is measured deterministically (distillSavings), pass-rate parity needs a live eval."
     },
     {
       "status": "next",
