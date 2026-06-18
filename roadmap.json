@@ -12932,6 +12932,19 @@
       "title": "Verified contribution pool (untrusted workers) — design spike",
       "summary": "[repo: vanta] Karpathy's untrusted-pool / folding@home / blockchain-of-commits idea: expensive to find an improvement, cheap to verify. A pipeline accepting candidate patches from untrusted sources and AUTO-VERIFYING them against the eval + regression locks before merge — only commits that beat baseline + pass locks land. SPIKE ONLY: design the verify-after-sandbox flow + accept criteria; never run arbitrary untrusted code without sandbox sign-off (kernel/Rule-Zero). Stop and surface for go/no-go.",
       "done": "a design spike documents the sandbox-then-verify pipeline + accept criteria (beats baseline + passes locks) + go/no-go; no arbitrary-code execution built without sign-off; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "CODEX-MODEL-SELECT",
+      "track": "Harness",
+      "lens": "providers",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "Codex provider model selection — verify + document which model to use",
+      "summary": "[repo: vanta] The codex provider (ChatGPT-subscription OAuth, Responses API) defaults to VANTA_MODEL ?? \"gpt-5.5\" (providers/index.ts makeCodex); the catalog (providers/catalog.ts) lists gpt-5.5 / gpt-5.4 / gpt-5.4-mini / gpt-5.3-codex-spark and codex.ts CODEX_CONTEXT holds their context windows. Cover \"what model to use for codex\" explicitly: VERIFY the current Codex-available models against official sources (model names ship fast — do not trust training data), confirm the right DEFAULT (prefer a codex-SPECIALIZED model for coding, e.g. the *-codex-* line, over a general gpt-5.x where appropriate), keep CODEX_CONTEXT windows accurate, and document model choice (and when to pick codex-specialized vs general) in the setup wizard, the catalog note, and .env.example. Note: the codex-rescue agent (Codex CLI handoff) uses the Codex CLI's own model config — out of scope here; this card is the in-process codex PROVIDER.",
+      "done": "codex provider default model + catalog models list verified against current Codex availability and corrected if stale; CODEX_CONTEXT windows accurate; setup wizard + catalog note + .env.example document which model to use for codex and the codex-specialized-vs-general guidance; tests; committed. Stop-and-surface if current Codex model availability cannot be verified."
     }
   ]
 }
