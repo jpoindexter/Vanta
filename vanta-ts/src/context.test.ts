@@ -156,7 +156,7 @@ describe("compressMessages", () => {
     expect(result.every((m) => !m.content.includes("Session notes"))).toBe(true);
   });
 
-  it("falls back to a trimmed result when the summarizer throws", async () => {
+  it("falls back to a model-free extractive summary when the summarizer throws (keeps info, no drop)", async () => {
     const msgs = manyMessages();
     const summarize = async (): Promise<string> => {
       throw new Error("provider down");
@@ -165,8 +165,10 @@ describe("compressMessages", () => {
       protectFirst: 3,
       protectLast: 6,
     });
-    expect(result.some((m) => m.content.includes("trimmed to fit"))).toBe(true);
-    expect(result.some((m) => m.content.includes("[Summary of"))).toBe(false);
+    // The dropped middle is preserved via an extractive summary, not trimmed away.
+    expect(result.some((m) => m.content.includes("[Summary of"))).toBe(true);
+    expect(result.some((m) => m.content.includes("trimmed to fit"))).toBe(false);
+    expect(result.length).toBeLessThan(msgs.length);
   });
 });
 

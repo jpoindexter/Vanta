@@ -6,6 +6,7 @@ import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { toonCompress, estTokens } from "winnow";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
@@ -175,6 +176,13 @@ export async function compressOutput(
   if (toolName === "read_file") {
     const applied = await applyCodeCompression(output, vantaDir);
     return { output: applied.output, tokensSaved: applied.tokensSaved || 0 };
+  }
+  // Lossless TOON for object-array JSON output — keeps EVERY row, so unlike the lossy
+  // crushers it's safe for ANY tool and isn't bound by the compress allowlist.
+  const toon = output.length >= 400 ? toonCompress(output) : null;
+  if (toon) {
+    const out = `${toon}\n[winnow: lossless TOON table — keys in row 1, one record per line]`;
+    return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
   }
   if (!shouldCompressTool(toolName)) return { output, tokensSaved: 0 };
   const applied = await applyCompression(output, vantaDir);

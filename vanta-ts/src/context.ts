@@ -1,7 +1,22 @@
 import type { Message } from "./types.js";
 import { compactionReminder } from "./repl/compaction-remind.js";
+import { compactHistory } from "winnow";
 
 export { sanitizeMessages } from "./context/sanitize.js";
+
+/** Model-free summary of the dropped middle (winnow's extractive compaction). Used when
+ * the LLM summarizer is unavailable, so information survives instead of being trimmed. */
+async function extractiveMiddle(middle: Message[]): Promise<string> {
+  try {
+    const [summary] = await compactHistory(
+      middle.map((m) => ({ role: m.role, content: m.content })),
+      { keepRecent: 0 },
+    );
+    return summary?.content ?? `(${middle.length} earlier messages omitted)`;
+  } catch {
+    return `(${middle.length} earlier messages omitted)`;
+  }
+}
 
 const CHARS_PER_TOKEN = 4;
 
@@ -105,28 +120,32 @@ export async function compressMessages(
   if (!split) return messages;
   const { system, head, tail, middle } = split;
 
+  // LLM summary of the dropped middle; if the summarizer is down, fall back to a
+  // model-free extractive summary (keeps the information) rather than trimming it away.
+  let summary: string;
   try {
-    const summary = await summarize(middle);
-    const note: Message = {
-      role: "user",
-      content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
-    };
-    // Compaction reminder: a transient nudge to /compress, injected interior so
-    // it never displaces head/goalNote at index 1 (pinned by tests).
-    const reminder = compactionReminder(estimateTokens(messages), contextWindow);
-    const reminderNote: Message[] = reminder ? [{ role: "user" as const, content: reminder }] : [];
-    // Re-inject the live scratchpad interior so the curated session snapshot
-    // survives compaction even as the middle is summarized away.
-    const sessionNote: Message[] = opts.sessionMemory?.trim()
-      ? [{ role: "user" as const, content: `[Session notes — running scratchpad]: ${opts.sessionMemory.trim()}` }]
-      : [];
-    const compressed = [...system, ...head, note, ...reminderNote, ...sessionNote, ...tail];
-    if (!opts.activeGoalText) return compressed;
-    const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
-    return [...system, goalNote, ...compressed.slice(system.length)];
+    summary = await summarize(middle);
   } catch {
-    return trimMessages(messages, contextWindow, opts);
+    summary = await extractiveMiddle(middle);
   }
+
+  const note: Message = {
+    role: "user",
+    content: `[Summary of ${middle.length} earlier messages]: ${summary}`,
+  };
+  // Compaction reminder: a transient nudge to /compress, injected interior so
+  // it never displaces head/goalNote at index 1 (pinned by tests).
+  const reminder = compactionReminder(estimateTokens(messages), contextWindow);
+  const reminderNote: Message[] = reminder ? [{ role: "user" as const, content: reminder }] : [];
+  // Re-inject the live scratchpad interior so the curated session snapshot
+  // survives compaction even as the middle is summarized away.
+  const sessionNote: Message[] = opts.sessionMemory?.trim()
+    ? [{ role: "user" as const, content: `[Session notes — running scratchpad]: ${opts.sessionMemory.trim()}` }]
+    : [];
+  const compressed = [...system, ...head, note, ...reminderNote, ...sessionNote, ...tail];
+  if (!opts.activeGoalText) return compressed;
+  const goalNote: Message = { role: "user", content: `[Active goal — keep this in focus]: ${opts.activeGoalText}` };
+  return [...system, goalNote, ...compressed.slice(system.length)];
 }
 
 export type CompactResult = { messages: Message[]; compacted: boolean; dropped: number; summary: string; compactedWindow: Message[] };
