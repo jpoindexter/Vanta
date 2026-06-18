@@ -12341,13 +12341,15 @@
       "id": "MEM-TOOL-OUTPUT-DELIVERY",
       "track": "Harness",
       "title": "Tool-output delivery strategy — inline default, file-pointer for large results (backbone-gated)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). Finding: the harness's tool-output DELIVERY (inline-in-context vs programmatic file-based) shifts end-to-end accuracy as much as swapping retrievers. Inline + lexical wins broadly; file-based delivery only pays off when the model reliably closes the read->integrate->retry loop — weaker backbones regress with it. Vanta already summarizes/compresses tool output (agent/dispatch-tool.ts, compress/*) and has a built-not-wired term/json-format.ts. Add an explicit delivery policy: small results inline (default); large results written to a .vanta file with a path + summary the agent can grep/read (the existing CCR stash is the substrate); choose per result size + a backbone-strength gate so weak models stay inline. Measure both paths with MEM-RETRIEVAL-EVAL.",
       "done": "Tool results route by a delivery policy (inline vs file-pointer) keyed on size + backbone; large outputs land in a grep-able store file with a summary+path; inline stays the default; weak-backbone sessions never get file-only delivery; behavior is covered by tests.",
       "tier": "pebble",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Backbone-gated tool-output delivery. Vanta already offloaded oversized tool output to the CCR store (compress/result-offload.ts, size-based, lossless); this card adds the delivery POLICY the paper calls for. src/compress/delivery-policy.ts (pure): classifyBackbone(modelId) → strong|weak (WEAK_PATTERNS: mini/haiku/flash-lite/nano/gemma/phi/<=14b — weak checked FIRST so gpt-4o-mini/o3-mini/*-haiku are correctly weak, \bmini\b word-bounded so it does not match ge-mini; unknown → strong, preserving prior behavior), resolveDelivery(env,modelId) → {mode:inline|file, inlineChars} keyed on size+backbone, VANTA_FILE_DELIVERY=off|on override. result-offload.ts now consults it: a STRONG backbone gets a short 2k preview + a grep-able file path (.vanta/ccr/<id>.txt) + one-line summary + retrieve_original id (file delivery); a WEAK backbone gets a larger 8k inline-truncated window framed as self-contained and is NEVER handed a file-only pointer it will not follow (full text still stashed losslessly for recovery, just not the primary delivery). Inline stays the default (only oversized output offloads). modelId threaded from deps.provider.modelId() in agent/dispatch-tool.ts (defensive optional-chain for partial test deps). 18 delivery/offload tests + 18 permission-gate tests green; tsc clean; size gate clean (3 files); boundaries hold. Out of scope (own card VANTA-SHELL-JSON-FORMAT): wiring term/json-format.ts as a raw-output display surface — orthogonal to the size/backbone delivery decision."
     },
     {
       "id": "MEM-TEMPORAL-EVENTS",

@@ -48,6 +48,28 @@ describe("offloadResult (size-based CCR offload)", () => {
     expect(await retrieveOriginal(dataDir, id!)).toBe(big);
   });
 
+  it("strong backbone → file delivery: grep-able path + summary + retrieval id", async () => {
+    const big = "first meaningful line\n" + "x".repeat(DEFAULT_MAX_RESULT_CHARS);
+    const r = await offloadResult(big, { toolName: "read_file", dataDir, env: {}, modelId: "claude-opus-4-8" });
+    expect(r.delivery).toBe("file");
+    expect(r.output).toContain(".vanta/ccr/");
+    expect(r.output).toContain("grep-able file");
+    expect(r.output).toContain("summary: first meaningful line");
+    expect(r.output).toContain("retrieve_original");
+  });
+
+  it("weak backbone never gets a file-only pointer — larger inline window instead", async () => {
+    const big = "x".repeat(DEFAULT_MAX_RESULT_CHARS + 5_000);
+    const r = await offloadResult(big, { toolName: "read_file", dataDir, env: {}, modelId: "gpt-4o-mini" });
+    expect(r.delivery).toBe("inline");
+    expect(r.output).toContain("fit a smaller model");
+    expect(r.output).not.toContain("retrieve_original"); // not relying on a retrieval loop
+    expect(r.output.startsWith("x".repeat(8_000))).toBe(true); // larger inline window
+    // full content is still stashed losslessly for recovery
+    const id = /original_id="([a-f0-9]+)"/.exec(r.output)?.[1];
+    expect(await retrieveOriginal(dataDir, id!)).toBe(big);
+  });
+
   it("never throws — returns the original on a stash failure", async () => {
     const big = "y".repeat(DEFAULT_MAX_RESULT_CHARS + 1);
     const r = await offloadResult(big, { toolName: "read_file", dataDir: "/dev/null/nope", env: {} });

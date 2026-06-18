@@ -1,11 +1,14 @@
 import { stashOriginal } from "./store.js";
+import { resolveDelivery } from "./delivery-policy.js";
 
-// Tool-result disk offload: size-based offload. Compression (apply.ts) is LOSSY and
-// allow-listed to media/web outputs; THIS is the lossless, all-tools backstop —
-// any tool output over the char limit (a 60K read_file, a noisy shell dump) is
-// stashed whole in the CCR store and replaced in history by a deterministic
-// preview + the retrieval id. The agent expands it via the same `retrieve_original`
-// tool used for compression. Best-effort: a stash failure returns the text as-is.
+// Tool-result disk offload: size-based offload, backbone-gated delivery. Compression
+// (apply.ts) is LOSSY and allow-listed to media/web outputs; THIS is the lossless,
+// all-tools backstop — any tool output over the char limit (a 60K read_file, a noisy
+// shell dump) is stashed whole in the CCR store. HOW it's then delivered follows the
+// delivery policy (delivery-policy.ts): a strong backbone gets a short preview + a
+// grep-able file path + retrieval id (file delivery); a weak backbone gets a larger
+// inline-truncated window and is NEVER handed a file-only pointer it won't follow.
+// Best-effort: a stash failure returns the text as-is.
 
 export const DEFAULT_MAX_RESULT_CHARS = 50_000;
 
@@ -39,19 +42,29 @@ export interface OffloadOptions {
   toolName: string;
   dataDir: string;
   env?: NodeJS.ProcessEnv;
+  /** Active model id — drives the strong/weak backbone delivery gate. */
+  modelId?: string;
 }
 
 export interface OffloadResult {
   offloaded: boolean;
   output: string;
+  /** "file" = grep-able pointer (strong backbone); "inline" = truncated in place (weak). */
+  delivery?: "file" | "inline";
+}
+
+/** A one-line summary of an oversized output: first non-empty line, clipped. */
+function summarize(text: string): string {
+  const line = text.split("\n").find((l) => l.trim().length > 0) ?? "";
+  return line.length > 160 ? line.slice(0, 160) + "…" : line;
 }
 
 /**
  * Offload an oversized tool output to disk. If `text.length <= max`, returns it
- * unchanged. Otherwise stashes the full text in the CCR store and returns a
- * deterministic preview (first ~2k chars) plus a retrieval footer carrying the
- * stash id — the same `original_id` vocabulary the `retrieve_original` tool reads.
- * Best-effort: if the stash write throws, the original text is returned untouched.
+ * unchanged (inline is the default). Otherwise stashes the full text in the CCR
+ * store and delivers per the backbone gate: a STRONG backbone gets a short preview
+ * + a grep-able file path + retrieval id; a WEAK backbone gets a larger inline
+ * window and never a file-only pointer. Best-effort: a stash failure returns text.
  */
 export async function offloadResult(text: string, opts: OffloadOptions): Promise<OffloadResult> {
   const env = opts.env ?? process.env;
@@ -60,11 +73,15 @@ export async function offloadResult(text: string, opts: OffloadOptions): Promise
 
   try {
     const id = await stashOriginal(opts.dataDir, text);
-    const preview = text.slice(0, PREVIEW_CHARS);
-    const footer =
-      `\n\n[output truncated: ${text.length} chars saved to ccr/${id} — ` +
-      `original_id="${id}", call retrieve_original to read the full content]`;
-    return { offloaded: true, output: preview + footer };
+    const { mode, inlineChars } = resolveDelivery(env, opts.modelId);
+    const preview = text.slice(0, Math.max(inlineChars, PREVIEW_CHARS));
+    const path = `.vanta/ccr/${id}.txt`;
+    const footer = mode === "file"
+      ? `\n\n[output truncated: ${text.length} chars. summary: ${summarize(text)}\n` +
+        `full result is a grep-able file at ${path} — original_id="${id}", call retrieve_original to read it all]`
+      : `\n\n[output truncated to ${preview.length} of ${text.length} chars to fit a smaller model; ` +
+        `full copy stashed at ${path} (original_id="${id}")]`;
+    return { offloaded: true, output: preview + footer, delivery: mode };
   } catch {
     return { offloaded: false, output: text };
   }

@@ -55,7 +55,7 @@ export async function dispatchTool(
   // Tool-result offload: size-based backstop AFTER lossy compression — catches any
   // tool (incl. non-allow-listed reads/shell) whose output is still oversized,
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
-  const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir });
+  const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
 }
 
