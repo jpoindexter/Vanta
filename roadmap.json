@@ -12204,13 +12204,14 @@
       "id": "PORT-TOOL-REGISTRY-IFACE",
       "track": "Harness",
       "title": "ToolRegistry interface (currently a concrete class)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "Audit: most consumers already `import type` the registry (good) but there is no ToolRegistry *interface* — tools/registry.ts:4 is a class, and mount-mcp.ts needs the concrete register(). Extract an interface (schemas/get/register) so a namespaced/scoped/test registry can be swapped in. Low blast radius; closes the second-most-coupled core hub after provider.",
+      "summary": "SHIPPED 2026-06-18. `tools/registry.ts` now exports a `ToolRegistry` port plus `InMemoryToolRegistry` concrete adapter. `buildRegistry()` returns the port and constructs the adapter internally; production construction sites that need the default store use the concrete adapter name. Existing registry consumers, including `mount_mcp` and `tool_search`, type against the interface so scoped/test registries can replace the default without consumer edits.",
       "done": "A ToolRegistry interface exists; consumers (incl. mount-mcp) depend on it; the concrete class implements it; a scoped/test registry can replace it without consumer edits.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-18",
+      "notes": "Verified with `npx vitest run src/tools/registry.test.ts src/tools/tools.test.ts`, `npx vitest run src/tools/registry.test.ts src/tools/tools.test.ts src/setup/assistant.test.ts src/review/background-review.test.ts`, `npx tsc --noEmit`, size gate on touched TS files, and full `npx vitest run` (476 files / 3718 tests)."
     },
     {
       "id": "PORT-MEMORY-STORE",

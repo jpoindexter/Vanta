@@ -47,7 +47,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `kernel-launcher.ts` | `ensureKernel()` — ping, else spawn detached with `VANTA_ROOT` + cwd, poll 5s |
 | `scope.ts` | `resolveInScope(target, root)` — path containment, mirrors kernel's `inside_scope` |
 | `tools/types.ts` | `Tool` (schema + optional `describeForSafety` + `execute`), `ToolContext`, `ToolResult` |
-| `tools/registry.ts` | `ToolRegistry`: register/get/list/schemas |
+| `tools/registry.ts` | `ToolRegistry` port (`register/get/list/schemas`) + `InMemoryToolRegistry` default adapter; consumers type against the port, construction sites choose the adapter |
 | `tools/roadmap-move.ts` | KANBAN — `roadmap_move` tool. Moves a roadmap item to a new status, writes `roadmap.json`, regenerates HTML. `describeForSafety` → kernel Allow |
 | `roadmap/move.ts` | `moveRoadmapItem(repoRoot, id, toStatus)` — pure fn: read → validate → patch → write → rebuild |
 | `roadmap/server.ts` | KANBAN-S2 — `createRoadmapServer(repoRoot)` (Node http) + `serveRoadmap(repoRoot, port)`. Routes: `GET /roadmap/board` (serves roadmap.html), `POST /roadmap/move` → `moveRoadmapItem`. `vanta roadmap serve` wires this |
@@ -241,7 +241,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 89 built-in tools (91 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 475 TS test files / 3716 tests. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 89 built-in tools (91 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 476 TS test files / 3718 tests. Older counts in session history are milestones, not current truth.
 
 ## Session additions (2026-06-18) — keep current
 
@@ -264,6 +264,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 **SELFHARNESS-NL-ASSERTIONS.** `verify/nl-assertions.ts` adds a separate LLM judge for captured input/output pairs plus plain-English assertions, returning strict pass/fail reports and failing closed on malformed judge output. New `nl_assertions` tool exposes it to agent/self-repair/eval workflows and can route through `VANTA_ASSERTION_PROVIDER` / `VANTA_ASSERTION_MODEL`. Counts: **89 built-in tools** (91 registered). Verified: **475 TS files / 3716 tests green**, `tsc` clean, size gate clean.
 
 **ARCH-MODULARITY-SKILL.** `skills-library/vanta-port-adapter/SKILL.md` ships a bundled architecture skill for adding swappable Vanta capabilities behind typed ports, adapters, and one resolver/registry, with examples from providers, MCP, loop, and code-intel boundaries plus concrete verification expectations. The bundled-library smoke test now asserts the skill is present. Bundled skill count: **43**. Verified: **475 TS files / 3716 tests green**, `tsc` clean, `vanta skills lint` clean of errors.
+
+**PORT-TOOL-REGISTRY-IFACE.** `tools/registry.ts` now exposes a `ToolRegistry` interface and `InMemoryToolRegistry` adapter. `buildRegistry()` returns the port; production construction sites use the concrete adapter explicitly; `mount_mcp`, `tool_search`, agent deps, MCP serve/mount, plugins, voice, and hooks keep depending on the interface. `tools/registry.test.ts` proves a scoped registry implementation can replace the default for a real consumer. Verified: **476 TS files / 3718 tests green**, `tsc` clean, size gate clean.
 
 ## Session additions (2026-06-16) — keep current
 

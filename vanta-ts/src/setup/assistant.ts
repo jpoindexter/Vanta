@@ -3,7 +3,8 @@ import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { hasGoogleAuth, runGoogleAuth } from "../google/auth.js";
 import { readMcpConfig, mountMcpServers, type McpConfig, type MountResult } from "../mcp/mount.js";
-import { ToolRegistry } from "../tools/registry.js";
+import { InMemoryToolRegistry } from "../tools/registry.js";
+import type { ToolRegistry } from "../tools/registry.js";
 import { select } from "../term/select.js";
 
 export type ProbeResult = { ok: boolean; detail: string };
@@ -94,7 +95,7 @@ export async function probeMcp(opts: McpProbeOpts): Promise<ProbeResult> {
   const names = Object.keys(cfg.servers);
   if (!names.length) return { ok: false, detail: "no MCP servers configured" };
   try {
-    const mounted = await (opts.mount ?? mountMcpServers)(new ToolRegistry(), opts.env, () => {});
+    const mounted = await (opts.mount ?? mountMcpServers)(new InMemoryToolRegistry(), opts.env, () => {});
     mounted.dispose();
     return {
       ok: mounted.servers.length > 0,

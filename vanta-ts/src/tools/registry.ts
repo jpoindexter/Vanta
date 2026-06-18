@@ -1,7 +1,14 @@
 import type { Tool } from "./types.js";
 import type { ToolSchema } from "../providers/interface.js";
 
-export class ToolRegistry {
+export interface ToolRegistry {
+  register(tool: Tool): void;
+  get(name: string): Tool | undefined;
+  list(): Tool[];
+  schemas(): ToolSchema[];
+}
+
+export class InMemoryToolRegistry implements ToolRegistry {
   private readonly tools = new Map<string, Tool>();
 
   register(tool: Tool): void {
@@ -20,3 +27,5 @@ export class ToolRegistry {
     return this.list().map((t) => t.schema);
   }
 }
+
+export const ToolRegistry = InMemoryToolRegistry;
