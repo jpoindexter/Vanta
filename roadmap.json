@@ -12827,7 +12827,7 @@
       "id": "AUTO-RESEARCH-LOOP",
       "track": "Harness",
       "title": "Auto-research loop — objective + verifiable metric + bounds, runs unattended",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy's auto-research: give it an OBJECTIVE + a verifiable METRIC + BOUNDARIES, hit go, iterate unattended (propose → apply in isolation → measure → keep if better) — remove the human as bottleneck. ONLY for objective/verifiable metrics (his caveat). Generalize the existing factory/evolve self-improving loop into a user-facing command; reuse eval/run + evolve/snapshot + regression locks.",
       "done": "`vanta auto-research --objective --metric --bounds` runs an unattended improve loop on a verifiable metric, keeps only commits that beat baseline, logs each delta, stops on no-progress; tests; committed.",

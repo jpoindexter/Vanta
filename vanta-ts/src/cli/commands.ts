@@ -38,6 +38,7 @@ export function usage(): void {
       "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
+      "       vanta auto-research --objective <text> --metric <cmd> --bounds <text>   improve a numeric metric in worktrees",
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
       "       vanta auth google                  one-time Google OAuth",

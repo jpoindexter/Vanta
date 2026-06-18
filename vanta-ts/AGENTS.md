@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3643 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3649 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -26,6 +26,7 @@ npx tsc --noEmit                 # must be clean before any commit
 | `vanta fleet run/status/review/accept` | `src/cli/fleet-cmd.ts` over `src/fleet/`, `src/team/tasks.ts`, `src/worktree/manager.ts`, `src/subagent/spawn.ts` |
 | `vanta desktop` | `src/desktop/server.ts` serving `desktop-app/dist/` |
 | `vanta eval mem public [dataset-dir]` | `src/cli/eval-cmd.ts` -> `src/mem-eval/public-run.ts` |
+| `vanta auto-research --objective --metric --bounds` | `src/cli/auto-research-cmd.ts` -> `src/auto-research/` |
 | `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
 ## Critical files for new work
@@ -48,6 +49,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/modes/permission-mode.ts` — `default|acceptEdits|auto` mode parsing/env sync; acceptEdits bypasses the kernel only for six filesystem tools
 - `src/permissions/request.ts` / `grant.ts` — typed approval dialog model plus allow/deny rule persistence helpers
 - `src/fleet/` — parallel worker fleet: worktree-isolated subagents, team-task status records, persisted review reports, explicit branch accept
+- `src/auto-research/` — metric-driven unattended improvement loop; candidate branches run in worktrees and merge only on numeric improvement
 - `src/setup/assistant.ts` — live first-run setup probes for provider, Google OAuth, MCP, and messaging; returns redacted `{ok, detail}` values.
 - `src/operator-profile/profile.ts` — durable declared/inferred operator preferences plus tighten-only approval preference decisions
 - `src/preferences/signals.ts` — `~/.vanta/preferences.jsonl` chosen-vs-rejected operator preference signal store
@@ -86,6 +88,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Parallel worker fleets live under `src/fleet/`: `vanta fleet run --task ...` creates one `.vanta/worktrees` checkout per task, records team-task states, persists `.vanta/fleets/<id>.json`, and `review`/`accept` expose diffs before merging.
+- Auto-research lives under `src/auto-research/`: `vanta auto-research --objective --metric --bounds` measures a numeric baseline, iterates isolated candidate worktrees, journals each delta, and merges only candidates that beat the current best score.
 - Permission modes: `default`, `acceptEdits`, `auto`. `acceptEdits` skips the kernel only for `write_file`, `edit_file`, `read_file`, `mkdir`, `glob_files`, `grep_files`; `shell_cmd` stays on the normal flow. `auto` runs the classifier after kernel + permission rules via `--permission-mode auto`, `VANTA_AUTO_MODE=1`, or `settings.autoMode.enabled`.
 - Operator profile preferences live in `~/.vanta/operator-profile.json` and are applied after kernel + rules + auto-mode. They can only preserve/escalate decisions; one-way doors always ask and kernel Block remains immovable.
 - Preference signals live in `~/.vanta/preferences.jsonl`. Human approval/denial prompts append chosen-vs-rejected rows; kernel blocks and non-human auto/rule/profile decisions do not.
