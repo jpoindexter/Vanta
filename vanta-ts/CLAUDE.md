@@ -241,7 +241,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 473 TS test files / 3707 tests. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 474 TS test files / 3711 tests. Older counts in session history are milestones, not current truth.
 
 ## Session additions (2026-06-18) — keep current
 
@@ -258,6 +258,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 **PAPER-SUBAGENT-SIDECHAIN.** `subagent/spawn.ts` now runs workers through an explicit `Conversation` so the full worker message history can be written to `.vanta/sidechains/<timestamp>-<uuid>.json`. Parent tools still receive only the summary `AgentOutcome` text; the sidechain file carries `{version, goal, instruction, model, createdAt, outcome|error, messages}` for audit. Verified: **473 TS files / 3706 tests green**, `tsc` clean, size gate clean.
 
 **PAPER-SHELL-SANDBOX.** `shell_cmd` now honors `VANTA_SHELL_SANDBOX=1` by mapping it to the existing OS sandbox wrapper for shell commands only; `run_code` remains controlled by global `VANTA_SANDBOX=1`. Background shell tasks fail closed while sandboxing is enabled, and `VANTA_SANDBOX_NET=1` allows network in either mode. Verified: **473 TS files / 3707 tests green**, `tsc` clean, size gate clean.
+
+**HARNESS-VISUAL-VERIFY.** `/verify` now appends deterministic close-out requirements generated from `git diff HEAD`: non-doc changes require rules evidence, runtime code requires a representative command/tool observation, and UI paths/extensions require browser screenshot evidence with a cited path and observation. The logic lives in `verify/visual-closeout.ts` and preserves the existing `cc-verify` skill flow. Verified: **474 TS files / 3711 tests green**, `tsc` clean, size gate clean.
 
 ## Session additions (2026-06-16) — keep current
 

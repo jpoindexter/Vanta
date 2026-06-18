@@ -10509,16 +10509,17 @@
       "id": "HARNESS-VISUAL-VERIFY",
       "track": "Harness",
       "title": "Visual + computational verification loop (verify improves quality 2-3x)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
-      "summary": "The Anatomy of an Agent Harness (Pachaar, 2026) component 10: verification separates toy demos from production — rules-based (tests/linters/types = ground truth), visual (screenshot the result via the browser), LLM-as-judge. Vanta has /verify + advisor; add screenshot-based visual verification for UI changes and make 'run it and observe' a first-class close-out step. Complements PAPER-OBSERVABILITY (generator-evaluator split).",
+      "summary": "SHIPPED 2026-06-18. `/verify` now appends a deterministic close-out checklist generated from `git diff HEAD`: non-doc changes require rules evidence, runtime code requires representative command/tool evidence, and UI paths/extensions require browser screenshot evidence with a cited path and observation. Implemented in `verify/visual-closeout.ts` and wired through the existing `cc-verify` skill flow, so 'run it and observe' is first-class without inventing a parallel runner.",
       "done": "A change can be closed only after a verification step: tests/types for logic, a screenshot for UI; the result is cited, not asserted.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-13"
+      "updated": "2026-06-18",
+      "notes": "Targeted verifier/slash tests cover UI screenshot requirements, runtime command requirements, docs-only proof, and `/verify` wiring. Full verification recorded in repo docs."
     },
     {
       "id": "HARNESS-THICKNESS-AUDIT",

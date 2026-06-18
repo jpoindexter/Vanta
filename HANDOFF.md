@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 88 built-in tools from `vanta-ts/src/tools/all-tools.ts` (90 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3707 TS tests green (473 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
+- **Last recorded full verify:** 3711 TS tests green (474 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
 
 ## Run + Verify
 
