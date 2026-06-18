@@ -74,6 +74,7 @@ describe("installSkillLibrary", () => {
     const r = await installSkillLibrary();
     expect(r.installed.length + r.skipped.length).toBeGreaterThanOrEqual(10);
     expect([...r.installed, ...r.skipped]).toContain("systematic-debugging");
+    expect([...r.installed, ...r.skipped]).toContain("vanta-port-adapter");
   }, 60_000);
 
   it("installs the design + ai-engineering sources too (multi-source)", async () => {

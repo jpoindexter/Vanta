@@ -12141,13 +12141,14 @@
       "id": "ARCH-MODULARITY-SKILL",
       "track": "Harness",
       "title": "Authoring skill — new Vanta capability = port + adapter",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "A Vanta-authoring skill (under vanta-ts or .claude/skills) that encodes the convention so it's applied while code is written, not caught after. Content: when adding a swappable capability, define an interface (port), ship the default as an adapter, register via one resolver; copy the reference patterns (providers/index.ts resolveProvider, mcp/client.ts Transport, agent-types.ts AgentDeps, loop/types.ts IterationDeps). Names the grandfathered gaps so new code doesn't add to them. Pairs with ARCH-BOUNDARY-FITNESS (skill guides authoring, test enforces).",
+      "summary": "SHIPPED 2026-06-18. Added bundled skill `vanta-port-adapter` under `vanta-ts/skills-library/`. It triggers when adding a swappable Vanta capability/provider/backend/transport/model route/registry/scorer/evaluator/tool family and prescribes the port+adapter pattern: define an interface, isolate concrete adapters, resolve through one module, keep consumers typed to the port, and verify with fake/null adapter tests. The skill names in-repo reference seams and grandfathered gaps so new work does not deepen coupling.",
       "done": "A skill exists that, when writing new Vanta code, prescribes the port+adapter pattern with the in-repo reference examples; it is invoked for capability-adding work.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-18",
+      "notes": "Verified by the bundled skill install smoke test asserting `vanta-port-adapter`, plus `vanta skills lint`, targeted tests, typecheck, size gate, and full suite."
     },
     {
       "id": "ARCH-BOUNDARY-PRECOMMIT",

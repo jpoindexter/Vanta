@@ -8,6 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 89 built-in tools from `vanta-ts/src/tools/all-tools.ts` (91 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
+- **Bundled skills:** 43 shipped skills under `vanta-ts/skills-library/`; latest addition is `vanta-port-adapter` for new swappable capability seams.
 - **Last recorded full verify:** 3716 TS tests green (475 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
 
 ## Run + Verify
