@@ -12462,7 +12462,7 @@
       "notes": "Shipped 2026-06-18 (winnow v0.7.0). store.ts gzips the CCR stash (node:zlib gzipSync/gunzipSync, zero new dep) as <id>.txt.gz; retrieve decompresses transparently and falls back to legacy <id>.txt plaintext; idempotent across both forms. The model never reads the stash (reads inline view + winnow_retrieve), so byte compression is free here. winnow offload footer path updated to .txt.gz. Vanta has its OWN store (.vanta/ccr, plaintext, grep-able for its file-delivery mode) and is unaffected. 91 winnow tests; tsc clean."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "WINNOW-ML-PRUNE-BACKEND",
       "track": "Harness",
@@ -12475,7 +12475,8 @@
       ],
       "title": "Wire a real LM scorer into pruneText (LLMLingua / Kompress-base parity)",
       "summary": "[repo: winnow] pruneText exposes the score hook; wire an optional real scorer (perplexity/self-info from an injected LM callback) so winnow matches headroom's trained-model prose compression when a model is available. Heuristic proxy stays the zero-dep default; measure ML vs heuristic via the fidelity bench / CNG before recommending.",
-      "done": "an injected-LM scorer adapter drives pruneText; bench compares ML vs heuristic; default stays heuristic; pushed to winnow."
+      "done": "an injected-LM scorer adapter drives pruneText; bench compares ML vs heuristic; default stays heuristic; pushed to winnow.",
+      "notes": "Shipped 2026-06-18 (winnow v0.8.0). prune.ts: pruneTextAsync (async scorer) + makeLmScorer(logprobFn) which maps per-token logprobs to surprisal (= -logprob; surprising/info-dense tokens kept, predictable filler dropped — the LLMLingua principle with your own model). Shared assemble() core keeps sync pruneText unchanged as the zero-dep heuristic default. winnow-only (Vanta does not import prune). Scoped to follow-up (needs a LIVE model, like comms live-tests): ML-vs-heuristic QUALITY comparison on a prose corpus — the mechanism is proven by tests (injected scorer fully controls survival; makeLmScorer keeps high-surprisal tokens), but a real ratio/CNG comparison needs a logprob-capable LM. 94 winnow tests; tsc clean."
     },
     {
       "status": "next",
