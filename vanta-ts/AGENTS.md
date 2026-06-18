@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3718 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3721 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -109,6 +109,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Goal dependencies live in `.vanta/goal-deps.json`: `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` derive `blocked_by`/`blocks` state without changing kernel storage.
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
 - Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.
+- Provider context-window errors trigger one forced compaction retry in the agent loop; a second context error returns a clean stopped outcome.
 - Recalled brain memories are guarded before use: stale/conflicting/weak-provenance entries are flagged as not-used hypotheses.
 - Memory retrieval has a public benchmark runner: `vanta eval mem public [dataset-dir]` loads LongMemEval/LoCoMo JSON, scores recall@k per category, embeds the fixture baseline, and writes `.vanta/mem-eval-public-results.json`. Downloaded datasets stay under ignored `.vanta/` paths.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.

@@ -241,7 +241,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 89 built-in tools (91 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 476 TS test files / 3718 tests. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 89 built-in tools (91 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Latest full verify: 477 TS test files / 3721 tests. Older counts in session history are milestones, not current truth.
 
 ## Session additions (2026-06-18) — keep current
 
@@ -266,6 +266,8 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 **ARCH-MODULARITY-SKILL.** `skills-library/vanta-port-adapter/SKILL.md` ships a bundled architecture skill for adding swappable Vanta capabilities behind typed ports, adapters, and one resolver/registry, with examples from providers, MCP, loop, and code-intel boundaries plus concrete verification expectations. The bundled-library smoke test now asserts the skill is present. Bundled skill count: **43**. Verified: **475 TS files / 3716 tests green**, `tsc` clean, `vanta skills lint` clean of errors.
 
 **PORT-TOOL-REGISTRY-IFACE.** `tools/registry.ts` now exposes a `ToolRegistry` interface and `InMemoryToolRegistry` adapter. `buildRegistry()` returns the port; production construction sites use the concrete adapter explicitly; `mount_mcp`, `tool_search`, agent deps, MCP serve/mount, plugins, voice, and hooks keep depending on the interface. `tools/registry.test.ts` proves a scoped registry implementation can replace the default for a real consumer. Verified: **476 TS files / 3718 tests green**, `tsc` clean, size gate clean.
+
+**COMPRESS-ON-ERROR.** `agent/context-pipeline.ts` now detects common provider context-window failures and can force `compressMessages` after such an error. `agent/turn-loop.ts` wraps provider calls with one compact+retry attempt; if the retry also hits context length, the turn returns a clean stopped message instead of throwing through the session or retrying indefinitely. Verified: **477 TS files / 3721 tests green**, `tsc` clean, size gate clean.
 
 ## Session additions (2026-06-16) — keep current
 

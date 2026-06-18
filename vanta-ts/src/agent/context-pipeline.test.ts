@@ -8,7 +8,7 @@ vi.mock("../context/graduated-compaction.js", () => ({
   graduatedCompaction: mockGraduatedCompaction,
 }));
 
-import { prepareCallMessages, resolveCompactThresholdPct } from "./context-pipeline.js";
+import { isContextLengthError, prepareCallMessages, resolveCompactThresholdPct } from "./context-pipeline.js";
 
 const MESSAGES: Message[] = [{ role: "user", content: "hello" }];
 const TOOLS: ToolSchema[] = [{ name: "shell", description: "run", parameters: {} }];
@@ -48,6 +48,14 @@ describe("resolveCompactThresholdPct", () => {
 
   it("converts the decimal env var to an integer percent", () => {
     expect(resolveCompactThresholdPct({ VANTA_AUTO_COMPACT_THRESHOLD: "0.85" })).toBe(85);
+  });
+});
+
+describe("isContextLengthError", () => {
+  it("detects common provider context-window failures", () => {
+    expect(isContextLengthError(new Error("maximum context length exceeded"))).toBe(true);
+    expect(isContextLengthError(new Error("prompt is too long"))).toBe(true);
+    expect(isContextLengthError(new Error("network timeout"))).toBe(false);
   });
 });
 

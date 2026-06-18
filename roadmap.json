@@ -12731,14 +12731,15 @@
       "id": "COMPRESS-ON-ERROR",
       "track": "Harness",
       "title": "Compact + retry on a context-length error (from Hermes)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
-      "summary": "[repo: vanta] Hermes checks compression on two moments: before each turn AND on a context-window error. Vanta compresses pre-turn/threshold but a provider context-length error currently just fails. Detect a context-length error from the provider, run compressMessages, and retry the turn once. Cheap robustness win.",
+      "summary": "SHIPPED 2026-06-18. The agent turn loop now detects provider context-window errors, force-runs `compressMessages` through the existing context pipeline, and retries the provider call once. A second context-window failure returns a clean stopped outcome instead of looping or throwing through the session.",
       "done": "a context-length error triggers one compact+retry in the agent loop (pure error detector tested); no infinite retry; falls through to a clean error if still over; committed.",
       "tier": "pebble",
       "effort": "low",
       "lens": "agent-loop",
-      "updated": "2026-06-18"
+      "updated": "2026-06-18",
+      "notes": "Implemented in `agent/context-pipeline.ts` (`isContextLengthError`, `compressAfterContextError`) and `agent/turn-loop.ts` (`getCompletionWithContextRetry`). Verified with `npx vitest run src/agent/context-pipeline.test.ts src/agent/turn-loop.test.ts`, `npx tsc --noEmit`, touched-file size gate, and full `npx vitest run` (477 files / 3721 tests)."
     },
     {
       "id": "SETUP-WIZARD-MEMORY",

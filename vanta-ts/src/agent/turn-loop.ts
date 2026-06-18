@@ -1,11 +1,17 @@
-import type { LLMProvider, CompletionResult } from "../providers/interface.js";
+import type { LLMProvider, CompletionResult, ToolSchema } from "../providers/interface.js";
 import type { ToolCall } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
 import type { Message, ImageAttachment } from "../types.js";
 import { sanitizeMessages } from "../context.js";
 import type { Summarizer } from "../context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "../repl/error-detect.js";
-import { persistCompaction, beginTurnContext, prepareCallMessages } from "./context-pipeline.js";
+import {
+  persistCompaction,
+  beginTurnContext,
+  prepareCallMessages,
+  compressAfterContextError,
+  isContextLengthError,
+} from "./context-pipeline.js";
 import { consumeStream } from "./stream-dispatch.js";
 import { applyMessageDisplay } from "./message-display.js";
 import { globalHookBus } from "../plugins/hooks.js";
@@ -49,6 +55,13 @@ type TurnState = {
 
 function makeInitialState(): TurnState {
   return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0 };
+}
+
+function recordUsage(state: TurnState, result: CompletionResult): void {
+  if (!result.usage) return;
+  state.turnUsage.inputTokens += result.usage.inputTokens;
+  state.turnUsage.outputTokens += result.usage.outputTokens;
+  state.sawUsage = true;
 }
 
 function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOutcome, deps: AgentDeps): string | null {
@@ -161,8 +174,18 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     const depsWithTools = { ...deps, currentTools: schemas };
     const trimmed = await prepareCallMessages(messages, depsWithTools, iter, turnCtx);
     const prefetched = new Map<string, Promise<DispatchOutcome>>();
-    const result = await getCompletion(deps, sanitizeMessages(trimmed), effectiveSignal, { ctx, prefetched, schemas });
-    if (result.usage) { state.turnUsage.inputTokens += result.usage.inputTokens; state.turnUsage.outputTokens += result.usage.outputTokens; state.sawUsage = true; }
+    const completion = await getCompletionWithContextRetry({
+      deps,
+      depsWithTools,
+      messages: trimmed,
+      turnCtx,
+      signal: effectiveSignal,
+      providerCall: { ctx, prefetched, schemas },
+    });
+    if (!completion.ok)
+      return { finalText: completion.error, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    const result = completion.result;
+    recordUsage(state, result);
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state });
       if (outcome) return outcome;
@@ -172,6 +195,40 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
     if (earlyExit) return earlyExit;
   }
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+}
+
+type ProviderCall = {
+  ctx: ToolContext;
+  prefetched: Map<string, Promise<DispatchOutcome>>;
+  schemas: ToolSchema[];
+};
+
+type CompletionRetryArgs = {
+  deps: AgentDeps;
+  depsWithTools: AgentDeps & { currentTools: ToolSchema[] };
+  messages: Message[];
+  turnCtx: ReturnType<typeof beginTurnContext>;
+  signal?: AbortSignal;
+  providerCall: ProviderCall;
+};
+
+async function getCompletionWithContextRetry(
+  args: CompletionRetryArgs,
+): Promise<{ ok: true; result: CompletionResult } | { ok: false; error: string }> {
+  try {
+    const result = await getCompletion(args.deps, sanitizeMessages(args.messages), args.signal, args.providerCall);
+    return { ok: true, result };
+  } catch (err) {
+    if (!isContextLengthError(err)) throw err;
+  }
+  const compacted = await compressAfterContextError(args.messages, args.depsWithTools, args.turnCtx);
+  try {
+    const result = await getCompletion(args.deps, sanitizeMessages(compacted), args.signal, args.providerCall);
+    return { ok: true, result };
+  } catch (err) {
+    if (!isContextLengthError(err)) throw err;
+    return { ok: false, error: "Stopped: provider context window exceeded after one compaction retry." };
+  }
 }
 
 async function displayText(deps: AgentDeps, text: string): Promise<string> {

@@ -1,6 +1,6 @@
 import type { Message } from "../types.js";
 import type { LLMProvider } from "../providers/interface.js";
-import { compactConversation, type Summarizer } from "../context.js";
+import { compactConversation, compressMessages, type Summarizer } from "../context.js";
 import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microcompact.js";
 import { graduatedCompaction } from "../context/graduated-compaction.js";
 import { recordCompactedEdits, runPostCompactRestore } from "../compress/post-compact-restore.js";
@@ -87,6 +87,39 @@ export type TurnContext = {
   trackedSummarize?: Summarizer;
   thresholdPct?: number;
 };
+
+const CONTEXT_LENGTH_PATTERNS = [
+  /context (length|window|limit)/i,
+  /maximum context/i,
+  /prompt is too long/i,
+  /too many tokens/i,
+  /input tokens? exceed/i,
+  /request too large/i,
+];
+
+function errorText(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = err.cause === undefined ? "" : ` ${errorText(err.cause)}`;
+  return `${err.name} ${err.message}${cause}`;
+}
+
+export function isContextLengthError(err: unknown): boolean {
+  const text = errorText(err);
+  return CONTEXT_LENGTH_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+export async function compressAfterContextError(
+  messages: Message[],
+  deps: ContextDeps,
+  tc: TurnContext,
+): Promise<Message[]> {
+  if (!tc.trackedSummarize) return messages;
+  return compressMessages(messages, deps.provider.contextWindow(), tc.trackedSummarize, {
+    activeGoalText: deps.activeGoalText,
+    sessionMemory: deps.sessionMemory,
+    thresholdPct: 1,
+  });
+}
 
 /** Compute one turn's context state: idle gap (then stamp), tracked summarizer, threshold. */
 export function beginTurnContext(messages: Message[], deps: ContextDeps): TurnContext {
