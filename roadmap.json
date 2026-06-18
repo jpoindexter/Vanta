@@ -12310,13 +12310,15 @@
       "id": "MEM-RETRIEVAL-EVAL",
       "track": "Harness",
       "title": "Memory-recall eval harness — measure lexical vs semantic vs hybrid over noisy multi-session corpora",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). The paper's core contribution is methodology: retrieval effectiveness can only be judged end-to-end, per harness/delivery, over noisy corpora — not in isolation. Vanta has a brain (md regions + structured entries + spreading-activation recall), life-search (lexical default + opt-in ollama embeddings), and grep_files, but NO measurement of recall quality. Build a LongMemEval-style eval over Vanta's own stores: a fixture corpus of multi-session memories with oracle questions across categories (knowledge-update, multi-session aggregation, preference recall, temporal reasoning), a distractor-noise sweep (s5/s10/s20/full), and a grader. Score brain.recall + life-search in each mode (lexical / semantic / hybrid) x (inline / file-based delivery). Wire into 'vanta eval'/bench. Foundation card — the hybrid/temporal/delivery cards validate against it.",
       "done": "A repeatable memory-recall eval reports accuracy per retrieval mode and per noise level over a fixture multi-session corpus; runnable via the CLI; results recorded so recall changes are measured, not guessed.",
       "tier": "rock",
       "effort": "medium",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. The memory-recall measurement spine: src/mem-eval/ — types.ts (zod MemoryRecord/MemQuestion + RetrievalMode/NoiseLevel/MemCategory, MemEvalReport), corpus.ts (LongMemEval-style fixture: 14 multi-session gold memories + 24 distractors + 9 oracle questions across knowledge-update/multi-session/preference/temporal, buildCorpus(noise) grows the distractor pool s5/s10/s20/full), retrievers.ts (the Retriever PORT + 3 adapters: lexical wraps life-rank rankResults, semantic wraps embed+cosineSim, hybrid = reciprocal-rank-fusion fuseRrf; canRunWithoutEmbeddings → graceful lexical-only fallback when no embedder), grade.ts (DETERMINISTIC recall@k of gold supporting memories + per-category aggregation — no LLM judge, un-gameable), run.ts (embeds the union corpus + queries ONCE, scores every mode×noise cell, embedder INJECTED so tests stay offline), report.ts (mode×noise grid + per-category @full breakdown, records .vanta/mem-eval-baseline.json). CLI: vanta eval mem (branch in cli/eval-cmd.ts). 23 co-located vitest tests; tsc clean; size gate clean (7 files); 5 arch boundaries hold. Baseline run (no local embedder → semantic shown unavailable, hybrid degrades to lexical): lexical/hybrid 88.9% recall@5 flat across noise, with preference at 50% — the lexical weak spot the hybrid/temporal/router cards now have a measured target to beat. Scoped to a follow-up (already homed in MEM-TOOL-OUTPUT-DELIVERY): the inline-vs-file delivery dimension needs an end-to-end agent run, so this slice measures retrieval mode×noise only per the done criterion; that card extends the eval with delivery."
     },
     {
       "id": "MEM-HYBRID-RRF",

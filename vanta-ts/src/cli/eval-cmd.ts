@@ -38,7 +38,19 @@ export function buildRunner(repoRoot: string): TaskRunner {
   };
 }
 
+/** `vanta eval mem` — the memory-recall eval (mode × noise recall@k over a fixture corpus). */
+async function runMemEvalCommand(repoRoot: string): Promise<void> {
+  const { runMemEval } = await import("../mem-eval/run.js");
+  const { formatMemReport, recordMemReport } = await import("../mem-eval/report.js");
+  console.log("vanta eval mem: scoring lexical / semantic / hybrid over the fixture corpus…\n");
+  const report = await runMemEval();
+  console.log(formatMemReport(report));
+  const path = recordMemReport(repoRoot, report);
+  console.log(`\nbaseline → ${path}`);
+}
+
 export async function runEvalCommand(repoRoot: string, rest: string[] = []): Promise<void> {
+  if (rest[0] === "mem") return runMemEvalCommand(repoRoot);
   const corpusDir = join(repoRoot, rest[0] ?? DEFAULT_CORPUS);
   const tasks = loadCorpus(corpusDir);
   if (!tasks.length) {
