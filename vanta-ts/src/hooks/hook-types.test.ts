@@ -4,7 +4,7 @@ import { createServer, type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fireHooks, firePreToolUse, loadShellHooks, shellHooksPath } from "./shell-hooks.js";
+import { fireHooks, firePreToolUse, fireStopHook, loadShellHooks, shellHooksPath } from "./shell-hooks.js";
 import type { CompletionResult, LLMProvider } from "../providers/interface.js";
 
 let dir: string;
@@ -44,6 +44,30 @@ describe("hook type parity", () => {
     });
     expect(r.blocked).toBe(true);
     expect(r.reason).toBe("agent veto");
+  });
+
+  it("runs agent hooks for user prompt events", async () => {
+    const seen: string[] = [];
+    await writeHooks({ UserPromptSubmit: [{ type: "agent", prompt: "Inspect prompt." }] });
+    await fireHooks(dir, "UserPromptSubmit", { prompt: "hello" }, {
+      runAgentHook: async (_hook, contextJson) => {
+        seen.push(contextJson);
+        return { code: 0, stdout: '{"decision":"allow","reason":"ok"}', stderr: "" };
+      },
+    });
+    expect(JSON.parse(seen[0] ?? "{}")).toMatchObject({ event: "UserPromptSubmit", prompt: "hello" });
+  });
+
+  it("runs agent hooks for stop events and reads additional context", async () => {
+    await writeHooks({ Stop: [{ type: "agent", prompt: "Summarize stop context." }] });
+    const context = await fireStopHook(dir, { sessionId: "s1" }, {
+      runAgentHook: async (_hook, contextJson) => ({
+        code: 0,
+        stdout: JSON.stringify({ additionalContext: `saw ${JSON.parse(contextJson).sessionId}` }),
+        stderr: "",
+      }),
+    });
+    expect(context).toBe("saw s1");
   });
 
   it("respects per-hook timeoutMs", async () => {

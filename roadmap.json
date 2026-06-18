@@ -502,7 +502,7 @@
       "id": "VANTA-HOOK-AGENT-TYPE",
       "track": "Harness",
       "title": "Agent hook type — hooks backed by a full multi-turn LLM agent",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent supports an 'agent' hook type where each hook event fires a full multi-turn LLM agent (tool-enabled, with access to a restricted toolset). The agent runs in isolation, receives the hook event as JSON input, and returns a structured JSON result via StructuredOutput. Enables complex conditional logic in hooks — e.g. 'analyze this command with a reasoning model before allowing it'.",
       "done": "A hook configured with `type: agent` fires a full query per event. The agent can call tools, reason across turns, and return a structured block/allow verdict.",

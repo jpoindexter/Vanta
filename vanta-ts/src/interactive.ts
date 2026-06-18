@@ -1,6 +1,6 @@
 import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
-import { createConversation } from "./agent.js";
+import { createConversation, type AgentDeps } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
@@ -19,6 +19,7 @@ import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 import { runReplLoop } from "./interactive-repl.js";
+import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
 
 const LOGO = String.raw`
    █████╗ ██████╗  ██████╗  ██████╗
@@ -67,21 +68,21 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
 
   const workingMemory = new SessionWorkingMemory();
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const convo = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
+  const { convo, agentDeps } = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
 
   const checkpoints = new CheckpointStore();
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
   const userCommands = await loadUserCommands(process.env);
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
-  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() } };
+  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() } };
   const runUserTurn = (text: string) => executeUserTurn(text, turnDeps);
 
   try {
     await runReplLoop({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn });
   } finally {
-    rl.close();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
-    await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot });
+    await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot, ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
+    rl.close();
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
@@ -104,10 +105,10 @@ type ConvoOpts = {
   history?: NonNullable<Parameters<typeof createConversation>[2]>["history"];
 };
 
-function buildConversation(o: ConvoOpts): ReturnType<typeof createConversation> {
+function buildConversation(o: ConvoOpts): { convo: ReturnType<typeof createConversation>; agentDeps: AgentDeps } {
   const { repoRoot, setup, state, rl, workingMemory } = o;
   let convo!: ReturnType<typeof createConversation>;
-  convo = createConversation(setup.systemPrompt, {
+  const agentDeps: AgentDeps = {
     provider: setup.provider, advisorProvider: setup.advisorProvider, safety: setup.safety, registry: setup.registry, root: repoRoot,
     requestApproval: approver(rl), maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider), activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
@@ -117,6 +118,7 @@ function buildConversation(o: ConvoOpts): ReturnType<typeof createConversation> 
     ...consoleCallbacks(),
     onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
     planGate: () => { const sys = convo.messages[0]; return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved); },
-  }, { history: o.history });
-  return convo;
+  };
+  convo = createConversation(setup.systemPrompt, agentDeps, { history: o.history });
+  return { convo, agentDeps };
 }

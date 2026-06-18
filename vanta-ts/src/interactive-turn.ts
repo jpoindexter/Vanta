@@ -26,10 +26,12 @@ import { saveSession } from "./sessions/store.js";
 import { reflectAfterTurn } from "./repl/reflect-correct.js";
 import { checkGoalLoop, buildGoalLoopMax } from "./repl/goal-condition.js";
 import { fireHooks, fireStopHook } from "./hooks/shell-hooks.js";
+import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
+import type { HookRunDeps } from "./hooks/shell-hook-run.js";
 import type { ReplState } from "./repl-commands.js";
 import type { RunSetup } from "./session.js";
 import type { SessionWorkingMemory } from "./memory/working.js";
-import type { createConversation } from "./agent.js";
+import type { AgentDeps, createConversation } from "./agent.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
 
@@ -39,6 +41,7 @@ export type TurnDeps = {
   state: ReplState;
   repoRoot: string;
   workingMemory: SessionWorkingMemory;
+  agentDeps?: AgentDeps;
   autoHandoffNotedRef: { current: boolean };
   gatesRef: { current: GateState };
 };
@@ -121,7 +124,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const stopCtx = { sessionId: state.sessionId, finalResponse: outcome.finalText, turnIndex: state.turnIndex };
   const [goalContinue, hookContext] = await Promise.all([
     checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null),
-    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, promptProvider: setup.provider, onStatus: (m) => console.log(m) }).catch(() => null),
+    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, ...turnHookDeps(deps) }).catch(() => null),
   ]);
   return { continueWith: goalContinue ?? hookContext ?? null };
 }
@@ -160,7 +163,7 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
   let loopCount = 0;
   for (;;) {
     deps.state.turnIndex++;
-    void fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: turnText }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider, onStatus: (m) => console.log(m) });
+    void fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: turnText }, { cwd: deps.repoRoot, ...turnHookDeps(deps) });
     printPreTurnNotes(turnText, deps.convo, deps.setup);
     const turnStart = new Date().toISOString();
     const t0 = Date.now();
@@ -171,6 +174,13 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
     turnText = result.continueWith;
     loopCount++;
   }
+}
+
+function turnHookDeps(deps: TurnDeps): HookRunDeps {
+  const onStatus = (m: string) => console.log(m);
+  return deps.agentDeps
+    ? buildAgentHookDeps(deps.agentDeps, onStatus)
+    : { promptProvider: deps.setup.provider, onStatus };
 }
 
 /** Build the mode-aware send text (working memory prefix + mode hint). */
