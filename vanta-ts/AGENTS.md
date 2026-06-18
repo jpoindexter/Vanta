@@ -24,6 +24,7 @@ npx tsc --noEmit                 # must be clean before any commit
 | `vanta gateway` | `src/gateway/run.ts` |
 | `vanta agents` / `attach` / `logs` / `respawn` / `stop` / `rm` | `src/cli/agents-cmd.ts` over `src/team/tasks.ts` |
 | `vanta desktop` | `src/desktop/server.ts` serving `desktop-app/dist/` |
+| `vanta eval mem public [dataset-dir]` | `src/cli/eval-cmd.ts` -> `src/mem-eval/public-run.ts` |
 | `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |
 
 ## Critical files for new work
@@ -52,6 +53,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
 - `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
 - `src/memory/extractor.ts` — opt-in `VANTA_EXTRACT_MEMORIES=1` post-turn fact extractor; JSON array only, deduped against brain entries, persists `semantic` facts with `auto-extracted` provenance
+- `src/mem-eval/` — deterministic memory retrieval benchmarks: fixture runner plus public LongMemEval/LoCoMo loader, scorer, and report writer
 - `src/ralph/state.ts` — `.vanta/ralph-loop.json` continuity: ordered long-task features, paused startup block, `/goal resume|drop` support
 - `src/cli/lifecycle.ts` — startup flags: `--init`, `--init-only`, `--maintenance`
 - `src/sessions/store.ts` — session persistence plus `forkSession()` for `--fork-session`
@@ -89,6 +91,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
 - Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.
 - Recalled brain memories are guarded before use: stale/conflicting/weak-provenance entries are flagged as not-used hypotheses.
+- Memory retrieval has a public benchmark runner: `vanta eval mem public [dataset-dir]` loads LongMemEval/LoCoMo JSON, scores recall@k per category, embeds the fixture baseline, and writes `.vanta/mem-eval-public-results.json`. Downloaded datasets stay under ignored `.vanta/` paths.
 - Startup flags include `--init`, `--init-only`, `--maintenance`, and resume `--fork-session`.
 - Ralph-loop continuity is project-scoped at `.vanta/ralph-loop.json`: fresh launches surface it as PAUSED, and `/goal resume|drop` explicitly activates or discards carried work.
 - TUI rendering is real Ink 7 under `src/ui/`; v1 remains the default and `VANTA_TUI=v2` opts into the separate mission-control shell under `src/ui/v2/`. The old `src/tui/` render layer is gone. `src/tui/mission-control/cockpit-data.ts` is the only remaining `src/tui` code path and is data-only.

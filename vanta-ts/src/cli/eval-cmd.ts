@@ -38,8 +38,19 @@ export function buildRunner(repoRoot: string): TaskRunner {
   };
 }
 
-/** `vanta eval mem` — the memory-recall eval (mode × noise recall@k over a fixture corpus). */
-async function runMemEvalCommand(repoRoot: string): Promise<void> {
+/** `vanta eval mem` — memory-recall evals over the fixture or public datasets. */
+async function runMemEvalCommand(repoRoot: string, rest: string[]): Promise<void> {
+  if (rest[1] === "public") {
+    const { runPublicMemEval } = await import("../mem-eval/public-run.js");
+    const { formatPublicMemReport, recordPublicMemReport } = await import("../mem-eval/public-report.js");
+    const dataDir = rest[2] ?? join(repoRoot, ".vanta", "mem-eval-public-data");
+    console.log(`vanta eval mem public: scoring public datasets in ${dataDir}\n`);
+    const report = await runPublicMemEval({ dataDir });
+    console.log(formatPublicMemReport(report));
+    const path = recordPublicMemReport(repoRoot, report);
+    console.log(`\nresults → ${path}`);
+    return;
+  }
   const { runMemEval } = await import("../mem-eval/run.js");
   const { formatMemReport, recordMemReport } = await import("../mem-eval/report.js");
   console.log("vanta eval mem: scoring lexical / semantic / hybrid over the fixture corpus…\n");
@@ -50,7 +61,7 @@ async function runMemEvalCommand(repoRoot: string): Promise<void> {
 }
 
 export async function runEvalCommand(repoRoot: string, rest: string[] = []): Promise<void> {
-  if (rest[0] === "mem") return runMemEvalCommand(repoRoot);
+  if (rest[0] === "mem") return runMemEvalCommand(repoRoot, rest);
   const corpusDir = join(repoRoot, rest[0] ?? DEFAULT_CORPUS);
   const tasks = loadCorpus(corpusDir);
   if (!tasks.length) {

@@ -57,6 +57,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
 - **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
 - **Digital person** — project rooms, operator modes, model routing, mode learning, brain/memory layers
+- **Benchmarks** — deterministic memory recall evals, including public LongMemEval/LoCoMo via `vanta eval mem public`
 - **Session lifecycle** — `/init`, Setup/SessionStart shell hooks, `--init`/`--init-only`/`--maintenance`, resume `--fork-session`
 - **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 

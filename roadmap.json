@@ -12331,11 +12331,11 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Reciprocal-rank fusion of lexical + semantic. src/search/rrf.ts — pure fuseRrfScored/fuseRrf (each list contributes 1/(k+rank), k=60), the SINGLE source of truth: mem-eval/retrievers.ts now re-exports it (deleted its local copy) so the eval validates the exact production fuser. tools/life-search.ts gains action:hybrid — fuseHits() RRF-fuses the lexical rankResults order and the semantic cosine order over the SAME candidate set; default stays action:search (lexical-first per the paper) and hybrid is opt-in; graceful lexical-only fallback when no embedder (notice emitted). Eval gate honored: the >=max(lexical,semantic) lift is proven deterministically on a complementary-signals case in mem-eval/retrievers.test.ts (lexical catches g1, semantic catches g2, hybrid recall@2=1.0 >= each ones 0.5) — the paper-described different-items-surfaced property; no default flipped. On this machine (no local Ollama) the fixture eval shows semantic unavailable so hybrid degrades to lexical (==88.9%), the documented fallback; a real-embedder run is where the fixture-level lift would show. 34 tests green across rrf/mem-eval/life-search + 29 tool tests; tsc clean; size gate clean (3 files); arch boundaries hold.",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ],
-      "updated": "2026-06-18",
-      "notes": "Shipped 2026-06-18. Reciprocal-rank fusion of lexical + semantic. src/search/rrf.ts — pure fuseRrfScored/fuseRrf (each list contributes 1/(k+rank), k=60), the SINGLE source of truth: mem-eval/retrievers.ts now re-exports it (deleted its local copy) so the eval validates the exact production fuser. tools/life-search.ts gains action:hybrid — fuseHits() RRF-fuses the lexical rankResults order and the semantic cosine order over the SAME candidate set; default stays action:search (lexical-first per the paper) and hybrid is opt-in; graceful lexical-only fallback when no embedder (notice emitted). Eval gate honored: the >=max(lexical,semantic) lift is proven deterministically on a complementary-signals case in mem-eval/retrievers.test.ts (lexical catches g1, semantic catches g2, hybrid recall@2=1.0 >= each ones 0.5) — the paper-described different-items-surfaced property; no default flipped. On this machine (no local Ollama) the fixture eval shows semantic unavailable so hybrid degrades to lexical (==88.9%), the documented fallback; a real-embedder run is where the fixture-level lift would show. 34 tests green across rrf/mem-eval/life-search + 29 tool tests; tsc clean; size gate clean (3 files); arch boundaries hold."
+      ]
     },
     {
       "id": "MEM-TOOL-OUTPUT-DELIVERY",
@@ -12362,11 +12362,11 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Chronos-style temporal-event indexing. src/brain/temporal.ts (pure): extractDates (ISO + bare years, deduped, no double-count of an ISO year), extractDurations (years/months/weeks/days → years), buildTemporalIndex (record id → {dateMs[], durationYears[]}), classifyTemporalQuery (earliest|latest|duration|in-year|none), temporalRank — ranks date/duration-bearing memories first for when/earliest/latest/in-year/duration queries (date asc/desc, duration desc, year-match), lexical fallback (rankResults) for non-temporal queries and as the tiebreak tail. Wired into MEM-RETRIEVAL-EVAL as a new retrieval mode: RetrievalMode gains temporal, mem-eval/retrievers.ts registers a temporal retriever (no embeddings), the eval reports a temporal column. Added genuinely temporal-reasoning questions to the fixture (tq-earliest/tq-latest/tq-duration) that reference time abstractly and share NO keywords with the answering memory — the category where plain retrieval is weakest — plus two date-bearing gold memories (g-temp-firstcommit 2010, g-temp-indx-start 2023). Result in vanta eval mem: temporal-category recall@5 @full lexical 66.7% → temporal 100% (overall temporal mode 79.2% vs lexical 62.5%) — the lift the card requires, measured not guessed. Note: the recorded baseline shifted because the fixture grew the harder temporal questions (9→12 q); the eval is the spine and is meant to grow, the comparison is temporal-mode vs lexical-mode on the same fixture. The harder corpus also surfaced new headroom (preference 0%, multi-session 75%) for BRAIN-ROUTER/graph-bridge. 33 mem-eval/temporal tests green; tsc clean; size gate clean (4 files); boundaries hold. Follow-up (isolated, larger): reordering production brain.recall spreading-activation by temporal relevance — this slice delivers the engine + index + the eval recall path.",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ],
-      "updated": "2026-06-18",
-      "notes": "Shipped 2026-06-18. Chronos-style temporal-event indexing. src/brain/temporal.ts (pure): extractDates (ISO + bare years, deduped, no double-count of an ISO year), extractDurations (years/months/weeks/days → years), buildTemporalIndex (record id → {dateMs[], durationYears[]}), classifyTemporalQuery (earliest|latest|duration|in-year|none), temporalRank — ranks date/duration-bearing memories first for when/earliest/latest/in-year/duration queries (date asc/desc, duration desc, year-match), lexical fallback (rankResults) for non-temporal queries and as the tiebreak tail. Wired into MEM-RETRIEVAL-EVAL as a new retrieval mode: RetrievalMode gains temporal, mem-eval/retrievers.ts registers a temporal retriever (no embeddings), the eval reports a temporal column. Added genuinely temporal-reasoning questions to the fixture (tq-earliest/tq-latest/tq-duration) that reference time abstractly and share NO keywords with the answering memory — the category where plain retrieval is weakest — plus two date-bearing gold memories (g-temp-firstcommit 2010, g-temp-indx-start 2023). Result in vanta eval mem: temporal-category recall@5 @full lexical 66.7% → temporal 100% (overall temporal mode 79.2% vs lexical 62.5%) — the lift the card requires, measured not guessed. Note: the recorded baseline shifted because the fixture grew the harder temporal questions (9→12 q); the eval is the spine and is meant to grow, the comparison is temporal-mode vs lexical-mode on the same fixture. The harder corpus also surfaced new headroom (preference 0%, multi-session 75%) for BRAIN-ROUTER/graph-bridge. 33 mem-eval/temporal tests green; tsc clean; size gate clean (4 files); boundaries hold. Follow-up (isolated, larger): reordering production brain.recall spreading-activation by temporal relevance — this slice delivers the engine + index + the eval recall path."
+      ]
     },
     {
       "id": "BRAIN-INGEST-GATE",
@@ -12379,11 +12379,11 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Context-vs-Connections ingest gate: src/brain/ingest-gate.ts — pure classifyIngest(content) → evergreen|volatile (VOLATILE_RE matches time-sensitive signals: currently/is now/unread/inbox/pending/status is/price is/$N/N%/balance/this week…), toLivePointer(content) derives a live-access pointer {source, subject, text} that names the SOURCE (SOURCE_HINTS: Slack/email/calendar/messages/GitHub/Drive, else generic) + the value-free SUBJECT (split before the value clause) and the text \"↪ live[source]: subject — fetch the current value live; do not trust a cached copy\" — the volatile value is dropped, never copied. isLivePointer() identifies them. Wired into brain/learn.ts: learnFromTranscript routes every distilled memory through rememberLearned, which stores volatile candidates as pointers (sourceType:external) and evergreen ones verbatim (sourceType:inference); the LLM learn prompt already discourages transient state, this is the deterministic backstop. Recall surfaces the pointer (a normal entry) so the agent fetches live instead of trusting a stale copy. Validated with the MEM-RETRIEVAL-EVAL grader (recallAtK + lexical retriever reused in ingest-gate.test.ts): baseline verbatim copies surface the stale volatile value in top-3, gated pointers drop the stale-hit rate to 0 while the pointer stays retrievable for its subject. 15 tests (incl. existing learn.test.ts) green; tsc clean; size gate clean (2 files); arch boundaries hold.",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ],
-      "updated": "2026-06-18",
-      "notes": "Shipped 2026-06-18. Context-vs-Connections ingest gate: src/brain/ingest-gate.ts — pure classifyIngest(content) → evergreen|volatile (VOLATILE_RE matches time-sensitive signals: currently/is now/unread/inbox/pending/status is/price is/$N/N%/balance/this week…), toLivePointer(content) derives a live-access pointer {source, subject, text} that names the SOURCE (SOURCE_HINTS: Slack/email/calendar/messages/GitHub/Drive, else generic) + the value-free SUBJECT (split before the value clause) and the text \"↪ live[source]: subject — fetch the current value live; do not trust a cached copy\" — the volatile value is dropped, never copied. isLivePointer() identifies them. Wired into brain/learn.ts: learnFromTranscript routes every distilled memory through rememberLearned, which stores volatile candidates as pointers (sourceType:external) and evergreen ones verbatim (sourceType:inference); the LLM learn prompt already discourages transient state, this is the deterministic backstop. Recall surfaces the pointer (a normal entry) so the agent fetches live instead of trusting a stale copy. Validated with the MEM-RETRIEVAL-EVAL grader (recallAtK + lexical retriever reused in ingest-gate.test.ts): baseline verbatim copies surface the stale volatile value in top-3, gated pointers drop the stale-hit rate to 0 while the pointer stays retrievable for its subject. 15 tests (incl. existing learn.test.ts) green; tsc clean; size gate clean (2 files); arch boundaries hold."
+      ]
     },
     {
       "id": "BRAIN-ROUTER",
@@ -12396,11 +12396,11 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Query-conditioned store router with graded fallback. src/brain/router.ts (pure engine): StoreId (entries|regions|world|life-search|vault|live), routeOrder(query) picks the store order by intent — volatile/current/status queries → live source first, relationship/connection queries → world model first, else the default order; routeRecall(query, lookups, order?) consults stores IN ORDER, stops at the first sufficient hit, returns it with provenance (which store) + the trail of stores tried; stores with no lookup are skipped and a lookup that throws falls through (best-effort graded fallback); formatRoutedHit renders provenance. src/brain/router-stores.ts: defaultLookups wires the REAL stores best-effort — entries + live (live = ingest-gate live pointers) through the Brain PORT (resolveBrain), world via readWorld+recallWithSources, life-search via gatherLifeBlobs+searchBlobs+rankResults; regions/vault listed in the order but unwired yet (router skips gracefully). Recall uses it: the brain tool gains action:route (handleRoute → routeRecall over defaultLookups, ctx.root threaded for life-search). Eval guarantee proven deterministically in router.test.ts: routed recall answers every query ANY store can answer and is >= the best single store (which is < 1 — routing strictly helps, never loses accuracy vs the single-store baseline). 10 router tests + 127 tool/brain tests green; tsc clean; size gate clean (3 files); boundaries hold. Follow-up (isolated): wiring regions/vault lookups + integrating the router as a partitioned multi-store dimension inside runMemEval (this slice proves the accuracy guarantee via the grader property).",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ],
-      "updated": "2026-06-18",
-      "notes": "Shipped 2026-06-18. Query-conditioned store router with graded fallback. src/brain/router.ts (pure engine): StoreId (entries|regions|world|life-search|vault|live), routeOrder(query) picks the store order by intent — volatile/current/status queries → live source first, relationship/connection queries → world model first, else the default order; routeRecall(query, lookups, order?) consults stores IN ORDER, stops at the first sufficient hit, returns it with provenance (which store) + the trail of stores tried; stores with no lookup are skipped and a lookup that throws falls through (best-effort graded fallback); formatRoutedHit renders provenance. src/brain/router-stores.ts: defaultLookups wires the REAL stores best-effort — entries + live (live = ingest-gate live pointers) through the Brain PORT (resolveBrain), world via readWorld+recallWithSources, life-search via gatherLifeBlobs+searchBlobs+rankResults; regions/vault listed in the order but unwired yet (router skips gracefully). Recall uses it: the brain tool gains action:route (handleRoute → routeRecall over defaultLookups, ctx.root threaded for life-search). Eval guarantee proven deterministically in router.test.ts: routed recall answers every query ANY store can answer and is >= the best single store (which is < 1 — routing strictly helps, never loses accuracy vs the single-store baseline). 10 router tests + 127 tool/brain tests green; tsc clean; size gate clean (3 files); boundaries hold. Follow-up (isolated): wiring regions/vault lookups + integrating the router as a partitioned multi-store dimension inside runMemEval (this slice proves the accuracy guarantee via the grader property)."
+      ]
     },
     {
       "id": "BRAIN-GRAPH-BRIDGE",
@@ -12413,538 +12413,538 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Level-4 relationship-chain tracing by BRIDGING to the existing world model — no new graph engine (the transcript warns do not build a graph without pain, and Vanta already has one). src/brain/graph-bridge.ts (pure): traverse(startId, rels, maxDepth) BFS over the world models directed typed from/to/rel relations, collecting every node reachable within maxDepth hops WITH the typed path that reached it (cycles pruned via a visited set); bridgeRecall(query, entities, rels, maxDepth=3) matches start entities by query-token overlap, traverses, and returns reached entities with the relation PATH as provenance; formatPath renders ids→names as \"Alice —manages→ Bob —mentors→ Carol\"; no-op (empty) when the world graph is empty or nothing matches; bounded by DEFAULT_MAX_DEPTH=3. Recall uses it: router-stores.ts worldLookup now appends multi-hop chains (path.length>1, prefixed ↦) to the direct recallWithSources matches, so brain route on a relationship query follows chains through the Brain port → world step. Eval guarantee proven in graph-bridge.test.ts with the MEM-RETRIEVAL-EVAL grader (recallAtK): for a 2-hop question (what is Alice connected to → Carol), direct keyword recall (recallWithSources) recall@5=0 (never reaches Carol), the bridge recall@5=1 — the relationship/multi-hop category improves vs the non-traversal baseline. 7 graph-bridge tests + 105 brain tests green; tsc clean; size gate clean (2 files); boundaries hold. Follow-up (isolated): a dedicated relationship category seeded with world-graph data inside runMemEval (this slice proves the lift via the grader property over a seeded graph) and reverse-direction (to→from) traversal.",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ],
-      "updated": "2026-06-18",
-      "notes": "Shipped 2026-06-18. Level-4 relationship-chain tracing by BRIDGING to the existing world model — no new graph engine (the transcript warns do not build a graph without pain, and Vanta already has one). src/brain/graph-bridge.ts (pure): traverse(startId, rels, maxDepth) BFS over the world models directed typed from/to/rel relations, collecting every node reachable within maxDepth hops WITH the typed path that reached it (cycles pruned via a visited set); bridgeRecall(query, entities, rels, maxDepth=3) matches start entities by query-token overlap, traverses, and returns reached entities with the relation PATH as provenance; formatPath renders ids→names as \"Alice —manages→ Bob —mentors→ Carol\"; no-op (empty) when the world graph is empty or nothing matches; bounded by DEFAULT_MAX_DEPTH=3. Recall uses it: router-stores.ts worldLookup now appends multi-hop chains (path.length>1, prefixed ↦) to the direct recallWithSources matches, so brain route on a relationship query follows chains through the Brain port → world step. Eval guarantee proven in graph-bridge.test.ts with the MEM-RETRIEVAL-EVAL grader (recallAtK): for a 2-hop question (what is Alice connected to → Carol), direct keyword recall (recallWithSources) recall@5=0 (never reaches Carol), the bridge recall@5=1 — the relationship/multi-hop category improves vs the non-traversal baseline. 7 graph-bridge tests + 105 brain tests green; tsc clean; size gate clean (2 files); boundaries hold. Follow-up (isolated): a dedicated relationship category seeded with world-graph data inside runMemEval (this slice proves the lift via the grader property over a seeded graph) and reverse-direction (to→from) traversal."
+      ]
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "TOON-DICT-COLUMNAR",
       "track": "Harness",
-      "lens": "agent-loop",
-      "size": "M",
-      "tier": "pebble",
-      "effort": "medium",
       "title": "TOON dictionary/columnar encoding — push lossless tabular past 60%",
+      "status": "shipped",
+      "size": "M",
       "summary": "[repo: winnow] TOON dedupes keys only; on low-cardinality columns it still writes repeated values per row (wide-table bench 60% ~= narrow 59% — value cardinality is the ceiling, not column count). Add constant-column elision (a column identical in every row -> state once, drop from rows) + value/column dictionary (intern low-cardinality values, per-row index). Lossless; opt-in dictionary:true (trades readability for ratio); unified decodeTable routes TOON vs TOONC.",
       "done": "encodeColumnar/decodeColumnar lossless round-trip (const/dict/plain/missing/types); toonCompress({dictionary}) returns the smaller of columnar vs plain; bench shows wide-table dict ratio > plain TOON; tests + CHANGELOG + version bump; pushed to winnow.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18 (winnow v0.5.0, commit 69e2646). Columnar TOON (TOONC) in winnow src/toon.ts: classifyColumns splits columns into constant (identical every row → stated once in a JSON meta header), dictionary (distinct values ≤16 and < present-count → per-row index), and plain; encodeColumnar/decodeColumnar lossless round-trip (const/dict/plain/missing/types verified); decodeTable auto-routes TOON vs TOONC by header; opt-in via toonCompress(json,{dictionary:true}) which returns the smaller of plain vs columnar, and via CompressOptions.dictionary threaded through router. Plain TOON stays the default (dictionary trades some readability for ratio). Bench: object-array cases 59-60% → 73-74% savings, still lossless (predicted ~75-80%). 84 winnow tests; tsc clean; CHANGELOG + version 0.5.0. Vanta consumes via opt-in only (VANTA-WINNOW-DICT-WIRE will wire it); default unchanged."
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "WINNOW-CNG-METRIC",
       "track": "Harness",
-      "lens": "agent-loop",
-      "size": "S",
-      "tier": "pebble",
-      "effort": "low",
       "title": "Cost-Normalized-Gain metric for the compression bench (from S2L)",
+      "status": "shipped",
+      "size": "S",
       "summary": "[repo: winnow] Adopt S2L's CNG = quality-gain / relative-token-cost-change (arXiv:2606.16769). tuneOptions weights survival x ratio; CNG is the more principled objective (preserved signal per token saved). Add a pure cng() + a tuneOptions ranking option; surface in bench output.",
       "done": "pure cng() tested; tuneOptions can rank by CNG; bench reports it; pushed to winnow.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18 (winnow v0.6.0, commit 00d7ed6). src/cng.ts: costNormalizedGain(base,cond,relCostPct) = quality gain / (|relCost|/100) (S2L arXiv:2606.16769), + compressionCng(condQuality,savedRatio) = CNG vs the uncompressed baseline (quality 1.0). tuneOptions gains rankBy:\"cng\" (prefer least quality lost per token saved, tiebreak savings) + a cng field on TuneResult; the fidelity bench reports CNG (lossless modes = 0, lossy elision negative — bench default run shows -0.362). winnow-only (Vanta does not import adapt/cng), so no Vanta reinstall. 89 winnow tests; tsc clean; CHANGELOG + version 0.6.0."
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "WINNOW-STORE-COMPRESS",
       "track": "Harness",
-      "lens": "agent-loop",
-      "size": "S",
-      "tier": "pebble",
-      "effort": "low",
       "title": "Byte-compress the CCR stash on disk (gzip), transparent on retrieve",
+      "status": "shipped",
+      "size": "S",
       "summary": "[repo: winnow] 'nothing out of scope' — byte compression is in scope at the STORE layer (the model never reads the stash; retrieve decompresses). gzip the stashed original (node:zlib, zero new dep) + transparent decompress in retrieve; still read legacy plaintext stashes. Not inline (stays readable there).",
       "done": "stashOriginal gzips; retrieve decompresses + reads legacy plaintext; round-trip tested; pushed to winnow.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18 (winnow v0.7.0). store.ts gzips the CCR stash (node:zlib gzipSync/gunzipSync, zero new dep) as <id>.txt.gz; retrieve decompresses transparently and falls back to legacy <id>.txt plaintext; idempotent across both forms. The model never reads the stash (reads inline view + winnow_retrieve), so byte compression is free here. winnow offload footer path updated to .txt.gz. Vanta has its OWN store (.vanta/ccr, plaintext, grep-able for its file-delivery mode) and is unaffected. 91 winnow tests; tsc clean."
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "WINNOW-ML-PRUNE-BACKEND",
       "track": "Harness",
-      "lens": "agent-loop",
-      "size": "M",
-      "tier": "pebble",
-      "effort": "medium",
-      "after": [
-        "WINNOW-CNG-METRIC"
-      ],
       "title": "Wire a real LM scorer into pruneText (LLMLingua / Kompress-base parity)",
+      "status": "shipped",
+      "size": "M",
       "summary": "[repo: winnow] pruneText exposes the score hook; wire an optional real scorer (perplexity/self-info from an injected LM callback) so winnow matches headroom's trained-model prose compression when a model is available. Heuristic proxy stays the zero-dep default; measure ML vs heuristic via the fidelity bench / CNG before recommending.",
       "done": "an injected-LM scorer adapter drives pruneText; bench compares ML vs heuristic; default stays heuristic; pushed to winnow.",
-      "notes": "Shipped 2026-06-18 (winnow v0.8.0). prune.ts: pruneTextAsync (async scorer) + makeLmScorer(logprobFn) which maps per-token logprobs to surprisal (= -logprob; surprising/info-dense tokens kept, predictable filler dropped — the LLMLingua principle with your own model). Shared assemble() core keeps sync pruneText unchanged as the zero-dep heuristic default. winnow-only (Vanta does not import prune). Scoped to follow-up (needs a LIVE model, like comms live-tests): ML-vs-heuristic QUALITY comparison on a prose corpus — the mechanism is proven by tests (injected scorer fully controls survival; makeLmScorer keeps high-surprisal tokens), but a real ratio/CNG comparison needs a logprob-capable LM. 94 winnow tests; tsc clean."
-    },
-    {
-      "status": "shipped",
-      "updated": "2026-06-18",
-      "id": "SKILL-DISTILL-EXAMPLES",
-      "track": "Operator",
-      "lens": "memory",
-      "size": "M",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18 (winnow v0.8.0). prune.ts: pruneTextAsync (async scorer) + makeLmScorer(logprobFn) which maps per-token logprobs to surprisal (= -logprob; surprising/info-dense tokens kept, predictable filler dropped — the LLMLingua principle with your own model). Shared assemble() core keeps sync pruneText unchanged as the zero-dep heuristic default. winnow-only (Vanta does not import prune). Scoped to follow-up (needs a LIVE model, like comms live-tests): ML-vs-heuristic QUALITY comparison on a prose corpus — the mechanism is proven by tests (injected scorer fully controls survival; makeLmScorer keeps high-surprisal tokens), but a real ratio/CNG comparison needs a logprob-capable LM. 94 winnow tests; tsc clean.",
       "after": [
         "WINNOW-CNG-METRIC"
-      ],
-      "title": "Skill distillation — long SKILL.md -> a few worked demos (text-side S2L)",
-      "summary": "[repo: vanta] From S2L (arXiv:2606.16769): a SKILL.md's behavior can be carried by a few synthesized I/O demonstrations instead of the full procedural doc. Add a distillation pass (injected LLM, like the summarizer) that compresses a long skill body into N worked examples; recall serves the distilled form. Measure tokens + pass via CNG. No training (the LoRA route is S2L-LORA-SKILLS).",
-      "done": "a skill-distill pass produces worked demos from a SKILL.md; recall can serve the distilled form; CNG shows tokens down without pass-rate loss on a small skill set; tests; pushed to vanta.",
-      "notes": "Shipped 2026-06-18. skills/distill.ts: distillSkill({name,body,provider}) calls an injected LLM to compress a SKILL.md into ≤N worked input→output demos and writes DISTILLED.md next to the skill; pure buildDistillPrompt/distilledFromText/distillSavings (token delta via winnow estTokens). tools/recall.ts serves the distilled form when VANTA_SKILL_DISTILLED is on (default = full body). 12 co-located tests incl. end-to-end recall-serves-distilled; tsc + size gate + boundaries clean; full vanta suite 3628 green. Scoped follow-up (needs a live model + task corpus, like the comms live-tests): the CNG pass-rate comparison (distilled vs full on real tasks) — token reduction is measured deterministically (distillSavings), pass-rate parity needs a live eval."
+      ]
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
-      "id": "SKILL-TASK-SUBSET",
+      "id": "SKILL-DISTILL-EXAMPLES",
       "track": "Operator",
-      "lens": "memory",
+      "title": "Skill distillation — long SKILL.md -> a few worked demos (text-side S2L)",
+      "status": "shipped",
       "size": "M",
+      "summary": "[repo: vanta] From S2L (arXiv:2606.16769): a SKILL.md's behavior can be carried by a few synthesized I/O demonstrations instead of the full procedural doc. Add a distillation pass (injected LLM, like the summarizer) that compresses a long skill body into N worked examples; recall serves the distilled form. Measure tokens + pass via CNG. No training (the LoRA route is S2L-LORA-SKILLS).",
+      "done": "a skill-distill pass produces worked demos from a SKILL.md; recall can serve the distilled form; CNG shows tokens down without pass-rate loss on a small skill set; tests; pushed to vanta.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. skills/distill.ts: distillSkill({name,body,provider}) calls an injected LLM to compress a SKILL.md into ≤N worked input→output demos and writes DISTILLED.md next to the skill; pure buildDistillPrompt/distilledFromText/distillSavings (token delta via winnow estTokens). tools/recall.ts serves the distilled form when VANTA_SKILL_DISTILLED is on (default = full body). 12 co-located tests incl. end-to-end recall-serves-distilled; tsc + size gate + boundaries clean; full vanta suite 3628 green. Scoped follow-up (needs a live model + task corpus, like the comms live-tests): the CNG pass-rate comparison (distilled vs full on real tasks) — token reduction is measured deterministically (distillSavings), pass-rate parity needs a live eval.",
+      "after": [
+        "WINNOW-CNG-METRIC"
+      ]
+    },
+    {
+      "id": "SKILL-TASK-SUBSET",
+      "track": "Operator",
       "title": "Task-conditioned skill subsetting — inject only relevant skills",
+      "status": "shipped",
+      "size": "M",
       "summary": "[repo: vanta] S2L + SWE-Skills-Bench finding: full skill text is often neutral or harmful, wrong-skill injection collapses performance. Vanta injects the whole skill INDEX every turn. Select only task-relevant skills (reuse searchSkills ranking) for the prompt index; keep recall-on-demand for the rest. Measure pass/tokens (CNG); never inject a low-relevance skill.",
       "done": "prompt skill index is task-conditioned (top-k relevant), full catalog still reachable via recall; CNG-measured no regression; tests; pushed to vanta.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18. skills/select.ts selectSkillsForTask(entries,task,max=12): ranks the skill index by relevance to the task via the same searchSkills scorer recall uses (stopwords stripped first so the/and/for do not create spurious matches), returns top-k; wired into session/prepare-helpers.ts buildRunPrompt — a real one-shot task gets the subset, the interactive placeholder/empty task/already-small index returns the full index unchanged (default-safe, keeps the cached prefix stable for interactive). Full catalog always reachable via the recall tool. Opt out: VANTA_SKILL_SUBSET=0. 5 tests; tsc + size gate + boundaries clean; full vanta suite 3633 green. CNG pass-rate validation deferred to a live eval (same as SKILL-DISTILL)."
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "VANTA-WINNOW-DICT-WIRE",
       "track": "Harness",
-      "lens": "agent-loop",
-      "size": "S",
-      "tier": "pebble",
-      "effort": "low",
-      "after": [
-        "TOON-DICT-COLUMNAR"
-      ],
       "title": "Wire TOON dictionary mode into Vanta tool-output (opt-in)",
+      "status": "shipped",
+      "size": "S",
       "summary": "[repo: vanta] Once TOON-DICT-COLUMNAR ships in winnow, expose its dictionary mode in Vanta's compressOutput/read_file behind an opt-in env (trades readability for ratio); default stays plain TOON. Measure before defaulting.",
       "done": "Vanta compressOutput can use winnow dictionary mode behind an opt-in flag; default unchanged; tests; pushed to vanta.",
-      "notes": "Shipped 2026-06-18. agent/dispatch-helpers.ts: toonView + compressReadFile now call winnow toonCompress({dictionary: toonDict()}) where toonDict() reads VANTA_TOON_DICT (1/true/on). Default off = plain TOON (unchanged); on = columnar TOONC (constant-column + dictionary), bigger lossless savings on low-cardinality tool output at some readability cost. The model-facing note adapts (plain vs columnar). winnow reinstalled to v0.8.0 in vanta-ts. Test: VANTA_TOON_DICT=1 switches a 150-row low-cardinality read to TOONC and round-trips losslessly via decodeTable. tsc + size gate + boundaries clean; full vanta suite 3634 green."
-    },
-    {
-      "status": "shipped",
-      "updated": "2026-06-18",
-      "id": "S2L-LORA-SKILLS",
-      "track": "Operator",
-      "lens": "memory",
-      "size": "L",
-      "tier": "rock",
-      "effort": "high",
-      "after": [
-        "SKILL-DISTILL-EXAMPLES"
-      ],
-      "title": "Skill-to-LoRA — per-skill adapters for the local model path (research spike)",
-      "summary": "[repo: vanta] Full S2L (arXiv:2606.16769): self-distill each SKILL.md -> demos -> a per-skill QLoRA adapter; at runtime drop skill text, load the adapter by id. Needs QLoRA training + dynamic-LoRA serving (vLLM/Ollama) — local path only, not API providers. SPIKE FIRST: a design doc + feasibility on Vanta's local backend with a go/no-go; honor S2L limits (lossy edge cases, interpretability, one-skill-per-task). Stop-and-surface: needs an infra decision.",
-      "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off.",
-      "notes": "Shipped 2026-06-18 as a DESIGN SPIKE (per scope — no training/serving infra built). docs/s2l-skill-lora-spike.md: maps S2L (arXiv:2606.16769) 3 stages to Vanta (distill + task-subset already cover the text side; the LoRA-weights half is the open piece); feasibility per backend (API providers infeasible — no custom LoRA; Ollama partial — ADAPTER bakes a variant, no efficient hot-swap; vLLM = real dynamic multi-LoRA but a new serving path Vanta lacks); paper limitations (lossy edge cases, interpretability loss, one-skill-per-task; robust to wrong-skill retrieval). RECOMMENDATION: NO-GO for now — shipped text-side wins capture most of the token benefit with zero infra and no loss of inspectability/losslessness. Revisit when (1) Vanta gains a self-hosted dynamic-LoRA serving path AND (2) the eval/CNG shows text-side skill compression is insufficient; if GO, start with a single-skill spike. Awaiting operator sign-off before any build."
-    },
-    {
-      "status": "next",
-      "updated": "2026-06-18",
-      "id": "WINNOW-LOGPROB-SCORER",
-      "track": "Harness",
-      "lens": "agent-loop",
-      "size": "M",
-      "tier": "pebble",
-      "effort": "medium",
-      "title": "Real LM-logprob scorer for pruneText (genuine LLMLingua-grade)",
-      "summary": "[repo: winnow] pruneTextAsync + makeLmScorer (logprob→surprisal) exist but there's no real logprob source — pruning falls back to the heuristic proxy. Add makeOpenAiLogprobScorer({baseURL,model,apiKey?}): fetch the OpenAI-compatible completions API with logprobs (works for OpenAI / Ollama / vLLM / etc.) to get per-token logprobs for a token list and return an AsyncTokenScorer. This is the SOLID fix to ML pruning — drop low-information tokens by a real model's surprisal, not a frequency heuristic. Fetch-only, no SDK; graceful fallback to the heuristic when logprobs are unavailable.",
-      "done": "makeOpenAiLogprobScorer returns an AsyncTokenScorer from real per-token logprobs; pruneTextAsync does model-scored pruning; tests with a MOCKED logprob endpoint (no network); heuristic fallback when logprobs absent; CHANGELOG + version bump; pushed to winnow."
-    },
-    {
-      "status": "next",
-      "updated": "2026-06-18",
-      "id": "SKILL-EVAL-CORPUS",
-      "track": "Harness",
-      "lens": "agent-loop",
-      "size": "M",
-      "tier": "pebble",
-      "effort": "medium",
-      "title": "Skill-sensitive eval corpus — tasks where the right skill lifts pass@1",
-      "summary": "[repo: vanta] The factory eval/tasks corpus is small and not skill-sensitive; a live CNG pass-rate comparison needs tasks where the CORRECT skill measurably changes pass@1. Build eval/skill-tasks: each task pairs an instruction that benefits from a specific installed skill with a deterministic check (file_exists/file_contains/shell_ok), so full vs distilled vs subset skill text produce comparable, gradeable rollouts. The measurement spine for distill/subset (and the trigger-2 signal for S2L).",
-      "done": ">=8 skill-sensitive tasks with deterministic checks tied to real installed skills; a loader + zod validation; documented; tests for the loader; committed to vanta."
-    },
-    {
-      "status": "next",
-      "updated": "2026-06-18",
-      "id": "SKILL-DISTILL-CLI",
-      "track": "Operator",
-      "lens": "memory",
-      "size": "S",
       "tier": "pebble",
       "effort": "low",
-      "title": "vanta skill distill [--all|<name>] — generate DISTILLED.md across the library",
-      "summary": "[repo: vanta] distillSkill exists but nothing generates DISTILLED.md in bulk, so the distilled measurement (and runtime serving) has no data. Add a CLI that distils installed skills via the active provider; idempotent (skip up-to-date), one or all. Prerequisite for measuring SKILL-DISTILL-EXAMPLES end-to-end.",
-      "done": "vanta skill distill --all generates DISTILLED.md for installed skills, <name> for one, idempotent; tests; committed to vanta."
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. agent/dispatch-helpers.ts: toonView + compressReadFile now call winnow toonCompress({dictionary: toonDict()}) where toonDict() reads VANTA_TOON_DICT (1/true/on). Default off = plain TOON (unchanged); on = columnar TOONC (constant-column + dictionary), bigger lossless savings on low-cardinality tool output at some readability cost. The model-facing note adapts (plain vs columnar). winnow reinstalled to v0.8.0 in vanta-ts. Test: VANTA_TOON_DICT=1 switches a 150-row low-cardinality read to TOONC and round-trips losslessly via decodeTable. tsc + size gate + boundaries clean; full vanta suite 3634 green.",
+      "after": [
+        "TOON-DICT-COLUMNAR"
+      ]
     },
     {
-      "status": "next",
+      "id": "S2L-LORA-SKILLS",
+      "track": "Operator",
+      "title": "Skill-to-LoRA — per-skill adapters for the local model path (research spike)",
+      "status": "shipped",
+      "size": "L",
+      "summary": "[repo: vanta] Full S2L (arXiv:2606.16769): self-distill each SKILL.md -> demos -> a per-skill QLoRA adapter; at runtime drop skill text, load the adapter by id. Needs QLoRA training + dynamic-LoRA serving (vLLM/Ollama) — local path only, not API providers. SPIKE FIRST: a design doc + feasibility on Vanta's local backend with a go/no-go; honor S2L limits (lossy edge cases, interpretability, one-skill-per-task). Stop-and-surface: needs an infra decision.",
+      "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off.",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "memory",
       "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18 as a DESIGN SPIKE (per scope — no training/serving infra built). docs/s2l-skill-lora-spike.md: maps S2L (arXiv:2606.16769) 3 stages to Vanta (distill + task-subset already cover the text side; the LoRA-weights half is the open piece); feasibility per backend (API providers infeasible — no custom LoRA; Ollama partial — ADAPTER bakes a variant, no efficient hot-swap; vLLM = real dynamic multi-LoRA but a new serving path Vanta lacks); paper limitations (lossy edge cases, interpretability loss, one-skill-per-task; robust to wrong-skill retrieval). RECOMMENDATION: NO-GO for now — shipped text-side wins capture most of the token benefit with zero infra and no loss of inspectability/losslessness. Revisit when (1) Vanta gains a self-hosted dynamic-LoRA serving path AND (2) the eval/CNG shows text-side skill compression is insufficient; if GO, start with a single-skill spike. Awaiting operator sign-off before any build.",
+      "after": [
+        "SKILL-DISTILL-EXAMPLES"
+      ]
+    },
+    {
+      "id": "WINNOW-LOGPROB-SCORER",
+      "track": "Harness",
+      "title": "Real LM-logprob scorer for pruneText (genuine LLMLingua-grade)",
+      "status": "next",
+      "size": "M",
+      "summary": "[repo: winnow] pruneTextAsync + makeLmScorer (logprob→surprisal) exist but there's no real logprob source — pruning falls back to the heuristic proxy. Add makeOpenAiLogprobScorer({baseURL,model,apiKey?}): fetch the OpenAI-compatible completions API with logprobs (works for OpenAI / Ollama / vLLM / etc.) to get per-token logprobs for a token list and return an AsyncTokenScorer. This is the SOLID fix to ML pruning — drop low-information tokens by a real model's surprisal, not a frequency heuristic. Fetch-only, no SDK; graceful fallback to the heuristic when logprobs are unavailable.",
+      "done": "makeOpenAiLogprobScorer returns an AsyncTokenScorer from real per-token logprobs; pruneTextAsync does model-scored pruning; tests with a MOCKED logprob endpoint (no network); heuristic fallback when logprobs absent; CHANGELOG + version bump; pushed to winnow.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
+    },
+    {
+      "id": "SKILL-EVAL-CORPUS",
+      "track": "Harness",
+      "title": "Skill-sensitive eval corpus — tasks where the right skill lifts pass@1",
+      "status": "next",
+      "size": "M",
+      "summary": "[repo: vanta] The factory eval/tasks corpus is small and not skill-sensitive; a live CNG pass-rate comparison needs tasks where the CORRECT skill measurably changes pass@1. Build eval/skill-tasks: each task pairs an instruction that benefits from a specific installed skill with a deterministic check (file_exists/file_contains/shell_ok), so full vs distilled vs subset skill text produce comparable, gradeable rollouts. The measurement spine for distill/subset (and the trigger-2 signal for S2L).",
+      "done": ">=8 skill-sensitive tasks with deterministic checks tied to real installed skills; a loader + zod validation; documented; tests for the loader; committed to vanta.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
+    },
+    {
+      "id": "SKILL-DISTILL-CLI",
+      "track": "Operator",
+      "title": "vanta skill distill [--all|<name>] — generate DISTILLED.md across the library",
+      "status": "next",
+      "size": "S",
+      "summary": "[repo: vanta] distillSkill exists but nothing generates DISTILLED.md in bulk, so the distilled measurement (and runtime serving) has no data. Add a CLI that distils installed skills via the active provider; idempotent (skip up-to-date), one or all. Prerequisite for measuring SKILL-DISTILL-EXAMPLES end-to-end.",
+      "done": "vanta skill distill --all generates DISTILLED.md for installed skills, <name> for one, idempotent; tests; committed to vanta.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "memory",
+      "updated": "2026-06-18"
+    },
+    {
       "id": "COMPRESSION-EVAL-RUNNER",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "vanta eval compress <dim> — repeatable control/treatment CNG measurement",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Replace manual env-toggle eyeballing with a first-class, repeatable runner: vanta eval compress <dimension> runs the corpus TWICE (control vs treatment, frozen per the existing eval isolation) and reports pass@1, output tokens, and CNG (winnow compressionCng) side-by-side, recording a baseline. Dimensions: skill-distilled (VANTA_SKILL_DISTILLED), skill-subset (VANTA_SKILL_SUBSET), prune (VANTA_PRUNE). This is the solid, recorded validation, not a toggle.",
+      "done": "vanta eval compress <dim> runs both arms, prints pass@1/tokens/CNG, writes a recorded result; pure aggregation tested; control/treatment isolated; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "SKILL-EVAL-CORPUS"
-      ],
-      "title": "vanta eval compress <dim> — repeatable control/treatment CNG measurement",
-      "summary": "[repo: vanta] Replace manual env-toggle eyeballing with a first-class, repeatable runner: vanta eval compress <dimension> runs the corpus TWICE (control vs treatment, frozen per the existing eval isolation) and reports pass@1, output tokens, and CNG (winnow compressionCng) side-by-side, recording a baseline. Dimensions: skill-distilled (VANTA_SKILL_DISTILLED), skill-subset (VANTA_SKILL_SUBSET), prune (VANTA_PRUNE). This is the solid, recorded validation, not a toggle.",
-      "done": "vanta eval compress <dim> runs both arms, prints pass@1/tokens/CNG, writes a recorded result; pure aggregation tested; control/treatment isolated; committed to vanta."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "PRUNE-CONTEXT-WIRE",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Apply pruneText (real scorer) to an opt-in context path — measurable + usable",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] pruneTextAsync is a library fn, never applied in the loop, so prune's effect can't be measured or used. Apply it (with the real logprob scorer from WINNOW-LOGPROB-SCORER) to a bounded, opt-in context path (e.g., oversized pasted/inline context) behind VANTA_PRUNE=1, default OFF; reversible/safe — never prune code or precision reads. Makes prune measurable via the runner and usable in production.",
+      "done": "opt-in prune applied to a defined context path, default off, never touches code/precision reads; tests; exercised by vanta eval compress prune; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "WINNOW-LOGPROB-SCORER"
-      ],
-      "title": "Apply pruneText (real scorer) to an opt-in context path — measurable + usable",
-      "summary": "[repo: vanta] pruneTextAsync is a library fn, never applied in the loop, so prune's effect can't be measured or used. Apply it (with the real logprob scorer from WINNOW-LOGPROB-SCORER) to a bounded, opt-in context path (e.g., oversized pasted/inline context) behind VANTA_PRUNE=1, default OFF; reversible/safe — never prune code or precision reads. Makes prune measurable via the runner and usable in production.",
-      "done": "opt-in prune applied to a defined context path, default off, never touches code/precision reads; tests; exercised by vanta eval compress prune; committed to vanta."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "COMPRESSION-MEASURE",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Run the live CNG measurement, record results, flip defaults only where CNG>=0",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] The payoff: run vanta eval compress for skill-distilled, skill-subset, and prune against a LIVE logprob-capable model, record the CNG results, and flip a default ON only where CNG>=0 (tokens down, pass-rate not down). Resolves the deferred quality-parity measurements for SKILL-DISTILL-EXAMPLES + WINNOW-ML-PRUNE-BACKEND and produces the trigger-2 signal for the S2L go/no-go. Needs a configured logprob-capable model.",
+      "done": "CNG recorded for all three dimensions against a live model; defaults flipped only where CNG>=0; findings written to docs/; S2L trigger-2 assessed. Stop-and-surface if a model isn't available.",
       "tier": "rock",
       "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "COMPRESSION-EVAL-RUNNER",
         "SKILL-DISTILL-CLI",
         "PRUNE-CONTEXT-WIRE"
-      ],
-      "title": "Run the live CNG measurement, record results, flip defaults only where CNG>=0",
-      "summary": "[repo: vanta] The payoff: run vanta eval compress for skill-distilled, skill-subset, and prune against a LIVE logprob-capable model, record the CNG results, and flip a default ON only where CNG>=0 (tokens down, pass-rate not down). Resolves the deferred quality-parity measurements for SKILL-DISTILL-EXAMPLES + WINNOW-ML-PRUNE-BACKEND and produces the trigger-2 signal for the S2L go/no-go. Needs a configured logprob-capable model.",
-      "done": "CNG recorded for all three dimensions against a live model; defaults flipped only where CNG>=0; findings written to docs/; S2L trigger-2 assessed. Stop-and-surface if a model isn't available."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "WINNOW-LOCAL-SCORER",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Local logprob scorer via transformers.js — zero-config real pruning",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: winnow] Zero-config real LLMLingua scoring with NO external endpoint and NO native toolchain: makeLocalLogprobScorer using transformers.js (@huggingface/transformers — pure JS/WASM, optional dependency, lazy-imported). Runs a tiny causal LM (e.g. Xenova/distilgpt2, fetched on first use) over the token sequence and returns per-token logprobs as an AsyncTokenScorer for pruneTextAsync. Absent dep/model -> returns null so the resolver falls back. Complements makeOpenAiLogprobScorer (endpoint) and the heuristic.",
+      "done": "makeLocalLogprobScorer returns per-token logprobs via transformers.js (optional dep, lazy); pruneTextAsync drives real surprisal pruning offline; tests with a stubbed model (no network/download in CI); returns null when dep/model absent; CHANGELOG + version bump; pushed to winnow.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "WINNOW-LOGPROB-SCORER"
-      ],
-      "title": "Local logprob scorer via transformers.js — zero-config real pruning",
-      "summary": "[repo: winnow] Zero-config real LLMLingua scoring with NO external endpoint and NO native toolchain: makeLocalLogprobScorer using transformers.js (@huggingface/transformers — pure JS/WASM, optional dependency, lazy-imported). Runs a tiny causal LM (e.g. Xenova/distilgpt2, fetched on first use) over the token sequence and returns per-token logprobs as an AsyncTokenScorer for pruneTextAsync. Absent dep/model -> returns null so the resolver falls back. Complements makeOpenAiLogprobScorer (endpoint) and the heuristic.",
-      "done": "makeLocalLogprobScorer returns per-token logprobs via transformers.js (optional dep, lazy); pruneTextAsync drives real surprisal pruning offline; tests with a stubbed model (no network/download in CI); returns null when dep/model absent; CHANGELOG + version bump; pushed to winnow."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "PRUNE-SCORER-RESOLVE",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Resolve the pruning scorer (aux-task ladder), heuristic fallback",
+      "status": "next",
       "size": "S",
+      "summary": "[repo: vanta] Pick the pruning scorer the same way Vanta routes vision (VANTA_VISION_MODEL) and embeddings (VANTA_EMBED_MODEL) — never the main chat model (it cannot echo-score). Ladder: explicit VANTA_PRUNE_SCORER_URL/_MODEL (winnow makeOpenAiLogprobScorer, completions+echo) -> reachable local logprob endpoint (probe) -> local transformers.js scorer (winnow makeLocalLogprobScorer) -> heuristic fallback. PRUNE-CONTEXT-WIRE and COMPRESSION-MEASURE consume the resolved scorer.",
+      "done": "resolvePruneScorer(env) returns the best available AsyncTokenScorer per the ladder with heuristic fallback when none; pure resolution tested; wired into PRUNE-CONTEXT-WIRE; documented; committed to vanta.",
       "tier": "pebble",
       "effort": "low",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "WINNOW-LOGPROB-SCORER",
         "WINNOW-LOCAL-SCORER"
-      ],
-      "title": "Resolve the pruning scorer (aux-task ladder), heuristic fallback",
-      "summary": "[repo: vanta] Pick the pruning scorer the same way Vanta routes vision (VANTA_VISION_MODEL) and embeddings (VANTA_EMBED_MODEL) — never the main chat model (it cannot echo-score). Ladder: explicit VANTA_PRUNE_SCORER_URL/_MODEL (winnow makeOpenAiLogprobScorer, completions+echo) -> reachable local logprob endpoint (probe) -> local transformers.js scorer (winnow makeLocalLogprobScorer) -> heuristic fallback. PRUNE-CONTEXT-WIRE and COMPRESSION-MEASURE consume the resolved scorer.",
-      "done": "resolvePruneScorer(env) returns the best available AsyncTokenScorer per the ladder with heuristic fallback when none; pure resolution tested; wired into PRUNE-CONTEXT-WIRE; documented; committed to vanta."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "MEMORY-PROVIDER-FRAMEWORK",
       "track": "Operator",
-      "lens": "memory",
+      "title": "Pluggable memory-provider framework (port + catalog, local default)",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] One pluggable memory-backend system mirroring providers/catalog.ts (LLM) and gateway/platforms/registry.ts (messaging): a port over store/memory-store.ts + a MEMORY_CATALOG of adapters — local brain (default), cloud storage (Drive/Box/S3, sync/backup — intelligence stays local), and memory-as-a-service (mem0/supermemory/Honcho, content-processing). All opt-in, equal citizens; the user picks whatever. Local is the source of truth + offline-safe; every outbound still passes the kernel. Each catalog entry carries a one-line 'what it does' for an informed choice (transparency, not gating).",
+      "done": "a MemoryProvider port + MEMORY_CATALOG ({id,label,kind:storage|service|local,requiredEnv,secretEnv?,setupSteps,whatItDoes}); resolveMemoryProvider(env) defaults to local; pure catalog helpers tested; no behavior change when unconfigured; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "title": "Pluggable memory-provider framework (port + catalog, local default)",
-      "summary": "[repo: vanta] One pluggable memory-backend system mirroring providers/catalog.ts (LLM) and gateway/platforms/registry.ts (messaging): a port over store/memory-store.ts + a MEMORY_CATALOG of adapters — local brain (default), cloud storage (Drive/Box/S3, sync/backup — intelligence stays local), and memory-as-a-service (mem0/supermemory/Honcho, content-processing). All opt-in, equal citizens; the user picks whatever. Local is the source of truth + offline-safe; every outbound still passes the kernel. Each catalog entry carries a one-line 'what it does' for an informed choice (transparency, not gating).",
-      "done": "a MemoryProvider port + MEMORY_CATALOG ({id,label,kind:storage|service|local,requiredEnv,secretEnv?,setupSteps,whatItDoes}); resolveMemoryProvider(env) defaults to local; pure catalog helpers tested; no behavior change when unconfigured; committed."
+      "lens": "memory",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "MEMORY-ADAPTER-DRIVE",
       "track": "Operator",
-      "lens": "memory",
+      "title": "Google Drive memory adapter — sync/backup, reuses existing OAuth",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] First storage adapter: sync ~/.vanta brain+sessions to the user's own Google Drive for durable, cross-device, user-owned backup — reusing the existing google/auth.ts OAuth + tools/drive.ts client (near-zero new auth). Local-first: Drive is sync/backup only, never a recall dependency; offline = full function. Optional client-side encryption before upload so even Drive can't read it. Default off (VANTA_REMOTE_STORE=drive).",
+      "done": "a Drive memory adapter pushes/pulls the ~/.vanta store via existing OAuth; local stays source-of-truth; optional client-side encryption; default off; offline-safe; tests with a mocked Drive client; committed.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "title": "Google Drive memory adapter — sync/backup, reuses existing OAuth",
-      "summary": "[repo: vanta] First storage adapter: sync ~/.vanta brain+sessions to the user's own Google Drive for durable, cross-device, user-owned backup — reusing the existing google/auth.ts OAuth + tools/drive.ts client (near-zero new auth). Local-first: Drive is sync/backup only, never a recall dependency; offline = full function. Optional client-side encryption before upload so even Drive can't read it. Default off (VANTA_REMOTE_STORE=drive).",
-      "done": "a Drive memory adapter pushes/pulls the ~/.vanta store via existing OAuth; local stays source-of-truth; optional client-side encryption; default off; offline-safe; tests with a mocked Drive client; committed."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "MEMORY-ADAPTER-MEM0",
       "track": "Operator",
-      "lens": "memory",
+      "title": "mem0 memory-as-a-service adapter — proves the service pattern",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] First memory-as-a-service adapter: write learned memories to mem0 and query it on recall (the Hermes external-memory pattern — content is processed by the provider). Opt-in, off by default, kernel-gated egress, key via env. Proves the service-kind adapter so supermemory/Honcho become trivial follow-ons. The catalog label states plainly that conversation content is sent to the provider.",
+      "done": "a mem0 adapter implements the MemoryProvider port (store on learn + query on recall); opt-in/off-by-default; egress kernel-gated; tests with a mocked mem0 endpoint (no network); committed.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "title": "mem0 memory-as-a-service adapter — proves the service pattern",
-      "summary": "[repo: vanta] First memory-as-a-service adapter: write learned memories to mem0 and query it on recall (the Hermes external-memory pattern — content is processed by the provider). Opt-in, off by default, kernel-gated egress, key via env. Proves the service-kind adapter so supermemory/Honcho become trivial follow-ons. The catalog label states plainly that conversation content is sent to the provider.",
-      "done": "a mem0 adapter implements the MemoryProvider port (store on learn + query on recall); opt-in/off-by-default; egress kernel-gated; tests with a mocked mem0 endpoint (no network); committed."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "GATEWAY-SESSION-MANAGER",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Gateway session manager — interrupt / steer / queue inbound messages (from Hermes)",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Hermes gap: when a new inbound message arrives while the agent is mid-turn, decide interrupt / steer / queue. Add a session manager to the gateway: default = queue; /interrupt aborts the current turn; /steer injects guidance mid-run. Mirrors the TUI's Esc-abort but for messaging (Telegram/etc.). Per-session (gateway+sessionId) concurrency control.",
+      "done": "gateway routes a concurrent inbound message to interrupt/steer/queue per command (default queue); pure decision logic tested; wired into gateway/run.ts pollPlatform; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "title": "Gateway session manager — interrupt / steer / queue inbound messages (from Hermes)",
-      "summary": "[repo: vanta] Hermes gap: when a new inbound message arrives while the agent is mid-turn, decide interrupt / steer / queue. Add a session manager to the gateway: default = queue; /interrupt aborts the current turn; /steer injects guidance mid-run. Mirrors the TUI's Esc-abort but for messaging (Telegram/etc.). Per-session (gateway+sessionId) concurrency control.",
-      "done": "gateway routes a concurrent inbound message to interrupt/steer/queue per command (default queue); pure decision logic tested; wired into gateway/run.ts pollPlatform; committed."
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "COMPRESS-ON-ERROR",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Compact + retry on a context-length error (from Hermes)",
+      "status": "next",
       "size": "S",
+      "summary": "[repo: vanta] Hermes checks compression on two moments: before each turn AND on a context-window error. Vanta compresses pre-turn/threshold but a provider context-length error currently just fails. Detect a context-length error from the provider, run compressMessages, and retry the turn once. Cheap robustness win.",
+      "done": "a context-length error triggers one compact+retry in the agent loop (pure error detector tested); no infinite retry; falls through to a clean error if still over; committed.",
       "tier": "pebble",
       "effort": "low",
-      "title": "Compact + retry on a context-length error (from Hermes)",
-      "summary": "[repo: vanta] Hermes checks compression on two moments: before each turn AND on a context-window error. Vanta compresses pre-turn/threshold but a provider context-length error currently just fails. Detect a context-length error from the provider, run compressMessages, and retry the turn once. Cheap robustness win.",
-      "done": "a context-length error triggers one compact+retry in the agent loop (pure error detector tested); no infinite retry; falls through to a clean error if still over; committed."
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "SETUP-WIZARD-MEMORY",
       "track": "Operator",
-      "lens": "infra",
+      "title": "Surface memory providers + new feature toggles in the setup wizard",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Wire the new options into setup: vanta setup memory (catalog-driven picker like vanta setup messaging — local/Drive/Box/mem0/etc., with the per-entry 'what it does'), included as a step in the first-run wizard; plus surface the key opt-in feature toggles (VANTA_SKILL_DISTILLED, VANTA_SKILL_SUBSET, VANTA_TOON_DICT, VANTA_PRUNE, VANTA_REMOTE_STORE) with documented defaults, written to .env via upsertEnv. Users configure everything in one place.",
+      "done": "vanta setup memory selects a memory provider (MEMORY_CATALOG, status-labeled like messaging); the first-run wizard includes the memory step; feature toggles are settable in setup with defaults; writes via upsertEnv (preserves other keys); tests; committed.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "infra",
+      "updated": "2026-06-18",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "title": "Surface memory providers + new feature toggles in the setup wizard",
-      "summary": "[repo: vanta] Wire the new options into setup: vanta setup memory (catalog-driven picker like vanta setup messaging — local/Drive/Box/mem0/etc., with the per-entry 'what it does'), included as a step in the first-run wizard; plus surface the key opt-in feature toggles (VANTA_SKILL_DISTILLED, VANTA_SKILL_SUBSET, VANTA_TOON_DICT, VANTA_PRUNE, VANTA_REMOTE_STORE) with documented defaults, written to .env via upsertEnv. Users configure everything in one place.",
-      "done": "vanta setup memory selects a memory provider (MEMORY_CATALOG, status-labeled like messaging); the first-run wizard includes the memory step; feature toggles are settable in setup with defaults; writes via upsertEnv (preserves other keys); tests; committed."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "MEMORY-ADAPTER-MEMANTO",
       "track": "Operator",
-      "lens": "memory",
+      "title": "memanto memory adapter — local-first external memory (MIT), MCP-mount or REST",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] memanto (github moorcheh-ai/memanto, MIT, LOCAL-first: pip+Docker+Ollama, REST at localhost:8000) is a typed semantic memory agent (remember/recall/answer, 13 categories, temporal decay + provenance + contradiction handling; LongMemEval 89.8%). Add it to the memory-provider catalog as the RECOMMENDED local external option (vs cloud mem0 — memanto runs on the user's machine, no egress). Two integration paths: (A) if memanto ships an MCP server, mount it via .mcp.json (zero adapter code, kernel-gated, like terminal-love) — document this quick-start; (B) a MemoryProvider REST adapter (store-on-learn + query-on-recall). Opt-in, off by default, never required for recall.",
+      "done": "memanto registered in MEMORY_CATALOG; REST adapter implements the MemoryProvider port (mocked-endpoint tests); documented MCP-mount quick-start; opt-in/off-by-default, local source-of-truth preserved; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "title": "memanto memory adapter — local-first external memory (MIT), MCP-mount or REST",
-      "summary": "[repo: vanta] memanto (github moorcheh-ai/memanto, MIT, LOCAL-first: pip+Docker+Ollama, REST at localhost:8000) is a typed semantic memory agent (remember/recall/answer, 13 categories, temporal decay + provenance + contradiction handling; LongMemEval 89.8%). Add it to the memory-provider catalog as the RECOMMENDED local external option (vs cloud mem0 — memanto runs on the user's machine, no egress). Two integration paths: (A) if memanto ships an MCP server, mount it via .mcp.json (zero adapter code, kernel-gated, like terminal-love) — document this quick-start; (B) a MemoryProvider REST adapter (store-on-learn + query-on-recall). Opt-in, off by default, never required for recall.",
-      "done": "memanto registered in MEMORY_CATALOG; REST adapter implements the MemoryProvider port (mocked-endpoint tests); documented MCP-mount quick-start; opt-in/off-by-default, local source-of-truth preserved; committed to vanta."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "BRAIN-MEMORY-CATEGORIES",
       "track": "Operator",
-      "lens": "memory",
+      "title": "Richer typed memory categories (from memanto's 13 kinds)",
+      "status": "next",
       "size": "S",
+      "summary": "[repo: vanta] memanto types memories into 13 kinds (instruction/fact/decision/goal/commitment/preference/relationship/context/event/learning/observation/artifact/error) — sharper than Vanta's current EntryType (fact/skill/preference/pattern/insight/plan/emotion). Extend brain/entry-types.ts additively with the missing kinds (decision/commitment/relationship/context/event/observation/artifact/error + goal/learning if useful) so learned memories carry stronger type signal for recall/routing. Backward-compatible: existing types preserved, new ones additive, tolerant reader unchanged.",
+      "done": "EntryType extended additively; normalizeEntry + the learn pass can emit the new kinds; old entries still read fine (tolerant reader); tests; committed to vanta.",
       "tier": "pebble",
       "effort": "low",
-      "title": "Richer typed memory categories (from memanto's 13 kinds)",
-      "summary": "[repo: vanta] memanto types memories into 13 kinds (instruction/fact/decision/goal/commitment/preference/relationship/context/event/learning/observation/artifact/error) — sharper than Vanta's current EntryType (fact/skill/preference/pattern/insight/plan/emotion). Extend brain/entry-types.ts additively with the missing kinds (decision/commitment/relationship/context/event/observation/artifact/error + goal/learning if useful) so learned memories carry stronger type signal for recall/routing. Backward-compatible: existing types preserved, new ones additive, tolerant reader unchanged.",
-      "done": "EntryType extended additively; normalizeEntry + the learn pass can emit the new kinds; old entries still read fine (tolerant reader); tests; committed to vanta."
+      "lens": "memory",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "BRAIN-ANSWER-OP",
       "track": "Operator",
-      "lens": "memory",
+      "title": "brain 'answer' operation — synthesized provenanced answer from memory",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] memanto's third op beyond remember/recall is ANSWER: a query -> a synthesized direct answer from memory WITH provenance, not just a list of entries. Add a brain answer action: route the query (reuse BRAIN-ROUTER), gather the hits, synthesize a concise provenanced answer via an injected provider (best-effort), fall back to plain recall on failure. Gives the agent a one-call 'what do I know about X' instead of recall-then-read-then-reason.",
+      "done": "brain tool gains an answer action (router-backed recall + injected-provider synthesis + provenance, recall fallback on failure); pure prompt/format helpers tested; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
+      "lens": "memory",
+      "updated": "2026-06-18",
       "after": [
         "BRAIN-ROUTER"
-      ],
-      "title": "brain 'answer' operation — synthesized provenanced answer from memory",
-      "summary": "[repo: vanta] memanto's third op beyond remember/recall is ANSWER: a query -> a synthesized direct answer from memory WITH provenance, not just a list of entries. Add a brain answer action: route the query (reuse BRAIN-ROUTER), gather the hits, synthesize a concise provenanced answer via an injected provider (best-effort), fall back to plain recall on failure. Gives the agent a one-call 'what do I know about X' instead of recall-then-read-then-reason.",
-      "done": "brain tool gains an answer action (router-backed recall + injected-provider synthesis + provenance, recall fallback on failure); pure prompt/format helpers tested; committed to vanta."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "BRAIN-EVAL-LONGMEMEVAL",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Benchmark the brain on real LongMemEval + LoCoMo (the solid memory number)",
+      "status": "shipped",
       "size": "M",
+      "summary": "[repo: vanta] MEM-RETRIEVAL-EVAL is LongMemEval-STYLE on a small fixture; the solid validation is the REAL LongMemEval + LoCoMo — the standard memory benchmarks memanto reports (89.8% / 87.1%) — so Vanta's brain gets a comparable external number. Add a runner that loads the public LongMemEval/LoCoMo question sets and scores Vanta brain recall (lexical/hybrid/temporal/router) per category; record results. Deterministic retrieval-hit grading where possible; the answer-correctness variant needs a live model (flag). Needs the public datasets (downloaded, one-time).",
+      "done": "a LongMemEval/LoCoMo runner scores Vanta brain recall per category against the public datasets and records results vs the fixture baseline; deterministic grading where possible, model-graded variant flagged for a live model; documented; committed to vanta.",
       "tier": "rock",
       "effort": "medium",
-      "title": "Benchmark the brain on real LongMemEval + LoCoMo (the solid memory number)",
-      "summary": "[repo: vanta] MEM-RETRIEVAL-EVAL is LongMemEval-STYLE on a small fixture; the solid validation is the REAL LongMemEval + LoCoMo — the standard memory benchmarks memanto reports (89.8% / 87.1%) — so Vanta's brain gets a comparable external number. Add a runner that loads the public LongMemEval/LoCoMo question sets and scores Vanta brain recall (lexical/hybrid/temporal/router) per category; record results. Deterministic retrieval-hit grading where possible; the answer-correctness variant needs a live model (flag). Needs the public datasets (downloaded, one-time).",
-      "done": "a LongMemEval/LoCoMo runner scores Vanta brain recall per category against the public datasets and records results vs the fixture baseline; deterministic grading where possible, model-graded variant flagged for a live model; documented; committed to vanta."
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "PARALLEL-AGENT-FLEET",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Parallel agent fleet — fan out N independent tasks + a review surface",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy/'Peter Steinberg' pattern: drive many agents in parallel on independent macro-tasks (multiple checkouts, ~20-min jobs), become the bottleneck only at review. Vanta has delegate/team/subagent + `vanta agents` + git-worktree support; add a fan-out + review surface: dispatch N independent tasks to worktree-isolated parallel workers (no collisions), track live status, and a review board to inspect/accept each diff.",
+      "done": "a command/flow fans out N independent tasks to worktree-isolated parallel workers, shows live status + per-worker diff for review/accept; builds on team/tasks + subagent/spawn + worktrees; tests; committed.",
       "tier": "rock",
       "effort": "high",
-      "title": "Parallel agent fleet — fan out N independent tasks + a review surface",
-      "summary": "[repo: vanta] Karpathy/'Peter Steinberg' pattern: drive many agents in parallel on independent macro-tasks (multiple checkouts, ~20-min jobs), become the bottleneck only at review. Vanta has delegate/team/subagent + `vanta agents` + git-worktree support; add a fan-out + review surface: dispatch N independent tasks to worktree-isolated parallel workers (no collisions), track live status, and a review board to inspect/accept each diff.",
-      "done": "a command/flow fans out N independent tasks to worktree-isolated parallel workers, shows live status + per-worker diff for review/accept; builds on team/tasks + subagent/spawn + worktrees; tests; committed."
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "AUTO-RESEARCH-LOOP",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Auto-research loop — objective + verifiable metric + bounds, runs unattended",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy's auto-research: give it an OBJECTIVE + a verifiable METRIC + BOUNDARIES, hit go, iterate unattended (propose → apply in isolation → measure → keep if better) — remove the human as bottleneck. ONLY for objective/verifiable metrics (his caveat). Generalize the existing factory/evolve self-improving loop into a user-facing command; reuse eval/run + evolve/snapshot + regression locks.",
+      "done": "`vanta auto-research --objective --metric --bounds` runs an unattended improve loop on a verifiable metric, keeps only commits that beat baseline, logs each delta, stops on no-progress; tests; committed.",
       "tier": "rock",
       "effort": "high",
-      "title": "Auto-research loop — objective + verifiable metric + bounds, runs unattended",
-      "summary": "[repo: vanta] Karpathy's auto-research: give it an OBJECTIVE + a verifiable METRIC + BOUNDARIES, hit go, iterate unattended (propose → apply in isolation → measure → keep if better) — remove the human as bottleneck. ONLY for objective/verifiable metrics (his caveat). Generalize the existing factory/evolve self-improving loop into a user-facing command; reuse eval/run + evolve/snapshot + regression locks.",
-      "done": "`vanta auto-research --objective --metric --bounds` runs an unattended improve loop on a verifiable metric, keeps only commits that beat baseline, logs each delta, stops on no-progress; tests; committed."
+      "lens": "agent-loop",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "META-TUNE-INSTRUCTIONS",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Meta-tune the agent's own instructions against an eval (program.md optimization)",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy: a research org IS its program.md, and you can optimize OVER the instructions (meta-optimization / recursive self-improvement of the harness config, not just its outputs). Auto-tune Vanta's own instruction surface (a defined block of the system-prompt tiers / a program.md) against an eval: mutate instructions, run the eval, keep the higher-scoring variant. Bounded mutations; human-approved before adoption.",
+      "done": "a runner mutates a defined instruction block, scores variants via the eval (pass@1/CNG), records the best; bounded + human-approved before adoption; tests; committed.",
       "tier": "rock",
       "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "AUTO-RESEARCH-LOOP"
-      ],
-      "title": "Meta-tune the agent's own instructions against an eval (program.md optimization)",
-      "summary": "[repo: vanta] Karpathy: a research org IS its program.md, and you can optimize OVER the instructions (meta-optimization / recursive self-improvement of the harness config, not just its outputs). Auto-tune Vanta's own instruction surface (a defined block of the system-prompt tiers / a program.md) against an eval: mutate instructions, run the eval, keep the higher-scoring variant. Bounded mutations; human-approved before adoption.",
-      "done": "a runner mutates a defined instruction block, scores variants via the eval (pass@1/CNG), records the best; bounded + human-approved before adoption; tests; committed."
+      ]
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "LAN-DEVICE-DISCOVERY",
       "track": "Operator",
-      "lens": "reach",
+      "title": "LAN device discovery + control (the 'Dobby' home operator)",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy's Dobby: discover smart-home/LAN subsystems (Sonos/lights/HVAC/cameras) via an IP scan, reverse-engineer their local APIs, and expose them as kernel-gated tools for natural-language control. New physical-adjacent operator surface. Strictly local network; discovery is read-only; control is approval-gated; everything through the kernel.",
+      "done": "a LAN discovery tool finds devices + likely API endpoints (read-only scan) and a control tool drives them (approval-gated); both kernel-gated, safe defaults; tests with mocked network; committed.",
       "tier": "rock",
       "effort": "high",
-      "title": "LAN device discovery + control (the 'Dobby' home operator)",
-      "summary": "[repo: vanta] Karpathy's Dobby: discover smart-home/LAN subsystems (Sonos/lights/HVAC/cameras) via an IP scan, reverse-engineer their local APIs, and expose them as kernel-gated tools for natural-language control. New physical-adjacent operator surface. Strictly local network; discovery is read-only; control is approval-gated; everything through the kernel.",
-      "done": "a LAN discovery tool finds devices + likely API endpoints (read-only scan) and a control tool drives them (approval-gated); both kernel-gated, safe defaults; tests with mocked network; committed."
+      "lens": "reach",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "VISION-WATCH-ALERT",
       "track": "Operator",
-      "lens": "reach",
+      "title": "Vision watch — change-detect a camera/screen, describe, alert via gateway",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy's camera flow: watch a camera/screen, change-detect, run a vision model on the changed frame, alert via the gateway/home messaging ('a FedEx truck pulled up'). Vanta has look_at_camera/look_at_screen + describe_image + gateway delivery; add a watch loop: periodic capture → change detection → vision describe → gateway alert on a meaningful change. Opt-in.",
+      "done": "a watch loop captures a source on an interval, change-detects, describes the change via the vision model (resolveVisionProvider), and delivers an alert through the gateway/home platform; opt-in; tests with stubbed capture/vision; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "title": "Vision watch — change-detect a camera/screen, describe, alert via gateway",
-      "summary": "[repo: vanta] Karpathy's camera flow: watch a camera/screen, change-detect, run a vision model on the changed frame, alert via the gateway/home messaging ('a FedEx truck pulled up'). Vanta has look_at_camera/look_at_screen + describe_image + gateway delivery; add a watch loop: periodic capture → change detection → vision describe → gateway alert on a meaningful change. Opt-in.",
-      "done": "a watch loop captures a source on an interval, change-detects, describes the change via the vision model (resolveVisionProvider), and delivers an alert through the gateway/home platform; opt-in; tests with stubbed capture/vision; committed."
+      "lens": "reach",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "EPHEMERAL-UI-GEN",
       "track": "Operator",
-      "lens": "tui",
+      "title": "Ephemeral UI generation — agent serves a task-specific dashboard on demand",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy's 'claw presents you UIs / ephemeral software' + Dobby's command-center dashboard: generate and serve a quick task-specific dashboard/UI on demand (a control panel for discovered devices, a data view) instead of a permanent app. Vanta has roadmap/server.ts + desktop-app as references; add a tool that generates a self-contained HTML dashboard from data/spec and serves it locally.",
+      "done": "a tool generates a self-contained HTML dashboard from supplied data/spec and serves it on a local port (like roadmap serve), scoped/reversible; pure generator tested; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "title": "Ephemeral UI generation — agent serves a task-specific dashboard on demand",
-      "summary": "[repo: vanta] Karpathy's 'claw presents you UIs / ephemeral software' + Dobby's command-center dashboard: generate and serve a quick task-specific dashboard/UI on demand (a control panel for discovered devices, a data view) instead of a permanent app. Vanta has roadmap/server.ts + desktop-app as references; add a tool that generates a self-contained HTML dashboard from data/spec and serves it locally.",
-      "done": "a tool generates a self-contained HTML dashboard from supplied data/spec and serves it on a local port (like roadmap serve), scoped/reversible; pure generator tested; committed."
+      "lens": "tui",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "VOICE-CALIBRATION",
       "track": "Operator",
-      "lens": "selfhood",
+      "title": "Calibrated, earned-praise voice (anti-sycophancy) — personality matters",
+      "status": "next",
       "size": "S",
+      "summary": "[repo: vanta] Karpathy: a teammate personality with CALIBRATED praise (earned, not sycophantic — praise tracks actual merit, push back on half-baked ideas) is what separates the good agents. Vanta has SOUL.md + the BEHAVIOR-VOICE rule; sharpen it: proportional enthusiasm, earned praise, reasoned push-back on weak ideas. Prompt-rule + a light post-turn sycophancy self-check; no new system.",
+      "done": "the voice rule encodes earned-praise / proportional-enthusiasm / push-back; a light post-turn checker flags sycophantic over-validation; pure checker tested; documented; committed.",
       "tier": "pebble",
       "effort": "low",
-      "title": "Calibrated, earned-praise voice (anti-sycophancy) — personality matters",
-      "summary": "[repo: vanta] Karpathy: a teammate personality with CALIBRATED praise (earned, not sycophantic — praise tracks actual merit, push back on half-baked ideas) is what separates the good agents. Vanta has SOUL.md + the BEHAVIOR-VOICE rule; sharpen it: proportional enthusiasm, earned praise, reasoned push-back on weak ideas. Prompt-rule + a light post-turn sycophancy self-check; no new system.",
-      "done": "the voice rule encodes earned-praise / proportional-enthusiasm / push-back; a light post-turn checker flags sycophantic over-validation; pure checker tested; documented; committed."
+      "lens": "selfhood",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "AUX-MODEL-MAP",
       "track": "Harness",
-      "lens": "infra",
+      "title": "Per-function aux model map (speciation) — small specialized models per task",
+      "status": "next",
       "size": "M",
+      "summary": "[repo: vanta] Karpathy's 'speciation' — small specialized models per task, main model as the cognitive core. Vanta already routes vision (VANTA_VISION_MODEL), embeddings (VANTA_EMBED_MODEL), and the prune scorer; generalize to a per-FUNCTION model map (summarize/title/embed/vision/prune/classify) resolved like the existing aux routing, so each auxiliary task uses the right small model. The AUX-MAP follow-on noted after AUX-VISION.",
+      "done": "resolveAuxModel(function, env) drives the aux call sites (summarize/title/embed/vision/prune/classify), env-configured with fallback to the active provider; pure resolution tested; wired in; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "title": "Per-function aux model map (speciation) — small specialized models per task",
-      "summary": "[repo: vanta] Karpathy's 'speciation' — small specialized models per task, main model as the cognitive core. Vanta already routes vision (VANTA_VISION_MODEL), embeddings (VANTA_EMBED_MODEL), and the prune scorer; generalize to a per-FUNCTION model map (summarize/title/embed/vision/prune/classify) resolved like the existing aux routing, so each auxiliary task uses the right small model. The AUX-MAP follow-on noted after AUX-VISION.",
-      "done": "resolveAuxModel(function, env) drives the aux call sites (summarize/title/embed/vision/prune/classify), env-configured with fallback to the active provider; pure resolution tested; wired in; committed."
+      "lens": "infra",
+      "updated": "2026-06-18"
     },
     {
-      "status": "next",
-      "updated": "2026-06-18",
       "id": "VERIFIED-CONTRIBUTION-POOL",
       "track": "Harness",
-      "lens": "agent-loop",
+      "title": "Verified contribution pool (untrusted workers) — design spike",
+      "status": "next",
       "size": "L",
+      "summary": "[repo: vanta] Karpathy's untrusted-pool / folding@home / blockchain-of-commits idea: expensive to find an improvement, cheap to verify. A pipeline accepting candidate patches from untrusted sources and AUTO-VERIFYING them against the eval + regression locks before merge — only commits that beat baseline + pass locks land. SPIKE ONLY: design the verify-after-sandbox flow + accept criteria; never run arbitrary untrusted code without sandbox sign-off (kernel/Rule-Zero). Stop and surface for go/no-go.",
+      "done": "a design spike documents the sandbox-then-verify pipeline + accept criteria (beats baseline + passes locks) + go/no-go; no arbitrary-code execution built without sign-off; committed.",
       "tier": "rock",
       "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-06-18",
       "after": [
         "AUTO-RESEARCH-LOOP"
-      ],
-      "title": "Verified contribution pool (untrusted workers) — design spike",
-      "summary": "[repo: vanta] Karpathy's untrusted-pool / folding@home / blockchain-of-commits idea: expensive to find an improvement, cheap to verify. A pipeline accepting candidate patches from untrusted sources and AUTO-VERIFYING them against the eval + regression locks before merge — only commits that beat baseline + pass locks land. SPIKE ONLY: design the verify-after-sandbox flow + accept criteria; never run arbitrary untrusted code without sandbox sign-off (kernel/Rule-Zero). Stop and surface for go/no-go.",
-      "done": "a design spike documents the sandbox-then-verify pipeline + accept criteria (beats baseline + passes locks) + go/no-go; no arbitrary-code execution built without sign-off; committed."
+      ]
     },
     {
-      "status": "shipped",
-      "updated": "2026-06-18",
       "id": "CODEX-MODEL-SELECT",
       "track": "Harness",
-      "lens": "infra",
-      "size": "S",
-      "tier": "pebble",
-      "effort": "low",
       "title": "Codex provider model selection — verify + document which model to use",
+      "status": "shipped",
+      "size": "S",
       "summary": "[repo: vanta] The codex provider (ChatGPT-subscription OAuth, Responses API) defaults to VANTA_MODEL ?? \"gpt-5.5\" (providers/index.ts makeCodex); the catalog (providers/catalog.ts) lists gpt-5.5 / gpt-5.4 / gpt-5.4-mini / gpt-5.3-codex-spark and codex.ts CODEX_CONTEXT holds their context windows. Cover \"what model to use for codex\" explicitly: VERIFY the current Codex-available models against official sources (model names ship fast — do not trust training data), confirm the right DEFAULT (prefer a codex-SPECIALIZED model for coding, e.g. the *-codex-* line, over a general gpt-5.x where appropriate), keep CODEX_CONTEXT windows accurate, and document model choice (and when to pick codex-specialized vs general) in the setup wizard, the catalog note, and .env.example. Note: the codex-rescue agent (Codex CLI handoff) uses the Codex CLI's own model config — out of scope here; this card is the in-process codex PROVIDER.",
       "done": "codex provider default model + catalog models list verified against current Codex availability and corrected if stale; CODEX_CONTEXT windows accurate; setup wizard + catalog note + .env.example document which model to use for codex and the codex-specialized-vs-general guidance; tests; committed. Stop-and-surface if current Codex model availability cannot be verified.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "infra",
+      "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18. Verified the codex provider models against the official OpenAI Codex docs (developers.openai.com/codex/models, June 2026): the existing lineup [gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.3-codex-spark], the default (gpt-5.5 = current recommended default, released Apr 2026), and CODEX_CONTEXT windows (272k general, 128k spark) were already CURRENT and CORRECT — no stale data to fix. Added model-selection guidance: providers/catalog.ts codex note + a comment (gpt-5.5 default/most-capable; gpt-5.4 fallback/computer-use; gpt-5.4-mini cheap-fast subagents; gpt-5.3-codex-spark near-instant text-only Pro-only) and a documented codex block in .env.example (incl. the ChatGPT-auth tip to leave VANTA_MODEL unset so Codex tracks its current recommended default). Out of scope (noted): codex-rescue CLI handoff uses the Codex CLI own config. tsc clean; 162 provider/setup tests green; size gate clean."
     }
   ]

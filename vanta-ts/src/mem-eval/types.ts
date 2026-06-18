@@ -14,10 +14,14 @@ export type NoiseLevel = z.infer<typeof NoiseLevelSchema>;
 
 /** The four memory-recall categories where plain retrieval behaves differently. */
 export const MemCategorySchema = z.enum([
+  "information-extraction", // recall one fact or one evidence span
   "knowledge-update", // a fact changed across sessions — surface the LATEST
   "multi-session", // the answer aggregates several memories
   "preference", // recall a stated preference
   "temporal", // when / before / after / how-long reasoning
+  "abstention", // no grounded answer location
+  "adversarial", // misleading or premise-sensitive question
+  "world-knowledge", // question combines memory with general knowledge
 ]);
 export type MemCategory = z.infer<typeof MemCategorySchema>;
 
@@ -57,4 +61,48 @@ export type MemEvalReport = {
   questions: number;
   corpusSizes: Partial<Record<NoiseLevel, number>>;
   cells: MemEvalCell[];
+};
+
+export const PublicDatasetSchema = z.enum(["longmemeval", "locomo"]);
+export type PublicDataset = z.infer<typeof PublicDatasetSchema>;
+
+export type PublicMemCase = {
+  dataset: PublicDataset;
+  id: string;
+  question: MemQuestion;
+  records: MemoryRecord[];
+};
+
+export type PublicMemSkipped = {
+  dataset: PublicDataset;
+  id: string;
+  reason: string;
+};
+
+export type PublicMemCell = {
+  dataset: PublicDataset;
+  mode: RetrievalMode;
+  available: boolean;
+  recallAtK: number;
+  byCategory: Partial<Record<MemCategory, number>>;
+};
+
+export type PublicDatasetReport = {
+  dataset: PublicDataset;
+  sourcePath: string;
+  cases: number;
+  skipped: PublicMemSkipped[];
+  records: number;
+  cells: PublicMemCell[];
+};
+
+export type PublicMemEvalReport = {
+  k: number;
+  generatedAt: string;
+  fixture: MemEvalReport;
+  datasets: PublicDatasetReport[];
+  modelGrading: {
+    available: false;
+    reason: string;
+  };
 };

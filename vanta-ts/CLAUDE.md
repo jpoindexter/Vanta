@@ -23,6 +23,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
+| `mem-eval/` | Memory retrieval evals: fixture corpus plus public LongMemEval/LoCoMo loader/runner/report. `vanta eval mem public [dataset-dir]` records `.vanta/mem-eval-public-results.json`; downloaded datasets are runtime-only under ignored `.vanta/` paths. |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
 | `ui/composer.tsx` | Composer: custom readline (Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline) |
 | `ui/launch.tsx` | `runTuiV2(repoRoot)` — prepareRun + maybeCurate + env-selected render. Default is `ui/app.tsx`; `VANTA_TUI=v2` renders `ui/v2/app-v2.tsx`. `vanta` uses it on a TTY; readline REPL is the fallback |
