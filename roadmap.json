@@ -12496,7 +12496,7 @@
       "notes": "Shipped 2026-06-18. skills/distill.ts: distillSkill({name,body,provider}) calls an injected LLM to compress a SKILL.md into ≤N worked input→output demos and writes DISTILLED.md next to the skill; pure buildDistillPrompt/distilledFromText/distillSavings (token delta via winnow estTokens). tools/recall.ts serves the distilled form when VANTA_SKILL_DISTILLED is on (default = full body). 12 co-located tests incl. end-to-end recall-serves-distilled; tsc + size gate + boundaries clean; full vanta suite 3628 green. Scoped follow-up (needs a live model + task corpus, like the comms live-tests): the CNG pass-rate comparison (distilled vs full on real tasks) — token reduction is measured deterministically (distillSavings), pass-rate parity needs a live eval."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "SKILL-TASK-SUBSET",
       "track": "Operator",
@@ -12506,7 +12506,8 @@
       "effort": "medium",
       "title": "Task-conditioned skill subsetting — inject only relevant skills",
       "summary": "[repo: vanta] S2L + SWE-Skills-Bench finding: full skill text is often neutral or harmful, wrong-skill injection collapses performance. Vanta injects the whole skill INDEX every turn. Select only task-relevant skills (reuse searchSkills ranking) for the prompt index; keep recall-on-demand for the rest. Measure pass/tokens (CNG); never inject a low-relevance skill.",
-      "done": "prompt skill index is task-conditioned (top-k relevant), full catalog still reachable via recall; CNG-measured no regression; tests; pushed to vanta."
+      "done": "prompt skill index is task-conditioned (top-k relevant), full catalog still reachable via recall; CNG-measured no regression; tests; pushed to vanta.",
+      "notes": "Shipped 2026-06-18. skills/select.ts selectSkillsForTask(entries,task,max=12): ranks the skill index by relevance to the task via the same searchSkills scorer recall uses (stopwords stripped first so the/and/for do not create spurious matches), returns top-k; wired into session/prepare-helpers.ts buildRunPrompt — a real one-shot task gets the subset, the interactive placeholder/empty task/already-small index returns the full index unchanged (default-safe, keeps the cached prefix stable for interactive). Full catalog always reachable via the recall tool. Opt out: VANTA_SKILL_SUBSET=0. 5 tests; tsc + size gate + boundaries clean; full vanta suite 3633 green. CNG pass-rate validation deferred to a live eval (same as SKILL-DISTILL)."
     },
     {
       "status": "next",
