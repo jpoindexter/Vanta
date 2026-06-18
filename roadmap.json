@@ -12982,6 +12982,30 @@
       "tier": "pebble",
       "effort": "low",
       "lens": "agent-loop"
+    },
+    {
+      "id": "WORKFLOW-RECOVER-TRIAGE",
+      "track": "Harness",
+      "title": "Recover — failure-mode triage (bug vs polluted-context vs wrong-assumption)",
+      "status": "next",
+      "size": "M",
+      "summary": "[repo: vanta] From the JS-Mastery 'how senior engineers build with AI' workflow (the `recover` skill): when a long session goes wrong, diagnose WHICH failure mode you're in — (a) a targeted bug, (b) polluted / self-contradicting context, (c) a wrong assumption made earlier — and route to the right corrective action instead of letting the agent (and operator) spiral. Vanta has the pieces (set-shift = stuck-loop detector, error-detect = consecutive errors, debug-system skill, compact-on-error) but NO unified triage that distinguishes polluted-context (-> compact/restart/clear) from a wrong-earlier-assumption (-> revisit the plan/decisions) from a targeted bug (-> debug). Add a `/recover` command (plus optional auto-trigger on repeated failure) that classifies the failure mode from recent transcript + tool-result signals and emits the matching next step. Serves Harness reliability + the trusted-operator north star (recover without babysitting). Distinct from LIVENESS-WATCHDOG (stall detection) — this is corrective routing once trouble is already underway.",
+      "done": "a `/recover` command classifies the current trouble into {targeted-bug, polluted-context, wrong-assumption} from recent transcript + tool-result signals and returns the matching corrective action (debug / compact-or-restart / revisit-plan); pure classifier unit-tested; wired into the REPL; co-located tests; tsc clean; committed.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop"
+    },
+    {
+      "id": "WORKFLOW-LIB-CURRENT-DOCS",
+      "track": "Harness",
+      "title": "Current-docs-before-use — fetch up-to-date library docs before coding against a lib",
+      "status": "next",
+      "size": "S",
+      "summary": "[repo: vanta] From the same workflow (context7 usage + the per-project `library docs` context file): before writing code against a third-party library, fetch its CURRENT docs rather than trusting training data. Vanta has the source-grounded skill (the principle) + MCP mounting + web-fetch, but no built-in 'pull up-to-date docs for library X before using it' step. Add a small capability that resolves current docs for a named library (via a context7-style MCP when mounted, else a web-fetch fallback) and returns a short usage digest before the agent codes against it. Reinforces source-grounded; pairs with the per-project context scaffold (VANTA-BLUEPRINTS / VANTA-MAGIC-DOCS). Sand-tier: small, low-risk, foldable into an existing tool if cleaner.",
+      "done": "a tool/step resolves current docs for a named library (context7-style MCP when available, web-fetch fallback) and returns a short usage digest; degrades cleanly when offline/unmounted; co-located tests with fixtures (no live network); tsc clean; committed.",
+      "tier": "sand",
+      "effort": "low",
+      "lens": "infra"
     }
   ]
 }
