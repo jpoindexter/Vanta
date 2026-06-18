@@ -12434,7 +12434,7 @@
       "notes": "Shipped 2026-06-18 (winnow v0.5.0, commit 69e2646). Columnar TOON (TOONC) in winnow src/toon.ts: classifyColumns splits columns into constant (identical every row → stated once in a JSON meta header), dictionary (distinct values ≤16 and < present-count → per-row index), and plain; encodeColumnar/decodeColumnar lossless round-trip (const/dict/plain/missing/types verified); decodeTable auto-routes TOON vs TOONC by header; opt-in via toonCompress(json,{dictionary:true}) which returns the smaller of plain vs columnar, and via CompressOptions.dictionary threaded through router. Plain TOON stays the default (dictionary trades some readability for ratio). Bench: object-array cases 59-60% → 73-74% savings, still lossless (predicted ~75-80%). 84 winnow tests; tsc clean; CHANGELOG + version 0.5.0. Vanta consumes via opt-in only (VANTA-WINNOW-DICT-WIRE will wire it); default unchanged."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "WINNOW-CNG-METRIC",
       "track": "Harness",
@@ -12444,7 +12444,8 @@
       "effort": "small",
       "title": "Cost-Normalized-Gain metric for the compression bench (from S2L)",
       "summary": "[repo: winnow] Adopt S2L's CNG = quality-gain / relative-token-cost-change (arXiv:2606.16769). tuneOptions weights survival x ratio; CNG is the more principled objective (preserved signal per token saved). Add a pure cng() + a tuneOptions ranking option; surface in bench output.",
-      "done": "pure cng() tested; tuneOptions can rank by CNG; bench reports it; pushed to winnow."
+      "done": "pure cng() tested; tuneOptions can rank by CNG; bench reports it; pushed to winnow.",
+      "notes": "Shipped 2026-06-18 (winnow v0.6.0, commit 00d7ed6). src/cng.ts: costNormalizedGain(base,cond,relCostPct) = quality gain / (|relCost|/100) (S2L arXiv:2606.16769), + compressionCng(condQuality,savedRatio) = CNG vs the uncompressed baseline (quality 1.0). tuneOptions gains rankBy:\"cng\" (prefer least quality lost per token saved, tiebreak savings) + a cng field on TuneResult; the fidelity bench reports CNG (lossless modes = 0, lossy elision negative — bench default run shows -0.362). winnow-only (Vanta does not import adapt/cng), so no Vanta reinstall. 89 winnow tests; tsc clean; CHANGELOG + version 0.6.0."
     },
     {
       "status": "next",
