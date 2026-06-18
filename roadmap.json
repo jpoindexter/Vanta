@@ -12510,7 +12510,7 @@
       "notes": "Shipped 2026-06-18. skills/select.ts selectSkillsForTask(entries,task,max=12): ranks the skill index by relevance to the task via the same searchSkills scorer recall uses (stopwords stripped first so the/and/for do not create spurious matches), returns top-k; wired into session/prepare-helpers.ts buildRunPrompt — a real one-shot task gets the subset, the interactive placeholder/empty task/already-small index returns the full index unchanged (default-safe, keeps the cached prefix stable for interactive). Full catalog always reachable via the recall tool. Opt out: VANTA_SKILL_SUBSET=0. 5 tests; tsc + size gate + boundaries clean; full vanta suite 3633 green. CNG pass-rate validation deferred to a live eval (same as SKILL-DISTILL)."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "VANTA-WINNOW-DICT-WIRE",
       "track": "Harness",
@@ -12523,7 +12523,8 @@
       ],
       "title": "Wire TOON dictionary mode into Vanta tool-output (opt-in)",
       "summary": "[repo: vanta] Once TOON-DICT-COLUMNAR ships in winnow, expose its dictionary mode in Vanta's compressOutput/read_file behind an opt-in env (trades readability for ratio); default stays plain TOON. Measure before defaulting.",
-      "done": "Vanta compressOutput can use winnow dictionary mode behind an opt-in flag; default unchanged; tests; pushed to vanta."
+      "done": "Vanta compressOutput can use winnow dictionary mode behind an opt-in flag; default unchanged; tests; pushed to vanta.",
+      "notes": "Shipped 2026-06-18. agent/dispatch-helpers.ts: toonView + compressReadFile now call winnow toonCompress({dictionary: toonDict()}) where toonDict() reads VANTA_TOON_DICT (1/true/on). Default off = plain TOON (unchanged); on = columnar TOONC (constant-column + dictionary), bigger lossless savings on low-cardinality tool output at some readability cost. The model-facing note adapts (plain vs columnar). winnow reinstalled to v0.8.0 in vanta-ts. Test: VANTA_TOON_DICT=1 switches a 150-row low-cardinality read to TOONC and round-trips losslessly via decodeTable. tsc + size gate + boundaries clean; full vanta suite 3634 green."
     },
     {
       "status": "next",
