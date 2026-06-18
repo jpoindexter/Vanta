@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { mkdir, mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSubagent } from "./spawn.js";
 import { ToolRegistry } from "../tools/registry.js";
 import type { AgentDeps } from "../agent.js";
@@ -28,31 +31,43 @@ const safety = {
   async logEvent() {},
 } as unknown as SafetyClient;
 
-function makeDeps(): AgentDeps {
+function makeDeps(root: string): AgentDeps {
   return {
     provider: new FakeProvider(),
     safety,
     registry: new ToolRegistry(),
-    root: "/tmp/vanta-test-root",
+    root,
     requestApproval: async () => true,
   };
 }
 
+async function tempRoot(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "vanta-subagent-"));
+  await mkdir(join(root, ".vanta"));
+  return root;
+}
+
 describe("spawnSubagent", () => {
   it("returns the worker's outcome when it completes on the first iteration", async () => {
-    const outcome = await spawnSubagent({
-      goal: "summarize the README",
-      instruction: "Do the scoped task.",
-      deps: makeDeps(),
-      now: new Date("2026-06-02T00:00:00.000Z"),
-    });
+    const root = await tempRoot();
+    try {
+      const outcome = await spawnSubagent({
+        goal: "summarize the README",
+        instruction: "Do the scoped task.",
+        deps: makeDeps(root),
+        now: new Date("2026-06-02T00:00:00.000Z"),
+      });
 
-    expect(outcome.finalText).toBe("done");
-    expect(outcome.stoppedReason).toBe("done");
-    expect(outcome.iterations).toBe(1);
+      expect(outcome.finalText).toBe("done");
+      expect(outcome.stoppedReason).toBe("done");
+      expect(outcome.iterations).toBe(1);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("forwards maxIterations to the worker", async () => {
+    const root = await tempRoot();
     // A provider that always asks for a (nonexistent) tool never reaches "done",
     // so the worker exhausts its iteration budget — proving maxIterations flows through.
     class LoopingProvider implements LLMProvider {
@@ -71,16 +86,44 @@ describe("spawnSubagent", () => {
       }
     }
 
-    const deps: AgentDeps = { ...makeDeps(), provider: new LoopingProvider() };
-    const outcome = await spawnSubagent({
-      goal: "loop forever",
-      instruction: "Keep calling.",
-      deps,
-      maxIterations: 2,
-      now: new Date("2026-06-02T00:00:00.000Z"),
-    });
+    try {
+      const deps: AgentDeps = { ...makeDeps(root), provider: new LoopingProvider() };
+      const outcome = await spawnSubagent({
+        goal: "loop forever",
+        instruction: "Keep calling.",
+        deps,
+        maxIterations: 2,
+        now: new Date("2026-06-02T00:00:00.000Z"),
+      });
 
-    expect(outcome.iterations).toBe(2);
-    expect(outcome.stoppedReason).toBe("max_iterations");
+      expect(outcome.iterations).toBe(2);
+      expect(outcome.stoppedReason).toBe("max_iterations");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("persists the full worker transcript to a sidechain file", async () => {
+    const root = await tempRoot();
+    try {
+      await spawnSubagent({
+        goal: "audit docs",
+        instruction: "Read and summarize.",
+        deps: makeDeps(root),
+        now: new Date("2026-06-02T00:00:00.000Z"),
+      });
+
+      const files = await readdir(join(root, ".vanta", "sidechains"));
+      expect(files).toHaveLength(1);
+      const raw = await readFile(join(root, ".vanta", "sidechains", files[0]!), "utf8");
+      const saved = JSON.parse(raw) as { goal: string; instruction: string; outcome: { finalText: string }; messages: Array<{ role: string; content: string }> };
+      expect(saved.goal).toBe("audit docs");
+      expect(saved.instruction).toBe("Read and summarize.");
+      expect(saved.outcome.finalText).toBe("done");
+      expect(saved.messages.some((m) => m.role === "user" && m.content === "Read and summarize.")).toBe(true);
+      expect(saved.messages.some((m) => m.role === "assistant" && m.content === "done")).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

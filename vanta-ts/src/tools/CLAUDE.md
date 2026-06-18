@@ -8,6 +8,7 @@ Tool layer. Tools are the execution boundary below the agent loop and above the 
 - `brain.ts`: read/write/list/remember/recall for `~/.vanta/brain`; recall uses `memory/guardrails.ts` before returning entries to the model.
 - `bg-tasks.ts`: background shell tasks write `.vanta/bg-tasks/*`; stall detection calls `notify`, which can emit `Notification` hooks.
 - `tool-search.ts`: search output is both human-readable and a schema-expansion signal; keep `## tool_name` headings stable because `agent/tool-scope.ts` uses them.
+- `delegate.ts`/`swarm.ts`: parent-facing output stays summary-only; full worker transcripts are written by `subagent/spawn.ts` sidechains.
 - `mount-mcp.ts`: runtime MCP mounts use `mcp/events.ts` so server notifications and elicitation are hook-visible.
 - Keep outputs actionably small; compression/offload happens later in `agent/dispatch-tool.ts`.
 

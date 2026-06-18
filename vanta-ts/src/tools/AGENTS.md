@@ -9,5 +9,6 @@ Built-in tool implementations. Register new tools in the `ALL_TOOLS` array in `a
 - Multi-tool files split writers/runners under the size gate: `*-write.ts` (git/calendar/drive, `gmail-helpers.ts`) + `*-run.ts` (`team-run.ts`, `radar-scan.ts`, `browser-act-run.ts`) hold helpers the parent imports — edit those, not a parent copy.
 - `bg-tasks.ts` sends `Notification` hooks through `term/notify.ts` when a background shell task appears idle at an interactive prompt.
 - `tool-search.ts` returns `## tool_name` sections; `agent/tool-scope.ts` reads those headings so searched tools become callable with full schemas on the next model iteration.
+- `delegate.ts` and `swarm.ts` return worker summaries only; full worker transcripts are persisted by `subagent/spawn.ts` under `.vanta/sidechains/`.
 - `mount-mcp.ts` passes the active tool root into MCP client events so elicitation/notification hooks use the right `.vanta` directory.
 - Tool count is tracked here + in root/vanta-ts docs; update all after registry changes.

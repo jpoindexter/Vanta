@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 88 built-in tools from `vanta-ts/src/tools/all-tools.ts` (90 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3705 TS tests green (473 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
+- **Last recorded full verify:** 3706 TS tests green (473 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
 
 ## Run + Verify
 
@@ -31,6 +31,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **Goal graph:** `vanta-ts/src/goals/deps.ts` stores `.vanta/goal-deps.json`; `/goal blocks`, `/goal blocked_by`, `/goal status`, `/goals`, and `vanta goals` render derived dependency state.
 - **Runtime plugins:** `vanta-ts/src/plugins/` loads enabled `plugin.json` plugins from `~/.vanta/plugins`; plugin tools are normal kernel-gated tools and plugin slash commands live in the runtime command registry.
 - **Hooks:** `vanta-ts/src/hooks/` owns `.vanta/hooks.json`; supported hook types are `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`, with shared `timeoutMs`, `once`, and `statusMessage`. `VANTA-HOOK-EVENTS` is shipped: all 30 hook events are schema-valid and have Vanta-owned firing points across lifecycle/session/tool/permission/compaction/config/worktree/fleet/subagent/file watcher/MCP notification/elicitation/stop-failure paths.
+- **Subagents:** `vanta-ts/src/subagent/spawn.ts` runs isolated worker conversations. Parent tools (`delegate`, `swarm`, workflow agent nodes) receive only the worker `AgentOutcome` summary, while full worker transcripts persist as JSON sidechains under `.vanta/sidechains/`.
 - **Project init:** `/init` writes `.claude/CLAUDE.md` for the current project; use `--print` to preview and `--force` to replace.
 - **Lifecycle init:** `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits; `--maintenance` adds maintenance context.
 - **Session fork:** `resume <id> --fork-session` / `--resume <id> --fork-session` seeds a new session file from prior history and leaves the original intact.

@@ -10356,7 +10356,7 @@
       "id": "PAPER-SUBAGENT-SIDECHAIN",
       "track": "Harness",
       "title": "Subagent sidechain transcripts + summary-only return",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §8: subagent conversations are stored in separate sidechain files; only a summary returns to the parent, preventing context inflation. Vanta has delegate/swarm; ensure summary-only return and persist full subagent transcripts to .vanta sidechain files for audit.",
       "done": "delegate/swarm return only a summary; full subagent transcripts persist to .vanta sidechain files.",

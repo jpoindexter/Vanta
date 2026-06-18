@@ -1,12 +1,14 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { runAgent } from "../agent.js";
+import { randomUUID } from "node:crypto";
+import { createConversation } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
 import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
-import type { Goal } from "../types.js";
+import type { Goal, Message } from "../types.js";
 
 const DEFAULT_MAX_ITERATIONS = 50;
 
@@ -48,12 +50,40 @@ export async function spawnSubagent(opts: {
     skills,
     brain,
   });
+  const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
   try {
-    const outcome = await runAgent(systemPrompt, opts.instruction, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
+    const outcome = await convo.send(opts.instruction);
+    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
     return outcome;
   } catch (err) {
+    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err) }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
     throw err;
   }
+}
+
+async function persistSidechain(o: {
+  root: string;
+  goal: string;
+  instruction: string;
+  model: string;
+  createdAt: string;
+  outcome?: AgentOutcome;
+  error?: string;
+  messages: Message[];
+}): Promise<void> {
+  const dir = join(o.root, ".vanta", "sidechains");
+  await mkdir(dir, { recursive: true });
+  const file = join(dir, `${o.createdAt.replace(/[:.]/g, "-")}-${randomUUID()}.json`);
+  const record = {
+    goal: o.goal,
+    instruction: o.instruction,
+    model: o.model,
+    createdAt: o.createdAt,
+    outcome: o.outcome,
+    error: o.error,
+    messages: o.messages,
+  };
+  await writeFile(file, `${JSON.stringify({ version: 1, ...record }, null, 2)}\n`);
 }

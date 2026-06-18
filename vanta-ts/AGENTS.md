@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3705 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3706 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -46,6 +46,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
 - `src/tools/structured-output.ts` + `src/agent/structured-output.ts` — synthetic `StructuredOutput` tool for SDK `outputSchema`
 - `src/workflow/` — FABRO-WORKFLOW-GRAPH core: declarative graph schema/diff/executor for `agent`/`approval`/`interview` nodes and `next`/`branch`/`loop`/`parallel` transitions. Pure; production wiring lives in `src/tools/workflow.ts`.
+- `src/subagent/` — isolated worker conversations; parent outputs stay summary-only and full worker transcripts persist under `.vanta/sidechains/`.
 - `src/goals/` — TS-side goal dependency graph store (`.vanta/goal-deps.json`) layered over kernel goals; `/goal` and `vanta goals` render derived blocked/wake state.
 - `src/compress/reactive.ts` — reactive trimming for oversized tool results before the next model turn
 - `src/cli/agents-cmd.ts` — background agent CLI management over `~/.vanta/team-tasks.jsonl`
