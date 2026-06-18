@@ -12751,6 +12751,64 @@
       "title": "Surface memory providers + new feature toggles in the setup wizard",
       "summary": "[repo: vanta] Wire the new options into setup: vanta setup memory (catalog-driven picker like vanta setup messaging — local/Drive/Box/mem0/etc., with the per-entry 'what it does'), included as a step in the first-run wizard; plus surface the key opt-in feature toggles (VANTA_SKILL_DISTILLED, VANTA_SKILL_SUBSET, VANTA_TOON_DICT, VANTA_PRUNE, VANTA_REMOTE_STORE) with documented defaults, written to .env via upsertEnv. Users configure everything in one place.",
       "done": "vanta setup memory selects a memory provider (MEMORY_CATALOG, status-labeled like messaging); the first-run wizard includes the memory step; feature toggles are settable in setup with defaults; writes via upsertEnv (preserves other keys); tests; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "MEMORY-ADAPTER-MEMANTO",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "MEMORY-PROVIDER-FRAMEWORK"
+      ],
+      "title": "memanto memory adapter — local-first external memory (MIT), MCP-mount or REST",
+      "summary": "[repo: vanta] memanto (github moorcheh-ai/memanto, MIT, LOCAL-first: pip+Docker+Ollama, REST at localhost:8000) is a typed semantic memory agent (remember/recall/answer, 13 categories, temporal decay + provenance + contradiction handling; LongMemEval 89.8%). Add it to the memory-provider catalog as the RECOMMENDED local external option (vs cloud mem0 — memanto runs on the user's machine, no egress). Two integration paths: (A) if memanto ships an MCP server, mount it via .mcp.json (zero adapter code, kernel-gated, like terminal-love) — document this quick-start; (B) a MemoryProvider REST adapter (store-on-learn + query-on-recall). Opt-in, off by default, never required for recall.",
+      "done": "memanto registered in MEMORY_CATALOG; REST adapter implements the MemoryProvider port (mocked-endpoint tests); documented MCP-mount quick-start; opt-in/off-by-default, local source-of-truth preserved; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "BRAIN-MEMORY-CATEGORIES",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "Richer typed memory categories (from memanto's 13 kinds)",
+      "summary": "[repo: vanta] memanto types memories into 13 kinds (instruction/fact/decision/goal/commitment/preference/relationship/context/event/learning/observation/artifact/error) — sharper than Vanta's current EntryType (fact/skill/preference/pattern/insight/plan/emotion). Extend brain/entry-types.ts additively with the missing kinds (decision/commitment/relationship/context/event/observation/artifact/error + goal/learning if useful) so learned memories carry stronger type signal for recall/routing. Backward-compatible: existing types preserved, new ones additive, tolerant reader unchanged.",
+      "done": "EntryType extended additively; normalizeEntry + the learn pass can emit the new kinds; old entries still read fine (tolerant reader); tests; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "BRAIN-ANSWER-OP",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "BRAIN-ROUTER"
+      ],
+      "title": "brain 'answer' operation — synthesized provenanced answer from memory",
+      "summary": "[repo: vanta] memanto's third op beyond remember/recall is ANSWER: a query -> a synthesized direct answer from memory WITH provenance, not just a list of entries. Add a brain answer action: route the query (reuse BRAIN-ROUTER), gather the hits, synthesize a concise provenanced answer via an injected provider (best-effort), fall back to plain recall on failure. Gives the agent a one-call 'what do I know about X' instead of recall-then-read-then-reason.",
+      "done": "brain tool gains an answer action (router-backed recall + injected-provider synthesis + provenance, recall fallback on failure); pure prompt/format helpers tested; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "BRAIN-EVAL-LONGMEMEVAL",
+      "track": "Harness",
+      "lens": "eval",
+      "size": "M",
+      "tier": "rock",
+      "effort": "medium",
+      "title": "Benchmark the brain on real LongMemEval + LoCoMo (the solid memory number)",
+      "summary": "[repo: vanta] MEM-RETRIEVAL-EVAL is LongMemEval-STYLE on a small fixture; the solid validation is the REAL LongMemEval + LoCoMo — the standard memory benchmarks memanto reports (89.8% / 87.1%) — so Vanta's brain gets a comparable external number. Add a runner that loads the public LongMemEval/LoCoMo question sets and scores Vanta brain recall (lexical/hybrid/temporal/router) per category; record results. Deterministic retrieval-hit grading where possible; the answer-correctness variant needs a live model (flag). Needs the public datasets (downloaded, one-time).",
+      "done": "a LongMemEval/LoCoMo runner scores Vanta brain recall per category against the public datasets and records results vs the fixture baseline; deterministic grading where possible, model-graded variant flagged for a live model; documented; committed to vanta."
     }
   ]
 }
