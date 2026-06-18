@@ -12946,6 +12946,42 @@
       "lens": "infra",
       "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18. Verified the codex provider models against the official OpenAI Codex docs (developers.openai.com/codex/models, June 2026): the existing lineup [gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.3-codex-spark], the default (gpt-5.5 = current recommended default, released Apr 2026), and CODEX_CONTEXT windows (272k general, 128k spark) were already CURRENT and CORRECT — no stale data to fix. Added model-selection guidance: providers/catalog.ts codex note + a comment (gpt-5.5 default/most-capable; gpt-5.4 fallback/computer-use; gpt-5.4-mini cheap-fast subagents; gpt-5.3-codex-spark near-instant text-only Pro-only) and a documented codex block in .env.example (incl. the ChatGPT-auth tip to leave VANTA_MODEL unset so Codex tracks its current recommended default). Out of scope (noted): codex-rescue CLI handoff uses the Codex CLI own config. tsc clean; 162 provider/setup tests green; size gate clean."
+    },
+    {
+      "id": "FABRO-WORKFLOW-GRAPH",
+      "track": "Harness",
+      "title": "Declarative workflow graph — diffable agent pipelines with human-gate nodes",
+      "status": "next",
+      "size": "L",
+      "summary": "[repo: vanta] From fabro (github.com/fabro-sh/fabro, the 'dark software factory'): pipelines are a diffable, version-controlled graph — agent nodes, human-approval gates, interview steps — with branching, loops, parallelism, and conditional transitions ([A]pprove -> proceed, [R]evise -> loop back). Vanta's orchestration (fleet/, loop/, factory/, ralph/) is all procedural code, so the plan can't be reviewed as an artifact before it runs. Add a declarative pipeline format (minimal JSON/TS graph — NOT necessarily full Graphviz DOT, do the least that works) plus a runner that executes nodes via subagent/spawn; every node routes through the kernel assess() gate, human gates pause for approval, branch/loop transitions drive control flow. Reviewable + diffable before execution = 'knows the goal before it picks a tool.' Serves Harness + the trusted-operator north star.",
+      "done": "a declarative workflow graph (agent / approval / interview nodes + branch/loop/parallel transitions) can be authored, diffed, and executed; each node routes through the kernel; human gates pause for approval; builds on subagent/spawn + fleet; co-located tests; tsc clean; committed.",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "agent-loop"
+    },
+    {
+      "id": "FABRO-MODEL-STYLESHEET",
+      "track": "Harness",
+      "title": "Selector-based model stylesheet — per-class model+effort routing with fallback chains",
+      "status": "next",
+      "size": "M",
+      "summary": "[repo: vanta] From fabro: a CSS-like stylesheet routes each step to a model + reasoning_effort by selector with automatic fallback chains, e.g. `* { model: haiku; reasoning_effort: low } .coding { model: sonnet; reasoning_effort: high }`. Vanta's routing/model-router.ts is binary cheap/expensive (VANTA_MODEL_CHEAP/_EXPENSIVE). Generalize to N task-classes: a small selector -> {provider/model, effort, fallback[]} map; reasoning_effort maps onto Vanta's existing effort levels (low|medium|high|max); add automatic fallback to the next entry on a provider error. Low blast radius, improves an existing module; pairs with FABRO-WORKFLOW-GRAPH (a stylesheet per node) but works standalone.",
+      "done": "a selector-based routing config maps task-class -> {provider/model, effort, fallback chain}; resolveRoutedProvider honors it with automatic fallback on failure; effort ties into the existing effort levels; defaults preserve current behavior when unset; co-located tests; tsc clean; committed.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop"
+    },
+    {
+      "id": "FABRO-INTERVIEW-NODE",
+      "track": "Operator",
+      "title": "Structured interview input — schema-validated HITL beyond free-text clarify",
+      "status": "next",
+      "size": "S",
+      "summary": "[repo: vanta] From fabro: 'interview steps' collect structured human input as a first-class node. Vanta's clarify tool asks free-text questions end-of-turn. Enrich clarify (or add a sibling tool) to request schema-validated structured input — typed fields and explicit choices the agent can rely on — validated with zod before returning to the loop. Pairs with FABRO-WORKFLOW-GRAPH's interview node. Operator/EF: better, less-ambiguous HITL input than free text.",
+      "done": "clarify (or a new interview tool) can request structured, schema-validated input (fields/choices), validates the response with zod at the boundary, returns typed values to the loop, and degrades to free-text when no schema is given; co-located tests; tsc clean; committed.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "agent-loop"
     }
   ]
 }
