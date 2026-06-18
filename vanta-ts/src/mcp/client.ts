@@ -21,6 +21,11 @@ export type McpToolDef = {
 };
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
+export type McpClientEvents = {
+  onNotification?: (method: string, params: unknown) => void | Promise<void>;
+  onElicitation?: (request: { method: string; params: unknown }) => Promise<Record<string, unknown>>;
+  onElicitationResult?: (request: { method: string; result: Record<string, unknown> }) => void | Promise<void>;
+};
 
 const PROTOCOL_VERSION = "2024-11-05";
 
@@ -40,7 +45,7 @@ export class McpClient {
   private readonly pending = new Map<JsonRpcId, Pending>();
   private buffer = "";
 
-  constructor(private readonly transport: Transport) {
+  constructor(private readonly transport: Transport, private readonly events: McpClientEvents = {}) {
     transport.onMessage((line) => this.onLine(line));
     transport.onError((err) => {
       for (const p of this.pending.values()) p.reject(err);
@@ -60,15 +65,18 @@ export class McpClient {
   }
 
   private dispatch(line: string): void {
-    let msg: { id?: JsonRpcId; result?: unknown; error?: { message?: string } };
+    let msg: { id?: JsonRpcId; method?: string; params?: unknown; result?: unknown; error?: { message?: string } };
     try {
       msg = JSON.parse(line);
     } catch {
       return; // ignore non-JSON (server logging on stdout)
     }
-    if (msg.id === undefined) return; // a notification from the server — ignored
+    if (msg.id === undefined) {
+      if (msg.method) void this.events.onNotification?.(msg.method, msg.params);
+      return;
+    }
     const p = this.pending.get(msg.id);
-    if (!p) return;
+    if (!p) return this.dispatchServerRequest(msg.id, msg.method, msg.params);
     this.pending.delete(msg.id);
     if (msg.error) p.reject(new Error(msg.error.message ?? "mcp error"));
     else p.resolve(msg.result);
@@ -85,6 +93,24 @@ export class McpClient {
 
   private notify(method: string, params?: unknown): void {
     this.transport.send(`${JSON.stringify({ jsonrpc: "2.0", method, params })}\n`);
+  }
+
+  private dispatchServerRequest(id: JsonRpcId, method: string | undefined, params: unknown): void {
+    if (!method) return;
+    if (!method.toLowerCase().includes("elicitation")) {
+      this.transport.send(`${JSON.stringify({ jsonrpc: "2.0", id, error: { code: -32601, message: `unsupported server request: ${method}` } })}\n`);
+      return;
+    }
+    void this.handleElicitation(id, method, params);
+  }
+
+  private async handleElicitation(id: JsonRpcId, method: string, params: unknown): Promise<void> {
+    const fallback = { action: "cancel", content: {}, reason: "MCP elicitation UI is not available in this host" };
+    const result = this.events.onElicitation
+      ? await this.events.onElicitation({ method, params }).catch(() => fallback)
+      : fallback;
+    this.transport.send(`${JSON.stringify({ jsonrpc: "2.0", id, result })}\n`);
+    await Promise.resolve(this.events.onElicitationResult?.({ method, result })).catch(() => {});
   }
 
   /** Handshake: initialize then send the initialized notification. */

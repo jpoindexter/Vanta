@@ -16,6 +16,8 @@ import { runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
 import { buildCallbacks } from "./output-callbacks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
+import { startHookFileWatcher } from "../hooks/file-watch.js";
+import { errorDetails, fireCwdChanged, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
 import { join } from "node:path";
 
 export function usage(): void {
@@ -127,10 +129,13 @@ export async function runInstruction(
   const onSigint = (): void => controller.abort();
   process.once("SIGINT", onSigint);
   const agentDeps = oneShotDeps({ setup, root, rl, signal: controller.signal, format, outputSchema: schema });
+  const stopFileWatcher = await startHookFileWatcher(root, { dataDir: join(root, ".vanta"), ...buildAgentHookDeps(agentDeps) });
   try {
     await fireHooks(join(root, ".vanta"), "SessionStart", { source: "startup", sessionType: "one-shot" }, { cwd: root, matcherValue: "startup", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const convo = createConversation(setup.systemPrompt, agentDeps);
+    await fireHooks(join(root, ".vanta"), "UserPromptSubmit", { prompt: instruction }, { cwd: root, prompt: instruction, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const outcome = await convo.send(instruction);
+    await fireHooks(join(root, ".vanta"), "Stop", { finalResponse: outcome.finalText, turnIndex: 1 }, { cwd: root, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction, finalText: outcome.finalText });
@@ -144,7 +149,11 @@ export async function runInstruction(
       turnIndex: 1,
     });
     memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
+  } catch (err) {
+    await fireStopFailure(root, { error: stopFailureType(err), errorDetails: errorDetails(err) }, buildAgentHookDeps(agentDeps));
+    throw err;
   } finally {
+    stopFileWatcher();
     await fireHooks(join(root, ".vanta"), "SessionEnd", { reason: "other", sessionType: "one-shot" }, { cwd: root, matcherValue: "other", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     process.removeListener("SIGINT", onSigint);
     rl.close();
@@ -170,5 +179,6 @@ export async function runRoomCommand(repoRoot: string, rest: string[]): Promise<
   const room = await resolveRoomOrExit(name, process.env);
   if (!room) process.exit(1);
   if (instr.length === 0) return void console.log(room.path);
+  if (room.path !== repoRoot) await fireCwdChanged(room.path, repoRoot, room.path);
   await runInstruction(repoRoot, instr.join(" "), { root: room.path });
 }

@@ -2,7 +2,7 @@
 
 This folder contains shared post-turn/background lifecycle utilities re-exported by `src/session.ts`.
 
-`prepare-helpers.ts` builds the run prompt context. It reads the approved `PROGRAM.md` tunable block, or `VANTA_PROGRAM_OVERRIDE` during meta-tune scoring, before calling `buildSystemPrompt`.
+`prepare-helpers.ts` builds the run prompt context. It reads the approved `PROGRAM.md` tunable block, or `VANTA_PROGRAM_OVERRIDE` during meta-tune scoring, before calling `buildSystemPrompt`. Runtime MCP mounts receive the active repo root so MCP hook events share the session's `.vanta/hooks.json` scope.
 
 Conventions:
 - Hooks must degrade quietly; failures should not interrupt the active turn.

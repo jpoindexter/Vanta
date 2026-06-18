@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -104,6 +104,30 @@ describe("runFleet", () => {
       });
       expect(next.workers[0]?.status).toBe("accepted");
       expect(calls).toEqual(["merge:fleet/b1", `${"cleanup"}:${join(root, ".vanta", "worktrees", "w1")}:fleet/b1`]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fires TeammateIdle after a fleet worker completes", async () => {
+    const root = mkdtempSync(join(tmpdir(), "fleet-idle-"));
+    const marker = join(root, "idle-hooked");
+    try {
+      mkdirSync(join(root, ".vanta"));
+      writeFileSync(join(root, ".vanta", "hooks.json"), JSON.stringify({ TeammateIdle: [{ command: `touch ${marker}` }] }));
+      await runFleet({
+        repoRoot: root,
+        fleetId: "fleet-idle",
+        specs: [{ id: "one", title: "Task one", instruction: "Do one" }],
+        deps: deps(root),
+        fleetDeps: {
+          createWorktree: async (_repo, _prefix, baseDir) => ({ path: join(baseDir, "w1"), branch: "fleet/b1", cleanup: async () => {} }),
+          spawn: async () => ({ finalText: "done", iterations: 1, stoppedReason: "done", toolIterations: 0 }),
+          diff: async () => "1 file changed",
+          appendTask: async () => {},
+        },
+      });
+      expect(existsSync(marker)).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -9,3 +9,5 @@ Default surface:
 When adding UI behavior, prefer pure helpers and co-located tests. Do not use `ink-testing-library`; use the existing real-Ink harness.
 
 Approval prompt: `approval-prompt.tsx` consumes `permissions/request.ts` for per-tool context and `permissions/grant.ts` for Always/Never tool-scoped rules. Esc maps to deny, not never.
+
+Hook host: `app.tsx`, `use-agent.ts`, and `use-slash.ts` mirror readline hook coverage for SessionStart/End, UserPromptSubmit, UserPromptExpansion, Stop, StopFailure, and FileChanged watcher startup.

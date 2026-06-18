@@ -63,7 +63,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 - **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
 - **Digital person** — project rooms, operator modes, model routing, mode learning, brain/memory layers
 - **Benchmarks** — deterministic memory recall evals, including public LongMemEval/LoCoMo via `vanta eval mem public`
-- **Session lifecycle** — `/init`, `.vanta/hooks.json` hooks (`command`, `http`, `mcp_tool`, `prompt`, `agent`) with the 30-event schema in progress, `--init`/`--init-only`/`--maintenance`, resume `--fork-session`
+- **Session lifecycle** — `/init`, `.vanta/hooks.json` hooks (`command`, `http`, `mcp_tool`, `prompt`, `agent`) with a 30-event schema, `--init`/`--init-only`/`--maintenance`, resume `--fork-session`
 - **Comms** — Gmail / Calendar / Drive (every outbound approval-gated)
 
 Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client, login cookies for gated reach channels) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).

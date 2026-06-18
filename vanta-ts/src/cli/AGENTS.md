@@ -11,6 +11,7 @@ Operational command modules extracted from `src/cli.ts` to keep the CLI entrypoi
 - `permission-mode.ts` strips `--permission-mode auto|default` and sets `VANTA_AUTO_MODE`.
 - `output-callbacks.ts` keeps one-shot output callback selection out of `commands.ts`.
 - `startup.ts` owns bootstrap (`findRepoRoot`/`loadEnv`) + `startInteractive` (TTY-gated setup wizard, TUI/REPL select) + run-arg/startup-flag parsing — extracted from `cli.ts` to keep the entrypoint thin.
+- `commands.ts` owns one-shot `vanta run` orchestration: start file-change hook watching, emit prompt/stop/failure hook events, and emit `CwdChanged` before `vanta room` runs inside a resolved room root.
 - `memory-cmd.ts` / `skills-cmd.ts` / `hooks-cmd.ts` hold the `vanta memory` / `skills`+`skill` / `hooks` handlers.
 - `ops.ts` holds gateway/service/MCP handlers; `ops-app.ts` the desktop/factory/pairing/config handlers it re-exports; `roadmap-cmd.ts` the roadmap one.
 - `extra-cmds.ts` + `extra-cmds-2.ts` hold smaller handlers (plugins/taste/models/acp/proxy; ref/settings/brief).

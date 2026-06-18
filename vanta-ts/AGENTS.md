@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3695 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3704 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -101,7 +101,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
 - Tool schemas are scoped per turn when the registry is large; `tool_search` remains available and `VANTA_TOOL_SCOPE=0` restores full exposure.
 - `compose_workflow` accepts legacy step sequences plus declarative workflow graphs; graph runs route every node through the kernel, use approval/interview human gates, diff canonical graph JSON, and execute agent nodes through `spawnSubagent`.
-- `.vanta/hooks.json` supports the 30-event hook vocabulary and hook types `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around live tool/prompt/stop/session events. File/cwd watcher, MCP elicitation/notification, stop-failure, and teammate-idle owners remain WIP under `VANTA-HOOK-EVENTS`.
+- `.vanta/hooks.json` supports the 30-event hook vocabulary and hook types `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around live tool/prompt/stop/session events. `VANTA-HOOK-EVENTS` is shipped: file watcher, cwd changes, MCP notification/elicitation, stop-failure, teammate-idle, lifecycle, permission, compaction, config, worktree, fleet, and subagent paths all have Vanta-owned firing points.
 - Goal dependencies live in `.vanta/goal-deps.json`: `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` derive `blocked_by`/`blocks` state without changing kernel storage.
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
 - Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.

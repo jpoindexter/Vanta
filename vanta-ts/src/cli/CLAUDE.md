@@ -2,6 +2,7 @@
 
 `ops.ts` contains top-level command handlers for gateway/service/MCP; `ops-app.ts` holds the desktop/factory/pairing/config handlers it re-exports; `roadmap-cmd.ts` the roadmap one.
 `startup.ts` owns bootstrap + `startInteractive` (repo-root find, env load, TTY setup wizard, run-arg/startup-flag parsing).
+`commands.ts` owns one-shot `vanta run` orchestration: file-change hook watcher startup, `UserPromptSubmit`/`Stop`/`StopFailure` dispatch, and `CwdChanged` before rooted room runs.
 `lifecycle.ts` owns startup lifecycle flags: `--init`, `--init-only`, and `--maintenance`.
 `output-callbacks.ts` owns output-format callback wiring for `vanta run`.
 `memory-cmd.ts`/`skills-cmd.ts`/`hooks-cmd.ts` hold the `vanta memory`/`skills`+`skill`/`hooks` handlers.

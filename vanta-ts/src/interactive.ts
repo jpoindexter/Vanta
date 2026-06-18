@@ -10,6 +10,8 @@ import { freshGateState } from "./repl/post-turn-gates.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
+import { startHookFileWatcher } from "./hooks/file-watch.js";
+import { errorDetails, fireStopFailure, stopFailureType } from "./hooks/runtime-events.js";
 import { loadUserCommands } from "./commands/loader.js";
 import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
@@ -70,6 +72,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const { convo, agentDeps } = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
   await fireSessionStart(repoRoot, state.sessionId, Boolean(resumed), agentDeps);
+  const stopFileWatcher = await startHookFileWatcher(repoRoot, { dataDir: join(repoRoot, ".vanta"), ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
 
   const checkpoints = new CheckpointStore();
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
@@ -79,8 +82,9 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const runUserTurn = (text: string) => executeUserTurn(text, turnDeps);
 
   try {
-    await runReplLoop({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn });
+    await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps });
   } finally {
+    stopFileWatcher();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
     await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot, ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
     await fireSessionEnd(repoRoot, state.sessionId, agentDeps);
@@ -88,6 +92,15 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
+}
+
+async function runLoopWithFailureHook(o: Parameters<typeof runReplLoop>[0] & { state: ReplState; agentDeps: AgentDeps }): Promise<void> {
+  try {
+    await runReplLoop(o);
+  } catch (err) {
+    await fireStopFailure(o.repoRoot, { sessionId: o.state.sessionId, error: stopFailureType(err), errorDetails: errorDetails(err) }, buildAgentHookDeps(o.agentDeps, (m) => console.log(m)));
+    throw err;
+  }
 }
 
 function fireSessionStart(repoRoot: string, sessionId: string, resumed: boolean, deps: AgentDeps): Promise<void> {

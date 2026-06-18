@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactElement } from "react";
+import { join } from "node:path";
 import { Box, Static, useApp, useInput } from "ink";
 import { Composer } from "./composer.js";
 import { TodoPanel } from "./todo-panel.js";
@@ -29,6 +30,8 @@ import { estimateTokens } from "../term/tokens.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
 import { useSessionStatus } from "./use-session-status.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
+import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
 import { type Mode, cycleMode, useModeState, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
@@ -57,6 +60,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const tick = useBusyTick(state.busy);
   const skillMatches = useSkillMatches();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
+  useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
@@ -167,3 +171,17 @@ function BottomRegion(props: {
 
 export { Footer } from "./app-regions.js";
 export { ModeLine, cycleMode } from "./mode-line.js";
+
+function useHookLifecycle(repoRoot: string, sessionId: string, setup: RunSetup): void {
+  useEffect(() => {
+    const dataDir = join(repoRoot, ".vanta");
+    void fireHooks(dataDir, "SessionStart", { sessionId, source: "startup" }, { cwd: repoRoot, matcherValue: "startup", promptProvider: setup.provider });
+    let closeWatcher: (() => void) | undefined;
+    void startHookFileWatcher(repoRoot, { dataDir, promptProvider: setup.provider }).then((close) => { closeWatcher = close; });
+    return () => {
+      closeWatcher?.();
+      void fireHooks(dataDir, "Stop", { sessionId }, { cwd: repoRoot, promptProvider: setup.provider });
+      void fireHooks(dataDir, "SessionEnd", { sessionId, reason: "prompt_input_exit" }, { cwd: repoRoot, matcherValue: "prompt_input_exit", promptProvider: setup.provider });
+    };
+  }, [repoRoot, sessionId, setup.provider]);
+}

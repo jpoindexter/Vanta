@@ -83,7 +83,7 @@ export async function loadRuntimeExtensions(
   const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
-  await mountMcpServers(registry, process.env, (m) => console.log(m));
+  await mountMcpServers(registry, process.env, (m) => console.log(m), repoRoot);
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
   const { loadEnabledPlugins } = await import("../plugins/loader.js");

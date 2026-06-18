@@ -6,6 +6,8 @@ import { runPostTurnGates, type GateState } from "../repl/post-turn-gates.js";
 import { toolDisplay } from "../term/tool-display.js";
 import { summarizeResult } from "../term/tool-result.js";
 import { readTodos } from "../todo/store.js";
+import { errorDetails, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
+import { fireHooks, fireStopHook } from "../hooks/shell-hooks.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -101,9 +103,12 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     deps.dispatch({ t: "submit", text: display ?? text });
     deps.dispatch({ t: "turnStart" });
     try {
-      await conv.send(text, undefined, ctrl.signal);
+      await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: text }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
+      const outcome = await conv.send(text, undefined, ctrl.signal);
+      await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       await runTurnGates(deps);
     } catch (err) {
+      await fireStopFailure(deps.repoRoot, { error: stopFailureType(err), errorDetails: errorDetails(err) }, { promptProvider: deps.setup.provider });
       deps.dispatch({ t: "note", text: `  ✗ ${(err as Error).message}` });
     } finally {
       deps.dispatch({ t: "turnEnd" });

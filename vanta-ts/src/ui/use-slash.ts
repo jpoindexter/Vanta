@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { type Dispatch, type MutableRefObject } from "react";
 import { executeSlash } from "../repl-commands.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
 import type { ReplCtx, ReplState, SlashResult } from "../repl/types.js";
@@ -59,7 +60,13 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
   };
   const runSlash = (line: string): void => {
     if (!deps.convoRef.current) return;
-    void executeSlash(line, buildCtx()).then((r) => applySlashResult(r, fx));
+    void executeSlash(line, buildCtx()).then(async (r) => {
+      if (r.resend) {
+        const command = line.split(/\s/)[0]?.slice(1) ?? "";
+        await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptExpansion", { command, prompt: r.resend }, { cwd: deps.repoRoot, matcherValue: command, promptProvider: deps.setup.provider });
+      }
+      applySlashResult(r, fx);
+    });
   };
   return { runSlash };
 }

@@ -32,6 +32,21 @@ function fakeTransport(responder: (method: string, params: unknown) => unknown):
   };
 }
 
+function manualTransport(): { transport: Transport; emit: (line: string) => void; sent: string[] } {
+  let onMsg: ((line: string) => void) | null = null;
+  const sent: string[] = [];
+  return {
+    sent,
+    emit: (line) => onMsg?.(line),
+    transport: {
+      send(line: string) { sent.push(line); },
+      onMessage(cb) { onMsg = cb; },
+      onError() {},
+      close() {},
+    },
+  };
+}
+
 describe("textFromContent", () => {
   it("joins text blocks from an MCP result", () => {
     expect(textFromContent({ content: [{ type: "text", text: "a" }, { type: "text", text: "b" }] })).toBe("a\nb");
@@ -94,5 +109,30 @@ describe("McpClient", () => {
       client.callTool("d", { n: 3 }),
     ]);
     expect([a, b, c]).toEqual(["2", "4", "6"]);
+  });
+
+  it("surfaces server notifications through events", async () => {
+    const t = manualTransport();
+    const seen: string[] = [];
+    new McpClient(t.transport, { onNotification: (method) => { seen.push(method); } });
+    t.emit(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/progress", params: { pct: 1 } })}\n`);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(seen).toEqual(["notifications/progress"]);
+  });
+
+  it("answers server elicitation requests and surfaces the result event", async () => {
+    const t = manualTransport();
+    const seen: string[] = [];
+    new McpClient(t.transport, {
+      onElicitation: async ({ method }) => {
+        seen.push(`ask:${method}`);
+        return { action: "cancel", content: {}, reason: "no UI" };
+      },
+      onElicitationResult: ({ method }) => { seen.push(`result:${method}`); },
+    });
+    t.emit(`${JSON.stringify({ jsonrpc: "2.0", id: 7, method: "elicitation/create", params: { message: "Name?" } })}\n`);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(seen).toEqual(["ask:elicitation/create", "result:elicitation/create"]);
+    expect(JSON.parse(t.sent[0] ?? "{}")).toMatchObject({ id: 7, result: { action: "cancel" } });
   });
 });

@@ -75,6 +75,7 @@ async function runWorker(args: {
     worker = { ...worker, status: "done", diff, result: outcome.finalText, updated: iso(args.deps) };
     await appendStatus(worker, "done", args.deps, outcome.finalText);
     await fireHooks(join(args.repoRoot, ".vanta"), "TaskCompleted", { taskId: worker.taskId, workerId: worker.id, title: worker.title, result: outcome.finalText }, { cwd: args.repoRoot, ...buildAgentHookDeps(args.baseDeps) });
+    await fireHooks(join(args.repoRoot, ".vanta"), "TeammateIdle", { teammateName: worker.id, teamName: args.fleetId }, { cwd: args.repoRoot, ...buildAgentHookDeps(args.baseDeps) });
     return worker;
   } catch (err) {
     const blocker = err instanceof Error ? err.message : String(err);

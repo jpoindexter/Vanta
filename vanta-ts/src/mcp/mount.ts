@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import { McpClient, stdioTransport, type McpToolDef, type Transport } from "./client.js";
+import { mcpClientEvents } from "./events.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 
@@ -130,12 +131,13 @@ async function mountOneServer(opts: {
   env: NodeJS.ProcessEnv;
   children: Array<{ kill: () => void }>;
   deferred: boolean;
+  cwd: string;
   log: (msg: string) => void;
 }): Promise<number> {
-  const { name, spec, registry, env, children, deferred, log } = opts;
+  const { name, spec, registry, env, children, deferred, cwd, log } = opts;
   const transport = await resolveTransport(name, spec, env, children);
   if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
-  const client = new McpClient(transport);
+  const client = new McpClient(transport, mcpClientEvents(cwd, name));
   await client.initialize();
   const defs = await client.listTools();
   for (const def of defs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
@@ -152,8 +154,9 @@ export async function mountMcpServers(
   registry: ToolRegistry,
   env: NodeJS.ProcessEnv = process.env,
   log: (msg: string) => void = () => {},
+  cwd = process.cwd(),
 ): Promise<MountResult> {
-  const config = await readMcpConfig(env);
+  const config = await readMcpConfig(env, cwd);
   const names = Object.keys(config.servers);
   if (names.length === 0) return { servers: [], toolCount: 0, dispose: () => {} };
 
@@ -166,7 +169,7 @@ export async function mountMcpServers(
     const spec = config.servers[name];
     if (!spec) continue;
     try {
-      const count = await mountOneServer({ name, spec, registry, env, children, deferred, log });
+      const count = await mountOneServer({ name, spec, registry, env, children, deferred, cwd, log });
       if (count > 0) { mounted.push(name); toolCount += count; }
     } catch (err) {
       log(`  · mcp: ${name} failed — ${(err as Error).message}`);

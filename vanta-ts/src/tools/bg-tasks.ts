@@ -13,7 +13,8 @@ const STALL_POLL_MS = 5_000;
 
 // Shell-stall detect: poll the live output buffer; notify once if the task
 // stalls on an interactive prompt. Returns an unref'd timer cleared on close.
-function startStallWatchdog(chunks: string[], id: string, command: string): NodeJS.Timeout {
+function startStallWatchdog(o: { chunks: string[]; id: string; command: string; dataDir: string; cwd: string }): NodeJS.Timeout {
+  const { chunks, id, command, dataDir, cwd } = o;
   let stall: StallState = { lastLen: 0, lastChangeMs: Date.now(), notified: false };
   const timer = setInterval(() => {
     try {
@@ -21,7 +22,7 @@ function startStallWatchdog(chunks: string[], id: string, command: string): Node
       const r = checkStall({ prev: stall, curLen: buf.length, tail: buf, nowMs: Date.now() });
       stall = r.state;
       if (r.notify) {
-        notify({ title: `Vanta · bg task ${id}`, message: `"${command.slice(0, 60)}" appears to be waiting for input (y/n)…` });
+        notify({ title: `Vanta · bg task ${id}`, message: `"${command.slice(0, 60)}" appears to be waiting for input (y/n)…`, dataDir, cwd, notificationType: "idle_prompt" });
       }
     } catch {
       // best-effort: a watchdog tick must never break the task
@@ -91,7 +92,7 @@ export async function spawnBackground(
 
   // The live `chunks` buffer is the only place output exists while the task runs
   // (the log file stays empty until close), so the watchdog lives at the spawn site.
-  const watchdog = startStallWatchdog(chunks, id, command);
+  const watchdog = startStallWatchdog({ chunks, id, command, dataDir, cwd });
 
   child.on("close", (code) => {
     clearInterval(watchdog);

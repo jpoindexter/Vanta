@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { stdioTransport, McpClient } from "../mcp/client.js";
 import { mcpToolToVantaTool } from "../mcp/mount.js";
+import { mcpClientEvents } from "../mcp/events.js";
 import type { Tool, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
 
@@ -41,7 +42,7 @@ const MOUNT_MCP_SCHEMA: Tool["schema"] = {
 };
 
 /** Spawn the MCP server, initialize it, and register its tools into the live registry. */
-async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown): Promise<ToolResult> {
+async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, repoRoot: string): Promise<ToolResult> {
   const r = Args.safeParse(rawArgs);
   if (!r.success) return { ok: false, output: `invalid args: ${r.error.message}` };
   const { name, command, args: cmdArgs = [], env: cmdEnv = {} } = r.data;
@@ -59,7 +60,7 @@ async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown): Promis
       }
     });
 
-    const client = new McpClient(transport);
+    const client = new McpClient(transport, mcpClientEvents(repoRoot, name));
     await client.initialize();
     const defs = await client.listTools();
     const names: string[] = [];
@@ -92,6 +93,6 @@ export function buildMountMcpTool(registry: ToolRegistry): Tool {
       if (!r.success) return "mount_mcp (invalid args)";
       return `spawn mcp server ${r.data.name}: ${r.data.command}`;
     },
-    execute: (rawArgs) => executeMountMcp(registry, rawArgs),
+    execute: (rawArgs, ctx) => executeMountMcp(registry, rawArgs, ctx.root),
   };
 }
