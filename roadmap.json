@@ -12448,7 +12448,7 @@
       "notes": "Shipped 2026-06-18 (winnow v0.6.0, commit 00d7ed6). src/cng.ts: costNormalizedGain(base,cond,relCostPct) = quality gain / (|relCost|/100) (S2L arXiv:2606.16769), + compressionCng(condQuality,savedRatio) = CNG vs the uncompressed baseline (quality 1.0). tuneOptions gains rankBy:\"cng\" (prefer least quality lost per token saved, tiebreak savings) + a cng field on TuneResult; the fidelity bench reports CNG (lossless modes = 0, lossy elision negative — bench default run shows -0.362). winnow-only (Vanta does not import adapt/cng), so no Vanta reinstall. 89 winnow tests; tsc clean; CHANGELOG + version 0.6.0."
     },
     {
-      "status": "next",
+      "status": "shipped",
       "updated": "2026-06-18",
       "id": "WINNOW-STORE-COMPRESS",
       "track": "Harness",
@@ -12458,7 +12458,8 @@
       "effort": "small",
       "title": "Byte-compress the CCR stash on disk (gzip), transparent on retrieve",
       "summary": "[repo: winnow] 'nothing out of scope' — byte compression is in scope at the STORE layer (the model never reads the stash; retrieve decompresses). gzip the stashed original (node:zlib, zero new dep) + transparent decompress in retrieve; still read legacy plaintext stashes. Not inline (stays readable there).",
-      "done": "stashOriginal gzips; retrieve decompresses + reads legacy plaintext; round-trip tested; pushed to winnow."
+      "done": "stashOriginal gzips; retrieve decompresses + reads legacy plaintext; round-trip tested; pushed to winnow.",
+      "notes": "Shipped 2026-06-18 (winnow v0.7.0). store.ts gzips the CCR stash (node:zlib gzipSync/gunzipSync, zero new dep) as <id>.txt.gz; retrieve decompresses transparently and falls back to legacy <id>.txt plaintext; idempotent across both forms. The model never reads the stash (reads inline view + winnow_retrieve), so byte compression is free here. winnow offload footer path updated to .txt.gz. Vanta has its OWN store (.vanta/ccr, plaintext, grep-able for its file-delivery mode) and is unaffected. 91 winnow tests; tsc clean."
     },
     {
       "status": "next",
