@@ -12987,7 +12987,7 @@
       "id": "WORKFLOW-RECOVER-TRIAGE",
       "track": "Harness",
       "title": "Recover — failure-mode triage (bug vs polluted-context vs wrong-assumption)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] From the JS-Mastery 'how senior engineers build with AI' workflow (the `recover` skill): when a long session goes wrong, diagnose WHICH failure mode you're in — (a) a targeted bug, (b) polluted / self-contradicting context, (c) a wrong assumption made earlier — and route to the right corrective action instead of letting the agent (and operator) spiral. Vanta has the pieces (set-shift = stuck-loop detector, error-detect = consecutive errors, debug-system skill, compact-on-error) but NO unified triage that distinguishes polluted-context (-> compact/restart/clear) from a wrong-earlier-assumption (-> revisit the plan/decisions) from a targeted bug (-> debug). Add a `/recover` command (plus optional auto-trigger on repeated failure) that classifies the failure mode from recent transcript + tool-result signals and emits the matching next step. Serves Harness reliability + the trusted-operator north star (recover without babysitting). Distinct from LIVENESS-WATCHDOG (stall detection) — this is corrective routing once trouble is already underway.",
       "done": "a `/recover` command classifies the current trouble into {targeted-bug, polluted-context, wrong-assumption} from recent transcript + tool-result signals and returns the matching corrective action (debug / compact-or-restart / revisit-plan); pure classifier unit-tested; wired into the REPL; co-located tests; tsc clean; committed.",

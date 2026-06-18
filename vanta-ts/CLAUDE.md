@@ -237,7 +237,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 98 commands. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Older counts in session history are milestones, not current truth.
 
 ## Session additions (2026-06-16) — keep current
 
