@@ -12631,6 +12631,39 @@
       "title": "Run the live CNG measurement, record results, flip defaults only where CNG>=0",
       "summary": "[repo: vanta] The payoff: run vanta eval compress for skill-distilled, skill-subset, and prune against a LIVE logprob-capable model, record the CNG results, and flip a default ON only where CNG>=0 (tokens down, pass-rate not down). Resolves the deferred quality-parity measurements for SKILL-DISTILL-EXAMPLES + WINNOW-ML-PRUNE-BACKEND and produces the trigger-2 signal for the S2L go/no-go. Needs a configured logprob-capable model.",
       "done": "CNG recorded for all three dimensions against a live model; defaults flipped only where CNG>=0; findings written to docs/; S2L trigger-2 assessed. Stop-and-surface if a model isn't available."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "WINNOW-LOCAL-SCORER",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "WINNOW-LOGPROB-SCORER"
+      ],
+      "title": "Local logprob scorer via transformers.js — zero-config real pruning",
+      "summary": "[repo: winnow] Zero-config real LLMLingua scoring with NO external endpoint and NO native toolchain: makeLocalLogprobScorer using transformers.js (@huggingface/transformers — pure JS/WASM, optional dependency, lazy-imported). Runs a tiny causal LM (e.g. Xenova/distilgpt2, fetched on first use) over the token sequence and returns per-token logprobs as an AsyncTokenScorer for pruneTextAsync. Absent dep/model -> returns null so the resolver falls back. Complements makeOpenAiLogprobScorer (endpoint) and the heuristic.",
+      "done": "makeLocalLogprobScorer returns per-token logprobs via transformers.js (optional dep, lazy); pruneTextAsync drives real surprisal pruning offline; tests with a stubbed model (no network/download in CI); returns null when dep/model absent; CHANGELOG + version bump; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "PRUNE-SCORER-RESOLVE",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "after": [
+        "WINNOW-LOGPROB-SCORER",
+        "WINNOW-LOCAL-SCORER"
+      ],
+      "title": "Resolve the pruning scorer (aux-task ladder), heuristic fallback",
+      "summary": "[repo: vanta] Pick the pruning scorer the same way Vanta routes vision (VANTA_VISION_MODEL) and embeddings (VANTA_EMBED_MODEL) — never the main chat model (it cannot echo-score). Ladder: explicit VANTA_PRUNE_SCORER_URL/_MODEL (winnow makeOpenAiLogprobScorer, completions+echo) -> reachable local logprob endpoint (probe) -> local transformers.js scorer (winnow makeLocalLogprobScorer) -> heuristic fallback. PRUNE-CONTEXT-WIRE and COMPRESSION-MEASURE consume the resolved scorer.",
+      "done": "resolvePruneScorer(env) returns the best available AsyncTokenScorer per the ladder with heuristic fallback when none; pure resolution tested; wired into PRUNE-CONTEXT-WIRE; documented; committed to vanta."
     }
   ]
 }
