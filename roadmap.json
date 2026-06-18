@@ -12664,6 +12664,93 @@
       "title": "Resolve the pruning scorer (aux-task ladder), heuristic fallback",
       "summary": "[repo: vanta] Pick the pruning scorer the same way Vanta routes vision (VANTA_VISION_MODEL) and embeddings (VANTA_EMBED_MODEL) — never the main chat model (it cannot echo-score). Ladder: explicit VANTA_PRUNE_SCORER_URL/_MODEL (winnow makeOpenAiLogprobScorer, completions+echo) -> reachable local logprob endpoint (probe) -> local transformers.js scorer (winnow makeLocalLogprobScorer) -> heuristic fallback. PRUNE-CONTEXT-WIRE and COMPRESSION-MEASURE consume the resolved scorer.",
       "done": "resolvePruneScorer(env) returns the best available AsyncTokenScorer per the ladder with heuristic fallback when none; pure resolution tested; wired into PRUNE-CONTEXT-WIRE; documented; committed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "MEMORY-PROVIDER-FRAMEWORK",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "Pluggable memory-provider framework (port + catalog, local default)",
+      "summary": "[repo: vanta] One pluggable memory-backend system mirroring providers/catalog.ts (LLM) and gateway/platforms/registry.ts (messaging): a port over store/memory-store.ts + a MEMORY_CATALOG of adapters — local brain (default), cloud storage (Drive/Box/S3, sync/backup — intelligence stays local), and memory-as-a-service (mem0/supermemory/Honcho, content-processing). All opt-in, equal citizens; the user picks whatever. Local is the source of truth + offline-safe; every outbound still passes the kernel. Each catalog entry carries a one-line 'what it does' for an informed choice (transparency, not gating).",
+      "done": "a MemoryProvider port + MEMORY_CATALOG ({id,label,kind:storage|service|local,requiredEnv,secretEnv?,setupSteps,whatItDoes}); resolveMemoryProvider(env) defaults to local; pure catalog helpers tested; no behavior change when unconfigured; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "MEMORY-ADAPTER-DRIVE",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "MEMORY-PROVIDER-FRAMEWORK"
+      ],
+      "title": "Google Drive memory adapter — sync/backup, reuses existing OAuth",
+      "summary": "[repo: vanta] First storage adapter: sync ~/.vanta brain+sessions to the user's own Google Drive for durable, cross-device, user-owned backup — reusing the existing google/auth.ts OAuth + tools/drive.ts client (near-zero new auth). Local-first: Drive is sync/backup only, never a recall dependency; offline = full function. Optional client-side encryption before upload so even Drive can't read it. Default off (VANTA_REMOTE_STORE=drive).",
+      "done": "a Drive memory adapter pushes/pulls the ~/.vanta store via existing OAuth; local stays source-of-truth; optional client-side encryption; default off; offline-safe; tests with a mocked Drive client; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "MEMORY-ADAPTER-MEM0",
+      "track": "Operator",
+      "lens": "memory",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "MEMORY-PROVIDER-FRAMEWORK"
+      ],
+      "title": "mem0 memory-as-a-service adapter — proves the service pattern",
+      "summary": "[repo: vanta] First memory-as-a-service adapter: write learned memories to mem0 and query it on recall (the Hermes external-memory pattern — content is processed by the provider). Opt-in, off by default, kernel-gated egress, key via env. Proves the service-kind adapter so supermemory/Honcho become trivial follow-ons. The catalog label states plainly that conversation content is sent to the provider.",
+      "done": "a mem0 adapter implements the MemoryProvider port (store on learn + query on recall); opt-in/off-by-default; egress kernel-gated; tests with a mocked mem0 endpoint (no network); committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "GATEWAY-SESSION-MANAGER",
+      "track": "Harness",
+      "lens": "agent-loop",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "Gateway session manager — interrupt / steer / queue inbound messages (from Hermes)",
+      "summary": "[repo: vanta] Hermes gap: when a new inbound message arrives while the agent is mid-turn, decide interrupt / steer / queue. Add a session manager to the gateway: default = queue; /interrupt aborts the current turn; /steer injects guidance mid-run. Mirrors the TUI's Esc-abort but for messaging (Telegram/etc.). Per-session (gateway+sessionId) concurrency control.",
+      "done": "gateway routes a concurrent inbound message to interrupt/steer/queue per command (default queue); pure decision logic tested; wired into gateway/run.ts pollPlatform; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "COMPRESS-ON-ERROR",
+      "track": "Harness",
+      "lens": "agent-loop",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "Compact + retry on a context-length error (from Hermes)",
+      "summary": "[repo: vanta] Hermes checks compression on two moments: before each turn AND on a context-window error. Vanta compresses pre-turn/threshold but a provider context-length error currently just fails. Detect a context-length error from the provider, run compressMessages, and retry the turn once. Cheap robustness win.",
+      "done": "a context-length error triggers one compact+retry in the agent loop (pure error detector tested); no infinite retry; falls through to a clean error if still over; committed."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "SETUP-WIZARD-MEMORY",
+      "track": "Operator",
+      "lens": "dx",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "MEMORY-PROVIDER-FRAMEWORK"
+      ],
+      "title": "Surface memory providers + new feature toggles in the setup wizard",
+      "summary": "[repo: vanta] Wire the new options into setup: vanta setup memory (catalog-driven picker like vanta setup messaging — local/Drive/Box/mem0/etc., with the per-entry 'what it does'), included as a step in the first-run wizard; plus surface the key opt-in feature toggles (VANTA_SKILL_DISTILLED, VANTA_SKILL_SUBSET, VANTA_TOON_DICT, VANTA_PRUNE, VANTA_REMOTE_STORE) with documented defaults, written to .env via upsertEnv. Users configure everything in one place.",
+      "done": "vanta setup memory selects a memory provider (MEMORY_CATALOG, status-labeled like messaging); the first-run wizard includes the memory step; feature toggles are settable in setup with defaults; writes via upsertEnv (preserves other keys); tests; committed."
     }
   ]
 }
