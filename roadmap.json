@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-17",
+  "updated": "2026-06-18",
   "items": [
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
@@ -12305,6 +12305,60 @@
       "tier": "sand",
       "effort": "low",
       "updated": "2026-06-17"
+    },
+    {
+      "id": "MEM-RETRIEVAL-EVAL",
+      "track": "Harness",
+      "title": "Memory-recall eval harness — measure lexical vs semantic vs hybrid over noisy multi-session corpora",
+      "status": "next",
+      "size": "M",
+      "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). The paper's core contribution is methodology: retrieval effectiveness can only be judged end-to-end, per harness/delivery, over noisy corpora — not in isolation. Vanta has a brain (md regions + structured entries + spreading-activation recall), life-search (lexical default + opt-in ollama embeddings), and grep_files, but NO measurement of recall quality. Build a LongMemEval-style eval over Vanta's own stores: a fixture corpus of multi-session memories with oracle questions across categories (knowledge-update, multi-session aggregation, preference recall, temporal reasoning), a distractor-noise sweep (s5/s10/s20/full), and a grader. Score brain.recall + life-search in each mode (lexical / semantic / hybrid) x (inline / file-based delivery). Wire into 'vanta eval'/bench. Foundation card — the hybrid/temporal/delivery cards validate against it.",
+      "done": "A repeatable memory-recall eval reports accuracy per retrieval mode and per noise level over a fixture multi-session corpus; runnable via the CLI; results recorded so recall changes are measured, not guessed.",
+      "tier": "rock",
+      "effort": "medium",
+      "lens": "memory"
+    },
+    {
+      "id": "MEM-HYBRID-RRF",
+      "track": "Operator",
+      "title": "Hybrid recall — reciprocal-rank-fusion of lexical + semantic for brain recall & life-search",
+      "status": "next",
+      "size": "M",
+      "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). Finding: lexical and dense retrieval surface DIFFERENT relevant items; RRF/hybrid often beats either alone. Vanta already has both signals (life-rank.ts lexical density/phrase/recency ranker; search/embed.ts cosine over ollama embeddings) but uses them separately. Add a reciprocal-rank-fusion merge: run both rankers, fuse ranks (1/(k+rank)), return the fused top-K. Apply to life-search (semantic action -> hybrid) and optionally brain associative recall. Default stays lexical-first (the paper shows lexical wins inline); hybrid is opt-in/auto when embeddings are available. Validate the lift against MEM-RETRIEVAL-EVAL before defaulting it on.",
+      "done": "A pure RRF fuser merges lexical + semantic ranked lists; life-search exposes a hybrid mode; the eval shows hybrid >= max(lexical, semantic) on the fixture before any default change; graceful lexical-only fallback when no embedder.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "after": [
+        "MEM-RETRIEVAL-EVAL"
+      ]
+    },
+    {
+      "id": "MEM-TOOL-OUTPUT-DELIVERY",
+      "track": "Harness",
+      "title": "Tool-output delivery strategy — inline default, file-pointer for large results (backbone-gated)",
+      "status": "next",
+      "size": "M",
+      "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). Finding: the harness's tool-output DELIVERY (inline-in-context vs programmatic file-based) shifts end-to-end accuracy as much as swapping retrievers. Inline + lexical wins broadly; file-based delivery only pays off when the model reliably closes the read->integrate->retry loop — weaker backbones regress with it. Vanta already summarizes/compresses tool output (agent/dispatch-tool.ts, compress/*) and has a built-not-wired term/json-format.ts. Add an explicit delivery policy: small results inline (default); large results written to a .vanta file with a path + summary the agent can grep/read (the existing CCR stash is the substrate); choose per result size + a backbone-strength gate so weak models stay inline. Measure both paths with MEM-RETRIEVAL-EVAL.",
+      "done": "Tool results route by a delivery policy (inline vs file-pointer) keyed on size + backbone; large outputs land in a grep-able store file with a summary+path; inline stays the default; weak-backbone sessions never get file-only delivery; behavior is covered by tests.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop"
+    },
+    {
+      "id": "MEM-TEMPORAL-EVENTS",
+      "track": "Operator",
+      "title": "Temporal event indexing for memory — surface dates/intervals as first-class records (Chronos-style)",
+      "status": "next",
+      "size": "M",
+      "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). The strong custom harness (Chronos) serializes memories WITH extracted temporal events (explicit dates, intervals, ordering) as structured records, lifting temporal-reasoning recall — the category where plain retrieval is weakest. Vanta's brain has an episodic region + timestamped entries + brain/learn distillation, but no normalized temporal index. Add a temporal extraction pass that pulls explicit dates/intervals from stored memories into queryable event records (entry timing exists; add a temporal index + a recall path that resolves when/before/after/how-long questions against it). Validate the temporal-category lift via MEM-RETRIEVAL-EVAL.",
+      "done": "Memories with explicit time expressions get normalized temporal-event records; recall can answer when/duration/ordering questions against them; the temporal category in MEM-RETRIEVAL-EVAL improves vs the pre-change baseline.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "after": [
+        "MEM-RETRIEVAL-EVAL"
+      ]
     }
   ]
 }
