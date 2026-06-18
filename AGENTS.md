@@ -11,20 +11,20 @@ Two layers:
 | Path | Language | Role |
 |------|----------|------|
 | `src/` | Rust | Safety kernel: risk classifier, approvals, goals, HTTP sidecar on :7788 |
-| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 84 built-in tools (86 registered), 98 slash commands, TUI, REPL |
+| `vanta-ts/` | TypeScript, Node 22, ESM | Agent loop: LLM providers, 88 built-in tools (90 registered), 98 slash commands, TUI, REPL |
 
 The kernel is the enforced security boundary — `assess()` blocks, it doesn't advise. Deep TS docs: `vanta-ts/AGENTS.md`.
 
 ## Build + test
 
 ```bash
-cargo build && cargo test                     # Rust kernel (56 tests)
-cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3471 tests + typecheck)
+cargo build && cargo test                     # Rust kernel (53 tests)
+cd vanta-ts && npx vitest run && npx tsc --noEmit  # TS agent (last full green: 3634 tests + typecheck)
 ./install.sh                                  # global `vanta` in ~/.local/bin
 vanta                                          # launch TUI (TTY) or readline REPL
 ```
 
-> **Status (2026-06-16):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **84 built-in tools** (86 with factory `mount_mcp`/`tool_search`) and **98 slash commands**; last recorded full verify is **3482 TS tests green** (426 files), `tsc` clean, plus **56 kernel tests**. A size-gate refactor split oversized TS files (all editable TS now ≤300 lines; only `factory/*` exempt). Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, Tab/Shift+Tab focus traversal, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, `/rewind`, `/hooks`, durable cron tasks, structured-output SDK tool calls, reactive compaction for oversized tool results, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, auto/acceptEdits permission modes, session effort levels, and setup assistant live probes for provider/Google/MCP/messaging. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
+> **Status (2026-06-18):** v0.2.0 roadmap-grind in progress on `main`. Current source registers **88 built-in tools** (90 with factory `mount_mcp`/`tool_search`) and **98 slash commands**; last recorded full verify is **3634 TS tests green** (452 files), `tsc` clean, plus **53 kernel tests**. A size-gate refactor split oversized TS files (all editable TS now ≤300 lines; only `factory/*` exempt). Recent: real Ink 7 TUI on `src/ui/` + `src/term/`, Tab/Shift+Tab focus traversal, opt-in TUI v2 mission-control shell (`VANTA_TUI=v2`), Vite/React desktop renderer (`desktop-app/`), per-tool permission request UIs, operator profile preferences, preference-signal capture, Ralph-loop filesystem continuity, memory guardrails, per-task tool scoping, solutioning mode, opt-in runtime plugin framework, `/init` project-context generation, `/rewind`, `/hooks`, durable cron tasks, structured-output SDK tool calls, reactive compaction for oversized tool results, lifecycle init flags (`--init`, `--init-only`, `--maintenance`), resume forking (`--fork-session`), auto minimalism, Claude-style approvals, operator rocks, reach layer, live radar scanning, local embeddings, self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, auto/acceptEdits permission modes, session effort levels, and setup assistant live probes for provider/Google/MCP/messaging. Remaining horizon: browser OS-level control; deferred reach channels in `REACH-*`. Per-card detail in `roadmap.json`.
 
 ## Key files
 

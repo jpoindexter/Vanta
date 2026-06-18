@@ -82,8 +82,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/gmail.ts` | Phase 5 — `gmail_search`/`gmail_read` (read) + `gmail_draft`/`gmail_send` (always approval-gated) |
 | `tools/calendar.ts` | Phase 5 — `calendar_read` + `calendar_create`/`calendar_update` (approval-gated) |
 | `tools/drive.ts` | Phase 5 — `drive_read` + `drive_create`/`drive_update` (approval-gated). Pure `buildMultipartBody` |
-| `tools/all-tools.ts` | The `ALL_TOOLS` array (84 built-in tool imports) — the registration site for new tools, extracted from `index.ts` for the size gate |
-| `tools/index.ts` | `buildRegistry({exclude?})` — registers the 84 `ALL_TOOLS` (86 with factory-built `mount_mcp`/`tool_search`; workers exclude recursive tools such as `delegate` as needed); `roadmap_add` files new cards, `roadmap_move` changes status |
+| `tools/all-tools.ts` | The `ALL_TOOLS` array (88 built-in tool imports) — the registration site for new tools, extracted from `index.ts` for the size gate |
+| `tools/index.ts` | `buildRegistry({exclude?})` — registers the 88 `ALL_TOOLS` (90 with factory-built `mount_mcp`/`tool_search`; workers exclude recursive tools such as `delegate` as needed); `roadmap_add` files new cards, `roadmap_move` changes status |
 | `store/home.ts` | `resolveVantaHome`/`skillsDir`/`memoriesDir`/`slugifySkillName`/`ensureVantaStore`/`commitInHome`. The global `~/.vanta` store (`VANTA_HOME` override), git-init'd for free versioning |
 | `skills/types.ts` | `Skill`, `SkillMeta`, `SkillMatch` |
 | `skills/frontmatter.ts` | pure `parseSkill`/`serializeSkill` (flat YAML frontmatter) |
@@ -228,7 +228,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** As of the 2026-06-16 context sync, `ALL_TOOLS` has 84 built-in tools (86 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 98 commands. Older counts in session history are milestones, not current truth.
+- **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 98 commands. Older counts in session history are milestones, not current truth.
 
 ## Session additions (2026-06-16) — keep current
 

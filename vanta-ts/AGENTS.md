@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3471 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3634 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -75,7 +75,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/all-tools.ts` currently lists **84 built-in tools** (86 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
+- `src/tools/all-tools.ts` currently lists **88 built-in tools** (90 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **98 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
