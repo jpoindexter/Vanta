@@ -3,6 +3,7 @@ import type { Tool } from "./types.js";
 import { listSkills } from "../skills/store.js";
 import { searchSkills } from "../skills/recall.js";
 import { markVolatile } from "../skills/volatile.js";
+import { distilledEnabled, readDistilled } from "../skills/distill.js";
 
 const Args = z.object({ query: z.string().min(1) });
 
@@ -42,7 +43,14 @@ export const recallTool: Tool = {
       // Return the BODY of the best match (on-demand load), plus a short "see also"
       // index of the runner-up matches so the agent can recall a different one.
       const top = matches[0]!.skill;
-      let output = `# ${top.meta.name}\n${top.meta.description}\n\n${top.body.trim()}`;
+      // Serve the distilled (worked-examples) form when enabled and present — fewer tokens
+      // than the full procedural doc (SKILL-DISTILL-EXAMPLES); falls back to the full body.
+      let body = top.body.trim();
+      if (distilledEnabled()) {
+        const distilled = await readDistilled(top.meta.name);
+        if (distilled) body = distilled.trim();
+      }
+      let output = `# ${top.meta.name}\n${top.meta.description}\n\n${body}`;
       const others = matches.slice(1).map((m) => `- ${m.skill.meta.name}: ${m.skill.meta.description}`);
       if (others.length) {
         output += `\n\n---\nOther matches (recall with a more specific query to load one):\n${others.join("\n")}`;
