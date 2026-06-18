@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3711 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3716 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -61,6 +61,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/preferences/signals.ts` — `~/.vanta/preferences.jsonl` chosen-vs-rejected operator preference signal store
 - `src/verify/completion-verifier.ts` — opt-in `VANTA_VERIFY=1` post-turn completion claim verifier; timeout-bound, logs pass, appends fail evidence as a system message
 - `src/verify/visual-closeout.ts` — deterministic `/verify` close-out requirements from changed files; UI changes require screenshot evidence, runtime code requires command evidence
+- `src/verify/nl-assertions.ts` — plain-English assertion judge for captured input/output pairs, exposed as the `nl_assertions` tool
 - `src/agent/tool-scope.ts` — per-turn task-relevant tool schema subset; full catalog reachable through `tool_search`
 - `src/memory/guardrails.ts` — freshness/conflict/provenance labels for recalled memories
 - `src/memory/extractor.ts` — opt-in `VANTA_EXTRACT_MEMORIES=1` post-turn fact extractor; JSON array only, deduped against brain entries, persists `semantic` facts with `auto-extracted` provenance
@@ -88,7 +89,7 @@ npx tsc --noEmit                 # must be clean before any commit
 
 ## Current surface
 
-- `src/tools/all-tools.ts` currently lists **88 built-in tools** (90 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
+- `src/tools/all-tools.ts` currently lists **89 built-in tools** (91 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
 - `src/repl/catalog.ts` currently exposes **99 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.

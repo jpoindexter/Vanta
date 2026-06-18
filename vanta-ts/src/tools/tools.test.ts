@@ -85,6 +85,7 @@ describe("registry", () => {
       "lsp_diagnostics",
       "money",
       "mount_mcp",
+      "nl_assertions",
       "playbook",
       "podcast_read",
       "protect",

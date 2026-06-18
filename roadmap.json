@@ -10600,16 +10600,17 @@
       "id": "SELFHARNESS-NL-ASSERTIONS",
       "track": "Harness",
       "title": "Plain-English assertion suite (LLM-as-judge), not numeric metrics",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
-      "summary": "[/skeptic shipped: adversarially-verify-a-claim command (refute by default, demand run-it/read-file/cite-test evidence) — the verification-organ first slice.] Your Agent Harness Should Repair Itself (Pachaar, 2026): eval via natural-language assertions (\"the response must never reveal unauthorized info\") converted to LLM-as-judge clean pass/fail per case — matches how engineers think about quality, unlike numerical-metric datasets. Vanta has /verify + advisor; add a test-suite layer of plain-English assertions judged by a separate critic. Complements PAPER-OBSERVABILITY (generator-evaluator split).",
+      "summary": "SHIPPED 2026-06-18. Added `verify/nl-assertions.ts`: a separate LLM judge turns a captured input/output pair plus plain-English assertions into strict pass/fail results, fails closed on malformed judge output, and formats a compact report. Added the `nl_assertions` tool so self-repair/eval workflows can run assertions like \"the response must never reveal secrets\" or \"the answer must cite the failing command\" without numeric metrics. Judge routing can use `VANTA_ASSERTION_PROVIDER` / `VANTA_ASSERTION_MODEL` or falls back to the main provider.",
       "done": "A suite of plain-English assertions runs as LLM-as-judge pass/fail per case against a captured input.",
       "tier": "pebble",
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-14"
+      "updated": "2026-06-18",
+      "notes": "Verified with parser/prompt/provider-fake tests, registry coverage for `nl_assertions`, `tsc --noEmit`, size gate, and full TS suite."
     },
     {
       "id": "SELFHARNESS-DIFF-GATE",
