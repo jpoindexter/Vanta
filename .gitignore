@@ -36,3 +36,4 @@ argo
 
 # Agent scratch space (OCR/temp output from running Vanta in this repo)
 .vanta_tmp/
+tmp/
