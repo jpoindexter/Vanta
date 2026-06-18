@@ -2,6 +2,7 @@ import { resolveBrain } from "./interface.js";
 import { isLivePointer } from "./ingest-gate.js";
 import { readWorld, latestEntities, relations } from "../world/store.js";
 import { recallWithSources } from "../world/conflicts.js";
+import { bridgeRecall } from "./graph-bridge.js";
 import { gatherLifeBlobs, searchBlobs } from "../search/life.js";
 import { rankResults } from "../search/life-rank.js";
 import type { StoreId, StoreLookup } from "./router.js";
@@ -30,8 +31,15 @@ function liveLookup(env: NodeJS.ProcessEnv): StoreLookup {
 function worldLookup(env: NodeJS.ProcessEnv): StoreLookup {
   return async (q) => {
     const recs = await readWorld(env);
-    const matches = recallWithSources(latestEntities(recs), relations(recs), q);
-    return matches.length ? matches.map((m) => m.text).join("\n") : null;
+    const entities = latestEntities(recs);
+    const matches = recallWithSources(entities, relations(recs), q);
+    // Bridge to typed relation chains: surface multi-hop related entities with the
+    // relation path as provenance (no-op when the world graph is empty).
+    const chains = bridgeRecall(q, entities, relations(recs))
+      .filter((h) => h.path.length > 1) // direct (1-hop) matches already covered above
+      .map((h) => `↦ ${h.provenance}`);
+    const lines = [...matches.map((m) => m.text), ...chains];
+    return lines.length ? lines.join("\n") : null;
   };
 }
 

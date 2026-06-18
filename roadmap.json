@@ -12406,7 +12406,7 @@
       "id": "BRAIN-GRAPH-BRIDGE",
       "track": "Operator",
       "title": "Brain to world-model bridge — trace typed relation chains in recall (Level 4, no new graph)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). Level 4 is tracing typed relationship chains (topic X to topic A). Vanta already HAS a typed-relation knowledge graph — the world model (world/store.ts: entities plus from/to/rel relations plus conflicts) — but it is separate from the brain, whose assoc layer is similarity-only. The transcript warns: do not build a graph without pain, and Vanta already has one. So bridge, do not build: let brain recall traverse world-model relations to follow chains and surface related entities, returning the path as provenance (reuse world/conflicts.ts recallWithSources). Bounded hop depth; no-op when world is empty. Gate the lift on MEM-RETRIEVAL-EVAL multi-hop questions.",
       "done": "brain recall can traverse world-model typed relations to answer relationship-chain/multi-hop questions, returning the relation path as provenance; bounded depth; no-op when world is empty; the relationship category in the eval improves vs baseline.",
@@ -12415,7 +12415,9 @@
       "lens": "memory",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ]
+      ],
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Level-4 relationship-chain tracing by BRIDGING to the existing world model — no new graph engine (the transcript warns do not build a graph without pain, and Vanta already has one). src/brain/graph-bridge.ts (pure): traverse(startId, rels, maxDepth) BFS over the world models directed typed from/to/rel relations, collecting every node reachable within maxDepth hops WITH the typed path that reached it (cycles pruned via a visited set); bridgeRecall(query, entities, rels, maxDepth=3) matches start entities by query-token overlap, traverses, and returns reached entities with the relation PATH as provenance; formatPath renders ids→names as \"Alice —manages→ Bob —mentors→ Carol\"; no-op (empty) when the world graph is empty or nothing matches; bounded by DEFAULT_MAX_DEPTH=3. Recall uses it: router-stores.ts worldLookup now appends multi-hop chains (path.length>1, prefixed ↦) to the direct recallWithSources matches, so brain route on a relationship query follows chains through the Brain port → world step. Eval guarantee proven in graph-bridge.test.ts with the MEM-RETRIEVAL-EVAL grader (recallAtK): for a 2-hop question (what is Alice connected to → Carol), direct keyword recall (recallWithSources) recall@5=0 (never reaches Carol), the bridge recall@5=1 — the relationship/multi-hop category improves vs the non-traversal baseline. 7 graph-bridge tests + 105 brain tests green; tsc clean; size gate clean (2 files); boundaries hold. Follow-up (isolated): a dedicated relationship category seeded with world-graph data inside runMemEval (this slice proves the lift via the grader property over a seeded graph) and reverse-direction (to→from) traversal."
     }
   ]
 }
