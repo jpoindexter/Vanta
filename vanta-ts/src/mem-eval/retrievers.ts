@@ -1,6 +1,10 @@
 import { rankResults } from "../search/life-rank.js";
 import { cosineSim } from "../search/embed.js";
+import { fuseRrf } from "../search/rrf.js";
 import type { MemoryRecord, RetrievalMode } from "./types.js";
+
+// fuseRrf re-exported so the eval and its tests share the production fuser.
+export { fuseRrf };
 
 // The Retriever PORT. A retriever ranks corpus record ids for a query. Three
 // adapters register here: lexical (the life-rank density/recency ranker),
@@ -27,15 +31,6 @@ export type Retriever = {
   /** Return record ids best-first. */
   rank(query: string, records: MemoryRecord[], ctx: RankCtx): string[];
 };
-
-/** Reciprocal-rank fusion of any number of ranked id lists (k smooths early ranks). */
-export function fuseRrf(lists: string[][], k = 60): string[] {
-  const score = new Map<string, number>();
-  for (const list of lists) {
-    list.forEach((id, i) => score.set(id, (score.get(id) ?? 0) + 1 / (k + i + 1)));
-  }
-  return [...score.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
-}
 
 /** Map records → LifeHit shape (source=id so ranked output maps cleanly back). */
 function rankLexical(query: string, records: MemoryRecord[], now: number): string[] {

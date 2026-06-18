@@ -55,6 +55,22 @@ describe("lifeSearchTool", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("action:hybrid finds a seeded term and degrades to lexical without an embedder", async () => {
+    await writeFile(
+      join(tmpHome, "world.jsonl"),
+      '{"id":"p1","name":"MegaCorp","type":"company"}\n',
+      "utf8",
+    );
+    const result = await lifeSearchTool.execute({ action: "hybrid", q: "MegaCorp" }, ctx);
+    expect(result.ok).toBe(true);
+    expect(result.output).toContain("MegaCorp"); // holds whether or not Ollama is present
+  });
+
+  it("action:hybrid without q returns ok:false", async () => {
+    const result = await lifeSearchTool.execute({ action: "hybrid" }, ctx);
+    expect(result.ok).toBe(false);
+  });
+
   it("describeForSafety returns life_search + query", () => {
     const desc = lifeSearchTool.describeForSafety!({ q: "alice" });
     expect(desc).toBe("life_search alice");

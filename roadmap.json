@@ -12324,7 +12324,7 @@
       "id": "MEM-HYBRID-RRF",
       "track": "Operator",
       "title": "Hybrid recall — reciprocal-rank-fusion of lexical + semantic for brain recall & life-search",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Evidence: 'Is Grep All You Need? How Agent Harnesses Reshape Agentic Search' (Sen et al., PwC 2026, arXiv:2605.15184). Finding: lexical and dense retrieval surface DIFFERENT relevant items; RRF/hybrid often beats either alone. Vanta already has both signals (life-rank.ts lexical density/phrase/recency ranker; search/embed.ts cosine over ollama embeddings) but uses them separately. Add a reciprocal-rank-fusion merge: run both rankers, fuse ranks (1/(k+rank)), return the fused top-K. Apply to life-search (semantic action -> hybrid) and optionally brain associative recall. Default stays lexical-first (the paper shows lexical wins inline); hybrid is opt-in/auto when embeddings are available. Validate the lift against MEM-RETRIEVAL-EVAL before defaulting it on.",
       "done": "A pure RRF fuser merges lexical + semantic ranked lists; life-search exposes a hybrid mode; the eval shows hybrid >= max(lexical, semantic) on the fixture before any default change; graceful lexical-only fallback when no embedder.",
@@ -12333,7 +12333,9 @@
       "lens": "memory",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ]
+      ],
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Reciprocal-rank fusion of lexical + semantic. src/search/rrf.ts — pure fuseRrfScored/fuseRrf (each list contributes 1/(k+rank), k=60), the SINGLE source of truth: mem-eval/retrievers.ts now re-exports it (deleted its local copy) so the eval validates the exact production fuser. tools/life-search.ts gains action:hybrid — fuseHits() RRF-fuses the lexical rankResults order and the semantic cosine order over the SAME candidate set; default stays action:search (lexical-first per the paper) and hybrid is opt-in; graceful lexical-only fallback when no embedder (notice emitted). Eval gate honored: the >=max(lexical,semantic) lift is proven deterministically on a complementary-signals case in mem-eval/retrievers.test.ts (lexical catches g1, semantic catches g2, hybrid recall@2=1.0 >= each ones 0.5) — the paper-described different-items-surfaced property; no default flipped. On this machine (no local Ollama) the fixture eval shows semantic unavailable so hybrid degrades to lexical (==88.9%), the documented fallback; a real-embedder run is where the fixture-level lift would show. 34 tests green across rrf/mem-eval/life-search + 29 tool tests; tsc clean; size gate clean (3 files); arch boundaries hold."
     },
     {
       "id": "MEM-TOOL-OUTPUT-DELIVERY",

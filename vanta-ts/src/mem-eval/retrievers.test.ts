@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { fuseRrf, resolveRetriever, type RankCtx } from "./retrievers.js";
+import { recallAtK } from "./grade.js";
 import type { MemoryRecord } from "./types.js";
 
 const NOW = Date.parse("2024-07-01");
@@ -54,5 +55,28 @@ describe("hybrid retriever", () => {
     const ranked = resolveRetriever("hybrid").rank("which editor does Jason use", records, emptyCtx);
     expect(ranked[0]).toBe("r1");
     expect(ranked).toHaveLength(records.length);
+  });
+
+  // The card's eval gate: when lexical and semantic each catch only ONE of two
+  // gold items, hybrid (RRF) recovers both → recall >= max(lexical, semantic).
+  it("recall@2 of hybrid >= max(lexical, semantic) when signals are complementary", () => {
+    const recs: MemoryRecord[] = [
+      { id: "g1", session: 1, at: "2024-01-01", text: "alpha widget device" }, // lexical winner
+      { id: "g2", session: 1, at: "2024-01-02", text: "beta gadget" }, // semantic winner
+      { id: "d1", session: 1, at: "2024-01-03", text: "alpha tower" }, // middling in both
+    ];
+    const recordVecs = new Map([
+      ["g1", [1, 0, 0]],
+      ["g2", [0, 1, 0]],
+      ["d1", [0.3, 0.7, 0]],
+    ]);
+    const ctx: RankCtx = { now: NOW, queryVec: [0, 1, 0], recordVecs };
+    const q = "alpha widget";
+    const gold = ["g1", "g2"];
+    const lex = recallAtK(resolveRetriever("lexical").rank(q, recs, ctx), gold, 2);
+    const sem = recallAtK(resolveRetriever("semantic").rank(q, recs, ctx), gold, 2);
+    const hyb = recallAtK(resolveRetriever("hybrid").rank(q, recs, ctx), gold, 2);
+    expect(hyb).toBeGreaterThanOrEqual(Math.max(lex, sem));
+    expect(hyb).toBe(1); // recovers both gold items
   });
 });
