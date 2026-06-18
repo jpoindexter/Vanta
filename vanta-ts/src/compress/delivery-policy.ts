@@ -9,25 +9,18 @@
 export type Backbone = "strong" | "weak";
 export type DeliveryMode = "inline" | "file";
 
-// Small / distilled models that don't reliably follow a retrieval pointer.
+// Small / distilled models that don't reliably follow a retrieval pointer. Anything
+// not matched here is treated as strong (frontier/large) — the default.
 const WEAK_PATTERNS: RegExp[] = [
   /\bmini\b/i, /haiku/i, /flash-?lite/i, /\bnano\b/i, /gemma/i, /\bphi-?\d/i,
   /mistral-7b/i, /:(?:0\.\d|[1-9]|1[0-4])b\b/i, /\b[1-9]b\b/i, /\b1[0-4]b\b/i,
 ];
-// Frontier / large models that handle file-based delivery well.
-const STRONG_PATTERNS: RegExp[] = [
-  /gpt-[45]/i, /\bo[1-4]\b/i, /opus/i, /sonnet/i, /claude-3\.[57]/i,
-  /gemini-(?:1\.5|2|2\.5).*pro/i, /deepseek/i, /:(?:3[0-9]|[4-9]\d|\d{3})b\b/i,
-];
 
-/** Classify a model id as a strong or weak backbone. Weak is checked FIRST so a
- * distilled variant of a strong family (gpt-4o-mini, o3-mini, *-haiku) is correctly
- * weak. Unknown → strong (preserves the existing offload-on-size behavior; only
- * clearly-small models are gated). Pure. */
+/** Classify a model id as a strong or weak backbone. Only clearly-small models are
+ * gated weak (distilled variants like gpt-4o-mini/o3-mini/*-haiku match the patterns);
+ * everything else — including unknown ids — is strong, preserving offload-on-size. Pure. */
 export function classifyBackbone(modelId: string): Backbone {
-  if (WEAK_PATTERNS.some((re) => re.test(modelId))) return "weak";
-  if (STRONG_PATTERNS.some((re) => re.test(modelId))) return "strong";
-  return "strong";
+  return WEAK_PATTERNS.some((re) => re.test(modelId)) ? "weak" : "strong";
 }
 
 /** Resolve the backbone from an explicit model id, else VANTA_MODEL. Pure. */

@@ -1,5 +1,5 @@
 import { embed as ollamaEmbed } from "../search/embed.js";
-import { buildCorpus, noiseCount, NOISE_LEVELS, QUESTIONS } from "./corpus.js";
+import { buildCorpus, NOISE_LEVELS, QUESTIONS } from "./corpus.js";
 import { resolveRetriever, ALL_MODES, type RankCtx } from "./retrievers.js";
 import { recallAtK, buildCell } from "./grade.js";
 import type {
@@ -74,5 +74,3 @@ export async function runMemEval(opts: {
   }
   return { k, questions: questions.length, corpusSizes, cells };
 }
-
-export { noiseCount };
