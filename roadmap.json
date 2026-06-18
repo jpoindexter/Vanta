@@ -10341,7 +10341,7 @@
       "id": "PAPER-SHELL-SANDBOX",
       "track": "Harness",
       "title": "Optional shell sandbox — restrict fs/network for approved commands",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §3.5 shouldUseSandbox: approved shell may still run in a sandbox restricting filesystem + network. Vanta gates shell via the kernel but runs approved commands unsandboxed. Add an optional macOS sandbox (sandbox-exec/seatbelt) mode for shell_cmd.",
       "done": "A VANTA_SHELL_SANDBOX mode runs approved shell commands with fs/network restrictions.",

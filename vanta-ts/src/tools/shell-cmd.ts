@@ -64,6 +64,10 @@ export function classifyExitCode(command: string, code: number): { ok: boolean; 
   return { ok: false };
 }
 
+export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return env.VANTA_SHELL_SANDBOX === "1" ? { ...env, VANTA_SANDBOX: "1" } : env;
+}
+
 export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
@@ -92,8 +96,8 @@ export const shellCmdTool: Tool = {
       // Sandbox: detached background tasks aren't wrapped (no exit-time profile
       // cleanup for an unref'd child). The sandbox only ever TIGHTENS, so when it's
       // requested we REFUSE the unsandboxed bypass rather than silently weaken it.
-      if (process.env.VANTA_SANDBOX === "1") {
-        return { ok: false, output: "refused: background tasks are not sandboxed; run without background=true under VANTA_SANDBOX=1, or unset it" };
+      if (shellSandboxEnv(process.env).VANTA_SANDBOX === "1") {
+        return { ok: false, output: "refused: background tasks are not sandboxed; run without background=true under sandbox mode, or unset VANTA_SANDBOX/VANTA_SHELL_SANDBOX" };
       }
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
@@ -101,8 +105,8 @@ export const shellCmdTool: Tool = {
     // Destructive-command warning: informational note for allowed-but-destructive commands.
     const warn = destructiveWarning(command);
     const pfx = warn ? `⚠ ${warn}\n` : "";
-    // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
-    const sb = await maybeSandbox({ env: process.env, root: ctx.root, baseCmd: "sh", baseArgs: ["-c", command] });
+    // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
+    const sb = await maybeSandbox({ env: shellSandboxEnv(process.env), root: ctx.root, baseCmd: "sh", baseArgs: ["-c", command] });
     if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
     try {
       const { stdout, stderr } = await run(sb.cmd, sb.args, {

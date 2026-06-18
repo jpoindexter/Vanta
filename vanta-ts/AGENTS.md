@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3706 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3707 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -92,6 +92,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
+- `shell_cmd` can opt into the same OS sandbox without sandboxing code runners by setting `VANTA_SHELL_SANDBOX=1`; `VANTA_SANDBOX_NET=1` permits network inside the sandbox.
 - Background agent management lives in `src/cli/agents-cmd.ts`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop` read and manage `~/.vanta/team-tasks.jsonl`; `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1` gates the surface.
 - Parallel worker fleets live under `src/fleet/`: `vanta fleet run --task ...` creates one `.vanta/worktrees` checkout per task, records team-task states, persists `.vanta/fleets/<id>.json`, and `review`/`accept` expose diffs before merging.
 - Auto-research lives under `src/auto-research/`: `vanta auto-research --objective --metric --bounds` measures a numeric baseline, iterates isolated candidate worktrees, journals each delta, and merges only candidates that beat the current best score.

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { shellCmdTool, classifyExitCode, lastCommandWord } from "./shell-cmd.js";
+import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -315,6 +315,11 @@ describe("shell_cmd", () => {
     // Runs in a temp non-repo dir → git errors harmlessly; the ⚠ note is still surfaced.
     const res = await shellCmdTool.execute({ command: "git reset --hard" }, ctx());
     expect(res.output).toContain("discards uncommitted");
+  });
+
+  it("maps VANTA_SHELL_SANDBOX to the OS sandbox flag for shell_cmd only", () => {
+    const env = shellSandboxEnv({ VANTA_SHELL_SANDBOX: "1" });
+    expect(env.VANTA_SANDBOX).toBe("1");
   });
 });
 
