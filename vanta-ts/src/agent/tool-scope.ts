@@ -2,6 +2,7 @@ import type { Message } from "../types.js";
 import type { ToolSchema } from "../providers/interface.js";
 
 const MIN_SCOPE_THRESHOLD = 16;
+const TOOL_SEARCH_CONTEXT_LIMIT = 3;
 // Always in scope — the universal primitives an operator needs every turn,
 // regardless of the request's keywords. WRITING a file or running a command must
 // never require a tool_search round-trip (that flailing stalled real tasks).
@@ -38,6 +39,9 @@ export function scopeToolSchemas(
   for (const [pattern, group] of HINTS) {
     if (pattern.test(context)) GROUPS[group]!.forEach((name) => wanted.add(name));
   }
+  for (const schema of schemas) {
+    if (mentionsToolName(context, schema.name)) wanted.add(schema.name);
+  }
   if (wanted.size === CORE.length) GROUPS.research!.forEach((name) => wanted.add(name));
   const scoped = schemas.filter((schema) => wanted.has(schema.name));
   return scoped.length ? scoped : schemas;
@@ -46,7 +50,9 @@ export function scopeToolSchemas(
 export function toolScopeContext(messages: Message[], activeGoalText?: string): string {
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const content = lastUser?.role === "user" ? lastUser.content : "";
-  return [activeGoalText, content].filter(Boolean).join("\n");
+  const searched = searchedToolNames(messages);
+  const searchedBlock = searched.length ? `searched tool schemas:\n${searched.join("\n")}` : "";
+  return [activeGoalText, content, searchedBlock].filter(Boolean).join("\n");
 }
 
 export function toolScopeSummary(all: ToolSchema[], scoped: ToolSchema[]): string {
@@ -57,4 +63,22 @@ export function toolScopeSummary(all: ToolSchema[], scoped: ToolSchema[]): strin
 
 function wantsFullTools(context: string): boolean {
   return /\b(all tools|full toolset|full tools|use any tool|disable tool scope)\b/i.test(context);
+}
+
+function searchedToolNames(messages: Message[]): string[] {
+  const found = new Set<string>();
+  const results = messages
+    .filter((m): m is Extract<Message, { role: "tool" }> => m.role === "tool" && m.name === "tool_search")
+    .slice(-TOOL_SEARCH_CONTEXT_LIMIT);
+  for (const result of results) {
+    for (const match of result.content.matchAll(/^## ([A-Za-z0-9_-]+)$/gm)) {
+      if (match[1]) found.add(match[1]);
+    }
+  }
+  return [...found];
+}
+
+function mentionsToolName(context: string, name: string): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^A-Za-z0-9_])${escaped}([^A-Za-z0-9_]|$)`, "i").test(context);
 }

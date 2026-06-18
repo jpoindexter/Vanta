@@ -10311,7 +10311,7 @@
       "id": "PAPER-DEFERRED-SCHEMAS",
       "track": "Harness",
       "title": "Deferred tool schemas — names first, full schema on demand",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §3.6 ToolSearch: tools expose only names initially; full schemas load on demand, saving context across many tools. Vanta has tool_search + mount_mcp; carry tool names + 1-line descriptions in the base prompt and fetch full schemas when a tool is selected — frees context across Vanta's large tool set.",
       "done": "Tool schemas load on demand; the base system prompt carries only names + summaries.",

@@ -3,9 +3,8 @@ import type { Tool, ToolContext } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
 
 // Deferred tool schema discovery.
-// Vanta's prompt includes full schemas for all built-in tools.
-// When VANTA_MCP_DEFER=1, MCP tool schemas are omitted from the prompt;
-// the agent uses `tool_search` to fetch schemas on demand before calling.
+// Vanta's prompt advertises tool names + descriptions. Full schemas are scoped
+// per provider call, and `tool_search` results expand that scoped set on demand.
 
 const Args = z.object({
   query: z.string().min(1).describe("Search query — tool name substring or keyword"),
@@ -24,8 +23,7 @@ export function buildToolSearchTool(
       name: "tool_search",
       description:
         "Search for tools by name or description keyword. Returns matching tool names + full schemas. " +
-        "Use before calling an unfamiliar tool to verify its parameter shape. " +
-        "When VANTA_MCP_DEFER=1 is set, MCP tool schemas are deferred — call tool_search to fetch them.",
+        "Use before calling an unfamiliar tool to verify its parameter shape and make the result callable on the next turn.",
       parameters: {
         type: "object",
         properties: {
@@ -66,7 +64,7 @@ export function buildToolSearchTool(
 
 /**
  * Build abbreviated (name + description only) schemas for deferred MCP tools.
- * Used in the system prompt when VANTA_MCP_DEFER=1 — full schemas are fetched via tool_search.
+ * Full schemas are fetched via tool_search.
  * Returns true when deferred mode is active.
  */
 export function isMcpDeferred(env: NodeJS.ProcessEnv): boolean {

@@ -8,7 +8,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 88 built-in tools from `vanta-ts/src/tools/all-tools.ts` (90 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3704 TS tests green (473 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
+- **Last recorded full verify:** 3705 TS tests green (473 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
 
 ## Run + Verify
 
@@ -37,7 +37,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **TUI:** real Ink 7 render layer is `vanta-ts/src/ui/`; shared terminal helpers are `vanta-ts/src/term/`. Default v1 is `src/ui/app.tsx`; `VANTA_TUI=v2` opts into `src/ui/v2/app-v2.tsx` mission-control rails. The old render layer under `src/tui/` is gone; only `src/tui/mission-control/cockpit-data.ts` remains as data plumbing.
 - **Desktop:** localhost host in `vanta-ts/src/desktop/` serves built Vite/React assets from `vanta-ts/desktop-app/dist/`; `page.ts` is only the fallback build notice. Approval-required actions still use the explicit pending-approval flow.
 - **Permission UI:** `vanta-ts/src/permissions/request.ts` builds typed approval views (bash/file edit/file write/web/computer/sandbox/skill). TUI and desktop both render Allow once / Always allow / Deny / Never allow; always/never persist tool-scoped rules.
-- **Harness guardrails:** `vanta-ts/src/memory/guardrails.ts` marks stale/conflicting/weak-provenance recalled memories as not-used hypotheses; `agent/tool-scope.ts` exposes task-relevant tool schemas per turn plus `tool_search`.
+- **Harness guardrails:** `vanta-ts/src/memory/guardrails.ts` marks stale/conflicting/weak-provenance recalled memories as not-used hypotheses; `agent/tool-scope.ts` exposes task-relevant tool schemas per turn, and `tool_search` expands searched tool schemas into the next provider call.
 - **Solutioning:** `solutioning-mode` is an installed operator mode: research -> ranked what-to-build recommendation with sources -> stop before build.
 - **Factory:** `vanta-ts/src/factory/*.ts` is protected. Treat it like kernel-adjacent code.
 - **Background agents:** `vanta-ts/src/cli/agents-cmd.ts` manages `~/.vanta/team-tasks.jsonl`: `vanta agents`, top-level `attach/logs/respawn/stop/rm <id>`, and `vanta daemon status/stop`. `disableAgentView` / `VANTA_DISABLE_AGENT_VIEW=1` disables the surface.

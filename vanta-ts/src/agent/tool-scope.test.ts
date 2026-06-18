@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createConversation } from "../agent.js";
 import { ToolRegistry } from "../tools/registry.js";
+import { buildToolSearchTool } from "../tools/tool-search.js";
 import type { ToolSchema, LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
 import { scopeToolSchemas, toolScopeSummary } from "./tool-scope.js";
@@ -67,5 +68,39 @@ describe("per-task tool scoping", () => {
     expect(seen.length).toBeLessThan(manySchemas.length);
     expect(seen).toContain("tool_search");
     expect(seen).toContain("lsp_diagnostics");
+  });
+
+  it("exposes a searched tool's full schema on the next provider call", async () => {
+    const registry = new ToolRegistry();
+    for (const s of manySchemas) registry.register({ schema: s, execute: async () => ({ ok: true, output: "" }) });
+    registry.register(buildToolSearchTool(registry));
+    const seen: string[][] = [];
+    const provider: LLMProvider = {
+      modelId: () => "fake",
+      contextWindow: () => 100_000,
+      async complete(_messages, tools): Promise<CompletionResult> {
+        seen.push(tools.map((t) => t.name));
+        if (seen.length === 1) {
+          return {
+            text: "",
+            finishReason: "tool_calls",
+            toolCalls: [{ id: "search-1", name: "tool_search", arguments: { query: "calendar_create", maxResults: 1 } }],
+          };
+        }
+        return { text: "loaded", toolCalls: [], finishReason: "stop" };
+      },
+    };
+    const convo = createConversation("sys", {
+      provider,
+      safety: fakeSafety,
+      registry,
+      root: "/x",
+      requestApproval: async () => true,
+    });
+
+    await convo.send("use a deferred calendar tool");
+
+    expect(seen[0]).not.toContain("calendar_create");
+    expect(seen[1]).toContain("calendar_create");
   });
 });
