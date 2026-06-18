@@ -46,6 +46,7 @@ import {
 } from "./cli/extra-cmds.js";
 import { runLoopCommand } from "./cli/loop-cmd.js";
 import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
+import { runFleetCommand } from "./cli/fleet-cmd.js";
 import {
   findRepoRoot, loadEnv, startInteractive,
   resumeIdFrom, hasForkSession, parseRunArgs, parseStartupFlags,
@@ -123,6 +124,7 @@ const COMMANDS: Record<string, CommandFn> = {
   settings: (root, rest) => runSettingsCommand(root, rest),
   loop: (root, rest) => runLoopCommand(root, rest),
   agents: (root, rest) => runAgentsCommand(root, rest),
+  fleet: (root, rest) => runFleetCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
   logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),
   respawn: (root, rest) => runAgentsCommand(root, ["respawn", ...rest]),

@@ -21,6 +21,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `permissions/request.ts` / `permissions/grant.ts` | Typed approval request model + allow/deny rule helpers shared by Ink and desktop |
 | `operator-profile/profile.ts` | OPERATOR-PROFILE — `~/.vanta/operator-profile.json` declared vs inferred preferences, drift detection, and tighten-only approval preferences. |
 | `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
+| `fleet/` | PARALLEL-AGENT-FLEET — worktree-isolated parallel subagent orchestration. `vanta fleet run --task ...` records team-task states and `.vanta/fleets/<id>.json`; `review` prints diff/result state; `accept` merges one reviewed worker branch. |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
 | `mem-eval/` | Memory retrieval evals: fixture corpus plus public LongMemEval/LoCoMo loader/runner/report. `vanta eval mem public [dataset-dir]` records `.vanta/mem-eval-public-results.json`; downloaded datasets are runtime-only under ignored `.vanta/` paths. |

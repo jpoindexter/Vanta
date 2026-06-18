@@ -12814,7 +12814,7 @@
       "id": "PARALLEL-AGENT-FLEET",
       "track": "Harness",
       "title": "Parallel agent fleet — fan out N independent tasks + a review surface",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy/'Peter Steinberg' pattern: drive many agents in parallel on independent macro-tasks (multiple checkouts, ~20-min jobs), become the bottleneck only at review. Vanta has delegate/team/subagent + `vanta agents` + git-worktree support; add a fan-out + review surface: dispatch N independent tasks to worktree-isolated parallel workers (no collisions), track live status, and a review board to inspect/accept each diff.",
       "done": "a command/flow fans out N independent tasks to worktree-isolated parallel workers, shows live status + per-worker diff for review/accept; builds on team/tasks + subagent/spawn + worktrees; tests; committed.",

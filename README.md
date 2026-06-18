@@ -55,6 +55,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
+- **Parallel work** — `vanta fleet run/status/review/accept` fans independent tasks into isolated worktrees for review
 - **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
 - **Digital person** — project rooms, operator modes, model routing, mode learning, brain/memory layers
 - **Benchmarks** — deterministic memory recall evals, including public LongMemEval/LoCoMo via `vanta eval mem public`

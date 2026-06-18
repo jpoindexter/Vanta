@@ -35,6 +35,7 @@ export function usage(): void {
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
+      "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",

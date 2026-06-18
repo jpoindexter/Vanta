@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -30,26 +30,31 @@ function branchName(prefix: string): string {
 export async function createWorktree(
   repoRoot: string,
   branchPrefix = "agent-worktree",
+  baseDir?: string,
 ): Promise<WorktreeHandle> {
   const branch = branchName(branchPrefix);
-  const tmpDir = await mkdtemp(join(tmpdir(), "vanta-worktree-"));
+  const parent = baseDir ?? tmpdir();
+  await mkdir(parent, { recursive: true });
+  const tmpDir = await mkdtemp(join(parent, "vanta-worktree-"));
 
   // Create the worktree on a new branch based on HEAD.
   await run("git", ["worktree", "add", "-b", branch, tmpDir, "HEAD"], { cwd: repoRoot });
 
-  const cleanup = async (): Promise<void> => {
-    try {
-      await run("git", ["worktree", "remove", "--force", tmpDir], { cwd: repoRoot });
-    } catch { /* already removed */ }
-    try {
-      await rm(tmpDir, { recursive: true, force: true });
-    } catch { /* already gone */ }
-    try {
-      await run("git", ["branch", "-D", branch], { cwd: repoRoot });
-    } catch { /* branch may have been merged */ }
-  };
+  const cleanup = () => cleanupWorktree(repoRoot, tmpDir, branch);
 
   return { path: tmpDir, branch, cleanup };
+}
+
+export async function cleanupWorktree(repoRoot: string, path: string, branch: string): Promise<void> {
+  try {
+    await run("git", ["worktree", "remove", "--force", path], { cwd: repoRoot });
+  } catch { /* already removed */ }
+  try {
+    await rm(path, { recursive: true, force: true });
+  } catch { /* already gone */ }
+  try {
+    await run("git", ["branch", "-D", branch], { cwd: repoRoot });
+  } catch { /* branch may have been merged */ }
 }
 
 /**
