@@ -22,8 +22,10 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `operator-profile/profile.ts` | OPERATOR-PROFILE — `~/.vanta/operator-profile.json` declared vs inferred preferences, drift detection, and tighten-only approval preferences. |
 | `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
 | `fleet/` | PARALLEL-AGENT-FLEET — worktree-isolated parallel subagent orchestration. `vanta fleet run --task ...` records team-task states and `.vanta/fleets/<id>.json`; `review` prints diff/result state; `accept` merges one reviewed worker branch. |
+| `worktree/manager.ts` | Git-worktree lifecycle for the fleet: create/list/remove isolated `.vanta/worktrees` checkouts (one per parallel task), branch naming, cleanup |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
+| `memory/extractor.ts` | Opt-in `VANTA_EXTRACT_MEMORIES=1` post-turn fact extractor — JSON-array only, deduped against brain entries, persists `semantic` facts with `auto-extracted` provenance |
 | `mem-eval/` | Memory retrieval evals: fixture corpus plus public LongMemEval/LoCoMo loader/runner/report. `vanta eval mem public [dataset-dir]` records `.vanta/mem-eval-public-results.json`; downloaded datasets are runtime-only under ignored `.vanta/` paths. |
 | `ui/transcript.tsx` | Transcript row components (assistant/user/tool/note) — inline rendering, no alternate screen |
 | `ui/composer.tsx` | Composer: custom readline (Ctrl+U/W/Esc-abort, up/down history, shift+enter multiline) |
