@@ -38,7 +38,7 @@ beforeAll(async () => {
   home = mkdtempSync(join(tmpdir(), "vanta-agent-test-"));
   process.env.VANTA_HOME = home;
   kernelUp = await new SafetyClient(KERNEL_URL).status();
-});
+}, 30_000);
 
 afterAll(() => {
   if (prevHome === undefined) delete process.env.VANTA_HOME;

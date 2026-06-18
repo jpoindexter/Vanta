@@ -12951,7 +12951,7 @@
       "id": "FABRO-WORKFLOW-GRAPH",
       "track": "Harness",
       "title": "Declarative workflow graph — diffable agent pipelines with human-gate nodes",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "[repo: vanta] From fabro (github.com/fabro-sh/fabro, the 'dark software factory'): pipelines are a diffable, version-controlled graph — agent nodes, human-approval gates, interview steps — with branching, loops, parallelism, and conditional transitions ([A]pprove -> proceed, [R]evise -> loop back). Vanta's orchestration (fleet/, loop/, factory/, ralph/) is all procedural code, so the plan can't be reviewed as an artifact before it runs. Add a declarative pipeline format (minimal JSON/TS graph — NOT necessarily full Graphviz DOT, do the least that works) plus a runner that executes nodes via subagent/spawn; every node routes through the kernel assess() gate, human gates pause for approval, branch/loop transitions drive control flow. Reviewable + diffable before execution = 'knows the goal before it picks a tool.' Serves Harness + the trusted-operator north star.",
       "done": "a declarative workflow graph (agent / approval / interview nodes + branch/loop/parallel transitions) can be authored, diffed, and executed; each node routes through the kernel; human gates pause for approval; builds on subagent/spawn + fleet; co-located tests; tsc clean; committed.",

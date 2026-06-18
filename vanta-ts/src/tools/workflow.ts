@@ -1,5 +1,8 @@
 import { z } from "zod";
 import type { Tool, ToolContext } from "./types.js";
+import { canonicalWorkflow, diffWorkflows } from "../workflow/diff.js";
+import { runWorkflowGraph } from "../workflow/execute.js";
+import { parseWorkflowGraph, validateWorkflowGraph, type WorkflowGraph } from "../workflow/schema.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness.
 // Vanta can compose and run structured multi-agent workflows on the fly.
@@ -20,6 +23,12 @@ const WorkflowSchema = z.object({
   description: z.string(),
   steps: z.array(StepSchema).min(1).max(10),
   tokenBudget: z.number().optional(),
+});
+
+const Args = z.object({
+  spec: z.unknown(),
+  previous_spec: z.unknown().optional(),
+  mode: z.enum(["validate", "diff", "run"]).optional(),
 });
 
 export type WorkflowStep = z.infer<typeof StepSchema>;
@@ -48,24 +57,30 @@ export const workflowTool: Tool = {
   schema: {
     name: "compose_workflow",
     description:
-      "Compose and run a multi-agent workflow with typed steps (fan-out, synthesize, adversarial-verify, tournament, loop-until-done). Each step spawns one or more sub-agents and aggregates their outputs. Use for tasks that benefit from parallelism, adversarial checking, or iterative refinement.",
+      "Compose, diff, and run declarative agent workflow graphs. Supports agent, approval, and interview nodes plus next, branch, loop, and parallel transitions. Also accepts the legacy typed step sequence.",
     parameters: {
       type: "object",
       required: ["spec"],
       properties: {
+        mode: { type: "string", enum: ["validate", "diff", "run"], description: "Default run. Use diff with previous_spec." },
+        previous_spec: { type: "object", description: "Previous graph spec for stable diff output." },
         spec: {
           type: "object",
-          description: "WorkflowSpec: {name, description, steps:[{id,type,instruction,agents?,budget?,stopCondition?}], tokenBudget?}",
+          description: "Workflow graph {id,title,start,nodes,transitions} or legacy {name,description,steps}.",
         },
       },
     },
   },
   describeForSafety: () => "compose and run multi-agent workflow (delegate sub-agents)",
   async execute(args, ctx: ToolContext) {
-    const err = validateWorkflow(args.spec);
+    const parsed = Args.safeParse(args);
+    if (!parsed.success) return { ok: false, output: "compose_workflow needs {spec, mode?, previous_spec?}" };
+    if (looksLikeGraph(parsed.data.spec)) return runGraphMode(parsed.data, ctx);
+
+    const err = validateWorkflow(parsed.data.spec);
     if (err) return { ok: false, output: `Invalid workflow spec: ${err}` };
 
-    const spec = args.spec as WorkflowSpec;
+    const spec = parsed.data.spec as WorkflowSpec;
     const results: WorkflowResult["steps"] = [];
     let totalTokens = 0;
     const budget = spec.tokenBudget ?? 50_000;
@@ -101,3 +116,44 @@ export const workflowTool: Tool = {
     };
   },
 };
+
+function looksLikeGraph(spec: unknown): spec is WorkflowGraph {
+  return !!spec && typeof spec === "object" && "nodes" in spec && "start" in spec;
+}
+
+async function runGraphMode(args: z.infer<typeof Args>, ctx: ToolContext) {
+  const err = validateWorkflowGraph(args.spec);
+  if (err) return { ok: false, output: `Invalid workflow graph: ${err}` };
+  const graph = parseWorkflowGraph(args.spec);
+  if (args.mode === "validate") return { ok: true, output: canonicalWorkflow(graph) };
+  if (args.mode === "diff") return diffGraph(args.previous_spec, graph);
+  return executeGraph(graph, ctx);
+}
+
+function diffGraph(previous: unknown, graph: WorkflowGraph) {
+  const err = validateWorkflowGraph(previous);
+  if (err) return { ok: false, output: `Invalid previous workflow graph: ${err}` };
+  const diff = diffWorkflows(parseWorkflowGraph(previous), graph);
+  return { ok: true, output: JSON.stringify({ changed: diff.length > 0, diff }) };
+}
+
+async function executeGraph(graph: WorkflowGraph, ctx: ToolContext) {
+  const { buildRegistry } = await import("./index.js");
+  const { resolveProvider } = await import("../providers/index.js");
+  const { spawnSubagent } = await import("../subagent/spawn.js");
+  const registry = buildRegistry({ exclude: ["delegate", "swarm", "compose_workflow"] });
+  const result = await runWorkflowGraph(graph, {
+    assess: (action) => ctx.safety.assess(action),
+    requestApproval: (action, reason) => ctx.requestApproval(action, reason, "compose_workflow"),
+    runAgent: async (node) => {
+      const outcome = await spawnSubagent({
+        goal: node.goal ?? graph.title,
+        instruction: node.instruction,
+        deps: { provider: resolveProvider(process.env), safety: ctx.safety, registry, root: ctx.root, requestApproval: ctx.requestApproval },
+        maxIterations: node.maxIterations,
+      });
+      return outcome.finalText;
+    },
+  });
+  return { ok: result.ok, output: JSON.stringify(result, null, 2) };
+}
