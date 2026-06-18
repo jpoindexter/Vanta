@@ -2,13 +2,10 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 
-// Shell-command hooks. Configured in .vanta/hooks.json, these fire external shell
-// commands at agent lifecycle events: Setup (bootstrap), SessionStart, PreToolUse
-// (before a tool runs), PostToolUse (after), UserPromptSubmit (on user input), Stop (on session end). Each hook
-// receives a JSON context on stdin. A PreToolUse hook that exits non-zero BLOCKS
-// the tool (fail-closed — a gate that errors should still gate); the other events
-// are fire-and-forget. Distinct from plugins/hooks.ts (the in-process JS bus): this
-// runs ARBITRARY shell, so it is opt-in via the config file and nothing else.
+// Lifecycle hooks configured in .vanta/hooks.json. PreToolUse hooks that return
+// non-zero BLOCK the tool; other events are best-effort. Distinct from
+// plugins/hooks.ts (the in-process JS bus): command hooks can run arbitrary
+// shell, so the whole surface is opt-in via the config file and nothing else.
 
 export type ShellHookEvent = "Setup" | "SessionStart" | "SessionEnd" | "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
 
@@ -31,20 +28,41 @@ const ShellHookSchema = z.object({
   sessionType: z.enum(["interactive", "one-shot"]).optional(),
   /** If set, only fire when lifecycle context has the same maintenance flag. */
   maintenance: z.boolean().optional(),
-  /**
-   * Hook type discriminant. Absent or "shell" = shell command (default).
-   * "mcp_tool" = invoke an MCP tool directly instead of a subprocess.
-   */
-  type: z.enum(["shell", "mcp_tool"]).optional(),
-  /** Shell command to run (type: "shell" or absent). The JSON context is piped to its stdin. */
+  /** Hook type. Absent, "shell", or "command" = shell command. */
+  type: z.enum(["shell", "command", "http", "mcp_tool", "prompt", "agent"]).optional(),
+  /** Shell command to run. The JSON context is piped to stdin. */
   command: z.string().optional(),
+  /** HTTP endpoint for type:http. Vanta POSTs the hook context as JSON. */
+  url: z.string().url().optional(),
+  /** Static HTTP headers for type:http; `$NAME`/`${NAME}` values expand only from allowedEnvVars. */
+  headers: z.record(z.string(), z.string()).optional(),
+  /** Env var names a hook may receive in the HTTP body or expand in headers. */
+  allowedEnvVars: z.array(z.string()).optional(),
+  /** Model instruction for type:prompt or type:agent. */
+  prompt: z.string().optional(),
+  /** Optional structured-output schema for type:agent. */
+  outputSchema: z.record(z.string(), z.unknown()).optional(),
+  /** Per-hook timeout override. */
+  timeoutMs: z.number().int().positive().optional(),
+  /** Run at most once per process for the same event + hook config. */
+  once: z.boolean().optional(),
+  /** Human-facing status line emitted before running the hook when the host supports it. */
+  statusMessage: z.string().optional(),
+  /** Max agent iterations for type:agent. */
+  maxIterations: z.number().int().positive().optional(),
   /** MCP server name as defined in .vanta/mcp.json (type: "mcp_tool" only). */
   server: z.string().optional(),
   /** MCP tool name to call (type: "mcp_tool" only). */
   tool: z.string().optional(),
 }).refine(
-  (h) => h.type === "mcp_tool" ? !!(h.server?.trim() && h.tool?.trim()) : !!(h.command?.trim()),
-  { message: "shell hooks require command; mcp_tool hooks require server + tool" },
+  (h) => {
+    const type = h.type ?? "shell";
+    if (type === "mcp_tool") return !!(h.server?.trim() && h.tool?.trim());
+    if (type === "http") return !!h.url?.trim();
+    if (type === "prompt" || type === "agent") return !!h.prompt?.trim();
+    return !!h.command?.trim();
+  },
+  { message: "hook config is missing required fields for its type" },
 );
 export type ShellHook = z.infer<typeof ShellHookSchema>;
 

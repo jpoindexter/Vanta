@@ -5,6 +5,8 @@ import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-he
 import { offloadResult } from "../compress/result-offload.js";
 import { isPlanBlocked } from "./plan-gate.js";
 import { firePreToolUse, fireHooks } from "../hooks/shell-hooks.js";
+import { runAgentHook } from "../hooks/agent-hook-run.js";
+import type { HookRunDeps } from "../hooks/shell-hook-run.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
 
@@ -36,7 +38,8 @@ export async function dispatchTool(
   // PreToolUse shell hooks (.vanta/hooks.json) are the last user-defined gate
   // before execution; a non-zero exit blocks the tool (fail-closed).
   const dataDir = join(ctx.root, ".vanta");
-  const pre = await firePreToolUse(dataDir, call.name, call.arguments, { cwd: ctx.root });
+  const hookDeps = buildHookDeps(deps);
+  const pre = await firePreToolUse(dataDir, call.name, call.arguments, { cwd: ctx.root, ...hookDeps });
   if (pre.blocked) {
     const output = `blocked by PreToolUse hook: ${pre.reason}`;
     deps.onToolResult?.(call.name, false, output);
@@ -49,7 +52,7 @@ export async function dispatchTool(
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
   // PostToolUse shell hooks — fire-and-forget, never block the turn.
-  void fireHooks(dataDir, "PostToolUse", { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } }, { toolName: call.name, isError: !res.ok, cwd: ctx.root });
+  void fireHooks(dataDir, "PostToolUse", { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } }, { toolName: call.name, isError: !res.ok, cwd: ctx.root, ...hookDeps });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
   // Tool-result offload: size-based backstop AFTER lossy compression — catches any
@@ -57,6 +60,14 @@ export async function dispatchTool(
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+}
+
+function buildHookDeps(deps: AgentDeps): HookRunDeps {
+  return {
+    promptProvider: deps.provider,
+    onStatus: deps.onText,
+    runAgentHook: (hook, contextJson) => runAgentHook(hook, contextJson, deps),
+  };
 }
 
 function executionContext(toolName: string, ctx: ToolContext): ToolContext {

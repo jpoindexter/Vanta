@@ -23,9 +23,18 @@ function rows(config: ShellHooksConfig): string[] {
     const hooks = config[event as ShellHookEvent] ?? [];
     if (!hooks.length) continue;
     out.push(`  ${event}`);
-    hooks.forEach((hook, index) => out.push(`    ${index + 1}. ${hook.command}`));
+    hooks.forEach((hook, index) => out.push(`    ${index + 1}. ${hookLabel(hook)}`));
   }
   return out;
+}
+
+function hookLabel(hook: ShellHook): string {
+  const type = hook.type ?? "command";
+  if (type === "http") return `http ${hook.url}`;
+  if (type === "mcp_tool") return `mcp_tool ${hook.server}.${hook.tool}`;
+  if (type === "prompt") return "prompt";
+  if (type === "agent") return "agent";
+  return hook.command ?? "(missing command)";
 }
 
 async function list(dataDir: string): Promise<string> {
@@ -67,7 +76,7 @@ export const hooks: SlashHandler = async (arg, ctx) => {
     if (!removed) return { output: `  no ${remove.event} hook #${remove.index}` };
     config[remove.event] = hooksForEvent;
     await saveHooks(ctx.dataDir, config);
-    return { output: `  ✓ removed ${remove.event} hook #${remove.index}: ${removed.command}` };
+    return { output: `  ✓ removed ${remove.event} hook #${remove.index}: ${hookLabel(removed)}` };
   }
 
   return { output: `  usage: /hooks | /hooks add <event> <cmd> | /hooks remove <event> <N>` };

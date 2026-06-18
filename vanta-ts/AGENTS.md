@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3679 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3687 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -41,7 +41,8 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
 - `src/repl/rewind-cmd.ts` + `src/sessions/file-checkpoint.ts` — `/rewind`: in-memory per-edit file checkpoints, max 20 snapshots
-- `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` shell hooks
+- `src/hooks/` — `.vanta/hooks.json` schema + runners for `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types.
+- `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` command hooks; listing labels all hook types.
 - `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
 - `src/tools/structured-output.ts` + `src/agent/structured-output.ts` — synthetic `StructuredOutput` tool for SDK `outputSchema`
 - `src/workflow/` — FABRO-WORKFLOW-GRAPH core: declarative graph schema/diff/executor for `agent`/`approval`/`interview` nodes and `next`/`branch`/`loop`/`parallel` transitions. Pure; production wiring lives in `src/tools/workflow.ts`.
@@ -100,6 +101,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
 - Tool schemas are scoped per turn when the registry is large; `tool_search` remains available and `VANTA_TOOL_SCOPE=0` restores full exposure.
 - `compose_workflow` accepts legacy step sequences plus declarative workflow graphs; graph runs route every node through the kernel, use approval/interview human gates, diff canonical graph JSON, and execute agent nodes through `spawnSubagent`.
+- `.vanta/hooks.json` supports `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around tool dispatch.
 - Goal dependencies live in `.vanta/goal-deps.json`: `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` derive `blocked_by`/`blocks` state without changing kernel storage.
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.
 - Tool results larger than 40% of the provider context window are annotated and truncated before being appended back into the conversation.

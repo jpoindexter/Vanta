@@ -121,7 +121,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const stopCtx = { sessionId: state.sessionId, finalResponse: outcome.finalText, turnIndex: state.turnIndex };
   const [goalContinue, hookContext] = await Promise.all([
     checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null),
-    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot }).catch(() => null),
+    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, promptProvider: setup.provider, onStatus: (m) => console.log(m) }).catch(() => null),
   ]);
   return { continueWith: goalContinue ?? hookContext ?? null };
 }
@@ -160,7 +160,7 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
   let loopCount = 0;
   for (;;) {
     deps.state.turnIndex++;
-    void fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: turnText }, { cwd: deps.repoRoot });
+    void fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: turnText }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider, onStatus: (m) => console.log(m) });
     printPreTurnNotes(turnText, deps.convo, deps.setup);
     const turnStart = new Date().toISOString();
     const t0 = Date.now();

@@ -7,17 +7,41 @@ import {
   type MatchContext,
 } from "./shell-hooks.js";
 import { runMcpToolHook } from "./mcp-hook-run.js";
+import { runHttpHook } from "./http-hook-run.js";
+import { runPromptHook } from "./prompt-hook-run.js";
+import type { LLMProvider } from "../providers/interface.js";
 
-// Shell hook execution layer. Extracted from shell-hooks.ts (size gate).
+// Hook execution layer. Extracted from shell-hooks.ts (size gate).
 // Types, schemas, and match logic stay in shell-hooks.ts.
 
 const DEFAULT_TIMEOUT_MS = 10_000;
+const ONCE_KEYS = new Set<string>();
 
-/** Dispatch one hook to either the shell runner or the MCP tool runner. */
-function runHook(hook: ShellHook, contextJson: string, opts: { cwd?: string }): Promise<ShellHookResult> {
-  if (hook.type === "mcp_tool") return runMcpToolHook(hook, contextJson, opts);
+export type HookRunDeps = {
+  promptProvider?: LLMProvider;
+  runAgentHook?: (hook: ShellHook, contextJson: string) => Promise<ShellHookResult>;
+  onStatus?: (message: string) => void;
+  env?: NodeJS.ProcessEnv;
+};
+
+type HookRunOpts = HookRunDeps & { cwd?: string };
+
+/** Dispatch one hook to its configured type adapter. */
+function runHook(hook: ShellHook, event: ShellHookEvent, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
+  if (hook.once && seenOnce(event, hook)) return Promise.resolve({ code: 0, stdout: "[hook skipped: once]", stderr: "" });
+  if (hook.statusMessage) opts.onStatus?.(hook.statusMessage);
+  const run = () => runHookNow(hook, contextJson, opts);
+  return withHookTimeout(run(), hook.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+}
+
+function runHookNow(hook: ShellHook, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
+  const type = hook.type ?? "shell";
+  if (type === "mcp_tool") return runMcpToolHook(hook, contextJson, opts);
+  if (type === "http") return runHttpHook(hook, contextJson, { env: opts.env, timeoutMs: hook.timeoutMs });
+  if (type === "prompt") return runPromptHook(hook, contextJson, { provider: opts.promptProvider });
+  if (type === "agent") return opts.runAgentHook ? opts.runAgentHook(hook, contextJson) : Promise.resolve({ code: 1, stdout: "", stderr: "agent hook requires agent deps" });
   if (!hook.command) return Promise.resolve({ code: 1, stdout: "", stderr: "hook has no command" });
-  return runShellHook(hook.command, contextJson, opts);
+  return runShellHook(hook.command, contextJson, { cwd: opts.cwd, timeoutMs: hook.timeoutMs });
 }
 
 export type ShellHookResult = { code: number; stdout: string; stderr: string };
@@ -49,6 +73,21 @@ export function runShellHook(
   });
 }
 
+function seenOnce(event: ShellHookEvent, hook: ShellHook): boolean {
+  const key = `${event}:${JSON.stringify(hook)}`;
+  if (ONCE_KEYS.has(key)) return true;
+  ONCE_KEYS.add(key);
+  return false;
+}
+
+function withHookTimeout(promise: Promise<ShellHookResult>, timeoutMs: number): Promise<ShellHookResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<ShellHookResult>((resolve) => {
+    timer = setTimeout(() => resolve({ code: 124, stdout: "", stderr: "[hook timed out]" }), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => { if (timer) clearTimeout(timer); });
+}
+
 /**
  * Run the PreToolUse hooks for a tool. If any matching hook exits non-zero, the
  * tool is BLOCKED and the hook's output is the reason. No matching hooks → allowed.
@@ -57,14 +96,14 @@ export async function firePreToolUse(
   dataDir: string,
   toolName: string,
   args: Record<string, unknown>,
-  opts: { cwd?: string; sessionType?: MatchContext["sessionType"] } = {},
+  opts: HookRunOpts & { sessionType?: MatchContext["sessionType"] } = {},
 ): Promise<{ blocked: boolean; reason?: string }> {
   const matchCtx: MatchContext = { toolName, toolInputJson: JSON.stringify(args), sessionType: opts.sessionType };
   const hooks = matchingHooks(await loadShellHooks(dataDir), "PreToolUse", matchCtx);
   if (!hooks.length) return { blocked: false };
   const ctx = JSON.stringify({ event: "PreToolUse", tool: toolName, args });
   for (const h of hooks) {
-    const r = await runHook(h, ctx, { cwd: opts.cwd });
+    const r = await runHook(h, "PreToolUse", ctx, opts);
     if (r.code !== 0) {
       return { blocked: true, reason: (r.stderr || r.stdout).trim() || `PreToolUse hook exited ${r.code}` };
     }
@@ -79,14 +118,14 @@ export async function firePreToolUse(
 export async function fireStopHook(
   dataDir: string,
   context: Record<string, unknown>,
-  opts: { cwd?: string } = {},
+  opts: HookRunOpts = {},
 ): Promise<string | null> {
   try {
     const hooks = matchingHooks(await loadShellHooks(dataDir), "Stop");
     if (!hooks.length) return null;
     const ctx = JSON.stringify({ event: "Stop", ...context });
     for (const h of hooks) {
-      const r = await runHook(h, ctx, { cwd: opts.cwd });
+      const r = await runHook(h, "Stop", ctx, opts);
       try {
         const parsed: unknown = JSON.parse(r.stdout.trim());
         const ac = (parsed as { additionalContext?: unknown })?.additionalContext;
@@ -107,14 +146,14 @@ export async function fireHooks(
   dataDir: string,
   event: Exclude<ShellHookEvent, "PreToolUse">,
   context: Record<string, unknown>,
-  opts: { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; maintenance?: boolean; cwd?: string } = {},
+  opts: HookRunOpts & { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; maintenance?: boolean } = {},
 ): Promise<void> {
   try {
     const matchCtx: MatchContext = { toolName: opts.toolName, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType, maintenance: opts.maintenance };
     const hooks = matchingHooks(await loadShellHooks(dataDir), event, matchCtx);
     if (!hooks.length) return;
     const ctx = JSON.stringify({ event, ...context });
-    await Promise.all(hooks.map((h: ShellHook) => runHook(h, ctx, { cwd: opts.cwd })));
+    await Promise.all(hooks.map((h: ShellHook) => runHook(h, event, ctx, opts)));
   } catch {
     // best-effort — a non-blocking hook must never affect the session
   }

@@ -38,6 +38,19 @@ describe("/hooks", () => {
     expect(result.output).toContain("SessionEnd");
   });
 
+  it("labels non-command hook types when listing", async () => {
+    await writeFile(
+      shellHooksPath(dataDir),
+      JSON.stringify({ PostToolUse: [{ type: "http", url: "http://127.0.0.1:9999/hook" }, { type: "agent", prompt: "Check it" }] }),
+      "utf8",
+    );
+
+    const result = await HANDLERS.hooks!("", ctx());
+
+    expect(result.output).toContain("http http://127.0.0.1:9999/hook");
+    expect(result.output).toContain("agent");
+  });
+
   it("adds a hook command and persists hooks.json", async () => {
     const result = await HANDLERS.hooks!("add UserPromptSubmit echo hello", ctx());
     const stored = await loadShellHooks(dataDir);

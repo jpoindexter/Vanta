@@ -652,7 +652,7 @@
       "id": "VANTA-HOOK-TYPES",
       "track": "Harness",
       "title": "Hook type parity — http, mcp_tool, prompt, agent hook types",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has 5 hook types: command (shell), http (POST to remote endpoint), mcp_tool (call a tool on an MCP server), prompt (send a prompt to Claude for evaluation), and agent (spawn a subagent with tools). Vanta's VANTA-HOOKS-ENGINE covers command hooks; the other 4 types are unimplemented.",
       "done": "All 5 another agent hook types are implemented: command (exists), http (POST with headers + allowedEnvVars), mcp_tool (call a named MCP tool), prompt (evaluate with a model), and agent (spawn a tool-enabled subagent); all respect the timeout + once + statusMessage fields.",
