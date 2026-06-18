@@ -56,6 +56,8 @@ async function runDelegate(
 
   // Child cannot spawn further delegates — prevents runaway recursion.
   const registry = buildRegistry({ exclude: ["delegate"] });
+  const { mountMcpServers } = await import("../mcp/mount.js");
+  await mountMcpServers(registry, process.env, () => {});
 
   const wt = await resolveWorktree(ctx.root, isolation);
   if ("ok" in wt && !wt.ok) return wt;
