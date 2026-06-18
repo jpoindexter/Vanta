@@ -10416,7 +10416,7 @@
       "id": "PAPER-HOOK-EVENTS-27",
       "track": "Harness",
       "title": "Map the hook engine against the 27 another agent event types",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §3.3/§6: another agent hook pipeline spans 27 event types (5 safety, 22 lifecycle/orchestration). Vanta has a shell-hooks engine; audit coverage vs the 27 and add the high-value missing lifecycle events.",
       "done": "Vanta hook event catalog is mapped against the 27; valuable missing events are added.",

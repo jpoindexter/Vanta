@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3728 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3732 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -41,7 +41,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
 - `src/repl/init-cmd.ts` — `/init`: generate `.claude/CLAUDE.md` from detected project context
 - `src/repl/rewind-cmd.ts` + `src/sessions/file-checkpoint.ts` — `/rewind`: in-memory per-edit file checkpoints, max 20 snapshots
-- `src/hooks/` — `.vanta/hooks.json` 30-event schema + runners for `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types.
+- `src/hooks/` — `.vanta/hooks.json` 30-event schema + runners for `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent` hook types; `paper-events.ts` keeps arXiv 27-event parity checked.
 - `src/repl/hooks-cmd.ts` — `/hooks`: list/add/remove `.vanta/hooks.json` command hooks; listing labels all hook types.
 - `src/schedule/durable-cron.ts` + `src/tools/cron.ts` — durable `.vanta/scheduled_tasks.json` cron tasks plus legacy cron TSV compatibility
 - `src/loop/wake.ts` — compact wake context contract + durable `.vanta/loops/wake-events.jsonl` queue for loop/cron/webhook wake reasons and deltas.
@@ -106,7 +106,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - Approval prompts are per-tool: bash/file edit/file write/web/computer/sandbox/skill request models feed both Ink and desktop dialogs; Always/Never persist tool-scoped rules.
 - Tool schemas are scoped per turn when the registry is large. The stable prompt lists tool names + summaries, and `tool_search` results expand matching full schemas into the next provider call; `VANTA_TOOL_SCOPE=0` restores full exposure.
 - `compose_workflow` accepts legacy step sequences plus declarative workflow graphs; graph runs route every node through the kernel, use approval/interview human gates, diff canonical graph JSON, and execute agent nodes through `spawnSubagent`.
-- `.vanta/hooks.json` supports the 30-event hook vocabulary and hook types `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around live tool/prompt/stop/session events. `VANTA-HOOK-EVENTS` is shipped: file watcher, cwd changes, MCP notification/elicitation, stop-failure, teammate-idle, lifecycle, permission, compaction, config, worktree, fleet, and subagent paths all have Vanta-owned firing points.
+- `.vanta/hooks.json` supports the 30-event hook vocabulary and hook types `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`. Prompt hooks need a provider at the call site; agent hooks use injected `AgentDeps` and are wired around live tool/prompt/stop/session events. `VANTA-HOOK-EVENTS` is shipped: file watcher, cwd changes, MCP notification/elicitation, stop-failure, teammate-idle, lifecycle, permission, compaction, config, worktree, fleet, and subagent paths all have Vanta-owned firing points. `paper-events.ts` maps the 27 hook events described in arXiv:2604.14228v1 §6 against Vanta's schema and reports zero missing paper events plus Vanta's three extras.
 - Goal dependencies live in `.vanta/goal-deps.json`: `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` derive `blocked_by`/`blocks` state without changing kernel storage.
 - Scoped wakes inject compact `{wake_reason, goal_id, approval_id?, since, delta[]}` context for cron, webhook, and loop runs. Cleared loop escalations enqueue `approval.resolved` wakes for the owning loop and `gatewayTick` drains them before due cron work.
 - SDK runs with `outputSchema` inject a synthetic `StructuredOutput` tool and return the validated tool-call arguments as the structured result.

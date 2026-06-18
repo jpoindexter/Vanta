@@ -3,6 +3,7 @@
 Shell/lifecycle hook config and execution for `.vanta/hooks.json`.
 
 - `shell-hooks.ts` owns the 30-event zod schema, matcher rules, and barrel exports.
+- `paper-events.ts` maps arXiv:2604.14228's 27-event hook taxonomy against Vanta's schema; tests require zero missing paper events.
 - `shell-hook-run.ts` dispatches matching hooks, applies `timeoutMs`/`once`/`statusMessage`, and returns block reasons for `PreToolUse`.
 - `runtime-events.ts` owns shared `StopFailure` classification and `CwdChanged` dispatch helpers.
 - `file-watch.ts` starts the opt-in `FileChanged` watcher only when that event is configured.

@@ -9,7 +9,7 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
 - **Current source counts:** 89 built-in tools from `vanta-ts/src/tools/all-tools.ts` (91 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
 - **Bundled skills:** 43 shipped skills under `vanta-ts/skills-library/`; latest addition is `vanta-port-adapter` for new swappable capability seams.
-- **Last recorded full verify:** 3728 TS tests green (478 files), `tsc` clean, 53 kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
+- **Last recorded full verify:** 3732 TS tests green (479 files), `tsc` clean, 53 kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-19 notes)
 
 ## Run + Verify
 
@@ -31,7 +31,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **Slash commands:** `vanta-ts/src/repl/catalog.ts` is canonical; handlers live in `vanta-ts/src/repl/handlers.ts` and related `*-cmd.ts` files.
 - **Goal graph:** `vanta-ts/src/goals/deps.ts` stores `.vanta/goal-deps.json`; `/goal blocks`, `/goal blocked_by`, `/goal status`, `/goals`, and `vanta goals` render derived dependency state.
 - **Runtime plugins:** `vanta-ts/src/plugins/` loads enabled `plugin.json` plugins from `~/.vanta/plugins`; plugin tools are normal kernel-gated tools and plugin slash commands live in the runtime command registry.
-- **Hooks:** `vanta-ts/src/hooks/` owns `.vanta/hooks.json`; supported hook types are `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`, with shared `timeoutMs`, `once`, and `statusMessage`. `VANTA-HOOK-EVENTS` is shipped: all 30 hook events are schema-valid and have Vanta-owned firing points across lifecycle/session/tool/permission/compaction/config/worktree/fleet/subagent/file watcher/MCP notification/elicitation/stop-failure paths.
+- **Hooks:** `vanta-ts/src/hooks/` owns `.vanta/hooks.json`; supported hook types are `command`/`shell`, `http`, `mcp_tool`, `prompt`, and `agent`, with shared `timeoutMs`, `once`, and `statusMessage`. `VANTA-HOOK-EVENTS` is shipped: all 30 hook events are schema-valid and have Vanta-owned firing points across lifecycle/session/tool/permission/compaction/config/worktree/fleet/subagent/file watcher/MCP notification/elicitation/stop-failure paths. `paper-events.ts` checks Vanta against the arXiv 27-event taxonomy and keeps Vanta's three extra events explicit.
 - **Scoped wakes:** `vanta-ts/src/loop/wake.ts` owns compact `{wake_reason, goal_id, approval_id?, since, delta[]}` context. Cron/webhook/loop runs receive wake metadata, and cleared loop escalations enqueue `.vanta/loops/wake-events.jsonl` entries that gateway drains before cron work.
 - **Subagents:** `vanta-ts/src/subagent/spawn.ts` runs isolated worker conversations. Parent tools (`delegate`, `swarm`, workflow agent nodes) receive only the worker `AgentOutcome` summary, while full worker transcripts persist as JSON sidechains under `.vanta/sidechains/`.
 - **Sandbox:** `VANTA_SANDBOX=1` still enables OS sandboxing for shell/code paths; `VANTA_SHELL_SANDBOX=1` maps only `shell_cmd` into the same sandbox wrapper. `VANTA_SANDBOX_NET=1` allows network in either mode.
@@ -59,6 +59,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - Reach layer: channel doctor, RSS, Reddit, cookie import; deferred reach channels tracked as `REACH-*`.
 - Goal dependency graph: blockers/dependents over kernel goals with wake notices when a completed blocker unblocks a dependent.
 - Scoped wake context: cron/webhook/loop runs now get compact wake reason + delta context, and resolved loop escalations wake the owning loop before regular gateway cron work.
+- Paper hook parity: `vanta-ts/src/hooks/paper-events.ts` maps arXiv:2604.14228v1 §6's 27 hook events to Vanta's hook vocabulary; tests require zero missing paper events and name Vanta's extras (`UserPromptExpansion`, `MessageDisplay`, `PostToolBatch`).
 
 ## Current Open Edges
 
