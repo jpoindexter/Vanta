@@ -12359,6 +12359,51 @@
       "after": [
         "MEM-RETRIEVAL-EVAL"
       ]
+    },
+    {
+      "id": "BRAIN-INGEST-GATE",
+      "track": "Operator",
+      "title": "Brain ingest gate — Context vs Connections (evergreen ingest, volatile live-pointer)",
+      "status": "next",
+      "size": "S",
+      "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). The transcript's strongest practical rule: do NOT copy volatile data (Slack/email/customer threads, statuses) into the brain — it becomes noise to prune; instead store a POINTER to fetch it live. Vanta brain/learn.ts keeps durable memories but has no evergreen-vs-volatile gate and no live-access-pointer entry kind. Add a pure classifier (evergreen vs volatile) in the learn pass plus a live-access-pointer entry kind (source + fetch hint) so volatile facts are never copied; recall routes to the live source. Validate noise reduction via MEM-RETRIEVAL-EVAL.",
+      "done": "brain/learn classifies candidates evergreen vs volatile; volatile facts become live-access pointers, never copies; recall surfaces the pointer; the eval shows lower stale/noise hit rate vs baseline.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "after": [
+        "MEM-RETRIEVAL-EVAL"
+      ]
+    },
+    {
+      "id": "BRAIN-ROUTER",
+      "track": "Operator",
+      "title": "Brain router — query-conditioned store routing plus graded fallback chain",
+      "status": "next",
+      "size": "M",
+      "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). The central claim: a second brain is defined by can the agent find it again — it must know WHERE each kind of data lives and in WHAT ORDER to look. Vanta has the stores (md regions, structured entries, world model, life-search, vault, live sources) but brainDigest dumps regions and recall hits one store; no query-conditioned router or graded fallback. Add a memory router: given a query/intent, pick the store order to consult (entries, regions, world, life-search, vault, live source), stop when answered, return the hit plus provenance. Routes through the Brain port. Pairs with MEM-RETRIEVAL-EVAL which measures and tunes the order.",
+      "done": "A brain router resolves a query to an ordered set of stores and returns the first sufficient provenanced hit with graded fallback (incl. a live-source step); recall uses it; the eval drives the order and shows accuracy at least the single-store baseline.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "after": [
+        "MEM-RETRIEVAL-EVAL"
+      ]
+    },
+    {
+      "id": "BRAIN-GRAPH-BRIDGE",
+      "track": "Operator",
+      "title": "Brain to world-model bridge — trace typed relation chains in recall (Level 4, no new graph)",
+      "status": "next",
+      "size": "M",
+      "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). Level 4 is tracing typed relationship chains (topic X to topic A). Vanta already HAS a typed-relation knowledge graph — the world model (world/store.ts: entities plus from/to/rel relations plus conflicts) — but it is separate from the brain, whose assoc layer is similarity-only. The transcript warns: do not build a graph without pain, and Vanta already has one. So bridge, do not build: let brain recall traverse world-model relations to follow chains and surface related entities, returning the path as provenance (reuse world/conflicts.ts recallWithSources). Bounded hop depth; no-op when world is empty. Gate the lift on MEM-RETRIEVAL-EVAL multi-hop questions.",
+      "done": "brain recall can traverse world-model typed relations to answer relationship-chain/multi-hop questions, returning the relation path as provenance; bounded depth; no-op when world is empty; the relationship category in the eval improves vs baseline.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "memory",
+      "after": [
+        "MEM-RETRIEVAL-EVAL"
+      ]
     }
   ]
 }
