@@ -6,6 +6,7 @@ import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { stashOriginal } from "../compress/store.js";
 import { toonCompress, estTokens } from "winnow";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
@@ -155,13 +156,34 @@ export async function executeWithRetry(
   return res;
 }
 
+/** Wrap object-array output as a lossless TOON table (every row kept), or null when it
+ * isn't an object-array / too small to bother. `note` tells the model how to read it. */
+function toonView(output: string, note: string): { output: string; tokensSaved: number } | null {
+  const toon = output.length >= 400 ? toonCompress(output) : null;
+  if (!toon) return null;
+  const out = `${toon}\n${note}`;
+  return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
+}
+
+/** read_file compression: AST skeleton for TS/JS; a lossless TOON view for large JSON
+ * object-arrays (exact bytes stashed for retrieval — edit_file is string-based, so a
+ * stale match just errors, never corrupts); untouched otherwise. Opt out: VANTA_TOON_READFILE=0. */
+async function compressReadFile(output: string, vantaDir: string): Promise<{ output: string; tokensSaved: number }> {
+  const applied = await applyCodeCompression(output, vantaDir);
+  if (applied.tokensSaved > 0) return { output: applied.output, tokensSaved: applied.tokensSaved };
+  if (process.env.VANTA_TOON_READFILE === "0") return { output: applied.output, tokensSaved: 0 };
+  const toon = output.length >= 400 ? toonCompress(output) : null;
+  if (!toon) return { output: applied.output, tokensSaved: 0 };
+  const id = await stashOriginal(vantaDir, output);
+  const out = `${toon}\n[winnow: lossless TOON view of a JSON file (every row kept). The file on disk is unchanged JSON — call retrieve_original id="${id}" for the exact bytes before editing; do not write this view back.]`;
+  return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
+}
+
 /**
- * Compress tool output if enabled and allowed.
- * Native context compression (the Headroom concept): shrink a fat tool output
- * ONCE here, before it enters history. Never the system prefix, never
- * re-compressed. Compression is LOSSY, so it's allow-listed to voluminous
- * media/web outputs only (shouldCompressTool) — precision reads (read_file,
- * grep, lsp, git_diff) keep byte-for-byte fidelity. Reversible via CCR.
+ * Compress tool output if enabled. Native context compression: shrink a fat tool output
+ * ONCE here, before it enters history. read_file gets AST/TOON handling; object-array JSON
+ * from any tool gets a lossless TOON table (safe — every row kept); other voluminous
+ * media/web outputs go through the lossy allow-listed crushers. Reversible via CCR.
  * Best-effort. Returns { output, tokensSaved } for tracking.
  */
 export async function compressOutput(
@@ -171,19 +193,9 @@ export async function compressOutput(
 ): Promise<{ output: string; tokensSaved: number }> {
   if (!compressEnabled()) return { output, tokensSaved: 0 };
   const vantaDir = join(dataDir, ".vanta");
-  // read_file: AST code compressor only (preserves structure; json-crush/log-squash
-  // are banned here because line numbers and precision matter for file edits).
-  if (toolName === "read_file") {
-    const applied = await applyCodeCompression(output, vantaDir);
-    return { output: applied.output, tokensSaved: applied.tokensSaved || 0 };
-  }
-  // Lossless TOON for object-array JSON output — keeps EVERY row, so unlike the lossy
-  // crushers it's safe for ANY tool and isn't bound by the compress allowlist.
-  const toon = output.length >= 400 ? toonCompress(output) : null;
-  if (toon) {
-    const out = `${toon}\n[winnow: lossless TOON table — keys in row 1, one record per line]`;
-    return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
-  }
+  if (toolName === "read_file") return compressReadFile(output, vantaDir);
+  const view = toonView(output, "[winnow: lossless TOON table — keys in row 1, one record per line]");
+  if (view) return view;
   if (!shouldCompressTool(toolName)) return { output, tokensSaved: 0 };
   const applied = await applyCompression(output, vantaDir);
   return { output: applied.output, tokensSaved: applied.tokensSaved || 0 };
