@@ -37,6 +37,27 @@ describe("compressOutput — TOON for read_file JSON files", () => {
     expect(r.output).toBe(small);
   });
 
+  it("VANTA_TOON_DICT=1 switches a low-cardinality read to columnar TOON (lossless)", async () => {
+    const lowCard = JSON.stringify(
+      Array.from({ length: 150 }, (_, i) => ({ id: i, status: ["active", "idle", "pending"][i % 3], region: "us-east-1", tier: ["a", "b"][i % 2] })),
+    );
+    const prev = process.env.VANTA_TOON_DICT;
+    try {
+      const plain = await compressOutput("read_file", lowCard, dir);
+      expect(plain.output.startsWith("TOON ")).toBe(true); // default = plain TOON
+
+      process.env.VANTA_TOON_DICT = "1";
+      const dict = await compressOutput("read_file", lowCard, dir);
+      expect(dict.output.startsWith("TOONC ")).toBe(true); // columnar
+      expect(dict.output).toContain("columnar TOON");
+      const { decodeTable } = await import("winnow");
+      const table = dict.output.split("\n").slice(0, -1).join("\n");
+      expect(decodeTable(table)).toHaveLength(150); // lossless
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_TOON_DICT; else process.env.VANTA_TOON_DICT = prev;
+    }
+  });
+
   it("respects VANTA_TOON_READFILE=0", async () => {
     const prev = process.env.VANTA_TOON_READFILE;
     process.env.VANTA_TOON_READFILE = "0";
