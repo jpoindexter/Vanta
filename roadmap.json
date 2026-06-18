@@ -12418,6 +12418,122 @@
       ],
       "updated": "2026-06-18",
       "notes": "Shipped 2026-06-18. Level-4 relationship-chain tracing by BRIDGING to the existing world model — no new graph engine (the transcript warns do not build a graph without pain, and Vanta already has one). src/brain/graph-bridge.ts (pure): traverse(startId, rels, maxDepth) BFS over the world models directed typed from/to/rel relations, collecting every node reachable within maxDepth hops WITH the typed path that reached it (cycles pruned via a visited set); bridgeRecall(query, entities, rels, maxDepth=3) matches start entities by query-token overlap, traverses, and returns reached entities with the relation PATH as provenance; formatPath renders ids→names as \"Alice —manages→ Bob —mentors→ Carol\"; no-op (empty) when the world graph is empty or nothing matches; bounded by DEFAULT_MAX_DEPTH=3. Recall uses it: router-stores.ts worldLookup now appends multi-hop chains (path.length>1, prefixed ↦) to the direct recallWithSources matches, so brain route on a relationship query follows chains through the Brain port → world step. Eval guarantee proven in graph-bridge.test.ts with the MEM-RETRIEVAL-EVAL grader (recallAtK): for a 2-hop question (what is Alice connected to → Carol), direct keyword recall (recallWithSources) recall@5=0 (never reaches Carol), the bridge recall@5=1 — the relationship/multi-hop category improves vs the non-traversal baseline. 7 graph-bridge tests + 105 brain tests green; tsc clean; size gate clean (2 files); boundaries hold. Follow-up (isolated): a dedicated relationship category seeded with world-graph data inside runMemEval (this slice proves the lift via the grader property over a seeded graph) and reverse-direction (to→from) traversal."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "TOON-DICT-COLUMNAR",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "TOON dictionary/columnar encoding — push lossless tabular past 60%",
+      "summary": "[repo: winnow] TOON dedupes keys only; on low-cardinality columns it still writes repeated values per row (wide-table bench 60% ~= narrow 59% — value cardinality is the ceiling, not column count). Add constant-column elision (a column identical in every row -> state once, drop from rows) + value/column dictionary (intern low-cardinality values, per-row index). Lossless; opt-in dictionary:true (trades readability for ratio); unified decodeTable routes TOON vs TOONC.",
+      "done": "encodeColumnar/decodeColumnar lossless round-trip (const/dict/plain/missing/types); toonCompress({dictionary}) returns the smaller of columnar vs plain; bench shows wide-table dict ratio > plain TOON; tests + CHANGELOG + version bump; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "WINNOW-CNG-METRIC",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "Cost-Normalized-Gain metric for the compression bench (from S2L)",
+      "summary": "[repo: winnow] Adopt S2L's CNG = quality-gain / relative-token-cost-change (arXiv:2606.16769). tuneOptions weights survival x ratio; CNG is the more principled objective (preserved signal per token saved). Add a pure cng() + a tuneOptions ranking option; surface in bench output.",
+      "done": "pure cng() tested; tuneOptions can rank by CNG; bench reports it; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "WINNOW-STORE-COMPRESS",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "title": "Byte-compress the CCR stash on disk (gzip), transparent on retrieve",
+      "summary": "[repo: winnow] 'nothing out of scope' — byte compression is in scope at the STORE layer (the model never reads the stash; retrieve decompresses). gzip the stashed original (node:zlib, zero new dep) + transparent decompress in retrieve; still read legacy plaintext stashes. Not inline (stays readable there).",
+      "done": "stashOriginal gzips; retrieve decompresses + reads legacy plaintext; round-trip tested; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "WINNOW-ML-PRUNE-BACKEND",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "WINNOW-CNG-METRIC"
+      ],
+      "title": "Wire a real LM scorer into pruneText (LLMLingua / Kompress-base parity)",
+      "summary": "[repo: winnow] pruneText exposes the score hook; wire an optional real scorer (perplexity/self-info from an injected LM callback) so winnow matches headroom's trained-model prose compression when a model is available. Heuristic proxy stays the zero-dep default; measure ML vs heuristic via the fidelity bench / CNG before recommending.",
+      "done": "an injected-LM scorer adapter drives pruneText; bench compares ML vs heuristic; default stays heuristic; pushed to winnow."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "SKILL-DISTILL-EXAMPLES",
+      "track": "Operator",
+      "lens": "skills",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "after": [
+        "WINNOW-CNG-METRIC"
+      ],
+      "title": "Skill distillation — long SKILL.md -> a few worked demos (text-side S2L)",
+      "summary": "[repo: vanta] From S2L (arXiv:2606.16769): a SKILL.md's behavior can be carried by a few synthesized I/O demonstrations instead of the full procedural doc. Add a distillation pass (injected LLM, like the summarizer) that compresses a long skill body into N worked examples; recall serves the distilled form. Measure tokens + pass via CNG. No training (the LoRA route is S2L-LORA-SKILLS).",
+      "done": "a skill-distill pass produces worked demos from a SKILL.md; recall can serve the distilled form; CNG shows tokens down without pass-rate loss on a small skill set; tests; pushed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "SKILL-TASK-SUBSET",
+      "track": "Operator",
+      "lens": "skills",
+      "size": "M",
+      "tier": "pebble",
+      "effort": "medium",
+      "title": "Task-conditioned skill subsetting — inject only relevant skills",
+      "summary": "[repo: vanta] S2L + SWE-Skills-Bench finding: full skill text is often neutral or harmful, wrong-skill injection collapses performance. Vanta injects the whole skill INDEX every turn. Select only task-relevant skills (reuse searchSkills ranking) for the prompt index; keep recall-on-demand for the rest. Measure pass/tokens (CNG); never inject a low-relevance skill.",
+      "done": "prompt skill index is task-conditioned (top-k relevant), full catalog still reachable via recall; CNG-measured no regression; tests; pushed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "VANTA-WINNOW-DICT-WIRE",
+      "track": "Harness",
+      "lens": "compression",
+      "size": "S",
+      "tier": "pebble",
+      "effort": "small",
+      "after": [
+        "TOON-DICT-COLUMNAR"
+      ],
+      "title": "Wire TOON dictionary mode into Vanta tool-output (opt-in)",
+      "summary": "[repo: vanta] Once TOON-DICT-COLUMNAR ships in winnow, expose its dictionary mode in Vanta's compressOutput/read_file behind an opt-in env (trades readability for ratio); default stays plain TOON. Measure before defaulting.",
+      "done": "Vanta compressOutput can use winnow dictionary mode behind an opt-in flag; default unchanged; tests; pushed to vanta."
+    },
+    {
+      "status": "next",
+      "updated": "2026-06-18",
+      "id": "S2L-LORA-SKILLS",
+      "track": "Operator",
+      "lens": "skills",
+      "size": "L",
+      "tier": "rock",
+      "effort": "large",
+      "after": [
+        "SKILL-DISTILL-EXAMPLES"
+      ],
+      "title": "Skill-to-LoRA — per-skill adapters for the local model path (research spike)",
+      "summary": "[repo: vanta] Full S2L (arXiv:2606.16769): self-distill each SKILL.md -> demos -> a per-skill QLoRA adapter; at runtime drop skill text, load the adapter by id. Needs QLoRA training + dynamic-LoRA serving (vLLM/Ollama) — local path only, not API providers. SPIKE FIRST: a design doc + feasibility on Vanta's local backend with a go/no-go; honor S2L limits (lossy edge cases, interpretability, one-skill-per-task). Stop-and-surface: needs an infra decision.",
+      "done": "a design spike documents the training+serving path + feasibility on Vanta's local backend with a go/no-go; no training infra built without sign-off."
     }
   ]
 }
