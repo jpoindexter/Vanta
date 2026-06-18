@@ -24,6 +24,7 @@ type PromptContext = {
   selfContent: string;
   moimNote: string | undefined;
   errorsLog: string | undefined;
+  program: string | undefined;
   projectId: string | undefined;
 };
 
@@ -41,9 +42,10 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
   const { readMoim } = await import("../moim/store.js");
   const moimNote = await readMoim(process.env).catch(() => undefined);
   const errorsLog = await readFile(join(repoRoot, "ERRORS.md"), "utf8").catch(() => undefined);
+  const program = process.env.VANTA_PROGRAM_OVERRIDE ?? await readFile(join(repoRoot, "PROGRAM.md"), "utf8").catch(() => undefined);
   const { canonicalProjectId } = await import("../projects/identity.js");
   const projectId = await canonicalProjectId(repoRoot).catch(() => undefined);
-  return { memory, skills, brain, selfContent, moimNote, errorsLog, projectId };
+  return { memory, skills, brain, selfContent, moimNote, errorsLog, program, projectId };
 }
 
 async function recentlyWritten(path: string, maxAgeMs: number): Promise<boolean> {
@@ -127,6 +129,7 @@ export async function buildRunPrompt(o: {
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
     selfContent: ctx.selfContent,
+    program: ctx.program,
     playbook,
     ralphContinuity,
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",

@@ -7,6 +7,7 @@
 `memory-cmd.ts`/`skills-cmd.ts`/`hooks-cmd.ts` hold the `vanta memory`/`skills`+`skill`/`hooks` handlers.
 `fleet-cmd.ts` owns `vanta fleet run/status/review/accept` and delegates orchestration to `src/fleet/`.
 `auto-research-cmd.ts` owns `vanta auto-research --objective --metric --bounds` and delegates the loop to `src/auto-research/`.
+`meta-tune-cmd.ts` owns `vanta meta-tune instructions [--iters N] [--adopt]` and delegates tuning to `src/meta-tune/`.
 `extra-cmds.ts`+`extra-cmds-2.ts` hold smaller command handlers (plugins/taste/models/acp/proxy; ref/settings/brief).
 `loop-cmd.ts` owns loop CRUD (add/list/run); `loop-cmd-ops.ts` holds its state-mutation handlers (escalations/clear/pause/resume/kill/show).
 

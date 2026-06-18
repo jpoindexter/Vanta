@@ -23,6 +23,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
 | `fleet/` | PARALLEL-AGENT-FLEET — worktree-isolated parallel subagent orchestration. `vanta fleet run --task ...` records team-task states and `.vanta/fleets/<id>.json`; `review` prints diff/result state; `accept` merges one reviewed worker branch. |
 | `auto-research/` | AUTO-RESEARCH-LOOP — metric-driven unattended improvement loop. `vanta auto-research --objective --metric --bounds` creates isolated candidate worktrees, commits candidates, keeps only numeric metric improvements, journals deltas, and stops on no-progress/max-iters. |
+| `meta-tune/` | META-TUNE-INSTRUCTIONS — bounded `PROGRAM.md` instruction tuning. `vanta meta-tune instructions` scores variants against eval pass@1/CNG, records the best, and requires explicit approval before adoption. |
 | `worktree/manager.ts` | Git-worktree lifecycle for the fleet: create/list/remove isolated `.vanta/worktrees` checkouts (one per parallel task), branch naming, cleanup |
 | `agent/tool-scope.ts` | Per-turn tool schema subsetting; always leaves `tool_search` reachable for on-demand catalog expansion |
 | `memory/guardrails.ts` | Freshness/conflict/provenance guard for recalled brain entries before they influence action |
@@ -150,6 +151,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `cli.ts` | Thin entry point: bootstrap (`findRepoRoot`/`loadEnv`/`ensureVantaStore`) + `startInteractive` (TTY-gated first-run wizard) + a `COMMANDS` lookup table (a returned number = exit code). `chat`/`--resume`/`resume`/`run` stay explicit for global flags (`--init*`, `--fork-session`). Add a command = one table entry. |
 | `cli/agents-cmd.ts` | `vanta agents` management surface over `team/tasks.ts`: list/logs/attach/stop/rm/respawn, top-level aliases (`attach`, `logs`, `respawn`, `stop`, `rm`), plus `vanta daemon status/stop`. Gated by settings `disableAgentView` or `VANTA_DISABLE_AGENT_VIEW=1`. |
 | `cli/auto-research-cmd.ts` | `vanta auto-research --objective --metric --bounds` parser and report printer; delegates worker orchestration to `auto-research/loop.ts`. |
+| `cli/meta-tune-cmd.ts` | `vanta meta-tune instructions [--iters N] [--adopt]` parser; runs evals with `VANTA_PROGRAM_OVERRIDE` for candidate scoring and approval-gates writes to `PROGRAM.md`. |
 | `cli/auto-mode-cmd.ts` + `cli/permission-mode.ts` | `vanta auto-mode defaults/config` plus `--permission-mode auto|default` parsing (`VANTA_AUTO_MODE`). |
 | `cli/commands.ts` | The `vanta <cmd>` handlers extracted from cli.ts (CODE-SIZE-GATE): `usage`/`usageExit`, `runInstruction` (shared run/skill/room path), `runSessionsList`/`runSkillsCommand`/`runMemoryCommand`/`runVoiceCommand`/`runHooksCommand`/`runSkillCommand`/`runRoomCommand` |
 | `cli/lifecycle.ts` | `parseLifecycleFlags` + `runLifecycleHooks`: `--init` runs Setup hooks, `--init-only` runs Setup + SessionStart and exits, `--maintenance` sets maintenance context and exits |

@@ -7,6 +7,7 @@ Operational command modules extracted from `src/cli.ts` to keep the CLI entrypoi
 - `fleet-cmd.ts` exposes `vanta fleet run/status/review/accept`; it stays thin over `src/fleet/`.
 - `auto-mode-cmd.ts` prints built-in/effective auto permission classifier config.
 - `auto-research-cmd.ts` exposes the numeric metric improvement loop and stays thin over `src/auto-research/`.
+- `meta-tune-cmd.ts` exposes `vanta meta-tune instructions`; it stays thin over `src/meta-tune/` and approval-gates `PROGRAM.md` adoption.
 - `permission-mode.ts` strips `--permission-mode auto|default` and sets `VANTA_AUTO_MODE`.
 - `output-callbacks.ts` keeps one-shot output callback selection out of `commands.ts`.
 - `startup.ts` owns bootstrap (`findRepoRoot`/`loadEnv`) + `startInteractive` (TTY-gated setup wizard, TUI/REPL select) + run-arg/startup-flag parsing — extracted from `cli.ts` to keep the entrypoint thin.

@@ -190,6 +190,19 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Earlier I learned the build runs");
   });
 
+  it("injects the approved tunable program block when provided", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+      program: "- Prefer verified deltas.",
+    });
+    expect(prompt).toContain("Tunable program instructions:");
+    expect(prompt).toContain("Prefer verified deltas.");
+  });
+
   it("injects the MOIM note at the top of the volatile tier when provided", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",

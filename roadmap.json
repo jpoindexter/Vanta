@@ -12840,7 +12840,7 @@
       "id": "META-TUNE-INSTRUCTIONS",
       "track": "Harness",
       "title": "Meta-tune the agent's own instructions against an eval (program.md optimization)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy: a research org IS its program.md, and you can optimize OVER the instructions (meta-optimization / recursive self-improvement of the harness config, not just its outputs). Auto-tune Vanta's own instruction surface (a defined block of the system-prompt tiers / a program.md) against an eval: mutate instructions, run the eval, keep the higher-scoring variant. Bounded mutations; human-approved before adoption.",
       "done": "a runner mutates a defined instruction block, scores variants via the eval (pass@1/CNG), records the best; bounded + human-approved before adoption; tests; committed.",

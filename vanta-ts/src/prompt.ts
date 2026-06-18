@@ -96,6 +96,10 @@ function playbookTier(playbook?: string): string {
   return playbook?.trim() ? playbook.trim() : "";
 }
 
+function programTier(program?: string): string {
+  return program?.trim() ? `Tunable program instructions:\n${program.trim()}` : "";
+}
+
 function vaultTier(): string {
   return `Knowledge base (Obsidian vault — obsidian-vault MCP tools):
 
@@ -193,6 +197,8 @@ export async function buildSystemPrompt(opts: {
   selfContent?: string;
   /** PAPER-EXPERIENTIAL-MEMORY: matching plays from ~/.vanta/playbook.jsonl */
   playbook?: string;
+  /** META-TUNE-INSTRUCTIONS: bounded, approved harness instruction block. */
+  program?: string;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -212,6 +218,7 @@ export async function buildSystemPrompt(opts: {
     skillsTier(opts.skills),
     await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
+    programTier(opts.program),
     playbookTier(opts.playbook),
     tasksTier,
     volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused, ralphContinuity: opts.ralphContinuity }),
