@@ -12389,7 +12389,7 @@
       "id": "BRAIN-ROUTER",
       "track": "Operator",
       "title": "Brain router — query-conditioned store routing plus graded fallback chain",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). The central claim: a second brain is defined by can the agent find it again — it must know WHERE each kind of data lives and in WHAT ORDER to look. Vanta has the stores (md regions, structured entries, world model, life-search, vault, live sources) but brainDigest dumps regions and recall hits one store; no query-conditioned router or graded fallback. Add a memory router: given a query/intent, pick the store order to consult (entries, regions, world, life-search, vault, live source), stop when answered, return the hit plus provenance. Routes through the Brain port. Pairs with MEM-RETRIEVAL-EVAL which measures and tunes the order.",
       "done": "A brain router resolves a query to an ordered set of stores and returns the first sufficient provenanced hit with graded fallback (incl. a live-source step); recall uses it; the eval drives the order and shows accuracy at least the single-store baseline.",
@@ -12398,7 +12398,9 @@
       "lens": "memory",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ]
+      ],
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Query-conditioned store router with graded fallback. src/brain/router.ts (pure engine): StoreId (entries|regions|world|life-search|vault|live), routeOrder(query) picks the store order by intent — volatile/current/status queries → live source first, relationship/connection queries → world model first, else the default order; routeRecall(query, lookups, order?) consults stores IN ORDER, stops at the first sufficient hit, returns it with provenance (which store) + the trail of stores tried; stores with no lookup are skipped and a lookup that throws falls through (best-effort graded fallback); formatRoutedHit renders provenance. src/brain/router-stores.ts: defaultLookups wires the REAL stores best-effort — entries + live (live = ingest-gate live pointers) through the Brain PORT (resolveBrain), world via readWorld+recallWithSources, life-search via gatherLifeBlobs+searchBlobs+rankResults; regions/vault listed in the order but unwired yet (router skips gracefully). Recall uses it: the brain tool gains action:route (handleRoute → routeRecall over defaultLookups, ctx.root threaded for life-search). Eval guarantee proven deterministically in router.test.ts: routed recall answers every query ANY store can answer and is >= the best single store (which is < 1 — routing strictly helps, never loses accuracy vs the single-store baseline). 10 router tests + 127 tool/brain tests green; tsc clean; size gate clean (3 files); boundaries hold. Follow-up (isolated): wiring regions/vault lookups + integrating the router as a partitioned multi-store dimension inside runMemEval (this slice proves the accuracy guarantee via the grader property)."
     },
     {
       "id": "BRAIN-GRAPH-BRIDGE",

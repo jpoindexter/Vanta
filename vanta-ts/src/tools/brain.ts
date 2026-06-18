@@ -3,6 +3,8 @@ import type { Tool, ToolResult } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
 import { resolveBrain } from "../brain/interface.js";
 import { guardMemoryRecall } from "../memory/guardrails.js";
+import { routeRecall, formatRoutedHit } from "../brain/router.js";
+import { defaultLookups } from "../brain/router-stores.js";
 
 // The `brain` tool: Vanta reads and grows its own brain (~/.vanta/brain/). A digest
 // is already in the system prompt; use this to work a region in full (read/append/
@@ -11,7 +13,7 @@ import { guardMemoryRecall } from "../memory/guardrails.js";
 // itself reinforces them).
 
 const Args = z.object({
-  action: z.enum(["read", "append", "replace", "list", "remember", "recall"]),
+  action: z.enum(["read", "append", "replace", "list", "remember", "recall", "route"]),
   region: z.string().optional(),
   content: z.string().optional(),
   query: z.string().optional(),
@@ -59,6 +61,14 @@ async function handleRecall(a: ParsedArgs): Promise<ToolResult> {
   return { ok: true, output: guardMemoryRecall(r.entries).formatted };
 }
 
+// route: query-conditioned recall across ALL stores (entries → world → life-search →
+// live), graded fallback, returns the first sufficient hit with provenance.
+async function handleRoute(a: ParsedArgs, root: string): Promise<ToolResult> {
+  if (!a.query?.trim()) return { ok: false, output: "route needs a query" };
+  const hit = await routeRecall(a.query, defaultLookups(process.env, root));
+  return hit ? { ok: true, output: formatRoutedHit(hit) } : { ok: true, output: "(no store answered)" };
+}
+
 export const brainTool: Tool = {
   schema: {
     name: "brain",
@@ -74,7 +84,7 @@ export const brainTool: Tool = {
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["read", "append", "replace", "list", "remember", "recall"], description: "What to do" },
+        action: { type: "string", enum: ["read", "append", "replace", "list", "remember", "recall", "route"], description: "What to do" },
         region: { type: "string", description: "Brain region (see list). Required except for list/recall." },
         content: { type: "string", description: "Text for append/replace/remember." },
         query: { type: "string", description: "recall: substring filter over memories." },
@@ -88,15 +98,16 @@ export const brainTool: Tool = {
   },
   // Never echo content — it can false-trigger the safety classifier.
   describeForSafety: (a) => `brain ${String(a.action ?? "")} ${String(a.region ?? "")}`.trim(),
-  async execute(raw) {
+  async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
-      return { ok: false, output: "brain needs an action: list | read | append | replace | remember | recall" };
+      return { ok: false, output: "brain needs an action: list | read | append | replace | remember | recall | route" };
     }
     const a = parsed.data;
     if (a.action === "list") return { ok: true, output: `Brain regions:\n${REGION_LIST}` };
     if (a.action === "remember") return handleRemember(a);
     if (a.action === "recall") return handleRecall(a);
+    if (a.action === "route") return handleRoute(a, ctx.root);
     return handleRegionAction(a);
   },
 };
