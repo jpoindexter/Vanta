@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 import { buildSystemPrompt } from "../prompt.js";
+import { selectSkillsForTask } from "../skills/select.js";
 import { recentMemory } from "../memory/store.js";
 import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
@@ -108,6 +109,11 @@ export async function buildRunPrompt(o: {
   const ctx = await loadPromptContext(o.repoRoot, o.activeIds);
   const playbook = await playbookDigest(o.instruction).catch(() => "");
   const ralphContinuity = await loadRalphContinuity(o.repoRoot);
+  // Task-condition the skill index for a real one-shot task (interactive keeps the full
+  // index → stable cached prefix). Opt out with VANTA_SKILL_SUBSET=0.
+  const skills = process.env.VANTA_SKILL_SUBSET === "0"
+    ? ctx.skills
+    : selectSkillsForTask(ctx.skills ?? [], o.instruction);
   const systemPrompt = await buildSystemPrompt({
     root: o.repoRoot,
     soulPath: join(o.repoRoot, "SOUL.md"),
@@ -116,7 +122,7 @@ export async function buildRunPrompt(o: {
     now: new Date().toISOString(),
     memory: ctx.memory,
     moimNote: ctx.moimNote,
-    skills: ctx.skills,
+    skills,
     brain: ctx.brain,
     errorsLog: ctx.errorsLog,
     projectId: ctx.projectId,
