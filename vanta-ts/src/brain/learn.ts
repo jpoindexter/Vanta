@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { remember } from "./brain.js";
+import { classifyIngest, toLivePointer } from "./ingest-gate.js";
 import { isBrainRegion } from "./regions.js";
 import { serializeForNotes } from "../memory/session-memory.js";
 import type { LLMProvider } from "../providers/interface.js";
@@ -86,9 +87,28 @@ export function parseLearned(text: string): Array<z.infer<typeof LearnedSchema>[
   }
 }
 
+type Learned = z.infer<typeof LearnedSchema>[number];
+
+/** Remember one learned memory through the ingest gate: volatile facts become
+ * live-access pointers (value dropped, source:external), evergreen facts store
+ * verbatim (source:inference). Returns the text actually stored. */
+async function rememberLearned(m: Learned, env?: NodeJS.ProcessEnv): Promise<string> {
+  const volatile = classifyIngest(m.content) === "volatile";
+  const content = volatile ? toLivePointer(m.content).text : m.content;
+  await remember({
+    region: m.region,
+    content,
+    entryType: m.entry_type,
+    confidence: m.confidence ?? 0.6,
+    sourceType: volatile ? "external" : "inference",
+    env,
+  });
+  return content;
+}
+
 /**
- * Distil the transcript into durable memories and remember each (source:
- * inference). Returns what was learned. Best-effort: any failure returns [].
+ * Distil the transcript into durable memories and remember each (through the
+ * ingest gate). Returns what was learned. Best-effort: any failure returns [].
  */
 export async function learnFromTranscript(opts: {
   provider: LLMProvider;
@@ -107,17 +127,7 @@ export async function learnFromTranscript(opts: {
     );
     const learned = parseLearned(text);
     const kept: string[] = [];
-    for (const m of learned) {
-      await remember({
-        region: m.region,
-        content: m.content,
-        entryType: m.entry_type,
-        confidence: m.confidence ?? 0.6,
-        sourceType: "inference",
-        env: opts.env,
-      });
-      kept.push(m.content);
-    }
+    for (const m of learned) kept.push(await rememberLearned(m, opts.env));
     return kept;
   } catch {
     return [];

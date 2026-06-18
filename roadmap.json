@@ -12366,7 +12366,7 @@
       "id": "BRAIN-INGEST-GATE",
       "track": "Operator",
       "title": "Brain ingest gate — Context vs Connections (evergreen ingest, volatile live-pointer)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Source: 'Every Level of a Claude Second Brain Explained' (5-level second-brain transcript). The transcript's strongest practical rule: do NOT copy volatile data (Slack/email/customer threads, statuses) into the brain — it becomes noise to prune; instead store a POINTER to fetch it live. Vanta brain/learn.ts keeps durable memories but has no evergreen-vs-volatile gate and no live-access-pointer entry kind. Add a pure classifier (evergreen vs volatile) in the learn pass plus a live-access-pointer entry kind (source + fetch hint) so volatile facts are never copied; recall routes to the live source. Validate noise reduction via MEM-RETRIEVAL-EVAL.",
       "done": "brain/learn classifies candidates evergreen vs volatile; volatile facts become live-access pointers, never copies; recall surfaces the pointer; the eval shows lower stale/noise hit rate vs baseline.",
@@ -12375,7 +12375,9 @@
       "lens": "memory",
       "after": [
         "MEM-RETRIEVAL-EVAL"
-      ]
+      ],
+      "updated": "2026-06-18",
+      "notes": "Shipped 2026-06-18. Context-vs-Connections ingest gate: src/brain/ingest-gate.ts — pure classifyIngest(content) → evergreen|volatile (VOLATILE_RE matches time-sensitive signals: currently/is now/unread/inbox/pending/status is/price is/$N/N%/balance/this week…), toLivePointer(content) derives a live-access pointer {source, subject, text} that names the SOURCE (SOURCE_HINTS: Slack/email/calendar/messages/GitHub/Drive, else generic) + the value-free SUBJECT (split before the value clause) and the text \"↪ live[source]: subject — fetch the current value live; do not trust a cached copy\" — the volatile value is dropped, never copied. isLivePointer() identifies them. Wired into brain/learn.ts: learnFromTranscript routes every distilled memory through rememberLearned, which stores volatile candidates as pointers (sourceType:external) and evergreen ones verbatim (sourceType:inference); the LLM learn prompt already discourages transient state, this is the deterministic backstop. Recall surfaces the pointer (a normal entry) so the agent fetches live instead of trusting a stale copy. Validated with the MEM-RETRIEVAL-EVAL grader (recallAtK + lexical retriever reused in ingest-gate.test.ts): baseline verbatim copies surface the stale volatile value in top-3, gated pointers drop the stale-hit rate to 0 while the pointer stays retrievable for its subject. 15 tests (incl. existing learn.test.ts) green; tsc clean; size gate clean (2 files); arch boundaries hold."
     },
     {
       "id": "BRAIN-ROUTER",
