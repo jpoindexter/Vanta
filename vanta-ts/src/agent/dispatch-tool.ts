@@ -50,8 +50,7 @@ export async function dispatchTool(
   const res = await executeWithRetry(call, deps, execCtx, tool);
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
-  // PostToolUse shell hooks — fire-and-forget, never block the turn.
-  void fireHooks(dataDir, "PostToolUse", { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } }, { toolName: call.name, isError: !res.ok, cwd: ctx.root, ...hookDeps });
+  firePostToolHooks({ dataDir, root: ctx.root, call, res, hookDeps });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
   // Tool-result offload: size-based backstop AFTER lossy compression — catches any
@@ -59,6 +58,20 @@ export async function dispatchTool(
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+}
+
+function firePostToolHooks(o: {
+  dataDir: string;
+  root: string;
+  call: ToolCall;
+  res: { ok: boolean; output: string };
+  hookDeps: ReturnType<typeof buildAgentHookDeps>;
+}): void {
+  const { dataDir, root, call, res, hookDeps } = o;
+  const hookContext = { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } };
+  const opts = { toolName: call.name, matcherValue: call.name, isError: !res.ok, cwd: root, ...hookDeps };
+  void fireHooks(dataDir, "PostToolUse", hookContext, opts);
+  if (!res.ok) void fireHooks(dataDir, "PostToolUseFailure", hookContext, { ...opts, isError: true });
 }
 
 function executionContext(toolName: string, ctx: ToolContext): ToolContext {

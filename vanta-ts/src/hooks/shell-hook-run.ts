@@ -98,7 +98,7 @@ export async function firePreToolUse(
   args: Record<string, unknown>,
   opts: HookRunOpts & { sessionType?: MatchContext["sessionType"] } = {},
 ): Promise<{ blocked: boolean; reason?: string }> {
-  const matchCtx: MatchContext = { toolName, toolInputJson: JSON.stringify(args), sessionType: opts.sessionType };
+  const matchCtx: MatchContext = { toolName, matcherValue: toolName, toolInputJson: JSON.stringify(args), sessionType: opts.sessionType };
   const hooks = matchingHooks(await loadShellHooks(dataDir), "PreToolUse", matchCtx);
   if (!hooks.length) return { blocked: false };
   const ctx = JSON.stringify({ event: "PreToolUse", tool: toolName, args });
@@ -146,10 +146,10 @@ export async function fireHooks(
   dataDir: string,
   event: Exclude<ShellHookEvent, "PreToolUse">,
   context: Record<string, unknown>,
-  opts: HookRunOpts & { toolName?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; maintenance?: boolean } = {},
+  opts: HookRunOpts & { toolName?: string; matcherValue?: string; isError?: boolean; prompt?: string; sessionType?: MatchContext["sessionType"]; maintenance?: boolean } = {},
 ): Promise<void> {
   try {
-    const matchCtx: MatchContext = { toolName: opts.toolName, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType, maintenance: opts.maintenance };
+    const matchCtx: MatchContext = { toolName: opts.toolName, matcherValue: opts.matcherValue, isError: opts.isError, prompt: opts.prompt, sessionType: opts.sessionType, maintenance: opts.maintenance };
     const hooks = matchingHooks(await loadShellHooks(dataDir), event, matchCtx);
     if (!hooks.length) return;
     const ctx = JSON.stringify({ event, ...context });

@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline/promises";
-import { createConversation } from "../agent.js";
+import { createConversation, type AgentDeps } from "../agent.js";
 import { listSessions } from "../sessions/store.js";
 import { resolveRoomOrExit, suggestSkillFromRun } from "../projects/commands.js";
 import {
@@ -14,6 +14,9 @@ import {
 import { loadSchema } from "../output/json-schema.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
 import { buildCallbacks } from "./output-callbacks.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
+import { join } from "node:path";
 
 export function usage(): void {
   console.log(
@@ -88,8 +91,8 @@ function emitOutput(format: OutputFormat, finalText: string, modelId: string): v
   }
 }
 
-function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: string; rl: ReturnType<typeof createInterface>; signal: AbortSignal; format: OutputFormat; outputSchema?: Record<string, unknown> }) {
-  return createConversation(o.setup.systemPrompt, {
+function oneShotDeps(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: string; rl: ReturnType<typeof createInterface>; signal: AbortSignal; format: OutputFormat; outputSchema?: Record<string, unknown> }): AgentDeps {
+  return {
     provider: o.setup.provider,
     safety: o.setup.safety,
     registry: o.setup.registry,
@@ -102,7 +105,7 @@ function oneShotConversation(o: { setup: Awaited<ReturnType<typeof prepareRun>>;
     signal: o.signal,
     outputSchema: o.outputSchema,
     ...buildCallbacks(o.format),
-  });
+  };
 }
 
 export async function runInstruction(
@@ -123,8 +126,10 @@ export async function runInstruction(
   const controller = new AbortController();
   const onSigint = (): void => controller.abort();
   process.once("SIGINT", onSigint);
+  const agentDeps = oneShotDeps({ setup, root, rl, signal: controller.signal, format, outputSchema: schema });
   try {
-    const convo = oneShotConversation({ setup, root, rl, signal: controller.signal, format, outputSchema: schema });
+    await fireHooks(join(root, ".vanta"), "SessionStart", { source: "startup", sessionType: "one-shot" }, { cwd: root, matcherValue: "startup", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
+    const convo = createConversation(setup.systemPrompt, agentDeps);
     const outcome = await convo.send(instruction);
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);
@@ -140,6 +145,7 @@ export async function runInstruction(
     });
     memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
   } finally {
+    await fireHooks(join(root, ".vanta"), "SessionEnd", { reason: "other", sessionType: "one-shot" }, { cwd: root, matcherValue: "other", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     process.removeListener("SIGINT", onSigint);
     rl.close();
   }

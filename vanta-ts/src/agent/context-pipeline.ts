@@ -4,8 +4,10 @@ import { compactConversation, type Summarizer } from "../context.js";
 import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microcompact.js";
 import { graduatedCompaction } from "../context/graduated-compaction.js";
 import { recordCompactedEdits, runPostCompactRestore } from "../compress/post-compact-restore.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import { maskStaleToolOutputs, resolveObservationMaskKeep } from "./observation-mask.js";
+import { join } from "node:path";
 
 // The per-call + per-turn context-window management for the agent loop, kept out
 // of agent.ts so runTurn stays focused on iteration. `ContextDeps` is the minimal
@@ -44,6 +46,7 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
   try {
     const r = await compactConversation(messages, deps.provider.contextWindow(), deps.summarize, {
       thresholdPct: resolveCompactThresholdPct(process.env),
+      onPreCompact: (middle) => fireHooks(join(deps.root, ".vanta"), "PreCompact", { trigger: "auto", messages: middle.length }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider }),
     });
     if (r.compacted) {
       recordCompactedEdits(deps.workingMemory, r.compactedWindow);
@@ -54,6 +57,7 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
       });
       messages.splice(0, messages.length, ...withRestore(r.messages, restore));
       deps.onAutoCompact?.(r.dropped, r.summary);
+      await fireHooks(join(deps.root, ".vanta"), "PostCompact", { trigger: "auto", dropped: r.dropped, summary: r.summary }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider });
     }
   } catch { /* compaction is best-effort — a failure must never block the turn */ }
 }

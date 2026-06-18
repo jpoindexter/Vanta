@@ -11,12 +11,15 @@ import { applyMessageDisplay } from "./message-display.js";
 import { globalHookBus } from "../plugins/hooks.js";
 import { dispatchTool } from "./dispatch-tool.js";
 import type { DispatchOutcome } from "./dispatch-tool.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import { scopeToolSchemas, toolScopeContext } from "./tool-scope.js";
 import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./structured-output.js";
 import { buildStructuredOutputInstruction } from "../tools/structured-output.js";
 import { runAdvisor } from "./advisor.js";
 import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
+import { join } from "node:path";
 
 const MAX_CONSECUTIVE_FAILURES = 3;
 const MAX_IDENTICAL_CALLS = 3;
@@ -71,9 +74,12 @@ type ProcessToolCallsArgs = { calls: ToolCall[]; deps: AgentDeps; ctx: ToolConte
 
 async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | null> {
   const { calls, deps, ctx, state, messages, prefetched } = args;
+  const batch: Array<{ name: string; ok: boolean; output: string }> = [];
+  let stuckTool: string | null = null;
   for (const call of calls) {
     const inFlight = prefetched?.get(call.id);
     const outcome = inFlight ? await inFlight : await dispatchTool(call, deps, ctx);
+    batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
     state.toolIterations++;
     if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
     const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
@@ -87,9 +93,13 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
         .then((text) => { deps.onText?.(`\n🔍 Advisor (${state.consecutiveErrorResults} consecutive failures):\n${text}`); })
         .catch(() => { /* best-effort */ });
     }
-    if (stuck) return stuck;
+    if (stuck) {
+      stuckTool = stuck;
+      break;
+    }
   }
-  return null;
+  await fireHooks(join(ctx.root, ".vanta"), "PostToolBatch", { tools: batch }, { cwd: ctx.root, ...buildAgentHookDeps(deps) });
+  return stuckTool;
 }
 
 type NoToolCallsArgs = { result: CompletionResult; messages: Message[]; deps: AgentDeps; iter: number; state: TurnState };
@@ -165,6 +175,7 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
 }
 
 async function displayText(deps: AgentDeps, text: string): Promise<string> {
+  await fireHooks(join(deps.root, ".vanta"), "MessageDisplay", { text, role: "assistant" }, { cwd: deps.root, ...buildAgentHookDeps(deps) });
   return (await applyMessageDisplay(deps.hooks ?? globalHookBus, text)).text;
 }
 

@@ -3,6 +3,8 @@ import { runAgent } from "../agent.js";
 import { buildSystemPrompt } from "../prompt.js";
 import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal } from "../types.js";
 
@@ -28,6 +30,8 @@ export async function spawnSubagent(opts: {
 }): Promise<AgentOutcome> {
   const { deps } = opts;
   const now = (opts.now ?? new Date()).toISOString();
+  const dataDir = join(deps.root, ".vanta");
+  await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
   const goals: Goal[] = [{ id: 0, text: opts.goal, status: "active" }];
   // Workers are as aware as the parent: they see the skill index + the brain.
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
@@ -44,8 +48,12 @@ export async function spawnSubagent(opts: {
     skills,
     brain,
   });
-  return runAgent(systemPrompt, opts.instruction, {
-    ...deps,
-    maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS,
-  });
+  try {
+    const outcome = await runAgent(systemPrompt, opts.instruction, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
+    return outcome;
+  } catch (err) {
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err) }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
+    throw err;
+  }
 }

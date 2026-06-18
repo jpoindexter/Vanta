@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { fireHooks } from "../hooks/shell-hooks.js";
 
 // Worktree agents: git worktree isolation for parallel subagents.
 // Each isolated agent runs in a fresh worktree on its own branch so parallel
@@ -39,6 +40,7 @@ export async function createWorktree(
 
   // Create the worktree on a new branch based on HEAD.
   await run("git", ["worktree", "add", "-b", branch, tmpDir, "HEAD"], { cwd: repoRoot });
+  await fireHooks(join(repoRoot, ".vanta"), "WorktreeCreate", { path: tmpDir, branch }, { cwd: repoRoot });
 
   const cleanup = () => cleanupWorktree(repoRoot, tmpDir, branch);
 
@@ -46,6 +48,7 @@ export async function createWorktree(
 }
 
 export async function cleanupWorktree(repoRoot: string, path: string, branch: string): Promise<void> {
+  await fireHooks(join(repoRoot, ".vanta"), "WorktreeRemove", { path, branch }, { cwd: repoRoot });
   try {
     await run("git", ["worktree", "remove", "--force", path], { cwd: repoRoot });
   } catch { /* already removed */ }

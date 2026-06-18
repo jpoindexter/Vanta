@@ -7,7 +7,39 @@ import { z } from "zod";
 // plugins/hooks.ts (the in-process JS bus): command hooks can run arbitrary
 // shell, so the whole surface is opt-in via the config file and nothing else.
 
-export type ShellHookEvent = "Setup" | "SessionStart" | "SessionEnd" | "PreToolUse" | "PostToolUse" | "UserPromptSubmit" | "Stop";
+export const SHELL_HOOK_EVENTS = [
+  "SessionStart",
+  "Setup",
+  "InstructionsLoaded",
+  "UserPromptSubmit",
+  "UserPromptExpansion",
+  "MessageDisplay",
+  "PreToolUse",
+  "PermissionRequest",
+  "PermissionDenied",
+  "PostToolUse",
+  "PostToolUseFailure",
+  "PostToolBatch",
+  "Notification",
+  "SubagentStart",
+  "SubagentStop",
+  "TaskCreated",
+  "TaskCompleted",
+  "Stop",
+  "StopFailure",
+  "TeammateIdle",
+  "ConfigChange",
+  "CwdChanged",
+  "FileChanged",
+  "WorktreeCreate",
+  "WorktreeRemove",
+  "PreCompact",
+  "PostCompact",
+  "SessionEnd",
+  "Elicitation",
+  "ElicitationResult",
+] as const;
+export type ShellHookEvent = typeof SHELL_HOOK_EVENTS[number];
 
 const ShellHookSchema = z.object({
   /** Regex on tool name. Applies to PreToolUse / PostToolUse. Absent = match all.
@@ -70,21 +102,15 @@ export type ShellHook = z.infer<typeof ShellHookSchema>;
 export type MatchContext = {
   toolName?: string;
   toolInputJson?: string;
+  matcherValue?: string;
   prompt?: string;
   isError?: boolean;
   sessionType?: "interactive" | "one-shot";
   maintenance?: boolean;
 };
 
-const ShellHooksConfigSchema = z.object({
-  Setup: z.array(ShellHookSchema).optional(),
-  SessionStart: z.array(ShellHookSchema).optional(),
-  SessionEnd: z.array(ShellHookSchema).optional(),
-  PreToolUse: z.array(ShellHookSchema).optional(),
-  PostToolUse: z.array(ShellHookSchema).optional(),
-  UserPromptSubmit: z.array(ShellHookSchema).optional(),
-  Stop: z.array(ShellHookSchema).optional(),
-});
+const hookEventEntries = SHELL_HOOK_EVENTS.map((event) => [event, z.array(ShellHookSchema).optional()] as const);
+const ShellHooksConfigSchema = z.object(Object.fromEntries(hookEventEntries) as Record<ShellHookEvent, z.ZodOptional<z.ZodArray<typeof ShellHookSchema>>>);
 export type ShellHooksConfig = z.infer<typeof ShellHooksConfigSchema>;
 
 const HOOKS_FILE = "hooks.json";
@@ -114,8 +140,9 @@ function matchesPattern(pattern: string | undefined, text: string | undefined): 
 
 function namePatternBlocked(hook: ShellHook, ctx: MatchContext): boolean {
   const pat = hook.toolNamePattern ?? hook.matcher;
-  // Tool name patterns only apply when toolName is present; absent = match all (non-tool events).
-  return pat !== undefined && ctx.toolName !== undefined && !matchesPattern(pat, ctx.toolName);
+  const matchTarget = ctx.toolName ?? ctx.matcherValue;
+  // Matcher patterns only apply when the caller supplies the event-specific value.
+  return pat !== undefined && matchTarget !== undefined && !matchesPattern(pat, matchTarget);
 }
 
 function sessionTypeBlocked(hook: ShellHook, ctx: MatchContext): boolean {

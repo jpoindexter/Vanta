@@ -2,6 +2,8 @@ import { join } from "node:path";
 import { appendTask, advanceTask, type WorkerTask } from "../team/tasks.js";
 import { createWorktree, worktreeDiff, mergeWorktreeBranch, cleanupWorktree } from "../worktree/manager.js";
 import { spawnSubagent } from "../subagent/spawn.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import { loadFleetReport, saveFleetReport } from "./store.js";
 import type { FleetReport, FleetTaskSpec, FleetWorker } from "./types.js";
@@ -60,6 +62,7 @@ async function runWorker(args: {
     updated: iso(args.deps),
   };
   await appendStatus(worker, "assigned", args.deps);
+  await fireHooks(join(args.repoRoot, ".vanta"), "TaskCreated", { taskId: worker.taskId, workerId: worker.id, title: worker.title }, { cwd: args.repoRoot, ...buildAgentHookDeps(args.baseDeps) });
   await appendStatus(worker, "running", args.deps);
   try {
     const spawn = args.deps.spawn ?? ((opts) => spawnSubagent({
@@ -71,6 +74,7 @@ async function runWorker(args: {
     const diff = await (args.deps.diff ?? worktreeDiff)(args.repoRoot, handle.branch);
     worker = { ...worker, status: "done", diff, result: outcome.finalText, updated: iso(args.deps) };
     await appendStatus(worker, "done", args.deps, outcome.finalText);
+    await fireHooks(join(args.repoRoot, ".vanta"), "TaskCompleted", { taskId: worker.taskId, workerId: worker.id, title: worker.title, result: outcome.finalText }, { cwd: args.repoRoot, ...buildAgentHookDeps(args.baseDeps) });
     return worker;
   } catch (err) {
     const blocker = err instanceof Error ? err.message : String(err);

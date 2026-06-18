@@ -41,6 +41,20 @@ describe("compactConversation (persistent auto-compaction)", () => {
     expect(r.messages.some((m) => m.content.includes("consider /compress"))).toBe(false);
   });
 
+  it("fires onPreCompact before summarizing the dropped window", async () => {
+    const calls: string[] = [];
+    const msgs = manyMessages();
+    await compactConversation(msgs, 1000, async () => {
+      calls.push("summarize");
+      return "summary";
+    }, {
+      thresholdPct: 75,
+      onPreCompact: async (middle) => { calls.push(`pre:${middle.length}`); },
+    });
+    expect(calls[0]).toMatch(/^pre:/);
+    expect(calls[1]).toBe("summarize");
+  });
+
   it("returns not-compacted (originals) when the summarizer throws", async () => {
     const msgs = manyMessages();
     const boom = async () => { throw new Error("no summary"); };

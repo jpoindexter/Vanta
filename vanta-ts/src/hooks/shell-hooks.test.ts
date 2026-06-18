@@ -9,6 +9,7 @@ import {
   firePreToolUse,
   fireHooks,
   fireStopHook,
+  SHELL_HOOK_EVENTS,
   shellHooksPath,
 } from "./shell-hooks.js";
 
@@ -49,6 +50,14 @@ describe("loadShellHooks", () => {
     expect(c.PostToolUse?.[0]?.type).toBe("mcp_tool");
     expect(c.PostToolUse?.[0]?.server).toBe("notify");
     expect(c.PostToolUse?.[0]?.tool).toBe("send_notification");
+  });
+
+  it("accepts the full hook event vocabulary", async () => {
+    const config = Object.fromEntries(SHELL_HOOK_EVENTS.map((event) => [event, [{ command: "true" }]]));
+    await writeHooks(dir, config);
+    const loaded = await loadShellHooks(dir);
+    expect(SHELL_HOOK_EVENTS).toHaveLength(30);
+    for (const event of SHELL_HOOK_EVENTS) expect(loaded[event]).toHaveLength(1);
   });
 
   it("rejects an mcp_tool hook with missing server (zod) → {}", async () => {
@@ -130,6 +139,12 @@ describe("matchingHooks", () => {
     };
     expect(matchingHooks(c, "Setup", { maintenance: true }).map((h) => h.command)).toEqual(["maintenance", "always"]);
     expect(matchingHooks(c, "Setup", { maintenance: false }).map((h) => h.command)).toEqual(["normal", "always"]);
+  });
+
+  it("uses matcherValue for non-tool event matchers", () => {
+    const c = { ConfigChange: [{ matcher: "project_settings", command: "project" }, { command: "always" }] };
+    expect(matchingHooks(c, "ConfigChange", { matcherValue: "project_settings" }).map((h) => h.command)).toEqual(["project", "always"]);
+    expect(matchingHooks(c, "ConfigChange", { matcherValue: "user_settings" }).map((h) => h.command)).toEqual(["always"]);
   });
 });
 

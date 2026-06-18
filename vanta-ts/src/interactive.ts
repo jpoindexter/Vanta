@@ -69,6 +69,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const workingMemory = new SessionWorkingMemory();
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const { convo, agentDeps } = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
+  await fireSessionStart(repoRoot, state.sessionId, Boolean(resumed), agentDeps);
 
   const checkpoints = new CheckpointStore();
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
@@ -82,10 +83,20 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   } finally {
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
     await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot, ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
+    await fireSessionEnd(repoRoot, state.sessionId, agentDeps);
     rl.close();
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
   console.log("\nbye.");
+}
+
+function fireSessionStart(repoRoot: string, sessionId: string, resumed: boolean, deps: AgentDeps): Promise<void> {
+  const source = resumed ? "resume" : "startup";
+  return fireHooks(join(repoRoot, ".vanta"), "SessionStart", { sessionId, source }, { cwd: repoRoot, matcherValue: source, ...buildAgentHookDeps(deps, (m) => console.log(m)) });
+}
+
+function fireSessionEnd(repoRoot: string, sessionId: string, deps: AgentDeps): Promise<void> {
+  return fireHooks(join(repoRoot, ".vanta"), "SessionEnd", { sessionId, reason: "prompt_input_exit" }, { cwd: repoRoot, matcherValue: "prompt_input_exit", ...buildAgentHookDeps(deps, (m) => console.log(m)) });
 }
 
 function printRalphContinuityNotice(block?: string): void {

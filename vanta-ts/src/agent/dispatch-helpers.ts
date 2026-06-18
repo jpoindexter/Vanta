@@ -15,6 +15,7 @@ import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -59,12 +60,14 @@ export async function applySafetyGate(
 
   if (decision.decision === "block") {
     const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
+    await firePermissionEvent(ctx.root, "PermissionDenied", call.name, { tool: call.name, action, reason });
     deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
     return { approved: false, reason: `blocked: ${reason}` };
   }
 
   if (decision.decision === "ask") {
-    return handleApprovalRequest(call, action, verdict, deps);
+    await firePermissionEvent(ctx.root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
+    return handleApprovalRequest({ call, action, verdict, deps, root: ctx.root });
   }
 
   return { approved: true };
@@ -100,12 +103,14 @@ async function applyAutoMode(
   });
 }
 
-async function handleApprovalRequest(
-  call: ToolCall,
-  action: string,
-  verdict: Verdict,
-  deps: AgentDeps,
-): Promise<SafetyGateResult> {
+async function handleApprovalRequest(o: {
+  call: ToolCall;
+  action: string;
+  verdict: Verdict;
+  deps: AgentDeps;
+  root: string;
+}): Promise<SafetyGateResult> {
+  const { call, action, verdict, deps, root } = o;
   const why = verdict.reason || "permission rule";
   const approved = await deps.requestApproval(action, why, call.name);
   await recordApprovalSignal(call.name, action, why, approved);
@@ -114,11 +119,17 @@ async function handleApprovalRequest(
   const id = verdict.risk === "ask" ? await deps.safety.proposeApproval(action).catch(() => null) : null;
   if (!approved) {
     if (id) await deps.safety.deny(id).catch(() => {});
+    await firePermissionEvent(root, "PermissionDenied", call.name, { tool: call.name, action, reason: why });
     deps.onToolResult?.(call.name, false, "denied by user");
     return { approved: false, reason: `denied by user: ${why}` };
   }
   if (id) await deps.safety.approve(id).catch(() => {});
   return { approved: true };
+}
+
+async function firePermissionEvent(root: string | undefined, event: "PermissionRequest" | "PermissionDenied", toolName: string, context: Record<string, unknown>): Promise<void> {
+  if (!root) return;
+  await fireHooks(join(root, ".vanta"), event, context, { cwd: root, toolName, matcherValue: toolName }).catch(() => {});
 }
 
 async function recordApprovalSignal(toolName: string, action: string, reason: string, approved: boolean): Promise<void> {

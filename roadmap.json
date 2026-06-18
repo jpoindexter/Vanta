@@ -666,7 +666,7 @@
       "id": "VANTA-HOOK-EVENTS",
       "track": "Harness",
       "title": "Extended hook event coverage — all 30 another agent hook events",
-      "status": "next",
+      "status": "building",
       "size": "M",
       "summary": "another agent defines ~30 named hook events. Vanta's hooks cover the core 8 (SessionStart/End, PreToolUse, PostToolUse, Stop, UserPromptSubmit, PreCompact, PostCompact). Missing: TeammateIdle, TaskCreated/Completed, CwdChanged, FileChanged, ConfigChange, InstructionsLoaded, WorktreeCreate/Remove, Elicitation/ElicitationResult, MessageDisplay, UserPromptExpansion, StopFailure, PostToolBatch, SubagentStart/Stop.",
       "done": "All 30 another agent hook events are implemented and documented; existing event hooks are unchanged; each new event fires at the correct point in the agent/session lifecycle.",

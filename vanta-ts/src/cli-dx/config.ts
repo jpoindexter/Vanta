@@ -5,6 +5,7 @@ import { createInterface } from "node:readline/promises";
 import { envPath as getEnvPath, upsertEnvMigratingLegacy, removeEnvKeys } from "../setup.js";
 import { mirrorLegacyEnv } from "../env-compat.js";
 import { PROVIDER_CATALOG } from "../providers/catalog.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
 
 export const envPath = getEnvPath;
 
@@ -147,6 +148,7 @@ export async function migrateConfig(repoRoot: string): Promise<void> {
   const final = upsertEnvMigratingLegacy(migrated, updates);
 
   await writeFile(path, final, { mode: 0o600 });
+  await fireHooks(join(repoRoot, ".vanta"), "ConfigChange", { source: "project_settings", path, keys: Object.keys(updates) }, { cwd: repoRoot, matcherValue: "project_settings" });
   console.log(`Migrated ${Object.keys(updates).length} ARGO_* keys to VANTA_*.`);
   console.log("Removed legacy ARGO_* entries.");
 }
@@ -166,6 +168,7 @@ export async function setConfig(repoRoot: string, key: string, value: string): P
   const path = getEnvPath(repoRoot);
   const existing = existsSync(path) ? await readFile(path, "utf-8") : "";
   await writeFile(path, upsertEnvMigratingLegacy(existing, { [key]: value }), { mode: 0o600 });
+  await fireHooks(join(repoRoot, ".vanta"), "ConfigChange", { source: "project_settings", path, key }, { cwd: repoRoot, matcherValue: "project_settings" });
   return isSensitive(key) ? `✓ ${key} set (hidden) → .env` : `✓ ${key}=${value} → .env`;
 }
 

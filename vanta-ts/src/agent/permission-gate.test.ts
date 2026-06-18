@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, writeFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applySafetyGate } from "./dispatch-helpers.js";
@@ -9,6 +9,7 @@ import { readPreferenceSignals } from "../preferences/signals.js";
 import type { AgentDeps } from "../agent.js";
 import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
+import { shellHooksPath } from "../hooks/shell-hooks.js";
 
 // Integration test for the permissions gate in dispatch: the kernel verdict is
 // the floor; rules may TIGHTEN it but never loosen a Block. (The tighten() truth
@@ -56,6 +57,11 @@ function makeDeps(o: GateOpts): AgentDeps {
 const call: ToolCall = { id: "1", name: "shell_cmd", arguments: { cmd: "ls" } };
 const ctx = {} as ToolContext;
 
+async function writeHookConfig(root: string, config: unknown): Promise<void> {
+  await mkdir(join(root, ".vanta"), { recursive: true });
+  await writeFile(shellHooksPath(join(root, ".vanta")), JSON.stringify(config), "utf8");
+}
+
 describe("applySafetyGate + permissions", () => {
   it("a deny rule blocks an otherwise-allowed tool", async () => {
     await writeRules("deny\tshell_cmd\t\n");
@@ -83,6 +89,17 @@ describe("applySafetyGate + permissions", () => {
     const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, onAsk: () => { prompted = true; } }), ctx);
     expect(res.approved).toBe(true);
     expect(prompted).toBe(true);
+  });
+
+  it("fires PermissionRequest and PermissionDenied hooks around user approval", async () => {
+    const marker = join(home, "permission-hooks");
+    await writeHookConfig(home, {
+      PermissionRequest: [{ matcher: "shell_cmd", command: `printf request >> ${marker}` }],
+      PermissionDenied: [{ matcher: "shell_cmd", command: `printf denied >> ${marker}` }],
+    });
+    const res = await applySafetyGate(call, makeDeps({ risk: "ask", approve: false }), { root: home } as ToolContext);
+    expect(res.approved).toBe(false);
+    expect(await readFile(marker, "utf8")).toBe("requestdenied");
   });
 
   it("kernel unreachable → fails CLOSED gracefully (blocked result, no throw)", async () => {
@@ -184,6 +201,22 @@ describe("applySafetyGate + permissions", () => {
     const res = await dispatchTool({ id: "4", name: "shell_cmd", arguments: { cmd: "echo hi" } }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
     expect(res.ok).toBe(true);
     expect(prompted).toBe(true);
+  });
+
+  it("fires PostToolUseFailure for failed tool results", async () => {
+    const marker = join(home, "failed-tool-hook");
+    await writeHookConfig(home, { PostToolUseFailure: [{ matcher: "failing_tool", command: `printf failed >> ${marker}` }] });
+    const deps = makeDeps({ risk: "allow" });
+    deps.registry = {
+      get: () => ({
+        execute: async () => ({ ok: false, output: "nope" }),
+        describeForSafety: () => "run failing tool",
+      }),
+    } as unknown as AgentDeps["registry"];
+    const res = await dispatchTool({ id: "5", name: "failing_tool", arguments: {} }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
+    expect(res.ok).toBe(false);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(await readFile(marker, "utf8")).toBe("failed");
   });
 
   it("auto mode soft-denies classified borderline asks without prompting", async () => {

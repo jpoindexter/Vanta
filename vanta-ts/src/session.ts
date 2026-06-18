@@ -16,6 +16,7 @@ import type { EffortLevel, Goal } from "./types.js";
 import {
   loadRuntimeExtensions, buildRunPrompt, injectResume, logSessionConfig,
 } from "./session/prepare-helpers.js";
+import { fireHooks } from "./hooks/shell-hooks.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -57,6 +58,7 @@ export async function prepareRun(
   installMessageDisplayHooks(globalHookBus, process.env);
 
   const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds });
+  await fireHooks(join(repoRoot, ".vanta"), "InstructionsLoaded", { reason: "session_start", instruction }, { cwd: repoRoot, matcherValue: "session_start", promptProvider: provider });
   let systemPrompt = prompt.systemPrompt;
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
   if (instruction === "interactive session") {

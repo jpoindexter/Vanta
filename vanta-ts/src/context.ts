@@ -32,6 +32,8 @@ type TrimOptions = {
   activeGoalText?: string;
   /** The live session scratchpad, injected interior on compression. */
   sessionMemory?: string;
+  /** Best-effort callback fired immediately before persistent compaction summarizes the dropped window. */
+  onPreCompact?: (middle: Message[]) => Promise<void>;
 };
 
 /**
@@ -173,6 +175,7 @@ export async function compactConversation(
   if (middle.length === 0) return none;
 
   try {
+    await opts.onPreCompact?.(middle).catch(() => {});
     const summary = await summarize(middle);
     const note: Message = { role: "user", content: `[Summary of ${middle.length} earlier messages]: ${summary}` };
     return { messages: [...system, ...head, note, ...tail], compacted: true, dropped: middle.length, summary, compactedWindow: middle };

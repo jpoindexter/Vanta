@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import { loadShellHooks, shellHooksPath } from "../hooks/shell-hooks.js";
+import { loadShellHooks, shellHooksPath, SHELL_HOOK_EVENTS } from "../hooks/shell-hooks.js";
 import type { ShellHook, ShellHookEvent, ShellHooksConfig } from "../hooks/shell-hooks.js";
 import type { SlashHandler } from "./types.js";
 
-const EVENTS = ["PreToolUse", "PostToolUse", "Stop", "UserPromptSubmit", "SessionStart", "SessionEnd"] as const;
+const EVENTS = SHELL_HOOK_EVENTS;
 type ManagedEvent = typeof EVENTS[number];
 
 function isManagedEvent(value: string): value is ManagedEvent {
