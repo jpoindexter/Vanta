@@ -23,6 +23,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `preferences/signals.ts` | PREFERENCE-SIGNALS — append/read/export `~/.vanta/preferences.jsonl` chosen-vs-rejected rows for human approval decisions. |
 | `fleet/` | PARALLEL-AGENT-FLEET — worktree-isolated parallel subagent orchestration. `vanta fleet run --task ...` records team-task states and `.vanta/fleets/<id>.json`; `review` prints diff/result state; `accept` merges one reviewed worker branch. |
 | `workflow/` | FABRO-WORKFLOW-GRAPH — pure declarative workflow graph layer: zod schema/reference validation, canonical diff, and injected executor for `agent`/`approval`/`interview` nodes plus `next`/`branch`/`loop`/`parallel` transitions. `tools/workflow.ts` wires it to kernel assessment, human gates, provider/registry resolution, and `spawnSubagent`. |
+| `goals/` | GOAL-DEPS — TS-side dependency graph over kernel goals. `deps.ts` owns `.vanta/goal-deps.json`, derived blocked state, and wake calculation; the Rust ledger remains the source of truth for goal active/done. |
 | `auto-research/` | AUTO-RESEARCH-LOOP — metric-driven unattended improvement loop. `vanta auto-research --objective --metric --bounds` creates isolated candidate worktrees, commits candidates, keeps only numeric metric improvements, journals deltas, and stops on no-progress/max-iters. |
 | `meta-tune/` | META-TUNE-INSTRUCTIONS — bounded `PROGRAM.md` instruction tuning. `vanta meta-tune instructions` scores variants against eval pass@1/CNG, records the best, and requires explicit approval before adoption. |
 | `worktree/manager.ts` | Git-worktree lifecycle for the fleet: create/list/remove isolated `.vanta/worktrees` checkouts (one per parallel task), branch naming, cleanup |
@@ -155,6 +156,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `cli/meta-tune-cmd.ts` | `vanta meta-tune instructions [--iters N] [--adopt]` parser; runs evals with `VANTA_PROGRAM_OVERRIDE` for candidate scoring and approval-gates writes to `PROGRAM.md`. |
 | `cli/auto-mode-cmd.ts` + `cli/permission-mode.ts` | `vanta auto-mode defaults/config` plus `--permission-mode auto|default` parsing (`VANTA_AUTO_MODE`). |
 | `cli/commands.ts` | The `vanta <cmd>` handlers extracted from cli.ts (CODE-SIZE-GATE): `usage`/`usageExit`, `runInstruction` (shared run/skill/room path), `runSessionsList`/`runSkillsCommand`/`runMemoryCommand`/`runVoiceCommand`/`runHooksCommand`/`runSkillCommand`/`runRoomCommand` |
+| `cli/goals-cmd.ts` | `vanta goals` — live kernel goals plus `goals/deps.ts` graph state rendered through the shared goal ledger formatter. |
 | `cli/lifecycle.ts` | `parseLifecycleFlags` + `runLifecycleHooks`: `--init` runs Setup hooks, `--init-only` runs Setup + SessionStart and exits, `--maintenance` sets maintenance context and exits |
 | `cli/output-callbacks.ts` | Output callback builder for `vanta run` (`text`/`json`/`stream-json`) split out to keep `commands.ts` under size limits |
 | `compress/types.ts` | COMPRESS-NATIVE — `ContentType` (`json`/`log`/`binary`/`text`), `CompressOptions`, `CompressResult`, `DEFAULTS`, `estTokens` |
@@ -238,6 +240,10 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
 - **Current source counts beat historical session counts.** As of the 2026-06-18 context sync, `ALL_TOOLS` has 88 built-in tools (90 registered with factory `mount_mcp`/`tool_search`) and `SLASH_COMMANDS.length` reports 99 commands. Older counts in session history are milestones, not current truth.
+
+## Session additions (2026-06-18) — keep current
+
+**GOAL-DEPS.** `goals/deps.ts` adds a TS-side dependency graph stored at `.vanta/goal-deps.json` (`version:1`, `edges:[{blockerId,dependentId}]`) without changing the Rust kernel goal ledger. `/goal blocks <blocker> <dependent>` and `/goal blocked_by <dependent> <blocker>` add edges; `/goal status`, `/goals`, and `vanta goals` render derived `blocked_by`/`blocks` state. Completing a blocker with `/goal done <id>` reports newly unblocked dependents as `woke:` when all their blockers are done. Verified: **469 TS files / 3679 tests green**, `tsc` clean, size gate clean.
 
 ## Session additions (2026-06-16) — keep current
 

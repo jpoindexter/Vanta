@@ -5,5 +5,6 @@ REPL and slash-command surface.
 - `types.ts` defines `ReplCtx`, `ReplState`, and `SlashResult`.
 - Individual `*-cmd.ts` files own focused slash behavior; `*-cmds.ts` files group several related handlers (e.g. `context-cmds.ts`, `media-cmds.ts`, `session-cmds.ts`).
 - `recover-cmd.ts` owns `/recover`: a pure classifier over recent `Message[]` signals that returns the corrective route (`debug`, `compact-or-restart`, `revisit-plan`) without model calls.
+- `goal-cmd.ts` owns `/goal`: show/set/clear/done plus dependency verbs `blocks` and `blocked_by`; graph persistence/derivation lives in `../goals/deps.ts`.
 - Command handlers should be pure aside from deliberate `ctx` mutation and filesystem work described by the command.
 - Add co-located tests for new command helpers or state mutation.

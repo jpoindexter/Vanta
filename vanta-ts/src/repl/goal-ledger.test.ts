@@ -19,4 +19,15 @@ describe("formatGoalLedger", () => {
   it("nudges when the ledger is empty", () => {
     expect(formatGoalLedger([])).toContain("no goals yet");
   });
+
+  it("shows blocked_by and blocks graph state", () => {
+    const out = formatGoalLedger([
+      { id: 1, text: "blocker", status: "active" },
+      { id: 2, text: "dependent", status: "active" },
+    ], [{ blockerId: 1, dependentId: 2 }]);
+    expect(out).toContain("● blocker");
+    expect(out).toContain("blocks:2");
+    expect(out).toContain("◌ dependent");
+    expect(out).toContain("blocked_by:1");
+  });
 });

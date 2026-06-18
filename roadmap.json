@@ -9784,7 +9784,7 @@
       "id": "GOAL-DEPS",
       "track": "Harness",
       "title": "Goal dependency graph — blocked_by/blocks + auto-start scheduler",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Goals declare blocked_by/blocks; the scheduler auto-starts any goal whose blockers are done and holds blocked ones. Parallel branches fall out of the graph instead of hand-coded fan-out. Steals paperclip plan-to-tasks decomposition.",
       "done": "Completing a blocker auto-wakes its dependents; vanta goals shows the graph state.",

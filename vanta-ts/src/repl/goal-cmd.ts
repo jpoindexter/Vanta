@@ -1,8 +1,11 @@
 import { lines } from "./format.js";
 import { isVagueGoal, buildNextStepResend } from "./next.js";
+import { addGoalDependency, parseGoalDepArgs, readGoalDeps, wakingDependents, type GoalDepEdge } from "../goals/deps.js";
 import { dropIncompleteRalphWork, hasIncompleteRalphWork, readRalphState, selectNextIncompleteFeature, updateFeatureStatus, writeRalphState } from "../ralph/state.js";
 import type { ReplCtx, SlashResult } from "./types.js";
 import type { SlashHandler } from "./types.js";
+import { formatGoalLedger } from "./goal-ledger.js";
+import type { Goal } from "../types.js";
 
 /** Persist a new goal, patch the live prompt, and auto-fire GOAL-ACTION when vague. */
 async function setNewGoal(arg: string, ctx: ReplCtx): Promise<SlashResult> {
@@ -19,12 +22,13 @@ async function setNewGoal(arg: string, ctx: ReplCtx): Promise<SlashResult> {
 }
 
 type Safety = ReplCtx["setup"]["safety"];
-const activeGoals = async (safety: Safety): Promise<{ id: number; text: string }[]> =>
+const activeGoals = async (safety: Safety): Promise<Goal[]> =>
   (await safety.getGoals().catch(() => [])).filter((g) => g.status === "active");
 
-async function goalStatus(safety: Safety): Promise<SlashResult> {
-  const active = await activeGoals(safety);
-  return { output: lines(active.map((g) => `  [${g.id}] ${g.text}`), "  (no active goals — /goal <text> to set one)") };
+async function goalStatus(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
+  const goals = await safety.getGoals().catch(() => []);
+  const deps = await readGoalDeps(ctx.dataDir);
+  return { output: goals.length ? formatGoalLedger(goals, deps.edges) : lines([], "  (no active goals — /goal <text> to set one)") };
 }
 
 /** Activate a goal carried (paused) from a prior session: re-inject it into the
@@ -63,11 +67,30 @@ async function goalDrop(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   return { output: `  · dropped ${active.length} active goal(s) and dropped Ralph loop — starting fresh` };
 }
 
-async function goalDone(arg: string, safety: Safety): Promise<SlashResult> {
+async function goalDone(arg: string, safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
   const id = Number(arg.split(/\s+/)[1]);
   if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
   const ok = await safety.completeGoal(id);
-  return { output: ok ? `  ✓ completed goal ${id}` : `  could not complete goal ${id}` };
+  if (!ok) return { output: `  could not complete goal ${id}` };
+  const [goals, deps] = await Promise.all([safety.getGoals().catch(() => []), readGoalDeps(ctx.dataDir)]);
+  const woke = wakingDependents(id, goals, deps.edges);
+  const suffix = woke.length ? `\n  ▶ woke: ${woke.map((g) => `#${g.id} ${g.text}`).join("; ")}` : "";
+  return { output: `  ✓ completed goal ${id}${suffix}` };
+}
+
+async function goalDependency(arg: string, ctx: ReplCtx, mode: "blocks" | "blocked_by"): Promise<SlashResult> {
+  const edge = parseGoalDepArgs(arg, mode);
+  if (!edge) return { output: `  usage: /goal ${mode} <${mode === "blocks" ? "blocker" : "dependent"}> <${mode === "blocks" ? "dependent" : "blocker"}>` };
+  const goals = await ctx.setup.safety.getGoals().catch(() => []);
+  const missing = missingGoalIds(edge, goals.map((g) => g.id));
+  if (missing.length) return { output: `  unknown goal id(s): ${missing.join(", ")}` };
+  await addGoalDependency(ctx.dataDir, edge);
+  return { output: `  linked: #${edge.blockerId} blocks #${edge.dependentId}` };
+}
+
+function missingGoalIds(edge: GoalDepEdge, ids: number[]): number[] {
+  const known = new Set(ids);
+  return [edge.blockerId, edge.dependentId].filter((id) => !known.has(id));
 }
 
 // `/goal` — show / set / resume / drop / complete a standing goal. A goal carried
@@ -76,9 +99,15 @@ async function goalDone(arg: string, safety: Safety): Promise<SlashResult> {
 export const goal: SlashHandler = async (arg, ctx) => {
   const safety = ctx.setup.safety;
   const sub = arg.split(/\s+/)[0]?.toLowerCase() ?? "";
-  if (!arg || sub === "status") return goalStatus(safety);
-  if (sub === "resume") return (await goalResumeRalph(ctx)) ?? goalResume(safety, ctx);
-  if (sub === "clear" || sub === "drop") return goalDrop(safety, ctx);
-  if (sub === "done") return goalDone(arg, safety);
-  return setNewGoal(arg, ctx); // anything else is new goal text
+  return handleGoalSubcommand(arg, sub, safety, ctx);
 };
+
+async function handleGoalSubcommand(arg: string, sub: string, safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
+  if (!arg || sub === "status") return goalStatus(safety, ctx);
+  if (sub === "resume") return (await goalResumeRalph(ctx)) ?? goalResume(safety, ctx);
+  if (["clear", "drop"].includes(sub)) return goalDrop(safety, ctx);
+  if (sub === "blocks") return goalDependency(arg, ctx, "blocks");
+  if (["blocked_by", "blocked-by"].includes(sub)) return goalDependency(arg, ctx, "blocked_by");
+  if (sub === "done") return goalDone(arg, safety, ctx);
+  return setNewGoal(arg, ctx);
+}

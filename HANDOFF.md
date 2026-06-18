@@ -7,8 +7,8 @@ Cold-start context for the next thread. Read this + `CLAUDE.md` + `AGENTS.md` fi
 - **Repo:** `/Users/jasonpoindexter/Documents/GitHub/_active/Vanta`
 - **Branch:** `main`
 - **Runtime:** Rust kernel in `src/`; TypeScript agent in `vanta-ts/` (Node 22, ESM, tsx)
-- **Current source counts:** 81 built-in tools from `vanta-ts/src/tools/index.ts`; 93 slash commands from `vanta-ts/src/repl/catalog.ts`
-- **Last recorded full verify:** 3313 TS tests green, `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-15 notes)
+- **Current source counts:** 88 built-in tools from `vanta-ts/src/tools/all-tools.ts` (90 registered incl. factory tools); 99 slash commands from `vanta-ts/src/repl/catalog.ts`
+- **Last recorded full verify:** 3679 TS tests green (469 files), `tsc` clean, kernel tests green (see `vanta-ts/CLAUDE.md` 2026-06-18 notes)
 
 ## Run + Verify
 
@@ -28,6 +28,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - **Agent loop:** `vanta-ts/src/agent.ts`, `session.ts`, `prompt.ts`, `providers/`, `safety-client.ts`.
 - **Tools:** `vanta-ts/src/tools/index.ts` registers built-ins; runtime MCP mounts can add more.
 - **Slash commands:** `vanta-ts/src/repl/catalog.ts` is canonical; handlers live in `vanta-ts/src/repl/handlers.ts` and related `*-cmd.ts` files.
+- **Goal graph:** `vanta-ts/src/goals/deps.ts` stores `.vanta/goal-deps.json`; `/goal blocks`, `/goal blocked_by`, `/goal status`, `/goals`, and `vanta goals` render derived dependency state.
 - **Runtime plugins:** `vanta-ts/src/plugins/` loads enabled `plugin.json` plugins from `~/.vanta/plugins`; plugin tools are normal kernel-gated tools and plugin slash commands live in the runtime command registry.
 - **Project init:** `/init` writes `.claude/CLAUDE.md` for the current project; use `--print` to preview and `--force` to replace.
 - **Lifecycle init:** `--init` runs Setup hooks before a session; `--init-only` runs Setup + SessionStart and exits; `--maintenance` adds maintenance context.
@@ -51,6 +52,7 @@ cd vanta-ts && npx vitest run && npx tsc --noEmit
 - Operator rocks: world model, Money OS, opportunity radar, background teams, life-search, self-repair compartments, verification locks, browser action body.
 - Horizon depth: live radar web scan, local embeddings, approval-gated self-repair rollback + limb sandbox-test, teams live-spawn, background agent CLI management, auto permission mode.
 - Reach layer: channel doctor, RSS, Reddit, cookie import; deferred reach channels tracked as `REACH-*`.
+- Goal dependency graph: blockers/dependents over kernel goals with wake notices when a completed blocker unblocks a dependent.
 
 ## Current Open Edges
 

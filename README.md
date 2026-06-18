@@ -38,6 +38,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 ./run.sh skills | skill <name> ["<instr>"] # learned skills
 ./run.sh modes install                     # the 6 operator modes
 ./run.sh rooms | room <name> "<instr>"     # per-project goal streams
+./run.sh goals                             # kernel goals plus dependency graph state
 ./run.sh schedule "<instr>" --cron "0 8 * * *" | schedule list | cron
 ./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
 ```
@@ -49,7 +50,8 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 90 tools and 98 slash commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 90 registered tools and 99 slash commands
+- **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding

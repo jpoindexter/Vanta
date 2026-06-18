@@ -23,6 +23,7 @@ import { runEvolveCommand } from "./cli/evolve-cmd.js";
 import { runModelCommand } from "./cli/model-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
 import { runAgentsCommand } from "./cli/agents-cmd.js";
+import { runGoalsCommand } from "./cli/goals-cmd.js";
 import {
   usage,
   usageExit,
@@ -126,6 +127,7 @@ const COMMANDS: Record<string, CommandFn> = {
   settings: (root, rest) => runSettingsCommand(root, rest),
   loop: (root, rest) => runLoopCommand(root, rest),
   agents: (root, rest) => runAgentsCommand(root, rest),
+  goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
   logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),

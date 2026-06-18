@@ -46,6 +46,7 @@ import { contextCmd } from "./context-cmd.js";
 import { init } from "./init-cmd.js";
 import { CLI_PASSTHROUGH } from "./cli-bridge.js";
 import { formatGoalLedger } from "./goal-ledger.js";
+import { readGoalDeps } from "../goals/deps.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
 import { nd } from "./nd-cmd.js";
@@ -119,7 +120,8 @@ const memory: SlashHandler = async (arg, ctx) => {
 
 const goals: SlashHandler = async (_arg, ctx) => {
   const g = await ctx.setup.safety.getGoals().catch(() => []);
-  return { output: formatGoalLedger(g) };
+  const deps = await readGoalDeps(ctx.dataDir);
+  return { output: formatGoalLedger(g, deps.edges) };
 };
 
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
