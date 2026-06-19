@@ -7,7 +7,7 @@ import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
 import { playbookDigest } from "../memory/playbook.js";
-import { mountMcpServers } from "../mcp/mount.js";
+import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import type { Settings } from "../settings/store.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
 import { sessionConfig, sessionConfigEvent } from "../sessions/config-event.js";
@@ -79,11 +79,12 @@ export async function injectResume(systemPrompt: string, repoRoot: string): Prom
 export async function loadRuntimeExtensions(
   repoRoot: string,
   registry: ReturnType<typeof buildRegistry>,
+  mcpTrust?: McpTrust,
 ): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry }> {
   const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
-  await mountMcpServers(registry, process.env, (m) => console.log(m), repoRoot);
+  await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
   const { loadEnabledPlugins } = await import("../plugins/loader.js");
@@ -107,6 +108,8 @@ export async function buildRunPrompt(o: {
   goals: Goal[];
   registry: ReturnType<typeof buildRegistry>;
   activeIds: number[];
+  /** VANTA-TRUST-DIALOG: false → untrusted project, context files are not loaded. */
+  loadContext?: boolean;
 }): Promise<{ systemPrompt: string; ralphContinuity?: string }> {
   const ctx = await loadPromptContext(o.repoRoot, o.activeIds);
   const playbook = await playbookDigest(o.instruction).catch(() => "");
@@ -133,6 +136,7 @@ export async function buildRunPrompt(o: {
     playbook,
     ralphContinuity,
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
+    loadContext: o.loadContext,
   });
   return { systemPrompt, ralphContinuity };
 }

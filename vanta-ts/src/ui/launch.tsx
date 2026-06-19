@@ -4,6 +4,7 @@ import { AppV2 } from "./v2/app-v2.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { installResizeGhostFix } from "../term/resize-fix.js";
+import { promptTrust } from "./trust-prompt.js";
 
 export type TuiSurface = "v1" | "v2";
 
@@ -16,7 +17,8 @@ export function selectTuiSurface(env: { VANTA_TUI?: string }): TuiSurface {
  * default; VANTA_TUI=v2 opts into the separate mission-control surface.
  */
 export async function runTuiV2(repoRoot: string): Promise<void> {
-  const setup = await prepareRun(repoRoot, "interactive session");
+  const confirmTrust = process.stdin.isTTY ? promptTrust : undefined;
+  const setup = await prepareRun(repoRoot, "interactive session", undefined, { confirmTrust });
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
   const instance = render(surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />);

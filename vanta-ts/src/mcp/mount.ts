@@ -6,6 +6,10 @@ import { McpClient, stdioTransport, type McpToolDef, type Transport } from "./cl
 import { mcpClientEvents } from "./events.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
+import { resolveMcpTrust, type TrustConfirmer } from "../settings/trust-gate.js";
+
+/** First-time trust gate for MCP servers. Omitted → headless: untrusted servers are skipped. */
+export type McpTrust = { root: string; confirm?: TrustConfirmer };
 
 // Mount external MCP servers as Vanta tools.
 // Config sources (first wins for inline; files are merged with project winning on conflict):
@@ -133,13 +137,19 @@ async function mountOneServer(opts: {
   deferred: boolean;
   cwd: string;
   log: (msg: string) => void;
+  trust?: McpTrust;
 }): Promise<number> {
-  const { name, spec, registry, env, children, deferred, cwd, log } = opts;
+  const { name, spec, registry, env, children, deferred, cwd, log, trust } = opts;
   const transport = await resolveTransport(name, spec, env, children);
   if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
   const client = new McpClient(transport, mcpClientEvents(cwd, name));
   await client.initialize();
   const defs = await client.listTools();
+  if (trust) {
+    const tools = defs.map((d) => ({ name: d.name, description: d.description }));
+    const ok = await resolveMcpTrust(trust.root, name, tools, trust.confirm);
+    if (!ok) { log(`  · mcp: ${name} skipped — not trusted`); return 0; }
+  }
   for (const def of defs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
   log(`  · mcp: mounted ${name} (${defs.length} tool(s))${spec.url ? " [http]" : ""}`);
   return defs.length;
@@ -154,8 +164,10 @@ export async function mountMcpServers(
   registry: ToolRegistry,
   env: NodeJS.ProcessEnv = process.env,
   log: (msg: string) => void = () => {},
-  cwd = process.cwd(),
+  opts: { cwd?: string; trust?: McpTrust } = {},
 ): Promise<MountResult> {
+  const cwd = opts.cwd ?? process.cwd();
+  const trust = opts.trust;
   const config = await readMcpConfig(env, cwd);
   const names = Object.keys(config.servers);
   if (names.length === 0) return { servers: [], toolCount: 0, dispose: () => {} };
@@ -169,7 +181,7 @@ export async function mountMcpServers(
     const spec = config.servers[name];
     if (!spec) continue;
     try {
-      const count = await mountOneServer({ name, spec, registry, env, children, deferred, cwd, log });
+      const count = await mountOneServer({ name, spec, registry, env, children, deferred, cwd, log, trust });
       if (count > 0) { mounted.push(name); toolCount += count; }
     } catch (err) {
       log(`  · mcp: ${name} failed — ${(err as Error).message}`);

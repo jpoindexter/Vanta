@@ -61,7 +61,7 @@ async function runDelegate(
   if ("ok" in wt && !wt.ok) return wt;
   const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
   const { mountMcpServers } = await import("../mcp/mount.js");
-  await mountMcpServers(registry, process.env, () => {}, workerRoot);
+  await mountMcpServers(registry, process.env, () => {}, { cwd: workerRoot });
 
   try {
     const outcome = await spawnSubagent({

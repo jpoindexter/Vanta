@@ -199,6 +199,8 @@ export async function buildSystemPrompt(opts: {
   playbook?: string;
   /** META-TUNE-INSTRUCTIONS: bounded, approved harness instruction block. */
   program?: string;
+  /** VANTA-TRUST-DIALOG: false → the project's context files are untrusted and not loaded. Default true. */
+  loadContext?: boolean;
 }): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
@@ -216,7 +218,7 @@ export async function buildSystemPrompt(opts: {
     brainTier(opts.brain),
     vaultTier(),
     skillsTier(opts.skills),
-    await contextTier(opts.root),
+    opts.loadContext === false ? "" : await contextTier(opts.root),
     errorsLogTier(opts.errorsLog),
     programTier(opts.program),
     playbookTier(opts.playbook),

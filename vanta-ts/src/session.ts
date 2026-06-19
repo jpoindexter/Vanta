@@ -17,6 +17,7 @@ import {
   loadRuntimeExtensions, buildRunPrompt, injectResume, logSessionConfig,
 } from "./session/prepare-helpers.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
+import { resolveProjectTrust, type TrustConfirmer } from "./settings/trust-gate.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -36,10 +37,14 @@ export type RunSetup = {
   ralphContinuity?: string;
 };
 
+/** VANTA-TRUST-DIALOG: interactive hosts pass a confirmer to gate untrusted project/MCP. */
+export type PrepareRunOpts = { confirmTrust?: TrustConfirmer };
+
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
   skillBody?: string,
+  opts: PrepareRunOpts = {},
 ): Promise<RunSetup> {
   const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
   const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
@@ -47,7 +52,8 @@ export async function prepareRun(
 
   const safety = createKernelClient(baseUrl);
   const registry = buildRegistry();
-  const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry);
+  const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
+  const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
@@ -57,7 +63,8 @@ export async function prepareRun(
   await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
 
-  const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds });
+  const loadContext = await resolveProjectTrust(repoRoot, opts.confirmTrust);
+  const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds, loadContext });
   await fireHooks(join(repoRoot, ".vanta"), "InstructionsLoaded", { reason: "session_start", instruction }, { cwd: repoRoot, matcherValue: "session_start", promptProvider: provider });
   let systemPrompt = prompt.systemPrompt;
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;

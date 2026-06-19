@@ -22,6 +22,7 @@ import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 import { runReplLoop } from "./interactive-repl.js";
 import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
+import type { TrustConfirmer } from "./settings/trust-gate.js";
 
 const LOGO = String.raw`
    █████╗ ██████╗  ██████╗  ██████╗
@@ -51,9 +52,17 @@ export function renderBanner(d: BannerData): string {
   ].join("\n");
 }
 
+/** Trust confirmer for the readline REPL host; undefined off a TTY → headless fail-safe. */
+async function replTrustConfirmer(rl: ReturnType<typeof createInterface>): Promise<TrustConfirmer | undefined> {
+  if (!process.stdin.isTTY) return undefined;
+  const { readlineTrustConfirmer } = await import("./settings/trust-readline.js");
+  return readlineTrustConfirmer(rl);
+}
+
 export async function runChat(repoRoot: string, opts: { resumeId?: string; forkSession?: boolean; lifecycle?: LifecycleFlags } = {}): Promise<void> {
   if (opts.lifecycle && await runLifecycleHooks(repoRoot, opts.lifecycle, "interactive")) return;
-  const setup = await prepareRun(repoRoot, "interactive session");
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const setup = await prepareRun(repoRoot, "interactive session", undefined, { confirmTrust: await replTrustConfirmer(rl) });
   await maybeCurate();
   const skills = await listSkills();
   const resumed = opts.resumeId ? await loadResumeTarget(opts.resumeId, opts.forkSession) : null;
@@ -69,7 +78,6 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   else if (opts.resumeId) console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
 
   const workingMemory = new SessionWorkingMemory();
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
   const { convo, agentDeps } = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
   await fireSessionStart(repoRoot, state.sessionId, Boolean(resumed), agentDeps);
   const stopFileWatcher = await startHookFileWatcher(repoRoot, { dataDir: join(repoRoot, ".vanta"), ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
