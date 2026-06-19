@@ -13,6 +13,8 @@ import {
 } from "../session.js";
 import { loadSchema } from "../output/json-schema.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
+import { installPluginSources } from "./plugin-source-install.js";
+import type { PluginSource } from "./plugin-source-flags.js";
 import { buildCallbacks } from "./output-callbacks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
@@ -26,6 +28,7 @@ export function usage(): void {
       "Usage: vanta                              start an interactive session",
       "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
+      "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
       "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
       "       vanta setup model                  just the model/provider picker",
@@ -113,11 +116,12 @@ function oneShotDeps(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: s
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
-  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat; jsonSchema?: string; lifecycle?: LifecycleFlags } = {},
+  opts: { skillBody?: string; root?: string; outputFormat?: OutputFormat; jsonSchema?: string; lifecycle?: LifecycleFlags; pluginSources?: PluginSource[] } = {},
 ): Promise<void> {
   const format: OutputFormat = opts.outputFormat ?? "text";
   const structured = format !== "text";
   const root = opts.root ?? repoRoot;
+  if (opts.pluginSources?.length) await installPluginSources(root, opts.pluginSources);
   if (opts.lifecycle && await runLifecycleHooks(root, opts.lifecycle, "one-shot")) return;
   const schema = loadSchema(opts.jsonSchema ?? process.env.VANTA_JSON_SCHEMA);
   const setup = await prepareRun(root, instruction, opts.skillBody);

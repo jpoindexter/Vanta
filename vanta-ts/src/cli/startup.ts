@@ -8,6 +8,8 @@ import { runTuiV2 } from "../ui/launch.js";
 import { runFullSetup } from "../setup-full.js";
 import { parseLifecycleFlags, runLifecycleHooks, type LifecycleFlags } from "./lifecycle.js";
 import { parsePermissionModeFlags } from "./permission-mode.js";
+import { parsePluginSourceFlags, type PluginSource } from "./plugin-source-flags.js";
+import { installPluginSources } from "./plugin-source-install.js";
 import { parseEffortFlag } from "../effort.js";
 import type { OutputFormat } from "./commands.js";
 
@@ -57,8 +59,9 @@ async function ensureConfiguredOrSetup(repoRoot: string): Promise<boolean> {
 
 export async function startInteractive(
   repoRoot: string,
-  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags } = {},
+  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags; pluginSources?: PluginSource[] } = {},
 ): Promise<void> {
+  if (opts.pluginSources?.length) await installPluginSources(repoRoot, opts.pluginSources);
   if (await maybeRunStartupLifecycle(repoRoot, opts.lifecycle)) return;
   if (!await ensureConfiguredOrSetup(repoRoot)) return;
   const useTui =
@@ -94,14 +97,16 @@ export function parseRunArgs(rest: string[]): { instruction: string; outputForma
   return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
 }
 
-export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags } {
+export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags; pluginSources: PluginSource[] } {
   const permissionParse = parsePermissionModeFlags(args, process.env);
   if (permissionParse.error) { console.error(permissionParse.error); process.exit(1); }
   process.env = permissionParse.env;
   const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
   if (effortParse.error) { console.error(effortParse.error); process.exit(1); }
   process.env = effortParse.env;
-  const lifecycleParse = parseLifecycleFlags(effortParse.rest);
-  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags };
+  const pluginParse = parsePluginSourceFlags(effortParse.rest);
+  if (pluginParse.error) { console.error(pluginParse.error); process.exit(1); }
+  const lifecycleParse = parseLifecycleFlags(pluginParse.rest);
+  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags, pluginSources: pluginParse.sources };
 }
 

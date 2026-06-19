@@ -145,16 +145,16 @@ async function main(): Promise<void> {
   loadEnv(repoRoot);
   await ensureVantaStore();
 
-  const { rest: parsedArgs, lifecycle } = parseStartupFlags(process.argv.slice(2));
+  const { rest: parsedArgs, lifecycle, pluginSources } = parseStartupFlags(process.argv.slice(2));
   const [cmd, ...rest] = parsedArgs;
 
   // Interactive entry points parse flags, so they stay explicit.
   if (cmd === undefined || cmd === "chat")
-    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui"), forkSession: hasForkSession(rest), lifecycle });
-  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle });
+    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui"), forkSession: hasForkSession(rest), lifecycle, pluginSources });
+  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle, pluginSources });
   if (cmd === "run" && rest.length > 0) {
     const { instruction, outputFormat, jsonSchema } = parseRunArgs(rest);
-    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle });
+    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle, pluginSources });
   }
 
   const handler = COMMANDS[cmd];
