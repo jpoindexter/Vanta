@@ -10,17 +10,24 @@ import {
   critiqueArtifact, formatCritique, formatDelta, axisOutOfFive,
   type ArtifactKind, type CritiqueResult,
 } from "../taste/critique.js";
+import { doSnapshot, doRegress, doRebaseline, type CaptureSource } from "./taste-visual.js";
+import { resolveCaptureSource } from "./taste-capture.js";
 
 const Args = z.object({
-  action: z.enum(["score", "before", "after", "brand", "prefer", "history"]),
+  action: z.enum(["score", "before", "after", "brand", "prefer", "history", "snapshot", "regress", "rebaseline"]),
   artifact: z.string().min(1).optional(),
   content: z.string().optional(),
   path: z.string().optional(),
   kind: z.enum(["text", "markdown", "html"]).optional(),
   project: z.string().optional(),
   preference: z.string().optional(),
+  name: z.string().min(1).optional(),
+  target: z.string().min(1).optional(),
 });
 type Parsed = z.infer<typeof Args>;
+
+/** Injectable for tests: resolve a screenshot source from the tool context. */
+export type CaptureResolver = (ctx: ToolContext) => Promise<CaptureSource | null>;
 
 function inferKind(kind: ArtifactKind | undefined, path: string | undefined): ArtifactKind {
   if (kind) return kind;
@@ -108,6 +115,15 @@ async function doHistory(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: `Critique memory (${recs.length}):\n${lines.join("\n")}` };
 }
 
+async function doVisual(a: Parsed, ctx: ToolContext, resolve: CaptureResolver): Promise<ToolResult> {
+  if (!a.name) return { ok: false, output: "snapshot/regress/rebaseline needs a name" };
+  const capture = await resolve(ctx);
+  const args = { name: a.name, target: a.target };
+  if (a.action === "snapshot") return doSnapshot(args, capture);
+  if (a.action === "rebaseline") return doRebaseline(args, capture);
+  return doRegress(args, capture);
+}
+
 const DESCRIPTION =
   "Score and critique a generated artifact against a persisted Jason-specific taste model so it isn't generic. " +
   "Five axes (clarity, usefulness, beauty, credibility, actionability) plus brand-safe defaults the model seeds with. " +
@@ -115,39 +131,57 @@ const DESCRIPTION =
   "action:before / action:after record a phased critique — after also prints the per-axis delta vs the latest before (before/after memory); " +
   "action:brand shows the brand-safe defaults + learned preferences; " +
   "action:prefer adds a durable preference signal to the model (preference=...); " +
-  "action:history shows the recorded critique trail. project scopes a per-project model + memory (default = global). Records only — never edits the artifact.";
+  "action:history shows the recorded critique trail. " +
+  "action:snapshot locks a visual-regression baseline PNG for a generated app (name + target url/in-scope path); " +
+  "action:regress re-captures and compares against the baseline (no-baseline | match | regression, distinguishing a dimension change); " +
+  "action:rebaseline accepts the current capture as the new baseline. " +
+  "Visual snapshots need a screenshot source (chromium) — without one they degrade to a clear message, never hang. " +
+  "project scopes a per-project model + memory (default = global). Records only — never edits the artifact.";
 
-export const tasteCritiqueTool: Tool = {
-  schema: {
-    name: "taste_critique",
-    description: DESCRIPTION,
-    parameters: {
-      type: "object",
-      properties: {
-        action: { type: "string", enum: ["score", "before", "after", "brand", "prefer", "history"], description: "score | before | after | brand | prefer | history" },
-        artifact: { type: "string", description: "label for the artifact (used for before/after pairing + history)" },
-        content: { type: "string", description: "inline artifact content to critique" },
-        path: { type: "string", description: "in-scope path to read the artifact from (alternative to content)" },
-        kind: { type: "string", enum: ["text", "markdown", "html"], description: "artifact kind (inferred from path extension if omitted)" },
-        project: { type: "string", description: "per-project taste model + memory scope (default = global)" },
-        preference: { type: "string", description: "a durable preference signal to learn (action:prefer)" },
+/** Live capture resolver — overridable in tests via the exported builder. */
+async function defaultResolve(ctx: ToolContext): Promise<CaptureSource | null> {
+  return resolveCaptureSource(ctx);
+}
+
+/** Build the tool with an injectable capture resolver (tests pass a stub). */
+export function buildTasteCritiqueTool(resolve: CaptureResolver = defaultResolve): Tool {
+  return {
+    schema: {
+      name: "taste_critique",
+      description: DESCRIPTION,
+      parameters: {
+        type: "object",
+        properties: {
+          action: { type: "string", enum: ["score", "before", "after", "brand", "prefer", "history", "snapshot", "regress", "rebaseline"], description: "score | before | after | brand | prefer | history | snapshot | regress | rebaseline" },
+          artifact: { type: "string", description: "label for the artifact (used for before/after pairing + history)" },
+          content: { type: "string", description: "inline artifact content to critique" },
+          path: { type: "string", description: "in-scope path to read the artifact from (alternative to content)" },
+          kind: { type: "string", enum: ["text", "markdown", "html"], description: "artifact kind (inferred from path extension if omitted)" },
+          project: { type: "string", description: "per-project taste model + memory scope (default = global)" },
+          preference: { type: "string", description: "a durable preference signal to learn (action:prefer)" },
+          name: { type: "string", description: "baseline name for visual snapshot/regress/rebaseline" },
+          target: { type: "string", description: "screenshot target for snapshot/regress: an http(s) url or an in-scope file path" },
+        },
+        required: ["action"],
       },
-      required: ["action"],
     },
-  },
-  describeForSafety: (a) => {
-    const path = typeof a.path === "string" ? ` ${a.path}` : "";
-    return `taste_critique ${String(a.action ?? "")}${path}`;
-  },
-  async execute(raw, ctx) {
-    const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "taste_critique needs action: score|before|after|brand|prefer|history" };
-    const a = p.data;
-    if (a.action === "brand") return doBrand(a);
-    if (a.action === "prefer") return doPrefer(a);
-    if (a.action === "history") return doHistory(a);
-    if (a.action === "before") return doScore(a, ctx, "before");
-    if (a.action === "after") return doScore(a, ctx, "after");
-    return doScore(a, ctx, "single");
-  },
-};
+    describeForSafety: (a) => {
+      const detail = typeof a.path === "string" ? ` ${a.path}` : typeof a.name === "string" ? ` ${a.name}` : "";
+      return `taste_critique ${String(a.action ?? "")}${detail}`;
+    },
+    async execute(raw, ctx) {
+      const p = Args.safeParse(raw);
+      if (!p.success) return { ok: false, output: "taste_critique needs action: score|before|after|brand|prefer|history|snapshot|regress|rebaseline" };
+      const a = p.data;
+      if (a.action === "brand") return doBrand(a);
+      if (a.action === "prefer") return doPrefer(a);
+      if (a.action === "history") return doHistory(a);
+      if (a.action === "snapshot" || a.action === "regress" || a.action === "rebaseline") return doVisual(a, ctx, resolve);
+      if (a.action === "before") return doScore(a, ctx, "before");
+      if (a.action === "after") return doScore(a, ctx, "after");
+      return doScore(a, ctx, "single");
+    },
+  };
+}
+
+export const tasteCritiqueTool: Tool = buildTasteCritiqueTool();
