@@ -1,7 +1,8 @@
 import { basename, join } from "node:path";
-import { homedir, tmpdir } from "node:os";
+import { homedir } from "node:os";
 import { dirname } from "node:path";
 import { mimeFromPath } from "./format.js";
+import { readClipboardImage } from "../term/clipboard-image.js";
 import type { SlashHandler } from "./types.js";
 
 export const image: SlashHandler = async (arg, ctx) => {
@@ -19,21 +20,11 @@ export const image: SlashHandler = async (arg, ctx) => {
 };
 
 export const paste: SlashHandler = async (_arg, ctx) => {
-  try {
-    const { execFile } = await import("node:child_process");
-    const { promisify } = await import("node:util");
-    const { readFile, rm } = await import("node:fs/promises");
-    const tmp = join(tmpdir(), `vanta-paste-${ctx.now().getTime()}.png`);
-    const script = `set f to (open for access (POSIX file "${tmp}") with write permission)\ntry\nwrite (the clipboard as «class PNGf») to f\nend try\nclose access f`;
-    await promisify(execFile)("osascript", ["-e", script]);
-    const buf = await readFile(tmp).catch(() => Buffer.alloc(0));
-    await rm(tmp, { force: true }).catch(() => {});
-    if (!buf.length) return { output: "  (no image on the clipboard — copy one, or use /image <path>)" };
-    (ctx.state.pendingImages ??= []).push({ mime: "image/png", dataBase64: buf.toString("base64") });
-    return { output: `  ◫  pasted clipboard image (${Math.round(buf.length / 1024)}KB) — send a message to ask about it` };
-  } catch (err) {
-    return { output: `  paste failed (macOS only): ${(err as Error).message.split("\n")[0]} — try /image <path>` };
-  }
+  const img = await readClipboardImage();
+  if (!img) return { output: "  (no image on the clipboard — copy one, or use /image <path>; macOS only)" };
+  (ctx.state.pendingImages ??= []).push(img);
+  const kb = Math.round((img.dataBase64.length * 0.75) / 1024);
+  return { output: `  ◫  pasted clipboard image (${kb}KB) — send a message to ask about it` };
 };
 
 export const copy: SlashHandler = async (_arg, ctx) => {

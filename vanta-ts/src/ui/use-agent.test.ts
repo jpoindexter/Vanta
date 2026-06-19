@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runTurnGates } from "./use-agent.js";
+import { runTurnGates, useAgent } from "./use-agent.js";
 import { freshGateState } from "../repl/post-turn-gates.js";
 import { invalidateNdConfig } from "../nd/profile.js";
+import type { ImageAttachment } from "../types.js";
 
 // Proves the ND executive-function engine fires in the DEFAULT TUI host (not just
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
@@ -52,5 +53,41 @@ describe("runTurnGates (TUI EF-engine wiring)", () => {
     const before = deps.gatesRef.current;
     await runTurnGates(deps as never);
     expect(deps.gatesRef.current).not.toBe(before); // a new advanced state object
+  });
+});
+
+describe("useAgent send — image attachments", () => {
+  const img: ImageAttachment = { mime: "image/png", dataBase64: "AAAA" };
+
+  function sendDeps(pendingImages?: ImageAttachment[]) {
+    const sendSpy = vi.fn(async (_text: string, _images?: ImageAttachment[], _signal?: AbortSignal) => ({ finalText: "ok" }));
+    const conv = { messages: [], send: sendSpy };
+    const deps = {
+      setup: { provider: { modelId: () => "m" } },
+      repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
+      dispatch: () => {},
+      setPending: () => {},
+      interruptRef: { current: null },
+      convoRef: { current: conv },
+      replStateRef: { current: { turnIndex: 0, started: new Date(0).toISOString(), pendingImages } },
+      gatesRef: { current: freshGateState() },
+    };
+    return { deps, sendSpy };
+  }
+
+  it("forwards pending images to conv.send and clears them after the turn", async () => {
+    const { deps, sendSpy } = sendDeps([img]);
+    const { send } = useAgent(deps as never);
+    await send("describe this");
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(sendSpy.mock.calls[0]![1]).toEqual([img]); // images are the 2nd arg
+    expect(deps.replStateRef.current.pendingImages).toBeUndefined(); // consumed once
+  });
+
+  it("passes undefined when no images are pending (plain text turn)", async () => {
+    const { deps, sendSpy } = sendDeps(undefined);
+    const { send } = useAgent(deps as never);
+    await send("hi");
+    expect(sendSpy.mock.calls[0]![1]).toBeUndefined();
   });
 });

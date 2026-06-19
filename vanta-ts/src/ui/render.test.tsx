@@ -75,6 +75,15 @@ describe("EntryView", () => {
     inst.unmount();
   });
 
+  it("renders a note with its url + file:line text intact (clickable spans)", async () => {
+    const inst = renderUi(h(EntryView, { entry: { kind: "note", text: "see https://example.com and src/a.ts:9" } }));
+    await tick();
+    const out = inst.lastFrame();
+    expect(out).toContain("https://example.com");
+    expect(out).toContain("src/a.ts:9");
+    inst.unmount();
+  });
+
   it("renders a tool group as sequential ⏺ Verb(detail) calls (no group header)", async () => {
     const tools = [
       { kind: "tool" as const, name: "read_file", verb: "read", detail: "x.ts", ok: true, summary: "48 lines" },

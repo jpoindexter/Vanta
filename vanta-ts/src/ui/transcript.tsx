@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Markdown } from "./markdown.js";
+import { LinkedText } from "./linked-text.js";
 import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
@@ -19,7 +20,7 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Text>{e.text}</Text></Box>;
   if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
-  if (e.kind === "note") return <Box marginTop={1}><Text>{e.text}</Text></Box>;
+  if (e.kind === "note") return <NoteView text={e.text} />;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
   return <ToolCallView entry={e} />;
 }
@@ -50,6 +51,16 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
       </Box>
       {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
+    </Box>
+  );
+}
+
+/** A committed note (system/EF nudge, tool tail) with clickable links per line. */
+function NoteView(props: { text: string }): ReactElement {
+  const lines = props.text.split("\n");
+  return (
+    <Box flexDirection="column" marginTop={1}>
+      {lines.map((l, i) => <LinkedText key={i} text={l} />)}
     </Box>
   );
 }

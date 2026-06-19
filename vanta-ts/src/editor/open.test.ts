@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseFileLine, resolveEditor, editorCommand } from "./open.js";
+import { parseFileLine, resolveEditor, editorCommand, editorOpenUrl } from "./open.js";
 
 describe("parseFileLine", () => {
   it("parses file, file:line, and file:line:col", () => {
@@ -35,5 +35,22 @@ describe("editorCommand", () => {
 
   it("falls back to flags + file for an unknown editor", () => {
     expect(editorCommand("myeditor --wait", "a.ts", 9)).toEqual({ cmd: "myeditor", args: ["--wait", "a.ts"] });
+  });
+});
+
+describe("editorOpenUrl", () => {
+  it("builds a vscode:// deep link with the line for VS Code-family editors", () => {
+    expect(editorOpenUrl("code", "/repo/a.ts", 42)).toBe("vscode://file/repo/a.ts:42");
+    expect(editorOpenUrl("cursor", "/repo/a.ts", 7)).toBe("cursor://file/repo/a.ts:7");
+    expect(editorOpenUrl("windsurf", "/repo/a.ts", 1)).toBe("windsurf://file/repo/a.ts:1");
+  });
+
+  it("falls back to a file:// URL for non-deep-link editors", () => {
+    expect(editorOpenUrl("vim", "/repo/a.ts", 12)).toBe("file:///repo/a.ts");
+    expect(editorOpenUrl("nano", "/repo/a.ts", 1)).toBe("file:///repo/a.ts");
+  });
+
+  it("normalizes a non-absolute path with a leading slash", () => {
+    expect(editorOpenUrl("vim", "repo/a.ts", 1)).toBe("file:///repo/a.ts");
   });
 });

@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { highlightLine, type HlSeg } from "./highlight.js";
+import { LinkedText } from "./linked-text.js";
 
 // Minimal markdown renderer for the transcript: fenced code blocks, h1–h3,
 // bullet/numbered lists, inline **bold** and `code`. Theme-colored (headings →
@@ -100,7 +101,8 @@ function Inline(props: { tokens: InlineToken[] }): ReactElement {
       {props.tokens.map((tok, i) => {
         if (tok.code) return <Text key={i}>{tok.text}</Text>;
         if (tok.bold) return <Text key={i} bold>{tok.text}</Text>;
-        return <Text key={i}>{tok.text}</Text>;
+        // Plain prose: linkify http(s) URLs + file paths (code/bold stay literal).
+        return <LinkedText key={i} text={tok.text} />;
       })}
     </>
   );

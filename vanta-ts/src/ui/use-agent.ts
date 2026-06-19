@@ -100,11 +100,16 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     const ctrl = new AbortController();
     deps.interruptRef.current = ctrl;
     deps.replStateRef.current.turnIndex += 1;
+    // Consume any pending image attachments (from /paste, /image, or a composer
+    // paste keystroke) so vision reaches the model, then clear so they attach to
+    // exactly one turn. The readline host does the same in interactive-turn.
+    const images = deps.replStateRef.current.pendingImages;
+    deps.replStateRef.current.pendingImages = undefined;
     deps.dispatch({ t: "submit", text: display ?? text });
     deps.dispatch({ t: "turnStart" });
     try {
       await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: text }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
-      const outcome = await conv.send(text, undefined, ctrl.signal);
+      const outcome = await conv.send(text, images, ctrl.signal);
       await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       await runTurnGates(deps);
     } catch (err) {

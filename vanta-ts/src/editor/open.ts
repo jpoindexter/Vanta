@@ -34,6 +34,26 @@ export function editorCommand(editor: string, file: string, line: number): { cmd
   return { cmd, args: [...tokens.slice(1), file] };
 }
 
+// VS Code-family editors expose a URL scheme that opens a file at a line; map the
+// binary name → scheme so a clicked OSC-8 file link lands in the configured editor.
+const EDITOR_SCHEMES: ReadonlyArray<{ match: RegExp; scheme: string }> = [
+  { match: /^(code|code-insiders|codium|vscodium)$/, scheme: "vscode" },
+  { match: /^cursor$/, scheme: "cursor" },
+  { match: /^windsurf$/, scheme: "windsurf" },
+];
+
+/** The URL an OSC-8 file hyperlink should target for `absFile:line`. VS Code-family
+ *  editors get their `scheme://file/<abs>:<line>` deep link (opens in $VANTA_EDITOR
+ *  at the line); everything else gets a plain `file://` URL. Pure. `absFile` must
+ *  be absolute. */
+export function editorOpenUrl(editor: string, absFile: string, line: number): string {
+  const name = (editor.split(/\s+/)[0]!.split("/").pop() ?? "").toLowerCase();
+  const hit = EDITOR_SCHEMES.find((s) => s.match.test(name));
+  const path = absFile.startsWith("/") ? absFile : `/${absFile}`;
+  if (hit) return `${hit.scheme}://file${path}:${line}`;
+  return `file://${path}`;
+}
+
 /** Open file:line in the configured editor. Returns a status line. */
 export async function openInEditor(ref: string, env: NodeJS.ProcessEnv = process.env): Promise<{ ok: boolean; message: string }> {
   const { file, line } = parseFileLine(ref);
