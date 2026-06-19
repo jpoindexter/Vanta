@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-18",
+  "updated": "2026-06-19",
   "items": [
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
@@ -769,7 +769,7 @@
       "id": "VANTA-TRUST-DIALOG",
       "track": "Operator",
       "title": "TrustDialog — project trust + MCP server trust confirmation",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's TrustDialog prompts the user to confirm trust for new projects (allowing CLAUDE.md to load) and new MCP servers (before mounting their tools). Blocking trust decisions behind explicit confirmation is a key security UX. Vanta loads VANTA.md and mounts MCP without a trust gate.",
       "done": "First time a project is opened, TrustDialog shows its CLAUDE.md contents and asks to trust; first time an MCP server is mounted, a dialog shows its tools and asks to trust; decisions are persisted in project settings.",
@@ -925,7 +925,7 @@
       "id": "VANTA-QUICK-OPEN",
       "track": "Operator",
       "title": "QuickOpenDialog — Ctrl+P fuzzy open for files, sessions, commands",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's QuickOpenDialog (Ctrl+P / Cmd+P) is a unified fuzzy picker for files, past sessions, slash commands, and skills — similar to VS Code's command palette but covering all entry points at once. Vanta has a slash palette but no unified quick-open.",
       "done": "Ctrl+P opens QuickOpenDialog; typing filters across files (current project), sessions (recent), commands (/), and skills; Enter opens the result; category icons distinguish the types.",
@@ -12861,7 +12861,7 @@
       "id": "LAN-DEVICE-DISCOVERY",
       "track": "Operator",
       "title": "LAN device discovery + control (the 'Dobby' home operator)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy's Dobby: discover smart-home/LAN subsystems (Sonos/lights/HVAC/cameras) via an IP scan, reverse-engineer their local APIs, and expose them as kernel-gated tools for natural-language control. New physical-adjacent operator surface. Strictly local network; discovery is read-only; control is approval-gated; everything through the kernel.",
       "done": "a LAN discovery tool finds devices + likely API endpoints (read-only scan) and a control tool drives them (approval-gated); both kernel-gated, safe defaults; tests with mocked network; committed.",
