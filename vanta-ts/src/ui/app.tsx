@@ -33,9 +33,11 @@ import { useSessionStatus } from "./use-session-status.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
+import { QuickOpen } from "./quick-open.js";
 import { type Mode, cycleMode, useModeState, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
+import type { TodoItem } from "../todo/store.js";
 import type { Conversation } from "../agent.js";
 import type { ReplState } from "../repl/types.js";
 import type { RunSetup } from "../session.js";
@@ -52,6 +54,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [history, setHistory] = useState<string[]>([]);
   const [focus, setFocus] = useState<FocusTarget>("composer");
   const [composerAnchor, setComposerAnchor] = useState<ComposerAnchor>(() => resolveComposerAnchor(process.env));
+  const [quickOpen, setQuickOpen] = useState(false);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
@@ -69,7 +72,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
-  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus });
+  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true) });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
 
@@ -80,8 +83,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
-          {overlay ? null : <TodoPanel todos={state.todos} />}
-          <BottomRegion focused={focus} overlay={overlay} pending={pending} mode={mode} files={files} history={history} skills={skillMatches} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+          <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} /> : null}
         </PinnedRegion>
     </Box>
@@ -97,10 +99,15 @@ type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
   focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
+  quickOpenOpen: boolean; openQuickOpen: () => void;
 };
 
 const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
   Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
+
+/** Ctrl+P opens the unified quick-open picker when nothing else owns input. */
+const opensQuickOpen = (input: string, key: GlobalKey, d: GlobalKeyDeps): boolean =>
+  Boolean(key.ctrl) && input === "p" && !d.quickOpenOpen && !d.pending && !d.overlayOpen;
 
 function useGlobalKeys(deps: GlobalKeyDeps): void {
   useInput((input, key) => handleGlobalKey(input, key, deps));
@@ -108,6 +115,7 @@ function useGlobalKeys(deps: GlobalKeyDeps): void {
 
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
+  if (opensQuickOpen(input, key, d)) return void d.openQuickOpen();
   if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
   if (escInterrupts(key, d)) return void d.abort();
 }
@@ -138,6 +146,37 @@ function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Actio
   useEffect(() => {
     if (!busy && queued.length > 0) { const next = queued[0]!; dispatch({ t: "dequeue" }); void send(next); }
   }, [busy, queued.length]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+type LiveBodyProps = {
+  quickOpen: boolean;
+  overlay: OverlayView | null;
+  pending: Pending | null;
+  mode: Mode;
+  focus: FocusTarget;
+  todos: TodoItem[];
+  files: string[];
+  history: string[];
+  skills: SlashMatch[];
+  onQuickActivate: (command: string) => void;
+  onQuickClose: () => void;
+  onSubmit: (text: string) => void;
+  onPaste: () => void;
+  onSelect: (row: OverlayRow) => void;
+  onClose: () => void;
+};
+
+/** The bottom live region: todo panel + either the quick-open picker or the
+ * normal overlay/composer surface. Keeps the decision out of App's body. */
+function LiveBody(p: LiveBodyProps): ReactElement {
+  return (
+    <>
+      {p.overlay || p.quickOpen ? null : <TodoPanel todos={p.todos} />}
+      {p.quickOpen
+        ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+    </>
+  );
 }
 
 function BottomRegion(props: {
