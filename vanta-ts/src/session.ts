@@ -66,7 +66,7 @@ export async function prepareRun(
   await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
 
-  const loadContext = await resolveProjectTrust(repoRoot, opts.confirmTrust);
+  const loadContext = await resolveProjectTrust(repoRoot, opts.confirmTrust, { env: process.env, settings });
   const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds, loadContext });
   await fireHooks(join(repoRoot, ".vanta"), "InstructionsLoaded", { reason: "session_start", instruction }, { cwd: repoRoot, matcherValue: "session_start", promptProvider: provider });
   let systemPrompt = prompt.systemPrompt;

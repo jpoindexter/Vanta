@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { resolveProjectTrust, resolveMcpTrust, collectContextFiles, type TrustConfirmer } from "./trust-gate.js";
+import { resolveProjectTrust, resolveMcpTrust, collectContextFiles, trustAuto, type TrustConfirmer } from "./trust-gate.js";
 import { isProjectTrusted, isMcpTrusted } from "./trust.js";
 
 let root: string;
@@ -45,6 +45,60 @@ describe("resolveProjectTrust", () => {
     await writeFile(join(root, "CLAUDE.md"), "# rules", "utf8");
     expect(await resolveProjectTrust(root, no)).toBe(false);
     expect(await resolveProjectTrust(root, yes)).toBe(false); // recalled deny, not re-asked
+  });
+});
+
+describe("trustAuto (pure)", () => {
+  it("is false with no env flag and no setting", () => {
+    expect(trustAuto({})).toBe(false);
+    expect(trustAuto({}, {})).toBe(false);
+    expect(trustAuto({}, { trust: {} })).toBe(false);
+    expect(trustAuto({}, { trust: { auto: false } })).toBe(false);
+  });
+
+  it("is true when settings.trust.auto is set", () => {
+    expect(trustAuto({}, { trust: { auto: true } })).toBe(true);
+  });
+
+  it("is true for truthy VANTA_TRUST_ALL values, false otherwise", () => {
+    for (const v of ["1", "true", "TRUE", "yes", "on", " on "]) {
+      expect(trustAuto({ VANTA_TRUST_ALL: v })).toBe(true);
+    }
+    for (const v of ["0", "false", "no", "off", ""]) {
+      expect(trustAuto({ VANTA_TRUST_ALL: v })).toBe(false);
+    }
+  });
+});
+
+describe("resolveProjectTrust auto-trust lever", () => {
+  it("auto-trusts (and persists) via settings.trust.auto without asking", async () => {
+    await writeFile(join(root, "CLAUDE.md"), "# rules", "utf8");
+    const c = counting(false);
+    expect(await resolveProjectTrust(root, c.confirm, { env: {}, settings: { trust: { auto: true } } })).toBe(true);
+    expect(c.calls).toBe(0);
+    expect(await isProjectTrusted(root)).toBe(true); // durable
+  });
+
+  it("auto-trusts (and persists) via VANTA_TRUST_ALL without asking", async () => {
+    await writeFile(join(root, "VANTA.md"), "# vanta", "utf8");
+    const c = counting(false);
+    expect(await resolveProjectTrust(root, c.confirm, { env: { VANTA_TRUST_ALL: "1" } })).toBe(true);
+    expect(c.calls).toBe(0);
+    expect(await isProjectTrusted(root)).toBe(true);
+  });
+
+  it("does not auto-trust without the lever (still asks)", async () => {
+    await writeFile(join(root, "CLAUDE.md"), "# rules", "utf8");
+    const c = counting(true);
+    expect(await resolveProjectTrust(root, c.confirm, { env: {} })).toBe(true);
+    expect(c.calls).toBe(1); // the lever was off, so the confirmer ran
+  });
+
+  it("honors a persisted deny over the auto lever", async () => {
+    await writeFile(join(root, "CLAUDE.md"), "# rules", "utf8");
+    expect(await resolveProjectTrust(root, no, { env: {} })).toBe(false); // explicit deny first
+    // lever on afterwards must not override an explicit operator decision
+    expect(await resolveProjectTrust(root, yes, { env: { VANTA_TRUST_ALL: "1" } })).toBe(false);
   });
 });
 

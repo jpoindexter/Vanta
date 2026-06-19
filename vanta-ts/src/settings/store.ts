@@ -73,6 +73,12 @@ export const SettingsSchema = z.object({
   /** Shell command whose stdout is used as the API key for the active provider.
    *  Executed at startup; cached for 5 minutes. Example: `'op read op://vault/anthropic/key'` */
   api_key_helper: z.string().optional(),
+  /** Project context-file trust. `auto` trusts every project's context without a
+   *  prompt (a single-operator convenience; VANTA_TRUST_ALL is the env equivalent).
+   *  MCP-server trust is unaffected and still prompts. */
+  trust: z.object({
+    auto: z.boolean().optional(),
+  }).optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;
