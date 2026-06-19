@@ -21,7 +21,7 @@ beforeEach(() => vi.clearAllMocks());
 describe("SETTINGS catalog", () => {
   it("covers Vanta's non-trash knobs; no Nous/Spotify/TTS", () => {
     expect(SETTINGS.map((s) => s.key)).toEqual([
-      "VANTA_VISION_MODEL", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS",
+      "VANTA_VISION_MODEL", "VANTA_EXEC_BACKEND", "VANTA_SEARCH_PROVIDER", "VANTA_MAX_ITER", "VANTA_MEMORY_MAX_BLOCKS",
       "VANTA_THINKING_BUDGET", "VANTA_AUTO_COMPACT_THRESHOLD", "VANTA_RESUME_MAX_AGE_MIN", "VANTA_TOOL_PROGRESS",
       "VANTA_COMPOSER_ANCHOR", "VANTA_SPINNER",
     ]);
@@ -63,6 +63,25 @@ describe("runSettingSection", () => {
     mAskLine.mockResolvedValue("my-vision-model");
     await runSettingSection("/repo", vision);
     expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_VISION_MODEL: "my-vision-model" });
+  });
+
+  it("the execution-backend local choice writes a multi-key env (backend + sandbox off)", async () => {
+    mSelect.mockResolvedValue(0); // backend[0] = local
+    await runSettingSection("/repo", byKey("VANTA_EXEC_BACKEND")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "0" });
+  });
+
+  it("the execution-backend sandbox choice enables VANTA_SANDBOX", async () => {
+    mSelect.mockResolvedValue(1); // backend[1] = sandbox
+    await runSettingSection("/repo", byKey("VANTA_EXEC_BACKEND")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "1" });
+  });
+
+  it("the execution-backend docker choice sets docker and collects an optional image", async () => {
+    mSelect.mockResolvedValue(2); // backend[2] = docker
+    mAskLine.mockResolvedValue("python:3.12-slim");
+    await runSettingSection("/repo", byKey("VANTA_EXEC_BACKEND")!);
+    expect(mSet).toHaveBeenCalledWith("/repo", { VANTA_EXEC_BACKEND: "docker", VANTA_SANDBOX: "0", VANTA_DOCKER_IMAGE: "python:3.12-slim" });
   });
 
   it("an agent-knob section (tool-progress) writes its value", async () => {

@@ -8,6 +8,7 @@ import { askLine, askSecret, setEnv } from "./setup.js";
 export type Choice = {
   label: string;
   value?: string; // env value to write (undefined = "keep current / skip" → no write)
+  env?: Record<string, string>; // explicit multi-key env writes (overrides {key: value})
   keyEnv?: string; // an extra secret env var to collect (e.g. SERPAPI_KEY)
   keyUrl?: string; // where to get that key
   urlEnv?: string; // an extra plain env var to collect (e.g. VANTA_SEARCH_URL)
@@ -33,6 +34,17 @@ export const SETTINGS: SettingSection[] = [
       { label: "claude-sonnet-4-6 (Anthropic)", value: "claude-sonnet-4-6" },
     ],
     custom: true,
+  },
+  {
+    header: "Execution backend",
+    key: "VANTA_EXEC_BACKEND",
+    intro: "  Where shell_cmd / run_code run. The kernel gates every command on any backend.",
+    choices: [
+      { label: "local — run on this host [default]", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "0" } },
+      { label: "sandbox — OS isolation (macOS seatbelt / Linux bwrap)", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "1" } },
+      { label: "docker — ephemeral container", env: { VANTA_EXEC_BACKEND: "docker", VANTA_SANDBOX: "0" }, urlEnv: "VANTA_DOCKER_IMAGE", urlHint: "Docker image (empty = alpine:latest)" },
+      { label: "ssh — per-command to a configured host (settings.sshConfigs; `vanta ssh <name>`)", env: { VANTA_EXEC_BACKEND: "local", VANTA_SANDBOX: "0" } },
+    ],
   },
   {
     header: "Web search backend",
@@ -156,7 +168,9 @@ async function collectUpdates(s: SettingSection, i: number, customIdx: number): 
     return v ? { [s.key]: v } : null;
   }
   const c = s.choices[i];
-  if (!c || c.value === undefined) return null; // "keep current"
+  if (!c) return null;
+  if (c.env) return { ...c.env, ...(await extraEnv(c)) }; // explicit multi-key write
+  if (c.value === undefined) return null; // "keep current"
   return { [s.key]: c.value, ...(await extraEnv(c)) };
 }
 

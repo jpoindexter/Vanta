@@ -11294,7 +11294,7 @@
       "id": "SETUP-TERMINAL-BACKEND",
       "track": "Operator",
       "title": "Terminal / execution backend selection",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "A `vanta setup` section to choose where shell + code run: local (default) · sandboxed (VANTA-SANDBOX) · docker · ssh. Optional cloud sandboxes later.",
       "done": "`vanta setup` offers local/sandbox/docker/ssh execution.",
