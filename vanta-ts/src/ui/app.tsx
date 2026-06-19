@@ -18,6 +18,7 @@ import { LoopsPanel } from "./loops-panel.js";
 import { ReviewPanel } from "./review-panel.js";
 import { ContextPanel } from "./context-panel.js";
 import { McpPanel } from "./mcp-panel.js";
+import { SandboxPanel } from "./sandbox-panel.js";
 import { TasksPanel } from "./tasks-panel.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
@@ -234,20 +235,28 @@ function BottomRegion(props: {
 }): ReactElement | null {
   const { overlay } = props;
   if (props.pending) return null;
-  if (overlay?.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={props.onClose} />;
-  if (overlay?.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={props.onClose} />;
-  if (overlay?.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={props.onClose} />;
-  if (overlay?.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={props.onClose} />;
-  if (overlay?.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={props.onClose} />;
-  if (overlay?.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={props.onClose} />;
-  if (overlay?.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={props.onClose} />;
-  if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
+  if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} />;
   return (
     <Box flexDirection="column">
       <ModeLine mode={props.mode} />
       <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} vim={props.vim} />
     </Box>
   );
+}
+
+/** Renders the open overlay's panel. Split from BottomRegion so each stays under
+ * the complexity gate; the switch is append-only (one branch per overlay kind). */
+function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onClose: () => void }): ReactElement | null {
+  const { overlay, onClose } = props;
+  if (overlay.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={onClose} />;
+  if (overlay.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={onClose} />;
+  if (overlay.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={onClose} />;
+  if (overlay.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={onClose} />;
+  if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
+  if (overlay.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={onClose} />;
+  if (overlay.kind === "sandbox") return <SandboxPanel state={overlay.state} doctor={overlay.doctor} onToggle={overlay.onToggle} onCycleOverride={overlay.onCycleOverride} onClose={onClose} />;
+  if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
+  return <HelpPanel onClose={onClose} />;
 }
 
 export { Footer } from "./app-regions.js";

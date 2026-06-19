@@ -11,6 +11,7 @@ import { gatherMcpConnections, reconnectServer } from "../mcp/connect.js";
 import { elicitationMessage, type ElicitationRequest } from "./elicitation-dialog.js";
 import type { McpServerView } from "./mcp-view.js";
 import { reloadTasks } from "./tasks-actions.js";
+import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
@@ -29,6 +30,7 @@ export type OverlayView =
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
+  | ({ kind: "sandbox" } & SandboxOverlayState)
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -96,6 +98,10 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
   const [overlay, setOverlay] = useState<OverlayView | null>(null);
   const openOverlay = (kind: OverlayKind): void => {
     if (kind === "mcp") return void buildMcpOverlay(deps.repoRoot, setOverlay).then(setOverlay).catch(() => {});
+    if (kind === "sandbox") {
+      const host = { publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "sandbox" ? v : prev)), isOpen: () => true };
+      return void buildSandboxOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
+    }
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };
   const closeOverlay = (): void => setOverlay(null);

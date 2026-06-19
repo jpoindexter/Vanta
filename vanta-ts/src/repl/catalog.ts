@@ -52,6 +52,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "changes", desc: "review changed files — per-file keep/undo (TUI)" },
   { name: "agents", desc: "background task panel — agent/shell/remote tasks, status, stop/respawn (TUI)" },
   { name: "mcp", desc: "MCP panel — servers + connection status, per-server tools, tool detail, reconnect (TUI)" },
+  { name: "sandbox", desc: "sandbox settings — config, dependencies, doctor, per-tool overrides (TUI)" },
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
   { name: "preferences", arg: "export", desc: "export operator preference signals (~/.vanta/preferences.jsonl)" },
   { name: "usage", desc: "token usage + context fill for this session" },

@@ -51,6 +51,23 @@ export const SettingsSchema = z.object({
     enabled: z.array(z.string()).optional(),
     trustProjectPlugins: z.boolean().optional(),
   }).optional(),
+  /** OS sandbox config (the /sandbox UI). Persists the VANTA_SANDBOX* intent +
+   *  pre-install deps + per-tool bypass/enforce overrides; env stays the runtime truth. */
+  sandbox: z.object({
+    /** Sandbox every code runner (maps to VANTA_SANDBOX). */
+    enabled: z.boolean().optional(),
+    /** Sandbox shell_cmd only, without the code runners (maps to VANTA_SHELL_SANDBOX). */
+    shellOnly: z.boolean().optional(),
+    /** Allow network inside the sandbox (maps to VANTA_SANDBOX_NET). Off = isolated. */
+    allowNetwork: z.boolean().optional(),
+    /** Packages to pre-install into a sandbox session. */
+    dependencies: z.array(z.string()).optional(),
+    /** Per-tool sandbox rules: bypass (run unsandboxed) or enforce (always sandbox). */
+    overrides: z.array(z.object({
+      tool: z.string(),
+      rule: z.enum(["bypass", "enforce"]),
+    })).optional(),
+  }).optional(),
   /** Shell command whose stdout is used as the API key for the active provider.
    *  Executed at startup; cached for 5 minutes. Example: `'op read op://vault/anthropic/key'` */
   api_key_helper: z.string().optional(),
