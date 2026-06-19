@@ -12630,12 +12630,12 @@
       "effort": "medium",
       "lens": "agent-loop",
       "updated": "2026-06-18",
+      "notes": "Hermes PR #47866 ran this exact eval on a sibling coding agent. Finding: CCR (Compress-Cache-Retrieve = Vanta's compress/store.ts) is NET-NEGATIVE for a coding agent — it re-reads its own tool output, so content lands in context twice (marker + retrieved blob). Lossless-only densification netted just 0.34% on 3000 real outputs (fires ~6%); the only tool that won was search output (~58%, -> SEARCH-RESULT-DENSIFY). Method to adopt: benchmark per-tool-type CNG against real session transcripts, gate to lossless-only (reject CCR-marker emitters), measure net corpus savings + losslessness + invariants. Hypothesis for Vanta: CCR likely net-negative here too -> measure, then disable CCR where CNG<0; expect only search-result densification to net positive.",
       "after": [
         "COMPRESSION-EVAL-RUNNER",
         "SKILL-DISTILL-CLI",
         "PRUNE-CONTEXT-WIRE"
-      ],
-      "notes": "Hermes PR #47866 ran this exact eval on a sibling coding agent. Finding: CCR (Compress-Cache-Retrieve = Vanta's compress/store.ts) is NET-NEGATIVE for a coding agent — it re-reads its own tool output, so content lands in context twice (marker + retrieved blob). Lossless-only densification netted just 0.34% on 3000 real outputs (fires ~6%); the only tool that won was search output (~58%, -> SEARCH-RESULT-DENSIFY). Method to adopt: benchmark per-tool-type CNG against real session transcripts, gate to lossless-only (reject CCR-marker emitters), measure net corpus savings + losslessness + invariants. Hypothesis for Vanta: CCR likely net-negative here too -> measure, then disable CCR where CNG<0; expect only search-result densification to net positive."
+      ]
     },
     {
       "id": "WINNOW-LOCAL-SCORER",
@@ -13021,7 +13021,7 @@
       "size": "S",
       "summary": "[repo: vanta] From NousResearch/hermes-agent PR #47866 (a headroom-compression eval): the one proven win was lossless path-grouped densification of search output — group consecutive same-path matches under one header with indented `line: content` pairs => ~58% fewer tokens, zero-dep, lossless, fires only on >=5 matches. Vanta's grep/search tools (grep_files, code-search, glob-files, life-search) emit the same repeated path strings + JSON keys. Add a pure path-grouped densifier to the compress/ system (compress/apply COMPRESS_TOOLS) so these results densify before entering context. Lossless with exhaustive edge-case tests (unicode/emoji/colons/quotes/empty content/trailing whitespace); backward-compatible; NO new dependency. Beats CCR on this shape (see COMPRESSION-MEASURE).",
       "done": "a pure path-grouped densifier losslessly compresses grep/search tool output on >=5 matches (~50%+ token cut on path-heavy results); wired into compress/apply for the search tools; exhaustive losslessness tests (unicode/colons/quotes/empty/trailing-ws round-trip); no new dep; tsc clean; committed.",
-      "tier": "pebble",
+      "tier": "rock",
       "effort": "low",
       "lens": "agent-loop"
     }
