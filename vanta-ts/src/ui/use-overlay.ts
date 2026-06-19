@@ -3,7 +3,7 @@ import { useState } from "react";
 import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
-import { sessionRows, skillRows, modelRows, type OverlayKind, type OverlayRow } from "./overlays.js";
+import { sessionRows, skillRows, modelRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
@@ -12,6 +12,7 @@ import { elicitationMessage, type ElicitationRequest } from "./elicitation-dialo
 import type { McpServerView } from "./mcp-view.js";
 import { reloadTasks } from "./tasks-actions.js";
 import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions.js";
+import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
@@ -31,6 +32,7 @@ export type OverlayView =
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
   | ({ kind: "sandbox" } & SandboxOverlayState)
+  | ({ kind: "config" } & ConfigOverlayState)
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -56,6 +58,15 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
 }
 
 type SetOverlay = (fn: (prev: OverlayView | null) => OverlayView | null) => void;
+
+/** A bare slash command from a /config row → reopen the matching picker overlay
+ *  (e.g. /model → the model picker), else run it as a normal slash command. */
+function reopenAsPicker(line: string, openOverlay: (kind: OverlayKind) => void, runSlash: (line: string) => void): void {
+  const head = line.replace(/^\//, "").split(/\s+/)[0] ?? "";
+  const picker = PICKER_KINDS[head];
+  if (picker) openOverlay(picker);
+  else runSlash(line);
+}
 
 /**
  * Build the interactive /mcp overlay. Connects to every configured server,
@@ -101,6 +112,14 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
     if (kind === "sandbox") {
       const host = { publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "sandbox" ? v : prev)), isOpen: () => true };
       return void buildSandboxOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
+    }
+    if (kind === "config") {
+      const host = {
+        publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "config" ? v : prev)),
+        isOpen: () => true,
+        openCommand: (line: string) => { setOverlay(null); reopenAsPicker(line, openOverlay, deps.runSlash); },
+      };
+      return void buildConfigOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
     }
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };

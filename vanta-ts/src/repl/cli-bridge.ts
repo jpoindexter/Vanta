@@ -42,7 +42,8 @@ export function cliCmd(name: string): SlashHandler {
 
 /** Safe one-shot CLI verbs wired as slash commands (verified non-interactive). */
 export const CLI_PASSTHROUGH: Readonly<Record<string, SlashHandler>> = {
-  config: cliCmd("config"),
+  // /config opens the interactive TUI overlay (ui/config-panel) via PICKER_KINDS;
+  // the `vanta config` CLI in cli/ops-app.ts stays for headless show/get/set.
   settings: cliCmd("settings"),
   models: cliCmd("models"),
   lint: cliCmd("lint"),

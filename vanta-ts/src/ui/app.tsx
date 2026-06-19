@@ -19,6 +19,7 @@ import { ReviewPanel } from "./review-panel.js";
 import { ContextPanel } from "./context-panel.js";
 import { McpPanel } from "./mcp-panel.js";
 import { SandboxPanel } from "./sandbox-panel.js";
+import { ConfigPanel } from "./config-panel.js";
 import { TasksPanel } from "./tasks-panel.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
@@ -255,6 +256,7 @@ function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSel
   if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
   if (overlay.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={onClose} />;
   if (overlay.kind === "sandbox") return <SandboxPanel state={overlay.state} doctor={overlay.doctor} onToggle={overlay.onToggle} onCycleOverride={overlay.onCycleOverride} onClose={onClose} />;
+  if (overlay.kind === "config") return <ConfigPanel state={overlay.state} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
   return <HelpPanel onClose={onClose} />;
 }

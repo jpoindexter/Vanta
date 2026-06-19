@@ -93,7 +93,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "rename", arg: "<name>", desc: "rename the current session" },
   { name: "tui", arg: "[fullscreen|status|exit]", desc: "TUI renderer info; /tui fullscreen confirms alt-screen mode" },
   { name: "focus", desc: "toggle focus view — hide tool events, show only user + final responses" },
-  { name: "config", desc: "show resolved config (provider, model, kernel, dirs)" },
+  { name: "config", desc: "interactive settings — view + change config (TUI)" },
   { name: "settings", desc: "show/edit persisted settings" },
   { name: "models", desc: "list available models for the active provider" },
   { name: "lint", desc: "run the code-size gate on changed files" },
