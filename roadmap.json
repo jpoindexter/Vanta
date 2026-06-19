@@ -10901,7 +10901,7 @@
       "id": "WANT-TASTE-ENGINE",
       "track": "Operator",
       "title": "Personal taste engine — Jason-specific design preference model",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "vanta-wanted-abilities.md §11: a persistent Jason-specific design preference model; before/after visual critique memory; brand-safe image/icon/layout defaults; artifact scoring (clarity/usefulness/beauty/credibility/actionability); visual regression snapshots; reusable design systems per project. So generated artifacts aren't generic/disposable.",
       "done": "Generated artifacts are scored + critiqued against a persisted taste model; brand-safe defaults; visual-regression snapshots for generated apps.",
