@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { McpClient, textFromContent, type Transport } from "./client.js";
+import { McpClient, textFromContent, textFromMessageContent, type Transport } from "./client.js";
 
 /**
  * A fake transport that auto-replies to JSON-RPC requests via a scripted
@@ -56,6 +56,56 @@ describe("textFromContent", () => {
   });
   it("is empty for non-objects", () => {
     expect(textFromContent(null)).toBe("");
+  });
+});
+
+describe("textFromMessageContent", () => {
+  it("extracts text from a single content object", () => {
+    expect(textFromMessageContent({ type: "text", text: "hello" })).toBe("hello");
+  });
+  it("joins text from an array of content blocks", () => {
+    expect(textFromMessageContent([{ type: "text", text: "a" }, { type: "text", text: "b" }])).toBe("a\nb");
+  });
+  it("is empty for content without text", () => {
+    expect(textFromMessageContent({ type: "image" })).toBe("");
+  });
+});
+
+describe("McpClient prompts (the MCP skills capability)", () => {
+  it("lists prompts and renders one via prompts/get", async () => {
+    const client = new McpClient(
+      fakeTransport((method, params) => {
+        if (method === "prompts/list") {
+          return { prompts: [{ name: "summarize", description: "summarize text", arguments: [{ name: "topic", required: true }] }] };
+        }
+        if (method === "prompts/get") {
+          const p = params as { name: string; arguments: { topic: string } };
+          return { messages: [{ role: "user", content: { type: "text", text: `prompt:${p.name}:${p.arguments.topic}` } }] };
+        }
+        throw new Error(`unexpected ${method}`);
+      }),
+    );
+    const prompts = await client.listPrompts();
+    expect(prompts).toEqual([{ name: "summarize", description: "summarize text", arguments: [{ name: "topic", required: true }] }]);
+    const out = await client.getPrompt("summarize", { topic: "x" });
+    expect(out).toBe("prompt:summarize:x");
+  });
+
+  it("returns an empty list when the server omits prompts", async () => {
+    const client = new McpClient(fakeTransport(() => ({})));
+    expect(await client.listPrompts()).toEqual([]);
+  });
+
+  it("flattens a multi-message prompt result", async () => {
+    const client = new McpClient(
+      fakeTransport((method) => {
+        if (method === "prompts/get") {
+          return { messages: [{ content: { type: "text", text: "line1" } }, { content: { type: "text", text: "line2" } }] };
+        }
+        return {};
+      }),
+    );
+    expect(await client.getPrompt("multi")).toBe("line1\nline2");
   });
 });
 

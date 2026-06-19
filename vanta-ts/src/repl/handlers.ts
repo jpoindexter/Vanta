@@ -97,10 +97,13 @@ const undo: SlashHandler = (_arg, ctx) => {
 
 const skills: SlashHandler = async (_arg, ctx) => {
   const s = await listSkills(ctx.env);
-  if (!s.length) return { output: "  (no skills yet — `vanta skills install`)" };
-  const w = Math.min(24, Math.max(...s.map((x) => x.meta.name.length)) + 2);
+  const mcp = ctx.setup.mcpSkills ?? [];
+  if (!s.length && !mcp.length) return { output: "  (no skills yet — `vanta skills install`)" };
+  const names = [...s.map((x) => x.meta.name), ...mcp.map((m) => m.name)];
+  const w = Math.min(24, Math.max(0, ...names.map((n) => n.length)) + 2);
   const rows = s.map((x) => `  ${x.meta.name.padEnd(w)}${oneLine(x.meta.description, 72)}`);
-  return { output: `  ${s.length} skill(s):\n${rows.join("\n")}` };
+  const mcpRows = mcp.map((m) => `  ${m.name.padEnd(w)}${oneLine(`${m.description} (mcp:${m.server})`, 72)}`);
+  return { output: `  ${s.length + mcp.length} skill(s):\n${[...rows, ...mcpRows].join("\n")}` };
 };
 
 const tools: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.registry.schemas().map((s) => s.name).join(", ")}` });

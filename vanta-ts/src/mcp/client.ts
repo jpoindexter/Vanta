@@ -20,6 +20,14 @@ export type McpToolDef = {
   inputSchema?: Record<string, unknown>;
 };
 
+/** An MCP prompt declaration (the `prompts/list` shape). Vanta surfaces these as skills. */
+export type McpPromptArg = { name: string; description?: string; required?: boolean };
+export type McpPromptDef = {
+  name: string;
+  description?: string;
+  arguments?: McpPromptArg[];
+};
+
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
 export type McpClientEvents = {
   onNotification?: (method: string, params: unknown) => void | Promise<void>;
@@ -28,6 +36,17 @@ export type McpClientEvents = {
 };
 
 const PROTOCOL_VERSION = "2024-11-05";
+
+/** Extract text from a single MCP message `content` (object or array of blocks). Pure. */
+export function textFromMessageContent(content: unknown): string {
+  if (Array.isArray(content)) {
+    return content.map(textFromMessageContent).filter(Boolean).join("\n");
+  }
+  if (content && typeof content === "object" && "text" in content) {
+    return String((content as { text: unknown }).text);
+  }
+  return "";
+}
 
 /** Extract the text from an MCP tools/call result's content array. Pure. */
 export function textFromContent(result: unknown): string {
@@ -131,6 +150,23 @@ export class McpClient {
   async callTool(name: string, args: Record<string, unknown>): Promise<string> {
     const res = await this.request("tools/call", { name, arguments: args });
     return textFromContent(res);
+  }
+
+  /** List the server's declared prompts (the MCP prompts capability). */
+  async listPrompts(): Promise<McpPromptDef[]> {
+    const res = (await this.request("prompts/list")) as { prompts?: McpPromptDef[] };
+    return res.prompts ?? [];
+  }
+
+  /**
+   * Fetch a prompt's rendered content. The MCP `prompts/get` result carries a
+   * `messages` array of `{role, content:{type,text}}`; this flattens the text.
+   */
+  async getPrompt(name: string, args: Record<string, unknown> = {}): Promise<string> {
+    const res = (await this.request("prompts/get", { name, arguments: args })) as {
+      messages?: Array<{ content?: unknown }>;
+    };
+    return (res.messages ?? []).map((m) => textFromMessageContent(m.content)).filter(Boolean).join("\n");
   }
 
   close(): void {

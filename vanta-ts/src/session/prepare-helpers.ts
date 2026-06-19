@@ -8,6 +8,7 @@ import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
 import { playbookDigest } from "../memory/playbook.js";
 import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
+import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
 import type { Settings } from "../settings/store.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
 import { sessionConfig, sessionConfigEvent } from "../sessions/config-event.js";
@@ -80,7 +81,7 @@ export async function loadRuntimeExtensions(
   repoRoot: string,
   registry: ReturnType<typeof buildRegistry>,
   mcpTrust?: McpTrust,
-): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry }> {
+): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; mcpSkills: RegisteredMcpSkill[] }> {
   const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
   const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
   applySettingsEnv(settings, process.env);
@@ -89,7 +90,11 @@ export async function loadRuntimeExtensions(
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
   const { loadEnabledPlugins } = await import("../plugins/loader.js");
   await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, log: (m) => console.log(m) });
-  return { settings, pluginCommands };
+  // MCP-SKILLS: register MCP-provided skills into the same command registry
+  // (kernel-gated, opt-in via VANTA_MCP_SKILLS). Best-effort — never fatal.
+  const { skills: mcpSkills } = await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
+    .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }));
+  return { settings, pluginCommands, mcpSkills };
 }
 
 export function logSessionConfig(

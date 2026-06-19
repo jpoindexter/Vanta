@@ -9,6 +9,7 @@ import { resolveAdvisorProvider } from "./agent/advisor.js";
 import { installMessageDisplayHooks } from "./agent/message-display.js";
 import { globalHookBus } from "./plugins/hooks.js";
 import { PluginCommandRegistry } from "./plugins/commands.js";
+import type { RegisteredMcpSkill } from "./mcp/mount-skills.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
@@ -28,6 +29,8 @@ export type RunSetup = {
   safety: KernelClient;
   registry: ReturnType<typeof buildRegistry>;
   pluginCommands: PluginCommandRegistry;
+  /** MCP-SKILLS: skills provided by connected MCP servers (opt-in; for `/skills`). */
+  mcpSkills?: RegisteredMcpSkill[];
   provider: LLMProvider;
   /** Optional stronger read-only model consulted after repeated tool failures (VANTA_ADVISOR_MODEL). */
   advisorProvider?: LLMProvider;
@@ -53,7 +56,7 @@ export async function prepareRun(
   const safety = createKernelClient(baseUrl);
   const registry = buildRegistry();
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
-  const { settings, pluginCommands } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust);
+  const { settings, pluginCommands, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);
@@ -73,7 +76,7 @@ export async function prepareRun(
   }
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;
   logSessionConfig(safety, provider, registry, systemPrompt);
-  return { safety, registry, pluginCommands, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
+  return { safety, registry, pluginCommands, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }
 
 const SUMMARIZE_SYS =
