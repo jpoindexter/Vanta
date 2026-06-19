@@ -1,0 +1,48 @@
+name: Deploy docs to Cloudflare Pages
+
+# Push → auto-deploy the Docusaurus docs (vanta-website/) to the existing
+# Cloudflare Pages project `vanta-docs` (Direct Upload), which serves
+# docs.vanta.theft.studio. Keeps the project + custom domain as-is — this is the
+# CI equivalent of the manual `wrangler pages deploy build` step.
+#
+# One-time setup: add a repo secret CLOUDFLARE_API_TOKEN (Cloudflare dashboard →
+# My Profile → API Tokens → Create → permission: Account · Cloudflare Pages · Edit).
+# Account id is not secret, so it's inlined below. Until the secret exists the
+# deploy step warns and exits 0 (the build still runs as a link/MDX check).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vanta-website/**"
+      - ".github/workflows/deploy-docs.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vanta-website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: vanta-website/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy to Cloudflare Pages (production)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "1ab142627b6fa8e6c36dae2ed2f8ed4f"
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN secret not set — built OK, skipping deploy. Add the secret to enable auto-deploy."
+            exit 0
+          fi
+          npx --yes wrangler@4 pages deploy build --project-name=vanta-docs --branch=main --commit-dirty=true
