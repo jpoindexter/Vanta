@@ -26,6 +26,7 @@ npx tsc --noEmit                 # must be clean before any commit
 | `vanta fleet run/status/review/accept` | `src/cli/fleet-cmd.ts` over `src/fleet/`, `src/team/tasks.ts`, `src/worktree/manager.ts`, `src/subagent/spawn.ts` |
 | `vanta desktop` | `src/desktop/server.ts` serving `desktop-app/dist/` |
 | `vanta eval mem public [dataset-dir]` | `src/cli/eval-cmd.ts` -> `src/mem-eval/public-run.ts` |
+| `vanta eval compress [--tasks N]` | `src/cli/eval-compress-cmd.ts` -> `src/eval/compress-run.ts` (pass-rate CNG per compression dimension) |
 | `vanta auto-research --objective --metric --bounds` | `src/cli/auto-research-cmd.ts` -> `src/auto-research/` |
 | `vanta meta-tune instructions [--iters N] [--adopt]` | `src/cli/meta-tune-cmd.ts` -> `src/meta-tune/`, `../PROGRAM.md` |
 | `vanta improve` / `vanta factory` | `src/factory/run.ts` (autonomy ladder L1–L4) |

@@ -62,6 +62,10 @@ async function runMemEvalCommand(repoRoot: string, rest: string[]): Promise<void
 
 export async function runEvalCommand(repoRoot: string, rest: string[] = []): Promise<void> {
   if (rest[0] === "mem") return runMemEvalCommand(repoRoot, rest);
+  if (rest[0] === "compress") {
+    const { runEvalCompressCommand } = await import("./eval-compress-cmd.js");
+    return runEvalCompressCommand(repoRoot, rest);
+  }
   const corpusDir = join(repoRoot, rest[0] ?? DEFAULT_CORPUS);
   const tasks = loadCorpus(corpusDir);
   if (!tasks.length) {
