@@ -3,6 +3,7 @@ import { useState } from "react";
 import { listSessions } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 import { gatherCockpitData, type CockpitData } from "../tui/mission-control/cockpit-data.js";
+import { gatherStats, type UsageStats } from "./stats-data.js";
 import { sessionRows, skillRows, modelRows, PICKER_KINDS, type OverlayKind, type OverlayRow } from "./overlays.js";
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
@@ -26,6 +27,7 @@ export type CtxSnapshot = { messages: { role: string; content?: string }[]; cont
 export type OverlayView =
   | { kind: "list"; title: string; rows: OverlayRow[] }
   | { kind: "cockpit"; data: CockpitData }
+  | { kind: "stats"; stats: UsageStats }
   | { kind: "loops"; loops: LoopSummary[] }
   | { kind: "review"; files: ChangedFile[]; cwd: string }
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
@@ -49,6 +51,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
   const dataDir = join(repoRoot, ".vanta");
   switch (kind) {
     case "cockpit": return { kind: "cockpit", data: await gatherCockpitData({ client: setup.safety, dataDir }) };
+    case "stats": return { kind: "stats", stats: await gatherStats({ repoRoot }) };
     case "loops": return { kind: "loops", loops: await listLoopSummaries(dataDir) };
     case "review": return { kind: "review", files: await listChangedFiles(repoRoot), cwd: repoRoot };
     case "context": return contextOverlay(setup, getCtx);

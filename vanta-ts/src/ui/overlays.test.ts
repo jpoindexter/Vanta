@@ -29,6 +29,7 @@ describe("overlay row builders", () => {
   it("PICKER_KINDS maps bare commands to overlay kinds", () => {
     expect(PICKER_KINDS.model).toBe("model");
     expect(PICKER_KINDS.cockpit).toBe("cockpit");
+    expect(PICKER_KINDS.stats).toBe("stats");
     expect(PICKER_KINDS.nope).toBeUndefined();
   });
 });

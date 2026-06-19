@@ -13,6 +13,7 @@ import { useSubmit } from "./use-submit.js";
 import { useOverlay, type OverlayView } from "./use-overlay.js";
 import { OverlayList } from "./overlay-list.js";
 import { CockpitPanel } from "./cockpit-panel.js";
+import { StatsPanel } from "./stats-panel.js";
 import { HelpPanel } from "./help-panel.js";
 import { LoopsPanel } from "./loops-panel.js";
 import { ReviewPanel } from "./review-panel.js";
@@ -251,6 +252,7 @@ function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSel
   const { overlay, onClose } = props;
   if (overlay.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={onClose} />;
   if (overlay.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={onClose} />;
+  if (overlay.kind === "stats") return <StatsPanel stats={overlay.stats} onClose={onClose} />;
   if (overlay.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={onClose} />;
   if (overlay.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={onClose} />;
   if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
