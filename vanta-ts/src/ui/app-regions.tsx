@@ -3,6 +3,7 @@ import { Box, Text } from "ink";
 import { StatusBar } from "./status-bar.js";
 import { StreamPreview } from "./stream-view.js";
 import { busyLabel } from "./busy.js";
+import { toolLoaderRows } from "./tool-loader.js";
 import { FOCUS, ACTIVITY, GOAL } from "../term/palette.js";
 import type { PendingTool, Entry } from "./types.js";
 import { Banner } from "./banner.js";
@@ -39,14 +40,21 @@ export function Footer(props: {
 export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number }): ReactElement | null {
   const { streaming, activeTools, busy, tick } = props;
   if (!busy && !streaming) return null;
-  const active = activeTools[activeTools.length - 1];
+  const loaders = toolLoaderRows(activeTools, tick);
   const { frame, verb } = busyLabel(tick);
-  const label = active ? `${active.verb}${active.detail ? ` ${active.detail}` : ""}` : verb;
   const secs = Math.round(tick * 0.15);
   return (
     <Box flexDirection="column">
       {streaming ? <StreamPreview text={streaming} /> : null}
-      {busy && !streaming ? <Text><Text color={ACTIVITY}>{frame}</Text> {label}… ({secs}s · esc to interrupt)</Text> : null}
+      {/* Per-tool loaders: each in-flight tool animates its own row (parallel-safe),
+          transitioning into its ⏺ Verb(detail) result once it completes. */}
+      {loaders.map((r) => (
+        <Text key={r.key}><Text color={FOCUS}>{r.frame}</Text> {r.label}…</Text>
+      ))}
+      {/* The global thinking spinner shows only when no tool is running (thinking). */}
+      {busy && !streaming && loaders.length === 0
+        ? <Text><Text color={ACTIVITY}>{frame}</Text> {verb}… ({secs}s · esc to interrupt)</Text>
+        : null}
     </Box>
   );
 }
