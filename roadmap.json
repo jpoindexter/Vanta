@@ -13318,7 +13318,7 @@
       "id": "PCLIP-BUDGET-HARDSTOP",
       "track": "Harness",
       "title": "Scoped budget hard-stops — overspend auto-pauses + cancels queued",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Budget & Cost Control; budgets.ts pauseScopeForBudget). Token/cost budgets per goal/agent/session with warning thresholds + HARD STOPS: on overspend the scope flips to paused (pauseReason:budget) and queued work is cancelled. Vanta has COST-VISIBLE display only — this is the \"walk away safely\" rail (the run-unwatched trust gap).",
       "done": "A goal/agent with a budget auto-pauses and cancels its queued work on overspend, not just displays the cost.",

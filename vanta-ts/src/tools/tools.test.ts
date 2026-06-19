@@ -40,6 +40,7 @@ describe("registry", () => {
       "browser_extract",
       "browser_navigate",
       "browser_read",
+      "budget",
       "calendar_create",
       "calendar_read",
       "calendar_update",

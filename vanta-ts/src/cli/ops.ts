@@ -7,7 +7,9 @@ import { installService, uninstallService, serviceStatus } from "../service/mana
 import { resolveVantaHome } from "../store/home.js";
 import { prepareRun, buildSummarizer, writeRunMemory } from "../session.js";
 import type { RunTask } from "../schedule/runner.js";
-import { withWakeContext } from "../loop/wake.js";
+import { withWakeContext, wakeContextFromEnv } from "../loop/wake.js";
+import { estimateCostUsd } from "../pricing.js";
+import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -34,6 +36,18 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       summarize: buildSummarizer(setup.provider),
     });
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
+    // Budget hard-stop: attribute this run's cost to its scope (a loop when run
+    // under a loop wake, else the session). enforceScopeBudget is a no-op unless a
+    // budget is set, and auto-pauses + cancels queued work on overspend.
+    const usage = outcome.usage;
+    const cost = usage ? estimateCostUsd(setup.provider.modelId(), usage.inputTokens, usage.outputTokens) : null;
+    if (cost && cost > 0) {
+      // Attribute to the loop when run under a loop wake (gateway sets the wake
+      // env on the spawned child); otherwise the session scope.
+      const wakeCtx = wake ?? wakeContextFromEnv();
+      const scope = wakeCtx?.goal_id ? scopeForLoop(wakeCtx.goal_id) : "session";
+      await enforceScopeBudget({ dataDir: dataDirFor(repoRoot), scope, deltaUsd: cost }).catch(() => {});
+    }
     return { finalText: outcome.finalText };
   };
 }

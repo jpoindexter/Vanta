@@ -9,6 +9,7 @@ import {
 import { newState } from "../loop/types.js";
 import { markInProgress, loopStateReminder } from "../loop/state.js";
 import { runLoopIteration } from "../loop/runner.js";
+import { checkLoopBudgetBeforeRun } from "../budget/enforce.js";
 import { dataDirFor, buildCronRunTask } from "./ops.js";
 import { wakeContextFromEnv, wakeContextFromLoop, withWakeContext } from "../loop/wake.js";
 import {
@@ -86,6 +87,15 @@ async function handleRun(root: string, id: string): Promise<number> {
   const dataDir = dataDirFor(root);
   const def = await loadDef(dataDir, id);
   if (!def) { console.error(`unknown loop: ${id}`); return 1; }
+
+  // Budget hard-stop gate: an overspent loop refuses to iterate. Ensures it is
+  // paused and its queued wakes are cancelled before any work runs.
+  const stop = await checkLoopBudgetBeforeRun(dataDir, id);
+  if (stop) {
+    const extra = stop.cancelledWork > 0 ? `, cancelled ${stop.cancelledWork} queued wake(s)` : "";
+    console.log(`loop ${id} paused: budget exceeded ($${stop.spentUsd.toFixed(2)} / $${stop.limitUsd.toFixed(2)})${extra}`);
+    return 0;
+  }
 
   const state = await loadState(dataDir, id);
   // Crash marker: if the process dies mid-run, the next wake sees inProgress:true

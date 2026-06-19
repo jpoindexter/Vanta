@@ -119,6 +119,31 @@ export async function drainLoopWakes(dataDir: string): Promise<WakeContext[]> {
     .filter((ctx): ctx is WakeContext => ctx !== null);
 }
 
+/**
+ * Drop queued wakes owned by a goal/loop id — the "cancel queued work" half of a
+ * budget hard stop. Lines that fail to decode are kept (defensive: never silently
+ * discard a wake we can't read). Returns the count removed.
+ */
+export async function removeWakesForGoal(dataDir: string, goalId: string): Promise<number> {
+  let raw = "";
+  try {
+    raw = await readFile(queuePath(dataDir), "utf8");
+  } catch {
+    return 0;
+  }
+  const kept: string[] = [];
+  let removed = 0;
+  for (const line of raw.split("\n").filter(Boolean)) {
+    const ctx = decodeWakeContext(line);
+    if (ctx && ctx.goal_id === goalId) { removed += 1; continue; }
+    kept.push(line);
+  }
+  if (removed > 0) {
+    await writeFile(queuePath(dataDir), kept.length ? `${kept.join("\n")}\n` : "", "utf8");
+  }
+  return removed;
+}
+
 function loopDelta(state: LoopState, now: Date): string[] {
   const delta = [
     `woke_at=${now.toISOString()}`,
