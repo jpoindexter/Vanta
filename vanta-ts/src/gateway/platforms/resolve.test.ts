@@ -16,8 +16,35 @@ describe("resolvePlatform", () => {
     expect(adapter?.id).toBe("ntfy");
   });
 
+  it("selects the Mattermost adapter when url + token + channel are all set", () => {
+    const adapter = resolvePlatform({
+      VANTA_MATTERMOST_URL: "https://mm.example",
+      VANTA_MATTERMOST_TOKEN: "tok",
+      VANTA_MATTERMOST_CHANNEL: "c1",
+    });
+    expect(adapter?.id).toBe("mattermost");
+  });
+
+  it("does not select Mattermost when the channel is missing", () => {
+    const adapter = resolvePlatform({
+      VANTA_MATTERMOST_URL: "https://mm.example",
+      VANTA_MATTERMOST_TOKEN: "tok",
+    });
+    expect(adapter).toBeUndefined();
+  });
+
   it("prefers Telegram over ntfy when both are configured", () => {
     const adapter = resolvePlatform({ VANTA_TELEGRAM_TOKEN: "123:abc", VANTA_NTFY_TOPIC: "my-topic" });
+    expect(adapter?.id).toBe("telegram");
+  });
+
+  it("prefers Telegram over Mattermost when both are configured", () => {
+    const adapter = resolvePlatform({
+      VANTA_TELEGRAM_TOKEN: "123:abc",
+      VANTA_MATTERMOST_URL: "https://mm.example",
+      VANTA_MATTERMOST_TOKEN: "tok",
+      VANTA_MATTERMOST_CHANNEL: "c1",
+    });
     expect(adapter?.id).toBe("telegram");
   });
 

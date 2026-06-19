@@ -6,12 +6,23 @@ import {
 } from "./registry.js";
 
 describe("messaging registry", () => {
-  it("includes telegram, imessage, signal, ntfy as implemented platforms", () => {
+  it("includes telegram, imessage, signal, ntfy, mattermost as implemented platforms", () => {
     const implemented = MESSAGING_CATALOG.filter((p) => p.implemented).map((p) => p.id);
     expect(implemented).toContain("telegram");
     expect(implemented).toContain("imessage");
     expect(implemented).toContain("signal");
     expect(implemented).toContain("ntfy");
+    expect(implemented).toContain("mattermost");
+  });
+
+  it("requires server url, token, and channel for mattermost", () => {
+    const mm = messagingPlatformById("mattermost")!;
+    expect(mm.implemented).toBe(true);
+    expect(mm.requiredEnv).toEqual(["VANTA_MATTERMOST_URL", "VANTA_MATTERMOST_TOKEN", "VANTA_MATTERMOST_CHANNEL"]);
+    expect(mm.secretEnv).toBe("VANTA_MATTERMOST_TOKEN");
+    const partial = { VANTA_MATTERMOST_URL: "https://mm.example", VANTA_MATTERMOST_TOKEN: "tok" };
+    expect(platformAvailability(mm, partial).missing).toEqual(["VANTA_MATTERMOST_CHANNEL"]);
+    expect(platformAvailability(mm, { ...partial, VANTA_MATTERMOST_CHANNEL: "c1" }).configured).toBe(true);
   });
 
   it("every entry has required env + at least one setup step", () => {

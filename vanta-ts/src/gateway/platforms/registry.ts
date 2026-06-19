@@ -133,11 +133,14 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "mattermost", label: "Mattermost", implemented: false,
-    requiredEnv: ["VANTA_MATTERMOST_URL", "VANTA_MATTERMOST_TOKEN"], secretEnv: "VANTA_MATTERMOST_TOKEN",
+    id: "mattermost", label: "Mattermost", implemented: true,
+    requiredEnv: ["VANTA_MATTERMOST_URL", "VANTA_MATTERMOST_TOKEN", "VANTA_MATTERMOST_CHANNEL"],
+    secretEnv: "VANTA_MATTERMOST_TOKEN",
     setupSteps: [
-      "Create a bot account in your Mattermost (System Console → Integrations).",
-      "Set VANTA_MATTERMOST_URL (server URL) and VANTA_MATTERMOST_TOKEN.",
+      "Create a bot account in your Mattermost (System Console → Integrations → Bot Accounts) and copy its token.",
+      "Add the bot to the channel you want it to watch, then copy that channel's id (Channel menu → View Info).",
+      "Set VANTA_MATTERMOST_URL (server URL), VANTA_MATTERMOST_TOKEN (the bot token), and VANTA_MATTERMOST_CHANNEL (the channel id).",
+      "Optional: set VANTA_MATTERMOST_ALLOW to a comma list of channel ids to accept (default: allow all).",
     ],
   },
   {
