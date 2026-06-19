@@ -50,6 +50,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "cockpit", desc: "open mission-control — kernel verdict ladder, goals, loops (TUI)" },
   { name: "loops", desc: "live loops + escalations dashboard (TUI)" },
   { name: "changes", desc: "review changed files — per-file keep/undo (TUI)" },
+  { name: "agents", desc: "background task panel — agent/shell/remote tasks, status, stop/respawn (TUI)" },
   { name: "mcp", desc: "MCP panel — servers + connection status, per-server tools, tool detail, reconnect (TUI)" },
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
   { name: "preferences", arg: "export", desc: "export operator preference signals (~/.vanta/preferences.jsonl)" },

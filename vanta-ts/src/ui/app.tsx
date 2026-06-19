@@ -18,6 +18,7 @@ import { LoopsPanel } from "./loops-panel.js";
 import { ReviewPanel } from "./review-panel.js";
 import { ContextPanel } from "./context-panel.js";
 import { McpPanel } from "./mcp-panel.js";
+import { TasksPanel } from "./tasks-panel.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
@@ -207,6 +208,7 @@ function BottomRegion(props: {
   if (overlay?.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={props.onClose} />;
   if (overlay?.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={props.onClose} />;
   if (overlay?.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={props.onClose} />;
+  if (overlay?.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={props.onClose} />;
   if (overlay?.kind === "help") return <HelpPanel onClose={props.onClose} />;
   return (
     <Box flexDirection="column">

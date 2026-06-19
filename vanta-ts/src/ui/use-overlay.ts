@@ -10,6 +10,8 @@ import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
 import { gatherMcpConnections, reconnectServer } from "../mcp/connect.js";
 import { elicitationMessage, type ElicitationRequest } from "./elicitation-dialog.js";
 import type { McpServerView } from "./mcp-view.js";
+import { reloadTasks } from "./tasks-actions.js";
+import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
 /** Live conversation snapshot the /context overlay computes its breakdown from. */
@@ -26,6 +28,7 @@ export type OverlayView =
   | { kind: "review"; files: ChangedFile[]; cwd: string }
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
+  | { kind: "tasks"; tasks: WorkerTask[] }
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -45,6 +48,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "loops": return { kind: "loops", loops: await listLoopSummaries(dataDir) };
     case "review": return { kind: "review", files: await listChangedFiles(repoRoot), cwd: repoRoot };
     case "context": return contextOverlay(setup, getCtx);
+    case "tasks": return { kind: "tasks", tasks: await reloadTasks(process.env) };
     default: return { kind: "help" };
   }
 }
