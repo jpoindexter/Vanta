@@ -113,6 +113,7 @@ describe("registry", () => {
       "sleep",
       "speak",
       "swarm",
+      "taste_critique",
       "team",
       "todo",
       "tool_search",

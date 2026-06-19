@@ -26,6 +26,7 @@ import { brainTool } from "./brain.js";
 import { todoTool } from "./todo.js";
 import { worldTool } from "./world.js";
 import { moneyTool } from "./money.js";
+import { tasteCritiqueTool } from "./taste-critique.js";
 import { radarTool } from "./radar.js";
 import { reachTool } from "./reach-tool.js";
 import { teamTool } from "./team.js";
@@ -137,6 +138,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   todoTool,
   worldTool,
   moneyTool,
+  tasteCritiqueTool,
   radarTool,
   reachTool,
   teamTool,
