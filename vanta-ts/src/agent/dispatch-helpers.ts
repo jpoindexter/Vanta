@@ -6,6 +6,7 @@ import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { densifySearchResult, shouldDensifyTool } from "../compress/search-densify.js";
 import { stashOriginal } from "../compress/store.js";
 import { toonCompress, estTokens } from "winnow";
 import { tighten, matchRule } from "../permissions/rules.js";
@@ -221,6 +222,16 @@ export async function compressOutput(
   if (!compressEnabled()) return { output, tokensSaved: 0 };
   const vantaDir = join(dataDir, ".vanta");
   if (toolName === "read_file") return compressReadFile(output, vantaDir);
+  // SEARCH-RESULT-DENSIFY: a SEPARATE lossless lane for grep/search output.
+  // It runs here (so it lands BEFORE result-offload in dispatch-tool.ts) and is
+  // deliberately NOT part of the lossy COMPRESS_TOOLS allow-list — densifying
+  // preserves every line:content byte (round-trip-guarded), so unlike the lossy
+  // crushers it is safe on a precision search result and can drop it back under
+  // the 50K offload threshold instead of truncating it.
+  if (shouldDensifyTool(toolName)) {
+    const dense = densifySearchResult(output);
+    return { output: dense.output, tokensSaved: dense.tokensSaved };
+  }
   const view = toonView(output);
   if (view) return view;
   if (!shouldCompressTool(toolName)) return { output, tokensSaved: 0 };

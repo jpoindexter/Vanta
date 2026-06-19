@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { compressOutput } from "./dispatch-helpers.js";
 import { retrieveOriginal } from "../compress/store.js";
+import { undensify, densifySearchResult } from "../compress/search-densify.js";
+import { estTokens } from "winnow";
 
 // TOON view for read_file on JSON object-array files (lossless; original recoverable).
 describe("compressOutput — TOON for read_file JSON files", () => {
@@ -68,5 +70,48 @@ describe("compressOutput — TOON for read_file JSON files", () => {
       if (prev === undefined) delete process.env.VANTA_TOON_READFILE;
       else process.env.VANTA_TOON_READFILE = prev;
     }
+  });
+});
+
+// SEARCH-RESULT-DENSIFY routed through compressOutput for grep_files (separate
+// lossless lane, lands before result-offload in dispatch-tool.ts).
+describe("compressOutput — grep_files lossless densification", () => {
+  let dir: string;
+  beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), "vanta-densify-")); });
+  afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
+
+  // A realistic path-heavy grep result: one long path repeated across many matches.
+  const path = "vanta-ts/src/agent/dispatch-helpers.ts";
+  const grepResult = Array.from(
+    { length: 40 },
+    (_, i) => `${path}:${i + 12}:  const result = await tool.execute(call.arguments, ctx); // hit ${i}`,
+  ).join("\n");
+
+  it("densifies a >=5-match grep_files result and stays losslessly recoverable", async () => {
+    const r = await compressOutput("grep_files", grepResult, dir);
+    expect(r.output).not.toBe(grepResult);
+    expect(r.tokensSaved).toBeGreaterThan(0);
+    // Path written once as a header, then indented line:content pairs.
+    expect(r.output.split("\n")[0]).toBe(path);
+    expect(r.output).toContain("\n  12:");
+    // Lossless: re-expansion is byte-identical to the original grep output.
+    expect(undensify(r.output)).toBe(grepResult);
+  });
+
+  it("delivers a meaningful token reduction on a path-heavy result", () => {
+    const dense = densifySearchResult(grepResult);
+    const before = estTokens(grepResult);
+    const after = estTokens(dense.output);
+    const pct = Math.round(((before - after) / before) * 100);
+    // Eliminating the repeated path string + `:` framing should cut a real
+    // fraction of tokens on a path-heavy result.
+    expect(pct).toBeGreaterThan(15);
+  });
+
+  it("leaves a small grep result (<5 matches) untouched", async () => {
+    const small = Array.from({ length: 3 }, (_, i) => `${path}:${i}:x`).join("\n");
+    const r = await compressOutput("grep_files", small, dir);
+    expect(r.output).toBe(small);
+    expect(r.tokensSaved).toBe(0);
   });
 });
