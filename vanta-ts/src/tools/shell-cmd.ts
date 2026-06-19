@@ -5,7 +5,8 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
-import { isSandboxError, maybeSandbox } from "../sandbox/run.js";
+import { isSandboxError } from "../sandbox/run.js";
+import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshProfile, buildSshArgs } from "../ssh/config.js";
 
@@ -95,9 +96,9 @@ function warnPrefix(command: string): string {
   return warn ? `⚠ ${warn}\n` : "";
 }
 
-/** Run the command locally (project scope), optionally OS-sandboxed. */
+/** Run the command on the active execution backend (local / OS sandbox / docker). */
 async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
-  const sb = await maybeSandbox({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });

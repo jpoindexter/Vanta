@@ -13093,7 +13093,7 @@
       "id": "BACKEND-DOCKER",
       "track": "Operator",
       "title": "Docker execution backend — shell + code run in a container",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Containerized execution backend for shell_cmd + run_code: tool execution runs inside a Docker container instead of the host, kernel-gated as today. The first concrete run-anywhere backend (pure user-infra, zero SaaS tension). Gives SETUP-TERMINAL-BACKEND's local/sandbox/docker/ssh selector a real docker adapter.",
       "done": "With the docker backend selected, shell_cmd and run_code execute in a container; the kernel assess() gate still runs; out-of-container writes refused; tests cover the adapter; falls back cleanly when Docker is absent.",

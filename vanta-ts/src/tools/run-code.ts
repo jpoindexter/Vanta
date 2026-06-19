@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
-import { isSandboxError, maybeSandbox } from "../sandbox/run.js";
+import { isSandboxError } from "../sandbox/run.js";
+import { wrapExec } from "../exec/backend.js";
 
 const run = promisify(execFile);
 
@@ -43,8 +44,9 @@ async function runStep(
   language: Language,
   root: string,
 ): Promise<ToolResult> {
-  // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1). Off → base unchanged.
-  const sb = await maybeSandbox({ env: process.env, root, baseCmd: cmd[0], baseArgs: cmd[1] });
+  // Execution backend: docker (VANTA_EXEC_BACKEND=docker) → container; else OS
+  // sandbox (VANTA_SANDBOX=1) → wrapped; else base unchanged.
+  const sb = await wrapExec({ env: process.env, root, baseCmd: cmd[0], baseArgs: cmd[1] });
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, {
