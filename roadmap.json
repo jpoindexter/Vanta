@@ -13040,6 +13040,18 @@
       "after": [
         "COMPRESSION-MEASURE"
       ]
+    },
+    {
+      "id": "PROMPT-CURRENCY-RULE",
+      "track": "Harness",
+      "title": "Currency/recency rule in the system prompt — verify-before-stating, no cutoff hedging",
+      "status": "shipped",
+      "size": "S",
+      "summary": "[repo: vanta] Extracted from the Claude Fable 5 system prompt. Vanta's prompt already had strong verify/honesty/epistemic-label discipline (rules 2-4,7,10); the one gap was CURRENCY. Added rule 7a to prompt.ts stableTier: verify current versions/API shapes/model names/CLI flags before stating them, unfamiliar capitalized/version-like names probably postdate training (search first; partial recognition != current knowledge), and never hedge with 'as of my cutoff'. Also extended the voice rule (10) with own-mistakes-without-self-abasement. Keeps the 3-tier architecture; prompt.test green.",
+      "done": "system prompt stableTier carries a currency rule (verify versions/APIs/models before stating; unrecognized name -> check; no cutoff hedging) + an own-mistakes-without-abasement clause on the voice rule; prompt.test passes; committed.",
+      "tier": "sand",
+      "effort": "low",
+      "lens": "agent-loop"
     }
   ]
 }
