@@ -13020,10 +13020,11 @@
       "status": "next",
       "size": "S",
       "summary": "[repo: vanta] From NousResearch/hermes-agent PR #47866 (a headroom-compression eval): the one proven win was lossless path-grouped densification of search output — group consecutive same-path matches under one header with indented `line: content` pairs => ~58% fewer tokens, zero-dep, lossless, fires only on >=5 matches. Vanta's grep/search tools (grep_files, code-search, glob-files, life-search) emit the same repeated path strings + JSON keys. Add a pure path-grouped densifier to the compress/ system (compress/apply COMPRESS_TOOLS) so these results densify before entering context. Lossless with exhaustive edge-case tests (unicode/emoji/colons/quotes/empty content/trailing whitespace); backward-compatible; NO new dependency. Beats CCR on this shape (see COMPRESSION-MEASURE).",
-      "done": "a pure path-grouped densifier losslessly compresses grep/search tool output on >=5 matches (~50%+ token cut on path-heavy results); wired into compress/apply for the search tools; exhaustive losslessness tests (unicode/colons/quotes/empty/trailing-ws round-trip); no new dep; tsc clean; committed.",
+      "done": "a pure LOSSLESS path-grouped densifier reformats grep/search tool output on >=5 matches (consecutive same-path matches under one header + indented `line: content`), preserving every line number and byte exactly; applied as a SEPARATE lossless step (NOT added to the lossy COMPRESS_TOOLS allow-list) and run BEFORE result-offload so densified output may stay under the 50K offload threshold; exhaustive round-trip losslessness tests (unicode/colons/quotes/empty/trailing-ws); no new dep; tsc clean; committed.",
       "tier": "rock",
       "effort": "low",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "notes": "Lossless lane is the whole point: Vanta's lossy COMPRESS_TOOLS allow-list deliberately excludes grep/search (line-shift corrupts file:line). Path-grouping is lossless so it is the ONE compressor safe on precision search output. Source: NousResearch/hermes-agent PR #47866."
     }
   ]
 }
