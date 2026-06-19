@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderUi, tick } from "./test-render.js";
-import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD } from "./composer.js";
+import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal } from "./composer.js";
 import { matchSlash } from "./slash.js";
 
 describe("countLines — pure helper", () => {
@@ -13,6 +13,18 @@ describe("countLines — pure helper", () => {
 
 describe("PASTE_PILL_THRESHOLD", () => {
   it("is 3 so content with 4+ lines triggers the pill", () => expect(PASTE_PILL_THRESHOLD).toBe(3));
+});
+
+describe("isImagePasteSignal — empty paste means a non-text (image) clipboard", () => {
+  it("true for an empty paste (raw image, no text representation)", () => expect(isImagePasteSignal("")).toBe(true));
+  it("true for whitespace-only (some terminals pad the empty bracketed paste)", () => {
+    expect(isImagePasteSignal("   ")).toBe(true);
+    expect(isImagePasteSignal("\n")).toBe(true);
+  });
+  it("false for real pasted text (must insert, not grab an image)", () => {
+    expect(isImagePasteSignal("hello")).toBe(false);
+    expect(isImagePasteSignal("/tmp/x.png")).toBe(false);
+  });
 });
 
 const baseView = (overrides: Partial<Parameters<typeof ComposerView>[0]> = {}) =>

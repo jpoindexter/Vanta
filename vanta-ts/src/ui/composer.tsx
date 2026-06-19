@@ -60,7 +60,7 @@ export function Composer(props: {
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const pasteText = useTextPaste(value, cursor, setBuf, focused);
+  const pasteText = useTextPaste({ value, cursor, setBuf, focused, onImagePaste: props.onPaste });
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
@@ -84,11 +84,30 @@ function useComposerPalettes(value: string, files: string[], skills?: SlashMatch
   return { slashMatches, atMatches, activeLen: slashMatches.length || atMatches.length };
 }
 
-function useTextPaste(value: string, cursor: number, setBuf: (v: string, c: number) => void, focused: boolean): (text: string) => void {
+/**
+ * A bracketed paste with no text is the terminal's signal that the clipboard held
+ * non-text content (e.g. a screenshot's raw image bytes) — the text representation
+ * is empty. That's our cue to try grabbing a clipboard image instead of inserting.
+ */
+export function isImagePasteSignal(pasted: string): boolean {
+  return pasted.trim() === "";
+}
+
+type TextPasteOpts = {
+  value: string; cursor: number; focused: boolean;
+  setBuf: (v: string, c: number) => void; onImagePaste?: () => void;
+};
+
+function useTextPaste(o: TextPasteOpts): (text: string) => void {
   const pasteText = (text: string): void => {
-    if (!focused) return;
-    const next = value.slice(0, cursor) + text + value.slice(cursor);
-    setBuf(next, cursor + text.length);
+    if (!o.focused) return;
+    // Raw-image Cmd+V: an image-only clipboard has no text representation, so the
+    // terminal sends an empty bracketed paste (Ink emits usePaste("")). Grab the
+    // clipboard image instead of inserting nothing. Harmless on a truly-empty
+    // clipboard (the /paste handler just reports "no image").
+    if (o.onImagePaste && isImagePasteSignal(text)) { o.onImagePaste(); return; }
+    const next = o.value.slice(0, o.cursor) + text + o.value.slice(o.cursor);
+    o.setBuf(next, o.cursor + text.length);
   };
   // Bracketed paste mode: text with newlines arrives as one string, not returns.
   usePaste(pasteText);
