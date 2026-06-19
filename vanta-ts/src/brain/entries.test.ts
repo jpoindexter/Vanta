@@ -52,6 +52,39 @@ describe("normalizeEntry", () => {
     expect(e.strength).toBe(1);
     expect(e.valence).toBe(-1);
   });
+
+  it("accepts the memanto-style kinds added additively", () => {
+    for (const kind of ["decision", "commitment", "relationship", "context", "event", "observation", "artifact", "error", "goal", "learning"] as const) {
+      expect(normalizeEntry({ region: "semantic", content: "c", entryType: kind }).entryType).toBe(kind);
+    }
+  });
+
+  it("still accepts every original kind (additive, not replaced)", () => {
+    for (const kind of ["fact", "skill", "preference", "pattern", "insight", "plan", "emotion"] as const) {
+      expect(normalizeEntry({ region: "semantic", content: "c", entryType: kind }).entryType).toBe(kind);
+    }
+  });
+
+  it("falls back to 'fact' for an unrecognized entryType (tolerant of old/garbage shapes)", () => {
+    expect(normalizeEntry({ region: "semantic", content: "c", entryType: "totally-unknown" }).entryType).toBe("fact");
+  });
+
+  it("reads an old-shape stored entry (pre-extension entryType) without dropping it", async () => {
+    await mkdir(join(home, "brain"), { recursive: true });
+    // An entry written before the type extension — a known original kind plus a now-unknown one.
+    await writeFile(
+      entriesFile(),
+      JSON.stringify([
+        { region: "semantic", content: "old preference entry", entryType: "preference" },
+        { region: "semantic", content: "old custom-typed entry", entryType: "legacy_custom" },
+      ]),
+      "utf8",
+    );
+    const loaded = await loadEntries();
+    expect(loaded).toHaveLength(2);
+    expect(loaded.find((e) => e.content === "old preference entry")?.entryType).toBe("preference");
+    expect(loaded.find((e) => e.content === "old custom-typed entry")?.entryType).toBe("fact");
+  });
 });
 
 describe("load/save + tolerance", () => {

@@ -106,4 +106,14 @@ describe("learnFromTranscript", () => {
   it("no-ops on an empty transcript", async () => {
     expect(await learnFromTranscript({ provider: fakeProvider("[]"), transcript: [] })).toEqual([]);
   });
+
+  it("can emit one of the new memanto-style kinds (decision)", async () => {
+    const reply = JSON.stringify([
+      { region: "episodic", content: "chose ollama over openai for the default backend to stay local", entry_type: "decision", confidence: 0.9 },
+    ]);
+    const learned = await learnFromTranscript({ provider: fakeProvider(reply), transcript });
+    expect(learned).toHaveLength(1);
+    const [stored] = await loadEntries();
+    expect(stored?.entryType).toBe("decision");
+  });
 });

@@ -3,7 +3,48 @@ import { z } from "zod";
 import { brainDir } from "./store.js";
 import { join } from "node:path";
 
-export type EntryType = "fact" | "skill" | "preference" | "pattern" | "insight" | "plan" | "emotion";
+// The original kinds, plus memanto-style kinds added additively for sharper
+// recall/routing signal. Anything unrecognized (old or new) normalizes to
+// "fact", so existing stored entries keep reading — see normalizeEntry.
+export type EntryType =
+  | "fact"
+  | "skill"
+  | "preference"
+  | "pattern"
+  | "insight"
+  | "plan"
+  | "emotion"
+  | "decision"
+  | "commitment"
+  | "relationship"
+  | "context"
+  | "event"
+  | "observation"
+  | "artifact"
+  | "error"
+  | "goal"
+  | "learning";
+
+/** Every valid EntryType value, single source of truth for the tolerant set + learn-pass enum. */
+export const ENTRY_TYPE_VALUES = [
+  "fact",
+  "skill",
+  "preference",
+  "pattern",
+  "insight",
+  "plan",
+  "emotion",
+  "decision",
+  "commitment",
+  "relationship",
+  "context",
+  "event",
+  "observation",
+  "artifact",
+  "error",
+  "goal",
+  "learning",
+] as const satisfies readonly EntryType[];
 export type SourceType = "observation" | "inference" | "self-report" | "external" | "crystallized";
 export type CrystalStatus = "raw" | "compressed" | "crystallized";
 
@@ -51,7 +92,7 @@ export type BrainEntry = {
   forgetAfter?: string;
 };
 
-const ENTRY_TYPES = new Set<string>(["fact", "skill", "preference", "pattern", "insight", "plan", "emotion"]);
+const ENTRY_TYPES = new Set<string>(ENTRY_TYPE_VALUES);
 const SOURCE_TYPES = new Set<string>(["observation", "inference", "self-report", "external", "crystallized"]);
 const CRYSTAL_STATUSES = new Set<string>(["raw", "compressed", "crystallized"]);
 

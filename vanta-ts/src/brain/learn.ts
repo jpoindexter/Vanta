@@ -3,6 +3,7 @@ import { remember } from "./brain.js";
 import { classifyIngest, toLivePointer } from "./ingest-gate.js";
 import { isBrainRegion } from "./regions.js";
 import { serializeForNotes } from "../memory/session-memory.js";
+import { ENTRY_TYPE_VALUES } from "./entry-types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
 
@@ -30,15 +31,26 @@ Worth keeping:
 
 NOT worth keeping: one-off task details, transient state, anything already obvious, speculation about feelings.
 
+Pick the entry_type that carries the strongest signal for later recall:
+- decision — a choice that was settled ("we chose X over Y because Z"); routes recall when a past call is revisited.
+- commitment — a promise or obligation the user or Vanta took on ("I'll send it Friday").
+- preference — a standing like/dislike or working-style choice.
+- relationship — who someone is to the user or how two things connect.
+- goal — an objective being pursued; plan — the steps toward one.
+- event — something that happened; observation — a noticed pattern in behavior or state.
+- error — a mistake or failure worth not repeating; learning — a lesson drawn from one.
+- artifact — a concrete thing produced (file, doc, release); fact — a durable truth that fits none of the above.
+- pattern / insight — a recurring user behavior or a synthesized understanding.
+
 Reply with ONLY a JSON array (no prose, no code fence). Each item:
-{"region": "user_model|semantic|episodic|identity|reflections", "content": "<one tight sentence>", "entry_type": "fact|preference|pattern|insight|plan|emotion", "confidence": 0.0-1.0}
+{"region": "user_model|semantic|episodic|identity|reflections", "content": "<one tight sentence>", "entry_type": "<one of: ${ENTRY_TYPE_VALUES.join("|")}>", "confidence": 0.0-1.0}
 Reply [] when nothing durable was revealed.`;
 
 const LearnedSchema = z.array(
   z.object({
     region: z.string(),
     content: z.string().min(8),
-    entry_type: z.enum(["fact", "skill", "preference", "pattern", "insight", "plan", "emotion"]).optional(),
+    entry_type: z.enum(ENTRY_TYPE_VALUES).optional(),
     confidence: z.number().min(0).max(1).optional(),
   }),
 );
