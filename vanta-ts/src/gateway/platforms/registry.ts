@@ -157,12 +157,14 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "ntfy", label: "ntfy (push notifications)", implemented: false,
+    id: "ntfy", label: "ntfy (push notifications)", implemented: true,
     requiredEnv: ["VANTA_NTFY_TOPIC"],
     signupUrl: "https://ntfy.sh",
     setupSteps: [
-      "Pick a topic on ntfy.sh (or self-host); subscribe in the ntfy app.",
-      "Set VANTA_NTFY_TOPIC to the topic URL.",
+      "Pick a topic name on ntfy.sh (or self-host); subscribe to it in the ntfy app.",
+      "Set VANTA_NTFY_TOPIC to that topic name (not the full URL).",
+      "Optional: set VANTA_NTFY_SERVER for a self-hosted server (default https://ntfy.sh).",
+      "Optional: set VANTA_NTFY_ALLOW to a comma list of topics to accept (default: allow all).",
     ],
   },
   {
