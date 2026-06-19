@@ -13304,7 +13304,7 @@
       "id": "PCLIP-ATOMIC-CHECKOUT",
       "track": "Harness",
       "title": "Atomic task checkout + execution locks (no double-work)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Why Paperclip is special — atomic execution; withAgentStartLock). Task checkout and budget enforcement are atomic so two parallel agents never double-work one task. Reliability for Vanta's worktree fleet — aligned regardless of the THEFT pivot.",
       "done": "Concurrent fleet workers cannot both claim the same task; the second is refused or queued, proven by a test.",

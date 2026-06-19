@@ -7,6 +7,7 @@ import type { AgentDeps } from "../agent.js";
 import type { CompletionResult, LLMProvider } from "../providers/interface.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { KernelClient } from "../kernel/client.js";
+import { lockPath } from "../team/checkout.js";
 import { acceptFleetWorker, runFleet } from "./fleet.js";
 import { loadFleetReport } from "./store.js";
 
@@ -68,7 +69,9 @@ describe("runFleet", () => {
         },
       });
       expect(report.workers.map((w) => w.status)).toEqual(["done", "done"]);
-      expect(report.workers[0]?.diff).toBe("fleet/b0 changed");
+      // Each worker records the diff of its OWN branch (order-independent —
+      // concurrent worktree creation interleaves nondeterministically).
+      for (const w of report.workers) expect(w.diff).toBe(`${w.branch} changed`);
       expect(loadFleetReport(root, "fleet-test").workers).toHaveLength(2);
       expect(tasks.filter((t) => t.id.endsWith(":one")).map((t) => t.status)).toEqual(["assigned", "running", "done"]);
       expect(tasks.filter((t) => t.id.endsWith(":two")).map((t) => t.status)).toEqual(["assigned", "running", "done"]);
@@ -104,6 +107,41 @@ describe("runFleet", () => {
       });
       expect(next.workers[0]?.status).toBe("accepted");
       expect(calls).toEqual(["merge:fleet/b1", `${"cleanup"}:${join(root, ".vanta", "worktrees", "w1")}:fleet/b1`]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a task already checked out by another agent — no spawn, no worktree", async () => {
+    const root = mkdtempSync(join(tmpdir(), "fleet-lock-"));
+    const checkoutDir = join(root, "locks");
+    mkdirSync(checkoutDir, { recursive: true });
+    // Another agent already holds this task (pid = this live process → no reclaim).
+    const taskId = "fleet-lock:one";
+    writeFileSync(
+      lockPath(checkoutDir, taskId),
+      JSON.stringify({ taskId, workerId: "other-agent", pid: process.pid, acquired: "2026-06-19T00:00:00.000Z" }),
+    );
+    let spawned = 0;
+    let worktrees = 0;
+    try {
+      const report = await runFleet({
+        repoRoot: root,
+        fleetId: "fleet-lock",
+        specs: [{ id: "one", title: "Task one", instruction: "Do one" }],
+        deps: deps(root),
+        fleetDeps: {
+          checkoutDir,
+          createWorktree: async (_repo, _prefix, baseDir) => { worktrees++; return { path: join(baseDir, "w1"), branch: "fleet/b1", cleanup: async () => {} }; },
+          spawn: async () => { spawned++; return { finalText: "done", iterations: 1, stoppedReason: "done", toolIterations: 0 }; },
+          diff: async () => "x",
+          appendTask: async () => {},
+        },
+      });
+      expect(report.workers[0]?.status).toBe("blocked");
+      expect(report.workers[0]?.blocker).toMatch(/already checked out by other-agent/);
+      expect(spawned).toBe(0);
+      expect(worktrees).toBe(0);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

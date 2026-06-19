@@ -1,5 +1,6 @@
 import { join } from "node:path";
-import { appendTask, advanceTask, type WorkerTask } from "../team/tasks.js";
+import { appendTask, advanceTask, type WorkerTask, type TaskResult } from "../team/tasks.js";
+import { checkoutTask, type CheckoutArgs, type CheckoutHandle } from "../team/checkout.js";
 import { createWorktree, worktreeDiff, mergeWorktreeBranch, cleanupWorktree } from "../worktree/manager.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
@@ -17,6 +18,8 @@ export type FleetDeps = {
   appendTask?: (task: WorkerTask) => Promise<void>;
   merge?: (repoRoot: string, branch: string, message: string) => Promise<{ ok: boolean; message: string }>;
   cleanup?: (repoRoot: string, path: string, branch: string) => Promise<void>;
+  checkout?: (args: CheckoutArgs) => Promise<TaskResult<CheckoutHandle>>;
+  checkoutDir?: string;
   now?: () => Date;
 };
 
@@ -47,14 +50,40 @@ async function appendStatus(worker: FleetWorker, status: WorkerTask["status"], d
   await append(taskRecord(worker, status, detail));
 }
 
+function blockedWorker(opts: { id: string; taskId: string; title: string; blocker: string; updated: string }): FleetWorker {
+  return { ...opts, status: "blocked", branch: "", worktreePath: "" };
+}
+
+// Atomic checkout gate: claim the task before any worktree/spawn work so two
+// concurrent workers never double-work one task. A refused claim returns a
+// blocked worker WITHOUT touching the shared task ledger (the holder owns it)
+// or creating a worktree. The lock is released once execution finishes.
 async function runWorker(args: {
   repoRoot: string; fleetId: string; spec: FleetTaskSpec; baseDeps: AgentDeps; deps: FleetDeps;
+}): Promise<FleetWorker> {
+  const taskId = `${args.fleetId}:${args.spec.id}`;
+  const workerId = `${args.fleetId}-${args.spec.id}`;
+  const doCheckout = args.deps.checkout ?? checkoutTask;
+  const dir = args.deps.checkoutDir ?? join(args.repoRoot, ".vanta", "locks", "tasks");
+  const claim = await doCheckout({ taskId, workerId, dir, now: args.deps.now });
+  if (!claim.ok) {
+    return blockedWorker({ id: workerId, taskId, title: args.spec.title, blocker: claim.error, updated: iso(args.deps) });
+  }
+  try {
+    return await executeWorker({ ...args, taskId, workerId });
+  } finally {
+    await claim.value.release();
+  }
+}
+
+async function executeWorker(args: {
+  repoRoot: string; fleetId: string; spec: FleetTaskSpec; baseDeps: AgentDeps; deps: FleetDeps; taskId: string; workerId: string;
 }): Promise<FleetWorker> {
   const create = args.deps.createWorktree ?? createWorktree;
   const handle = await create(args.repoRoot, "fleet", join(args.repoRoot, ".vanta", "worktrees"));
   let worker: FleetWorker = {
-    id: `${args.fleetId}-${args.spec.id}`,
-    taskId: `${args.fleetId}:${args.spec.id}`,
+    id: args.workerId,
+    taskId: args.taskId,
     title: args.spec.title,
     status: "running",
     branch: handle.branch,
