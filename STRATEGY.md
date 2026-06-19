@@ -4,7 +4,7 @@
 
 ## North star
 
-A **local trusted operator**: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. Local-first, kernel-gated, no platform, no SaaS.
+A **trusted operator that runs anywhere you control**: knows the goal before it picks a tool, enforces scope on every action, reports only verified output. **User-controlled-infrastructure-first** — laptop, VPS, home server, container, SSH, or serverless — and the **kernel travels with it**, gating every action wherever it runs. No vendor lock-in, your data residency. (Not a hosted SaaS-as-a-business, not coupled to any vendor's cloud/account/billing — the kernel boundary is what makes running on a $5 VPS safe.)
 
 ## What we are building (in priority order)
 

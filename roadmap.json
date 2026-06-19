@@ -4479,7 +4479,7 @@
       "id": "VANTA-SSH-SESSION",
       "track": "Operator",
       "title": "`claude ssh` — remote session over SSH with SSHSessionManager",
-      "status": "horizon",
+      "status": "next",
       "size": "L",
       "summary": "another agent supports a `claude ssh` command that creates an SSH-based remote session (sibling to `claude --remote` WebSocket sessions). The SSH child process and auth proxy are created at startup and handed to `useSSHSession`. The hook bridges SSH session messages into the REPL UI using the same SDK message adapters as remote WebSocket sessions.",
       "done": "`claude ssh user@host` opens an interactive session over SSH. Tool calls execute on the remote host; permission prompts appear locally.",
@@ -4614,7 +4614,7 @@
       "id": "VANTA-SSH-CONFIGS",
       "track": "Operator",
       "title": "SSH pre-configured connections in settings",
-      "status": "horizon",
+      "status": "next",
       "size": "S",
       "summary": "another agent's sshConfigs setting pre-configures named SSH connections (host, port, user, key, jump host) so the agent can SSH into remote systems without user config. Useful for remote dev environments, cloud instances, and cross-machine agent tasks.",
       "done": "sshConfigs accepts an array of named connection profiles; the shell_cmd / bash tools use them by name; `vanta ssh <name>` opens an interactive shell to the configured host.",
@@ -12254,7 +12254,7 @@
       "id": "PORT-MESSAGING-FACTORY",
       "track": "Operator",
       "title": "Messaging adapter factory (mirror resolveProvider)",
-      "status": "horizon",
+      "status": "next",
       "size": "S",
       "summary": "Audit: PlatformAdapter port exists (gateway/platforms/base.ts:20) and all adapters implement it, but there is no factory — cli/ops.ts:45 hardcodes `new TelegramAdapter(...)`; the registry is metadata-only. Add a create(env)-style factory mirroring resolveProvider so adding Slack/Discord = one registration, not editing cli/ops.ts.",
       "done": "Messaging platforms resolve through a factory keyed by config; adding a platform is one registration entry; cli/ops.ts no longer hardcodes a concrete adapter.",
@@ -13076,6 +13076,70 @@
       "tier": "pebble",
       "effort": "low",
       "lens": "agent-loop"
+    },
+    {
+      "id": "RUN-ANYWHERE",
+      "track": "Operator",
+      "title": "Run anywhere you control — laptop · VPS · server · Docker · SSH · serverless",
+      "status": "next",
+      "size": "L",
+      "summary": "Identity anchor + umbrella for run-anywhere (DECISIONS 2026-06-19). Vanta is not laptop-bound: it runs on any host the user controls and the kernel travels with it, gating every action wherever it runs. User-controlled-infrastructure-first — no vendor lock-in, the user's data residency. Children carry the backend impls: BACKEND-DOCKER, BACKEND-SERVERLESS, VANTA-SSH-SESSION, SETUP-TERMINAL-BACKEND (wizard surface). Pure-infra (Docker/SSH/VPS) first; serverless-SaaS sequenced after behind a rule-zero data-residency sub-decision.",
+      "done": "Vanta runs an agent session on a remote host the user controls (VPS/server/container/SSH) with the kernel enforcing scope there exactly as locally; the setup wizard picks the execution backend; README documents the $5-VPS path. Serverless is a later child.",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "reach"
+    },
+    {
+      "id": "BACKEND-DOCKER",
+      "track": "Operator",
+      "title": "Docker execution backend — shell + code run in a container",
+      "status": "next",
+      "size": "M",
+      "summary": "Containerized execution backend for shell_cmd + run_code: tool execution runs inside a Docker container instead of the host, kernel-gated as today. The first concrete run-anywhere backend (pure user-infra, zero SaaS tension). Gives SETUP-TERMINAL-BACKEND's local/sandbox/docker/ssh selector a real docker adapter.",
+      "done": "With the docker backend selected, shell_cmd and run_code execute in a container; the kernel assess() gate still runs; out-of-container writes refused; tests cover the adapter; falls back cleanly when Docker is absent.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "reach"
+    },
+    {
+      "id": "BACKEND-SERVERLESS",
+      "track": "Operator",
+      "title": "Serverless backend — Modal/Daytona hibernate-when-idle persistence",
+      "status": "next",
+      "size": "L",
+      "summary": "Serverless execution backend (Modal and/or Daytona): the environment hibernates when idle and wakes on demand, costing near-nothing between sessions — the '$5 VPS or serverless' run-anywhere endpoint. SEQUENCED AFTER pure-infra (Docker/SSH) per DECISIONS 2026-06-19. Carries a rule-zero sub-decision: data leaves the user's machines to a third party (user's own account + keys, opt-in, kernel still gates) — resolve before building.",
+      "done": "An agent session runs on Modal or Daytona, hibernates idle and resumes on demand, kernel-gated; the data-residency sub-decision is recorded in DECISIONS; opt-in only, never a default; tests cover the adapter.",
+      "tier": "pebble",
+      "effort": "high",
+      "lens": "reach",
+      "after": [
+        "BACKEND-DOCKER",
+        "VANTA-SSH-SESSION"
+      ]
+    },
+    {
+      "id": "SCRIPT-RPC-PIPELINE",
+      "track": "Harness",
+      "title": "Script injection + tools-via-RPC — zero-context-cost pipelines",
+      "status": "next",
+      "size": "M",
+      "summary": "The one real architecture gap vs Hermes (gap analysis 2026-06-19). Two halves: (1) cron/gateway --script pre-processor — a script runs BEFORE the agent turn and its stdout is injected as context (mechanical fetch/diff/compute in code, agent reasons over the result); (2) tools-via-RPC — a script calls Vanta tools over a local RPC so a multi-step pipeline collapses into one zero-context-cost turn. Closest existing analog is FABRO/compose_workflow (declarative graph), but neither the --script pre-processor nor the RPC-from-script pattern exists. Kernel still gates every tool call the script makes.",
+      "done": "A cron/gateway task can run a --script whose stdout becomes the agent's context; a user script can call N Vanta tools via local RPC in one turn with each call kernel-gated; both unit-tested; docs show a watch-site pipeline example.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "agent-loop"
+    },
+    {
+      "id": "BUG-TUI-IMAGE-PASTE",
+      "track": "Operator",
+      "title": "Fix: Cmd+V image paste into the TUI doesn't attach (only /image + drag-drop work)",
+      "status": "next",
+      "size": "S",
+      "summary": "Reported 2026-06-19 (Jason): pasting a screenshot into the TUI composer leaves the model blind — Vanta replies it can't see the image unless you use /image <path> or drag it in. But TUI-IMAGE-CLICKABLE and VANTA-S-IMAGE are both marked SHIPPED claiming paste works, so this is a shipped-but-broken gap on the core flow. Likely fix: bind the composer paste chord (Cmd+V / bracketed-paste image data) to the SAME clipboard-image grab /paste already does on macOS (and wire VANTA-NATIVE-CLIPBOARD pbpaste/xclip for non-/paste capture), so paste Just Works without a command. Pairs with VANTA-NATIVE-CLIPBOARD + VANTA-CLIPBOARD-IMAGE-HINT.",
+      "done": "Cmd+V in the TUI composer with an image on the clipboard attaches it to the next message and the model receives it — verified live by pasting a screenshot, no /image path or drag-drop needed. The shipped paste cards (TUI-IMAGE-CLICKABLE, VANTA-S-IMAGE) are reconciled with the real flow.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "tui"
     }
   ]
 }
