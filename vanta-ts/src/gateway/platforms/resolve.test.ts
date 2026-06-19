@@ -33,6 +33,35 @@ describe("resolvePlatform", () => {
     expect(adapter).toBeUndefined();
   });
 
+  it("selects the IRC adapter when server + nick + channel are all set", () => {
+    const adapter = resolvePlatform({
+      VANTA_IRC_SERVER: "irc.libera.chat:6667",
+      VANTA_IRC_NICK: "vanta",
+      VANTA_IRC_CHANNEL: "#vanta",
+    });
+    expect(adapter?.id).toBe("irc");
+  });
+
+  it("does not select IRC when the channel is missing", () => {
+    const adapter = resolvePlatform({
+      VANTA_IRC_SERVER: "irc.libera.chat:6667",
+      VANTA_IRC_NICK: "vanta",
+    });
+    expect(adapter).toBeUndefined();
+  });
+
+  it("prefers Mattermost over IRC when both are configured", () => {
+    const adapter = resolvePlatform({
+      VANTA_MATTERMOST_URL: "https://mm.example",
+      VANTA_MATTERMOST_TOKEN: "tok",
+      VANTA_MATTERMOST_CHANNEL: "c1",
+      VANTA_IRC_SERVER: "irc.libera.chat:6667",
+      VANTA_IRC_NICK: "vanta",
+      VANTA_IRC_CHANNEL: "#vanta",
+    });
+    expect(adapter?.id).toBe("mattermost");
+  });
+
   it("prefers Telegram over ntfy when both are configured", () => {
     const adapter = resolvePlatform({ VANTA_TELEGRAM_TOKEN: "123:abc", VANTA_NTFY_TOPIC: "my-topic" });
     expect(adapter?.id).toBe("telegram");

@@ -6,13 +6,23 @@ import {
 } from "./registry.js";
 
 describe("messaging registry", () => {
-  it("includes telegram, imessage, signal, ntfy, mattermost as implemented platforms", () => {
+  it("includes telegram, imessage, signal, ntfy, mattermost, irc as implemented platforms", () => {
     const implemented = MESSAGING_CATALOG.filter((p) => p.implemented).map((p) => p.id);
     expect(implemented).toContain("telegram");
     expect(implemented).toContain("imessage");
     expect(implemented).toContain("signal");
     expect(implemented).toContain("ntfy");
     expect(implemented).toContain("mattermost");
+    expect(implemented).toContain("irc");
+  });
+
+  it("requires server, nick, and channel for irc", () => {
+    const irc = messagingPlatformById("irc")!;
+    expect(irc.implemented).toBe(true);
+    expect(irc.requiredEnv).toEqual(["VANTA_IRC_SERVER", "VANTA_IRC_NICK", "VANTA_IRC_CHANNEL"]);
+    const partial = { VANTA_IRC_SERVER: "irc.libera.chat:6667", VANTA_IRC_NICK: "vanta" };
+    expect(platformAvailability(irc, partial).missing).toEqual(["VANTA_IRC_CHANNEL"]);
+    expect(platformAvailability(irc, { ...partial, VANTA_IRC_CHANNEL: "#vanta" }).configured).toBe(true);
   });
 
   it("requires server url, token, and channel for mattermost", () => {

@@ -152,11 +152,12 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "irc", label: "IRC", implemented: false,
-    requiredEnv: ["VANTA_IRC_SERVER", "VANTA_IRC_NICK"],
+    id: "irc", label: "IRC", implemented: true,
+    requiredEnv: ["VANTA_IRC_SERVER", "VANTA_IRC_NICK", "VANTA_IRC_CHANNEL"],
     setupSteps: [
-      "Pick an IRC server + nick (and a NickServ password if registered).",
-      "Set VANTA_IRC_SERVER (host:port) and VANTA_IRC_NICK.",
+      "Pick an IRC server (host:port, e.g. irc.libera.chat:6667), a nick, and a channel.",
+      "Set VANTA_IRC_SERVER (host:port), VANTA_IRC_NICK, and VANTA_IRC_CHANNEL (e.g. #vanta).",
+      "Optional: set VANTA_IRC_ALLOW to a comma list of nicks to accept (default: allow all).",
     ],
   },
   {
