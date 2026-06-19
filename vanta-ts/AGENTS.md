@@ -9,7 +9,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 ## Test + typecheck
 
 ```bash
-npx vitest run                   # last full green: 3859 tests (from vanta-ts/)
+npx vitest run                   # last full green: 3970 tests (from vanta-ts/)
 npx vitest run <pattern>         # single test file or describe block
 npx tsc --noEmit                 # must be clean before any commit
 ```
@@ -35,7 +35,7 @@ npx tsc --noEmit                 # must be clean before any commit
 - `src/tools/all-tools.ts` — register every new tool in the `ALL_TOOLS` array here AND in `tools/tools.test.ts` sorted list (`index.ts` is now just `buildRegistry`)
 - `src/tools/types.ts` — `Tool`, `ToolContext`, `ToolResult` shapes
 - `src/safety-client.ts` — kernel bridge (assess/approvals/goals)
-- `src/repl/catalog.ts` — canonical list of 99 slash commands for `/help`, TUI palette, and validation
+- `src/repl/catalog.ts` — canonical list of 100 slash commands for `/help`, TUI palette, and validation
 - `src/repl/handlers.ts` — slash command dispatcher and handler registry
 - `src/plugins/` — plugin framework: manifest parsing, enabled-plugin loading, `PluginContext`, and runtime plugin slash-command registry
 - `src/effort.ts` / `src/providers/effort.ts` — effort-level parsing plus OpenAI reasoning_effort / Anthropic extended-thinking param mapping
@@ -91,7 +91,7 @@ npx tsc --noEmit                 # must be clean before any commit
 ## Current surface
 
 - `src/tools/all-tools.ts` currently lists **92 built-in tools** (94 registered with factory `mount_mcp`/`tool_search`); runtime MCP mounts can add more.
-- `src/repl/catalog.ts` currently exposes **99 slash commands**.
+- `src/repl/catalog.ts` currently exposes **100 slash commands**.
 - Runtime plugins are opt-in via `settings.plugins.enabled`; loaded plugin tools are not built-ins and still route through the normal kernel-gated tool path.
 - Effort levels are `low|medium|high|max`: CLI `--effort`, session `/effort <level>`, `settings.effortLevel`, and `VANTA_EFFORT_LEVEL`; footer shows non-medium effort.
 - `self_repair` includes `sandbox_test {toolPath}` for pre-attach limb-tool verification; it only accepts `vanta-ts/src/tools/*.ts` paths and forces `VANTA_SANDBOX=1` through the shared sandbox wrapper.
