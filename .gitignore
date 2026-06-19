@@ -26,8 +26,10 @@ roadmap.html
 # OS
 .DS_Store
 
-# External agent source cloned for audit (not vendored)
-reference/
+# External agent source cloned for audit (not vendored) — anchored to repo root so the
+# bare pattern doesn't also drop vanta-website/docs/reference (real site content) from git
+/reference/
+/docs/reference/
 argo
 .argo/
 
