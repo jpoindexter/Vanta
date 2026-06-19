@@ -22,6 +22,7 @@ import { TasksPanel } from "./tasks-panel.js";
 import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
+import { nextAgentIndex, prevAgentIndex, clampAgentIndex, LEADER_INDEX } from "./teammate-tree.js";
 import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinned-region.js";
 import { resolveVim } from "../repl/vim-cmd.js";
 import { useViewportRows } from "./use-viewport-rows.js";
@@ -78,7 +79,8 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
-  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true) });
+  const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen });
+  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), cycleAgent: teammate.cycleAgent });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
 
@@ -88,7 +90,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
-            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
+            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
           <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} /> : null}
         </PinnedRegion>
@@ -100,12 +102,14 @@ function ctxSnapshot(setup: RunSetup, convo: Conversation | null): { messages: {
   return { messages: (convo?.messages ?? []) as { role: string; content?: string }[], contextWindow: setup.provider.contextWindow() };
 }
 
-type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean };
+type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
   focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
   quickOpenOpen: boolean; openQuickOpen: () => void;
+  /** Set only while a teammate tree is live; cycles focus between agents. */
+  cycleAgent?: (dir: 1 | -1) => void;
 };
 
 const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
@@ -115,6 +119,15 @@ const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
 const opensQuickOpen = (input: string, key: GlobalKey, d: GlobalKeyDeps): boolean =>
   Boolean(key.ctrl) && input === "p" && !d.quickOpenOpen && !d.pending && !d.overlayOpen;
 
+/** Shift+←/→ cycles teammate-tree focus (only when cycleAgent is set). */
+function cyclesAgent(key: GlobalKey, d: GlobalKeyDeps): boolean {
+  if (!d.cycleAgent || !key.shift) return false;
+  const dir = key.rightArrow ? 1 : key.leftArrow ? -1 : 0;
+  if (dir === 0) return false;
+  d.cycleAgent(dir);
+  return true;
+}
+
 function useGlobalKeys(deps: GlobalKeyDeps): void {
   useInput((input, key) => handleGlobalKey(input, key, deps));
 }
@@ -122,6 +135,7 @@ function useGlobalKeys(deps: GlobalKeyDeps): void {
 function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
   if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
   if (opensQuickOpen(input, key, d)) return void d.openQuickOpen();
+  if (cyclesAgent(key, d)) return;
   if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
   if (escInterrupts(key, d)) return void d.abort();
 }
@@ -152,6 +166,23 @@ function useQueueDrain(busy: boolean, queued: string[], dispatch: Dispatch<Actio
   useEffect(() => {
     if (!busy && queued.length > 0) { const next = queued[0]!; dispatch({ t: "dequeue" }); void send(next); }
   }, [busy, queued.length]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** Owns teammate-tree focus: the selected agent index, a clamp when the running
+ * count shrinks, and a Shift+←/→ cycle that is live only while a tree is shown
+ * (≥2 agents, busy, no dialog owning input). Returns undefined cycleAgent
+ * otherwise so the global-key handler ignores the arrows. */
+function useTeammateFocus(
+  count: number,
+  ctx: { busy: boolean; pending: Pending | null; overlay: OverlayView | null; quickOpen: boolean },
+): { selectedAgent: number; cycleAgent?: (dir: 1 | -1) => void } {
+  const [selectedAgent, setSelectedAgent] = useState<number>(LEADER_INDEX);
+  useEffect(() => { setSelectedAgent((i) => clampAgentIndex(i, count)); }, [count]);
+  const live = ctx.busy && count >= 2 && !ctx.pending && ctx.overlay === null && !ctx.quickOpen;
+  const cycleAgent = live
+    ? (dir: 1 | -1): void => setSelectedAgent((i) => (dir > 0 ? nextAgentIndex(i, count) : prevAgentIndex(i, count)))
+    : undefined;
+  return { selectedAgent, cycleAgent };
 }
 
 type LiveBodyProps = {
