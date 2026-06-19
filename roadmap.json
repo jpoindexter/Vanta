@@ -13052,6 +13052,18 @@
       "tier": "sand",
       "effort": "low",
       "lens": "agent-loop"
+    },
+    {
+      "id": "VANTA-CONFIG-PANEL",
+      "track": "Operator",
+      "title": "Interactive /config dialog — view + change settings in a TUI menu (CC parity)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "[repo: vanta] Claude Code's /config opens an interactive settings dialog; Vanta's /config is only a read-only CLI passthrough (show resolved config). Upgrade /config to open an interactive TUI overlay that shows current settings grouped + lets you change the high-value ones — effort level, output-style verbosity, composer anchor, permission/auto mode, sandbox toggles, ND gates, theme/spinner — persisting to settings.local.json. Mirror the shipped sandbox-panel pattern (pure view-shaping + actions modules + Ink overlay + settings store). Keep `vanta config show/get/set` CLI for headless.",
+      "done": "/config opens an interactive overlay listing current settings by group; the high-value settings (effort, verbosity, composer anchor, permission/auto mode, sandbox, ND gates, theme/spinner) can be toggled/cycled and persist to settings.local.json; dangerous raw fields (allowed/blockedTools, env) are read-only or omitted; pure view+actions unit-tested + panel render-tested; tsc + suite green; committed.",
+      "tier": "pebble",
+      "effort": "medium",
+      "lens": "tui"
     }
   ]
 }
