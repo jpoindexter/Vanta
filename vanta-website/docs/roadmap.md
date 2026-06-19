@@ -29,7 +29,7 @@ flowchart TB
   OR["<b>Operator & runtime</b> — shipped<br/>operator systems · real Ink terminal UI · mission-control<br/>executive-function gates · ports-and-adapters standard"]
   NOW["<b>Now</b> — in build<br/>configurable executive-function gate engine"]
   NEXT["<b>Next</b><br/>TUI depth · automation depth · preference engine · solutioning"]
-  LATER["<b>Later</b><br/>git worktrees · multi-agent plans · cofounder engine"]
+  LATER["<b>Later</b><br/>multi-agent fan-out depth · org-chart · budgets and governance · maximizer mode"]
   F --> V0 --> V1 --> SM --> OR --> NOW --> NEXT --> LATER
 ```
 
@@ -37,12 +37,11 @@ flowchart TB
 
 ```mermaid
 pie showData
-  title 856 slices by status
-  "Shipped" : 488
-  "Next" : 283
-  "Horizon" : 80
+  title 944 slices by status
+  "Shipped" : 560
+  "Next" : 276
+  "Horizon" : 104
   "Parked" : 4
-  "Building" : 1
 ```
 
 A slice is *shipped* only when its done-criterion holds — tests green, behavior verified.
@@ -55,15 +54,15 @@ Work is organized under five strategy pillars, in priority order (earlier ones a
 2. **Operator** — acting across your systems: world, money, radar, teams, search, self-repair, reach.
 3. **Solutioning** — deciding *what* to build before building it.
 4. **Extensibility** — swappable seams: providers, tools, search, MCP, plugins.
-5. **Cofounder engine** — the long arc: carrying real business and product work end-to-end.
+5. **Cofounder engine** — fan out and run a company of sub-agents for *one owner*: org chart, budgets, governance, heartbeats — all kernel-gated. (Multi-tenancy — serving other people as a business — stays parked.)
 
 | Pillar | Slices |
 |--------|-------:|
-| Harness | 403 |
-| Operator | 382 |
-| Extensibility | 52 |
+| Harness | 444 |
+| Operator | 417 |
+| Extensibility | 55 |
 | Solutioning | 10 |
-| Cofounder engine | 9 |
+| Cofounder engine | 18 |
 
 ## How statuses move
 
