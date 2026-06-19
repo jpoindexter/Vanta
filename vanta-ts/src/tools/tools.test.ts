@@ -75,6 +75,8 @@ describe("registry", () => {
       "graph_query",
       "grep_files",
       "inspect_state",
+      "lan_control",
+      "lan_discover",
       "life_search",
       "linkedin_read",
       "list_mcp_resources",

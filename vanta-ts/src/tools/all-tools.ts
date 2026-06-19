@@ -35,6 +35,8 @@ import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
 import { nlAssertionsTool } from "./nl-assertions.js";
 import { rssReadTool } from "./rss-read.js";
+import { lanDiscoverTool } from "./lan-discover.js";
+import { lanControlTool } from "./lan-control.js";
 import { selfRepairTool } from "./self-repair.js";
 import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
@@ -143,6 +145,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   regressionLockTool,
   nlAssertionsTool,
   rssReadTool,
+  lanDiscoverTool,
+  lanControlTool,
   selfRepairTool,
   watchVideoTool,
   speakTool,
