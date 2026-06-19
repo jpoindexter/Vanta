@@ -5,6 +5,7 @@ import { runAuthCommand } from "./google/commands.js";
 import { runSetup } from "./setup.js";
 import { runFullSetup } from "./setup-full.js";
 import { runMessagingSetup } from "./setup-messaging.js";
+import { runTtsSetup } from "./setup-tts.js";
 import { runStatus } from "./status.js";
 import {
   dataDirFor,
@@ -65,7 +66,7 @@ const COMMANDS: Record<string, CommandFn> = {
   help: () => usage(),
   "-h": () => usage(),
   "--help": () => usage(),
-  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
+  setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: () => runStatus(),
   doctor: () => runStatus(),
   schedule: async (root, rest) => {

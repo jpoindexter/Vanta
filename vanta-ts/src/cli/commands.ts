@@ -33,6 +33,7 @@ export function usage(): void {
       "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
       "       vanta setup model                  just the model/provider picker",
       "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
+      "       vanta setup tts                    configure the voice/TTS provider (Edge keyless, OpenAI, ElevenLabs, local)",
       "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",
       "       vanta status | doctor              health check (kernel, provider, keys, store)",
       "       vanta goals                        show kernel goals plus dependency graph state",
