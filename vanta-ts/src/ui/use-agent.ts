@@ -8,6 +8,7 @@ import { summarizeResult } from "../term/tool-result.js";
 import { readTodos } from "../todo/store.js";
 import { errorDetails, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
 import { fireHooks, fireStopHook } from "../hooks/shell-hooks.js";
+import { resolveDroppedMedia } from "../interactive-turn.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -100,11 +101,12 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     const ctrl = new AbortController();
     deps.interruptRef.current = ctrl;
     deps.replStateRef.current.turnIndex += 1;
-    // Consume any pending image attachments (from /paste, /image, or a composer
-    // paste keystroke) so vision reaches the model, then clear so they attach to
-    // exactly one turn. The readline host does the same in interactive-turn.
-    const images = deps.replStateRef.current.pendingImages;
-    deps.replStateRef.current.pendingImages = undefined;
+    // Resolve a pasted/typed image-or-video PATH into an attachment AND consume
+    // any pending images (/paste, /image, drag-drop) — the same shared step the
+    // readline host runs. Without it, a pasted image path went out as blind text.
+    const resolved = await resolveDroppedMedia(text, deps.replStateRef.current);
+    text = resolved.text;
+    const images = resolved.images;
     deps.dispatch({ t: "submit", text: display ?? text });
     deps.dispatch({ t: "turnStart" });
     try {
