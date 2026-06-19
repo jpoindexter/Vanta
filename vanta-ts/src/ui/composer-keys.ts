@@ -8,7 +8,7 @@ import { wordLeft, wordRight, killToStart, killToEnd, killWordBack, deleteForwar
 export type Key = {
   leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean;
   ctrl?: boolean; meta?: boolean; shift?: boolean; tab?: boolean; return?: boolean;
-  escape?: boolean; backspace?: boolean; delete?: boolean;
+  escape?: boolean; backspace?: boolean; delete?: boolean; super?: boolean;
 };
 
 export type Edit = { value: string; cursor: number; kill?: string };
@@ -40,7 +40,8 @@ const TABLE: Entry[] = [
   { match: (i, k) => Boolean(k.ctrl) && i === "e", run: (s) => ({ value: s.value, cursor: s.value.length }) },
   { match: (i, k) => Boolean(k.meta) && i === "b", run: (s) => ({ value: s.value, cursor: wordLeft(s.value, s.cursor) }) },
   { match: (i, k) => Boolean(k.meta) && i === "f", run: (s) => ({ value: s.value, cursor: wordRight(s.value, s.cursor) }) },
-  { match: (i, k) => Boolean(k.ctrl) && i === "u", run: (s) => { const r = killToStart(s.value, s.cursor); return { value: r.value, cursor: r.cursor, kill: r.killed }; } },
+  // ^U or Cmd+Backspace (super) — kill to line start (the macOS "clear line" chord)
+  { match: (i, k) => (Boolean(k.ctrl) && i === "u") || (Boolean(k.super) && (Boolean(k.backspace) || Boolean(k.delete))), run: (s) => { const r = killToStart(s.value, s.cursor); return { value: r.value, cursor: r.cursor, kill: r.killed }; } },
   { match: (i, k) => Boolean(k.ctrl) && i === "k", run: (s) => { const r = killToEnd(s.value, s.cursor); return { value: r.value, cursor: s.cursor, kill: r.killed }; } },
   { match: (i, k) => (Boolean(k.ctrl) && i === "w") || (Boolean(k.meta) && (Boolean(k.backspace) || Boolean(k.delete))), run: (s) => { const r = killWordBack(s.value, s.cursor); return { value: r.value, cursor: r.cursor, kill: r.killed }; } },
   { match: (i, k) => Boolean(k.ctrl) && i === "d", run: (s) => ({ value: deleteForward(s.value, s.cursor), cursor: s.cursor }) },
@@ -76,5 +77,5 @@ function charEdit(s: S, input: string, key: Key): Edit | null {
 }
 
 function isPrintable(input: string, key: Key): boolean {
-  return Boolean(input) && !key.ctrl && !key.meta && !key.tab && !key.upArrow && !key.downArrow && !key.escape && !key.return;
+  return Boolean(input) && !key.ctrl && !key.meta && !key.super && !key.tab && !key.upArrow && !key.downArrow && !key.escape && !key.return;
 }

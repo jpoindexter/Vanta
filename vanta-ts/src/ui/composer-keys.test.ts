@@ -18,6 +18,12 @@ describe("readlineEdit chords", () => {
   it("^U kills to start and reports the killed text", () => {
     expect(readlineEdit(s("hello world", 6), "u", k({ ctrl: true }))).toEqual({ value: "world", cursor: 0, kill: "hello " });
   });
+  it("Cmd+Backspace (super) clears to line start, same as ^U", () => {
+    expect(readlineEdit(s("hello world", 6), "", k({ super: true, backspace: true }))).toEqual({ value: "world", cursor: 0, kill: "hello " });
+  });
+  it("does not type a Cmd-modified letter (super is not printable)", () => {
+    expect(readlineEdit(s("ab", 2), "a", k({ super: true }))).toBeNull();
+  });
   it("^Y yanks the kill ring at the cursor", () => {
     expect(readlineEdit(s("world", 0, "hello "), "y", k({ ctrl: true }))).toMatchObject({ value: "hello world" });
   });

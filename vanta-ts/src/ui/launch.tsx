@@ -21,7 +21,13 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
   const setup = await prepareRun(repoRoot, "interactive session", undefined, { confirmTrust });
   await maybeCurate();
   const surface = selectTuiSurface(process.env);
-  const instance = render(surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />);
+  // Enable the kitty keyboard protocol so the Cmd (super) modifier reaches the
+  // composer — it's the only way Cmd+Backspace etc. are delivered. mode "auto"
+  // probes the terminal and is a no-op where unsupported (e.g. Terminal.app).
+  const instance = render(
+    surface === "v2" ? <AppV2 setup={setup} repoRoot={repoRoot} /> : <App setup={setup} repoRoot={repoRoot} />,
+    { kittyKeyboard: { mode: "auto" } },
+  );
   await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
   await instance.waitUntilExit();
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
