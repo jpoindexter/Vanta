@@ -84,3 +84,79 @@ describe("Composer focus handling", () => {
     inst.unmount();
   });
 });
+
+// The real-Ink input parser holds a chunk for ~20ms before emitting (escape
+// disambiguation), so each keypress needs a few 10ms ticks to flush. Frame text
+// is unreliable through the concatenated capture, so vi behavior is asserted via
+// onSubmit; the visible NOR/INS tag is covered by the ComposerView render tests.
+const ticks = async (n: number): Promise<void> => { for (let i = 0; i < n; i++) await tick(); };
+
+describe("Composer vi-mode behavior", () => {
+  it("starts in normal mode: typed letters are not inserted and Enter does not submit", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, vim: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("hello"); await ticks(3);
+    inst.input("\r"); await ticks(3); // Enter is consumed by normal mode — no submit
+    expect(onSubmit).not.toHaveBeenCalled();
+    inst.unmount();
+  });
+
+  it("i enters insert mode; typing then Enter submits the typed text", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, vim: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("i"); await ticks(3); // enter insert
+    inst.input("hello"); await ticks(3);
+    inst.input("\r"); await ticks(3);
+    expect(onSubmit).toHaveBeenCalledWith("hello");
+    inst.unmount();
+  });
+
+  it("Esc leaves insert mode so subsequent letters stop inserting", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, vim: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("i"); await ticks(3);
+    inst.input("hi"); await ticks(3);
+    inst.input("\x1b"); await ticks(3); // Esc → normal
+    inst.input("xyz"); await ticks(3); // dropped in normal mode
+    inst.input("i"); await ticks(3); // back to insert at cursor (within "hi")
+    inst.input("\r"); await ticks(3);
+    expect(onSubmit).toHaveBeenCalledWith("hi"); // xyz never entered the buffer
+    inst.unmount();
+  });
+
+  it("does not intercept keys when vim is off (normal typing submits)", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("hello"); await ticks(3);
+    inst.input("\r"); await ticks(3);
+    expect(onSubmit).toHaveBeenCalledWith("hello");
+    inst.unmount();
+  });
+});
+
+describe("ComposerView vi-mode tag", () => {
+  it("renders NOR in normal mode", async () => {
+    const inst = renderUi(baseView({ vimMode: "normal" }));
+    await tick();
+    expect(inst.lastFrame()).toContain("NOR");
+    inst.unmount();
+  });
+  it("renders INS in insert mode", async () => {
+    const inst = renderUi(baseView({ vimMode: "insert" }));
+    await tick();
+    expect(inst.lastFrame()).toContain("INS");
+    inst.unmount();
+  });
+  it("renders no tag when vimMode is undefined", async () => {
+    const inst = renderUi(baseView({}));
+    await tick();
+    const frame = inst.lastFrame() ?? "";
+    expect(frame).not.toContain("NOR");
+    expect(frame).not.toContain("INS");
+    inst.unmount();
+  });
+});

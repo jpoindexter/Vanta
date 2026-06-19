@@ -3,6 +3,7 @@ import { useInput, usePaste } from "ink";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
 import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
 import { readlineEdit, navigateHistory, historyTypeahead, type Key, type Edit, type HistState } from "./composer-keys.js";
+import { useVim } from "./use-vim.js";
 import { execSync } from "node:child_process";
 import { editInEditor } from "./composer-editor.js";
 import { ComposerView } from "./composer-view.js";
@@ -34,6 +35,7 @@ export function Composer(props: {
   onPaste?: () => void;
   skills?: SlashMatch[];
   focused?: boolean;
+  vim?: boolean;
 }): ReactElement {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -46,33 +48,33 @@ export function Composer(props: {
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
   const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length ? historyTypeahead(props.history, value) : "";
 
+  const focused = props.focused ?? true;
+  const vimHandle = useVim((props.vim ?? false) && focused);
   const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
   const submitNow = (): void => {
     const text = (isPartialSlash(value, slashMatches) ? completeSlash(value, slashMatches, selClamped) : value).trim();
-    setBuf("", 0); histRef.current = EMPTY_HIST; clearPill();
+    setBuf("", 0); histRef.current = EMPTY_HIST; clearPill(); vimHandle.reset();
     if (text) props.onSubmit(text);
   };
   const completeNow = (): void => setBuf(slashMatches.length ? completeSlash(value, slashMatches, selClamped) : completeAtRef(value, atMatches, selClamped), value.length);
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const focused = props.focused ?? true;
   const pasteText = useTextPaste(value, cursor, setBuf, focused);
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
+    if (vimHandle.handle({ input, key, value, cursor, setBuf })) return; // vi normal mode owns the key; insert falls through
     if (handleReturnKey(key, insertNewline, submitNow)) return;
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
-    if (handleGhostAccept(key, ghost, value + ghost, setBuf)) return;
-    const edit = readlineEdit({ value, cursor, killRing: killRef.current }, input, key);
-    if (edit) applyEdit(edit);
+    handleGhostOrEdit({ input, key, ghost, value, cursor, killRing: killRef.current, setBuf, applyEdit });
   }, { isActive: focused });
 
-  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
 }
 
 function useComposerPalettes(value: string, files: string[], skills?: SlashMatch[]): { slashMatches: SlashMatch[]; atMatches: string[]; activeLen: number } {
@@ -118,6 +120,18 @@ function handleGhostAccept(key: Key, ghost: string, accepted: string, setBuf: (v
   if (!key.rightArrow || !ghost) return false;
   setBuf(accepted, accepted.length);
   return true;
+}
+
+type GhostOrEdit = {
+  input: string; key: Key; ghost: string; value: string; cursor: number; killRing: string;
+  setBuf: (v: string, c: number) => void; applyEdit: (e: Edit) => void;
+};
+
+/** The default key path: accept the ghost suggestion, else apply a readline edit. */
+function handleGhostOrEdit(o: GhostOrEdit): void {
+  if (handleGhostAccept(o.key, o.ghost, o.value + o.ghost, o.setBuf)) return;
+  const edit = readlineEdit({ value: o.value, cursor: o.cursor, killRing: o.killRing }, o.input, o.key);
+  if (edit) o.applyEdit(edit);
 }
 
 /** ^G edit-in-$EDITOR · ^Z undo/redo · ^V paste text (then image fallback). True when handled. */

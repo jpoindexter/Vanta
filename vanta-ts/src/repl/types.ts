@@ -64,6 +64,8 @@ export type SlashResult = {
   toggleFocusMode?: true;
   /** Composer anchor (drives /composer) so the host repositions the input live. */
   composerAnchor?: "float" | "bottom";
+  /** Composer vi-mode on/off (drives /vim) so the TUI toggles the composer live. */
+  vimMode?: boolean;
 };
 
 /** One slash-command handler. `arg` is the text after the command word. */

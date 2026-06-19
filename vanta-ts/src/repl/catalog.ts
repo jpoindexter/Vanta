@@ -46,6 +46,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "context", desc: "visual context-budget breakdown" },
   { name: "files", desc: "list files in the current conversation context" },
   { name: "composer", arg: "<float|bottom>", desc: "input box position: float (default) or bottom-pinned" },
+  { name: "vim", arg: "[on|off]", desc: "toggle vi-mode in the composer (normal/insert: hjkl, w/b, dd, yy, p, i/a/o)" },
   { name: "cockpit", desc: "open mission-control — kernel verdict ladder, goals, loops (TUI)" },
   { name: "loops", desc: "live loops + escalations dashboard (TUI)" },
   { name: "changes", desc: "review changed files — per-file keep/undo (TUI)" },

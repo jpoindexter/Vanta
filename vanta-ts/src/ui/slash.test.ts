@@ -54,10 +54,10 @@ describe("completeSlash + isPartialSlash + slashHead", () => {
 });
 
 describe("applySlashResult", () => {
-  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; anchors: string[]; exits: number } => {
-    const notes: string[] = [], sends: string[] = [], anchors: string[] = [];
+  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; anchors: string[]; vims: boolean[]; exits: number } => {
+    const notes: string[] = [], sends: string[] = [], anchors: string[] = [], vims: boolean[] = [];
     let exits = 0;
-    return { notes, sends, anchors, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), exit: () => { exits += 1; } };
+    return { notes, sends, anchors, vims, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), vimMode: (on) => vims.push(on), exit: () => { exits += 1; } };
   };
   it("routes output to a note", () => {
     const fx = spyFx();
@@ -81,5 +81,14 @@ describe("applySlashResult", () => {
     applySlashResult({ composerAnchor: "bottom", output: "  ✓ composer bottom" }, fx);
     expect(fx.anchors).toEqual(["bottom"]);
     expect(fx.notes).toEqual(["  ✓ composer bottom"]);
+  });
+
+  it("routes a vimMode signal (on and off) to the vimMode effect", () => {
+    const on = spyFx();
+    applySlashResult({ vimMode: true, output: "  ✓ vi-mode on" }, on);
+    expect(on.vims).toEqual([true]);
+    const off = spyFx();
+    applySlashResult({ vimMode: false }, off);
+    expect(off.vims).toEqual([false]);
   });
 });

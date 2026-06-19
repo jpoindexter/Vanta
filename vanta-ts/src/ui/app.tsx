@@ -21,6 +21,7 @@ import { useBusyTick } from "./use-busy-tick.js";
 import { contextPct } from "./busy.js";
 import { handleFocusKey, isFocusable, type FocusTarget, type FocusTargetSpec } from "./focus.js";
 import { PinnedRegion, resolveComposerAnchor, type ComposerAnchor } from "./pinned-region.js";
+import { resolveVim } from "../repl/vim-cmd.js";
 import { useViewportRows } from "./use-viewport-rows.js";
 import { estimateCommittedRows } from "./layout-rows.js";
 import { listRepoFiles } from "./at.js";
@@ -55,9 +56,10 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [history, setHistory] = useState<string[]>([]);
   const [focus, setFocus] = useState<FocusTarget>("composer");
   const [composerAnchor, setComposerAnchor] = useState<ComposerAnchor>(() => resolveComposerAnchor(process.env));
+  const [vimEnabled, setVim] = useState<boolean>(() => resolveVim(process.env));
   const [quickOpen, setQuickOpen] = useState(false);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
-  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor });
+  const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim });
   const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
@@ -85,7 +87,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
-          <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+          <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} /> : null}
         </PinnedRegion>
     </Box>
@@ -160,6 +162,7 @@ type LiveBodyProps = {
   files: string[];
   history: string[];
   skills: SlashMatch[];
+  vim: boolean;
   onQuickActivate: (command: string) => void;
   onQuickClose: () => void;
   onSubmit: (text: string) => void;
@@ -176,7 +179,7 @@ function LiveBody(p: LiveBodyProps): ReactElement {
       {p.overlay || p.quickOpen ? null : <TodoPanel todos={p.todos} />}
       {p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
-        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} vim={p.vim} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
     </>
   );
 }
@@ -189,6 +192,7 @@ function BottomRegion(props: {
   files: string[];
   history: string[];
   skills: SlashMatch[];
+  vim: boolean;
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
@@ -205,7 +209,7 @@ function BottomRegion(props: {
   return (
     <Box flexDirection="column">
       <ModeLine mode={props.mode} />
-      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} />
+      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} vim={props.vim} />
     </Box>
   );
 }

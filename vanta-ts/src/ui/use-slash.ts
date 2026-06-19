@@ -19,6 +19,7 @@ export type SlashEffects = {
   send: (text: string, display?: string) => void;
   exit: () => void;
   composerAnchor: (mode: "float" | "bottom") => void;
+  vimMode: (on: boolean) => void;
 };
 
 /** Map a SlashResult onto the host. Restart sets exit code 75 (run.sh re-execs). */
@@ -28,6 +29,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
     return void fx.exit();
   }
   if (r.composerAnchor) fx.composerAnchor(r.composerAnchor); // /composer → reposition input live
+  if (r.vimMode !== undefined) fx.vimMode(r.vimMode); // /vim → toggle composer vi-mode live
   if (r.output) fx.note(r.output);
   if (r.resend) fx.send(r.resend, r.resendDisplay);
 }
@@ -41,6 +43,7 @@ export type SlashDeps = {
   send: (text: string, display?: string) => void;
   exit: () => void;
   setComposerAnchor: (mode: "float" | "bottom") => void;
+  setVim: (on: boolean) => void;
 };
 
 export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } {
@@ -57,6 +60,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     send: deps.send,
     exit: deps.exit,
     composerAnchor: deps.setComposerAnchor,
+    vimMode: deps.setVim,
   };
   const runSlash = (line: string): void => {
     if (!deps.convoRef.current) return;
