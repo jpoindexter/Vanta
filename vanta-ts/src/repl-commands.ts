@@ -12,7 +12,7 @@ import type { ReplCtx, SlashResult } from "./repl/types.js";
 // Public surface (re-exported so callers import from one place).
 export type { ReplState, ReplCtx, SlashResult, SlashHandler } from "./repl/types.js";
 export { SLASH_COMMANDS, SLASH_HELP } from "./repl/catalog.js";
-export { maybeDroppedImage, maybeDroppedVideo, formatExport, formatHistory } from "./repl/format.js";
+export { maybeDroppedImage, maybeDroppedVideo, formatExport, formatHistory, splitPastedImagePaths, isImageFilePath, looksLikeTempImagePath } from "./repl/format.js";
 export { HANDLERS } from "./repl/handlers.js";
 
 /**

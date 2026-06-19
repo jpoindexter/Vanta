@@ -3,7 +3,8 @@
  * to satisfy the file/function size gate). No public API beyond what interactive.ts needs.
  */
 import { join } from "node:path";
-import { maybeDroppedImage, maybeDroppedVideo } from "./repl-commands.js";
+import { maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, looksLikeTempImagePath } from "./repl-commands.js";
+import { readClipboardImage } from "./term/clipboard-image.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { buildModeHint } from "./repl/mode-detect.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
@@ -51,10 +52,22 @@ export async function resolveDroppedMedia(
   text: string,
   state: ReplState,
 ): Promise<{ text: string; images: ReplState["pendingImages"] }> {
-  const dropped = await maybeDroppedImage(text);
-  if (dropped) {
-    (state.pendingImages ??= []).push(dropped);
-    text = "Take a look at this image.";
+  const { imagePaths, rest } = splitPastedImagePaths(text);
+  if (imagePaths.length) {
+    const reads = await Promise.all(imagePaths.map(maybeDroppedImage));
+    const valid = reads.filter((img): img is NonNullable<typeof img> => img !== null);
+    if (valid.length) {
+      (state.pendingImages ??= []).push(...valid);
+      text = rest || "Take a look at this image.";
+    } else if (process.platform === "darwin" && looksLikeTempImagePath(text)) {
+      // The path was a temp preview that's already gone — its bytes are still on
+      // the clipboard, so read them directly.
+      const clip = await readClipboardImage();
+      if (clip) {
+        (state.pendingImages ??= []).push(clip);
+        text = rest || "Take a look at this image.";
+      }
+    }
   } else {
     const videoPath = await maybeDroppedVideo(text);
     if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;

@@ -33,6 +33,37 @@ export async function maybeDroppedImage(input: string): Promise<ImageAttachment 
   }
 }
 
+/** True if `line` (after stripping outer quotes + escaped spaces) ends in an image extension. */
+export function isImageFilePath(line: string): boolean {
+  let s = line.trim();
+  if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) s = s.slice(1, -1);
+  return /\.(png|jpe?g|gif|webp)$/i.test(s.replace(/\\ /g, " "));
+}
+
+/**
+ * Split a pasted blob into image-file-path lines and the leftover text. Terminals
+ * deliver a pasted/dragged image as its path, so pasting a path AND typing a
+ * question land in one message. Splitting on newlines — and on a space that
+ * precedes an absolute path (multi-image drag from Finder, where in-path spaces
+ * are backslash-escaped) — lets us attach the images and keep the question as the
+ * prompt instead of sending the raw path as blind text.
+ */
+export function splitPastedImagePaths(pasted: string): { imagePaths: string[]; rest: string } {
+  const lines = pasted
+    .split(/ (?=\/|[A-Za-z]:\\)/)
+    .flatMap((p) => p.split("\n"))
+    .filter((l) => l.trim());
+  return {
+    imagePaths: lines.filter(isImageFilePath),
+    rest: lines.filter((l) => !isImageFilePath(l)).join("\n").trim(),
+  };
+}
+
+/** A macOS temp image preview path (screenshot/paste) — its bytes also live on the clipboard. */
+export function looksLikeTempImagePath(text: string): boolean {
+  return /\/(TemporaryItems|var\/folders)\/.*\.(png|jpe?g|gif|webp)/i.test(text);
+}
+
 /**
  * If `input` is a path to an existing video file, return the resolved absolute
  * path. Else null. Mirrors `maybeDroppedImage` — covers the drag-a-video-in flow.

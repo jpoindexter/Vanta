@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, maybeDroppedVideo, type ReplCtx } from "./repl-commands.js";
+import { runSlashCommand, executeSlash, formatHistory, maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, isImageFilePath, looksLikeTempImagePath, type ReplCtx } from "./repl-commands.js";
 import { saveSession, loadSession } from "./sessions/store.js";
 import { PluginCommandRegistry } from "./plugins/commands.js";
 import type { Message } from "./types.js";
@@ -238,6 +238,30 @@ describe("conversation commands (history / retry / undo / reset)", () => {
     expect((await maybeDroppedImage(`'${png}'`))?.mime).toBe("image/png"); // terminal-quoted
     expect(await maybeDroppedImage("just a normal message")).toBeNull();
     expect(await maybeDroppedImage(`${join(home, "missing.png")}`)).toBeNull(); // path doesn't exist
+  });
+
+  it("splitPastedImagePaths separates image paths from the question text (paste a path AND ask)", () => {
+    const p = "/var/folders/rj/x/T/media-preview-ABC/399ac2.png";
+    // Jason's case: an image path pasted on its own line, then a question.
+    expect(splitPastedImagePaths(`${p}\nhow about this image`)).toEqual({
+      imagePaths: [p],
+      rest: "how about this image",
+    });
+    // Question first, path second — order-independent.
+    expect(splitPastedImagePaths(`look at this\n${p}`)).toEqual({ imagePaths: [p], rest: "look at this" });
+    // Multi-image Finder drag: space-separated absolute paths, no leftover text.
+    expect(splitPastedImagePaths("/a/1.png /b/2.png")).toEqual({ imagePaths: ["/a/1.png", "/b/2.png"], rest: "" });
+    // Plain message with no path: all text, no images.
+    expect(splitPastedImagePaths("just a normal message")).toEqual({ imagePaths: [], rest: "just a normal message" });
+  });
+
+  it("isImageFilePath + looksLikeTempImagePath classify paths", () => {
+    expect(isImageFilePath("/a/b.png")).toBe(true);
+    expect(isImageFilePath("'/a/b.jpeg'")).toBe(true); // terminal-quoted
+    expect(isImageFilePath("/a/b.txt")).toBe(false);
+    expect(isImageFilePath("hello")).toBe(false);
+    expect(looksLikeTempImagePath("/var/folders/rj/x/T/media-preview-ABC/399ac2.png")).toBe(true);
+    expect(looksLikeTempImagePath("/Users/me/Pictures/cat.png")).toBe(false);
   });
 
   it("maybeDroppedVideo returns the path for an existing video file, null otherwise", async () => {
