@@ -7,6 +7,9 @@ import { sessionRows, skillRows, modelRows, type OverlayKind, type OverlayRow } 
 import { listLoopSummaries, type LoopSummary } from "../loop/summary.js";
 import { listChangedFiles, type ChangedFile } from "../repl/changed-files.js";
 import { contextBreakdown, type CtxCategory } from "./context-breakdown.js";
+import { gatherMcpConnections, reconnectServer } from "../mcp/connect.js";
+import { elicitationMessage, type ElicitationRequest } from "./elicitation-dialog.js";
+import type { McpServerView } from "./mcp-view.js";
 import type { RunSetup } from "../session.js";
 
 /** Live conversation snapshot the /context overlay computes its breakdown from. */
@@ -22,6 +25,7 @@ export type OverlayView =
   | { kind: "loops"; loops: LoopSummary[] }
   | { kind: "review"; files: ChangedFile[]; cwd: string }
   | { kind: "context"; categories: CtxCategory[]; total: number; contextWindow: number }
+  | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "help" };
 
 /** The four picker kinds that resolve to a generic selectable list; null otherwise. */
@@ -45,6 +49,31 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
   }
 }
 
+type SetOverlay = (fn: (prev: OverlayView | null) => OverlayView | null) => void;
+
+/**
+ * Build the interactive /mcp overlay. Connects to every configured server,
+ * wires per-server reconnect (re-runs the connect path) and an elicitation
+ * handler that surfaces the ElicitationDialog and resolves the server's request
+ * with the operator's answer. Bound to setOverlay so reconnect/elicitation
+ * update the live overlay in place.
+ */
+async function buildMcpOverlay(repoRoot: string, setOverlay: SetOverlay): Promise<OverlayView> {
+  const onElicit = (req: { server: string; method: string; params: unknown }): Promise<Record<string, unknown>> =>
+    new Promise((resolve) => {
+      const request: ElicitationRequest = { server: req.server, message: elicitationMessage(req.params), resolve };
+      setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, elicitation: request } : prev));
+    });
+  const onElicitationDone = (): void => setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, elicitation: null } : prev));
+  const reconnect = (name: string): void => {
+    void reconnectServer(name, { cwd: repoRoot, onElicit }).then((conn) =>
+      setOverlay((prev) => (prev?.kind === "mcp" ? { ...prev, servers: prev.servers.map((s) => (s.name === name ? conn : s)) } : prev)),
+    );
+  };
+  const servers = (await gatherMcpConnections({ cwd: repoRoot, onElicit })) as McpServerView[];
+  return { kind: "mcp", servers, elicitation: null, reconnect, onElicitationDone };
+}
+
 /** Build the /context overlay: per-category token breakdown of the live convo. */
 function contextOverlay(setup: RunSetup, getCtx?: () => CtxSnapshot): OverlayView {
   const snap = getCtx?.() ?? { messages: [], contextWindow: 0 };
@@ -62,6 +91,7 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
 } {
   const [overlay, setOverlay] = useState<OverlayView | null>(null);
   const openOverlay = (kind: OverlayKind): void => {
+    if (kind === "mcp") return void buildMcpOverlay(deps.repoRoot, setOverlay).then(setOverlay).catch(() => {});
     void loadOverlay(kind, deps.setup, deps.repoRoot, deps.getContext).then(setOverlay).catch(() => {});
   };
   const closeOverlay = (): void => setOverlay(null);
