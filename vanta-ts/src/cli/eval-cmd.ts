@@ -66,6 +66,10 @@ export async function runEvalCommand(repoRoot: string, rest: string[] = []): Pro
     const { runEvalCompressCommand } = await import("./eval-compress-cmd.js");
     return runEvalCompressCommand(repoRoot, rest);
   }
+  if (rest[0] === "ccr") {
+    const { runEvalCcrCommand } = await import("./eval-ccr-cmd.js");
+    return runEvalCcrCommand(repoRoot);
+  }
   const corpusDir = join(repoRoot, rest[0] ?? DEFAULT_CORPUS);
   const tasks = loadCorpus(corpusDir);
   if (!tasks.length) {

@@ -13030,7 +13030,7 @@
       "id": "CCR-DISPOSITION",
       "track": "Harness",
       "title": "CCR disposition — keep / scope-to-history / retire, from the measurement",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] Gated on COMPRESSION-MEASURE. Vanta's CCR/offload (compress/result-offload.ts + store.ts) hands STRONG backbones a grep-able `.vanta/ccr/<id>.txt` pointer plus a `retrieve_original` whole-blob path, defaulting inline for weak backbones (delivery-policy.ts, cites the agent-harness paper). NousResearch/hermes-agent PR #47866 found headroom's retrieve-whole CCR net-negative for coding agents (agent pulls content right back -> double context, 0.34% net) — but Vanta's grep-pointer design may already avoid that, so the verdict is OPEN until measured. Once COMPRESSION-MEASURE reports the retrieve_original WHOLE-BLOB rate vs grep-slice rate + net corpus tokens: if whole-retrieve is high (CCR net-negative here) -> scope CCR to history-compaction only / retire it from the live tool-output path (delete > add, net simplification of compress/); if strong models grep slices (net-positive) -> keep offload as-is and only tighten the weak-backbone window. Evidence-led minimal change.",
       "done": "using COMPRESSION-MEASURE's whole-retrieve-vs-grep + net-token data, CCR is either kept (with the net-positive number documented), scoped to history-compaction, or retired from the live tool-output path; the chosen change is implemented + tested; no compression path that measures net-negative stays on by default; committed.",
