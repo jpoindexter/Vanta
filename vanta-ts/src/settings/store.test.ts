@@ -46,6 +46,15 @@ describe("loadSettings", () => {
     expect(s.disableAgentView).toBe(true);
   });
 
+  it("loads sshConfigs named connection profiles", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      sshConfigs: [{ name: "vps", host: "1.2.3.4", user: "deploy", port: 2222 }],
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.sshConfigs?.[0]?.name).toBe("vps");
+    expect(s.sshConfigs?.[0]?.host).toBe("1.2.3.4");
+  });
+
   it("loads autoMode settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({
       autoMode: {

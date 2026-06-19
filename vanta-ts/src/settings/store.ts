@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import { EFFORT_LEVELS } from "../types.js";
+import { SshProfileSchema } from "../ssh/config.js";
 
 // Layered settings.json (user → project → local).
 // Non-secret config (permissions, allowed tools, ui prefs).
@@ -79,6 +80,9 @@ export const SettingsSchema = z.object({
   trust: z.object({
     auto: z.boolean().optional(),
   }).optional(),
+  /** Named SSH connection profiles (run-anywhere). `shell_cmd {ssh:"<name>"}` runs
+   *  a command on the host; `vanta ssh <name>` opens an interactive shell. */
+  sshConfigs: z.array(SshProfileSchema).optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;

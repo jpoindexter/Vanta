@@ -6,6 +6,8 @@ import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError, maybeSandbox } from "../sandbox/run.js";
+import { loadSettings } from "../settings/store.js";
+import { resolveSshProfile, buildSshArgs } from "../ssh/config.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
@@ -25,6 +27,8 @@ const run = promisify(execFile);
 const Args = z.object({
   command: z.string().min(1),
   background: z.boolean().optional(),
+  /** Name of a settings.sshConfigs profile — run the command on that host. */
+  ssh: z.string().min(1).optional(),
 });
 
 // Belt-and-suspenders local block, in addition to the kernel safety gate.
@@ -68,29 +72,73 @@ export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return env.VANTA_SHELL_SANDBOX === "1" ? { ...env, VANTA_SANDBOX: "1" } : env;
 }
 
+/** Run the command on a named SSH host (settings.sshConfigs). The kernel still
+ *  assessed the command via describeForSafety; the local sandbox is not applied
+ *  because execution happens on the remote host, not this machine. */
+async function runRemote(profileName: string, command: string, root: string, pfx: string): Promise<ToolResult> {
+  const settings = await loadSettings(root, process.env);
+  const profile = resolveSshProfile(profileName, settings.sshConfigs);
+  if (!profile) {
+    return { ok: false, output: `unknown ssh profile "${profileName}" — configure it in settings.sshConfigs` };
+  }
+  try {
+    const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
+    const out = [stdout, stderr].filter(Boolean).join("\n").trim();
+    return { ok: true, output: pfx + (out || "(command produced no output)") };
+  } catch (err) {
+    return formatRunFailure(command, err as RunError, pfx);
+  }
+}
+
+function warnPrefix(command: string): string {
+  const warn = destructiveWarning(command);
+  return warn ? `⚠ ${warn}\n` : "";
+}
+
+/** Run the command locally (project scope), optionally OS-sandboxed. */
+async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
+  const sb = await maybeSandbox({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
+  if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
+  try {
+    const { stdout, stderr } = await run(sb.cmd, sb.args, { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
+    const out = [stdout, stderr].filter(Boolean).join("\n").trim();
+    return { ok: true, output: pfx + (out || "(command produced no output)") };
+  } catch (err) {
+    return formatRunFailure(command, err as RunError, pfx);
+  } finally {
+    await sb.cleanup?.();
+  }
+}
+
 export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
     description:
-      "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately.",
+      "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name to run the command on that host.",
     parameters: {
       type: "object",
       properties: {
         command: { type: "string", description: "The shell command to run" },
         background: { type: "boolean", description: "Run in background (returns task id immediately; check with bg_status)" },
+        ssh: { type: "string", description: "Name of a configured SSH profile — run the command on that host instead of locally" },
       },
       required: ["command"],
     },
   },
-  describeForSafety: (a) => `run shell command: ${String(a.command ?? "")}`,
+  describeForSafety: (a) => (a.ssh ? `run shell command on ssh "${String(a.ssh)}": ${String(a.command ?? "")}` : `run shell command: ${String(a.command ?? "")}`),
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
       return { ok: false, output: 'shell_cmd needs a "command" string' };
     }
-    const { command, background } = parsed.data;
+    const { command, background, ssh } = parsed.data;
     if (DESTRUCTIVE.test(command)) {
       return { ok: false, output: "refused: command matches a destructive pattern" };
+    }
+    const pfx = warnPrefix(command);
+    if (ssh) {
+      if (background) return { ok: false, output: "refused: background tasks are not supported over ssh" };
+      return runRemote(ssh, command, ctx.root, pfx);
     }
     if (background) {
       // Sandbox: detached background tasks aren't wrapped (no exit-time profile
@@ -102,24 +150,7 @@ export const shellCmdTool: Tool = {
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
     }
-    // Destructive-command warning: informational note for allowed-but-destructive commands.
-    const warn = destructiveWarning(command);
-    const pfx = warn ? `⚠ ${warn}\n` : "";
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
-    const sb = await maybeSandbox({ env: shellSandboxEnv(process.env), root: ctx.root, baseCmd: "sh", baseArgs: ["-c", command] });
-    if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
-    try {
-      const { stdout, stderr } = await run(sb.cmd, sb.args, {
-        cwd: ctx.root,
-        timeout: TIMEOUT_MS,
-        maxBuffer: MAX_OUTPUT,
-      });
-      const out = [stdout, stderr].filter(Boolean).join("\n").trim();
-      return { ok: true, output: pfx + (out || "(command produced no output)") };
-    } catch (err) {
-      return formatRunFailure(command, err as RunError, pfx);
-    } finally {
-      await sb.cleanup?.();
-    }
+    return runLocal(command, ctx.root, pfx);
   },
 };

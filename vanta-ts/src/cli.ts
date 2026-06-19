@@ -49,6 +49,7 @@ import {
 import { runLoopCommand } from "./cli/loop-cmd.js";
 import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
 import { runFleetCommand } from "./cli/fleet-cmd.js";
+import { runSshCommand } from "./cli/ssh-cmd.js";
 import { runAutoResearchCommand } from "./cli/auto-research-cmd.js";
 import { runMetaTuneCommand } from "./cli/meta-tune-cmd.js";
 import {
@@ -130,6 +131,7 @@ const COMMANDS: Record<string, CommandFn> = {
   agents: (root, rest) => runAgentsCommand(root, rest),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
+  ssh: (root, rest) => runSshCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
   logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),
   respawn: (root, rest) => runAgentsCommand(root, ["respawn", ...rest]),

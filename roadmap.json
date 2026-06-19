@@ -4614,7 +4614,7 @@
       "id": "VANTA-SSH-CONFIGS",
       "track": "Operator",
       "title": "SSH pre-configured connections in settings",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's sshConfigs setting pre-configures named SSH connections (host, port, user, key, jump host) so the agent can SSH into remote systems without user config. Useful for remote dev environments, cloud instances, and cross-machine agent tasks.",
       "done": "sshConfigs accepts an array of named connection profiles; the shell_cmd / bash tools use them by name; `vanta ssh <name>` opens an interactive shell to the configured host.",
