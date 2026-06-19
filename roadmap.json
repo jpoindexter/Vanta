@@ -1026,7 +1026,7 @@
       "id": "VANTA-STATS-CMD",
       "track": "Operator",
       "title": "/stats — usage statistics and activity dashboard in-session",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has a `/stats` command that shows usage statistics and activity data for the current user within the session. Distinct from the per-turn cost footer — this provides aggregate metrics (total sessions, turns, tools used, tokens spent) with a visual summary.",
       "done": "`/stats` opens a usage stats view showing session/turn/cost aggregates for the account.",
@@ -11309,7 +11309,7 @@
       "id": "SETUP-TTS",
       "track": "Operator",
       "title": "TTS provider section",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A `vanta setup` section for the voice/TTS provider (Edge keyless default · OpenAI · ElevenLabs · local). Vanta has speak/transcribe tools; this wires provider choice + keys.",
       "done": "`vanta setup` configures a TTS provider for spoken replies.",
@@ -13064,6 +13064,18 @@
       "tier": "pebble",
       "effort": "medium",
       "lens": "tui"
+    },
+    {
+      "id": "VANTA-TRUST-LIGHTEN",
+      "track": "Operator",
+      "title": "Lighten the trust gate — auto-trust option + non-intrusive prompt",
+      "status": "shipped",
+      "size": "S",
+      "summary": "[repo: vanta] VANTA-TRUST-DIALOG (shipped) persists once but the prompt is a wall-of-text modal dumping full context-file previews, and it fires for the operator's OWN repos — friction without benefit for a single-trusted-operator tool. Two fixes: (1) an auto-trust lever — settings.trust.auto / VANTA_TRUST_ALL env → skip the project gate entirely (auto-trust + persist), no prompt; (2) a LIGHTER prompt when it does fire — show context-file names + line counts + a one-line ask (trust / don't / view-to-expand), not the full file dumps. Keep MCP-server trust as-is (more security-relevant) and keep persistence. Honors Rule Zero: still ADDS a gate, never bypasses the kernel.",
+      "done": "settings.trust.auto (or VANTA_TRUST_ALL) auto-trusts projects without prompting + persists; when the gate does prompt, it shows file names + counts + a one-line trust/deny/view choice (no full-file wall of text); MCP trust + persistence unchanged; pure logic unit-tested + dialog render-tested; tsc + suite green; committed.",
+      "tier": "pebble",
+      "effort": "low",
+      "lens": "agent-loop"
     }
   ]
 }
