@@ -9,6 +9,7 @@ import {
   firePreToolUse,
   fireHooks,
   fireStopHook,
+  fireStatusHook,
   SHELL_HOOK_EVENTS,
   shellHooksPath,
 } from "./shell-hooks.js";
@@ -272,5 +273,35 @@ describe("fireStopHook — additionalContext from Stop hooks", () => {
 
   it("returns null gracefully when hooks.json is missing (best-effort)", async () => {
     expect(await fireStopHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+});
+
+describe("fireStatusHook — custom status segment from MessageDisplay hooks", () => {
+  let dir: string;
+  beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), "vanta-hooks-")); });
+  afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
+
+  it("returns null when no MessageDisplay hooks are configured", async () => {
+    expect(await fireStatusHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("returns the statusSegment string from a status hook's stdout JSON", async () => {
+    await writeHooks(dir, { MessageDisplay: [{ matcher: "status", command: `echo '{"statusSegment":"on-call"}'` }] });
+    expect(await fireStatusHook(dir, { sessionId: "s1" })).toBe("on-call");
+  });
+
+  it("returns null when the hook outputs JSON without statusSegment", async () => {
+    await writeHooks(dir, { MessageDisplay: [{ matcher: "status", command: `echo '{"other":"x"}'` }] });
+    expect(await fireStatusHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("ignores MessageDisplay hooks whose matcher does not target status", async () => {
+    await writeHooks(dir, { MessageDisplay: [{ matcher: "render", command: `echo '{"statusSegment":"nope"}'` }] });
+    expect(await fireStatusHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+
+  it("returns null gracefully when the hook outputs non-JSON (best-effort)", async () => {
+    await writeHooks(dir, { MessageDisplay: [{ matcher: "status", command: "echo plain-text" }] });
+    expect(await fireStatusHook(dir, { sessionId: "s1" })).toBeNull();
   });
 });

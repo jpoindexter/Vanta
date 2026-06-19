@@ -11,6 +11,7 @@ import { Banner } from "./banner.js";
 import { EntryView } from "./transcript.js";
 import type { SubagentProgress } from "../subagent/progress-store.js";
 import type { EffortLevel } from "../types.js";
+import type { RichSegment } from "./status-segments.js";
 
 function goalClip(s: string): string {
   const l = s.split("\n")[0] ?? "";
@@ -47,12 +48,13 @@ export function Footer(props: {
   mcp: boolean;
   elapsed: string;
   agents?: SubagentProgress[];
+  rich?: RichSegment[];
 }): ReactElement {
   return (
     <Box flexDirection="column">
       <AgentPill running={props.agents ?? []} />
       <Text>{props.goal ? <><Text color={GOAL}>◇</Text> {goalClip(props.goal)}</> : " "}</Text>
-      <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} />
+      <StatusBar model={props.model} effortLevel={props.effortLevel} ctxPct={props.ctxPct} tokens={props.tokens} contextWindow={props.contextWindow} turns={props.turns} busy={props.busy} queued={props.queued} elapsed={props.elapsed} mcp={props.mcp} rich={props.rich} />
       <Text>  <Text color={FOCUS}>/</Text> commands  ·  <Text color={FOCUS}>@</Text> files  ·  <Text color={ACTIVITY}>!</Text> shell  ·  <Text color={GOAL}>#</Text> memory</Text>
     </Box>
   );

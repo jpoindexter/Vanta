@@ -23,9 +23,9 @@ export type UiTestInstance = { input: (s: string) => void; lastFrame: () => stri
 /** Let real Ink flush its first paint (it writes on the next tick, not sync). */
 export const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 10));
 
-export function renderUi(tree: ReactElement): UiTestInstance {
+export function renderUi(tree: ReactElement, opts: { cols?: number } = {}): UiTestInstance {
   const frames: string[] = [];
-  const stdout = { write: (s: string) => void frames.push(s), isTTY: true, columns: 80, rows: 24, on() {}, off() {}, removeListener() {} };
+  const stdout = { write: (s: string) => void frames.push(s), isTTY: true, columns: opts.cols ?? 80, rows: 24, on() {}, off() {}, removeListener() {} };
   const stdin = new FakeStdin();
   const instance = render(tree, {
     stdout: stdout as unknown as NodeJS.WriteStream,

@@ -3,6 +3,7 @@ import { Box, Text, useStdout } from "ink";
 import { contextBar, kfmt } from "./busy.js";
 import { HEALTH, FOCUS } from "../term/palette.js";
 import type { EffortLevel } from "../types.js";
+import type { RichSegment } from "./status-segments.js";
 
 // Footer status line. Segments are dropped lowest-priority-first as the terminal
 // narrows so the line never wraps. model + ctx always survive.
@@ -40,14 +41,21 @@ function buildKeys(props: {
   };
 }
 
-type RenderKeptOpts = { kept: Set<string>; k: Keys; gauge: string; bar: string; ctxPct: number };
+type RenderKeptOpts = { kept: Set<string>; k: Keys; gauge: string; bar: string; ctxPct: number; rich: RichSegment[] };
 
 function textIf(kept: Set<string>, key: string, color: string | undefined, text: string): ReactElement | null {
   return kept.has(key) && text ? <Text>{text}</Text> : null;
 }
 
+/** The rich segments that survived the fit, rendered dim as secondary info. */
+function renderRich(kept: Set<string>, rich: RichSegment[]): ReactElement[] {
+  return rich
+    .filter((s) => kept.has(s.text))
+    .map((s) => <Text key={s.key} dimColor>{s.text}</Text>);
+}
+
 function renderKept(o: RenderKeptOpts): ReactElement {
-  const { kept, k, gauge, bar, ctxPct } = o;
+  const { kept, k, gauge, bar, ctxPct, rich } = o;
   return (
     <Box>
       {textIf(kept, k.MODEL, undefined, k.MODEL)}
@@ -59,6 +67,7 @@ function renderKept(o: RenderKeptOpts): ReactElement {
       {textIf(kept, k.TURNS, undefined, k.TURNS)}
       {textIf(kept, k.QUEUED, undefined, k.QUEUED)}
       {textIf(kept, k.MCP, HEALTH, k.MCP)}
+      {renderRich(kept, rich)}
       {textIf(kept, k.HINT, undefined, k.HINT)}
     </Box>
   );
@@ -75,23 +84,29 @@ export function StatusBar(props: {
   queued?: number;
   elapsed?: string;
   mcp?: boolean;
+  /** Rich segments (rate-limit, lines delta, name, worktree, vim, custom). */
+  rich?: RichSegment[];
 }): ReactElement {
   const cols = (useStdout().stdout?.columns) ?? 80;
   const gauge = `${kfmt(props.tokens)}/${kfmt(props.contextWindow)}`;
   const bar   = contextBar(props.ctxPct);
   const k     = buildKeys({ ...props, gauge, bar });
-  // Priority = drop order as the terminal narrows (lowest first); the chips
-  // (mcp, then hint) go before turns/timer, model + ctx always survive.
+  const rich  = props.rich ?? [];
+  // Priority = drop order as the terminal narrows (lowest first); model + ctx
+  // always survive. Rich segments (composer-assigned 2..6) compete on their own
+  // priority and outrank the hint, so live status (rate-limit/delta/worktree)
+  // wins terminal width over the static "? shortcuts" affordance.
   const segs: Segment[] = [
-    { text: k.MODEL,  priority: 7 },
-    { text: k.CTX,    priority: 6 },
-    ...(k.EFFORT ? [{ text: k.EFFORT, priority: 6 }] : []),
-    ...(props.elapsed ? [{ text: k.ELAPSED, priority: 5 }] : []),
-    { text: k.TURNS,  priority: 4 },
-    ...(props.queued && props.queued > 0 ? [{ text: k.QUEUED, priority: 3 }] : []),
+    { text: k.MODEL,  priority: 17 },
+    { text: k.CTX,    priority: 16 },
+    ...(k.EFFORT ? [{ text: k.EFFORT, priority: 16 }] : []),
+    ...(props.elapsed ? [{ text: k.ELAPSED, priority: 15 }] : []),
+    { text: k.TURNS,  priority: 14 },
+    ...(props.queued && props.queued > 0 ? [{ text: k.QUEUED, priority: 13 }] : []),
+    ...rich.map((s) => ({ text: s.text, priority: s.priority + 6 })),
     { text: k.HINT,   priority: 2 },
     ...(props.mcp ? [{ text: k.MCP, priority: 1 }] : []),
   ];
   const kept = new Set(fitSegments(segs, cols));
-  return renderKept({ kept, k, gauge, bar, ctxPct: props.ctxPct });
+  return renderKept({ kept, k, gauge, bar, ctxPct: props.ctxPct, rich });
 }

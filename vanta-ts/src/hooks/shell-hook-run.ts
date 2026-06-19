@@ -139,6 +139,36 @@ export async function fireStopHook(
 }
 
 /**
+ * Collect a custom status-line segment from MessageDisplay hooks (matcher value
+ * "status"). Returns the first hook stdout JSON `statusSegment` string. Pure
+ * best-effort: any error, timeout, or non-JSON output yields null and never
+ * blocks the caller (the status line renders regardless).
+ */
+export async function fireStatusHook(
+  dataDir: string,
+  context: Record<string, unknown>,
+  opts: HookRunOpts = {},
+): Promise<string | null> {
+  try {
+    const matchCtx: MatchContext = { matcherValue: "status" };
+    const hooks = matchingHooks(await loadShellHooks(dataDir), "MessageDisplay", matchCtx);
+    if (!hooks.length) return null;
+    const ctx = JSON.stringify({ event: "MessageDisplay", segment: "status", ...context });
+    for (const h of hooks) {
+      const r = await runHook(h, "MessageDisplay", ctx, opts);
+      try {
+        const parsed: unknown = JSON.parse(r.stdout.trim());
+        const seg = (parsed as { statusSegment?: unknown })?.statusSegment;
+        if (typeof seg === "string" && seg.trim()) return seg.trim();
+      } catch { /* stdout is not JSON — no statusSegment */ }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fire the hooks for a non-blocking event (PostToolUse / UserPromptSubmit / Stop).
  * Fire-and-forget: all matching hooks run, exit codes are ignored.
  */

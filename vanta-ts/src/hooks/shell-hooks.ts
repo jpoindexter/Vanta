@@ -169,4 +169,4 @@ export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, c
 }
 
 export type { ShellHookResult } from "./shell-hook-run.js";
-export { runShellHook, firePreToolUse, fireStopHook, fireHooks } from "./shell-hook-run.js";
+export { runShellHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";

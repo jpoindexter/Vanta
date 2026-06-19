@@ -34,6 +34,7 @@ import { estimateTokens } from "../term/tokens.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
 import { useSessionStatus } from "./use-session-status.js";
+import { useFooterRich } from "./use-rich-status.js";
 import { useSubagentProgress } from "./use-subagent-progress.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
@@ -74,7 +75,6 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const agents = useSubagentProgress();
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
-
   const provider = props.setup.provider;
   const est = estimateTokens(convoRef.current?.messages ?? [], state.streaming);
   const focusTargets = buildFocusTargets(pending, overlay);
@@ -83,6 +83,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), cycleAgent: teammate.cycleAgent });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
+  const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled });
 
   return (
     <Box flexDirection="column">
@@ -92,7 +93,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
           <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} /> : null}
+          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
   );
