@@ -37,9 +37,12 @@ export function httpTransport(
             return;
           }
           // Read the response — could be a single JSON object or newline-delimited.
+          // The McpClient frames messages on newlines, so re-terminate each part:
+          // an HTTP body (single JSON, or a stream missing its final newline)
+          // would otherwise sit unparsed in the client's line buffer forever.
           const text = await res.text();
           for (const part of text.split("\n").filter(Boolean)) {
-            messageCallback?.(part);
+            messageCallback?.(`${part}\n`);
           }
         })
         .catch((err: Error) => errorCallback?.(err));

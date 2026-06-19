@@ -7,6 +7,10 @@ import { mcpClientEvents } from "./events.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { Tool } from "../tools/types.js";
 import { resolveMcpTrust, type TrustConfirmer } from "../settings/trust-gate.js";
+import { isAuthRequiredError } from "./auth-detect.js";
+import { authPending, type AuthPendingRegistry } from "./auth-pending.js";
+import type { McpAuthConfig } from "./auth-flow.js";
+import { loadMcpToken } from "./auth-store.js";
 
 /** First-time trust gate for MCP servers. Omitted → headless: untrusted servers are skipped. */
 export type McpTrust = { root: string; confirm?: TrustConfirmer };
@@ -29,6 +33,12 @@ const ServerSchema = z.object({
   url: z.string().url().optional(),
   token: z.string().optional(),
   headers: z.record(z.string()).optional(),
+  // OAuth: when the server requires auth, these drive the `mcp_auth` flow.
+  authorizationUrl: z.string().url().optional(),
+  tokenUrl: z.string().url().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  scope: z.string().optional(),
 }).refine((s) => s.command || s.url, "either command or url is required");
 
 // Accept both "servers" (Vanta) and "mcpServers" (common convention) keys; merge with servers winning.
@@ -109,6 +119,18 @@ export type MountResult = { servers: string[]; toolCount: number; dispose: () =>
 
 type ServerSpec = z.infer<typeof ServerSchema>;
 
+/** Pull a complete OAuth config off a spec, or null when one isn't configured. */
+export function extractAuthConfig(spec: ServerSpec): McpAuthConfig | null {
+  if (!spec.authorizationUrl || !spec.tokenUrl || !spec.clientId) return null;
+  return {
+    authorizationUrl: spec.authorizationUrl,
+    tokenUrl: spec.tokenUrl,
+    clientId: spec.clientId,
+    clientSecret: spec.clientSecret,
+    scope: spec.scope,
+  };
+}
+
 async function resolveTransport(
   name: string,
   spec: ServerSpec,
@@ -117,7 +139,9 @@ async function resolveTransport(
 ): Promise<Transport | null> {
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
-    const token = resolveToken(name, spec.token, env);
+    // A previously-stored OAuth access token wins over a static config token.
+    const stored = await loadMcpToken(name, env);
+    const token = stored?.access_token ?? resolveToken(name, spec.token, env);
     return httpTransport(spec.url, { token, headers: spec.headers });
   }
   if (spec.command) {
@@ -156,18 +180,43 @@ async function mountOneServer(opts: {
 }
 
 /**
+ * Handle a per-server mount failure. When the error signals OAuth is required
+ * AND the spec carries an auth config, mark the server auth-pending (its real
+ * tools stay unregistered; the agent gets `mcp_auth` instead). Otherwise it's a
+ * plain best-effort failure. The error message is logged; tokens never are.
+ */
+function handleMountFailure(opts: {
+  name: string;
+  spec: ServerSpec;
+  err: unknown;
+  pending: AuthPendingRegistry;
+  log: (msg: string) => void;
+}): void {
+  const { name, spec, err, pending, log } = opts;
+  const auth = extractAuthConfig(spec);
+  if (auth && isAuthRequiredError(err)) {
+    pending.mark(name, auth);
+    log(`  · mcp: ${name} needs auth — run mcp_auth("${name}") to authorize`);
+    return;
+  }
+  log(`  · mcp: ${name} failed — ${(err as Error).message}`);
+}
+
+/**
  * Mount every configured MCP server into the registry. Best-effort per server.
  * Registers a process-exit handler to kill spawned children, and returns a
- * `dispose` for explicit cleanup. No config → no-op.
+ * `dispose` for explicit cleanup. No config → no-op. Auth-required servers are
+ * recorded in the pending registry so `mcp_auth` can authorize + reconnect them.
  */
 export async function mountMcpServers(
   registry: ToolRegistry,
   env: NodeJS.ProcessEnv = process.env,
   log: (msg: string) => void = () => {},
-  opts: { cwd?: string; trust?: McpTrust } = {},
+  opts: { cwd?: string; trust?: McpTrust; pending?: AuthPendingRegistry } = {},
 ): Promise<MountResult> {
   const cwd = opts.cwd ?? process.cwd();
   const trust = opts.trust;
+  const pending = opts.pending ?? authPending;
   const config = await readMcpConfig(env, cwd);
   const names = Object.keys(config.servers);
   if (names.length === 0) return { servers: [], toolCount: 0, dispose: () => {} };
@@ -184,7 +233,7 @@ export async function mountMcpServers(
       const count = await mountOneServer({ name, spec, registry, env, children, deferred, cwd, log, trust });
       if (count > 0) { mounted.push(name); toolCount += count; }
     } catch (err) {
-      log(`  · mcp: ${name} failed — ${(err as Error).message}`);
+      handleMountFailure({ name, spec, err, pending, log });
     }
   }
 

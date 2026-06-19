@@ -21,7 +21,11 @@ export type McpConnection = McpServerView & { client?: McpClient };
 async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv): Promise<{ transport: Transport; kind: "stdio" | "http" } | null> {
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
-    return { transport: httpTransport(spec.url, { token: resolveToken(name, spec.token, env), headers: spec.headers }), kind: "http" };
+    const { loadMcpToken } = await import("./auth-store.js");
+    // A stored OAuth access token (from the mcp_auth flow) wins over a static one.
+    const stored = await loadMcpToken(name, env);
+    const token = stored?.access_token ?? resolveToken(name, spec.token, env);
+    return { transport: httpTransport(spec.url, { token, headers: spec.headers }), kind: "http" };
   }
   if (spec.command) {
     const t = stdioTransport(spec.command, spec.args ?? [], { ...process.env, ...spec.env });

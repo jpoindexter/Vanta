@@ -85,6 +85,7 @@ describe("registry", () => {
       "loop",
       "lsp_definition",
       "lsp_diagnostics",
+      "mcp_auth",
       "money",
       "mount_mcp",
       "nl_assertions",
