@@ -30,6 +30,7 @@ import { estimateTokens } from "../term/tokens.js";
 import { listSkills } from "../skills/store.js";
 import { slugifySkillName } from "../store/home.js";
 import { useSessionStatus } from "./use-session-status.js";
+import { useSubagentProgress } from "./use-subagent-progress.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { Footer, LiveRegion, buildStaticItems } from "./app-regions.js";
@@ -65,6 +66,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
+  const agents = useSubagentProgress();
   const { mode, cycle } = useModeState(pending, setPending, runSlash);
   useQueueDrain(state.busy, state.queued, dispatch, send);
 
@@ -84,7 +86,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} />}
           <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
-          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} /> : null}
+          {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} /> : null}
         </PinnedRegion>
     </Box>
   );

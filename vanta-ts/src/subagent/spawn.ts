@@ -7,10 +7,34 @@ import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
+import { startProgressReporter } from "./progress-reporter.js";
+import type { RecentCall } from "./progress.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal, Message } from "../types.js";
 
 const DEFAULT_MAX_ITERATIONS = 50;
+const RECENT_CALLS_CAP = 8;
+
+/**
+ * Tee the worker's tool calls into a small ring buffer (preserving any caller
+ * onToolCall) so the progress reporter can name the specific file/symbol in
+ * flight. Returns wrapped deps + a reader for the latest calls.
+ */
+function withProgressCapture(deps: AgentDeps): { deps: AgentDeps; getRecentCalls: () => RecentCall[] } {
+  const recent: RecentCall[] = [];
+  const prior = deps.onToolCall;
+  return {
+    deps: {
+      ...deps,
+      onToolCall: (name, args) => {
+        recent.push({ name, args });
+        if (recent.length > RECENT_CALLS_CAP) recent.shift();
+        prior?.(name, args);
+      },
+    },
+    getRecentCalls: () => [...recent],
+  };
+}
 
 /**
  * Spawn an isolated worker agent for a single scoped subtask.
@@ -30,7 +54,8 @@ export async function spawnSubagent(opts: {
   // Injected for deterministic tests; defaults to wall-clock at call time.
   now?: Date;
 }): Promise<AgentOutcome> {
-  const { deps } = opts;
+  const { deps: runDeps, getRecentCalls } = withProgressCapture(opts.deps);
+  const deps = runDeps;
   const now = (opts.now ?? new Date()).toISOString();
   const dataDir = join(deps.root, ".vanta");
   await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
@@ -51,6 +76,9 @@ export async function spawnSubagent(opts: {
     brain,
   });
   const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
+  // Live footer pill: shows immediately (title), then a ~30s-throttled side-query
+  // names the file/symbol in flight. Sub-30s workers stop before billing one.
+  const stopProgress = startProgressReporter({ id: randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
   try {
     const outcome = await convo.send(opts.instruction);
     await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
@@ -60,6 +88,8 @@ export async function spawnSubagent(opts: {
     await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
     await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err) }, { cwd: deps.root, matcherValue: "general-purpose", ...buildAgentHookDeps(deps) });
     throw err;
+  } finally {
+    stopProgress();
   }
 }
 
