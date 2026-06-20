@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // iMessage has no documented hard cap, but a single huge AppleScript `send`
@@ -96,7 +97,10 @@ export class IMessageAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
-    for (const part of splitForLimit(msg.text, IMESSAGE_LIMIT, "chars")) {
+    // iMessage renders plain text — strip markdown to readable prose (code spans
+    // survive) BEFORE splitting so `**`/``` never show literally in the bubble.
+    const formatted = formatForDialect(msg.text, "plain");
+    for (const part of splitForLimit(formatted, IMESSAGE_LIMIT, "chars")) {
       const script = SEND_SCRIPT(msg.chatId, part);
       await runExec("osascript", ["-e", script], { timeout: 10_000 });
     }

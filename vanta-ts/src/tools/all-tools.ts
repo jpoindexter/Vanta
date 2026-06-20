@@ -49,6 +49,7 @@ import { selfRepairTool } from "./self-repair.js";
 import { watchVideoTool } from "./watch-video.js";
 import { speakTool } from "./speak.js";
 import { swarmTool } from "./swarm.js";
+import { councilTool } from "./council.js";
 import { transcribeTool } from "./transcribe.js";
 import { twitterReadTool } from "./twitter-read.js";
 import { youtubeReadTool } from "./youtube.js";
@@ -173,6 +174,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   watchVideoTool,
   speakTool,
   swarmTool,
+  councilTool,
   workflowTool,
   graphQueryTool,
   transcribeTool,

@@ -58,6 +58,7 @@ describe("registry", () => {
       "config",
       "config_sandbox",
       "cookie_import",
+      "council",
       "cron_create",
       "cron_list",
       "delegate",

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // Signal has no hard API cap, but very long single messages are rejected/clipped
@@ -89,7 +90,11 @@ export class SignalAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
-    for (const part of splitForLimit(msg.text, SIGNAL_LIMIT, "chars")) {
+    // Signal's send takes plain text — strip markdown to readable prose (code
+    // spans survive) BEFORE splitting so `**`/``` never leak. (Style ranges are
+    // a future enrichment; plain is correct and never mangles code.)
+    const formatted = formatForDialect(msg.text, "plain");
+    for (const part of splitForLimit(formatted, SIGNAL_LIMIT, "chars")) {
       const payload = buildSendPayload(this.number, msg.chatId, part);
       const res = await fetch(`${this.baseUrl}/api/v1/jsonrpc`, {
         method: "POST",
