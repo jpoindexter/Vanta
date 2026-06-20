@@ -2963,7 +2963,7 @@
       "id": "VANTA-ADVISOR-MSG",
       "track": "Operator",
       "title": "Advisor message — stronger-model reviewer response in transcript",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's AdvisorMessage renders the response from an advisor (stronger model) in a visually distinct message type in the transcript — different border/color from regular assistant messages. The advisor pattern is used by another agent's built-in code reviewer. Vanta calls the advisor but renders its output identically to other tool results.",
       "done": "When the advisor tool returns, its response renders in a distinct bordered block with an 'Advisor' label; the model name appears dimmed; the content renders as full markdown.",
@@ -2971,7 +2971,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-20",
+      "notes": "Pure formatAdvisorMessage (⚖ advisor (<model>): <text>, truncate 600, full ANSI/CSI/OSC sequence strip from text AND label — removes the whole escape not just ESC so no residue/injection, newlines collapsed so no spoofed second row) + advisorEnabled (VANTA_ADVISOR_MODEL set and not off) + advisorAttribution. Built+tested; producer = agent/advisor.ts runAdvisor, surface = transcript NoteView gated on advisorEnabled (named). No advisor = nothing shown."
     },
     {
       "id": "VANTA-SHUTDOWN-MSG",
