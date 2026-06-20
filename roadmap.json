@@ -3295,7 +3295,7 @@
       "id": "VANTA-AUTO-MODE-DENIALS",
       "track": "Operator",
       "title": "Auto-mode denial history — /permissions tab showing recently blocked commands",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent tracks commands recently denied by the auto-mode transcript classifier (up to 20, newest-first) via `recordAutoModeDenial()`. These are surfaced in a 'RecentDenials' tab in the `/permissions` UI, showing tool name, display description, reason, and timestamp — helping users understand and tune what the classifier blocked.",
       "done": "`/permissions` has a 'Recent Denials' tab. When auto-mode blocks a command, it appears here with the classifier's reason.",
@@ -3304,7 +3304,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable extractDenials (PREFERENCE-SIGNALS human approval-deny rows -> DenialRecord{tool,action,reason,ts}, newest-first, cap 20, non-denial skipped) + formatDenials (✘ tool action — reason (relative time via message-time), control/ANSI stripped, empty -> no recent denials) + readRecentDenials (injected reader, [] on failure; defaultDeps reads ~/.vanta/preferences.jsonl read-only). READ-ONLY — never alters a decision. Built+tested; /permissions listRules append wire named."
     },
     {
       "id": "VANTA-CHROME-GIF-RECORDER",
