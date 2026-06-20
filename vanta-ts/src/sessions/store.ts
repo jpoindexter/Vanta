@@ -40,11 +40,14 @@ const SessionSchema = z.object({
   title: z.string(),
   started: z.string(),
   updated: z.string(),
+  // Origin project (canonicalProjectId). Optional + additive: sessions saved
+  // before this field still load. Enables cross-project resume (see cross-project.ts).
+  projectId: z.string().optional(),
   messages: z.array(MessageSchema),
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId"> & {
   turns: number;
 };
 
@@ -72,7 +75,13 @@ function deriveTitle(messages: Message[]): string {
 export async function saveSession(
   id: string,
   messages: Message[],
-  opts: { env?: NodeJS.ProcessEnv; now?: string; started?: string; title?: string } = {},
+  opts: {
+    env?: NodeJS.ProcessEnv;
+    now?: string;
+    started?: string;
+    title?: string;
+    projectId?: string;
+  } = {},
 ): Promise<void> {
   const dir = sessionsDir(opts.env);
   await mkdir(dir, { recursive: true });
@@ -83,6 +92,8 @@ export async function saveSession(
     title: opts.title?.trim() || deriveTitle(messages),
     started: opts.started ?? now,
     updated: now,
+    // Origin project — additive; omitted when not provided so old sessions stay byte-identical.
+    ...(opts.projectId ? { projectId: opts.projectId } : {}),
     messages,
   };
   await writeFile(join(dir, `${id}.json`), JSON.stringify(session, null, 2), "utf8");
@@ -139,6 +150,7 @@ export async function listSessions(env?: NodeJS.ProcessEnv): Promise<SessionMeta
       title: session.title,
       started: session.started,
       updated: session.updated,
+      projectId: session.projectId,
       turns: session.messages.filter((m) => m.role === "user").length,
     });
   }

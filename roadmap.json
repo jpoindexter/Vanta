@@ -1876,7 +1876,7 @@
       "id": "VANTA-CROSS-PROJECT-RESUME",
       "track": "Harness",
       "title": "Cross-project session resume — resume sessions from different projects",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When resuming a session that was created in a different project root, another agent detects the mismatch via checkCrossProjectResume and warns the user. The session can still resume in the current project context. Prevents silent context confusion.",
       "done": "Resuming a session from /project-a while in /project-b shows a warning; user can proceed or cancel; file paths in the session are noted as potentially wrong.",
@@ -1885,7 +1885,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Additive optional projectId on the session record (omitted = byte-identical legacy) + pure filters listAllProjectsSessions/filterByProject/filterCrossProject. The resume picker does not yet invoke filterCrossProject (cli/sessions interactive surface) — follow-up to offer cross-project candidates in /sessions and /resume."
     },
     {
       "id": "VANTA-COMMIT-ATTRIBUTION",
@@ -1981,7 +1982,7 @@
       "id": "VANTA-AUTO-UPDATER",
       "track": "Harness",
       "title": "CLI auto-updater — version notification + background update with semver comparison",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's AutoUpdater/AutoUpdaterWrapper components check for new CLI versions and notify the user via a bottom-right notification. `useUpdateNotification` tracks the last-notified semver to avoid repeat notifications for the same version. The update is downloaded in the background and the user is prompted to restart.",
       "done": "When a new version is available, a notification appears in the corner. User can dismiss or restart to apply the update.",
@@ -1990,7 +1991,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure compareSemver/isUpdateAvailable/buildUpdateNotice/checkForUpdate (injected fetch, fail-closed) + handleUpdate (prints notice + upgrade command, never auto-runs). runUpdateCommand exported but NOT wired — the `update` CLI name is already taken by an existing command; a follow-up can wire it as a subcommand or `vanta version --check`. Live npm-registry URL is illustrative (package is private)."
     },
     {
       "id": "VANTA-DEFERRED-SESSION-HOOKS",

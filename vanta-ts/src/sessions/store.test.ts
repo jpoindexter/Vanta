@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { saveSession, loadSession, listSessions, newSessionId, forkSession } from "./store.js";
@@ -54,6 +54,27 @@ describe("session store", () => {
   it("generates a sortable timestamp id", () => {
     const id = newSessionId(new Date("2026-06-02T14:30:52.000Z"));
     expect(id).toMatch(/^\d{8}-\d{6}$/);
+  });
+
+  it("records projectId on save and exposes it on the listing", async () => {
+    await saveSession("20260620-120000", TRANSCRIPT, { env: env(), projectId: "abc123def456" });
+    const loaded = await loadSession("20260620-120000", env());
+    expect(loaded?.projectId).toBe("abc123def456");
+    const list = await listSessions(env());
+    expect(list[0]?.projectId).toBe("abc123def456");
+  });
+
+  it("omits projectId when not provided (existing sessions still load)", async () => {
+    await saveSession("20260620-130000", TRANSCRIPT, { env: env() });
+    const loaded = await loadSession("20260620-130000", env());
+    expect(loaded).not.toBeNull();
+    expect(loaded?.projectId).toBeUndefined();
+    const raw = JSON.parse(
+      await readFile(join(home, "sessions", "20260620-130000.json"), "utf8"),
+    ) as Record<string, unknown>;
+    expect("projectId" in raw).toBe(false); // byte-identical to pre-feature sessions
+    const list = await listSessions(env());
+    expect(list[0]?.projectId).toBeUndefined();
   });
 
   it("forks a session into a new id without changing the original", async () => {
