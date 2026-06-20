@@ -2781,7 +2781,7 @@
       "id": "VANTA-MSG-HOOK-PROGRESS",
       "track": "Operator",
       "title": "Hook progress message — live hook execution in transcript",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's HookProgressMessage shows hook execution status inline in the transcript (running, completed, error) with the hook name and statusMessage. Vanta will run hooks (VANTA-HOOKS-ENGINE next) but has no visual feedback for hook execution.",
       "done": "Running hooks show a progress line with hook name + statusMessage; on completion the line updates to success/error; multiple concurrent hooks show stacked.",
@@ -2789,7 +2789,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "notes": "Pure buildHookProgressNote (in-progress: running <event> hook (<type>)…) + buildHookProgressDone (resolved elapsed) + shouldShowProgress (>threshold, default 300ms, VANTA_HOOK_PROGRESS_MS, 0=always). Distinct from hook-timing (post-completion). Builders built+tested; wire = shell-hook-run runHook (setTimeout arm before withHookTimeout + clear after) — DEFERRED: shell-hook-run.ts is at the 300-line hard cap, needs a decomposition pass before the ~6-line wire."
     },
     {
       "id": "VANTA-MSG-TIMESTAMPS",
