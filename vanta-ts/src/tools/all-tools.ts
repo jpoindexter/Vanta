@@ -61,7 +61,13 @@ import { githubReadTool } from "./github-read.js";
 import { podcastReadTool } from "./podcast.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
-import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
+import {
+  lspDiagnosticsTool,
+  lspDefinitionTool,
+  lspReferencesTool,
+  lspSymbolsTool,
+  lspHoverTool,
+} from "./lsp.js";
 import {
   gitStatusTool,
   gitDiffTool,
@@ -197,6 +203,9 @@ export const ALL_TOOLS: readonly Tool[] = [
   maximizerTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
+  lspReferencesTool,
+  lspSymbolsTool,
+  lspHoverTool,
   listMcpResourcesTool,
   readMcpResourceTool,
   gitStatusTool,
