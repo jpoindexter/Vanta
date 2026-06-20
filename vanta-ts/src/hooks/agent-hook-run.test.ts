@@ -11,7 +11,7 @@ describe("runAgentHook", () => {
       '{"event":"PreToolUse"}',
       depsWithProvider(fakeProvider('{"decision":"block","reason":"worker veto"}')),
     );
-    expect(result.code).toBe(1);
+    expect(result.code).toBe(2);
     expect(result.stderr).toBe("worker veto");
   });
 
@@ -32,7 +32,7 @@ describe("runAgentHook", () => {
       deps,
     );
     expect(calls).toEqual(["probe_hook_context"]);
-    expect(result).toMatchObject({ code: 1, stderr: "tool saw risk" });
+    expect(result).toMatchObject({ code: 2, stderr: "tool saw risk" });
   });
 });
 

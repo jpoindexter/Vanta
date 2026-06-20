@@ -9,6 +9,7 @@ import {
 import { runMcpToolHook } from "./mcp-hook-run.js";
 import { runHttpHook } from "./http-hook-run.js";
 import { runPromptHook } from "./prompt-hook-run.js";
+import { interpretHookExit } from "./hook-exit-codes.js";
 import type { LLMProvider } from "../providers/interface.js";
 
 // Hook execution layer. Extracted from shell-hooks.ts (size gate).
@@ -88,27 +89,42 @@ function withHookTimeout(promise: Promise<ShellHookResult>, timeoutMs: number): 
   return Promise.race([promise, timeout]).finally(() => { if (timer) clearTimeout(timer); });
 }
 
+export type PreToolUseOutcome = {
+  /** True only when a hook exited 2 — the tool must not run. */
+  blocked: boolean;
+  /** For a blocked tool: the hook's stderr, fed back TO THE MODEL as the block reason. */
+  reason?: string;
+  /** For a non-blocking, non-zero hook (any code except 0 and 2): stderr surfaced TO THE USER. */
+  userMessage?: string;
+};
+
 /**
- * Run the PreToolUse hooks for a tool. If any matching hook exits non-zero, the
- * tool is BLOCKED and the hook's output is the reason. No matching hooks → allowed.
+ * Run the PreToolUse hooks for a tool, routing each hook's exit code through
+ * `interpretHookExit`: exit 0 = silent/allow, exit 2 = BLOCK (stderr → model),
+ * any other non-zero = non-blocking (stderr → user). The first blocking hook
+ * stops the chain; otherwise the first non-blocking user message is carried up.
+ * No matching hooks → allowed.
  */
 export async function firePreToolUse(
   dataDir: string,
   toolName: string,
   args: Record<string, unknown>,
   opts: HookRunOpts & { sessionType?: MatchContext["sessionType"] } = {},
-): Promise<{ blocked: boolean; reason?: string }> {
+): Promise<PreToolUseOutcome> {
   const matchCtx: MatchContext = { toolName, matcherValue: toolName, toolInputJson: JSON.stringify(args), sessionType: opts.sessionType };
   const hooks = matchingHooks(await loadShellHooks(dataDir), "PreToolUse", matchCtx);
   if (!hooks.length) return { blocked: false };
   const ctx = JSON.stringify({ event: "PreToolUse", tool: toolName, args });
+  let userMessage: string | undefined;
   for (const h of hooks) {
     const r = await runHook(h, "PreToolUse", ctx, opts);
-    if (r.code !== 0) {
-      return { blocked: true, reason: (r.stderr || r.stdout).trim() || `PreToolUse hook exited ${r.code}` };
+    const verdict = interpretHookExit(r.code, r.stdout, r.stderr);
+    if (verdict.block) {
+      return { blocked: true, reason: verdict.toModel ?? (r.stdout.trim() || `PreToolUse hook exited ${r.code}`) };
     }
+    if (verdict.toUser && !userMessage) userMessage = verdict.toUser;
   }
-  return { blocked: false };
+  return userMessage ? { blocked: false, userMessage } : { blocked: false };
 }
 
 /**
