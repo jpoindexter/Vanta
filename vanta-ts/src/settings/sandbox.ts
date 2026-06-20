@@ -1,5 +1,6 @@
 import type { Settings } from "./store.js";
 import { detectBackend } from "../sandbox/profile.js";
+import { networkDecision } from "./network-deny.js";
 
 // Pure source-of-truth helpers for the /sandbox UI. The OS sandbox runtime truth
 // lives in env (VANTA_SANDBOX / VANTA_SHELL_SANDBOX / VANTA_SANDBOX_NET) and is
@@ -15,6 +16,8 @@ export type SandboxState = {
   enabled: boolean;
   shellOnly: boolean;
   allowNetwork: boolean;
+  /** Hosts denied even when the network is allowed. Deny wins (default-deny). */
+  deniedDomains: string[];
   dependencies: string[];
   overrides: SandboxOverride[];
 };
@@ -33,6 +36,7 @@ export function sandboxState(settings: Settings, env: NodeJS.ProcessEnv): Sandbo
     enabled: flagFrom(env.VANTA_SANDBOX, cfg.enabled),
     shellOnly: flagFrom(env.VANTA_SHELL_SANDBOX, cfg.shellOnly),
     allowNetwork: flagFrom(env.VANTA_SANDBOX_NET, cfg.allowNetwork),
+    deniedDomains: cfg.deniedDomains ?? [],
     dependencies: cfg.dependencies ?? [],
     overrides: cfg.overrides ?? [],
   };
@@ -44,6 +48,7 @@ export function toConfig(state: SandboxState): SandboxConfig {
     enabled: state.enabled,
     shellOnly: state.shellOnly,
     allowNetwork: state.allowNetwork,
+    deniedDomains: state.deniedDomains,
     dependencies: state.dependencies,
     overrides: state.overrides,
   };
@@ -85,6 +90,16 @@ export function resolveToolSandbox(state: SandboxState, tool: string): boolean {
   if (rule === "bypass") return false;
   if (rule === "enforce") return true;
   return state.enabled;
+}
+
+/**
+ * Resolve whether a host is reachable under the sandbox network policy. A host on
+ * `deniedDomains` is ALWAYS "deny" even when the network is allowed (deny-wins);
+ * otherwise the decision follows `allowNetwork`. An empty deny list reduces to the
+ * current allow/deny behavior. Pure — delegates to `network-deny`'s policy fn.
+ */
+export function resolveNetworkAccess(state: SandboxState, host: string): "allow" | "deny" {
+  return networkDecision(host, { allow: state.allowNetwork, deniedDomains: state.deniedDomains });
 }
 
 export type DoctorLevel = "ok" | "warn" | "info";

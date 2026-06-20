@@ -66,6 +66,9 @@ export const SettingsSchema = z.object({
     shellOnly: z.boolean().optional(),
     /** Allow network inside the sandbox (maps to VANTA_SANDBOX_NET). Off = isolated. */
     allowNetwork: z.boolean().optional(),
+    /** Hosts blocked even when the network is otherwise allowed. Deny always wins
+     *  over allow (default-deny posture). Exact + subdomain match. Empty = no-op. */
+    deniedDomains: z.array(z.string()).optional(),
     /** Packages to pre-install into a sandbox session. */
     dependencies: z.array(z.string()).optional(),
     /** Per-tool sandbox rules: bypass (run unsandboxed) or enforce (always sandbox). */

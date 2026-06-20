@@ -2304,7 +2304,7 @@
       "id": "VANTA-HOOK-EXEC-FORM",
       "track": "Harness",
       "title": "Hook exec form — `args: string[]` spawns hook directly without a shell",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.139) adds `args: string[]` to hook config (exec form). The hook binary is spawned directly without a shell, so path placeholders don't need escaping and the command can't be injection-bypassed via shell metacharacters.",
       "done": "A hook configured as `{command: '/usr/bin/notify', args: ['--title', '$TOOL_NAME']}` spawns directly. No shell wrapping, no injection risk.",
@@ -2313,7 +2313,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HOOK-CONTINUE-BLOCK",
@@ -2334,7 +2334,7 @@
       "id": "VANTA-SANDBOX-NETWORK-DENY",
       "track": "Harness",
       "title": "`sandbox.network.deniedDomains` — block specific domains under a broader allowlist",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.113) adds `sandbox.network.deniedDomains` to deny specific domains even when a broader `allowedDomains` wildcard would otherwise permit them. Enables allowlist + denylist layering: allow `*.api.com` but deny `internal.api.com`.",
       "done": "With `allowedDomains: ['*.api.com']` and `deniedDomains: ['internal.api.com']`, requests to `internal.api.com` are blocked.",
@@ -2343,7 +2343,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure isDomainDenied (exact+subdomain) + networkDecision (deny-wins) + sandbox deniedDomains setting + resolveNetworkAccess decision site. Note: the OS sandbox is coarse net on/off; this is the per-host policy + persisted setting + decision fn — enforcing per-domain deny at runtime needs a proxy (bounded follow-up)."
     },
     {
       "id": "VANTA-ULTRACODE-TRIGGER",

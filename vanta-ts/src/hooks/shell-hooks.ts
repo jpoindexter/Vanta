@@ -69,6 +69,11 @@ const ShellHookSchema = z.object({
   type: z.enum(["shell", "command", "http", "mcp_tool", "prompt", "agent"]).optional(),
   /** Shell command to run. The JSON context is piped to stdin. */
   command: z.string().optional(),
+  /** Argv for a command/shell hook spawned DIRECTLY via execFile (no shell):
+   *  args[0] is the file, the rest are arguments. Takes precedence over
+   *  `command` and avoids shell interpretation/injection. The JSON context is
+   *  still piped to the child's stdin. Example: `"args": ["jq", ".tool"]`. */
+  args: z.array(z.string()).optional(),
   /** HTTP endpoint for type:http. Vanta POSTs the hook context as JSON. */
   url: z.string().url().optional(),
   /** Static HTTP headers for type:http; `$NAME`/`${NAME}` values expand only from allowedEnvVars. */
@@ -100,6 +105,8 @@ const ShellHookSchema = z.object({
     if (type === "mcp_tool") return !!(h.server?.trim() && h.tool?.trim());
     if (type === "http") return !!h.url?.trim();
     if (type === "prompt" || type === "agent") return !!h.prompt?.trim();
+    // command/shell: an exec-form argv (non-empty, non-blank file) OR a shell command.
+    if (h.args !== undefined) return !!h.args[0]?.trim();
     return !!h.command?.trim();
   },
   { message: "hook config is missing required fields for its type" },
@@ -192,4 +199,4 @@ export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, c
 }
 
 export type { ShellHookResult } from "./shell-hook-run.js";
-export { runShellHook, runOneHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";
+export { runShellHook, runExecHook, runOneHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";

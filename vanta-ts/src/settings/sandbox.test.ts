@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   sandboxState, toggle, toConfig, withSandbox, sandboxEnv,
-  cycleOverride, resolveToolSandbox, sandboxDoctor,
+  cycleOverride, resolveToolSandbox, sandboxDoctor, resolveNetworkAccess,
 } from "./sandbox.js";
 import type { Settings } from "./store.js";
 
@@ -10,7 +10,7 @@ const empty: NodeJS.ProcessEnv = {};
 describe("sandboxState — effective config from settings + env", () => {
   it("defaults to all-off with no settings and no env", () => {
     const s = sandboxState({}, empty);
-    expect(s).toEqual({ enabled: false, shellOnly: false, allowNetwork: false, dependencies: [], overrides: [] });
+    expect(s).toEqual({ enabled: false, shellOnly: false, allowNetwork: false, deniedDomains: [], dependencies: [], overrides: [] });
   });
 
   it("reads persisted settings when env is unset", () => {
@@ -19,6 +19,12 @@ describe("sandboxState — effective config from settings + env", () => {
     expect(s.enabled).toBe(true);
     expect(s.allowNetwork).toBe(true);
     expect(s.dependencies).toEqual(["ripgrep"]);
+  });
+
+  it("reads persisted deniedDomains (defaults to empty)", () => {
+    expect(sandboxState({}, empty).deniedDomains).toEqual([]);
+    const s = sandboxState({ sandbox: { deniedDomains: ["evil.com"] } }, empty);
+    expect(s.deniedDomains).toEqual(["evil.com"]);
   });
 
   it("env overrides persisted settings (env is runtime truth)", () => {
@@ -50,6 +56,11 @@ describe("toggle / persistence helpers", () => {
     expect(merged.sandbox?.shellOnly).toBe(true);
   });
 
+  it("toConfig persists deniedDomains", () => {
+    const s = { ...sandboxState({}, empty), deniedDomains: ["evil.com"] };
+    expect(toConfig(s).deniedDomains).toEqual(["evil.com"]);
+  });
+
   it("sandboxEnv emits only the enabled flags", () => {
     expect(sandboxEnv(sandboxState({}, empty))).toEqual({});
     const all = sandboxState({}, { VANTA_SANDBOX: "1", VANTA_SHELL_SANDBOX: "1", VANTA_SANDBOX_NET: "1" });
@@ -75,6 +86,22 @@ describe("cycleOverride + resolveToolSandbox", () => {
     const off = { ...sandboxState({}, empty), enabled: false, overrides: [{ tool: "run_code", rule: "enforce" as const }] };
     expect(resolveToolSandbox(off, "run_code")).toBe(true); // enforce beats disabled
     expect(resolveToolSandbox(off, "git")).toBe(false);
+  });
+});
+
+describe("resolveNetworkAccess — deniedDomains wins over allowNetwork", () => {
+  it("denies a denied domain even when the network is allowed", () => {
+    const s = { ...sandboxState({}, empty), allowNetwork: true, deniedDomains: ["evil.com"] };
+    expect(resolveNetworkAccess(s, "evil.com")).toBe("deny");
+    expect(resolveNetworkAccess(s, "api.evil.com")).toBe("deny"); // subdomain
+    expect(resolveNetworkAccess(s, "good.com")).toBe("allow");
+  });
+
+  it("empty deny list = current allow/deny behavior", () => {
+    const allowed = { ...sandboxState({}, empty), allowNetwork: true, deniedDomains: [] };
+    expect(resolveNetworkAccess(allowed, "good.com")).toBe("allow");
+    const isolated = { ...sandboxState({}, empty), allowNetwork: false, deniedDomains: [] };
+    expect(resolveNetworkAccess(isolated, "good.com")).toBe("deny");
   });
 });
 
