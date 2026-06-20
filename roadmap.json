@@ -3323,7 +3323,7 @@
       "id": "VANTA-EXAMPLE-COMMANDS",
       "track": "Operator",
       "title": "Smart first-run example commands — git-history-aware prompt suggestions on empty input",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "On first launch or empty-state input, another agent generates contextual example commands by sampling from git history (recent commit messages, changed files) filtered through a pattern list that removes lock files, build artifacts, generated files, and config. Examples like 'Explain the changes in <recent-file>.ts' are shown as tappable suggestions instead of generic placeholder text.",
       "done": "Empty input shows 3-4 smart example commands drawn from the current repo's git history. They update per-project, not per-install.",
@@ -3332,7 +3332,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable buildExampleCommands (changed file -> Review/Write tests (source only); commit subject -> Continue: <subject>; >=1 evergreen reserved; dedupe + cap 4) + genericExampleCommands (no-signal safe read-only fallback) + gatherGitSignals (injected runner, parses diff --name-only HEAD~3 + log --oneline -5, failure -> empty) + sanitizeSignal (control-strip so a hostile filename/subject cant inject escapes) + formatExamples (Try: block). Never suggests destructive verbs. Built+tested; banner/empty-input wire named (mirrors project-onboarding)."
     },
     {
       "id": "VANTA-AUTO-ISSUE",
