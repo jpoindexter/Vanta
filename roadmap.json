@@ -12719,7 +12719,7 @@
       "id": "GATEWAY-SESSION-MANAGER",
       "track": "Harness",
       "title": "Gateway session manager — interrupt / steer / queue inbound messages (from Hermes)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Hermes gap: when a new inbound message arrives while the agent is mid-turn, decide interrupt / steer / queue. Add a session manager to the gateway: default = queue; /interrupt aborts the current turn; /steer injects guidance mid-run. Mirrors the TUI's Esc-abort but for messaging (Telegram/etc.). Per-session (gateway+sessionId) concurrency control.",
       "done": "gateway routes a concurrent inbound message to interrupt/steer/queue per command (default queue); pure decision logic tested; wired into gateway/run.ts pollPlatform; committed.",
