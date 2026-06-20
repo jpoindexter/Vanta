@@ -1,5 +1,9 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { runDueTasks } from "../schedule/runner.js";
+import {
+  runDueTasksTracked,
+  loadLastFired,
+  saveLastFired,
+} from "../schedule/runner.js";
 import { isDue, loadCron } from "../schedule/cron.js";
 import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
@@ -96,12 +100,17 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   for (const _entry of factoryEntries) {
     spawnFactoryChild(deps.dataDir, log);
   }
-  const results = await runDueTasks({
+  // At-most-once: overlapping gateway ticks within the same minute fire each
+  // due task once; the next minute is a new window and fires.
+  const lastFired = await loadLastFired(deps.dataDir);
+  const { results, lastFired: updatedFired } = await runDueTasksTracked({
     dataDir: deps.dataDir,
     now,
     run: deps.run,
     load: async () => regularEntries,
+    lastFired,
   });
+  await saveLastFired(deps.dataDir, updatedFired);
   for (const r of results) log(`  ↳ #${r.id} ${firstLine(r.result)}`);
   const loopsFired = await tickLoops({
     dataDir: deps.dataDir,

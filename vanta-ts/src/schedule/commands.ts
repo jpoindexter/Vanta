@@ -1,5 +1,9 @@
 import { addCron, loadCron } from "./cron.js";
-import { runDueTasks } from "./runner.js";
+import {
+  runDueTasksTracked,
+  loadLastFired,
+  saveLastFired,
+} from "./runner.js";
 import type { RunTask } from "./runner.js";
 
 /**
@@ -65,7 +69,17 @@ export async function runCron(
   now: Date,
   run: RunTask,
 ): Promise<void> {
-  const results = await runDueTasks({ dataDir, now, run });
+  // At-most-once: a re-invocation within the same minute (overlapping OS
+  // scheduler ticks) skips a task already fired this window; the next minute
+  // is a new window and fires.
+  const lastFired = await loadLastFired(dataDir);
+  const { results, lastFired: updated } = await runDueTasksTracked({
+    dataDir,
+    now,
+    run,
+    lastFired,
+  });
+  await saveLastFired(dataDir, updated);
   if (results.length === 0) {
     console.log("vanta cron: no tasks due");
     return;

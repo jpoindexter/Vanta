@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { runDueTasks, type RunTask } from "./runner.js";
+import { runDueTasks, runDueTasksTracked, type RunTask } from "./runner.js";
 import type { CronEntry } from "./cron.js";
+import { fireWindowKey } from "./at-most-once.js";
 
 // runner.ts owns the status filter, the due filter, and error isolation —
 // loadCron (and the cron.tsv format) is owned by the concurrently-built
@@ -104,5 +105,115 @@ describe("runDueTasks", () => {
     await runDueTasks({ dataDir: DATA_DIR, now, run, load: loaderFor([entry({ id: 9, cron: ALWAYS })]) });
 
     expect(seen).toEqual(["cron:* * * * * cron:9"]);
+  });
+});
+
+describe("runDueTasks at-most-once dedup", () => {
+  // Counts every actual run so a re-fire is observable.
+  function countingRun(): { run: RunTask; ran: number[] } {
+    const ran: number[] = [];
+    const run: RunTask = async (instruction) => {
+      ran.push(1);
+      return { finalText: `ran: ${instruction}` };
+    };
+    return { run, ran };
+  }
+
+  const due = loaderFor([
+    entry({ id: 1, instruction: "a", cron: ALWAYS }),
+    entry({ id: 2, instruction: "b", cron: ALWAYS }),
+  ]);
+
+  it("without lastFired, every due task fires once per call (behavior unchanged)", async () => {
+    const { run, ran } = countingRun();
+    const first = await runDueTasks({ dataDir: DATA_DIR, now, run, load: due });
+    const second = await runDueTasks({ dataDir: DATA_DIR, now, run, load: due });
+    // Two ticks in the same minute, NO dedup map → both ticks fire both tasks.
+    expect(first.map((r) => r.id)).toEqual([1, 2]);
+    expect(second.map((r) => r.id)).toEqual([1, 2]);
+    expect(ran.length).toBe(4);
+  });
+
+  it("a single tick per window still fires each due task exactly once", async () => {
+    const { run, ran } = countingRun();
+    const { results, lastFired } = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: due,
+      lastFired: {},
+    });
+    expect(results.map((r) => r.id)).toEqual([1, 2]);
+    expect(ran.length).toBe(2);
+    expect(lastFired).toEqual({ "1": fireWindowKey(now), "2": fireWindowKey(now) });
+  });
+
+  it("an overlapping tick within the same window does NOT re-fire", async () => {
+    const { run, ran } = countingRun();
+    const first = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: due,
+      lastFired: {},
+    });
+    // Same `now` (same minute) → all tasks already recorded → no re-fire.
+    const second = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: due,
+      lastFired: first.lastFired,
+    });
+    expect(first.results.map((r) => r.id)).toEqual([1, 2]);
+    expect(second.results).toEqual([]);
+    expect(ran.length).toBe(2);
+  });
+
+  it("a genuinely-new window fires again", async () => {
+    const { run, ran } = countingRun();
+    const first = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: due,
+      lastFired: {},
+    });
+    const nextMinute = new Date(now.getTime() + 60_000);
+    const second = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now: nextMinute,
+      run,
+      load: due,
+      lastFired: first.lastFired,
+    });
+    expect(second.results.map((r) => r.id)).toEqual([1, 2]);
+    expect(ran.length).toBe(4);
+    expect(second.lastFired).toEqual({
+      "1": fireWindowKey(nextMinute),
+      "2": fireWindowKey(nextMinute),
+    });
+  });
+
+  it("a newly-added task fires even if another already fired this window", async () => {
+    const { run, ran } = countingRun();
+    const first = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: loaderFor([entry({ id: 1, instruction: "a", cron: ALWAYS })]),
+      lastFired: {},
+    });
+    // Task 2 is new this window — task 1 already fired, task 2 still fires.
+    const second = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run,
+      load: due,
+      lastFired: first.lastFired,
+    });
+    expect(first.results.map((r) => r.id)).toEqual([1]);
+    expect(second.results.map((r) => r.id)).toEqual([2]);
+    expect(ran.length).toBe(2);
   });
 });
