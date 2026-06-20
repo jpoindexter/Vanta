@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MonitorSchema } from "./monitors.js";
 
 const PluginName = /^[a-z][a-z0-9_-]{0,63}$/;
 
@@ -10,6 +11,7 @@ export const PluginManifestSchema = z.object({
   tools: z.array(z.string()).optional(),
   commands: z.array(z.string()).optional(),
   requiresEnv: z.array(z.string()).optional(),
+  monitors: z.array(MonitorSchema).optional(),
 }).strict();
 
 export type PluginManifest = z.infer<typeof PluginManifestSchema>;

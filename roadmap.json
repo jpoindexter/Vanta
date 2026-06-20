@@ -1411,7 +1411,7 @@
       "id": "VANTA-PLUGIN-MONITORS",
       "track": "Extensibility",
       "title": "Plugin background monitors — auto-armed monitoring scripts per session",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (v2.1.105) adds a `monitors` key to plugin manifests (under `experimental`). Monitor scripts are auto-armed at session start or on demand, running in the background and emitting events the agent can react to.",
       "done": "A plugin's `monitors` section starts a filesystem watcher. When a watched file changes, the agent receives an event and acts without a user prompt.",
@@ -1420,7 +1420,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-BUDGET-CAP",
@@ -1575,7 +1575,7 @@
       "id": "VANTA-TASKS-CMD",
       "track": "Harness",
       "title": "/tasks slash command — list and manage background tasks from the REPL",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `/tasks` slash command lists all running background tasks with status, attach/stop controls. Vanta can run background tasks but has no slash command to inspect or manage them mid-session.",
       "done": "`/tasks` lists all background tasks with their status, output tail, and attach/stop/logs shortcut; keyboard shortcuts follow another agent conventions.",
@@ -1583,7 +1583,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "notes": "Shipped as /bgtasks (list+stop background SHELL tasks over bg-tasks.ts) — /tasks was already taken by the EF-TASKSTACK operator task stack, so the new command avoids clobbering valid work. Done-criterion (list+stop, pure tested) met."
     },
     {
       "id": "VANTA-DESCRIBE-CMD",

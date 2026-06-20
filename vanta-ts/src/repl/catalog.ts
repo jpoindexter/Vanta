@@ -85,6 +85,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "open", arg: "<file[:line]>", desc: "open a file:line in your editor ($VANTA_EDITOR/code)" },
   { name: "edit", desc: "edit the last AI response in your editor ($VANTA_EDITOR/code)" },
   { name: "tasks", arg: "[add|close|block|park|reopen|next]", desc: "operator task stack — /tasks next for the best move" },
+  { name: "bgtasks", arg: "[stop <id>]", desc: "background shell tasks — list status, stop one by id" },
   { name: "wftasks", desc: "workflow run task list — compose_workflow runs + their running/done/failed status" },
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
   { name: "describe", arg: "<path>", desc: "generate a short LLM description of a file or directory" },
