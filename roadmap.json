@@ -981,7 +981,7 @@
       "id": "VANTA-BASH-IMAGE-OUTPUT",
       "track": "Operator",
       "title": "Bash image output — base64 data URI in stdout renders as inline image",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent detects when bash stdout contains a base64-encoded `data:image/...;base64,...` URI and renders it as an inline image in the terminal output, rather than printing the raw base64 string. Enables commands like screenshot tools, image-generating scripts, etc. to show their output visually.",
       "done": "A bash command whose stdout is a data URI image renders the image inline in terminal output.",
@@ -990,7 +990,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PERMISSION-EXPLAINER",
@@ -9819,7 +9819,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-11"
+      "updated": "2026-06-20",
+      "notes": "Core classifier+routing built, tested, committed (repl/decision-classifier.ts). Remaining: wire classifyDecision into agent dispatchTool before requestApproval (route user-challenge→ask, mechanical→auto-silent, taste→final-gate). Card stays next until routing is active in the loop."
     },
     {
       "id": "OPERATOR-PROFILE",
@@ -12993,13 +12994,14 @@
       "id": "FABRO-INTERVIEW-NODE",
       "track": "Operator",
       "title": "Structured interview input — schema-validated HITL beyond free-text clarify",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] From fabro: 'interview steps' collect structured human input as a first-class node. Vanta's clarify tool asks free-text questions end-of-turn. Enrich clarify (or add a sibling tool) to request schema-validated structured input — typed fields and explicit choices the agent can rely on — validated with zod before returning to the loop. Pairs with FABRO-WORKFLOW-GRAPH's interview node. Operator/EF: better, less-ambiguous HITL input than free text.",
       "done": "clarify (or a new interview tool) can request structured, schema-validated input (fields/choices), validates the response with zod at the boundary, returns typed values to the loop, and degrades to free-text when no schema is given; co-located tests; tsc clean; committed.",
       "tier": "pebble",
       "effort": "low",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20"
     },
     {
       "id": "WORKFLOW-RECOVER-TRIAGE",
