@@ -2198,7 +2198,7 @@
       "id": "VANTA-SHADOWED-RULE-DETECT",
       "track": "Harness",
       "title": "Shadowed permission rule detection — warn about unreachable allow/deny rules",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `detectUnreachableRules()` analyzes the permission rule set and identifies rules that will never match because a broader rule with the same tool already shadows them. Surfaced as a `ContextWarning` in `/doctor`. Prevents confusion where users add rules that silently have no effect because an existing `Allow Bash(*)` already covers them.",
       "done": "`/doctor` reports 'Rule Allow Bash(ls) is unreachable — shadowed by Allow Bash(*)'. Helps users maintain a clean permission set.",
@@ -2207,7 +2207,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "findShadowedRules (author-intent lint: a later narrower rule whose target space an earlier broader rule fully covers, + exact dups) + buildShadowWarning; wired into /permissions list (silent when clean). Note: live resolver is specificity-based not pure declaration-order — detector flags intent-shadowing robustly regardless."
     },
     {
       "id": "VANTA-TOOL-SEARCH-AUTO",

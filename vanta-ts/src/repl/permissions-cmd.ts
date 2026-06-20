@@ -1,6 +1,7 @@
 import type { SlashHandler } from "./types.js";
 import type { PermAction, PermRule } from "../permissions/rules.js";
 import { loadRules, addRule, removeRule } from "../permissions/store.js";
+import { findShadowedRules, buildShadowWarning } from "../permissions/shadow-detect.js";
 
 const HELP_TEXT =
   "  /permissions [allow|ask|deny <tool> [pattern] | remove <n>]\n" +
@@ -30,7 +31,10 @@ async function listRules(env: NodeJS.ProcessEnv): Promise<string> {
   if (rules.length === 0) {
     return "  no permission rules — use /permissions allow|ask|deny <tool> [pattern]";
   }
-  return ["  permission rules (most specific wins):", ...rules.map(formatRule)].join("\n");
+  const lines = ["  permission rules (most specific wins):", ...rules.map(formatRule)];
+  const warning = buildShadowWarning(findShadowedRules(rules));
+  if (warning) lines.push("", warning);
+  return lines.join("\n");
 }
 
 async function addFromArgs(action: PermAction, rest: string[], env: NodeJS.ProcessEnv): Promise<string> {
