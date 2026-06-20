@@ -6,7 +6,8 @@
 `lifecycle.ts` owns startup lifecycle flags: `--init`, `--init-only`, and `--maintenance`.
 `output-callbacks.ts` owns output-format callback wiring for `vanta run`.
 `memory-cmd.ts`/`skills-cmd.ts`/`hooks-cmd.ts` hold the `vanta memory`/`skills`+`skill`/`hooks` handlers.
-`fleet-cmd.ts` owns `vanta fleet run/status/review/accept` and delegates orchestration to `src/fleet/`.
+`fleet-cmd.ts` owns `vanta fleet run/status/review/accept` and delegates orchestration to `src/fleet/`; it exports `buildFleetAgentDeps` for reuse.
+`batch-cmd.ts` owns `vanta batch run` (the PR-over-fleet workflow) and delegates pure logic to `src/batch/batch.ts`; reuses `buildFleetAgentDeps`.
 `auto-research-cmd.ts` owns `vanta auto-research --objective --metric --bounds` and delegates the loop to `src/auto-research/`.
 `meta-tune-cmd.ts` owns `vanta meta-tune instructions [--iters N] [--adopt]` and delegates tuning to `src/meta-tune/`.
 `extra-cmds.ts`+`extra-cmds-2.ts` hold smaller command handlers (plugins/taste/models/acp/proxy; ref/settings/brief).
