@@ -3371,7 +3371,7 @@
       "id": "VANTA-SHELL-JSON-FORMAT",
       "track": "Operator",
       "title": "Shell output JSON auto-format — pretty-print JSON lines in bash output",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's shell output renderer (`OutputLine`) attempts to parse each output line as JSON and re-serializes it for readability when successful. Checks for precision loss on large integers before substituting. Turns compact JSON API responses in bash output into human-readable formatted output without user action. [MODULE BUILT — formatJsonInOutput shipped + tested (term/json-format.ts); wiring deferred: Vanta summarizes tool output rather than showing raw lines, so there is no high-value display surface yet — needs a raw-output/expand view first.]",
       "done": "A bash command that outputs `{\"status\":\"ok\",\"count\":42}` renders as nicely formatted JSON in the transcript instead of raw string.",
@@ -3380,7 +3380,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-14"
+      "updated": "2026-06-20",
+      "notes": "NOW LIVE (opt-in): the previously built-not-wired term/json-format formatJsonInOutput (pretty-prints whole-output or per-line JSON objects/arrays, bounded 20k, non-JSON unchanged, never throws) is wired into shell-cmd combineOutput gated by VANTA_JSON_FORMAT=1. Default off = byte-identical join (existing shell-cmd tests unchanged). Closes the long-standing built-not-wired item."
     },
     {
       "id": "VANTA-TERMINAL-HYPERLINKS",

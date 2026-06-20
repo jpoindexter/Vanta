@@ -13,6 +13,7 @@ import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
 import { shouldShowTiming, buildTimingNote } from "./shell-timing.js";
+import { formatJsonInOutput } from "../term/json-format.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 
@@ -27,7 +28,10 @@ function combineOutput(stdout: string | undefined, stderr: string | undefined): 
   const { hints, stripped } = parseVantaHints(stderr ?? "");
   const joined = [stdout, stripped].filter(Boolean).join("\n").trim();
   const out = hints.length === 0 ? joined : appendSuggestion(joined, hints);
-  return limitOutput(out, resolveMaxOutput(process.env));
+  // VANTA-SHELL-JSON-FORMAT: opt-in pretty-print of JSON lines (bounded, never throws,
+  // non-JSON unchanged). Default off = byte-identical join.
+  const shaped = process.env.VANTA_JSON_FORMAT === "1" ? formatJsonInOutput(out) : out;
+  return limitOutput(shaped, resolveMaxOutput(process.env));
 }
 
 /** Append a plugin-install suggestion line (kept separate so combineOutput stays small). */
