@@ -30,9 +30,11 @@ describe("resolveWritableZones", () => {
     expect(zones).toContain(join(homedir(), "Downloads"));
   });
 
-  it("VANTA_WRITABLE_DIRS replaces the defaults", () => {
+  it("VANTA_WRITABLE_DIRS replaces the defaults (scratchpad always appended)", () => {
     const zones = resolveWritableZones({ VANTA_WRITABLE_DIRS: "~/work, /tmp/out" } as NodeJS.ProcessEnv);
-    expect(zones).toEqual([join(homedir(), "work"), "/tmp/out"]);
+    // The configured dirs replace ~/Desktop/~/Downloads; the agent scratchpad
+    // (a designated temp zone) is always present regardless of the override.
+    expect(zones).toEqual([join(homedir(), "work"), "/tmp/out", join(homedir(), ".vanta", "scratch")]);
   });
 });
 
