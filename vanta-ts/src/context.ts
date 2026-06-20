@@ -1,6 +1,7 @@
 import type { Message } from "./types.js";
 import { compactionReminder } from "./repl/compaction-remind.js";
 import { protectHeadTail, shouldCompact, passSavings } from "./context/compaction-boundary.js";
+import { summarizePrunedTools, buildPruneSummaryNote } from "./context/prune-summary.js";
 import { compactHistory } from "winnow";
 
 export { shouldCompact, passSavings } from "./context/compaction-boundary.js";
@@ -77,12 +78,17 @@ export function trimMessages(
   // A leading tool result with no preceding assistant tool_call breaks the API.
   while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1);
 
-  const dropped = rest.length - head.length - tail.length;
+  const droppedMessages = rest.slice(head.length, rest.length - tail.length);
   const notice: Message = {
     role: "user",
-    content: `[${dropped} earlier message(s) trimmed to fit context. Setup and recent results preserved.]`,
+    content: `[${droppedMessages.length} earlier message(s) trimmed to fit context. Setup and recent results preserved.]`,
   };
-  return [...system, ...head, notice, ...tail];
+  // HARNESS-PRUNE-SUMMARY: leave a per-tool placeholder for the dropped tool
+  // results instead of erasing them silently. Empty (no tool results dropped) →
+  // null → no extra note, so non-tool trims are unchanged.
+  const pruneNote = buildPruneSummaryNote(summarizePrunedTools(droppedMessages));
+  const pruneNotice: Message[] = pruneNote ? [{ role: "user" as const, content: pruneNote }] : [];
+  return [...system, ...head, notice, ...pruneNotice, ...tail];
 }
 
 export type Summarizer = (messages: Message[]) => Promise<string>;

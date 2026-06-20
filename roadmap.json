@@ -14036,7 +14036,7 @@
       "id": "HARNESS-PRUNE-SUMMARY",
       "track": "Harness",
       "title": "Informative per-tool prune summaries",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Pruned tool outputs become generic '[truncated: N chars]', losing signal. Add summarizeToolResult(name,args,content) producing typed one-liners that keep the signal: '[terminal] ran npm test -> exit 0, 47 lines', '[search] 12 matches for X', '[read] config.ts from line 1 (1,200 chars)'.",
       "done": "Compacted history shows tool-aware one-liners preserving exit codes/match counts instead of char-truncation; per-tool extractors with a generic fallback, unit-tested.",
