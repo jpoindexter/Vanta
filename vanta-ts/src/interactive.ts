@@ -107,7 +107,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const userCommands = await loadUserCommands(process.env);
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
   const capHaltedRef = { current: false };
-  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() }, capHaltedRef };
+  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, contextUpgradeNotedRef: { current: false }, gatesRef: { current: freshGateState() }, capHaltedRef };
   // VANTA-STOP-CMD: clear any stale soft-stop signal at the start of each turn so
   // `/stop` only affects the turn it was issued during.
   const runUserTurn = (text: string) => { consumeSoftStop(SOFT_STOP); return executeUserTurn(text, turnDeps); };

@@ -10,6 +10,7 @@ import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/
 import { buildModeHint } from "./repl/mode-detect.js";
 import { maybeAugmentPrompt } from "./templates/templates.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
+import { shouldSuggestContextUpgrade, buildContextUpgradeNote } from "./repl/context-upgrade.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
   writeRunMemory,
@@ -47,6 +48,9 @@ export type TurnDeps = {
   workingMemory: SessionWorkingMemory;
   agentDeps?: AgentDeps;
   autoHandoffNotedRef: { current: boolean };
+  /** VANTA-CONTEXT-UPGRADE: one-time guard so the extended-context suggestion
+   * surfaces at most once per session (mirrors autoHandoffNotedRef). */
+  contextUpgradeNotedRef?: { current: boolean };
   gatesRef: { current: GateState };
   /** VANTA-BUDGET-CAP: set true once accumulated spend reaches --max-budget-usd,
    * so the REPL loop stops the session cleanly after the current turn. */
@@ -129,6 +133,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
     maybeHaltOnBudgetCap(deps);
   }
   await handleAutoHandoff(outcome, deps);
+  maybeSuggestContextUpgrade(outcome, deps);
   await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
   await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: text, finalText: outcome.finalText, now: turnStart, sessionId: state.sessionId, turnIndex: state.turnIndex });
   await suggestSkillFromRun(text, process.env);
@@ -187,6 +192,26 @@ async function handleAutoHandoff(
     console.log(`\n  ↻ context filling up — saved a resume block to ${ah.path} (auto-reloads next launch)`);
     autoHandoffNotedRef.current = true;
   }
+}
+
+/**
+ * VANTA-CONTEXT-UPGRADE: when context usage nears the active model's window AND
+ * the model isn't already an extended-context variant, surface a one-line
+ * non-blocking suggestion to switch to a 1M-context model — at most once per
+ * session. Below the threshold = no output (pure check, no behavior change).
+ */
+function maybeSuggestContextUpgrade(
+  outcome: Awaited<ReturnType<ConvoRef["send"]>>,
+  deps: TurnDeps,
+): void {
+  if (deps.contextUpgradeNotedRef?.current) return;
+  const { convo, setup } = deps;
+  const used = outcome.usage?.inputTokens
+    ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4);
+  const modelId = setup.provider.modelId();
+  if (!shouldSuggestContextUpgrade(used, setup.provider.contextWindow(), modelId, process.env)) return;
+  console.log(`\n  ${buildContextUpgradeNote(modelId)}`);
+  if (deps.contextUpgradeNotedRef) deps.contextUpgradeNotedRef.current = true;
 }
 
 /**

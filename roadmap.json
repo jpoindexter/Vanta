@@ -1696,7 +1696,7 @@
       "id": "VANTA-CONTEXT-UPGRADE",
       "track": "Harness",
       "title": "1M context upgrade prompt — suggest extended-context model when approaching limit",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When approaching the context window limit and the user has access to a 1M-context model variant (Opus 1M, Sonnet 1M), another agent surfaces a tip or warning suggesting the upgrade with a 5× multiplier message. Context window check gated on the vendor cloud subscription access.",
       "done": "Warning shows when context is near limit and 1M variant available; tip suggests upgrade proactively; message distinguishes warning vs tip contexts; hidden when already on 1M model.",
@@ -1705,7 +1705,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-KEYCHAIN-STORAGE",
@@ -1726,7 +1726,7 @@
       "id": "VANTA-DANGEROUS-PATTERNS",
       "track": "Harness",
       "title": "Dangerous bash patterns — strip interpreter allow-rules at auto-mode entry",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A curated list of code-execution interpreters (python, node, deno, tsx, ruby, perl, php, lua, npx, bunx, bash, etc.) that are stripped from allow-rules when entering auto-mode. Prevents `Bash(python:*)` rules from bypassing the classifier. Cross-platform list shared between Bash and PowerShell checks.",
       "done": "Entering auto-mode strips interpreter-wildcard allow-rules; non-interpreter rules are preserved; a stripped-rules notification is shown; the list covers all common code-exec entry points.",
@@ -1735,7 +1735,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HISTORY-PASTE-STORE",

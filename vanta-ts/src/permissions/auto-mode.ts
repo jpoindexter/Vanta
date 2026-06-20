@@ -1,5 +1,6 @@
 import type { Settings } from "../settings/store.js";
 import { resolvePermissionMode } from "../modes/permission-mode.js";
+import { isDangerousInterpreter, stripDangerousAllowRules } from "./dangerous-patterns.js";
 
 export type AutoModeRuleAction = "allow" | "ask" | "soft_deny";
 
@@ -62,7 +63,10 @@ function bestRule(rules: AutoModeRule[], toolName: string, descriptor: string): 
 }
 
 export function resolveAutoModeConfig(settings: Pick<Settings, "autoMode">): AutoModeConfig {
-  const custom = settings.autoMode?.rules ?? [];
+  // Strip any user allow-rule that would auto-approve a dangerous interpreter
+  // (bash -c / python -c / node -e / eval / pipe-to-shell, …) at auto-mode entry,
+  // so auto-mode can never silently auto-approve arbitrary code execution.
+  const custom = stripDangerousAllowRules(settings.autoMode?.rules ?? []);
   return {
     softDeny: settings.autoMode?.softDeny ?? DEFAULT_AUTO_MODE_CONFIG.softDeny,
     rules: [...custom, ...DEFAULT_AUTO_MODE_CONFIG.rules],
@@ -85,11 +89,19 @@ export function classifyAutoModeAction(args: {
 }): AutoModeDecision {
   if (args.kernelRisk === "block") return { decision: "block", reason: "kernel block is immovable" };
   const rule = bestRule(args.config.rules, args.toolName, args.descriptor);
+  // Backstop: even if a surviving allow-rule matches, never auto-approve a command
+  // that is itself a dangerous interpreter invocation — gate it to ASK.
+  if (rule?.action === "allow" && isDangerousInterpreter(args.descriptor)) {
+    return { decision: "ask", reason: "auto-mode: dangerous interpreter not auto-approved" };
+  }
   if (!rule) return { decision: args.kernelRisk, reason: "auto-mode fallback: no classifier match" };
+  return decideFromRule(rule, args.config.softDeny);
+}
+
+function decideFromRule(rule: AutoModeRule, softDeny: boolean): AutoModeDecision {
   const label = rule.label ?? `${rule.tool ?? "any"} ${rule.pattern ?? ""}`.trim();
   if (rule.action === "soft_deny") {
-    const decision = args.config.softDeny ? "block" : "ask";
-    return { decision, reason: `auto-mode soft-deny: ${label}` };
+    return { decision: softDeny ? "block" : "ask", reason: `auto-mode soft-deny: ${label}` };
   }
   if (rule.action === "ask") return { decision: "ask", reason: `auto-mode ask: ${label}` };
   return { decision: "allow", reason: `auto-mode allow: ${label}` };
