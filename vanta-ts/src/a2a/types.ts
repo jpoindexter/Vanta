@@ -24,3 +24,13 @@ export type A2AMessage = {
 export type A2AHandler = (
   message: A2AMessage,
 ) => A2AMessage | null | Promise<A2AMessage | null>;
+
+/**
+ * The A2A transport PORT — delivers a message to its target agent and returns
+ * the reply. The in-process A2ABus is the default adapter; an HTTP / Google-A2A
+ * transport implements the same interface and drops in under callers that depend
+ * on this port, not on A2ABus directly. (ports/adapters, DECISIONS 2026-06-17.)
+ */
+export interface A2ATransport {
+  send(message: A2AMessage): Promise<A2AMessage | null>;
+}

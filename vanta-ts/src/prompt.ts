@@ -129,8 +129,8 @@ function volatileTier(
     : withMemory;
 }
 
-/** Build the three-tier system prompt: stable + context + volatile. */
-export async function buildSystemPrompt(opts: {
+/** What buildSystemPrompt reads to render the prompt. */
+export type BuildPromptOptions = {
   root: string;
   soulPath: string;
   goals: Goal[];
@@ -154,7 +154,52 @@ export async function buildSystemPrompt(opts: {
   program?: string;
   /** VANTA-TRUST-DIALOG: false → the project's context files are untrusted and not loaded. Default true. */
   loadContext?: boolean;
-}): Promise<string> {
+};
+
+/** What each prompt tier reads to render itself. */
+export type PromptTierContext = { opts: BuildPromptOptions; soul: string; tasksTier: string };
+
+/**
+ * One section of the system prompt. The tiers are an ORDERED REGISTRY
+ * ({@link PROMPT_TIERS}) so a tier can be added, replaced, or reordered without
+ * editing the assembly loop in buildSystemPrompt (ports/adapters, DECISIONS
+ * 2026-06-17). Empty strings are dropped, then joined with TIER_SEP.
+ */
+export type PromptTier = {
+  id: string;
+  render: (ctx: PromptTierContext) => string | Promise<string>;
+};
+
+/** The ordered prompt-tier registry. Add/reorder here, not in buildSystemPrompt. */
+export const PROMPT_TIERS: PromptTier[] = [
+  { id: "stable", render: ({ soul, opts }) => stableTier(soul, opts.root, opts.tools) },
+  {
+    id: "self",
+    render: ({ opts }) =>
+      opts.selfContent?.trim() ? `Self layer (identity + values + honesty guardrail):\n${opts.selfContent}` : "",
+  },
+  { id: "brain", render: ({ opts }) => brainTier(opts.brain) },
+  { id: "skills", render: ({ opts }) => skillsTier(opts.skills) },
+  { id: "context", render: ({ opts }) => (opts.loadContext === false ? "" : contextTier(opts.root)) },
+  { id: "errors", render: ({ opts }) => errorsLogTier(opts.errorsLog) },
+  { id: "program", render: ({ opts }) => programTier(opts.program) },
+  { id: "playbook", render: ({ opts }) => playbookTier(opts.playbook) },
+  { id: "tasks", render: ({ tasksTier }) => tasksTier },
+  {
+    id: "volatile",
+    render: ({ opts }) =>
+      volatileTier(opts.goals, opts.now, {
+        memory: opts.memory,
+        moimNote: opts.moimNote,
+        projectId: opts.projectId,
+        goalsPaused: opts.goalsPaused,
+        ralphContinuity: opts.ralphContinuity,
+      }),
+  },
+];
+
+/** Build the system prompt by rendering the ordered PROMPT_TIERS registry. */
+export async function buildSystemPrompt(opts: BuildPromptOptions): Promise<string> {
   const soul =
     (await readIfExists(opts.soulPath)) ??
     "# Vanta\n" +
@@ -165,19 +210,9 @@ export async function buildSystemPrompt(opts: {
       "chatbot, not a coding tool, and never a fabricator of progress I cannot prove.";
   const stack = await readStack(join(opts.root, ".vanta")).catch(() => ({ tasks: [] }));
   const tasksTier = taskStackSummary(stack) ? `Operator task stack:\n${taskStackSummary(stack)}` : "";
-  const tiers = [
-    stableTier(soul, opts.root, opts.tools),
-    opts.selfContent?.trim() ? `Self layer (identity + values + honesty guardrail):\n${opts.selfContent}` : "",
-    brainTier(opts.brain),
-    skillsTier(opts.skills),
-    opts.loadContext === false ? "" : await contextTier(opts.root),
-    errorsLogTier(opts.errorsLog),
-    programTier(opts.program),
-    playbookTier(opts.playbook),
-    tasksTier,
-    volatileTier(opts.goals, opts.now, { memory: opts.memory, moimNote: opts.moimNote, projectId: opts.projectId, goalsPaused: opts.goalsPaused, ralphContinuity: opts.ralphContinuity }),
-  ].filter(Boolean);
-  return tiers.join(TIER_SEP);
+  const ctx: PromptTierContext = { opts, soul, tasksTier };
+  const rendered = await Promise.all(PROMPT_TIERS.map((t) => t.render(ctx)));
+  return rendered.filter(Boolean).join(TIER_SEP);
 }
 
 /**
