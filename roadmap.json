@@ -2649,7 +2649,7 @@
       "id": "VANTA-SHELL-SNAPSHOT",
       "track": "Harness",
       "title": "Shell snapshot — capture aliases, functions, PATH for shell completions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Shell snapshot captures the user's current shell environment (PATH entries, aliases, functions) by running a probe script in the user's shell. The snapshot feeds the shell completion engine in the typeahead. Uses embedded ripgrep/bfs/ugrep via argv0 dispatch for completions.",
       "done": "Shell aliases defined in .bashrc/.zshrc appear in typeahead completions; PATH-based executables are suggested; snapshot updated when shell config changes.",
@@ -2658,7 +2658,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseAliases/parseFunctions(names only, bodies dropped)/parsePath + buildSnapshotCommand (marker-fenced alias/declare-f|functions/PATH; bash vs zsh/fish) + parseShellSnapshot + captureShellSnapshot (injected runShell, errors-as-values, never throws). READ-ONLY capture — captured aliases/functions never executed. Built+tested; consumer = a setup/prepareRun step runs it with a real execFile runner + persists ~/.vanta/shell-snapshot.json; the completion UI card reads it (named). Live shell = boundary."
     },
     {
       "id": "VANTA-BUILTIN-AGENTS",
