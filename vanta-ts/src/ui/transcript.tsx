@@ -1,7 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Markdown } from "./markdown.js";
-import { LinkedText } from "./linked-text.js";
+import { linkify } from "../term/linkify.js";
 import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
@@ -55,12 +55,14 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
   );
 }
 
-/** A committed note (system/EF nudge, tool tail) with clickable links per line. */
+/** A committed note (system/EF nudge, tool tail) with clickable links. `linkify`
+ * wraps URLs + file:line refs in OSC-8 (skipping fenced code), and degrades to
+ * plain text on terminals without hyperlink support. */
 function NoteView(props: { text: string }): ReactElement {
-  const lines = props.text.split("\n");
+  const lines = linkify(props.text).split("\n");
   return (
     <Box flexDirection="column" marginTop={1}>
-      {lines.map((l, i) => <LinkedText key={i} text={l} />)}
+      {lines.map((l, i) => <Text key={i}>{l}</Text>)}
     </Box>
   );
 }

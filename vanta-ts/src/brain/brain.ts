@@ -37,6 +37,16 @@ export type { BrainEntry };
 export { storeExemplar, recallExemplars, exemplarContext, formatExemplars } from "./exemplars.js";
 export type { StoreExemplarResult, RecalledExemplar } from "./exemplars.js";
 
+// Brain↔vault READ bridge — one recall across brain memories AND vault pages
+// (deduped by brain→vault provenance), plus vault→brain priming. Composed here
+// so the unified surface lives next to recall/remember. No-op without a vault.
+export {
+  unifiedRecall,
+  primeFromVaultPage,
+  resolveVaultReader,
+} from "./vault-recall.js";
+export type { UnifiedRecall, VaultHit, VaultReader } from "./vault-recall.js";
+
 const DIGEST_ENTRIES = 8;
 
 /**

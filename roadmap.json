@@ -12030,13 +12030,13 @@
       "id": "TUI-CLICKABLE-LINKS",
       "track": "Operator",
       "title": "TUI: clickable file paths + URLs (OSC 8 hyperlinks)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Right now file paths and URLs in the TUI can't be clicked. Emit OSC 8 hyperlinks for URLs and file:line references (open in editor/browser) so the operator can click instead of copy-paste. Degrade gracefully on terminals without OSC 8. See .",
       "done": "URLs and file:line refs in the TUI are clickable (OSC 8) and open the right target; plain text on unsupported terminals.",
       "tier": "pebble",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-06-20"
     },
     {
       "id": "TUI-KEYBOARD-SHORTCUTS",
@@ -12054,14 +12054,14 @@
       "id": "GOOGLE-AUTH-ONBOARDING",
       "track": "Operator",
       "title": "Frictionless Google/comms auth onboarding — client.json ingest, publish-state + 7-day-token handling",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Per-user Google comms setup is too heavy and has two footguns: (1) a Testing-status OAuth consent screen makes refresh tokens for restricted scopes (gmail.modify, drive) + sensitive (calendar) expire after 7 days, silently breaking ~/.vanta/google-tokens.json roughly weekly; (2) the current flow makes users copy-paste client_id/secret — a real leak vector (already leaked once into chat). Near-term fix (THIS card): make `vanta auth google` a guided wizard — accept Google's downloaded client_secret.json directly (`--client <path>`, no copy-paste), detect Testing-vs-Published status and warn about the 7-day expiry, and walk the user through Publish App + the unverified-app 'Advanced -> Continue' click-through. Makes BYO-app onboarding bearable + safe WITHOUT owning a verified app. Two documented scale paths, both decision-gated and NOT built here: (A) Theft Studio owns ONE verified Google app -> every user just clicks Authorize, zero console work (best UX) — but gmail.modify/drive are restricted scopes requiring an annual third-party CASA security assessment + makes Theft the data controller for users' mail; gate on a real 2nd comms user (-> DECISIONS). (B) MCP-delegation (the reference agent posture, see VANTA-MCP-AUTH): drop native Google, point at a Google MCP server — but Google does NOT support OAuth dynamic client registration, so MCP only RELOCATES the verification cost to whoever runs that server, it does not remove it; Vanta MCP tools stay kernel-gated so no thesis break. When verifying: switch Drive to drive.file (sensitive, no assessment) vs full drive (restricted). Impl site: vanta-ts/src/google/auth.ts (runGoogleAuth reads env-only today).",
       "done": "`vanta auth google --client <client_secret.json>` ingests Google's downloaded client JSON (no id/secret copy-paste); the flow detects Testing-vs-Published publishing status and warns that Testing-status refresh tokens expire in 7 days, then guides Publish App + the unverified-app click-through. Verified-app and MCP-delegation scale paths are captured in the summary as decision-gated (not built in this card).",
       "tier": "pebble",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-16"
+      "updated": "2026-06-20"
     },
     {
       "id": "BRAIN-VAULT-BRIDGE",
@@ -12079,13 +12079,13 @@
       "id": "BRAIN-VAULT-RECALL",
       "track": "Operator",
       "title": "Brain↔vault read-side bridge: unified recall + vault→brain priming",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Complete the bridge on the read side (write-side shipped in BRAIN-VAULT-BRIDGE). Today recall consulting both organs is prompt-level only — the agent uses brain recall + vault_search separately, by choice. Harden it: (1) a unified recall path that queries brain entries AND the vault in one call, merged + deduped by provenance (brain sourceRef:vault: pointers collapse to the vault page); (2) vault→brain priming — when Vanta reads a vault page that's about the user or a standing project, seed a brain salience/user_model entry so self-relevant knowledge flows back; (3) brain digest optionally surfaces a 'relevant vault pages' pointer line for the active goal. Keep core decoupled from the optional MCP vault (read the vault filesystem directly like vault-bridge.ts, or go through the MCP client when mounted). No-op without a vault.",
       "done": "A single recall surfaces relevant brain memories AND vault pages, deduped against brain→vault pointers; reading a user/project-relevant vault page primes a brain entry; degrades cleanly when no vault is configured. Unit-tested.",
       "tier": "pebble",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-06-20"
     },
     {
       "id": "TUI-THEME-OSC-DETECT",
