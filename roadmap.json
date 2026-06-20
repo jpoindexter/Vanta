@@ -2668,7 +2668,7 @@
       "id": "VANTA-BUILTIN-AGENTS",
       "track": "Harness",
       "title": "Built-in agent types — Explore, Plan, Verification, another agent Guide, General Purpose",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent ships 6 built-in agent definitions: Explore (read-only codebase search), Plan (planning with EnterPlanMode), Verification (test/verify changes), General Purpose, another agent Guide (meta-help), Statusline Setup. Disableable via CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS for SDK users. A/B gated.",
       "done": "6 built-in agent types selectable in /agents or @AgentType completions; env var disables all for SDK users; coordinator mode loads coordinator-specific agents instead.",
@@ -2677,7 +2677,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure BUILTIN_AGENTS registry (explore=read-only floor; plan=read+todo/clarify, deny delegate; verification=read+shell_cmd/regression_lock no broad writes; general-purpose=all) + resolveBuiltinAgent (unknown/empty -> general-purpose default) + agentToolFilter (allow/deny intersected with present names, never grants absent). Built+tested; wire = delegate runDelegate resolves agent_type + passes the complement as buildRegistry exclude + injects persona (named, kernel still gates)."
     },
     {
       "id": "VANTA-AGENT-MEMORY",
