@@ -2452,7 +2452,7 @@
       "id": "VANTA-PROACTIVE-ALIAS",
       "track": "Harness",
       "title": "`/proactive` alias for `/loop` — proactive autonomy mode discoverability",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.105) adds `/proactive` as an alias for `/loop`. Users who search for proactive mode by its conceptual name find it without knowing the `/loop` command name.",
       "done": "Running `/proactive` starts the same recurring autonomous loop as `/loop`.",
@@ -2461,7 +2461,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-ACCEPTEDITS-HUSKY",
