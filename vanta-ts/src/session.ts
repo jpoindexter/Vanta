@@ -14,6 +14,7 @@ import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
+import { preconnectStartup } from "./net/preconnect.js";
 import type { EffortLevel, Goal } from "./types.js";
 import {
   loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
@@ -44,17 +45,21 @@ export type RunSetup = {
 /** VANTA-TRUST-DIALOG: interactive hosts pass a confirmer to gate untrusted project/MCP. */
 export type PrepareRunOpts = { confirmTrust?: TrustConfirmer };
 
+/** Ensure the kernel is up and return a client to it. */
+async function bootstrapKernel(repoRoot: string): Promise<ReturnType<typeof createKernelClient>> {
+  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
+  const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
+  await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
+  return createKernelClient(baseUrl);
+}
+
 export async function prepareRun(
   repoRoot: string,
   instruction: string,
   skillBody?: string,
   opts: PrepareRunOpts = {},
 ): Promise<RunSetup> {
-  const baseUrl = process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788";
-  const kernelBin = join(repoRoot, "target", "debug", "vanta-kernel");
-  await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
-
-  const safety = createKernelClient(baseUrl);
+  const safety = await bootstrapKernel(repoRoot);
   // SETTINGS-BLOCKEDTOOLS-ENFORCE: load settings BEFORE buildRegistry so a tool
   // in settings.blockedTools is excluded from the live session registry. The
   // same settings object is reused by loadRuntimeExtensions (no second load).
@@ -64,6 +69,10 @@ export async function prepareRun(
   const { pluginCommands, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
+  // VANTA-API-PRECONNECT: opt-in (VANTA_PRECONNECT) best-effort TCP+TLS pre-warm
+  // to the provider's API host so the first request skips the handshake. Fire-
+  // and-forget — never awaited, swallows its own failure, cannot affect startup.
+  void preconnectStartup(process.env);
   const goals = await safety.getGoals().catch(() => []);
   const activeIds = goals.filter((g) => g.status === "active").map((g) => g.id);
 
