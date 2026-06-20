@@ -3483,7 +3483,7 @@
       "id": "VANTA-IDLE-RETURN",
       "track": "Operator",
       "title": "Idle return dialog — re-engagement prompt after session inactivity",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent shows an `IdleReturnDialog` when the user returns to an idle session. Distinct from the away summary (VANTA-AWAY-SUMMARY), which generates a recap text — the idle return dialog is an interactive prompt offering to resume, start fresh, or see what happened while away.",
       "done": "After 30+ min idle, returning to the terminal shows a dialog with 'Resume session', 'Start fresh', and 'Show what happened' options.",
@@ -3492,7 +3492,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure isIdleReturn (reuses away-summary isAway at 30min default / VANTA_IDLE_RETURN_MS, 0=disable) + buildIdleReturn ({idleMs,activeGoal?,inProgressItems?} -> ↩ Back after <dur> + numbered re-engagement options: Resume goal / Review N in-progress / always Start fresh; idle-but-nothing -> Start fresh only; under-threshold/disabled -> null; goal/item text control-stripped) + idleReturnEnabled (default on, VANTA_IDLE_RETURN=0). Complements away-summary (recap) with next-actions. Built+tested; next-submit wire alongside away-summary named."
     },
     {
       "id": "VANTA-SANDBOX-VIOLATION",
