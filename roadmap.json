@@ -4271,6 +4271,17 @@
       "updated": "2026-06-20"
     },
     {
+      "id": "HARNESS-TEST-FLAKE-WATCHER",
+      "track": "Harness",
+      "title": "Fix nondeterministic full-suite test flakes (watcher + Ink UI) + reconcile stale doc counts",
+      "status": "done",
+      "size": "M",
+      "summary": "Swept an entire flake class — 'fixed sleep/tick, then assert a positive async result' — that only failed under full-suite load; all root-caused, none patched with a longer timeout. (1) hooks/file-watch.test.ts: fs.watch (FSEvents) arms async with no readiness signal, so the trigger write could land pre-arm and the event was MISSED, not delayed — fix re-fires the trigger inside the poll loop. (2) Ink UI tests (mcp-panel/config-panel/sandbox-panel/trust-dialog/composer) asserted on a frame/spy after a fixed tick count — added waitForFrame/waitUntil poll helpers to test-render.tsx and converted them to wait on a view-unique marker (caught a real bug: an ambiguous wait-target present in two views). (3) Audited every setTimeout sleep in the suite and converted the genuine cases (ui/config-actions, ui/use-submit, uds/peers, agent/permission-gate, mcp/client) to poll-until-condition; left legitimate fixed delays (negative assertions, recovery polls, mock delays, timestamp-gap, interval tests). Also real-counted the source surface (ALL_TOOLS 105 / buildRegistry 108 / SLASH_COMMANDS 110) and reconciled the stale count anchors (root said 94/97/103, vanta-ts said 95/98/99).",
+      "done": "11 flaky test files converted to poll-until-condition (root-caused, not timeout bumps); test-render.tsx exposes waitForFrame/waitUntil and ui/CLAUDE.md documents the no-fixed-tick rule; 2 consecutive fully-green full-suite runs (606/606 files, 5077/5077 tests) from vanta-ts/; root + vanta-ts CLAUDE.md count anchors match the real ALL_TOOLS/buildRegistry/SLASH_COMMANDS exports; ERRORS.md logs every root cause + the run-from-vanta-ts trap.",
+      "lens": "coding",
+      "updated": "2026-06-20"
+    },
+    {
       "id": "VANTA-SWARM-TMUX",
       "track": "Harness",
       "title": "Tmux swarm backend — spawn agents in tmux panes with locking + color coding",

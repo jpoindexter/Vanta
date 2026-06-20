@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, tick, waitForFrame } from "./test-render.js";
 import { McpPanel } from "./mcp-panel.js";
 import type { McpServerView } from "./mcp-view.js";
 import type { ElicitationRequest } from "./elicitation-dialog.js";
@@ -8,9 +8,6 @@ import type { ElicitationRequest } from "./elicitation-dialog.js";
 const DOWN = "\x1b[B";
 const ENTER = "\r";
 const ESC = "\x1b";
-
-// A state-change repaint needs several flush cycles before lastFrame() reflects it.
-const ticks = async (n = 4): Promise<void> => { for (let i = 0; i < n; i++) await tick(); };
 
 const servers: McpServerView[] = [
   {
@@ -93,9 +90,7 @@ describe("McpPanel — drill into tools + detail", () => {
     const inst = renderUi(h(McpPanel, { servers, onReconnect: noop, onClose: noop }));
     await tick();
     inst.input(ENTER); // enter → github tools
-    await ticks();
-    const out = inst.lastFrame();
-    expect(out).toContain("github · tools (1)");
+    const out = await waitForFrame(inst, "github · tools (1)");
     expect(out).toContain("create_issue");
     inst.unmount();
   });
@@ -104,12 +99,10 @@ describe("McpPanel — drill into tools + detail", () => {
     const inst = renderUi(h(McpPanel, { servers, onReconnect: noop, onClose: noop }));
     await tick();
     inst.input(ENTER); // → tools
-    await ticks();
+    await waitForFrame(inst, "github · tools (1)");
     inst.input(ENTER); // → detail
-    await ticks();
-    const out = inst.lastFrame();
+    const out = await waitForFrame(inst, "Schema"); // detail-only marker (description also shows in the tools list)
     expect(out).toContain("Create a GitHub issue");
-    expect(out).toContain("Schema");
     expect(out).toContain("title");
     inst.unmount();
   });

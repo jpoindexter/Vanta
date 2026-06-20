@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, tick, waitUntil } from "./test-render.js";
 import { ConfigPanel } from "./config-panel.js";
 import { configState, type ConfigState, type ConfigAction } from "./config-view.js";
 
@@ -51,7 +51,7 @@ describe("ConfigPanel — actions", () => {
     const inst = render(make(), onAction);
     await tick();
     inst.input(ENTER);
-    await ticks();
+    await waitUntil(() => onAction.mock.calls.length > 0);
     expect(onAction).toHaveBeenCalledWith({ kind: "cycleEffort" });
     inst.unmount();
   });
@@ -63,7 +63,7 @@ describe("ConfigPanel — actions", () => {
     inst.input(DOWN);
     await ticks();
     inst.input(ENTER);
-    await ticks();
+    await waitUntil(() => onAction.mock.calls.length > 0);
     expect(onAction).toHaveBeenCalledWith({ kind: "cycleStyle" });
     inst.unmount();
   });
@@ -73,7 +73,7 @@ describe("ConfigPanel — actions", () => {
     const inst = renderUi(h(ConfigPanel, { state: make(), onAction: noop, onClose }));
     await tick();
     inst.input(ESC);
-    await ticks();
+    await waitUntil(() => onClose.mock.calls.length > 0);
     expect(onClose).toHaveBeenCalled();
     inst.unmount();
   });

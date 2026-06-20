@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { McpClient, textFromContent, textFromMessageContent, type Transport } from "./client.js";
 
+const waitUntil = async (cond: () => boolean, maxTicks = 100): Promise<void> => {
+  for (let i = 0; i < maxTicks; i++) { if (cond()) return; await new Promise((r) => setTimeout(r, 5)); }
+  if (!cond()) throw new Error("waitUntil: condition not met");
+};
+
 /**
  * A fake transport that auto-replies to JSON-RPC requests via a scripted
  * responder, so the client's request/response correlation is tested without a
@@ -166,7 +171,7 @@ describe("McpClient", () => {
     const seen: string[] = [];
     new McpClient(t.transport, { onNotification: (method) => { seen.push(method); } });
     t.emit(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/progress", params: { pct: 1 } })}\n`);
-    await new Promise((r) => setTimeout(r, 0));
+    await waitUntil(() => seen.length >= 1);
     expect(seen).toEqual(["notifications/progress"]);
   });
 
@@ -181,7 +186,7 @@ describe("McpClient", () => {
       onElicitationResult: ({ method }) => { seen.push(`result:${method}`); },
     });
     t.emit(`${JSON.stringify({ jsonrpc: "2.0", id: 7, method: "elicitation/create", params: { message: "Name?" } })}\n`);
-    await new Promise((r) => setTimeout(r, 0));
+    await waitUntil(() => seen.length >= 2);
     expect(seen).toEqual(["ask:elicitation/create", "result:elicitation/create"]);
     expect(JSON.parse(t.sent[0] ?? "{}")).toMatchObject({ id: 7, result: { action: "cancel" } });
   });

@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, tick, waitForFrame, waitUntil } from "./test-render.js";
 import { SandboxPanel } from "./sandbox-panel.js";
 import { sandboxState, sandboxDoctor, type SandboxState, type ToggleKey } from "../settings/sandbox.js";
 
@@ -44,9 +44,7 @@ describe("SandboxPanel — tabs + render", () => {
     const inst = render(make({ dependencies: ["ripgrep", "fd"] }));
     await tick();
     inst.input(RIGHT);
-    await ticks();
-    const out = inst.lastFrame();
-    expect(out).toContain("[Dependencies]");
+    const out = await waitForFrame(inst, "[Dependencies]");
     expect(out).toContain("Pre-install packages (2)");
     expect(out).toContain("ripgrep");
     inst.unmount();
@@ -56,11 +54,9 @@ describe("SandboxPanel — tabs + render", () => {
     const inst = render(make({ allowNetwork: true }));
     await tick();
     inst.input(RIGHT);
-    await ticks();
+    await waitForFrame(inst, "[Dependencies]");
     inst.input(RIGHT);
-    await ticks();
-    const out = inst.lastFrame();
-    expect(out).toContain("[Doctor]");
+    const out = await waitForFrame(inst, "[Doctor]");
     expect(out).toContain("Backend");
     expect(out).toContain("network ALLOWED");
     inst.unmount();
@@ -70,9 +66,7 @@ describe("SandboxPanel — tabs + render", () => {
     const inst = render(make({ overrides: [{ tool: "git", rule: "bypass" }] }));
     await tick();
     inst.input(LEFT);
-    await ticks();
-    const out = inst.lastFrame();
-    expect(out).toContain("[Overrides]");
+    const out = await waitForFrame(inst, "[Overrides]");
     expect(out).toContain("Per-tool rules (1)");
     expect(out).toContain("git");
     inst.unmount();
@@ -85,7 +79,7 @@ describe("SandboxPanel — actions", () => {
     const inst = render(make(), { onToggle });
     await tick();
     inst.input(ENTER); // first row = enabled
-    await ticks();
+    await waitUntil(() => onToggle.mock.calls.length > 0);
     expect(onToggle).toHaveBeenCalledWith("enabled");
     inst.unmount();
   });
@@ -97,7 +91,7 @@ describe("SandboxPanel — actions", () => {
     inst.input(DOWN);
     await ticks();
     inst.input(ENTER);
-    await ticks();
+    await waitUntil(() => onToggle.mock.calls.length > 0);
     expect(onToggle).toHaveBeenCalledWith("shellOnly");
     inst.unmount();
   });
@@ -107,9 +101,9 @@ describe("SandboxPanel — actions", () => {
     const inst = render(make({ overrides: [{ tool: "run_code", rule: "enforce" }] }), { onCycleOverride });
     await tick();
     inst.input(LEFT); // Config → Overrides
-    await ticks();
+    await waitForFrame(inst, "[Overrides]");
     inst.input(ENTER);
-    await ticks();
+    await waitUntil(() => onCycleOverride.mock.calls.length > 0);
     expect(onCycleOverride).toHaveBeenCalledWith("run_code");
     inst.unmount();
   });
@@ -119,7 +113,7 @@ describe("SandboxPanel — actions", () => {
     const inst = renderUi(h(SandboxPanel, { state: make(), doctor: [], onToggle: noop, onCycleOverride: noop, onClose }));
     await tick();
     inst.input(ESC);
-    await ticks();
+    await waitUntil(() => onClose.mock.calls.length > 0);
     expect(onClose).toHaveBeenCalled();
     inst.unmount();
   });
