@@ -76,7 +76,7 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     },
     onToolResult: (name, ok, output, diff) => {
       const tokens = Math.round((output?.length ?? 0) / 4);
-      deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output), diff, tokens });
+      deps.dispatch({ t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens });
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName) =>

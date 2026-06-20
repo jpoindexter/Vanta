@@ -1,4 +1,9 @@
 import type { DiffLine } from "../util/diff.js";
+import { emitInlineImage } from "./image-output.js";
+
+// Shell tools whose stdout may be a base64 data-URI image we render inline
+// (VANTA-BASH-IMAGE-OUTPUT) instead of dumping the raw base64.
+const IMAGE_OUTPUT_TOOLS = new Set(["shell_cmd"]);
 
 // Pure result-summary rules for the activity feed. The render
 // layer never sees a tool's raw output (that goes to the model only); instead we
@@ -33,8 +38,17 @@ export function buildResultPreview(output: string): { preview: string; lineCount
  * line itself for a short single line (e.g. `exit 0`), `N chars` for a long
  * single line, and "" for empty/whitespace output. Pure — operates on the raw
  * output string in the dispatch layer so the render layer never holds it.
+ *
+ * `toolName` opts a shell result into inline-image rendering: when `shell_cmd`
+ * stdout IS a base64 data-URI image, the image is emitted to the terminal and a
+ * short `[inline image · …]` placeholder is returned in place of the raw base64.
+ * All non-image / non-shell output keeps the magnitude behavior unchanged.
  */
-export function summarizeResult(output: string): string {
+export function summarizeResult(output: string, toolName?: string): string {
+  if (toolName && IMAGE_OUTPUT_TOOLS.has(toolName)) {
+    const placeholder = emitInlineImage(output);
+    if (placeholder) return placeholder;
+  }
   const t = output.trim();
   if (!t) return "";
   const lines = t.split("\n").length;
