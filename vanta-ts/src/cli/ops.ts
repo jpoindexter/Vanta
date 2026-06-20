@@ -38,6 +38,14 @@ export async function runDeptCommand(repoRoot: string, rest: string[]): Promise<
   return run(repoRoot, rest);
 }
 
+// `vanta library list [--dept <id>] [--approved|--pending]` — the company
+// Library: completed department tasks land as durable, provenance-tagged
+// artifacts (work products), queryable by department + approval state.
+export async function runLibraryCommand(repoRoot: string, rest: string[]): Promise<number> {
+  const { runLibraryCommand: run } = await import("./library-cmd.js");
+  return run(repoRoot, rest);
+}
+
 // Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
   return async (instruction, wake) => {
