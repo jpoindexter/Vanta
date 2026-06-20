@@ -28,6 +28,9 @@ export const SettingsSchema = z.object({
   disableAgentView: z.boolean().optional(),
   /** Default model effort for new sessions. */
   effortLevel: z.enum(EFFORT_LEVELS).optional(),
+  /** Prune stored sessions older than N days. Unset/<=0 = no cleanup (today's
+   *  behavior). Consumed by `sessions/cleanup.ts` (`pruneSessions`). */
+  cleanupPeriodDays: z.number().optional(),
   /** Auto permission mode classifier settings. */
   autoMode: z.object({
     enabled: z.boolean().optional(),

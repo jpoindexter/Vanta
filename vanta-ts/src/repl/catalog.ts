@@ -87,6 +87,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "tasks", arg: "[add|close|block|park|reopen|next]", desc: "operator task stack — /tasks next for the best move" },
   { name: "wftasks", desc: "workflow run task list — compose_workflow runs + their running/done/failed status" },
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
+  { name: "describe", arg: "<path>", desc: "generate a short LLM description of a file or directory" },
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },
   { name: "search", arg: "<query>", desc: "search conversation history for a term" },
   { name: "repro", desc: "save a diagnostic repro bundle to .vanta/repro-*.md" },
