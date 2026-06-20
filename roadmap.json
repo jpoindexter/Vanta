@@ -4397,7 +4397,7 @@
       "id": "VANTA-BIDI-TEXT",
       "track": "Operator",
       "title": "Bidirectional text — RTL/LTR mixing in TUI output",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's ink/bidi.ts handles bidirectional text (Hebrew, Arabic, mixed RTL/LTR) for correct rendering order in the terminal. Required for proper display when agents work with RTL-language content or codebase comments in RTL languages. Vanta's renderer assumes LTR.",
       "done": "Text blocks with RTL characters render with correct bidi ordering; mixed RTL/LTR paragraphs use the Unicode Bidi Algorithm; terminal width calculations account for bidi reordering.",
@@ -4405,7 +4405,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pragmatic bidi reorder (Hebrew/Arabic blocks, run split+reverse, base-dir mirror) - NOT full UBA (no bracket mirroring / weak-neutral resolution / isolates). Wired into transcript behind a hasRtl guard; LTR byte-identical. Real-terminal RTL look wants a human eye."
     },
     {
       "id": "VANTA-TERMINAL-CAPTURE",
@@ -4440,7 +4442,7 @@
       "id": "VANTA-GLOBAL-SEARCH-UI",
       "track": "Operator",
       "title": "Global search dialog — search across all sessions and messages",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent's GlobalSearchDialog (Ctrl+K or similar) searches across all stored sessions and messages, showing ranked results with session context. Vanta has per-session search and SESSION-SEARCH (shipped) for session listing, but no full-text cross-session search UI.",
       "done": "Ctrl+K opens the global search overlay; results show session name + date + matched message excerpt; Enter opens the session at the match; Esc dismisses; results are ranked by recency + relevance.",
@@ -4448,7 +4450,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-20",
+      "notes": "Cross-session searchSessions (reuses life-rank) + GlobalSearchDialog both built + tested. Open-trigger (mount the dialog into app.tsx LiveBody + a keybinding/slash) deferred to GLOBAL-SEARCH-OPEN-TRIGGER; the dialog uses the QuickOpen prop shape so it drops in."
     },
     {
       "id": "VANTA-MOUSE-SUPPORT",
@@ -4468,7 +4472,7 @@
       "id": "VANTA-DESIGN-SYSTEM",
       "track": "Operator",
       "title": "TUI design system — Byline, Dialog, Divider, FuzzyPicker, ProgressBar, Ratchet, Tabs, themed components",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent has a full internal design system for the TUI: Byline (attribution line), Dialog (modal container), Divider (horizontal rule), FuzzyPicker (generic fuzzy picker), ProgressBar (bounded progress indicator), Ratchet (progressive disclosure), Tabs (tabbed pane), ThemedBox/ThemedText (theme-aware wrappers), color token system. Vanta uses raw Ink primitives ad-hoc.",
       "done": "A vanta-ts/src/tui/design-system/ module exports all core primitives; all existing dialogs/pickers/panels are refactored to use them; theme tokens control colors from settings.",
@@ -4476,7 +4480,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "8 components (ThemedBox/Text, Divider, Byline, ProgressBar, Tabs, Dialog, Ratchet, FuzzyPicker) + pure fuzzy match/rank, render-tested via ui/test-render. Component library, not yet consumed by app surfaces. Accent-vs-mono balance wants a real-terminal look."
     },
     {
       "id": "VANTA-CHANNEL-PERMISSIONS",
@@ -14756,6 +14762,22 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
+      "updated": "2026-06-20",
+      "source": "ref-audit-2026-06-20"
+    },
+    {
+      "id": "GLOBAL-SEARCH-OPEN-TRIGGER",
+      "track": "Operator",
+      "title": "Wire GlobalSearchDialog open trigger (app.tsx slot + keybinding)",
+      "status": "next",
+      "size": "S",
+      "summary": "VANTA-GLOBAL-SEARCH-UI shipped searchSessions + GlobalSearchDialog (built+tested) but no open trigger. Add a /searchall slash + handler and an overlay slot in ui/app.tsx LiveBody (state flag + a Ctrl-key in useGlobalKeys, onSelect -> /resume <id>), mirroring the existing QuickOpen wiring. The dialog uses the QuickOpen prop shape so it drops in.",
+      "done": "A keybinding/slash opens GlobalSearchDialog over all sessions; selecting a result resumes that session; the overlay mounts/unmounts cleanly in app.tsx; render-tested.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "tui",
       "updated": "2026-06-20",
       "source": "ref-audit-2026-06-20"
     }

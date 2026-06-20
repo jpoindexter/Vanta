@@ -2,6 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Markdown } from "./markdown.js";
 import { linkify } from "../term/linkify.js";
+import { hasRtl, reorderBidi } from "../term/bidi.js";
 import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
@@ -11,14 +12,20 @@ import type { DiffLine } from "../util/diff.js";
 // Ink + <Static> commits each entry to scrollback once, so wrapping is fine (the
 // terminal owns the wrapped lines).
 
+// Bidi seam: the renderer (and the terminal grid) lay glyphs L→R, so logical-order
+// RTL text (Hebrew/Arabic) shows backwards. `vbidi` reorders it into visual order
+// ONLY when a strong-RTL char is present — pure-LTR text is returned byte-identical,
+// so the common case is untouched. Applied to user/assistant/note prose.
+const vbidi = (text: string): string => (hasRtl(text) ? reorderBidi(text) : text);
+
 const DIFF_MAX = 12;
 const THINK_MAX = 3;
 
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
   // A blank line above a user turn separates turns visually (Claude/Cursor rhythm).
-  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Text>{e.text}</Text></Box>;
-  if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column"><Markdown text={e.text} /></Box></Box>;
+  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Text>{vbidi(e.text)}</Text></Box>;
+  if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column"><Markdown text={vbidi(e.text)} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
@@ -59,7 +66,7 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
  * wraps URLs + file:line refs in OSC-8 (skipping fenced code), and degrades to
  * plain text on terminals without hyperlink support. */
 function NoteView(props: { text: string }): ReactElement {
-  const lines = linkify(props.text).split("\n");
+  const lines = linkify(vbidi(props.text)).split("\n");
   return (
     <Box flexDirection="column" marginTop={1}>
       {lines.map((l, i) => <Text key={i}>{l}</Text>)}
