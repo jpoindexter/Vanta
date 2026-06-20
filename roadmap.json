@@ -2849,7 +2849,7 @@
       "id": "VANTA-EFFORT-INDICATOR",
       "track": "Operator",
       "title": "Effort indicator — visual effort level callout in TUI",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's EffortCallout + EffortIndicator render the active effort level visually (low/medium/high/xhigh/max) with a colored indicator. Pairs with VANTA-EFFORT (next) for the flag/setting. Vanta has no effort-level display even once the setting is added.",
       "done": "The status line (or spinner area) shows the active effort level as a colored indicator; /effort <level> changes it with immediate visual feedback.",
@@ -2857,7 +2857,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure effortGlyph (low ○/medium ◐/high ●/max ◆/adaptive ◇, unique) + formatEffortIndicator (prefix effort:high or glyph ● high) + effortIndicatorVisible (default medium hidden unless VANTA_EFFORT_INDICATOR=1, non-default shown). Built+tested; render point = ui/status-bar.tsx EFFORT slot in buildKeys (replace the medium-hidden string with the chip). Default = no added noise."
     },
     {
       "id": "VANTA-BYPASS-DIALOG",
