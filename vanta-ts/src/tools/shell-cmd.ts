@@ -12,6 +12,7 @@ import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
+import { shouldShowTiming, buildTimingNote } from "./shell-timing.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 
@@ -172,16 +173,27 @@ function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: 
   return childEnv === process.env ? base : { ...base, env: childEnv };
 }
 
+/** Append a "(took <elapsed>)" line when the run was slow enough to surface.
+ *  Observational only — the ok/exit/result is untouched; a fast run (under the
+ *  threshold) returns the result byte-identical. */
+function withTimingNote(result: ToolResult, elapsedMs: number): ToolResult {
+  if (!shouldShowTiming(elapsedMs)) return result;
+  const note = buildTimingNote(elapsedMs);
+  const output = result.output ? `${result.output}\n${note}` : note;
+  return { ...result, output };
+}
+
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
 async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
   const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
+  const startedAt = Date.now();
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root));
     const out = combineOutput(stdout, stderr);
-    return { ok: true, output: pfx + (out || "(command produced no output)") };
+    return withTimingNote({ ok: true, output: pfx + (out || "(command produced no output)") }, Date.now() - startedAt);
   } catch (err) {
-    return formatRunFailure(command, err as RunError, pfx);
+    return withTimingNote(formatRunFailure(command, err as RunError, pfx), Date.now() - startedAt);
   } finally {
     await sb.cleanup?.();
   }
