@@ -136,6 +136,7 @@ describe("registry", () => {
       "tool_search",
       "transcribe",
       "twitter_read",
+      "vision_action",
       "watch_video",
       "web_fetch",
       "web_search",
