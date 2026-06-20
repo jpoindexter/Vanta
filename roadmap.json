@@ -10721,7 +10721,7 @@
       "id": "DESKTOP-VISION-TO-ACTION",
       "track": "Harness",
       "title": "Vision-to-action loop — screenshot → grounded, safe action",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From UI-TARS: turn a screenshot into a grounded action (locate the target element, choose the action) with a re-observe cadence (act, screenshot, verify the screen changed as expected, recover on mis-click). Vanta has the perception tools; build the perceive→ground→act→verify loop, kernel-gated per action.",
       "done": "Vanta can locate a UI target from a screenshot and execute one grounded action, re-observe, and detect a mis-click.",
