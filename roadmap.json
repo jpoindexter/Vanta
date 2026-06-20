@@ -1907,7 +1907,7 @@
       "id": "VANTA-CONCURRENT-SESSIONS",
       "track": "Harness",
       "title": "Concurrent session management — track multiple running another agent instances",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent tracks all running instances (session ID → PID → timestamp). On startup, dead sessions are cleaned up. Session switching triggers onSessionSwitch callbacks. Prevents stale session locks. Cross-platform process health check.",
       "done": "Multiple another agent instances run without conflicts; dead session entries cleaned on startup; isProcessRunning checks prevent orphaned state; session IDs unique.",
@@ -1916,7 +1916,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HOOK-PROMPT-TYPE",

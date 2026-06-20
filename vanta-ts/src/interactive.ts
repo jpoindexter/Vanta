@@ -20,6 +20,7 @@ import { CheckpointStore } from "./sessions/checkpoint.js";
 import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { forkSession, loadSession, newSessionId } from "./sessions/store.js";
+import { registerSession, deregisterSession, defaultRegistryDeps } from "./sessions/active-registry.js";
 import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
@@ -76,6 +77,22 @@ async function advertiseSession(sessionId: string, repoRoot: string): Promise<()
   };
 }
 
+/** Register this instance (VANTA-CONCURRENT-SESSIONS) + print the banner and resume notices. */
+async function announceSessionStart(o: {
+  setup: Awaited<ReturnType<typeof prepareRun>>;
+  repoRoot: string;
+  skills: { meta: { name: string } }[];
+  state: ReplState;
+  resumed: Awaited<ReturnType<typeof loadResumeTarget>>;
+  resumeId?: string;
+}): Promise<void> {
+  await registerSession({ pid: process.pid, sessionId: o.state.sessionId, project: o.repoRoot }, defaultRegistryDeps());
+  console.log(renderBanner({ modelId: o.setup.provider.modelId(), root: o.repoRoot, goals: o.setup.goals, toolNames: o.setup.registry.schemas().map((s) => s.name), skillNames: o.skills.map((s) => s.meta.name) }));
+  printRalphContinuityNotice(o.setup.ralphContinuity);
+  if (o.resumed) console.log(`  ↻ Resumed session ${o.resumed.id} "${o.resumed.title}" (${o.resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
+  else if (o.resumeId) console.log(`  (no session "${o.resumeId}" found — starting fresh)\n`);
+}
+
 export async function runChat(repoRoot: string, opts: { resumeId?: string; forkSession?: boolean; lifecycle?: LifecycleFlags } = {}): Promise<void> {
   if (opts.lifecycle && await runLifecycleHooks(repoRoot, opts.lifecycle, "interactive")) return;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -89,10 +106,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     turnIndex: resumed?.messages.filter((m) => m.role === "user").length ?? 0,
     effortLevel: setup.effortLevel,
   };
-  console.log(renderBanner({ modelId: setup.provider.modelId(), root: repoRoot, goals: setup.goals, toolNames: setup.registry.schemas().map((s) => s.name), skillNames: skills.map((s) => s.meta.name) }));
-  printRalphContinuityNotice(setup.ralphContinuity);
-  if (resumed) console.log(`  ↻ Resumed session ${resumed.id} "${resumed.title}" (${resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
-  else if (opts.resumeId) console.log(`  (no session "${opts.resumeId}" found — starting fresh)\n`);
+  await announceSessionStart({ setup, repoRoot, skills, state, resumed, resumeId: opts.resumeId });
 
   const workingMemory = new SessionWorkingMemory();
   const { convo, agentDeps } = buildConversation({ repoRoot, setup, state, rl, workingMemory, history: resumed?.messages });
@@ -116,6 +130,9 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   try {
     await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps, capHaltedRef });
   } finally {
+    // VANTA-CONCURRENT-SESSIONS: deregister on clean exit (a crash leaves a stale
+    // row that the next `listActiveSessions` prunes via the dead-pid check).
+    await deregisterSession(process.pid, defaultRegistryDeps());
     stopFileWatcher();
     await stopPeer();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
