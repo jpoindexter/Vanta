@@ -2,7 +2,14 @@ import { describe, it, expect, afterEach } from "vitest";
 import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseAtRefs, activeAtRef, buildContextBlock, listRepoFiles } from "./at-context.js";
+import {
+  parseAtRefs,
+  activeAtRef,
+  buildContextBlock,
+  listRepoFiles,
+  parseGitignore,
+} from "./at-context.js";
+import { shouldRespectGitignore } from "../settings/git-settings.js";
 
 let dir: string;
 afterEach(async () => {
@@ -103,5 +110,50 @@ describe("listRepoFiles", () => {
     await writeFile(join(dir, "node_modules", "pkg.js"), "", "utf8");
     const files = await listRepoFiles(dir);
     expect(files).not.toContain("node_modules/pkg.js");
+  });
+
+  it("does NOT filter gitignored paths by default (current behavior preserved)", async () => {
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
+    await writeFile(join(dir, ".gitignore"), "secret.txt\n", "utf8");
+    await writeFile(join(dir, "secret.txt"), "", "utf8");
+    await writeFile(join(dir, "keep.ts"), "", "utf8");
+    const files = await listRepoFiles(dir); // respectGitignore defaults off
+    expect(files).toContain("secret.txt");
+    expect(files).toContain("keep.ts");
+  });
+
+  it("excludes gitignored paths when respectGitignore is on", async () => {
+    dir = await mkdtemp(join(tmpdir(), "vanta-at-"));
+    await writeFile(join(dir, ".gitignore"), "secret.txt\nbuild/\n", "utf8");
+    await writeFile(join(dir, "secret.txt"), "", "utf8");
+    await writeFile(join(dir, "keep.ts"), "", "utf8");
+    await mkdir(join(dir, "build"));
+    await writeFile(join(dir, "build", "out.js"), "", "utf8");
+    // The consumer reads the resolver — an unset setting resolves to true.
+    const files = await listRepoFiles(dir, 3, shouldRespectGitignore({}));
+    expect(files).not.toContain("secret.txt");
+    expect(files).not.toContain("build/out.js");
+    expect(files).toContain("keep.ts");
+  });
+});
+
+describe("parseGitignore", () => {
+  it("matches exact names and ignores comments/blank/negation lines", () => {
+    const ignored = parseGitignore("# a comment\n\nsecret.txt\n!keep.txt\n");
+    expect(ignored("secret.txt")).toBe(true);
+    expect(ignored("other.txt")).toBe(false);
+  });
+
+  it("matches a directory pattern against path segments", () => {
+    const ignored = parseGitignore("dist/\n");
+    expect(ignored("dist")).toBe(true);
+    expect(ignored("dist/bundle.js")).toBe(true);
+    expect(ignored("src/index.ts")).toBe(false);
+  });
+
+  it("supports a single-segment glob", () => {
+    const ignored = parseGitignore("*.log\n");
+    expect(ignored("app.log")).toBe(true);
+    expect(ignored("app.ts")).toBe(false);
   });
 });

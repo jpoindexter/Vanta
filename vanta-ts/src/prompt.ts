@@ -186,6 +186,9 @@ export type BuildPromptOptions = {
   playbook?: string;
   /** META-TUNE-INSTRUCTIONS: bounded, approved harness instruction block. */
   program?: string;
+  /** VANTA-SETTINGS-GIT: git best-practice block (settings.includeGitInstructions).
+   *  Empty/absent → no git tier (default prompt unchanged). */
+  gitInstructions?: string;
   /** VANTA-TRUST-DIALOG: false → the project's context files are untrusted and not loaded. Default true. */
   loadContext?: boolean;
   /** ND-PREFS-WIRE: scales rule 10a's length cap. Default `balanced` = unchanged. */
@@ -226,6 +229,7 @@ export const PROMPT_TIERS: PromptTier[] = [
   { id: "context", render: ({ opts }) => (opts.loadContext === false ? "" : contextTier(opts.root)) },
   { id: "errors", render: ({ opts }) => errorsLogTier(opts.errorsLog) },
   { id: "program", render: ({ opts }) => programTier(opts.program) },
+  { id: "git", render: ({ opts }) => (opts.gitInstructions?.trim() ? opts.gitInstructions.trim() : "") },
   { id: "playbook", render: ({ opts }) => playbookTier(opts.playbook) },
   { id: "tasks", render: ({ tasksTier }) => tasksTier },
   {

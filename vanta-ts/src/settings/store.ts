@@ -83,6 +83,19 @@ export const SettingsSchema = z.object({
   /** Named SSH connection profiles (run-anywhere). `shell_cmd {ssh:"<name>"}` runs
    *  a command on the host; `vanta ssh <name>` opens an interactive shell. */
   sshConfigs: z.array(SshProfileSchema).optional(),
+  /** VANTA-SETTINGS-GIT — git settings parity (resolvers in `git-settings.ts`). */
+  /** Override the attribution line appended to commits (e.g. a Co-Authored-By
+   *  trailer). Unset = no attribution appended (today's behavior). */
+  attribution: z.string().optional(),
+  /** Fold a git best-practice block into the system prompt. Unset/false =
+   *  no git block (today's prompt). */
+  includeGitInstructions: z.boolean().optional(),
+  /** PR-link format; `{PR}` is replaced with the number in the status footer.
+   *  Unset = no PR segment (today's footer). */
+  prUrlTemplate: z.string().optional(),
+  /** Whether the @file picker excludes gitignored paths. Resolver defaults true;
+   *  unset keeps the picker's current (unfiltered) behavior. */
+  respectGitignore: z.boolean().optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;

@@ -36,9 +36,48 @@ export async function buildContextBlock(refs: string[], repoRoot: string): Promi
   return blocks.join("\n\n");
 }
 
-/** Recursively list files in repoRoot up to maxDepth, skipping build/vendor dirs. */
-export async function listRepoFiles(repoRoot: string, maxDepth = 3): Promise<string[]> {
+/**
+ * Parse a .gitignore body into a simple matcher (pure). Supports the common
+ * cases the @file picker needs — exact names, `dir/`, and `*` glob segments —
+ * matched against a repo-relative POSIX path or any of its ancestor segments.
+ * Negations (`!`) and full gitignore semantics are intentionally out of scope.
+ */
+export function parseGitignore(body: string): (relPath: string) => boolean {
+  const patterns = body
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#") && !l.startsWith("!"))
+    .map((l) => l.replace(/\/$/, "").replace(/^\//, ""));
+  const toRe = (p: string): RegExp =>
+    new RegExp(`^${p.split("*").map((s) => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join("[^/]*")}$`);
+  const res = patterns.map(toRe);
+  return (relPath: string): boolean => {
+    const parts = relPath.split("/");
+    // A path is ignored if any pattern matches the full path or any segment.
+    return res.some((re) => re.test(relPath) || parts.some((seg) => re.test(seg)));
+  };
+}
+
+async function loadGitignore(repoRoot: string): Promise<(relPath: string) => boolean> {
+  try {
+    return parseGitignore(await readFile(join(repoRoot, ".gitignore"), "utf8"));
+  } catch {
+    return () => false; // No .gitignore (or unreadable) → nothing ignored.
+  }
+}
+
+/**
+ * Recursively list files in repoRoot up to maxDepth, skipping build/vendor dirs.
+ * `respectGitignore` (default false → today's unfiltered behavior) excludes
+ * paths matched by the repo's .gitignore; consumers pass `shouldRespectGitignore`.
+ */
+export async function listRepoFiles(
+  repoRoot: string,
+  maxDepth = 3,
+  respectGitignore = false,
+): Promise<string[]> {
   const files: string[] = [];
+  const isIgnored = respectGitignore ? await loadGitignore(repoRoot) : () => false;
 
   async function walk(dir: string, depth: number): Promise<void> {
     if (depth > maxDepth) return;
@@ -51,10 +90,12 @@ export async function listRepoFiles(repoRoot: string, maxDepth = 3): Promise<str
     for (const e of entries) {
       if (SKIP_DIRS.has(e.name)) continue;
       const full = join(dir, e.name);
+      const rel = relative(repoRoot, full);
+      if (isIgnored(rel)) continue;
       if (e.isDirectory()) {
         await walk(full, depth + 1);
       } else {
-        files.push(relative(repoRoot, full));
+        files.push(rel);
       }
     }
   }

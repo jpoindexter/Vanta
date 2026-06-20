@@ -1,6 +1,15 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { runGit } from "./git.js";
+import { loadSettings } from "../settings/store.js";
+import { resolveAttribution } from "../settings/git-settings.js";
+
+/** Append the resolved attribution line as a trailer, when one is configured.
+ *  Unset attribution → message unchanged (today's behavior). */
+function withAttribution(message: string, line: string | undefined): string {
+  if (!line) return message;
+  return `${message.trimEnd()}\n\n${line}`;
+}
 
 // Approval-gated git write tools. Extracted from git.ts (size gate).
 // runGit + read tools (status, diff) stay in git.ts.
@@ -41,7 +50,9 @@ export const gitCommitTool: Tool = {
 
     const add = await runGit(["add", "-A"], ctx.root);
     if (add.code !== 0) return { ok: false, output: add.out || "(no output)" };
-    const { code, out } = await runGit(["commit", "-m", parsed.data.message], ctx.root);
+    const settings = await loadSettings(ctx.root, process.env);
+    const message = withAttribution(parsed.data.message, resolveAttribution(settings));
+    const { code, out } = await runGit(["commit", "-m", message], ctx.root);
     return { ok: code === 0, output: out || "(no output)" };
   },
 };

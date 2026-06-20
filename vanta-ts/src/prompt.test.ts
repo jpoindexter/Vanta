@@ -235,6 +235,20 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Prefer verified deltas.");
   });
 
+  it("injects the git instructions block only when provided", async () => {
+    const base = {
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+    };
+    const without = await buildSystemPrompt(base);
+    expect(without).not.toContain("Git best practice:");
+    const withBlock = await buildSystemPrompt({ ...base, gitInstructions: "Git best practice:\n- branch first" });
+    expect(withBlock).toContain("Git best practice:");
+  });
+
   it("injects the MOIM note at the top of the volatile tier when provided", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",

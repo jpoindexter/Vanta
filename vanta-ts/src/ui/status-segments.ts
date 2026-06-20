@@ -1,4 +1,5 @@
 import { contextBar } from "./busy.js";
+import { formatPrUrl } from "../settings/git-settings.js";
 
 // Pure formatters for the rich status-line segments + a composer that assembles
 // only the segments whose data is present. Each formatter returns "" when its
@@ -71,6 +72,16 @@ export function vimText(vimEnabled: boolean | undefined): string {
   return vimEnabled ? "vim" : "";
 }
 
+/**
+ * PR link segment: the active PR rendered through settings.prUrlTemplate (the
+ * `{PR}` placeholder → the number). "" when there is no active PR or no template
+ * (the default — no PR segment in the footer). Pure.
+ */
+export function prText(prNumber: number | undefined, template: string | undefined): string {
+  if (prNumber === undefined || !template?.trim()) return "";
+  return formatPrUrl(template.trim(), prNumber);
+}
+
 /** A hook-contributed custom segment, trimmed/clipped. "" when none. */
 export function customText(custom: string | undefined): string {
   const c = custom?.replace(/\s+/g, " ").trim();
@@ -85,6 +96,10 @@ export type RichInput = {
   isWorktree?: boolean;
   vimEnabled?: boolean;
   custom?: string;
+  /** Active PR number; rendered via prUrlTemplate. Absent → no PR segment. */
+  prNumber?: number;
+  /** settings.prUrlTemplate; `{PR}` → the number. Absent → no PR segment. */
+  prUrlTemplate?: string;
 };
 
 /** A status segment keyed by role so the renderer can color/skip it. */
@@ -107,6 +122,7 @@ export function composeRichSegments(input: RichInput): RichSegment[] {
   push("name", sessionNameText(input.sessionName), 4);
   push("worktree", worktreeText(input.isWorktree), 4);
   push("vim", vimText(input.vimEnabled), 3);
+  push("pr", prText(input.prNumber, input.prUrlTemplate), 3);
   push("custom", customText(input.custom), 2);
   return out;
 }
