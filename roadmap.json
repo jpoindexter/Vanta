@@ -1711,7 +1711,7 @@
       "id": "VANTA-KEYCHAIN-STORAGE",
       "track": "Harness",
       "title": "macOS Keychain credential storage — secure OAuth token persistence",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Uses macOS `security` CLI to read/write OAuth tokens and API keys to the system Keychain. TTL-cached reads (avoid repeated `security` subprocess overhead). Fallback to plain-text ~/.claude/credentials.json on failure. Handles 4096-byte stdin limit of the security tool.",
       "done": "OAuth tokens stored in Keychain on macOS; reads are cached for TTL ms; plain-text fallback on Linux/Windows; credentials.json is the fallback path.",
@@ -1720,7 +1720,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-DANGEROUS-PATTERNS",
@@ -1801,7 +1801,7 @@
       "id": "VANTA-TEAMMATE-DEFAULT-MODEL",
       "track": "Harness",
       "title": "Teammate default model — Opus 4.6 for swarm agents, provider-aware",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When the user hasn't set `teammateDefaultModel` in /config, spawned swarm agents use Opus 4.6 as the default model. Provider-aware: Bedrock/Vertex/Foundry users get the correct model ID for their provider.",
       "done": "Spawned teammates default to Opus 4.6; /config teammateDefaultModel overrides it; Bedrock users get the Bedrock Opus 4.6 model ID, not the direct API one.",
@@ -1810,7 +1810,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SECURITY-REVIEW-CMD",

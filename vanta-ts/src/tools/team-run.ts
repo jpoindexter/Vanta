@@ -1,6 +1,7 @@
 import type { ToolResult, ToolContext } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
+import { teammateEnv } from "../team/teammate-model.js";
 import { buildRegistry } from "./index.js";
 import {
   latestTasks,
@@ -30,9 +31,15 @@ export async function doRun(taskId: string | undefined, detail: string | undefin
   if (!task) return { ok: false, output: `unknown task id "${taskId}" — dispatch it first` };
   if (task.status === "done") return { ok: false, output: `task ${taskId} already done` };
 
+  // VANTA-TEAMMATE-DEFAULT-MODEL: a teammate inherits the parent's active model
+  // (resolved provider's modelId() captures the provider's own default when
+  // VANTA_MODEL is unset) unless VANTA_TEAMMATE_MODEL pins a stronger one. With
+  // the override unset, teammateEnv leaves VANTA_MODEL on the active model, so
+  // the resolved provider is byte-identical to the prior `resolveProvider(env)`.
   let provider;
   try {
-    provider = resolveProvider(process.env);
+    const activeModel = resolveProvider(process.env).modelId();
+    provider = resolveProvider(teammateEnv(process.env, activeModel));
   } catch (err) {
     return { ok: false, output: `cannot run: ${(err as Error).message}` };
   }
