@@ -1320,7 +1320,7 @@
       "id": "VANTA-CLAUDE-CODE-HINTS",
       "track": "Extensibility",
       "title": "claude-code-hint protocol — subprocess plugin recommendations via stderr tag",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CLIs and SDKs running under another agent can emit a self-closing `<claude-code-hint v='1' type='plugin' name='...' marketplace='...' />` tag to stderr. another agent strips it before the model sees it, and surfaces an install prompt to the user. Lets external tools request plugin installs without inference — a documented vendor-facing spec (`docs/claude-code-hints.md`).",
       "done": "A subprocess emitting `<claude-code-hint type='plugin' name='pylsp' marketplace='agent-skills' />` causes Vanta to show 'Install pylsp plugin?' prompt after the tool call.",
@@ -1329,7 +1329,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Built Vanta-native: <vanta-hint> is the protocol identity; the external <claude-code-hint> tag is recognized only as a single commented interop-alias line in the regex (operator: do not stamp claude-code through the code). Doc: docs/vanta-hints.md."
     },
     {
       "id": "VANTA-GENERATE-AGENT",

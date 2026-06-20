@@ -10,12 +10,24 @@ import { isSandboxError } from "../sandbox/run.js";
 import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
+import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
+/** Combine captured stdout/stderr into the tool output, stripping any subprocess
+ *  plugin-hint tags from stderr and appending an install suggestion so the model
+ *  never sees the raw tag. No hint tag → byte-identical to the plain join. */
+function combineOutput(stdout: string | undefined, stderr: string | undefined): string {
+  const { hints, stripped } = parseVantaHints(stderr ?? "");
+  const out = [stdout, stripped].filter(Boolean).join("\n").trim();
+  if (hints.length === 0) return out;
+  const suggestion = formatHintSuggestion(hints);
+  return suggestion ? [out, suggestion].filter(Boolean).join("\n") : out;
+}
+
 /** Build the result for a non-zero/failed run: reclassify benign exits, else error. */
 function formatRunFailure(command: string, e: RunError, pfx: string): ToolResult {
-  const out = [e.stdout, e.stderr].filter(Boolean).join("\n").trim();
+  const out = combineOutput(e.stdout, e.stderr);
   // A numeric exit code means the command ran (vs. ENOENT/timeout, where code is
   // a string/undefined and we keep it an error). Reclassify no-match/differs/partial.
   if (typeof e.code === "number") {
@@ -122,7 +134,7 @@ async function runRemote(target: string, command: string, root: string, pfx: str
   }
   try {
     const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
-    const out = [stdout, stderr].filter(Boolean).join("\n").trim();
+    const out = combineOutput(stdout, stderr);
     return { ok: true, output: pfx + (out || "(command produced no output)") };
   } catch (err) {
     return formatRunFailure(command, err as RunError, pfx);
@@ -140,7 +152,7 @@ async function runLocal(command: string, root: string, pfx: string): Promise<Too
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
-    const out = [stdout, stderr].filter(Boolean).join("\n").trim();
+    const out = combineOutput(stdout, stderr);
     return { ok: true, output: pfx + (out || "(command produced no output)") };
   } catch (err) {
     return formatRunFailure(command, err as RunError, pfx);
