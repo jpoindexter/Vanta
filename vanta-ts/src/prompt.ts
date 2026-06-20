@@ -7,6 +7,7 @@ import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
 import { memoryGuardPromptLine } from "./memory/guardrails.js";
 import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
+import { platformHint } from "./gateway/platforms/hints.js";
 
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
@@ -127,9 +128,16 @@ function programTier(program?: string): string {
 function volatileTier(
   goals: Goal[],
   now: string,
-  extra: { memory?: string; moimNote?: string; projectId?: string; goalsPaused?: boolean; ralphContinuity?: string } = {},
+  extra: {
+    memory?: string;
+    moimNote?: string;
+    projectId?: string;
+    goalsPaused?: boolean;
+    ralphContinuity?: string;
+    platformHint?: string;
+  } = {},
 ): string {
-  const { memory, moimNote, projectId, goalsPaused, ralphContinuity } = extra;
+  const { memory, moimNote, projectId, goalsPaused, ralphContinuity, platformHint: hint } = extra;
   const active = goals.filter((g) => g.status === "active");
   const goalLines = active.map((g) => `- [${g.id}] ${g.text}`).join("\n");
   // A goal carried from a previous session starts PAUSED: the agent must not
@@ -142,7 +150,10 @@ function volatileTier(
       : `Active goals:\n${goalLines}`;
   const idLine = projectId ? `Project ID: ${projectId} (stable across machines and worktrees)\n\n` : "";
   const continuity = ralphContinuity?.trim() ? `${ralphContinuity.trim()}\n\n` : "";
-  const base = `${idLine}${continuity}${goalBlock}\n\nSession started: ${now}`;
+  // MSG-PLATFORM-HINTS: one situational line so the agent adapts formatting to
+  // the active messaging surface BEFORE output. Absent → no line (default prompt).
+  const platformLine = hint?.trim() ? `${hint.trim()}\n\n` : "";
+  const base = `${platformLine}${idLine}${continuity}${goalBlock}\n\nSession started: ${now}`;
   const withMemory = memory?.trim()
     ? `${base}\n\nRecent memory toward your goals:\n${memory}`
     : base;
@@ -179,6 +190,13 @@ export type BuildPromptOptions = {
   loadContext?: boolean;
   /** ND-PREFS-WIRE: scales rule 10a's length cap. Default `balanced` = unchanged. */
   outputDensity?: OutputDensity;
+  /**
+   * MSG-PLATFORM-HINTS: active messaging-platform id (telegram/irc/…). When set
+   * to a known id, a one-line formatting hint is folded into the context tier so
+   * the agent adapts markdown to the surface. Defaults to `VANTA_GATEWAY_PLATFORM`
+   * (the env the gateway sets); unset/unknown = no line (default prompt unchanged).
+   */
+  gatewayPlatform?: string;
 };
 
 /** What each prompt tier reads to render itself. */
@@ -219,6 +237,8 @@ export const PROMPT_TIERS: PromptTier[] = [
         projectId: opts.projectId,
         goalsPaused: opts.goalsPaused,
         ralphContinuity: opts.ralphContinuity,
+        // Field first, then the env the gateway sets; unknown id → undefined → no line.
+        platformHint: platformHint(opts.gatewayPlatform ?? process.env.VANTA_GATEWAY_PLATFORM),
       }),
   },
 ];

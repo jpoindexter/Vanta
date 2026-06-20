@@ -126,6 +126,7 @@ describe("registry", () => {
       "screenshot",
       "self_correct",
       "self_repair",
+      "send_chat",
       "send_message",
       "shell_cmd",
       "sleep",

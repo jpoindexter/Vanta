@@ -116,6 +116,42 @@ describe("formatForDialect — plain (IRC/ntfy/iMessage/Signal)", () => {
     expect(once).toBe("just a plain reply");
     expect(twice).toBe(once);
   });
+
+  it("degrades a pipe table to bare heading + key:value bullets (bold stripped)", () => {
+    const md = [
+      "| Name | Role |",
+      "| --- | --- |",
+      "| Alice | Admin |",
+      "| Bob | User |",
+    ].join("\n");
+
+    const out = formatForDialect(md, "plain");
+
+    // The table becomes readable lines; the bold markers around the heading are
+    // themselves stripped by the plain converter, leaving the bare label.
+    expect(out).toBe(
+      ["Alice", "- Role: Admin", "", "Bob", "- Role: User"].join("\n"),
+    );
+    expect(out).not.toContain("|");
+    expect(out).not.toContain("**");
+  });
+
+  it("does NOT degrade a pipe table inside a fenced code block", () => {
+    const md = ["```", "| A | B |", "| --- | --- |", "| 1 | 2 |", "```"].join("\n");
+
+    const out = formatForDialect(md, "plain");
+
+    // The fence (pipes and all) is masked as code and restored verbatim — no
+    // bold headings, no bullets, the literal table survives.
+    expect(out).toBe(md);
+    expect(out).not.toContain("**1**");
+  });
+
+  it("leaves a shell pipe in prose unchanged (not a table)", () => {
+    const out = formatForDialect("run `ls | grep foo` to filter", "plain");
+
+    expect(out).toBe("run `ls | grep foo` to filter");
+  });
 });
 
 describe("formatForDialect — telegram (MarkdownV2)", () => {
