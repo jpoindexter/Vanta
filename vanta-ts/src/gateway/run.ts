@@ -85,7 +85,6 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
     load: async () => regularEntries,
   });
   for (const r of results) log(`  ↳ #${r.id} ${firstLine(r.result)}`);
-  await writeHeartbeat(deps.dataDir, now).catch(() => {});
   const loopsFired = await tickLoops({
     dataDir: deps.dataDir,
     now,
@@ -96,18 +95,6 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   const watch = await runWatchdog(deps.dataDir, now, resolveWatchdogConfig(process.env)).catch(() => null);
   if (watch && watch.surfaced > 0) log(`watchdog: surfaced ${watch.surfaced} stalled loop(s)`);
   return queuedWakes + results.length + factoryEntries.length + loopsFired;
-}
-
-const HEARTBEAT_EVERY_MS = 3_600_000;
-let lastHeartbeatMs = 0;
-
-async function writeHeartbeat(dataDir: string, now: Date): Promise<void> {
-  const ms = now.getTime();
-  if (ms - lastHeartbeatMs < HEARTBEAT_EVERY_MS) return;
-  lastHeartbeatMs = ms;
-  const { resolveBrain } = await import("../brain/interface.js");
-  const note = `\n- [${now.toISOString()}] gateway heartbeat — daemon alive, tasks processed`;
-  await resolveBrain().write("drives", note, { append: true });
 }
 
 async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promise<void> {
