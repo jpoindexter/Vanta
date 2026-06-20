@@ -30,6 +30,14 @@ export async function runPluginCommand(repoRoot: string, rest: string[]): Promis
   return runPlugin(repoRoot, rest);
 }
 
+// `vanta dept add|list|status|assign` — departments as first-class org units
+// (roster + `dept:<id>` budget scope + standing goal subset). Binds the existing
+// team/budget/goal primitives; does not duplicate them.
+export async function runDeptCommand(repoRoot: string, rest: string[]): Promise<number> {
+  const { runDeptCommand: run } = await import("./dept-cmd.js");
+  return run(repoRoot, rest);
+}
+
 // Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
   return async (instruction, wake) => {
