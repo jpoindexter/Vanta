@@ -110,10 +110,10 @@ fn enforce_0600(path: &Path) {
     }
 }
 
-/// Load the per-install audit key, creating it (0600) on first use. Re-asserts 0600
-/// on EVERY load so a pre-existing key file relaxed to 0644 gets locked back down.
-pub fn load_or_create_key(data_dir: &Path) -> Result<String, String> {
-    let path = data_dir.join("audit.key");
+/// Load (or create, 0600) a per-install random secret file by name. Re-asserts 0600
+/// on EVERY load so a pre-existing file relaxed to 0644 gets locked back down.
+pub fn load_or_create_token(data_dir: &Path, name: &str) -> Result<String, String> {
+    let path = data_dir.join(name);
     if let Ok(k) = fs::read_to_string(&path) {
         let k = k.trim().to_string();
         if !k.is_empty() {
@@ -125,6 +125,11 @@ pub fn load_or_create_key(data_dir: &Path) -> Result<String, String> {
     fs::write(&path, &key).map_err(|e| e.to_string())?;
     enforce_0600(&path);
     Ok(key)
+}
+
+/// The audit chain key (tamper-evidence). See [`load_or_create_token`].
+pub fn load_or_create_key(data_dir: &Path) -> Result<String, String> {
+    load_or_create_token(data_dir, "audit.key")
 }
 
 // ---- truncation anchor ----

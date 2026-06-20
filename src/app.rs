@@ -9,7 +9,7 @@ use std::{
 /// Create a directory (recursively) and lock it to 0700 — the .vanta store holds
 /// the audit key, tokens, and the event log, so it must not be world-readable on a
 /// shared host. Re-asserts the mode each call (cheap, fixes a pre-existing 0755 dir).
-fn ensure_private_dir(path: &Path) -> std::io::Result<()> {
+pub fn ensure_private_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)?;
     fs::set_permissions(path, fs::Permissions::from_mode(0o700))
 }

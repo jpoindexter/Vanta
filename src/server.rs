@@ -14,13 +14,17 @@ const READ_TIMEOUT: Duration = Duration::from_secs(15);
 pub fn serve(state: app::State, port: u16) -> Result<(), String> {
     let addr = format!("127.0.0.1:{port}");
     let listener = TcpListener::bind(&addr).map_err(|e| e.to_string())?;
+    // Per-install API token (0600). Non-browser callers (the TS client) must present it
+    // so a different LOCAL user — who can't read the 0600 file — can't drive the API.
+    app::ensure_private_dir(&state.data_dir).map_err(|e| e.to_string())?; // token write needs .vanta/ (0700)
+    let token = crate::audit::load_or_create_token(&state.data_dir, "api-token")?;
     println!("Vanta cockpit: http://{addr}");
     for stream in listener.incoming() {
         match stream {
             Ok(mut s) => {
                 let _ = s.set_read_timeout(Some(READ_TIMEOUT));
                 // One bad/slow request must never take the whole kernel down.
-                if let Err(err) = handle(&mut s, &state) {
+                if let Err(err) = handle(&mut s, &state, &token) {
                     eprintln!("request error: {err}");
                 }
             }
@@ -30,7 +34,7 @@ pub fn serve(state: app::State, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
+fn handle(stream: &mut TcpStream, state: &app::State, token: &str) -> Result<(), String> {
     let mut buf = [0_u8; 8192];
     let n = stream.read(&mut buf).map_err(|e| e.to_string())?;
     let req = String::from_utf8_lossy(&buf[..n]);
@@ -39,11 +43,14 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
     let first_body = parts.next().unwrap_or_default();
     let body = read_body(stream, head, first_body)?;
 
-    // CSRF guard: refuse any /api/* request that a browser marks cross-origin. The
-    // kernel binds loopback, but without this a malicious web page could drive the API
-    // (approve risky actions, add goals, write the audit log) via the user's browser.
-    if request_path(head).starts_with("/api/") && cross_origin(head) {
-        return forbidden(stream);
+    // Authenticate /api/*: foreign browser origin → 403 (CSRF); same-origin cockpit
+    // (loopback Origin) → ok; non-browser callers must present the per-install token.
+    if request_path(head).starts_with("/api/") {
+        match api_auth(head, token) {
+            ApiAuth::Forbidden => return forbidden(stream),
+            ApiAuth::Unauthorized => return unauthorized(stream),
+            ApiAuth::Ok => {}
+        }
     }
 
     if head.starts_with("GET /api/status") {
@@ -160,10 +167,69 @@ fn cross_origin(head: &str) -> bool {
     })
 }
 
+/// True if any Origin/Referer header names a loopback host (a same-origin cockpit call).
+fn has_loopback_origin(head: &str) -> bool {
+    head.lines().any(|line| {
+        let lower = line.to_ascii_lowercase();
+        lower
+            .strip_prefix("origin:")
+            .or_else(|| lower.strip_prefix("referer:"))
+            .map(str::trim)
+            .map(|h| h.contains("//127.0.0.1") || h.contains("//localhost") || h.contains("//[::1]"))
+            .unwrap_or(false)
+    })
+}
+
+/// Extract a bearer/X-Vanta-Token header value (case-insensitive name, value preserved).
+fn header_token(head: &str) -> Option<String> {
+    head.lines().find_map(|line| {
+        let (name, val) = line.split_once(':')?;
+        let val = val.trim();
+        match name.trim().to_ascii_lowercase().as_str() {
+            "authorization" => val.strip_prefix("Bearer ").or_else(|| val.strip_prefix("bearer ")).map(|t| t.trim().to_string()),
+            "x-vanta-token" => Some(val.to_string()),
+            _ => None,
+        }
+    })
+}
+
+enum ApiAuth {
+    Ok,
+    Forbidden,
+    Unauthorized,
+}
+
+/// Authorize an /api/* request. `/api/status` is open (launcher readiness poll); a
+/// foreign browser origin is CSRF (Forbidden); a same-origin cockpit call is trusted;
+/// everything else (curl, the TS client, another local process) must present the token.
+fn api_auth(head: &str, token: &str) -> ApiAuth {
+    if request_path(head).starts_with("/api/status") {
+        return ApiAuth::Ok;
+    }
+    if cross_origin(head) {
+        return ApiAuth::Forbidden;
+    }
+    if has_loopback_origin(head) {
+        return ApiAuth::Ok;
+    }
+    if header_token(head).as_deref() == Some(token) {
+        ApiAuth::Ok
+    } else {
+        ApiAuth::Unauthorized
+    }
+}
+
 fn forbidden(stream: &mut TcpStream) -> Result<(), String> {
-    let body = "{\"error\":\"cross-origin request refused\"}";
+    write_status(stream, "403 Forbidden", "{\"error\":\"cross-origin request refused\"}")
+}
+
+fn unauthorized(stream: &mut TcpStream) -> Result<(), String> {
+    write_status(stream, "401 Unauthorized", "{\"error\":\"missing or invalid API token\"}")
+}
+
+fn write_status(stream: &mut TcpStream, status: &str, body: &str) -> Result<(), String> {
     let response = format!(
-        "HTTP/1.1 403 Forbidden\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",
+        "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",
         body.as_bytes().len()
     );
     stream.write_all(response.as_bytes()).map_err(|e| e.to_string())
@@ -221,7 +287,25 @@ fn write_response(stream: &mut TcpStream, mime: &str, body: &str) -> Result<(), 
 
 #[cfg(test)]
 mod tests {
-    use super::{cross_origin, request_path};
+    use super::{api_auth, cross_origin, request_path, ApiAuth};
+
+    #[test]
+    fn api_auth_enforces_token_and_origin() {
+        let tok = "deadbeefcafe";
+        let ck = |h: &str| matches!(api_auth(h, tok), ApiAuth::Ok);
+        // health is open so the launcher can poll readiness without the token
+        assert!(ck("GET /api/status HTTP/1.1\r\n"));
+        // same-origin cockpit (loopback Origin) → ok, no token needed
+        assert!(ck("POST /api/goals/add HTTP/1.1\r\nOrigin: http://127.0.0.1:7788\r\n"));
+        // non-browser caller WITH the valid token → ok (the TS client path)
+        assert!(ck("POST /api/run HTTP/1.1\r\nAuthorization: Bearer deadbeefcafe\r\n"));
+        assert!(ck("POST /api/run HTTP/1.1\r\nX-Vanta-Token: deadbeefcafe\r\n"));
+        // foreign origin → forbidden (CSRF)
+        assert!(matches!(api_auth("POST /api/run HTTP/1.1\r\nOrigin: https://evil.com\r\n", tok), ApiAuth::Forbidden));
+        // no origin + no/wrong token → unauthorized (rogue local process)
+        assert!(matches!(api_auth("POST /api/run HTTP/1.1\r\nContent-Length: 1\r\n", tok), ApiAuth::Unauthorized));
+        assert!(matches!(api_auth("POST /api/run HTTP/1.1\r\nAuthorization: Bearer wrong\r\n", tok), ApiAuth::Unauthorized));
+    }
 
     #[test]
     fn cross_origin_blocks_foreign_and_allows_loopback() {
