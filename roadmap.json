@@ -2244,7 +2244,7 @@
       "id": "VANTA-PROMPT-CACHE-BREAK",
       "track": "Harness",
       "title": "Prompt cache break detection — detect invalidation, trigger microcompact cleanup",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (feature-gated `PROMPT_CACHE_BREAK_DETECTION`) detects when the Anthropic API prompt cache is invalidated (cache miss after a hit sequence). On detection, triggers cleanup: subagents are notified via `notifyCompaction`, and /compact can respond reactively. Prevents unnecessary re-billing from repeated cache misses. Feature flag: `BREAK_CACHE_COMMAND`.",
       "done": "When the cache breaks mid-session, a microcompact runs to shrink the prompt before the next request, avoiding a large uncached prefix resend.",
@@ -2253,7 +2253,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure stablePrefixHash (sha256) + detectCacheBreak + cacheBreakState (threaded, first-seen=no break, A->B->A breaks each transition). Detector built+tested; wire follow-up: buildSystemPrompt per-turn holds CacheBreakState, on break triggers time-microcompact clearStaleToolResults."
     },
     {
       "id": "VANTA-DUMP-SYS-PROMPT",
@@ -2319,7 +2320,7 @@
       "id": "VANTA-HOOK-CONTINUE-BLOCK",
       "track": "Harness",
       "title": "Hook `continueOnBlock` — feed PostToolUse rejection reason back to model",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.139) adds `continueOnBlock: true` to `PostToolUse` hook config. When the hook blocks a tool, instead of hard-stopping, the rejection reason is fed back to Claude as a tool result so it can adapt its approach.",
       "done": "A PostToolUse hook blocks `rm -rf` and sets `continueOnBlock: true`. Claude receives 'destructive rm blocked' as the tool result and chooses a safer alternative.",
@@ -2328,7 +2329,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SANDBOX-NETWORK-DENY",

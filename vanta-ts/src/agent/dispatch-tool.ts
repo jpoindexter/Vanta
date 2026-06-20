@@ -4,7 +4,7 @@ import type { AgentDeps } from "./agent-types.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-helpers.js";
 import { offloadResult } from "../compress/result-offload.js";
 import { isPlanBlocked } from "./plan-gate.js";
-import { firePreToolUse, fireHooks } from "../hooks/shell-hooks.js";
+import { firePreToolUse, firePostToolUse, fireHooks } from "../hooks/shell-hooks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
@@ -41,9 +41,11 @@ export async function dispatchTool(
 
   const execCtx = executionContext(call.name, ctx);
   const res = await executeWithRetry(call, deps, execCtx, tool);
+  const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
+  if (postBlocked) return postBlocked;
   deps.onToolResult?.(call.name, res.ok, res.output, res.diff);
   deps.onEvent?.({ type: "tool_end", name: call.name, ok: res.ok, output: res.output });
-  firePostToolHooks({ dataDir, root: ctx.root, call, res, hookDeps });
+  fireFailureHook({ dataDir, root: ctx.root, call, res, hookDeps });
 
   const compressed = await compressOutput(call.name, res.output, ctx.root);
   // Tool-result offload: size-based backstop AFTER lossy compression — catches any
@@ -77,7 +79,38 @@ async function applyPreToolUseHooks(
   return undefined;
 }
 
-function firePostToolHooks(o: {
+/**
+ * Run PostToolUse hooks AFTER the tool executed. A block (exit 2) without
+ * `continueOnBlock` hard-stops the turn (returns a blocked outcome, as today);
+ * with `continueOnBlock` the rejection reason is fed BACK to the model — appended
+ * to the tool result (mutated in place) — so it can adapt and the turn continues.
+ * No PostToolUse hook blocks → `undefined` (byte-identical to the prior path).
+ */
+async function applyPostToolUseBlock(o: {
+  call: ToolCall;
+  deps: AgentDeps;
+  ctx: ToolContext;
+  res: { ok: boolean; output: string; diff?: unknown };
+  hookDeps: ReturnType<typeof buildAgentHookDeps>;
+}): Promise<DispatchOutcome | undefined> {
+  const { call, deps, ctx, res, hookDeps } = o;
+  const dataDir = join(ctx.root, ".vanta");
+  const context = { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } };
+  const opts = { toolName: call.name, matcherValue: call.name, isError: !res.ok, cwd: ctx.root, ...hookDeps };
+  const post = await firePostToolUse(dataDir, context, opts);
+  if (post.hardStop) {
+    const output = `blocked by PostToolUse hook: ${post.feedback ?? "rejected"}`;
+    deps.onToolResult?.(call.name, false, output);
+    deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
+    return { executed: false, empty: false, ok: false, output };
+  }
+  if (post.feedback) res.output = `${res.output}\n\n[PostToolUse hook] ${post.feedback}`;
+  return undefined;
+}
+
+/** PostToolUse runs through firePostToolUse (it can block); PostToolUseFailure
+ *  stays fire-and-forget — it only fires when the tool already errored. */
+function fireFailureHook(o: {
   dataDir: string;
   root: string;
   call: ToolCall;
@@ -85,10 +118,10 @@ function firePostToolHooks(o: {
   hookDeps: ReturnType<typeof buildAgentHookDeps>;
 }): void {
   const { dataDir, root, call, res, hookDeps } = o;
+  if (res.ok) return;
   const hookContext = { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } };
-  const opts = { toolName: call.name, matcherValue: call.name, isError: !res.ok, cwd: root, ...hookDeps };
-  void fireHooks(dataDir, "PostToolUse", hookContext, opts);
-  if (!res.ok) void fireHooks(dataDir, "PostToolUseFailure", hookContext, { ...opts, isError: true });
+  const opts = { toolName: call.name, matcherValue: call.name, isError: true, cwd: root, ...hookDeps };
+  void fireHooks(dataDir, "PostToolUseFailure", hookContext, opts);
 }
 
 function executionContext(toolName: string, ctx: ToolContext): ToolContext {
