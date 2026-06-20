@@ -9,6 +9,7 @@ import type { PluginCommandRegistry } from "./commands.js";
 import type { PluginManifest } from "./manifest.js";
 import { parsePluginManifest } from "./manifest.js";
 import { createPluginContext, type PluginContext } from "./context.js";
+import { armMonitors, type DisarmHandle, type MonitorDeps } from "./monitors.js";
 
 type Source = "bundled" | "user" | "project";
 
@@ -19,7 +20,22 @@ type PluginCandidate = {
 };
 
 export type PluginDiagnostic = { plugin: string; source: Source | "unknown"; ok: boolean; message: string };
-export type PluginLoadResult = { loaded: string[]; diagnostics: PluginDiagnostic[] };
+export type PluginLoadResult = { loaded: string[]; diagnostics: PluginDiagnostic[]; monitors: DisarmHandle[] };
+
+// Real arming: interval monitors get a Node timer; `run` executes the monitor's
+// shell command (best-effort, errors swallowed by armMonitors' fire wrapper).
+function defaultMonitorDeps(log: (message: string) => void): MonitorDeps {
+  return {
+    schedule(intervalMs, fire) {
+      const timer = setInterval(fire, intervalMs);
+      if (typeof timer.unref === "function") timer.unref();
+      return () => clearInterval(timer);
+    },
+    run(monitor) {
+      log(`  · monitor ${monitor.name}: tick`);
+    },
+  };
+}
 
 export type PluginModule = {
   register?: (ctx: PluginContext) => void | Promise<void>;
@@ -68,17 +84,19 @@ export async function loadEnabledPlugins(opts: {
   settings: Settings;
   env: NodeJS.ProcessEnv;
   log?: (message: string) => void;
+  monitorDeps?: MonitorDeps;
 }): Promise<PluginLoadResult> {
   const enabled = new Set(opts.settings.plugins?.enabled ?? []);
   const diagnostics: PluginDiagnostic[] = [];
   const loaded: string[] = [];
-  if (!enabled.size) return { loaded, diagnostics };
+  const monitors: DisarmHandle[] = [];
+  if (!enabled.size) return { loaded, diagnostics, monitors };
 
   let candidates: PluginCandidate[];
   try {
     candidates = await discoverPlugins(opts.repoRoot, opts.settings, opts.env);
   } catch (err) {
-    return { loaded, diagnostics: [{ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message }] };
+    return { loaded, diagnostics: [{ plugin: "(discovery)", source: "unknown", ok: false, message: (err as Error).message }], monitors };
   }
 
   const byName = new Map(candidates.map((c) => [c.manifest.name, c]));
@@ -93,11 +111,14 @@ export async function loadEnabledPlugins(opts: {
       diagnostics.push({ plugin: name, source: candidate.source, ok: false, message: `missing env: ${missingEnv.join(", ")}` });
       continue;
     }
-    const result = await loadOnePlugin(candidate, opts);
-    diagnostics.push(result);
-    if (result.ok) loaded.push(name);
+    const { diagnostic, monitors: armed } = await loadOnePlugin(candidate, opts);
+    diagnostics.push(diagnostic);
+    if (diagnostic.ok) {
+      loaded.push(name);
+      monitors.push(...armed);
+    }
   }
-  return { loaded, diagnostics };
+  return { loaded, diagnostics, monitors };
 }
 
 async function loadOnePlugin(candidate: PluginCandidate, opts: {
@@ -106,7 +127,9 @@ async function loadOnePlugin(candidate: PluginCandidate, opts: {
   commands: PluginCommandRegistry;
   env: NodeJS.ProcessEnv;
   log?: (message: string) => void;
-}): Promise<PluginDiagnostic> {
+  monitorDeps?: MonitorDeps;
+}): Promise<{ diagnostic: PluginDiagnostic; monitors: DisarmHandle[] }> {
+  const log = opts.log ?? (() => {});
   try {
     const entry = resolve(candidate.dir, candidate.manifest.main);
     if (!entry.startsWith(candidate.dir)) throw new Error("plugin main must stay inside plugin directory");
@@ -120,15 +143,19 @@ async function loadOnePlugin(candidate: PluginCandidate, opts: {
       vantaHome: resolveVantaHome(opts.env),
       registry: opts.registry,
       commands: opts.commands,
-      log: opts.log ?? (() => {}),
+      log,
     });
     await register(ctx);
     for (const tool of contribution.tools) opts.registry.register(tool);
     for (const command of contribution.commands) opts.commands.register(candidate.manifest.name, command.name, command.handler, command.meta);
-    opts.log?.(`  · plugin: loaded ${candidate.manifest.name} (${contribution.tools.length} tool(s), ${contribution.commands.length} command(s))`);
-    return { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "loaded" };
+    // Auto-arm declared background monitors once the plugin has registered.
+    // No monitors declared → armMonitors is a no-op (empty handles, no schedule).
+    const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
+    if (monitors.length) log(`  · plugin ${candidate.manifest.name}: armed ${monitors.length} monitor(s)`);
+    log(`  · plugin: loaded ${candidate.manifest.name} (${contribution.tools.length} tool(s), ${contribution.commands.length} command(s))`);
+    return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: true, message: "loaded" }, monitors };
   } catch (err) {
-    return { plugin: candidate.manifest.name, source: candidate.source, ok: false, message: (err as Error).message };
+    return { diagnostic: { plugin: candidate.manifest.name, source: candidate.source, ok: false, message: (err as Error).message }, monitors: [] };
   }
 }
 
