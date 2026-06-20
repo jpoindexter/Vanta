@@ -2,7 +2,14 @@ use crate::{app, approvals, goals, loops, runtime, safety, spawn};
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
+    time::Duration,
 };
+
+/// Cap on a request body — the kernel API only ever receives short JSON/text, so an
+/// attacker-declared huge Content-Length must not drive an unbounded allocation.
+const MAX_BODY: usize = 1 << 20; // 1 MiB
+/// Slow-loris bound: a client that stops sending mid-request can't pin the (serial) loop.
+const READ_TIMEOUT: Duration = Duration::from_secs(15);
 
 pub fn serve(state: app::State, port: u16) -> Result<(), String> {
     let addr = format!("127.0.0.1:{port}");
@@ -10,7 +17,13 @@ pub fn serve(state: app::State, port: u16) -> Result<(), String> {
     println!("Vanta cockpit: http://{addr}");
     for stream in listener.incoming() {
         match stream {
-            Ok(mut s) => handle(&mut s, &state)?,
+            Ok(mut s) => {
+                let _ = s.set_read_timeout(Some(READ_TIMEOUT));
+                // One bad/slow request must never take the whole kernel down.
+                if let Err(err) = handle(&mut s, &state) {
+                    eprintln!("request error: {err}");
+                }
+            }
             Err(err) => eprintln!("connection error: {err}"),
         }
     }
@@ -25,6 +38,13 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
     let head = parts.next().unwrap_or_default();
     let first_body = parts.next().unwrap_or_default();
     let body = read_body(stream, head, first_body)?;
+
+    // CSRF guard: refuse any /api/* request that a browser marks cross-origin. The
+    // kernel binds loopback, but without this a malicious web page could drive the API
+    // (approve risky actions, add goals, write the audit log) via the user's browser.
+    if request_path(head).starts_with("/api/") && cross_origin(head) {
+        return forbidden(stream);
+    }
 
     if head.starts_with("GET /api/status") {
         json(
@@ -116,6 +136,39 @@ fn path_tail<'a>(head: &'a str, prefix: &str) -> &'a str {
         .unwrap_or("")
 }
 
+/// The request path (2nd token of the request line).
+fn request_path(head: &str) -> &str {
+    head.split_whitespace().nth(1).unwrap_or("/")
+}
+
+/// True if a browser marked this request cross-origin (Origin/Referer present and not
+/// loopback). Browsers always send Origin on a cross-site fetch, so this is a reliable
+/// CSRF signal; non-browser clients (curl, the TS safety-client) send none → allowed.
+/// A `null` / non-loopback Origin (sandboxed iframe, file://, evil.com) is refused.
+fn cross_origin(head: &str) -> bool {
+    head.lines().any(|line| {
+        let lower = line.to_ascii_lowercase();
+        let val = lower
+            .strip_prefix("origin:")
+            .or_else(|| lower.strip_prefix("referer:"));
+        match val.map(str::trim) {
+            Some(host) => {
+                !(host.contains("//127.0.0.1") || host.contains("//localhost") || host.contains("//[::1]"))
+            }
+            None => false,
+        }
+    })
+}
+
+fn forbidden(stream: &mut TcpStream) -> Result<(), String> {
+    let body = "{\"error\":\"cross-origin request refused\"}";
+    let response = format!(
+        "HTTP/1.1 403 Forbidden\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",
+        body.as_bytes().len()
+    );
+    stream.write_all(response.as_bytes()).map_err(|e| e.to_string())
+}
+
 /// Module results → JSON over the wire: Ok payloads pass through, Err becomes
 /// an {"error": …} object the cockpit can render.
 fn respond_result(stream: &mut TcpStream, result: Result<String, String>) -> Result<(), String> {
@@ -130,8 +183,10 @@ fn read_body(stream: &mut TcpStream, head: &str, first_body: &str) -> Result<Str
         .lines()
         .find_map(|line| line.strip_prefix("Content-Length: "))
         .and_then(|n| n.trim().parse::<usize>().ok())
-        .unwrap_or(first_body.len());
+        .unwrap_or(first_body.len())
+        .min(MAX_BODY); // clamp (don't error → don't kill the loop) so a huge declared length can't OOM us
     let mut body = first_body.as_bytes().to_vec();
+    body.truncate(MAX_BODY);
     while body.len() < wanted {
         let mut more = vec![0_u8; wanted - body.len()];
         let n = stream.read(&mut more).map_err(|e| e.to_string())?;
@@ -152,13 +207,37 @@ fn json(stream: &mut TcpStream, body: &str) -> Result<(), String> {
 }
 
 fn write_response(stream: &mut TcpStream, mime: &str, body: &str) -> Result<(), String> {
+    // No `Access-Control-Allow-Origin: *` — the cockpit is same-origin, and advertising
+    // wildcard CORS would let any web page READ kernel API responses. Same-origin XHR
+    // needs no CORS header; cross-origin reads are now refused by omission + cross_origin().
     let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: {mime}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\n\r\n{body}",
+        "HTTP/1.1 200 OK\r\nContent-Type: {mime}\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n{body}",
         body.as_bytes().len()
     );
     stream
         .write_all(response.as_bytes())
         .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{cross_origin, request_path};
+
+    #[test]
+    fn cross_origin_blocks_foreign_and_allows_loopback() {
+        assert!(cross_origin("POST /api/goals/add HTTP/1.1\r\nOrigin: https://evil.com\r\n"));
+        assert!(cross_origin("POST /api/run HTTP/1.1\r\nOrigin: null\r\n"));
+        assert!(cross_origin("GET /api/goals HTTP/1.1\r\nReferer: http://attacker.test/x\r\n"));
+        assert!(!cross_origin("POST /api/goals/add HTTP/1.1\r\nOrigin: http://127.0.0.1:7788\r\n"));
+        assert!(!cross_origin("GET /api/status HTTP/1.1\r\nReferer: http://localhost:7788/\r\n"));
+        assert!(!cross_origin("POST /api/run HTTP/1.1\r\nContent-Length: 3\r\n")); // no Origin = curl/TS client
+    }
+
+    #[test]
+    fn request_path_reads_the_second_token() {
+        assert_eq!(request_path("POST /api/run HTTP/1.1"), "/api/run");
+        assert_eq!(request_path("garbage"), "/");
+    }
 }
 
 const INDEX: &str = include_str!("cockpit.html");
