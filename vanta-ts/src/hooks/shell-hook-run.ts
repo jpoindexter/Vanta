@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import {
   loadShellHooks,
   matchingHooks,
@@ -6,6 +6,7 @@ import {
   type ShellHook,
   type MatchContext,
 } from "./shell-hooks.js";
+import { resolveHookExec } from "./hook-exec-form.js";
 import { runMcpToolHook } from "./mcp-hook-run.js";
 import { runHttpHook } from "./http-hook-run.js";
 import { runPromptHook } from "./prompt-hook-run.js";
@@ -63,11 +64,39 @@ function runHookNow(hook: ShellHook, contextJson: string, opts: HookRunOpts): Pr
   if (type === "http") return runHttpHook(hook, contextJson, { env: opts.env, timeoutMs: hook.timeoutMs });
   if (type === "prompt") return runPromptHook(hook, contextJson, { provider: opts.promptProvider });
   if (type === "agent") return opts.runAgentHook ? opts.runAgentHook(hook, contextJson) : Promise.resolve({ code: 1, stdout: "", stderr: "agent hook requires agent deps" });
-  if (!hook.command) return Promise.resolve({ code: 1, stdout: "", stderr: "hook has no command" });
-  return runShellHook(hook.command, contextJson, { cwd: opts.cwd, timeoutMs: hook.timeoutMs });
+  const exec = resolveHookExec(hook);
+  if (exec.form === "error") return Promise.resolve({ code: 1, stdout: "", stderr: exec.reason });
+  const spawnOpts = { cwd: opts.cwd, timeoutMs: hook.timeoutMs };
+  if (exec.form === "exec") return runExecHook(exec.file, exec.args, contextJson, spawnOpts);
+  return runShellHook(exec.command, contextJson, spawnOpts);
 }
 
 export type ShellHookResult = { code: number; stdout: string; stderr: string };
+
+type ChildProc = ReturnType<typeof spawn>;
+
+/**
+ * Wire a spawned hook child: capture stdout/stderr, enforce the timeout, pipe
+ * the JSON context to stdin, resolve with the exit code + output. A spawn
+ * failure resolves to code 0 (fail-open on a broken hook); a timeout to 124.
+ * Shared by the shell and exec spawn paths so they have identical semantics.
+ */
+function pipeChild(child: ChildProc, contextJson: string, timeoutMs: number): Promise<ShellHookResult> {
+  return new Promise((resolve) => {
+    let stdout = "";
+    let stderr = "";
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      resolve({ code: 124, stdout, stderr: `${stderr}\n[hook timed out]` });
+    }, timeoutMs);
+    child.stdout?.on("data", (d) => { stdout += String(d); });
+    child.stderr?.on("data", (d) => { stderr += String(d); });
+    child.stdin?.on("error", () => {});
+    child.on("error", () => { clearTimeout(timer); resolve({ code: 0, stdout, stderr }); });
+    child.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 0, stdout, stderr }); });
+    child.stdin?.end(contextJson);
+  });
+}
 
 /**
  * Spawn one shell hook, piping the JSON context to its stdin. Resolves with the
@@ -79,21 +108,24 @@ export function runShellHook(
   contextJson: string,
   opts: { timeoutMs?: number; cwd?: string } = {},
 ): Promise<ShellHookResult> {
-  return new Promise((resolve) => {
-    let stdout = "";
-    let stderr = "";
-    const child = spawn(command, { shell: true, cwd: opts.cwd });
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      resolve({ code: 124, stdout, stderr: `${stderr}\n[hook timed out]` });
-    }, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-    child.stdout?.on("data", (d) => { stdout += String(d); });
-    child.stderr?.on("data", (d) => { stderr += String(d); });
-    child.stdin?.on("error", () => {});
-    child.on("error", () => { clearTimeout(timer); resolve({ code: 0, stdout, stderr }); });
-    child.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 0, stdout, stderr }); });
-    child.stdin?.end(contextJson);
-  });
+  const child = spawn(command, { shell: true, cwd: opts.cwd });
+  return pipeChild(child, contextJson, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+}
+
+/**
+ * Spawn one exec-form hook DIRECTLY via execFile (no shell), piping the JSON
+ * context to its stdin. `file` is spawned with `args` argv verbatim — the
+ * command string is never interpreted by a shell, so there is no shell
+ * injection/quoting hazard. Same timeout/fail-open semantics as runShellHook.
+ */
+export function runExecHook(
+  file: string,
+  args: string[],
+  contextJson: string,
+  opts: { timeoutMs?: number; cwd?: string } = {},
+): Promise<ShellHookResult> {
+  const child = execFile(file, args, { cwd: opts.cwd });
+  return pipeChild(child, contextJson, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 }
 
 function seenOnce(event: ShellHookEvent, hook: ShellHook): boolean {
