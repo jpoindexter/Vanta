@@ -19,6 +19,7 @@ import { recover } from "./recover-cmd.js";
 import { wm } from "./wm.js";
 import { model } from "./model-cmd.js";
 import { effort } from "./effort-cmd.js";
+import { env } from "./env-cmd.js";
 import { moim } from "./moim-cmd.js";
 import { record } from "./record-cmd.js";
 import { restart } from "./restart-cmd.js";
@@ -144,7 +145,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
+  export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, env, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,

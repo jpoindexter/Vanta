@@ -12,6 +12,7 @@ import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
+import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
@@ -154,12 +155,21 @@ function warnPrefix(command: string): string {
   return warn ? `⚠ ${warn}\n` : "";
 }
 
+/** Spawn options for the child. Session env (VANTA-SESSION-ENV) is merged over
+ *  process.env; with NO session vars the merge returns process.env unchanged, so
+ *  the `env` field is omitted and the spawn is byte-identical to today's. */
+function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
+  const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
+  const base = { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
+  return childEnv === process.env ? base : { ...base, env: childEnv };
+}
+
 /** Run the command on the active execution backend (local / OS sandbox / docker). */
 async function runLocal(command: string, root: string, pfx: string): Promise<ToolResult> {
   const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
   if (isSandboxError(sb)) return { ok: false, output: pfx + sb.error };
   try {
-    const { stdout, stderr } = await run(sb.cmd, sb.args, { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
+    const { stdout, stderr } = await run(sb.cmd, sb.args, childRunOpts(root));
     const out = combineOutput(stdout, stderr);
     return { ok: true, output: pfx + (out || "(command produced no output)") };
   } catch (err) {
