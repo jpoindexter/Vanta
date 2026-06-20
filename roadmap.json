@@ -14808,7 +14808,7 @@
       "id": "COFOUNDER-DEPARTMENT-UNIT",
       "track": "Cofounder engine",
       "title": "Departments as first-class org units (roles + standing budget + standing goals + default skills)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "THEFT/PARITY-DELTA seeds 8 departments each with a default agent, default skills, and default starter issues, and DECISIONS locks departments as structural — but Vanta's team layer only has flat role-tagged workers (team/hire.ts, team/store.ts) and a derived org-chart (team/org-chart.ts, reporting lines only). There is no named org unit that owns a standing goal set, a scoped budget, a skill bundle, and a worker roster as one durable entity. Build a Department primitive over team/* that binds workers, a goal-subset (goals.tsv), a budget scope (budget/store.ts already keys by scope), and a default skill set, so the engine can fan work out per-department rather than per-loose-worker.",
       "done": "`vanta dept add <name>` creates a department that owns >=1 worker, a budget scope, and a standing goal, and `vanta dept status` shows per-department roster, spend-vs-budget, and open goals.",
