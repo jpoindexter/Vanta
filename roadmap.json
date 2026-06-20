@@ -2135,7 +2135,7 @@
       "id": "VANTA-SESSION-ENV",
       "track": "Harness",
       "title": "/env — set session-scoped environment variables for child processes",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has an `/env` command that sets session-scoped environment variables. These are stored in `sessionEnvVars` and applied only to spawned child processes (via the bash provider env overrides) — NOT to the REPL process itself. Useful for temporarily setting API keys, feature flags, or tool configuration without modifying shell profile.",
       "done": "`/env FOO=bar` sets FOO for subsequent bash tool calls in the session. `/env` with no args shows current session env vars. Vars are cleared on session end.",
@@ -2144,7 +2144,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "/env set|unset|list + session-env store + applySessionEnv merge into shell_cmd child spawns (no session env = byte-identical, kernel still gates). run_code currently inherits process.env without the session-env merge — extending the merge to run_code is a small follow-up."
     },
     {
       "id": "VANTA-PRIVACY-LEVELS",
