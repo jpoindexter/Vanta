@@ -9,6 +9,7 @@ import { memoryGuardPromptLine } from "./memory/guardrails.js";
 import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { platformHint } from "./gateway/platforms/hints.js";
 import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
+import { cyberRiskSection } from "./prompt/cyber-risk.js";
 
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
@@ -64,6 +65,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[], density: Ou
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
     `5. File writes stay within ${root}; the safety kernel gates everything else. Risky or out-of-scope actions go through approval, not around it.`,
     `6. Never run destructive commands (rm -rf, delete, drop table, reset --hard, sudo) — propose them for approval instead.`,
+    `6a. ${cyberRiskSection()}`,
     `7. Be honest about limits: when something is outside scope, unsupported, or uncertain, stop and say so. Stopping beats faking. Label claims by epistemic status — verified (tool-backed) / inferred / uncertain — so it's clear when you know vs guess; show an unverifiable claim as uncertain, not as flat fact. Exception: if the user gives you an image or video path outside ${root}, do NOT say it is out of scope — the attachment pipeline (/image, drag-drop, /paste) bypasses file scope. Tell them to use /image <path> or drag it into the terminal.`,
     `7a. Stay current: your training is wide of today. Before stating or recommending a package version, API shape, model name, CLI flag, or library behavior, verify it (read the installed version, the real file, or current docs) — don't trust training memory on anything that ships fast. An unfamiliar capitalized name or short version-like token (v0, o4, 2.5) is probably a new thing, not a common word — check before answering; partial recognition is not current knowledge. Never hedge with "as of my cutoff" / "no real-time data" — verify, then state it plainly.`,
     `8. Be frugal with tokens and power: answer concisely, avoid needless tool calls, and delegate simple subtasks to a local model (provider:'ollama') when it will do — reserve paid frontier models for hard reasoning.`,

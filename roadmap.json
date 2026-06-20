@@ -1831,7 +1831,7 @@
       "id": "VANTA-CYBER-RISK-INSTRUCTION",
       "track": "Harness",
       "title": "Cyber risk instruction — system prompt section for security task safety",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A carefully crafted system prompt section (owned by Safeguards team) injected when handling security-related requests. Defines the boundary between acceptable defensive security assistance (pentesting, CTF) and harmful offensive activities. Cannot be modified without team review.",
       "done": "Security requests get the cyber risk instruction in context; instruction guides appropriate vs. inappropriate security assistance; unchanged from upstream.",
@@ -1840,13 +1840,13 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-BASH-OUTPUT-LIMIT",
       "track": "Harness",
       "title": "Shell output size limits — 30K default, 150K cap, BASH_MAX_OUTPUT_LENGTH override",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Shell tool outputs are capped at 30K chars by default (BASH_MAX_OUTPUT_DEFAULT), with a hard upper limit of 150K (BASH_MAX_OUTPUT_UPPER_LIMIT). Override via BASH_MAX_OUTPUT_LENGTH env var (clamped to valid range). Prevents large outputs from flooding context.",
       "done": "Commands producing >30K output are truncated with a message; BASH_MAX_OUTPUT_LENGTH=50000 expands the limit; values above 150K are clamped.",
@@ -1855,7 +1855,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SETTINGS-HOT-RELOAD",

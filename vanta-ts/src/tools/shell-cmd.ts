@@ -11,16 +11,24 @@ import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
+import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
 /** Combine captured stdout/stderr into the tool output, stripping any subprocess
  *  plugin-hint tags from stderr and appending an install suggestion so the model
- *  never sees the raw tag. No hint tag → byte-identical to the plain join. */
+ *  never sees the raw tag, then bounding the size (head+tail with a truncation
+ *  marker) so a multi-megabyte dump can't flood the context. No hint tag and
+ *  output under the limit → byte-identical to the plain join. */
 function combineOutput(stdout: string | undefined, stderr: string | undefined): string {
   const { hints, stripped } = parseVantaHints(stderr ?? "");
-  const out = [stdout, stripped].filter(Boolean).join("\n").trim();
-  if (hints.length === 0) return out;
+  const joined = [stdout, stripped].filter(Boolean).join("\n").trim();
+  const out = hints.length === 0 ? joined : appendSuggestion(joined, hints);
+  return limitOutput(out, resolveMaxOutput(process.env));
+}
+
+/** Append a plugin-install suggestion line (kept separate so combineOutput stays small). */
+function appendSuggestion(out: string, hints: ReturnType<typeof parseVantaHints>["hints"]): string {
   const suggestion = formatHintSuggestion(hints);
   return suggestion ? [out, suggestion].filter(Boolean).join("\n") : out;
 }

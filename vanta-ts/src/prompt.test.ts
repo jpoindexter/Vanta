@@ -153,6 +153,22 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("10. Voice");
   });
 
+  it("folds the cyber-risk security-task safety section into the built stable prompt", async () => {
+    const prompt = await buildSystemPrompt({
+      root: "/tmp/vanta",
+      soulPath: "/nonexistent/SOUL.md",
+      goals: [],
+      tools,
+      now: "2026-06-02T00:00:00Z",
+    });
+    // Present, and in the stable (cacheable) prefix — not the volatile suffix.
+    const { stable } = splitStableVolatile(prompt);
+    expect(stable).toContain("defensive security");
+    expect(stable).toContain("authorized pentest");
+    expect(stable).toMatch(/refuse/i);
+    expect(stable).toContain("Dual-use tools need a clear authorization context");
+  });
+
   it("frames Vanta as a personal operator across digital life, not a repo-confined coding tool", async () => {
     const prompt = await buildSystemPrompt({
       root: "/tmp/vanta",
