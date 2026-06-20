@@ -2028,7 +2028,7 @@
       "id": "VANTA-TOKEN-BUDGET-PARSE",
       "track": "Harness",
       "title": "Token budget directives — parse +500k / use 2M tokens from user messages",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent parses token budget directives from user messages: shorthand at start/end (`+500k`, `+2M`) and verbose anywhere (`use 500k tokens`, `spend 2M tokens`). Parsed budgets are passed to workflow/agent execution as spending caps. Supports k/M/B multipliers with decimal values.",
       "done": "User types 'Review all these files +500k' — the session sets a 500,000-token budget ceiling. `budget.total` and `budget.remaining()` are available to orchestration code.",
@@ -2037,7 +2037,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseTokenBudget(text) (+500k/+2M/use 2M tokens/budget N tokens/1.5m; requires a k/m suffix OR the word token(s); $/bare-number/0 -> null). Unwired this slice; intended pre-turn consumer = interactive-turn.ts where the sent text is read (alongside mode-detect/clarity gates)."
     },
     {
       "id": "VANTA-PARALLEL-TOOL-EXEC",
