@@ -24,6 +24,7 @@ import {
 } from "./inbound.js";
 import { recordSent, nodeReplyFs, type ReplyStoreDeps } from "./reply-store.js";
 import { drainLoopWakes } from "../loop/wake.js";
+import { withCaffeinate, resolveCaffeinate } from "../power/caffeinate.js";
 import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
 import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
@@ -231,6 +232,31 @@ async function pollPlatformSession(
 
 export { pollPlatformSession };
 
+type GatewayLoopArgs = {
+  deps: GatewayDeps;
+  tickMs: number;
+  log: (msg: string) => void;
+  isRunning: () => boolean;
+};
+
+/** The gateway's tick→poll→sleep loop, run for as long as `isRunning()`. */
+async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
+  const { deps, tickMs, log, isRunning } = args;
+  let session: SessionState = initialState();
+  let seen: SeenIds = newSeenIds();
+  while (isRunning()) {
+    try {
+      await gatewayTick(deps);
+      const polled = await pollPlatformSession(deps, session, seen);
+      session = polled.state;
+      seen = polled.seen;
+    } catch (err) {
+      log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
+    }
+    await sleepInterval(tickMs, isRunning);
+  }
+}
+
 export async function runGateway(deps: GatewayDeps): Promise<void> {
   const tickMs = deps.tickMs ?? DEFAULT_TICK_MS;
   const log = deps.log ?? ((m: string) => console.log(m));
@@ -245,19 +271,12 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
       (deps.platform ? ` · ${deps.platform.id} gateway live` : "") +
       " — Ctrl+C to stop.",
   );
-  let session: SessionState = initialState();
-  let seen: SeenIds = newSeenIds();
-  while (running) {
-    try {
-      await gatewayTick(deps);
-      const polled = await pollPlatformSession(deps, session, seen);
-      session = polled.state;
-      seen = polled.seen;
-    } catch (err) {
-      log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
-    }
-    await sleepInterval(tickMs, () => running);
-  }
+  // VANTA-PREVENT-SLEEP: the gateway is a long-running operation; keep macOS
+  // awake for its lifetime when opted in (off by default / no-op off-macOS).
+  await withCaffeinate(
+    () => runGatewayLoop({ deps, tickMs, log, isRunning: () => running }),
+    { enabled: resolveCaffeinate(process.env) },
+  );
   if (deps.platform) await deps.platform.disconnect().catch(() => {});
   if (webhookServer) await webhookServer.close().catch(() => {});
   log("vanta gateway: stopped.");
