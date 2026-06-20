@@ -3027,7 +3027,7 @@
       "id": "VANTA-RESOURCE-UPDATE-MSG",
       "track": "Operator",
       "title": "Resource update message — MCP resource change in transcript",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's UserResourceUpdateMessage renders MCP resource subscription updates (when a subscribed MCP resource changes) as a distinct message type in the transcript, showing what changed and from which server. Pairs with VANTA-MCP-RESOURCES (next).",
       "done": "When an MCP resource changes, a UserResourceUpdateMessage appears in the transcript: server name, resource URI, and a summary of what changed; these can be filtered from the transcript view.",
@@ -3035,7 +3035,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure formatResourceUpdate (⟳ mcp <server>: resource updated — <uri>, uri truncate 200, FULL ANSI/CSI/OSC sequence strip from server+uri so no residue/injection, newlines collapsed) + resourceUpdateLine (from an mcp notification event, isResourceChange guards resources/updated|list_changed, null for non-resource) + missing fields tolerated. Built+tested; surface = mcp/events onNotification -> transcript NoteView gated on isResourceChange (named)."
     },
     {
       "id": "VANTA-KEYBINDING-CONTEXTS",
@@ -3223,7 +3225,7 @@
       "id": "VANTA-CLIPBOARD-IMAGE-HINT",
       "track": "Operator",
       "title": "Clipboard image hint — notification on focus when clipboard has an image",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When the terminal regains focus and the clipboard contains an image, another agent shows a transient notification hinting 'Press /paste to attach image'. The hint has a 30-second cooldown to avoid spam on repeated focus changes. Pairs with the /paste command for clipboard-to-context image workflow.",
       "done": "After copying a screenshot and switching to the Vanta terminal, a hint appears: 'Image in clipboard — /paste to attach'. Dismisses after 30s.",
@@ -3232,7 +3234,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable clipboardHasImage (injected probe, throw->false, never throws) + buildClipboardImageHint (📋 ... /paste to attach) + clipboardHintEnabled (default on, VANTA_CLIPBOARD_HINT=0) + maybeClipboardHint (enabled∧image->hint else null). Probe injected (no real clipboard in tests; real boundary = term/clipboard-image.ts osascript). Built+tested; trigger = runUserTurn/sendToAgent pre-turn gate -> onText (named). No image/disabled = no hint."
     },
     {
       "id": "VANTA-SESSION-TITLE",
