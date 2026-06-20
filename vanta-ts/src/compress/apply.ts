@@ -1,5 +1,5 @@
 import type { CompressOptions } from "./types.js";
-import { compressText } from "./router.js";
+import { compressText, dedupeBlocks } from "./router.js";
 import { stashOriginal } from "./store.js";
 import { estTokens, DEFAULTS } from "./types.js";
 import { isCodeContent, compressTypeScript } from "./ast-compress.js";
@@ -80,14 +80,22 @@ export async function applyCompression(
 ): Promise<ApplyResult> {
   try {
     const result = compressText(output, options);
-    if (!result.compressed) return { output, tokensSaved: 0 };
+    // Lossless reversible pass: collapse repeated blocks the router left inline
+    // (winnow dedupeBlocks → `⟦↺#k⟧` markers). The full original is stashed below,
+    // so retrieve_original restores it exactly; this only shrinks the in-context view,
+    // and it catches repetition (boilerplate, repeated results) the router misses.
+    const dd = dedupeBlocks(result.text);
+    const text = dd.deduped > 0 ? dd.text : result.text;
+    const tokensAfter = dd.deduped > 0 ? estTokens(text) : result.tokensAfter;
+    if (tokensAfter >= result.tokensBefore) return { output, tokensSaved: 0 };
 
     const id = await stashOriginal(dataDir, output);
-    const saved = result.tokensBefore - result.tokensAfter;
+    const saved = result.tokensBefore - tokensAfter;
+    const kind = dd.deduped > 0 ? `${result.contentType}+dedup` : result.contentType;
     const footer =
-      `\n\n[vanta compressed ${result.tokensBefore}→${result.tokensAfter} tokens ` +
-      `(${result.contentType}); original_id="${id}" — call retrieve_original to expand]`;
-    return { output: result.text + footer, tokensSaved: saved };
+      `\n\n[vanta compressed ${result.tokensBefore}→${tokensAfter} tokens ` +
+      `(${kind}); original_id="${id}" — call retrieve_original to expand]`;
+    return { output: text + footer, tokensSaved: saved };
   } catch {
     return { output, tokensSaved: 0 };
   }
