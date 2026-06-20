@@ -7,6 +7,7 @@ import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
 import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
+import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -63,6 +64,8 @@ describe("registry", () => {
       "drive_read",
       "drive_update",
       "edit_file",
+      "enter_worktree",
+      "exit_worktree",
       "git_branch",
       "git_checkout",
       "git_commit",
@@ -414,5 +417,30 @@ describe("config_sandbox", () => {
     expect(scoped.schemas().map((s) => s.name).sort()).toEqual(["read_file", "shell_cmd"]);
     // No subset → the full registry.
     expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
+  });
+});
+
+describe("enter_worktree", () => {
+  it("describeForSafety surfaces the git worktree add op for the kernel", () => {
+    expect(enterWorktreeTool.describeForSafety?.({})).toContain("git worktree add");
+    expect(enterWorktreeTool.describeForSafety?.({ branch_prefix: "spike" })).toContain("spike");
+  });
+
+  it("errors-as-values on an invalid branch_prefix (never throws)", async () => {
+    const res = await enterWorktreeTool.execute({ branch_prefix: 123 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("branch_prefix");
+  });
+});
+
+describe("exit_worktree", () => {
+  it("describeForSafety surfaces the git worktree remove op (with path) for the kernel", () => {
+    expect(exitWorktreeTool.describeForSafety?.({ path: "/tmp/wt" })).toBe("git worktree remove /tmp/wt");
+  });
+
+  it("errors-as-values when path/branch are missing (never throws)", async () => {
+    const res = await exitWorktreeTool.execute({ path: "/tmp/wt" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("path and branch are required");
   });
 });

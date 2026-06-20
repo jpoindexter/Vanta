@@ -4230,7 +4230,7 @@
       "id": "VANTA-WORKTREE",
       "track": "Harness",
       "title": "Git worktree tool — isolated branch workspaces",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent has EnterWorktreeTool/ExitWorktreeTool: create a git worktree for isolated parallel work (each agent gets its own branch+directory, auto-cleaned if unchanged). Useful for multi-agent builds where agents edit different files concurrently without conflicts. Add enter_worktree / exit_worktree tools, kernel-gated (creates a new git scope).",
       "done": "`enter_worktree` / `exit_worktree` let the agent work in an isolated git worktree; auto-cleanup on exit.",

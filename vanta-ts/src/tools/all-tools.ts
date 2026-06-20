@@ -79,6 +79,7 @@ import { retrieveOriginalTool } from "./retrieve-original.js";
 import { loopTool } from "./loop.js";
 import { sendMessageTool } from "./send-message.js";
 import { playbookTool } from "./playbook.js";
+import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -198,4 +199,6 @@ export const ALL_TOOLS: readonly Tool[] = [
   loopTool,
   sendMessageTool,
   playbookTool,
+  enterWorktreeTool,
+  exitWorktreeTool,
 ];
