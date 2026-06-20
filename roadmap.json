@@ -3054,7 +3054,7 @@
       "id": "VANTA-OUTPUT-STYLE-DIR",
       "track": "Operator",
       "title": "Custom output styles via .claude/output-styles/ — markdown-file-defined styles",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Users and projects define custom output styles as .md files in ~/.claude/output-styles/ (user) or .claude/output-styles/ (project). Each file = one named style; frontmatter provides name/description; `keep-coding-instructions: true` preserves coding behavior while applying the style. Plugin styles also load here.",
       "done": "Custom output styles appear in /output-style picker; project styles override user styles; styles from plugins load alongside user/project styles; keep-coding-instructions flag respected.",
@@ -3063,7 +3063,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseOutputStyle (frontmatter name/desc + md body, slug fallback, mirrors skills/frontmatter) + listOutputStyles (both .claude/output-styles + ~/.vanta/output-styles via injected reader, project overrides user) + resolveOutputStyle (arg > VANTA_OUTPUT_STYLE > settingsName, case-insensitive, null when none) + outputStyleSection (# Output Style block, empty when null). Distinct from the existing concise/verbose outputStyle preset. Built+tested; prompt inject point = a PROMPT_TIERS tier (named). No style = no injection."
     },
     {
       "id": "VANTA-COPY-CMD",
