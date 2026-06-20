@@ -22,6 +22,7 @@ import { handoff } from "./handoff-cmd.js";
 import { open } from "./open-cmd.js";
 import { edit } from "./edit-cmd.js";
 import { tasks } from "./tasks-cmd.js";
+import { wftasks } from "./workflow-tasks-cmd.js";
 import { btw } from "./btw-cmd.js";
 import { diff } from "./diff-cmd.js";
 import { search } from "./search-cmd.js";
@@ -137,7 +138,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
-  mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
+  mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, wftasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers,

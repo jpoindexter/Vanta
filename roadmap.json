@@ -4215,7 +4215,7 @@
       "id": "VANTA-WORKFLOW-TASK-TYPE",
       "track": "Harness",
       "title": "LocalWorkflowTask — workflow script task type (WORKFLOW_SCRIPTS gate)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "LocalWorkflowTask is a task type that runs a workflow script (multi-agent orchestration). Gated behind the WORKFLOW_SCRIPTS feature flag. Enables the Workflow tool to spawn structured multi-step agent workflows tracked in the task list.",
       "done": "Running a workflow script creates a LocalWorkflowTask visible in the task list; progress tracked; workflow completion shows results.",

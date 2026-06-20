@@ -1,8 +1,10 @@
+import { join } from "node:path";
 import { z } from "zod";
-import type { Tool, ToolContext } from "./types.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { canonicalWorkflow, diffWorkflows } from "../workflow/diff.js";
 import { runWorkflowGraph } from "../workflow/execute.js";
 import { parseWorkflowGraph, validateWorkflowGraph, type WorkflowGraph } from "../workflow/schema.js";
+import { createWorkflowTask, markWorkflowTask } from "../workflow/task-store.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness.
 // Vanta can compose and run structured multi-agent workflows on the fly.
@@ -75,47 +77,54 @@ export const workflowTool: Tool = {
   async execute(args, ctx: ToolContext) {
     const parsed = Args.safeParse(args);
     if (!parsed.success) return { ok: false, output: "compose_workflow needs {spec, mode?, previous_spec?}" };
-    if (looksLikeGraph(parsed.data.spec)) return runGraphMode(parsed.data, ctx);
-
-    const err = validateWorkflow(parsed.data.spec);
-    if (err) return { ok: false, output: `Invalid workflow spec: ${err}` };
-
-    const spec = parsed.data.spec as WorkflowSpec;
-    const results: WorkflowResult["steps"] = [];
-    let totalTokens = 0;
-    const budget = spec.tokenBudget ?? 50_000;
-
-    for (const step of spec.steps) {
-      if (totalTokens >= budget) {
-        results.push({ id: step.id, type: step.type, output: "[skipped — budget exhausted]", agents: 0 });
-        continue;
-      }
-      const agentCount = step.agents ?? (step.type === "fan-out" ? 3 : 1);
-      // Build the harness plan — actual subagent execution uses the `delegate` tool.
-      // The workflow tool produces a structured execution plan the agent follows step-by-step.
-      const agentInstructions = Array.from({ length: agentCount }, (_, i) => {
-        if (step.type === "adversarial-verify")
-          return `Agent ${i + 1}: Adversarially verify — "${step.instruction}". Default to refuted=true if uncertain.`;
-        if (step.type === "tournament")
-          return `Agent ${i + 1} (angle ${i + 1}/${agentCount}): "${step.instruction}". Choose a distinct approach.`;
-        return `Agent ${i + 1}: "${step.instruction}"`;
-      });
-      const output = [
-        `Step ${step.id} [${step.type}] — ${agentCount} agent(s):`,
-        ...agentInstructions.map((ins) => `  • ${ins}`),
-        step.stopCondition ? `  stop when: ${step.stopCondition}` : null,
-      ].filter(Boolean).join("\n");
-      totalTokens += agentCount * 1000; // plan estimate
-      results.push({ id: step.id, type: step.type, output, agents: agentCount });
-    }
-
-    const finalSynthesis = results.map((r) => `## Step ${r.id} (${r.type})\n${r.output}`).join("\n\n");
-    return {
-      ok: true,
-      output: JSON.stringify({ name: spec.name, steps: results.length, totalTokens, synthesis: finalSynthesis.slice(0, 2000) }),
-    };
+    return trackWorkflowRun(parsed.data, ctx, () => runWorkflow(parsed.data, ctx));
   },
 };
+
+/** Run a workflow spec (graph or legacy). Pure dispatch; task tracking is the wrapper. */
+async function runWorkflow(args: z.infer<typeof Args>, ctx: ToolContext): Promise<ToolResult> {
+  if (looksLikeGraph(args.spec)) return runGraphMode(args, ctx);
+
+  const err = validateWorkflow(args.spec);
+  if (err) return { ok: false, output: `Invalid workflow spec: ${err}` };
+  return runLegacyWorkflow(args.spec as WorkflowSpec);
+}
+
+async function runLegacyWorkflow(spec: WorkflowSpec): Promise<ToolResult> {
+  const results: WorkflowResult["steps"] = [];
+  let totalTokens = 0;
+  const budget = spec.tokenBudget ?? 50_000;
+
+  for (const step of spec.steps) {
+    if (totalTokens >= budget) {
+      results.push({ id: step.id, type: step.type, output: "[skipped — budget exhausted]", agents: 0 });
+      continue;
+    }
+    const agentCount = step.agents ?? (step.type === "fan-out" ? 3 : 1);
+    // Build the harness plan — actual subagent execution uses the `delegate` tool.
+    // The workflow tool produces a structured execution plan the agent follows step-by-step.
+    const agentInstructions = Array.from({ length: agentCount }, (_, i) => {
+      if (step.type === "adversarial-verify")
+        return `Agent ${i + 1}: Adversarially verify — "${step.instruction}". Default to refuted=true if uncertain.`;
+      if (step.type === "tournament")
+        return `Agent ${i + 1} (angle ${i + 1}/${agentCount}): "${step.instruction}". Choose a distinct approach.`;
+      return `Agent ${i + 1}: "${step.instruction}"`;
+    });
+    const output = [
+      `Step ${step.id} [${step.type}] — ${agentCount} agent(s):`,
+      ...agentInstructions.map((ins) => `  • ${ins}`),
+      step.stopCondition ? `  stop when: ${step.stopCondition}` : null,
+    ].filter(Boolean).join("\n");
+    totalTokens += agentCount * 1000; // plan estimate
+    results.push({ id: step.id, type: step.type, output, agents: agentCount });
+  }
+
+  const finalSynthesis = results.map((r) => `## Step ${r.id} (${r.type})\n${r.output}`).join("\n\n");
+  return {
+    ok: true,
+    output: JSON.stringify({ name: spec.name, steps: results.length, totalTokens, synthesis: finalSynthesis.slice(0, 2000) }),
+  };
+}
 
 function looksLikeGraph(spec: unknown): spec is WorkflowGraph {
   return !!spec && typeof spec === "object" && "nodes" in spec && "start" in spec;
@@ -156,4 +165,49 @@ async function executeGraph(graph: WorkflowGraph, ctx: ToolContext) {
     },
   });
   return { ok: result.ok, output: JSON.stringify(result, null, 2) };
+}
+
+const RESULT_PREVIEW = 280;
+
+/**
+ * Wrap an actual workflow run with a LocalWorkflowTask: create one (status
+ * running) before the run, mark it done with the result or failed with the
+ * error after. Validate/diff actions are not runs, so they aren't tracked.
+ * Best-effort: a task-store failure (or a thrown run) never breaks the run —
+ * the original result/throw is preserved.
+ */
+async function trackWorkflowRun(
+  args: z.infer<typeof Args>,
+  ctx: ToolContext,
+  run: () => Promise<ToolResult>,
+): Promise<ToolResult> {
+  if (!isRunAction(args)) return run();
+  const dataDir = join(ctx.root, ".vanta");
+  const task = await createWorkflowTask(dataDir, workflowRunName(args.spec)).catch(() => null);
+  try {
+    const result = await run();
+    if (task) {
+      const outcome = result.ok ? { result: result.output.slice(0, RESULT_PREVIEW) } : { error: result.output.slice(0, RESULT_PREVIEW) };
+      await markWorkflowTask(dataDir, task.id, result.ok ? "done" : "failed", outcome).catch(() => {});
+    }
+    return result;
+  } catch (err) {
+    if (task) await markWorkflowTask(dataDir, task.id, "failed", { error: (err as Error).message }).catch(() => {});
+    throw err;
+  }
+}
+
+/** An actual run = default mode or "run" (validate/diff never execute the workflow). */
+function isRunAction(args: z.infer<typeof Args>): boolean {
+  return args.mode === undefined || args.mode === "run";
+}
+
+/** Best-effort name for the run from either spec shape; falls back to a label. */
+function workflowRunName(spec: unknown): string {
+  if (spec && typeof spec === "object") {
+    const s = spec as { title?: unknown; name?: unknown };
+    if (typeof s.title === "string" && s.title.trim()) return s.title.trim();
+    if (typeof s.name === "string" && s.name.trim()) return s.name.trim();
+  }
+  return "workflow";
 }
