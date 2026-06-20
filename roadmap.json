@@ -12927,7 +12927,7 @@
       "id": "VERIFIED-CONTRIBUTION-POOL",
       "track": "Harness",
       "title": "Verified contribution pool (untrusted workers) — design spike",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "[repo: vanta] Karpathy's untrusted-pool / folding@home / blockchain-of-commits idea: expensive to find an improvement, cheap to verify. A pipeline accepting candidate patches from untrusted sources and AUTO-VERIFYING them against the eval + regression locks before merge — only commits that beat baseline + pass locks land. SPIKE ONLY: design the verify-after-sandbox flow + accept criteria; never run arbitrary untrusted code without sandbox sign-off (kernel/Rule-Zero). Stop and surface for go/no-go.",
       "done": "a design spike documents the sandbox-then-verify pipeline + accept criteria (beats baseline + passes locks) + go/no-go; no arbitrary-code execution built without sign-off; committed.",
