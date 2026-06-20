@@ -8,7 +8,12 @@ vi.mock("../context/graduated-compaction.js", () => ({
   graduatedCompaction: mockGraduatedCompaction,
 }));
 
-import { isContextLengthError, prepareCallMessages, resolveCompactThresholdPct } from "./context-pipeline.js";
+import {
+  isContextLengthError,
+  prepareCallMessages,
+  resetSavingsHistory,
+  resolveCompactThresholdPct,
+} from "./context-pipeline.js";
 
 const MESSAGES: Message[] = [{ role: "user", content: "hello" }];
 const TOOLS: ToolSchema[] = [{ name: "shell", description: "run", parameters: {} }];
@@ -38,7 +43,12 @@ const IDLE_TC = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGraduatedCompaction.mockResolvedValue({ messages: MESSAGES, layers: [], beforeTokens: 0, afterTokens: 0 });
+  // The savings-history WeakMap is keyed by the (shared) MESSAGES array and
+  // persists across tests in this file — clear it so the anti-thrash gate starts
+  // empty (and `shouldCompact` returns true) for each test.
+  resetSavingsHistory(MESSAGES);
+  // A healthy pass: 1000 → 500 tokens = 50% savings (>10%), so the gate stays open.
+  mockGraduatedCompaction.mockResolvedValue({ messages: MESSAGES, layers: [], beforeTokens: 1_000, afterTokens: 500 });
 });
 
 describe("resolveCompactThresholdPct", () => {
@@ -105,5 +115,88 @@ describe("prepareCallMessages — token counting", () => {
     await prepareCallMessages(MESSAGES, deps, 2, IDLE_TC);
 
     expect(countSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("prepareCallMessages — anti-thrash gate", () => {
+  // A private conversation array so this block owns its savings history.
+  const convo: Message[] = [{ role: "user", content: "thrash" }];
+  const deps = { provider: makeProvider(), root: "/tmp", currentTools: TOOLS };
+
+  function mockSavings(beforeTokens: number, afterTokens: number): void {
+    mockGraduatedCompaction.mockResolvedValue({ messages: convo, layers: [], beforeTokens, afterTokens });
+  }
+
+  beforeEach(() => {
+    resetSavingsHistory(convo);
+  });
+
+  it("runs compaction on the first pass when no savings history exists", async () => {
+    // Arrange: empty history → shouldCompact() returns true.
+    mockSavings(1_000, 100); // 90% — healthy
+
+    // Act
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+
+    // Assert: the default/empty-history path keeps the prior behavior — it runs.
+    expect(mockGraduatedCompaction).toHaveBeenCalledOnce();
+  });
+
+  it("skips the next pass after two consecutive sub-10% passes", async () => {
+    // Arrange: two passes each saving < 10% (1000 → 990 = 1%).
+    mockSavings(1_000, 990);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC); // pass 1 (low)
+    await prepareCallMessages(convo, deps, 2, IDLE_TC); // pass 2 (low)
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+
+    // Act: a third call — the gate window is now two low-savings passes.
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+
+    // Assert: the pass is skipped (the compactor is NOT invoked again).
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps running compaction while savings stay healthy", async () => {
+    // Arrange: every pass saves > 10% (1000 → 500 = 50%).
+    mockSavings(1_000, 500);
+
+    // Act: three healthy passes back to back.
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+
+    // Assert: a healthy window never trips the gate — behavior unchanged.
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not skip when only one of the last two passes is low-savings", async () => {
+    // Arrange: a low pass followed by a healthy pass — the window is mixed.
+    mockSavings(1_000, 990); // 1% — low
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    mockSavings(1_000, 400); // 60% — healthy
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(2);
+
+    // Act: the trailing window is [low, healthy] → not all below the floor.
+    mockSavings(1_000, 400);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+
+    // Assert: the pass still runs.
+    expect(mockGraduatedCompaction).toHaveBeenCalledTimes(3);
+  });
+
+  it("returns the shaped messages unchanged when a pass is skipped", async () => {
+    // Arrange: drive two low passes so the next is skipped.
+    mockSavings(1_000, 995);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    await prepareCallMessages(convo, deps, 2, IDLE_TC);
+    mockGraduatedCompaction.mockClear();
+
+    // Act: the skipped pass returns without calling the compactor.
+    const out = await prepareCallMessages(convo, deps, 2, IDLE_TC);
+
+    // Assert: no compaction ran, and the call still resolves with a message list.
+    expect(mockGraduatedCompaction).not.toHaveBeenCalled();
+    expect(out).toEqual(convo);
   });
 });
