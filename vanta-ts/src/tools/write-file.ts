@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
+import { isShellStartupFile, shellStartupWarning } from "./shell-startup-guard.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
@@ -100,6 +101,20 @@ export const writeFileTool: Tool = {
     const r = await resolveWritablePathAsk(path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
+
+    // SHELL-STARTUP-WRITE-PROMPT: an EXTRA confirm for a shell startup file
+    // (persistence/code-execution vector) even inside a writable zone. Checked
+    // on both the requested path and the resolved abs so ~/relative forms match.
+    if (isShellStartupFile(path) || isShellStartupFile(abs)) {
+      const approved = await ctx.requestApproval(
+        shellStartupWarning(path),
+        "shell startup file — code runs on every new shell (persistence vector)",
+        "write_file",
+      );
+      if (!approved) {
+        return { ok: false, output: `write to ${path} denied — shell startup file left unchanged` };
+      }
+    }
 
     const isExisting = await exists(abs);
     let oldContent = "";
