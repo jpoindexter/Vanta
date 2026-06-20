@@ -58,7 +58,12 @@ function resolveOptions(filePath: string): ts.CompilerOptions {
   return parsed.options;
 }
 
-function buildService(filePath: string): {
+/**
+ * Build a `ts.LanguageService` plus the resolved absolute file name for a
+ * single .ts/.tsx file. Exported so the extra capabilities
+ * (references/symbols/hover) reuse the exact same host + options setup.
+ */
+export function buildService(filePath: string): {
   service: ts.LanguageService;
   fileName: string;
 } {

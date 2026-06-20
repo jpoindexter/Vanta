@@ -2622,7 +2622,7 @@
       "id": "VANTA-LSP-TOOL-FULL",
       "track": "Harness",
       "title": "LSPTool full parity — call hierarchy, find references, hover, document symbols",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's LSPTool exposes the full LSP API: hover info (type + docs), go-to-definition, find references (with line preview), document symbols (outline), call hierarchy (incoming/outgoing callers), workspace symbols. Multi-language via the LSP server manager (not just TS). ENABLE_LSP_TOOL env var gates it.",
       "done": "Agent can get call hierarchy for a function, list all references with context, get hover docs for a symbol; works for any language with an LSP server configured.",
@@ -2631,7 +2631,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "findReferences/documentSymbols/hoverInfo reuse the exported buildService factory (same host/tsconfig as diagnostics/definition) + pure mappers mapReferences/mapSymbols/mapQuickInfo. Real TS-service calls exercised on temp fixtures (refs finds decl+2 uses, symbols, hover type display) + errors-as-values (bad pos -> []/null). 3 tools defined (lspReferences/Symbols/Hover) in tools/lsp.ts; ALL_TOOLS registration (3 lines + tools.test entry) = named follow-up. Existing diagnostics/definition unchanged."
     },
     {
       "id": "VANTA-TASK-TOOLS",
