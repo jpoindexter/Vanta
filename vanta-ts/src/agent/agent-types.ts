@@ -59,9 +59,17 @@ export type AgentDeps = {
    * shown. Defaults to the global bus; tests pass a fresh one. The transcript
    * keeps the raw text either way, so tools and the model are unaffected. */
   hooks?: HookBus;
+  /**
+   * VANTA-STOP-CMD: graceful soft-stop predicate. Checked at the post-tool-call
+   * boundary — when it returns true, the loop lets the in-flight tool batch
+   * finish, then ends the turn cleanly (`stoppedReason: "soft_stopped"`) with a
+   * completed-work summary, instead of starting the next iteration. Absent or
+   * false → byte-identical loop behaviour. Set by the `/stop` handler.
+   */
+  shouldSoftStop?: () => boolean;
 };
 
-export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted";
+export type StoppedReason = "done" | "max_iterations" | "repeated_failure" | "interrupted" | "soft_stopped";
 
 /**
  * UX-STREAM: Typed stream-event vocabulary — names what happened so each

@@ -63,6 +63,7 @@ import { nd } from "./nd-cmd.js";
 import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
 import { history, exportConvo, compress, usage, mcp, cron } from "./context-cmds.js";
+import { stop } from "./stop-cmd.js";
 
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
@@ -141,7 +142,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
+  export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, wftasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,

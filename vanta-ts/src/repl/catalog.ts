@@ -6,6 +6,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "history", desc: "show this conversation's transcript" },
   { name: "export", desc: "export this conversation to a markdown file" },
   { name: "init", arg: "[--force|--print]", desc: "generate .claude/CLAUDE.md project context for future sessions" },
+  { name: "stop", desc: "graceful soft-stop — finish the current tool call, then end the turn with a summary" },
   { name: "retry", desc: "re-run your last message" },
   { name: "undo", desc: "drop the last turn from the conversation" },
   { name: "rewind", arg: "[id]", desc: "list or restore recent per-edit file checkpoints" },

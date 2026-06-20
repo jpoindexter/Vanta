@@ -1515,7 +1515,7 @@
       "id": "VANTA-MD-IMPORTS",
       "track": "Harness",
       "title": "CLAUDE.md / VANTA.md @-import syntax — include external files by reference",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports `@path/to/file` inside CLAUDE.md to inline another file's contents at load time, with up to 4-hop recursion. Enables shared rule libraries, team-wide standards, and composable instruction sets. Vanta loads VANTA.md verbatim; no import syntax.",
       "done": "`@<path>` inside VANTA.md (or rules files) inlines the referenced file at session start; absolute and relative paths work; recursion is capped at 4 hops; circular imports are detected and skipped.",
@@ -1523,7 +1523,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-FROM-PR",
@@ -1599,7 +1600,7 @@
       "id": "VANTA-STOP-CMD",
       "track": "Harness",
       "title": "/stop slash command — gracefully stop the current agent turn",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `/stop` command gracefully halts the current turn mid-execution (as opposed to Esc which aborts immediately). Vanta has Esc-abort; `/stop` would issue a soft stop that lets the current tool call finish before halting.",
       "done": "`/stop` sends a stop signal; the agent finishes the current tool call, then exits the turn cleanly and presents a summary of what was completed.",
@@ -1607,7 +1608,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PR-STATUS-POLL",
@@ -1658,7 +1660,7 @@
       "id": "VANTA-CONFIG-TOOL",
       "track": "Harness",
       "title": "ConfigTool — agent reads and updates user settings during session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Agent-accessible tool to read the current value of a setting, list valid options, get the config file path, and update supported settings (Global config + settings.json) during a session. Enables the agent to configure itself (e.g., enable verbose mode, set model).",
       "done": "Agent can call ConfigTool to read/update settings without user manual edit; unsupported settings rejected; changes persisted to the appropriate config file.",
@@ -1667,7 +1669,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-TOOL-SEARCH-DEFERRED",

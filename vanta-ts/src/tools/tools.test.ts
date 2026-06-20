@@ -57,6 +57,7 @@ describe("registry", () => {
       "compose_workflow",
       "config",
       "config_sandbox",
+      "config_tool",
       "cookie_import",
       "council",
       "cron_create",
