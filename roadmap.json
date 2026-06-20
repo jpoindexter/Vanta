@@ -3405,7 +3405,7 @@
       "id": "VANTA-STATS-SPARKLINE",
       "track": "Operator",
       "title": "/stats sparkline charts — ASCII activity charts and heatmap in stats view",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `/stats` view renders ASCII sparkline charts using `asciichart` for activity over time (sessions/day, tokens/session), plus a terminal heatmap (GitHub-style). Navigation with j/k/arrows. The stats are aggregated from transcript JSONL files across all sessions.",
       "done": "`/stats` shows an ASCII line chart of daily activity and a 12-week heatmap of session counts, navigable with arrow keys.",
@@ -3414,7 +3414,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure sparkline (values -> ▁▂▃▄▅▆▇█ scaled min..max; ascending->ascending; flat->▁; empty->; single->1 bar) + heatmapRow ( ░▒▓█ 0-anchored density) + labeledSparkline (label │bars│ max=N). NaN/Infinity/negatives clamped to 0. Built+tested; wire = /usage (context-cmds) + dashboard costLine append labeledSparkline/heatmapRow (named). No data = empty."
     },
     {
       "id": "VANTA-HISTORY-PICKER",
