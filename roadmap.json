@@ -2525,7 +2525,7 @@
       "id": "VANTA-SETTINGS-MEM",
       "track": "Harness",
       "title": "Memory settings parity — autoMemory, excludes, plans dir",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent settings: autoMemoryEnabled (toggle auto memory), autoMemoryDirectory (custom path), claudeMdExcludes (skip specific CLAUDE.md files by glob), plansDirectory (custom plans storage), fileSuggestion (custom file autocomplete source). Vanta's memory is always on with no per-instance controls.",
       "done": "autoMemoryEnabled, autoMemoryDirectory, claudeMdExcludes (glob array), plansDirectory, and fileSuggestion are all recognized in settings; they take effect at session start without a restart.",
@@ -2533,7 +2533,8 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-20"
     },
     {
       "id": "ORGANIZE-CODE-TOOL",

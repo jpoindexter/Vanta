@@ -5,6 +5,7 @@ import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
 import { EFFORT_LEVELS } from "../types.js";
 import { SshProfileSchema } from "../ssh/config.js";
+import { MemorySettingsSchema } from "./memory-settings.js";
 
 // Layered settings.json (user → project → local).
 // Non-secret config (permissions, allowed tools, ui prefs).
@@ -112,6 +113,11 @@ export const SettingsSchema = z.object({
    *  telemetry/analytics; `essential` allows only the provider + kernel calls
    *  the agent needs to function. */
   privacyLevel: z.enum(["default", "no-telemetry", "essential"]).optional(),
+  /** VANTA-SETTINGS-MEM — memory-layer config (resolvers in `memory-settings.ts`).
+   *  `autoMemory` maps to VANTA_EXTRACT_MEMORIES; `excludes` are patterns the
+   *  memory layer must not capture; `plansDir` is where plan docs live. Unset =
+   *  today's behavior (autoMemory off). */
+  memory: MemorySettingsSchema.optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;
@@ -176,6 +182,12 @@ export async function writeSettings(
 
 /** Apply settings to process.env (env overrides). Non-destructive: only adds, never removes. */
 export function applySettingsEnv(settings: Settings, processEnv: NodeJS.ProcessEnv): void {
+  // VANTA-SETTINGS-MEM: autoMemory on → the existing extractor's opt-in flag,
+  // only when the operator hasn't already pinned the env (env wins; unset =
+  // byte-identical to today's behavior since autoMemory defaults off).
+  if (settings.memory?.autoMemory === true && !processEnv.VANTA_EXTRACT_MEMORIES) {
+    processEnv.VANTA_EXTRACT_MEMORIES = "1";
+  }
   if (!settings.env) return;
   for (const [k, v] of Object.entries(settings.env)) {
     if (!processEnv[k]) processEnv[k] = v;
