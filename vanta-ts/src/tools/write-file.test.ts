@@ -74,3 +74,58 @@ describe("write_file shell-startup confirm (SHELL-STARTUP-WRITE-PROMPT)", () => 
     expect(await readFile(join(root, "notes.md"), "utf8")).toBe("# hi\n");
   });
 });
+
+describe("write_file git-hooks confirm (VANTA-ACCEPTEDITS-HUSKY)", () => {
+  let root: string;
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(tmpdir(), "vanta-wf-"));
+  });
+
+  afterEach(async () => {
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("asks an EXTRA confirm before writing a .husky hook in-zone", async () => {
+    const reasons: string[] = [];
+    const ctx = makeCtx(root, async (_action, reason) => {
+      reasons.push(reason);
+      return true;
+    });
+    const result = await writeFileTool.execute({ path: ".husky/pre-commit", content: "echo hi\n" }, ctx);
+    expect(result.ok).toBe(true);
+    expect(reasons.some((r) => r.includes("git-hooks file"))).toBe(true);
+    expect(await readFile(join(root, ".husky/pre-commit"), "utf8")).toBe("echo hi\n");
+  });
+
+  it("asks an EXTRA confirm before writing a .git/hooks hook", async () => {
+    let asked = false;
+    const ctx = makeCtx(root, async (_action, reason) => {
+      if (reason.includes("git-hooks file")) asked = true;
+      return true;
+    });
+    const result = await writeFileTool.execute({ path: ".git/hooks/pre-push", content: "echo hi\n" }, ctx);
+    expect(result.ok).toBe(true);
+    expect(asked).toBe(true);
+  });
+
+  it("declined confirm → {ok:false} and NO file written (errors-as-values)", async () => {
+    const ctx = makeCtx(root, async () => false);
+    const result = await writeFileTool.execute({ path: ".husky/pre-commit", content: "evil\n" }, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("git-hooks file left unchanged");
+    expect(await fileExists(join(root, ".husky/pre-commit"))).toBe(false);
+  });
+
+  it("a file merely named hooks.ts is a NORMAL write — no git-hooks confirm", async () => {
+    let asked = false;
+    const ctx = makeCtx(root, async (_action, reason) => {
+      if (reason.includes("git-hooks file")) asked = true;
+      return true;
+    });
+    const result = await writeFileTool.execute({ path: "src/hooks.ts", content: "export const x = 1;\n" }, ctx);
+    expect(result.ok).toBe(true);
+    expect(asked).toBe(false);
+    expect(await readFile(join(root, "src/hooks.ts"), "utf8")).toBe("export const x = 1;\n");
+  });
+});

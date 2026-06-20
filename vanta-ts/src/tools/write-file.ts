@@ -1,14 +1,39 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
-import type { Tool, ToolResult } from "./types.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
 import { isShellStartupFile, shellStartupWarning } from "./shell-startup-guard.js";
+import { isGitHooksPath, gitHooksWarning } from "./git-hooks-guard.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
+
+/**
+ * Extra confirm for a dangerous in-zone path class (shell startup / git hooks) —
+ * both run code automatically (new shell / git op). Checks the requested path and
+ * the resolved abs so ~/relative forms match. Returns a denial result to abort, or
+ * null to proceed. Defense-in-depth: never weakens the kernel/overwrite gates.
+ */
+async function confirmDangerousPath(
+  path: string,
+  abs: string,
+  ctx: ToolContext,
+): Promise<ToolResult | null> {
+  const guards: { hit: boolean; warning: string; reason: string; noun: string }[] = [
+    { hit: isShellStartupFile(path) || isShellStartupFile(abs), warning: shellStartupWarning(path), reason: "shell startup file — code runs on every new shell (persistence vector)", noun: "shell startup file" },
+    { hit: isGitHooksPath(path) || isGitHooksPath(abs), warning: gitHooksWarning(path), reason: "git-hooks file — script runs automatically on git operations (code-execution-on-commit vector)", noun: "git-hooks file" },
+  ];
+  for (const g of guards) {
+    if (!g.hit) continue;
+    if (!(await ctx.requestApproval(g.warning, g.reason, "write_file"))) {
+      return { ok: false, output: `write to ${path} denied — ${g.noun} left unchanged` };
+    }
+  }
+  return null;
+}
 
 async function exists(p: string): Promise<boolean> {
   try {
@@ -102,19 +127,8 @@ export const writeFileTool: Tool = {
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
 
-    // SHELL-STARTUP-WRITE-PROMPT: an EXTRA confirm for a shell startup file
-    // (persistence/code-execution vector) even inside a writable zone. Checked
-    // on both the requested path and the resolved abs so ~/relative forms match.
-    if (isShellStartupFile(path) || isShellStartupFile(abs)) {
-      const approved = await ctx.requestApproval(
-        shellStartupWarning(path),
-        "shell startup file — code runs on every new shell (persistence vector)",
-        "write_file",
-      );
-      if (!approved) {
-        return { ok: false, output: `write to ${path} denied — shell startup file left unchanged` };
-      }
-    }
+    const dangerous = await confirmDangerousPath(path, abs, ctx);
+    if (dangerous) return dangerous;
 
     const isExisting = await exists(abs);
     let oldContent = "";

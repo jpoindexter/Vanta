@@ -2407,7 +2407,7 @@
       "id": "VANTA-GREP-READ-EDIT",
       "track": "Harness",
       "title": "grep satisfies read-before-edit — single-file grep counts as a read for Edit tool",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "another agent (v2.1.160) makes single-file `grep`/`egrep`/`fgrep` commands satisfy the read-before-edit check. Previously, `head`/`tail` could count; now grep does too. Avoids an extra Read call when the agent has already grepped the file.",
       "done": "After `grep 'pattern' src/foo.ts`, the Edit tool can modify `src/foo.ts` without a separate Read call.",
@@ -2416,7 +2416,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "N/A for Vanta architecture: there is no separate Edit tool with a read-before-edit gate — write_file is the editor and uses post-write re-read verification (ACTION-PROOF), not a prior-read requirement. No read-before-edit precondition exists for a grep to satisfy. Parked (does not apply); revisit only if an Edit-with-read-requirement tool is added."
     },
     {
       "id": "VANTA-LESS-PERMS-SKILL",
@@ -2467,7 +2468,7 @@
       "id": "VANTA-ACCEPTEDITS-HUSKY",
       "track": "Harness",
       "title": "`.husky` in acceptEdits protected dirs — git hooks directory is write-protected",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.90) adds `.husky` to the list of protected directories in `acceptEdits` mode. Prevents agents from silently modifying git hook scripts, which could allow arbitrary code execution on commit.",
       "done": "In acceptEdits mode, attempts to write to `.husky/pre-commit` prompt for explicit confirmation.",
@@ -2476,7 +2477,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MONITOR",
@@ -14098,7 +14099,7 @@
       "id": "HARNESS-CRON-AT-MOST-ONCE",
       "track": "Harness",
       "title": "Cron at-most-once: pre-advance + per-fire dedup",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Durable-cron persists schedule defs only; the tick path can double-fire or storm on restart. Before running a recurring job pre-advance next_run_at (crash mid-run = skip-one not storm), add a per-fire dedup marker, and fast-forward stale runs to avoid missed-job bursts after downtime.",
       "done": "A crash during a cron tick yields at-most-one fire on restart, not a storm; a duplicate tick in the same window is deduped; stale runs fast-forward; unit-tested.",
