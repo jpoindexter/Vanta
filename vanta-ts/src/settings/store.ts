@@ -96,6 +96,10 @@ export const SettingsSchema = z.object({
   /** Whether the @file picker excludes gitignored paths. Resolver defaults true;
    *  unset keeps the picker's current (unfiltered) behavior. */
   respectGitignore: z.boolean().optional(),
+  /** Let web_fetch bypass its preflight/domain (SSRF) safety check for trusted
+   *  use. Unset/false = preflight ON (today's behavior); true = skip the guard.
+   *  The `VANTA_SKIP_WEBFETCH_PREFLIGHT` env override is the env equivalent. */
+  skipWebFetchPreflight: z.boolean().optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;

@@ -3,6 +3,8 @@ import { Readability } from "@mozilla/readability";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { assertPublicUrl } from "../net/ssrf-guard.js";
+import { loadSettings } from "../settings/store.js";
+import { shouldSkipPreflight } from "./webfetch-preflight.js";
 
 const Args = z.object({ url: z.string().url() });
 
@@ -26,11 +28,14 @@ type FetchErr = { ok: false; output: string };
 async function fetchGuarded(
   startUrl: string,
   signal: AbortSignal,
+  skipPreflight = false,
 ): Promise<FetchOk | FetchErr> {
   let url = startUrl;
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    const guard = await assertPublicUrl(url);
-    if (!guard.ok) return { ok: false, output: `fetch blocked: ${guard.error}` };
+    if (!skipPreflight) {
+      const guard = await assertPublicUrl(url);
+      if (!guard.ok) return { ok: false, output: `fetch blocked: ${guard.error}` };
+    }
     const res = await fetch(url, {
       headers: { "user-agent": USER_AGENT },
       redirect: "manual",
@@ -84,16 +89,18 @@ export const webFetchTool: Tool = {
     },
   },
   describeForSafety: (a) => `fetch url ${String(a.url ?? "")}`,
-  async execute(raw) {
+  async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
       return { ok: false, output: 'web_fetch needs a valid "url"' };
     }
     const { url } = parsed.data;
+    const settings = await loadSettings(ctx.root, process.env);
+    const skip = shouldSkipPreflight(settings, process.env);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const fetched = await fetchGuarded(url, controller.signal);
+      const fetched = await fetchGuarded(url, controller.signal, skip);
       if (!fetched.ok) return fetched;
       const { res } = fetched;
       if (!res.ok) {

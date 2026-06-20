@@ -1558,7 +1558,7 @@
       "id": "VANTA-WEBFETCH-SKIP",
       "track": "Harness",
       "title": "skipWebFetchPreflight — bypass web fetch domain safety check",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `skipWebFetchPreflight` setting skips the domain safety preflight check before web_fetch calls (useful in air-gapped or fully-trusted environments). Vanta's web_fetch has an allowed-domain gate; no setting to disable the preflight.",
       "done": "`skipWebFetchPreflight: true` in settings bypasses the domain approval check in web_fetch; a warning is printed at session start when enabled; default is false.",
@@ -1566,7 +1566,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-TASKS-CMD",
@@ -1645,7 +1646,7 @@
       "id": "VANTA-PREVENT-SLEEP",
       "track": "Harness",
       "title": "macOS caffeinate — prevent system sleep during long operations",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Uses macOS `caffeinate` to prevent idle sleep while another agent is running API requests or tools. Self-healing: 5-minute timeout + 4-minute restart so orphaned caffeinate exits on SIGKILL. No-op on non-macOS. Ref-counted (start/stop) so multiple callers share one process.",
       "done": "Mac stays awake during long API calls and tool execution; caffeinate exits cleanly on process exit or after 5min idle; no-op on Linux/Windows.",
@@ -1654,7 +1655,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-CONFIG-TOOL",

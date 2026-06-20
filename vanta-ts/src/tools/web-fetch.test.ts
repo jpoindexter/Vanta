@@ -1,5 +1,9 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { extractReadable, webFetchTool } from "./web-fetch.js";
+import { SKIP_WEBFETCH_PREFLIGHT_ENV } from "./webfetch-preflight.js";
 import type { ToolContext } from "./types.js";
 
 const ARTICLE_HTML = `<!doctype html>
@@ -62,12 +66,31 @@ describe("extractReadable", () => {
   });
 });
 
-// A ToolContext is required by the type but web_fetch never reads it.
-const fakeCtx = {} as ToolContext;
+// web_fetch reads ctx.root (to loadSettings) but nothing else off the context.
+// A real empty temp root + an isolated VANTA_HOME means no settings.json exists,
+// so shouldSkipPreflight resolves false → today's preflight-ON behavior.
+let tmp: string;
+let fakeCtx: ToolContext;
+const ORIGINAL_HOME = process.env.VANTA_HOME;
+const ORIGINAL_SKIP = process.env[SKIP_WEBFETCH_PREFLIGHT_ENV];
+
+beforeEach(async () => {
+  tmp = await mkdtemp(join(tmpdir(), "vanta-webfetch-"));
+  process.env.VANTA_HOME = join(tmp, "home");
+  delete process.env[SKIP_WEBFETCH_PREFLIGHT_ENV];
+  fakeCtx = { root: tmp } as ToolContext;
+});
+
+afterEach(async () => {
+  vi.unstubAllGlobals();
+  if (ORIGINAL_HOME === undefined) delete process.env.VANTA_HOME;
+  else process.env.VANTA_HOME = ORIGINAL_HOME;
+  if (ORIGINAL_SKIP === undefined) delete process.env[SKIP_WEBFETCH_PREFLIGHT_ENV];
+  else process.env[SKIP_WEBFETCH_PREFLIGHT_ENV] = ORIGINAL_SKIP;
+  await rm(tmp, { recursive: true, force: true });
+});
 
 describe("webFetchTool SSRF guard", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
   it("refuses to follow a redirect to cloud metadata", async () => {
     // 1.1.1.1 is a public literal IP (passes the first guard), but it 302s to
     // the metadata service. The guard must re-validate the hop and block it
@@ -92,5 +115,32 @@ describe("webFetchTool SSRF guard", () => {
 
     expect(res.ok).toBe(false);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("webFetchTool skipWebFetchPreflight bypass", () => {
+  it("still guards a loopback URL when the env override is unset (byte-identical default)", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await webFetchTool.execute({ url: "http://127.0.0.1:7788/api/status" }, fakeCtx);
+
+    expect(res.ok).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled(); // guard ran, no network — unchanged
+  });
+
+  it("bypasses the preflight guard when VANTA_SKIP_WEBFETCH_PREFLIGHT is set", async () => {
+    process.env[SKIP_WEBFETCH_PREFLIGHT_ENV] = "1";
+    // With the guard skipped, the loopback URL is actually fetched. Stub the
+    // network so the request is observable without touching a real host.
+    const fetchSpy = vi.fn(async () =>
+      new Response("<html><body><p>ok</p></body></html>", { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await webFetchTool.execute({ url: "http://127.0.0.1:7788/api/status" }, fakeCtx);
+
+    expect(res.ok).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // guard skipped → the fetch is issued
   });
 });
