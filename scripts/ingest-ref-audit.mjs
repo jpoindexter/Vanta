@@ -1,0 +1,247 @@
+// One-shot: ingest the 2026-06-20 reference-agent audit findings into roadmap.json.
+// Each finding -> one card. status reflects the audit rec: build(high/cheap)=next,
+// build(larger/lower)=horizon, park=parked. Capability-focused summaries (no upstream
+// project name), tagged source="ref-audit-2026-06-20" for filtering. Idempotent: skips
+// ids that already exist.
+import { readFileSync, writeFileSync } from "node:fs";
+
+const FILE = new URL("../roadmap.json", import.meta.url);
+const SOURCE = "ref-audit-2026-06-20";
+const TODAY = "2026-06-20";
+
+// size -> derived fields
+const tierBySize = { S: "sand", M: "pebble", L: "rock", XL: "rock" };
+const effortBySize = { S: "low", M: "medium", L: "high", XL: "high" };
+const modelBySize = { S: "sonnet", M: "sonnet", L: "opus", XL: "opus" };
+const codexBySize = { S: "gpt-5.4-mini", M: "gpt-5.4", L: "gpt-5.4", XL: "gpt-5.4" };
+
+/** @type {Array<[id,track,title,size,status,lens,summary,done]>} */
+const F = [
+  // ---------- OPERATOR · messaging delivery robustness ----------
+  ["MSG-SPLIT-LENGTH-AWARE","Operator","Length-unit-aware message splitting (chars/utf16/bytes)","M","next","reach",
+   "Adapters send reply text raw with no splitting — a >4096-char Telegram or >2000 Discord reply fails outright. Add a shared splitForLimit(text,limit,lenUnit) that breaks on newline boundaries under a per-platform budget, hard-splits only past limit/2, and counts UTF-16 code units (Telegram) or UTF-8 bytes (IRC) per adapter.",
+   "A long agent reply is split into multiple sends under each adapter's real char budget; Telegram counts UTF-16, IRC counts bytes; tested with multi-segment fixtures across Telegram/Signal/IRC/Mattermost."],
+  ["MSG-MARKDOWN-DEGRADE","Operator","Per-platform markdown degradation (protect-code-then-convert)","M","next","reach",
+   "Agent emits standard markdown; thin adapters send it raw so Telegram/IRC/Signal show literal ** and ```. Add a formatMessage hook per adapter that first placeholder-protects fenced/inline code, then converts to the platform dialect (Signal bodyRanges, Slack mrkdwn, WhatsApp *_~, IRC strip).",
+   "Each live adapter implements formatMessage; code blocks survive intact; Telegram/Signal/IRC render correctly-formatted output; per-dialect unit tests pass."],
+  ["MSG-TABLE-DEGRADE","Operator","Markdown table -> mobile-readable bullets","S","horizon","reach",
+   "GFM pipe tables render as backslash-pipe noise on chat platforms. Detect a table block (header + :---: separator + rows) and reformat each row to a bold heading + bulleted key:value list, with row-label-column detection. Pure function reused across text-only adapters.",
+   "A markdown table in an agent reply renders as readable bold-heading + bullet lists on text-only platforms; pure-function unit tests cover header/separator/row detection."],
+  ["MSG-TYPING-HEARTBEAT","Operator","Typing-indicator heartbeat, pausable during approval","S","next","reach",
+   "Agent thinks silently for tens of seconds with no chat feedback. Add a sendTyping(chatId) adapter method + a ~2s refresh loop around the turn (each send bounded by ~1.5s timeout), pausable while a kernel approval is pending so the user can still type /approve.",
+   "While the agent works, the chat shows a typing indicator refreshed every ~2s; it pauses during a pending approval; resumes after; bounded per-send timeout prevents a hung send killing it."],
+  ["MSG-NO-REPLY-TOKEN","Operator","Intentional-silence NO_REPLY token for group chats","S","next","reach",
+   "An always-replying bot is annoying in group/channel surfaces. Allow the agent to return an exact whole-response marker (NO_REPLY/[SILENT], <=64 chars) to choose not to reply; prose merely mentioning the token still delivers; blank stays an error.",
+   "Returning exactly NO_REPLY suppresses delivery in a group; a reply that contains the word NO_REPLY in prose still sends; boundary unit-tested."],
+  ["MSG-REPLY-CONTEXT","Operator","Quoted-reply context recovery (message_id -> text store)","S","next","reach",
+   "When a user replies to a prior agent message the agent can't see what it's replying to. Add a capped, atomic-write message_id->text index written at send time, looked up by reply_to_id on inbound, re-injected as quote context. Mirrors the existing ~/.vanta/*.json store pattern.",
+   "Replying to a past agent message injects that message's text as quoted context into the next turn; store is capped and atomically written; degrades to no-op on miss."],
+  ["MSG-INBOUND-TIMESTAMP","Operator","Inbound message timestamp prefixing (idempotent)","S","horizon","reach",
+   "Inbound messages carry no time, so the agent has no temporal grounding for scheduling/reminders. Prefix LLM-context content with [Tue 2026-04-28 13:40 CEST] but keep persisted content clean; strip existing prefixes before adding so replay never accumulates duplicates (closest-to-text prefix wins).",
+   "Inbound chat turns get a human timestamp in context only; persisted history stays prefix-free; re-processing never stacks [ts][ts]; unit-tested for idempotency."],
+  ["MSG-SELF-ECHO-DEDUP","Operator","Self-message / reconnect-replay dedup (reply-loop guard)","S","next","reach",
+   "A bot that processes its own echoed-back sends or replayed reconnect events can infinite-loop. Add a base-class self-id check plus an inbound seen-message-id set so own outbound, platform echoes, and RESUME/reconnect replays are filtered.",
+   "Own outbound echoed back is ignored; duplicate events after a reconnect are deduped by message id; a synthetic echo/replay does not trigger a second agent turn."],
+  ["MSG-REQUIRE-MENTION","Operator","Require-mention gate + self-mention stripping in groups","S","horizon","reach",
+   "In shared channels (IRC/Mattermost/Telegram groups) a bot that answers every message is unusable. Add a per-chat require-mention gate (respond only when @-mentioned, replied-to, or message starts with /) and strip the bot's @handle from text before the agent sees it.",
+   "In a configured group, the agent replies only when mentioned/replied-to; the @handle is removed from the text reaching the model; allowlist + mention modes unit-tested."],
+  ["MSG-SEND-TOOL","Operator","Proactive send_message tool (out-of-process capable)","M","next","reach",
+   "The gateway only replies in-band; the agent can't proactively message a chat. Add a kernel-gated send_message(platform,chatId,text) tool over the adapter registry that routes through standalone per-platform senders so cron/loop wakes can deliver without the gateway running.",
+   "The agent can call send_message to push a message to a configured platform/chat; works when invoked from a cron/loop context with no live gateway; kernel-gated and tested."],
+  ["MSG-TELEGRAM-ROBUST","Operator","Telegram flood-control retry + forum-topic routing","M","horizon","reach",
+   "The basic Telegram adapter skips real edge cases. Add RetryAfter flood-control retry with backoff, forum/DM topic routing via message_thread_id, and disable_web_page_preview to avoid unfurl spam.",
+   "A 429 RetryAfter triggers a backoff-retry instead of a dropped send; replies route to the correct forum topic; link previews are suppressed; covered by adapter tests."],
+  ["MSG-INLINE-APPROVAL","Operator","Inline-keyboard Approve/Deny for kernel approvals (Telegram)","M","horizon","reach",
+   "Over chat, kernel approvals are plain-text only (type /approve). Render a pending approval as a tappable Approve/Deny inline keyboard on Telegram (shared callback-id convention), degrading gracefully to text on adapters that don't override. Reuses the existing permissions/request model.",
+   "A tool-call approval appears as Approve/Deny buttons in Telegram; tapping resolves the kernel approval; other adapters still show text; callback resolution unit-tested."],
+  ["MSG-PLATFORM-HINTS","Operator","Per-platform system-prompt formatting hints","S","horizon","reach",
+   "The prompt is platform-agnostic so the agent over-emits markdown for plain surfaces. Inject a one-line hint per active gateway session (\"on IRC — no markdown, keep lines short\" / \"Telegram supports MarkdownV2\") into the context tier so the agent adapts formatting up front.",
+   "When a gateway session is active, a platform hint is folded into context; the agent emits less markdown on IRC than on Telegram; hint selection unit-tested."],
+  ["MSG-CAPABILITY-DESCRIPTOR","Extensibility","Adapter capability interface (limits declared, not guessed)","M","horizon","reach",
+   "The static platform catalog doesn't drive rendering, so splitting/format paths hard-guess 4096/chars. Add an AdapterCapabilities interface (charLimit, lenUnit, supportsEdit/threads, markdownDialect) read by the send/split path so each adapter declares its real limits and consumers degrade automatically.",
+   "Send/split logic reads capabilities off the live adapter rather than constants; an adapter that declares no-edit degrades to one-message-per-segment; interface unit-tested."],
+  ["MSG-MEDIA-VOICE","Operator","Inbound media: image->vision, voice->STT plumbing","L","parked","reach",
+   "Adapters are text-only in/out. A media layer would cache inbound audio/image/doc (path-validated, TTL) and surface them (image->vision, voice->transcription). Smallest high-leverage entry: inbound image -> existing vision tools; full voice/STT/outbound-media is a large vertical.",
+   "An inbound image is routed to the existing vision describe path; cached under a validated dir with TTL; voice/STT and outbound media deferred to a later slice."],
+  ["MSG-MEDIA-PATH-RECENCY","Harness","Outbound media path validation with recency constraint","S","parked","reach",
+   "If/when the agent sends local files, validate the path is under allowed roots, not under denied prefixes, AND recently produced — so the agent can't be tricked into exfiltrating an arbitrary old file. Route through the existing kernel assess()/writable-zones; the recency constraint is the new idea.",
+   "A file send is rejected unless the path is in-scope and recently produced; enforced via the kernel; anti-exfil case unit-tested."],
+  ["MSG-SIGNAL-RATELIMIT","Operator","Signal attachment token-bucket + multi-shape 429 detection","M","parked","reach",
+   "Heavy Signal attachment sends hit server rate limits. A process-wide token bucket (acquire before send, feedback on 429) mirrors the limit; the reusable nugget is detecting the several wire shapes a signal-cli 429 takes ([429], RateLimitException, RetryLaterException).",
+   "Attachment sends acquire from a token bucket and back off on any of the known 429 shapes; deferred until Signal media sending exists."],
+  ["MSG-PLUGIN-PLATFORMS","Extensibility","Sibling-adapter behavior-mixin pattern","M","parked","reach",
+   "When one platform grows two transports (e.g. an unofficial bridge vs an official cloud API), share gating/allowlist/mention/markdown logic via a behavior mixin while each transport owns its socket/send. Capture for when a Vanta platform splits transports.",
+   "Two transports for one platform share one behavior mixin; each owns transport; demonstrated when a second transport lands."],
+  ["MSG-PROGRESS-BUBBLE","Operator","Mid-turn progress bubble for token-window platforms","S","parked","reach",
+   "Platforms with a hard reply-token window (LINE 60s, WhatsApp 24h) need a 'still working…' message injected at a threshold before the token expires. Depends on the typing-heartbeat existing; only matters for those platforms.",
+   "On a token-window platform a progress message is sent before the reply token expires; layered on the typing heartbeat."],
+
+  // ---------- HARNESS · loop resilience ----------
+  ["HARNESS-ERROR-TAXONOMY","Harness","Categorized provider-error taxonomy -> typed recovery hints","M","next","agent-loop",
+   "Provider-error handling is one coarse retryable-vs-auth regex. Add classifyProviderError() returning {reason, retryable, shouldCompress, shouldRotate, shouldFallback} over ~20 categories (auth, billing, rate_limit, overloaded, server_error, timeout, context_overflow, payload_too_large, image_too_large, content_policy, etc.) so retry acts on the verdict instead of re-parsing.",
+   "A provider error is classified into a typed reason with recovery booleans; the retry loop compresses vs rotates vs falls back per the verdict; billing-exhaustion is distinguished from transient rate-limit; pattern banks unit-tested."],
+  ["HARNESS-COMPACT-BOUNDARY","Harness","Compaction tool-pair boundary alignment + anti-thrash","M","next","agent-loop",
+   "Compaction can split a tool_call from its tool_result (a correctness bug) and can thrash. Align compaction boundaries so call/result pairs stay together, protect first-N + token-budgeted tail, and skip compression when the last two passes each saved <10%.",
+   "Compaction never orphans a tool_call/tool_result; head and tail are protected; a low-savings pass is skipped; boundary + anti-thrash unit-tested."],
+  ["HARNESS-PRUNE-SUMMARY","Harness","Informative per-tool prune summaries","S","next","agent-loop",
+   "Pruned tool outputs become generic '[truncated: N chars]', losing signal. Add summarizeToolResult(name,args,content) producing typed one-liners that keep the signal: '[terminal] ran npm test -> exit 0, 47 lines', '[search] 12 matches for X', '[read] config.ts from line 1 (1,200 chars)'.",
+   "Compacted history shows tool-aware one-liners preserving exit codes/match counts instead of char-truncation; per-tool extractors with a generic fallback, unit-tested."],
+  ["HARNESS-FLATTEN-TEXT","Harness","Canonical multimodal message-text flattener","S","horizon","agent-loop",
+   "Multiple code paths (titling, logging, assertion-judging, brain ingest) need the visible text of any provider message shape. Add flattenMessageText(content) that returns text from str | parts-list | object, skipping image/audio parts and probing the common text keys.",
+   "A single helper returns the text of any chat/Responses content shape, skipping media parts; reused by titling/logging/assertions; unit-tested across shapes."],
+  ["HARNESS-IMAGE-SHRINK","Harness","Strip historical media on compaction + shrink-on-413 retry","S","horizon","agent-loop",
+   "Vision-to-action screenshots bloat context and cause image_too_large/413 failures. Strip historical media on compaction so old screenshots stop costing tokens, and on a 413/image_too_large shrink or strip oversized image parts in-place and retry instead of failing the turn.",
+   "Old screenshots are dropped from compacted history; a 413 image error triggers an in-place shrink-and-retry rather than a turn failure; both paths unit-tested."],
+  ["HARNESS-EVENTS-WAIT","Harness","Cursor + long-poll reader over jsonl event stores","S","horizon","infra",
+   "Event stores (loop wake-events, etc.) are poll-only. Add a generic cursor-based reader with a blocking long-poll (timeout_ms, capped ~5min) so the gateway, an editor adapter, and the desktop renderer get near-real-time delivery without busy-polling.",
+   "An external consumer reads new events by cursor and can long-poll for the next one with a capped timeout; reused across at least two surfaces; unit-tested."],
+  ["HARNESS-CRON-AT-MOST-ONCE","Harness","Cron at-most-once: pre-advance + per-fire dedup","S","next","infra",
+   "Durable-cron persists schedule defs only; the tick path can double-fire or storm on restart. Before running a recurring job pre-advance next_run_at (crash mid-run = skip-one not storm), add a per-fire dedup marker, and fast-forward stale runs to avoid missed-job bursts after downtime.",
+   "A crash during a cron tick yields at-most-one fire on restart, not a storm; a duplicate tick in the same window is deduped; stale runs fast-forward; unit-tested."],
+  ["HARNESS-CRON-SCRIPT-MODE","Harness","No-agent / script cron mode (no-LLM watchdog)","M","horizon","infra",
+   "Cron entries always force an agent turn. Add two cheaper modes: a script job whose stdout is injected as prompt context (change-detection), and a no_agent job where the script IS the job and stdout is delivered verbatim (classic watchdog, no LLM cost).",
+   "A no_agent cron job runs a script and delivers its stdout with no model call; a script-context job injects stdout into the agent turn; both modes unit-tested."],
+  ["HARNESS-BLUEPRINT-SKILLS","Harness","Self-scheduling skills (cron in skill frontmatter)","S","horizon","agent-loop",
+   "Skills, cron, and hooks are separate. Let a skill's frontmatter optionally declare a cron expression so loading the skill registers a recurring job via the existing scheduler — skills become self-scheduling automations with no new subsystem.",
+   "A skill with a schedule field in frontmatter registers a cron job on load and unregisters on unload; wired to the existing cron; unit-tested."],
+  ["HARNESS-MCP-EGRESS-WARN","Harness","Mount-time warn for shell-interpreter MCP egress","S","horizon","infra",
+   "User-added MCP servers aren't vetted at mount. Add an advisory warning (not a block) when a mounted MCP server is a shell interpreter (bash/pwsh) whose inline args invoke network egress (curl/wget/nc//dev/tcp/Invoke-WebRequest), upgraded if exfil-shaped (--data-binary, .env, POST). Complements the sandbox.",
+   "Mounting an MCP server that pipes a shell interpreter to egress tooling prints a clear advisory warning; benign servers are silent; heuristic unit-tested."],
+  ["HARNESS-STREAM-EVENTS","Harness","Typed gateway stream-event vocabulary (transport vs context)","L","parked","agent-loop",
+   "If Vanta ever adds live streamed gateway delivery, model it as typed platform-agnostic events (MessageChunk/MessageStop/Commentary) consumed by a single sink that decides per-platform delivery — with the invariant that what the gateway 'eats' never diverges from stored history. Deferred: current non-streaming reply model has no racing problem.",
+   "Captured as the target shape for streamed gateway delivery; not built while replies are non-streaming."],
+  ["HARNESS-CRON-SCALE-ZERO","Harness","One-shot-per-job scale-to-zero cron + reconcile","L","parked","infra",
+   "Beyond the OS-scheduler tick, the strong pattern is arming exactly one external one-shot per job at its real next-fire time, waking the (stopped) agent via an authed webhook, then re-arming — with at-most-once via store compare-and-set and a desired-vs-armed reconcile on boot. Keep the CAS+reconcile idea; the hosted machinery is out of scope for local-first.",
+   "Captured as a hardening reference for vanta cron; the store-CAS + reconcile pattern noted for the cron ledger."],
+  ["HARNESS-SCHEDULER-SEAM","Extensibility","Scheduler-provider seam (additive-only ABC)","M","parked","infra",
+   "A seam separating 'decides WHEN a job fires' from execution, with a resolver that falls back to the built-in ticker on any provider failure and additive-only growth hooks. Premature with a single trigger (Rule of 3); adopt the fallback-to-builtin + additive discipline if a second trigger ever lands.",
+   "Captured for when a second scheduling trigger exists; the never-leave-cron-without-a-trigger fallback discipline noted."],
+  ["HARNESS-SKILL-GATING","Harness","Skill prereq/env gating + injection-scan on bodies","S","parked","infra",
+   "Mine two ideas if absent: offer-time gating on OS + runtime env + declared prerequisites (env_vars/commands) with setup.collect_secrets, and a prompt-injection pattern scan on skill/plugin content before load (security-relevant given the trusted-operator posture).",
+   "Skills declare prerequisites and are gated by platform/env at offer time; skill bodies are injection-scanned before load; both unit-tested."],
+  ["SEC-GODMODE-DETECT","Harness","Harvest jailbreak signatures as kernel detection inputs","S","parked","infra",
+   "Defensive-only: the obfuscation/refusal-suppression signatures used by jailbreak tooling are useful as DETECTION inputs for the kernel safety denylist (recognize these attacks against Vanta itself), never as capability. Low priority.",
+   "A set of jailbreak/obfuscation signatures is available to the kernel safety layer as detection patterns; capability use explicitly excluded."],
+
+  // ---------- OPERATOR · security & hygiene ----------
+  ["OP-REDACT-STRUCTURAL","Operator","Structural secret redaction + logging formatter","M","horizon","infra",
+   "The redaction rule-list misses structural secrets in logged tool I/O. Add patterns for URL query/userinfo, Authorization headers, JWTs, DB connection strings, and a logger-level redacting formatter that scrubs every emitted line (each regex gated behind a cheap substring pre-check).",
+   "A logged URL with ?token=, an auth header, and a connection string are all redacted at emit time by a logging formatter; structural patterns unit-tested."],
+  ["OP-SSL-GUARD","Operator","SSL/CA-bundle preflight guard in doctor","S","next","infra",
+   "A bad CA bundle (corporate proxy, partial update) surfaces as an opaque TLS failure deep in the HTTP client. Add a preflight that validates CA-bundle env vars + bundled certs (exists, non-trivial, parses) and raises one actionable error with a repair command; expose it in doctor. Escape hatch env var.",
+   "run.sh doctor validates the CA bundle and, on failure, prints the exact broken path + a copy-paste fix instead of an opaque error; happy and broken paths tested."],
+  ["OP-INSTALL-FASTPATH","Operator","Install fast-path: provisioned -> skip wizard","S","next","infra",
+   "Launching re-runs per-concern setup checks. Add a single 'fully provisioned' gate (keys present + provider chosen + kernel built) so run.sh short-circuits straight to launch, distinct from 'kernel built'. Improves launcher idempotence.",
+   "On a fully-provisioned install run.sh launches directly without the wizard; an incomplete install still runs setup; gate unit-tested."],
+  ["OP-SETUP-FIELD-VALIDATE","Operator","Setup-wizard field validation + wrong-key detection","S","horizon","infra",
+   "Setup accepts pasted secrets without shape checks. Add per-field shape validation, 'you pasted the wrong key type' detection (e.g. xoxb vs xapp), and contextual 'where to find this value' help in the wizard.",
+   "Pasting a malformed or wrong-type key in setup is caught with a specific message and a where-to-find hint; validation unit-tested per field."],
+  ["OP-STARTUP-TIPS","Operator","Random feature-discovery tip at REPL start","S","next","tui",
+   "With 110 slash commands and 105 tools, discoverability is poor. Show one random one-line tip (a command, @-ref, keybinding, or flag) at session start, gated behind a 'seen enough' counter. Cheapest discoverability win available.",
+   "A random one-line feature tip prints at REPL start from a curated corpus; it stops after a configurable number of sessions; corpus + gating unit-tested."],
+  ["OP-COMPACTION-VISIBLE","Operator","Surface 'compacting now' state in footer","S","horizon","tui",
+   "When auto-compaction runs mid-turn the scrollback can look like a reset. Set a per-session compacting flag and show 'compacting…' in the interactive footer/status line so the operator knows what's happening.",
+   "During auto-compaction the footer shows a compacting indicator scoped to the active session; clears when done; state unit-tested."],
+  ["OP-COMPLETION-SOUND","Operator","Web-Audio completion cue (desktop renderer)","M","horizon","tui",
+   "No 'long task finished' audio affordance. Add 2-3 synthesized completion chimes (Web Audio, no asset files) fired on turn-complete in the desktop renderer, behind a mute toggle.",
+   "The desktop renderer plays a synthesized chime on turn completion, selectable and mutable in settings; no bundled audio; toggle persisted."],
+  ["OP-NOTIFY-UNFOCUSED","Operator","Native OS notification on turn-complete when unfocused","M","horizon","tui",
+   "Long runs finish unnoticed when the window is in the background. Fire a native OS notification when a turn completes while the desktop window is unfocused.",
+   "Completing a turn with the window unfocused raises a native notification; focused completion stays silent; gated by a setting."],
+  ["OP-MODEL-PRESETS","Operator","Per-model reasoning-effort / fast-mode preset memory","M","horizon","tui",
+   "Reasoning effort and fast-mode don't persist per model across switches. Remember a {effort, fast} preset per model globally and re-apply it whenever that model is selected. Fits the operator-profile system.",
+   "Selecting a model re-applies its remembered effort/fast preset; changing it updates the per-model memory; persistence unit-tested."],
+  ["OP-ADVERSARIAL-UX","Operator","Adversarial-persona UX QA loop (pragmatism-filtered)","M","horizon","coding",
+   "Layer an 'angry/tech-resistant persona' QA pass on the existing browser + vision-to-action: roleplay the hardest user, browse the app, log friction, then a pragmatism filter separates real UX problems from 'I hate computers' noise into actionable tickets.",
+   "A run drives the app as an adversarial persona, logs friction, and emits only pragmatism-filtered actionable UX tickets; filter logic unit-tested."],
+  ["OP-SECRET-SCOPE","Operator","Fail-closed profile-scoped secret resolution","S","parked","infra",
+   "For the future multi-profile/fleet-worker case: a per-task secret scope so worker A never reads worker B's keys; get_secret reads the active scope and RAISES (fail-closed) rather than falling back to process env when multiplexing, with a tight global-var allowlist. Platform-thinking before multi-profile users — park.",
+   "Captured for the fleet/multi-profile slice; the fail-closed-on-missing-scope discipline noted."],
+  ["OP-BILLING-VIEW","Operator","Provider-reported usage / balance panel (fail-open)","M","parked","infra",
+   "Budget enforcement exists (the important half); a read of provider-reported balance/quota/reset-window would let the cockpit show 'you have $X left, resets at Y'. Keep the fail-open + Decimal-money discipline if/when a usage panel is built.",
+   "Captured as cockpit polish; fail-open + Decimal-money discipline noted for a future usage panel."],
+  ["OP-CHECKPOINT-ROLLBACK","Operator","Verify turn-granular shadow-git rollback coverage","M","parked","coding",
+   "A shadow-git store snapshots working dirs before file-mutating ops (once per turn) with rollback independent of the user's real git. Vanta already has checkpoint/rewind + ~/.vanta git-init; verify the existing surface covers turn-granular rollback before building — likely covered.",
+   "Confirmed whether existing checkpoint/rewind offers turn-granular rollback via a store that never touches user git; build only if a gap is found."],
+  ["OP-HOMEASSISTANT","Operator","Home Assistant control (as mounted MCP)","M","parked","reach",
+   "Smart-home control via Home Assistant REST + long-lived token (list/read entities, call services). Better offered as a mounted HA MCP than a built-in tool; only matters to HA users.",
+   "Captured as an optional HA integration, preferably via the MCP catalog rather than a built-in tool."],
+  ["OP-X-SEARCH","Operator","Live X / social search channel","M","parked","reach",
+   "Live X/Twitter search (via an xAI-style API) would feed the radar/opportunity surfaces with real-time social signal. Build via the existing REACH channel pattern when prioritized; needs creds.",
+   "Captured as a REACH channel; live social search wired when the reach/radar rocks are prioritized."],
+  ["OP-OSINT-RESEARCH","Operator","OSINT investigation framework (public records)","M","parked","reach",
+   "A public-records research capability (SEC EDGAR, USAspending, OFAC, OpenCorporates, court records, WHOIS/DNS) with entity resolution + evidence chains, stdlib-only/no keys. Useful for a future research-operator slice; off the active pillars.",
+   "Captured for a future research-operator slice; cleanly buildable with no API keys."],
+  ["OP-MIGRATION-IMPORT","Operator","Import-from-other-agent onboarding (honest gaps report)","M","parked","selfhood",
+   "An onboarding on-ramp that imports another agent's footprint (persona, memory, command allowlists, skills, workspace) and reports exactly what couldn't migrate and why. The honest could-not-migrate report is the reusable shape; parity-chasing otherwise.",
+   "Captured as an adoption on-ramp; the honest-failure-report pattern noted."],
+  ["OP-INSTALLER-STAGED","Operator","Staged-install event contract + forensic log + retry UX","L","parked","infra",
+   "Upgrade run.sh setup with a staged-install model: stream manifest/stage/log/complete/failed events to a progress view, write a forensic install log, and offer retry + open-log on failure. The event contract + forensic log + failure UX is the reusable idea (no GUI required).",
+   "Captured as a setup-UX upgrade; staged event contract + forensic log + retry/open-log failure flow noted for run.sh setup."],
+  ["HARNESS-EGRESS-ISOLATION","Extensibility","Docker network egress isolation (SEC backlog)","M","parked","infra",
+   "A deployment-layer defense: run the agent on an internal Docker network with no internet, allowlisting only required services — a second layer against prompt-injection exfiltration beyond the shell sandbox. Reference for a future Docker/deploy story.",
+   "Captured for the SEC backlog / a future Docker deployment story as an egress-isolation reference."],
+
+  // ---------- EXTENSIBILITY · integration surfaces ----------
+  ["EXT-ACP-ADAPTER","Extensibility","Real spec-compliant ACP server (editor/IDE integration)","L","horizon","coding",
+   "The current acp shim is a run-only HTTP endpoint no editor will connect to. Build a real Agent Client Protocol stdio JSON-RPC server (initialize/new/load/fork/resume/list sessions, set model/mode, prompt, cancel) with streaming thought/message/tool chunks, so Zed/any ACP editor can drive the agent in-IDE. The kernel assess()->approval model maps onto ACP request_permission.",
+   "An ACP-capable editor (e.g. Zed) connects over stdio JSON-RPC, starts a session, streams the agent, and routes permission/edit approvals through the kernel; protocol surface conformance-tested."],
+  ["EXT-ACP-EDIT-DIFF","Operator","Pre-exec edit-diff approval + sensitive-path policy","M","horizon","coding",
+   "Before a file mutation, surface an old/new diff to the client for approve/deny, with session-scoped auto-approve policies (ask/session/always) that still force-prompt on sensitive paths (.env/.git/.ssh/id_rsa). The always-ask-on-secrets auto-approve policy is worth stealing into the permission rules even without ACP.",
+   "A file edit surfaces a diff for approval; an auto-approve-for-session policy still prompts on sensitive paths; policy unit-tested; integrates with EXT-ACP-ADAPTER."],
+  ["EXT-MCP-CATALOG","Extensibility","Vetted MCP catalog + vanta mcp install","M","horizon","infra",
+   "Mounting MCPs is raw-config today. Add a declarative manifest standard (transport, auth shape, install bootstrap, a read-mostly default tool subset) and a vanta mcp install <name> over a small approved catalog, so mutating tools are opt-in per threat model. Pairs with per-tool kernel gating.",
+   "vanta mcp install <name> installs and configures a vetted server from a catalog with a read-mostly default tool subset; manifest schema + install path unit-tested."],
+  ["EXT-MODEL-CATALOG-REMOTE","Extensibility","Remote model-catalog manifest with fallback chain","M","horizon","infra",
+   "The model catalog is a static array, so adding models needs a release. Fetch a JSON manifest with TTL + atomic disk cache and a fallback chain (primary URL -> raw-GitHub -> stale cache -> bundled), plus seed-from-checkout after update. Point it at the docs site + GitHub raw.",
+   "The model picker refreshes from a remote manifest with the full fallback chain and works offline from stale/bundled cache; refresh + fallback unit-tested."],
+  ["EXT-MEMORY-FIELD-SCHEMA","Extensibility","Declarative config field-descriptor -> generic setup","S","horizon","infra",
+   "Adding a configurable backend means bespoke setup/endpoint code. Add a pure-data field descriptor (kind=text/select/secret, env_key, aliases, env_fallbacks) so one generic renderer + one generic config path handle any pluggable surface; secrets route to env-store and are never read back (only is_set).",
+   "A new configurable surface is added by declaring fields only, with no bespoke setup UI; secrets are write-only; the generic renderer is unit-tested."],
+  ["EXT-MODEL-NORMALIZE","Extensibility","normalizeModelForProvider() id canonicalizer","S","horizon","infra",
+   "Routing to OpenRouter/Ollama hits 'right model, wrong id-shape' 400s. Add a small normalizeModelForProvider() that strips/prepends vendor prefix, detects vendor from a bare id, and applies the few provider-specific id quirks the providers actually hit. Keep it tiny.",
+   "A model id is canonicalized for the target provider before the API call, preventing wrong-shape 400s; covered for each routed provider."],
+  ["EXT-MCP-SERVE-COMMS","Extensibility","Expose conversations/approvals as an MCP server","M","parked","infra",
+   "Beyond exposing tools, expose the agent's multi-platform conversations and pending approvals as an MCP server (list/read/send, resolve approvals) so an external client can drive comms — with an events_wait long-poll primitive. Depends on a live multi-platform gateway with persisted conversations; revisit when comms channels are real.",
+   "Captured; the events_wait long-poll primitive split out as HARNESS-EVENTS-WAIT; full bridge deferred until multi-platform comms exist."],
+
+  // ---------- SOLUTIONING / COFOUNDER · content mining ----------
+  ["COFOUNDER-IDEATION-METHODS","Cofounder engine","Routed creative-ideation method catalog","M","next","selfhood",
+   "Mine a routed library of named ideation methods (first-principles, biomimicry, oblique-strategies, JTBD, TRIZ, SCAMPER, leverage-points, lateral-provocations, premortem-inversion, analogy/blending) — each with when/when-not, procedure, worked example, anti-slop notes — as a Vanta skill with a signal-routing table. Feeds the Cofounder/solutioning pillar. Reimplement in Vanta's voice, don't copy text.",
+   "A solutioning skill routes a problem (phase/domain/specificity signals) to one ideation method and applies its procedure; method catalog + router unit-tested."],
+  ["COFOUNDER-ANTI-SLOP","Cofounder engine","Fold 5-test slop diagnostic into anti-slop","S","next","selfhood",
+   "Strengthen the existing anti-slop with a slop-signature blocklist, a 5-test diagnostic, and suppression techniques (refuse-first-three, force-specificity-via-proper-nouns, weirdness budget). 'Name-dropping a tech stack is NOT specificity' is the sharp reusable rule.",
+   "Idea-generation output is run through the 5-test diagnostic and specificity rule; the existing anti-slop gains the blocklist + suppression techniques; diagnostics unit-tested."],
+  ["SOL-MIXTURE-OF-AGENTS","Solutioning","Layered multi-LLM answer synthesis (MoA)","M","parked","agent-loop",
+   "Fan a hard prompt across multiple models in layers, each refining the prior layer's aggregated outputs, for better reasoning than any single model. Vanta can compose this ad-hoc via subagents + model routing; a dedicated primitive is a quality bet, not a gap — park until a concrete need (Rule of 3).",
+   "Captured; buildable via existing subagents + routing when a concrete reasoning task warrants a dedicated MoA primitive."],
+  ["SOL-ONE-THREE-ONE","Solutioning","1-3-1 decision-output rigor","S","parked","selfhood",
+   "A tidy proposal template: 1 problem sentence / exactly 3 genuinely-distinct options with pros-cons / 1 recommendation + Definition-of-Done, updating the DoD when the user picks a different option. Overlaps the existing option-presentation rule; mine the 'exactly 3, distinct, DoD attached' rigor if solutioning output is loose.",
+   "Captured as a template; the exactly-3-distinct-options + attached-DoD rigor noted for solutioning output."],
+  ["COFOUNDER-MEMORY-HOOKS","Cofounder engine","Memory lifecycle-hook taxonomy for the brain interface","M","parked","memory",
+   "Cherry-pick a richer lifecycle-hook taxonomy (prefetch/queue_prefetch, sync_turn, on_session_end, on_session_switch, on_pre_compress, on_delegation) into the existing memory brain interface — without adopting a full pluggable-backend ABC before a second backend exists (Rule of 3).",
+   "Captured; the prefetch/on_pre_compress/on_session_switch hook names noted for the brain interface; full pluggable-backend ABC deferred."],
+];
+
+const raw = readFileSync(FILE, "utf8");
+const root = JSON.parse(raw);
+const existing = new Set(root.items.map((i) => i.id));
+
+let added = 0, skipped = 0;
+for (const [id, track, title, size, status, lens, summary, done] of F) {
+  if (existing.has(id)) { skipped++; continue; }
+  root.items.push({
+    id, track, title, status, size, summary, done,
+    tier: tierBySize[size], model: modelBySize[size], effort: effortBySize[size],
+    codex: codexBySize[size], lens, updated: TODAY, source: SOURCE,
+  });
+  existing.add(id);
+  added++;
+}
+root.updated = TODAY;
+
+writeFileSync(FILE, JSON.stringify(root, null, 2) + "\n");
+const byStatus = {};
+for (const [, , , , status] of F) byStatus[status] = (byStatus[status] || 0) + 1;
+console.log(`added: ${added}  skipped(existing): ${skipped}  total now: ${root.items.length}`);
+console.log("by status:", JSON.stringify(byStatus));
