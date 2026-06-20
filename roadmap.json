@@ -9860,7 +9860,7 @@
       "id": "LIVENESS-WATCHDOG",
       "track": "Harness",
       "title": "Kernel liveness watchdog — every loop/goal in a named state, stalls surfaced",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Kernel-side state machine: every running loop/goal must terminate each tick in live / waiting / blocked / terminal; violations (silent stall, unbounded in-progress, recursive recovery) surface as events and halt further spawns until resolved. The hard backstop under all loop autonomy. Steals diagnose-why-work-stopped. Kernel work — sequenced after the engine proves out.",
       "done": "A silently-stalled loop is detected and surfaced within one tick; runaway spawn recursion is halted by the kernel.",

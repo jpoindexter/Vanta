@@ -8,9 +8,21 @@ import { resolveBrain } from "../brain/interface.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startProgressReporter } from "./progress-reporter.js";
+import { resolveSpawnDepth, checkSpawnDepth, withSpawnDepth } from "./spawn-guard.js";
 import type { RecentCall } from "./progress.js";
+import type { SpawnGuardOptions, SpawnGuardVerdict } from "./spawn-guard.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
 import type { Goal, Message } from "../types.js";
+
+type WorkerOpts = {
+  goal: string;
+  instruction: string;
+  deps: AgentDeps;
+  maxIterations?: number;
+  soulPath?: string;
+  // Injected for deterministic tests; defaults to wall-clock at call time.
+  now?: Date;
+};
 
 const DEFAULT_MAX_ITERATIONS = 50;
 const RECENT_CALLS_CAP = 8;
@@ -45,15 +57,36 @@ function withProgressCapture(deps: AgentDeps): { deps: AgentDeps; getRecentCalls
  * responsible for passing a registry that already excludes `delegate` so the
  * worker cannot recursively spawn.
  */
-export async function spawnSubagent(opts: {
-  goal: string;
-  instruction: string;
-  deps: AgentDeps;
-  maxIterations?: number;
-  soulPath?: string;
-  // Injected for deterministic tests; defaults to wall-clock at call time.
-  now?: Date;
-}): Promise<AgentOutcome> {
+export async function spawnSubagent(
+  opts: WorkerOpts & {
+    /** Spawn depth of this call's parent; defaults to the VANTA_SPAWN_DEPTH seed.
+     * The child runs at depth+1, and the kernel refuses runaway depth. */
+    depth?: number;
+    /** Injected for tests; defaults to the real kernel spawn-depth guard. */
+    checkSpawn?: (o: SpawnGuardOptions) => Promise<SpawnGuardVerdict>;
+  },
+): Promise<AgentOutcome> {
+  const childDepth = (opts.depth ?? resolveSpawnDepth(process.env)) + 1;
+  const guard = await (opts.checkSpawn ?? checkSpawnDepth)({
+    parent: spawnLabel(opts.goal, "agent"),
+    child: spawnLabel(opts.instruction, "worker"),
+    depth: childDepth,
+  });
+  if (!guard.allowed) return blockedOutcome(`Spawn refused by kernel: ${guard.reason}`);
+  return withSpawnDepth(childDepth, () => runWorker(opts));
+}
+
+/** Truncate a goal/instruction to a short single-line ledger label. */
+function spawnLabel(text: string, fallback: string): string {
+  const t = text.trim().replace(/\s+/g, " ").slice(0, 60);
+  return t.length > 0 ? t : fallback;
+}
+
+function blockedOutcome(finalText: string): AgentOutcome {
+  return { finalText, iterations: 0, stoppedReason: "interrupted", toolIterations: 0 };
+}
+
+async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const { deps: runDeps, getRecentCalls } = withProgressCapture(opts.deps);
   const deps = runDeps;
   const now = (opts.now ?? new Date()).toISOString();

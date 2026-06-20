@@ -41,6 +41,10 @@ function makeDeps(root: string): AgentDeps {
   };
 }
 
+// Hermetic spawn-depth guard: always allow, never touch the network. The kernel
+// guard itself is covered in spawn-guard.test.ts.
+const okSpawn = async () => ({ allowed: true, reason: "ok", depth: 1, maxDepth: 6 });
+
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "vanta-subagent-"));
   await mkdir(join(root, ".vanta"));
@@ -56,6 +60,7 @@ describe("spawnSubagent", () => {
         instruction: "Do the scoped task.",
         deps: makeDeps(root),
         now: new Date("2026-06-02T00:00:00.000Z"),
+        checkSpawn: okSpawn,
       });
 
       expect(outcome.finalText).toBe("done");
@@ -94,6 +99,7 @@ describe("spawnSubagent", () => {
         deps,
         maxIterations: 2,
         now: new Date("2026-06-02T00:00:00.000Z"),
+        checkSpawn: okSpawn,
       });
 
       expect(outcome.iterations).toBe(2);
@@ -111,6 +117,7 @@ describe("spawnSubagent", () => {
         instruction: "Read and summarize.",
         deps: makeDeps(root),
         now: new Date("2026-06-02T00:00:00.000Z"),
+        checkSpawn: okSpawn,
       });
 
       const files = await readdir(join(root, ".vanta", "sidechains"));
@@ -122,6 +129,40 @@ describe("spawnSubagent", () => {
       expect(saved.outcome.finalText).toBe("done");
       expect(saved.messages.some((m) => m.role === "user" && m.content === "Read and summarize.")).toBe(true);
       expect(saved.messages.some((m) => m.role === "assistant" && m.content === "done")).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses the spawn and never runs the worker when the kernel halts runaway depth", async () => {
+    const root = await tempRoot();
+    // A provider that throws if invoked — proves the worker never started.
+    class ExplodingProvider implements LLMProvider {
+      async complete(): Promise<CompletionResult> {
+        throw new Error("worker should never run when the spawn is refused");
+      }
+      modelId() {
+        return "boom";
+      }
+      contextWindow() {
+        return 8192;
+      }
+    }
+    try {
+      const deps: AgentDeps = { ...makeDeps(root), provider: new ExplodingProvider() };
+      const outcome = await spawnSubagent({
+        goal: "spawn deeper",
+        instruction: "recurse",
+        deps,
+        depth: 99,
+        checkSpawn: async () => ({ allowed: false, reason: "runaway recursion halted", depth: 100, maxDepth: 6 }),
+      });
+
+      expect(outcome.stoppedReason).toBe("interrupted");
+      expect(outcome.iterations).toBe(0);
+      expect(outcome.finalText).toContain("Spawn refused by kernel");
+      // No worker ran → no sidechain transcript was written.
+      await expect(readdir(join(root, ".vanta", "sidechains"))).rejects.toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }

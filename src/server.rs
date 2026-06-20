@@ -1,4 +1,4 @@
-use crate::{app, approvals, goals, loops, runtime, safety};
+use crate::{app, approvals, goals, loops, runtime, safety, spawn};
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
@@ -85,6 +85,10 @@ fn handle(stream: &mut TcpStream, state: &app::State) -> Result<(), String> {
         )
     } else if head.starts_with("POST /api/assess") {
         let verdict = safety::assess_action(body.trim(), &state.root);
+        json(stream, &verdict.to_json())
+    } else if head.starts_with("POST /api/spawn") {
+        let (parent, child, depth) = spawn::parse_request(body.trim());
+        let verdict = spawn::check_and_record(state, &parent, &child, depth);
         json(stream, &verdict.to_json())
     } else if head.starts_with("POST /api/log") {
         match app::append_event(state, body.trim()) {
