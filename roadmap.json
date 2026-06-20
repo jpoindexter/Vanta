@@ -2511,7 +2511,7 @@
       "id": "VANTA-CACHE-HINTS",
       "track": "Harness",
       "title": "--exclude-dynamic-system-prompt-sections — prompt cache optimization",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `--exclude-dynamic-system-prompt-sections` strips volatile sections (goals, time, current memory) from the cache-prefix portion of the system prompt, dramatically improving LLM cache hit rate on long sessions. Vanta's prompt has stable + volatile tiers (PROMPT-STABILITY) but no per-section exclusion flag.",
       "done": "`--exclude-dynamic-system-prompt-sections <list>` (or comma-sep env `VANTA_EXCLUDE_PROMPT_SECTIONS`) moves specified tiers out of the stable cache prefix; the cost footer shows estimated cache-hit improvement.",
@@ -2519,7 +2519,8 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SETTINGS-MEM",

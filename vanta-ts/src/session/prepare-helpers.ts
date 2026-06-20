@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 import { buildSystemPrompt } from "../prompt.js";
+import { applyCacheHints } from "../prompt/cache-hints.js";
 import { selectSkillsForTask } from "../skills/select.js";
 import { recentMemory } from "../memory/store.js";
 import { listSkills } from "../skills/store.js";
@@ -221,7 +222,10 @@ export async function buildRunPrompt(o: {
     outputDensity: await getOutputDensity(),
     gitInstructions: gitInstructionsBlock(settings),
   });
-  return { systemPrompt, ralphContinuity };
+  // VANTA-CACHE-HINTS: opt-in (VANTA_EXCLUDE_DYNAMIC_PROMPT/VANTA_CACHE_HINTS=1)
+  // drops the volatile tail so the prompt stays cacheable across turns. Off by
+  // default → full prompt unchanged. Trades per-turn freshness for cache hits.
+  return { systemPrompt: applyCacheHints(systemPrompt, process.env), ralphContinuity };
 }
 
 export async function loadRalphContinuity(repoRoot: string): Promise<string | undefined> {
