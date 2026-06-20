@@ -29,6 +29,10 @@ import { runOkrCommand } from "./cli/okr-cmd.js";
 import { runExchangeCommand } from "./cli/exchange-cmd.js";
 import { runAuthorityCommand } from "./cli/authority-cmd.js";
 import { runPlaybookCommand } from "./cli/playbook-cmd.js";
+import { runReviewCommand } from "./cli/review-cmd.js";
+import { runHandoffCommand } from "./cli/handoff-cmd.js";
+import { runProposalCommand } from "./cli/proposal-cmd.js";
+import { runOrgCommand } from "./cli/org-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
 import { runAgentsCommand } from "./cli/agents-cmd.js";
 import { runGoalsCommand } from "./cli/goals-cmd.js";
@@ -149,6 +153,10 @@ const COMMANDS: Record<string, CommandFn> = {
   exchange: (_root, rest) => runExchangeCommand(rest),
   authority: (_root, rest) => runAuthorityCommand(rest),
   playbook: (_root, rest) => runPlaybookCommand(rest),
+  review: (_root, rest) => runReviewCommand(rest),
+  handoff: (_root, rest) => runHandoffCommand(rest),
+  proposal: (_root, rest) => runProposalCommand(rest),
+  org: (_root, rest) => runOrgCommand(rest),
   heartbeat: (root) => runHeartbeatCommand(root),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
