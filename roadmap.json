@@ -2723,7 +2723,7 @@
       "id": "VANTA-BASH-SECURITY-BLOCKS",
       "track": "Harness",
       "title": "Bash security blocks — process substitution, Zsh expansions, heredoc injection",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "BashTool blocks dangerous shell patterns: process substitution `<()` `>()` `$()` `${}`, Zsh equals expansion `=cmd` (bypasses deny rules), heredoc in substitution, malformed token detection, PowerShell comment syntax. Each pattern has a specific error message. Defense-in-depth on top of the permission system.",
       "done": "Commands using `$(cmd)` are blocked with a specific error; `=curl` is blocked explaining Zsh equals expansion; all patterns surface the reason they're blocked.",
@@ -2732,7 +2732,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure detectShellInjection -> {flagged,risks[]} for 4 classes: process-substitution <()/>(), command-substitution-payload $()/backtick wrapping a destructive/exec token, heredoc-injection (<< feeding a shell/eval/exfil sink, not a plain-file redirect), zsh-glob-qualifier (N)/(om) on a destructive op. Conservative/low-FP (plain ls, echo $(date), benign heredoc NOT flagged). ADDITIVE to the kernel — never weakens it. Built+tested; surface = shell-cmd describeForSafety appends risks so assess() escalates (named)."
     },
     {
       "id": "VANTA-FORK-SUBAGENT",
