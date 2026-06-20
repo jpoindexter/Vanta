@@ -121,6 +121,7 @@ describe("registry", () => {
       "regression_lock",
       "research_decompose",
       "retrieve_original",
+      "review_artifact",
       "roadmap_add",
       "roadmap_move",
       "rss_read",

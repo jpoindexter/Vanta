@@ -4428,7 +4428,7 @@
       "id": "VANTA-AGENT-WIZARD",
       "track": "Operator",
       "title": "Agent creation wizard — guided multi-step agent definition UI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent has a full guided wizard for creating custom named agents: 12 steps (Type, Method, Color, Description, Memory, Model, Tools, Prompt, Generate, Location, Confirm, ConfirmWrapper). Each step is a dedicated screen with keyboard navigation. Agents are saved as typed config files. No equivalent in Vanta.",
       "done": "/new-agent (or vanta agents new) launches the wizard; each step validates before advancing; the finished agent is saved to ~/.vanta/agents/ and immediately available as a delegate target.",
@@ -4436,7 +4436,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-20",
+      "notes": "8-step pure state machine + render-tested screens; Generate + file write reuse agentgen. Live mount into the /agents Create-new flow deferred (self-contained surface). Tools step uses a fixed 5-tool list; wiring the live ALL_TOOLS list is a follow-up. Cursor/edit feel wants a real-terminal once-over."
     },
     {
       "id": "VANTA-GLOBAL-SEARCH-UI",
@@ -4458,7 +4460,7 @@
       "id": "VANTA-MOUSE-SUPPORT",
       "track": "Operator",
       "title": "Mouse support — click events, hit testing, focus in TUI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent's ink layer has full mouse support: click-event.ts, hit-test.ts, focus-event.ts, terminal-event.ts — elements can declare click handlers and receive mouse focus. Enables clickable links, buttons, and list items in the TUI. Vanta's Ink TUI is keyboard-only.",
       "done": "Terminal mouse events are captured; UI elements register hit areas; clicking a link, button, or list item triggers its handler; focus follows click; mouse can be disabled for performance.",
@@ -4466,7 +4468,9 @@
       "model": "opus",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure parse (SGR mouse escapes) -> hit-test (topmost region) -> dispatch (handler + focus, composes with ui/focus.ts) pipeline, fully tested. DEFERRED BOUNDARY (needs a real terminal, not faked): enabling live DEC-1006 mouse reporting (SGR enable escapes to stdout, mouse bytes off real stdin, Ink elements registering their own bounds)."
     },
     {
       "id": "VANTA-DESIGN-SYSTEM",
@@ -4548,7 +4552,7 @@
       "id": "VANTA-REVIEW-ARTIFACT",
       "track": "Operator",
       "title": "ReviewArtifactTool — review and approve generated code/file artifacts in UI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent (feature-gated `REVIEW_ARTIFACT`) has a `ReviewArtifactTool` with a dedicated `ReviewArtifactPermissionRequest` component. The tool presents a generated artifact (code file, document) for user review with approve/reject. Shows a diff-style view of the proposed artifact before it's written.",
       "done": "When the agent proposes a new file, a ReviewArtifact dialog shows the full content with an approve/reject choice before it's written to disk.",
@@ -4557,7 +4561,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "review_artifact tool ({path,content} -> diff vs existing -> requestApproval -> approve writes / reject no-write) + pure artifact-diff (reuses util/diff LCS) + render-tested view. The view is chrome-only (caller drives keys); mounting it into a live overlay/keybinding is a follow-up."
     },
     {
       "id": "VANTA-PLAN-INTERVIEW-PHASE",
