@@ -2971,7 +2971,7 @@
       "id": "VANTA-SHUTDOWN-MSG",
       "track": "Operator",
       "title": "ShutdownMessage — graceful session end display",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's ShutdownMessage shows a structured session-end summary: what was accomplished, shutdown reason (user exit / budget exceeded / context full / error), and a handoff note. Vanta exits without a session summary in the transcript.",
       "done": "On session end, a ShutdownMessage appears showing the shutdown reason, a brief session summary (goals accomplished, files changed, cost), and any handoff note for resuming.",
@@ -2979,7 +2979,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-20",
+      "notes": "Pure buildShutdownMessage ({startedIso,nowIso,turnCount,sessionCost} -> full summary turns/duration/cost or minimal line for 0 turns; no new Date inside) + sessionDurationLabel (45s/7m/1h 3m). WIRED LIVE: runChat exit replaces the abrupt console.log(bye) with the goodbye summary (host supplies now). Cost shown only when frontierUsd>0; turn singularized."
     },
     {
       "id": "VANTA-AUTO-MODE-OPTIN",
