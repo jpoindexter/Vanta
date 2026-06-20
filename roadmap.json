@@ -1998,7 +1998,7 @@
       "id": "VANTA-DEFERRED-SESSION-HOOKS",
       "track": "Harness",
       "title": "Deferred SessionStart hooks — async hook execution without blocking REPL startup",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `useDeferredHookMessages` runs SessionStart hooks asynchronously so the REPL renders immediately (~500ms savings). Hook messages are stored in a pending promise and merged into the conversation before the first API request (ensuring the model always sees hook context). The deferred pattern avoids REPL startup blocking on slow hooks.",
       "done": "SessionStart hooks with slow shell commands (~500ms+) don't delay the initial REPL render. Their output appears as the first hook attachment when the user sends their first message.",
@@ -2007,7 +2007,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MEMORY-WARN",
