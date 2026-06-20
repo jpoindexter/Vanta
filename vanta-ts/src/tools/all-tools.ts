@@ -85,6 +85,7 @@ import { listMcpResourcesTool, readMcpResourceTool } from "./mcp-resources.js";
 import { retrieveOriginalTool } from "./retrieve-original.js";
 import { loopTool } from "./loop.js";
 import { sendMessageTool } from "./send-message.js";
+import { sendChatTool } from "./send-chat.js";
 import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { listPeersTool, peerSendTool } from "./peers.js";
@@ -214,6 +215,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   retrieveOriginalTool,
   loopTool,
   sendMessageTool,
+  sendChatTool,
   playbookTool,
   enterWorktreeTool,
   exitWorktreeTool,

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { applyOutputDensity, buildSystemPrompt, splitStableVolatile, TIER_SEP, trimSkillDesc } from "./prompt.js";
 import type { Goal } from "./types.js";
 
@@ -323,5 +323,60 @@ describe("splitStableVolatile", () => {
       now: "2026-06-02T00:00:00Z",
     });
     expect(prompt).not.toContain("ERRORS.md");
+  });
+});
+
+describe("buildSystemPrompt — MSG-PLATFORM-HINTS", () => {
+  const sampleTools = [{ name: "read_file", description: "Read a file", parameters: {} }];
+  const base = {
+    root: "/tmp/vanta",
+    soulPath: "/nonexistent/SOUL.md",
+    goals: [] as Goal[],
+    tools: sampleTools,
+    now: "2026-06-02T00:00:00Z",
+  };
+
+  // The env the gateway sets can leak in from the runner — isolate it per test.
+  const ORIGINAL_ENV = process.env.VANTA_GATEWAY_PLATFORM;
+  beforeEach(() => {
+    delete process.env.VANTA_GATEWAY_PLATFORM;
+  });
+  afterEach(() => {
+    if (ORIGINAL_ENV === undefined) delete process.env.VANTA_GATEWAY_PLATFORM;
+    else process.env.VANTA_GATEWAY_PLATFORM = ORIGINAL_ENV;
+  });
+
+  it("default (no platform, no env) leaves the prompt unchanged byte-for-byte", async () => {
+    const plain = await buildSystemPrompt(base);
+    const withUndefined = await buildSystemPrompt({ ...base, gatewayPlatform: undefined });
+    expect(withUndefined).toBe(plain);
+    expect(plain).not.toContain("You're on");
+  });
+
+  it("folds the IRC hint (no markdown) into the prompt when gatewayPlatform is irc", async () => {
+    const prompt = await buildSystemPrompt({ ...base, gatewayPlatform: "irc" });
+    expect(prompt).toContain("You're on IRC");
+    expect(prompt.toLowerCase()).toContain("no markdown");
+  });
+
+  it("emits less markdown guidance for IRC than the markdown-capable Telegram hint", async () => {
+    const irc = await buildSystemPrompt({ ...base, gatewayPlatform: "irc" });
+    const telegram = await buildSystemPrompt({ ...base, gatewayPlatform: "telegram" });
+    // IRC tells the agent NOT to use markdown; Telegram tells it markdown is supported.
+    expect(irc.toLowerCase()).toContain("no markdown");
+    expect(telegram).toContain("MarkdownV2");
+    expect(irc).not.toContain("MarkdownV2");
+  });
+
+  it("adds no hint line for an unknown platform id (default prompt preserved)", async () => {
+    const plain = await buildSystemPrompt(base);
+    const unknown = await buildSystemPrompt({ ...base, gatewayPlatform: "nosuchplatform" });
+    expect(unknown).toBe(plain);
+  });
+
+  it("sources the hint from VANTA_GATEWAY_PLATFORM when no field is passed", async () => {
+    process.env.VANTA_GATEWAY_PLATFORM = "irc";
+    const prompt = await buildSystemPrompt(base);
+    expect(prompt).toContain("You're on IRC");
   });
 });
