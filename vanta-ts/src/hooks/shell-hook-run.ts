@@ -1,4 +1,3 @@
-import { spawn, execFile } from "node:child_process";
 import {
   loadShellHooks,
   matchingHooks,
@@ -13,12 +12,17 @@ import { runHttpHook } from "./http-hook-run.js";
 import { runPromptHook } from "./prompt-hook-run.js";
 import { interpretHookExit } from "./hook-exit-codes.js";
 import { shouldShowTiming, buildHookTimingNote } from "./hook-timing.js";
+import { resolveHookProgressMs, buildHookProgressNote, buildHookProgressDone } from "./hook-progress.js";
+import { DEFAULT_TIMEOUT_MS, runShellHook, runExecHook } from "./hook-spawn.js";
 import type { LLMProvider } from "../providers/interface.js";
 
 // Hook execution layer. Extracted from shell-hooks.ts (size gate).
-// Types, schemas, and match logic stay in shell-hooks.ts.
+// Types, schemas, and match logic stay in shell-hooks.ts. The child-process
+// spawn machinery lives in hook-spawn.ts; runShellHook/runExecHook are
+// re-exported here so external callers stay unchanged.
 
-const DEFAULT_TIMEOUT_MS = 10_000;
+export { runShellHook, runExecHook } from "./hook-spawn.js";
+
 const ONCE_KEYS = new Set<string>();
 
 export type HookRunDeps = {
@@ -33,6 +37,25 @@ type HookRunOpts = HookRunDeps & { cwd?: string };
 /** A human-readable label for a hook in a timing note: `<event>:<type>`. */
 function hookLabel(hook: ShellHook, event: ShellHookEvent): string {
   return `${event}:${hook.type ?? "shell"}`;
+}
+
+type ProgressArm = { cancel: () => void; shown: () => boolean };
+
+/**
+ * Arm a one-shot in-progress indicator: after `resolveHookProgressMs(env)` ms a
+ * still-running hook surfaces its progress note ONCE (sets a shown flag).
+ * `cancel()` clears the timer (always safe to call, even after it fired) so the
+ * timer can never leak and never delays the hook — it is observational only.
+ * An instant hook (resolves before the threshold) is cancelled first and emits
+ * nothing.
+ */
+function armProgress(hook: ShellHook, event: ShellHookEvent, opts: HookRunOpts): ProgressArm {
+  let shown = false;
+  const timer = setTimeout(() => {
+    shown = true;
+    opts.onStatus?.(buildHookProgressNote(event, hook.type ?? "shell"));
+  }, resolveHookProgressMs(opts.env));
+  return { cancel: () => clearTimeout(timer), shown: () => shown };
 }
 
 /**
@@ -50,11 +73,14 @@ async function runHook(hook: ShellHook, event: ShellHookEvent, contextJson: stri
   if (hook.once && seenOnce(event, hook)) return { code: 0, stdout: "[hook skipped: once]", stderr: "" };
   if (hook.statusMessage) opts.onStatus?.(hook.statusMessage);
   const startedAt = Date.now();
-  const run = () => runHookNow(hook, contextJson, opts);
-  const result = await withHookTimeout(run(), hook.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-  // Observational only: surface a one-line timing indicator past the threshold;
-  // never affects the result that flows back to the caller.
+  const progress = armProgress(hook, event, opts);
+  const result = await withHookTimeout(runHookNow(hook, contextJson, opts), hook.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  progress.cancel();
+  // Observational only: surface a one-line indicator past each threshold; never
+  // affects the result that flows back to the caller. An instant hook (under the
+  // progress threshold) emits no progress line — its timer was cancelled first.
   const elapsed = Date.now() - startedAt;
+  if (progress.shown()) opts.onStatus?.(buildHookProgressDone(event, hook.type ?? "shell", elapsed));
   if (shouldShowTiming(elapsed)) opts.onStatus?.(buildHookTimingNote(hookLabel(hook, event), elapsed));
   return result;
 }
@@ -73,61 +99,6 @@ function runHookNow(hook: ShellHook, contextJson: string, opts: HookRunOpts): Pr
 }
 
 export type ShellHookResult = { code: number; stdout: string; stderr: string };
-
-type ChildProc = ReturnType<typeof spawn>;
-
-/**
- * Wire a spawned hook child: capture stdout/stderr, enforce the timeout, pipe
- * the JSON context to stdin, resolve with the exit code + output. A spawn
- * failure resolves to code 0 (fail-open on a broken hook); a timeout to 124.
- * Shared by the shell and exec spawn paths so they have identical semantics.
- */
-function pipeChild(child: ChildProc, contextJson: string, timeoutMs: number): Promise<ShellHookResult> {
-  return new Promise((resolve) => {
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      resolve({ code: 124, stdout, stderr: `${stderr}\n[hook timed out]` });
-    }, timeoutMs);
-    child.stdout?.on("data", (d) => { stdout += String(d); });
-    child.stderr?.on("data", (d) => { stderr += String(d); });
-    child.stdin?.on("error", () => {});
-    child.on("error", () => { clearTimeout(timer); resolve({ code: 0, stdout, stderr }); });
-    child.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 0, stdout, stderr }); });
-    child.stdin?.end(contextJson);
-  });
-}
-
-/**
- * Spawn one shell hook, piping the JSON context to its stdin. Resolves with the
- * exit code + captured output. A spawn failure resolves to code 0 (fail-open on
- * a broken shell); a timeout resolves to code 124.
- */
-export function runShellHook(
-  command: string,
-  contextJson: string,
-  opts: { timeoutMs?: number; cwd?: string } = {},
-): Promise<ShellHookResult> {
-  const child = spawn(command, { shell: true, cwd: opts.cwd });
-  return pipeChild(child, contextJson, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-}
-
-/**
- * Spawn one exec-form hook DIRECTLY via execFile (no shell), piping the JSON
- * context to its stdin. `file` is spawned with `args` argv verbatim — the
- * command string is never interpreted by a shell, so there is no shell
- * injection/quoting hazard. Same timeout/fail-open semantics as runShellHook.
- */
-export function runExecHook(
-  file: string,
-  args: string[],
-  contextJson: string,
-  opts: { timeoutMs?: number; cwd?: string } = {},
-): Promise<ShellHookResult> {
-  const child = execFile(file, args, { cwd: opts.cwd });
-  return pipeChild(child, contextJson, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-}
 
 function seenOnce(event: ShellHookEvent, hook: ShellHook): boolean {
   const key = `${event}:${JSON.stringify(hook)}`;

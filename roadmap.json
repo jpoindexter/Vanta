@@ -2791,7 +2791,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
       "updated": "2026-06-20",
-      "notes": "Pure buildHookProgressNote (in-progress: running <event> hook (<type>)…) + buildHookProgressDone (resolved elapsed) + shouldShowProgress (>threshold, default 300ms, VANTA_HOOK_PROGRESS_MS, 0=always). Distinct from hook-timing (post-completion). Builders built+tested; wire = shell-hook-run runHook (setTimeout arm before withHookTimeout + clear after) — DEFERRED: shell-hook-run.ts is at the 300-line hard cap, needs a decomposition pass before the ~6-line wire."
+      "notes": "Pure builders + NOW WIRED: runHook arms armProgress (setTimeout >threshold) before withHookTimeout, cancels after (timer never leaks), emits buildHookProgressDone if shown. Instant hook = no line. Enabled the wire by decomposing shell-hook-run.ts 300->271 (extracted hook-spawn.ts, re-exported, behavior-preserving)."
     },
     {
       "id": "VANTA-MSG-TIMESTAMPS",
