@@ -2097,7 +2097,7 @@
       "id": "VANTA-THINKING-ADAPTIVE",
       "track": "Harness",
       "title": "Adaptive thinking mode — let model self-budget tokens + `ultrathink` max-budget keyword",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports three thinking modes: `adaptive` (model decides how much thinking budget to use), `enabled` with a fixed `budgetTokens` value, and `disabled`. The `ultrathink` keyword in a prompt triggers maximum thinking budget (feature-gated). Users control mode via /think toggle or settings. Adaptive mode avoids token waste on simple tasks while allowing deep reasoning on complex ones.",
       "done": "`/think` cycles through disabled → adaptive → max. Typing 'ultrathink' in a prompt activates maximum extended thinking for that turn only.",
@@ -2106,7 +2106,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure hasUltrathinkTrigger/stripUltrathinkTrigger/ultrathinkEffortLevel (max) + adaptive-effort (additive adaptive level → self-budget sentinel; existing levels unchanged). Detectors built+tested; consumers = mode-detect pre-turn host bumps effort to max on the keyword + providers/effort.ts reads the adaptive self-budget disposition (named follow-up)."
     },
     {
       "id": "VANTA-HOOK-TIMING",
@@ -2175,7 +2176,7 @@
       "id": "VANTA-INTERLEAVED-THINKING",
       "track": "Harness",
       "title": "Interleaved thinking — thinking tokens between tool calls, not just before response",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports an `interleaved_thinking` capability mode where extended thinking tokens are interleaved between tool calls, not just in the initial response block. This allows the model to reason after each tool result before deciding the next action. Listed alongside `thinking`, `adaptive_thinking`, `effort`, and `max_effort` as a model capability override.",
       "done": "With interleaved thinking enabled, thinking blocks appear in the transcript after each tool result as the model reasons about next steps.",
@@ -2184,7 +2185,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MODEL-TIER-OVERRIDE",
