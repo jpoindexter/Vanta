@@ -36,9 +36,6 @@ export async function applySafetyGate(
   if (!tool) {
     return { approved: false, reason: `unknown tool: ${call.name}` };
   }
-  if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
-    return { approved: true, reason: "acceptEdits" };
-  }
 
   const action = tool.describeForSafety ? tool.describeForSafety(call.arguments) : `${call.name} ${JSON.stringify(call.arguments)}`;
   // The kernel is THE boundary: if it is unreachable, fail CLOSED — but gracefully,
@@ -54,14 +51,7 @@ export async function applySafetyGate(
     return { approved: false, reason: output };
   }
 
-  // Permissions: the kernel verdict is the floor. User rules may TIGHTEN it
-  // (escalate to ask/deny, or auto-confirm a kernel ask) but NEVER loosen it —
-  // tighten() returns "block" for any kernel block regardless of the rule.
-  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
-  const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
-  const bashDecision = applyBashClassifier(autoDecision, call.name, action);
-  const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
-  const decision = applyAdvisoryClassifier(profileDecision, call.name, action);
+  const decision = await resolveLayeredDecision(verdict, call, action, ctx);
 
   if (decision.decision === "block") {
     const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
@@ -71,6 +61,13 @@ export async function applySafetyGate(
   }
 
   if (decision.decision === "ask") {
+    // acceptEdits auto-confirms the ASK tier for edit-class tools (skips the prompt)
+    // — but only AFTER the kernel ran, so a kernel BLOCK (protected paths: src/*.rs,
+    // factory/*, MANIFESTO) is still enforced above. Previously this short-circuited
+    // before assess(), letting acceptEdits rewrite the security boundary itself.
+    if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+      return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
+    }
     await firePermissionEvent(ctx.root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
     return handleApprovalRequest({ call, action, verdict, deps, root: ctx.root });
   }
@@ -95,13 +92,31 @@ async function applyOperatorProfile(
  * shell_cmd whose command is classified clearly-safe (read-only/idempotent), and
  * ONLY when armed. Never touches a block/allow — the kernel block floor stands,
  * and the downstream tighteners can still re-escalate. Off by default. */
+/** The tightening chain over the kernel verdict: rules → auto-mode → bash-classifier
+ * → operator-profile → advisory classifier. The kernel verdict is the floor; every
+ * stage may TIGHTEN (escalate to ask/block) but NEVER loosen a kernel block. */
+async function resolveLayeredDecision(
+  verdict: Verdict,
+  call: ToolCall,
+  action: string,
+  ctx: ToolContext,
+): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
+  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+  const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
+  const bashDecision = applyBashClassifier(autoDecision, call);
+  const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
+  return applyAdvisoryClassifier(profileDecision, call.name, action);
+}
+
 function applyBashClassifier(
   current: { decision: "allow" | "ask" | "block"; reason: string },
-  toolName: string,
-  action: string,
+  call: ToolCall,
 ): { decision: "allow" | "ask" | "block"; reason: string } {
-  if (current.decision !== "ask" || toolName !== "shell_cmd" || !bashClassifierEnabled(process.env)) return current;
-  return classifyBashSafety(action) === "safe"
+  if (current.decision !== "ask" || call.name !== "shell_cmd" || !bashClassifierEnabled(process.env)) return current;
+  // Classify the REAL command (call.arguments.command), not the describeForSafety
+  // string — "run shell command: <cmd>" would always classify as unknown (dead).
+  const command = typeof call.arguments.command === "string" ? call.arguments.command : "";
+  return classifyBashSafety(command) === "safe"
     ? { decision: "allow", reason: "bash-classifier: safe read-only command auto-approved" }
     : current;
 }

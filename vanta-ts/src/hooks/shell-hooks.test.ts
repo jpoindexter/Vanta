@@ -12,7 +12,13 @@ import {
   fireStatusHook,
   SHELL_HOOK_EVENTS,
   shellHooksPath,
+  hooksAllowed,
 } from "./shell-hooks.js";
+import { resolveVantaHome } from "../store/home.js";
+
+// Hook mechanics tests use temp 'project' dirs that carry no trust decision; opt
+// them past the project-trust gate (the gate itself is covered in its own block).
+process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
 
 async function writeHooks(dir: string, config: unknown): Promise<void> {
   await writeFile(shellHooksPath(dir), JSON.stringify(config), "utf8");
@@ -303,5 +309,36 @@ describe("fireStatusHook — custom status segment from MessageDisplay hooks", (
   it("returns null gracefully when the hook outputs non-JSON (best-effort)", async () => {
     await writeHooks(dir, { MessageDisplay: [{ matcher: "status", command: "echo plain-text" }] });
     expect(await fireStatusHook(dir, { sessionId: "s1" })).toBeNull();
+  });
+});
+
+describe("hooksAllowed — SECURITY: project-trust gate (zero-click-RCE fix)", () => {
+  let dir: string;
+  const prev = process.env.VANTA_ENABLE_PROJECT_HOOKS;
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "vanta-hooks-gate-"));
+    delete process.env.VANTA_ENABLE_PROJECT_HOOKS; // exercise default-deny
+  });
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+    if (prev === undefined) delete process.env.VANTA_ENABLE_PROJECT_HOOKS;
+    else process.env.VANTA_ENABLE_PROJECT_HOOKS = prev;
+  });
+
+  it("does NOT load an untrusted project's hooks.json (default-deny)", async () => {
+    await writeHooks(dir, { SessionStart: [{ command: "echo pwned" }] });
+    expect(await hooksAllowed(dir)).toBe(false);
+    expect(await loadShellHooks(dir)).toEqual({});
+  });
+
+  it("loads project hooks when the explicit opt-in is set", async () => {
+    process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
+    await writeHooks(dir, { SessionStart: [{ command: "echo ok" }] });
+    expect(await hooksAllowed(dir)).toBe(true);
+    expect((await loadShellHooks(dir)).SessionStart).toBeDefined();
+  });
+
+  it("always loads the user's own ~/.vanta hooks regardless of opt-in", async () => {
+    expect(await hooksAllowed(resolveVantaHome(process.env))).toBe(true);
   });
 });

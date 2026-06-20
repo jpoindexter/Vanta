@@ -6,6 +6,9 @@ import { HANDLERS } from "./handlers.js";
 import { loadShellHooks, shellHooksPath } from "../hooks/shell-hooks.js";
 import type { ReplCtx } from "./types.js";
 
+// Temp 'project' dirs carry no trust decision; opt past the project-trust gate.
+process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
+
 let root: string;
 let dataDir: string;
 
