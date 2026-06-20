@@ -105,11 +105,12 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
   const userCommands = await loadUserCommands(process.env);
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
-  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() } };
+  const capHaltedRef = { current: false };
+  const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() }, capHaltedRef };
   const runUserTurn = (text: string) => executeUserTurn(text, turnDeps);
 
   try {
-    await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps });
+    await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps, capHaltedRef });
   } finally {
     stopFileWatcher();
     await stopPeer();

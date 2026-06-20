@@ -149,6 +149,24 @@ export const OPERATOR_MODES: OperatorMode[] = [
       "7. write_skill the scoring rubric so future opportunities are judged consistently.",
     ].join("\n"),
   },
+  {
+    name: "launchpad",
+    description: "Ground a task in a real source doc, extract scope/entities, then act.",
+    tags: ["mode", "solutioning", "grounding"],
+    body: [
+      "# Launchpad",
+      "",
+      "Goal first: never launch from thin air. Before generating or reaching for a tool, ground the task in a REAL source — a PRD/ROADMAP, a ticket, or a local file (@-ref). Without one, stop and ask for the source.",
+      "",
+      "1. read_file the named source doc (PRD/ROADMAP/ticket/@file). If the user named no source, ask for one before doing anything else — do not infer the task from memory.",
+      "2. Extract the grounding FIRST: pull the entities (headings + capitalized noun phrases), the in-scope items (bullets under in-scope sections, excluding any non-goals/out-of-scope section), and the constraints (lines carrying must/should/never/required/only). This is the `extractScope`/`buildLaunchpadBrief` surface in src/solutioning/launchpad.ts.",
+      "3. State the launchpad brief back: the entities you'll touch, the scope you'll act within, and the constraints you must honour — referencing the source by name. This is the plan, and it precedes the first tool call.",
+      "4. Confirm the extracted scope matches the user's intent. Anything they want that is NOT in the source is out of scope — surface it explicitly; do not silently expand the task.",
+      "5. Only now select tools and act, staying inside the named scope and obeying every extracted constraint.",
+      "6. Verify before done: re-read the source's done-criteria and confirm each is met by real evidence, not by the brief alone.",
+      "7. write_skill any reusable grounding pattern so future tasks launch faster.",
+    ].join("\n"),
+  },
   BODY_DOUBLE_SKILL,
 ];
 

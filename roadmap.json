@@ -1262,7 +1262,7 @@
       "id": "VANTA-LAUNCHPAD",
       "track": "Solutioning",
       "title": "Launchpad — ground a task in real source docs before acting",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "rocket.new 'Launchpad', Vanta-native: before generating, ground the task in real sources (a PRD/ROADMAP, a ticket, a local file/@-ref) and extract scope/entities FIRST — 'without one it launches from thin air.' Maps to Vanta reading goal+repo docs before tool selection.",
       "done": "A task can be seeded from a named source doc; Vanta extracts scope/entities and references them in its plan before the first tool call.",
@@ -1271,7 +1271,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20"
     },
     {
       "id": "AUTO-WATCH",
@@ -1335,7 +1335,7 @@
       "id": "VANTA-GENERATE-AGENT",
       "track": "Extensibility",
       "title": "AI agent generator — LLM-powered creation of agent definitions from description",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent can generate a new agent definition (identifier, whenToUse, systemPrompt) by prompting a fast model with the user's description and repo context. The generated agent is written to `~/.claude/agents/<identifier>.md`. Triggered from the `/agents` new-agent flow. Integrates with auto-memory if enabled.",
       "done": "In `/agents`, choosing 'Create new agent' and typing a description generates a ready-to-use agent file with a system prompt tailored to the repo context.",
@@ -1344,7 +1344,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PLUGIN-CLI",
@@ -1425,7 +1425,7 @@
       "id": "VANTA-BUDGET-CAP",
       "track": "Harness",
       "title": "--max-budget-usd — per-session spend cap",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `--max-budget-usd` stops the agent loop when the session's accumulated LLM spend exceeds the threshold. Vanta tracks cost (COST-VISIBLE) but has no hard spend cap that halts execution.",
       "done": "`--max-budget-usd <n>` (and `VANTA_MAX_BUDGET_USD` env) stops the agent with a cost-exceeded message when spend reaches the limit; the current spend is shown in the prompt before stopping.",
@@ -1433,7 +1433,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-FORK-SESSION",

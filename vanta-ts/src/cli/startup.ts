@@ -11,6 +11,7 @@ import { parsePermissionModeFlags } from "./permission-mode.js";
 import { parsePluginSourceFlags, type PluginSource } from "./plugin-source-flags.js";
 import { installPluginSources } from "./plugin-source-install.js";
 import { parseEffortFlag } from "../effort.js";
+import { resolveSessionCap } from "../budget/session-cap.js";
 import type { OutputFormat } from "./commands.js";
 
 export function findRepoRoot(): string {
@@ -97,6 +98,25 @@ export function parseRunArgs(rest: string[]): { instruction: string; outputForma
   return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
 }
 
+/**
+ * VANTA-BUDGET-CAP: parse `--max-budget-usd <n>` into VANTA_MAX_BUDGET_USD so the
+ * loop's session-cap check reads it. Validated via resolveSessionCap (positive
+ * finite). Absent flag = unchanged. Mirrors parseEffortFlag.
+ */
+export function parseMaxBudgetFlag(
+  args: string[],
+  env: NodeJS.ProcessEnv,
+): { rest: string[]; env: NodeJS.ProcessEnv; error?: string } {
+  const i = args.indexOf("--max-budget-usd");
+  if (i < 0) return { rest: args, env };
+  const value = args[i + 1];
+  if (resolveSessionCap({}, value) === null) {
+    return { rest: args, env, error: "--max-budget-usd must be a positive number" };
+  }
+  const rest = args.filter((_, idx) => idx !== i && idx !== i + 1);
+  return { rest, env: { ...env, VANTA_MAX_BUDGET_USD: value } };
+}
+
 export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags; pluginSources: PluginSource[] } {
   const permissionParse = parsePermissionModeFlags(args, process.env);
   if (permissionParse.error) { console.error(permissionParse.error); process.exit(1); }
@@ -104,7 +124,10 @@ export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: 
   const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
   if (effortParse.error) { console.error(effortParse.error); process.exit(1); }
   process.env = effortParse.env;
-  const pluginParse = parsePluginSourceFlags(effortParse.rest);
+  const budgetParse = parseMaxBudgetFlag(effortParse.rest, effortParse.env);
+  if (budgetParse.error) { console.error(budgetParse.error); process.exit(1); }
+  process.env = budgetParse.env;
+  const pluginParse = parsePluginSourceFlags(budgetParse.rest);
   if (pluginParse.error) { console.error(pluginParse.error); process.exit(1); }
   const lifecycleParse = parseLifecycleFlags(pluginParse.rest);
   return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags, pluginSources: pluginParse.sources };
