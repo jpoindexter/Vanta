@@ -6,6 +6,7 @@ import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
 import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
+import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -52,6 +53,7 @@ describe("registry", () => {
       "compare_vision",
       "compose_workflow",
       "config",
+      "config_sandbox",
       "cookie_import",
       "cron_create",
       "cron_list",
@@ -379,5 +381,38 @@ describe("lastCommandWord", () => {
     expect(lastCommandWord("find . && echo hi")).toBe("echo");
     expect(lastCommandWord("git grep foo")).toBe("git grep");
     expect(lastCommandWord("/usr/bin/grep -n x")).toBe("grep");
+  });
+});
+
+describe("config_sandbox", () => {
+  // The `run` action exercises the real spawnSubagent runner (LLM/network); that
+  // path is unit-tested with an INJECTED fake runner in selfharness/sandbox.test.ts.
+  // Here we cover the tool surface that needs no network.
+  it("saves a reusable input to .vanta/sandbox/inputs/ (no git mutation)", async () => {
+    const res = await configSandboxTool.execute(
+      { action: "save", name: "fix-bug", instruction: "fix the failing test" },
+      ctx(),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain('Saved sandbox input "fix-bug"');
+    const saved = await readFile(join(root, ".vanta", "sandbox", "inputs", "fix-bug.json"), "utf8");
+    expect(JSON.parse(saved)).toMatchObject({ name: "fix-bug", instruction: "fix the failing test" });
+  });
+
+  it("describeForSafety is a constant internal-op string (kernel Allow)", () => {
+    expect(configSandboxTool.describeForSafety?.({ action: "run", name: "x" })).toBe("run config sandbox (isolated, no git)");
+  });
+
+  it("errors-as-values when the saved input is missing (never throws)", async () => {
+    const res = await configSandboxTool.execute({ action: "run", name: "never-saved" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("no saved sandbox input");
+  });
+
+  it("restricts tools when override.toolNames is set (scoped registry)", () => {
+    const scoped = buildScopedRegistry(["read_file", "shell_cmd"]);
+    expect(scoped.schemas().map((s) => s.name).sort()).toEqual(["read_file", "shell_cmd"]);
+    // No subset → the full registry.
+    expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
   });
 });

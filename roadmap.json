@@ -10646,7 +10646,7 @@
       "id": "SELFHARNESS-SANDBOX",
       "track": "Harness",
       "title": "Agent sandbox — test a config change end-to-end without touching git",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): run the fully-instrumented agent end-to-end on a config change (swap prompt/model/tool) and watch the whole graph respond, producing a trace — safely, without touching the working tree; usable by a non-developer. Vanta has the TUI + mode cycle + worktree isolation (subagents); a sandbox that runs a candidate config against a saved input and shows a side-by-side result.",
       "done": "A config change (prompt/model/tool) can be run end-to-end against a saved input in isolation, producing a comparable trace, no git mutation.",
