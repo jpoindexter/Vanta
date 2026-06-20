@@ -2051,7 +2051,7 @@
       "id": "VANTA-PARALLEL-TOOL-EXEC",
       "track": "Harness",
       "title": "Parallel tool execution — concurrent read-only tool calls with configurable cap",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's tool orchestration batches tool calls marked `isConcurrencySafe` and runs them concurrently (up to `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY`, default 10). Read-only operations (Glob, Grep, Read, WebSearch, WebFetch) run in parallel; write/mutating tools run sequentially. Speeds up multi-file reads and search-heavy turns significantly.",
       "done": "A turn with 5 parallel Glob calls completes in ~200ms instead of ~1s. `VANTA_MAX_TOOL_CONCURRENCY=10` controls the cap.",
@@ -2060,7 +2060,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure planToolExecution (consecutive concurrency-safe reads batch up to cap; mutating calls solo+ordered) + resolveParallelCap (VANTA_PARALLEL_TOOLS, default 1=sequential, clamp [1,8]) + reassembleResults (restores call order) + isConcurrencySafe (reuses CONCURRENCY_SAFE_TOOLS). Planner built+tested; wire = turn-loop.ts processToolCalls for-loop (named follow-up; default cap 1 = byte-identical current behavior)."
     },
     {
       "id": "VANTA-VCR-MODE",
