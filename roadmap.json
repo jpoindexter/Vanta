@@ -9845,7 +9845,7 @@
       "id": "ND-VELOCITY-CLOSURE",
       "track": "Operator",
       "title": "Velocity + closure tracking — captures:ships ratio and finish-before-start, cross-session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Native rolling-7-day captured-vs-shipped counters and completion-percent tracking so the closure gate can truly say two items are over 50 percent done — finish one first. The EF gates exist as prompts; the counters they need only the engine can keep. ND-first; helps everyone. Steals nd-velocity-check + nd-closuregate.",
       "done": "Registering a new goal when ratio exceeds 5:1 surfaces the ratio + top unfinished items, cross-session.",

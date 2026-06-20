@@ -1,5 +1,7 @@
 import { lines } from "./format.js";
 import { isVagueGoal, buildNextStepResend } from "./next.js";
+import { appendVelocityEvent, readVelocityEvents } from "../velocity/store.js";
+import { velocityClosureWarning } from "../velocity/closure.js";
 import { addGoalDependency, parseGoalDepArgs, readGoalDeps, wakingDependents, type GoalDepEdge } from "../goals/deps.js";
 import { dropIncompleteRalphWork, hasIncompleteRalphWork, readRalphState, selectNextIncompleteFeature, updateFeatureStatus, writeRalphState } from "../ralph/state.js";
 import type { ReplCtx, SlashResult } from "./types.js";
@@ -14,11 +16,34 @@ async function setNewGoal(arg: string, ctx: ReplCtx): Promise<SlashResult> {
   ctx.state.activeGoal = arg; // footer ◇ tracks the session's working goal
   const sys = ctx.convo.messages[0];
   if (sys && sys.role === "system") sys.content += `\n\nNew standing goal — work toward it: ${arg}`;
+  // ND-VELOCITY-CLOSURE: count the goal as a capture, then warn if we're starting
+  // far more than we finish. Best-effort — a velocity failure never breaks /goal.
+  const closure = await velocityClosureFor(arg, ctx);
   if (ctx.env.VANTA_GOAL_ACTION !== "0" && isVagueGoal(arg)) {
     const resend = await buildNextStepResend(ctx).catch(() => null);
-    if (resend) return { output: `  ◎ goal set: ${arg}\n  · vague goal — surfacing one concrete next step…`, resend };
+    if (resend) return { output: `  ◎ goal set: ${arg}\n  · vague goal — surfacing one concrete next step…${closure}`, resend };
   }
-  return { output: `  ◎ goal set: ${arg}` };
+  return { output: `  ◎ goal set: ${arg}${closure}` };
+}
+
+/**
+ * ND-VELOCITY-CLOSURE: record the new goal as a `capture` velocity event (deduped
+ * by goal text) and return the formatted closure warning (or "") when the
+ * capture:ship ratio exceeds 5:1. Cross-session via the shared velocity store.
+ * Fully best-effort: any failure returns "" so /goal output is unaffected.
+ */
+async function velocityClosureFor(arg: string, ctx: ReplCtx): Promise<string> {
+  try {
+    const events = await readVelocityEvents(ctx.env);
+    if (!events.some((e) => e.type === "capture" && e.itemId === arg)) {
+      await appendVelocityEvent(ctx.env, { type: "capture", itemId: arg, at: ctx.now().toISOString() });
+      events.push({ type: "capture", itemId: arg, at: ctx.now().toISOString() });
+    }
+    const warning = velocityClosureWarning(events);
+    return warning ? `\n${warning}` : "";
+  } catch {
+    return "";
+  }
 }
 
 type Safety = ReplCtx["setup"]["safety"];
