@@ -2571,7 +2571,7 @@
       "id": "VANTA-MEM-TEAM",
       "track": "Harness",
       "title": "Team memory directory — shared memory namespace for swarm agents",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Separate `~/.claude/memory/team/<project>/` directory for shared team context across swarm agents. Combined prompt mode covers both private and team memory types with per-type scope guidance. Path traversal protection on all team memory writes.",
       "done": "Team memory files written to team directory; combined prompt includes both private and team memories with scope labels; path traversal attempts rejected with PathTraversalError.",
@@ -2580,7 +2580,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable team-memory store: ~/.vanta/team-memory/<sanitized teamId>.jsonl, appendTeamMemory/readTeamMemory (tolerant, best-effort, never throws into a worker) + resolveTeamId(VANTA_TEAM_ID, null=isolated) + sanitizeTeamId (no traversal) + teamMemoryDigest(recent-N). Store built+tested; swarm read/append points named = fleet executeWorker (read digest into instruction on start, append outcome on done/blocked, null-gated on resolveTeamId)."
     },
     {
       "id": "VANTA-MAGIC-DOCS",
