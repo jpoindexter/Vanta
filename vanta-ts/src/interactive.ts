@@ -21,6 +21,7 @@ import { buildCheckpointHandlers } from "./repl/checkpoint-cmd.js";
 import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { forkSession, loadSession, newSessionId } from "./sessions/store.js";
 import { registerSession, deregisterSession, defaultRegistryDeps } from "./sessions/active-registry.js";
+import { buildShutdownMessage } from "./repl/shutdown-msg.js";
 import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
@@ -141,7 +142,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     rl.close();
   }
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
-  console.log("\nbye.");
+  console.log("\n" + buildShutdownMessage({ startedIso: state.started, nowIso: new Date().toISOString(), turnCount: state.turnIndex, sessionCost: state.sessionCost }));
 }
 
 async function runLoopWithFailureHook(o: Parameters<typeof runReplLoop>[0] & { state: ReplState; agentDeps: AgentDeps }): Promise<void> {
