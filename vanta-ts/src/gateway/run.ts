@@ -8,6 +8,7 @@ import type { PlatformAdapter } from "./platforms/base.js";
 import { spawnLoopChild, spawnFactoryChild, pollPlatform, startWebhookIfConfigured } from "./child-ops.js";
 import type { WebhookServer, Deliver } from "./webhook.js";
 import { drainLoopWakes } from "../loop/wake.js";
+import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
 import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
 
@@ -83,6 +84,9 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
     spawn: spawnLoop,
     log,
   });
+  // Liveness watchdog: surface silently-stalled loops within this tick.
+  const watch = await runWatchdog(deps.dataDir, now, resolveWatchdogConfig(process.env)).catch(() => null);
+  if (watch && watch.surfaced > 0) log(`watchdog: surfaced ${watch.surfaced} stalled loop(s)`);
   return queuedWakes + results.length + factoryEntries.length + loopsFired;
 }
 

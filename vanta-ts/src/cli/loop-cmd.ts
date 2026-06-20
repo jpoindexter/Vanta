@@ -100,7 +100,7 @@ async function handleRun(root: string, id: string): Promise<number> {
   const state = await loadState(dataDir, id);
   // Crash marker: if the process dies mid-run, the next wake sees inProgress:true
   // and can surface it as a recoverable condition rather than silently skipping.
-  await saveState(dataDir, markInProgress(state, true));
+  await saveState(dataDir, markInProgress(state, true, new Date()));
 
   // Compute reminder once from the state captured at iteration start so the
   // goal + open blockers survive any compaction that happens inside the turn.

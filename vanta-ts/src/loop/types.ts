@@ -157,6 +157,9 @@ export const LoopStateSchema = z.object({
   /** Set true at iteration start, false at clean exit. True on reload ⇒ the
    *  previous iteration crashed mid-run — surfaced as a recoverable lesson. */
   inProgress: z.boolean().default(false),
+  /** ISO time the current in-progress run started; null when idle. Lets the
+   *  liveness watchdog measure how long a stuck run has been silently stalled. */
+  runStartedAt: z.string().nullable().default(null),
   /** Cumulative tokens used across all iterations (informational). */
   tokensUsed: z.number().int().min(0).default(0),
   /** Iterations where gate passed and score improved — numerator for accept rate. */

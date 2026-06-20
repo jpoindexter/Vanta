@@ -42,8 +42,11 @@ export function clearEscalation(
   return { state: { ...state, escalations }, cleared };
 }
 
-export function markInProgress(state: LoopState, on: boolean): LoopState {
-  return { ...state, inProgress: on };
+export function markInProgress(state: LoopState, on: boolean, now?: Date): LoopState {
+  // Stamp runStartedAt when a run begins (if a clock is given); clear it on a
+  // clean exit. The watchdog uses it to measure how long a stuck run has hung.
+  const runStartedAt = on ? (now ? now.toISOString() : state.runStartedAt) : null;
+  return { ...state, inProgress: on, runStartedAt };
 }
 
 const MAX_REMINDER_LESSONS = 5;
