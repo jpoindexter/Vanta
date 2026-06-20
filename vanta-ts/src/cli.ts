@@ -180,8 +180,12 @@ async function main(): Promise<void> {
   loadEnv(repoRoot);
   await ensureVantaStore();
 
-  const { rest: parsedArgs, lifecycle, pluginSources } = parseStartupFlags(process.argv.slice(2));
+  const { rest: parsedArgs, lifecycle, pluginSources, dumpPrompt } = parseStartupFlags(process.argv.slice(2));
   const [cmd, ...rest] = parsedArgs;
+
+  // VANTA-DUMP-SYS-PROMPT: print the assembled prompt and exit before any
+  // command dispatch (the short-circuit lives in startInteractive).
+  if (dumpPrompt) return startInteractive(repoRoot, { dumpPrompt });
 
   // Interactive entry points parse flags, so they stay explicit.
   if (cmd === undefined || cmd === "chat")

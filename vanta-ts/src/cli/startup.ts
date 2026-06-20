@@ -13,6 +13,7 @@ import { installPluginSources } from "./plugin-source-install.js";
 import { parseEffortFlag } from "../effort.js";
 import { resolveSessionCap } from "../budget/session-cap.js";
 import { resolveIsolation, isolationLevel, isolationBanner } from "./isolation.js";
+import { wantsDumpPrompt, stripDumpFlag, runDumpPrompt, defaultDumpDeps } from "./dump-prompt.js";
 import type { OutputFormat } from "./commands.js";
 
 export function findRepoRoot(): string {
@@ -59,16 +60,22 @@ async function ensureConfiguredOrSetup(repoRoot: string): Promise<boolean> {
   return true;
 }
 
+/** Use the Ink TUI only on an interactive TTY that isn't resuming or opted out. */
+function shouldUseTui(opts: { resumeId?: string; noTui?: boolean }): boolean {
+  return Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
+}
+
 export async function startInteractive(
   repoRoot: string,
-  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags; pluginSources?: PluginSource[] } = {},
+  opts: { resumeId?: string; noTui?: boolean; forkSession?: boolean; lifecycle?: LifecycleFlags; pluginSources?: PluginSource[]; dumpPrompt?: boolean } = {},
 ): Promise<void> {
+  // VANTA-DUMP-SYS-PROMPT: print the assembled system prompt and exit before
+  // any session work (plugin install, lifecycle hooks, setup, TUI launch).
+  if (opts.dumpPrompt) process.exit(await runDumpPrompt(defaultDumpDeps(repoRoot)));
   if (opts.pluginSources?.length) await installPluginSources(repoRoot, opts.pluginSources);
   if (await maybeRunStartupLifecycle(repoRoot, opts.lifecycle)) return;
   if (!await ensureConfiguredOrSetup(repoRoot)) return;
-  const useTui =
-    Boolean(process.stdin.isTTY) && !opts.resumeId && !opts.noTui && !process.env.VANTA_NO_TUI;
-  if (!useTui) return runChat(repoRoot, opts);
+  if (!shouldUseTui(opts)) return runChat(repoRoot, opts);
   try {
     return await runTuiV2(repoRoot);
   } catch (err: unknown) {
@@ -137,8 +144,10 @@ export function parseIsolationFlags(
   return { rest, env: nextEnv };
 }
 
-export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags; pluginSources: PluginSource[] } {
-  const isolationParse = parseIsolationFlags(args, process.env);
+export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags; pluginSources: PluginSource[]; dumpPrompt: boolean } {
+  const dumpPrompt = wantsDumpPrompt(args);
+  const argsNoDump = dumpPrompt ? stripDumpFlag(args) : args;
+  const isolationParse = parseIsolationFlags(argsNoDump, process.env);
   process.env = isolationParse.env;
   const level = isolationLevel(resolveIsolation(process.env));
   if (level !== "normal") console.log(isolationBanner(level));
@@ -154,6 +163,6 @@ export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: 
   const pluginParse = parsePluginSourceFlags(budgetParse.rest);
   if (pluginParse.error) { console.error(pluginParse.error); process.exit(1); }
   const lifecycleParse = parseLifecycleFlags(pluginParse.rest);
-  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags, pluginSources: pluginParse.sources };
+  return { rest: lifecycleParse.rest, lifecycle: lifecycleParse.flags, pluginSources: pluginParse.sources, dumpPrompt };
 }
 
