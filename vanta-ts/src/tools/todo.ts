@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { readTodos, writeTodos, formatTodos, type TodoItem } from "../todo/store.js";
+import { normalizeActiveForm } from "./todo-active-form.js";
 
 // The `todo` tool: the agent plans multi-step work as a checklist and marks
 // progress. The user sees it with /plan. TodoWrite-style — `write` replaces the
@@ -9,7 +10,13 @@ import { readTodos, writeTodos, formatTodos, type TodoItem } from "../todo/store
 const Args = z.object({
   action: z.enum(["write", "list"]),
   items: z
-    .array(z.object({ text: z.string().min(1), status: z.enum(["pending", "in_progress", "done"]).optional() }))
+    .array(
+      z.object({
+        text: z.string().min(1),
+        status: z.enum(["pending", "in_progress", "done"]).optional(),
+        activeForm: z.string().optional(),
+      }),
+    )
     .optional(),
 });
 
@@ -32,6 +39,11 @@ export const todoTool: Tool = {
             properties: {
               text: { type: "string", description: "Task description" },
               status: { type: "string", enum: ["pending", "in_progress", "done"], description: "Defaults to pending" },
+              activeForm: {
+                type: "string",
+                description:
+                  "Optional present-continuous phrasing (e.g. 'Running the tests'), shown while in_progress",
+              },
             },
             required: ["text"],
           },
@@ -47,7 +59,10 @@ export const todoTool: Tool = {
     if (parsed.data.action === "list") {
       return { ok: true, output: formatTodos(await readTodos()) };
     }
-    const items: TodoItem[] = (parsed.data.items ?? []).map((i) => ({ text: i.text, status: i.status ?? "pending" }));
+    const items: TodoItem[] = (parsed.data.items ?? []).map((i) => {
+      const activeForm = normalizeActiveForm(i.activeForm);
+      return { text: i.text, status: i.status ?? "pending", ...(activeForm ? { activeForm } : {}) };
+    });
     await writeTodos(items);
     return { ok: true, output: `plan updated (${items.length} task(s))\n${formatTodos(items)}` };
   },

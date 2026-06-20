@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { displayLabel } from "../tools/todo-active-form.js";
 
 // A simple in-session plan (todo list) the agent maintains for multi-step work,
 // stored at ~/.vanta/todo.json and viewable with /plan. TodoWrite-style: the
@@ -10,6 +11,7 @@ import { resolveVantaHome } from "../store/home.js";
 export const TodoItemSchema = z.object({
   text: z.string().min(1),
   status: z.enum(["pending", "in_progress", "done"]),
+  activeForm: z.string().optional(),
 });
 export type TodoItem = z.infer<typeof TodoItemSchema>;
 const TodoFileSchema = z.array(TodoItemSchema);
@@ -36,5 +38,5 @@ export function formatTodos(items: TodoItem[]): string {
   if (!items.length) return "  (no plan yet)";
   const mark = (s: TodoItem["status"]) => (s === "done" ? "✓" : s === "in_progress" ? "▸" : "○");
   const done = items.filter((i) => i.status === "done").length;
-  return `${items.map((i) => `  ${mark(i.status)} ${i.text}`).join("\n")}\n  (${done}/${items.length} done)`;
+  return `${items.map((i) => `  ${mark(i.status)} ${displayLabel(i)}`).join("\n")}\n  (${done}/${items.length} done)`;
 }
