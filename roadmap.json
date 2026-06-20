@@ -2013,7 +2013,7 @@
       "id": "VANTA-MEMORY-WARN",
       "track": "Harness",
       "title": "Memory usage monitor — high/critical heap warnings at 1.5GB / 2.5GB",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent polls Node.js heap usage every 10 seconds via `useMemoryUsage`. At 1.5GB (high) or 2.5GB (critical) thresholds, a visible warning appears so the user can /compact or restart before hitting an OOM crash. Returns null while normal so there's no UI noise in typical sessions.",
       "done": "When heap reaches 1.5GB, a warning appears in the status area. At 2.5GB it escalates to critical with a recommendation to /compact.",
@@ -2022,7 +2022,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure classifyHeap (ok/high>=1.5GB/critical>=2.5GB, VANTA_MEM_HIGH_MB/CRIT_MB override) + buildMemoryWarning + checkMemory (60s cooldown, injected readHeap/now). Unwired; intended surface = repl/post-turn-gates.ts GateState (readHeap=process.memoryUsage().heapUsed)."
     },
     {
       "id": "VANTA-TOKEN-BUDGET-PARSE",
