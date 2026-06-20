@@ -13,6 +13,7 @@ import type { RegisteredMcpSkill } from "./mcp/mount-skills.js";
 import type { LLMProvider } from "./providers/interface.js";
 import { resolveEffortLevel } from "./effort.js";
 import type { Summarizer } from "./context.js";
+import { resolveAuxProvider } from "./routing/aux-map.js";
 import type { EffortLevel, Goal } from "./types.js";
 import {
   loadRuntimeExtensions, buildRunPrompt, injectResume, logSessionConfig,
@@ -87,11 +88,23 @@ function summarizeSys(instructions?: string): string {
   return focus ? `${SUMMARIZE_SYS}\nFocus especially on: ${focus}` : SUMMARIZE_SYS;
 }
 
+/** AUX-MODEL-MAP: route summarization to its aux model when one is configured
+ * (VANTA_MODEL_SUMMARIZE / VANTA_SUMMARIZE_PROVIDER), else the active provider —
+ * behavior-preserving by default. Pure decision; the resolution itself lives in
+ * routing/aux-map.ts and is tested there. */
+export function shouldUseAuxSummarize(env: NodeJS.ProcessEnv): boolean {
+  return Boolean(env.VANTA_MODEL_SUMMARIZE || env.VANTA_SUMMARIZE_PROVIDER);
+}
+
+function summarizeProvider(fallback: LLMProvider): LLMProvider {
+  return shouldUseAuxSummarize(process.env) ? resolveAuxProvider("summarize", process.env) : fallback;
+}
+
 export function buildSummarizer(provider: LLMProvider, instructions?: string): Summarizer {
   const sys = summarizeSys(instructions);
   return async (msgs) =>
     (
-      await provider.complete(
+      await summarizeProvider(provider).complete(
         [
           { role: "system", content: sys },
           { role: "user", content: JSON.stringify(msgs).slice(0, 12000) },

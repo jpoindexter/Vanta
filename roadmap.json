@@ -12914,7 +12914,7 @@
       "id": "AUX-MODEL-MAP",
       "track": "Harness",
       "title": "Per-function aux model map (speciation) — small specialized models per task",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy's 'speciation' — small specialized models per task, main model as the cognitive core. Vanta already routes vision (VANTA_VISION_MODEL), embeddings (VANTA_EMBED_MODEL), and the prune scorer; generalize to a per-FUNCTION model map (summarize/title/embed/vision/prune/classify) resolved like the existing aux routing, so each auxiliary task uses the right small model. The AUX-MAP follow-on noted after AUX-VISION.",
       "done": "resolveAuxModel(function, env) drives the aux call sites (summarize/title/embed/vision/prune/classify), env-configured with fallback to the active provider; pure resolution tested; wired in; committed.",
