@@ -3357,7 +3357,7 @@
       "id": "VANTA-PROMPT-EDITOR",
       "track": "Operator",
       "title": "External prompt editor — open $EDITOR to compose multi-line input",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent lets users press a keybinding to open the current prompt input in their external editor (`$VISUAL`, `$EDITOR`, or detected IDE). Supports VS Code (`code -w`), Sublime Text (`subl --wait`), and any GUI editor. Pasted content refs from the editor are expanded back into the prompt on save. Enables composing complex multi-line prompts outside the terminal.",
       "done": "Pressing the editor keybinding opens the current prompt draft in VS Code. Saving and closing inserts the edited text back into the input.",
@@ -3366,7 +3366,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Already shipped: the composer already opens $EDITOR to compose multi-line input via ^G (ui/composer.tsx:156 — ^G edit-in-$EDITOR). Verified live. Reconciled."
     },
     {
       "id": "VANTA-SHELL-JSON-FORMAT",
@@ -3388,7 +3389,7 @@
       "id": "VANTA-TERMINAL-HYPERLINKS",
       "track": "Operator",
       "title": "Terminal hyperlinks — OSC 8 clickable links in tool output and messages",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent creates OSC 8 terminal hyperlinks (`createHyperlink`) in shell output and messages. In supporting terminals (iTerm2, WezTerm, Kitty, modern terminals), URLs become clickable links that open in the browser. The feature is guarded by `supportsHyperlinks()` for terminals that don't support OSC 8.",
       "done": "File paths and URLs in bash output are rendered as clickable links in iTerm2/WezTerm. Clicking opens the file in the browser or editor.",
@@ -3397,7 +3398,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure osc8Link + sanitizeLinkUrl (strips ESC/BEL/C0/C1 so a hostile url cant break out of the OSC-8 sequence) + hyperlinksEnabled (VANTA_HYPERLINKS=1 or known TERM_PROGRAM, default off) + linkOr/fileLink. Off/unsupported = plain text. ALSO HARDENED THE LIVE PATH: the already-wired term/osc8.ts osc8() was interpolating the url RAW (a real OSC-8 breakout vector) — now routed through sanitizeLinkUrl (clean urls unchanged). Render wire (transcript linkify/linked-text) named."
     },
     {
       "id": "VANTA-STATS-SPARKLINE",
@@ -3463,7 +3465,7 @@
       "id": "VANTA-AUTO-THEME",
       "track": "Operator",
       "title": "Auto theme — dynamic OS-aware theme switching ('auto' option in theme settings)",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "another agent (feature-gated `AUTO_THEME`) adds an `auto` option to theme settings. The `ThemeProvider` subscribes to OS appearance changes and switches between light/dark automatically. Without the flag, only named themes (dark, light, etc.) are available.",
       "done": "Setting theme to 'auto' in `/config` makes another agent follow the OS dark mode toggle in real time.",
@@ -3472,7 +3474,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "N/A: the theme system was REMOVED (DECISIONS 2026-06-17 — no ThemeProvider/useTheme/VANTA_THEME/theme.ts; UI uses literal Ink colors). There is no theme to switch, so an auto OS-aware theme has nothing to drive. Parked unless a theme system returns."
     },
     {
       "id": "VANTA-IDLE-RETURN",

@@ -5,6 +5,8 @@
 // Sequence: ESC ] 8 ; ; URI ST  <label>  ESC ] 8 ; ; ST  (ST = ESC \).
 // Spec: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
 
+import { sanitizeLinkUrl } from "./hyperlink.js";
+
 const OSC = "\x1b]8;;";
 const ST = "\x1b\\";
 
@@ -37,6 +39,9 @@ export function supportsHyperlinks(
 /** Wrap `label` as an OSC-8 hyperlink to `url` when `enabled`, else return the
  *  plain label. An empty link target returns the label unchanged. */
 export function osc8(url: string, label: string, enabled: boolean): string {
-  if (!enabled || !url) return label;
-  return `${OSC}${url}${ST}${label}${OSC}${ST}`;
+  // SECURITY: sanitize the target so a hostile url (embedded ESC/BEL/control) can't
+  // break out of the OSC-8 sequence and inject its own escapes into the terminal.
+  const safe = sanitizeLinkUrl(url);
+  if (!enabled || !safe) return label;
+  return `${OSC}${safe}${ST}${label}${OSC}${ST}`;
 }
