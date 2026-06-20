@@ -2183,7 +2183,7 @@
       "id": "VANTA-MODEL-TIER-OVERRIDE",
       "track": "Harness",
       "title": "Model tier env overrides — pin opus/sonnet/haiku to specific model versions",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent reads `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_HAIKU_MODEL` env vars to pin each model tier to a specific version. Combined with `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` to declare what capabilities the override model supports. Useful for enterprise deployments pinning to a specific API version.",
       "done": "`ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-6` pins the sonnet alias to that exact version. `/model` and startup banner reflect the override.",
@@ -2192,7 +2192,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SHADOWED-RULE-DETECT",

@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolveProvider } from "../providers/index.js";
 import { providerById } from "../providers/catalog.js";
+import { resolveTierModel } from "../providers/tier-override.js";
 import { upsertEnvMigratingLegacy, envPath, buildEnvUpdates } from "../setup.js";
 import type { LLMProvider } from "../providers/interface.js";
 
@@ -25,19 +26,30 @@ export type ModelSelection = {
  *   "<model…>"             → the current provider at that model
  * The first whitespace token is treated as a provider only when it matches a
  * catalog id (so "gpt-4o-mini" stays a model, "gemini" becomes a provider).
+ * A tier keyword (opus|sonnet|haiku) in the model position resolves to a pinned
+ * model id via env (VANTA_MODEL_<TIER>), else that tier's catalogued default.
  * `persistGlobal` is true — a typed switch should stick next launch, like the
  * picker's default. Returns null for an empty arg. Pure.
  */
-export function parseModelArg(arg: string, currentProviderId: string): ModelSelection | null {
+export function parseModelArg(
+  arg: string,
+  currentProviderId: string,
+  env: NodeJS.ProcessEnv = process.env,
+): ModelSelection | null {
   const trimmed = arg.trim();
   if (!trimmed) return null;
   const tokens = trimmed.split(/\s+/);
   const head = providerById((tokens[0] ?? "").toLowerCase());
   if (head) {
     const model = tokens.slice(1).join(" ").trim() || head.defaultModel;
-    return { providerId: head.id, model, persistGlobal: true };
+    return { providerId: head.id, model: pinTier(model, env), persistGlobal: true };
   }
-  return { providerId: currentProviderId, model: trimmed, persistGlobal: true };
+  return { providerId: currentProviderId, model: pinTier(trimmed, env), persistGlobal: true };
+}
+
+/** Resolve a tier keyword to its pinned/default model id; pass any other model through unchanged. */
+function pinTier(model: string, env: NodeJS.ProcessEnv): string {
+  return resolveTierModel(model, env) ?? model;
 }
 
 /** The env the selection implies, layered over the current process env. */
