@@ -2837,7 +2837,7 @@
       "id": "VANTA-CHANNEL-MSG",
       "track": "Operator",
       "title": "Channel message display — incoming platform messages in transcript",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent renders UserChannelMessage as a visually distinct message type showing the source platform (Telegram, Slack, etc.) and sender alongside the message content. Vanta's gateway handles incoming messages (E2 shipped) but they're rendered as plain user text.",
       "done": "Incoming channel messages (Telegram, iMessage, etc.) render with a platform badge + sender name + message content, distinct from direct user input.",
@@ -2845,7 +2845,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure formatChannelMessage(msg, platform, opts) + channelMessagePrefix (telegram/discord glyphs, unknown -> generic 📨) + sanitizeForLine. SECURITY: strips ANSI/CSI/SGR/OSC + control chars to one line (no terminal escape injection), then truncates to 280 chars + ellipsis. platform passed separately (InboundMessage has no platform field; comes from adapter.id at pollPlatform). Built+tested; surface = gateway/run.ts pollPlatform (format each InboundMessage) + ui/transcript NoteView (named)."
     },
     {
       "id": "VANTA-EFFORT-INDICATOR",
