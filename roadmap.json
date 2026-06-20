@@ -12564,7 +12564,7 @@
       "id": "SKILL-EVAL-CORPUS",
       "track": "Harness",
       "title": "Skill-sensitive eval corpus — tasks where the right skill lifts pass@1",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] The factory eval/tasks corpus is small and not skill-sensitive; a live CNG pass-rate comparison needs tasks where the CORRECT skill measurably changes pass@1. Build eval/skill-tasks: each task pairs an instruction that benefits from a specific installed skill with a deterministic check (file_exists/file_contains/shell_ok), so full vs distilled vs subset skill text produce comparable, gradeable rollouts. The measurement spine for distill/subset (and the trigger-2 signal for S2L).",
       "done": ">=8 skill-sensitive tasks with deterministic checks tied to real installed skills; a loader + zod validation; documented; tests for the loader; committed to vanta.",
