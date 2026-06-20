@@ -14,6 +14,7 @@ import {
   type WmManipState,
 } from "../session.js";
 import { ndGatesAfterTurn } from "../session/nd-gates.js";
+import { markProactiveActivity } from "../proactive/store.js";
 import { emptyEfState } from "../nd/engine.js";
 import type { EfState } from "../nd/types.js";
 import type { Message } from "../types.js";
@@ -59,6 +60,9 @@ export async function runPostTurnGates(
   const { messages, safety, dataDir, onNote } = o;
   const env = o.env ?? process.env;
   const now = o.now ?? Date.now();
+  // A completed interactive turn = the user is present; stamp activity so the
+  // proactive heartbeat treats them as "not away" (best-effort, never blocks).
+  void markProactiveActivity(dataDir, new Date(now));
   traceAnomalyAfterTurn(messages, onNote, env);
   return {
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),

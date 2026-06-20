@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-19",
+  "updated": "2026-06-20",
   "items": [
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
@@ -10371,7 +10371,7 @@
       "id": "PAPER-PROACTIVE-TICK",
       "track": "Harness",
       "title": "Focus-aware proactive heartbeat (KAIROS) with economic throttling",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §11.6 KAIROS: a persistent background agent injects tick prompts when idle and decides act-or-sleep, bound to terminal-focus awareness (act when the user is away) + token economics (cache expires ~5min, so sleep/wake is a cost optimization). Vanta has loops + ScheduleWakeup; add focus-aware, cost-throttled proactivity.",
       "done": "An idle Vanta can proactively pick up queued work when the user is away, throttled by a cost/cadence policy.",

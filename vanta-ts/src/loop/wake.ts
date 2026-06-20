@@ -105,6 +105,16 @@ export async function enqueueLoopWake(dataDir: string, ctx: WakeContext): Promis
   await appendFile(queuePath(dataDir), `${encodeWakeContext(ctx)}\n`, "utf8");
 }
 
+/** Count queued wakes without draining them (read-only — for the proactive gate). */
+export async function peekLoopWakeCount(dataDir: string): Promise<number> {
+  try {
+    const raw = await readFile(queuePath(dataDir), "utf8");
+    return raw.split("\n").filter((l) => decodeWakeContext(l) !== null).length;
+  } catch {
+    return 0;
+  }
+}
+
 export async function drainLoopWakes(dataDir: string): Promise<WakeContext[]> {
   let raw = "";
   try {
