@@ -2275,7 +2275,7 @@
       "id": "VANTA-CD-CMD",
       "track": "Harness",
       "title": "`/cd` — change working directory mid-session without breaking prompt cache",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.169) adds `/cd <path>` to move the active session to a new directory. Unlike shell `cd`, it updates another agent's root context and tool paths without invalidating the prompt cache, preserving accumulated context.",
       "done": "Running `/cd ~/other-project` mid-session switches tool resolution to the new root. The prompt cache remains intact.",
@@ -2284,7 +2284,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HOOK-PERM-DENIED",

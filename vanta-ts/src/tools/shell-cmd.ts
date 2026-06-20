@@ -13,6 +13,7 @@ import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
 import { applySessionEnv, sessionEnvStore } from "../repl/session-env.js";
+import { sessionCwd, isCwdChanged } from "../repl/session-cwd.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
@@ -155,12 +156,19 @@ function warnPrefix(command: string): string {
   return warn ? `⚠ ${warn}\n` : "";
 }
 
+/** The cwd a child spawn runs in: the session dir if `/cd` changed it this
+ *  session, else the tool's root. Until a `/cd` happens this is exactly `root`,
+ *  so the spawn is byte-identical to today's. (VANTA-CD-CMD) */
+function spawnCwd(root: string): string {
+  return isCwdChanged() ? sessionCwd() : root;
+}
+
 /** Spawn options for the child. Session env (VANTA-SESSION-ENV) is merged over
  *  process.env; with NO session vars the merge returns process.env unchanged, so
  *  the `env` field is omitted and the spawn is byte-identical to today's. */
 function childRunOpts(root: string): { cwd: string; timeout: number; maxBuffer: number; env?: NodeJS.ProcessEnv } {
   const childEnv = applySessionEnv(process.env, sessionEnvStore.snapshot());
-  const base = { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
+  const base = { cwd: spawnCwd(root), timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT };
   return childEnv === process.env ? base : { ...base, env: childEnv };
 }
 

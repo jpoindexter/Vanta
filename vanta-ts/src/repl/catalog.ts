@@ -14,6 +14,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "model", desc: "change provider & model — interactive picker" },
   { name: "effort", arg: "<low|medium|high|max>", desc: "set model effort for this session" },
   { name: "env", arg: "[KEY=value|-KEY]", desc: "session-scoped env vars injected into shell_cmd/run_code child processes" },
+  { name: "cd", arg: "[path]", desc: "change the session working directory for shell_cmd (no arg prints it)" },
   { name: "setup", desc: "configure the model backend — opens the provider/model picker" },
   { name: "tools", desc: "list available tools" },
   { name: "skills", desc: "list learned + installed skills" },
