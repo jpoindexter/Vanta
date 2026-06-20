@@ -66,6 +66,9 @@ export const RoadmapItemSchema = z.object({
   // unknown keys by default).
   updated: z.string().optional(),
   notes: z.string().optional(),
+  // Provenance tag for batch-ingested cards (e.g. a reference-codebase audit),
+  // so a cohort stays filterable. Declared so parse→write round-trips keep it.
+  source: z.string().optional(),
   // Build-order dependency: this card never sorts before an open card it names.
   after: z.array(z.string()).optional(),
 });
