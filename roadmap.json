@@ -1247,7 +1247,7 @@
       "id": "VANTA-CLARITY-GATE",
       "track": "Solutioning",
       "title": "Clarity gate — score instruction, auto-clarify below threshold",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "rocket.new 'Prompt Intelligence', Vanta-native: score an instruction's clarity BEFORE assess(), and when below threshold fire the existing clarify tool with a few TARGETED questions instead of guessing. Direct expression of the north star (know the goal before picking a tool). Builds on clarify + complexity-gate + the prompt's ambiguity scoring.",
       "done": "A vague instruction is scored and triggers 1-3 targeted clarifying questions before any tool runs; a clear one passes straight through.",
@@ -1256,7 +1256,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-LAUNCHPAD",
@@ -1395,7 +1395,7 @@
       "id": "VANTA-MCP-DESKTOP-IMPORT",
       "track": "Extensibility",
       "title": "Import MCP servers from Claude Desktop — one-click import of Claude Desktop MCP config",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has a `MCPServerDesktopImportDialog` that reads Claude Desktop's MCP server configuration and imports selected servers into the current another agent project config. Eliminates re-entering MCP server details for users who already have them configured in Claude Desktop.",
       "done": "Running `claude mcp add --from-claude-desktop` or opening the dialog lists all servers from `~/Library/Application Support/Claude/claude_desktop_config.json`. Selecting them adds them to `.mcp.json`.",
@@ -1404,7 +1404,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PLUGIN-MONITORS",
@@ -14612,7 +14612,7 @@
       "id": "COFOUNDER-IDEATION-METHODS",
       "track": "Cofounder engine",
       "title": "Routed creative-ideation method catalog",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Mine a routed library of named ideation methods (first-principles, biomimicry, oblique-strategies, JTBD, TRIZ, SCAMPER, leverage-points, lateral-provocations, premortem-inversion, analogy/blending) — each with when/when-not, procedure, worked example, anti-slop notes — as a Vanta skill with a signal-routing table. Feeds the Cofounder/solutioning pillar. Reimplement in Vanta's voice, don't copy text.",
       "done": "A solutioning skill routes a problem (phase/domain/specificity signals) to one ideation method and applies its procedure; method catalog + router unit-tested.",
@@ -14740,7 +14740,7 @@
       "id": "MSG-ADAPTER-INBOUND-FIELDS",
       "track": "Operator",
       "title": "Populate inbound id/isGroup/replyToId in the remaining adapters",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "The inbound pipeline (MSG-SELF-ECHO-DEDUP / MSG-REQUIRE-MENTION / MSG-REPLY-CONTEXT) consumes optional InboundMessage fields id/isGroup/replyToId/fromMe + OutboundMessage.id. Telegram now populates them; the other live adapters (signal, irc, mattermost, imessage, ntfy) do not yet, so the pipeline is inert for them. Parse those fields from each platform payload + capture the sent id, mirroring telegram.ts.",
       "done": "signal/irc/mattermost/imessage/ntfy populate inbound id/isGroup/replyToId (best-effort fromMe) and capture the sent message id; the inbound pipeline fires on each; per-adapter tests.",

@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { describe, it, expect } from "vitest";
-import { IrcAdapter, parseIrcLine, parseNickAllowlist } from "./irc.js";
+import { IrcAdapter, parseIrcLine, parseNickAllowlist, isChannelTarget } from "./irc.js";
 
 describe("parseIrcLine", () => {
   it("parses a channel PRIVMSG into from/target/text", () => {
@@ -31,6 +31,16 @@ describe("parseIrcLine", () => {
     expect(parseIrcLine(":x!y@z NOTICE #c :hi").kind).toBe("other");
     expect(parseIrcLine("").kind).toBe("other");
     expect(parseIrcLine(":bob!u@h PRIVMSG #c :   ").kind).toBe("other");
+  });
+});
+
+describe("isChannelTarget", () => {
+  it("flags channel targets (#/&/+/!) as groups", () => {
+    expect(isChannelTarget("#vanta")).toBe(true);
+    expect(isChannelTarget("&local")).toBe(true);
+  });
+  it("does not flag a private query (a nick) as a group", () => {
+    expect(isChannelTarget("vanta")).toBe(false);
   });
 });
 
@@ -93,8 +103,8 @@ describe("IrcAdapter", () => {
     fake.feed("lo\r\n:amy!a@h PRIVMSG #vanta :hi\r\n");
     const first = await adapter.poll();
     expect(first).toEqual([
-      { chatId: "#vanta", text: "hello", from: "bob" },
-      { chatId: "#vanta", text: "hi", from: "amy" },
+      { chatId: "#vanta", text: "hello", from: "bob", isGroup: true },
+      { chatId: "#vanta", text: "hi", from: "amy", isGroup: true },
     ]);
     // Buffer is cleared after a poll.
     expect(await adapter.poll()).toEqual([]);
@@ -116,7 +126,7 @@ describe("IrcAdapter", () => {
     fake.emit("connect");
     await p;
     fake.feed(":bob!u@h PRIVMSG #other :nope\r\n:bob!u@h PRIVMSG #vanta :yep\r\n");
-    expect(await adapter.poll()).toEqual([{ chatId: "#vanta", text: "yep", from: "bob" }]);
+    expect(await adapter.poll()).toEqual([{ chatId: "#vanta", text: "yep", from: "bob", isGroup: true }]);
   });
 
   it("filters inbound by the nick allowlist when one is set", async () => {
@@ -125,7 +135,7 @@ describe("IrcAdapter", () => {
     fake.emit("connect");
     await p;
     fake.feed(":stranger!s@h PRIVMSG #vanta :hi\r\n:owner!o@h PRIVMSG #vanta :go\r\n");
-    expect(await adapter.poll()).toEqual([{ chatId: "#vanta", text: "go", from: "owner" }]);
+    expect(await adapter.poll()).toEqual([{ chatId: "#vanta", text: "go", from: "owner", isGroup: true }]);
   });
 
   it("sends one PRIVMSG per non-empty line", async () => {

@@ -29,10 +29,16 @@ const NtfyMessage = z.object({
 
 export type ParsedNtfy = { messages: InboundMessage[]; lastId: string };
 
+// A successful publish (POST /<topic>) echoes back the created message, whose
+// id is the sent message's id.
+const NtfySendResponse = z.object({ id: z.string() });
+
 /**
  * Parse an ntfy `?poll=1` body (newline-delimited JSON) into inbound messages +
  * the last seen message id (the next poll cursor). Skips non-message events and
  * malformed lines. The title, when present, prefixes the body. Pure.
+ * Each message carries its ntfy `id`; ntfy is topic-based pub/sub with no
+ * threading, so isGroup and replyToId are not provided by the platform.
  */
 export function parseNtfyMessages(body: string, currentLastId: string): ParsedNtfy {
   const messages: InboundMessage[] = [];
@@ -52,9 +58,18 @@ export function parseNtfyMessages(body: string, currentLastId: string): ParsedNt
     if (parsed.data.event !== "message") continue;
     const text = parsed.data.title ? `${parsed.data.title}: ${parsed.data.message ?? ""}` : parsed.data.message;
     if (!text?.trim()) continue;
-    messages.push({ chatId: parsed.data.topic, text, from: parsed.data.topic });
+    messages.push({ chatId: parsed.data.topic, text, from: parsed.data.topic, id: parsed.data.id });
   }
   return { messages, lastId };
+}
+
+/**
+ * Pure: extract the published message's id from a POST /<topic> response, or
+ * undefined when the body is malformed. Keys the outbound message id.
+ */
+export function parseNtfySentId(payload: unknown): string | undefined {
+  const parsed = NtfySendResponse.safeParse(payload);
+  return parsed.success ? parsed.data.id : undefined;
 }
 
 /** Parse the VANTA_NTFY_ALLOW topic allowlist (empty = allow all). Pure. */
@@ -102,11 +117,16 @@ export class NtfyAdapter implements PlatformAdapter {
       // spans survive) BEFORE splitting so `**`/``` never reach the notification.
       const formatted = formatForDialect(msg.text, "plain");
       for (const part of splitForLimit(formatted, NTFY_BYTE_LIMIT, "bytes")) {
-        await fetch(`${this.server}/${encodeURIComponent(msg.chatId)}`, {
+        const res = await fetch(`${this.server}/${encodeURIComponent(msg.chatId)}`, {
           method: "POST",
           body: part,
           signal: AbortSignal.timeout(5000),
         });
+        // Record the FIRST part's published-message id as the outbound id; a
+        // split message's head is the stable key.
+        if (msg.id === undefined && res.ok) {
+          msg.id = parseNtfySentId(await res.json().catch(() => undefined));
+        }
       }
     } catch {
       /* errors-as-values: a send failure must not throw through the gateway loop */

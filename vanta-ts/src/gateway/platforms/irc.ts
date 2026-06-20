@@ -56,6 +56,16 @@ export function parseIrcLine(line: string): IrcEvent {
   return parsePrivmsg(trimmed.slice(1, space), trimmed.slice(space + 1));
 }
 
+/**
+ * True when an IRC target is a channel (a group), false for a private query.
+ * RFC 2812 channel names start with `#`, `&`, `+`, or `!`. IRC carries no
+ * message id or reply id, so those inbound fields stay undefined by design.
+ * Pure.
+ */
+export function isChannelTarget(target: string): boolean {
+  return /^[#&+!]/.test(target);
+}
+
 /** Parse the VANTA_IRC_ALLOW nick allowlist (empty = allow all). Pure. */
 export function parseNickAllowlist(raw: string | undefined): Set<string> {
   return new Set(
@@ -127,7 +137,14 @@ export class IrcAdapter implements PlatformAdapter {
       if (event.kind === "ping") {
         this.write(`PONG :${event.token}`);
       } else if (event.kind === "privmsg" && event.target === this.channel) {
-        this.inbound.push({ chatId: this.channel, text: event.text, from: event.from });
+        // IRC has no message/reply ids; isGroup is the only inbound field the
+        // protocol genuinely provides (a `#`/`&` target is a channel = a group).
+        this.inbound.push({
+          chatId: this.channel,
+          text: event.text,
+          from: event.from,
+          isGroup: isChannelTarget(event.target),
+        });
       }
     }
   }
