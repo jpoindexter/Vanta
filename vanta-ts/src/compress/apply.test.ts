@@ -30,6 +30,22 @@ describe("applyCompression (CCR seam)", () => {
     expect(await retrieveOriginal(dataDir, id!)).toBe(blob);
   });
 
+  it("dedupes repeated blocks losslessly and round-trips the exact original via CCR", async () => {
+    const block = "the quick brown fox jumps over the lazy dog. ".repeat(24).trim();
+    const text = [block, block, block, block].join("\n\n"); // 4 identical paragraphs
+    const { output, tokensSaved } = await applyCompression(text, dataDir);
+
+    expect(tokensSaved).toBeGreaterThan(0);
+    expect(output).toContain("dedup"); // footer marks the dedup pass
+    expect(output).toContain("⟦↺#"); // winnow reference markers replace the repeats
+    expect(output).toContain("retrieve_original");
+
+    // Lossless: the stashed original restores byte-for-byte.
+    const id = /original_id="([a-f0-9]+)"/.exec(output)?.[1];
+    expect(id).toBeTruthy();
+    expect(await retrieveOriginal(dataDir, id!)).toBe(text);
+  });
+
   it("leaves a small output untouched (no footer, no stash)", async () => {
     const small = "short tool output";
     const { output, tokensSaved } = await applyCompression(small, dataDir);
