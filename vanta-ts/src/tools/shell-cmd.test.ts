@@ -20,6 +20,26 @@ describe("shell_cmd local execution", () => {
   });
 });
 
+describe("shell_cmd plugin hints (strip from stderr + surface suggestion)", () => {
+  it("strips a vanta-hint tag from captured stderr and appends an install suggestion", async () => {
+    const cmd =
+      'echo work-output; printf \'<vanta-hint type="plugin" name="pylsp" marketplace="agent-skills" />\' 1>&2';
+    const r = await shellCmdTool.execute({ command: cmd }, ctx());
+    expect(r.ok).toBe(true);
+    expect(r.output).toContain("work-output");
+    expect(r.output).not.toContain("vanta-hint");
+    expect(r.output).toContain("Install pylsp plugin? (from agent-skills)");
+  });
+
+  it("leaves output unchanged when no hint tag is present", async () => {
+    const r = await shellCmdTool.execute({ command: "echo just-plain; echo also-stderr 1>&2" }, ctx());
+    expect(r.ok).toBe(true);
+    expect(r.output).toContain("just-plain");
+    expect(r.output).toContain("also-stderr");
+    expect(r.output).not.toMatch(/Install .* plugin\?/);
+  });
+});
+
 describe("shell_cmd ssh routing", () => {
   it("refuses background tasks over ssh", async () => {
     const r = await shellCmdTool.execute({ command: "uptime", ssh: "vps", background: true }, ctx());
