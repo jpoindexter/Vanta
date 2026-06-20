@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
+import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { openDeepLinkTool } from "./deep-link.js";
@@ -341,6 +341,20 @@ describe("shell_cmd", () => {
   it("maps VANTA_SHELL_SANDBOX to the OS sandbox flag for shell_cmd only", () => {
     const env = shellSandboxEnv({ VANTA_SHELL_SANDBOX: "1" });
     expect(env.VANTA_SANDBOX).toBe("1");
+  });
+
+  it("shouldSandboxShell: default ON where a backend exists, off where not, explicit flag wins", () => {
+    // default (no flag): macOS seatbelt → on; linux+bwrap → on; linux no bwrap → off; other → off
+    expect(shouldSandboxShell({}, "darwin", false)).toBe(true);
+    expect(shouldSandboxShell({}, "linux", true)).toBe(true);
+    expect(shouldSandboxShell({}, "linux", false)).toBe(false); // no bwrap → don't brick, host exec
+    expect(shouldSandboxShell({}, "win32", false)).toBe(false);
+    // explicit opt-out wins even on macOS
+    expect(shouldSandboxShell({ VANTA_SHELL_SANDBOX: "0" }, "darwin", true)).toBe(false);
+    // explicit opt-in wins even with no backend (user asked → maybeSandbox then refuses, by design)
+    expect(shouldSandboxShell({ VANTA_SHELL_SANDBOX: "1" }, "linux", false)).toBe(true);
+    // global sandbox implies shell sandbox
+    expect(shouldSandboxShell({ VANTA_SANDBOX: "1" }, "win32", false)).toBe(true);
   });
 });
 

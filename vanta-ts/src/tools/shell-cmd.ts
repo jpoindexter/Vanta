@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { z } from "zod";
@@ -69,8 +70,44 @@ export function classifyExitCode(command: string, code: number): { ok: boolean; 
   return { ok: false };
 }
 
+const TRUTHY = new Set(["1", "true", "on", "yes"]);
+const FALSY = new Set(["0", "false", "off", "no"]);
+
+/** Decide whether shell_cmd/self_correct should run sandboxed. SECURITY: default ON
+ * wherever a usable OS sandbox backend exists (seatbelt on macOS — always present;
+ * bwrap on Linux only if installed), because the sandbox (network-denied, deny-default
+ * fs) is the REAL containment a keyword denylist can't provide. Explicit
+ * VANTA_SHELL_SANDBOX wins either way. We never enable it where the backend is absent,
+ * so no platform is bricked (it falls back to host exec under the kernel denylist). */
+export function shouldSandboxShell(env: NodeJS.ProcessEnv, platform: NodeJS.Platform, hasBwrap: boolean): boolean {
+  const flag = env.VANTA_SHELL_SANDBOX?.trim().toLowerCase();
+  if (flag && FALSY.has(flag)) return false; // explicit opt-out
+  if (flag && TRUTHY.has(flag)) return true; // explicit opt-in
+  if (env.VANTA_SANDBOX === "1") return true; // global sandbox already on
+  return platform === "darwin" || (platform === "linux" && hasBwrap); // default: on where contained
+}
+
+/** True when shell sandboxing was explicitly requested (vs auto-defaulted). */
+function explicitSandbox(env: NodeJS.ProcessEnv): boolean {
+  const flag = env.VANTA_SHELL_SANDBOX?.trim().toLowerCase();
+  return (flag !== undefined && TRUTHY.has(flag)) || env.VANTA_SANDBOX === "1";
+}
+
+let bwrapCache: boolean | undefined;
+function bwrapOnPath(): boolean {
+  if (bwrapCache !== undefined) return bwrapCache;
+  bwrapCache = (process.env.PATH ?? "").split(":").some((d) => d && existsSync(join(d, "bwrap")));
+  return bwrapCache;
+}
+
 export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  return env.VANTA_SHELL_SANDBOX === "1" ? { ...env, VANTA_SANDBOX: "1" } : env;
+  if (!shouldSandboxShell(env, process.platform, bwrapOnPath())) return env;
+  // AUTO-enabled (no explicit flag) keeps network ON so npm/git/curl still work — the
+  // high-value containment is the deny-default FS (secrets unreadable, writes bounded).
+  // Explicitly-requested sandboxing keeps the strict default (network denied). A user-set
+  // VANTA_SANDBOX_NET is always honored — set it to 0 for full containment in auto mode.
+  if (explicitSandbox(env) || env.VANTA_SANDBOX_NET !== undefined) return { ...env, VANTA_SANDBOX: "1" };
+  return { ...env, VANTA_SANDBOX: "1", VANTA_SANDBOX_NET: "1" };
 }
 
 /** Run the command on a named SSH host (settings.sshConfigs). The kernel still

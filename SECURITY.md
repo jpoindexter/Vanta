@@ -86,16 +86,25 @@ obfuscated, or interpreter-wrapped command can evade any denylist (`$(...)`, `ba
 a binary not on the list). The denylist (§2) is **defense-in-depth that raises the bar**, not
 an airtight gate.
 
-**The real execution boundary is the sandbox.** For untrusted or autonomous runs:
+**The real execution boundary is the sandbox — now ON BY DEFAULT for `shell_cmd` and
+`self_correct`** wherever an OS sandbox backend exists (macOS seatbelt — always present;
+Linux bwrap — if installed). The sandbox is `deny-default` filesystem (root + writable
+zones + tmp only), so a sandboxed command **cannot read `~/.ssh`/credentials or write
+outside scope** — secret-exfil-by-file and host tampering are contained by default.
 
-- `VANTA_SANDBOX=1` — OS sandbox for `run_code` (and `self_correct`).
-- `VANTA_SHELL_SANDBOX=1` — sandbox `shell_cmd` too.
+- **Network in the auto-default sandbox stays ON** so `npm install`/`git`/`curl` keep
+  working; the FS containment is the default win. Set **`VANTA_SANDBOX_NET=0`** for full
+  containment (network denied → reverse shells can't connect out). Reverse-shell *binaries*
+  (`ncat`/`socat`/`nc`/`telnet`/`/dev/tcp`…) are additionally denylisted → kernel `Ask`.
+- `VANTA_SHELL_SANDBOX=1` — force strict shell sandboxing (network **denied** by default).
+- `VANTA_SHELL_SANDBOX=0` — opt OUT (host exec; the kernel denylist is then the only floor).
+- `VANTA_SANDBOX=1` — also sandbox `run_code`.
 - `VANTA_EXEC_BACKEND=docker` — run shell/code in a container (`--network none` unless
   `VANTA_SANDBOX_NET=1`; mounts the project root + writable zones only).
 
-`self_correct` now routes through the same sandbox seam as `shell_cmd` (it previously ran
-unsandboxed on the host). The default-on sandbox + a structured (argv-allowlist) assessment
-are tracked as roadmap hardening (see `roadmap.json`, `SEC-*`).
+On a host with **no** sandbox backend (e.g. Linux without bwrap) shell exec falls back to
+the host under the kernel denylist (we never brick a platform) — install bwrap or use docker
+for containment there.
 
 ## 7. Pentest hardening (2026-06-20)
 
