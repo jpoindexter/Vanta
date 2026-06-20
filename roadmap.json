@@ -12006,7 +12006,7 @@
       "id": "VANTA-ASYNC-DELEGATE",
       "track": "Harness",
       "title": "Async background delegation — handle in ~2ms, result re-enters as a new turn",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "From the a reference agent infographic: delegate(background=true) returns a handle in ~2ms (non-blocking), the subagent runs on a daemon thread, and the result RE-ENTERS chat as a new turn with rich self-contained re-injection ([ASYNC DELEGATION COMPLETE] + original goal/context/tools/role/model/status/result), riding the existing background-completion queue — no mid-loop splice, preserving message-order + prompt-cache invariants. Verify against Vanta's current delegate/team/workflow (which may be synchronous) and close the gap. See .",
       "done": "delegate(background=true) returns immediately; the subagent's result appears as a new turn when idle, self-contained, without breaking message order or the prompt cache.",

@@ -4,6 +4,7 @@ import { executeSlash } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
+import { drainAsyncReentry } from "./subagent/async-delegate.js";
 import type { UserCommand } from "./commands/loader.js";
 import type { RunSetup } from "./session.js";
 
@@ -100,6 +101,10 @@ async function replIteration(
 export async function runReplLoop(d: ReplDeps): Promise<void> {
   const editState = { prefill: null as string | null, msgIdx: null as number | null };
   for (;;) {
+    // VANTA-ASYNC-DELEGATE: at the idle boundary, a finished background worker
+    // re-enters as a fresh turn (preserves message order + the prompt cache).
+    const reentry = await drainAsyncReentry(d.ctx.dataDir);
+    if (reentry) { await d.runUserTurn(reentry); continue; }
     let line: string;
     try {
       const q = d.rl.question("\nvanta › ");
