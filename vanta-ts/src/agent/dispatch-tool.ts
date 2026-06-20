@@ -34,17 +34,10 @@ export async function dispatchTool(
     return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied" };
   }
 
-  // PreToolUse shell hooks (.vanta/hooks.json) are the last user-defined gate
-  // before execution; a non-zero exit blocks the tool (fail-closed).
   const dataDir = join(ctx.root, ".vanta");
   const hookDeps = buildAgentHookDeps(deps);
-  const pre = await firePreToolUse(dataDir, call.name, call.arguments, { cwd: ctx.root, ...hookDeps });
-  if (pre.blocked) {
-    const output = `blocked by PreToolUse hook: ${pre.reason}`;
-    deps.onToolResult?.(call.name, false, output);
-    deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output };
-  }
+  const preBlocked = await applyPreToolUseHooks(call, deps, ctx, hookDeps);
+  if (preBlocked) return preBlocked;
 
   const execCtx = executionContext(call.name, ctx);
   const res = await executeWithRetry(call, deps, execCtx, tool);
@@ -58,6 +51,30 @@ export async function dispatchTool(
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
   return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, tokensSaved: compressed.tokensSaved };
+}
+
+/**
+ * The last user-defined gate before execution. Exit-code semantics
+ * (see hook-exit-codes.ts): exit 2 BLOCKS and feeds stderr to the model;
+ * any other non-zero is non-blocking and surfaces stderr to the user;
+ * exit 0 is silent. Returns a blocked outcome, or `undefined` to allow.
+ */
+async function applyPreToolUseHooks(
+  call: ToolCall,
+  deps: AgentDeps,
+  ctx: ToolContext,
+  hookDeps: ReturnType<typeof buildAgentHookDeps>,
+): Promise<DispatchOutcome | undefined> {
+  const dataDir = join(ctx.root, ".vanta");
+  const pre = await firePreToolUse(dataDir, call.name, call.arguments, { cwd: ctx.root, ...hookDeps });
+  if (pre.blocked) {
+    const output = `blocked by PreToolUse hook: ${pre.reason}`;
+    deps.onToolResult?.(call.name, false, output);
+    deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
+    return { executed: false, empty: false, ok: false, output };
+  }
+  if (pre.userMessage) deps.onText?.(`PreToolUse hook: ${pre.userMessage}`);
+  return undefined;
 }
 
 function firePostToolHooks(o: {

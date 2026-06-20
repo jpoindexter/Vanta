@@ -1966,7 +1966,7 @@
       "id": "VANTA-HOOK-EXIT-CODES",
       "track": "Harness",
       "title": "Hook exit code semantics — exit 0 silent, exit 2 blocks + shows model, other shows user",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent defines specific semantics for hook exit codes: exit 0 = success (stdout/stderr not shown), exit 2 = show stderr to model AND block the tool call (the model sees the message and can change strategy), any other non-zero = show stderr to user only but continue with the tool call. This gives hook authors precise control over whether the model or user sees the hook's output.",
       "done": "A PreToolUse hook returning exit 2 with a message causes the tool call to be blocked and the model receives the hook's stderr as a constraint.",
@@ -1975,7 +1975,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-AUTO-UPDATER",

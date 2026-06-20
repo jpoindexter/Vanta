@@ -182,11 +182,18 @@ describe("firePreToolUse — gates execution by exit code", () => {
   beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), "vanta-hooks-")); });
   afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-  it("BLOCKS the tool when a matching hook exits non-zero", async () => {
-    await writeHooks(dir, { PreToolUse: [{ matcher: "write_file", command: "echo nope >&2; exit 1" }] });
+  it("BLOCKS the tool when a matching hook exits 2 and routes stderr to the model", async () => {
+    await writeHooks(dir, { PreToolUse: [{ matcher: "write_file", command: "echo nope >&2; exit 2" }] });
     const r = await firePreToolUse(dir, "write_file", { path: "x" });
     expect(r.blocked).toBe(true);
     expect(r.reason).toContain("nope");
+  });
+
+  it("does NOT block on a non-2 exit; surfaces stderr to the user", async () => {
+    await writeHooks(dir, { PreToolUse: [{ matcher: "write_file", command: "echo heads-up >&2; exit 1" }] });
+    const r = await firePreToolUse(dir, "write_file", { path: "x" });
+    expect(r.blocked).toBe(false);
+    expect(r.userMessage).toContain("heads-up");
   });
 
   it("allows the tool when the hook exits 0", async () => {

@@ -43,7 +43,8 @@ describe("hook type parity", () => {
   it("blocks from an agent hook result", async () => {
     await writeHooks({ PreToolUse: [{ type: "agent", prompt: "Inspect with tools.", maxIterations: 2 }] });
     const r = await firePreToolUse(dir, "shell_cmd", { cmd: "npm test" }, {
-      runAgentHook: async () => ({ code: 1, stdout: '{"decision":"block"}', stderr: "agent veto" }),
+      // A block verdict is the canonical block exit code (2); stderr → model reason.
+      runAgentHook: async () => ({ code: 2, stdout: '{"decision":"block"}', stderr: "agent veto" }),
     });
     expect(r.blocked).toBe(true);
     expect(r.reason).toBe("agent veto");
@@ -73,11 +74,12 @@ describe("hook type parity", () => {
     expect(context).toBe("saw s1");
   });
 
-  it("respects per-hook timeoutMs", async () => {
+  it("respects per-hook timeoutMs (timeout exit 124 is non-blocking, surfaced to the user)", async () => {
     await writeHooks({ PreToolUse: [{ command: "sleep 1", timeoutMs: 1 }] });
     const r = await firePreToolUse(dir, "write_file", {});
-    expect(r.blocked).toBe(true);
-    expect(r.reason).toContain("timed out");
+    // Exit 124 (timeout) is "other non-zero" per hook-exit-codes: non-blocking, stderr → user.
+    expect(r.blocked).toBe(false);
+    expect(r.userMessage).toContain("timed out");
   });
 
   it("POSTs http hooks with allowed env and expanded headers", async () => {
