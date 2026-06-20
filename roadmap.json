@@ -2060,7 +2060,7 @@
       "id": "VANTA-VCR-MODE",
       "track": "Harness",
       "title": "VCR record/replay — record API request/response cassettes for test replay",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a VCR (cassette recorder) mode that records all API requests and responses to disk when `FORCE_VCR=1` (for ants) or in `NODE_ENV=test`. Cassettes are keyed by content hash; on replay, matching requests return cached responses instantly without hitting the API. Used in integration tests and for debugging.",
       "done": "`VANTA_VCR=1` records a session's API calls to `.vanta/cassettes/`. Re-running with the same inputs replays from cassette without network calls.",
@@ -2069,7 +2069,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure cassette (requestKey sha256 body-hash, record/find, tolerant load/save) + makeVcrFetch({off|record|replay}) + resolveVcrMode(VANTA_VCR). off=passthrough; replay never hits network (hit or miss). NOT wired into live fetch — follow-up wraps each provider fetch (providers/openai.ts etc.) so a suite can record once + replay offline."
     },
     {
       "id": "VANTA-API-PRECONNECT",
