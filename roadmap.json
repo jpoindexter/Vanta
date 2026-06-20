@@ -4492,7 +4492,7 @@
       "id": "VANTA-CHANNEL-PERMISSIONS",
       "track": "Operator",
       "title": "Channel permission relay — approve permissions via Telegram/iMessage/Discord",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "When another agent hits a permission dialog, it also sends the prompt to connected channels (Telegram, iMessage, Discord). User replies 'yes <request_id>' via the channel; another agent receives it as a structured notification and races it against local UI. First resolver wins. Allowlist-gated per server. Requires channel MCP server supporting `claude/channel/permission` capability.",
       "done": "Permission dialogs arrive in connected messaging channels; replying 'yes <id>' approves without opening the terminal; local UI still works in parallel.",
@@ -4501,7 +4501,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Logic core shipped + tested: formatApprovalPrompt / parseApprovalReply (yes|no <id>, whole-token, default-deny) / relayApproval (Promise.race channel-reply vs local approver, first-wins via shared AbortController, allowlist-gated). Live wire deferred to CHANNEL-PERMISSIONS-WIRE: call relayApproval from the requestApproval site with send_chat as send, the gateway inbound stream as replies, the host approver as localResolve, and the operator-profile chat allowlist."
     },
     {
       "id": "VANTA-SSH-SESSION",
@@ -14783,6 +14784,22 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
+      "updated": "2026-06-20",
+      "source": "ref-audit-2026-06-20"
+    },
+    {
+      "id": "CHANNEL-PERMISSIONS-WIRE",
+      "track": "Operator",
+      "title": "Wire channel permission relay into the live approval loop",
+      "status": "next",
+      "size": "M",
+      "summary": "VANTA-CHANNEL-PERMISSIONS shipped the pure relay/race/parse core (permissions/channel-relay.ts). Wire it live: at the requestApproval site (agent/dispatch-tool.ts -> applySafetyGate -> AgentDeps.requestApproval), generate a stable requestId, call relayApproval with send=send_chat (per configured approver platform/chat), replies=the gateway inbound stream filtered to this requestId, localResolve=the existing host approver, allowlist=the operator-profile approver chat-ids. Persist the pending request. Touches the hot approval path + gateway + operator-profile, so it is its own careful slice.",
+      "done": "An approval prompt is sent to the configured channel; replying yes/no <id> from an allowlisted chat resolves it, raced against the local prompt (first wins); only allowlisted chats can approve; tested with an injected gateway stream.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4",
+      "lens": "reach",
       "updated": "2026-06-20",
       "source": "ref-audit-2026-06-20"
     }
