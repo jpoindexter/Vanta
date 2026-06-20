@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { runAgent } from "../agent.js";
 import { runGateway } from "../gateway/run.js";
-import { resolvePlatform } from "../gateway/platforms/resolve.js";
+import { resolveMessagingAdapter } from "../gateway/platforms/factory.js";
 import { resolveDeliver } from "../gateway/webhook.js";
 import { installService, uninstallService, serviceStatus } from "../service/manager.js";
 import { resolveVantaHome } from "../store/home.js";
@@ -56,7 +56,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
   const runTask = buildCronRunTask(repoRoot);
-  const platform = resolvePlatform(process.env);
+  const platform = resolveMessagingAdapter(process.env);
   const handle = async (text: string): Promise<string> => (await runTask(text)).finalText;
 
   const port = Number(process.env.VANTA_WEBHOOK_PORT);

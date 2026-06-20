@@ -4,26 +4,29 @@
 // retrying a bad key just wastes time.
 
 import { resolveProvider } from "./index.js";
+import { classifyProviderError } from "./error-taxonomy.js";
 import type { LLMProvider, CompletionResult, CompletionConfig, StreamChunk } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
 import type { ToolSchema } from "./interface.js";
 
-// Mirrors tool-retry's TRANSIENT regex — duplicated intentionally to keep
-// this commit self-contained (rule-of-3 not yet met).
-const TRANSIENT =
-  /(ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|EPIPE|socket hang up|timed?\s?out|timeout|temporarily|rate[\s-]?limit|too many requests|\b(429|500|502|503|504)\b|network error|connection (reset|refused|closed)|fetch failed)/i;
-
-/** Returns true when the error text suggests the call may succeed on retry. */
-function isTransientError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return TRANSIENT.test(msg);
+/**
+ * Returns true for auth errors — never fall back on those (a bad key won't be
+ * fixed by trying again). Both transient (refreshable token) and permanent
+ * (revoked key) auth verdicts propagate immediately here.
+ */
+function isAuthError(err: unknown): boolean {
+  const reason = classifyProviderError(err).reason;
+  return reason === "auth" || reason === "auth_permanent";
 }
 
-/** Returns true for 4xx auth errors — never retry those. */
-const AUTH_4XX = /\b(401|403|407)\b/;
-function isAuthError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return AUTH_4XX.test(msg);
+/**
+ * Returns true when the error warrants trying the next provider — the
+ * classifier's `shouldFallback` verdict (rate_limit, overloaded, server_error,
+ * timeout, network, billing, model_not_found). Replaces the old coarse
+ * retryable regex with a typed decision.
+ */
+function isTransientError(err: unknown): boolean {
+  return classifyProviderError(err).shouldFallback;
 }
 
 // ---------------------------------------------------------------------------

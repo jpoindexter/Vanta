@@ -12265,13 +12265,13 @@
       "id": "PORT-MESSAGING-FACTORY",
       "track": "Operator",
       "title": "Messaging adapter factory (mirror resolveProvider)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: PlatformAdapter port exists (gateway/platforms/base.ts:20) and all adapters implement it, but there is no factory — cli/ops.ts:45 hardcodes `new TelegramAdapter(...)`; the registry is metadata-only. Add a create(env)-style factory mirroring resolveProvider so adding Slack/Discord = one registration, not editing cli/ops.ts.",
       "done": "Messaging platforms resolve through a factory keyed by config; adding a platform is one registration entry; cli/ops.ts no longer hardcodes a concrete adapter.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-20"
     },
     {
       "id": "PORT-DELIVERY-REGISTRY",
@@ -12980,13 +12980,14 @@
       "id": "FABRO-MODEL-STYLESHEET",
       "track": "Harness",
       "title": "Selector-based model stylesheet — per-class model+effort routing with fallback chains",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] From fabro: a CSS-like stylesheet routes each step to a model + reasoning_effort by selector with automatic fallback chains, e.g. `* { model: haiku; reasoning_effort: low } .coding { model: sonnet; reasoning_effort: high }`. Vanta's routing/model-router.ts is binary cheap/expensive (VANTA_MODEL_CHEAP/_EXPENSIVE). Generalize to N task-classes: a small selector -> {provider/model, effort, fallback[]} map; reasoning_effort maps onto Vanta's existing effort levels (low|medium|high|max); add automatic fallback to the next entry on a provider error. Low blast radius, improves an existing module; pairs with FABRO-WORKFLOW-GRAPH (a stylesheet per node) but works standalone.",
       "done": "a selector-based routing config maps task-class -> {provider/model, effort, fallback chain}; resolveRoutedProvider honors it with automatic fallback on failure; effort ties into the existing effort levels; defaults preserve current behavior when unset; co-located tests; tsc clean; committed.",
       "tier": "pebble",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20"
     },
     {
       "id": "FABRO-INTERVIEW-NODE",
@@ -13952,7 +13953,7 @@
       "id": "HARNESS-ERROR-TAXONOMY",
       "track": "Harness",
       "title": "Categorized provider-error taxonomy -> typed recovery hints",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Provider-error handling is one coarse retryable-vs-auth regex. Add classifyProviderError() returning {reason, retryable, shouldCompress, shouldRotate, shouldFallback} over ~20 categories (auth, billing, rate_limit, overloaded, server_error, timeout, context_overflow, payload_too_large, image_too_large, content_policy, etc.) so retry acts on the verdict instead of re-parsing.",
       "done": "A provider error is classified into a typed reason with recovery booleans; the retry loop compresses vs rotates vs falls back per the verdict; billing-exhaustion is distinguished from transient rate-limit; pattern banks unit-tested.",
@@ -13968,7 +13969,7 @@
       "id": "HARNESS-COMPACT-BOUNDARY",
       "track": "Harness",
       "title": "Compaction tool-pair boundary alignment + anti-thrash",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Compaction can split a tool_call from its tool_result (a correctness bug) and can thrash. Align compaction boundaries so call/result pairs stay together, protect first-N + token-budgeted tail, and skip compression when the last two passes each saved <10%.",
       "done": "Compaction never orphans a tool_call/tool_result; head and tail are protected; a low-savings pass is skipped; boundary + anti-thrash unit-tested.",
@@ -14681,6 +14682,22 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
+      "updated": "2026-06-20",
+      "source": "ref-audit-2026-06-20"
+    },
+    {
+      "id": "HARNESS-COMPACT-THRASH-WIRE",
+      "track": "Harness",
+      "title": "Wire anti-thrash gate into per-turn compaction (recentSavings)",
+      "status": "next",
+      "size": "S",
+      "summary": "HARNESS-COMPACT-BOUNDARY shipped shouldCompact()/passSavings() (pure, tested) but they have no call site — graduatedCompaction is a within-call layer descent, not the cross-turn repeated-pass loop the gate targets. Track recentSavings across compaction invocations in the agent compaction path (agent/context-pipeline.ts) and skip a pass when the last 2 each saved <10%.",
+      "done": "The per-turn compaction path records each pass’s savings and skips a compaction pass when the last two passes each saved <10% (shouldCompact); wired + tested; default behavior unchanged when savings are healthy.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "agent-loop",
       "updated": "2026-06-20",
       "source": "ref-audit-2026-06-20"
     }
