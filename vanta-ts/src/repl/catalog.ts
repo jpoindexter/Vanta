@@ -60,6 +60,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "mcp", desc: "MCP panel — servers + connection status, per-server tools, tool detail, reconnect (TUI)" },
   { name: "sandbox", desc: "sandbox settings — config, dependencies, doctor, per-tool overrides (TUI)" },
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
+  { name: "less-permission-prompts", desc: "scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only)" },
   { name: "preferences", arg: "export", desc: "export operator preference signals (~/.vanta/preferences.jsonl)" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "stats", desc: "aggregate usage — sessions, turns, tool calls, tokens/cost (TUI)" },
