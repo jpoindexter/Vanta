@@ -51,6 +51,7 @@ import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
 import { runFleetCommand } from "./cli/fleet-cmd.js";
 import { runSshCommand } from "./cli/ssh-cmd.js";
 import { runHireCommand } from "./cli/hire-cmd.js";
+import { runHeartbeatCommand } from "./heartbeat/run-cmd.js";
 import { runProactiveCommand } from "./cli/proactive-cmd.js";
 import { runWatchdogCommand } from "./cli/watchdog-cmd.js";
 import { runAutoResearchCommand } from "./cli/auto-research-cmd.js";
@@ -133,6 +134,7 @@ const COMMANDS: Record<string, CommandFn> = {
   loop: (root, rest) => runLoopCommand(root, rest),
   agents: (root, rest) => runAgentsCommand(root, rest),
   hire: (root, rest) => runHireCommand(root, rest),
+  heartbeat: (root) => runHeartbeatCommand(root),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
   ssh: (root, rest) => runSshCommand(root, rest),

@@ -45,6 +45,7 @@ const USAGE_LINES = [
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
       "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",
+      "       vanta heartbeat                    one coalesced wakeup: budget→workspace→secret→skill→adapter + orphan recovery",
       "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",

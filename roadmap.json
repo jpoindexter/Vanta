@@ -13332,7 +13332,7 @@
       "id": "PCLIP-HEARTBEAT-RUNTIME",
       "track": "Harness",
       "title": "Heartbeat run pipeline — coalesced queue, secret/skill injection, orphan recovery",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Paperclip extract (Heartbeat Execution). The full run pipeline beyond WAKE-CONTEXT's context-shaping: a durable wakeup queue with coalescing, budget check, workspace resolution, scoped-secret injection, skill loading, and adapter invocation as one recoverable run; orphaned runs auto-recover on restart (recoveryService → also closes LIVENESS-WATCHDOG).",
       "done": "A single wakeup runs the coalesced budget→workspace→secret→skill→adapter pipeline and auto-recovers an orphaned run on restart.",
