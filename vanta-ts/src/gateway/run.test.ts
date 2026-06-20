@@ -155,11 +155,16 @@ describe("pollPlatform", () => {
 });
 
 describe("pollPlatformSession (concurrent inbound routing)", () => {
+  // Pin `now` so the inbound-pipeline timestamp prefix is deterministic. The
+  // agent now receives a `[ts] <text>` rendering (MSG-INBOUND-TIMESTAMP); routing
+  // + reply delivery semantics are unchanged (routing reads the clean text).
+  const TS = "[Sat 2026-06-20 12:00]";
   const noCron = {
     dataDir: "/x",
     run: async () => ({ finalText: "" }),
     load: async () => [],
     log: () => {},
+    now: () => new Date(2026, 5, 20, 12, 0),
   };
 
   it("is a no-op (delegates) with no platform configured", async () => {
@@ -175,7 +180,8 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       initialState(),
     );
     expect(r.count).toBe(1);
-    expect(adapter.sent).toEqual([{ chatId: "42", text: "you said: status" }]);
+    // The agent saw the timestamped text; the reply is delivered to the same chat.
+    expect(adapter.sent).toEqual([{ chatId: "42", text: `you said: ${TS} status` }]);
     expect(r.state.running).toBe(false); // settles idle after the batch drains
   });
 
@@ -190,8 +196,9 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       initialState(),
     );
     expect(r.count).toBe(2);
-    expect(handled).toEqual(["first task", "second task"]); // queued one ran after
-    expect(adapter.sent.map((s) => s.text)).toEqual(["ok: first task", "ok: second task"]);
+    // FIFO order preserved; each reaches the agent timestamped.
+    expect(handled).toEqual([`${TS} first task`, `${TS} second task`]);
+    expect(adapter.sent.map((s) => s.text)).toEqual([`ok: ${TS} first task`, `ok: ${TS} second task`]);
     expect(r.state.running).toBe(false);
   });
 
@@ -206,8 +213,8 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       { ...noCron, log: (m) => logs.push(m), platform: adapter, handle: async (t) => { handled.push(t); return "done"; } },
       initialState(),
     );
-    // interrupt is not handled as a run nor queued/drained — only the first ran.
-    expect(handled).toEqual(["long running job"]);
+    // interrupt is classified on the clean text → only the first ran.
+    expect(handled).toEqual([`${TS} long running job`]);
     expect(logs.some((l) => l.includes("interrupt"))).toBe(true);
   });
 
@@ -222,7 +229,8 @@ describe("pollPlatformSession (concurrent inbound routing)", () => {
       { ...noCron, log: (m) => logs.push(m), platform: adapter, handle: async (t) => { handled.push(t); return "done"; } },
       initialState(),
     );
-    expect(handled).toEqual(["build the thing"]);
+    // steer is classified on the clean ">>" prefix → only the first ran.
+    expect(handled).toEqual([`${TS} build the thing`]);
     expect(logs.some((l) => l.includes("steer"))).toBe(true);
   });
 });
