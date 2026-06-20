@@ -3137,7 +3137,7 @@
       "id": "VANTA-MCP-RECONNECT-TOGGLE",
       "track": "Operator",
       "title": "MCP server reconnect + enable/disable toggle in live session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "useMcpReconnect() and useMcpToggleEnabled() hooks allow reconnecting a failed MCP server or toggling it enabled/disabled without restarting the session. Accessible from the MCP settings panel in the TUI.",
       "done": "Failed MCP server shows a Reconnect button; toggling a server off stops its tools from appearing; toggling back on reconnects; no session restart required.",
@@ -3146,7 +3146,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure McpServerState (connected|disabled|error) + resolveMcpAction (enable disabled/error->connect, enable connected->noop, disable connected/error->disconnect, disable disabled->noop, reconnect->reconnect from any) + formatMcpServers (● connected N tools / ○ disabled / ✘ error). Built+tested; execute point = a /mcp <server> enable|disable|reconnect handler runs resolveMcpAction then dispatches the plan to mount.ts mountOneServer/kill+unregister (named). Pure, no IO."
     },
     {
       "id": "VANTA-SPINNER-VERBS",
