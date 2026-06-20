@@ -2864,7 +2864,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-06-20",
-      "notes": "Pure effortGlyph (low ○/medium ◐/high ●/max ◆/adaptive ◇, unique) + formatEffortIndicator (prefix effort:high or glyph ● high) + effortIndicatorVisible (default medium hidden unless VANTA_EFFORT_INDICATOR=1, non-default shown). Built+tested; render point = ui/status-bar.tsx EFFORT slot in buildKeys (replace the medium-hidden string with the chip). Default = no added noise."
+      "notes": "NOW LIVE in the TUI status bar: the EFFORT slot renders effortIndicatorVisible(level,env) ? formatEffortIndicator(level,{style:glyph}) (e.g. ● high / ○ low / ◆ max / ◇ adaptive). Default medium/unset = no chip (byte-identical to before); render-tested via the Ink harness. VANTA_EFFORT_INDICATOR forces medium visible."
     },
     {
       "id": "VANTA-BYPASS-DIALOG",
