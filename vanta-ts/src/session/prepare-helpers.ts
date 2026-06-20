@@ -13,6 +13,9 @@ import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
 import { loadSettings, type Settings } from "../settings/store.js";
 import { gitInstructionsBlock } from "../settings/git-settings.js";
+import { resolveProjectTrust, type TrustConfirmer } from "../settings/trust-gate.js";
+import { fireHooks } from "../hooks/shell-hooks.js";
+import { resolveIsolation, skipSkills, skipMcp, skipPlugins, skipHooks, skipProjectContext } from "../cli/isolation.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
 import { sessionConfig, sessionConfigEvent } from "../sessions/config-event.js";
 import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } from "../ralph/state.js";
@@ -34,12 +37,9 @@ type PromptContext = {
 
 export async function loadPromptContext(repoRoot: string, activeGoalIds: number[]): Promise<PromptContext> {
   const memory = await recentMemory(activeGoalIds);
-  const { installSkillLibrary } = await import("../skills/library.js");
-  await installSkillLibrary({ env: process.env }).catch(() => {});
-  const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
-    name: s.meta.name,
-    description: s.meta.description,
-  }));
+  // VANTA-SAFE-MODE: safe-mode + bare skip skills (install + index). Skipped →
+  // empty skill index, same shape as a fresh store with no skills.
+  const skills = skipSkills(resolveIsolation(process.env)) ? [] : await loadSkillIndex();
   const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
   const { selfDigest } = await import("../self/store.js");
   const selfContent = await selfDigest(process.env).catch(() => "");
@@ -50,6 +50,16 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
   const { canonicalProjectId } = await import("../projects/identity.js");
   const projectId = await canonicalProjectId(repoRoot).catch(() => undefined);
   return { memory, skills, brain, selfContent, moimNote, errorsLog, program, projectId };
+}
+
+/** Install the bundled skill library + read the skill index (name + description). */
+async function loadSkillIndex(): Promise<{ name: string; description: string }[]> {
+  const { installSkillLibrary } = await import("../skills/library.js");
+  await installSkillLibrary({ env: process.env }).catch(() => {});
+  return (await listSkills(process.env).catch(() => [])).map((s) => ({
+    name: s.meta.name,
+    description: s.meta.description,
+  }));
 }
 
 async function recentlyWritten(path: string, maxAgeMs: number): Promise<boolean> {
@@ -105,16 +115,61 @@ export async function loadRuntimeExtensions(
   preloaded?: Settings,
 ): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; mcpSkills: RegisteredMcpSkill[] }> {
   const settings = preloaded ?? await loadRuntimeSettings(repoRoot);
-  await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
+  // VANTA-SAFE-MODE: safe-mode + bare skip MCP mounting (discovery); only
+  // safe-mode skips plugins. Skipped → no servers/plugins register, the command
+  // registry stays empty, byte-identical to a config with none enabled.
+  const iso = resolveIsolation(process.env);
+  if (!skipMcp(iso))
+    await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
-  const { loadEnabledPlugins } = await import("../plugins/loader.js");
-  await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, log: (m) => console.log(m) });
+  if (!skipPlugins(iso)) {
+    const { loadEnabledPlugins } = await import("../plugins/loader.js");
+    await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, log: (m) => console.log(m) });
+  }
   // MCP-SKILLS: register MCP-provided skills into the same command registry
   // (kernel-gated, opt-in via VANTA_MCP_SKILLS). Best-effort — never fatal.
-  const { skills: mcpSkills } = await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
-    .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }));
+  // VANTA-SAFE-MODE: MCP-provided skills are both MCP and a skill surface, so
+  // either isolation skips them — empty list, same shape as none configured.
+  const mcpSkills =
+    skipMcp(iso) || skipSkills(iso)
+      ? []
+      : (await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
+          .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }))).skills;
   return { settings, pluginCommands, mcpSkills };
+}
+
+/**
+ * VANTA-SAFE-MODE: whether the project's context files (CLAUDE.md/rules) load.
+ * safe-mode + bare skip context → false (no trust prompt, no context tier).
+ * Neither flag → the normal trust gate decides. Pure over env + the trust store.
+ */
+export async function resolveLoadContext(
+  repoRoot: string,
+  confirmTrust: TrustConfirmer | undefined,
+  settings: Settings,
+): Promise<boolean> {
+  if (skipProjectContext(resolveIsolation(process.env))) return false;
+  return resolveProjectTrust(repoRoot, confirmTrust, { env: process.env, settings });
+}
+
+/**
+ * VANTA-SAFE-MODE: fire the InstructionsLoaded lifecycle hooks unless safe-mode
+ * is active (safe-mode skips ALL user customizations incl. hooks). bare keeps
+ * hooks. Neither flag → fires unchanged.
+ */
+export async function fireInstructionsLoaded(
+  repoRoot: string,
+  instruction: string,
+  provider: LLMProvider,
+): Promise<void> {
+  if (skipHooks(resolveIsolation(process.env))) return;
+  await fireHooks(
+    join(repoRoot, ".vanta"),
+    "InstructionsLoaded",
+    { reason: "session_start", instruction },
+    { cwd: repoRoot, matcherValue: "session_start", promptProvider: provider },
+  );
 }
 
 export function logSessionConfig(

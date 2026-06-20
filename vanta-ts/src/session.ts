@@ -17,9 +17,9 @@ import { resolveAuxProvider } from "./routing/aux-map.js";
 import type { EffortLevel, Goal } from "./types.js";
 import {
   loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
+  resolveLoadContext, fireInstructionsLoaded,
 } from "./session/prepare-helpers.js";
-import { fireHooks } from "./hooks/shell-hooks.js";
-import { resolveProjectTrust, type TrustConfirmer } from "./settings/trust-gate.js";
+import { type TrustConfirmer } from "./settings/trust-gate.js";
 export { loadRalphContinuity } from "./session/prepare-helpers.js";
 
 export * from "./session/after-turn.js";
@@ -71,14 +71,15 @@ export async function prepareRun(
   await prefetchApiKeyHelper(settings, process.env);
   installMessageDisplayHooks(globalHookBus, process.env);
 
-  const loadContext = await resolveProjectTrust(repoRoot, opts.confirmTrust, { env: process.env, settings });
+  // VANTA-SAFE-MODE: project context + InstructionsLoaded hooks are isolation-
+  // gated inside these helpers (safe-mode/bare skip context; safe-mode skips
+  // hooks). Neither flag → trust gate + hook fire run unchanged.
+  const loadContext = await resolveLoadContext(repoRoot, opts.confirmTrust, settings);
   const prompt = await buildRunPrompt({ repoRoot, instruction, goals, registry, activeIds, loadContext });
-  await fireHooks(join(repoRoot, ".vanta"), "InstructionsLoaded", { reason: "session_start", instruction }, { cwd: repoRoot, matcherValue: "session_start", promptProvider: provider });
+  await fireInstructionsLoaded(repoRoot, instruction, provider);
   let systemPrompt = prompt.systemPrompt;
   if (skillBody) systemPrompt += `\n\nApply this skill:\n${skillBody}`;
-  if (instruction === "interactive session") {
-    systemPrompt = await injectResume(systemPrompt, repoRoot);
-  }
+  if (instruction === "interactive session") systemPrompt = await injectResume(systemPrompt, repoRoot);
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;
   // VANTA-ASCIICAST: opt-in auto-record (VANTA_RECORD=1). Off = byte-identical,
   // and a failure to open the .cast file must never block the session.

@@ -1380,7 +1380,7 @@
       "id": "VANTA-RUN-SKILL-GEN",
       "track": "Extensibility",
       "title": "Skill generator skill — built-in skill for creating new skills from description",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `RUN_SKILL_GENERATOR`) registers `registerRunSkillGeneratorSkill` as a bundled skill. Allows the agent to generate new skill definitions from a natural language description, bootstrapping the skill system by dogfooding it.",
       "done": "Using the skill generator skill with a description produces a new `.claude/skills/` file wired to the skill registry.",
@@ -1389,7 +1389,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "selfhood",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MCP-DESKTOP-IMPORT",
@@ -1469,7 +1469,7 @@
       "id": "VANTA-SAFE-MODE",
       "track": "Harness",
       "title": "--safe-mode + --bare — troubleshooting isolation modes",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `--safe-mode` disables all customizations (plugins, hooks, skills, CLAUDE.md) for clean troubleshooting; `--bare` skips auto-discovery (no project CLAUDE.md, no MCP, no skills). Essential for debugging broken configurations.",
       "done": "`--safe-mode` runs without any user customizations (hooks/skills/plugins/rules are skipped); `--bare` skips auto-discovery; both print a banner confirming the isolation level.",
@@ -1477,7 +1477,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-INIT-FLAGS",
