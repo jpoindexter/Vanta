@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // ntfy's default message-size-limit is 4096 bytes; a larger body is rejected
@@ -97,7 +98,10 @@ export class NtfyAdapter implements PlatformAdapter {
 
   async send(msg: OutboundMessage): Promise<void> {
     try {
-      for (const part of splitForLimit(msg.text, NTFY_BYTE_LIMIT, "bytes")) {
+      // ntfy delivers a raw text body — strip markdown to readable prose (code
+      // spans survive) BEFORE splitting so `**`/``` never reach the notification.
+      const formatted = formatForDialect(msg.text, "plain");
+      for (const part of splitForLimit(formatted, NTFY_BYTE_LIMIT, "bytes")) {
         await fetch(`${this.server}/${encodeURIComponent(msg.chatId)}`, {
           method: "POST",
           body: part,

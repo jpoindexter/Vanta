@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // Telegram Bot API caps sendMessage text at 4096 UTF-16 code units.
@@ -82,11 +83,14 @@ export class TelegramAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
-    for (const part of splitForLimit(msg.text, TELEGRAM_LIMIT, "utf16")) {
+    // Escape the agent's markdown for Telegram's MarkdownV2 (code protected first)
+    // BEFORE splitting, then send with parse_mode so bold/code render — not leak.
+    const formatted = formatForDialect(msg.text, "telegram");
+    for (const part of splitForLimit(formatted, TELEGRAM_LIMIT, "utf16")) {
       await fetch(`${this.base}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ chat_id: msg.chatId, text: part }),
+        body: JSON.stringify({ chat_id: msg.chatId, text: part, parse_mode: "MarkdownV2" }),
       });
     }
   }

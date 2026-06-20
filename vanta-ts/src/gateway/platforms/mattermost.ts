@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // Mattermost's default MaxPostSize is 16383 characters; a post over that 400s.
@@ -132,7 +133,10 @@ export class MattermostAdapter implements PlatformAdapter {
 
   async send(msg: OutboundMessage): Promise<void> {
     try {
-      for (const part of splitForLimit(msg.text, MATTERMOST_LIMIT, "chars")) {
+      // Mattermost renders markdown natively, so the dialect is a no-op pass-
+      // through — the explicit call documents the per-adapter formatMessage seam.
+      const formatted = formatForDialect(msg.text, "markdown");
+      for (const part of splitForLimit(formatted, MATTERMOST_LIMIT, "chars")) {
         await fetch(`${this.api}/posts`, {
           method: "POST",
           headers: { ...this.headers(), "content-type": "application/json" },

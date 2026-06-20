@@ -1,5 +1,6 @@
 import net from "node:net";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
 // IRC counts a message in UTF-8 BYTES. The protocol caps a line at 512 bytes
@@ -154,9 +155,12 @@ export class IrcAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
+    // IRC is plain text — strip markdown to readable prose (code spans survive)
+    // BEFORE splitting so literal `**`/``` never reach the channel.
+    const formatted = formatForDialect(msg.text, "plain");
     // Break the reply on newlines under the byte budget; a single line longer
     // than the budget is hard-split so the server never truncates it mid-send.
-    for (const part of splitForLimit(msg.text, IRC_BYTE_BUDGET, "bytes")) {
+    for (const part of splitForLimit(formatted, IRC_BYTE_BUDGET, "bytes")) {
       for (const line of part.split("\n")) {
         if (line.trim()) this.write(`PRIVMSG ${msg.chatId} :${line}`);
       }

@@ -1203,7 +1203,7 @@
       "id": "AGENT-COUNCIL",
       "track": "Operator",
       "title": "Bounded agent-role council (CEO/CTO/COO/.../Reflection)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "wants3 Phase 2. A reusable library of named, bounded agent roles on top of O2 swarms + O1 agent-chosen-model + WORKFLOWS: Coordinator + CEO/CTO/COO/CFO/Sales/Marketing/Product/Research/Creative-Director/Personal-Life/Learning/Protection/Home/Reflection. Each role carries a fixed brief -- role, limited context, allowed tools, output format, memory boundary, success condition, report-back, and NO risky action without approval (kernel-gated). Adds 'vanta agents run \"goal\"' that routes a goal to the right roles and synthesizes. Creative-Director pairs with TASTE-ENGINE; Reflection with MEM-CURATOR; Protection with PROTECTION-AGENT.",
       "done": "'vanta agents run' spawns 2+ named role-agents with enforced tool/memory boundaries and returns a synthesized, kernel-approved plan.",
@@ -1211,7 +1211,8 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-20"
     },
     {
       "id": "MSG-WHATSAPP",
@@ -13667,7 +13668,7 @@
       "id": "MSG-MARKDOWN-DEGRADE",
       "track": "Operator",
       "title": "Per-platform markdown degradation (protect-code-then-convert)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Agent emits standard markdown; thin adapters send it raw so Telegram/IRC/Signal show literal ** and ```. Add a formatMessage hook per adapter that first placeholder-protects fenced/inline code, then converts to the platform dialect (Signal bodyRanges, Slack mrkdwn, WhatsApp *_~, IRC strip).",
       "done": "Each live adapter implements formatMessage; code blocks survive intact; Telegram/Signal/IRC render correctly-formatted output; per-dialect unit tests pass.",
