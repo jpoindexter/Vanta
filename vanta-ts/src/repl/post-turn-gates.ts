@@ -14,6 +14,7 @@ import {
   type WmManipState,
 } from "../session.js";
 import { ndGatesAfterTurn } from "../session/nd-gates.js";
+import { detectSycophancy, buildVoiceCheckText } from "./voice-check.js";
 import { markProactiveActivity } from "../proactive/store.js";
 import { emptyEfState } from "../nd/engine.js";
 import type { EfState } from "../nd/types.js";
@@ -36,6 +37,30 @@ export type GateState = {
   /** ND executive-function engine state (the user-configurable gate set). */
   nd: EfState;
 };
+
+/** Last assistant turn's text content, or "" if none. Pure. */
+function lastAssistantText(messages: Message[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m && m.role === "assistant") return m.content ?? "";
+  }
+  return "";
+}
+
+/**
+ * VOICE-CALIBRATION post-turn gate: flag sycophantic over-validation in Vanta's
+ * own last reply (opening flattery, unqualified superlatives, empty agreement).
+ * Best-effort, never blocks. `VANTA_VOICE_CHECK=0` disables.
+ */
+function voiceCheckAfterTurn(messages: Message[], onNote: (text: string) => void, env: NodeJS.ProcessEnv): void {
+  if (env.VANTA_VOICE_CHECK === "0") return;
+  try {
+    const text = lastAssistantText(messages);
+    if (!text.trim()) return;
+    const note = buildVoiceCheckText(detectSycophancy(text));
+    if (note) onNote(note);
+  } catch { /* best-effort — never break the session */ }
+}
 
 export function freshGateState(): GateState {
   return {
@@ -64,6 +89,7 @@ export async function runPostTurnGates(
   // proactive heartbeat treats them as "not away" (best-effort, never blocks).
   void markProactiveActivity(dataDir, new Date(now));
   traceAnomalyAfterTurn(messages, onNote, env);
+  voiceCheckAfterTurn(messages, onNote, env);
   return {
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
     inhibit: await inhibitAfterTurn(g.inhibit, messages, { safety, onNote, env }),

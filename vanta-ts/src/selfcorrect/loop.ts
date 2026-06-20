@@ -1,4 +1,5 @@
 import { evaluateOutput } from "../verify/check.js";
+import { nothingAutoMerges, isAutonomousStep, humanGatedStep } from "./diff-gate.js";
 import type { Lock } from "../verify/store.js";
 
 // The self-correction loop: confirm a failure reproduces, drive a (kernel-gated)
@@ -6,6 +7,10 @@ import type { Lock } from "../verify/store.js";
 // never silently return — one loop. Every side effect (run / fix / lock) is
 // injected, so the orchestration is fully testable without a kernel, provider,
 // or shell; the tool layer wires the real ones.
+//
+// Where the human goes is the diff-gate's call (SELFHARNESS-DIFF-GATE): the
+// agent diagnoses + drafts autonomously, but applying the diff is human/kernel-
+// gated and nothing auto-merges. The loop confirms that invariant before it runs.
 
 export type Failure = { command: string; expect: string };
 export type RunResult = { exitCode: number; output: string };
@@ -19,7 +24,7 @@ export type SelfCorrectDeps = {
   now: () => number;
 };
 
-export type SelfCorrectStage = "no-failure" | "fix-error" | "still-failing" | "fixed";
+export type SelfCorrectStage = "no-failure" | "fix-error" | "still-failing" | "fixed" | "policy-error";
 export type SelfCorrectResult = {
   stage: SelfCorrectStage;
   detail: string;
@@ -48,7 +53,16 @@ function makeLock(failure: Failure, now: number): Lock {
 }
 
 export async function selfCorrect(failure: Failure, deps: SelfCorrectDeps): Promise<SelfCorrectResult> {
-  const before = await deps.run(failure.command);
+  // Fail closed if the diff-gate policy ever stops guaranteeing "nothing
+  // auto-merges": don't drive a fix whose application could land unreviewed.
+  // The loop runs confirm/rerun/lock directly (no gate) ONLY because the policy
+  // says they're autonomous; applying the diff is the human-gated step, owned by
+  // the injected `fix` worker (its edits go through the kernel), not the loop.
+  const loopRunsUngated = isAutonomousStep("confirm-failure") && isAutonomousStep("rerun") && isAutonomousStep("lock");
+  if (!nothingAutoMerges() || !loopRunsUngated) {
+    return { stage: "policy-error", detail: `diff-gate broken: the human gate at "${humanGatedStep()}" is not enforced — refusing to self-correct` };
+  }
+  const before = await deps.run(failure.command); // confirm-failure: autonomous, read-only
   if (passes(before, failure.expect)) {
     return { stage: "no-failure", detail: "command already passes — nothing to correct" };
   }

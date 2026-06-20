@@ -9956,7 +9956,7 @@
       "id": "BEST-OF-EXEMPLARS",
       "track": "Operator",
       "title": "Best-of exemplar library — winners become few-shot context for similar tasks",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Rejection sampling at the context level: tournament/loop winners are stored as exemplars (brain entries, sourceType crystallized) and the top-K similar exemplars inject as few-shot context when a similar task arrives — the model behaves better without weight updates. Rides the brain association layer for similarity matching.",
       "done": "A won tournament stores an exemplar; a later similar task gets it as few-shot; recall reinforcement strengthens used exemplars.",
@@ -9965,7 +9965,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-11"
+      "updated": "2026-06-20"
     },
     {
       "id": "STEP-VERIFY",
@@ -10627,7 +10627,7 @@
       "id": "SELFHARNESS-DIFF-GATE",
       "track": "Harness",
       "title": "Human only at diff approval — automate the low-signal loops",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): put the human ONLY where full automation costs more trust than it saves. Root-cause and regression-locking are low-signal (automate); the DIFF APPROVAL is the high-signal/high-trust step (keep the human). A \"where to put the human\" rule that refines PAPER-REVERSIBILITY-RISK: the agent may diagnose + draft the fix autonomously, but the diff is kernel-gated to a human approve. Auto-merge would break trust fast.",
       "done": "Self-correction runs diagnosis + draft autonomously; only the diff application is human/kernel-gated; nothing auto-merges.",
@@ -10636,7 +10636,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-14"
+      "updated": "2026-06-20"
     },
     {
       "id": "SELFHARNESS-CONFIG-REPRO",
@@ -12588,14 +12588,14 @@
       "id": "SKILL-DISTILL-CLI",
       "track": "Operator",
       "title": "vanta skill distill [--all|<name>] — generate DISTILLED.md across the library",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] distillSkill exists but nothing generates DISTILLED.md in bulk, so the distilled measurement (and runtime serving) has no data. Add a CLI that distils installed skills via the active provider; idempotent (skip up-to-date), one or all. Prerequisite for measuring SKILL-DISTILL-EXAMPLES end-to-end.",
       "done": "vanta skill distill --all generates DISTILLED.md for installed skills, <name> for one, idempotent; tests; committed to vanta.",
       "tier": "pebble",
       "effort": "low",
       "lens": "memory",
-      "updated": "2026-06-18"
+      "updated": "2026-06-20"
     },
     {
       "id": "COMPRESSION-EVAL-RUNNER",
@@ -12912,14 +12912,14 @@
       "id": "VOICE-CALIBRATION",
       "track": "Operator",
       "title": "Calibrated, earned-praise voice (anti-sycophancy) — personality matters",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] Karpathy: a teammate personality with CALIBRATED praise (earned, not sycophantic — praise tracks actual merit, push back on half-baked ideas) is what separates the good agents. Vanta has SOUL.md + the BEHAVIOR-VOICE rule; sharpen it: proportional enthusiasm, earned praise, reasoned push-back on weak ideas. Prompt-rule + a light post-turn sycophancy self-check; no new system.",
       "done": "the voice rule encodes earned-praise / proportional-enthusiasm / push-back; a light post-turn checker flags sycophantic over-validation; pure checker tested; documented; committed.",
       "tier": "pebble",
       "effort": "low",
       "lens": "selfhood",
-      "updated": "2026-06-18"
+      "updated": "2026-06-20"
     },
     {
       "id": "AUX-MODEL-MAP",
