@@ -13172,7 +13172,7 @@
       "id": "PCLIP-ORG-CHART",
       "track": "Cofounder engine",
       "title": "Agent org chart — roles, titles, reporting lines, permissions",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Paperclip extract (Org Chart & Agents). Give the team roster (team/*) a real hierarchy: each agent has a role, title, manager edge, permission set, and budget. Manager agents own reports; the chart drives delegation + escalation routing. This is the company layer pillar 5 assumed THEFT would own — no THEFT, so Vanta carries it.",
       "done": "An agent roster carries role/title/manager edges; /team renders the hierarchy and delegation/escalation route along it.",

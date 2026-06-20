@@ -24,6 +24,9 @@ const WorkerSchema = z
     adapter: z.string().optional(),
     budgetUsd: z.number().positive().optional(),
     title: z.string().optional(),
+    // Org-chart edge (PCLIP-ORG-CHART) — absent on pre-org rows; the id of this
+    // worker's manager. Reporting lines are derived from these edges.
+    managerId: z.string().optional(),
   })
   .passthrough();
 

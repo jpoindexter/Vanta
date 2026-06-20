@@ -1,6 +1,7 @@
 import { readTeam, latestWorkers, blocked, type Worker } from "../team/store.js";
 import { readTasks, workerLoad, tasksForWorker } from "../team/tasks.js";
 import { deriveWorkerState, lastWorkerSummary } from "../team/idle.js";
+import { hasOrgEdges, renderOrgChart } from "../team/org-chart.js";
 import type { SlashHandler } from "./types.js";
 
 // `/team` — view the durable worker roster + per-worker task load. Each worker's
@@ -41,7 +42,10 @@ export function formatTeam(recs: Worker[], allTasks: ReturnType<typeof tasksForW
   const rows = workers.map((w) => formatWorkerRow(w, load, allTasks));
   const blockedCount = blocked(recs).length;
   const warning = blockedCount > 0 ? [`\n⚠ ${blockedCount} blocked`] : [];
-  return [head, ...rows, ...warning].join("\n");
+  // PCLIP-ORG-CHART: when the roster carries manager edges, append the reporting
+  // hierarchy below the per-worker rows (delegation/escalation route along it).
+  const orgChart = hasOrgEdges(workers) ? [`\n${renderOrgChart(workers)}`] : [];
+  return [head, ...rows, ...warning, ...orgChart].join("\n");
 }
 
 export const team: SlashHandler = async (_arg, ctx) => {
