@@ -10401,7 +10401,7 @@
       "id": "PAPER-CAPABILITY-PRESERVATION",
       "track": "Harness",
       "title": "Long-term human-capability preservation as a first-class surface",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §12.6 + the vibe-check protocol: overreliance atrophies the skills needed to supervise the agent (comprehension -17%); treat the sustainability gap as a design problem, not a metric. For Vanta trusted-operator + ND angle: comprehension-preserving surfaces — explain-before-act on request, periodic do-you-follow-this probes on risky/large changes, cognitive-offloading awareness.",
       "done": "An optional mode surfaces what changed + why in human-graspable terms and probes understanding on risky/large changes.",

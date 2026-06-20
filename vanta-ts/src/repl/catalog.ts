@@ -69,6 +69,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "planmode", arg: "[on|off|approve]", desc: "enforced plan mode — write tools blocked until /planmode approve" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
+  { name: "explain", arg: "[off]", desc: "capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes" },
   { name: "recover", desc: "classify trouble — targeted bug, polluted context, or wrong assumption" },
   { name: "wm", arg: "[note]", desc: "view or add to session working memory (cleared each session)" },
   { name: "restart", desc: "reload Vanta in place with fresh code (needs ./run.sh)" },
