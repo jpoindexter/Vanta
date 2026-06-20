@@ -2602,7 +2602,7 @@
       "id": "VANTA-COORDINATOR-MODE",
       "track": "Harness",
       "title": "Coordinator mode — env-controlled lead-agent persona with restricted tool set",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "CLAUDE_CODE_COORDINATOR_MODE env var makes an agent run as a coordinator. Coordinator agents use a distinct tool set (ASYNC_AGENT_ALLOWED_TOOLS; internal swarm tools excluded from external API). matchSessionMode() detects and fixes mode mismatch when resuming a coordinator session.",
       "done": "Setting CLAUDE_CODE_COORDINATOR_MODE spawns an agent with coordinator-only tools; resuming a session that was coordinator retains coordinator mode; mode mismatch on resume is fixed with a warning.",
@@ -2611,7 +2611,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure coordinatorEnabled (VANTA_COORDINATOR=1, off default) + coordinatorToolExclusions (conservative 32-tool mutation/exec denylist intersected with present names; keeps delegate/swarm/read/grep/inspect/todo/clarify + ANY unknown) + coordinatorPersona (delegate-and-verify lead role). Built+tested; consumers = buildRegistry({exclude}) (the same seam subagents use to drop delegate) + prompt persona note, both gated on coordinatorEnabled (named). Off = full set + normal persona."
     },
     {
       "id": "VANTA-LSP-TOOL-FULL",
