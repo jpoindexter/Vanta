@@ -12,6 +12,7 @@ import { parsePluginSourceFlags, type PluginSource } from "./plugin-source-flags
 import { installPluginSources } from "./plugin-source-install.js";
 import { parseEffortFlag } from "../effort.js";
 import { resolveSessionCap } from "../budget/session-cap.js";
+import { resolveIsolation, isolationLevel, isolationBanner } from "./isolation.js";
 import type { OutputFormat } from "./commands.js";
 
 export function findRepoRoot(): string {
@@ -117,8 +118,31 @@ export function parseMaxBudgetFlag(
   return { rest, env: { ...env, VANTA_MAX_BUDGET_USD: value } };
 }
 
+/**
+ * VANTA-SAFE-MODE: strip `--safe-mode` / `--bare` and set VANTA_SAFE_MODE /
+ * VANTA_BARE so the customization-loading sites read them via resolveIsolation.
+ * Neither flag present = env untouched (byte-identical default). Pure over args.
+ */
+export function parseIsolationFlags(
+  args: string[],
+  env: NodeJS.ProcessEnv,
+): { rest: string[]; env: NodeJS.ProcessEnv } {
+  const rest: string[] = [];
+  const nextEnv = { ...env };
+  for (const arg of args) {
+    if (arg === "--safe-mode") nextEnv.VANTA_SAFE_MODE = "1";
+    else if (arg === "--bare") nextEnv.VANTA_BARE = "1";
+    else rest.push(arg);
+  }
+  return { rest, env: nextEnv };
+}
+
 export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: LifecycleFlags; pluginSources: PluginSource[] } {
-  const permissionParse = parsePermissionModeFlags(args, process.env);
+  const isolationParse = parseIsolationFlags(args, process.env);
+  process.env = isolationParse.env;
+  const level = isolationLevel(resolveIsolation(process.env));
+  if (level !== "normal") console.log(isolationBanner(level));
+  const permissionParse = parsePermissionModeFlags(isolationParse.rest, process.env);
   if (permissionParse.error) { console.error(permissionParse.error); process.exit(1); }
   process.env = permissionParse.env;
   const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
