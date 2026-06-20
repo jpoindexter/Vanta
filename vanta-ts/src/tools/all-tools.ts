@@ -38,6 +38,7 @@ import { lifeSearchTool } from "./life-search.js";
 import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
+import { reviewArtifactTool } from "./review-artifact.js";
 import { ticketTool } from "./tickets.js";
 import { outreachTool } from "./outreach.js";
 import { selfCorrectTool } from "./self-correct.js";
@@ -169,6 +170,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   lifeSearchTool,
   linkedinReadTool,
   regressionLockTool,
+  reviewArtifactTool,
   ticketTool,
   outreachTool,
   selfCorrectTool,
