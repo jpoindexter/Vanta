@@ -2637,7 +2637,7 @@
       "id": "VANTA-TASK-TOOLS",
       "track": "Harness",
       "title": "Task management tools — TaskCreate/Get/List/Update/Stop/Output for agent loops",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Suite of agent-accessible task management tools for the TodoV2 task system: TaskCreate (spawn background task), TaskGet (check status), TaskList (list all tasks), TaskUpdate (update title/description), TaskStop (cancel task), TaskOutput (stream task output). Enables agent orchestration of background work.",
       "done": "Agent can create a background task, monitor its status, stream its output, and stop it; tasks survive context compaction; task IDs are stable references.",
@@ -2646,7 +2646,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable task-store data layer: Task{id,title,status,result?,output[],ts} + createTask/getTask/listTasks(status filter)/updateTask(transition-validated)/stopTask(only pending|running)/appendTaskOutput/readTaskOutput over injected {read,write,now}. Legal-transition graph mirrors team/tasks (done->running rejected). Tolerant reader, errors-as-values, never throws. Distinct from team/tasks (worker-assignment) + todo (checklist). Built+tested; Task* tool family (register in all-tools, deps from ~/.vanta/tasks.json) = named follow-up."
     },
     {
       "id": "VANTA-SHELL-SNAPSHOT",
