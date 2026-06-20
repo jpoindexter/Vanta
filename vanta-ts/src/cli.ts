@@ -49,6 +49,7 @@ import {
 import { runLoopCommand } from "./cli/loop-cmd.js";
 import { runAutoModeCommand } from "./cli/auto-mode-cmd.js";
 import { runFleetCommand } from "./cli/fleet-cmd.js";
+import { runBatchCommand } from "./cli/batch-cmd.js";
 import { runSshCommand } from "./cli/ssh-cmd.js";
 import { runHireCommand } from "./cli/hire-cmd.js";
 import { runHeartbeatCommand } from "./heartbeat/run-cmd.js";
@@ -137,6 +138,7 @@ const COMMANDS: Record<string, CommandFn> = {
   heartbeat: (root) => runHeartbeatCommand(root),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
+  batch: (root, rest) => runBatchCommand(root, rest),
   ssh: (root, rest) => runSshCommand(root, rest),
   proactive: (root, rest) => runProactiveCommand(root, rest),
   watchdog: (root, rest) => runWatchdogCommand(root, rest),

@@ -36,7 +36,7 @@ export function parseFleetTasks(args: string[]): FleetTaskSpec[] {
   return tasks;
 }
 
-async function agentDeps(
+export async function buildFleetAgentDeps(
   repoRoot: string,
   deps: FleetCommandDeps,
   requestApproval: AgentDeps["requestApproval"],
@@ -65,7 +65,7 @@ async function run(repoRoot: string, rest: string[], deps: FleetCommandDeps, log
   if (!specs.length) return usage(log);
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const baseDeps = await agentDeps(repoRoot, deps, approver(rl));
+    const baseDeps = await buildFleetAgentDeps(repoRoot, deps, approver(rl));
     const report = await runFleet({ repoRoot, specs, deps: baseDeps, fleetDeps: deps.fleetDeps });
     log(formatFleetStatus(report));
     return 0;

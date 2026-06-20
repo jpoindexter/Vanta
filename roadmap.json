@@ -4259,7 +4259,7 @@
       "id": "VANTA-SKILL-BATCH",
       "track": "Harness",
       "title": "/batch — parallel multi-agent code implementation skill",
-      "status": "horizon",
+      "status": "done",
       "size": "L",
       "summary": "Bundled /batch skill that orchestrates a large parallelizable codebase change across 5–30 worker agents in git worktrees. Each worker implements one change, runs tests, and creates a PR. Coordinator tracks PR URLs. Uses EnterPlanMode + AgentTool.",
       "done": "Running /batch with a description spawns multiple worker agents in isolated worktrees; each worker creates a PR; coordinator reports PR URLs on completion; test failures are fixed before PR creation.",
@@ -4268,7 +4268,7 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SWARM-TMUX",
