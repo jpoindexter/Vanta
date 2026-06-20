@@ -1681,7 +1681,7 @@
       "id": "VANTA-TOOL-SEARCH-DEFERRED",
       "track": "Harness",
       "title": "ToolSearchTool — on-demand deferred tool loading by keyword",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Agent-accessible ToolSearch tool: loads deferred tool schemas on demand by keyword query or `select:<name>` for direct selection. Keeps tool context lean by not loading all tool schemas upfront. Agent first discovers that a tool exists (from index), then fetches its full schema when needed.",
       "done": "Deferred tools appear as names-only in the context; calling ToolSearch loads their full schema; agent can then call them; `select:ToolName` fetches by exact name.",
@@ -1690,7 +1690,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Already shipped by PAPER-DEFERRED-SCHEMAS: tools/tool-search.ts (registered in tools/index.ts) + agent/tool-scope.ts expand searched tools full-schema on the next provider call. Verified live + tested."
     },
     {
       "id": "VANTA-CONTEXT-UPGRADE",
@@ -1786,7 +1787,7 @@
       "id": "VANTA-FILE-CHANGED-HOOKS",
       "track": "Harness",
       "title": "FileChanged + CwdChanged hook events — file watcher triggers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Chokidar file watcher fires FileChanged hooks when project files change and CwdChanged hooks when the working directory changes. CwdChanged also clears cached env files. Watcher only starts when hooks are configured for these events.",
       "done": "Writing a file triggers FileChanged hook if configured; changing cwd triggers CwdChanged + env cache clear; no watcher overhead when hooks not configured.",
@@ -1795,7 +1796,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Already shipped by VANTA-HOOK-EVENTS: FileChanged (opt-in hooks/file-watch.ts startHookFileWatcher) + CwdChanged (runtime-events.ts fireCwdChanged on room switch) are in the 30-event vocab. Verified live + tested."
     },
     {
       "id": "VANTA-TEAMMATE-DEFAULT-MODEL",
@@ -1923,7 +1925,7 @@
       "id": "VANTA-HOOK-PROMPT-TYPE",
       "track": "Harness",
       "title": "Prompt hook type — hooks backed by a single LLM query",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports a 'prompt' hook type: each hook event fires a single non-streaming LLM query (small/fast model). The hook receives the event JSON as `$ARGUMENTS` substituted into its prompt, and returns a structured `{decision, reason}` response. Lighter-weight than agent hooks — useful for classification/labeling tasks without multi-turn logic.",
       "done": "A hook configured with `type: prompt` fires one LLM call per event. Returns a structured `{decision: 'block'|'allow', reason}` that determines hook behavior.",
@@ -1932,7 +1934,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Already shipped by VANTA-HOOK-TYPES: hook type enum includes prompt; runPromptHook(hook,ctx,{provider}) evaluates a provider prompt + returns block/allow. Verified live + tested."
     },
     {
       "id": "VANTA-HOOK-FRONTMATTER",
@@ -1954,7 +1957,7 @@
       "id": "VANTA-HOOK-ONCE",
       "track": "Harness",
       "title": "Once-only hooks — `once: true` hooks auto-deregister after first fire",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent skill hooks support a `once: true` flag that causes the hook to automatically deregister itself after its first successful execution. Useful for one-shot setup hooks (e.g. 'on the first tool call after this skill activates, do X') without polluting subsequent tool calls with unnecessary hook processing.",
       "done": "A skill hook with `once: true` fires exactly once, then disappears from the hook registry. Subsequent tool calls in the same session don't trigger it.",
@@ -1963,7 +1966,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Already shipped by VANTA-HOOK-TYPES: shell-hooks.ts once:z.boolean().optional() + shell-hook-run.ts seenOnce() skips a once-hook after first fire ([hook skipped: once]). Verified live + tested."
     },
     {
       "id": "VANTA-HOOK-EXIT-CODES",
