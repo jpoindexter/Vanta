@@ -12,6 +12,7 @@ import { toonCompress, estTokens } from "winnow";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
+import { classifyTighten, classifierEnabled } from "../permissions/auto-classifier.js";
 import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
@@ -57,7 +58,8 @@ export async function applySafetyGate(
   // tighten() returns "block" for any kernel block regardless of the rule.
   const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
   const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
-  const decision = await applyOperatorProfile(autoDecision, verdict.risk, call.name, action);
+  const profileDecision = await applyOperatorProfile(autoDecision, verdict.risk, call.name, action);
+  const decision = applyAdvisoryClassifier(profileDecision, call.name, action);
 
   if (decision.decision === "block") {
     const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
@@ -84,6 +86,19 @@ async function applyOperatorProfile(
   const profile = await loadOperatorProfile(process.env).catch(() => null);
   if (!profile) return current;
   const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
+  return next.decision === current.decision ? current : next;
+}
+
+/** PAPER-AUTO-CLASSIFIER: final tighten-only advisory pass. Off by default; can
+ * only escalate (allow→ask/block), never loosen. A kernel block already short-
+ * circuits upstream, so this only ever sees allow/ask. */
+function applyAdvisoryClassifier(
+  current: { decision: "allow" | "ask" | "block"; reason: string },
+  toolName: string,
+  action: string,
+): { decision: "allow" | "ask" | "block"; reason: string } {
+  if (current.decision === "block" || !classifierEnabled(process.env)) return current;
+  const next = classifyTighten({ decision: current.decision, toolName, action });
   return next.decision === current.decision ? current : next;
 }
 

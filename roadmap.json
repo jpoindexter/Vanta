@@ -10326,7 +10326,7 @@
       "id": "PAPER-AUTO-CLASSIFIER",
       "track": "Harness",
       "title": "Optional ML auto-mode classifier as an advisory tighten-only stage",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §3.5 yoloClassifier: a two-stage ML classifier (fast filter + chain-of-thought) evaluates tool safety beyond rules. Vanta kernel is deterministic by design. Add an OPTIONAL advisory classifier that can only ESCALATE a verdict (allow to ask/block), never loosen — catches what keywords miss while keeping the deterministic floor. Off by default.",
       "done": "An optional classifier can tighten a kernel allow to ask/block, never loosen; disabled by default.",
