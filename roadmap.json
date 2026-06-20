@@ -4304,7 +4304,7 @@
       "id": "VANTA-SESSION-MEMORY-COMPACT",
       "track": "Harness",
       "title": "Session memory compact — compact into persistent session memory files (not just summary)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "An experimental compaction variant (`sessionMemoryCompact`) that compacts the conversation into structured session memory files (`.claude/session-memory/`) rather than a plain summary message. On the next session, the memory is loaded to restore context. Tracks tool names seen since last compact via `extractDiscoveredToolNames`.",
       "done": "After compaction, key facts persist to `.vanta/session-memory.md`. On `/resume`, the memory is injected as context so the agent recalls prior decisions.",
