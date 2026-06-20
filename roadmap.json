@@ -3437,7 +3437,7 @@
       "id": "VANTA-MCP-RICH-OUTPUT",
       "track": "Operator",
       "title": "MCP rich output — enhanced rendering for large MCP tool results",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (feature-gated `MCP_RICH_OUTPUT`) replaces plain text rendering of large MCP tool outputs with `MCPTextOutput` — a richer component with truncation handling and expand/collapse. For smaller outputs, falls back to `OutputLine`. Improves readability of verbose MCP responses.",
       "done": "Large MCP tool results are truncated with an expand button. The output renders with proper line wrapping and JSON formatting.",
@@ -3446,7 +3446,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure summarizeMcpResult (3 blocks: 2 text, 1 image · ~Nk tokens, per-type counts) + richMcpOutput (small <=2000 chars -> byte-identical plain join; large -> summary + bounded head preview (800) + [N more chars truncated]; control/ANSI stripped on the large preview only) + isLargeResult + joinText. Malformed content best-effort, never throws. Built+tested; mount wire = mcp/mount mcpToolToVantaTool pass the raw content blocks through richMcpOutput instead of the joined string (named). Small = current behavior."
     },
     {
       "id": "VANTA-NATIVE-CLIPBOARD",
