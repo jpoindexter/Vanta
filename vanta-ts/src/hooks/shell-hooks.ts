@@ -46,7 +46,7 @@ export const SHELL_HOOK_EVENTS = [
 ] as const;
 export type ShellHookEvent = typeof SHELL_HOOK_EVENTS[number];
 
-const ShellHookSchema = z.object({
+export const ShellHookSchema = z.object({
   /** Regex on tool name. Applies to PreToolUse / PostToolUse. Absent = match all.
    *  Example: `"toolNamePattern": "write_file|shell_cmd"` */
   toolNamePattern: z.string().optional(),

@@ -1861,7 +1861,7 @@
       "id": "VANTA-SETTINGS-HOT-RELOAD",
       "track": "Harness",
       "title": "Settings live reload — detect and apply settings changes without restart",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "changeDetector watches settings.json for changes (via file hash); applySettingsChange applies them live to the running session. internalWrites.ts marks writes made by another agent itself to avoid false-positive change notifications. Settings panel shows changes in real time.",
       "done": "Editing settings.json in a text editor reflects in the TUI within seconds; another agent-initiated writes (e.g. /config) don't trigger false 'settings changed' notifications.",
@@ -1870,7 +1870,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure settingsChanged + readSettingsSig (mtime of user|project|local) + reloadSettingsIfChanged (injected readSig/loadSettings/applyEnv; only the safe env-applied subset re-applies; missing/corrupt keeps prior). Detector built+tested; surface = post-turn-gates GateState holds prevSig, re-applies between turns (named)."
     },
     {
       "id": "VANTA-CROSS-PROJECT-RESUME",
@@ -1937,7 +1938,7 @@
       "id": "VANTA-HOOK-FRONTMATTER",
       "track": "Harness",
       "title": "Frontmatter hooks — agents and skills declare hooks in YAML frontmatter",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent agents and skills can declare hook configurations in their YAML frontmatter (`hooks:` key). These hooks are automatically registered when the agent/skill activates and deregistered when it exits. Sub-agent Stop hooks are converted to SubagentStop events. Session hooks share the same lifecycle as the agent.",
       "done": "A skill with a `hooks.PreToolUse` frontmatter entry runs that hook for every tool call while the skill is active. The hook is removed when the skill session ends.",
@@ -1946,7 +1947,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure extractFrontmatterHooks (flat array OR event-keyed map, zod via the canonical ShellHookSchema, invalid dropped) + mergeFrontmatterHooks (dedupe by structural identity). Extractor built+tested; load-site = SessionStart hook assembly per active skill — needs the skill frontmatter re-parsed retaining the hooks key (parseMeta strips it today). Named follow-up."
     },
     {
       "id": "VANTA-HOOK-ONCE",
