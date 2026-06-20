@@ -103,6 +103,12 @@ export const SettingsSchema = z.object({
    *  use. Unset/false = preflight ON (today's behavior); true = skip the guard.
    *  The `VANTA_SKIP_WEBFETCH_PREFLIGHT` env override is the env equivalent. */
   skipWebFetchPreflight: z.boolean().optional(),
+  /** VANTA-PRIVACY-LEVELS — outbound-traffic privacy posture. Resolved by
+   *  `privacy/levels.ts` (env `VANTA_PRIVACY` > this > "default"). `default` =
+   *  today's behavior (all categories allowed); `no-telemetry` blocks only
+   *  telemetry/analytics; `essential` allows only the provider + kernel calls
+   *  the agent needs to function. */
+  privacyLevel: z.enum(["default", "no-telemetry", "essential"]).optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;
