@@ -2632,7 +2632,7 @@
       "codex": "gpt-5.4",
       "lens": "coding",
       "updated": "2026-06-20",
-      "notes": "findReferences/documentSymbols/hoverInfo reuse the exported buildService factory (same host/tsconfig as diagnostics/definition) + pure mappers mapReferences/mapSymbols/mapQuickInfo. Real TS-service calls exercised on temp fixtures (refs finds decl+2 uses, symbols, hover type display) + errors-as-values (bad pos -> []/null). 3 tools defined (lspReferences/Symbols/Hover) in tools/lsp.ts; ALL_TOOLS registration (3 lines + tools.test entry) = named follow-up. Existing diagnostics/definition unchanged."
+      "notes": "FULLY LIVE: lsp_references/lsp_symbols/lsp_hover registered in ALL_TOOLS (read-only analysis -> kernel Allow), callable by the agent. Reuse the exported buildService factory + pure mappers; real TS-service calls tested. tools.test exact name-list updated; doc tool counts corrected to the re-counted live surface 116 built-in / 119 registered. Existing diagnostics/definition unchanged."
     },
     {
       "id": "VANTA-TASK-TOOLS",
