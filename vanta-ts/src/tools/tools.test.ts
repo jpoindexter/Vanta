@@ -109,6 +109,7 @@ describe("registry", () => {
       "rss_read",
       "run_code",
       "screenshot",
+      "self_correct",
       "self_repair",
       "send_message",
       "shell_cmd",

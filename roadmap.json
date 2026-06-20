@@ -10570,7 +10570,7 @@
       "id": "SELFHARNESS-SELF-CORRECT-LOOP",
       "track": "Harness",
       "title": "Self-correction loop — failure to diagnosed fix to regression-locked",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026): the umbrella flywheel — a captured failure is diagnosed (causal chain from the trace), a kernel-gated diff is proposed, the human approves, the agent reruns the exact failing input for side-by-side comparison, and the original failure is locked as a regression test. Every cycle the harness gets harder to break. Vanta has the kernel + ERRORS.md + /verify + delegate; this composes them into one self-repair loop. Umbrella for the SELFHARNESS-* cards.",
       "done": "A failure can be run end-to-end: diagnose, propose a gated diff, approve, rerun the failing input, lock a regression test — one loop.",

@@ -34,6 +34,7 @@ import { lifeSearchTool } from "./life-search.js";
 import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
+import { selfCorrectTool } from "./self-correct.js";
 import { budgetTool } from "./budget.js";
 import { nlAssertionsTool } from "./nl-assertions.js";
 import { rssReadTool } from "./rss-read.js";
@@ -146,6 +147,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   lifeSearchTool,
   linkedinReadTool,
   regressionLockTool,
+  selfCorrectTool,
   budgetTool,
   nlAssertionsTool,
   rssReadTool,
