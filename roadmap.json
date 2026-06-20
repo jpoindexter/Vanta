@@ -1742,7 +1742,7 @@
       "id": "VANTA-HISTORY-PASTE-STORE",
       "track": "Harness",
       "title": "Conversation history with large-paste external storage",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent stores conversation history (max 100 entries) in ~/.claude/history including paste contents. Large pastes are stored externally via content hash (PasteStore) rather than inline, keeping the history file small. Supports both text and image paste history. Read with lock for concurrent access safety.",
       "done": "History includes pasted text/images; large pastes stored externally by hash; history file stays compact; concurrent readers don't corrupt entries.",
@@ -1751,7 +1751,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure isLargePaste (>8000 chars / VANTA_PASTE_THRESHOLD) + buildPasteReference (id/size/~tokens/head preview) + offloadLargePaste (injected CCR-style store port; large -> stash + reference, normal -> byte-identical inline, store throw -> inline fallback) + retrievePaste. Reuses the CCR flat-file store (ccrId as the id), no new store. Built+tested; message-submit + retrieve-tool wire points named."
     },
     {
       "id": "VANTA-SCRATCHPAD",
