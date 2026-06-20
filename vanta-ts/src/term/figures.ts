@@ -34,6 +34,13 @@ export type GlyphKey = keyof typeof GLYPHS;
 /** Growing-asterisk frames: ✶ → ✸ → ✻ → ✸ → ✶ — used in the busy spinner. */
 export const ASTERISK_FRAMES = ["✶", "✸", "✻", "✸", "✶", "✻"] as const;
 
+/**
+ * Distinct frames for the STALLED spinner — a slow hollow→half→hollow pulse,
+ * visually different from the growing asterisk so a stuck/slow turn reads as
+ * a different state at a glance (VANTA-SPINNER-STALLED).
+ */
+export const STALLED_FRAMES = ["○", "◔", "◑", "◕", "●", "◕", "◑", "◔"] as const;
+
 /** Verb list cycled alongside the growing-asterisk spinner (CC-style busy label). */
 export const SPINNER_VERBS = [
   "thinking",

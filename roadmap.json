@@ -2765,7 +2765,7 @@
       "id": "VANTA-SPINNER-STALLED",
       "track": "Operator",
       "title": "Stalled spinner animation — visual state change when agent is stuck",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's spinner switches to a 'stalled' animation after a configurable idle threshold — visually distinct from the normal working state. Helps users notice when an agent hasn't progressed. Vanta's spinner runs the same animation regardless of progress.",
       "done": "After N seconds without a tool call or token output, the spinner switches to the stalled variant; once output resumes it returns to the normal animation.",
@@ -2773,7 +2773,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure isStalled (>20s, VANTA_STALL_SPINNER_MS) + compactDuration + stalledLabel ((still working… Ns)) + spinnerFrame (ASTERISK_FRAMES under threshold, new STALLED_FRAMES past — added to term/figures.ts) + spinnerPresentation ({glyph,suffix}). Under threshold = current behavior. Built+tested; wire = ui/app-regions LiveRegion (elapsedMs=tick*150ms, render glyph+suffix) named."
     },
     {
       "id": "VANTA-SPINNER-GLIMMER",
