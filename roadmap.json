@@ -3278,7 +3278,7 @@
       "id": "VANTA-STANDALONE-AGENT-NAME",
       "track": "Operator",
       "title": "Standalone agent name/color — custom identity for non-swarm agent sessions",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports assigning a custom name and color to a standalone agent session (non-swarm). `getStandaloneAgentName()` returns the name only when not in a swarm team. Used by SDK/headless launchers to give sessions a recognizable identity in the UI (e.g. 'researcher', 'code-reviewer') without forming a full team.",
       "done": "Launching with `--agent-name=reviewer --agent-color=blue` shows the agent badge in the terminal and in task lists.",
@@ -3287,7 +3287,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure resolveAgentIdentity (name: VANTA_AGENT_NAME > settingsName > Vanta, sanitized ANSI/control-stripped cap 24; color: valid VANTA_AGENT_COLOR > teammateColor(name) for a custom name > white default; bad color falls back, never invalid Ink) + isCustomIdentity + formatAgentIdentity + isValidInkColor. Reuses ui/teammate-color (same name -> same color). Built+tested; banner wire = ui/banner WORDMARK labels with identity.name in identity.color when custom (named). Unset = default Vanta/white."
     },
     {
       "id": "VANTA-AUTO-MODE-DENIALS",
