@@ -33,6 +33,16 @@ function hookLabel(hook: ShellHook, event: ShellHookEvent): string {
   return `${event}:${hook.type ?? "shell"}`;
 }
 
+/**
+ * Public single-hook runner: dispatch one already-matched hook through its
+ * configured type adapter with the same timeout/once/status semantics as the
+ * batch firers. Used by the SessionStart deferral path so an inline and a
+ * deferred hook run through the identical pipeline.
+ */
+export function runOneHook(hook: ShellHook, event: ShellHookEvent, contextJson: string, opts: HookRunDeps & { cwd?: string } = {}): Promise<ShellHookResult> {
+  return runHook(hook, event, contextJson, opts);
+}
+
 /** Dispatch one hook to its configured type adapter. */
 async function runHook(hook: ShellHook, event: ShellHookEvent, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
   if (hook.once && seenOnce(event, hook)) return { code: 0, stdout: "[hook skipped: once]", stderr: "" };

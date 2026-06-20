@@ -11,7 +11,8 @@ import { freshGateState } from "./repl/post-turn-gates.js";
 import { softStopPredicate, consumeSoftStop, SOFT_STOP } from "./repl/stop-cmd.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
-import { fireHooks } from "./hooks/shell-hooks.js";
+import { fireHooks, loadShellHooks, matchingHooks, runOneHook } from "./hooks/shell-hooks.js";
+import { partitionDeferred, runDeferred } from "./hooks/deferred-hooks.js";
 import { startHookFileWatcher } from "./hooks/file-watch.js";
 import { errorDetails, fireStopFailure, stopFailureType } from "./hooks/runtime-events.js";
 import { loadUserCommands } from "./commands/loader.js";
@@ -135,9 +136,21 @@ async function runLoopWithFailureHook(o: Parameters<typeof runReplLoop>[0] & { s
   }
 }
 
-function fireSessionStart(repoRoot: string, sessionId: string, resumed: boolean, deps: AgentDeps): Promise<void> {
+// VANTA-DEFERRED-SESSION-HOOKS: SessionStart hooks marked `defer: true` run
+// fire-and-forget so they don't block the REPL becoming interactive; non-deferred
+// SessionStart hooks still run inline (awaited) exactly as before. With no hook
+// setting `defer`, the deferred set is empty and this awaits the inline set —
+// byte-identical to the prior single `fireHooks` call.
+async function fireSessionStart(repoRoot: string, sessionId: string, resumed: boolean, deps: AgentDeps): Promise<void> {
   const source = resumed ? "resume" : "startup";
-  return fireHooks(join(repoRoot, ".vanta"), "SessionStart", { sessionId, source }, { cwd: repoRoot, matcherValue: source, ...buildAgentHookDeps(deps, (m) => console.log(m)) });
+  const dataDir = join(repoRoot, ".vanta");
+  const opts = { cwd: repoRoot, matcherValue: source, ...buildAgentHookDeps(deps, (m) => console.log(m)) };
+  const matched = matchingHooks(await loadShellHooks(dataDir), "SessionStart", { matcherValue: source });
+  if (!matched.length) return;
+  const { inline, deferred } = partitionDeferred(matched);
+  const contextJson = JSON.stringify({ event: "SessionStart", sessionId, source });
+  runDeferred(deferred, (hook) => runOneHook(hook, "SessionStart", contextJson, opts));
+  await Promise.all(inline.map((hook) => runOneHook(hook, "SessionStart", contextJson, opts)));
 }
 
 function fireSessionEnd(repoRoot: string, sessionId: string, deps: AgentDeps): Promise<void> {

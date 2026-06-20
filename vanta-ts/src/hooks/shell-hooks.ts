@@ -83,6 +83,9 @@ const ShellHookSchema = z.object({
   timeoutMs: z.number().int().positive().optional(),
   /** Run at most once per process for the same event + hook config. */
   once: z.boolean().optional(),
+  /** Run asynchronously (fire-and-forget) so it does not block the REPL becoming
+   *  interactive. Currently honored for SessionStart; absent/false = inline. */
+  defer: z.boolean().optional(),
   /** Human-facing status line emitted before running the hook when the host supports it. */
   statusMessage: z.string().optional(),
   /** Max agent iterations for type:agent. */
@@ -189,4 +192,4 @@ export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, c
 }
 
 export type { ShellHookResult } from "./shell-hook-run.js";
-export { runShellHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";
+export { runShellHook, runOneHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";
