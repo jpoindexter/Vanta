@@ -9830,7 +9830,7 @@
       "id": "LEARNINGS-INDEX",
       "track": "Operator",
       "title": "Per-project learnings index — typed insights with staleness + contradiction checks",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Loop/session completions log typed learnings (pattern / pitfall / preference) scoped to the project; top-K inject at session start; staleness (referenced file gone) and contradiction (same key, opposing insight) detection keeps it honest. Implemented as project-scoped brain entries — reuses entries + consolidation built 2026-06-11. Steals gstack learn.",
       "done": "A session starts with the 3 most relevant project learnings; stale/conflicting entries get flagged.",
