@@ -1,6 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { checkGate, formatCycleLog, resolveAutonomyLevel } from "./run.js";
-import type { FactoryConfig, CycleResult } from "./types.js";
+import { mkdtemp, mkdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { checkGate, formatCycleLog, resolveAutonomyLevel, runCycle, defaultFactoryDeps } from "./run.js";
+import type { FactoryConfig, CycleResult, FactoryDeps, FactoryPlan, SliceArtifact, WorkItem, VcsAdapter } from "./types.js";
+
+function fakeVcs(): VcsAdapter {
+  return {
+    isTreeDirty: async () => false,
+    currentBranch: async () => "main",
+    createBranch: async () => "factory/auto-test",
+    commit: async () => "abc1234",
+    push: async () => {},
+    merge: async () => true,
+    lastCommitLineCount: async () => 0,
+    discardSlice: async () => {},
+  };
+}
 
 const baseConfig: FactoryConfig = {
   vantaRoot: "/repo",
@@ -132,5 +149,75 @@ describe("resolveAutonomyLevel", () => {
 
   it("falls back to L4 on garbage input", () => {
     expect(resolveAutonomyLevel("approve", { VANTA_AUTONOMY_LEVEL: "abc" } as NodeJS.ProcessEnv)).toBe(4);
+  });
+});
+
+describe("runCycle FactoryDeps injection (PORT-FACTORY-DEPS)", () => {
+  it("defaultFactoryDeps wires every stage + the git adapter", () => {
+    expect(typeof defaultFactoryDeps.triage).toBe("function");
+    expect(typeof defaultFactoryDeps.plan).toBe("function");
+    expect(typeof defaultFactoryDeps.execute).toBe("function");
+    expect(typeof defaultFactoryDeps.verify).toBe("function");
+    expect(typeof defaultFactoryDeps.vcs.createBranch).toBe("function");
+  });
+
+  it("routes through injected deps and stops at nothing-to-do without touching execute/git", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-factory-di-"));
+    const dataDir = join(root, ".vanta");
+    await mkdir(dataDir, { recursive: true });
+    let triaged = false;
+    let executed = false;
+    const deps: FactoryDeps = {
+      triage: async () => { triaged = true; return null; },
+      plan: () => { throw new Error("plan must not run when triage is empty"); },
+      execute: async () => { executed = true; throw new Error("execute must not run"); },
+      verify: async () => ({ ok: true }),
+      vcs: fakeVcs(),
+    };
+    const config: FactoryConfig = { vantaRoot: root, dataDir, autonomyLevel: 4, budgetTokens: 1000, interactive: false };
+    const result = await runCycle(config, () => {}, deps);
+    expect(result.status).toBe("nothing-to-do");
+    expect(triaged).toBe(true);
+    expect(executed).toBe(false);
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("drives a full L2 cycle through injected stages with no real git/LLM", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-factory-di-"));
+    const dataDir = join(root, ".vanta");
+    await mkdir(dataDir, { recursive: true });
+    // listPreExistingFiles runs `git ls-files`; a bare init repo answers cleanly.
+    execFileSync("git", ["init", "-q"], { cwd: root });
+    const prevThreshold = process.env.VANTA_PREFLIGHT_THRESHOLD;
+    process.env.VANTA_PREFLIGHT_THRESHOLD = "2"; // never clarify in the test
+    const item: WorkItem = {
+      category: "roadmap",
+      description: "Add a clearly specified helper to x.ts that returns a computed value",
+      hint: "concrete and specific",
+      targetFile: "vanta-ts/src/x.ts",
+      roadmapId: "TEST-DI",
+    };
+    const plan: FactoryPlan = { workItem: item, instruction: "implement x", touchedDirs: ["vanta-ts/src"] };
+    const artifact: SliceArtifact = { newTestFiles: [], touchedFiles: ["vanta-ts/src/x.ts"], tokenSpend: 5 };
+    let executed = false;
+    let verified = false;
+    const deps: FactoryDeps = {
+      triage: async () => item,
+      plan: () => plan,
+      execute: async () => { executed = true; return artifact; },
+      verify: async () => { verified = true; return { ok: true }; },
+      vcs: fakeVcs(),
+    };
+    const config: FactoryConfig = { vantaRoot: root, dataDir, autonomyLevel: 2, budgetTokens: 1000, interactive: false };
+    try {
+      const result = await runCycle(config, () => {}, deps);
+      expect(result.status).toBe("implemented");
+      expect(executed).toBe(true);
+      expect(verified).toBe(true);
+    } finally {
+      if (prevThreshold === undefined) delete process.env.VANTA_PREFLIGHT_THRESHOLD;
+      else process.env.VANTA_PREFLIGHT_THRESHOLD = prevThreshold;
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

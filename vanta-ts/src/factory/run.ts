@@ -6,7 +6,8 @@ import { verify, listPreExistingFiles } from "./verifier.js";
 import { autonomyCapForFiles } from "./compartments.js";
 import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
 import { shouldClarify, buildPrefightNote } from "./preflight.js";
-import type { FactoryConfig, CycleResult, AutonomyLevel } from "./types.js";
+import { defaultVcs } from "./vcs.js";
+import type { FactoryConfig, CycleResult, AutonomyLevel, FactoryDeps } from "./types.js";
 
 // --- Pure helpers ---
 
@@ -74,104 +75,29 @@ async function releaseLock(dataDir: string): Promise<void> {
   await rm(join(dataDir, LOCK_FILE), { force: true });
 }
 
-async function isTreeDirty(root: string): Promise<boolean> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  // --untracked-files=no: only flag tracked files with uncommitted edits.
-  // Untracked artifacts (handoff docs, temp files) should not block the factory.
-  const { stdout } = await promisify(execFile)("git", ["status", "--porcelain", "--untracked-files=no"], { cwd: root });
-  return stdout.trim().length > 0;
-}
-
-async function createBranch(root: string): Promise<string> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-  const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 16).replace("T", "-");
-  const branch = `factory/auto-${ts}`;
-  await exec("git", ["checkout", "-b", branch], { cwd: root });
-  return branch;
-}
-
-async function commitSlice(root: string, message: string): Promise<string> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-  await exec("git", ["add", "-A"], { cwd: root });
-  await exec("git", ["commit", "-m", message], { cwd: root });
-  const { stdout } = await exec("git", ["rev-parse", "HEAD"], { cwd: root });
-  return stdout.trim().slice(0, 7);
-}
-
-async function pushBranch(root: string): Promise<void> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-  await exec("git", ["push", "-u", "origin", "HEAD"], { cwd: root }).catch(() => {
-    /* non-fatal: no remote configured */
-  });
-}
-
-/** The branch HEAD is on right now (so we can restore it after a merge). */
-async function currentBranch(root: string): Promise<string> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root });
-  return stdout.trim();
-}
-
-/** Changed lines (added + deleted) in the most recent commit (the slice). */
-async function lastCommitLineCount(root: string): Promise<number> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", ["show", "--numstat", "--format=", "HEAD"], { cwd: root });
-  let total = 0;
-  for (const line of stdout.trim().split("\n")) {
-    const [add, del] = line.split("\t");
-    total += (Number(add) || 0) + (Number(del) || 0); // "-" (binary) → 0
-  }
-  return total;
-}
-
 /**
- * Merge `sourceBranch` into `target` with --no-ff (never force), then restore the
- * original branch. Returns true on a clean merge. Fails closed: a missing target
- * or a conflict aborts and returns false (the caller stays at L4 push).
+ * The real pipeline: each stage wired to its module + the default git adapter
+ * (vcs.ts). `runCycle` defaults to this; tests inject a fake/partial FactoryDeps
+ * to drive a full cycle without git or an LLM.
  */
-async function mergeIntoTarget(root: string, target: string, sourceBranch: string, restoreTo: string): Promise<boolean> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-  try {
-    // Target must already exist — creating an integration branch is itself a
-    // mutation the operator should make deliberately (it's the opt-in landing zone).
-    await exec("git", ["rev-parse", "--verify", target], { cwd: root });
-    await exec("git", ["checkout", target], { cwd: root });
-    await exec("git", ["merge", "--no-ff", "--no-edit", sourceBranch], { cwd: root });
-    await exec("git", ["checkout", restoreTo], { cwd: root }).catch(() => {});
-    return true;
-  } catch {
-    // Abort any half-done merge and return to where we were.
-    await exec("git", ["merge", "--abort"], { cwd: root }).catch(() => {});
-    await exec("git", ["checkout", restoreTo], { cwd: root }).catch(() => {});
-    return false;
-  }
-}
-
-async function discardSlice(root: string): Promise<void> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-  await exec("git", ["checkout", "."], { cwd: root }).catch(() => {});
-  await exec("git", ["clean", "-fd", "--", "vanta-ts/src"], { cwd: root }).catch(() => {});
-}
+export const defaultFactoryDeps: FactoryDeps = {
+  triage,
+  plan: buildPlan,
+  execute,
+  verify,
+  vcs: defaultVcs,
+};
 
 /**
  * Run one complete factory cycle: gate → triage → branch → plan → execute → verify → commit.
  * In review mode, prints the plan and exits for human approval (run `vanta factory approve` to proceed).
  */
-export async function runCycle(config: FactoryConfig, log: (msg: string) => void = console.log): Promise<CycleResult> {
-  const treeDirty = await isTreeDirty(config.vantaRoot);
+export async function runCycle(
+  config: FactoryConfig,
+  log: (msg: string) => void = console.log,
+  deps: FactoryDeps = defaultFactoryDeps,
+): Promise<CycleResult> {
+  const treeDirty = await deps.vcs.isTreeDirty(config.vantaRoot);
   const acquired = await acquireLock(config.dataDir);
   const lockExists = !acquired;
   const disabled = Boolean(process.env.VANTA_FACTORY_DISABLED);
@@ -184,7 +110,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
 
   try {
     log("factory: triaging backlog…");
-    const item = await triage(config.vantaRoot);
+    const item = await deps.triage(config.vantaRoot);
     if (!item) return { status: "nothing-to-do" };
     log(`factory: [${item.category}] ${item.description}`);
 
@@ -194,7 +120,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "aborted", reason: "item too vague — add context then re-run" };
     }
 
-    const plan = buildPlan(item, config.vantaRoot);
+    const plan = deps.plan(item, config.vantaRoot);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
 
     const level = config.autonomyLevel;
@@ -206,37 +132,37 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     const preExisting = await listPreExistingFiles(config.vantaRoot);
-    const startBranch = await currentBranch(config.vantaRoot);
-    const branch = await createBranch(config.vantaRoot);
+    const startBranch = await deps.vcs.currentBranch(config.vantaRoot);
+    const branch = await deps.vcs.createBranch(config.vantaRoot);
     log(`factory: branched → ${branch}`);
 
     // FAC-STALL + FAC-ESCALATE: bounded retry; escalates to a stronger model after
     // VANTA_FACTORY_ESCALATE_AFTER (default 1) stall iterations.
     const maxRetries = Math.max(0, parseInt(process.env.VANTA_FACTORY_MAX_RETRIES ?? "1", 10));
     const escalateAfter = Math.max(1, parseInt(process.env.VANTA_FACTORY_ESCALATE_AFTER ?? "1", 10));
-    let artifact = await execute(config.vantaRoot, plan, config.budgetTokens);
+    let artifact = await deps.execute(config.vantaRoot, plan, config.budgetTokens);
     log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
-    let verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+    let verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     let totalTokens = artifact.tokenSpend;
     for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
       const escalate = retry >= escalateAfter && process.env.VANTA_MODEL_EXPENSIVE;
       const escalateNote = escalate ? ` [escalating to ${process.env.VANTA_MODEL_EXPENSIVE}]` : "";
       log(`factory: stall — verify-fail (${verifyResult.reason}) — retrying (${retry}/${maxRetries})${escalateNote}…`);
-      await discardSlice(config.vantaRoot);
-      const retryBranch = await createBranch(config.vantaRoot);
+      await deps.vcs.discardSlice(config.vantaRoot);
+      const retryBranch = await deps.vcs.createBranch(config.vantaRoot);
       log(`factory: branched → ${retryBranch}`);
       const retryInstruction = `${plan.instruction}\n\n[Retry ${retry}] Previous attempt failed: ${verifyResult.reason}. Try a different approach.`;
       // FAC-ESCALATE: override VANTA_MODEL to the expensive model when stalled.
       if (escalate) process.env.VANTA_MODEL = process.env.VANTA_MODEL_EXPENSIVE!;
-      artifact = await execute(config.vantaRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
+      artifact = await deps.execute(config.vantaRoot, { ...plan, instruction: retryInstruction }, config.budgetTokens);
       if (escalate) delete process.env.VANTA_MODEL; // restore default after retry
       totalTokens += artifact.tokenSpend;
       log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
-      verifyResult = await verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+      verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
     }
     if (!verifyResult.ok) {
       log(`factory: verification failed — ${verifyResult.reason}`);
-      await discardSlice(config.vantaRoot);
+      await deps.vcs.discardSlice(config.vantaRoot);
       return { status: "verify-failed", workItem: item, reason: verifyResult.reason ?? "unknown" };
     }
 
@@ -256,7 +182,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     const msg = `factory(auto): ${item.description}\n\ncategory: ${item.category}\ntokens: ${artifact.tokenSpend.toLocaleString()}\nbranch: ${branch}`;
-    const sha = await commitSlice(config.vantaRoot, msg);
+    const sha = await deps.vcs.commit(config.vantaRoot, msg);
     log(`factory: committed ${sha}`);
     // FAC-CLOSE: mark the roadmap item shipped so the KANBAN reflects the close.
     if (item.roadmapId && item.category === "roadmap") {
@@ -271,7 +197,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     }
 
     // L4 push — publish the branch.
-    await pushBranch(config.vantaRoot);
+    await deps.vcs.push(config.vantaRoot);
     log(`factory: pushed ${branch}`);
 
     if (effectiveLevel <= 4) {
@@ -284,7 +210,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
     const mergeTarget = resolveMergeTarget(process.env);
     const decision = assessMergeRisk({
       touchedFiles: artifact.touchedFiles,
-      diffLineCount: await lastCommitLineCount(config.vantaRoot),
+      diffLineCount: await deps.vcs.lastCommitLineCount(config.vantaRoot),
       allowMerge: Boolean(process.env.VANTA_AUTONOMY_ALLOW_MERGE),
       mergeTarget,
     });
@@ -293,7 +219,7 @@ export async function runCycle(config: FactoryConfig, log: (msg: string) => void
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
     }
 
-    const merged = await mergeIntoTarget(config.vantaRoot, mergeTarget, branch, startBranch);
+    const merged = await deps.vcs.merge(config.vantaRoot, mergeTarget, branch, startBranch);
     if (!merged) {
       log(`factory: [L5] merge into ${mergeTarget} failed (conflict or missing target) — left at L4 push on ${branch}`);
       return { status: "committed", workItem: item, branch, commitSha: sha, tokenSpend: artifact.tokenSpend, pushed: true };
