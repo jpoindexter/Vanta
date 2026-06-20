@@ -4334,7 +4334,7 @@
       "id": "VANTA-TEMPLATES",
       "track": "Harness",
       "title": "Templates — prompt classification and template injection for common task patterns",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent (feature-gated `TEMPLATES`) classifies prompts into job templates using a `jobClassifier` at query time. Templates are loaded from a `templates/` directory alongside agents/commands in plugin manifests. Enables pre-structured prompts for common workflows.",
       "done": "Prompts matching known patterns (e.g. 'fix bug', 'write test') are classified and augmented with template context before being sent to the model.",
