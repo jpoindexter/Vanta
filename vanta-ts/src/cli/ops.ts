@@ -21,6 +21,15 @@ export { runDesktopCommand, runFactoryCommand, runPairingCommand, runConfigComma
 
 export const dataDirFor = (repoRoot: string): string => join(repoRoot, ".vanta");
 
+// `vanta plugin list|enable|disable|install|uninstall` — manage the runtime
+// in-process plugin set under ~/.vanta/plugins. Distinct from `vanta plugins`
+// (the optional-capability catalog). enable/disable edit settings.plugins.enabled
+// (the loader's allow-list); install copies a local plugin dir in + validates.
+export async function runPluginCommand(repoRoot: string, rest: string[]): Promise<number> {
+  const { runPlugin } = await import("./plugin-cmd.js");
+  return runPlugin(repoRoot, rest);
+}
+
 // Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
   return async (instruction, wake) => {

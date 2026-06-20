@@ -142,6 +142,7 @@ describe("registry", () => {
       "transcribe",
       "twitter_read",
       "vision_action",
+      "vision_watch",
       "watch_video",
       "web_fetch",
       "web_search",

@@ -1351,7 +1351,7 @@
       "id": "VANTA-PLUGIN-CLI",
       "track": "Extensibility",
       "title": "`claude plugin` CLI — install/uninstall/enable/disable/update plugins from terminal",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has a `claude plugin` subcommand with operations: `install <name@marketplace>`, `uninstall <name>`, `enable <name>`, `disable <name>`, `update [name]`. Pure library functions in `pluginOperations.ts` power both the CLI and the interactive ManagePlugins.tsx UI. Non-interactive mode (CI/scripts) supported.",
       "done": "`claude plugin install pylsp@agent-skills` installs and activates the LSP plugin. `claude plugin disable pylsp` disables it without removing. `claude plugin update` updates all.",
@@ -1360,7 +1360,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MCP-SKILLS",
@@ -12892,14 +12892,14 @@
       "id": "VISION-WATCH-ALERT",
       "track": "Operator",
       "title": "Vision watch — change-detect a camera/screen, describe, alert via gateway",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy's camera flow: watch a camera/screen, change-detect, run a vision model on the changed frame, alert via the gateway/home messaging ('a FedEx truck pulled up'). Vanta has look_at_camera/look_at_screen + describe_image + gateway delivery; add a watch loop: periodic capture → change detection → vision describe → gateway alert on a meaningful change. Opt-in.",
       "done": "a watch loop captures a source on an interval, change-detects, describes the change via the vision model (resolveVisionProvider), and delivers an alert through the gateway/home platform; opt-in; tests with stubbed capture/vision; committed.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-18"
+      "updated": "2026-06-20"
     },
     {
       "id": "EPHEMERAL-UI-GEN",

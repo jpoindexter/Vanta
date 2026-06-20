@@ -18,6 +18,7 @@ import {
   runDesktopCommand,
   runPairingCommand,
   runConfigCommand,
+  runPluginCommand,
 } from "./cli/ops.js";
 import { runEvalCommand } from "./cli/eval-cmd.js";
 import { runEvolveCommand } from "./cli/evolve-cmd.js";
@@ -118,6 +119,7 @@ const COMMANDS: Record<string, CommandFn> = {
   pairing: (_root, rest) => runPairingCommand(rest),
   update: (root, rest) => runUpdateCommand(root, rest),
   plugins: (root, rest) => runPluginsCommand(root, rest),
+  plugin: (root, rest) => runPluginCommand(root, rest),
   taste: (root, rest) => runTasteCommand(root, rest),
   models: (root, rest) => runModelsCommand(root, rest),
   acp: (root, rest) => runAcpCommand(root, rest),
