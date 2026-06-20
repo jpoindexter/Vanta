@@ -23,9 +23,7 @@ import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { errorDetails, fireCwdChanged, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
 import { join } from "node:path";
 
-export function usage(): void {
-  console.log(
-    [
+const USAGE_LINES = [
       "Usage: vanta                              start an interactive session",
       "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
@@ -46,6 +44,7 @@ export function usage(): void {
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
+      "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",
       "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
@@ -70,8 +69,10 @@ export function usage(): void {
       "       vanta backup [out.tgz] | import <in.tgz>   archive / restore ~/.vanta",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
-    ].join("\n"),
-  );
+];
+
+export function usage(): void {
+  console.log(USAGE_LINES.join("\n"));
 }
 
 export function usageExit(): never {
