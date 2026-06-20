@@ -1,6 +1,7 @@
 import { runSetup, envPath, askLine } from "./setup.js";
 import { select } from "./term/select.js";
 import { SETTINGS, runSettingSection } from "./setup-sections.js";
+import { runToolsSection } from "./setup-tools.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { resolveVantaHome } from "./store/home.js";
@@ -105,6 +106,7 @@ export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = pr
   printProbe("Messaging", await probeMessaging(env), "run `vanta setup messaging`");
 
   for (const s of SETTINGS) await runSettingSection(repoRoot, s); // vision · search · max-iter · theme (Esc skips each)
+  await runToolsSection(repoRoot); // enable/disable toolsets + per-tool provider menus
   loadFreshEnv(repoRoot);
 
   console.log(sectionHeader("Personality"));

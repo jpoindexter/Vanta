@@ -1,5 +1,13 @@
 import { GATES } from "./gates.js";
-import { EMPTY_MEMORY, type EfSignals, type EfState, type GateId, type NdConfig } from "./types.js";
+import {
+  EMPTY_MEMORY,
+  type EfSignals,
+  type EfState,
+  type GateId,
+  type NdConfig,
+  type NdPreferences,
+  type NdProfile,
+} from "./types.js";
 
 // The one ND engine. Runs each ENABLED gate over the turn signals, threading its
 // accumulator, and returns the nudges to surface. Pure — no I/O, no throws.
@@ -9,6 +17,25 @@ export function defaultNdConfig(): NdConfig {
   const cfg = {} as NdConfig;
   for (const g of GATES) cfg[g.id] = { enabled: g.defaultEnabled, threshold: g.defaultThreshold };
   return cfg;
+}
+
+/** Default non-gate preferences for a brand-new user: balanced, medium noise, ranges. */
+export function defaultNdPreferences(): NdPreferences {
+  return { outputDensity: "balanced", sensoryLoad: "medium", timeSupport: "ranges" };
+}
+
+/** Default whole profile: default gates + default preferences. */
+export function defaultNdProfile(): NdProfile {
+  return { gates: defaultNdConfig(), prefs: defaultNdPreferences() };
+}
+
+/** Set one preference key (returns a new prefs object). */
+export function setNdPreference<K extends keyof NdPreferences>(
+  prefs: NdPreferences,
+  key: K,
+  value: NdPreferences[K],
+): NdPreferences {
+  return { ...prefs, [key]: value };
 }
 
 /** Fresh engine state: an empty accumulator per gate. */

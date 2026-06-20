@@ -7,6 +7,7 @@ vi.mock("./brain/store.js", () => ({ writeRegion: vi.fn(async () => {}) }));
 vi.mock("./repl/health-cmd.js", () => ({ gatherCapabilities: vi.fn(async () => []), formatHealth: vi.fn(() => "  CAPS-OK") }));
 vi.mock("./term/select.js", () => ({ select: vi.fn(async () => 1) }));
 vi.mock("./setup-sections.js", () => ({ SETTINGS: [], runSettingSection: vi.fn(async () => {}) }));
+vi.mock("./setup-tools.js", () => ({ runToolsSection: vi.fn(async () => {}) }));
 vi.mock("./setup/assistant.js", () => ({
   probeProvider: vi.fn(async () => ({ ok: true, detail: "model responded" })),
   runGoogleStep: vi.fn(async () => ({ ok: false, detail: "not authorized" })),

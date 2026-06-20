@@ -11367,7 +11367,7 @@
       "id": "SETUP-TOOLS-CONFIG",
       "track": "Operator",
       "title": "Tools — enable/disable + provider sub-menus",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "A `vanta setup` tools section: toggle toolsets on/off + per-tool provider menus (search ✓, vision ✓ shipped; browser/image-gen providers next). Minus consumer toys (Spotify, smart-home).",
       "done": "`vanta setup` tools checklist + per-tool provider selection.",
@@ -11376,7 +11376,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-14"
+      "updated": "2026-06-20"
     },
     {
       "id": "SETUP-PROVIDER-BEDROCK",
@@ -11982,13 +11982,13 @@
       "id": "ND-PROFILE",
       "track": "Operator",
       "title": "ND: per-user neurodivergent support profile",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Generalize operator-profile beyond one user into a per-user ND profile: which EF gates/supports are on, their thresholds, sensory/output preferences, time-support style. This is the mechanism that makes Vanta 'not just Jason' — any ND user configures the supports that fit them. See .",
       "done": "A new user can set an ND profile (gates on/off, thresholds, output density) that persists and drives the EF engine + UI.",
       "tier": "pebble",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-06-20"
     },
     {
       "id": "ND-CHOICE-REDUCE",
@@ -13651,7 +13651,7 @@
       "id": "MSG-SPLIT-LENGTH-AWARE",
       "track": "Operator",
       "title": "Length-unit-aware message splitting (chars/utf16/bytes)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Adapters send reply text raw with no splitting — a >4096-char Telegram or >2000 Discord reply fails outright. Add a shared splitForLimit(text,limit,lenUnit) that breaks on newline boundaries under a per-platform budget, hard-splits only past limit/2, and counts UTF-16 code units (Telegram) or UTF-8 bytes (IRC) per adapter.",
       "done": "A long agent reply is split into multiple sends under each adapter's real char budget; Telegram counts UTF-16, IRC counts bytes; tested with multi-segment fixtures across Telegram/Signal/IRC/Mattermost.",
@@ -14700,6 +14700,38 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "source": "ref-audit-2026-06-20"
+    },
+    {
+      "id": "SETTINGS-BLOCKEDTOOLS-ENFORCE",
+      "track": "Harness",
+      "title": "Enforce settings.blockedTools at registry build (buildRegistry exclude)",
+      "status": "next",
+      "size": "S",
+      "summary": "SETUP-TOOLS-CONFIG persists tool toggles to settings.blockedTools, but the field is not yet consumed by buildRegistry() — the registry is built in session.ts before settings load, and loadRuntimeExtensions registers MCP/plugin tools into that same registry (chicken-and-egg). Reorder bootstrap so settings load first, then buildRegistry({exclude: settings.blockedTools}). Env kill-switches (browser) + provider env are already live; this closes general tool-disable enforcement.",
+      "done": "A tool in settings.blockedTools is absent from the live registry for the session; bootstrap loads settings before buildRegistry; MCP/plugin registration still works; tested.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "infra",
+      "updated": "2026-06-20",
+      "source": "ref-audit-2026-06-20"
+    },
+    {
+      "id": "ND-PREFS-WIRE",
+      "track": "Operator",
+      "title": "Consume ND output-density/sensory/time prefs in prompt + nudges",
+      "status": "next",
+      "size": "S",
+      "summary": "ND-PROFILE added persisted NdPreferences (output-density, sensory-load, time-support-style) + getOutputDensity accessor, but nothing consumes them yet (EF gate thresholds already drive the engine). Wire getOutputDensity into prompt.ts verbosity / nd-sensory-load directive, and sensory/time prefs into the nd gate nudge formatters (session/nd-gates.ts).",
+      "done": "Output-density pref scales prompt verbosity; sensory-load pref tunes nudge decoration; time-support pref drives the time-blindness gate output style; tested; default profile preserves current behavior.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
       "updated": "2026-06-20",
       "source": "ref-audit-2026-06-20"
     }

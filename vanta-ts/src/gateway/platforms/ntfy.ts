@@ -1,5 +1,10 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { splitForLimit } from "./split.js";
+
+// ntfy's default message-size-limit is 4096 bytes; a larger body is rejected
+// or truncated server-side, so the budget is measured in UTF-8 bytes.
+const NTFY_BYTE_LIMIT = 4096;
 
 // ntfy adapter — a simple pub/sub notification service. Pure fetch, no SDK.
 // poll  = GET /<topic>/json?poll=1[&since=<lastId>] → newline-delimited JSON,
@@ -92,11 +97,13 @@ export class NtfyAdapter implements PlatformAdapter {
 
   async send(msg: OutboundMessage): Promise<void> {
     try {
-      await fetch(`${this.server}/${encodeURIComponent(msg.chatId)}`, {
-        method: "POST",
-        body: msg.text,
-        signal: AbortSignal.timeout(5000),
-      });
+      for (const part of splitForLimit(msg.text, NTFY_BYTE_LIMIT, "bytes")) {
+        await fetch(`${this.server}/${encodeURIComponent(msg.chatId)}`, {
+          method: "POST",
+          body: part,
+          signal: AbortSignal.timeout(5000),
+        });
+      }
     } catch {
       /* errors-as-values: a send failure must not throw through the gateway loop */
     }

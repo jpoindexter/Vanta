@@ -2,6 +2,11 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { splitForLimit } from "./split.js";
+
+// iMessage has no documented hard cap, but a single huge AppleScript `send`
+// payload is fragile; 20000 chars is a generous safe per-message budget.
+const IMESSAGE_LIMIT = 20000;
 
 // MSG-IMESSAGE: native macOS iMessage adapter.
 // SEND: AppleScript via osascript — `tell application "Messages" to send`.
@@ -91,7 +96,9 @@ export class IMessageAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
-    const script = SEND_SCRIPT(msg.chatId, msg.text);
-    await runExec("osascript", ["-e", script], { timeout: 10_000 });
+    for (const part of splitForLimit(msg.text, IMESSAGE_LIMIT, "chars")) {
+      const script = SEND_SCRIPT(msg.chatId, part);
+      await runExec("osascript", ["-e", script], { timeout: 10_000 });
+    }
   }
 }
