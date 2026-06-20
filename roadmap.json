@@ -2391,7 +2391,7 @@
       "id": "VANTA-HOOK-SESSION-TITLE",
       "track": "Harness",
       "title": "Hook `sessionTitle` output — `UserPromptSubmit` hooks can set the session title",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.94) adds `hookSpecificOutput.sessionTitle` to `UserPromptSubmit` hook output. A hook can return a title string that becomes the session's name. Useful for auto-titling sessions based on the first prompt's content or intent.",
       "done": "A UserPromptSubmit hook returns `{sessionTitle: 'Fix auth bug #1234'}`. The session is named that without a separate `/rename`.",
@@ -2400,7 +2400,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure extractSessionTitle (tolerant: sessionTitle field trimmed + 60-char cap matching deriveTitle; missing/blank/non-object -> null) + applyHookTitle (unchanged when none). Extractor built+tested; consumption = the 3 UserPromptSubmit fireHooks sites parse stdout -> applyHookTitle -> saveSession({title}) like /title (named follow-up)."
     },
     {
       "id": "VANTA-GREP-READ-EDIT",
@@ -2436,7 +2437,7 @@
       "id": "VANTA-SHELL-STARTUP-WRITE-PROMPT",
       "track": "Harness",
       "title": "Shell startup file write prompt — confirm before writing `.zshenv`, `.bash_login`, etc.",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.160) adds a confirmation prompt before writing to shell startup files (`.zshenv`, `.zlogin`, `.bash_login`) and `~/.config/git/`. Prevents silent writes that could execute arbitrary code on every shell launch.",
       "done": "When an operation would modify `.zshenv`, another agent shows a confirmation: 'This will run on every shell launch — allow?' Declining leaves the file unchanged.",
@@ -2445,7 +2446,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PROACTIVE-ALIAS",
