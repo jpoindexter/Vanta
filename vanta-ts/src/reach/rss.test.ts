@@ -1,7 +1,18 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { discoverFeed, fetchFeed } from "./rss.js";
 
 afterEach(() => vi.restoreAllMocks());
+
+// These exercise feed discovery/parsing against stubbed fetches on reserved
+// `.test` hosts (which don't resolve). Opt out of the SSRF guard so the stub —
+// not the guard's DNS resolution — is what answers. The guard itself is tested
+// in src/net/ssrf-guard.test.ts.
+beforeEach(() => {
+  process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
+});
+afterEach(() => {
+  delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
+});
 
 describe("discoverFeed", () => {
   it("finds an rss/atom <link rel=alternate> and resolves it absolute", () => {

@@ -1,4 +1,5 @@
 import { parseFeed, feedTitle, type FeedItem } from "./rss-parse.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 // Reusable RSS/Atom fetcher (shared by the rss_read tool + the radar scanner),
 // with feed auto-discovery (Agent-Reach issue #322): if you point it at a site's
@@ -9,6 +10,8 @@ const FETCH_TIMEOUT_MS = 15_000;
 type FeedResult = { ok: true; title: string; items: FeedItem[] } | { ok: false; error: string };
 
 async function getText(url: string): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const guard = await assertPublicUrl(url);
+  if (!guard.ok) return { ok: false, error: guard.error };
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);

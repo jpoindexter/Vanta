@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { extractReadable } from "./web-fetch.js";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { extractReadable, webFetchTool } from "./web-fetch.js";
+import type { ToolContext } from "./types.js";
 
 const ARTICLE_HTML = `<!doctype html>
 <html>
@@ -58,5 +59,38 @@ describe("extractReadable", () => {
 
     expect(title).toBe("");
     expect(text).toContain("Just a bare fragment of text.");
+  });
+});
+
+// A ToolContext is required by the type but web_fetch never reads it.
+const fakeCtx = {} as ToolContext;
+
+describe("webFetchTool SSRF guard", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("refuses to follow a redirect to cloud metadata", async () => {
+    // 1.1.1.1 is a public literal IP (passes the first guard), but it 302s to
+    // the metadata service. The guard must re-validate the hop and block it
+    // BEFORE a second fetch is issued — the redirect/rebind SSRF case.
+    const fetchSpy = vi.fn(async () =>
+      new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/" } }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await webFetchTool.execute({ url: "https://1.1.1.1/redir" }, fakeCtx);
+
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("169.254.169.254");
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // hop validated, second fetch never issued
+  });
+
+  it("blocks a direct fetch of a loopback URL without any network call", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await webFetchTool.execute({ url: "http://127.0.0.1:7788/api/status" }, fakeCtx);
+
+    expect(res.ok).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

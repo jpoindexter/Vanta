@@ -2,6 +2,7 @@ import { parseHTML } from "linkedom";
 import { Readability } from "@mozilla/readability";
 import { z } from "zod";
 import type { Tool } from "./types.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 const Args = z.object({ url: z.string().url() });
 
@@ -11,6 +12,37 @@ const USER_AGENT =
 const TIMEOUT_MS = 15_000;
 const MAX_OUTPUT = 80_000;
 const TRUNCATED_MARKER = "\n\n…[truncated]";
+const MAX_REDIRECTS = 5;
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+type FetchOk = { ok: true; res: Response };
+type FetchErr = { ok: false; output: string };
+
+/**
+ * Fetch following redirects manually, re-validating every hop's target against
+ * the SSRF guard before following it. This closes redirect/DNS-rebind SSRF: a
+ * public URL that 30x-redirects to 169.254.169.254 or a LAN host is rejected.
+ */
+async function fetchGuarded(
+  startUrl: string,
+  signal: AbortSignal,
+): Promise<FetchOk | FetchErr> {
+  let url = startUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const guard = await assertPublicUrl(url);
+    if (!guard.ok) return { ok: false, output: `fetch blocked: ${guard.error}` };
+    const res = await fetch(url, {
+      headers: { "user-agent": USER_AGENT },
+      redirect: "manual",
+      signal,
+    });
+    if (!REDIRECT_STATUSES.has(res.status)) return { ok: true, res };
+    const location = res.headers.get("location");
+    if (!location) return { ok: true, res }; // redirect w/o target → let caller handle
+    url = new URL(location, url).href; // resolve relative redirects, re-guard next loop
+  }
+  return { ok: false, output: `fetch blocked: too many redirects (>${MAX_REDIRECTS})` };
+}
 
 /**
  * Extract readable article text from raw HTML using Readability, falling back
@@ -61,15 +93,14 @@ export const webFetchTool: Tool = {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const res = await fetch(url, {
-        headers: { "user-agent": USER_AGENT },
-        signal: controller.signal,
-      });
+      const fetched = await fetchGuarded(url, controller.signal);
+      if (!fetched.ok) return fetched;
+      const { res } = fetched;
       if (!res.ok) {
         return { ok: false, output: `fetch failed: HTTP ${res.status}` };
       }
       const html = await res.text();
-      const { title, text } = extractReadable(html, url);
+      const { title, text } = extractReadable(html, res.url || url);
       const body = title ? `# ${title}\n\n${text}` : text;
       return { ok: true, output: cap(body) };
     } catch (err) {

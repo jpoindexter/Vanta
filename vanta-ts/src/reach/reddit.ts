@@ -1,4 +1,5 @@
 import { parseListing, parseThread, type RedditPost, type RedditComment } from "./reddit-parse.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 // Reusable Reddit fetchers (shared by the reddit_read tool + the radar scanner).
 // Reddit blocks anonymous access, so every call carries the stored cookie.
@@ -9,6 +10,8 @@ const UA = "vanta-reach/1.0";
 type Fetched = { ok: true; json: unknown } | { ok: false; error: string };
 
 export async function fetchRedditJson(url: string, cookie: string): Promise<Fetched> {
+  const guard = await assertPublicUrl(url);
+  if (!guard.ok) return { ok: false, error: guard.error };
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
