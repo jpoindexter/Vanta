@@ -70,6 +70,7 @@ import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
 import { editFileTool } from "./edit-file.js";
+import { pdfReadTool } from "./pdf-read.js";
 import { grepFilesTool } from "./grep-files.js";
 import { globFilesTool } from "./glob-files.js";
 import { protectTool } from "./protect.js";
@@ -114,6 +115,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   readFileTool,
   editFileTool,
   writeFileTool,
+  pdfReadTool,
   grepFilesTool,
   globFilesTool,
   shellCmdTool,

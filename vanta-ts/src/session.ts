@@ -80,6 +80,15 @@ export async function prepareRun(
     systemPrompt = await injectResume(systemPrompt, repoRoot);
   }
   const advisorProvider = resolveAdvisorProvider(process.env) ?? undefined;
+  // VANTA-ASCIICAST: opt-in auto-record (VANTA_RECORD=1). Off = byte-identical,
+  // and a failure to open the .cast file must never block the session.
+  if (process.env.VANTA_RECORD === "1") {
+    const { startRecording, isRecording } = await import("./recording/session-recorder.js");
+    if (!isRecording()) {
+      const rec = startRecording(process.env);
+      if (rec.ok) console.log(`  ⏺ recording session → ${rec.path}`);
+    }
+  }
   logSessionConfig(safety, provider, registry, systemPrompt);
   return { safety, registry, pluginCommands, mcpSkills, provider, advisorProvider, effortLevel, goals, systemPrompt, ralphContinuity: prompt.ralphContinuity };
 }

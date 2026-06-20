@@ -1056,7 +1056,7 @@
       "id": "VANTA-ASCIICAST",
       "track": "Operator",
       "title": "Asciicast session recording — record sessions as terminal replay files",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent can record sessions to asciicast v2 files (`.cast`) when `CLAUDE_CODE_TERMINAL_RECORDING=1` is set. Files are written buffered to `~/.claude/recordings/<session-id>.cast`, cleaned up on exit. Asciicast format allows replaying the full terminal session in any compatible player (asciinema.org, terminals).",
       "done": "With `VANTA_TERMINAL_RECORDING=1`, a `.cast` file is written during the session. After exit, the file can be replayed with `asciinema play`.",
@@ -1065,7 +1065,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SCREENSHOT-CLIPBOARD",
@@ -1086,7 +1086,7 @@
       "id": "VANTA-PDF-READ",
       "track": "Operator",
       "title": "PDF reading — extract text from PDFs as context with size/error handling",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent can extract text from PDF files as tool context. Handles error cases: empty (no text), too_large (size limits), password_protected, corrupted, unknown. Uses pdftotext/poppler if available, with fallback. Output is persisted to tool-results dir for large PDFs. Integrates with FileReadTool so the model can `read` a PDF path.",
       "done": "`read_file('report.pdf')` returns extracted text. Password-protected PDFs return a helpful error. Files over the size limit return a partial extract with a note.",
@@ -1095,7 +1095,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-AGENT-EDITOR",
@@ -13715,7 +13715,7 @@
       "id": "MSG-NO-REPLY-TOKEN",
       "track": "Operator",
       "title": "Intentional-silence NO_REPLY token for group chats",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "An always-replying bot is annoying in group/channel surfaces. Allow the agent to return an exact whole-response marker (NO_REPLY/[SILENT], <=64 chars) to choose not to reply; prose merely mentioning the token still delivers; blank stays an error.",
       "done": "Returning exactly NO_REPLY suppresses delivery in a group; a reply that contains the word NO_REPLY in prose still sends; boundary unit-tested.",
