@@ -3089,7 +3089,7 @@
       "id": "VANTA-PROJECT-ONBOARDING",
       "track": "Operator",
       "title": "Project onboarding wizard — first-run step-by-step setup for new workspaces",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When opening another agent in an empty workspace or a workspace without CLAUDE.md, a step-by-step onboarding wizard guides the user through creating a project (ask Claude to create an app, clone a repo, etc.). Steps track complete/completable/enabled state and persist to project config.",
       "done": "Empty workspace opens with onboarding wizard; steps complete as user progresses; CLAUDE.md creation step marks complete when file appears; wizard dismissed after completion.",
@@ -3098,7 +3098,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable buildOnboardingSteps (4 ordered steps model/goal/context/tools, each {id,title,how,done} from injected state) + needsOnboarding (true only fresh project + a core step undone; core=model/goal drive it, optional=context/tools never do) + renderOnboarding (☐/☑ checklist + how). Built+tested; first-run wire = cli/startup ensureConfiguredOrSetup builds state (isConfigured/goals.tsv/.claude/CLAUDE.md/.vanta) + prints if needsOnboarding (named). Configured/returning = no onboarding."
     },
     {
       "id": "VANTA-TODO-ACTIVE-FORM",
