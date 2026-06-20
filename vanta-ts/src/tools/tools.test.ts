@@ -9,6 +9,7 @@ import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { openDeepLinkTool } from "./deep-link.js";
+import { maximizerTool } from "./maximizer.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -117,6 +118,7 @@ describe("registry", () => {
       "roadmap_move",
       "rss_read",
       "run_code",
+      "run_maximizer",
       "screenshot",
       "self_correct",
       "self_repair",
@@ -446,6 +448,29 @@ describe("exit_worktree", () => {
     const res = await exitWorktreeTool.execute({ path: "/tmp/wt" }, ctx());
     expect(res.ok).toBe(false);
     expect(res.output).toContain("path and branch are required");
+  });
+});
+
+describe("run_maximizer", () => {
+  // The execute path runs real spawnSubagent workers (LLM/network); that
+  // orchestration is unit-tested with INJECTED deps in maximizer/runtime.test.ts.
+  // Here we cover the tool surface that needs no network.
+  it("describeForSafety surfaces the task count and budget for the kernel", () => {
+    expect(maximizerTool.describeForSafety?.({ tasks: ["a", "b"], budgetUsd: 5 })).toBe(
+      "run maximizer over 2 tasks (budget $5)",
+    );
+  });
+
+  it("errors-as-values on a missing/invalid tasks list (never throws)", async () => {
+    const res = await maximizerTool.execute({ budgetUsd: 5 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("tasks");
+  });
+
+  it("errors-as-values on a non-positive budget", async () => {
+    const res = await maximizerTool.execute({ tasks: ["x"], budgetUsd: 0 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("budgetUsd");
   });
 });
 

@@ -13405,7 +13405,7 @@
       "id": "PCLIP-MAXIMIZER-MODE",
       "track": "Harness",
       "title": "Maximizer mode — higher-autonomy execution under hard governance",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Paperclip extract (MAXIMIZER MODE, roadmap ⚪). A higher-autonomy profile: aggressive delegation, deeper follow-through, stronger operating loops with explicit budgets, visibility, and governance — \"more output per supervisor\", not hidden autonomy. Builds on Ralph loop + fleet + budget hard-stop.",
       "done": "A maximizer run delegates + follows through across multiple tasks under a hard budget with a visible activity trail, ending in verified outcomes.",

@@ -51,6 +51,7 @@ import { youtubeReadTool } from "./youtube.js";
 import { githubReadTool } from "./github-read.js";
 import { podcastReadTool } from "./podcast.js";
 import { runCodeTool } from "./run-code.js";
+import { maximizerTool } from "./maximizer.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
   gitStatusTool,
@@ -170,6 +171,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   githubReadTool,
   podcastReadTool,
   runCodeTool,
+  maximizerTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
   listMcpResourcesTool,
