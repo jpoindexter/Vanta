@@ -53,7 +53,7 @@ const USAGE_LINES = [
       "       vanta meta-tune instructions [--iters N] [--adopt]   score bounded PROGRAM.md variants",
       "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
       "       vanta modes [list|install]         operator modes",
-      "       vanta auth google                  one-time Google OAuth",
+      "       vanta auth google [--client <json>] one-time Google OAuth (ingests client_secret.json)",
       "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
       "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
       "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
