@@ -3175,7 +3175,7 @@
       "id": "VANTA-AWAY-SUMMARY",
       "track": "Operator",
       "title": "Away summary — auto-generate context recap when terminal regains focus after 5+ min",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent detects terminal focus loss via `subscribeTerminalFocus`. If the terminal has been unfocused for 5+ minutes and no away summary exists since the last user turn, another agent auto-generates a `away_summary` system message summarizing recent activity. The model sees this as context when the user returns, reducing the need for manual context re-establishment.",
       "done": "After 5+ minutes away, returning to the terminal shows an auto-generated 'While you were away...' summary of recent turns injected as a system message.",
@@ -3184,7 +3184,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure isAway (>5min, VANTA_AWAY_SUMMARY_MS, 0=disabled) + awayDurationLabel (45s/7m/1h 3m) + buildAwaySummary ({awayMs,turnsWhileAway,filesTouched,lastAction} -> ⏱ Back after 7m — 3 turns, 4 files, last: <action>; null when not-away or nothing; singularized; injected clocks). Built+tested; trigger = next-user-submit reads the proactive last-activity stamp (post-turn-gates markProactiveActivity) + builds the recap from where.ts breadcrumb (named). Under threshold = nothing."
     },
     {
       "id": "VANTA-OS-NOTIFY",
