@@ -80,6 +80,7 @@ import { loopTool } from "./loop.js";
 import { sendMessageTool } from "./send-message.js";
 import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
+import { listPeersTool, peerSendTool } from "./peers.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -201,4 +202,6 @@ export const ALL_TOOLS: readonly Tool[] = [
   playbookTool,
   enterWorktreeTool,
   exitWorktreeTool,
+  listPeersTool,
+  peerSendTool,
 ];

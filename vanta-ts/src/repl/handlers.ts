@@ -52,6 +52,7 @@ import { formatGoalLedger } from "./goal-ledger.js";
 import { readGoalDeps } from "../goals/deps.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
+import { peers } from "./peers-cmd.js";
 import { nd } from "./nd-cmd.js";
 import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
@@ -139,7 +140,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 

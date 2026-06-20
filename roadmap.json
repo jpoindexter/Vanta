@@ -4319,7 +4319,7 @@
       "id": "VANTA-UDS-PEERS",
       "track": "Harness",
       "title": "UDS peer agents — `/peers` command and ListPeersTool for agent discovery via Unix sockets",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent (feature-gated `UDS_INBOX`) supports peer agent discovery and communication via Unix Domain Sockets. `/peers` lists visible peer agents; `ListPeersTool` gives the agent programmatic access to discover and address peers. Distinct from swarm mailbox messaging (file-based) — UDS provides lower-latency IPC for agents running on the same machine.",
       "done": "`/peers` lists other another agent sessions running on the machine. An agent can call `list_peers` and then `send_message` to an agent ID to collaborate across sessions.",
