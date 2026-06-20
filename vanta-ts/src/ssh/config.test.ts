@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveSshProfile, sshTarget, buildSshArgs, profileNames, SshProfileSchema, type SshProfile } from "./config.js";
+import { resolveSshProfile, sshTarget, buildSshArgs, profileNames, parseSshTarget, resolveSshTarget, looksLikeRemoteTarget, SshProfileSchema, type SshProfile } from "./config.js";
 
 const vps: SshProfile = { name: "vps", host: "1.2.3.4", user: "deploy", port: 2222, identityFile: "~/.ssh/id_ed25519", options: ["StrictHostKeyChecking=accept-new"] };
 const bare: SshProfile = { name: "box", host: "box.local" };
@@ -70,5 +70,45 @@ describe("SshProfileSchema", () => {
   });
   it("rejects a leading-dash user", () => {
     expect(SshProfileSchema.safeParse({ name: "x", host: "h", user: "-oLocalCommand=evil" }).success).toBe(false);
+  });
+});
+
+describe("looksLikeRemoteTarget", () => {
+  it("is true for user@host and host:port, false for a bare word", () => {
+    expect(looksLikeRemoteTarget("deploy@1.2.3.4")).toBe(true);
+    expect(looksLikeRemoteTarget("box.local:2222")).toBe(true);
+    expect(looksLikeRemoteTarget("vps")).toBe(false);
+  });
+});
+
+describe("parseSshTarget", () => {
+  it("parses user@host", () => {
+    expect(parseSshTarget("deploy@1.2.3.4")).toMatchObject({ name: "deploy@1.2.3.4", host: "1.2.3.4", user: "deploy" });
+  });
+  it("parses user@host:port", () => {
+    expect(parseSshTarget("deploy@box.local:2222")).toMatchObject({ host: "box.local", user: "deploy", port: 2222 });
+  });
+  it("parses a bare host", () => {
+    expect(parseSshTarget("box.local")).toMatchObject({ name: "box.local", host: "box.local" });
+    expect(parseSshTarget("box.local")?.user).toBeUndefined();
+  });
+  it("returns null for an empty or injection-shaped target", () => {
+    expect(parseSshTarget("  ")).toBeNull();
+    // a leading-dash host would be read by ssh as a flag — rejected by the schema
+    expect(parseSshTarget("-oProxyCommand=touch /tmp/x")).toBeNull();
+  });
+});
+
+describe("resolveSshTarget", () => {
+  const configs: SshProfile[] = [{ name: "vps", host: "1.2.3.4", user: "deploy", port: 2222 }];
+  it("prefers a configured profile by name", () => {
+    expect(resolveSshTarget("vps", configs)?.port).toBe(2222);
+  });
+  it("parses an explicit user@host that isn't configured", () => {
+    expect(resolveSshTarget("root@example.com", configs)).toMatchObject({ host: "example.com", user: "root" });
+  });
+  it("returns null for a bare unconfigured word (likely a typo, never an implicit dial)", () => {
+    expect(resolveSshTarget("ghost", configs)).toBeNull();
+    expect(resolveSshTarget("ghost", undefined)).toBeNull();
   });
 });
