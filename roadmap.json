@@ -12674,7 +12674,7 @@
       "id": "MEMORY-PROVIDER-FRAMEWORK",
       "track": "Operator",
       "title": "Pluggable memory-provider framework (port + catalog, local default)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] One pluggable memory-backend system mirroring providers/catalog.ts (LLM) and gateway/platforms/registry.ts (messaging): a port over store/memory-store.ts + a MEMORY_CATALOG of adapters — local brain (default), cloud storage (Drive/Box/S3, sync/backup — intelligence stays local), and memory-as-a-service (mem0/supermemory/Honcho, content-processing). All opt-in, equal citizens; the user picks whatever. Local is the source of truth + offline-safe; every outbound still passes the kernel. Each catalog entry carries a one-line 'what it does' for an informed choice (transparency, not gating).",
       "done": "a MemoryProvider port + MEMORY_CATALOG ({id,label,kind:storage|service|local,requiredEnv,secretEnv?,setupSteps,whatItDoes}); resolveMemoryProvider(env) defaults to local; pure catalog helpers tested; no behavior change when unconfigured; committed.",
