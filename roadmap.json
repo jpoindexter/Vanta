@@ -2029,7 +2029,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
       "updated": "2026-06-20",
-      "notes": "Pure classifyHeap (ok/high>=1.5GB/critical>=2.5GB, VANTA_MEM_HIGH_MB/CRIT_MB override) + buildMemoryWarning + checkMemory (60s cooldown, injected readHeap/now). Unwired; intended surface = repl/post-turn-gates.ts GateState (readHeap=process.memoryUsage().heapUsed)."
+      "notes": "Pure classifyHeap/buildMemoryWarning/checkMemory NOW LIVE: runPostTurnGates calls memWarnGate (checkMemory with readHeap=process.memoryUsage().heapUsed, cooldown on GateState.memWarnLastAt) best-effort each turn, emits the HIGH(>=1.5GB)/CRITICAL(>=2.5GB) warning via the shared note sink. Injectable heap seam for tests. Below-threshold/within-60s-cooldown = silent."
     },
     {
       "id": "VANTA-TOKEN-BUDGET-PARSE",
