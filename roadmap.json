@@ -2707,7 +2707,7 @@
       "id": "VANTA-READ-ONLY-CMD-MAP",
       "track": "Harness",
       "title": "Read-only command validation maps — git/gh/shell safe-flag allowlists",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Comprehensive allowlist maps for read-only validation: GIT_READ_ONLY_COMMANDS (all git subcommands + safe flags + danger callbacks), GH_READ_ONLY_COMMANDS (gh CLI read-only ops), EXTERNAL_READONLY_COMMANDS (cross-shell). containsVulnerableUncPath detects Windows UNC paths that can leak credentials.",
       "done": "In read-only mode, only allowlisted git/gh commands pass; any unsafe flags rejected; UNC paths blocked; PowerShell and bash share the same validation logic.",
@@ -2716,7 +2716,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure classifier: READ_ONLY_GIT/GH/SHELL allowlists + isReadOnlyCommand/classifyCommand (read-only|unknown|mutating). Conservative — any pipe/redirect/&&/;/backtick/$()/process-sub anywhere -> never read-only (a mutation behind a safe head can never pass). Built+tested; consumer = auto-mode classifyAutoModeAction for shell_cmd (may only LOOSEN an ask, never a block) + less-perms seeding (named)."
     },
     {
       "id": "VANTA-BASH-SECURITY-BLOCKS",
