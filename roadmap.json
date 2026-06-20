@@ -3153,7 +3153,7 @@
       "id": "VANTA-SPINNER-VERBS",
       "track": "Operator",
       "title": "Custom spinner verbs — user-configurable loading message verbs",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Spinner loading messages use verbs from a configurable list (default: 'Accomplishing', 'Actioning', 'Actualizing', etc.). Users can replace the list entirely or extend it via `spinnerVerbs` setting with `mode: 'replace'` or `mode: 'extend'`. Empty replace uses built-in list as fallback.",
       "done": "Setting spinnerVerbs.mode='replace' uses only user verbs; mode='extend' adds to built-ins; empty replace falls back safely.",
@@ -3162,7 +3162,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure DEFAULT_SPINNER_VERBS (re-exports figures.ts SPINNER_VERBS read-only) + parseUserVerbs (VANTA_SPINNER_VERBS comma/pipe split, trim, control-strip each, drop empties) + resolveSpinnerVerbs (user override non-empty else default, fresh array) + spinnerVerbAt (cycle/wrap, handles single/negative/fractional/non-finite, empty->default). Control-stripped so a verb cant inject an escape. Built+tested; busy wire = ui/busy busyLabel calls resolveSpinnerVerbs once + spinnerVerbAt per frame (named). Unset = current verbs."
     },
     {
       "id": "VANTA-TERMINAL-SETUP-CMD",
