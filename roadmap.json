@@ -1544,7 +1544,7 @@
       "id": "VANTA-SESSION-CLEANUP",
       "track": "Harness",
       "title": "Session cleanup period — cleanupPeriodDays setting",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `cleanupPeriodDays` (default 30) auto-expires sessions older than N days on startup. Vanta sessions accumulate indefinitely; there's no TTL or auto-purge.",
       "done": "`cleanupPeriodDays` in settings (default 30) prunes sessions older than N days on session start; `vanta sessions prune --older-than <days>` runs it manually; a summary of pruned sessions is logged.",
@@ -1552,7 +1552,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20",
+      "notes": "staleSessions + pruneSessions built+tested; cleanupPeriodDays setting added. Auto-trigger (call pruneSessions at prepareRun startup, or a `vanta sessions cleanup` verb) is a one-line follow-up wire."
     },
     {
       "id": "VANTA-WEBFETCH-SKIP",
@@ -1587,7 +1589,7 @@
       "id": "VANTA-DESCRIBE-CMD",
       "track": "Harness",
       "title": "/describe slash command — generate file and directory descriptions",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `/describe` generates structured descriptions for files and directories, useful for auto-populating CLAUDE.md, onboarding docs, and code search indexes. No equivalent in Vanta.",
       "done": "`/describe [path]` generates a concise description of the file or directory and optionally appends it to VANTA.md or a designated descriptions file.",
@@ -1595,7 +1597,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-STOP-CMD",
