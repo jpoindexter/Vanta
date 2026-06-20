@@ -8,6 +8,7 @@ import { writeFileTool } from "./write-file.js";
 import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
 import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
+import { openDeepLinkTool } from "./deep-link.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -96,6 +97,7 @@ describe("registry", () => {
       "money",
       "mount_mcp",
       "nl_assertions",
+      "open_deep_link",
       "peer_send",
       "playbook",
       "podcast_read",
@@ -444,5 +446,51 @@ describe("exit_worktree", () => {
     const res = await exitWorktreeTool.execute({ path: "/tmp/wt" }, ctx());
     expect(res.ok).toBe(false);
     expect(res.output).toContain("path and branch are required");
+  });
+});
+
+describe("open_deep_link", () => {
+  it("describeForSafety surfaces only the scheme for the kernel (never the payload)", () => {
+    const desc = openDeepLinkTool.describeForSafety?.({
+      url: "vanta://run?prompt=secret%20stuff&cwd=/repo",
+    });
+    expect(desc).toBe("open deep link vanta:");
+    expect(desc).not.toContain("secret");
+  });
+
+  it("resolves a valid link to an argv descriptor (no shell string)", async () => {
+    // Suppress the best-effort macOS terminal spawn so the test never opens a window.
+    const prev = process.env.VANTA_DEEPLINK_NO_OPEN;
+    process.env.VANTA_DEEPLINK_NO_OPEN = "1";
+    try {
+      const res = await openDeepLinkTool.execute(
+        { url: "vanta://run?prompt=fix%20auth&cwd=/tmp/proj" },
+        ctx(),
+      );
+      expect(res.ok).toBe(true);
+      expect(res.output).toContain("cmd: vanta");
+      expect(res.output).toContain('args: ["run","fix auth"]');
+      expect(res.output).toContain("cwd: /tmp/proj");
+      expect(res.output).toContain("launched_terminal: no");
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_DEEPLINK_NO_OPEN;
+      else process.env.VANTA_DEEPLINK_NO_OPEN = prev;
+    }
+  });
+
+  it("rejects a control character in a param (untrusted boundary), errors-as-values", async () => {
+    const res = await openDeepLinkTool.execute(
+      { url: "vanta://run?prompt=a%0Ab" },
+      ctx(),
+    );
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("Rejected deep link");
+    expect(res.output).toContain("control characters");
+  });
+
+  it("rejects a wrong scheme", async () => {
+    const res = await openDeepLinkTool.execute({ url: "http://run?prompt=x" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("unsupported scheme");
   });
 });

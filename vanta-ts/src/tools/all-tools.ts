@@ -81,6 +81,7 @@ import { sendMessageTool } from "./send-message.js";
 import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { listPeersTool, peerSendTool } from "./peers.js";
+import { openDeepLinkTool } from "./deep-link.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -204,4 +205,5 @@ export const ALL_TOOLS: readonly Tool[] = [
   exitWorktreeTool,
   listPeersTool,
   peerSendTool,
+  openDeepLinkTool,
 ];

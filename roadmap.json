@@ -4349,7 +4349,7 @@
       "id": "VANTA-DEEP-LINK",
       "track": "Operator",
       "title": "Deep link protocol — agent-cli:// URL opens another agent with pre-filled context",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Registers the `agent-cli://` URL scheme. Opening `agent-cli://open?q=fix+tests&repo=owner/repo` opens a new terminal window with another agent, pre-filling the prompt and working directory. Used for 'open in terminal' integrations from the vendor cloud and IDE extensions. Security: control char filtering, shell-escaping at injection boundary. Feature flag: `LODESTONE`.",
       "done": "Clicking a agent-cli:// link opens a terminal with another agent; prompt is pre-filled; working directory set from cwd/repo params; control characters in params are rejected.",
