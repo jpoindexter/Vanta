@@ -1,6 +1,7 @@
 import type { CompletionConfig, CompletionResult, LLMProvider, ToolSchema } from "./interface.js";
 import type { Message } from "../types.js";
 import { buildAnthropicEffortParams, debugEffort } from "./effort.js";
+import { buildAnthropicBetas } from "./interleaved-thinking.js";
 import { toAnthropicMessages, toAnthropicTool, parseResponse } from "./anthropic-convert.js";
 import type { AnthropicTextBlock } from "./anthropic-convert.js";
 
@@ -35,10 +36,16 @@ export class AnthropicProvider implements LLMProvider {
   async complete(messages: Message[], tools: ToolSchema[], config?: CompletionConfig): Promise<CompletionResult> {
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
     const oauth = Boolean(this.authToken);
-    const client = buildAnthropicClient(Anthropic, { oauth, authToken: this.authToken, apiKey: this.apiKey });
     const { system, amsgs } = buildConvertedMessages(messages, oauth);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createParams = buildCreateParams({ model: this.model, system, amsgs, tools, config }) as any;
+    const thinkingActive = Boolean(createParams.thinking);
+    const client = buildAnthropicClient(Anthropic, {
+      oauth,
+      authToken: this.authToken,
+      apiKey: this.apiKey,
+      thinking: { model: this.model, thinkingActive },
+    });
     let response;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,9 +80,17 @@ export class AnthropicProvider implements LLMProvider {
   }
 }
 
+type ClientOpts = {
+  oauth: boolean;
+  authToken?: string;
+  apiKey?: string;
+  thinking?: { model: string; thinkingActive: boolean };
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildAnthropicClient(Anthropic: any, opts: { oauth: boolean; authToken?: string; apiKey?: string }): any {
-  const betas = [opts.oauth ? OAUTH_BETA : null, promptCache1hEnabled(process.env) ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
+function buildAnthropicClient(Anthropic: any, opts: ClientOpts): any {
+  const base = [opts.oauth ? OAUTH_BETA : null, promptCache1hEnabled(process.env) ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
+  const betas = opts.thinking ? buildAnthropicBetas(base, opts.thinking) : base;
   const defaultHeaders: Record<string, string> = {};
   if (betas.length) defaultHeaders["anthropic-beta"] = betas.join(",");
   if (opts.oauth) defaultHeaders["user-agent"] = OAUTH_USER_AGENT;
