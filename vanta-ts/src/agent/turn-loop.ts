@@ -83,6 +83,21 @@ function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOu
   return count >= MAX_IDENTICAL_CALLS ? call.name : null;
 }
 
+/**
+ * Log a tool result to the kernel event log as status + size ONLY — never the
+ * raw output. Tool output can carry secrets (read_file of .env, gmail of a key
+ * email); the full result already lives in the session transcript, so the
+ * world-readable, audit-sealed event log only needs a marker. Best-effort: a
+ * log failure must never abort a turn.
+ */
+async function logToolOutcome(deps: AgentDeps, name: string, ok: boolean, chars: number): Promise<void> {
+  try {
+    await deps.safety.logEvent(`${name}: ${ok ? "ok" : "err"} (${chars} chars)`);
+  } catch {
+    /* best-effort */
+  }
+}
+
 type ProcessToolCallsArgs = { calls: ToolCall[]; deps: AgentDeps; ctx: ToolContext; state: TurnState; messages: Message[]; prefetched?: Map<string, Promise<DispatchOutcome>> };
 
 async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | null> {
@@ -98,7 +113,7 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
     const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
     if (reactive.tokensSaved) state.tokensSaved += reactive.tokensSaved;
     messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: reactive.output });
-    await deps.safety.logEvent(`${call.name}: ${reactive.output.slice(0, 120)}`);
+    await logToolOutcome(deps, call.name, outcome.ok, reactive.output.length);
     const stuck = recordToolOutcome(state, call, outcome, deps);
     const t = DEFAULT_ERRORDETECT_THRESHOLD;
     if (deps.advisorProvider && state.consecutiveErrorResults >= t && state.consecutiveErrorResults % t === 0) {
