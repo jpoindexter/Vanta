@@ -1,5 +1,10 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { splitForLimit } from "./split.js";
+
+// Signal has no hard API cap, but very long single messages are rejected/clipped
+// by clients; 2000 chars is a safe per-message budget.
+const SIGNAL_LIMIT = 2000;
 
 // MSG-SIGNAL: Signal adapter via signal-cli in daemon HTTP mode.
 // signal-cli exposes a local JSON-RPC 2.0 server for SEND and SSE for RECEIVE.
@@ -84,12 +89,14 @@ export class SignalAdapter implements PlatformAdapter {
   }
 
   async send(msg: OutboundMessage): Promise<void> {
-    const payload = buildSendPayload(this.number, msg.chatId, msg.text);
-    const res = await fetch(`${this.baseUrl}/api/v1/jsonrpc`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: payload,
-    });
-    if (!res.ok) throw new Error(`Signal send failed: HTTP ${res.status}`);
+    for (const part of splitForLimit(msg.text, SIGNAL_LIMIT, "chars")) {
+      const payload = buildSendPayload(this.number, msg.chatId, part);
+      const res = await fetch(`${this.baseUrl}/api/v1/jsonrpc`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: payload,
+      });
+      if (!res.ok) throw new Error(`Signal send failed: HTTP ${res.status}`);
+    }
   }
 }

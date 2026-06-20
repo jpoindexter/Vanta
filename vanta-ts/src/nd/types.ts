@@ -68,8 +68,43 @@ export type EfGate = {
 /** Per-gate user configuration. */
 export type GateConfig = { enabled: boolean; threshold: number };
 
-/** The per-user ND profile: gate config keyed by gate id. */
+/** The per-user gate config: gate config keyed by gate id. */
 export type NdConfig = Record<GateId, GateConfig>;
+
+/** How much the assistant should say per turn (drives nd-sensory-load). */
+export type OutputDensity = "minimal" | "balanced" | "rich";
+
+/** Sensory load tolerance — caps decoration/emoji/visual noise in output. */
+export type SensoryLoad = "low" | "medium" | "high";
+
+/** How time support is surfaced (ranges vs single points; explicit checkpoints). */
+export type TimeSupportStyle = "ranges" | "points" | "off";
+
+/** All valid values per preference, for parse/validate at the command + persistence boundary. */
+export const OUTPUT_DENSITIES = ["minimal", "balanced", "rich"] as const;
+export const SENSORY_LOADS = ["low", "medium", "high"] as const;
+export const TIME_SUPPORT_STYLES = ["ranges", "points", "off"] as const;
+
+/**
+ * Non-gate per-user ND preferences. These are not executive-function gates —
+ * they shape HOW the assistant communicates (density, sensory noise) and how it
+ * surfaces time, the way the EF gates shape WHEN it nudges. A renderer / the
+ * prompt reads these; they persist alongside the gate config.
+ */
+export type NdPreferences = {
+  outputDensity: OutputDensity;
+  sensoryLoad: SensoryLoad;
+  timeSupport: TimeSupportStyle;
+};
+
+/**
+ * The complete per-user ND profile: the EF gate config that drives the engine
+ * plus the communication/time preferences. This is the persisted unit.
+ */
+export type NdProfile = {
+  gates: NdConfig;
+  prefs: NdPreferences;
+};
 
 /** The engine's running state: each gate's accumulator. */
 export type EfState = Record<GateId, GateMemory>;

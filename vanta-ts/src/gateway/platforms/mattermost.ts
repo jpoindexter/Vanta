@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
+import { splitForLimit } from "./split.js";
+
+// Mattermost's default MaxPostSize is 16383 characters; a post over that 400s.
+const MATTERMOST_LIMIT = 16383;
 
 // Mattermost adapter — Mattermost REST API v4, pure fetch, no SDK.
 // poll = GET /api/v4/channels/{channel_id}/posts?since=<unix-ms> → a PostList
@@ -128,12 +132,14 @@ export class MattermostAdapter implements PlatformAdapter {
 
   async send(msg: OutboundMessage): Promise<void> {
     try {
-      await fetch(`${this.api}/posts`, {
-        method: "POST",
-        headers: { ...this.headers(), "content-type": "application/json" },
-        body: JSON.stringify({ channel_id: msg.chatId, message: msg.text }),
-        signal: AbortSignal.timeout(5000),
-      });
+      for (const part of splitForLimit(msg.text, MATTERMOST_LIMIT, "chars")) {
+        await fetch(`${this.api}/posts`, {
+          method: "POST",
+          headers: { ...this.headers(), "content-type": "application/json" },
+          body: JSON.stringify({ channel_id: msg.chatId, message: part }),
+          signal: AbortSignal.timeout(5000),
+        });
+      }
     } catch {
       /* errors-as-values: a send failure must not throw through the gateway loop */
     }
