@@ -8,6 +8,8 @@ import { next } from "./next.js";
 import { goal } from "./goal-cmd.js";
 import { planMode } from "./plan-mode.js";
 import { planV2 } from "./plan-cmd.js";
+import { tickets } from "./tickets-cmd.js";
+import { outreach } from "./outreach-cmd.js";
 import { auto } from "./auto-cmd.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
@@ -142,7 +144,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, wftasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 

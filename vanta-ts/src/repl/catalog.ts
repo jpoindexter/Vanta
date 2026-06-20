@@ -69,6 +69,8 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "now", desc: "execute items in the Now column — agent picks up whatever you put there" },
   { name: "planmode", arg: "[on|off|approve]", desc: "enforced plan mode — write tools blocked until /planmode approve" },
   { name: "planv2", arg: "<task>", desc: "plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10)" },
+  { name: "tickets", desc: "issue board — first-class tickets grouped by status, with goal/parent links + inbox state" },
+  { name: "outreach", desc: "authorized brand workspace — pending drafts + the proof ledger (draft-only, approval-gated)" },
   { name: "boundary", desc: "mark a task boundary — archive the current task state and begin fresh" },
   { name: "where", desc: "show last stated intent and recent tool call breadcrumb" },
   { name: "explain", arg: "[off]", desc: "capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes" },

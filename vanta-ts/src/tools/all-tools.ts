@@ -34,6 +34,8 @@ import { lifeSearchTool } from "./life-search.js";
 import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
+import { ticketTool } from "./tickets.js";
+import { outreachTool } from "./outreach.js";
 import { selfCorrectTool } from "./self-correct.js";
 import { configSandboxTool } from "./config-sandbox.js";
 import { budgetTool } from "./budget.js";
@@ -152,6 +154,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   lifeSearchTool,
   linkedinReadTool,
   regressionLockTool,
+  ticketTool,
+  outreachTool,
   selfCorrectTool,
   configSandboxTool,
   budgetTool,
