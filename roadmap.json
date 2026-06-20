@@ -2105,7 +2105,7 @@
       "id": "VANTA-HOOK-TIMING",
       "track": "Harness",
       "title": "Hook timing indicator — show elapsed time when hooks take >500ms",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent shows a timing indicator in the hook progress display when a hook takes longer than `HOOK_TIMING_DISPLAY_THRESHOLD_MS` (500ms). Helps users identify slow hooks that are delaying tool execution, with elapsed time shown as e.g. '1.2s' in the hook progress pill.",
       "done": "A PreToolUse hook that takes 800ms shows '800ms' next to the hook name in the tool call progress display.",
@@ -2114,7 +2114,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-UNDERCOVER-MODE",

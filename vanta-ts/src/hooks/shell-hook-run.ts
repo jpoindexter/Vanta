@@ -10,6 +10,7 @@ import { runMcpToolHook } from "./mcp-hook-run.js";
 import { runHttpHook } from "./http-hook-run.js";
 import { runPromptHook } from "./prompt-hook-run.js";
 import { interpretHookExit } from "./hook-exit-codes.js";
+import { shouldShowTiming, buildHookTimingNote } from "./hook-timing.js";
 import type { LLMProvider } from "../providers/interface.js";
 
 // Hook execution layer. Extracted from shell-hooks.ts (size gate).
@@ -27,12 +28,23 @@ export type HookRunDeps = {
 
 type HookRunOpts = HookRunDeps & { cwd?: string };
 
+/** A human-readable label for a hook in a timing note: `<event>:<type>`. */
+function hookLabel(hook: ShellHook, event: ShellHookEvent): string {
+  return `${event}:${hook.type ?? "shell"}`;
+}
+
 /** Dispatch one hook to its configured type adapter. */
-function runHook(hook: ShellHook, event: ShellHookEvent, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
-  if (hook.once && seenOnce(event, hook)) return Promise.resolve({ code: 0, stdout: "[hook skipped: once]", stderr: "" });
+async function runHook(hook: ShellHook, event: ShellHookEvent, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
+  if (hook.once && seenOnce(event, hook)) return { code: 0, stdout: "[hook skipped: once]", stderr: "" };
   if (hook.statusMessage) opts.onStatus?.(hook.statusMessage);
+  const startedAt = Date.now();
   const run = () => runHookNow(hook, contextJson, opts);
-  return withHookTimeout(run(), hook.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const result = await withHookTimeout(run(), hook.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  // Observational only: surface a one-line timing indicator past the threshold;
+  // never affects the result that flows back to the caller.
+  const elapsed = Date.now() - startedAt;
+  if (shouldShowTiming(elapsed)) opts.onStatus?.(buildHookTimingNote(hookLabel(hook, event), elapsed));
+  return result;
 }
 
 function runHookNow(hook: ShellHook, contextJson: string, opts: HookRunOpts): Promise<ShellHookResult> {
