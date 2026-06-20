@@ -28,6 +28,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "lifesearch", arg: "<query>", desc: "search across Vanta's local stores (world/money/radar/team/errors) — source-cited" },
   { name: "compartments", arg: "[path]", desc: "Vanta's self-repair body map — compartments + max autonomy per part" },
   { name: "skeptic", arg: "<claim>", desc: "adversarially verify a claim — refute by default, demand evidence" },
+  { name: "security-review", arg: "[base]", desc: "security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF)" },
   { name: "locks", desc: "regression locks — verified behaviors + passing/regressed status (verification organ)" },
   { name: "nd", arg: "[<gate> on|off|<n>]", desc: "executive-function support gates — view/toggle/tune the ND gate set" },
   { name: "reach", desc: "internet-reach doctor — each channel's active backend + status + the exact fix per gap" },

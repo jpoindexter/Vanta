@@ -1816,7 +1816,7 @@
       "id": "VANTA-SECURITY-REVIEW-CMD",
       "track": "Harness",
       "title": "/security-review — built-in security audit of current branch changes",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Bundled /security-review prompt skill: runs git status/log/diff, then uses an LLM to perform a focused security review of the pending changes. Scoped to git-diff tools only. Defined as an inline markdown skill with frontmatter allowed-tools.",
       "done": "Running /security-review audits the current branch diff for security issues; output is structured finding report; only git-read tools permitted during review.",
@@ -1825,7 +1825,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-CYBER-RISK-INSTRUCTION",
@@ -2123,7 +2123,7 @@
       "id": "VANTA-UNDERCOVER-MODE",
       "track": "Harness",
       "title": "Undercover mode — safety strip for public/open-source repo contributions",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's 'undercover mode' activates when working in public/external repos (auto-detects unless repo is in internal allowlist, or `CLAUDE_CODE_UNDERCOVER=1`). When active: adds safety instructions to commit/PR prompts to avoid leaking internal codenames or Anthropic-internal context, and strips all commit attribution. The model is not told its own identity.",
       "done": "Working in a public GitHub repo, another agent adds a safety caveat to generated commit messages and omits model attribution. `VANTA_UNDERCOVER=1` forces it on.",
@@ -2132,7 +2132,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure undercoverEnabled (VANTA_UNDERCOVER=1, off by default) + stripInternalMarkers (drops inline .vanta/ paths, internal card-id tags, Vanta provenance/Co-Authored-By lines; tidies whitespace; leaves prose + real identifiers intact) + applyUndercover. Cleaning internal bookkeeping, NOT impersonation. Stripper built+tested; consumers = batch buildGhPrArgs --body + the git-commit message build site (named follow-up)."
     },
     {
       "id": "VANTA-SESSION-ENV",

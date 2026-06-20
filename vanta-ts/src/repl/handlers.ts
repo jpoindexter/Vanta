@@ -68,6 +68,7 @@ import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
 import { history, exportConvo, compress, usage, mcp, cron } from "./context-cmds.js";
 import { stop } from "./stop-cmd.js";
+import { securityReview } from "./security-review-cmd.js";
 
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
 const exit: SlashHandler = () => ({ exit: true });
@@ -151,7 +152,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, update, image, paste, cron, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 
