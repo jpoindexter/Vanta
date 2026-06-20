@@ -3011,7 +3011,7 @@
       "id": "VANTA-KEYBINDING-WARNINGS",
       "track": "Operator",
       "title": "KeybindingWarnings — conflict detection and resolution hints",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's KeybindingWarnings detects and surfaces conflicting keybindings (e.g. user-defined bindings that shadow built-ins) with a notice and suggestions to resolve. Pairs with VANTA-TMUX (horizon) and TUI-KEYS (next). Without conflict detection, users silently lose bindings.",
       "done": "On session start, KeybindingWarnings checks for conflicts; StatusNotices shows a warning for each conflict with the conflicting keys and a resolution hint; /keybindings shows the full conflict report.",
@@ -3019,7 +3019,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure findKeybindingConflicts (group by chord+context, flag >1 action as conflict; flag specific-context reuse of a GLOBAL chord as lower-severity shadow; different specific contexts = not a conflict) + buildConflictWarning (names both actions + context + ~/.vanta/keybindings.json hint) + hasConflicts. Built+tested against the documented KeyBinding shape. CAVEAT: the DEFAULT_BINDINGS/KeyContext registry was deleted in the 06-13 TUI rebuild — current ui/shortcuts.ts is the !cmd/#note REPL shortcut. The detector is ready but its consumer (a binding registry) does not currently exist; wire = the keybinding loader merge + a /doctor report IF a registry returns (named, contingent)."
     },
     {
       "id": "VANTA-RESOURCE-UPDATE-MSG",
