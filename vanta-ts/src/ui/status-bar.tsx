@@ -2,6 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text, useStdout } from "ink";
 import { contextBar, kfmt } from "./busy.js";
 import { HEALTH, FOCUS } from "../term/palette.js";
+import { effortIndicatorVisible, formatEffortIndicator } from "../term/effort-indicator.js";
 import type { EffortLevel } from "../types.js";
 import type { RichSegment } from "./status-segments.js";
 
@@ -31,7 +32,9 @@ function buildKeys(props: {
   const turnsLabel = `${props.turns} turn${props.turns === 1 ? "" : "s"}`;
   return {
     MODEL:   `  ${props.model}`,
-    EFFORT:  props.effortLevel && props.effortLevel !== "medium" ? `  ·  effort ${props.effortLevel}` : "",
+    EFFORT:  effortIndicatorVisible(props.effortLevel, process.env)
+      ? `  ·  ${formatEffortIndicator(props.effortLevel, { style: "glyph" })}`
+      : "",
     CTX:     `  ·  ${props.gauge} [${props.bar}] ${props.ctxPct}%`,
     ELAPSED: props.elapsed ? `  ·  ◷ ${props.elapsed}` : "",
     TURNS:   `  ·  ${turnsLabel}`,

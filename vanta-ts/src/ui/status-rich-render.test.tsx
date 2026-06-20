@@ -1,5 +1,5 @@
 import { createElement as h } from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { renderUi, tick } from "./test-render.js";
 import { StatusBar } from "./status-bar.js";
 import { composeRichSegments } from "./status-segments.js";
@@ -74,6 +74,35 @@ describe("StatusBar rich segments", () => {
     const frame = inst.lastFrame();
     expect(frame).toContain("fake-model");
     expect(frame).not.toContain("⑂ worktree");
+    inst.unmount();
+  });
+});
+
+describe("StatusBar effort indicator", () => {
+  // Guard the env flag so the default-hidden assertion is deterministic
+  // regardless of the host shell's VANTA_EFFORT_INDICATOR.
+  const prev = process.env.VANTA_EFFORT_INDICATOR;
+  beforeEach(() => { delete process.env.VANTA_EFFORT_INDICATOR; });
+  afterEach(() => {
+    if (prev === undefined) delete process.env.VANTA_EFFORT_INDICATOR;
+    else process.env.VANTA_EFFORT_INDICATOR = prev;
+  });
+
+  it("renders the glyph + label chip for a non-default level", async () => {
+    const inst = renderUi(h(StatusBar, { ...base, effortLevel: "high", rich: [] }), WIDE);
+    await tick();
+    const frame = inst.lastFrame();
+    expect(frame).toContain("● high"); // bullet glyph + level label
+    inst.unmount();
+  });
+
+  it("shows no effort chip for the default (medium) level", async () => {
+    const inst = renderUi(h(StatusBar, { ...base, effortLevel: "medium", rich: [] }), WIDE);
+    await tick();
+    const frame = inst.lastFrame();
+    expect(frame).not.toContain("high");
+    expect(frame).not.toContain("medium");
+    expect(frame).not.toMatch(/[○◐●◆◇]\s/); // no effort glyph rendered
     inst.unmount();
   });
 });
