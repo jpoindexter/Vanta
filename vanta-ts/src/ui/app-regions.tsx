@@ -88,11 +88,19 @@ export function TeammateTree(props: { agents: SubagentProgress[]; leader: Leader
   );
 }
 
+/** The single thinking spinner: frame + verb + elapsed + an optional stalled
+ * suffix ("(still working… Ns)" past the threshold). Shown when no tool/tree is. */
+function SingleSpinner(props: { frame: string; verb: string; secs: number; suffix: string }): ReactElement {
+  const { frame, verb, secs, suffix } = props;
+  const tail = suffix ? ` ${suffix}` : "";
+  return <Text><Text color={ACTIVITY}>{frame}</Text> {verb}… ({secs}s · esc to interrupt){tail}</Text>;
+}
+
 export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number }): ReactElement | null {
   const { streaming, activeTools, busy, tick, agents = [], selectedAgent = -1, leaderTokens = 0 } = props;
   if (!busy && !streaming) return null;
   const loaders = toolLoaderRows(activeTools, tick);
-  const { frame, verb } = busyLabel(tick);
+  const { frame, verb, suffix } = busyLabel(tick);
   const secs = Math.round(tick * 0.15);
   const tree = busy && agents.length >= 2
     ? <TeammateTree agents={agents} leader={{ verb, tokens: leaderTokens, secs }} selected={selectedAgent} frame={frame} />
@@ -109,7 +117,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
           agents → the single thinking spinner, shown when no tool is running. */}
       {tree}
       {busy && !streaming && loaders.length === 0 && !tree
-        ? <Text><Text color={ACTIVITY}>{frame}</Text> {verb}… ({secs}s · esc to interrupt)</Text>
+        ? <SingleSpinner frame={frame} verb={verb} secs={secs} suffix={suffix} />
         : null}
     </Box>
   );

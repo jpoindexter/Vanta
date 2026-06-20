@@ -1,8 +1,16 @@
 import { createElement as h } from "react";
-import { describe, it, expect } from "vitest";
-import { renderUi, tick } from "./test-render.js";
-import { AgentPill, Footer, agentPillText } from "./app-regions.js";
+import { describe, it, expect, afterEach } from "vitest";
+import { renderUi, tick, waitForFrame } from "./test-render.js";
+import { AgentPill, Footer, LiveRegion, agentPillText } from "./app-regions.js";
 import type { SubagentProgress } from "../subagent/progress-store.js";
+
+// Default stall threshold 20_000ms / tick→ms factor 150 → tick ≥ 134 is stalled.
+const STALLED_TICK = 200;
+const NORMAL_TICK = 5;
+
+function liveRegion(props: { tick: number }) {
+  return h(LiveRegion, { streaming: "", activeTools: [], busy: true, tick: props.tick });
+}
 
 const editing: SubagentProgress = { id: "a", title: "fix auth", summary: "Editing auth.ts", updatedAt: 2 };
 const reading: SubagentProgress = { id: "b", title: "audit docs", summary: "Reading README.md", updatedAt: 1 };
@@ -54,6 +62,42 @@ describe("Footer sub-agent pill", () => {
     const inst = renderUi(h(Footer, { ...footerBase, agents: [] }));
     await tick();
     expect(inst.lastFrame()).not.toContain("Editing");
+    inst.unmount();
+  });
+});
+
+describe("LiveRegion spinner", () => {
+  afterEach(() => { delete process.env.VANTA_SPINNER_VERBS; });
+
+  it("renders a built-in verb by default", async () => {
+    const inst = renderUi(liveRegion({ tick: NORMAL_TICK }));
+    const frame = await waitForFrame(inst, "esc to interrupt");
+    expect(frame).toContain("thinking"); // first built-in verb at a low tick
+    expect(frame).not.toContain("still working"); // not stalled
+    inst.unmount();
+  });
+
+  it("renders user-configured verbs from VANTA_SPINNER_VERBS", async () => {
+    process.env.VANTA_SPINNER_VERBS = "Cooking,Brewing";
+    const cooking = renderUi(liveRegion({ tick: 0 }));
+    expect(await waitForFrame(cooking, "Cooking")).toContain("Cooking");
+    cooking.unmount();
+    const brewing = renderUi(liveRegion({ tick: 8 }));
+    expect(await waitForFrame(brewing, "Brewing")).toContain("Brewing");
+    brewing.unmount();
+  });
+
+  it("shows the still-working suffix past the stall threshold", async () => {
+    const inst = renderUi(liveRegion({ tick: STALLED_TICK }));
+    const frame = await waitForFrame(inst, "still working");
+    expect(frame).toContain("still working");
+    inst.unmount();
+  });
+
+  it("shows no still-working suffix under the threshold", async () => {
+    const inst = renderUi(liveRegion({ tick: NORMAL_TICK }));
+    const frame = await waitForFrame(inst, "esc to interrupt");
+    expect(frame).not.toContain("still working");
     inst.unmount();
   });
 });

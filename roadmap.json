@@ -2775,7 +2775,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-06-20",
-      "notes": "Pure isStalled (>20s, VANTA_STALL_SPINNER_MS) + compactDuration + stalledLabel ((still working… Ns)) + spinnerFrame (ASTERISK_FRAMES under threshold, new STALLED_FRAMES past — added to term/figures.ts) + spinnerPresentation ({glyph,suffix}). Under threshold = current behavior. Built+tested; wire = ui/app-regions LiveRegion (elapsedMs=tick*150ms, render glyph+suffix) named."
+      "notes": "NOW LIVE: busyLabel computes elapsedMs=tick*150ms + returns spinnerPresentation glyph+suffix; LiveRegion SingleSpinner renders the distinct stalled glyph + (still working… Ns) past the ~20s threshold, normal frame under. Render-tested via the Ink harness. Observational only."
     },
     {
       "id": "VANTA-SPINNER-GLIMMER",
@@ -3163,7 +3163,7 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-06-20",
-      "notes": "Pure DEFAULT_SPINNER_VERBS (re-exports figures.ts SPINNER_VERBS read-only) + parseUserVerbs (VANTA_SPINNER_VERBS comma/pipe split, trim, control-strip each, drop empties) + resolveSpinnerVerbs (user override non-empty else default, fresh array) + spinnerVerbAt (cycle/wrap, handles single/negative/fractional/non-finite, empty->default). Control-stripped so a verb cant inject an escape. Built+tested; busy wire = ui/busy busyLabel calls resolveSpinnerVerbs once + spinnerVerbAt per frame (named). Unset = current verbs."
+      "notes": "NOW LIVE: busyLabel(tick) resolves the verb via resolveSpinnerVerbs(process.env)+spinnerVerbAt (VANTA_SPINNER_VERBS comma/pipe override, control-stripped) instead of indexing the literal list; VERB_EVERY cadence unchanged. Default unset = built-in verbs."
     },
     {
       "id": "VANTA-TERMINAL-SETUP-CMD",
