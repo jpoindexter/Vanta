@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Goal } from "./types.js";
+import type { OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
 import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
@@ -11,6 +12,25 @@ import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 export const TIER_SEP = "\n\n---\n\n";
 
 const CONTEXT_FILES = ["VANTA.md", "ARGO.md", "AGENTS.md", "CLAUDE.md", "README.md"];
+
+/** The length-cap phrase rule 10a opens with at `balanced` (DEFAULT) density. */
+const BALANCED_LENGTH_CAP = "default to 1–4 short sentences";
+/** Per-density length-cap phrase. `balanced` is the unchanged current phrase. */
+const DENSITY_LENGTH_CAP: Record<OutputDensity, string> = {
+  minimal: "default to 1–2 short sentences — the tightest form that answers",
+  balanced: BALANCED_LENGTH_CAP,
+  rich: "use as many short sentences as the task genuinely needs",
+};
+
+/**
+ * Scale rule 10a's length cap by the user's output-density preference (PURE).
+ * `balanced` (DEFAULT) returns the rule unchanged; `minimal`/`rich` swap only
+ * the opening cap phrase, never adding a paragraph. Pure — no I/O.
+ */
+export function applyOutputDensity(lengthRule: string, density: OutputDensity): string {
+  if (density === "balanced") return lengthRule; // DEFAULT — unchanged
+  return lengthRule.replace(BALANCED_LENGTH_CAP, DENSITY_LENGTH_CAP[density]);
+}
 
 /** A learned skill as advertised in the prompt index — name + description only. */
 export type SkillIndexEntry = { name: string; description: string };
@@ -23,7 +43,7 @@ async function readIfExists(path: string): Promise<string | null> {
   }
 }
 
-function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
+function stableTier(soul: string, root: string, tools: ToolSchema[], density: OutputDensity = "balanced"): string {
   const scopedTools = scopeToolSchemas(tools, "", { env: process.env });
   const scoped = scopedTools.length < tools.length;
   const toolList = scopedTools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
@@ -47,7 +67,10 @@ function stableTier(soul: string, root: string, tools: ToolSchema[]): string {
     `8. Be frugal with tokens and power: answer concisely, avoid needless tool calls, and delegate simple subtasks to a local model (provider:'ollama') when it will do — reserve paid frontier models for hard reasoning.`,
     `9. Keep learning: as you work, update your brain (the \`brain\` tool — user_model, semantic, episodic) with what you learn about the user, the world, and this codebase; when you solve something reusable, write a skill; browse the web to fill real gaps. Grow a little every session. ${memoryGuardPromptLine()}`,
     `10. Voice: direct, warm, structured, and high-agency. Lead with the answer, but do not sand off all human signal. Use contractions and small context-aware acknowledgments when they reduce friction, especially when the user is frustrated, correcting you, stuck, or opening casually. No filler ("I'd be happy to", "Great question", "Let me…"), no hype or AI-magic phrasing, no empty caveats. Plain operator register — say what is, what you did, and what's next. Warmth is not glaze; sterile minimalism is not the goal. Never fake-cheerful or robotic. Own mistakes without over-apology or self-abasement — acknowledge, fix, stay on the problem, keep self-respect. Praise is EARNED, never reflexive: enthusiasm is proportional to actual merit, so a superlative ("great", "perfect", "brilliant") must carry a concrete reason or it doesn't ship. Don't open with flattery, don't agree to be agreeable ("you're absolutely right"), and don't validate a half-baked idea — when it's weak, say what's wrong and how to fix it. A reasoned push-back is more useful than empty approval; calibrated honesty is the teammate value, not validation.`,
-    `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
+    applyOutputDensity(
+      `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
+      density,
+    ),
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
   ].join("\n");
 }
@@ -154,6 +177,8 @@ export type BuildPromptOptions = {
   program?: string;
   /** VANTA-TRUST-DIALOG: false → the project's context files are untrusted and not loaded. Default true. */
   loadContext?: boolean;
+  /** ND-PREFS-WIRE: scales rule 10a's length cap. Default `balanced` = unchanged. */
+  outputDensity?: OutputDensity;
 };
 
 /** What each prompt tier reads to render itself. */
@@ -172,7 +197,7 @@ export type PromptTier = {
 
 /** The ordered prompt-tier registry. Add/reorder here, not in buildSystemPrompt. */
 export const PROMPT_TIERS: PromptTier[] = [
-  { id: "stable", render: ({ soul, opts }) => stableTier(soul, opts.root, opts.tools) },
+  { id: "stable", render: ({ soul, opts }) => stableTier(soul, opts.root, opts.tools, opts.outputDensity) },
   {
     id: "self",
     render: ({ opts }) =>

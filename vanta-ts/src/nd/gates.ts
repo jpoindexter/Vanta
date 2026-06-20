@@ -1,4 +1,4 @@
-import type { EfGate, EfSignals, GateMemory } from "./types.js";
+import type { EfGate, EfSignals, GateMemory, SensoryLoad, TimeSupportStyle } from "./types.js";
 
 // The nine ND executive-function gates as small pure rules. Each reads the turn
 // signals + its own accumulator and may emit one short, user-facing nudge.
@@ -160,3 +160,41 @@ export const GATES: readonly EfGate[] = [
 
 /** Gate lookup by id. */
 export const GATE_BY_ID: Readonly<Record<string, EfGate>> = Object.fromEntries(GATES.map((g) => [g.id, g]));
+
+// ---------------------------------------------------------------------------
+// Preference → nudge output mappings (PURE). The EF gates always emit their
+// canonical nudge; these scale the *presentation* per the user's non-gate ND
+// preferences (sensory load, time support). The DEFAULT preference value is a
+// byte-for-byte no-op so a balanced/medium/ranges profile sees current output.
+
+/** The leading decoration glyph every gate nudge opens with (e.g. 🔎/🧭/⏱). */
+const NUDGE_GLYPH = /^(\p{Extended_Pictographic}|[⏱⛔↺▶⚠])️?\s+/u;
+
+/** The time-blindness nudge is the only one keyed to the ⏱ glyph. */
+const TIME_NUDGE_PREFIX = "⏱ ";
+/** The soft-range checkpoint tail the time nudge adds in `ranges` mode. */
+const TIME_RANGE_TAIL = "\n  Worth a checkpoint or a break?";
+
+/**
+ * Sensory-load decoration scaling. `low` strips the leading emoji/decoration so
+ * the nudge is plain text; `high` keeps everything; `medium` (DEFAULT) is the
+ * unchanged current output. Pure.
+ */
+export function applySensoryLoad(nudge: string, load: SensoryLoad): string {
+  if (load !== "low") return nudge; // medium (default) + high keep full decoration
+  return nudge.replace(NUDGE_GLYPH, "");
+}
+
+/**
+ * Time-support output style, applied to the time-blindness nudge only (others
+ * pass through untouched). `ranges` (DEFAULT) keeps the current value + soft
+ * checkpoint-or-break range framing; `points` reduces it to the single elapsed
+ * value; `off` suppresses the time nudge entirely. Pure.
+ */
+export function applyTimeSupport(nudge: string, style: TimeSupportStyle): string {
+  if (!nudge.startsWith(TIME_NUDGE_PREFIX)) return nudge; // not the time nudge
+  if (style === "ranges") return nudge; // DEFAULT — unchanged
+  if (style === "off") return ""; // caller drops empty nudges
+  // points: keep the single elapsed value, drop the soft-range checkpoint tail.
+  return nudge.endsWith(TIME_RANGE_TAIL) ? nudge.slice(0, -TIME_RANGE_TAIL.length) : nudge;
+}

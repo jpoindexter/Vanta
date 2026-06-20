@@ -8,6 +8,7 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { resolveSessionMemoryCompact, compactToSessionMemory } from "../memory/session-memory-compact.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import { maskStaleToolOutputs, resolveObservationMaskKeep } from "./observation-mask.js";
+import { passSavings, shouldCompact } from "../context/compaction-boundary.js";
 import { join } from "node:path";
 
 // The per-call + per-turn context-window management for the agent loop, kept out
@@ -31,6 +32,27 @@ const RESTORE_MARKER = "<!-- vanta-post-compact-restore -->";
 
 /** Per-conversation last-turn time (GC-safe; keyed by the stable messages array). */
 const lastTurnAt = new WeakMap<Message[], number>();
+
+/**
+ * Per-conversation compaction-savings history (GC-safe; keyed by the stable
+ * messages array — same pattern as `lastTurnAt`). Newest savings last. Feeds the
+ * anti-thrash gate so a pass is skipped once the last `window` passes each saved
+ * less than the floor. Bounded to the gate window so it never grows.
+ */
+const savingsHistory = new WeakMap<Message[], number[]>();
+const SAVINGS_HISTORY_MAX = 4;
+
+/** Record one pass's savings against the conversation, bounded to a small ring. */
+function recordPassSavings(messages: Message[], beforeTokens: number, afterTokens: number): void {
+  const history = savingsHistory.get(messages) ?? [];
+  history.push(passSavings(beforeTokens, afterTokens));
+  savingsHistory.set(messages, history.slice(-SAVINGS_HISTORY_MAX));
+}
+
+/** Test-only: forget a conversation's compaction-savings history (resets the gate). */
+export function resetSavingsHistory(messages: Message[]): void {
+  savingsHistory.delete(messages);
+}
 
 /** Auto-compact threshold (% of window) from env, or undefined for the default. */
 export function resolveCompactThresholdPct(env: NodeJS.ProcessEnv): number | undefined {
@@ -167,12 +189,30 @@ export async function prepareCallMessages(
       if (pct >= 80) overrideThresholdPct = Math.min(pct - 5, 80);
     } catch { /* best-effort — fall through to estimate-based threshold */ }
   }
-  const result = await graduatedCompaction(fresh, {
+  return gatedCompaction(messages, fresh, {
     contextWindow: deps.provider.contextWindow(),
     summarize: tc.trackedSummarize,
     activeGoalText: deps.activeGoalText,
     sessionMemory: deps.sessionMemory,
     thresholdPct: overrideThresholdPct ?? tc.thresholdPct,
   });
+}
+
+/**
+ * Run one graduated-compaction pass UNLESS the anti-thrash gate says to skip it.
+ * `shouldCompact` returns true until the last two passes each saved <10% (a full
+ * low-savings window), so healthy savings keep the prior behavior unchanged: the
+ * pass runs and its savings are recorded for the next decision. `convo` is the
+ * stable base array used as the savings-history key (the same key `lastTurnAt`
+ * uses); `fresh` is the per-call shaped copy actually passed to the compactor.
+ */
+async function gatedCompaction(
+  convo: Message[],
+  fresh: Message[],
+  opts: Parameters<typeof graduatedCompaction>[1],
+): Promise<Message[]> {
+  if (!shouldCompact({ recentSavings: savingsHistory.get(convo) ?? [] })) return fresh;
+  const result = await graduatedCompaction(fresh, opts);
+  recordPassSavings(convo, result.beforeTokens, result.afterTokens);
   return result.messages;
 }

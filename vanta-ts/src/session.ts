@@ -16,7 +16,7 @@ import type { Summarizer } from "./context.js";
 import { resolveAuxProvider } from "./routing/aux-map.js";
 import type { EffortLevel, Goal } from "./types.js";
 import {
-  loadRuntimeExtensions, buildRunPrompt, injectResume, logSessionConfig,
+  loadRuntimeExtensions, loadRuntimeSettings, buildRunPrompt, injectResume, logSessionConfig,
 } from "./session/prepare-helpers.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
 import { resolveProjectTrust, type TrustConfirmer } from "./settings/trust-gate.js";
@@ -55,9 +55,13 @@ export async function prepareRun(
   await ensureKernel({ baseUrl, kernelBin, root: repoRoot });
 
   const safety = createKernelClient(baseUrl);
-  const registry = buildRegistry();
+  // SETTINGS-BLOCKEDTOOLS-ENFORCE: load settings BEFORE buildRegistry so a tool
+  // in settings.blockedTools is excluded from the live session registry. The
+  // same settings object is reused by loadRuntimeExtensions (no second load).
+  const settings = await loadRuntimeSettings(repoRoot);
+  const registry = buildRegistry({ exclude: settings.blockedTools ?? [] });
   const mcpTrust = { root: repoRoot, confirm: opts.confirmTrust };
-  const { settings, pluginCommands, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust);
+  const { pluginCommands, mcpSkills } = await loadRuntimeExtensions(repoRoot, registry, mcpTrust, settings);
   const effortLevel = resolveEffortLevel(process.env.VANTA_EFFORT_LEVEL ?? settings.effortLevel);
   const provider = resolveRoutedProvider(process.env, instruction);
   const goals = await safety.getGoals().catch(() => []);

@@ -1,6 +1,27 @@
 import { describe, it, expect } from "vitest";
-import { buildSystemPrompt, splitStableVolatile, TIER_SEP, trimSkillDesc } from "./prompt.js";
+import { applyOutputDensity, buildSystemPrompt, splitStableVolatile, TIER_SEP, trimSkillDesc } from "./prompt.js";
 import type { Goal } from "./types.js";
+
+const LENGTH_RULE = "10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer.";
+
+describe("applyOutputDensity", () => {
+  it("balanced (DEFAULT) returns the length rule unchanged byte-for-byte", () => {
+    expect(applyOutputDensity(LENGTH_RULE, "balanced")).toBe(LENGTH_RULE);
+  });
+
+  it("minimal tightens the length cap phrase", () => {
+    const out = applyOutputDensity(LENGTH_RULE, "minimal");
+    expect(out).toContain("1–2 short sentences");
+    expect(out).not.toContain("1–4 short sentences");
+    expect(out).toContain("Lead with the answer."); // rest of the rule preserved
+  });
+
+  it("rich loosens the length cap phrase", () => {
+    const out = applyOutputDensity(LENGTH_RULE, "rich");
+    expect(out).toContain("as many short sentences as the task genuinely needs");
+    expect(out).not.toContain("1–4 short sentences");
+  });
+});
 
 describe("trimSkillDesc", () => {
   it("leaves a short single-line description unchanged", () => {
@@ -59,6 +80,17 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Available tools (scoped)");
     expect(prompt).toContain("tool_search");
     expect(prompt).not.toContain("gmail_send");
+  });
+
+  it("defaults to the balanced length cap (no outputDensity) and scales it when minimal", async () => {
+    const base = { root: "/tmp/vanta", soulPath: "/nonexistent/SOUL.md", goals: [], tools, now: "2026-06-02T00:00:00Z" };
+
+    const def = await buildSystemPrompt(base);
+    expect(def).toContain("default to 1–4 short sentences"); // DEFAULT unchanged
+
+    const minimal = await buildSystemPrompt({ ...base, outputDensity: "minimal" });
+    expect(minimal).toContain("1–2 short sentences");
+    expect(minimal).not.toContain("default to 1–4 short sentences");
   });
 
   it("frames a carried goal as PAUSED when goalsPaused, active otherwise", async () => {

@@ -8,6 +8,7 @@ import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
 import { learningsDigest } from "../learnings/relevance.js";
 import { playbookDigest } from "../memory/playbook.js";
+import { getOutputDensity } from "../nd/profile.js";
 import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
 import type { Settings } from "../settings/store.js";
@@ -83,14 +84,26 @@ export async function injectResume(systemPrompt: string, repoRoot: string): Prom
   return systemPrompt;
 }
 
+/** SETTINGS-BLOCKEDTOOLS-ENFORCE: load + apply settings once. prepareRun calls
+ *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`. Failure
+ *  to read settings degrades to empty (current behavior — env stays untouched). */
+export async function loadRuntimeSettings(repoRoot: string): Promise<Settings> {
+  const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
+  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
+  applySettingsEnv(settings, process.env);
+  return settings;
+}
+
 export async function loadRuntimeExtensions(
   repoRoot: string,
   registry: ReturnType<typeof buildRegistry>,
   mcpTrust?: McpTrust,
+  /** SETTINGS-BLOCKEDTOOLS-ENFORCE: prepareRun loads + applies settings up front
+   *  (so the registry can exclude `blockedTools`) and passes them in to avoid a
+   *  second load/apply. Omitted → load here as before (back-compat). */
+  preloaded?: Settings,
 ): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; mcpSkills: RegisteredMcpSkill[] }> {
-  const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
-  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
-  applySettingsEnv(settings, process.env);
+  const settings = preloaded ?? await loadRuntimeSettings(repoRoot);
   await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
@@ -148,6 +161,7 @@ export async function buildRunPrompt(o: {
     ralphContinuity,
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
     loadContext: o.loadContext,
+    outputDensity: await getOutputDensity(),
   });
   return { systemPrompt, ralphContinuity };
 }

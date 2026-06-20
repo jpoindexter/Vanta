@@ -1,8 +1,9 @@
 import { runEfGates } from "../nd/engine.js";
-import { getNdConfigCached, ndEngineEnabled } from "../nd/profile.js";
+import { applySensoryLoad, applyTimeSupport } from "../nd/gates.js";
+import { getNdProfileCached, ndEngineEnabled } from "../nd/profile.js";
 import { extractLastTurnToolNames } from "../repl/research-gate.js";
 import { readVelocityEvents, velocityStats } from "../velocity/store.js";
-import type { EfSignals, EfState } from "../nd/types.js";
+import type { EfSignals, EfState, NdPreferences } from "../nd/types.js";
 import type { Message } from "../types.js";
 import type { KernelClient } from "../kernel/client.js";
 
@@ -60,15 +61,28 @@ async function buildSignals(o: NdGateInputs, env: NodeJS.ProcessEnv): Promise<Ef
   };
 }
 
+/**
+ * Scale a gate nudge by the user's non-gate ND preferences (PURE): time-support
+ * first (may suppress the time nudge → ""), then sensory-load decoration. The
+ * DEFAULT profile (medium/ranges) returns the nudge unchanged.
+ */
+export function decorateNudge(nudge: string, prefs: NdPreferences): string {
+  const timed = applyTimeSupport(nudge, prefs.timeSupport);
+  return timed ? applySensoryLoad(timed, prefs.sensoryLoad) : "";
+}
+
 /** Run the ND EF gates for the just-completed turn. Returns the advanced state. */
 export async function ndGatesAfterTurn(state: EfState, o: NdGateInputs): Promise<EfState> {
   const env = o.env ?? process.env;
   if (!ndEngineEnabled(env)) return state;
   try {
-    const config = await getNdConfigCached(env);
+    const { gates: config, prefs } = await getNdProfileCached(env);
     const signals = await buildSignals(o, env);
     const { state: next, nudges } = runEfGates(signals, state, config);
-    for (const nudge of nudges) o.onNote(nudge);
+    for (const nudge of nudges) {
+      const decorated = decorateNudge(nudge, prefs);
+      if (decorated) o.onNote(decorated);
+    }
     return next;
   } catch {
     return state;
