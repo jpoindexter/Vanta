@@ -4200,7 +4200,7 @@
       "id": "VANTA-SWARM-IDLE-NOTIFY",
       "track": "Harness",
       "title": "Swarm idle notification — teammate sends idle state to leader on Stop",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "When a teammate agent's session stops, another agent's `teammateInit` module fires a Stop hook that writes an idle notification to the team leader's mailbox. The leader polls the mailbox and updates the teammate's status in the team UI (showing it as idle rather than running). Includes the last peer-DM summary for context.",
       "done": "When a worker completes its task, the leader's team view shows the worker as 'idle'. The leader can assign new work or clean up the team.",

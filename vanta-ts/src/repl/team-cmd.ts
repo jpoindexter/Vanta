@@ -1,21 +1,33 @@
 import { readTeam, latestWorkers, blocked, type Worker } from "../team/store.js";
 import { readTasks, workerLoad, tasksForWorker } from "../team/tasks.js";
+import { deriveWorkerState, lastWorkerSummary } from "../team/idle.js";
 import type { SlashHandler } from "./types.js";
 
-// `/team` — view the durable worker roster + per-worker task load.
+// `/team` — view the durable worker roster + per-worker task load. Each worker's
+// state is DERIVED from the task ledger (running | idle | offline) so a teammate
+// that finished its task shows as `idle` — the leader's signal to reassign or
+// clean up — instead of a stale stored `running`.
 
 function runningTaskTitle(workerId: string, tasks: ReturnType<typeof tasksForWorker>): string | undefined {
   return tasks.find((t) => t.workerId === workerId && t.status === "running")?.title;
 }
 
-/** Pure: render one worker row with task load inline. */
+/** Pure: idle workers show their last-result summary inline for reassignment context. */
+function idleHint(workerId: string, allTasks: ReturnType<typeof tasksForWorker>): string {
+  const summary = lastWorkerSummary(allTasks, workerId);
+  return summary ? ` [idle · last: ${summary}]` : " [idle]";
+}
+
+/** Pure: render one worker row with derived state + task load inline. */
 function formatWorkerRow(w: Worker, load: Map<string, number>, allTasks: ReturnType<typeof tasksForWorker>): string {
+  const state = deriveWorkerState(allTasks, w.id);
+  const head = `  ${w.id} · ${w.role} · ${state}${w.note ? ` — ${w.note}` : ""}`;
+  if (state === "idle") return `${head}${idleHint(w.id, allTasks)}`;
+  if (state === "offline") return head;
   const open = load.get(w.id) ?? 0;
   const running = runningTaskTitle(w.id, allTasks);
-  const taskHint = open > 0
-    ? ` [${open} open${running ? ` · ▶ ${running}` : ""}]`
-    : "";
-  return `  ${w.id} · ${w.role} · ${w.status}${w.note ? ` — ${w.note}` : ""}${taskHint}`;
+  const taskHint = open > 0 ? ` [${open} open${running ? ` · ▶ ${running}` : ""}]` : "";
+  return `${head}${taskHint}`;
 }
 
 /** Pure: render the full team view. */
