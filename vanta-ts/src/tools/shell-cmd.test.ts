@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { shellCmdTool } from "./shell-cmd.js";
 import type { ToolContext } from "./types.js";
 
@@ -36,5 +36,26 @@ describe("shell_cmd ssh routing", () => {
   it("describeForSafety surfaces the ssh host so the kernel assesses the remote command", () => {
     expect(shellCmdTool.describeForSafety?.({ command: "rm x", ssh: "vps" })).toMatch(/ssh "vps".*rm x/);
     expect(shellCmdTool.describeForSafety?.({ command: "ls" })).toBe("run shell command: ls");
+  });
+});
+
+describe("shell_cmd VANTA_SSH_SESSION (session-wide remote routing)", () => {
+  afterEach(() => { delete process.env.VANTA_SSH_SESSION; });
+
+  it("describeForSafety routes to the session host when no explicit ssh arg is given", () => {
+    process.env.VANTA_SSH_SESSION = "deploy@host";
+    expect(shellCmdTool.describeForSafety?.({ command: "ls" })).toMatch(/ssh "deploy@host".*ls/);
+  });
+
+  it("refuses background tasks in an ssh session (proves the session activates the remote branch)", async () => {
+    process.env.VANTA_SSH_SESSION = "deploy@host";
+    const r = await shellCmdTool.execute({ command: "uptime", background: true }, ctx());
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/background tasks are not supported over ssh/);
+  });
+
+  it("an explicit ssh arg overrides the session host", () => {
+    process.env.VANTA_SSH_SESSION = "deploy@host";
+    expect(shellCmdTool.describeForSafety?.({ command: "ls", ssh: "other@box" })).toMatch(/ssh "other@box".*ls/);
   });
 });

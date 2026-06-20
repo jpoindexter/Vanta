@@ -9,7 +9,7 @@ import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError } from "../sandbox/run.js";
 import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
-import { resolveSshProfile, buildSshArgs } from "../ssh/config.js";
+import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
 
 type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
 
@@ -110,14 +110,15 @@ export function shellSandboxEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return { ...env, VANTA_SANDBOX: "1", VANTA_SANDBOX_NET: "1" };
 }
 
-/** Run the command on a named SSH host (settings.sshConfigs). The kernel still
- *  assessed the command via describeForSafety; the local sandbox is not applied
- *  because execution happens on the remote host, not this machine. */
-async function runRemote(profileName: string, command: string, root: string, pfx: string): Promise<ToolResult> {
+/** Run the command on an SSH host — a configured `settings.sshConfigs` profile
+ *  name or an explicit `user@host`. The kernel still assessed the command via
+ *  describeForSafety; the local sandbox is not applied because execution happens
+ *  on the remote host, not this machine. */
+async function runRemote(target: string, command: string, root: string, pfx: string): Promise<ToolResult> {
   const settings = await loadSettings(root, process.env);
-  const profile = resolveSshProfile(profileName, settings.sshConfigs);
+  const profile = resolveSshTarget(target, settings.sshConfigs);
   if (!profile) {
-    return { ok: false, output: `unknown ssh profile "${profileName}" — configure it in settings.sshConfigs` };
+    return { ok: false, output: `unknown ssh profile "${target}" — configure it in settings.sshConfigs, or pass an explicit user@host` };
   }
   try {
     const { stdout, stderr } = await run("ssh", buildSshArgs(profile, command), { timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT });
@@ -152,18 +153,21 @@ export const shellCmdTool: Tool = {
   schema: {
     name: "shell_cmd",
     description:
-      "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name to run the command on that host.",
+      "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
     parameters: {
       type: "object",
       properties: {
         command: { type: "string", description: "The shell command to run" },
         background: { type: "boolean", description: "Run in background (returns task id immediately; check with bg_status)" },
-        ssh: { type: "string", description: "Name of a configured SSH profile — run the command on that host instead of locally" },
+        ssh: { type: "string", description: "A configured SSH profile name or user@host — run the command on that host instead of locally" },
       },
       required: ["command"],
     },
   },
-  describeForSafety: (a) => (a.ssh ? `run shell command on ssh "${String(a.ssh)}": ${String(a.command ?? "")}` : `run shell command: ${String(a.command ?? "")}`),
+  describeForSafety: (a) => {
+    const target = a.ssh ?? process.env.VANTA_SSH_SESSION;
+    return target ? `run shell command on ssh "${String(target)}": ${String(a.command ?? "")}` : `run shell command: ${String(a.command ?? "")}`;
+  },
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
@@ -174,9 +178,12 @@ export const shellCmdTool: Tool = {
       return { ok: false, output: "refused: command matches a destructive pattern" };
     }
     const pfx = warnPrefix(command);
-    if (ssh) {
+    // An explicit ssh arg wins; otherwise an active SSH session (`vanta ssh
+    // user@host` sets VANTA_SSH_SESSION) routes every command to the remote host.
+    const sshTarget = ssh ?? process.env.VANTA_SSH_SESSION;
+    if (sshTarget) {
       if (background) return { ok: false, output: "refused: background tasks are not supported over ssh" };
-      return runRemote(ssh, command, ctx.root, pfx);
+      return runRemote(sshTarget, command, ctx.root, pfx);
     }
     if (background) {
       // Sandbox: detached background tasks aren't wrapped (no exit-time profile
