@@ -2914,7 +2914,7 @@
       "id": "VANTA-STATUS-NOTICES",
       "track": "Operator",
       "title": "Status notices — notices area above the status line",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's StatusNotices renders a notices area above the status line for non-critical informational messages: IDE connection status, channel setup hints, keybinding warnings, LSP recommendations. Separate from the status line so notices don't clutter the primary info. Vanta has no notices layer.",
       "done": "A notices area appears above the status line when there are active notices; each notice has a type (info/warning/action), message, and optional dismiss shortcut; notices auto-expire after N seconds.",
@@ -2922,7 +2922,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable notices model: Notice{id,text,level,expiresAtMs} + addNotice (id+expiry, cap MAX_NOTICES=3 keep newest, default 8s TTL) + pruneExpired + visibleNotices + noticeGlyph + formatNotice (control/ANSI stripped at add AND format, no escape injection). nowMs injected, no Date.now. Built+tested; render point = ui/app.tsx renders visibleNotices as dim rows immediately above <StatusBar/> (named). No notices = empty render."
     },
     {
       "id": "VANTA-THINKING-TOGGLE",
