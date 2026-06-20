@@ -1,4 +1,4 @@
-import type { A2AMessage, A2AHandler } from "./types.js";
+import type { A2AMessage, A2AHandler, A2ATransport } from "./types.js";
 
 // Module-level counter for deterministic ids — A2A is a basic in-process stub
 // (Phase 6), so ids are reproducible (no time/random) for testable transcripts.
@@ -9,7 +9,7 @@ let messageCounter = 0;
  * registered under `message.to` and awaits its reply. Networked transport
  * (HTTP/Google A2A) is future work; this is the local interface it slots behind.
  */
-export class A2ABus {
+export class A2ABus implements A2ATransport {
   readonly #handlers = new Map<string, A2AHandler>();
 
   register(agentId: string, handler: A2AHandler): void {

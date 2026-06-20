@@ -10,6 +10,7 @@ import { PROVIDER_CATALOG, providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
 import { upsertEnvMigratingLegacy, envPath } from "../setup.js";
 import { listRepoFiles } from "../term/at-context.js";
+import { resolveEventFormatter } from "../term/event-format.js";
 import { pushSseEvent, type SseClients } from "./session-state.js";
 import { approvalDecision, approvalPayload, requestWebApproval, resolveApproval, type PendingApproval } from "./approval.js";
 export { approvalDecision, type PendingApproval } from "./approval.js";
@@ -28,10 +29,9 @@ export type DesktopState = {
 };
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
-  if (event.type === "tool_start") return { label: `→ ${event.name}` };
-  if (event.type === "tool_end") return { label: `${event.ok ? "✓" : "✗"} ${event.name}: ${event.output.slice(0, 90)}`, ok: event.ok };
-  if (event.type === "note") return { label: `note: ${event.text.slice(0, 100)}` };
-  return null;
+  // Delegates to the shared StreamEventFormatter port (term/event-format) so the
+  // label presentation lives in one swappable place, not inline per surface.
+  return resolveEventFormatter().format(event);
 }
 
 export function readJson(req: http.IncomingMessage): Promise<unknown> {
