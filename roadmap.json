@@ -2743,7 +2743,7 @@
       "id": "VANTA-FORK-SUBAGENT",
       "track": "Harness",
       "title": "Fork subagent — implicit context inheritance when subagent_type omitted",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "When the Agent tool is called without `subagent_type`, it forks the current conversation: the child inherits the parent's full context and system prompt. All spawns run async for unified task-notification model. `/fork <directive>` slash command. Mutually exclusive with coordinator mode.",
       "done": "Calling Agent without subagent_type spawns a fork with full parent context; `/fork fix the lint errors` creates a focused fork; task-notification pattern used for all async agents.",
@@ -2752,7 +2752,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure isForkSpawn (undefined/empty/fork -> true) + buildForkPreamble (caps last 6 user/assistant turns, gisted 200-char, system/tool excluded so no secret dump) + resolveSubagentSeed (fork -> preamble+instruction; typed -> instruction only = current behavior). Built+tested; call points named = delegate runDelegate + spawn runWorker pass parent context through it when type omitted (clarity-gate pattern). Explicit type unchanged."
     },
     {
       "id": "VANTA-SPINNER-STALLED",
