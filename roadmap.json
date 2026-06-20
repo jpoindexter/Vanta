@@ -14506,7 +14506,7 @@
       "id": "EXT-ACP-ADAPTER",
       "track": "Extensibility",
       "title": "Real spec-compliant ACP server (editor/IDE integration)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "The current acp shim is a run-only HTTP endpoint no editor will connect to. Build a real Agent Client Protocol stdio JSON-RPC server (initialize/new/load/fork/resume/list sessions, set model/mode, prompt, cancel) with streaming thought/message/tool chunks, so Zed/any ACP editor can drive the agent in-IDE. The kernel assess()->approval model maps onto ACP request_permission.",
       "done": "An ACP-capable editor (e.g. Zed) connects over stdio JSON-RPC, starts a session, streams the agent, and routes permission/edit approvals through the kernel; protocol surface conformance-tested.",
@@ -14516,7 +14516,8 @@
       "codex": "gpt-5.4",
       "lens": "coding",
       "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "source": "ref-audit-2026-06-20",
+      "notes": "Real ACP stdio JSON-RPC server (initialize/session new+load/prompt-streaming/cancel/set_mode+model; session/update chunks; kernel ask→request_permission, block refused upstream). v1 boundary: each prompt = a fresh conversation (per-session cross-turn persistence deferred); image/audio caps false. acp/server.ts HTTP shim kept importable. vanta acp serve."
     },
     {
       "id": "EXT-ACP-EDIT-DIFF",

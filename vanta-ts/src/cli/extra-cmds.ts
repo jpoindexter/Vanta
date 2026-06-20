@@ -85,8 +85,15 @@ export async function runModelsCommand(_root: string, rest: string[]): Promise<n
   return 1;
 }
 
-/** `vanta acp [port]` — ACP server */
+/** `vanta acp serve` — real spec-compliant ACP stdio JSON-RPC server (Zed/editor). */
+export async function runAcpServeCommand(root: string): Promise<number> {
+  const { runAcpServeCommand: serve } = await import("../acp/serve.js");
+  return serve(root);
+}
+
+/** `vanta acp [serve | <port>]` — ACP server. `serve` = stdio; a port = the HTTP shim. */
 export async function runAcpCommand(root: string, rest: string[]): Promise<number> {
+  if (rest[0] === "serve") return runAcpServeCommand(root);
   const port = Number(rest[0]) || 7792;
   const { startAcpServer, writeAgentJson } = await import("../acp/server.js");
   const { prepareRun, buildSummarizer } = await import("../session.js");
