@@ -2932,7 +2932,7 @@
       "id": "VANTA-THINKING-TOGGLE",
       "track": "Operator",
       "title": "ThinkingToggle — dedicated expand/collapse control for reasoning",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a standalone ThinkingToggle component separate from the thinking display itself — a dedicated control that toggles all thinking sections at once, with state persisted across the session. VANTA-S-THINKING (shipped) shows thinking collapsible; this is the persistent global toggle.",
       "done": "A ThinkingToggle in the status or footer toggles all thinking sections at once; state persists in settings; keyboard shortcut cycles thinking display (hidden / summary / full).",
@@ -2940,7 +2940,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure ThinkingDisplay model: defaultThinkingDisplay (collapsed unless VANTA_THINKING_EXPANDED=1) + toggleThinking + collapsedThinkingSummary (✻ thinking (collapsed — N lines), singular at 1, empty at 0) + renderThinking (summary when collapsed, full when expanded, empty row for empty). Default collapsed = clean transcript. Built+tested; seams = ui/transcript ThinkingView render + ui/shortcuts transcript-context keybinding toggle (named)."
     },
     {
       "id": "VANTA-SKILLS-MENU",
