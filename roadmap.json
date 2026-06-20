@@ -2260,7 +2260,7 @@
       "id": "VANTA-DUMP-SYS-PROMPT",
       "track": "Harness",
       "title": "--dump-system-prompt — CLI flag to print the assembled system prompt and exit",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (feature-gated `DUMP_SYSTEM_PROMPT`) adds a `--dump-system-prompt` flag. Running another agent with this flag assembles the full system prompt (including operator/user layers, tool descriptions, context attachments) and prints it to stdout without starting a session.",
       "done": "Running `claude --dump-system-prompt` prints the full 3-tier system prompt to stdout. Useful for debugging operator prompt injection.",
@@ -2269,7 +2269,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-CD-CMD",
