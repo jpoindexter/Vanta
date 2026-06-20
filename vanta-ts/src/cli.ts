@@ -20,6 +20,7 @@ import {
   runConfigCommand,
   runPluginCommand,
   runDeptCommand,
+  runLibraryCommand,
 } from "./cli/ops.js";
 import { runEvalCommand } from "./cli/eval-cmd.js";
 import { runEvolveCommand } from "./cli/evolve-cmd.js";
@@ -139,6 +140,7 @@ const COMMANDS: Record<string, CommandFn> = {
   agents: (root, rest) => runAgentsCommand(root, rest),
   hire: (root, rest) => runHireCommand(root, rest),
   dept: (root, rest) => runDeptCommand(root, rest),
+  library: (root, rest) => runLibraryCommand(root, rest),
   heartbeat: (root) => runHeartbeatCommand(root),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),

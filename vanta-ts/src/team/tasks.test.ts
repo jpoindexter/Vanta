@@ -144,6 +144,69 @@ describe("advanceTask", () => {
   });
 });
 
+describe("advanceTask — COFOUNDER-ENFORCED-OUTCOME gate", () => {
+  function runningTask(outcome?: WorkerTask["outcome"]): WorkerTask {
+    const now = new Date().toISOString();
+    return { kind: "task", id: "t1", workerId: "w1", title: "t", status: "running", created: now, updated: now, outcome };
+  }
+  const present = () => true;
+  const absent = () => false;
+
+  it("a task WITHOUT a contract closes freely (backward compatible)", () => {
+    const r = advanceTask(runningTask(), "done", "finished");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("done");
+    expect(r.value.result).toBe("finished");
+  });
+
+  it("a no-contract task ignores the hasArtifact predicate entirely", () => {
+    let consulted = false;
+    const r = advanceTask(runningTask(), "done", "finished", () => {
+      consulted = true;
+      return false;
+    });
+    expect(r.ok).toBe(true);
+    expect(consulted).toBe(false);
+  });
+
+  it("a contract task with a matching artifact closes", () => {
+    const r = advanceTask(runningTask({ expectedOutput: "document" }), "done", "shipped", present);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("done");
+  });
+
+  it("a contract task with NO artifact and NO reason is REFUSED the done transition", () => {
+    const r = advanceTask(runningTask({ expectedOutput: "document" }), "done", "shipped", absent);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/cannot close/);
+    expect(r.error).toMatch(/document/);
+  });
+
+  it("a contract task with no predicate supplied defaults to REFUSED (fail closed)", () => {
+    const r = advanceTask(runningTask({ expectedOutput: "document" }), "done", "shipped");
+    expect(r.ok).toBe(false);
+  });
+
+  it("a contract task with an explicit no-artifact reason closes and the reason persists", () => {
+    const task = runningTask({ expectedOutput: "document", noArtifactReason: "client cancelled" });
+    const r = advanceTask(task, "done", "shipped", absent);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("done");
+    expect(r.value.outcome?.noArtifactReason).toBe("client cancelled");
+  });
+
+  it("the outcome gate does not affect non-done transitions", () => {
+    const r = advanceTask(runningTask({ expectedOutput: "document" }), "blocked", "waiting", absent);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.status).toBe("blocked");
+  });
+});
+
 describe("tasksForWorker + workerLoad", () => {
   function task(id: string, workerId: string, status: WorkerTask["status"]): WorkerTask {
     const now = new Date().toISOString();

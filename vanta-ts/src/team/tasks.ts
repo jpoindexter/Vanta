@@ -1,6 +1,7 @@
 import { appendFile, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
+import { canCloseTask, type HasArtifact, type OutcomeContract } from "../cofounder/outcome-contract.js";
 
 // Task assignment + status ledger for background workers.
 // Append-only JSONL (~/.vanta/team-tasks.jsonl), global across projects.
@@ -18,6 +19,10 @@ export type WorkerTask = {
   blocker?: string;
   created: string;
   updated: string;
+  // COFOUNDER-ENFORCED-OUTCOME: when present, the running→done transition is
+  // gated through the contract (an artifact of the expected type must exist, or
+  // an explicit no-artifact reason must be set). Absent → unchanged behavior.
+  outcome?: OutcomeContract;
 };
 
 export type TaskResult<T> =
@@ -84,11 +89,20 @@ export function assignTask(
   };
 }
 
-/** Advance a task to the target status, enforcing the legal transition graph. Pure. */
+/**
+ * Advance a task to the target status, enforcing the legal transition graph. Pure.
+ *
+ * COFOUNDER-ENFORCED-OUTCOME: a task carrying an `outcome` contract is REFUSED
+ * the done transition unless an artifact of the expected type exists (per the
+ * injected `hasArtifact` predicate) OR the contract carries a no-artifact
+ * reason. A task WITHOUT a contract is unaffected — `hasArtifact` is never
+ * consulted, so behavior is identical to before this gate.
+ */
 export function advanceTask(
   task: WorkerTask,
   toStatus: TaskStatus,
   detail?: string,
+  hasArtifact?: HasArtifact,
 ): TaskResult<WorkerTask> {
   const allowed = TRANSITIONS[task.status];
   if (!allowed.includes(toStatus)) {
@@ -97,12 +111,33 @@ export function advanceTask(
       error: `illegal transition ${task.status}→${toStatus}; allowed: ${allowed.join(", ") || "none"}`,
     };
   }
+  const gate = checkOutcomeGate(task, toStatus, hasArtifact);
+  if (!gate.ok) return gate;
   const updated = new Date().toISOString();
   const patch: Partial<WorkerTask> = { status: toStatus, updated };
   if (toStatus === "done") patch.result = detail;
   if (toStatus === "blocked" || toStatus === "stopped" || toStatus === "removed") patch.blocker = detail;
   if (toStatus === "running") { patch.result = undefined; patch.blocker = undefined; }
   return { ok: true, value: { ...task, ...patch } };
+}
+
+/**
+ * COFOUNDER-ENFORCED-OUTCOME gate: a contract-bearing task may only enter
+ * `done` when its contract is satisfiable. No contract / non-done → no-op pass
+ * (the predicate is never consulted, preserving prior behavior). Pure.
+ */
+function checkOutcomeGate(
+  task: WorkerTask,
+  toStatus: TaskStatus,
+  hasArtifact?: HasArtifact,
+): TaskResult<WorkerTask> {
+  if (toStatus !== "done" || !task.outcome) return { ok: true, value: task };
+  const probe: HasArtifact = hasArtifact ?? (() => false);
+  if (canCloseTask(task.outcome, probe)) return { ok: true, value: task };
+  return {
+    ok: false,
+    error: `task "${task.id}" cannot close: expected an artifact of type "${task.outcome.expectedOutput}" or a no-artifact reason`,
+  };
 }
 
 /** Tasks belonging to a specific worker. Pure. */

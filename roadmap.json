@@ -14824,7 +14824,7 @@
       "id": "COFOUNDER-ENFORCED-OUTCOME",
       "track": "Cofounder engine",
       "title": "Enforced-outcome contract: a task is not done without its declared artifact",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "COFOUNDER-HAPPY-PATH-MVP's central rule is 'every generated task must declare an expected output type' and 'a task cannot read as complete without a visible artifact or an explicit no-artifact reason'; Paperclip's roadmap calls this Enforced Outcomes. Vanta's team/tasks.ts lets a task transition running->done on any result string with no artifact gate, and tickets/store.ts has no required-output field. Add an outcome contract to the task/ticket model — declared expected output + a verifier that blocks the done transition until a matching artifact exists — reusing the /verify deterministic close-out machinery Vanta already ships.",
       "done": "A task created with an expected output of type X is refused the done transition until an artifact of type X is recorded; a forced close requires an explicit 'no artifact because…' reason that persists on the task.",
@@ -14834,13 +14834,14 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20"
+      "source": "cofounder-survey-2026-06-20",
+      "notes": "Pure OutcomeContract + canCloseTask gate wired into team/tasks advanceTask (running->done refused unless an artifact of the expected type exists OR a no-artifact reason is set; fail-closed by default; no-contract task unchanged). The hasArtifact predicate is injected; connecting it to the work-products store at the live `team advance` call site is ENFORCED-OUTCOME-WIRE."
     },
     {
       "id": "COFOUNDER-WORK-PRODUCTS",
       "track": "Cofounder engine",
       "title": "Work-products / artifact library as the durable company-memory surface",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "THEFT's happy path ends every department run in a Library artifact with provenance (source task, owning department, approved/pinned state), and Paperclip lists Artifacts & Work Products plus company Memory/Knowledge as core. Vanta persists transcripts, learnings (learnings/store.ts, per-project insights) and a brain, but has no first-class company artifact store keyed by producing worker + source task + department + approval state. Build a work-products store + tool so a verified outcome lands as a durable, provenance-tagged, queryable artifact, distinct from agent memory.",
       "done": "A completed department task writes a work-product record carrying {artifact, sourceTaskId, departmentId, producedBy, approved} and `vanta library` lists/filters artifacts by department and approval state.",
@@ -14993,6 +14994,22 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "selfhood",
+      "updated": "2026-06-20",
+      "source": "cofounder-survey-2026-06-20"
+    },
+    {
+      "id": "ENFORCED-OUTCOME-WIRE",
+      "track": "Cofounder engine",
+      "title": "Wire the outcome gate to the work-products store at the live task-advance site",
+      "status": "next",
+      "size": "S",
+      "summary": "COFOUNDER-ENFORCED-OUTCOME built the pure outcome gate (canCloseTask with an injected hasArtifact predicate) in team/tasks advanceTask, and COFOUNDER-WORK-PRODUCTS built the artifact store. Connect them: at the live `team` tool advance action, pass hasArtifact = (type) => listWorkProducts filtered by this task's sourceTaskId + kind has a match, so a contract-bearing task actually closes once its artifact is recorded (instead of fail-closed).",
+      "done": "Recording a work-product of the expected kind for a task lets that task's running->done advance succeed at the live team-tool call site; without it the advance is refused; tested with an injected store.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "agent-loop",
       "updated": "2026-06-20",
       "source": "cofounder-survey-2026-06-20"
     }
