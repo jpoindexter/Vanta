@@ -4,7 +4,7 @@ import { isDue, loadCron } from "../schedule/cron.js";
 import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
-import type { PlatformAdapter, InboundMessage } from "./platforms/base.js";
+import type { PlatformAdapter, InboundMessage, OutboundMessage } from "./platforms/base.js";
 import { spawnLoopChild, spawnFactoryChild, pollPlatform, startWebhookIfConfigured } from "./child-ops.js";
 import type { WebhookServer, Deliver } from "./webhook.js";
 import {
@@ -16,6 +16,13 @@ import {
   type SessionState,
 } from "./session-manager.js";
 import { isIntentionalSilence } from "./response-filter.js";
+import {
+  processInbound,
+  newSeenIds,
+  type InboundContext,
+  type SeenIds,
+} from "./inbound.js";
+import { recordSent, nodeReplyFs, type ReplyStoreDeps } from "./reply-store.js";
 import { drainLoopWakes } from "../loop/wake.js";
 import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
 import type { WakeContext } from "../loop/types.js";
@@ -40,6 +47,15 @@ export type GatewayDeps = {
     deliver: Deliver;
   };
   home?: string;
+  /** Inbound-pipeline config: the bot's @-handle + optional group-gating + tz label. */
+  inbound?: {
+    /** Bot @-handle (no leading @) for mention-gating + strip; absent → no group gate. */
+    handle?: string;
+    /** Group chat ids that require a mention; empty/absent → all groups require it. */
+    requireMentionIn?: Set<string>;
+    /** Human-readable timezone label appended to the inbound timestamp (e.g. "CEST"). */
+    zone?: string;
+  };
 };
 
 function firstLine(text: string): string {
@@ -108,18 +124,35 @@ type SessionRun = {
   platform: PlatformAdapter;
   handle: (text: string) => Promise<string>;
   log: (msg: string) => void;
+  /** Reply-context store deps; absent → sent replies aren't recorded. */
+  reply?: ReplyStoreDeps;
 };
+
+/**
+ * Wire point 2 (record-on-send): after the reply is sent, persist its
+ * `messageId → text` into the reply-context store so a later inbound reply can
+ * quote it. Best-effort; an id-less outbound is skipped.
+ */
+async function recordReply(ctx: SessionRun, out: OutboundMessage): Promise<void> {
+  if (!ctx.reply || !out.id) return;
+  await recordSent(ctx.reply, out.id, out.text);
+}
 
 /** Run one inbound message to completion and send the reply (errors → reply). */
 async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   ctx.log(`  ✉ ${ctx.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
+  // The agent sees the LLM-enriched rendering (timestamp + quote) when the
+  // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
+  const forAgent = m.llmText ?? m.text;
   let reply: string;
-  try { reply = await ctx.handle(m.text); }
+  try { reply = await ctx.handle(forAgent); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
   if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
-  await ctx.platform.send({ chatId: m.chatId, text: reply });
+  const out: OutboundMessage = { chatId: m.chatId, text: reply };
+  await ctx.platform.send(out);
+  await recordReply(ctx, out);
 }
 
 /** Drain the FIFO queue once the current run is finished. */
@@ -133,6 +166,22 @@ async function drainQueue(ctx: SessionRun, state: SessionState): Promise<Session
   return s;
 }
 
+/** Reply-context store deps for a gateway run (kernel data dir + Node fs). */
+function replyStoreDeps(deps: GatewayDeps): ReplyStoreDeps {
+  return { fs: nodeReplyFs(), dir: deps.dataDir };
+}
+
+/** Build the inbound-pipeline context (mention config + clock + reply store). */
+function inboundContext(deps: GatewayDeps, seen: SeenIds): InboundContext {
+  return {
+    seen,
+    mention: { handle: deps.inbound?.handle ?? "", requireMentionIn: deps.inbound?.requireMentionIn },
+    now: deps.now ?? (() => new Date()),
+    zone: deps.inbound?.zone,
+    reply: replyStoreDeps(deps),
+  };
+}
+
 /**
  * Poll the platform and route a *concurrent* inbound batch through the session
  * manager: the first message runs now; any further message in the same batch is
@@ -140,26 +189,44 @@ async function drainQueue(ctx: SessionRun, state: SessionState): Promise<Session
  * queued messages drain FIFO after the current run. interrupt/steer can't abort
  * the opaque in-flight `handle()`, so they are surfaced as the next run, not a
  * faked mid-run abort (see report). Returns the next state + messages handled.
+ *
+ * Wire point 1 (gate-on-receive): every inbound message first passes through
+ * `processInbound` (dedup → require-mention(+strip) → timestamp → reply-context).
+ * A "skip" verdict drops the message before routing (no agent turn); a "handle"
+ * verdict yields the enriched message that routing/`runOne` then sees. The
+ * bounded seen-id set is threaded across ticks via the returned `seen`.
  */
 async function pollPlatformSession(
   deps: GatewayDeps,
   state: SessionState,
-): Promise<{ state: SessionState; count: number }> {
+  seenIn?: SeenIds,
+): Promise<{ state: SessionState; count: number; seen: SeenIds }> {
+  let seen = seenIn ?? newSeenIds();
   if (!deps.platform || !deps.handle) {
-    return { state, count: await pollPlatform(deps) };
+    return { state, count: await pollPlatform(deps), seen };
   }
-  const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, log: deps.log ?? ((m) => console.log(m)) };
+  const log = deps.log ?? ((m: string) => console.log(m));
+  const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, log, reply: replyStoreDeps(deps) };
   const messages = await deps.platform.poll();
   let s = state;
+  let handled = 0;
   for (const m of messages) {
-    const routed = routeInbound(s, m);
+    const processed = await processInbound(m, inboundContext(deps, seen));
+    seen = processed.seen;
+    if (processed.verdict.kind === "skip") {
+      log(`  ⤬ skip (${processed.verdict.reason}): ${firstLine(m.text)}`);
+      continue;
+    }
+    const enriched = processed.verdict.message;
+    handled++;
+    const routed = routeInbound(s, enriched);
     s = routed.state;
-    if (routed.action === "run-now") await runOne(ctx, m);
-    else if (routed.action === "queue") ctx.log(`  ⏳ queued (busy): ${firstLine(m.text)}`);
-    else ctx.log(`  ⤳ ${routed.action} (${classifyInbound(m.text)}): ${firstLine(m.text)}`);
+    if (routed.action === "run-now") await runOne(ctx, enriched);
+    else if (routed.action === "queue") ctx.log(`  ⏳ queued (busy): ${firstLine(enriched.text)}`);
+    else ctx.log(`  ⤳ ${routed.action} (${classifyInbound(enriched.text)}): ${firstLine(enriched.text)}`);
   }
   if (s.running) s = await drainQueue(ctx, s);
-  return { state: s, count: messages.length };
+  return { state: s, count: handled, seen };
 }
 
 export { pollPlatformSession };
@@ -179,10 +246,13 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
       " — Ctrl+C to stop.",
   );
   let session: SessionState = initialState();
+  let seen: SeenIds = newSeenIds();
   while (running) {
     try {
       await gatewayTick(deps);
-      session = (await pollPlatformSession(deps, session)).state;
+      const polled = await pollPlatformSession(deps, session, seen);
+      session = polled.state;
+      seen = polled.seen;
     } catch (err) {
       log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }

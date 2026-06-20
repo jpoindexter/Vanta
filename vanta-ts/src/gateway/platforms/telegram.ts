@@ -18,13 +18,32 @@ const UpdatesResponse = z.object({
       update_id: z.number(),
       message: z
         .object({
+          message_id: z.number().optional(),
           text: z.string().optional(),
-          chat: z.object({ id: z.number() }),
+          chat: z.object({ id: z.number(), type: z.string().optional() }),
           from: z.object({ username: z.string().optional(), first_name: z.string().optional() }).optional(),
+          reply_to_message: z.object({ message_id: z.number().optional() }).optional(),
         })
         .optional(),
     }),
   ),
+});
+
+// Telegram's getUpdates does not echo the bot's own messages back, so a long-poll
+// inbound is never `fromMe`; we leave it undefined rather than spend a network
+// call on getMe to self-detect. Self-echo dedup relies on the outbound id store.
+const GROUP_CHAT_TYPES = new Set(["group", "supergroup"]);
+
+/** Group flag from chat.type — undefined when type is absent (don't guess). */
+function isGroupChat(type: string | undefined): boolean | undefined {
+  if (type === undefined) return undefined;
+  return GROUP_CHAT_TYPES.has(type);
+}
+
+// sendMessage's response surfaces the assigned message id at result.message_id.
+const SendResponse = z.object({
+  ok: z.boolean(),
+  result: z.object({ message_id: z.number() }).optional(),
 });
 
 export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number };
@@ -43,10 +62,14 @@ export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpd
     maxId = Math.max(maxId, u.update_id);
     const m = u.message;
     if (!m?.text) continue;
+    const replyToId = m.reply_to_message?.message_id;
     messages.push({
       chatId: String(m.chat.id),
       text: m.text,
       from: m.from?.username ?? m.from?.first_name,
+      id: m.message_id !== undefined ? String(m.message_id) : undefined,
+      isGroup: isGroupChat(m.chat.type),
+      replyToId: replyToId !== undefined ? String(replyToId) : undefined,
     });
   }
   return { messages, nextOffset: maxId + 1 };
@@ -55,6 +78,26 @@ export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpd
 /** Parse the VANTA_TELEGRAM_ALLOW chat-id allowlist (empty = allow all). Pure. */
 export function parseAllowlist(raw: string | undefined): Set<string> {
   return new Set((raw ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+}
+
+/**
+ * Pure: extract the assigned message id (stringified) from a sendMessage response
+ * payload, or undefined when the response is malformed/not-ok. Used to key the
+ * outbound message for reply-context lookup.
+ */
+export function parseSentId(payload: unknown): string | undefined {
+  const parsed = SendResponse.safeParse(payload);
+  if (!parsed.success || !parsed.data.ok || !parsed.data.result) return undefined;
+  return String(parsed.data.result.message_id);
+}
+
+/** Read a response body as JSON, returning undefined instead of throwing. */
+async function safeJson(res: Response): Promise<unknown> {
+  try {
+    return await res.json();
+  } catch {
+    return undefined;
+  }
 }
 
 export class TelegramAdapter implements PlatformAdapter {
@@ -87,11 +130,15 @@ export class TelegramAdapter implements PlatformAdapter {
     // BEFORE splitting, then send with parse_mode so bold/code render — not leak.
     const formatted = formatForDialect(msg.text, "telegram");
     for (const part of splitForLimit(formatted, TELEGRAM_LIMIT, "utf16")) {
-      await fetch(`${this.base}/sendMessage`, {
+      const res = await fetch(`${this.base}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ chat_id: msg.chatId, text: part, parse_mode: "MarkdownV2" }),
       });
+      // Record the FIRST sent part's id as the message's reply-context key, so the
+      // gateway's record-on-send (reply-store) can key the bot's reply. A split
+      // message's head is the stable reply target.
+      if (msg.id === undefined) msg.id = await parseSentId(await safeJson(res));
     }
   }
 }
