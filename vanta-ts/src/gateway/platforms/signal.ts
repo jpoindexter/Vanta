@@ -17,10 +17,25 @@ const DEFAULT_SIGNAL_URL = "http://127.0.0.1:8080";
 const SignalMessageSchema = z.object({
   envelope: z.object({
     source: z.string(),
+    // The message timestamp doubles as Signal's stable message id (quotes
+    // reference it), so it keys dedup + reply-context lookup.
+    timestamp: z.number().optional(),
     dataMessage: z.object({
       message: z.string().nullable().optional(),
+      // Present only in a group; groupId (base64) is the group's address and
+      // the correct reply target — so a group reply goes to the group, not the
+      // individual sender.
+      groupInfo: z.object({ groupId: z.string() }).optional(),
+      // A reply quotes the original message's timestamp (its id).
+      quote: z.object({ id: z.number() }).optional(),
     }).optional(),
   }),
+});
+
+// signal-cli's `send` reply surfaces the assigned message timestamp (the sent
+// message's id) under result.timestamp.
+const SignalSendResponse = z.object({
+  result: z.object({ timestamp: z.number() }).optional(),
 });
 
 /** Parse a signal-cli SSE event payload into an InboundMessage. Pure. */
@@ -28,12 +43,34 @@ export function parseSignalEvent(raw: string): InboundMessage | null {
   try {
     const parsed = SignalMessageSchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return null;
-    const msg = parsed.data.envelope.dataMessage?.message;
+    const env = parsed.data.envelope;
+    const data = env.dataMessage;
+    const msg = data?.message;
     if (!msg?.trim()) return null;
-    return { chatId: parsed.data.envelope.source, text: msg };
+    const groupId = data?.groupInfo?.groupId;
+    const quoteId = data?.quote?.id;
+    return {
+      // In a group the groupId is the reply target; in a 1:1 it's the source.
+      chatId: groupId ?? env.source,
+      text: msg,
+      id: env.timestamp !== undefined ? String(env.timestamp) : undefined,
+      isGroup: groupId !== undefined ? true : undefined,
+      replyToId: quoteId !== undefined ? String(quoteId) : undefined,
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Pure: extract the sent message's timestamp (stringified id) from a signal-cli
+ * send response, or undefined when the response is malformed. Used to key the
+ * outbound message for reply-context lookup.
+ */
+export function parseSignalSentId(payload: unknown): string | undefined {
+  const parsed = SignalSendResponse.safeParse(payload);
+  if (!parsed.success || !parsed.data.result) return undefined;
+  return String(parsed.data.result.timestamp);
 }
 
 /** Build the JSON-RPC payload for signal-cli send. Pure. */
@@ -102,6 +139,12 @@ export class SignalAdapter implements PlatformAdapter {
         body: payload,
       });
       if (!res.ok) throw new Error(`Signal send failed: HTTP ${res.status}`);
+      // Record the FIRST part's assigned timestamp as the reply-context key; a
+      // split message's head is the stable reply target. Best-effort: a body we
+      // can't parse just leaves id undefined.
+      if (msg.id === undefined) {
+        msg.id = parseSignalSentId(await res.json().catch(() => undefined));
+      }
     }
   }
 }

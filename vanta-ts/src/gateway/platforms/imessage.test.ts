@@ -8,12 +8,28 @@ describe("parseChatDbRows", () => {
     expect(parseChatDbRows([], 0)).toEqual([]);
   });
 
-  it("maps rows to InboundMessages", () => {
+  it("maps rows to InboundMessages, carrying the ROWID as the id", () => {
     const rows = [{ rowid: 1, text: "hello", handle_id: "+1555", date: 1000 }];
     const msgs = parseChatDbRows(rows, 0);
     expect(msgs.length).toBe(1);
     expect(msgs[0]?.chatId).toBe("+1555");
     expect(msgs[0]?.text).toBe("hello");
+    expect(msgs[0]?.id).toBe("1");
+    expect(msgs[0]?.fromMe).toBe(false);
+  });
+
+  it("leaves isGroup undefined for a 1:1 (no room_name) and replyToId always undefined", () => {
+    const rows = [{ rowid: 7, text: "dm", handle_id: "+1", date: 0, room_name: "" }];
+    const msgs = parseChatDbRows(rows, 0);
+    expect(msgs[0]?.isGroup).toBeUndefined();
+    expect(msgs[0]?.replyToId).toBeUndefined();
+  });
+
+  it("flags a group chat from a non-empty room_name", () => {
+    const rows = [{ rowid: 8, text: "group msg", handle_id: "+1", date: 0, room_name: "chat123456789" }];
+    const msgs = parseChatDbRows(rows, 0);
+    expect(msgs[0]?.isGroup).toBe(true);
+    expect(msgs[0]?.id).toBe("8");
   });
 
   it("skips rows at or below sinceRowId", () => {

@@ -27,6 +27,8 @@ export type ChatDbRow = {
   text: string;
   handle_id: string;
   date: number;
+  /** chat.room_name — non-empty only for a group chat (joined from chat.db). */
+  room_name?: string;
 };
 
 const RowSchema = z.object({
@@ -34,9 +36,16 @@ const RowSchema = z.object({
   text: z.string().nullable(),
   handle_id: z.string(),
   date: z.number(),
+  room_name: z.string().nullable().optional(),
 });
 
-/** Parse rows returned by the chat.db query into InboundMessages. Pure. */
+/**
+ * Parse rows returned by the chat.db query into InboundMessages. Pure.
+ * `rowid` is the message's stable id. A non-empty `room_name` (joined from the
+ * `chat` table) marks a group chat. iMessage carries no text-reply id for an
+ * incoming message (associated_message_guid is for tapbacks, not replies), so
+ * replyToId stays undefined.
+ */
 export function parseChatDbRows(
   rows: Array<Record<string, unknown>>,
   sinceRowId = 0,
@@ -46,9 +55,18 @@ export function parseChatDbRows(
     const parsed = RowSchema.safeParse(raw);
     if (!parsed.success || !parsed.data.text?.trim()) continue;
     if (parsed.data.rowid <= sinceRowId) continue;
+    const room = parsed.data.room_name;
     messages.push({
       chatId: parsed.data.handle_id,
       text: parsed.data.text,
+      id: String(parsed.data.rowid),
+      // is_from_me=0 is filtered in the query, so an incoming message is never
+      // the bot's own; fromMe is reported false to satisfy the dedup pipeline.
+      fromMe: false,
+      // A non-empty room_name only ever appears for a group chat; a 1:1 has
+      // none, so isGroup is true for a group and undefined (not a guess) for a
+      // direct message where the join produced no room.
+      isGroup: room ? true : undefined,
     });
   }
   return messages;
@@ -80,13 +98,26 @@ export class IMessageAdapter implements PlatformAdapter {
 
   async poll(): Promise<InboundMessage[]> {
     try {
+      // LEFT JOIN the chat tables so each row carries its chat.room_name — the
+      // only column that distinguishes a group chat (non-empty) from a 1:1.
       const { stdout } = await runExec("sqlite3", [
         this.dbPath,
-        `SELECT ROWID, text, handle_id, date FROM message WHERE ROWID > ${this.lastRowId} AND is_from_me = 0 AND text IS NOT NULL ORDER BY ROWID ASC LIMIT 50;`,
+        "SELECT m.ROWID, m.text, m.handle_id, m.date, c.room_name " +
+          "FROM message m " +
+          "LEFT JOIN chat_message_join cmj ON cmj.message_id = m.ROWID " +
+          "LEFT JOIN chat c ON c.ROWID = cmj.chat_id " +
+          `WHERE m.ROWID > ${this.lastRowId} AND m.is_from_me = 0 AND m.text IS NOT NULL ` +
+          "ORDER BY m.ROWID ASC LIMIT 50;",
       ], { timeout: 3000 });
       const rows = stdout.trim().split("\n").filter(Boolean).map((line) => {
-        const [rowid, text, handle_id, date] = line.split("|");
-        return { rowid: Number(rowid), text, handle_id: handle_id ?? "", date: Number(date) };
+        const [rowid, text, handle_id, date, room_name] = line.split("|");
+        return {
+          rowid: Number(rowid),
+          text,
+          handle_id: handle_id ?? "",
+          date: Number(date),
+          room_name: room_name ?? "",
+        };
       });
       const messages = parseChatDbRows(rows, this.lastRowId);
       if (rows.length > 0) this.lastRowId = Math.max(...rows.map((r) => r.rowid ?? 0));

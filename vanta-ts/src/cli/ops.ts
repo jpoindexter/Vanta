@@ -143,6 +143,16 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     return;
   }
 
+  if (sub === "import-desktop") {
+    const { importDesktopMcp } = await import("../mcp/desktop-import.js");
+    const r = await importDesktopMcp();
+    if (!r.ok) { console.log(`  ${r.error}`); return; }
+    console.log(`  imported ${r.imported.length}, skipped ${r.skipped.length} → ${r.targetPath}`);
+    if (r.imported.length > 0) console.log(`  imported: ${r.imported.join(", ")}`);
+    if (r.skipped.length > 0) console.log(`  skipped (already present): ${r.skipped.join(", ")}`);
+    return;
+  }
+
   // default: list configured MCP servers Vanta would consume (MCP-1 side)
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));

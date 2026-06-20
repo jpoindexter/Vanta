@@ -23,6 +23,9 @@ const PostSchema = z.object({
   channel_id: z.string(),
   message: z.string().optional(),
   type: z.string().optional(),
+  // A reply carries the root post's id; a top-level post has root_id="" (or
+  // absent), which we normalize to no replyToId.
+  root_id: z.string().optional(),
 });
 
 const PostListSchema = z.object({
@@ -31,6 +34,9 @@ const PostListSchema = z.object({
 });
 
 const MeSchema = z.object({ id: z.string() });
+
+// POST /api/v4/posts returns the created post; its id is the sent message id.
+const CreatedPostSchema = z.object({ id: z.string() });
 
 export type ParsedPosts = { messages: InboundMessage[]; lastCreateAt: number };
 
@@ -66,8 +72,23 @@ export function parseMattermostPosts(
     chatId: post.channel_id,
     text,
     from: post.user_id,
+    id: post.id,
+    // A non-empty root_id means this post replies to that root post. The
+    // channel type (DM vs group) isn't on the post object, so isGroup stays
+    // undefined — don't guess it from the post alone.
+    replyToId: post.root_id ? post.root_id : undefined,
   }));
   return { messages, lastCreateAt };
+}
+
+/**
+ * Pure: extract the created post's id (the sent message id) from a POST
+ * /api/v4/posts response, or undefined when the response is malformed. Keys the
+ * outbound message for reply-context lookup.
+ */
+export function parseSentPostId(payload: unknown): string | undefined {
+  const parsed = CreatedPostSchema.safeParse(payload);
+  return parsed.success ? parsed.data.id : undefined;
 }
 
 /** Parse the VANTA_MATTERMOST_ALLOW channel-id allowlist (empty = allow all). Pure. */
@@ -137,12 +158,17 @@ export class MattermostAdapter implements PlatformAdapter {
       // through — the explicit call documents the per-adapter formatMessage seam.
       const formatted = formatForDialect(msg.text, "markdown");
       for (const part of splitForLimit(formatted, MATTERMOST_LIMIT, "chars")) {
-        await fetch(`${this.api}/posts`, {
+        const res = await fetch(`${this.api}/posts`, {
           method: "POST",
           headers: { ...this.headers(), "content-type": "application/json" },
           body: JSON.stringify({ channel_id: msg.chatId, message: part }),
           signal: AbortSignal.timeout(5000),
         });
+        // Record the FIRST part's created-post id as the reply-context key; a
+        // split message's head is the stable reply target.
+        if (msg.id === undefined && res.ok) {
+          msg.id = parseSentPostId(await res.json().catch(() => undefined));
+        }
       }
     } catch {
       /* errors-as-values: a send failure must not throw through the gateway loop */

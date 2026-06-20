@@ -22,6 +22,7 @@ import {
 import { runPostTurnGates, type GateState } from "./repl/post-turn-gates.js";
 import { suggestSkillFromRun } from "./projects/commands.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
+import { scoreClarity, shouldClarify, resolveClarityThreshold, buildClarityNote } from "./repl/clarity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
 import { saveSession } from "./sessions/store.js";
@@ -87,6 +88,10 @@ export function printPreTurnNotes(
   const complexityScore = scoreComplexity(text);
   if (shouldSuggestPlanMode(complexityScore, convo.messages, process.env)) {
     console.log(`\n${buildComplexityNote(complexityScore)}`);
+  }
+  // VANTA-CLARITY-GATE — non-blocking: only a genuinely-ambiguous instruction trips it.
+  if (shouldClarify(scoreClarity(text), resolveClarityThreshold(process.env))) {
+    console.log(`\n${buildClarityNote(text)}`);
   }
   const activeGoal = setup.goals.find((g) => g.status === "active") ?? null;
   if (isTopicShift(text, activeGoal, 0.15)) {
