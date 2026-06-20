@@ -3,7 +3,7 @@
 Tool layer. Tools are the execution boundary below the agent loop and above the Rust safety kernel.
 
 - Add tool: new `tools/<name>.ts`, zod `safeParse`, scoped paths, `describeForSafety`, add to the `ALL_TOOLS` array in `all-tools.ts`, update `tools.test.ts`. `index.ts` is just `buildRegistry` (filters `ALL_TOOLS` by name + adds factory-built `mount_mcp`/`tool_search`).
-- Tool count: **94 built-in** in `ALL_TOOLS`, **97 registered** (+ factory `mount_mcp` + `tool_search` + `mcp_auth`). Update both numbers after a registry change.
+- Tool count: **95 built-in** in `ALL_TOOLS`, **98 registered** (+ factory `mount_mcp` + `tool_search` + `mcp_auth`). Update both numbers after a registry change.
 - Big multi-tool files split their writers/runners to stay under the size gate: `*-write.ts` (git/calendar/drive write tools, `gmail-helpers.ts`) and `*-run.ts` (`team-run.ts`, `radar-scan.ts`, `browser-act-run.ts`) hold helpers the parent file imports — edit the helper, not a copy in the parent.
 - `brain.ts`: read/write/list/remember/recall for `~/.vanta/brain`; recall uses `memory/guardrails.ts` before returning entries to the model.
 - `bg-tasks.ts`: background shell tasks write `.vanta/bg-tasks/*`; stall detection calls `notify`, which can emit `Notification` hooks.
