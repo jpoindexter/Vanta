@@ -13,6 +13,7 @@ import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
 import { classifyTighten, classifierEnabled } from "../permissions/auto-classifier.js";
+import { classifyBashSafety, bashClassifierEnabled } from "../permissions/bash-classifier.js";
 import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
@@ -58,7 +59,8 @@ export async function applySafetyGate(
   // tighten() returns "block" for any kernel block regardless of the rule.
   const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
   const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
-  const profileDecision = await applyOperatorProfile(autoDecision, verdict.risk, call.name, action);
+  const bashDecision = applyBashClassifier(autoDecision, call.name, action);
+  const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
   const decision = applyAdvisoryClassifier(profileDecision, call.name, action);
 
   if (decision.decision === "block") {
@@ -87,6 +89,21 @@ async function applyOperatorProfile(
   if (!profile) return current;
   const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
   return next.decision === current.decision ? current : next;
+}
+
+/** VANTA-BASH-CLASSIFIER: loosen a kernel/auto-mode ASK to allow ONLY for a
+ * shell_cmd whose command is classified clearly-safe (read-only/idempotent), and
+ * ONLY when armed. Never touches a block/allow — the kernel block floor stands,
+ * and the downstream tighteners can still re-escalate. Off by default. */
+function applyBashClassifier(
+  current: { decision: "allow" | "ask" | "block"; reason: string },
+  toolName: string,
+  action: string,
+): { decision: "allow" | "ask" | "block"; reason: string } {
+  if (current.decision !== "ask" || toolName !== "shell_cmd" || !bashClassifierEnabled(process.env)) return current;
+  return classifyBashSafety(action) === "safe"
+    ? { decision: "allow", reason: "bash-classifier: safe read-only command auto-approved" }
+    : current;
 }
 
 /** PAPER-AUTO-CLASSIFIER: final tighten-only advisory pass. Off by default; can

@@ -4244,7 +4244,7 @@
       "id": "VANTA-BASH-CLASSIFIER",
       "track": "Harness",
       "title": "Bash auto-classifier — ML-based auto-approval for safe bash commands",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent runs an async classifier against every bash command before surfacing a permission dialog. Coordinator workers await the result sequentially; swarm workers try it before forwarding to the leader. Races against user interaction with a resolve-once guard.",
       "done": "Bash commands classified as safe auto-approve without dialog; unsafe/unknown fall through to normal permission flow; coordinator and swarm workers respect classifier result.",
