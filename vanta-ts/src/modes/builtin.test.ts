@@ -18,6 +18,7 @@ const EXPECTED_NAMES = [
   "pre-ship-review",
   "inspect-opportunity",
   "solutioning-mode",
+  "launchpad",
   "body-double",
 ];
 
@@ -30,18 +31,18 @@ describe("operator modes", () => {
     await rm(HOME, { recursive: true, force: true });
   });
 
-  it("defines exactly the eight expected modes", () => {
+  it("defines exactly the nine expected modes", () => {
     expect(OPERATOR_MODES.map((m) => m.name).sort()).toEqual(
       [...EXPECTED_NAMES].sort(),
     );
   });
 
-  it("installs all eight modes and returns their names", async () => {
+  it("installs all nine modes and returns their names", async () => {
     const installed = await installModes({ env, now: NOW });
     expect(installed.sort()).toEqual([...EXPECTED_NAMES].sort());
   });
 
-  it("writes eight skills retrievable via listSkills", async () => {
+  it("writes nine skills retrievable via listSkills", async () => {
     await installModes({ env, now: NOW });
     const names = (await listSkills(env)).map((s) => s.meta.name);
     for (const expected of EXPECTED_NAMES) {

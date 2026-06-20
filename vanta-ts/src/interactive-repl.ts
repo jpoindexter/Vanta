@@ -62,6 +62,9 @@ export type ReplDeps = {
   setup: RunSetup;
   repoRoot: string;
   runUserTurn: (text: string) => Promise<void>;
+  /** VANTA-BUDGET-CAP: when its .current is set true mid-turn, the loop ends the
+   * session cleanly after that turn (the spend cap was reached). */
+  capHaltedRef?: { current: boolean };
 };
 
 async function runShortcut(line: string, deps: Pick<ReplDeps, "setup" | "repoRoot">): Promise<void> {
@@ -114,5 +117,6 @@ export async function runReplLoop(d: ReplDeps): Promise<void> {
     if (!line) continue;
     const res = await replIteration(line, editState, d);
     if (res.stop) break;
+    if (d.capHaltedRef?.current) break;
   }
 }

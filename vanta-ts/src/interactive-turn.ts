@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, looksLikeTempImagePath } from "./repl-commands.js";
 import { readClipboardImage } from "./term/clipboard-image.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
+import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/session-cap.js";
 import { buildModeHint } from "./repl/mode-detect.js";
 import { maybeAugmentPrompt } from "./templates/templates.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
@@ -47,6 +48,9 @@ export type TurnDeps = {
   agentDeps?: AgentDeps;
   autoHandoffNotedRef: { current: boolean };
   gatesRef: { current: GateState };
+  /** VANTA-BUDGET-CAP: set true once accumulated spend reaches --max-budget-usd,
+   * so the REPL loop stops the session cleanly after the current turn. */
+  capHaltedRef?: { current: boolean };
 };
 
 /** Resolve media drops and normalize text; mutates state.pendingImages. */
@@ -122,6 +126,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
     const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
     console.log(`  ${formatTurnCost({ inputTokens: outcome.usage.inputTokens, outputTokens: outcome.usage.outputTokens, elapsedMs: Date.now() - t0, cost, tokensSaved: outcome.tokensSaved })}`);
     state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
+    maybeHaltOnBudgetCap(deps);
   }
   await handleAutoHandoff(outcome, deps);
   await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
@@ -146,6 +151,20 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
     fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, ...turnHookDeps(deps) }).catch(() => null),
   ]);
   return { continueWith: goalContinue ?? hookContext ?? null };
+}
+
+/**
+ * VANTA-BUDGET-CAP: stop the loop when accumulated frontier spend reaches the
+ * --max-budget-usd / VANTA_MAX_BUDGET_USD cap. No-op when unset (cap === null),
+ * so behavior is byte-identical without a cap. Prints current spend, then flags
+ * the halt ref the REPL loop reads to end the session cleanly (no throw).
+ */
+function maybeHaltOnBudgetCap(deps: TurnDeps): void {
+  const cap = resolveSessionCap(process.env);
+  const spent = deps.state.sessionCost?.frontierUsd ?? 0;
+  if (!isOverCap(spent, cap) || cap === null) return;
+  console.log(`\n${buildCapExceededMessage(spent, cap)}`);
+  if (deps.capHaltedRef) deps.capHaltedRef.current = true;
 }
 
 async function handleAutoHandoff(
@@ -189,6 +208,7 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
     const outcome = await deps.convo.send(buildSendText(turnText, deps.workingMemory), images);
     const result = await runPostTurnPipeline({ outcome, text: turnText, t0, turnStart, deps });
     images = undefined;
+    if (deps.capHaltedRef?.current) break;
     if (!result.continueWith || loopCount >= loopMax) break;
     turnText = result.continueWith;
     loopCount++;
