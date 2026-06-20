@@ -113,6 +113,12 @@ export const SettingsSchema = z.object({
    *  telemetry/analytics; `essential` allows only the provider + kernel calls
    *  the agent needs to function. */
   privacyLevel: z.enum(["default", "no-telemetry", "essential"]).optional(),
+  /** VANTA-MAGIC-DOCS — markdown files (e.g. `["STATUS.md","PROGRESS.md"]`) that
+   *  get a managed auto-updated region refreshed after each turn with a compact
+   *  session summary, between marker comments so hand-written content is
+   *  preserved. Resolved by `repl/magic-docs.ts` (`resolveMagicDocs`). Unset/empty
+   *  = no writes (today's behavior). */
+  magicDocs: z.array(z.string()).optional(),
   /** VANTA-SETTINGS-MEM — memory-layer config (resolvers in `memory-settings.ts`).
    *  `autoMemory` maps to VANTA_EXTRACT_MEMORIES; `excludes` are patterns the
    *  memory layer must not capture; `plansDir` is where plan docs live. Unset =
