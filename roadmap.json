@@ -2587,7 +2587,7 @@
       "id": "VANTA-MAGIC-DOCS",
       "track": "Harness",
       "title": "Magic Docs — auto-maintained markdown files updated after each turn",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Any .md file starting with `# MAGIC DOC: [title]` is automatically updated by a background subagent after each turn that contains tool calls. The doc accumulates learnings from the conversation (architecture, decisions, patterns) without interrupting the main flow. Uses post-sampling hook + sequential update guard.",
       "done": "Files with MAGIC DOC header are updated after turns with tool calls; updates are non-blocking; concurrent updates are serialised; the doc reflects conversation knowledge after the session.",
@@ -2596,7 +2596,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure buildMagicSummary (goal/recent files/last action, injected timestamp) + replaceManagedRegion (MAGIC_BEGIN/END markers, only the region swapped, hand-written content preserved, idempotent) + updateMagicDocs (injected fs, best-effort, never throws, skips unchanged) + resolveMagicDocs + settings.magicDocs. Built+tested; post-turn wire = runPostTurnGates resolves magicDocs + builds summary from where.ts/closure-gate + writes (named, best-effort like voice/proactive). No docs = no writes."
     },
     {
       "id": "VANTA-COORDINATOR-MODE",
