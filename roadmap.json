@@ -2898,7 +2898,7 @@
       "id": "VANTA-TERMINAL-TITLE",
       "track": "Operator",
       "title": "Terminal window title — session name / active task in title bar",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's use-terminal-title.ts sets the terminal window/tab title to the current session name or active task, so users can identify Vanta sessions in a terminal multiplexer or across multiple windows. Vanta sets no terminal title.",
       "done": "The terminal title updates to 'Vanta — <session name>' at session start and '<active task>' while working; resets to 'Vanta' on idle; disabled with an env var.",
@@ -2906,7 +2906,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20",
+      "notes": "Pure buildTerminalTitle (Vanta — <task>, control chars/ESC/BEL stripped so no escape injection, 80-char truncate) + titleSequence (OSC-0) + titleEnabled (TTY + not VANTA_TERMINAL_TITLE=0) + setTerminalTitle (injected write, best-effort, no-op off/non-TTY). SECURITY: a goal name cannot inject a second escape (tests assert one OSC opener + one BEL). Built+tested; wire = interactive.ts runChat on session start + setNewGoal on active-task change (named)."
     },
     {
       "id": "VANTA-STATUS-NOTICES",
