@@ -3119,7 +3119,7 @@
       "id": "VANTA-TEAMMATE-COLOR",
       "track": "Operator",
       "title": "Teammate color coding — unique color per agent in swarm UI",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Each spawned teammate is assigned a unique color from the AGENT_COLORS palette in round-robin order. Colors persist per session and are displayed in the TUI teammate tree, footer pills, and @-completion suggestions to distinguish agents at a glance.",
       "done": "Each teammate shows with a distinct color in the TUI; same agent keeps same color throughout session; colors cycle across the palette for large swarms.",
@@ -3128,7 +3128,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure TEAMMATE_PALETTE (12 terminal-safe Ink colors, excludes white/gray/black) + teammateColorIndex (FNV-1a hash % palette, stable+distributed) + teammateColor (same id -> same color always) + assignTeammateColors (Map, distinct via next-free-slot then cycles; dup ids collapse). Empty/unicode ids safe. Built+tested; fleet-UI wire = ui/teammate-tree buildTeammateTree rows + ui/task-rows /agents panel colored by teammateColor(id) (named). Presentation-only."
     },
     {
       "id": "VANTA-MCP-RECONNECT-TOGGLE",
