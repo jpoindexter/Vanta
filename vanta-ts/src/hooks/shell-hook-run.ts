@@ -7,6 +7,7 @@ import {
   type MatchContext,
 } from "./shell-hooks.js";
 import { resolveHookExec } from "./hook-exec-form.js";
+import { resolvePostToolBlock } from "./continue-on-block.js";
 import { runMcpToolHook } from "./mcp-hook-run.js";
 import { runHttpHook } from "./http-hook-run.js";
 import { runPromptHook } from "./prompt-hook-run.js";
@@ -181,6 +182,45 @@ export async function firePreToolUse(
   return userMessage ? { blocked: false, userMessage } : { blocked: false };
 }
 
+export type PostToolUseOutcome = {
+  /** True only when a hook blocked (exit 2) WITHOUT `continueOnBlock` — hard-stop the turn. */
+  hardStop: boolean;
+  /** A blocking hook's reason fed BACK to the model (continueOnBlock) — appended to the tool result. */
+  feedback?: string;
+};
+
+/**
+ * Run PostToolUse hooks AFTER a tool executed. A block (exit 2) is resolved by
+ * `resolvePostToolBlock`: `continueOnBlock` returns the reason as `feedback`
+ * (turn continues); otherwise `hardStop: true` (block ends the turn, as today).
+ * First hard-stop ends the chain; feedback otherwise accumulates. No blocking
+ * hook → `{ hardStop: false }` (byte-identical to the prior path). Never throws.
+ */
+export async function firePostToolUse(
+  dataDir: string,
+  context: Record<string, unknown>,
+  opts: HookRunOpts & { toolName?: string; matcherValue?: string; isError?: boolean } = {},
+): Promise<PostToolUseOutcome> {
+  try {
+    const matchCtx: MatchContext = { toolName: opts.toolName, matcherValue: opts.matcherValue, isError: opts.isError };
+    const hooks = matchingHooks(await loadShellHooks(dataDir), "PostToolUse", matchCtx);
+    if (!hooks.length) return { hardStop: false };
+    const ctx = JSON.stringify({ event: "PostToolUse", ...context });
+    const feedback: string[] = [];
+    for (const h of hooks) {
+      const r = await runHook(h, "PostToolUse", ctx, opts);
+      const verdict = interpretHookExit(r.code, r.stdout, r.stderr);
+      if (!verdict.block) continue;
+      const reason = verdict.toModel ?? (r.stdout.trim() || `PostToolUse hook exited ${r.code}`);
+      const resolution = resolvePostToolBlock(h, reason);
+      if (resolution.hardStop) return { hardStop: true, feedback: reason };
+      if (resolution.feedback) feedback.push(resolution.feedback);
+    }
+    return feedback.length ? { hardStop: false, feedback: feedback.join("\n") } : { hardStop: false };
+  } catch {
+    return { hardStop: false };
+  }
+}
 /**
  * Fire Stop hooks at the end of an agent turn and return the first
  * `additionalContext` string from any hook's stdout JSON. Best-effort — never throws.

@@ -60,6 +60,10 @@ const ShellHookSchema = z.object({
   promptPattern: z.string().optional(),
   /** If true, only fire when the tool returned an error (ok: false). Applies to PostToolUse. */
   onError: z.boolean().optional(),
+  /** PostToolUse only. If true, a block (exit 2) does NOT hard-stop the turn: the
+   *  rejection reason is fed BACK to the model (appended to the tool result) so it
+   *  can adapt and continue. Absent/false = a block hard-stops, as today. */
+  continueOnBlock: z.boolean().optional(),
   /** Session type filter. Absent = fire in both modes.
    *  "interactive" = REPL / TUI session; "one-shot" = `vanta run`. */
   sessionType: z.enum(["interactive", "one-shot"]).optional(),
@@ -199,4 +203,4 @@ export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, c
 }
 
 export type { ShellHookResult } from "./shell-hook-run.js";
-export { runShellHook, runExecHook, runOneHook, firePreToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";
+export { runShellHook, runExecHook, runOneHook, firePreToolUse, firePostToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";
