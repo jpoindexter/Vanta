@@ -2290,7 +2290,7 @@
       "id": "VANTA-HOOK-PERM-DENIED",
       "track": "Harness",
       "title": "`PermissionDenied` hook — fire on auto-mode classifier denials with retry option",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.89) adds a `PermissionDenied` hook that fires after auto-mode classifier denials. Returning `{retry: true}` tells Claude to try an alternative approach instead of stopping. Enables operator-controlled recovery from permission blocks.",
       "done": "A PermissionDenied hook logs the denied action and returns `{retry: true}`. Claude rewrites the command to avoid the denied pattern.",
@@ -2299,7 +2299,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HOOK-EXEC-FORM",
@@ -2351,7 +2351,7 @@
       "id": "VANTA-ULTRACODE-TRIGGER",
       "track": "Harness",
       "title": "Ultracode trigger keyword — `ultracode` in prompt launches dynamic workflow",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.160) renames the dynamic-workflow prompt keyword from `workflow` to `ultracode`. Typing `ultracode` in a prompt triggers the multi-agent workflow orchestration mode. The old `workflow` keyword no longer triggers a run; asking in natural language still works. A setting in `/config` can disable the keyword trigger.",
       "done": "Typing 'ultracode refactor this module' in the prompt triggers the workflow engine. The old 'workflow' keyword is inert.",
@@ -2360,7 +2360,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure hasUltracodeTrigger (whole-word, not-in-substring) + stripUltracodeTrigger + buildUltracodeDirective (byte-matches the /ultracode preamble). Detector built+tested; consumer = mode-detect/runUserTurn host calls it pre-turn (named, mirrors clarity-gate split)."
     },
     {
       "id": "VANTA-BG-RESPOND-CONTINUE",

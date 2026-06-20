@@ -5,10 +5,9 @@ import type { ToolCall, Verdict } from "../types.js";
 import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
-import { applyCompression, applyCodeCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
+import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { densifySearchResult, shouldDensifyTool } from "../compress/search-densify.js";
-import { stashOriginal } from "../compress/store.js";
-import { toonCompress, estTokens } from "winnow";
+import { toonView, compressReadFile } from "./toon-output.js";
 import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
@@ -19,6 +18,7 @@ import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
+import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-denied.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
@@ -54,10 +54,7 @@ export async function applySafetyGate(
   const decision = await resolveLayeredDecision(verdict, call, action, ctx);
 
   if (decision.decision === "block") {
-    const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
-    await firePermissionEvent(ctx.root, "PermissionDenied", call.name, { tool: call.name, action, reason });
-    deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
-    return { approved: false, reason: `blocked: ${reason}` };
+    return handleBlockDecision({ call, action, verdict, decision, deps, root: ctx.root });
   }
 
   if (decision.decision === "ask") {
@@ -73,6 +70,26 @@ export async function applySafetyGate(
   }
 
   return { approved: true };
+}
+
+/**
+ * A `block` verdict (kernel block, soft-deny rule, or auto-mode classifier deny).
+ * Fires PermissionDenied only on a true deny (the pure fire-decision) with the
+ * pure-built payload — best-effort, so no configured hook = no behavior change.
+ */
+async function handleBlockDecision(o: {
+  call: ToolCall;
+  action: string;
+  verdict: Verdict;
+  decision: { decision: "allow" | "ask" | "block"; reason: string };
+  deps: AgentDeps;
+  root: string;
+}): Promise<SafetyGateResult> {
+  const { call, action, verdict, decision, deps, root } = o;
+  const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
+  if (shouldFirePermDenied(decision)) await firePermissionEvent(root, "PermissionDenied", call.name, buildPermDeniedPayload(call.name, reason, action));
+  deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
+  return { approved: false, reason: `blocked: ${reason}` };
 }
 
 async function applyOperatorProfile(
@@ -213,45 +230,6 @@ export async function executeWithRetry(
   }
 
   return res;
-}
-
-/** Opt in to columnar (dictionary) TOON — bigger lossless savings on low-cardinality data,
- * at some readability cost (the model resolves dictionary indices). Default plain TOON. */
-function toonDict(): boolean {
-  const v = (process.env.VANTA_TOON_DICT ?? "").trim().toLowerCase();
-  return v === "1" || v === "true" || v === "on";
-}
-
-/** How to read the produced table (plain vs columnar). Pure. */
-function toonNote(toon: string): string {
-  return toon.startsWith("TOONC ")
-    ? "[winnow: lossless columnar TOON — a JSON header (cols/const/dict) then one indexed record per line]"
-    : "[winnow: lossless TOON table — keys in row 1, one record per line]";
-}
-
-/** Wrap object-array output as a lossless TOON table (every row kept), or null when it
- * isn't an object-array / too small to bother. Honors VANTA_TOON_DICT. */
-function toonView(output: string): { output: string; tokensSaved: number } | null {
-  const toon = output.length >= 400 ? toonCompress(output, { dictionary: toonDict() }) : null;
-  if (!toon) return null;
-  const out = `${toon}\n${toonNote(toon)}`;
-  return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
-}
-
-/** read_file compression: AST skeleton for TS/JS; a lossless TOON view for large JSON
- * object-arrays (exact bytes stashed for retrieval — edit_file is string-based, so a
- * stale match just errors, never corrupts); untouched otherwise. Opt out: VANTA_TOON_READFILE=0,
- * opt in to columnar with VANTA_TOON_DICT=1. */
-async function compressReadFile(output: string, vantaDir: string): Promise<{ output: string; tokensSaved: number }> {
-  const applied = await applyCodeCompression(output, vantaDir);
-  if (applied.tokensSaved > 0) return { output: applied.output, tokensSaved: applied.tokensSaved };
-  if (process.env.VANTA_TOON_READFILE === "0") return { output: applied.output, tokensSaved: 0 };
-  const toon = output.length >= 400 ? toonCompress(output, { dictionary: toonDict() }) : null;
-  if (!toon) return { output: applied.output, tokensSaved: 0 };
-  const id = await stashOriginal(vantaDir, output);
-  const fmt = toon.startsWith("TOONC ") ? "columnar TOON" : "TOON";
-  const out = `${toon}\n[winnow: lossless ${fmt} view of a JSON file (every row kept). The file on disk is unchanged JSON — call retrieve_original id="${id}" for the exact bytes before editing; do not write this view back.]`;
-  return { output: out, tokensSaved: Math.max(0, estTokens(output) - estTokens(out)) };
 }
 
 /**
