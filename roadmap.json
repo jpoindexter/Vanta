@@ -3195,7 +3195,7 @@
       "id": "VANTA-OS-NOTIFY",
       "track": "Operator",
       "title": "OS system notification — desktop alert after long tool runs when terminal is inactive",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent sends an OS-level system notification (macOS/Linux/Windows) when a tool response completes and the user hasn't interacted with the terminal for 6+ seconds. Uses `sendNotification` via the system notifier. Also respects terminal focus events via `useTerminalNotification`.",
       "done": "After a long bash command finishes while the user is in another app, a macOS/OS notification appears. Clicking it focuses the terminal.",
@@ -3204,7 +3204,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure shouldNotifyLongRun ({elapsedMs,terminalActive,env}: >=30s default/VANTA_NOTIFY_AFTER_MS AND terminal inactive AND not VANTA_OS_NOTIFY=0) + buildLongRunNotice + maybeNotifyLongRun (reuses term/notify notify(), injected, best-effort never throws). Built+tested; loop point = agent dispatchTool post-tool with the proactive inactivity signal + tool label (named). Fast/active/disabled = no notify."
     },
     {
       "id": "VANTA-COPY-ON-SELECT",
@@ -3241,7 +3242,7 @@
       "id": "VANTA-SESSION-TITLE",
       "track": "Operator",
       "title": "AI session title — auto-generate session name via Haiku from conversation content",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent uses a dedicated Haiku query to auto-generate a short, descriptive session title from conversation content. `sessionTitle.ts` is the single source of truth shared by: teleport (6-word title + branch name), /rename (kebab-case name), and SDK control requests. Titles are generated asynchronously and don't block the session.",
       "done": "After the first exchange, the session gets an auto-generated title (e.g. 'fix-auth-token-refresh') visible in /sessions, status bar, and teleport UI.",
@@ -3250,7 +3251,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure titleGenEnabled (VANTA_AUTO_TITLE=1, default off) + buildTitlePrompt (first exchange, <=6 words) + sanitizeTitle (strip quotes/newlines, cap 60, fallback) + generateSessionTitle (injected complete, blank/reject -> fallback, never throws). Cheap-model aux task (VANTA_MODEL_CHEAP). Built+tested; save point = sessions/store saveSession post-first-turn with a cheap provider, guarded by titleGenEnabled (named). Default off = deriveTitle unchanged."
     },
     {
       "id": "VANTA-TRANSCRIPT-SEARCH",
