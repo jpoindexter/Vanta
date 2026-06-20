@@ -2817,7 +2817,7 @@
       "id": "VANTA-SHELL-TIMING",
       "track": "Operator",
       "title": "Shell command timing — elapsed time display per command",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's ShellTimeDisplay + ShellProgressMessage show real elapsed time for each shell command, updating live during execution. Helps identify slow commands, understand build times, and debug performance issues. Vanta shows no timing.",
       "done": "Running shell commands show a live elapsed timer (HH:MM:SS); on completion the final time is shown dimmed next to the command; sub-second commands show ms.",
@@ -2825,7 +2825,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-CHANNEL-MSG",
