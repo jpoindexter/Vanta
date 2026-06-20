@@ -1,6 +1,9 @@
 import type { Message } from "./types.js";
 import { compactionReminder } from "./repl/compaction-remind.js";
+import { protectHeadTail, shouldCompact, passSavings } from "./context/compaction-boundary.js";
 import { compactHistory } from "winnow";
+
+export { shouldCompact, passSavings } from "./context/compaction-boundary.js";
 
 export { sanitizeMessages } from "./context/sanitize.js";
 
@@ -24,6 +27,17 @@ export function estimateTokens(messages: Message[]): number {
   return Math.ceil(JSON.stringify(messages).length / CHARS_PER_TOKEN);
 }
 
+/** Token cost of one message, for budgeting a protected tail. */
+function tokenOf(m: Message): number {
+  return estimateTokens([m]);
+}
+
+// Default tail-token budget. 0 = the protected tail is exactly the protectLast
+// count (preserves prior compaction behavior). Growing the tail to fill a token
+// budget is opt-in via TrimOptions.tailTokenBudget — a flat default would
+// over-protect small context windows and suppress compaction that should run.
+const DEFAULT_TAIL_TOKEN_BUDGET = 0;
+
 type TrimOptions = {
   protectFirst?: number;
   protectLast?: number;
@@ -32,6 +46,8 @@ type TrimOptions = {
   activeGoalText?: string;
   /** The live session scratchpad, injected interior on compression. */
   sessionMemory?: string;
+  /** Token ceiling for the protected tail beyond the protectLast count floor. */
+  tailTokenBudget?: number;
   /** Best-effort callback fired immediately before persistent compaction summarizes the dropped window. */
   onPreCompact?: (middle: Message[]) => Promise<void>;
 };
@@ -99,11 +115,18 @@ function splitForCompaction(
   const rest = messages.filter((m) => m.role !== "system");
   if (rest.length <= protectFirst + protectLast) return null;
 
-  const head = rest.slice(0, protectFirst);
-  let tail = rest.slice(-protectLast);
-  // A leading tool result with no preceding assistant tool_call breaks the API.
-  while (tail.length && tail[0]?.role === "tool") tail = tail.slice(1);
-  const middle = rest.slice(protectFirst, rest.length - tail.length);
+  // Align the head/middle and middle/tail cuts so they never split a tool_call
+  // from its tool_result (an orphaned pair 400s the provider). The tail is also
+  // token-budgeted (HARNESS-COMPACT-BOUNDARY). The leading-tool-result guard is
+  // now subsumed by alignBoundaryBackward inside protectHeadTail.
+  const { headEnd, tailStart } = protectHeadTail(
+    rest,
+    { protectFirst, protectLast, tailTokenBudget: opts.tailTokenBudget ?? DEFAULT_TAIL_TOKEN_BUDGET },
+    tokenOf,
+  );
+  const head = rest.slice(0, headEnd);
+  const middle = rest.slice(headEnd, tailStart);
+  const tail = rest.slice(tailStart);
 
   return { system, head, tail, middle };
 }
