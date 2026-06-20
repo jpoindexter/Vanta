@@ -1232,7 +1232,7 @@
       "id": "VANTA-RESEARCH-DECOMPOSE",
       "track": "Solutioning",
       "title": "Query decomposition — parallel research with tool transparency",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Steal rocket.new Solve's engine: decompose a research objective into independent sub-queries, run them as parallel subagents (Vanta has delegate/swarm), and surface WHICH tools each ran + what it found. The transparent-research substrate under SOLUTIONING-MODE; serves 'report only verified output.'",
       "done": "A research goal fans out into labeled parallel sub-queries and returns a synthesis that shows, per dimension, which tools ran and what each found.",
@@ -1241,7 +1241,7 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-CLARITY-GATE",
@@ -1498,7 +1498,7 @@
       "id": "VANTA-SETTINGS-GIT",
       "track": "Harness",
       "title": "Git settings parity — attribution, PR template, gitignore",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent settings: attribution (customize Co-Authored-By in commits), includeGitInstructions (include git best-practice instructions in system prompt), prUrlTemplate (PR link format for the status line), respectGitignore (control file picker gitignore behavior). Vanta commits but has no commit attribution settings.",
       "done": "All four git settings are recognized and enforced; `attribution` overrides the default Co-Authored-By line; `prUrlTemplate` substitutes `{PR}` with the PR number in the status footer.",
@@ -1506,7 +1506,8 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-MD-IMPORTS",

@@ -7,6 +7,7 @@ import {
   worktreeText,
   vimText,
   customText,
+  prText,
   composeRichSegments,
 } from "./status-segments.js";
 
@@ -107,6 +108,21 @@ describe("customText", () => {
   });
 });
 
+describe("prText", () => {
+  it("omits when there is no active PR (default footer unchanged)", () => {
+    expect(prText(undefined, "https://github.com/o/r/pull/{PR}")).toBe("");
+  });
+  it("omits when there is no template", () => {
+    expect(prText(42, undefined)).toBe("");
+    expect(prText(42, "   ")).toBe("");
+  });
+  it("renders the PR via the template's {PR} placeholder", () => {
+    expect(prText(42, "https://github.com/o/r/pull/{PR}")).toBe(
+      "https://github.com/o/r/pull/42",
+    );
+  });
+});
+
 describe("composeRichSegments", () => {
   it("returns no segments when nothing is present", () => {
     expect(composeRichSegments({})).toEqual([]);
@@ -132,6 +148,14 @@ describe("composeRichSegments", () => {
   it("includes a hook-contributed custom segment", () => {
     const segs = composeRichSegments({ custom: "deploying" });
     expect(segs.find((s) => s.key === "custom")?.text).toContain("deploying");
+  });
+  it("omits the PR segment when unset (default footer unchanged)", () => {
+    expect(composeRichSegments({ prUrlTemplate: "pull/{PR}" }).some((s) => s.key === "pr")).toBe(false);
+    expect(composeRichSegments({ prNumber: 5 }).some((s) => s.key === "pr")).toBe(false);
+  });
+  it("includes the PR segment when both number and template are present", () => {
+    const segs = composeRichSegments({ prNumber: 5, prUrlTemplate: "pull/{PR}" });
+    expect(segs.find((s) => s.key === "pr")?.text).toContain("pull/5");
   });
   it("prefixes each present segment with a separator", () => {
     const segs = composeRichSegments({ vimEnabled: true });

@@ -118,6 +118,7 @@ describe("registry", () => {
       "ref_list",
       "ref_search",
       "regression_lock",
+      "research_decompose",
       "retrieve_original",
       "roadmap_add",
       "roadmap_move",

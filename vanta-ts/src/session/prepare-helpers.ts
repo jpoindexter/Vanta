@@ -11,7 +11,8 @@ import { playbookDigest } from "../memory/playbook.js";
 import { getOutputDensity } from "../nd/profile.js";
 import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
-import type { Settings } from "../settings/store.js";
+import { loadSettings, type Settings } from "../settings/store.js";
+import { gitInstructionsBlock } from "../settings/git-settings.js";
 import { PluginCommandRegistry } from "../plugins/commands.js";
 import { sessionConfig, sessionConfigEvent } from "../sessions/config-event.js";
 import { formatRalphContinuityBlock, hasIncompleteRalphWork, readRalphState } from "../ralph/state.js";
@@ -143,6 +144,7 @@ export async function buildRunPrompt(o: {
   const skills = process.env.VANTA_SKILL_SUBSET === "0"
     ? ctx.skills
     : selectSkillsForTask(ctx.skills ?? [], o.instruction);
+  const settings = await loadSettings(o.repoRoot, process.env);
   const systemPrompt = await buildSystemPrompt({
     root: o.repoRoot,
     soulPath: join(o.repoRoot, "SOUL.md"),
@@ -162,6 +164,7 @@ export async function buildRunPrompt(o: {
     goalsPaused: process.env.VANTA_GOAL_RESUME !== "auto",
     loadContext: o.loadContext,
     outputDensity: await getOutputDensity(),
+    gitInstructions: gitInstructionsBlock(settings),
   });
   return { systemPrompt, ralphContinuity };
 }

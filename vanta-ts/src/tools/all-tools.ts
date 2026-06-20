@@ -13,6 +13,7 @@ import { webSearchTool } from "./web-search.js";
 import { webFetchTool } from "./web-fetch.js";
 import { writeSkillTool } from "./write-skill.js";
 import { recallTool } from "./recall.js";
+import { researchDecomposeTool } from "./research-decompose.js";
 import { screenshotTool } from "./screenshot.js";
 import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
@@ -139,6 +140,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   webFetchTool,
   writeSkillTool,
   recallTool,
+  researchDecomposeTool,
   redditReadTool,
   screenshotTool,
   browserNavigateTool,

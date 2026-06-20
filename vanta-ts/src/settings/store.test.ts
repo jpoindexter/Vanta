@@ -95,6 +95,20 @@ describe("loadSettings", () => {
     expect(s.plugins?.trustProjectPlugins).toBe(true);
   });
 
+  it("loads the four git-parity settings", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      attribution: "Co-Authored-By: Vanta <ops@theft.studio>",
+      includeGitInstructions: true,
+      prUrlTemplate: "https://github.com/o/r/pull/{PR}",
+      respectGitignore: false,
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.attribution).toBe("Co-Authored-By: Vanta <ops@theft.studio>");
+    expect(s.includeGitInstructions).toBe(true);
+    expect(s.prUrlTemplate).toBe("https://github.com/o/r/pull/{PR}");
+    expect(s.respectGitignore).toBe(false);
+  });
+
   it("project settings override user settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
     await writeFile(join(root, ".vanta", "settings.json"), JSON.stringify({ allowedTools: ["write_file"] }));
