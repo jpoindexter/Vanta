@@ -16,6 +16,7 @@ import {
 import { ndGatesAfterTurn } from "../session/nd-gates.js";
 import { detectSycophancy, buildVoiceCheckText } from "./voice-check.js";
 import { markProactiveActivity } from "../proactive/store.js";
+import { checkMemory, type MemEnv } from "../health/memory-warn.js";
 import { emptyEfState } from "../nd/engine.js";
 import type { EfState } from "../nd/types.js";
 import type { Message } from "../types.js";
@@ -36,6 +37,8 @@ export type GateState = {
   wmManip: WmManipState;
   /** ND executive-function engine state (the user-configurable gate set). */
   nd: EfState;
+  /** Epoch ms the heap-usage warning last fired, threaded for its cooldown. */
+  memWarnLastAt?: number;
 };
 
 /** Last assistant turn's text content, or "" if none. Pure. */
@@ -62,6 +65,19 @@ function voiceCheckAfterTurn(messages: Message[], onNote: (text: string) => void
   } catch { /* best-effort — never break the session */ }
 }
 
+/**
+ * HEAP-WARN post-turn gate: emit a one-line HIGH/CRITICAL heap warning at most
+ * once per cooldown (state on GateState). Best-effort — never throws. Returns the
+ * new lastWarnedAt (unchanged when silent: below threshold or within cooldown).
+ */
+function memWarnGate(lastAt: number | undefined, readHeap: () => number, onNote: (text: string) => void, env: MemEnv): number | undefined {
+  try {
+    const r = checkMemory({ readHeap, now: Date.now, lastWarnedAt: lastAt, env });
+    if (r.warning) onNote(r.warning);
+    return r.warnedAt;
+  } catch { return lastAt; /* best-effort — never break the session */ }
+}
+
 export function freshGateState(): GateState {
   return {
     research: { consecutiveTurns: 0 },
@@ -80,17 +96,22 @@ export async function runPostTurnGates(
   o: {
     messages: Message[]; safety: KernelClient; dataDir: string; onNote: (text: string) => void;
     env?: NodeJS.ProcessEnv; turnIndex?: number; startedMs?: number; now?: number;
+    /** Injectable heap reader (test seam); defaults to live process heap. */
+    readHeap?: () => number;
   },
 ): Promise<GateState> {
   const { messages, safety, dataDir, onNote } = o;
   const env = o.env ?? process.env;
   const now = o.now ?? Date.now();
+  const readHeap = o.readHeap ?? (() => process.memoryUsage().heapUsed);
   // A completed interactive turn = the user is present; stamp activity so the
   // proactive heartbeat treats them as "not away" (best-effort, never blocks).
   void markProactiveActivity(dataDir, new Date(now));
   traceAnomalyAfterTurn(messages, onNote, env);
   voiceCheckAfterTurn(messages, onNote, env);
+  const memWarnLastAt = memWarnGate(g.memWarnLastAt, readHeap, onNote, env);
   return {
+    memWarnLastAt,
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
     inhibit: await inhibitAfterTurn(g.inhibit, messages, { safety, onNote, env }),
     setShift: await setShiftAfterTurn(g.setShift, messages, onNote, env),
