@@ -13577,6 +13577,61 @@
       "after": [
         "RUN-ANYWHERE"
       ]
+    },
+    {
+      "id": "SEC-SHELL-ARGV-SANDBOX",
+      "track": "Harness",
+      "title": "Structured argv assessment + default-on sandbox for shell_cmd",
+      "status": "next",
+      "size": "L",
+      "tier": "rock",
+      "summary": "The kernel assess() is a substring denylist over the English describeForSafety string, which cannot fully contain a shell (obfuscation/interpreters/unlisted binaries evade it; confirmed in the 2026-06-20 pentest). The durable fix: pass structured argv + resolved paths to the kernel and allowlist, and make the sandbox the real boundary (default-on for shell_cmd/self_correct, not opt-in). Denylist additions shipped as defense-in-depth stop-gap.",
+      "done": "shell_cmd is sandboxed by default (or its argv is allowlist-assessed); a reverse shell / unlisted destructive binary cannot run on the host without explicit human approval. SECURITY.md §6 caveat removed.",
+      "updated": "2026-06-20"
+    },
+    {
+      "id": "SEC-KERNEL-API-TOKEN",
+      "track": "Harness",
+      "title": "Per-install bearer token on kernel /api/* (local multi-user defense)",
+      "status": "next",
+      "size": "M",
+      "tier": "pebble",
+      "summary": "Cross-origin browser CSRF is closed (Origin/Referer check + no wildcard CORS). A per-install 0600 bearer token on /api/* would additionally defend against other LOCAL processes/users on a shared host (the loopback API is currently reachable by any local process). Token injected into the cockpit HTML + sent by the TS safety-client.",
+      "done": "Mutating /api/* requires a per-install bearer token; cockpit + TS client supply it; a local process without the token gets 401.",
+      "updated": "2026-06-20"
+    },
+    {
+      "id": "SEC-REACH-SSRF",
+      "track": "Extensibility",
+      "title": "Extend SSRF guard to reach/twitter + reach/podcast fetchers",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "summary": "net/ssrf-guard.ts assertPublicUrl is wired into web_fetch, MCP http transport, and reach rss/reddit. reach/twitter.ts and reach/podcast.ts also fetch remote URLs and were out of the first guard pass.",
+      "done": "Both channels call assertPublicUrl before fetch; a metadata/loopback/private URL is refused; tests cover it.",
+      "updated": "2026-06-20"
+    },
+    {
+      "id": "SEC-MCP-STDIO-ENV",
+      "track": "Extensibility",
+      "title": "Spawn MCP stdio servers with a minimal env, not the full parent env",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "summary": "mcp/mount.ts resolveTransport spreads {...process.env, ...spec.env} into stdio MCP children, handing every operator secret to a (trust-gated) third-party binary. Scope it to PATH + explicit spec.env.",
+      "done": "stdio MCP children receive only PATH + declared spec.env; a spawned server cannot read unrelated secrets from the environment.",
+      "updated": "2026-06-20"
+    },
+    {
+      "id": "SEC-WINNOW-PIN",
+      "track": "Harness",
+      "title": "Pin the winnow git dependency to a commit SHA",
+      "status": "next",
+      "size": "S",
+      "tier": "sand",
+      "summary": "vanta-ts/package.json depends on github:jpoindexter/winnow from main with no commit pin (mutable, unaudited vs a registry). Used in a hot tool-output path. Pin to a commit SHA or tag.",
+      "done": "winnow is pinned to an immutable ref (commit SHA or tag); npm ci resolves it deterministically.",
+      "updated": "2026-06-20"
     }
   ]
 }
