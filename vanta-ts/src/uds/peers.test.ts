@@ -15,6 +15,11 @@ import {
   type PeerEntry,
 } from "./peers.js";
 
+const waitUntil = async (cond: () => boolean, maxTicks = 100): Promise<void> => {
+  for (let i = 0; i < maxTicks; i++) { if (cond()) return; await new Promise((r) => setTimeout(r, 5)); }
+  if (!cond()) throw new Error("waitUntil: condition not met");
+};
+
 let home: string;
 let env: NodeJS.ProcessEnv;
 const handles: PeerHandle[] = [];
@@ -90,8 +95,7 @@ describe("uds/peers — live UDS round-trip", () => {
     const res = await sendToPeer("target", { from: "sender", text: "hello peer" }, env);
     expect(res.ok).toBe(true);
 
-    // Give the listener a tick to append.
-    await new Promise((r) => setTimeout(r, 20));
+    await waitUntil(() => received.length > 0);
     expect(target.inbox).toEqual([{ from: "sender", text: "hello peer" }]);
     expect(received).toEqual([{ from: "sender", text: "hello peer" }]);
   });

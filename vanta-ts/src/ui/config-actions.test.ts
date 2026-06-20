@@ -9,6 +9,17 @@ import { loadSettings, localSettingsPath } from "../settings/store.js";
 // .vanta/settings.local.json and the re-derived overlay reflects it. The host
 // captures published views (mirrors how use-overlay binds publish to setOverlay).
 
+// onAction is fire-and-forget (async write inside); it publishes to the host AFTER
+// the write flushes. Poll on that signal instead of a fixed sleep that raced the
+// write under full-suite load (see ERRORS.md 2026-06-20).
+async function waitFor(cond: () => boolean, maxTicks = 200): Promise<void> {
+  for (let i = 0; i < maxTicks; i++) {
+    if (cond()) return;
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  if (!cond()) throw new Error("waitFor: condition not met within budget");
+}
+
 describe("config-actions — persist + re-derive", () => {
   let root: string;
 
@@ -31,7 +42,7 @@ describe("config-actions — persist + re-derive", () => {
     expect(view.state.effort).toBe("medium");
 
     view.onAction({ kind: "cycleEffort" });
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => seen.length > 0);
 
     const persisted = await loadSettings(root, {} as NodeJS.ProcessEnv);
     expect(persisted.effortLevel).toBe("high");
@@ -42,7 +53,7 @@ describe("config-actions — persist + re-derive", () => {
     const seen: ConfigView[] = [];
     const view = await buildConfigOverlay(root, host(seen));
     view.onAction({ kind: "toggleGate", gate: "antiSlop" }); // default true → false
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => seen.length > 0);
 
     const persisted = await loadSettings(root, {} as NodeJS.ProcessEnv);
     expect(persisted.gates?.antiSlop).toBe(false);
@@ -54,9 +65,10 @@ describe("config-actions — persist + re-derive", () => {
     const { writeFile } = await import("node:fs/promises");
     await writeFile(localSettingsPath(root), JSON.stringify({ blockedTools: ["shell_cmd"] }), "utf8");
 
-    const view = await buildConfigOverlay(root, host([]));
+    const seen: ConfigView[] = [];
+    const view = await buildConfigOverlay(root, host(seen));
     view.onAction({ kind: "toggleAuto" });
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => seen.length > 0);
 
     const raw = JSON.parse(await readFile(localSettingsPath(root), "utf8"));
     expect(raw.blockedTools).toEqual(["shell_cmd"]); // untouched dangerous field stays

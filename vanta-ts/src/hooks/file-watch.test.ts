@@ -5,12 +5,17 @@ import { join } from "node:path";
 import { hasFileChangedHooks, startHookFileWatcher } from "./file-watch.js";
 import { shellHooksPath } from "./shell-hooks.js";
 
-async function waitFor(path: string): Promise<void> {
-  for (let i = 0; i < 30; i++) {
-    if (await access(path).then(() => true).catch(() => false)) return;
+// fs.watch (FSEvents on macOS) arms asynchronously with no readiness signal, so a
+// trigger write that lands before arming is MISSED, not delayed — a single write +
+// long wait flakes under load. Re-fire the trigger each poll so a write is guaranteed
+// to land after the watcher is armed; the marker then appears within one debounce.
+async function waitForMarker(marker: string, trigger: () => Promise<void>): Promise<void> {
+  for (let i = 0; i < 80; i++) {
+    await trigger();
+    if (await access(marker).then(() => true).catch(() => false)) return;
     await new Promise((r) => setTimeout(r, 25));
   }
-  await access(path);
+  await access(marker);
 }
 
 describe("FileChanged hook watcher", () => {
@@ -36,8 +41,8 @@ describe("FileChanged hook watcher", () => {
     expect(await hasFileChangedHooks(dataDir)).toBe(true);
     const close = await startHookFileWatcher(root, { dataDir });
     try {
-      await writeFile(join(root, "watched.txt"), "changed");
-      await waitFor(marker);
+      let n = 0;
+      await waitForMarker(marker, () => writeFile(join(root, "watched.txt"), `changed-${n++}`));
     } finally {
       close();
     }

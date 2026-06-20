@@ -15,6 +15,11 @@ import { shellHooksPath } from "../hooks/shell-hooks.js";
 // project-trust gate (gate covered in hooks/shell-hooks.test.ts).
 process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
 
+const waitUntil = async (cond: () => boolean | Promise<boolean>, maxTicks = 100): Promise<void> => {
+  for (let i = 0; i < maxTicks; i++) { if (await cond()) return; await new Promise((r) => setTimeout(r, 5)); }
+  if (!(await cond())) throw new Error("waitUntil: condition not met");
+};
+
 // Integration test for the permissions gate in dispatch: the kernel verdict is
 // the floor; rules may TIGHTEN it but never loosen a Block. (The tighten() truth
 // table itself is exhaustively unit-tested in permissions/rules.test.ts.)
@@ -226,7 +231,7 @@ describe("applySafetyGate + permissions", () => {
     } as unknown as AgentDeps["registry"];
     const res = await dispatchTool({ id: "5", name: "failing_tool", arguments: {} }, deps, { root: home, requestApproval: deps.requestApproval } as ToolContext);
     expect(res.ok).toBe(false);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitUntil(async () => (await readFile(marker, "utf8").catch(() => "")) === "failed");
     expect(await readFile(marker, "utf8")).toBe("failed");
   });
 

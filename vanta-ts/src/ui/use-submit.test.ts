@@ -7,6 +7,11 @@ import type { SafetyClient } from "../safety-client.js";
 
 const allowSafety = { assess: async () => ({ risk: "allow" as const, needsHuman: false, reason: "" }) } as unknown as SafetyClient;
 
+const waitUntil = async (cond: () => boolean, maxTicks = 100): Promise<void> => {
+  for (let i = 0; i < maxTicks; i++) { if (cond()) return; await new Promise((r) => setTimeout(r, 5)); }
+  if (!cond()) throw new Error("waitUntil: condition not met");
+};
+
 function harness(busy = false): { onSubmit: (t: string) => void; runSlash: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn>; dispatch: ReturnType<typeof vi.fn>; openOverlay: ReturnType<typeof vi.fn> } {
   const runSlash = vi.fn(), send = vi.fn(), dispatch = vi.fn(), openOverlay = vi.fn();
   const deps: SubmitDeps = { runSlash, send, openOverlay, busy, safety: allowSafety, repoRoot: process.cwd(), dispatch };
@@ -44,14 +49,14 @@ describe("useSubmit routing", () => {
   it("sends plain text (no @refs) straight through", async () => {
     const h = harness();
     h.onSubmit("just a message");
-    await new Promise((r) => setTimeout(r, 10));
+    await waitUntil(() => h.send.mock.calls.length > 0);
     expect(h.send).toHaveBeenCalledWith("just a message");
   });
 
   it("queues instead of sending while busy", async () => {
     const h = harness(true);
     h.onSubmit("queued message");
-    await new Promise((r) => setTimeout(r, 10));
+    await waitUntil(() => h.dispatch.mock.calls.length > 0);
     expect(h.send).not.toHaveBeenCalled();
     expect(h.dispatch).toHaveBeenCalledWith({ t: "enqueue", text: "queued message" });
   });

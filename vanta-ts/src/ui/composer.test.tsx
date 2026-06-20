@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, tick, waitUntil } from "./test-render.js";
 import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal } from "./composer.js";
 import { matchSlash } from "./slash.js";
 
@@ -120,7 +120,7 @@ describe("Composer vi-mode behavior", () => {
     await tick();
     inst.input("i"); await ticks(3); // enter insert
     inst.input("hello"); await ticks(3);
-    inst.input("\r"); await ticks(3);
+    inst.input("\r"); await waitUntil(() => onSubmit.mock.calls.length > 0);
     expect(onSubmit).toHaveBeenCalledWith("hello");
     inst.unmount();
   });
@@ -134,7 +134,7 @@ describe("Composer vi-mode behavior", () => {
     inst.input("\x1b"); await ticks(3); // Esc → normal
     inst.input("xyz"); await ticks(3); // dropped in normal mode
     inst.input("i"); await ticks(3); // back to insert at cursor (within "hi")
-    inst.input("\r"); await ticks(3);
+    inst.input("\r"); await waitUntil(() => onSubmit.mock.calls.length > 0);
     expect(onSubmit).toHaveBeenCalledWith("hi"); // xyz never entered the buffer
     inst.unmount();
   });
@@ -144,7 +144,7 @@ describe("Composer vi-mode behavior", () => {
     const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
     await tick();
     inst.input("hello"); await ticks(3);
-    inst.input("\r"); await ticks(3);
+    inst.input("\r"); await waitUntil(() => onSubmit.mock.calls.length > 0);
     expect(onSubmit).toHaveBeenCalledWith("hello");
     inst.unmount();
   });

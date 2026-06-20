@@ -1,12 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { renderUi, tick } from "./test-render.js";
+import { renderUi, tick, waitForFrame, waitUntil } from "./test-render.js";
 import {
   TrustDialog, previewBody, lineCount, fileSummary, trustTitle,
   projectKeyAction, mcpKeyAction, type TrustRequest,
 } from "./trust-dialog.js";
-
-// Multiple flushes: input → useInput → setState → re-render takes more than one tick.
-const ticks = async (n = 6): Promise<void> => { for (let i = 0; i < n; i++) await tick(); };
 
 const noKey = { escape: false, return: false, upArrow: false, downArrow: false };
 
@@ -88,8 +85,7 @@ describe("TrustDialog render — project", () => {
     const ui = renderUi(<TrustDialog request={req} onDecide={() => {}} />);
     await tick();
     ui.input("v");
-    await ticks();
-    expect(ui.lastFrame()).toContain("be nice");
+    expect(await waitForFrame(ui, "be nice")).toContain("be nice");
     ui.unmount();
   });
 
@@ -98,7 +94,7 @@ describe("TrustDialog render — project", () => {
     const ui = renderUi(<TrustDialog request={req} onDecide={(t) => { decided = t; }} />);
     await tick();
     ui.input("y");
-    await tick();
+    await waitUntil(() => decided !== undefined);
     expect(decided).toBe(true);
     ui.unmount();
   });
@@ -108,7 +104,7 @@ describe("TrustDialog render — project", () => {
     const ui = renderUi(<TrustDialog request={req} onDecide={(t) => { decided = t; }} />);
     await tick();
     ui.input("n");
-    await tick();
+    await waitUntil(() => decided !== undefined);
     expect(decided).toBe(false);
     ui.unmount();
   });
@@ -117,9 +113,8 @@ describe("TrustDialog render — project", () => {
     let decided: boolean | undefined;
     const ui = renderUi(<TrustDialog request={req} onDecide={(t) => { decided = t; }} />);
     await tick();
-    ui.input("\x1b");
-    await new Promise((r) => setTimeout(r, 130)); // Ink debounces Esc ~120ms
-    await tick();
+    ui.input("\x1b"); // Ink debounces Esc ~120ms; waitUntil polls past it
+    await waitUntil(() => decided !== undefined);
     expect(decided).toBe(false);
     ui.unmount();
   });
