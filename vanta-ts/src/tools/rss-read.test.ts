@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { rssReadTool } from "./rss-read.js";
 import type { ToolContext } from "./types.js";
 
@@ -9,7 +9,14 @@ const FEED = `<rss version="2.0"><channel><title>T</title>
   <item><title>Two</title><link>https://x.test/2</link></item>
 </channel></rss>`;
 
+// Stubbed fetch on a reserved `.test` host: opt out of the SSRF guard so the
+// stub answers instead of the guard's (failing) DNS resolution. Guard coverage
+// lives in src/net/ssrf-guard.test.ts.
+beforeEach(() => {
+  process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
+});
 afterEach(() => {
+  delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
   vi.restoreAllMocks();
 });
 

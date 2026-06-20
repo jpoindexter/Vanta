@@ -1,3 +1,5 @@
+import type { LLMProvider } from "../providers/interface.js";
+
 /** Priority-ordered categories of work triage finds. */
 export type WorkCategory = "quality" | "test-failure" | "type-error" | "roadmap" | "parked";
 
@@ -86,3 +88,53 @@ export type CycleResult =
       tokenSpend: number;
       mergedInto: string;
     };
+
+// --- PORT-FACTORY-DEPS: injectable pipeline seams ---------------------------
+// The factory pipeline is dependency-injected so the executor/planner/verifier
+// are swappable and testable in isolation (mirrors loop/IterationDeps + EvolveDeps).
+// `run.ts:defaultFactoryDeps` wires the real stages; tests inject fakes.
+
+/** Options for the verify trust gate (LLM judge provider override + work item). */
+export type VerifyOpts = {
+  workItem?: WorkItem;
+  /** Override the LLM judge provider (default: resolved from env when workItem is set). */
+  provider?: LLMProvider;
+};
+
+/** Context every verify check receives. */
+export type VerifyCheckCtx = {
+  root: string;
+  tsRoot: string;
+  artifact: SliceArtifact;
+  preExisting: Set<string>;
+  opts?: VerifyOpts;
+};
+
+/** One named gate in the verify chain. Register a check to extend the gate
+ * without editing the orchestrator (verifier.ts:buildVerifyChecks). */
+export type VerifyCheck = {
+  name: string;
+  run: (ctx: VerifyCheckCtx) => Promise<VerifyResult>;
+};
+
+/** Git lifecycle behind a small adapter so the orchestrator never shells out
+ * directly — swap it for a fake in tests or a different VCS later. */
+export type VcsAdapter = {
+  isTreeDirty(root: string): Promise<boolean>;
+  currentBranch(root: string): Promise<string>;
+  createBranch(root: string): Promise<string>;
+  commit(root: string, message: string): Promise<string>;
+  push(root: string): Promise<void>;
+  merge(root: string, target: string, source: string, restoreTo: string): Promise<boolean>;
+  lastCommitLineCount(root: string): Promise<number>;
+  discardSlice(root: string): Promise<void>;
+};
+
+/** The injected pipeline `runCycle` calls every stage through. */
+export type FactoryDeps = {
+  triage: (root: string) => Promise<WorkItem | null>;
+  plan: (item: WorkItem, root: string) => FactoryPlan;
+  execute: (root: string, plan: FactoryPlan, budget: number) => Promise<SliceArtifact>;
+  verify: (root: string, artifact: SliceArtifact, preExisting: Set<string>, opts?: VerifyOpts) => Promise<VerifyResult>;
+  vcs: VcsAdapter;
+};

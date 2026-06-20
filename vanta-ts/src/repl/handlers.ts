@@ -7,9 +7,14 @@ import type { ReplCtx, SlashResult, SlashHandler } from "./types.js";
 import { next } from "./next.js";
 import { goal } from "./goal-cmd.js";
 import { planMode } from "./plan-mode.js";
+import { planV2 } from "./plan-cmd.js";
+import { tickets } from "./tickets-cmd.js";
+import { outreach } from "./outreach-cmd.js";
 import { auto } from "./auto-cmd.js";
 import { boundary } from "./boundary.js";
 import { where } from "./where.js";
+import { learnings } from "./learnings-cmd.js";
+import { explain } from "./capability-cmd.js";
 import { recover } from "./recover-cmd.js";
 import { wm } from "./wm.js";
 import { model } from "./model-cmd.js";
@@ -21,6 +26,7 @@ import { handoff } from "./handoff-cmd.js";
 import { open } from "./open-cmd.js";
 import { edit } from "./edit-cmd.js";
 import { tasks } from "./tasks-cmd.js";
+import { wftasks } from "./workflow-tasks-cmd.js";
 import { btw } from "./btw-cmd.js";
 import { diff } from "./diff-cmd.js";
 import { search } from "./search-cmd.js";
@@ -51,6 +57,7 @@ import { formatGoalLedger } from "./goal-ledger.js";
 import { readGoalDeps } from "../goals/deps.js";
 import { ultrathink, ultracode, deepResearch, skeptic } from "./think-cmd.js";
 import { health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie } from "./operator-cmds.js";
+import { peers } from "./peers-cmd.js";
 import { nd } from "./nd-cmd.js";
 import { sessions, resume, title, fork } from "./session-cmds.js";
 import { image, paste, copy, update } from "./media-cmds.js";
@@ -134,11 +141,11 @@ const goals: SlashHandler = async (_arg, ctx) => {
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, retry, undo, rewind, hooks, skills, tools, model, effort, setup: model, status, doctor: status,
-  plan, compress, compact: compress, memory, goals, goal, sessions, resume, title, fork, context: contextCmd,
-  mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, boundary, where, recover, wm, restart, bug, handoff, open, edit, tasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
+  plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
+  mcp, usage, copy, update, image, paste, cron, moim, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, wftasks, btw, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions,
   tui: tuiCommand, focus: focusCommand, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 

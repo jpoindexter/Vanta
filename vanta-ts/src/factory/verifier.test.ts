@@ -3,7 +3,7 @@ import { rm, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { writeFile, mkdir } from "node:fs/promises";
-import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModified, checkNewFilesUnderLineLimit } from "./verifier.js";
+import { classifyTouchedFiles, checkNoProtectedPaths, checkNoExistingTestModified, checkNewFilesUnderLineLimit, buildVerifyChecks, verify } from "./verifier.js";
 
 let tmp: string;
 beforeEach(async () => { tmp = await mkdtemp(join(tmpdir(), "vanta-verifier-")); });
@@ -104,5 +104,31 @@ describe("checkNewFilesUnderLineLimit", () => {
     await writeFile(file, "export const x = 1;\n".repeat(10));
     const r = await checkNewFilesUnderLineLimit([file], 300);
     expect(r.ok).toBe(true);
+  });
+});
+
+describe("verify chain (PORT-FACTORY-DEPS)", () => {
+  it("registers checks in a stable order with the holdout seam wired", () => {
+    const names = buildVerifyChecks().map((c) => c.name);
+    expect(names[0]).toBe("protected-paths");
+    expect(names).toEqual([
+      "protected-paths",
+      "no-existing-test-modified",
+      "new-files-size",
+      "new-tests-fail-on-prechange",
+      "full-suite",
+      "tsc",
+      "intent-judge",
+      "holdout",
+    ]);
+  });
+
+  it("short-circuits on the first failing check without running git/tsc", async () => {
+    // A protected path fails the first check; verify must return immediately and
+    // never reach the suite/tsc checks (which would need a real repo).
+    const artifact = { newTestFiles: [], touchedFiles: ["src/safety.rs"], tokenSpend: 0 };
+    const r = await verify(tmp, artifact, new Set());
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/protected path/i);
   });
 });

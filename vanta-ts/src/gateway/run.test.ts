@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gatewayTick, pollPlatform } from "./run.js";
+import { gatewayTick, pollPlatform, pollPlatformSession } from "./run.js";
+import { initialState } from "./session-manager.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
 import { enqueueLoopWake } from "../loop/wake.js";
@@ -150,5 +151,78 @@ describe("pollPlatform", () => {
       },
     });
     expect(adapter.sent[0]?.text).toContain("error: model down");
+  });
+});
+
+describe("pollPlatformSession (concurrent inbound routing)", () => {
+  const noCron = {
+    dataDir: "/x",
+    run: async () => ({ finalText: "" }),
+    load: async () => [],
+    log: () => {},
+  };
+
+  it("is a no-op (delegates) with no platform configured", async () => {
+    const r = await pollPlatformSession(noCron, initialState());
+    expect(r.count).toBe(0);
+    expect(r.state).toEqual(initialState());
+  });
+
+  it("handles a single idle message exactly like the legacy path", async () => {
+    const adapter = new FakeAdapter([{ chatId: "42", text: "status", from: "jp" }]);
+    const r = await pollPlatformSession(
+      { ...noCron, platform: adapter, handle: async (t) => `you said: ${t}` },
+      initialState(),
+    );
+    expect(r.count).toBe(1);
+    expect(adapter.sent).toEqual([{ chatId: "42", text: "you said: status" }]);
+    expect(r.state.running).toBe(false); // settles idle after the batch drains
+  });
+
+  it("runs the first, queues a concurrent plain message, drains it FIFO", async () => {
+    const adapter = new FakeAdapter([
+      { chatId: "1", text: "first task" },
+      { chatId: "1", text: "second task" },
+    ]);
+    const handled: string[] = [];
+    const r = await pollPlatformSession(
+      { ...noCron, platform: adapter, handle: async (t) => { handled.push(t); return `ok: ${t}`; } },
+      initialState(),
+    );
+    expect(r.count).toBe(2);
+    expect(handled).toEqual(["first task", "second task"]); // queued one ran after
+    expect(adapter.sent.map((s) => s.text)).toEqual(["ok: first task", "ok: second task"]);
+    expect(r.state.running).toBe(false);
+  });
+
+  it("routes a concurrent /stop as interrupt (logged, not queued/replied)", async () => {
+    const adapter = new FakeAdapter([
+      { chatId: "1", text: "long running job" },
+      { chatId: "1", text: "/stop" },
+    ]);
+    const logs: string[] = [];
+    const handled: string[] = [];
+    await pollPlatformSession(
+      { ...noCron, log: (m) => logs.push(m), platform: adapter, handle: async (t) => { handled.push(t); return "done"; } },
+      initialState(),
+    );
+    // interrupt is not handled as a run nor queued/drained — only the first ran.
+    expect(handled).toEqual(["long running job"]);
+    expect(logs.some((l) => l.includes("interrupt"))).toBe(true);
+  });
+
+  it("routes a concurrent >> message as steer (logged, not queued)", async () => {
+    const adapter = new FakeAdapter([
+      { chatId: "1", text: "build the thing" },
+      { chatId: "1", text: ">> use the other module" },
+    ]);
+    const logs: string[] = [];
+    const handled: string[] = [];
+    await pollPlatformSession(
+      { ...noCron, log: (m) => logs.push(m), platform: adapter, handle: async (t) => { handled.push(t); return "done"; } },
+      initialState(),
+    );
+    expect(handled).toEqual(["build the thing"]);
+    expect(logs.some((l) => l.includes("steer"))).toBe(true);
   });
 });

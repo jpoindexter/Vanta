@@ -131,6 +131,36 @@ export function extractAuthConfig(spec: ServerSpec): McpAuthConfig | null {
   };
 }
 
+// Non-secret env vars a stdio MCP child legitimately needs (PATH so it can find
+// its interpreter, locale, terminal, tmp/home). Deliberately excludes every
+// credential the operator holds (OPENAI_API_KEY, tokens, etc.). win32 adds the
+// vars Windows binaries require to run at all.
+const SAFE_ENV_KEYS = [
+  "PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TERM", "TMPDIR", "TZ", "SHELL",
+] as const;
+const WIN32_ENV_KEYS = ["SystemRoot", "PATHEXT"] as const;
+
+/**
+ * Build a scoped child env for a stdio MCP server: a small allowlist of
+ * non-secret vars from the parent, MERGED with the server's own declared `env`
+ * (declared env wins). The full operator environment — API keys, tokens — is
+ * NOT inherited. `VANTA_MCP_FULL_ENV=1` opts back into the full parent spread
+ * for a server that genuinely needs inherited env. Pure: testable.
+ */
+export function buildMcpChildEnv(
+  processEnv: NodeJS.ProcessEnv,
+  specEnv?: Record<string, string>,
+): NodeJS.ProcessEnv {
+  if (processEnv.VANTA_MCP_FULL_ENV === "1") return { ...processEnv, ...specEnv };
+  const allow = process.platform === "win32" ? [...SAFE_ENV_KEYS, ...WIN32_ENV_KEYS] : SAFE_ENV_KEYS;
+  const out: NodeJS.ProcessEnv = {};
+  for (const key of allow) {
+    const val = processEnv[key];
+    if (val !== undefined) out[key] = val;
+  }
+  return { ...out, ...specEnv };
+}
+
 async function resolveTransport(
   name: string,
   spec: ServerSpec,
@@ -145,7 +175,7 @@ async function resolveTransport(
     return httpTransport(spec.url, { token, headers: spec.headers });
   }
   if (spec.command) {
-    const t = stdioTransport(spec.command, spec.args ?? [], { ...process.env, ...spec.env });
+    const t = stdioTransport(spec.command, spec.args ?? [], buildMcpChildEnv(env, spec.env));
     children.push({ kill: () => t.child.kill() });
     return t.transport;
   }

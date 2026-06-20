@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { promisify } from "node:util";
-import { exec as execCb } from "node:child_process";
+import { execFile } from "node:child_process";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
 import { buildRegistry } from "./index.js";
+import { wrapExec } from "../exec/backend.js";
+import { isSandboxError } from "../sandbox/run.js";
+import { shellSandboxEnv } from "./shell-cmd.js";
 import { appendLock } from "../verify/store.js";
 import { selfCorrect, type Failure, type RunResult, type SelfCorrectResult } from "../selfcorrect/loop.js";
 
@@ -13,7 +16,7 @@ import { selfCorrect, type Failure, type RunResult, type SelfCorrectResult } fro
 // success. The fix worker's edits are each assessed by the kernel (the "gated
 // diff, approve" step); the failing command is assessed via describeForSafety.
 
-const exec = promisify(execCb);
+const run = promisify(execFile);
 const TIMEOUT_MS = 60_000;
 const MAX_BUFFER = 4_000_000;
 const MAX_FAILURE_OUTPUT = 2_000;
@@ -23,13 +26,21 @@ const Args = z.object({
   expect: z.string().min(1),
 });
 
-async function runCommand(command: string): Promise<RunResult> {
+// SECURITY: route the failing command through the SAME sandbox seam as shell_cmd
+// (wrapExec → OS sandbox / docker per VANTA_SANDBOX / VANTA_EXEC_BACKEND) instead of
+// a bare child_process.exec. Previously self_correct ran on the host unsandboxed —
+// a third shell-exec site that ignored every containment flag.
+async function runCommand(command: string, root: string): Promise<RunResult> {
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, baseCmd: "sh", baseArgs: ["-c", command] });
+  if (isSandboxError(sb)) return { exitCode: 1, output: sb.error };
   try {
-    const { stdout, stderr } = await exec(command, { timeout: TIMEOUT_MS, maxBuffer: MAX_BUFFER });
+    const { stdout, stderr } = await run(sb.cmd, sb.args, { cwd: root, timeout: TIMEOUT_MS, maxBuffer: MAX_BUFFER });
     return { exitCode: 0, output: stdout + stderr };
   } catch (err) {
     const e = err as { code?: number; stdout?: string; stderr?: string; message?: string };
     return { exitCode: e.code ?? 1, output: (e.stdout ?? "") + (e.stderr ?? "") + (e.message ?? "") };
+  } finally {
+    await sb.cleanup?.();
   }
 }
 
@@ -90,7 +101,7 @@ export const selfCorrectTool: Tool = {
     if (!parsed.success) return { ok: false, output: 'self_correct needs "command" and "expect" strings' };
     const result = await selfCorrect(
       { command: parsed.data.command, expect: parsed.data.expect },
-      { run: runCommand, fix: (f, out) => runFixSubagent(f, out, ctx), lock: (l) => appendLock(l), now: Date.now },
+      { run: (cmd) => runCommand(cmd, ctx.root), fix: (f, out) => runFixSubagent(f, out, ctx), lock: (l) => appendLock(l), now: Date.now },
     );
     return { ok: result.stage === "fixed" || result.stage === "no-failure", output: formatResult(result) };
   },

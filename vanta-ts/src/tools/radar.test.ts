@@ -15,9 +15,13 @@ describe("radarTool", () => {
     home = await mkdtemp(join(tmpdir(), "vanta-rt-"));
     prev = process.env.VANTA_HOME;
     process.env.VANTA_HOME = home;
+    // scan_web drives stubbed fetches on non-resolving hosts; opt out of the
+    // SSRF guard so the stub answers (guard tested in src/net/ssrf-guard.test.ts).
+    process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
   });
   afterEach(async () => {
     if (prev === undefined) delete process.env.VANTA_HOME; else process.env.VANTA_HOME = prev;
+    delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
     await rm(home, { recursive: true, force: true });
   });
 

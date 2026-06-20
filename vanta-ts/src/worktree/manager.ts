@@ -61,6 +61,25 @@ export async function cleanupWorktree(repoRoot: string, path: string, branch: st
 }
 
 /**
+ * Check whether a worktree directory has no uncommitted changes.
+ * Runs `git status --porcelain` inside the worktree; empty output = clean.
+ * Returns `{ clean, status }` so callers can surface the pending changes
+ * rather than silently discarding them. A git failure is reported as dirty
+ * (fail safe — never auto-delete a worktree we can't inspect).
+ */
+export async function worktreeStatus(
+  path: string,
+): Promise<{ clean: boolean; status: string }> {
+  try {
+    const { stdout } = await run("git", ["status", "--porcelain"], { cwd: path });
+    const status = stdout.trim();
+    return { clean: status === "", status };
+  } catch (err) {
+    return { clean: false, status: `(status unavailable: ${(err as Error).message.split("\n")[0]})` };
+  }
+}
+
+/**
  * Check if a worktree branch has uncommitted changes or commits ahead of HEAD.
  * Returns a summary of the diff.
  */

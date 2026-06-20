@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 import { extractAuth, parseTimeline, graphqlError, type TwitterPost } from "./twitter-parse.js";
 
 // Native X/Twitter GraphQL client — no Python, no twitter-cli. Authenticates
@@ -96,6 +97,8 @@ async function xGraphQL(
   if (!qid) return { ok: false, error: `no query id for ${op} — run reach heal twitter to fetch current ids` };
   const features = env.VANTA_TWITTER_FEATURES ?? JSON.stringify(FEATURES);
   const url = `https://x.com/i/api/graphql/${qid}/${op}?variables=${encodeURIComponent(JSON.stringify(variables))}&features=${encodeURIComponent(features)}`;
+  const guard = await assertPublicUrl(url, { env });
+  if (!guard.ok) return { ok: false, error: guard.error };
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);

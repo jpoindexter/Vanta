@@ -56,6 +56,9 @@ function ctx(): ToolContext {
 beforeEach(async () => {
   home = await mkdtemp(join(tmpdir(), "vanta-mcpauth-tool-"));
   process.env.VANTA_HOME = home;
+  // The HTTP transport's SSRF guard blocks loopback by default; this drives a
+  // real 127.0.0.1 MCP server, so opt in (guard tested in src/net/).
+  process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
   mcp = fakeMcpServer();
   await new Promise<void>((r) => mcp.server.listen(0, "127.0.0.1", r));
 });
@@ -63,6 +66,7 @@ beforeEach(async () => {
 afterEach(async () => {
   delete process.env.VANTA_HOME;
   delete process.env.VANTA_MCP_SERVERS;
+  delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
   await new Promise<void>((r) => mcp.server.close(() => r()));
   await rm(home, { recursive: true, force: true });
 });

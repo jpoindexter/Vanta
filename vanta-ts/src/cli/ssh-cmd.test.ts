@@ -10,7 +10,8 @@ describe("runSshCommand", () => {
     const spawn = vi.fn(async () => 0);
     const code = await runSshCommand("/repo", ["vps"], { spawn, loadSettings: load(profiles) });
     expect(code).toBe(0);
-    expect(spawn).toHaveBeenCalledWith("ssh", ["-p", "2222", "deploy@1.2.3.4"]);
+    // `--` terminates ssh option parsing so a hostile host/user can't be read as a flag (injection fix).
+    expect(spawn).toHaveBeenCalledWith("ssh", ["-p", "2222", "--", "deploy@1.2.3.4"]);
   });
 
   it("returns 1 and does not spawn for an unknown profile", async () => {

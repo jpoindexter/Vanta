@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { delegateTool, delegateEnv } from "./delegate.js";
 import type { ToolContext } from "./types.js";
 
@@ -32,6 +35,27 @@ describe("delegateTool", () => {
 
     expect(result.ok).toBe(false);
     expect(result.output).toBe("delegate needs goal and instruction strings");
+  });
+
+  it("background:true returns an immediate ack without blocking on the worker (VANTA-ASYNC-DELEGATE)", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-bgdel-"));
+    const prevP = process.env.VANTA_PROVIDER;
+    // Force the detached worker to fail fast at provider resolution → no real
+    // spawn/network; we only assert the synchronous ack contract here.
+    process.env.VANTA_PROVIDER = "nonexistent_provider_for_test";
+    try {
+      const result = await delegateTool.execute(
+        { goal: "g", instruction: "i", background: true },
+        { root, safety: {}, requestApproval: async () => true } as unknown as ToolContext,
+      );
+      expect(result.ok).toBe(true);
+      expect(result.output).toContain("background");
+      await new Promise((r) => setTimeout(r, 30)); // let the fire-and-forget settle
+    } finally {
+      if (prevP === undefined) delete process.env.VANTA_PROVIDER;
+      else process.env.VANTA_PROVIDER = prevP;
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("describes delegation as a constant internal op, leaking no content", () => {

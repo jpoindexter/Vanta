@@ -1,9 +1,18 @@
 use crate::safety;
+use std::os::unix::fs::PermissionsExt;
 use std::{
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
+
+/// Create a directory (recursively) and lock it to 0700 — the .vanta store holds
+/// the audit key, tokens, and the event log, so it must not be world-readable on a
+/// shared host. Re-asserts the mode each call (cheap, fixes a pre-existing 0755 dir).
+pub fn ensure_private_dir(path: &Path) -> std::io::Result<()> {
+    fs::create_dir_all(path)?;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o700))
+}
 
 pub struct State {
     pub root: PathBuf,
@@ -18,7 +27,7 @@ impl State {
 }
 
 pub fn doctor(state: &State) -> Result<(), String> {
-    fs::create_dir_all(&state.data_dir).map_err(|e| e.to_string())?;
+    ensure_private_dir(&state.data_dir).map_err(|e| e.to_string())?;
     migrate_legacy_data(state);
     println!("{{");
     println!("  \"name\": \"Vanta\",");
@@ -83,7 +92,7 @@ pub fn append_event(state: &State, text: &str) -> Result<(), String> {
     if text.trim().is_empty() {
         return Err("log text is required".to_string());
     }
-    fs::create_dir_all(&state.data_dir).map_err(|e| e.to_string())?;
+    ensure_private_dir(&state.data_dir).map_err(|e| e.to_string())?;
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
@@ -104,7 +113,9 @@ pub fn append_event(state: &State, text: &str) -> Result<(), String> {
             use std::io::Write;
             f.write_all(line.as_bytes())
         })
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    // Move the truncation anchor forward so a later tail-truncation is detectable.
+    crate::audit::update_head_anchor(&state.data_dir, &key)
 }
 
 pub fn log_event(state: &State, text: &str) -> Result<(), String> {
@@ -113,8 +124,24 @@ pub fn log_event(state: &State, text: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// JSON-escape a string's CONTENT (no surrounding quotes). Escapes the full JSON
+/// control set — `\r`/`\t`/`\b`/`\f` and `\u00xx` for any other char < 0x20 — so a
+/// control byte in event text can't produce spec-invalid JSON in events.jsonl or an
+/// API response (the old version only handled `\\ " \n`).
 pub fn esc(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\u{08}' => out.push_str("\\b"),
+            '\u{0c}' => out.push_str("\\f"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
 }

@@ -17,14 +17,13 @@ import { installPluginSources } from "./plugin-source-install.js";
 import type { PluginSource } from "./plugin-source-flags.js";
 import { buildCallbacks } from "./output-callbacks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { maybeAugmentPrompt } from "../templates/templates.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { errorDetails, fireCwdChanged, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
 import { join } from "node:path";
 
-export function usage(): void {
-  console.log(
-    [
+const USAGE_LINES = [
       "Usage: vanta                              start an interactive session",
       "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
@@ -45,6 +44,8 @@ export function usage(): void {
       "       vanta gateway                      run the scheduler as a foreground daemon",
       "       vanta service [install|uninstall|status]   manage the background launchd agent",
       "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
+      "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",
+      "       vanta heartbeat                    one coalesced wakeup: budget→workspace→secret→skill→adapter + orphan recovery",
       "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
       "       vanta daemon [status|stop]          inspect or stop the background supervisor",
       "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
@@ -69,8 +70,10 @@ export function usage(): void {
       "       vanta backup [out.tgz] | import <in.tgz>   archive / restore ~/.vanta",
       "       vanta improve                      run one factory cycle (review mode — prints plan)",
       "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
-    ].join("\n"),
-  );
+];
+
+export function usage(): void {
+  console.log(USAGE_LINES.join("\n"));
 }
 
 export function usageExit(): never {
@@ -139,7 +142,7 @@ export async function runInstruction(
     await fireHooks(join(root, ".vanta"), "SessionStart", { source: "startup", sessionType: "one-shot" }, { cwd: root, matcherValue: "startup", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const convo = createConversation(setup.systemPrompt, agentDeps);
     await fireHooks(join(root, ".vanta"), "UserPromptSubmit", { prompt: instruction }, { cwd: root, prompt: instruction, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
-    const outcome = await convo.send(instruction);
+    const outcome = await convo.send(maybeAugmentPrompt(instruction));
     await fireHooks(join(root, ".vanta"), "Stop", { finalResponse: outcome.finalText, turnIndex: 1 }, { cwd: root, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);

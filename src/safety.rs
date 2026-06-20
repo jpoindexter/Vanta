@@ -38,6 +38,7 @@ const DESTRUCTIVE: &[&str] = &[
     "rm -rf", "rm -fr", "rm -r", "rm -f", "rmdir", "rmtree", "shutil.rmtree", "os.remove",
     "os.unlink", "unlink(", "pathlib", "delete", "erase", "nuke", "wipe", "trash",
     "dd if", "dd of", "mkfs", "> /dev", ":(){", "fork bomb", "git clean -fd", "git clean -df",
+    "shred", "> /dev/sd", "of=/dev",
 ];
 const DATA_LOSS: &[&str] = &["overwrite", "replace whole", "truncate", "drop table", "reset --hard", "git push --force", "push -f"];
 const EXFIL: &[&str] = &["blackmail", "exfiltrate", "steal", "leak token", "api key"];
@@ -47,6 +48,10 @@ const EXEC_VECTORS: &[&str] = &[
     "python -c", "python3 -c", "node -e", "node --eval", "bash -c", "sh -c", "zsh -c",
     "| sh", "| bash", "| python", "eval ", "exec(", "perl -e", "ruby -e", "base64 -d",
     "base64 --decode", "curl ", "wget ", "osascript",
+    // Reverse-shell / egress / persistence / extra-interpreter vectors a denylist over a
+    // description can't fully contain (the sandbox is the real boundary) — but these
+    // clearly-dangerous forms should at least require a human rather than Allow-by-default.
+    "ncat", "socat", "telnet", "/dev/tcp", "php -r", "deno ", "bun -e", "crontab", "chmod +x",
 ];
 const MACHINE_CONFIG: &[&str] = &["install", "sudo", "launchctl", "system", "profile", "credential", "token", "auth.json", ".ssh"];
 // Irreversible-but-not-destructive operations: publishing, pushing, applying
@@ -61,6 +66,9 @@ const IRREVERSIBLE: &[&str] = &[
     "npm unpublish", "twine upload", "gh release", "migrate", "migration", "db push",
     "alembic upgrade", "flyway", "liquibase", "terraform apply", "terraform destroy",
     "kubectl apply", "helm install", "helm upgrade", "deploy",
+    // history/remote-destroying git forms that otherwise slip to Allow
+    "reflog expire", "gc --prune", "update-ref -d", "push --delete", "push origin :",
+    "remote remove", "remote rm",
 ];
 // Explicit SEARCH actions (read-only tools with fixed describeForSafety prefixes).
 // A sensitive word appearing in a search QUERY is a mention, not an action — so the

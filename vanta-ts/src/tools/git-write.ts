@@ -9,6 +9,8 @@ const CommitArgs = z.object({ message: z.string().min(1) });
 const PushArgs = z.object({
   remote: z.string().min(1).optional(),
   branch: z.string().min(1).optional(),
+  /** Force-push. Surfaced to describeForSafety so the kernel's DATA_LOSS net blocks it. */
+  force: z.boolean().optional(),
 });
 const BranchArgs = z.object({ name: z.string().min(1).optional() });
 const CheckoutArgs = z.object({ ref: z.string().min(1) });
@@ -53,15 +55,20 @@ export const gitPushTool: Tool = {
       properties: {
         remote: { type: "string", description: "Optional remote name" },
         branch: { type: "string", description: "Optional branch name" },
+        force: { type: "boolean", description: "Force-push (overwrites remote history)" },
       },
       required: [],
     },
   },
-  describeForSafety: () => "git push",
+  // Surface the real args (incl. --force) so the kernel can see a destructive
+  // force-push instead of a generic "git push". A constant string would hide
+  // --force from assess() and let DATA_LOSS slip through as a mere Ask.
+  describeForSafety: (a) =>
+    `git push ${String(a["remote"] ?? "")} ${String(a["branch"] ?? "")} ${a["force"] ? "--force" : ""}`.trim(),
   async execute(raw, ctx) {
     const parsed = PushArgs.safeParse(raw);
     if (!parsed.success) {
-      return { ok: false, output: "git_push remote/branch must be strings" };
+      return { ok: false, output: "git_push remote/branch must be strings, force a boolean" };
     }
     const approved = await ctx.requestApproval(
       "git push",
@@ -70,6 +77,7 @@ export const gitPushTool: Tool = {
     if (!approved) return { ok: false, output: "denied" };
 
     const args = ["push"];
+    if (parsed.data.force) args.push("--force");
     if (parsed.data.remote) args.push(parsed.data.remote);
     if (parsed.data.branch) args.push(parsed.data.branch);
     const { code, out } = await runGit(args, ctx.root);

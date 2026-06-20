@@ -1,4 +1,5 @@
 import type { Transport } from "./client.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 // MCP remote: HTTP transport for remote MCP servers.
 // Allows mounting hosted MCP servers (e.g. Zapier, GitHub, Stripe) over HTTP
@@ -26,11 +27,11 @@ export function httpTransport(
 
   return {
     send(line: string): void {
-      fetch(url, {
-        method: "POST",
-        headers: extraHeaders,
-        body: line,
-      })
+      assertPublicUrl(url)
+        .then((guard) => {
+          if (!guard.ok) throw new Error(guard.error);
+          return fetch(url, { method: "POST", headers: extraHeaders, body: line });
+        })
         .then(async (res) => {
           if (!res.ok) {
             errorCallback?.(new Error(`HTTP ${res.status}: ${await res.text()}`));

@@ -1,5 +1,6 @@
 import { createInterface } from "node:readline/promises";
-import { join } from "node:path";
+import { join, basename } from "node:path";
+import { advertisePeer } from "./uds/peers.js";
 import { createConversation, type AgentDeps } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { type ReplState } from "./repl-commands.js";
@@ -59,6 +60,20 @@ async function replTrustConfirmer(rl: ReturnType<typeof createInterface>): Promi
   return readlineTrustConfirmer(rl);
 }
 
+/** Advertise this session as a UDS peer (best-effort) and return its teardown.
+ * Inbound peer messages surface as a notification line. */
+async function advertiseSession(sessionId: string, repoRoot: string): Promise<() => Promise<void>> {
+  process.env.VANTA_PEER_ID = sessionId;
+  const handle = await advertisePeer({
+    id: sessionId,
+    title: basename(repoRoot),
+    onMessage: (m) => console.log(`\n  📨 peer ${m.from}: ${m.text}\n`),
+  }).catch(() => null);
+  return async () => {
+    await handle?.stop().catch(() => {});
+  };
+}
+
 export async function runChat(repoRoot: string, opts: { resumeId?: string; forkSession?: boolean; lifecycle?: LifecycleFlags } = {}): Promise<void> {
   if (opts.lifecycle && await runLifecycleHooks(repoRoot, opts.lifecycle, "interactive")) return;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -82,6 +97,10 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   await fireSessionStart(repoRoot, state.sessionId, Boolean(resumed), agentDeps);
   const stopFileWatcher = await startHookFileWatcher(repoRoot, { dataDir: join(repoRoot, ".vanta"), ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
 
+  // VANTA-UDS-PEERS: advertise this session so other live sessions can discover
+  // it (`/peers`, list_peers) and message it (peer_send). Returns its teardown.
+  const stopPeer = await advertiseSession(state.sessionId, repoRoot);
+
   const checkpoints = new CheckpointStore();
   const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
   const userCommands = await loadUserCommands(process.env);
@@ -93,6 +112,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
     await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps });
   } finally {
     stopFileWatcher();
+    await stopPeer();
     archiveSession(state.sessionId, convo.messages, { now: new Date().toISOString() }).catch(() => {});
     await fireHooks(join(repoRoot, ".vanta"), "Stop", { sessionId: state.sessionId }, { cwd: repoRoot, ...buildAgentHookDeps(agentDeps, (m) => console.log(m)) });
     await fireSessionEnd(repoRoot, state.sessionId, agentDeps);

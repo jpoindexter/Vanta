@@ -39,10 +39,15 @@ describe("resolveToken", () => {
 describe("httpTransport + McpClient", () => {
   let s: ReturnType<typeof jsonRpcServer>;
   beforeEach(async () => {
+    // The transport's SSRF guard blocks loopback by default; this test drives a
+    // real 127.0.0.1 MCP endpoint, so opt in to private fetch (the guard itself
+    // is covered in src/net/ssrf-guard.test.ts).
+    process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
     s = jsonRpcServer();
     await new Promise<void>((r) => s.server.listen(0, "127.0.0.1", r));
   });
   afterEach(async () => {
+    delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
     await new Promise<void>((r) => s.server.close(() => r()));
   });
 

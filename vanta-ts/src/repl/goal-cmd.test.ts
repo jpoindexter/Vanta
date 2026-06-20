@@ -1,8 +1,9 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { goal } from "./goal-cmd.js";
+import { appendVelocityEvent, readVelocityEvents } from "../velocity/store.js";
 import type { ReplCtx } from "./types.js";
 import type { Goal } from "../types.js";
 
@@ -22,6 +23,64 @@ describe("/goal dependencies", () => {
     const result = await goal("done 1", ctx);
     expect(result.output).toContain("completed goal 1");
     expect(result.output).toContain("woke: #2 two");
+  });
+});
+
+describe("/goal velocity closure (ND-VELOCITY-CLOSURE)", () => {
+  const homes: string[] = [];
+  afterEach(() => {
+    for (const h of homes.splice(0)) rmSync(h, { recursive: true, force: true });
+  });
+
+  function ctxWithVelocityHome(): ReplCtx {
+    const home = mkdtempSync(join(tmpdir(), "goal-velocity-"));
+    homes.push(home);
+    const ctx = ctxWithGoals([]);
+    // GOAL-ACTION off so a vague new goal doesn't try to build a next-step resend.
+    ctx.env = { VANTA_HOME: home, VANTA_GOAL_ACTION: "0" };
+    return ctx;
+  }
+
+  it("records a newly-set goal as a capture event (cross-session store)", async () => {
+    const ctx = ctxWithVelocityHome();
+    await goal("ship the thing", ctx);
+    const events = await readVelocityEvents(ctx.env);
+    expect(events).toEqual([
+      expect.objectContaining({ type: "capture", itemId: "ship the thing" }),
+    ]);
+  });
+
+  it("does not double-count when the same goal is re-set", async () => {
+    const ctx = ctxWithVelocityHome();
+    await goal("same goal", ctx);
+    await goal("same goal", ctx);
+    const captures = (await readVelocityEvents(ctx.env)).filter((e) => e.type === "capture");
+    expect(captures).toHaveLength(1);
+  });
+
+  it("surfaces the ratio + top unfinished when capture:ship exceeds 5:1", async () => {
+    const ctx = ctxWithVelocityHome();
+    // Seed 5 prior captures + 0 ships; the new goal makes it 6 captures, 0 ships.
+    for (let i = 0; i < 5; i++) {
+      await appendVelocityEvent(ctx.env, { type: "capture", itemId: `prior-${i}`, at: "2026-06-01T00:00:00Z" });
+    }
+    const res = await goal("the newest goal", ctx);
+    expect(res.output).toContain("goal set: the newest goal");
+    expect(res.output).toContain("6.0:1");
+    expect(res.output).toContain("top unfinished:");
+    expect(res.output).toContain("· the newest goal");
+  });
+
+  it("stays silent when the ratio is at or under 5:1", async () => {
+    const ctx = ctxWithVelocityHome();
+    // 4 prior captures + 1 ship; new goal → 5 captures / 1 ship = 5.0, not > 5.
+    for (let i = 0; i < 4; i++) {
+      await appendVelocityEvent(ctx.env, { type: "capture", itemId: `prior-${i}`, at: "2026-06-01T00:00:00Z" });
+    }
+    await appendVelocityEvent(ctx.env, { type: "ship", itemId: "prior-0", at: "2026-06-02T00:00:00Z" });
+    const res = await goal("under threshold goal", ctx);
+    expect(res.output).toContain("goal set: under threshold goal");
+    expect(res.output).not.toContain("capture:ship");
   });
 });
 

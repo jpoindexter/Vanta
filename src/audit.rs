@@ -101,23 +101,83 @@ pub fn last_hash(data_dir: &Path) -> String {
         .unwrap_or_else(|| GENESIS.to_string())
 }
 
-/// Load the per-install audit key, creating it (0600) on first use.
-pub fn load_or_create_key(data_dir: &Path) -> Result<String, String> {
-    let path = data_dir.join("audit.key");
+/// Force 0600 on a sensitive file (best-effort; unix only).
+fn enforce_0600(path: &Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o600));
+    }
+}
+
+/// Load (or create, 0600) a per-install random secret file by name. Re-asserts 0600
+/// on EVERY load so a pre-existing file relaxed to 0644 gets locked back down.
+pub fn load_or_create_token(data_dir: &Path, name: &str) -> Result<String, String> {
+    let path = data_dir.join(name);
     if let Ok(k) = fs::read_to_string(&path) {
         let k = k.trim().to_string();
         if !k.is_empty() {
+            enforce_0600(&path);
             return Ok(k);
         }
     }
     let key = random_key();
     fs::write(&path, &key).map_err(|e| e.to_string())?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let _ = fs::set_permissions(&path, fs::Permissions::from_mode(0o600));
-    }
+    enforce_0600(&path);
     Ok(key)
+}
+
+/// The audit chain key (tamper-evidence). See [`load_or_create_token`].
+pub fn load_or_create_key(data_dir: &Path) -> Result<String, String> {
+    load_or_create_token(data_dir, "audit.key")
+}
+
+// ---- truncation anchor ----
+// The chain catches edit/insert/delete-in-the-middle, but TAIL TRUNCATION (dropping
+// the last N lines) leaves a still-valid shorter chain — undetectable from the log
+// alone. The anchor pins (count, head_hash) keyed with the secret, in a separate
+// file, so a shortened chain no longer matches. Written on each append; checked on verify.
+
+fn anchor_value(key: &str, count: usize, last_h: &str) -> String {
+    sha256_hex(format!("{key}|{count}|{last_h}").as_bytes())
+}
+
+/// (count of non-empty lines, last line's hash) for the current log.
+fn chain_stats(data_dir: &Path) -> (usize, String) {
+    let content = fs::read_to_string(data_dir.join("events.jsonl")).unwrap_or_default();
+    let mut n = 0usize;
+    let mut last = GENESIS.to_string();
+    for line in content.lines().filter(|l| !l.trim().is_empty()) {
+        if let Some(h) = line_hash(line) {
+            last = h.to_string();
+        }
+        n += 1;
+    }
+    (n, last)
+}
+
+/// Update the truncation anchor to the current chain head. Call after each append.
+pub fn update_head_anchor(data_dir: &Path, key: &str) -> Result<(), String> {
+    let (n, last) = chain_stats(data_dir);
+    let path = data_dir.join("audit.head");
+    fs::write(&path, anchor_value(key, n, &last)).map_err(|e| e.to_string())?;
+    enforce_0600(&path);
+    Ok(())
+}
+
+/// Verify the chain head matches the anchor (detects tail truncation). An absent
+/// anchor = legacy log → vacuously ok (the anchor is written from the next append on).
+fn verify_head_anchor(data_dir: &Path, key: &str, count: usize, last_h: &str) -> Result<(), String> {
+    let stored = match fs::read_to_string(data_dir.join("audit.head")) {
+        Ok(s) => s.trim().to_string(),
+        Err(_) => return Ok(()),
+    };
+    if stored.is_empty() || stored == anchor_value(key, count, last_h) {
+        return Ok(());
+    }
+    Err(format!(
+        "audit head anchor mismatch — {count} events present but the anchor pins a different chain length/head (tail truncation or tamper)"
+    ))
 }
 
 fn random_key() -> String {
@@ -152,6 +212,7 @@ pub fn verify_chain(data_dir: &Path) -> Result<usize, String> {
         prev = stored.to_string();
         n += 1;
     }
+    verify_head_anchor(data_dir, &key, n, &prev)?;
     Ok(n)
 }
 
@@ -222,6 +283,25 @@ mod tests {
         let p = d.join("events.jsonl");
         let content = fs::read_to_string(&p).unwrap();
         let kept: Vec<&str> = content.lines().enumerate().filter(|(i, _)| *i != 1).map(|(_, l)| l).collect();
+        fs::write(&p, kept.join("\n") + "\n").unwrap();
+        assert!(verify_chain(&d).is_err());
+        fs::remove_dir_all(&d).ok();
+    }
+
+    #[test]
+    fn tail_truncation_breaks_anchor() {
+        let d = tmp();
+        let key = load_or_create_key(&d).unwrap();
+        append(&d, &key, "{\"ts\":1,\"event\":\"a\"}");
+        append(&d, &key, "{\"ts\":2,\"event\":\"b\"}");
+        append(&d, &key, "{\"ts\":3,\"event\":\"c\"}");
+        update_head_anchor(&d, &key).unwrap(); // anchor pins count=3 + head
+        assert_eq!(verify_chain(&d).unwrap(), 3);
+        // Drop the last line: the remaining 2-line chain is still INTERNALLY valid
+        // (the bug), but the anchor expects 3 events → mismatch catches the truncation.
+        let p = d.join("events.jsonl");
+        let content = fs::read_to_string(&p).unwrap();
+        let kept: Vec<&str> = content.lines().take(2).collect();
         fs::write(&p, kept.join("\n") + "\n").unwrap();
         assert!(verify_chain(&d).is_err());
         fs::remove_dir_all(&d).ok();
