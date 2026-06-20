@@ -2677,7 +2677,7 @@
       "id": "VANTA-AGENT-MEMORY",
       "track": "Harness",
       "title": "Per-agent-type memory — scoped memory dirs per agent (user/project/local)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Each named agent type gets its own memory directory: user (~/.claude/agent-memory/<type>/), project (.claude/agent-memory/<type>/), local (.claude/agent-memory-local/<type>/). Remote memory dir for cloud (CLAUDE_CODE_REMOTE_MEMORY_DIR). Colons in plugin-namespaced types replaced with dashes for path safety.",
       "done": "Explore agent has its own memory separate from the main session; agent memories persist across invocations; remote mount supported for cloud sessions.",
@@ -2686,7 +2686,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable per-agent-type scoped memory: resolveAgentScope (VANTA_AGENT_MEMORY_SCOPE -> user|project|local; unset=null=existing shared memory) + resolveAgentMemoryPath (user ~/.vanta, project repo/.vanta, local tmp; agentType sanitized, no traversal) + append/readAgentMemory (jsonl, tolerant, best-effort, never throws). Mirrors team-memory. Store built+tested; spawn read/append points named (subagent spawnSubagent, null-gated)."
     },
     {
       "id": "VANTA-SWARM-IN-PROCESS",
