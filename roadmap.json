@@ -2804,7 +2804,7 @@
       "id": "VANTA-MSG-TIMESTAMPS",
       "track": "Operator",
       "title": "Message timestamps — per-message time display",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent renders a MessageTimestamp on each message showing elapsed time since session start and absolute time. Useful for understanding latency, reviewing session history, and correlating with external events. Vanta shows no timestamps.",
       "done": "Each message shows a dim timestamp (hh:mm:ss relative + HH:MM absolute); a settings key `showMessageTimestamps` toggles them; they're always on in export/headless mode.",
@@ -2812,7 +2812,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure formatMessageTime(eventMs, nowMs, style) (just now/Nm ago/Nh ago/MMM D; absolute forces HH:MM; future clamps to just now; injected now, no Date.now in the clock path) + timestampsEnabled (VANTA_MSG_TIMESTAMPS=1, off default) + resolveTimestampStyle (relative|absolute|off, VANTA_MSG_TIMESTAMP_STYLE). Built+tested; render point = ui/transcript.tsx user/assistant header rows. NOTE: Message has no timestamp field -> eventMs must come from the UI Entry (ui/types.ts) at the wire."
     },
     {
       "id": "VANTA-SHELL-TIMING",
