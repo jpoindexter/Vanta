@@ -4289,7 +4289,7 @@
       "id": "VANTA-PLAN-MODE-V2",
       "track": "Harness",
       "title": "Plan mode v2 — multi-agent plan execution (Max=3 agents, enterprise=3)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent's plan mode v2 (`getPlanModeV2AgentCount`) spawns multiple parallel agents during plan execution. Max 20x subscribers and enterprise/team users get 3 concurrent plan agents; others get 1. The count is GrowthBook-configurable and has a `CLAUDE_CODE_PLAN_V2_AGENT_COUNT` env override (1-10). Also includes `getPlanModeV2ExploreAgentCount` (default 3, env override) — dedicated exploration/research agents that run in parallel before main plan execution.",
       "done": "On a Max plan, entering plan mode and running `/plan` spawns 3 concurrent sub-agents for different plan steps. Progress shows all 3 working in parallel.",
