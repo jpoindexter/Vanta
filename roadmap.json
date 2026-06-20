@@ -13081,7 +13081,7 @@
       "id": "RUN-ANYWHERE",
       "track": "Operator",
       "title": "Run anywhere you control — laptop · VPS · server · Docker · SSH · serverless",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Identity anchor + umbrella for run-anywhere (DECISIONS 2026-06-19). Vanta is not laptop-bound: it runs on any host the user controls and the kernel travels with it, gating every action wherever it runs. User-controlled-infrastructure-first — no vendor lock-in, the user's data residency. Children carry the backend impls: BACKEND-DOCKER, BACKEND-SERVERLESS, VANTA-SSH-SESSION, SETUP-TERMINAL-BACKEND (wizard surface). Pure-infra (Docker/SSH/VPS) first; serverless-SaaS sequenced after behind a rule-zero data-residency sub-decision.",
       "done": "Vanta runs an agent session on a remote host the user controls (VPS/server/container/SSH) with the kernel enforcing scope there exactly as locally; the setup wizard picks the execution backend; README documents the $5-VPS path. Serverless is a later child.",
