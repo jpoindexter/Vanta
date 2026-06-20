@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readMcpConfig, mcpToolToVantaTool } from "./mount.js";
+import { readMcpConfig, mcpToolToVantaTool, buildMcpChildEnv } from "./mount.js";
 
 describe("readMcpConfig", () => {
   const prev = process.env.VANTA_MCP_SERVERS;
@@ -126,5 +126,52 @@ describe("mcpToolToVantaTool", () => {
     const res = await tool.execute({}, {} as never);
     expect(res.ok).toBe(false);
     expect(res.output).toContain("server gone");
+  });
+});
+
+describe("buildMcpChildEnv", () => {
+  const base = {
+    PATH: "/usr/bin:/bin",
+    HOME: "/home/op",
+    OPENAI_API_KEY: "sk-secret-should-not-leak",
+    ANTHROPIC_API_KEY: "ant-secret",
+    AWS_SECRET_ACCESS_KEY: "aws-secret",
+  } as NodeJS.ProcessEnv;
+
+  it("excludes operator secrets by default", () => {
+    const out = buildMcpChildEnv(base);
+    expect(out.OPENAI_API_KEY).toBeUndefined();
+    expect(out.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(out.AWS_SECRET_ACCESS_KEY).toBeUndefined();
+  });
+
+  it("includes safe non-secret vars like PATH and HOME", () => {
+    const out = buildMcpChildEnv(base);
+    expect(out.PATH).toBe("/usr/bin:/bin");
+    expect(out.HOME).toBe("/home/op");
+  });
+
+  it("includes the server's own declared spec.env", () => {
+    const out = buildMcpChildEnv(base, { MY_SERVER_FLAG: "1", FOO: "bar" });
+    expect(out.MY_SERVER_FLAG).toBe("1");
+    expect(out.FOO).toBe("bar");
+    expect(out.OPENAI_API_KEY).toBeUndefined();
+  });
+
+  it("lets a server's declared env override a safe parent var", () => {
+    const out = buildMcpChildEnv(base, { PATH: "/custom/bin" });
+    expect(out.PATH).toBe("/custom/bin");
+  });
+
+  it("omits safe keys that are absent from the parent (no undefined entries)", () => {
+    const out = buildMcpChildEnv({ PATH: "/bin" } as NodeJS.ProcessEnv);
+    expect("HOME" in out).toBe(false);
+    expect(out.PATH).toBe("/bin");
+  });
+
+  it("VANTA_MCP_FULL_ENV=1 passes the full parent env through (escape hatch)", () => {
+    const out = buildMcpChildEnv({ ...base, VANTA_MCP_FULL_ENV: "1" }, { FOO: "bar" });
+    expect(out.OPENAI_API_KEY).toBe("sk-secret-should-not-leak");
+    expect(out.FOO).toBe("bar");
   });
 });

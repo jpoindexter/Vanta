@@ -24,7 +24,7 @@
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "winnow": "github:jpoindexter/winnow",
+    "winnow": "github:jpoindexter/winnow#f8181d16d3f0b4090b3c9abbc2110d45cff4dc10",
     "zod": "^3.25.0"
   },
   "devDependencies": {
