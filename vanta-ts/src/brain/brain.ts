@@ -31,6 +31,12 @@ export { consolidate };
 export { readRegion, writeRegion, ensureBrain };
 export type { BrainEntry };
 
+// Best-of exemplar library — won tournament/loop results become few-shot context
+// for later similar tasks. Composed onto the facade so everything outside brain/
+// reaches exemplars through the same surface as remember/recall.
+export { storeExemplar, recallExemplars, exemplarContext, formatExemplars } from "./exemplars.js";
+export type { StoreExemplarResult, RecalledExemplar } from "./exemplars.js";
+
 const DIGEST_ENTRIES = 8;
 
 /**
