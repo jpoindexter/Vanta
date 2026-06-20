@@ -3421,7 +3421,7 @@
       "id": "VANTA-HISTORY-PICKER",
       "track": "Operator",
       "title": "History picker — searchable input history overlay in the prompt bar",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (feature-gated `HISTORY_PICKER`) adds a searchable history picker in the prompt input. Unlike simple up-arrow cycling, the history picker shows a scrollable list of past prompts filtered by typing, triggered by a keybinding while the input is active.",
       "done": "A keybinding opens a searchable list of past prompts. Typing filters the list; Enter selects and inserts into the input.",
@@ -3430,7 +3430,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable filterHistory (case-insensitive substring, rank starts-with>contains then recency, consecutive-dup dedupe, cap 20, empty query->recent-first) + HistoryPickerState + openHistoryPicker/updateQuery (re-filter+reset sel)/moveSelection (clamp no wrap)/selectedEntry + formatHistoryPicker (▶ selected row, control/ANSI stripped from entries+query). No history -> empty. Built+tested; composer overlay wire = ^R reverse-search opens openHistoryPicker(props.history), keys drive update/move, Enter sets buffer (named)."
     },
     {
       "id": "VANTA-MCP-RICH-OUTPUT",
