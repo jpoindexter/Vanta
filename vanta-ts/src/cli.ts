@@ -25,6 +25,10 @@ import {
 import { runEvalCommand } from "./cli/eval-cmd.js";
 import { runEvolveCommand } from "./cli/evolve-cmd.js";
 import { runModelCommand } from "./cli/model-cmd.js";
+import { runOkrCommand } from "./cli/okr-cmd.js";
+import { runExchangeCommand } from "./cli/exchange-cmd.js";
+import { runAuthorityCommand } from "./cli/authority-cmd.js";
+import { runPlaybookCommand } from "./cli/playbook-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
 import { runAgentsCommand } from "./cli/agents-cmd.js";
 import { runGoalsCommand } from "./cli/goals-cmd.js";
@@ -141,6 +145,10 @@ const COMMANDS: Record<string, CommandFn> = {
   hire: (root, rest) => runHireCommand(root, rest),
   dept: (root, rest) => runDeptCommand(root, rest),
   library: (root, rest) => runLibraryCommand(root, rest),
+  okr: (_root, rest) => runOkrCommand(rest),
+  exchange: (_root, rest) => runExchangeCommand(rest),
+  authority: (_root, rest) => runAuthorityCommand(rest),
+  playbook: (_root, rest) => runPlaybookCommand(rest),
   heartbeat: (root) => runHeartbeatCommand(root),
   goals: (root) => runGoalsCommand(root),
   fleet: (root, rest) => runFleetCommand(root, rest),
