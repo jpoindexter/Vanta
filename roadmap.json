@@ -2422,7 +2422,7 @@
       "id": "VANTA-LESS-PERMS-SKILL",
       "track": "Harness",
       "title": "`/less-permission-prompts` — scan transcript and propose read-only allow rules",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.111) adds a `/less-permission-prompts` skill that scans session transcripts for repeated read-only Bash and MCP tool calls and proposes a prioritized allow list. Reduces friction from over-prompted read operations.",
       "done": "Running `/less-permission-prompts` analyzes the session transcript and suggests `Bash(git status:*)` and `Bash(cat:*)` as safe auto-allows.",
@@ -2431,7 +2431,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-SHELL-STARTUP-WRITE-PROMPT",
