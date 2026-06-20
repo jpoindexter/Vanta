@@ -157,6 +157,28 @@ describe("applySettingsEnv", () => {
     applySettingsEnv({ env: { VANTA_SPINNER: "dots" } }, pe);
     expect(pe.VANTA_SPINNER).toBe("pulse");
   });
+
+  it("maps memory.autoMemory:true → VANTA_EXTRACT_MEMORIES=1", () => {
+    const pe: NodeJS.ProcessEnv = {};
+    applySettingsEnv({ memory: { autoMemory: true } }, pe);
+    expect(pe.VANTA_EXTRACT_MEMORIES).toBe("1");
+  });
+
+  it("does not set VANTA_EXTRACT_MEMORIES when autoMemory is unset (byte-identical)", () => {
+    const pe: NodeJS.ProcessEnv = {};
+    applySettingsEnv({}, pe);
+    expect(pe.VANTA_EXTRACT_MEMORIES).toBeUndefined();
+    applySettingsEnv({ memory: {} }, pe);
+    expect(pe.VANTA_EXTRACT_MEMORIES).toBeUndefined();
+    applySettingsEnv({ memory: { autoMemory: false } }, pe);
+    expect(pe.VANTA_EXTRACT_MEMORIES).toBeUndefined();
+  });
+
+  it("does not overwrite an existing VANTA_EXTRACT_MEMORIES (env wins)", () => {
+    const pe: NodeJS.ProcessEnv = { VANTA_EXTRACT_MEMORIES: "0" };
+    applySettingsEnv({ memory: { autoMemory: true } }, pe);
+    expect(pe.VANTA_EXTRACT_MEMORIES).toBe("0");
+  });
 });
 
 describe("isToolAllowed / isToolBlocked", () => {
