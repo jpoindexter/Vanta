@@ -25,6 +25,7 @@ import { buildStructuredOutputInstruction } from "../tools/structured-output.js"
 import { runAdvisor } from "./advisor.js";
 import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
+import { buildStopSummary } from "../repl/stop-cmd.js";
 import { join } from "node:path";
 
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -51,10 +52,12 @@ type TurnState = {
   sawUsage: boolean;
   callCounts: Map<string, number>;
   tokensSaved: number;
+  /** VANTA-STOP-CMD: names of tools completed this turn, for the soft-stop summary. */
+  toolNames: string[];
 };
 
 function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0 };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [] };
 }
 
 function recordUsage(state: TurnState, result: CompletionResult): void {
@@ -108,6 +111,7 @@ async function processToolCalls(args: ProcessToolCallsArgs): Promise<string | nu
     const inFlight = prefetched?.get(call.id);
     const outcome = inFlight ? await inFlight : await dispatchTool(call, deps, ctx);
     batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
+    state.toolNames.push(call.name);
     state.toolIterations++;
     if (outcome.tokensSaved) state.tokensSaved += outcome.tokensSaved;
     const reactive = compactOversizedResult(outcome.output, { contextWindow: deps.provider.contextWindow() });
@@ -167,6 +171,12 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
     return { finalText: `Stopped: called ${stuckTool} with identical arguments ${MAX_IDENTICAL_CALLS} times without progress.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
   if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)
     return { finalText: `Stopped: ${MAX_CONSECUTIVE_FAILURES} consecutive tool calls produced no useful output.`, iterations: iter, stoppedReason: "repeated_failure", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+  // VANTA-STOP-CMD: the in-flight tool batch finished — honour a pending soft-stop
+  // here (clean post-tool boundary), before the next provider call begins.
+  if (deps.shouldSoftStop?.()) {
+    const summary = buildStopSummary(state.toolNames);
+    return { finalText: await displayText(deps, summary), iterations: iter, stoppedReason: "soft_stopped", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+  }
   return null;
 }
 

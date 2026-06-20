@@ -8,6 +8,7 @@ import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { groupToolsByDomain } from "./term/capabilities.js";
 import { prepareRun, buildSummarizer, consoleCallbacks, approver, maybeCurate } from "./session.js";
 import { freshGateState } from "./repl/post-turn-gates.js";
+import { softStopPredicate, consumeSoftStop, SOFT_STOP } from "./repl/stop-cmd.js";
 import { SessionWorkingMemory } from "./memory/working.js";
 import { archiveSession } from "./memory/archive.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
@@ -107,7 +108,9 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
   const capHaltedRef = { current: false };
   const turnDeps: TurnDeps = { convo, setup, state, repoRoot, workingMemory, agentDeps, autoHandoffNotedRef: { current: false }, gatesRef: { current: freshGateState() }, capHaltedRef };
-  const runUserTurn = (text: string) => executeUserTurn(text, turnDeps);
+  // VANTA-STOP-CMD: clear any stale soft-stop signal at the start of each turn so
+  // `/stop` only affects the turn it was issued during.
+  const runUserTurn = (text: string) => { consumeSoftStop(SOFT_STOP); return executeUserTurn(text, turnDeps); };
 
   try {
     await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps, capHaltedRef });
@@ -171,6 +174,7 @@ function buildConversation(o: ConvoOpts): { convo: ReturnType<typeof createConve
     ...consoleCallbacks(),
     onThinking: (t) => console.log(`  ⚙ ${t.split("\n")[0]?.slice(0, 80) ?? ""}`),
     planGate: () => { const sys = convo.messages[0]; return !!(sys?.content.includes(PLAN_MARKER) && !state.planApproved); },
+    shouldSoftStop: softStopPredicate(SOFT_STOP),
   };
   convo = createConversation(setup.systemPrompt, agentDeps, { history: o.history });
   return { convo, agentDeps };

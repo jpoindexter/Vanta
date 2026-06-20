@@ -8,6 +8,7 @@ import { taskStackSummary } from "./task-stack/summary.js";
 import { memoryGuardPromptLine } from "./memory/guardrails.js";
 import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { platformHint } from "./gateway/platforms/hints.js";
+import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
 
 /** The separator between prompt tiers — stable tiers first, volatile tier last. */
 export const TIER_SEP = "\n\n---\n\n";
@@ -76,11 +77,19 @@ function stableTier(soul: string, root: string, tools: ToolSchema[], density: Ou
   ].join("\n");
 }
 
+/** readFile adapter for the @-import resolver: null on missing/unreadable. */
+const importReader: ImportReadFile = (path) => readIfExists(path);
+
 async function contextTier(root: string): Promise<string> {
   const blocks: string[] = [];
   for (const name of CONTEXT_FILES) {
-    const content = await readIfExists(join(root, name));
-    if (content) blocks.push(`# ${name}\n${content.trim()}`);
+    const raw = await readIfExists(join(root, name));
+    if (!raw) continue;
+    // VANTA-MD-IMPORTS: inline any `@<path>` imports the context file declares
+    // (relative paths resolve against the repo root; recursion capped at 4 hops;
+    // cycles + missing files skip the token). No @import → unchanged content.
+    const content = await resolveImports(raw, importReader, { baseDir: root });
+    blocks.push(`# ${name}\n${content.trim()}`);
   }
   return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
 }

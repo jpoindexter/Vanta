@@ -82,6 +82,7 @@ import { graphQueryTool } from "./graph-query.js";
 import { sleepTool } from "./sleep.js";
 import { cronCreateTool, cronListTool } from "./cron.js";
 import { configTool } from "./config.js";
+import { configToolTool } from "./config-tool.js";
 import { cookieImportTool } from "./cookie-import.js";
 import { briefTool } from "./brief.js";
 import { listMcpResourcesTool, readMcpResourceTool } from "./mcp-resources.js";
@@ -131,6 +132,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   codeIndexTool,
   clarifyTool,
   configTool,
+  configToolTool,
   cookieImportTool,
   cronCreateTool,
   cronListTool,
