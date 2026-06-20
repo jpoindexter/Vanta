@@ -1,11 +1,40 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { mkdir, rename } from "node:fs/promises";
+import { mkdir, rename, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const run = promisify(execFile);
+
+// Secret-bearing files that live in the Vanta home and must never be committed
+// to its git history. The home is git-init'd for free versioning, so one stray
+// `git add -A` would otherwise seal credentials into the repo.
+const GITIGNORE_ENTRIES = [
+  "google-tokens.json",
+  "mcp-auth-tokens.json",
+  "cookies/",
+  "*.cookie",
+  "*-qids.json",
+  "*.key",
+  "*-tokens.json",
+  ".env",
+  ".env.*",
+] as const;
+
+/**
+ * Write a `.gitignore` covering the home's secret files, if one is absent.
+ * Best-effort — a write failure must not block store setup.
+ */
+async function ensureGitignore(home: string): Promise<void> {
+  const path = join(home, ".gitignore");
+  if (existsSync(path)) return;
+  try {
+    await writeFile(path, GITIGNORE_ENTRIES.join("\n") + "\n", "utf8");
+  } catch {
+    // best-effort — versioning safety only, store still works
+  }
+}
 
 /**
  * The Vanta home store — global across projects, not the per-project kernel
@@ -72,6 +101,9 @@ export async function ensureVantaStore(
       // git unavailable — versioning is optional, store still works
     }
   }
+  // Always ensure the secret-file .gitignore exists (independent of git-init so
+  // pre-existing stores without one get protected on the next run).
+  await ensureGitignore(home);
   return home;
 }
 

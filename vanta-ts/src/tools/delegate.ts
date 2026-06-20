@@ -1,6 +1,9 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import { randomUUID } from "node:crypto";
+import { join } from "node:path";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
+import { enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
 import { buildRegistry } from "./index.js";
 
@@ -11,6 +14,7 @@ const Args = z.object({
   provider: z.string().optional(),
   model: z.string().optional(),
   isolation: z.enum(["worktree"]).optional(),
+  background: z.boolean().optional(),
 });
 
 /** Env for the worker — overlay the agent's chosen provider/model over the parent's. */
@@ -84,6 +88,19 @@ async function runDelegate(
   }
 }
 
+/** VANTA-ASYNC-DELEGATE: kick off the worker detached — return an ack in ~ms; on
+ * completion enqueue the result so the REPL re-enters it as a new turn when idle.
+ * runDelegate's own worktree cleanup runs in its finally when the promise settles. */
+function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): ToolResult {
+  const id = randomUUID();
+  const dataDir = join(ctx.root, ".vanta");
+  const finishedAt = () => new Date().toISOString();
+  void runDelegate(data, ctx)
+    .then((r) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: r.output, finishedAt: finishedAt() }))
+    .catch((e) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: `error: ${(e as Error).message}`, finishedAt: finishedAt() }));
+  return { ok: true, output: `delegated in background (id=${id.slice(0, 8)}) — result will re-enter as a new turn when idle` };
+}
+
 export const delegateTool: Tool = {
   schema: {
     name: "delegate",
@@ -123,6 +140,10 @@ export const delegateTool: Tool = {
           enum: ["worktree"],
           description: "Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict.",
         },
+        background: {
+          type: "boolean",
+          description: "Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on.",
+        },
       },
       required: ["goal", "instruction"],
     },
@@ -137,6 +158,7 @@ export const delegateTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: "delegate needs goal and instruction strings" };
     }
+    if (parsed.data.background) return startBackgroundDelegate(parsed.data, ctx);
     try {
       return await runDelegate(parsed.data, ctx);
     } catch (err) {

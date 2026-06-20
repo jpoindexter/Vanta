@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { searchTwitter, bookmarks, loadQids, saveQids } from "./twitter.js";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 let home: string;
 let prev: string | undefined;
@@ -42,12 +43,14 @@ describe("native client graceful paths (no network)", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain("reach heal twitter");
   });
+});
 
+describe("native client mocked fetch paths", () => {
   it("an env query-id override skips the heal short-circuit and reaches the fetch (mocked)", async () => {
     const fetchSpy = vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) }));
     vi.stubGlobal("fetch", fetchSpy);
     try {
-      const env = { ...process.env, VANTA_TWITTER_QID_BOOKMARKS: "ZZZ" } as NodeJS.ProcessEnv;
+      const env = { ...process.env, VANTA_TWITTER_QID_BOOKMARKS: "ZZZ", VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
       const r = await bookmarks({}, "auth_token=a; ct0=b", env);
       expect(fetchSpy).toHaveBeenCalledOnce(); // got past the qid gate to the request
       expect(r.ok).toBe(false);
@@ -66,7 +69,7 @@ describe("native client graceful paths (no network)", () => {
     const fetchSpy = vi.fn(async () => ({ ok: true, status: 200, json: async () => timeline }));
     vi.stubGlobal("fetch", fetchSpy);
     try {
-      const env = { ...process.env, VANTA_TWITTER_QID_BOOKMARKS: "ZZZ" } as NodeJS.ProcessEnv;
+      const env = { ...process.env, VANTA_TWITTER_QID_BOOKMARKS: "ZZZ", VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
       const r = await bookmarks({}, "auth_token=a; ct0=b", env);
       expect(r.ok).toBe(true);
       if (r.ok) expect(r.posts[0]).toMatchObject({ handle: "me", text: "saved this", url: "https://x.com/me/status/9" });
@@ -76,5 +79,28 @@ describe("native client graceful paths (no network)", () => {
     } finally {
       vi.restoreAllMocks();
     }
+  });
+});
+
+describe("SSRF guard (xGraphQL choke point)", () => {
+  // The xGraphQL fetch is preceded by assertPublicUrl on this exact URL shape.
+  // The guard returns a clean errors-as-value failure (never throws), which the
+  // choke point forwards verbatim instead of fetching. Guard logic is exercised
+  // here against the X URL with an injected resolver; the live client uses real DNS.
+  const url = "https://x.com/i/api/graphql/ZZZ/Bookmarks";
+
+  it("refuses an X host that resolves to a metadata/private address", async () => {
+    const env = { ...process.env } as NodeJS.ProcessEnv;
+    delete env.VANTA_ALLOW_PRIVATE_FETCH;
+    const blocked = await assertPublicUrl(url, { env, resolver: async () => ["169.254.169.254"] });
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.error).toContain("private address");
+  });
+
+  it("allows the same X host when it resolves to a public address", async () => {
+    const env = { ...process.env } as NodeJS.ProcessEnv;
+    delete env.VANTA_ALLOW_PRIVATE_FETCH;
+    const allowed = await assertPublicUrl(url, { env, resolver: async () => ["104.244.42.1"] });
+    expect(allowed.ok).toBe(true);
   });
 });

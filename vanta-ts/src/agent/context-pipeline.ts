@@ -5,6 +5,7 @@ import { clearStaleToolResults, resolveIdleConfig } from "../context/time-microc
 import { graduatedCompaction } from "../context/graduated-compaction.js";
 import { recordCompactedEdits, runPostCompactRestore } from "../compress/post-compact-restore.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
+import { resolveSessionMemoryCompact, compactToSessionMemory } from "../memory/session-memory-compact.js";
 import type { SessionWorkingMemory } from "../memory/working.js";
 import { maskStaleToolOutputs, resolveObservationMaskKeep } from "./observation-mask.js";
 import { join } from "node:path";
@@ -46,7 +47,7 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
   try {
     const r = await compactConversation(messages, deps.provider.contextWindow(), deps.summarize, {
       thresholdPct: resolveCompactThresholdPct(process.env),
-      onPreCompact: (middle) => fireHooks(join(deps.root, ".vanta"), "PreCompact", { trigger: "auto", messages: middle.length }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider }),
+      onPreCompact: (middle) => preCompact(deps, middle),
     });
     if (r.compacted) {
       recordCompactedEdits(deps.workingMemory, r.compactedWindow);
@@ -60,6 +61,17 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
       await fireHooks(join(deps.root, ".vanta"), "PostCompact", { trigger: "auto", dropped: r.dropped, summary: r.summary }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider });
     }
   } catch { /* compaction is best-effort — a failure must never block the turn */ }
+}
+
+/** PreCompact: fire the hook, and — when VANTA_SESSION_MEMORY_COMPACT is armed —
+ * distil the dropped window into the persistent session-memory file before it is
+ * summarized away (so key facts + discovered tools survive into the next session). */
+async function preCompact(deps: ContextDeps, middle: Message[]): Promise<void> {
+  const dataDir = join(deps.root, ".vanta");
+  await fireHooks(dataDir, "PreCompact", { trigger: "auto", messages: middle.length }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider });
+  if (resolveSessionMemoryCompact(process.env)) {
+    await compactToSessionMemory({ provider: deps.provider, dataDir, window: middle, env: process.env }).catch(() => {});
+  }
 }
 
 function withRestore(messages: Message[], restore: string): Message[] {

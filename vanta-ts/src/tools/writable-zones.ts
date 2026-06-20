@@ -1,5 +1,6 @@
+import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, resolve, sep } from "node:path";
+import { basename, dirname, resolve, sep } from "node:path";
 import { resolveInScope } from "../scope.js";
 
 // Path zones — directories outside the project root that the file tools may touch,
@@ -69,6 +70,36 @@ export function isInZone(abs: string, zones: string[]): boolean {
   return zones.some((z) => abs === z || abs.startsWith(z + sep));
 }
 
+/**
+ * SECURITY (symlink-escape fix): resolve symlinks on the longest EXISTING prefix
+ * of `abs`, keeping any not-yet-created tail. So an in-project symlink whose target
+ * is outside scope or a credential path is judged by where it ACTUALLY points —
+ * the lexical resolve alone let `proj/notes.md -> ~/.ssh/authorized_keys` write the
+ * target with zero approval. Pure-ish (reads the FS); never throws.
+ */
+export function canonicalPath(abs: string): string {
+  const tail: string[] = [];
+  let cur = resolve(abs);
+  for (;;) {
+    try {
+      const real = realpathSync(cur);
+      return tail.length ? resolve(real, ...tail.reverse()) : real;
+    } catch {
+      const parent = dirname(cur);
+      if (parent === cur) return resolve(abs); // reached fs root, nothing existed
+      tail.push(basename(cur));
+      cur = parent;
+    }
+  }
+}
+
+/** In-root test on a canonical path (both sides canonicalized so macOS /tmp→/private/tmp
+ * and any symlinked root don't cause false negatives). */
+function isInRoot(canonAbs: string, root: string): boolean {
+  const r = canonicalPath(resolve(root));
+  return canonAbs === r || canonAbs.startsWith(r + sep);
+}
+
 // Dangerous-paths floor: an unconditional floor beneath zones, scope, AND approval
 // mode. These credential/system paths are NEVER readable or writable by the file
 // tools — distinct from configurable zones, and not overridable by auto-approve.
@@ -110,12 +141,12 @@ export function resolveReadablePath(
   env: NodeJS.ProcessEnv,
 ): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
   const path = expandHome(rawPath);
-  const { ok, path: abs } = resolveInScope(path, root);
+  const abs = canonicalPath(resolveInScope(path, root).path);
   const danger = isDangerousPath(abs);
   if (danger.dangerous) {
     return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never accessible to tools` };
   }
-  if (!ok && !isInZone(abs, resolveReadableZones(env, root))) {
+  if (!isInRoot(abs, root) && !isInZone(abs, resolveReadableZones(env, root).map(canonicalPath))) {
     return {
       ok: false,
       abs,
@@ -165,12 +196,12 @@ export function resolveWritablePath(
   env: NodeJS.ProcessEnv,
 ): { ok: true; abs: string } | { ok: false; abs: string; error: string } {
   const path = expandHome(rawPath);
-  const { ok, path: abs } = resolveInScope(path, root);
+  const abs = canonicalPath(resolveInScope(path, root).path);
   const danger = isDangerousPath(abs);
   if (danger.dangerous) {
     return { ok: false, abs, error: `refused: ${path} is ${danger.reason} — never writable, even in auto-approve mode` };
   }
-  if (!ok && !isInZone(abs, resolveWritableZones(env))) {
+  if (!isInRoot(abs, root) && !isInZone(abs, resolveWritableZones(env).map(canonicalPath))) {
     return {
       ok: false,
       abs,

@@ -6,6 +6,7 @@ import { recentMemory } from "../memory/store.js";
 import { listSkills } from "../skills/store.js";
 import { resolveBrain } from "../brain/interface.js";
 import { readSessionMemory, sessionMemoryBlock } from "../memory/session-memory.js";
+import { learningsDigest } from "../learnings/relevance.js";
 import { playbookDigest } from "../memory/playbook.js";
 import { mountMcpServers, type McpTrust } from "../mcp/mount.js";
 import { mountMcpSkills, type RegisteredMcpSkill } from "../mcp/mount-skills.js";
@@ -74,6 +75,11 @@ export async function injectResume(systemPrompt: string, repoRoot: string): Prom
     const scratch = await readSessionMemory(dataDir).catch(() => "");
     if (scratch.trim()) systemPrompt += `\n\n${sessionMemoryBlock(scratch)}`;
   }
+  // LEARNINGS-INDEX: surface the most relevant project learnings (stale/conflicting
+  // flagged) so a session starts with them in context. Best-effort — never blocks
+  // startup (digest swallows its own errors; the await is additionally guarded).
+  const learnings = await learningsDigest(dataDir, repoRoot).catch(() => "");
+  if (learnings.trim()) systemPrompt += `\n\n${learnings}`;
   return systemPrompt;
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanForSecrets, hasSecrets, formatRedactionNotice } from "./secret-scan.js";
+import { scanForSecrets, hasSecrets, formatRedactionNotice, redactSecrets } from "./secret-scan.js";
 
 // Fake tokens are assembled from fragments so no contiguous secret-shaped
 // literal exists in this source file — that keeps the gitleaks pre-commit hook
@@ -10,6 +10,10 @@ const fineGrainedPat = "github_pat_" + "b".repeat(24);
 const awsKeyId = "AKIA" + "A".repeat(16);
 const slackToken = "xoxb-" + "1234567890ABCDEF";
 const googleApiKey = "AIza" + "C".repeat(35);
+const googleRefresh = "1/" + "/" + "0g" + "x".repeat(24);
+const anthropicKey = "sk-" + "ant-" + "e".repeat(24);
+const telegramToken = "123456789" + ":" + "AA" + "f".repeat(33);
+const bearerToken = "Bearer " + "g".repeat(28);
 const privateKeyHeader = ["-----BEGIN", "PRIVATE", "KEY-----"].join(" ");
 const rsaPrivateKeyHeader = ["-----BEGIN", "RSA", "PRIVATE", "KEY-----"].join(" ");
 const openaiKey = "sk-" + "d".repeat(32);
@@ -46,7 +50,9 @@ describe("scanForSecrets", () => {
   it("detects an openai-style key", () => {
     expect(scanForSecrets(openaiKey)).toContain("openai-key");
   });
+});
 
+describe("scanForSecrets — negatives & dedup", () => {
   it("returns [] for normal prose", () => {
     expect(scanForSecrets("The user prefers single quotes and dark mode.")).toEqual([]);
   });
@@ -79,6 +85,32 @@ describe("scanForSecrets", () => {
   });
 });
 
+describe("scanForSecrets — added credential shapes", () => {
+  it("detects a google oauth refresh token", () => {
+    expect(scanForSecrets(`refresh_token=${googleRefresh}`)).toContain("google-refresh-token");
+  });
+
+  it("detects an anthropic key", () => {
+    expect(scanForSecrets(`key ${anthropicKey}`)).toContain("anthropic-key");
+  });
+
+  it("detects a telegram bot token", () => {
+    expect(scanForSecrets(`token ${telegramToken}`)).toContain("telegram-bot-token");
+  });
+
+  it("detects a generic bearer credential", () => {
+    expect(scanForSecrets(`Authorization: ${bearerToken}`)).toContain("bearer-token");
+  });
+
+  it("does not false-positive on the bare word Bearer in prose", () => {
+    expect(scanForSecrets("Send it to the standard bearer of the team.")).toEqual([]);
+  });
+
+  it("does not false-positive on a short numeric ratio like a timestamp", () => {
+    expect(scanForSecrets("elapsed 12:34 on lap two")).toEqual([]);
+  });
+});
+
 describe("hasSecrets", () => {
   it("is true when a secret is present", () => {
     expect(hasSecrets(`key ${awsKeyId}`)).toBe(true);
@@ -95,5 +127,32 @@ describe("formatRedactionNotice", () => {
     expect(notice).toContain("github-pat");
     expect(notice).toContain("aws-access-key-id");
     expect(notice).toContain("not persisted");
+  });
+});
+
+describe("redactSecrets", () => {
+  it("replaces a github pat with the redaction marker", () => {
+    const out = redactSecrets(`token=${ghpPat} done`);
+    expect(out).not.toContain(ghpPat);
+    expect(out).toBe("token=[REDACTED] done");
+  });
+
+  it("redacts the newly added shapes", () => {
+    for (const secret of [googleRefresh, anthropicKey, telegramToken, bearerToken]) {
+      const out = redactSecrets(`value: ${secret}`);
+      expect(out).not.toContain(secret);
+      expect(out).toContain("[REDACTED]");
+    }
+  });
+
+  it("redacts every occurrence, not just the first", () => {
+    const out = redactSecrets(`${awsKeyId} and ${awsKeyId}`);
+    expect(out).not.toContain(awsKeyId);
+    expect(out).toBe("[REDACTED] and [REDACTED]");
+  });
+
+  it("leaves secret-free text unchanged", () => {
+    const clean = "The user prefers single quotes and dark mode.";
+    expect(redactSecrets(clean)).toBe(clean);
   });
 });

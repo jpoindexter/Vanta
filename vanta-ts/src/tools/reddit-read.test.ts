@@ -19,11 +19,15 @@ beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), "vanta-reddit-"));
   prev = process.env.VANTA_HOME;
   process.env.VANTA_HOME = home;
+  // Stubbed fetch of reddit.com: opt out of the SSRF guard so the stub answers
+  // and the unit test does no real DNS. Guard coverage is in src/net/.
+  process.env.VANTA_ALLOW_PRIVATE_FETCH = "1";
   mockedOpen.mockReset();
 });
 afterEach(() => {
   if (prev === undefined) delete process.env.VANTA_HOME;
   else process.env.VANTA_HOME = prev;
+  delete process.env.VANTA_ALLOW_PRIVATE_FETCH;
   rmSync(home, { recursive: true, force: true });
   vi.restoreAllMocks();
 });

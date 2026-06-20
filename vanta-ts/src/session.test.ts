@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildSummarizer, loadRalphContinuity } from "./session.js";
+import { buildSummarizer, loadRalphContinuity, shouldUseAuxSummarize } from "./session.js";
 import { writeRalphState } from "./ralph/state.js";
 import type { LLMProvider, CompletionResult, ToolSchema } from "./providers/interface.js";
 import type { Message } from "./types.js";
@@ -64,5 +64,15 @@ describe("loadRalphContinuity", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe("shouldUseAuxSummarize (AUX-MODEL-MAP)", () => {
+  it("is false by default (summarize uses the active provider — behavior preserved)", () => {
+    expect(shouldUseAuxSummarize({})).toBe(false);
+  });
+  it("is true when a summarize aux model or provider override is configured", () => {
+    expect(shouldUseAuxSummarize({ VANTA_MODEL_SUMMARIZE: "gpt-4o-mini" })).toBe(true);
+    expect(shouldUseAuxSummarize({ VANTA_SUMMARIZE_PROVIDER: "openai" })).toBe(true);
   });
 });

@@ -1,11 +1,16 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { z } from "zod";
+import { resolveVantaHome } from "../store/home.js";
+import { isProjectTrusted } from "../settings/trust.js";
 
 // Lifecycle hooks configured in .vanta/hooks.json. PreToolUse hooks that return
 // non-zero BLOCK the tool; other events are best-effort. Distinct from
 // plugins/hooks.ts (the in-process JS bus): command hooks can run arbitrary
-// shell, so the whole surface is opt-in via the config file and nothing else.
+// shell — so a PROJECT's .vanta/hooks.json is attacker-controllable when Vanta
+// operates on an untrusted repo (clone → zero-click RCE). Project hooks load
+// ONLY for a trusted project (the same gate as context files + MCP). The user's
+// own ~/.vanta hooks always load; VANTA_ENABLE_PROJECT_HOOKS=1 is the opt-in.
 
 export const SHELL_HOOK_EVENTS = [
   "SessionStart",
@@ -119,8 +124,23 @@ export function shellHooksPath(dataDir: string): string {
   return join(dataDir, HOOKS_FILE);
 }
 
-/** Load + validate .vanta/hooks.json. Returns {} when the file is missing or malformed. */
+function projectHooksOptIn(env: NodeJS.ProcessEnv): boolean {
+  const v = (env.VANTA_ENABLE_PROJECT_HOOKS ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "on" || v === "yes";
+}
+
+/** SECURITY GATE: which `.vanta/hooks.json` may load. User scope (~/.vanta) and an
+ * explicit opt-in always pass; a project's hooks load only when that project is
+ * TRUSTED (so a cloned/untrusted repo's hooks can't auto-run shell). Fails closed. */
+export async function hooksAllowed(dataDir: string, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+  if (resolve(dataDir) === resolve(resolveVantaHome(env))) return true; // user's own machine config
+  if (projectHooksOptIn(env)) return true;
+  return isProjectTrusted(dirname(resolve(dataDir))).catch(() => false);
+}
+
+/** Load + validate .vanta/hooks.json. Returns {} when untrusted, missing, or malformed. */
 export async function loadShellHooks(dataDir: string): Promise<ShellHooksConfig> {
+  if (!(await hooksAllowed(dataDir, process.env))) return {};
   try {
     const raw: unknown = JSON.parse(await readFile(shellHooksPath(dataDir), "utf8"));
     const parsed = ShellHooksConfigSchema.safeParse(raw);

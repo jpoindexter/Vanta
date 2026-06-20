@@ -11,6 +11,10 @@ import type { ToolContext } from "../tools/types.js";
 import type { ToolCall } from "../types.js";
 import { shellHooksPath } from "../hooks/shell-hooks.js";
 
+// This suite writes project-scoped hooks.json + fires hooks; opt past the new
+// project-trust gate (gate covered in hooks/shell-hooks.test.ts).
+process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
+
 // Integration test for the permissions gate in dispatch: the kernel verdict is
 // the floor; rules may TIGHTEN it but never loosen a Block. (The tighten() truth
 // table itself is exhaustively unit-tested in permissions/rules.test.ts.)
@@ -132,18 +136,25 @@ describe("applySafetyGate + permissions", () => {
     expect(prompted).toBe(false);
   });
 
-  it("acceptEdits allows file writes without calling the kernel", async () => {
+  it("acceptEdits auto-confirms a file write's ASK but STILL calls the kernel (security fix)", async () => {
     process.env.VANTA_PERMISSION_MODE = "acceptEdits";
     let assessed = false;
-    const deps = makeDeps({ risk: "ask" });
+    let prompted = false;
+    const deps = makeDeps({ risk: "ask", onAsk: () => { prompted = true; } });
     deps.registry = { get: () => ({ describeForSafety: () => "write file /repo/out.txt" }) } as unknown as AgentDeps["registry"];
-    deps.safety.assess = async () => {
-      assessed = true;
-      throw new Error("kernel should not be called");
-    };
+    deps.safety.assess = async () => { assessed = true; return { risk: "ask", needsHuman: true, reason: "kernel" }; };
     const res = await applySafetyGate({ id: "2", name: "write_file", arguments: { path: "out.txt", content: "x" } }, deps, ctx);
-    expect(res.approved).toBe(true);
-    expect(assessed).toBe(false);
+    expect(res.approved).toBe(true);   // edit auto-confirmed (no prompt)
+    expect(prompted).toBe(false);
+    expect(assessed).toBe(true);       // SECURITY: the kernel is always consulted now
+  });
+
+  it("acceptEdits does NOT bypass a kernel BLOCK — protected paths stay blocked (security fix)", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    const deps = makeDeps({ risk: "block" });
+    deps.registry = { get: () => ({ describeForSafety: () => "write file src/safety.rs" }) } as unknown as AgentDeps["registry"];
+    const res = await applySafetyGate({ id: "3", name: "write_file", arguments: { path: "src/safety.rs", content: "x" } }, deps, ctx);
+    expect(res.approved).toBe(false); // previously acceptEdits skipped assess() entirely → could rewrite the kernel
   });
 
   it("acceptEdits keeps shell_cmd on the normal approval flow", async () => {

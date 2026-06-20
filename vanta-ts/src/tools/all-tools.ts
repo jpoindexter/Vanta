@@ -19,6 +19,7 @@ import { browserExtractTool } from "./browser-extract.js";
 import { browserActTool } from "./browser-act.js";
 import { browserReadTool } from "./browser-read.js";
 import { describeImageTool } from "./describe-image.js";
+import { distillTraceTool } from "./distill-trace.js";
 import { compareVisionTool } from "./compare-vision.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
 import { lookAtCameraTool } from "./look-at-camera.js";
@@ -34,7 +35,10 @@ import { lifeSearchTool } from "./life-search.js";
 import { linkedinReadTool } from "./linkedin-read.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
+import { ticketTool } from "./tickets.js";
+import { outreachTool } from "./outreach.js";
 import { selfCorrectTool } from "./self-correct.js";
+import { configSandboxTool } from "./config-sandbox.js";
 import { budgetTool } from "./budget.js";
 import { nlAssertionsTool } from "./nl-assertions.js";
 import { rssReadTool } from "./rss-read.js";
@@ -50,6 +54,7 @@ import { youtubeReadTool } from "./youtube.js";
 import { githubReadTool } from "./github-read.js";
 import { podcastReadTool } from "./podcast.js";
 import { runCodeTool } from "./run-code.js";
+import { maximizerTool } from "./maximizer.js";
 import { lspDiagnosticsTool, lspDefinitionTool } from "./lsp.js";
 import {
   gitStatusTool,
@@ -78,6 +83,9 @@ import { retrieveOriginalTool } from "./retrieve-original.js";
 import { loopTool } from "./loop.js";
 import { sendMessageTool } from "./send-message.js";
 import { playbookTool } from "./playbook.js";
+import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
+import { listPeersTool, peerSendTool } from "./peers.js";
+import { openDeepLinkTool } from "./deep-link.js";
 import {
   gmailSearchTool,
   gmailReadTool,
@@ -132,6 +140,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   browserActTool,
   browserReadTool,
   describeImageTool,
+  distillTraceTool,
   compareVisionTool,
   lookAtScreenTool,
   lookAtCameraTool,
@@ -147,7 +156,10 @@ export const ALL_TOOLS: readonly Tool[] = [
   lifeSearchTool,
   linkedinReadTool,
   regressionLockTool,
+  ticketTool,
+  outreachTool,
   selfCorrectTool,
+  configSandboxTool,
   budgetTool,
   nlAssertionsTool,
   rssReadTool,
@@ -165,6 +177,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   githubReadTool,
   podcastReadTool,
   runCodeTool,
+  maximizerTool,
   lspDiagnosticsTool,
   lspDefinitionTool,
   listMcpResourcesTool,
@@ -196,4 +209,9 @@ export const ALL_TOOLS: readonly Tool[] = [
   loopTool,
   sendMessageTool,
   playbookTool,
+  enterWorktreeTool,
+  exitWorktreeTool,
+  listPeersTool,
+  peerSendTool,
+  openDeepLinkTool,
 ];

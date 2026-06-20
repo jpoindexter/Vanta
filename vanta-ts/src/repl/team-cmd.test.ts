@@ -16,14 +16,17 @@ function task(id: string, workerId: string, status: WorkerTask["status"], title 
 }
 
 describe("formatTeam", () => {
-  it("shows worker count, ids, roles, and statuses", () => {
-    const out = formatTeam(workers, noTasks);
+  it("shows worker count, ids, roles, and derived state", () => {
+    // scraper has a running task → running; analyst's task is blocked → running (active).
+    const tasks = [task("t1", "scraper", "running"), task("t2", "analyst", "blocked")];
+    const out = formatTeam(workers, tasks);
     expect(out).toContain("2 workers");
-    expect(out).toContain("scraper · web scraper · idle");
-    expect(out).toContain("analyst · data analyst · blocked");
+    expect(out).toContain("scraper · web scraper · running");
+    expect(out).toContain("analyst · data analyst · running");
   });
 
   it("includes the blocked warning when workers are blocked", () => {
+    // the warning reads stored worker status, independent of derived task state.
     const out = formatTeam(workers, noTasks);
     expect(out).toContain("⚠ 1 blocked");
   });
@@ -40,7 +43,8 @@ describe("formatTeam", () => {
   });
 
   it("note is included in the row when present", () => {
-    const out = formatTeam(workers, noTasks);
+    const tasks = [task("t1", "analyst", "running")];
+    const out = formatTeam(workers, tasks);
     expect(out).toContain("awaiting data");
   });
 
@@ -67,9 +71,22 @@ describe("formatTeam", () => {
     expect(out).toContain("▶ scrape nytimes");
   });
 
-  it("does not show task hint when all tasks are done", () => {
-    const tasks = [task("t1", "scraper", "done")];
+  it("renders a worker whose tasks are all done as idle, not running", () => {
+    const tasks = [task("t1", "scraper", "done", "scrape page")];
     const out = formatTeam(workers, tasks);
-    expect(out).not.toContain("[");
+    expect(out).toContain("scraper · web scraper · idle");
+    expect(out).not.toContain("scraper · web scraper · running");
+    expect(out).not.toContain("[2 open");
+  });
+
+  it("shows an idle worker's last-result summary inline", () => {
+    const done = { ...task("t1", "scraper", "done", "scrape page"), result: "12 rows" };
+    const out = formatTeam(workers, [done]);
+    expect(out).toContain("[idle · last: 12 rows]");
+  });
+
+  it("renders a worker that was never dispatched as offline", () => {
+    const out = formatTeam(workers, [task("t1", "analyst", "running")]);
+    expect(out).toContain("scraper · web scraper · offline");
   });
 });

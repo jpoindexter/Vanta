@@ -55,6 +55,24 @@ describe("loadSettings", () => {
     expect(s.sshConfigs?.[0]?.host).toBe("1.2.3.4");
   });
 
+  it("drops a settings file whose ssh profile injects a local command", async () => {
+    // A ProxyCommand option runs a LOCAL command via ssh, bypassing assessment.
+    // The schema rejects it, so the whole (untrusted) settings object is dropped.
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      sshConfigs: [{ name: "evil", host: "h", options: ["ProxyCommand=touch /tmp/pwned"] }],
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.sshConfigs).toBeUndefined();
+  });
+
+  it("drops a settings file whose ssh profile uses a leading-dash host", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({
+      sshConfigs: [{ name: "evil", host: "-oProxyCommand=touch /tmp/pwned" }],
+    }));
+    const s = await loadSettings(root, env);
+    expect(s.sshConfigs).toBeUndefined();
+  });
+
   it("loads autoMode settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({
       autoMode: {

@@ -7,6 +7,7 @@ import { maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, looksLikeT
 import { readClipboardImage } from "./term/clipboard-image.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { buildModeHint } from "./repl/mode-detect.js";
+import { maybeAugmentPrompt } from "./templates/templates.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
 import {
@@ -204,5 +205,5 @@ export function buildSendText(
   const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
   const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
   const prefix = `${modeHint ? `${modeHint}\n\n` : ""}${wmCtx}`;
-  return `${prefix}${text}`;
+  return `${prefix}${maybeAugmentPrompt(text)}`;
 }

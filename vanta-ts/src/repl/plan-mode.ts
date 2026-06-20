@@ -1,11 +1,20 @@
-import type { SlashHandler } from "./types.js";
+import type { ReplCtx, SlashHandler } from "./types.js";
+import { lastIntent } from "./where.js";
+import {
+  generateClarifyingQuestions,
+  formatInterview,
+  resolveInterviewConfig,
+} from "../plan/interview.js";
 
 // ND3 — plan-first mode with enforced read-only gate.
 //
 // /planmode on|off|approve
 //
 // ON:      injects PLAN_MARKER + instruction into the live system prompt; resets
-//          ctx.state.planApproved to false so the agent is read-only gated.
+//          ctx.state.planApproved to false so the agent is read-only gated. When
+//          a task is in flight (the last user message) and the interview phase is
+//          enabled (VANTA-PLAN-INTERVIEW-PHASE), it surfaces a short
+//          clarifying-questions block before the agent plans.
 // OFF:     removes the marker + instruction; clears planApproved.
 // APPROVE: sets planApproved = true, lifting the read-only gate for the session.
 //
@@ -67,7 +76,25 @@ function dispatchPlanAction({ action, sys, isOn, isApproved, state }: DispatchCt
   return { output: "  · plan-first mode is already OFF (use /planmode on to enable)" };
 }
 
-export const planMode: SlashHandler = (arg, ctx) => {
+/**
+ * VANTA-PLAN-INTERVIEW-PHASE: when plan mode is freshly entered with a task in
+ * flight, surface a short clarifying-questions block before the agent plans.
+ * Fails OPEN — returns "" (no questions appended) when disabled, when there's
+ * no task, when no provider is available, or on any provider error.
+ */
+async function interviewBlock(ctx: ReplCtx): Promise<string> {
+  if (!resolveInterviewConfig(ctx.env ?? {}).enabled) return "";
+  const provider = ctx.setup?.provider;
+  if (!provider) return "";
+  const task = lastIntent(ctx.convo.messages);
+  if (!task) return "";
+  const questions = await generateClarifyingQuestions(task, { provider });
+  const block = formatInterview(questions);
+  if (!block) return "";
+  return `\n${block}\n  (answer inline, then I'll fold your answers into the plan)`;
+}
+
+export const planMode: SlashHandler = async (arg, ctx) => {
   const sys = ctx.convo.messages[0];
   if (!sys || sys.role !== "system") {
     return { output: "  plan mode unavailable (no system message in conversation)" };
@@ -75,5 +102,8 @@ export const planMode: SlashHandler = (arg, ctx) => {
   const isOn = sys.content.includes(PLAN_MARKER);
   const isApproved = ctx.state.planApproved ?? false;
   const action = resolvePlanAction(arg, isOn, isApproved);
-  return dispatchPlanAction({ action, sys: sys as { content: string }, isOn, isApproved, state: ctx.state });
+  const result = dispatchPlanAction({ action, sys: sys as { content: string }, isOn, isApproved, state: ctx.state });
+  if (action !== "turn-on") return result;
+  const interview = await interviewBlock(ctx);
+  return interview ? { ...result, output: `${result.output}${interview}` } : result;
 };

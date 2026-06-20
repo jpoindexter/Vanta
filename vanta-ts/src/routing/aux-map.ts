@@ -19,6 +19,7 @@ export type AuxFunction =
   | "title"       // short label generation from content
   | "embed"       // text embedding (future; placeholder)
   | "classify"    // cheap classification / tagging
+  | "prune"       // context pruning / token-scoring
   | "code";       // code-specific model (e.g. deepseek-coder)
 
 /** Env var for each function type. Absent → fall back to active provider. */
@@ -28,6 +29,7 @@ const AUX_ENV_VARS: Record<AuxFunction, string> = {
   title:    "VANTA_MODEL_TITLE",
   embed:    "VANTA_MODEL_EMBED",
   classify: "VANTA_MODEL_CLASSIFY",
+  prune:    "VANTA_MODEL_PRUNE",
   code:     "VANTA_MODEL_CODE",
 };
 
@@ -38,6 +40,7 @@ const AUX_PROVIDER_ENV_VARS: Record<AuxFunction, string> = {
   title:    "VANTA_TITLE_PROVIDER",
   embed:    "VANTA_EMBED_PROVIDER",
   classify: "VANTA_CLASSIFY_PROVIDER",
+  prune:    "VANTA_PRUNE_PROVIDER",
   code:     "VANTA_CODE_PROVIDER",
 };
 

@@ -7,6 +7,9 @@ import { join } from "node:path";
 import { fireHooks, firePreToolUse, fireStopHook, loadShellHooks, shellHooksPath } from "./shell-hooks.js";
 import type { CompletionResult, LLMProvider } from "../providers/interface.js";
 
+// Temp 'project' dirs carry no trust decision; opt past the project-trust gate.
+process.env.VANTA_ENABLE_PROJECT_HOOKS = "1";
+
 let dir: string;
 
 beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), "vanta-hook-types-")); });

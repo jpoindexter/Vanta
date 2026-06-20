@@ -68,6 +68,24 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 
 Some capabilities need one-time setup for *live* use (browser binaries, API keys, Google OAuth client, login cookies for gated reach channels) — see `PARKED.md`. Tests: `cargo test` (kernel) · `cd vanta-ts && npm test` (agent).
 
+## Run anywhere you control
+
+Vanta is not laptop-bound — it runs on any host you control and the **kernel travels with it**, gating every action wherever it runs (no vendor lock-in, your data residency). Pick the execution backend in `vanta setup` → **Execution backend** (local · sandbox · docker · ssh):
+
+- **Local** — the default.
+- **Sandbox** — `VANTA_SANDBOX=1` (or shell-only `VANTA_SHELL_SANDBOX=1`) wraps shell + `run_code` in the OS sandbox; `VANTA_SANDBOX_NET=1` allows network.
+- **Docker** — `VANTA_EXEC_BACKEND=docker` runs shell + `run_code` inside a container (mounts the project root + writable zones + tmp only, `--network none` unless `VANTA_SANDBOX_NET=1`; `VANTA_DOCKER_IMAGE` overrides the image). Out-of-container writes don't persist.
+- **SSH** — name a host you control in `settings.sshConfigs`, then `shell_cmd {ssh:"<name>", command}` runs it on that host (the kernel still assesses every command) and `vanta ssh <name>` opens an interactive session.
+
+### The $5 VPS path
+
+1. Rent the cheapest VPS your provider offers (1 vCPU / 1 GB is plenty for the kernel + agent loop).
+2. Install Vanta on it (`./install.sh`) — the kernel binds `127.0.0.1:7788` on that box.
+3. `vanta setup` → pick a model backend + the **Execution backend**, then export your provider key.
+4. Run `vanta` (or `vanta run "..."`) on the VPS. The kernel enforces scope there exactly as on your laptop — `VANTA_ROOT` bounds the writable tree and every tool call is gated by `assess()`.
+
+Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfigs` profile and use the **ssh** backend — the loop runs locally, commands run on the host you control. (Serverless / hibernate-when-idle is a later, data-residency-gated child — `roadmap.json` `BACKEND-SERVERLESS`.)
+
 ## Related
 
 - **[obsidian-vault-mcp](https://github.com/jpoindexter/obsidian-vault-mcp)** — MCP server that gives Vanta (or any MCP client) a self-improving Obsidian knowledge base. 10 tools: read, keyword + semantic search, full self-ingest, hot cache. Zero dependencies, local ollama embeddings.

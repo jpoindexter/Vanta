@@ -5,7 +5,11 @@ import { join } from "node:path";
 import { buildRegistry } from "./index.js";
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
-import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv } from "./shell-cmd.js";
+import { shellCmdTool, classifyExitCode, lastCommandWord, shellSandboxEnv, shouldSandboxShell } from "./shell-cmd.js";
+import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
+import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
+import { openDeepLinkTool } from "./deep-link.js";
+import { maximizerTool } from "./maximizer.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -52,15 +56,19 @@ describe("registry", () => {
       "compare_vision",
       "compose_workflow",
       "config",
+      "config_sandbox",
       "cookie_import",
       "cron_create",
       "cron_list",
       "delegate",
       "describe_image",
+      "distill_trace",
       "drive_create",
       "drive_read",
       "drive_update",
       "edit_file",
+      "enter_worktree",
+      "exit_worktree",
       "git_branch",
       "git_checkout",
       "git_commit",
@@ -81,6 +89,7 @@ describe("registry", () => {
       "life_search",
       "linkedin_read",
       "list_mcp_resources",
+      "list_peers",
       "look_at_camera",
       "look_at_screen",
       "loop",
@@ -90,6 +99,9 @@ describe("registry", () => {
       "money",
       "mount_mcp",
       "nl_assertions",
+      "open_deep_link",
+      "outreach",
+      "peer_send",
       "playbook",
       "podcast_read",
       "protect",
@@ -108,6 +120,7 @@ describe("registry", () => {
       "roadmap_move",
       "rss_read",
       "run_code",
+      "run_maximizer",
       "screenshot",
       "self_correct",
       "self_repair",
@@ -118,6 +131,7 @@ describe("registry", () => {
       "swarm",
       "taste_critique",
       "team",
+      "ticket",
       "todo",
       "tool_search",
       "transcribe",
@@ -328,6 +342,20 @@ describe("shell_cmd", () => {
     const env = shellSandboxEnv({ VANTA_SHELL_SANDBOX: "1" });
     expect(env.VANTA_SANDBOX).toBe("1");
   });
+
+  it("shouldSandboxShell: default ON where a backend exists, off where not, explicit flag wins", () => {
+    // default (no flag): macOS seatbelt → on; linux+bwrap → on; linux no bwrap → off; other → off
+    expect(shouldSandboxShell({}, "darwin", false)).toBe(true);
+    expect(shouldSandboxShell({}, "linux", true)).toBe(true);
+    expect(shouldSandboxShell({}, "linux", false)).toBe(false); // no bwrap → don't brick, host exec
+    expect(shouldSandboxShell({}, "win32", false)).toBe(false);
+    // explicit opt-out wins even on macOS
+    expect(shouldSandboxShell({ VANTA_SHELL_SANDBOX: "0" }, "darwin", true)).toBe(false);
+    // explicit opt-in wins even with no backend (user asked → maybeSandbox then refuses, by design)
+    expect(shouldSandboxShell({ VANTA_SHELL_SANDBOX: "1" }, "linux", false)).toBe(true);
+    // global sandbox implies shell sandbox
+    expect(shouldSandboxShell({ VANTA_SANDBOX: "1" }, "win32", false)).toBe(true);
+  });
 });
 
 describe("dangerous-path floor", () => {
@@ -379,5 +407,132 @@ describe("lastCommandWord", () => {
     expect(lastCommandWord("find . && echo hi")).toBe("echo");
     expect(lastCommandWord("git grep foo")).toBe("git grep");
     expect(lastCommandWord("/usr/bin/grep -n x")).toBe("grep");
+  });
+});
+
+describe("config_sandbox", () => {
+  // The `run` action exercises the real spawnSubagent runner (LLM/network); that
+  // path is unit-tested with an INJECTED fake runner in selfharness/sandbox.test.ts.
+  // Here we cover the tool surface that needs no network.
+  it("saves a reusable input to .vanta/sandbox/inputs/ (no git mutation)", async () => {
+    const res = await configSandboxTool.execute(
+      { action: "save", name: "fix-bug", instruction: "fix the failing test" },
+      ctx(),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain('Saved sandbox input "fix-bug"');
+    const saved = await readFile(join(root, ".vanta", "sandbox", "inputs", "fix-bug.json"), "utf8");
+    expect(JSON.parse(saved)).toMatchObject({ name: "fix-bug", instruction: "fix the failing test" });
+  });
+
+  it("describeForSafety is a constant internal-op string (kernel Allow)", () => {
+    expect(configSandboxTool.describeForSafety?.({ action: "run", name: "x" })).toBe("run config sandbox (isolated, no git)");
+  });
+
+  it("errors-as-values when the saved input is missing (never throws)", async () => {
+    const res = await configSandboxTool.execute({ action: "run", name: "never-saved" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("no saved sandbox input");
+  });
+
+  it("restricts tools when override.toolNames is set (scoped registry)", () => {
+    const scoped = buildScopedRegistry(["read_file", "shell_cmd"]);
+    expect(scoped.schemas().map((s) => s.name).sort()).toEqual(["read_file", "shell_cmd"]);
+    // No subset → the full registry.
+    expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
+  });
+});
+
+describe("enter_worktree", () => {
+  it("describeForSafety surfaces the git worktree add op for the kernel", () => {
+    expect(enterWorktreeTool.describeForSafety?.({})).toContain("git worktree add");
+    expect(enterWorktreeTool.describeForSafety?.({ branch_prefix: "spike" })).toContain("spike");
+  });
+
+  it("errors-as-values on an invalid branch_prefix (never throws)", async () => {
+    const res = await enterWorktreeTool.execute({ branch_prefix: 123 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("branch_prefix");
+  });
+});
+
+describe("exit_worktree", () => {
+  it("describeForSafety surfaces the git worktree remove op (with path) for the kernel", () => {
+    expect(exitWorktreeTool.describeForSafety?.({ path: "/tmp/wt" })).toBe("git worktree remove /tmp/wt");
+  });
+
+  it("errors-as-values when path/branch are missing (never throws)", async () => {
+    const res = await exitWorktreeTool.execute({ path: "/tmp/wt" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("path and branch are required");
+  });
+});
+
+describe("run_maximizer", () => {
+  // The execute path runs real spawnSubagent workers (LLM/network); that
+  // orchestration is unit-tested with INJECTED deps in maximizer/runtime.test.ts.
+  // Here we cover the tool surface that needs no network.
+  it("describeForSafety surfaces the task count and budget for the kernel", () => {
+    expect(maximizerTool.describeForSafety?.({ tasks: ["a", "b"], budgetUsd: 5 })).toBe(
+      "run maximizer over 2 tasks (budget $5)",
+    );
+  });
+
+  it("errors-as-values on a missing/invalid tasks list (never throws)", async () => {
+    const res = await maximizerTool.execute({ budgetUsd: 5 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("tasks");
+  });
+
+  it("errors-as-values on a non-positive budget", async () => {
+    const res = await maximizerTool.execute({ tasks: ["x"], budgetUsd: 0 }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("budgetUsd");
+  });
+});
+
+describe("open_deep_link", () => {
+  it("describeForSafety surfaces only the scheme for the kernel (never the payload)", () => {
+    const desc = openDeepLinkTool.describeForSafety?.({
+      url: "vanta://run?prompt=secret%20stuff&cwd=/repo",
+    });
+    expect(desc).toBe("open deep link vanta:");
+    expect(desc).not.toContain("secret");
+  });
+
+  it("resolves a valid link to an argv descriptor (no shell string)", async () => {
+    // Suppress the best-effort macOS terminal spawn so the test never opens a window.
+    const prev = process.env.VANTA_DEEPLINK_NO_OPEN;
+    process.env.VANTA_DEEPLINK_NO_OPEN = "1";
+    try {
+      const res = await openDeepLinkTool.execute(
+        { url: "vanta://run?prompt=fix%20auth&cwd=/tmp/proj" },
+        ctx(),
+      );
+      expect(res.ok).toBe(true);
+      expect(res.output).toContain("cmd: vanta");
+      expect(res.output).toContain('args: ["run","fix auth"]');
+      expect(res.output).toContain("cwd: /tmp/proj");
+      expect(res.output).toContain("launched_terminal: no");
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_DEEPLINK_NO_OPEN;
+      else process.env.VANTA_DEEPLINK_NO_OPEN = prev;
+    }
+  });
+
+  it("rejects a control character in a param (untrusted boundary), errors-as-values", async () => {
+    const res = await openDeepLinkTool.execute(
+      { url: "vanta://run?prompt=a%0Ab" },
+      ctx(),
+    );
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("Rejected deep link");
+    expect(res.output).toContain("control characters");
+  });
+
+  it("rejects a wrong scheme", async () => {
+    const res = await openDeepLinkTool.execute({ url: "http://run?prompt=x" }, ctx());
+    expect(res.ok).toBe(false);
+    expect(res.output).toContain("unsupported scheme");
   });
 });

@@ -1,7 +1,10 @@
 import { join } from "node:path";
-import type { SliceArtifact, VerifyResult, WorkItem } from "./types.js";
+import type { SliceArtifact, VerifyResult, VerifyOpts, VerifyCheck, VerifyCheckCtx } from "./types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { checkIntentSatisfied } from "./intent-judge.js";
+import { generateHoldout, validateAgainstHoldout } from "./holdout.js";
+
+export type { VerifyOpts } from "./types.js";
 
 // --- Pure helpers (all exported for testing) ---
 
@@ -94,82 +97,143 @@ async function runTestFiles(tsRoot: string, testFiles: string[]): Promise<number
   }
 }
 
-export type VerifyOpts = {
-  workItem?: WorkItem;
-  /** Override the LLM judge provider (default: resolved from env when workItem is set). */
-  provider?: LLMProvider;
-};
-
-/**
- * Run the full verification trust gate:
- * 1. No protected paths touched.
- * 2. No pre-existing test files modified.
- * 3. New source files ≤ 300 lines (born-small gate).
- * 4. New tests fail against pre-change code (git stash / pop).
- * 5. Full prior suite passes.
- * 6. tsc --noEmit clean.
- * 7. LLM intent-satisfaction judge (if workItem provided; fails open on LLM error).
- */
-export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>, opts?: VerifyOpts): Promise<VerifyResult> {
-  const tsRoot = join(root, "vanta-ts");
+async function promisifiedExecFile() {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
+  return promisify(execFile);
+}
 
-  // 1. Protected paths
-  const protectedCheck = checkNoProtectedPaths(artifact.touchedFiles, root);
-  if (!protectedCheck.ok) return protectedCheck;
+// --- The verify chain (PORT-FACTORY-DEPS) ----------------------------------
+// Each gate is a registered VerifyCheck; `verify` runs them in order and returns
+// the first failure. Order + short-circuit are unchanged from the original
+// hardcoded sequence, so default behavior is identical — but a check can now be
+// added/removed/reordered without editing the orchestrator.
 
-  // 2. Pre-existing tests must not be modified
-  const existingTestCheck = checkNoExistingTestModified(artifact.touchedFiles, preExisting);
-  if (!existingTestCheck.ok) return existingTestCheck;
+const protectedPathsCheck: VerifyCheck = {
+  name: "protected-paths",
+  run: async ({ artifact, root }) => checkNoProtectedPaths(artifact.touchedFiles, root),
+};
 
-  const { newTestFiles } = classifyTouchedFiles(artifact.touchedFiles, preExisting);
+const noExistingTestModifiedCheck: VerifyCheck = {
+  name: "no-existing-test-modified",
+  run: async ({ artifact, preExisting }) => checkNoExistingTestModified(artifact.touchedFiles, preExisting),
+};
 
-  // 3. New source files must be born small (≤ 300 lines)
-  const newSourceFiles = artifact.touchedFiles
-    .filter((f) => !preExisting.has(f) && f.endsWith(".ts") && !f.endsWith(".test.ts"))
-    .map((f) => join(root, f));
-  const sizeCheck = await checkNewFilesUnderLineLimit(newSourceFiles);
-  if (!sizeCheck.ok) return sizeCheck;
+const newFilesSizeCheck: VerifyCheck = {
+  name: "new-files-size",
+  run: async ({ artifact, preExisting, root }) => {
+    const newSourceFiles = artifact.touchedFiles
+      .filter((f) => !preExisting.has(f) && f.endsWith(".ts") && !f.endsWith(".test.ts"))
+      .map((f) => join(root, f));
+    return checkNewFilesUnderLineLimit(newSourceFiles);
+  },
+};
 
-  // 3. New tests must FAIL against pre-change code
-  if (newTestFiles.length > 0) {
+// New tests must FAIL against pre-change code (else they exercise nothing).
+const newTestsFailOnPreChangeCheck: VerifyCheck = {
+  name: "new-tests-fail-on-prechange",
+  run: async ({ artifact, preExisting, root, tsRoot }) => {
+    const { newTestFiles } = classifyTouchedFiles(artifact.touchedFiles, preExisting);
+    if (newTestFiles.length === 0) return { ok: true };
+    const exec = await promisifiedExecFile();
     await exec("git", ["stash"], { cwd: root });
     try {
       const failCount = await runTestFiles(tsRoot, newTestFiles);
-      if (failCount === 0) {
-        return { ok: false, reason: "new test(s) pass on pre-change code — test exercises nothing" };
-      }
+      if (failCount === 0) return { ok: false, reason: "new test(s) pass on pre-change code — test exercises nothing" };
+      return { ok: true };
     } finally {
       await exec("git", ["stash", "pop"], { cwd: root }).catch(() => {});
     }
-  }
+  },
+};
 
-  // 4. Full prior suite must pass
-  const fullFails = await runTestFiles(tsRoot, []);
-  if (fullFails > 0) {
-    return { ok: false, reason: `${fullFails} pre-existing test(s) broken` };
-  }
+const fullSuiteCheck: VerifyCheck = {
+  name: "full-suite",
+  run: async ({ tsRoot }) => {
+    const fullFails = await runTestFiles(tsRoot, []);
+    return fullFails > 0 ? { ok: false, reason: `${fullFails} pre-existing test(s) broken` } : { ok: true };
+  },
+};
 
-  // 5. tsc clean
-  try {
-    await exec("npx", ["tsc", "--noEmit"], { cwd: tsRoot, timeout: 60_000 });
-  } catch (err) {
-    const msg = ((err as { stderr?: string }).stderr ?? (err as Error).message).split("\n")[0] ?? "";
-    return { ok: false, reason: `tsc error: ${msg}` };
-  }
+const tscCheck: VerifyCheck = {
+  name: "tsc",
+  run: async ({ tsRoot }) => {
+    const exec = await promisifiedExecFile();
+    try {
+      await exec("npx", ["tsc", "--noEmit"], { cwd: tsRoot, timeout: 60_000 });
+      return { ok: true };
+    } catch (err) {
+      const msg = ((err as { stderr?: string }).stderr ?? (err as Error).message).split("\n")[0] ?? "";
+      return { ok: false, reason: `tsc error: ${msg}` };
+    }
+  },
+};
 
-  // 7. Intent-satisfaction judge (subjective — runs last, fails open on LLM errors)
-  if (opts?.workItem) {
+// Intent-satisfaction judge (subjective — fails OPEN on LLM error; tests/tsc are the hard floor).
+const intentJudgeCheck: VerifyCheck = {
+  name: "intent-judge",
+  run: async ({ artifact, opts }) => {
+    if (!opts?.workItem) return { ok: true };
     let judgeProvider = opts.provider;
     if (!judgeProvider) {
       const { resolveProvider } = await import("../providers/index.js");
       judgeProvider = resolveProvider(process.env);
     }
-    const intentResult = await checkIntentSatisfied(opts.workItem, artifact.touchedFiles, judgeProvider);
-    if (!intentResult.ok) return intentResult;
-  }
+    return checkIntentSatisfied(opts.workItem, artifact.touchedFiles, judgeProvider);
+  },
+};
 
+/** Author-separation provider for the holdout gate: a DIFFERENT model than the
+ * executor when one is configured, else the active provider (degraded). */
+async function resolveHoldoutProvider(override?: LLMProvider): Promise<LLMProvider> {
+  if (override) return override;
+  const { resolveProvider } = await import("../providers/index.js");
+  const holdoutModel = process.env.VANTA_FACTORY_HOLDOUT_MODEL ?? process.env.VANTA_MODEL_EXPENSIVE;
+  if (holdoutModel) return resolveProvider({ ...process.env, VANTA_MODEL: holdoutModel });
+  return resolveProvider(process.env);
+}
+
+// FAC-HOLDOUT: armed-only (VANTA_FACTORY_HOLDOUT). A separate provider authors
+// acceptance criteria and reviews the slice against them. OFF by default → no
+// behavior change; when armed, a failing review fails the gate.
+const holdoutCheck: VerifyCheck = {
+  name: "holdout",
+  run: async ({ artifact, opts }) => {
+    if (!process.env.VANTA_FACTORY_HOLDOUT || !opts?.workItem) return { ok: true };
+    const provider = await resolveHoldoutProvider(opts.provider);
+    const criteria = await generateHoldout(opts.workItem, provider);
+    if (!criteria) return { ok: true }; // best-effort: couldn't author criteria → don't block
+    const summary = `Work item: ${opts.workItem.description}\nTouched files:\n${artifact.touchedFiles.join("\n")}`;
+    const result = await validateAgainstHoldout(criteria, summary, provider);
+    return result.passes ? { ok: true } : { ok: false, reason: `holdout: ${result.failing.join("; ")} — ${result.note}` };
+  },
+};
+
+/** The verify gate as an ordered, registered check chain. Extend by adding a
+ * VerifyCheck here — the orchestrator (run.ts) never changes. */
+export function buildVerifyChecks(): VerifyCheck[] {
+  return [
+    protectedPathsCheck,
+    noExistingTestModifiedCheck,
+    newFilesSizeCheck,
+    newTestsFailOnPreChangeCheck,
+    fullSuiteCheck,
+    tscCheck,
+    intentJudgeCheck,
+    holdoutCheck,
+  ];
+}
+
+/**
+ * Run the full verification trust gate as the registered check chain, returning
+ * the first failure (or {ok:true} when all pass). Behavior is identical to the
+ * prior hardcoded sequence; the chain just makes it swappable/testable.
+ */
+export async function verify(root: string, artifact: SliceArtifact, preExisting: Set<string>, opts?: VerifyOpts): Promise<VerifyResult> {
+  const ctx: VerifyCheckCtx = { root, tsRoot: join(root, "vanta-ts"), artifact, preExisting, opts };
+  for (const check of buildVerifyChecks()) {
+    const result = await check.run(ctx);
+    if (!result.ok) return result;
+  }
   return { ok: true };
 }

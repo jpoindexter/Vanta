@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+import { assertPublicUrl } from "../net/ssrf-guard.js";
 
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/audio/transcriptions";
 const MAX_AUDIO_BYTES = 24 * 1024 * 1024; // 24 MB (Groq hard limit is 25 MB)
@@ -16,6 +17,8 @@ export type TranscriptResult =
   | { ok: false; error: string };
 
 async function downloadAudio(url: string, destDir: string): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+  const guard = await assertPublicUrl(url);
+  if (!guard.ok) return { ok: false, error: guard.error };
   const ext = extname(new URL(url).pathname) || ".mp3";
   const dest = join(destDir, `audio${ext}`);
   const ctrl = new AbortController();

@@ -8,6 +8,7 @@ mod runtime;
 mod safety;
 mod scope;
 mod server;
+mod spawn;
 
 use std::{env, process};
 
@@ -73,6 +74,16 @@ fn main() {
             println!("{}", runtime::run_native(&state.root, &instruction).to_json());
             Ok(())
         }
+        "spawn" => match args.next().as_deref() {
+            Some("check") => {
+                let parent = args.next().unwrap_or_default();
+                let child = args.next().unwrap_or_default();
+                let depth = args.next().and_then(|v| v.parse().ok()).unwrap_or(0);
+                println!("{}", spawn::check_and_record(&state, &parent, &child, depth).to_json());
+                Ok(())
+            }
+            _ => Err("try: spawn check <parent> <child> <depth>".to_string()),
+        },
         "audit" => match args.next().as_deref() {
             Some("verify") | None => match audit::verify_chain(&state.data_dir) {
                 Ok(n) => {
@@ -88,7 +99,7 @@ fn main() {
             server::serve(state, port)
         }
         _ => Err(format!(
-            "unknown command: {command}\ntry: doctor | assess | scope | log | approvals | goals | run | serve | audit"
+            "unknown command: {command}\ntry: doctor | assess | scope | log | approvals | goals | run | spawn | serve | audit"
         )),
     };
 
