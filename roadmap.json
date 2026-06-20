@@ -11598,7 +11598,7 @@
       "id": "AHE-TRACE-DISTILLER",
       "track": "Harness",
       "title": "Trace distiller — events.jsonl to sourced root-cause report (Agent Debugger analog)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "AHE's 'Experience Observability': compress large execution traces into a layered, sourced root-cause report where each claim links back to the raw trace line. Vanta already emits .vanta/events.jsonl + session memory; this adds the distillation pass turning a failed/long run into an overview + per-issue detail with evidence pointers. Useful for debugging on its own, and the input the self-evolve loop consumes. See docs/agentic-harness-engineering.md.",
       "done": "Given a run's events.jsonl, the distiller produces an overview.md + per-issue detail with each claim citing the source trace line(s).",

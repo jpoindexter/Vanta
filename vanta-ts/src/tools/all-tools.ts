@@ -19,6 +19,7 @@ import { browserExtractTool } from "./browser-extract.js";
 import { browserActTool } from "./browser-act.js";
 import { browserReadTool } from "./browser-read.js";
 import { describeImageTool } from "./describe-image.js";
+import { distillTraceTool } from "./distill-trace.js";
 import { compareVisionTool } from "./compare-vision.js";
 import { lookAtScreenTool } from "./look-at-screen.js";
 import { lookAtCameraTool } from "./look-at-camera.js";
@@ -139,6 +140,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   browserActTool,
   browserReadTool,
   describeImageTool,
+  distillTraceTool,
   compareVisionTool,
   lookAtScreenTool,
   lookAtCameraTool,

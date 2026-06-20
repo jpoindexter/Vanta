@@ -62,6 +62,7 @@ describe("registry", () => {
       "cron_list",
       "delegate",
       "describe_image",
+      "distill_trace",
       "drive_create",
       "drive_read",
       "drive_update",
