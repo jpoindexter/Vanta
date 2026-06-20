@@ -1636,7 +1636,7 @@
       "id": "VANTA-SKILL-LOOP",
       "track": "Harness",
       "title": "/loop — recurring cron task from natural-language interval",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Bundled /loop skill that parses a natural-language interval (10m, 30m, 2h, 1d) + prompt, then creates a CronCreate task to run it recurrently. Handles 'every 20m' prose, defaults to 10m. Uses the Kairos cron engine.",
       "done": "'/loop 30m check the deploy' creates a cron task that fires every 30 min; '/loop /babysit-prs' defaults to 10m; interval parsed from the end of the string if prose format.",
@@ -1645,7 +1645,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-PREVENT-SLEEP",

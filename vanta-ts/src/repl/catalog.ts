@@ -45,6 +45,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "title", arg: "<name>", desc: "name the current session" },
   { name: "fork", desc: "branch the current conversation into a new session" },
   { name: "cron", desc: "list scheduled tasks" },
+  { name: "loop", arg: "<interval> <task>", desc: "schedule a recurring task from a natural-language interval (e.g. every 2 hours <task>, daily, every monday)" },
   { name: "image", arg: "<path>", desc: "attach an image for your next message" },
   { name: "paste", desc: "attach an image from the clipboard (macOS)" },
   { name: "attachments", arg: "[clear]", desc: "show or clear pending image attachments" },
