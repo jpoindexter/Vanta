@@ -79,3 +79,48 @@ export function buildSshArgs(profile: SshProfile, remoteCommand?: string): strin
   if (remoteCommand) args.push(remoteCommand);
   return args;
 }
+
+/**
+ * An explicit remote address (`user@host` or `host:port`) — as opposed to a
+ * bare word, which is more likely a mistyped profile name than a hostname we
+ * should silently dial. Pure.
+ */
+export function looksLikeRemoteTarget(s: string): boolean {
+  const t = s.trim();
+  return t.includes("@") || /:\d+$/.test(t);
+}
+
+/**
+ * Parse a `user@host`, `host`, `user@host:port`, or `host:port` string into an
+ * ad-hoc profile (name = the raw target). Returns null when the result wouldn't
+ * be a valid profile (e.g. an injection-shaped leading-dash host). Pure.
+ */
+export function parseSshTarget(target: string): SshProfile | null {
+  const raw = target.trim();
+  if (!raw) return null;
+  const at = raw.lastIndexOf("@");
+  const user = at >= 0 ? raw.slice(0, at) : undefined;
+  let host = at >= 0 ? raw.slice(at + 1) : raw;
+  let port: number | undefined;
+  const colon = host.lastIndexOf(":");
+  if (colon > 0 && /^\d+$/.test(host.slice(colon + 1))) {
+    port = Number(host.slice(colon + 1));
+    host = host.slice(0, colon);
+  }
+  const parsed = SshProfileSchema.safeParse({
+    name: raw, host,
+    ...(user ? { user } : {}),
+    ...(port ? { port } : {}),
+  });
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Resolve an ssh argument to a profile: a configured profile by name first, then
+ * — only for an explicit remote address — a parsed `user@host` target. A bare
+ * unconfigured word returns null (treat it as a mistyped profile name, never an
+ * implicit host to dial). Pure (the caller supplies the configured profiles).
+ */
+export function resolveSshTarget(arg: string, profiles: SshProfile[] | undefined): SshProfile | null {
+  return resolveSshProfile(arg, profiles) ?? (looksLikeRemoteTarget(arg) ? parseSshTarget(arg) : null);
+}
