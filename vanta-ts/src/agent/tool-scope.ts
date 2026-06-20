@@ -1,5 +1,6 @@
 import type { Message } from "../types.js";
 import type { ToolSchema } from "../providers/interface.js";
+import { shouldDeferTools } from "./tool-scope-auto.js";
 
 const MIN_SCOPE_THRESHOLD = 16;
 const TOOL_SEARCH_CONTEXT_LIMIT = 3;
@@ -34,7 +35,7 @@ export function scopeToolSchemas(
   context: string,
   opts: { env?: NodeJS.ProcessEnv } = {},
 ): ToolSchema[] {
-  if (schemas.length <= MIN_SCOPE_THRESHOLD || opts.env?.VANTA_TOOL_SCOPE === "0" || wantsFullTools(context)) return schemas;
+  if (schemas.length <= MIN_SCOPE_THRESHOLD || !shouldDeferTools(schemas, opts.env) || wantsFullTools(context)) return schemas;
   const wanted = new Set(CORE);
   for (const [pattern, group] of HINTS) {
     if (pattern.test(context)) GROUPS[group]!.forEach((name) => wanted.add(name));
