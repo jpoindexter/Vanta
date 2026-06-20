@@ -3262,7 +3262,7 @@
       "id": "VANTA-TRANSCRIPT-SEARCH",
       "track": "Operator",
       "title": "In-session transcript search — full-text search across conversation messages",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports full-text search within the current session transcript. `transcriptSearch.ts` flattens messages to lowercased searchable text (WeakMap-cached for efficiency), filtering out sentinel interruption strings that would cause phantom matches. Used by the search UI (`SearchBox.tsx`, `QuickOpenDialog.tsx`).",
       "done": "Typing in the transcript search box highlights matching turns. Filtering by query jumps to the first match and shows match count.",
@@ -3271,7 +3271,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "LIVE: /search upgraded in place (was a basic substring lister) — pure searchTranscript (case-insensitive, rank by match-count desc + recency tiebreak, skip system/tool, cap 10) + buildSnippet (centers first match …<before>[match]<after>…, radius 30, cap ~120, newlines collapsed, control/ANSI stripped so transcript content cant inject escapes) + formatSearchResults (role+turn+snippet or no-matches). Already registered in handlers/catalog. Empty query -> usage."
     },
     {
       "id": "VANTA-STANDALONE-AGENT-NAME",

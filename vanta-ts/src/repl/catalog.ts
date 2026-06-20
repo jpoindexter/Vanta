@@ -96,7 +96,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "btw", arg: "<question>", desc: "ask a quick side question — not added to conversation history" },
   { name: "describe", arg: "<path>", desc: "generate a short LLM description of a file or directory" },
   { name: "diff", desc: "show uncommitted changes (working tree + staged)" },
-  { name: "search", arg: "<query>", desc: "search conversation history for a term" },
+  { name: "search", arg: "<query>", desc: "full-text search this session's transcript — ranked matches + highlighted snippets" },
   { name: "repro", desc: "save a diagnostic repro bundle to .vanta/repro-*.md" },
   { name: "summary", desc: "summarize this session (what was done, what remains)" },
   { name: "dashboard", desc: "live operator state — tasks, goals, repo, model" },
