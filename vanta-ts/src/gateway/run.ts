@@ -15,6 +15,7 @@ import {
   takeNext,
   type SessionState,
 } from "./session-manager.js";
+import { isIntentionalSilence } from "./response-filter.js";
 import { drainLoopWakes } from "../loop/wake.js";
 import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
 import type { WakeContext } from "../loop/types.js";
@@ -115,6 +116,9 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   let reply: string;
   try { reply = await ctx.handle(m.text); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
+  // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
+  // (group/channel surfaces); prose mentioning the marker still sends.
+  if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
   await ctx.platform.send({ chatId: m.chatId, text: reply });
 }
 

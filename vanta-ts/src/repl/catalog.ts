@@ -62,6 +62,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "copy", desc: "copy the last response to the clipboard" },
   { name: "update", desc: "git pull the latest Vanta (then ./install.sh to rebuild)" },
   { name: "moim", arg: "[text|clear]", desc: "pin a top-of-mind note injected into every prompt until cleared" },
+  { name: "record", arg: "[start|stop]", desc: "record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings" },
   { name: "output-style", arg: "<concise|normal|verbose>", desc: "control response verbosity" },
   { name: "ultrathink", arg: "<task>", desc: "deep-reasoning mode — plan, weigh tradeoffs + edge cases, then act" },
   { name: "ultracode", arg: "<task>", desc: "multi-agent coding push — decompose, parallel subagents, verify, synthesize" },
