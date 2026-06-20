@@ -3104,7 +3104,7 @@
       "id": "VANTA-TODO-ACTIVE-FORM",
       "track": "Operator",
       "title": "TodoItem activeForm field — track current action verb in todo items",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Each TodoItem has a Zod-validated `activeForm` field (e.g. 'Building', 'Testing') that stores the current progressive tense of the action being performed. Displayed in the task list UI next to in_progress items as a live status line.",
       "done": "In-progress todo items show their activeForm (e.g. 'Building auth.ts'); completed items show a checkmark; pending items show content only.",
@@ -3113,7 +3113,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "WIRED: optional activeForm added to the canonical TodoItemSchema (todo/store.ts) + tools/todo.ts Args/JSON-schema; pure displayLabel (in_progress + non-empty activeForm -> activeForm, else text/content) wired into formatTodos render (todo tool list + /plan). normalizeActiveForm persists only non-empty. Absent/blank activeForm or pending/done = byte-identical display."
     },
     {
       "id": "VANTA-TEAMMATE-COLOR",
