@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, resolve, sep } from "node:path";
 import { resolveInScope } from "../scope.js";
+import { scratchpadDir } from "./scratchpad.js";
 
 // Path zones — directories outside the project root that the file tools may touch,
 // each still kernel-gated (the kernel returns Ask for any out-of-root path). The
@@ -28,12 +29,18 @@ function parseDirs(raw: string): string[] {
   return raw.split(",").map((s) => s.trim()).filter(Boolean).map((s) => resolve(expandHome(s)));
 }
 
-/** Resolve the configured writable zones to absolute dir paths. */
+/**
+ * Resolve the configured writable zones to absolute dir paths. The agent's
+ * scratchpad (a designated temp workspace, see scratchpad.ts) is ALWAYS a
+ * writable zone — even when VANTA_WRITABLE_DIRS replaces the defaults — so the
+ * agent can write temp files there without a per-file approval. It's one
+ * directory, never a widening of scope.
+ */
 export function resolveWritableZones(env: NodeJS.ProcessEnv): string[] {
   const raw = env.VANTA_WRITABLE_DIRS?.trim();
   const base = raw ? parseDirs(raw) : [...DEFAULT_WRITABLE].map((s) => resolve(expandHome(s)));
   const extra = env.VANTA_EXTRA_DIRS?.trim() ? parseDirs(env.VANTA_EXTRA_DIRS) : [];
-  return [...base, ...extra];
+  return [...base, ...extra, scratchpadDir(env)];
 }
 
 /**

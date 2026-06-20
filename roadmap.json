@@ -1756,7 +1756,7 @@
       "id": "VANTA-SCRATCHPAD",
       "track": "Harness",
       "title": "Agent scratchpad directory — gated workspace for temporary files",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "ENABLE_SCRATCHPAD gate creates a scoped temp directory for agent use. Files written to the scratchpad don't affect the project. Coordinator workers can use it as a shared workspace for intermediate results without polluting the repo.",
       "done": "With ENABLE_SCRATCHPAD set, agent has a temp dir it can write to freely; dir is cleaned on session end; not accessible from outside the scratchpad scope.",
@@ -1765,13 +1765,13 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-HOOK-SSRF-GUARD",
       "track": "Harness",
       "title": "SSRF guard for HTTP hooks — block private/cloud-metadata IPs",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "HTTP hooks resolve target IPs before connecting and block private ranges (10.x, 172.16.x, 192.168.x), CGNAT (100.64.x), cloud metadata (169.254.x), IPv6 unique-local (fc00::/7, fe80::/10). Loopback (127.x, ::1) explicitly ALLOWED for local dev policy servers. Bypassed when proxy in use.",
       "done": "HTTP hook to 169.254.169.254 is blocked; hook to 127.0.0.1 is allowed; private IPs blocked; DNS resolution happens before connection attempt.",
@@ -1780,7 +1780,7 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20"
     },
     {
       "id": "VANTA-FILE-CHANGED-HOOKS",

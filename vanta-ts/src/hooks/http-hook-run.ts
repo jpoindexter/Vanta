@@ -1,16 +1,22 @@
 import type { ShellHook } from "./shell-hooks.js";
 import type { ShellHookResult } from "./shell-hook-run.js";
+import { assertHookUrlAllowed } from "./hook-ssrf.js";
+import type { Resolver } from "../net/ssrf-guard.js";
 
 export async function runHttpHook(
   hook: ShellHook,
   contextJson: string,
-  opts: { env?: NodeJS.ProcessEnv; timeoutMs?: number } = {},
+  opts: { env?: NodeJS.ProcessEnv; timeoutMs?: number; resolver?: Resolver } = {},
 ): Promise<ShellHookResult> {
   if (!hook.url) return { code: 1, stdout: "", stderr: "http hook requires url" };
+  const env = opts.env ?? process.env;
+  // SSRF: fail closed if the target resolves to a private/loopback/metadata IP.
+  const guard = await assertHookUrlAllowed(hook.url, { resolver: opts.resolver, env });
+  if (!guard.ok) return { code: 1, stdout: "", stderr: guard.error };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? hook.timeoutMs ?? 10_000);
   try {
-    return await postHook(hook, contextJson, opts.env ?? process.env, controller.signal);
+    return await postHook(hook, contextJson, env, controller.signal);
   } catch (err) {
     return { code: 1, stdout: "", stderr: err instanceof Error ? err.message : String(err) };
   } finally {

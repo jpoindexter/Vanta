@@ -92,7 +92,8 @@ describe("hook type parity", () => {
       server.listen(0, "127.0.0.1", async () => {
         const port = (server.address() as AddressInfo).port;
         await writeHooks({ PostToolUse: [{ type: "http", url: `http://127.0.0.1:${port}/hook`, headers: { authorization: "Bearer $HOOK_TOKEN" }, allowedEnvVars: ["HOOK_TOKEN"] }] });
-        await fireHooks(dir, "PostToolUse", { tool: "read_file" }, { env: { HOOK_TOKEN: "secret" } as NodeJS.ProcessEnv });
+        // Loopback test server = the trusted self-hosted-hook case → opt out of the SSRF guard.
+        await fireHooks(dir, "PostToolUse", { tool: "read_file" }, { env: { HOOK_TOKEN: "secret", VANTA_HOOK_ALLOW_PRIVATE: "1" } as NodeJS.ProcessEnv });
       });
     });
     const got = await received;
