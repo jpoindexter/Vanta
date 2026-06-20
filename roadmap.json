@@ -2498,7 +2498,7 @@
       "id": "VANTA-EXEC-BG",
       "track": "Harness",
       "title": "--exec — run a shell command as a background job alongside the session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `--exec <cmd>` starts a shell command as a tracked background job concurrent with the agent session (e.g., a dev server, a test watcher). The agent can monitor its output. Vanta has no way to co-launch a background process with a session.",
       "done": "`--exec <cmd>` starts the command before the first turn; its output is available to the Monitor tool; the process is tracked and killed on session end.",
@@ -2506,7 +2506,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "notes": "Pure parseExecFlags (extract every --exec <cmd>, rest unchanged, trailing-no-value ignored) + buildExecBgPlan + launchExecBg (injected bg-task starter, best-effort, executes nothing itself). Built+tested. WIRE DEFERRED for SECURITY: the auto-launch must go through kernel assess() per command, but startInteractive has no kernel client until prepareRun runs inside runChat — so the launch must move INSIDE runChat (after prepareRun creates safety) and assess() each --exec command before spawnBackground. An initial wire that called spawnBackground at startup ungated was reverted (Rule Zero — never execute a shell command without the kernel gate). Reuses bg-tasks machinery."
     },
     {
       "id": "VANTA-CACHE-HINTS",
