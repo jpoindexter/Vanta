@@ -2151,7 +2151,7 @@
       "id": "VANTA-PRIVACY-LEVELS",
       "track": "Harness",
       "title": "Privacy levels — default/no-telemetry/essential-traffic to control network traffic",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports three privacy levels (ordered by restrictiveness): `default` (everything enabled), `no-telemetry` (disables analytics/telemetry but other network traffic allowed), and `essential-traffic` (only API calls — no telemetry, no update checks, no marketplace refreshes, no bootstrap). Configurable via settings or `CLAUDE_CODE_PRIVACY_LEVEL`.",
       "done": "`VANTA_PRIVACY=no-telemetry` disables all usage tracking. `essential-traffic` mode blocks all non-API network calls for air-gapped environments.",
@@ -2160,7 +2160,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "PrivacyLevel (default|no-telemetry|essential) + resolvePrivacyLevel (env>settings>default) + pure isAllowed(category,level) matrix + settings.privacyLevel field. PRIVACY_CALL_SITES names the provider/kernel/search/fetch/update/other sites; gating each network path with isAllowed is the follow-up (Vanta ships no telemetry sender today). Default = unchanged."
     },
     {
       "id": "VANTA-INTERLEAVED-THINKING",
