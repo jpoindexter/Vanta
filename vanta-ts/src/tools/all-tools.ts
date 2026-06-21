@@ -9,6 +9,7 @@ import { codeIndexTool } from "./code-index.js";
 import { clarifyTool } from "./clarify.js";
 import { askUserTool } from "./ask-user.js";
 import { terminalCaptureTool } from "./terminal-capture-tool.js";
+import { voiceInputTool } from "./voice-input-tool.js";
 import { roadmapMoveTool } from "./roadmap-move.js";
 import { roadmapAddTool } from "./roadmap-add.js";
 import { webSearchTool } from "./web-search.js";
@@ -142,6 +143,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   clarifyTool,
   askUserTool,
   terminalCaptureTool,
+  voiceInputTool,
   configTool,
   configToolTool,
   cookieImportTool,
