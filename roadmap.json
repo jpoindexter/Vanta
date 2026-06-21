@@ -4477,7 +4477,7 @@
       "id": "VANTA-SWARM-TMUX",
       "track": "Harness",
       "title": "Tmux swarm backend — spawn agents in tmux panes with locking + color coding",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Spawns another agent agents in separate tmux panes. Sequential pane creation lock prevents race conditions. 200ms shell init delay for starship/oh-my-zsh. Leader pane cached for performance. SWARM_SESSION_NAME/HIDDEN_SESSION_NAME constants. Agents identified by color from team palette.",
       "done": "Running /team spawns agents in tmux panes; each pane auto-labeled with agent color; panes created sequentially without races; shell ready before agent starts.",
@@ -4486,7 +4486,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified PURE slice shipped; LIVE tmux spawn = named boundary (needs a running tmux). Pure/injectable planPaneLayout (N panes/N-1 splits, balanced alternating h/v, N=0->[], N=1->no split) + PaneLockState (immutable acquirePane refuses cross-worker, idempotent self re-acquire; releasePane frees) + assignPaneColor (deterministic by INDEX, reuses the vetted TEAMMATE_PALETTE) + buildTmuxSplitArgs/buildTmuxSendKeysArgs (DISCRETE argv — a ; rm -rf / send-keys command stays ONE element, asserted). SECURITY: argv-not-shell; kernel assess() still gates the WHETHER of any command a pane runs (tmux=WHERE, kernel=WHETHER). 24 tests. WIRE (boundary): a tmux fleet backend in fleet.ts plans the layout + locks + colors + runs the argv via an injected spawnTmux. The LIVE tmux child process is what remains to complete the rock."
     },
     {
       "id": "VANTA-PLAN-MODE-V2",
@@ -4567,7 +4568,7 @@
       "id": "VANTA-SLACK-CHANNEL-SUGGEST",
       "track": "Operator",
       "title": "Slack channel autocomplete — `#channel` mention suggestions in prompt input",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's prompt input suggestion overlay supports a `slack-channel` suggestion type, enabling `#channel-name` autocomplete when the user types `#` in the prompt. Integrates with the Slack channel suggestion service (`slackChannelSuggestions.ts`) to fetch accessible channels. Used in organizations with Slack integration enabled.",
       "done": "Typing `#eng` in the prompt shows matching Slack channels as suggestions. Selecting one inserts the channel reference for context or notification routing.",
@@ -4576,7 +4577,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified PURE slice shipped; LIVE Slack integration = named boundary (needs a Slack token). Pure/injectable SlackChannel{id,name,isMember?,isArchived?} + activeChannelRef (the #-fragment under the cursor, mirrors at-context activeAtRef; null when not in a #-token) + suggestChannels (prefix>substring, member>non-member, archived dropped, dedupe-by-id, cap 10, empty fragment -> first-N members) + formatChannelSuggestion (#name control-stripped) + parseChannelList (tolerant {channels:[{id,name,is_member,is_archived}]}, [] on garbage). SECURITY: Slack token=secret used only by the injected fetch named at the wire, NEVER a literal (gitleaks-safe); channel names control-stripped. 26 tests. WIRE (boundary): composer #-completion calls activeChannelRef+suggestChannels with a cached conversations.list snapshot over a token. The LIVE fetch is what remains to complete the rock end-to-end."
     },
     {
       "id": "VANTA-BIDI-TEXT",
@@ -4598,7 +4600,7 @@
       "id": "VANTA-TERMINAL-CAPTURE",
       "track": "Operator",
       "title": "Terminal panel + TerminalCaptureTool — agent captures terminal content, Meta+J toggle",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `TERMINAL_PANEL`) adds a `TerminalCaptureTool` letting the agent read the current terminal buffer content, plus an embedded terminal panel toggled with `Meta+J` (`app:toggleTerminal`). The agent can 'see' what's on screen without a screenshot.",
       "done": "`Meta+J` opens a terminal panel. The agent can call `terminal_capture` to read current terminal output as text context, useful for debugging TUI apps.",
@@ -4607,7 +4609,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified PURE slice shipped; LIVE PTY capture = named boundary (needs node-pty/host terminal buffer). Pure processCapture (reuses bash-io stripKeepNewlines to strip the WHOLE ANSI/CSI/OSC sequence not just ESC — an untrusted captured buffer cant inject control codes, asserted zero ESC/[/BEL survive; newlines kept, trailing blanks collapsed, clip to LAST maxLines 200, per-line trailing ws trimmed) + captureToSnapshot ({text,lineCount,truncated}) + CapturePanelState + toggleCapturePanel (Meta+J flips visible, immutable) + captureEnabled (VANTA_TERMINAL_CAPTURE=1, default OFF). 24 tests. WIRE (boundary): a terminal_capture tool / TUI panel owns the live buffer -> captureToSnapshot; Meta+J keybinding -> toggleCapturePanel. The LIVE PTY capture is what remains to complete the rock."
     },
     {
       "id": "VANTA-AGENT-WIZARD",
