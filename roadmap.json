@@ -4150,7 +4150,7 @@
       "id": "VANTA-MCP-RESULT-SIZE",
       "track": "Extensibility",
       "title": "MCP result `maxResultSizeChars` — allow up to 500K chars via `_meta` annotation",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.91) adds MCP tool result persistence via `_meta['anthropic/maxResultSizeChars']` annotation (up to 500K chars). MCP tools can annotate their results to persist large outputs — e.g. database exports, full file reads — beyond the default truncation limit.",
       "done": "An MCP tool returning a 200K-char result with `_meta['anthropic/maxResultSizeChars']: 300000` has the full result persisted and available to the model.",
@@ -4159,7 +4159,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseMaxResultSize (_meta.maxResultSizeChars then _meta[vanta/maxResultSizeChars]; clamp [DEFAULT 20k, HARD_CAP 500k]; below default floors, above cap clamps, absent/garbage/<=0/non-object -> default) + applyResultSizeLimit (head+tail+marker <= maxChars, mirrors bash-output-limit) + resolveResultLimit (over result._meta). SECURITY: 500k HARD ceiling — a result can request more but never force unbounded memory. Built+tested; wire = mount mcpToolToVantaTool/rich-output uses resolveResultLimit + applyResultSizeLimit instead of the fixed default (named). No annotation = default."
     },
     {
       "id": "VANTA-SKILL-OVERRIDE-SETTING",
