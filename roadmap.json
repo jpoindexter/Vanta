@@ -11640,7 +11640,7 @@
       "id": "MSG-ADAPTER-MATRIX",
       "track": "Operator",
       "title": "Messaging adapter — Matrix",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Build the live PlatformAdapter for Matrix (gateway/platforms/matrix.ts) — connect/disconnect/send/poll over the Matrix API, wired to the catalog entry (registry.ts id 'matrix'). Approach: matrix-js-sdk; sync loop + send (E2EE optional, later). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
       "done": "Matrix works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
@@ -11649,10 +11649,11 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14",
+      "updated": "2026-06-21",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ]
+      ],
+      "notes": "Pure/injectable parseMatrixEvents(json,selfUserId?) (m.room.message events -> InboundMessage: chatId=room_id, from=sender, text=stripControl(content.body), id=event_id, isGroup:true; SKIPS sender===selfUserId ANTI-LOOP + non-text msgtypes m.image/file; zod safeParse per element, garbage/non-array -> []) + buildMatrixSendContent ({msgtype:m.text,body} control-stripped) + parseMatrixAllowlist (VANTA_MATRIX_ALLOWLIST comma, empty -> all) + matrixEnabled (VANTA_MATRIX_HOMESERVER AND VANTA_MATRIX_TOKEN) + MatrixAdapter implements PlatformAdapter over injected {sync,sendEvent} (poll syncs+parses, markdown->plain + splitForLimit no truncation; poll/send NEVER throw). SECURITY: self-event skip anti-loop; token=SECRET read ONLY into the injected httpTransport Authorization: Bearer <token> at the wire, NEVER a literal (gitleaks-safe); inbound+outbound control-stripped. Mirrors Discord/Email. Built+tested; wires = registry MESSAGING_CATALOG matrix entry flip implemented:true + resolve.ts resolvePlatform branch (homeserver+token -> new MatrixAdapter, optional selfUserId from /whoami) (named, live client-server API = boundary). Not configured = disabled."
     },
     {
       "id": "MSG-ADAPTER-EMAIL",
