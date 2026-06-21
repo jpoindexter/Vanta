@@ -14421,7 +14421,7 @@
       "id": "OP-SSL-GUARD",
       "track": "Operator",
       "title": "SSL/CA-bundle preflight guard in doctor",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A bad CA bundle (corporate proxy, partial update) surfaces as an opaque TLS failure deep in the HTTP client. Add a preflight that validates CA-bundle env vars + bundled certs (exists, non-trivial, parses) and raises one actionable error with a repair command; expose it in doctor. Escape hatch env var.",
       "done": "run.sh doctor validates the CA bundle and, on failure, prints the exact broken path + a copy-paste fix instead of an opaque error; happy and broken paths tested.",
@@ -14430,8 +14430,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Pure/injectable SslIssue (missing-ca-file|self-signed|expired|unknown-tls) + SslGuardResult ({ok:true}|{ok:false,issue,hint}, errors-as-values never throws) + classifyTlsError (SELF_SIGNED_CERT_IN_CHAIN/DEPTH_ZERO_SELF_SIGNED_CERT/UNABLE_TO_GET_ISSUER_CERT_LOCALLY -> self-signed; CERT_HAS_EXPIRED -> expired; else unknown-tls) + sslHint (per-issue actionable, CA-relevant ones name NODE_EXTRA_CA_CERTS, missing-ca echoes the path, corporate-proxy interception called out) + checkSslGuard (caCertsPath set + !fileExists -> missing-ca-file pre-probe; else probeTls -> classify cert error / ok / a probe throw -> unknown-tls never crash) + formatSslGuardLine (✓ TLS ok / ⚠ TLS: issue — hint). Injected probe/fs = boundary. ADVISORY only — doctor health signal, does NOT change security posture, live fetch path unchanged. Built+tested; wire = status gatherStatus checkSslGuard(caCertsPath=NODE_EXTRA_CA_CERTS, fileExists, probeTls=HTTPS HEAD) + formatStatus pushes the line (named). Healthy = ok."
     },
     {
       "id": "OP-INSTALL-FASTPATH",
