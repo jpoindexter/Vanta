@@ -36,7 +36,7 @@ function stripToLine(text: string): string {
 }
 
 /** Strip ANSI escapes + control chars but KEEP newlines (\r\n / \r -> \n). */
-function stripKeepNewlines(text: string): string {
+export function stripKeepNewlines(text: string): string {
   return text.replace(ANSI_RE, "").replace(/\r\n?/g, "\n").replace(CONTROL_RE, "");
 }
 
