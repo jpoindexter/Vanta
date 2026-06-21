@@ -8,6 +8,7 @@ import { runMessagingSetup } from "./setup-messaging.js";
 import { runTtsSetup } from "./setup-tts.js";
 import { runStatus } from "./status.js";
 import { runPreflight, formatPreflight, commandExists, detectPlatform } from "./setup/preflight.js";
+import { runBetaProofCommand } from "./cli/beta-proof-cmd.js";
 import {
   dataDirFor,
   buildCronRunTask,
@@ -95,6 +96,7 @@ const COMMANDS: Record<string, CommandFn> = {
     console.log(formatPreflight(res, detectPlatform()));
     return res.ok ? 0 : 1;
   },
+  "beta-proof": (root) => runBetaProofCommand(root),
   schedule: async (root, rest) => {
     const code = await runScheduleCommand(dataDirFor(root), rest);
     if (code !== 0) usage();
