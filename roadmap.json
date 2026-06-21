@@ -4279,7 +4279,7 @@
       "id": "VANTA-PLUGIN-MARKETPLACE",
       "track": "Extensibility",
       "title": "Plugin marketplace — multi-source plugin registry with local cache",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Marketplace manager supports multiple sources (URL, GitHub repo, npm package, local file). Manifests are cached in ~/.claude/plugins/marketplaces/ for offline access. `known_marketplaces.json` tracks all configured sources. Used by /plugin UI to browse and install from any source.",
       "done": "User can add a marketplace URL; manifest downloads and caches; /plugin shows marketplace entries; GitHub repo marketplaces are cloned; offline installs use cache.",
@@ -4288,7 +4288,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable parseMarketplaceSource (tolerant array|{plugins:[]}, zod-validated, stamped with source, unsafe names rejected via reused isSafePluginName, [] on garbage) + mergeCatalogs (dedupe by name case-insensitive first-source-wins, returns {plugins,clashes}) + searchMarketplace (name-startsWith>name-contains>desc-contains, cap 20) + fetchMarketplace (cache-first PER source, a source failure -> its cache/[] skipped never throws, no sources -> empty). SECURITY: source UNTRUSTED — entries validated, listing != trusting (an install still goes through plugin trust + kernel gate). Built+tested; wire = vanta plugins browse/search builds deps from configured registry URLs + .vanta cache (named, live fetch boundary)."
     },
     {
       "id": "VANTA-AGENTS-DIR",
