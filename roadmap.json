@@ -4166,7 +4166,7 @@
       "id": "VANTA-SKILL-OVERRIDE-SETTING",
       "track": "Extensibility",
       "title": "`skillOverrides` setting — control per-skill visibility to model and menu",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.129) makes `skillOverrides` work: `off` hides a skill from both the model and `/`-menu; `user-invocable-only` hides from model but keeps it in the menu; `name-only` collapses the description to save context tokens.",
       "done": "Setting `skillOverrides: {my-verbose-skill: 'name-only'}` keeps the skill available but strips its description from the system prompt.",
@@ -4175,7 +4175,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "SkillOverridesSchema (record name -> {disabled?,hiddenFromModel?,hiddenFromMenu?}) added to settings; pure resolveSkillOverride + skillVisibleToModel (false when disabled||hiddenFromModel) + skillVisibleInMenu (false when disabled||hiddenFromMenu) + filterModelSkills (order-preserving). disabled = off switch (hides both); explicit false keeps visible; absent = visible to both (current behavior). Operator-side analogue of the frontmatter disableModelInvocation (tool-policy). Built+tested; wire = skills/select filterModelSkills before ranking + /skills menu gates skillVisibleInMenu (named)."
     },
     {
       "id": "VANTA-SKILL-DOLLAR-ESCAPE",

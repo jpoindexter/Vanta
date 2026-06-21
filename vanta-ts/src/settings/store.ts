@@ -7,6 +7,7 @@ import { EFFORT_LEVELS } from "../types.js";
 import { SshProfileSchema } from "../ssh/config.js";
 import { MemorySettingsSchema } from "./memory-settings.js";
 import { McpAccessSchema } from "./mcp-access.js";
+import { SkillOverridesSchema } from "../skills/overrides.js";
 import { UxSettingsSchema, uxSettingsToEnv } from "./ux-settings.js";
 
 // Layered settings.json (user → project → local).
@@ -139,6 +140,18 @@ export const SettingsSchema = z.object({
    *  `filterMountableServers(names, settings.mcp)` would gate the mount loop — NOT
    *  wired this round. The MCP trust dialog + kernel still gate every mounted tool. */
   mcp: McpAccessSchema.optional(),
+  /** VANTA-SKILL-OVERRIDE-SETTING — per-skill-name visibility overrides
+   *  (resolvers in `skills/overrides.ts`). A map from skill name to
+   *  `{disabled?, hiddenFromModel?, hiddenFromMenu?}`: `disabled` hides a skill
+   *  from BOTH the model index and the operator menu; `hiddenFromModel` keeps it
+   *  out of the prompt index but in the menu; `hiddenFromMenu` does the reverse.
+   *  A skill with no override stays visible to both (today's behavior) — the
+   *  operator hides a noisy skill from the model or turns one off without deleting
+   *  it. The named filter point is `skills/select.ts selectSkillsForTask`, where
+   *  `filterModelSkills(names, settings.skillOverrides)` would drop hidden/disabled
+   *  skills before ranking — NOT wired this round. The kernel still gates every
+   *  tool a skill uses. */
+  skillOverrides: SkillOverridesSchema.optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;
