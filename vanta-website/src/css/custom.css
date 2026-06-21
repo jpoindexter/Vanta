@@ -230,8 +230,15 @@ code { border-radius: 0.4rem; }
 [data-theme='dark'] .uc-card.research .uc-tag { color: var(--vanta-goal); }
 [data-theme='dark'] .uc-card.auto .uc-tag     { color: var(--vanta-risk); }
 
-/* ---------- Mermaid: let diagrams breathe ---------- */
-.docusaurus-mermaid-container { margin: 1.5rem 0; text-align: center; }
+/* ---------- Mermaid: framed like a card so diagrams sit in the system ---------- */
+.docusaurus-mermaid-container {
+  margin: 1.75rem 0;
+  text-align: center;
+  border: 1px solid var(--vanta-border);
+  border-radius: 0.85rem;
+  padding: 1.25rem 1rem;
+  background: var(--vanta-card-bg);
+}
 
 /* ---------- Landing hero: Vanta gradient ---------- */
 .heroBanner_src-pages-index-module,
@@ -249,3 +256,54 @@ header.hero .button--secondary {
   font-weight: 600;
 }
 header.hero .button--secondary:hover { background: #87e4ff; border-color: #87e4ff; }
+
+/* ============================================================
+   Detail polish (make-interfaces-feel-better)
+   ============================================================ */
+
+/* Font smoothing — crisper text on macOS */
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Text wrapping — balanced headings, no body orphans */
+.markdown h1, .markdown h2, .markdown h3, .navbar__title { text-wrap: balance; }
+.markdown p, .markdown li { text-wrap: pretty; }
+
+/* Tabular numbers — stable columns across the many count tables */
+.markdown table td, .markdown table th, .table-of-contents { font-variant-numeric: tabular-nums; }
+
+/* Image outlines — subtle depth; pure black (light) / pure white (dark), never tinted */
+.markdown img {
+  border-radius: 0.5rem;
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
+}
+[data-theme='dark'] .markdown img { outline-color: rgba(255, 255, 255, 0.1); }
+
+/* Layered shadows over a single flat one — natural depth on hover */
+.card:hover, .uc-card:hover {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.05);
+}
+[data-theme='dark'] .card:hover, [data-theme='dark'] .uc-card:hover {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+/* Scale on press — tactile feedback on buttons (never below 0.95) */
+.button {
+  transition-property: scale, background-color, color, border-color, box-shadow;
+  transition-duration: 0.15s;
+}
+.button:active { scale: 0.96; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card, .uc-card, .button { transition: none; }
+  .card:hover, .uc-card:hover { transform: none; }
+}

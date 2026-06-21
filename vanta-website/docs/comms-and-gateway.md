@@ -40,4 +40,20 @@ vanta service install  # keep the gateway alive via a launchd user agent (macOS)
 
 The gateway loop (`gatewayTick` + `pollPlatform` + a webhook listener) runs scheduled tasks, polls messaging platforms (inbound → agent → reply), and serves webhooks. The webhook server verifies GitHub HMAC signatures (constant-time) and routes deliveries (local / file / Telegram). `VANTA_WEBHOOK_PORT` / `_SECRET` / `_PROMPT` / `_DELIVER`.
 
+```mermaid
+flowchart LR
+  subgraph gw["vanta gateway · one loop"]
+    tick[gatewayTick]
+    poll[pollPlatform]
+    hook[webhook listener]
+  end
+  cron[(cron tasks)] --> tick
+  tg[Telegram] <--> poll
+  gh[GitHub webhook] --> hook
+  tick --> agent[Agent run]
+  poll --> agent
+  hook --> agent
+  agent -->|reply · deliver| out[channel · file · local]
+```
+
 > Comms tools are offline-unit-tested; live use needs the OAuth client / a bot token.

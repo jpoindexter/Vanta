@@ -8,6 +8,24 @@ sidebar_position: 1
 
 Vanta is two cooperating processes: a **Rust kernel** (the boundary) and a **TypeScript agent** (the orchestrator). They talk over a local HTTP sidecar on `127.0.0.1:7788`.
 
+```mermaid
+flowchart LR
+  subgraph proc1["Agent process · vanta-ts"]
+    loop[Agent loop]
+    prompt[3-tier prompt]
+    tools[119+ tools]
+  end
+  subgraph proc2["Kernel process · vanta-kernel · Rust"]
+    api["HTTP sidecar<br/>127.0.0.1:7788"]
+    assess{{assess}}
+  end
+  store[("~/.vanta + .vanta/<br/>events · approvals · goals")]
+  loop -->|POST /api/assess| api --> assess
+  assess -->|allow / ask / block| loop
+  proc2 --- store
+  loop -.->|events · goals| store
+```
+
 ## The kernel (`src/`)
 
 The kernel is the enforced security boundary. It is small, dependency-free Rust, and it owns every decision about whether an action is safe.

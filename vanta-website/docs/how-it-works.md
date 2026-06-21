@@ -16,7 +16,7 @@ flowchart TB
   subgraph TS["vanta · TypeScript agent layer"]
     agent[Agent loop]
     prompt[3-tier prompt]
-    tools[84+ tools]
+    tools[119+ tools]
     brain[(Brain / memory · ~/.vanta)]
     agent --- prompt
     agent --- tools
