@@ -2714,7 +2714,7 @@
       "id": "VANTA-SWARM-IN-PROCESS",
       "track": "Harness",
       "title": "In-process swarm backend — agents share Node.js process via AsyncLocalStorage",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Alternative to tmux backend: agents run in same Node.js process with isolated context via AsyncLocalStorage. Share API client and MCP connections. File-based mailbox IPC. Killed via AbortController. Enables swarms without tmux dependency.",
       "done": "Swarm agents spawn in-process when tmux unavailable; share API/MCP connections; isolated via AsyncLocalStorage; mailbox IPC works same as tmux backend.",
@@ -2723,7 +2723,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "WorkerContext{workerId,goal?,dataDir?,scopeRoot?} backed by a module-level node:async_hooks AsyncLocalStorage. runInWorkerContext(ctx,fn)=store.run (returns fns promise, errors propagate + auto-unwind) + currentWorkerContext/currentWorkerId (undefined outside) + isInWorkerContext + withWorkerOverride (merge current+partial, nested auto-restore). CONCURRENT no-bleed PROVEN: Promise.all of two interleaved staggered-await runs each read their own id at every checkpoint + a 12-worker test + a failing-worker-throw-doesnt-corrupt-a-concurrent-healthy-one test. ALS = ISOLATION/observability ONLY, NOT a security boundary — kernel assess still gates every worker tool call. Built+tested; wire = spawn runWorker wraps convo.send in runInWorkerContext({workerId,goal,dataDir}) so concurrent in-process workers isolate + perm-routing/logging read currentWorkerId (named). Outside = undefined."
     },
     {
       "id": "VANTA-READ-ONLY-CMD-MAP",
