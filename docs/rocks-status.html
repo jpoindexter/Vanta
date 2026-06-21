@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vanta — Finish the 6 Rocks (runbook)</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121821; --panel2:#0e141c; --line:#1f2a37;
+    --ink:#e6edf3; --dim:#8b98a5; --faint:#5b6770;
+    --green:#3fb950; --amber:#d29922; --cyan:#39c5cf; --violet:#a371f7; --red:#f85149;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 24px 90px}
+  header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:26px}
+  h1{margin:0 0 6px;font-size:25px;letter-spacing:-.02em}
+  h1 .glyph{color:var(--green)}
+  .sub{color:var(--dim);font-size:13.5px}
+  .sub code,.sub b{font-family:var(--mono);color:var(--cyan);font-style:normal}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--dim);align-items:center}
+  .who{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:6px}
+  .who.vanta{background:rgba(163,113,247,.16);color:var(--violet);border:1px solid rgba(163,113,247,.4)}
+  .who.you{background:rgba(210,153,34,.14);color:var(--amber);border:1px solid rgba(210,153,34,.36)}
+  .who.done{background:rgba(63,185,80,.14);color:var(--green);border:1px solid rgba(63,185,80,.4)}
+
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:32px 0 12px;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 8px;margin-bottom:14px;position:relative;overflow:hidden}
+  .card.proven::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
+  .card.real::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan)}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+  .cname{font-family:var(--mono);font-size:15.5px;font-weight:600}
+  .cstate{font-size:11.5px;font-weight:700;letter-spacing:.03em;padding:4px 10px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+  .s-proven{background:rgba(63,185,80,.13);color:var(--green);border:1px solid rgba(63,185,80,.34)}
+  .s-real{background:rgba(57,197,207,.12);color:var(--cyan);border:1px solid rgba(57,197,207,.32)}
+  .cdesc{color:var(--dim);font-size:13px;margin:6px 0 4px;max-width:74ch}
+  ol.steps{margin:10px 0 8px;padding:0;counter-reset:s;list-style:none}
+  ol.steps>li{position:relative;padding:9px 0 9px 38px;border-top:1px solid var(--line)}
+  ol.steps>li:first-child{border-top:0}
+  ol.steps>li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:9px;width:24px;height:24px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--dim);font-family:var(--mono);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step-h{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+  .step-t{font-weight:600;color:var(--ink);font-size:13.5px}
+  .step-d{color:var(--dim);font-size:12.5px;margin-top:2px}
+  pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:7px 0 2px;overflow-x:auto}
+  code,pre{font-family:var(--mono);font-size:12.5px}
+  pre code{color:var(--cyan)}
+  .inline{font-family:var(--mono);font-size:12px;color:var(--cyan);background:var(--bg);padding:1px 6px;border-radius:5px}
+  .note{font-size:11.5px;color:var(--faint);margin:2px 0 0}
+  .secure{background:rgba(248,81,73,.07);border:1px solid rgba(248,81,73,.28);border-radius:9px;padding:10px 14px;margin:4px 0 14px;font-size:12.5px;color:#f0b0ad}
+  .secure b{color:var(--red)}
+  footer{margin-top:30px;color:var(--faint);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="glyph">◆</span> Finish the 6 Rocks — step by step</h1>
+    <div class="sub">All 6 committed; suite <b>10,483</b> green. <b>Both code wires are now DONE</b> (slack app→composer, live-verified against your real channels · voice_input trigger). What's left is purely <b>your runtime inputs</b> below. Each step is who-does-what + the exact command.</div>
+    <div class="legend">
+      <span><span class="who done">DONE</span> already working</span>
+      <span><span class="who vanta">VANTA</span> a code step I run</span>
+      <span><span class="who you">YOU</span> a step on your machine</span>
+    </div>
+  </header>
+
+  <h2>① Works now — just try them</h2>
+
+  <div class="card proven">
+    <div class="chead"><span class="cname">swarm-tmux</span><span class="cstate s-proven">✓ usable now</span></div>
+    <div class="cdesc">Spawn parallel agent workers across real tmux panes.</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Run a swarm</span></div>
+        <pre><code>vanta fleet tmux --task "echo hello" --task "ls -la"</code></pre>
+        <div class="note">prints the exact attach + kill commands for the session it creates.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Watch / kill it</span></div>
+        <pre><code>tmux attach -t vanta-fleet-&lt;pid&gt;
+tmux kill-session -t vanta-fleet-&lt;pid&gt;</code></pre></li>
+    </ol>
+  </div>
+
+  <div class="card proven">
+    <div class="chead"><span class="cname">terminal-capture</span><span class="cstate s-proven">✓ usable now</span></div>
+    <div class="cdesc">The agent can capture a command's real terminal output (colors/TUI redraws), stripped clean.</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Ask Vanta in a session</span></div>
+        <div class="step-d">e.g. “capture the terminal output of <span class="inline">npm test</span>” — it calls the registered <span class="inline">terminal_capture</span> tool (kernel-gated) and reads back the clean snapshot.</div></li>
+    </ol>
+  </div>
+
+  <h2>② slack-suggest — wired + live-verified</h2>
+  <div class="card real">
+    <div class="chead"><span class="cname">slack-suggest</span><span class="cstate s-real">✓ live</span></div>
+    <div class="cdesc">Type <span class="inline">#chan</span> in the composer → live Slack channel suggestions.</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Make a Slack bot token</span></div>
+        <div class="step-d">api.slack.com/apps → your app → <b>OAuth &amp; Permissions</b> → Bot Token Scopes: add <span class="inline">channels:read</span> + <span class="inline">groups:read</span> → <b>Install to Workspace</b> → copy the <span class="inline">xoxb-…</span> Bot User OAuth Token.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Put it in <span class="inline">.env</span> (never in chat)</span></div>
+        <pre><code>echo 'VANTA_SLACK_TOKEN=xoxb-…' &gt;&gt; vanta-ts/.env</code></pre></li>
+      <li><div class="step-h"><span class="who done">DONE</span><span class="step-t">app → composer wire landed + live-verified</span></div>
+        <div class="step-d">useSlackChannels loads channels on startup when a token exists, threaded App→LiveBody→BottomRegion→Composer. A real fetch returned your channels (#social #all-vanta #new-channel).</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Use it now</span></div>
+        <pre><code>vanta            # start a session, type "#" → your live channels</code></pre></li>
+    </ol>
+    <div class="secure"><b>Secret hygiene:</b> the token lives only in <span class="inline">.env</span> (gitignored) — read via <span class="inline">process.env</span>, never echoed or committed. Since it's been screenshotted/shared, rotate it in Slack when convenient.</div>
+  </div>
+
+  <h2>③ voice-stt — trigger wired; needs a mic</h2>
+  <div class="card proven">
+    <div class="chead"><span class="cname">voice-stt</span><span class="cstate s-proven">✓ callable · needs mic</span></div>
+    <div class="cdesc">The <span class="inline">voice_input</span> tool records, whisper transcribes, returns text. (record→transcribe→text is proven; it just needs a real mic + speech.)</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who done">DONE</span><span class="step-t"><span class="inline">voice_input</span> tool landed</span></div>
+        <div class="step-d">a kernel-gated, agent-callable trigger calling the proven <span class="inline">runPttCapture</span> (mic → whisper → transcript). The composer hold-to-talk key is a later cosmetic wire on the same flow.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Grant Microphone — one command opens the pane</span></div>
+        <pre><code>vanta voice mic     # opens System Settings → Microphone directly</code></pre>
+        <div class="note">toggle your terminal on. (A failed mic capture now prints this command too.) whisper + ffmpeg are already installed.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Optional: pick a model</span></div>
+        <pre><code>echo 'VANTA_STT_MODEL=base' &gt;&gt; vanta-ts/.env   # tiny|base|small; default tiny</code></pre></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Talk to it</span></div>
+        <div class="step-d">trigger voice input + speak → the transcript drops into the composer.</div></li>
+    </ol>
+  </div>
+
+  <h2>④ personal-model-tune — automatic once data accrues</h2>
+  <div class="card proven">
+    <div class="chead"><span class="cname">personal-model-tune</span><span class="cstate s-proven">✓ auto · needs data</span></div>
+    <div class="cdesc">Trains a real local LoRA adapter on your MPS GPU from your accumulated preferences — on its own.</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who done">DONE</span><span class="step-t">Auto-train wired into the daemon</span></div>
+        <div class="step-d">the gateway tick auto-trains once ≥20 preference pairs accrue + records so it only retrains after +20 more. Pairs build as you approve/deny in normal use.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Turn on hands-off training (one flag)</span></div>
+        <pre><code>echo 'VANTA_LORA_AUTO=1' &gt;&gt; vanta-ts/.env   # first run downloads a small base model</code></pre>
+        <div class="note">opt-in only because the first train downloads a base model (default <span class="inline">Qwen/Qwen2.5-0.5B</span>, override via <span class="inline">VANTA_LORA_BASE_MODEL</span>).</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Or check / trigger manually anytime</span></div>
+        <pre><code>vanta tune auto     # trains if ready, else tells you how many pairs are left</code></pre></li>
+    </ol>
+  </div>
+
+  <h2>⑤ chicago — native desktop control, built in</h2>
+  <div class="card real">
+    <div class="chead"><span class="cname">chicago</span><span class="cstate s-real">✓ native · 1 setup cmd</span></div>
+    <div class="cdesc">Vanta sees your screen + clicks/types on it via its own <span class="inline">vision_action</span> (screencapture → ground → cliclick). No external program — it's part of the build now.</div>
+    <ol class="steps">
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">One setup command</span></div>
+        <pre><code>vanta control        # opens Screen Recording + Accessibility panes
+brew install cliclick # the mouse/keyboard helper (vanta control tells you if missing)</code></pre>
+        <div class="note">then <code>vanta control doctor</code> confirms readiness. The kernel still gates every action.</div></li>
+      <li><div class="step-h"><span class="who you">YOU</span><span class="step-t">Optional power-up: an external computer-use MCP</span></div>
+        <pre><code>echo 'VANTA_CHICAGO_MCP=&lt;server&gt;' &gt;&gt; vanta-ts/.env   # only if you want a richer driver</code></pre>
+        <div class="note">the native path above is enough; this just routes clicks through a dedicated MCP server instead.</div></li>
+    </ol>
+  </div>
+
+  <footer>
+    Recap: both <span class="who done">DONE</span> code wires are landed + pushed (slack app→composer, live-verified · voice_input trigger). Everything remaining is a <span class="who you">YOU</span> runtime input above. tmux + terminal-capture + slack #-completion + voice_input all work right now.
+  </footer>
+</div>
+</body>
+</html>
