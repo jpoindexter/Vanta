@@ -12303,13 +12303,14 @@
       "id": "TUI-COMPOSER-TYPEAHEAD",
       "track": "Operator",
       "title": "TUI composer: fish-shell-style history typeahead (ghost text)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "As the user types in the composer, show the most likely completion from input history as dim ghost text (same pattern as fish shell and zsh-autosuggestions). Right-arrow or End accepts the full suggestion; any other key ignores it. Match against the full history array already maintained by the composer (up/down history exists; typeahead reuses the same data). Ghost text should render after the cursor in a muted colour from the theme (e.g. dim white) and disappear as soon as the typed prefix no longer matches. Only surface a suggestion when the prefix matches the beginning of a recent entry — no fuzzy matching on the first pass. Impl site: vanta-ts/src/ui/composer.tsx + the history hook.",
       "done": "Typing a prefix in the composer shows a dim ghost-text completion from history; right-arrow or End accepts it; mismatches clear the ghost immediately; no suggestion shown on empty input.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-16"
+      "updated": "2026-06-21",
+      "notes": "Pure ghostSuggestion(input,history) (remainder of the MOST-RECENT control-stripped history entry that startsWith input; input empty/no match/input===full entry -> ; case-sensitive) + acceptGhost (input + ghost, else unchanged) + ghostVisible. SECURITY FIX: the ghost is CONTROL-STRIPPED via bash-io stripToLine (ANSI+C0/C1+DEL) — the gap the existing historyTypeahead had (it rendered un-stripped history into the live terminal); asserted with ESC/OSC-title/BEL/NUL/SGR fixtures (ghost never contains an ESC). stripToLine newly EXPORTED from bash-io (additive). Built+tested; wire = composer.tsx replaces composer-keys historyTypeahead with ghostSuggestion(buffer,history) rendered dim after the cursor + Right/End/Ctrl+F -> acceptGhost (named). Empty/no-match = no ghost."
     },
     {
       "id": "CODE-INTEL-CODEGRAPH-TOOLS",

@@ -31,7 +31,7 @@ const ANSI_RE = /\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)?|[@-Z\
 const CONTROL_RE = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g;
 
 /** Strip ANSI escapes + all control chars, collapsing to a single safe line. */
-function stripToLine(text: string): string {
+export function stripToLine(text: string): string {
   return text.replace(ANSI_RE, "").replace(/[\r\n\t]+/g, " ").replace(CONTROL_RE, "").trim();
 }
 
