@@ -36,6 +36,7 @@ import { runOrgCommand } from "./cli/org-cmd.js";
 import { runUpdateCommand } from "./cli/update.js";
 import { runAgentsCommand } from "./cli/agents-cmd.js";
 import { runGoalsCommand } from "./cli/goals-cmd.js";
+import { runCompanyCommand } from "./cli/company-cmd.js";
 import {
   usage,
   usageExit,
@@ -148,6 +149,7 @@ const COMMANDS: Record<string, CommandFn> = {
   agents: (root, rest) => runAgentsCommand(root, rest),
   hire: (root, rest) => runHireCommand(root, rest),
   dept: (root, rest) => runDeptCommand(root, rest),
+  company: (root, rest) => runCompanyCommand(root, rest),
   library: (root, rest) => runLibraryCommand(root, rest),
   okr: (_root, rest) => runOkrCommand(rest),
   exchange: (_root, rest) => runExchangeCommand(rest),
