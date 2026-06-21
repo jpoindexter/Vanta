@@ -151,6 +151,7 @@ describe("registry", () => {
       "twitter_read",
       "vision_action",
       "vision_watch",
+      "voice_input",
       "watch_video",
       "web_fetch",
       "web_search",
