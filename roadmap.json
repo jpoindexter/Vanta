@@ -3692,7 +3692,7 @@
       "id": "VANTA-BASH-IO-MSGS",
       "track": "Operator",
       "title": "Distinct bash input/output message types",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent renders bash calls as two distinct message types: UserBashInputMessage (the command, with syntax highlighting) and UserBashOutputMessage (the result, scrollable). Vanta shows shell tool results as plain text inside a generic tool result block.",
       "done": "Bash commands render with a $ prompt and syntax highlighting; output renders in a distinct scrollable block with a line count; long outputs show a truncation hint with expand option.",
@@ -3700,7 +3700,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure isBashTool (shell_cmd/run_code) + formatBashInput ($ <cmd>, ANSI+control stripped to one line, truncate 240) + formatBashOutput (ANSI/control stripped but newlines KEPT, CRLF normalized, bound 40 lines/4000 chars) + bashIoMessages (bash -> {input,output}, non-bash -> null). SECURITY: command+output cant inject escapes (title-injection safe) while keeping legible newlines. Built+tested; transcript wire = ToolCallView renders the $ input line + dim/indented output block for a bash tool instead of the merged ⏺/⎿ pair (named). Non-bash = today."
     },
     {
       "id": "VANTA-MEMORY-MGMT-UI",
