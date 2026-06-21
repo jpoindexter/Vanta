@@ -3901,7 +3901,7 @@
       "id": "VANTA-WAIT-MCP",
       "track": "Extensibility",
       "title": "WaitForMcpServers tool — block until MCP connections are ready",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent exposes WaitForMcpServers so an agent can block at session start until all pending MCP server connections resolve, instead of racing or silently missing tools. Vanta currently has no readiness barrier for MCP mounts.",
       "done": "`wait_for_mcp_servers` blocks until all configured MCP servers are connected (or timeout), then returns a per-server status map.",
@@ -3909,7 +3909,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable allReady (required subset or all non-disabled == connected; reuses McpServerStatus; no servers -> true) + waitForMcpReady (injected getStatuses/sleep/now, polls until allReady or timeout 30s; ready-on-first-poll waitedMs:0; a getStatuses throw -> not-ready snapshot {statuses,failed} so a failed read is NEVER treated as ready; returns {ready,waitedMs,statuses,timedOut}) + formatWaitResult (✓ N ready in 1.2s / ⚠ timed out — laggards). Built+tested; wire = a wait_for_mcp_servers tool / run host injects live getStatuses + real sleep/now (named, not registered)."
     },
     {
       "id": "VANTA-RELOAD-PLUGINS",
