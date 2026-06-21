@@ -88,13 +88,15 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "slack", label: "Slack", implemented: false,
-    requiredEnv: ["VANTA_SLACK_BOT_TOKEN", "VANTA_SLACK_APP_TOKEN"], secretEnv: "VANTA_SLACK_BOT_TOKEN",
+    id: "slack", label: "Slack", implemented: true,
+    requiredEnv: ["VANTA_SLACK_BOT_TOKEN"], secretEnv: "VANTA_SLACK_BOT_TOKEN",
     signupUrl: "https://api.slack.com/apps",
     setupSteps: [
-      "Create a Slack app at api.slack.com/apps; enable Socket Mode.",
+      "Create a Slack app at api.slack.com/apps.",
       "Add bot scopes (chat:write, app_mentions:read, im:history) and install to your workspace.",
-      "Set VANTA_SLACK_BOT_TOKEN (xoxb-…) and VANTA_SLACK_APP_TOKEN (xapp-…).",
+      "Set VANTA_SLACK_BOT_TOKEN (xoxb-…).",
+      "Enable Event Subscriptions and point the request URL at your gateway's webhook so inbound messages reach Vanta.",
+      "Optionally set VANTA_SLACK_ALLOWLIST to a comma list of channel ids to accept.",
     ],
   },
   {
