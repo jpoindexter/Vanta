@@ -3658,7 +3658,7 @@
       "id": "VANTA-MSG-PLAN-APPROVAL",
       "track": "Operator",
       "title": "Plan approval message — rendered plan + approve/reject in transcript",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent renders plan-mode plans inline in the transcript with a dashed box border + plan file path reference + approve/reject controls. The approval response also appears as a message. Vanta's plan mode (VANTA-PLAN-MODE-REAL next) needs this visual layer to be complete.",
       "done": "Plan-mode plans render in a boxed 'planMode' border with markdown content; approve/reject updates the transcript with a response message; plan file path shows dimmed.",
@@ -3666,7 +3666,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure parsePlanSteps (numbered/bulleted markers, tolerant line fallback dropping scaffold, control-stripped) + formatPlanApproval (▸ Plan (N steps) + numbered + [a]pprove · [e]dit · [r]eject) + resolvePlanDecision (a/enter->approve, e->edit, r/escape->reject, null else; data-driven) + isPlanMessage (PLAN_MARKER from plan-mode OR >=2 steps). Non-plan = plain. Built+tested; render = transcript plan Entry kind + key handler -> /planmode approve (named)."
     },
     {
       "id": "VANTA-MSG-SELECTOR",
