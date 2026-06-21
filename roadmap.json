@@ -4046,7 +4046,7 @@
       "id": "VANTA-MCP-OFFICIAL-REGISTRY",
       "track": "Extensibility",
       "title": "Official MCP registry — prefetch Anthropic's server registry for trust lookups",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent fire-and-forget prefetches the official Anthropic MCP registry at startup. This populates a URL set used to identify whether a connected MCP server is 'official' (from Anthropic's registry) vs. third-party. Used to show trust indicators in the MCP connection UI and to gate certain behaviors on official servers.",
       "done": "MCP connection list shows an 'official' badge for servers from `api.anthropic.com/mcp-registry`. Trust lookup is instant (in-memory Set after prefetch).",
@@ -4055,7 +4055,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable parseRegistry (tolerant [entry]|{servers:[]}, zod-validated, [] on garbage, bad rows dropped) + lookupServer (name case-insensitive then command/package substring, null) + serverTrustSignal (official=canonical source | known | unknown) + fetchOfficialRegistry (cache-first, injected fetchJson, failure -> cached/[] never throws). SIGNAL NOT AUTH — being in the registry only adds a display label; resolveMcpTrust (operator confirm) + kernel assess() still gate. Built+tested; wire = mount mountOneServer before resolveMcpTrust passes the signal to the trust dialog badge (named). Live fetch = boundary."
     },
     {
       "id": "VANTA-PLUGIN-RECOMMEND",
