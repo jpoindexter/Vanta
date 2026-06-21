@@ -2557,7 +2557,7 @@
       "id": "ORGANIZE-CODE-TOOL",
       "track": "Harness",
       "title": "Organize-code tool — agent-callable file decomposition",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Steal rocket.new '/Organize Code': an agent-callable refactor tool that splits an oversized file into cohesive modules, operationalizing the size gate (lint/size.ts, file<=300/fn<=50) as an ACTION the agent can take, not just a warn-only lint. Behavior-preserving extraction, test-gated. (Exactly the app.tsx decomposition done by hand 2026-06-10.)",
       "done": "The agent can call organize_code on a file over the size limit and get back a behavior-preserving multi-file split that passes the existing tests.",
@@ -2566,7 +2566,8 @@
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-10"
+      "updated": "2026-06-21",
+      "notes": "Pure ExtractSuggestion{symbolName,kind,lineCount,targetModule} + analyzeDecomposition (REUSES analyzeSource/LIMITS as the single size source; walks sf.statements via TS compiler API for top-level exported fn/class/const/interface/type/enum + line spans; overGate from the file violation) + planDecomposition (greedy largest-first extract until remaining <= LIMITS.file; co-located target names <basename>-<group>.ts; [] when not over gate) + formatOrganizePlan (Extract N decls to get <file> under <limit> + per-decl bullets + the export * re-export reminder + This is a plan only — no files changed). PLAN ONLY — read-only analysis, NO file write; the extraction is a named kernel-gated operator/agent edit. Built+tested; wire = an organize_code tool (describeForSafety read-only -> Allow) returns formatOrganizePlan as a PROPOSAL, agent then does kernel-gated write_file edits (named). Under gate = []."
     },
     {
       "id": "VANTA-SWARM-PERM-ROUTING",
