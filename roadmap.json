@@ -1120,7 +1120,7 @@
       "id": "VANTA-AGENT-SNAPSHOT",
       "track": "Operator",
       "title": "Agent memory snapshot — update dialog after custom agent sessions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `AGENT_MEMORY_SNAPSHOT`) shows a `launchSnapshotUpdateDialog` after sessions using custom agents with `pendingSnapshotUpdate`. Lets the user review and approve memory updates the agent learned during the session before they're persisted to the agent definition.",
       "done": "After a custom agent session ends with new memory, a dialog asks to confirm the learned facts. Approved facts update the agent's memory file.",
@@ -1129,7 +1129,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure AgentSnapshot{agentName,additions[],priorCount} + buildAgentSnapshot (distill <=3 durable notes from {summary,keyFacts?}, summary first; dedupe vs priorMemory case-insensitive so an existing note isnt re-added + intra-session dups collapse; control-strip + 200-char cap; empty/all-dup -> additions:[]) + snapshotDiff ({added,unchanged} for the confirm dialog) + hasSnapshot + applySnapshot (prior + additions appended, returns TEXT no disk write, idempotent on re-apply). Mirrors brain/learn distiller. SECURITY: session notes are agent output -> control-stripped; write OPERATOR-CONFIRMED not silent. Built+tested; wire = spawn runWorker custom-agent SubagentStop buildAgentSnapshot -> if !hasSnapshot stop else snapshotDiff confirm dialog -> on confirm write applySnapshot to the agents memory file (named, disk write = boundary). Nothing learned = no snapshot."
     },
     {
       "id": "VANTA-MESSAGE-ACTIONS",
