@@ -4013,7 +4013,7 @@
       "id": "VANTA-SKILL-USAGE-RANK",
       "track": "Extensibility",
       "title": "Skill usage tracking — 7-day half-life ranking by usage count + recency",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Records usageCount and lastUsedAt per skill invocation (debounced 60s to avoid write spam). Persisted in globalConfig. Ranking uses a 7-day half-life decay. Skills used more recently and more often rank higher in the skill picker and @-completions.",
       "done": "Frequently-used skills appear first in completions; recently-used skills surface above rarely-used ones; usage decays over time (7-day half-life).",
@@ -4022,7 +4022,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure decayWeight (0.5**(age/halfLife), 7-day half-life: age0->1, 7d->0.5, 14d->0.25, neg age->1) + usageScore (summed decayed weight per skill) + rankSkillsByUsage (score desc, alpha tie-break, no-usage skills trail alphabetical, no-usage-anywhere -> existing alphabetical) + topUsedSkills(n=5). Recent-heavy beats old-heavy at equal counts. nowMs injected. Built+tested; wire = skills/select.ts orders the SkillIndexEntry[] via rankSkillsByUsage before prompt skillsTier (named). No usage = stable order."
     },
     {
       "id": "VANTA-SKILL-CONDITIONAL-ACTIVATE",
