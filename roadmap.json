@@ -1531,7 +1531,7 @@
       "id": "VANTA-FROM-PR",
       "track": "Harness",
       "title": "--from-pr — resume sessions linked to a specific pull request",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `--from-pr <url|number>` resumes all sessions previously associated with a given PR, enabling continuity across review cycles. Vanta's session resume is by session ID only; no PR linking.",
       "done": "`--from-pr <url|number>` loads the session(s) previously tagged with that PR; `vanta sessions list --pr <n>` shows PR-linked sessions; sessions auto-tag when `vanta pr-comments` runs.",
@@ -1539,7 +1539,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-21",
+      "notes": "Pure/injectable parsePrArg (bare 12/#42/ 7 or PR URL via reused parsePrUrl + prNumberFromUrl /pull/<n>; null on empty/non-numeric/negative/zero/issue-URL) + matchSessionsToBranch (sorts matches by updated desc itself, case/ws-normalized, [] on no-match) + resolveSessionForPr (injected getPrBranch+listSessions; newest matching id | null; getPrBranch null/empty/throw -> null without listing, never throws) + formatNoSessionForPr. MATCH KEY: SessionMeta has NO branch/cwd field -> matched PR head branch against session TITLE via injectable sessionBranch accessor (default s.title); did NOT add a field (out of scope); recording a real branch named as follow-up (swap default to s.branch??s.title). Built+tested; wire = cli --from-pr -> parsePrArg -> resolveSessionForPr (getPrBranch = gh pr view headRefName) -> resume id or start fresh (named, live gh = boundary)."
     },
     {
       "id": "VANTA-SESSION-CLEANUP",
