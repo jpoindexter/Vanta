@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { visionActionTool, runVisionActionTool, formatVisionActionResult } from "./vision-action.js";
-import { parseGroundResponse, parseChangedResponse, clickArgs, collectShots } from "./vision-action-run.js";
+import { parseGroundResponse, parseChangedResponse, clickArgs, collectShots, chicagoActuator, buildLiveDeps } from "./vision-action-run.js";
 import type { ToolContext } from "./types.js";
 import type { VisionActionDeps, VisionActionResult } from "../vision-action/loop.js";
+import { CHICAGO_ENV } from "../mcp/chicago-route.js";
+import { makeChicagoRouter, type CallMcp } from "../mcp/chicago-client.js";
+import type { LLMProvider } from "../providers/interface.js";
 
 function ctx(approve = true): ToolContext {
   return { root: "/tmp", safety: {} as ToolContext["safety"], requestApproval: vi.fn(async () => approve) };
@@ -87,6 +90,64 @@ describe("runVisionActionTool", () => {
     const r = await runVisionActionTool({ target: "Login" }, ctx(), deps);
     expect(r.ok).toBe(false);
     expect(r.output).toMatch(/vision_action failed: cliclick not found/);
+  });
+});
+
+describe("chicagoActuator — CHICAGO MCP routing seam (default-off)", () => {
+  const callMcp: CallMcp = async () => ({ content: [{ type: "text", text: "ok" }] });
+
+  it("is null when VANTA_CHICAGO_MCP is unset (local path stays byte-identical)", () => {
+    expect(chicagoActuator({}, callMcp)).toBeNull();
+  });
+
+  it("is null when enabled but no callMcp seam is supplied", () => {
+    expect(chicagoActuator({ [CHICAGO_ENV]: "chicago" }, undefined)).toBeNull();
+  });
+
+  it("returns a router bound to the configured server when enabled + seam present", () => {
+    const router = chicagoActuator({ [CHICAGO_ENV]: "chicago" }, callMcp);
+    expect(router?.server).toBe("chicago");
+  });
+});
+
+describe("buildLiveDeps — actuation routes through CHICAGO when a router is supplied", () => {
+  // A provider whose vision replies ground a target and report a change.
+  const provider = {
+    complete: vi.fn(async (msgs: Array<{ content: string }>) =>
+      msgs[0]?.content?.includes("just before and just after")
+        ? { text: "CHANGED" }
+        : { text: '{"found":true,"x":42,"y":58,"label":"target"}' },
+    ),
+  } as unknown as LLMProvider;
+
+  it("routes the click through the mounted computer tool (not cliclick) when a router is set", async () => {
+    const calls: Array<[string, Record<string, unknown>]> = [];
+    const router = makeChicagoRouter({
+      callMcp: async (tool, args) => {
+        calls.push([tool, args]);
+        return { content: [{ type: "text", text: "clicked" }] };
+      },
+    });
+    const deps = buildLiveDeps(provider, router);
+    // Exercise just the actuator with a grounded target — no screencapture/cliclick.
+    await deps.act({ found: true, x: 42, y: 58 });
+    expect(calls).toEqual([["computer", { action: "left_click", coordinate: [42, 58] }]]);
+  });
+
+  it("a routed-click failure throws a clean error (the loop turns it into a failure)", async () => {
+    const router = makeChicagoRouter({
+      callMcp: async () => {
+        throw new Error("server down");
+      },
+    });
+    const deps = buildLiveDeps(provider, router);
+    await expect(deps.act({ found: true, x: 1, y: 2 })).rejects.toThrow(/CHICAGO MCP click failed.*server down/);
+  });
+
+  it("with no router (default), act needs coordinates and would use the local driver", async () => {
+    const deps = buildLiveDeps(provider, null);
+    // Missing coordinates → the local-driver guard fires (byte-identical to before).
+    await expect(deps.act({ found: true })).rejects.toThrow(/no coordinates/);
   });
 });
 
