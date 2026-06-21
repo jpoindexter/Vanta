@@ -30,6 +30,7 @@ import { recordSent, nodeReplyFs, type ReplyStoreDeps } from "./reply-store.js";
 import { drainLoopWakes } from "../loop/wake.js";
 import { withCaffeinate, resolveCaffeinate } from "../power/caffeinate.js";
 import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
+import { maybeAutoTune } from "../meta-tune/auto-tune.js";
 import type { WakeContext } from "../loop/types.js";
 import { loadDef } from "../loop/store.js";
 
@@ -121,6 +122,9 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   // Liveness watchdog: surface silently-stalled loops within this tick.
   const watch = await runWatchdog(deps.dataDir, now, resolveWatchdogConfig(process.env)).catch(() => null);
   if (watch && watch.surfaced > 0) log(`watchdog: surfaced ${watch.surfaced} stalled loop(s)`);
+  // PERSONAL-MODEL-TUNE: auto-train a LoRA when enough preference data accrued
+  // (no-op unless VANTA_LORA_AUTO=1; best-effort, never breaks the tick).
+  await maybeAutoTune(deps.dataDir, log);
   return queuedWakes + results.length + factoryEntries.length + loopsFired;
 }
 

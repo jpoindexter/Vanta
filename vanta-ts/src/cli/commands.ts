@@ -168,7 +168,12 @@ export async function runInstruction(
   }
 }
 
-export async function runVoiceCommand(repoRoot: string): Promise<void> {
+export async function runVoiceCommand(repoRoot: string, rest: string[] = []): Promise<void> {
+  if (rest[0] === "mic") {
+    const { openPrivacyPane } = await import("../platform/macos-prefs.js");
+    console.log(openPrivacyPane("microphone").message);
+    return;
+  }
   const setup = await prepareRun(repoRoot, "voice session");
   const { runVoiceLoop } = await import("../voice/loop.js");
   await runVoiceLoop({
