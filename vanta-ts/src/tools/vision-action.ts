@@ -3,6 +3,9 @@ import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { runVisionAction, type VisionActionDeps, type VisionActionResult } from "../vision-action/loop.js";
 import { resolveVisionProvider } from "../routing/vision.js";
 import { buildLiveDeps, cleanupShots } from "./vision-action-run.js";
+import { connectChicago, type ChicagoRouter } from "../mcp/chicago-client.js";
+import { resolveChicagoConnect } from "../mcp/chicago-connect.js";
+import { chicagoEnabled } from "../mcp/chicago-route.js";
 
 const Args = z.object({
   target: z.string().min(1),
@@ -29,7 +32,16 @@ export async function runVisionActionTool(raw: unknown, ctx: ToolContext, deps?:
   let live = deps;
   if (!live) {
     try {
-      live = buildLiveDeps(resolveVisionProvider(process.env));
+      // CHICAGO routing (default-off): only when VANTA_CHICAGO_MCP names a
+      // configured computer-use MCP server do we connect it and route the click
+      // through its mounted `computer` tool instead of the local cliclick driver.
+      // A failed connect yields a fail-closed router (never throws). Unset env →
+      // router stays null → the local path is byte-identical. The click was
+      // already kernel-gated above (MCP is the WHERE, the kernel is the WHETHER).
+      const router: ChicagoRouter | null = chicagoEnabled(process.env)
+        ? await connectChicago(process.env, resolveChicagoConnect(process.env))
+        : null;
+      live = buildLiveDeps(resolveVisionProvider(process.env), router);
     } catch (err) {
       return { ok: false, output: `vision_action needs a vision model: ${(err as Error).message}` };
     }

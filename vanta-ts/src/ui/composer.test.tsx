@@ -1,8 +1,9 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderUi, tick, waitUntil } from "./test-render.js";
+import { renderUi, tick, waitUntil, waitForFrame } from "./test-render.js";
 import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal } from "./composer.js";
 import { matchSlash } from "./slash.js";
+import type { SlackChannel } from "../repl/slack-suggest.js";
 
 describe("countLines — pure helper", () => {
   it("returns 0 for empty string", () => expect(countLines("")).toBe(0));
@@ -169,6 +170,68 @@ describe("ComposerView vi-mode tag", () => {
     const frame = inst.lastFrame() ?? "";
     expect(frame).not.toContain("NOR");
     expect(frame).not.toContain("INS");
+    inst.unmount();
+  });
+});
+
+describe("ComposerView — #channel palette", () => {
+  it("renders the channel suggestions when channelMatches is set", async () => {
+    const inst = renderUi(baseView({ channelMatches: ["#general", "#genie"], value: "#gen", cursor: 4 }));
+    await waitForFrame(inst, "#general");
+    expect(inst.lastFrame()).toContain("#genie");
+    inst.unmount();
+  });
+
+  it("renders no channel palette when channelMatches is empty", async () => {
+    const inst = renderUi(baseView({ channelMatches: [], value: "hello", cursor: 5 }));
+    await tick();
+    expect(inst.lastFrame()).not.toContain("#general");
+    inst.unmount();
+  });
+});
+
+const SLACK_CHANNELS: SlackChannel[] = [
+  { id: "C1", name: "general", isMember: true },
+  { id: "C2", name: "genie", isMember: false },
+];
+
+describe("Composer #channel completion (live wire)", () => {
+  it("surfaces channel suggestions while typing a #-fragment", async () => {
+    const inst = renderUi(h(Composer, {
+      focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [], channels: SLACK_CHANNELS,
+    }));
+    await tick();
+    inst.input("#gen");
+    // "general" (member, prefix) ranks first; the palette shows the #-label.
+    await waitForFrame(inst, "#general");
+    expect(inst.lastFrame()).toContain("#genie");
+    inst.unmount();
+  });
+
+  it("Tab completes the #-fragment to the top-ranked channel", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, {
+      focused: true, onSubmit, placeholder: "Ask", files: [], history: [], channels: SLACK_CHANNELS,
+    }));
+    await tick();
+    inst.input("#gen");
+    await waitForFrame(inst, "#general");
+    inst.input("\t"); // Tab → complete to the selected (top) channel
+    await waitForFrame(inst, "general");
+    inst.input("\r"); // submit
+    await waitUntil(() => onSubmit.mock.calls.length > 0);
+    expect(onSubmit).toHaveBeenCalledWith("#general");
+    inst.unmount();
+  });
+
+  it("opens no channel palette without a #-fragment", async () => {
+    const inst = renderUi(h(Composer, {
+      focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [], channels: SLACK_CHANNELS,
+    }));
+    await tick();
+    inst.input("hello");
+    await waitForFrame(inst, "hello");
+    expect(inst.lastFrame()).not.toContain("#general");
     inst.unmount();
   });
 });

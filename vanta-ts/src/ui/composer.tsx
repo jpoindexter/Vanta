@@ -1,7 +1,8 @@
 import { useRef, useState, type ReactElement } from "react";
 import { useInput, usePaste } from "ink";
 import { matchSlash, completeSlash, isPartialSlash, type SlashMatch } from "./slash.js";
-import { activeAtRef, matchAtFiles, completeAtRef } from "./at.js";
+import { activeAtRef, matchAtFiles, completeAtRef, slackCompletionFor, channelSuggestionLabels, completeChannelRef } from "./at.js";
+import type { SlackChannel } from "../repl/slack-suggest.js";
 import { readlineEdit, navigateHistory, historyTypeahead, type Key, type Edit, type HistState } from "./composer-keys.js";
 import { useVim } from "./use-vim.js";
 import { execSync } from "node:child_process";
@@ -34,6 +35,7 @@ export function Composer(props: {
   history: string[];
   onPaste?: () => void;
   skills?: SlashMatch[];
+  channels?: SlackChannel[];
   focused?: boolean;
   vim?: boolean;
 }): ReactElement {
@@ -44,7 +46,7 @@ export function Composer(props: {
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
   const { pill, clearPill } = usePastePill(value);
-  const { slashMatches, atMatches, activeLen } = useComposerPalettes(value, props.files, props.skills);
+  const { slashMatches, atMatches, channelMatches, activeLen } = useComposerPalettes({ value, cursor, files: props.files, channels: props.channels, skills: props.skills });
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
   const ghost = activeLen === 0 && histRef.current.histIdx === -1 && cursor === value.length ? historyTypeahead(props.history, value) : "";
 
@@ -56,7 +58,7 @@ export function Composer(props: {
     setBuf("", 0); histRef.current = EMPTY_HIST; clearPill(); vimHandle.reset();
     if (text) props.onSubmit(text);
   };
-  const completeNow = (): void => setBuf(slashMatches.length ? completeSlash(value, slashMatches, selClamped) : completeAtRef(value, atMatches, selClamped), value.length);
+  const completeNow = (): void => { const next = completeBuffer({ value, cursor, slashMatches, channelMatches, atMatches, sel: selClamped }); setBuf(next, next.length); };
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
@@ -74,14 +76,28 @@ export function Composer(props: {
     handleGhostOrEdit({ input, key, ghost, value, cursor, killRing: killRef.current, setBuf, applyEdit });
   }, { isActive: focused });
 
-  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
 }
 
-function useComposerPalettes(value: string, files: string[], skills?: SlashMatch[]): { slashMatches: SlashMatch[]; atMatches: string[]; activeLen: number } {
-  const slashMatches = matchSlash(value, skills ?? []);
-  const atPartial = slashMatches.length === 0 ? activeAtRef(value) : null;
-  const atMatches = atPartial !== null ? matchAtFiles(files, atPartial) : [];
-  return { slashMatches, atMatches, activeLen: slashMatches.length || atMatches.length };
+type PaletteInput = { value: string; cursor: number; files: string[]; channels?: SlackChannel[]; skills?: SlashMatch[] };
+
+function useComposerPalettes(o: PaletteInput): { slashMatches: SlashMatch[]; atMatches: string[]; channelMatches: SlackChannel[]; activeLen: number } {
+  const slashMatches = matchSlash(o.value, o.skills ?? []);
+  // `#channel` and `@file` are mutually exclusive: a `#`-token under the cursor opens
+  // the channel palette; otherwise we fall to the file palette (slash always wins both).
+  const channelMatches = slashMatches.length === 0 ? slackCompletionFor(o.value, o.cursor, o.channels ?? []) : [];
+  const atPartial = slashMatches.length === 0 && channelMatches.length === 0 ? activeAtRef(o.value) : null;
+  const atMatches = atPartial !== null ? matchAtFiles(o.files, atPartial) : [];
+  return { slashMatches, atMatches, channelMatches, activeLen: slashMatches.length || channelMatches.length || atMatches.length };
+}
+
+type CompleteInput = { value: string; cursor: number; slashMatches: SlashMatch[]; channelMatches: SlackChannel[]; atMatches: string[]; sel: number };
+
+/** The buffer after Tab-completing the active palette (slash > #channel > @file). */
+function completeBuffer(o: CompleteInput): string {
+  if (o.slashMatches.length) return completeSlash(o.value, o.slashMatches, o.sel);
+  if (o.channelMatches.length) return completeChannelRef(o.value, o.cursor, o.channelMatches, o.sel);
+  return completeAtRef(o.value, o.atMatches, o.sel);
 }
 
 /**

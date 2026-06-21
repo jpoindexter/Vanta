@@ -4,6 +4,7 @@ import { focusIndicator } from "./focus.js";
 import { FOCUS } from "../term/palette.js";
 import { SlashPalette } from "./slash-palette.js";
 import { AtPalette } from "./at-palette.js";
+import { ChannelPalette } from "./channel-palette.js";
 import { matchSlash } from "./slash.js";
 import { useBlink } from "./use-blink.js";
 
@@ -14,6 +15,7 @@ import { useBlink } from "./use-blink.js";
 export function ComposerView(props: {
   slashMatches: ReturnType<typeof matchSlash>;
   atMatches: string[];
+  channelMatches?: string[];
   sel: number;
   focused?: boolean;
   value: string;
@@ -31,6 +33,7 @@ export function ComposerView(props: {
     <Box flexDirection="column">
       <SlashPalette matches={props.slashMatches} sel={props.sel} />
       <AtPalette files={props.atMatches} sel={props.sel} />
+      <ChannelPalette channels={props.channelMatches ?? []} sel={props.sel} />
       <Box borderStyle="round" borderColor={props.focused === false ? "gray" : "white"} paddingX={1}>
         <VimTag mode={props.vimMode} />
         <Text color={FOCUS}>{focusIndicator(props.focused !== false)}</Text><Text>{" "}</Text>
