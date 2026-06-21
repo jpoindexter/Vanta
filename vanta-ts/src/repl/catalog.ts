@@ -66,6 +66,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "permissions", arg: "[allow|ask|deny <tool> [pattern] | remove <n>]", desc: "tighten-only tool permission rules (~/.vanta/permissions.tsv)" },
   { name: "less-permission-prompts", desc: "scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only)" },
   { name: "reload-plugins", desc: "re-scan enabled plugins and load any added this session — reports newly available vs already loaded" },
+  { name: "reload-skills", desc: "re-scan skill directories and pick up any added this session — reports added vs already-indexed vs removed" },
   { name: "preferences", arg: "export", desc: "export operator preference signals (~/.vanta/preferences.jsonl)" },
   { name: "usage", desc: "token usage + context fill for this session" },
   { name: "stats", desc: "aggregate usage — sessions, turns, tool calls, tokens/cost (TUI)" },
