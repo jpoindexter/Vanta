@@ -6,7 +6,16 @@ sidebar_position: 2
 
 # Changelog
 
-Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json` (488 shipped of 856). See the [Roadmap](./roadmap.md) for what's ahead.
+Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json` (888 shipped of 1036). See the [Roadmap](./roadmap.md) for what's ahead.
+
+## Voice, desktop & on-device tuning
+- **Voice input** — hold-to-talk speech-to-text, transcribed locally on your machine.
+- **Native desktop control** — Vanta can see the screen and click/type/scroll to drive native apps, in addition to the browser.
+- **Terminal capture** — read a live terminal pane into context.
+- **Slack channel autocomplete** — type `#` in the composer to pick a channel.
+- **Parallel swarm** — fan independent tasks across a live multi-pane terminal session, one worker per pane.
+- **Personal tuning** — train a small on-device adapter from the choices you've accepted and rejected, so Vanta drifts toward your preferences.
+- **Self-serve setup** — the setup wizard turns these on and walks you through the one-time OS permissions.
 
 ## Docs & polish
 - Full documentation site (this site) — diagrams, complete tool + command reference generated from source, use cases, guides, FAQ.
@@ -19,7 +28,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 
 ## Interface
 - **Terminal UI rebuild** on real Ink — inline render + committed scrollback, markdown, diffs, approvals menu, cockpit, ⌘-style overlays; mission-control shell (`VANTA_TUI=v2`); desktop renderer.
-- Slash-command surface grew to **97 commands**; per-turn tool scoping over **86 tools**.
+- Slash-command surface grew to **125 commands**; per-turn tool scoping over **119 tools**.
 
 ## Selfhood & knowledge
 - **Brain** — one cohesive memory unit (markdown regions + structured, decaying entries) with recall guardrails.

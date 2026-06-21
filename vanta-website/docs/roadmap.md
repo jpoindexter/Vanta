@@ -37,11 +37,11 @@ flowchart TB
 
 ```mermaid
 pie showData
-  title 944 slices by status
-  "Shipped" : 560
-  "Next" : 276
-  "Horizon" : 104
-  "Parked" : 4
+  title 1036 slices by status
+  "Shipped" : 888
+  "Next" : 27
+  "Horizon" : 87
+  "Parked" : 34
 ```
 
 A slice is *shipped* only when its done-criterion holds — tests green, behavior verified.
@@ -58,11 +58,11 @@ Work is organized under five strategy pillars, in priority order (earlier ones a
 
 | Pillar | Slices |
 |--------|-------:|
-| Harness | 444 |
-| Operator | 417 |
-| Extensibility | 55 |
-| Solutioning | 10 |
-| Cofounder engine | 18 |
+| Harness | 465 |
+| Operator | 456 |
+| Extensibility | 67 |
+| Solutioning | 12 |
+| Cofounder engine | 36 |
 
 ## How statuses move
 

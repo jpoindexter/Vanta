@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Tools
 
-Vanta ships **84 built-in tools** (86 registered, including the factory-built `mount_mcp` and `tool_search`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
+Vanta ships **119 built-in tools** (122 registered, including the factory-built `mount_mcp`, `tool_search`, and `mcp_auth`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
 
 ## By category
 

@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Command reference
 
-Every slash command, generated from the command catalog — **103 commands**. Type any of these in an interactive session; `/help` prints the live list.
+Every slash command, generated from the command catalog — **125 commands**. Type any of these in an interactive session; `/help` prints the live list.
 
 ## Session & history
 
@@ -111,7 +111,7 @@ Every slash command, generated from the command catalog — **103 commands**. Ty
 | `/edit` | edit the last AI response in your editor ($VANTA_EDITOR/code) |
 | `/diff` | show uncommitted changes (working tree + staged) |
 | `/changes` | review changed files — per-file keep/undo (TUI) |
-| `/search` | search conversation history for a term |
+| `/search` | full-text search this session's transcript — ranked matches + highlighted snippets |
 | `/image` | attach an image for your next message |
 | `/paste` | attach an image from the clipboard (macOS) |
 | `/attachments` | show or clear pending image attachments |
@@ -157,12 +157,34 @@ Every slash command, generated from the command catalog — **103 commands**. Ty
 | Command | Description |
 |---|---|
 | `/agents` | background task panel — agent/shell/remote tasks, status, stop/respawn (TUI) |
+| `/bgtasks` | background shell tasks — list status, stop one by id |
 | `/btw` | ask a quick side question — not added to conversation history |
+| `/cd` | change the session working directory for shell_cmd (no arg prints it) |
+| `/describe` | generate a short LLM description of a file or directory |
+| `/env` | session-scoped env vars injected into shell_cmd/run_code child processes |
+| `/explain` | capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes |
+| `/init-verifiers` | detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work |
+| `/learnings` | per-project learnings index — relevant insights, stale/conflicting flagged |
+| `/less-permission-prompts` | scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only) |
+| `/loop` | schedule a recurring task from a natural-language interval (e.g. every 2 hours &lt;task&gt;, daily, every monday) |
 | `/nd` | executive-function support gates — view/toggle/tune the ND gate set |
+| `/outreach` | authorized brand workspace — pending drafts + the proof ledger (draft-only, approval-gated) |
+| `/peers` | live Vanta peer sessions on this machine (UDS) — id, title, pid for cross-session collab |
+| `/planv2` | plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10) |
+| `/proactive` | proactive-autonomy mode (KAIROS) — whether idle ticking is enabled, the throttle, and would-it-tick-now (read-only) |
+| `/record` | record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings |
 | `/recover` | classify trouble — targeted bug, polluted context, or wrong assumption |
+| `/reload-plugins` | re-scan enabled plugins and load any added this session — reports newly available vs already loaded |
+| `/reload-skills` | re-scan skill directories and pick up any added this session — reports added vs already-indexed vs removed |
 | `/run` | launch and drive this project's app |
 | `/sandbox` | sandbox settings — config, dependencies, doctor, per-tool overrides (TUI) |
+| `/security-review` | security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF) |
+| `/skillify` | distill this session into a draft SKILL.md (write_skill saves it — not auto-written) |
 | `/stats` | aggregate usage — sessions, turns, tool calls, tokens/cost (TUI) |
 | `/status` | kernel, provider, keys, store health |
+| `/stop` | graceful soft-stop — finish the current tool call, then end the turn with a summary |
+| `/terminal-setup` | print the steps to bind Shift+Enter → newline for your detected terminal (iTerm2/Apple Terminal/VS Code/WezTerm) |
+| `/tickets` | issue board — first-class tickets grouped by status, with goal/parent links + inbox state |
 | `/vim` | toggle vi-mode in the composer (normal/insert: hjkl, w/b, dd, yy, p, i/a/o) |
+| `/wftasks` | workflow run task list — compose_workflow runs + their running/done/failed status |
 
