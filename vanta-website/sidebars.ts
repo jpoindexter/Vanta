@@ -69,7 +69,6 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'faq',
-    'roadmap',
     'changelog',
   ],
 };
