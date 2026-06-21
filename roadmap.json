@@ -3920,7 +3920,7 @@
       "id": "VANTA-RELOAD-PLUGINS",
       "track": "Extensibility",
       "title": "/reload-plugins — activate plugins installed during the current session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `/reload-plugins` activates any plugins installed since session start without requiring a restart. If you `vanta plugin install` during a session, the new plugin isn't active until `/reload-plugins` or restart. Vanta has no in-session plugin reload.",
       "done": "`/reload-plugins` re-scans the plugin directory, loads any newly installed plugins, and prints a diff of what was added; existing plugins are not re-initialized.",
@@ -3928,7 +3928,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "notes": "WIRED /reload-plugins: pure planPluginReload (enabled-but-not-loaded -> toLoad, intersection -> alreadyLoaded; dedupe, stable) + formatReloadResult (↻ N new — loaded / no new plugins) + runReloadPlugins (injectable). Handler reads settings.plugins.enabled fresh + pluginCommands.loadedPlugins() (new read-only accessor), and on a non-empty toLoad calls loadEnabledPlugins for the subset — each plugin tool stays kernel-gated (describeForSafety) exactly as a startup load. Registered in catalog+handlers (170). v0 limit: loaded set derived from registered commands (injectable, tightenable)."
     },
     {
       "id": "VANTA-PLUGIN-HINTS",

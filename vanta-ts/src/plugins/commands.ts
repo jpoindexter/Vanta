@@ -34,4 +34,9 @@ export class PluginCommandRegistry {
   list(): PluginCommandMeta[] {
     return [...this.commands.values()].map(({ name, arg, desc }) => ({ name, arg, desc }));
   }
+
+  /** Distinct plugin names with at least one command registered (for /reload-plugins). */
+  loadedPlugins(): string[] {
+    return [...new Set([...this.commands.values()].map((c) => c.pluginName))];
+  }
 }
