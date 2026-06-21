@@ -69,6 +69,7 @@ import { runProactiveCommand } from "./cli/proactive-cmd.js";
 import { runWatchdogCommand } from "./cli/watchdog-cmd.js";
 import { runAutoResearchCommand } from "./cli/auto-research-cmd.js";
 import { runMetaTuneCommand } from "./cli/meta-tune-cmd.js";
+import { runTuneCommand } from "./cli/tune-cmd.js";
 import {
   findRepoRoot, loadEnv, startInteractive,
   resumeIdFrom, hasForkSession, parseRunArgs, parseStartupFlags,
@@ -175,6 +176,7 @@ const COMMANDS: Record<string, CommandFn> = {
   "auto-mode": (root, rest) => runAutoModeCommand(root, rest),
   "auto-research": (root, rest) => runAutoResearchCommand(root, rest),
   "meta-tune": (root, rest) => runMetaTuneCommand(root, rest),
+  tune: (root, rest) => runTuneCommand(root, rest),
 };
 
 async function main(): Promise<void> {
