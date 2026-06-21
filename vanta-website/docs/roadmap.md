@@ -51,11 +51,11 @@ Past beta: serverless presence, wake word, ambient companion apps, a visual canv
 
 ```mermaid
 pie showData
-  title 1051 slices by status
+  title 1053 slices by status
   "Shipped" : 888
   "Next" : 9
-  "Horizon" : 120
-  "Parked" : 34
+  "Horizon" : 136
+  "Parked" : 20
 ```
 
 A slice is *shipped* only when its done-criterion holds — tests green, behavior verified.
