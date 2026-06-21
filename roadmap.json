@@ -12141,13 +12141,14 @@
       "id": "ND-WORKING-MEMORY-RAIL",
       "track": "Operator",
       "title": "ND: always-on working-memory rail (goal + step + remaining)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "`wm` exists as a command; make it an always-on rail that surfaces the active task context (goal + current step + remaining steps) and RE-ANCHORS after context compaction — the single highest-value ND support (working-memory load is the core deficit). See .",
       "done": "A compact working-memory anchor is visible during long sessions and re-printed after compaction without being asked.",
       "tier": "pebble",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-06-20",
+      "notes": "Pure WorkingMemory{goal?,currentStep?,remaining[]} + buildWorkingMemoryRail (◇ goal · ▸ step · +N more; each free-text part clipped to partWidth 48 + ellipsis; full-ANSI/C0/C1/DEL stripped since text untrusted; empty -> \"\") + railVisible (content AND not VANTA_WM_RAIL=0) + railSegments ({label,text}[] present parts) + hasWorkingMemory predicate. ND working-memory aid as a persistent rail. Built+tested; wire = app-regions Footer replaces the lone ◇ goal line with buildWorkingMemoryRail from active goal (getGoals) + todo/next state, gated by railVisible (named). Empty = hidden."
     },
     {
       "id": "ND-PROFILE",
