@@ -3364,7 +3364,7 @@
       "id": "VANTA-AUTO-ISSUE",
       "track": "Operator",
       "title": "Auto-run /issue — proactive GitHub issue creation with ESC cancellation window",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When another agent detects conditions that warrant filing a GitHub issue (bug, unexpected behavior), it shows an `AutoRunIssueNotification` banner proposing to auto-run `/issue`. The user has a brief window to press ESC to cancel; otherwise the issue command runs automatically. The banner shows the reason for the proposed issue.",
       "done": "After a crash or repeated error, a banner appears: 'Running /issue: unexpected tool failure [ESC to cancel]'. On ESC timeout, `/issue` runs and opens a draft in the browser.",
@@ -3373,7 +3373,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure IssueDraft{title,body,labels} + buildIssueDraft (concise title from summary; body = Summary/Error-signal/Recent-tools/Git-state sections, control-stripped + capped 120/4000) + autoIssueEnabled (VANTA_AUTO_ISSUE=1, default OFF) + CancelWindowState{remainingMs,cancelled,fired} + tickCancelWindow (counts down, fires at 0 UNLESS cancelled, terminal once fired/cancelled never resurrects) + cancelWindow (ESC) + buildGhIssueArgs (issue create --title --body --label ARGV, each value a discrete item even injection-shaped x; rm -rf /). SECURITY: outward-facing -> off by default, ESC-cancellable, never silent; title/body control-stripped; argv NOT shell-interpolated. Built+tested; wire = error-detect recurring signal (>=3) -> buildIssueDraft -> gate autoIssueEnabled -> ESC countdown -> on fired&&!cancelled spawn gh issue create kernel-gated (named, gh exec = boundary). Default off = nothing."
     },
     {
       "id": "VANTA-PROMPT-EDITOR",
