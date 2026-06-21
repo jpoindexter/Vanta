@@ -29,3 +29,18 @@ if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
     fi
   fi
 fi
+
+# ARCH-BOUNDARY-PRECOMMIT — run the architectural fitness check (the 5 port/adapter
+# boundaries in src/arch/boundaries.ts) when TS is staged, so a cross-boundary import
+# can't slip in. Hard-blocks by default; set VANTA_BOUNDARY_BLOCK=0 for warn-only.
+# Whole-repo check (fast); skips cleanly when no TS is staged or tsx is absent.
+if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
+  if ! (cd vanta-ts && node_modules/.bin/tsx src/arch/cli.ts); then
+    if [ "${VANTA_BOUNDARY_BLOCK:-1}" = "0" ]; then
+      echo "⚠  architectural boundary violation above (warn-only; VANTA_BOUNDARY_BLOCK=0)."
+    else
+      echo "✗  architectural boundary violation blocks this commit. Fix it, or set VANTA_BOUNDARY_BLOCK=0 to warn-only."
+      exit 1
+    fi
+  fi
+fi
