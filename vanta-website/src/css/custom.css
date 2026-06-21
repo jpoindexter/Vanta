@@ -239,6 +239,9 @@ code { border-radius: 0.4rem; }
   padding: 1.25rem 1rem;
   background: var(--vanta-card-bg);
 }
+/* Let horizontal diagrams breathe to the full content width instead of mermaid's
+   narrow default cap — keeps multi-node LR timelines readable. */
+.docusaurus-mermaid-container svg { max-width: 100%; height: auto; }
 
 /* ---------- Landing hero: Vanta gradient ---------- */
 .heroBanner_src-pages-index-module,

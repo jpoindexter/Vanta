@@ -8,34 +8,36 @@ sidebar_position: 1
 
 Vanta ships as an ordered backlog of small, verified slices (tracked in `roadmap.json`). This is the product-level view: where it's been, what's in flight, and what's ahead.
 
-## Now · Next · Later
-
-| **Now** (in build) | **Next** (queued) | **Later** (horizon) |
-|--------------------|-------------------|----------------------|
-| User-facing, configurable executive-function gate engine | Terminal-UI depth — vim-mode composer, richer status line, multi-agent progress visibility | Isolated git-worktree workspaces for parallel agents |
-| | Automation depth — richer hook types & event coverage | Multi-agent plan execution |
-| | Mission-control shell rails (state · safety · working-memory · telemetry) | Swarm backends & peer-agent discovery |
-| | Preference / "want" engine — learn and apply operator preferences | Deeper session-memory compaction into durable files |
-| | Solutioning depth — stronger what-to-build recommendations | Template/pattern injection for common task shapes |
-
-## Milestone timeline
+## The journey
 
 ```mermaid
-flowchart TB
-  F["<b>Foundations</b> — shipped<br/>Rust safety kernel · agent loop"]
-  V0["<b>v0 — all the parts</b> — shipped<br/>files & code · web · browser & vision · comms<br/>skills & memory · cron · subagents · operator modes"]
-  V1["<b>v1 — feels like an operator</b> — shipped<br/>any model + setup wizard · age-gated resume · fork · handoff<br/>self-improvement · gateway (service · messaging · webhooks)"]
-  SM["<b>Selfhood & MCP</b> — shipped<br/>brain (regions + structured entries · guardrails)<br/>MCP mount · serve · runtime mount"]
-  OR["<b>Operator & runtime</b> — shipped<br/>operator systems · real Ink terminal UI · mission-control<br/>executive-function gates · ports-and-adapters standard"]
-  NOW["<b>Now</b> — open beta push<br/>install-anywhere · live-proof the core task paths<br/>multi-channel reach (Telegram · WhatsApp · Signal · Discord · Slack) · images & voice in every channel"]
-  NEXT["<b>Next</b><br/>serverless presence (hibernate + wake-on-message) · zero-context tool pipelines<br/>dialectic user modeling · preference engine"]
-  LATER["<b>Later</b><br/>multi-agent fan-out depth · org-chart · budgets and governance · maximizer mode"]
-  F --> V0 --> V1 --> SM --> OR --> NOW --> NEXT --> LATER
+flowchart LR
+  F["<b>Foundations</b><br/>kernel · loop"]
+  SHIP["<b>Shipped</b><br/>operator · selfhood"]
+  NOW["<b>Now</b><br/>open beta"]:::active
+  NEXT["<b>Next</b><br/>presence · reach"]
+  LATER["<b>Later</b><br/>company · ecosystem"]
+  F --> SHIP --> NOW --> NEXT --> LATER
+  classDef active fill:#6bdcff,stroke:#0b86a3,color:#06222b;
 ```
 
-## Path to open beta
+## What's shipped today
 
-The current build sequence is ordered to reach a **launchable open beta** — a stranger installs Vanta and it runs as a real operator. Everything else is sequenced behind it.
+Vanta already runs as a real operator — the foundations and **180+ major capabilities** are live (full history in the [changelog](./changelog.md)):
+
+- **Enforced safety kernel** — a separate Rust process gates every action (allow / ask / block) with a tamper-evident audit log.
+- **The agent loop** — 119 tools, a three-tier prompt, and any model (OpenAI · Ollama · Anthropic · Gemini · OpenRouter), local or frontier.
+- **Real terminal UI + desktop app** — inline rendering, diagrams, an approvals menu, a mission-control shell.
+- **Brain & memory** — decaying structured memory, skills it writes from its own experience, and a learning loop.
+- **Sees, hears, acts** — web search, browser automation, vision, voice-to-text, native desktop control, terminal capture.
+- **Operator systems** — world model, money, opportunity radar, background teams, life-wide search, self-repair.
+- **Reaches out** — Gmail / Calendar / Drive and Telegram, every outbound action approval-gated.
+- **Runs unattended** — cron, a gateway service, webhooks, sub-agents, and parallel worktree / tmux fleets.
+- **Extensible** — MCP (both directions), a plugin framework + marketplace, and an ACP server.
+
+## Now — the open beta
+
+The build sequence is ordered to reach a **launchable open beta** — a stranger installs Vanta and it runs as a real operator. These are the rocks in build order; everything else is sequenced behind them.
 
 1. **Frictionless install** — one command, on any machine, no manual setup.
 2. **Robust on local & budget models** — repair fumbled tool calls instead of failing the turn.
@@ -45,7 +47,22 @@ The current build sequence is ordered to reach a **launchable open beta** — a 
 6. **Proven live on a clean machine** — the core operator tasks verified end-to-end, not just in tests.
 7. **Safe by default** — network egress is allow/deny controlled, on top of the kernel.
 
-Past beta: serverless presence, wake word, ambient companion apps, a visual canvas, proactive outreach, and deeper personalization.
+## Next — right after beta
+
+Once the beta is solid, these rocks make Vanta feel less like a tool and more like an operator that's always there:
+
+- **Serverless presence** — runs on a cloud VM that hibernates when idle and wakes on a message, so you can talk to it from your phone while it works — for almost nothing between sessions.
+- **Voice wake + ambient presence** — hands-free "Hey Vanta," plus a menu-bar and a mobile companion so it's always within reach.
+- **A visual canvas** — a surface Vanta draws and builds on (charts, previews, live artifacts), not just text.
+- **Proactive outreach** — it messages *you* first: briefings, alerts, "you should look at this," finished-task pings.
+- **Deeper personalization** — a model of how you work that sharpens across every session.
+
+## Later — the horizon
+
+- **A company of sub-agents** for one owner — org chart, budgets, and governance, all kernel-gated.
+- **A public API + SDK** so others can build on Vanta.
+- **Wider reach** — more channels, mobile, and native Windows.
+- **Training-grade personalization** learned from your own usage.
 
 ## Status mix
 
