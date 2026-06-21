@@ -4263,7 +4263,7 @@
       "id": "VANTA-DXT",
       "track": "Extensibility",
       "title": ".dxt extension packages — single-file MCP server installer",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "`.dxt` file format (from `@anthropic-ai/mcpb`) packages an MCP server manifest + assets into a single installable file. `claude install <path>.dxt` validates the manifest and configures the MCP server. Enables one-click MCP server installation from file or URL.",
       "done": "Installing a .dxt file validates the manifest, mounts the MCP server in settings, and makes its tools available in the next session; invalid manifests are rejected with field-level errors.",
@@ -4272,7 +4272,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable parseDxtManifest (zod name+server.command; non-object/missing-command/garbage -> {error} never throws) + dxtToMcpServerEntry ({command,args,env,cwd:installDir} = mount ServerSchema shape) + buildDxtInstallPlan ({installDir under extensionsDir/<sanitized name>, serverName, mcpEntry, steps}). SECURITY: sanitizeDxtName (slug, ../../evil->evil, traversal rejected) so installDir cant escape; install != trust — the installed server STILL goes through resolveMcpTrust + kernel assess on mount. Built+tested; install point = vanta mcp install <file.dxt> unzips into installDir + writes mcpEntry to .mcp.json (named boundary, mirrors desktop-import). Malformed = error no install."
     },
     {
       "id": "VANTA-PLUGIN-MARKETPLACE",
