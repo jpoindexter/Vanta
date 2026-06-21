@@ -12809,17 +12809,18 @@
       "id": "COMPRESSION-EVAL-RUNNER",
       "track": "Harness",
       "title": "vanta eval compress <dim> — repeatable control/treatment CNG measurement",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Replace manual env-toggle eyeballing with a first-class, repeatable runner: vanta eval compress <dimension> runs the corpus TWICE (control vs treatment, frozen per the existing eval isolation) and reports pass@1, output tokens, and CNG (winnow compressionCng) side-by-side, recording a baseline. Dimensions: skill-distilled (VANTA_SKILL_DISTILLED), skill-subset (VANTA_SKILL_SUBSET), prune (VANTA_PRUNE). This is the solid, recorded validation, not a toggle.",
       "done": "vanta eval compress <dim> runs both arms, prints pass@1/tokens/CNG, writes a recorded result; pure aggregation tested; control/treatment isolated; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "SKILL-EVAL-CORPUS"
-      ]
+      ],
+      "notes": "Pure/injectable CompressEvalCase{id,text,question,expectedAnswer,dim json|log|text|winnow-prune} + buildControlTreatment (control=original, treatment=injected compress(text), tokensSavedRatio=(ctrl-treat)/ctrl clamped [0,1] so grow/no-op->0; tokens via estTokens) + computeCNG(tokensSavedRatio,qualityRetained) = saved×quality − penalty (penalty=1.5×saved×max(0,0.5−quality)): high-saved+high-quality -> high (0.5,1.0->0.5); high-saved+LOW-quality -> NEGATIVE (0.5,0.1->-0.25); zero-saved -> 0 regardless + runCompressEvalCase (judges the answer FROM the TREATMENT text via injected judge) + aggregateCompressEval ({meanCNG,meanTokensSaved,meanQuality,harmful: ids where cng<0}) + formatCompressEvalReport. HARMFUL COMPRESSION CAUGHT: a compressor stripping the answer-bearing line -> judge 0 quality from treatment -> cng<0 -> in harmful (tested good vs harmful). REPEATABLE: no Math.random/Date.now (same case+deps -> identical, asserted). Distinct from src/eval/compress-cng.ts (live pass@1) — this is per-fixture quality-judge CNG. Built+tested; wire = vanta eval compress <dim> loads fixtures + injects compressContent + an LLM judge -> runCompressEvalCase -> formatCompressEvalReport + .vanta artifact (named, mirrors mem-eval)."
     },
     {
       "id": "PRUNE-CONTEXT-WIRE",
