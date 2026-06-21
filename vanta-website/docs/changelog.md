@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Changelog
 
-Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json` (888 shipped of 1051). See the [Roadmap](./roadmap.md) for what's ahead.
+Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json` (888 shipped of 1053). See the [Roadmap](./roadmap.md) for what's ahead.
 
 ## Voice, desktop & on-device tuning
 - **Voice input** — hold-to-talk speech-to-text, transcribed locally on your machine.
