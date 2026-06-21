@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
-import { formatCompanyTick, handleCompanyTick, type CompanyDeps } from "./company-cmd.js";
+import {
+  formatCompanyTick,
+  handleCompanyTick,
+  buildCompanyTickDeps,
+  type CompanyDeps,
+  type CompanyTickSources,
+} from "./company-cmd.js";
+import { runCompanyTick } from "../cofounder/cadence.js";
 import type { CadenceDepartment, CadenceTask, CompanyTickResult, DispatchOutcome } from "../cofounder/cadence.js";
+import type { Department } from "../cofounder/department.js";
+import type { WorkerTask } from "../team/tasks.js";
+import type { Budget } from "../budget/types.js";
+import type { Goal } from "../types.js";
 
 // `vanta company tick` surface — `handleCompanyTick` is pure over injected cadence
 // deps + a log sink; `formatCompanyTick` is a pure renderer. No real I/O.
@@ -86,5 +97,117 @@ describe("formatCompanyTick", () => {
     expect(out).toContain("· product · skipped — no remaining budget");
     expect(out).toContain("· ops · skipped — no queued task");
     expect(out).toContain("· sales · skipped — dispatch failed: worker busy");
+  });
+});
+
+describe("buildCompanyTickDeps (live wire)", () => {
+  const NOW = new Date("2026-06-20T12:00:00.000Z");
+
+  function dept(over: Partial<Department> = {}): Department {
+    return {
+      id: "growth",
+      name: "Growth",
+      workerIds: ["w-1"],
+      budgetScope: "dept:growth",
+      goalIds: [1],
+      skillIds: [],
+      createdAt: "2026-06-20T00:00:00.000Z",
+      updatedAt: "2026-06-20T00:00:00.000Z",
+      ...over,
+    };
+  }
+
+  function task(over: Partial<WorkerTask>): WorkerTask {
+    return {
+      kind: "task",
+      id: "t-1",
+      workerId: "w-1",
+      title: "ship",
+      status: "assigned",
+      created: "2026-06-20T01:00:00.000Z",
+      updated: "2026-06-20T01:00:00.000Z",
+      ...over,
+    };
+  }
+
+  const budget: Budget = {
+    scope: "dept:growth",
+    limitUsd: 100,
+    warnFraction: 0.8,
+    spentUsd: 0,
+    status: "active",
+    updatedAt: "2026-06-20T00:00:00.000Z",
+  };
+
+  function sources(over: Partial<CompanyTickSources> = {}): { src: CompanyTickSources; dispatched: string[] } {
+    const dispatched: string[] = [];
+    const src: CompanyTickSources = {
+      listDepartments: async () => [dept()],
+      getGoals: async (): Promise<Goal[]> => [{ id: 1, text: "grow", status: "active" }],
+      getBudget: async () => budget,
+      readTasks: async () => [task({ id: "t-1" })],
+      dispatch: async (id) => {
+        dispatched.push(id);
+        return { ok: true };
+      },
+      now: () => NOW,
+      ...over,
+    };
+    return { src, dispatched };
+  }
+
+  it("feeds real departments/goals/budget/task into the pure runner and dispatches one task", async () => {
+    const { src, dispatched } = sources();
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+
+    expect(result.dispatched).toBe(1);
+    expect(result.beats[0]).toMatchObject({ departmentId: "growth", dispatched: true, taskId: "t-1" });
+    expect(dispatched).toEqual(["t-1"]);
+  });
+
+  it("skips a department whose owned goals are all done (no-open-goals)", async () => {
+    const { src } = sources({ getGoals: async () => [{ id: 1, text: "grow", status: "done" }] });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    expect(result.beats[0]).toMatchObject({ dispatched: false, reason: "no-open-goals" });
+  });
+
+  it("skips when the scope budget is exhausted (no-budget)", async () => {
+    const { src } = sources({ getBudget: async () => ({ ...budget, spentUsd: 100 }) });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    expect(result.beats[0]).toMatchObject({ dispatched: false, reason: "no-budget" });
+  });
+
+  it("treats an unset budget as unbounded (still dispatches)", async () => {
+    const { src } = sources({ getBudget: async () => null });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    expect(result.beats[0]).toMatchObject({ dispatched: true });
+  });
+
+  it("skips when no task is queued (no-task)", async () => {
+    const { src } = sources({ readTasks: async () => [] });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    expect(result.beats[0]).toMatchObject({ dispatched: false, reason: "no-task" });
+  });
+
+  it("degrades to an empty no-op tick when the department source fails (errors-as-values)", async () => {
+    const { src } = sources({
+      listDepartments: async () => {
+        throw new Error("store unreachable");
+      },
+    });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    expect(result.beats).toEqual([]);
+    expect(result.dispatched).toBe(0);
+  });
+
+  it("degrades a per-read failure to a safe skip, not a throw", async () => {
+    const { src } = sources({
+      getGoals: async () => {
+        throw new Error("kernel down");
+      },
+    });
+    const result = await runCompanyTick(buildCompanyTickDeps(src, () => {}));
+    // No goals readable → no-open-goals skip; the tick still completes.
+    expect(result.beats[0]).toMatchObject({ dispatched: false, reason: "no-open-goals" });
   });
 });

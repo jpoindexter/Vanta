@@ -15232,7 +15232,7 @@
       "id": "CADENCE-WIRE",
       "track": "Cofounder engine",
       "title": "Wire `vanta company tick` live deps (departments+goals+budget+dispatch)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "COFOUNDER-CADENCE-LOOP shipped the pure runCompanyTick. Assemble live CompanyDeps in cli/company-cmd: listDepartments=readDepartments, openGoalsFor=kernel goals filtered to dept.goalIds active, remainingBudgetFor=getBudget(dept.budgetScope), nextTaskFor=next open team/tasks WorkerTask for the dept roster, dispatch=team run path. Add the `company` COMMANDS entry. Cron/heartbeat-invocable.",
       "done": "`vanta company tick` advances one real task per eligible department against live departments/goals/budget/tasks and prints the beat summary.",
@@ -15241,8 +15241,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "cofounder-survey-2026-06-20",
+      "notes": "LIVE WIRE: vanta company tick was a NO-OP (the command wasnt even in the cli.ts COMMANDS table + no live-deps builder existed). Now registered (company: runCompanyCommand) + wired with REAL deps via buildCompanyTickDeps(liveCompanySources(root)) into the UNCHANGED pure runCompanyTick: departments = cofounder/department readDepartments (DEPARTMENT-UNIT store ~/.vanta/departments.json); goals = kernel ledger getGoals + openGoalIdsFor (dept-owned still-active); budget = budget/store getBudget(dataDir, dept.budgetScope) -> remainingUsd (null=unbounded); dispatch = team/tasks nextAssignedTask (oldest assigned owned by a dept worker) -> advanceTask assigned->running. SAFE empty-deps fallback at 2 levels: listDepartments failure -> empty company -> clean no-op tick (never throws); each per-dept read .catch-degraded to a safe skip. New pure mappers in cofounder/cadence-deps.ts (injectable, unit-tested: dispatch/no-open-goals/no-budget/unbounded/no-task/dep-load-failure/per-read-failure). KERNEL STILL GATES: the dispatch seam only mutates the non-tool team task ledger; any tool a later worker run invokes still passes assess() unchanged (documented inline). No logic change to the pure tick. I re-verified the FULL suite myself (10205 green, tsc clean). Non-kernel hot-path wire."
     },
     {
       "id": "DELEGATED-AUTHORITY-WIRE",
