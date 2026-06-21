@@ -2781,7 +2781,7 @@
       "id": "VANTA-SPINNER-GLIMMER",
       "track": "Operator",
       "title": "Glimmer / shimmer text animation during processing",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's GlimmerMessage + ShimmerChar render animated shimmer/glimmer effects on status text while the model is generating — gives visual feedback that the agent is alive. Vanta uses a static spinner; no animated text shimmer.",
       "done": "While the model is streaming, status text shimmers character-by-character; `prefersReducedMotion` disables it; the animation is driven by use-animation-frame.",
@@ -2789,7 +2789,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure glimmerEnabled (VANTA_GLIMMER=1, default off) + glimmerBand (Set of bright indices, width-W band sweeping 0..len one/tick, wraps cyclically) + glimmerSegments ({text,bright}[] coalesced runs that concat back to the original exactly) + plainSegments (off path = whole text one non-bright segment, byte-identical). Empty text -> []. Mirrors spinner-stalled/verbs. Built+tested; busy wire = app-regions LiveRegion renders bright runs whiteBright + normal dim when glimmerEnabled, else plainSegments (named). Off = plain."
     },
     {
       "id": "VANTA-MSG-HOOK-PROGRESS",
