@@ -4232,7 +4232,7 @@
       "id": "VANTA-SKILLIFY",
       "track": "Extensibility",
       "title": "/skillify — capture current session as a reusable skill",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Bundled /skillify skill that reads session memory + user messages, then generates a new skill file (frontmatter + prompt) encoding the session's repeatable process. User describes the skill name; the model produces a ready-to-commit skill file.",
       "done": "Running /skillify after a session produces a valid skill .md file with frontmatter and a prompt that recreates the session's workflow; the file is saved to the skills directory.",
@@ -4241,7 +4241,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "WIRED /skillify [name]: pure distillSkillDraft ({name?,firstUserGoal?,toolSequence,keyActions?} -> {name (arg slug / goal slug / unnamed-skill), description (one-line goal), body (## Goal + ## Procedure numbered ordered DISTINCT steps, dedupeConsecutive, control-stripped)}) + buildSkillifyContent (serializeSkill, round-trips through parseSkill). Handler reads goal (firstUserGoal/lastIntent) + tool sequence from ctx.convo.messages, returns the draft preview + a note to use write_skill — NO auto-write/FS. Empty session -> minimal draft + nothing-to-skillify note. Registered (173 lines)."
     },
     {
       "id": "VANTA-MCP-ELICITATION",

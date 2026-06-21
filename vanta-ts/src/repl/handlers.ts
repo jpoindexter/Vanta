@@ -75,6 +75,7 @@ import { stop } from "./stop-cmd.js";
 import { securityReview } from "./security-review-cmd.js";
 import { loopSchedule } from "./loop-schedule-cmd.js";
 import { proactive } from "./proactive-cmd.js";
+import { skillify } from "./skillify-cmd.js";
 import { terminalSetup } from "./terminal-setup-cmd.js";
 
 const help: SlashHandler = (_arg, ctx) => ({ output: slashHelp(ctx.setup.pluginCommands?.list()) });
@@ -154,7 +155,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
-  export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, env, cd, setup: model, status, doctor: status,
+  export: exportConvo, stop, retry, undo, rewind, hooks, skills, skillify, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
