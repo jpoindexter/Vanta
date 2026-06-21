@@ -4030,7 +4030,7 @@
       "id": "VANTA-SKILL-CONDITIONAL-ACTIVATE",
       "track": "Extensibility",
       "title": "Conditional skill activation on file edit — skills auto-load for matched paths",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When FileEditTool writes a file, another agent calls `activateConditionalSkillsForPaths` and `discoverSkillDirsForPaths` to automatically activate any skills that declare a path match for the edited file. Skills can conditionally register themselves when specific files are touched, enabling project-aware tool sets.",
       "done": "Editing a file in a directory with a matching skill definition triggers that skill to activate for subsequent calls in the session.",
@@ -4039,7 +4039,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseActivateGlobs (raw frontmatter activateOn array, tolerant) + matchGlob (self-contained anchored glob: **/ and /** span segments, bare * within a segment, ? one non-/ char, literal exact, case-sensitive; all regex-special escaped = no injection) + pathActivates + skillsForEditedPath ({name,globs}[] -> matched names deduped stable). Absent activateOn = never path-activated. Built+tested; wires = dispatchTool write/read path -> skillsForEditedPath + skills/select unions the matches (named)."
     },
     {
       "id": "VANTA-MCP-OFFICIAL-REGISTRY",
