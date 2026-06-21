@@ -7,6 +7,8 @@ import { IMessageAdapter } from "./imessage.js";
 import { SignalAdapter } from "./signal.js";
 import { WhatsappAdapter, httpTransport as whatsappTransport, parseWhatsappAllowlist } from "./whatsapp.js";
 import { SlackAdapter, httpTransport as slackTransport, parseSlackAllowlist } from "./slack.js";
+import { DiscordAdapter, httpTransport as discordTransport, parseDiscordAllowlist } from "./discord.js";
+import { MultiChannelAdapter } from "./multi-channel.js";
 
 // Messaging adapter factory — the platform analogue of `providers/index.ts`'s
 // `resolveProvider`. Each implemented platform is ONE registration entry below
@@ -112,6 +114,16 @@ const ADAPTERS: Record<string, AdapterEntry> = {
         allow: parseSlackAllowlist(env),
       }),
   },
+  discord: {
+    // Discord: bot token + the channel id the adapter polls/sends in.
+    configured: (env) => has(env, "VANTA_DISCORD_TOKEN") && has(env, "VANTA_DISCORD_CHANNEL"),
+    build: (env) =>
+      new DiscordAdapter({
+        transport: discordTransport(env.VANTA_DISCORD_TOKEN!.trim()),
+        channelId: env.VANTA_DISCORD_CHANNEL!.trim(),
+        allow: parseDiscordAllowlist(env.VANTA_DISCORD_ALLOWLIST),
+      }),
+  },
 };
 
 /** Ids of every platform with a live adapter in this factory (registration order). */
@@ -159,4 +171,27 @@ export function resolveMessagingAdapter(env: NodeJS.ProcessEnv): PlatformAdapter
     }
   }
   return undefined;
+}
+
+/** Build EVERY configured messaging adapter (registration order). MSG-MULTICHANNEL-LIVE. */
+export function resolveMessagingAdapters(env: NodeJS.ProcessEnv): PlatformAdapter[] {
+  const out: PlatformAdapter[] = [];
+  for (const [id, entry] of Object.entries(ADAPTERS)) {
+    if (!entry.configured(env)) continue;
+    const built = createAdapter(id, env);
+    if (!("ok" in built)) out.push(built);
+  }
+  return out;
+}
+
+/**
+ * The live messaging channel for `vanta gateway`: nothing configured → undefined;
+ * one channel → that adapter (un-tagged, back-compat); 2+ → a MultiChannelAdapter
+ * that polls all and routes replies back to the originating channel.
+ */
+export function resolveMessagingChannel(env: NodeJS.ProcessEnv): PlatformAdapter | undefined {
+  const all = resolveMessagingAdapters(env);
+  if (all.length === 0) return undefined;
+  if (all.length === 1) return all[0];
+  return new MultiChannelAdapter(all);
 }
