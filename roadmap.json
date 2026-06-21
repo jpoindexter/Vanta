@@ -3946,7 +3946,7 @@
       "id": "VANTA-SKILL-FILE-ASSETS",
       "track": "Extensibility",
       "title": "Skill companion files — bundled assets extracted to disk on first use",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Skills can declare `files: Record<string, string>` of companion text assets. On first invocation another agent extracts them to a per-skill base directory and prepends a 'Base directory: <dir>' line to the prompt so the model can Read/Grep them on demand.",
       "done": "Skill with declared files extracts them on first run; subsequent runs find them already present; model can reference them by path without knowing the extraction location.",
@@ -3955,7 +3955,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable listSkillAssets (all non-SKILL.md entries, traversal-safe via isSafeAssetName) + planAssetExtraction (assets missing from dest, idempotent skip-if-present) + extractSkillAssets (injected listSrc/listDest/copy, best-effort never throws, returns extracted names). SECURITY: rejects ../nested/absolute/:-bearing names in list AND plan. No companion files -> nothing extracted. Built+tested; wire = library installOne after writing SKILL.md + first-use readSkill/loadBody lazy extract (named)."
     },
     {
       "id": "VANTA-SKILL-ALLOWEDTOOLS",
