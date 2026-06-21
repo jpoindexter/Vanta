@@ -3563,7 +3563,7 @@
       "id": "VANTA-MCP-PROJECT-APPROVE",
       "track": "Operator",
       "title": "MCP project server approval — per-project approval dialog for .mcp.json servers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent auto-shows `MCPServerApprovalDialog` for project-scoped servers listed in `.mcp.json` when they haven't been approved yet. The `handleMcpjsonServerApprovals()` call in setup runs before the session starts, collecting approvals for all pending project servers.",
       "done": "When opening a project with `.mcp.json`, another agent shows approval dialogs for unapproved servers before the session starts. Approvals are persisted per-project.",
@@ -3572,7 +3572,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure/injectable ServerApprovalRecord{serverName,commandHash,approved} + serverCommandHash (djb2 over canonical JSON of {command,args,url}, base-36, no crypto dep) + serverApprovalStatus (approved=record matches name+hash+approved | changed=name matches but hash differs | needs-approval=no record) + recordServerApproval (immutable upsert by name binding the current hash) + serversNeedingApproval (needs-approval OR changed names). RECONCILED: existing resolveMcpTrust (.vanta/trust.json mcp?) is per-project+per-server but keyed on NAME ONLY — no command binding, so a server whose command silently CHANGES after approval is still recalled trusted (bait-and-switch hole). This is the COMMAND-BOUND delta closing it (changed command beats a prior approve AND deny). INVARIANT TESTED: unapproved/changed server ALWAYS in serversNeedingApproval, never auto-mounts; empty records -> all need approval. SECURITY: approval is a mount SIGNAL — kernel assess still gates every tool. Built+tested; wire = mount mountMcpServers per-server checks serverApprovalStatus before mountOneServer, skip/ask on needs-approval|changed (named, complements resolveMcpTrust)."
     },
     {
       "id": "VANTA-SHELL-HISTORY-COMPLETE",
