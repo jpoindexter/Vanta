@@ -3871,7 +3871,7 @@
       "id": "VANTA-COST-TRACKER-DETAIL",
       "track": "Operator",
       "title": "Detailed session cost tracker — per-model usage, cache tokens, tool+API duration, lines changed",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent tracks: total cost USD, per-model token usage, API duration (with/without retries), tool duration, cache creation/read tokens, web search request count, lines added/removed, unknown-model cost flag. All aggregated per-session and per-turn for the cost footer and /stats display.",
       "done": "Session end shows total cost, model breakdown, cache efficiency, API vs tool time split, lines changed; /stats shows all counters; reset on /clear.",
@@ -3880,7 +3880,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable ModelUsage + CostDetail{byModel,linesChanged,toolMs} + emptyCostDetail/addTurnUsage (per-model accumulate: same model sums, different separate; cache/api default 0)/addLinesChanged/addToolMs/modelCostUsd (reuses estimateCostUsd; cache display-only)/formatCostDetail (per-model line + totals; sorted by input desc; unpriced -> ~?; empty -> no usage yet). Never mutates input. Built+tested; wire = turn-loop addTurnUsage with provider usage + dispatchTool lines/toolMs + /usage formatCostDetail beside buildUsageView (named)."
     },
     {
       "id": "VANTA-AGENTIC-SESSION-SEARCH",
