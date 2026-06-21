@@ -11,6 +11,7 @@ import {
   type TaskStatus,
 } from "../team/tasks.js";
 import { doRun } from "./team-run.js";
+import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
 
 const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
 
@@ -85,7 +86,11 @@ async function doAdvance(a: Parsed): Promise<ToolResult> {
   const all = latestTasks(await readTasks());
   const task = all.find((t) => t.id === a.taskId);
   if (!task) return { ok: false, output: `unknown task id "${a.taskId}" — dispatch it first` };
-  const result = advanceTask(task, a.taskStatus as TaskStatus, a.detail);
+  // ENFORCED-OUTCOME-WIRE: on the done transition, hand advanceTask the
+  // work-products probe so a task that DECLARED a required outcome can only
+  // close with a recorded artifact. No contract → the gate ignores the probe.
+  const probe = a.taskStatus === "done" ? await resolveTaskArtifactProbe(a.taskId) : undefined;
+  const result = advanceTask(task, a.taskStatus as TaskStatus, a.detail, probe);
   if (!result.ok) return { ok: false, output: result.error };
   await appendTask(result.value);
   return { ok: true, output: `task ${a.taskId} → ${a.taskStatus}${a.detail ? `: ${a.detail}` : ""}` };

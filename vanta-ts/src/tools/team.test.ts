@@ -3,7 +3,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { teamTool } from "./team.js";
-import { appendTask } from "../team/tasks.js";
+import { appendTask, type WorkerTask } from "../team/tasks.js";
+import { recordWorkProduct, writeWorkProducts } from "../cofounder/work-products.js";
 import type { ToolContext } from "./types.js";
 
 const ctx = {} as unknown as ToolContext; // teamTool reads/writes via process.env.VANTA_HOME
@@ -84,5 +85,51 @@ describe("teamTool", () => {
     const res = await teamTool.execute({ action: "run", taskId: "t-done" }, ctx);
     expect(res.ok).toBe(false);
     expect(res.output).toContain("already done");
+  });
+
+  // ENFORCED-OUTCOME-WIRE — the outcome gate at the live advance-to-done site.
+  describe("advance — outcome gate", () => {
+    async function runningTask(id: string, outcome?: WorkerTask["outcome"]): Promise<void> {
+      const now = new Date().toISOString();
+      await appendTask({ kind: "task", id, workerId: "w1", title: "t", status: "running", created: now, updated: now, outcome });
+    }
+
+    it("DEFAULT-PERMISSIVE: a task with NO required outcome advances to done unchanged", async () => {
+      await runningTask("t-free");
+      const res = await teamTool.execute({ action: "advance", taskId: "t-free", taskStatus: "done", detail: "shipped" }, ctx);
+      expect(res.ok).toBe(true);
+      expect(res.output).toContain("→ done");
+    });
+
+    it("required outcome + NO recorded artifact: advance to done is REFUSED with a reason", async () => {
+      await runningTask("t-gated", { expectedOutput: "document" });
+      const res = await teamTool.execute({ action: "advance", taskId: "t-gated", taskStatus: "done", detail: "claiming done" }, ctx);
+      expect(res.ok).toBe(false);
+      expect(res.output).toMatch(/cannot close/);
+      expect(res.output).toMatch(/document/);
+    });
+
+    it("required outcome + a recorded work-product: advance to done is allowed", async () => {
+      await runningTask("t-evidenced", { expectedOutput: "document" });
+      const made = recordWorkProduct([], {
+        artifact: "the produced spec",
+        sourceTaskId: "t-evidenced",
+        departmentId: "eng",
+        producedBy: "w1",
+      });
+      expect(made.ok).toBe(true);
+      if (!made.ok) return;
+      await writeWorkProducts([made.value], { VANTA_HOME: home } as NodeJS.ProcessEnv);
+      const res = await teamTool.execute({ action: "advance", taskId: "t-evidenced", taskStatus: "done", detail: "shipped" }, ctx);
+      expect(res.ok).toBe(true);
+      expect(res.output).toContain("→ done");
+    });
+
+    it("a gated task can still advance to a NON-done status (gate is done-only)", async () => {
+      await runningTask("t-block", { expectedOutput: "document" });
+      const res = await teamTool.execute({ action: "advance", taskId: "t-block", taskStatus: "blocked", detail: "waiting" }, ctx);
+      expect(res.ok).toBe(true);
+      expect(res.output).toContain("→ blocked");
+    });
   });
 });

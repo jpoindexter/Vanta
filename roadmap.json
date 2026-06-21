@@ -15216,7 +15216,7 @@
       "id": "ENFORCED-OUTCOME-WIRE",
       "track": "Cofounder engine",
       "title": "Wire the outcome gate to the work-products store at the live task-advance site",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "COFOUNDER-ENFORCED-OUTCOME built the pure outcome gate (canCloseTask with an injected hasArtifact predicate) in team/tasks advanceTask, and COFOUNDER-WORK-PRODUCTS built the artifact store. Connect them: at the live `team` tool advance action, pass hasArtifact = (type) => listWorkProducts filtered by this task's sourceTaskId + kind has a match, so a contract-bearing task actually closes once its artifact is recorded (instead of fail-closed).",
       "done": "Recording a work-product of the expected kind for a task lets that task's running->done advance succeed at the live team-tool call site; without it the advance is refused; tested with an injected store.",
@@ -15225,8 +15225,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "cofounder-survey-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "cofounder-survey-2026-06-20",
+      "notes": "LIVE WIRE that also FIXED A LATENT BUG: the pure outcome gate (cofounder/outcome-contract canCloseTask) was already wired into advanceTask via checkOutcomeGate, BUT the live advance sites passed NO hasArtifact predicate -> the default ()=>false would WRONGLY REFUSE any contract-bearing task (never read the store). Fix: inject a work-products-store-backed probe at the 2 live advance-to-done sites (tools/team.ts doAdvance + tools/team-run.ts settle), resolved ONLY when targeting done. Two new helpers bridge gate<->store without changing either: cofounder/outcome-gate.ts (PURE taskProducedArtifact + artifactProbeForTask: a declared outcome satisfied iff the store holds an artifact with sourceTaskId===task.id) + tools/task-outcome-probe.ts (thin adapter resolveTaskArtifactProbe reuses readWorkProducts, read failure -> empty probe never throws). DEFAULT-PERMISSIVE (asserted): no outcome contract -> advances to done unchanged (gate skipped, predicate never consulted; no live path sets outcome today so byte-identical). REQUIRED+UNMET -> refused with reason (errors-as-value, task stays running, never throws). REQUIRED+MET -> allowed. store failure -> permissive. DONE-ONLY (non-done transitions unaffected). KERNEL STILL GATES every tool a tasks work invokes — this is a COMPLETION-EVIDENCE gate NOT a permission gate. fleet.ts sets done directly (not via advanceTask) so left untouched. I re-verified the FULL suite myself (10220 green, tsc clean). Non-kernel hot-path wire."
     },
     {
       "id": "CADENCE-WIRE",
