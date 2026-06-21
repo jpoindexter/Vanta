@@ -3670,7 +3670,7 @@
       "id": "VANTA-MSG-SELECTOR",
       "track": "Operator",
       "title": "Message selector — select and copy transcript messages",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's MessageSelector lets users select individual messages or ranges in the transcript and copy them to the clipboard. Essential for sharing outputs, extracting code, and referencing prior turns. Vanta has no message-level selection.",
       "done": "A key (e.g. Ctrl+Shift+C or configurable) enters selection mode; arrow keys move the cursor, Shift extends the selection; Enter copies selected messages to clipboard; Esc cancels.",
@@ -3678,7 +3678,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable SelectorState{count,cursor,anchor} + openSelector/moveCursor(clamp no-wrap)/toggleAnchor(set then clear)/selectedIndices(cursor alone or inclusive cursor..anchor either direction) + exportSelection ([role] text blocks blank-line-joined, system skipped, content control-stripped) + formatSelector (▸ cursor + ✓ selected). Empty/all-system -> empty export. Built+tested; overlay wire = transcript-select overlay (↑↓ move, v toggle anchor) -> exportSelection -> the pbcopy path /copy uses (named)."
     },
     {
       "id": "VANTA-BASH-IO-MSGS",
