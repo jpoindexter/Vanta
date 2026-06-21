@@ -143,6 +143,7 @@ describe("registry", () => {
       "swarm",
       "taste_critique",
       "team",
+      "terminal_capture",
       "ticket",
       "todo",
       "tool_search",
