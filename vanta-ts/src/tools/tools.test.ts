@@ -132,6 +132,7 @@ describe("registry", () => {
       "rss_read",
       "run_code",
       "run_maximizer",
+      "run_pipeline",
       "screenshot",
       "self_correct",
       "self_repair",

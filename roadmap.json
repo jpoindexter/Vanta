@@ -15341,7 +15341,7 @@
       "id": "RPC-PIPELINE-VERIFY",
       "track": "Harness",
       "title": "Verify + harden SCRIPT-RPC-PIPELINE as first-class zero-context pipelines",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "SCRIPT-RPC-PIPELINE is marked shipped. Confirm it is actually wired and first-class: the agent writes a script that calls tools over RPC and collapses a multi-step pipeline into ONE turn with no per-step model round-trip (Hermes' headline efficiency trick). Measure context/turn savings on a real pipeline; harden + document if there are gaps.",
       "done": "A representative multi-step task (fetch→transform→write across several tools) runs as a single scripted RPC pipeline in one turn, with measured context savings vs the per-tool-call path and a documented worked example.",
@@ -15350,7 +15350,9 @@
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "TOOL-CALL-REPAIR"
-      ]
+      ],
+      "notes": "SCRIPT-RPC-PIPELINE made first-class: tools/run-pipeline.ts run_pipeline factory tool (kernel-gated callTool per step: assess->approval->execute; cannot bypass gate). Only final result returns; intermediate outputs stay in bindings. measureSavings reports tokens kept out of context. Worked fetch->transform->write example in description + test. Registered tools 122->123.",
+      "updated": "2026-06-22"
     },
     {
       "id": "USER-MODEL-DIALECTIC",
