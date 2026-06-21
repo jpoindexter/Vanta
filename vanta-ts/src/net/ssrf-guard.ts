@@ -1,6 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { isBlockedIp } from "./ip-ranges.js";
+import { checkEgressPolicy, parseEgressPolicy, logEgressDenial } from "./egress-policy.js";
 
 // SSRF GUARD — bounds every outbound fetch of an arbitrary/remote URL so the
 // agent can't be steered at cloud metadata (169.254.169.254), the kernel's own
@@ -69,10 +70,18 @@ export async function assertPublicUrl(
   url: string,
   opts: { resolver?: Resolver; env?: NodeJS.ProcessEnv } = {},
 ): Promise<GuardResult> {
-  if (!isGuardEnabled(opts.env ?? process.env)) return { ok: true };
+  const env = opts.env ?? process.env;
   const parsed = parseHost(url);
   if (!parsed.ok) return parsed;
   const { host } = parsed;
+  // NET-EGRESS-POLICY: allow/deny list applies even when the private-IP guard is
+  // opted out — an explicit deny is a hard stop. Denied attempts are logged.
+  const decision = checkEgressPolicy(host, parseEgressPolicy(env));
+  if (!decision.allowed) {
+    void logEgressDenial(host, decision.reason);
+    return blocked(decision.reason);
+  }
+  if (!isGuardEnabled(env)) return { ok: true };
   if (isIP(host)) {
     return isBlockedIp(host)
       ? blocked(`SSRF guard: blocked private/loopback address: ${host}`)
