@@ -6,6 +6,7 @@ import { resolveVantaHome } from "../store/home.js";
 import { EFFORT_LEVELS } from "../types.js";
 import { SshProfileSchema } from "../ssh/config.js";
 import { MemorySettingsSchema } from "./memory-settings.js";
+import { McpAccessSchema } from "./mcp-access.js";
 import { UxSettingsSchema, uxSettingsToEnv } from "./ux-settings.js";
 
 // Layered settings.json (user → project → local).
@@ -129,6 +130,15 @@ export const SettingsSchema = z.object({
    *  memory layer must not capture; `plansDir` is where plan docs live. Unset =
    *  today's behavior (autoMemory off). */
   memory: MemorySettingsSchema.optional(),
+  /** VANTA-SETTINGS-MCP — per-session MCP server access control (resolvers in
+   *  `mcp-access.ts`). An `allow`/`deny` list of server names decides which
+   *  `.mcp.json` servers may mount this session: deny ALWAYS wins over allow, an
+   *  allowlist (when present) restricts to only the listed servers. Unset = all
+   *  configured servers mount (today's behavior). The named mount-filter point is
+   *  `mcp/mount.ts mountMcpServers` (`names = Object.keys(config.servers)`), where
+   *  `filterMountableServers(names, settings.mcp)` would gate the mount loop — NOT
+   *  wired this round. The MCP trust dialog + kernel still gate every mounted tool. */
+  mcp: McpAccessSchema.optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;

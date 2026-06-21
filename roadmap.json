@@ -4196,7 +4196,7 @@
       "id": "VANTA-SETTINGS-MCP",
       "track": "Extensibility",
       "title": "MCP allowlist/denylist settings — per-session server access control",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent settings: allowedMcpServers (allowlist by name/glob), deniedMcpServers (denylist), enableAllProjectMcpServers (auto-approve project-level .mcp.json servers), enabledMcpjsonServers / disabledMcpjsonServers (per-server overrides). Vanta mounts all configured servers without granular per-session control.",
       "done": "allowedMcpServers and deniedMcpServers gate which servers are mounted at session start; enableAllProjectMcpServers auto-approves .mcp.json servers; the per-server overrides take effect without prompts.",
@@ -4204,7 +4204,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-20",
+      "notes": "McpAccessSchema {allow?,deny?} added to settings; pure serverAccessDecision (deny match -> deny even if allowed = deny wins; allowlist present + not listed -> deny; blank allowlist = no allowlist; neither set -> allow all = current behavior) + filterMountableServers (preserves order). Adds an operator gate atop the MCP trust dialog + kernel assess. Mirrors network-deny. Built+tested; mount filter wire = mountMcpServers wraps Object.keys(config.servers) with filterMountableServers(names, settings.mcp) (named). Absent = all mount."
     },
     {
       "id": "VANTA-SETTINGS-SKILL",
