@@ -4134,7 +4134,7 @@
       "id": "VANTA-MCP-ALWAYS-LOAD",
       "track": "Extensibility",
       "title": "MCP `alwaysLoad` option — skip tool-search deferral for trusted servers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.121) adds `alwaysLoad: true` to MCP server config. All tools from that server are loaded immediately at startup instead of waiting for a tool-search lookup. Useful for MCP servers with a small, always-relevant tool set.",
       "done": "A high-frequency MCP server configured with `alwaysLoad: true` has its tools available from message 1, without a ToolSearch call first.",
@@ -4143,7 +4143,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseAlwaysLoadServers (tolerant: servers+mcpServers maps, only literal alwaysLoad:true, [] on garbage, never throws) + isAlwaysLoadTool (prefix-match mcp_<slug(server)>_ mirroring mount.ts toolName slugify; trailing _ blocks foo/foobar overlap; false for deferred/non-mcp) + alwaysLoadToolNames (always-load subset). Always-load = SCHEMA EXPOSURE only — kernel still gates every call. Built+tested; wire = tool-scope scopeToolSchemas unions alwaysLoadToolNames into wanted before the filter (named). Absent/false = deferred as today."
     },
     {
       "id": "VANTA-MCP-RESULT-SIZE",
