@@ -4103,7 +4103,7 @@
       "id": "VANTA-RELOAD-SKILLS-CMD",
       "track": "Extensibility",
       "title": "`/reload-skills` — re-scan skill directories without restarting the session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.152) adds `/reload-skills` to re-scan `~/.claude/skills/` and plugin skill dirs in-session. A `SessionStart` hook can also return `reloadSkills: true` to auto-reload after installing new skills.",
       "done": "After a hook installs a new skill, `/reload-skills` makes it available immediately. No session restart needed.",
@@ -4112,7 +4112,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "WIRED /reload-skills: pure planSkillReload (on-disk-not-indexed=added, indexed-not-on-disk=removed, intersection=unchanged; dedupe, stable) + formatSkillReload (↻ N new · M removed · K unchanged / no skill changes) + runReloadSkills (injected readOnDisk/readIndexed/reindex). Handler reads on-disk via injected listSkills; session-indexed baseline per-session via a WeakMap keyed on ctx.setup; reindex advances the baseline. Mirrors reload-plugins. Registered (172)."
     },
     {
       "id": "VANTA-PLUGIN-BIN-EXEC",
