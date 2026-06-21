@@ -14439,7 +14439,7 @@
       "id": "OP-INSTALL-FASTPATH",
       "track": "Operator",
       "title": "Install fast-path: provisioned -> skip wizard",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Launching re-runs per-concern setup checks. Add a single 'fully provisioned' gate (keys present + provider chosen + kernel built) so run.sh short-circuits straight to launch, distinct from 'kernel built'. Improves launcher idempotence.",
       "done": "On a fully-provisioned install run.sh launches directly without the wizard; an incomplete install still runs setup; gate unit-tested.",
@@ -14448,8 +14448,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Pure/injectable ProvisionState{hasProvider,hasKey,storeReady} + detectProvisionState (hasProvider from VANTA_PROVIDER case-insensitive vs PROVIDER_CATALOG.providerById; hasKey from the entrys envVar set OR a keyless/local entry envVar:null = ollama/lmstudio/claude-code/codex/custom; storeReady from injected deps.storeExists; no fs/provider construction) + isFullyProvisioned (all three) + shouldSkipWizard (isFullyProvisioned UNLESS VANTA_FORCE_SETUP=1) + fastpathReason (skipping setup: provider+key+store ready / running setup: <missing comma-joined>). Local/subscription providers need no key. Partial/ambiguous (no provider/key/store, unknown provider) -> false -> run wizard (SAFE DEFAULT, current behavior). UX convenience ONLY — kernel still gates; a missing key surfaces as a clear provider-call failure later, not a safety hole. Built+tested; wire = startInteractive/ensureConfiguredOrSetup checks shouldSkipWizard(env,{storeExists}) before runFullSetup, skip when true (named)."
     },
     {
       "id": "OP-SETUP-FIELD-VALIDATE",
