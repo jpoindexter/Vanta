@@ -10904,7 +10904,7 @@
       "id": "DESKTOP-UI-TARS-REF",
       "track": "Harness",
       "title": "UI-TARS-desktop — desktop-operator reference",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "docs/research/ui-tars-desktop.md — github.com/bytedance/UI-TARS-desktop (TS, Apache-2.0, ~29k stars): multimodal desktop/browser agent (screenshot perception + keyboard/mouse + local control). Reference for the DESKTOP-* action schema + vision grounding + safety boundary. Inspect before Vanta DESKTOP work; not a dependency.",
       "done": "Reference doc captured; DESKTOP-* cards trace to it.",
@@ -10913,7 +10913,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-14"
+      "updated": "2026-06-21",
+      "notes": "Reference doc docs/research/ui-tars-desktop-ref.md: captures the UI-TARS-desktop perceive->ground->act->verify->recover desktop-operator pattern + maps each stage onto Vantas SHIPPED vision-action loop (vision-action/loop.ts, DESKTOP-VISION-TO-ACTION) + browser_act analogue. Honest scope: PATTERN reference NOT vendored (Vanta doesnt depend on/bundle UI-TARS); marks reference-pattern vs Vanta-implemented; says unsure rather than inventing upstream specifics. Documents Vantas safety delta (kernel-gate-first, fail-safe verdicts ambiguous->SAME never false-succeed, irreversible-action flagging, injected substrate) + the live desktop-driver boundary + a steal-list for future desktop slices. Doc deliverable (no code/tests)."
     },
     {
       "id": "DESKTOP-ACTION-SCHEMA",
