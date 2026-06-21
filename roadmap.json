@@ -3624,7 +3624,7 @@
       "id": "VANTA-CTRL-U-CLEAR-ALL",
       "track": "Operator",
       "title": "`Ctrl+U` clears entire input; `Ctrl+Y` restores — readline kill-buffer update",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.111) changes `Ctrl+U` from 'delete to start of line' to 'clear entire input buffer'. The cleared content goes into the kill ring and can be restored with `Ctrl+Y`. Matches zsh/bash Emacs kill-line behavior.",
       "done": "Pressing `Ctrl+U` on a multiline prompt clears all input. `Ctrl+Y` restores it.",
@@ -3633,7 +3633,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-10"
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable KillYankState{killBuffer} + killWholeLine (^U: clears the WHOLE line + saves the old buffer to killBuffer, cursor->0, regardless of cursor pos — a behavior change from the existing kill-to-start ^U) + yank (^Y: inserts killBuffer at the clamped cursor + advances; empty = no-op). kill->yank round-trips; kill twice replaces; inputs never mutated. Built+tested; wire = composer-keys ^U->killWholeLine + ^Y->yank threading KillYankState (named)."
     },
     {
       "id": "VANTA-SETTINGS-UX",
