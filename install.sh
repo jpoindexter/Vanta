@@ -16,8 +16,21 @@ echo -e "${CYAN}⚓ Vanta install${NC}"
 echo ""
 
 # --- prerequisites ----------------------------------------------------------
-command -v cargo >/dev/null 2>&1 || { echo -e "${RED}✗${NC} Rust not found — https://rustup.rs"; exit 1; }
-command -v node  >/dev/null 2>&1 || { echo -e "${RED}✗${NC} Node.js (22+) not found — https://nodejs.org"; exit 1; }
+# Best-in-class one-command install: if a required tool is missing, offer to
+# install it (Homebrew on macOS) instead of just failing. need <cmd> <brew> <url>.
+need() {
+  command -v "$1" >/dev/null 2>&1 && return 0
+  echo -e "${YELLOW}⚠${NC}  $1 not found."
+  if [ -n "$2" ] && command -v brew >/dev/null 2>&1; then
+    printf "   Install %s with Homebrew now? [Y/n] " "$1"
+    read -r ans </dev/tty 2>/dev/null || ans=n
+    case "$ans" in [Nn]*) ;; *) brew install "$2" && command -v "$1" >/dev/null 2>&1 && return 0 ;; esac
+  fi
+  echo -e "${RED}✗${NC} $1 is required — install it: $3"; exit 1
+}
+need node node "https://nodejs.org"
+need git git "https://git-scm.com/downloads"
+need cargo "" "https://rustup.rs  (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh)"
 
 # --- build kernel + install deps (first run only) ---------------------------
 if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
@@ -125,4 +138,5 @@ echo -e "${GREEN}✓ Done.${NC} Start with:"
 echo "    vanta setup      # pick a model backend (ChatGPT / Claude / Gemini / local)"
 echo "    vanta            # interactive session"
 echo "    vanta doctor     # health check"
+echo "    vanta preflight  # check optional deps for voice / desktop / swarm"
 echo ""
