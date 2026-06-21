@@ -7,6 +7,7 @@ import { codeSearchTool } from "./code-search.js";
 import { codeAffectedTool } from "./code-affected.js";
 import { codeIndexTool } from "./code-index.js";
 import { clarifyTool } from "./clarify.js";
+import { askUserTool } from "./ask-user.js";
 import { roadmapMoveTool } from "./roadmap-move.js";
 import { roadmapAddTool } from "./roadmap-add.js";
 import { webSearchTool } from "./web-search.js";
@@ -138,6 +139,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   codeAffectedTool,
   codeIndexTool,
   clarifyTool,
+  askUserTool,
   configTool,
   configToolTool,
   cookieImportTool,
