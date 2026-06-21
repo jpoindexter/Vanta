@@ -1013,7 +1013,7 @@
       "id": "VANTA-BASH-SHELL-COMPLETION",
       "track": "Operator",
       "title": "Shell tab-completion in bash input — command, variable, and file suggestions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's bash input supports real-time shell tab-completion: typing a partial command shows up to 15 completions from the shell (command names, shell variable names, or file paths). The completion type is inferred from the prefix: `$` = variable, `/`/`~`/`.` = file, otherwise command. A 1-second timeout prevents UI blocking.",
       "done": "Pressing Tab on a partial bash command shows a completion dropdown; results adapt per prefix type (command/file/variable).",
@@ -1022,7 +1022,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure/injectable classifyShellContext (strips leading !, token ending at cursor; $-token -> variable, first token -> command, later -> file; cursor clamped) + completeCommand (PATH execs prefix-match, dedupe, sort, cap 20) + completeVariable ($-prefixed env names) + completeFile (cwd paths, path-complete style, trailing / on dirs) + shellComplete (classify -> route; injected {commands,envNames,files}). SECURITY: suggestions ONLY — completing a name doesnt run/read/trust it; execution still flows through kernel assess via shell_cmd. Built+tested; wire = composer Tab on a shell/! line calls shellComplete with scanPathExecutables (once+cached)/Object.keys(env)/listCwdEntries (named, PATH+fs scan = boundary). No match = []."
     },
     {
       "id": "VANTA-STATS-CMD",
