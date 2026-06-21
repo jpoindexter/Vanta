@@ -3968,7 +3968,7 @@
       "id": "VANTA-SKILL-ALLOWEDTOOLS",
       "track": "Extensibility",
       "title": "allowedTools + disableModelInvocation in skill frontmatter",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Skills can restrict their tool palette via `allowedTools: string[]` in frontmatter. `disableModelInvocation: true` makes a pure-tool skill that executes its tool list without an LLM turn. Pairs with hooks and agent fields to compose complex skill behaviors.",
       "done": "Skills with allowedTools only expose those tools during execution; skills with disableModelInvocation run tool calls without an LLM round-trip; /doctor reports invalid tool names.",
@@ -3977,7 +3977,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseSkillToolPolicy (reads RAW frontmatter not closed SkillMeta; allowedTools array + disableModelInvocation bool/yaml-string; absent/garbage -> unrestricted, empty array = no tools meaningful) + skillAllowedToolNames (present ∩ allowedTools else all, never grants absent, mirrors agentToolFilter) + isModelInvocable (!disableModelInvocation). Kernel still gates. Built+tested; wires = skills/select drops non-invocable from the model index + active-skill tool scope via buildRegistry exclude (named). Neither field = unchanged."
     },
     {
       "id": "VANTA-PLUGIN-LSP",
