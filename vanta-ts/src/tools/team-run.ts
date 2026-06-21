@@ -3,6 +3,7 @@ import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
 import { teammateEnv } from "../team/teammate-model.js";
 import { buildRegistry } from "./index.js";
+import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
 import {
   latestTasks,
   appendTask,
@@ -16,9 +17,17 @@ import {
 
 const WORKER_MAX_ITER = 20;
 
-/** Move a task to a new status from an assumed-current `from`, best-effort. */
+/**
+ * Move a task to a new status from an assumed-current `from`, best-effort.
+ *
+ * ENFORCED-OUTCOME-WIRE: on the done transition, advanceTask is handed the
+ * work-products probe so a task that DECLARED a required outcome closes only
+ * with a recorded artifact. A contract-free task is unaffected — the gate never
+ * consults the probe — so the autonomous run path is unchanged in the common case.
+ */
 export async function settle(task: WorkerTask, from: TaskStatus, to: TaskStatus, detail?: string): Promise<void> {
-  const r = advanceTask({ ...task, status: from }, to, detail);
+  const probe = to === "done" ? await resolveTaskArtifactProbe(task.id) : undefined;
+  const r = advanceTask({ ...task, status: from }, to, detail, probe);
   if (r.ok) await appendTask(r.value);
 }
 
