@@ -3934,7 +3934,7 @@
       "id": "VANTA-PLUGIN-HINTS",
       "track": "Extensibility",
       "title": "Plugin install hints via <claude-code-hint> — stderr-driven plugin prompts",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "CLIs and SDKs emit `<claude-code-hint plugin='slug' />` tags to stderr. another agent intercepts, deduplicates (show-once per plugin ever), and surfaces a one-time notification to install the plugin from the marketplace. Shown/dismissed state recorded in config.",
       "done": "Running a tool that emits a hint tag shows a one-time install prompt; dismissing or installing prevents re-prompt; disabling hint recommendations suppresses all future hints.",
@@ -3943,7 +3943,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parsePluginHints (type==plugin hints from the reused vanta-hints parser, control-stripped, unsafe dropped) + buildPluginSuggestion (💡 suggest + the install command; SAFE_PLUGIN_NAME /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/ so a hostile name with shell metachars/path/substitution CANT become a runnable injection -> null) + pluginHintSuggestions (deduped) + pluginSuggestionsFromText. Never auto-installs. Reuses vanta-hints (claude-code-hint interop alias inherited, not re-declared). Built+tested; dispatch wire = shell-cmd parseVantaHints stderr already parses hints, surface plugin suggestions there (named). FOLLOW-UP: card copy says vanta plugins add but the real CLI is vanta plugin install <path> — reconcile the operator copy when wiring (its a never-executed hint)."
     },
     {
       "id": "VANTA-SKILL-FILE-ASSETS",
