@@ -82,11 +82,6 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          to: '/roadmap',
-          label: 'Roadmap',
-          position: 'left',
-        },
-        {
           href: 'https://github.com/theft-studio/vanta',
           label: 'GitHub',
           position: 'right',
@@ -101,7 +96,6 @@ const config: Config = {
           items: [
             {label: 'Introduction', to: '/'},
             {label: 'Quickstart', to: '/quickstart'},
-            {label: 'Roadmap', to: '/roadmap'},
           ],
         },
         {
