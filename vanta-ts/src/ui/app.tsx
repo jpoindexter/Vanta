@@ -2,6 +2,8 @@ import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactEleme
 import { join } from "node:path";
 import { Box, Static, useApp, useInput } from "ink";
 import { Composer } from "./composer.js";
+import { useSlackChannels } from "./use-slack-channels.js";
+import { type SlackChannel } from "../repl/slack-suggest.js";
 import { TodoPanel } from "./todo-panel.js";
 import { reduce, type Action } from "./reducer.js";
 import { initialState } from "./types.js";
@@ -71,7 +73,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const route = useSubmit({ runSlash, send, openOverlay, busy: state.busy, safety: props.setup.safety, repoRoot: props.repoRoot, dispatch });
   const onSubmit = (text: string): void => { setHistory((h) => [...h, text]); route(text); };
   const tick = useBusyTick(state.busy);
-  const skillMatches = useSkillMatches();
+  const skillMatches = useSkillMatches(); const channels = useSlackChannels();
   useEffect(() => { void listRepoFiles(props.repoRoot).then(setFiles).catch(() => {}); }, [props.repoRoot]);
   useHookLifecycle(props.repoRoot, replStateRef.current.sessionId, props.setup);
   const { mcp, elapsed } = useSessionStatus(props.setup, replStateRef, dispatch);
@@ -95,7 +97,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
             : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
-          <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
+          <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>
     </Box>
@@ -199,6 +201,7 @@ type LiveBodyProps = {
   files: string[];
   history: string[];
   skills: SlashMatch[];
+  channels: SlackChannel[];
   vim: boolean;
   onQuickActivate: (command: string) => void;
   onQuickClose: () => void;
@@ -216,7 +219,7 @@ function LiveBody(p: LiveBodyProps): ReactElement {
       {p.overlay || p.quickOpen ? null : <TodoPanel todos={p.todos} />}
       {p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
-        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} vim={p.vim} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
     </>
   );
 }
@@ -229,6 +232,7 @@ function BottomRegion(props: {
   files: string[];
   history: string[];
   skills: SlashMatch[];
+  channels: SlackChannel[];
   vim: boolean;
   onSubmit: (text: string) => void;
   onPaste: () => void;
@@ -241,7 +245,7 @@ function BottomRegion(props: {
   return (
     <Box flexDirection="column">
       <ModeLine mode={props.mode} />
-      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} onPaste={props.onPaste} vim={props.vim} />
+      <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} channels={props.channels} onPaste={props.onPaste} vim={props.vim} />
     </Box>
   );
 }
@@ -255,6 +259,13 @@ function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSel
   if (overlay.kind === "stats") return <StatsPanel stats={overlay.stats} onClose={onClose} />;
   if (overlay.kind === "loops") return <LoopsPanel loops={overlay.loops} onClose={onClose} />;
   if (overlay.kind === "review") return <ReviewPanel files={overlay.files} cwd={overlay.cwd} onClose={onClose} />;
+  return <OverlayPanelMore overlay={overlay} onClose={onClose} />;
+}
+
+/** The remaining overlay kinds — split from OverlayPanel so each stays under the
+ * complexity gate (append-only; one branch per overlay kind). */
+function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }): ReactElement | null {
+  const { overlay, onClose } = props;
   if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
   if (overlay.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={onClose} />;
   if (overlay.kind === "sandbox") return <SandboxPanel state={overlay.state} doctor={overlay.doctor} onToggle={overlay.onToggle} onCycleOverride={overlay.onCycleOverride} onClose={onClose} />;
