@@ -3043,7 +3043,7 @@
       "id": "VANTA-KEYBINDING-CONTEXTS",
       "track": "Operator",
       "title": "Keybinding contexts — 17+ named UI contexts for context-sensitive bindings",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "Bindings are scoped to named contexts: Global, Chat, Autocomplete, Confirmation, Help, Transcript, HistorySearch, Task, ThemePicker, Settings, Tabs, Attachments, Footer, MessageSelector, DiffDialog, ModelPicker, Select, Plugin. Context registers/unregisters at React mount/unmount; resolver applies priority by active context set.",
       "done": "Bindings only fire in their declared context; Global bindings work everywhere; context stack updates on dialog open/close; conflicts within a context surface a warning.",
@@ -3052,7 +3052,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "N/A: the keybinding registry (DEFAULT_BINDINGS / KeyContext) was deleted in the 06-13 TUI rebuild (confirmed: no live ui/ references). There is no context-sensitive binding system to add 17+ named contexts to. Parked unless a binding registry returns — same situation as VANTA-KEYBINDING-WARNINGS (whose detector is built but consumer-less)."
     },
     {
       "id": "VANTA-OUTPUT-STYLE-DIR",
@@ -3561,7 +3562,7 @@
       "id": "VANTA-PATH-COMPLETE",
       "track": "Operator",
       "title": "File path completion — tab-autocomplete for directory and file paths in prompt",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a `directoryCompletion.ts` module with LRU-cached directory listing that feeds path autocomplete in the prompt input. Typing `/` or `./` triggers path suggestions from the cwd. Completions appear in the `PromptInputFooterSuggestions` component.",
       "done": "Typing './src/' in the prompt shows a dropdown of files in that directory. Selecting one inserts the full path.",
@@ -3570,7 +3571,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable splitPathPartial ({dir,prefix}; handles bare/./~/absolute/root/trailing-sep, preserves typed dir shape) + commonPrefix + completePath ({candidates,completion}; filters by literal prefix, dirs suffixed /, fills common-prefix extension or full single match, null when ambiguous/no-match/listDir-throw — never throws) + formatPathCandidates. listDir injected (no real fs). SECURITY: literal startsWith no glob, names only never reads contents. Built+tested; composer Tab wire named."
     },
     {
       "id": "VANTA-VIM-UNDO-REDO",
