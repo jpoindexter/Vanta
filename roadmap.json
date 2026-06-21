@@ -13339,13 +13339,15 @@
       "id": "SCRIPT-RPC-PIPELINE",
       "track": "Harness",
       "title": "Script injection + tools-via-RPC — zero-context-cost pipelines",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The one real architecture gap vs Hermes (gap analysis 2026-06-19). Two halves: (1) cron/gateway --script pre-processor — a script runs BEFORE the agent turn and its stdout is injected as context (mechanical fetch/diff/compute in code, agent reasons over the result); (2) tools-via-RPC — a script calls Vanta tools over a local RPC so a multi-step pipeline collapses into one zero-context-cost turn. Closest existing analog is FABRO/compose_workflow (declarative graph), but neither the --script pre-processor nor the RPC-from-script pattern exists. Kernel still gates every tool call the script makes.",
       "done": "A cron/gateway task can run a --script whose stdout becomes the agent's context; a user script can call N Vanta tools via local RPC in one turn with each call kernel-gated; both unit-tested; docs show a watch-site pipeline example.",
       "tier": "pebble",
       "effort": "medium",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-21",
+      "notes": "Pure/injectable zod PipelineStep{tool,args,assignTo?} (assignTo [A-Za-z0-9_-]) + Pipeline{steps 1..50} + parsePipeline (zod + unique-assignTo guard, errors-as-values never throws) + substituteRefs ($name + {{name}} bare+inline; unbound ref -> <unbound:name> marker surfaced not silent) + runPipeline (injected callTool; run in order, bind assignTo, later steps reference prior bindings, a tool error/throw/unbound STOPS the chain + returns failedStep, returns ONLY the final steps result — intermediates stay in bindings, NEVER surfaced to the model = zero-context-cost) + pipelineContextCost. Linear sibling of the FABRO graph. SECURITY: orchestration NOT a permission escape — each step routes through the injected kernel-assess-gated callTool, gated EXACTLY as a direct call. Built+tested; wire = a run_pipeline tool parsePipeline -> runPipeline with registry.get(tool).execute as callTool, returns only the final output (named). Bad step stops the chain."
     },
     {
       "id": "BUG-TUI-IMAGE-PASTE",
