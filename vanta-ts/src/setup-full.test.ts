@@ -1,8 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the heavy steps so the orchestration is testable without prompts/IO.
-vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn(() => "/nonexistent/.env"), askLine: vi.fn(async () => "") }));
+vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn(() => "/nonexistent/.env"), askLine: vi.fn(async () => ""), setEnv: vi.fn(async () => {}) }));
 vi.mock("./setup-messaging.js", () => ({ runMessagingSetup: vi.fn(async () => true) }));
+// the capability step dynamic-imports these — stub them so runFullSetup tests do
+// no real brew/pane IO (the logic itself is covered in setup/capabilities.test.ts)
+vi.mock("./setup/capabilities.js", () => ({
+  planCapabilities: vi.fn(() => ({ installCliclick: false, openPanes: [], env: {}, notes: [] })),
+  applyCapabilityPlan: vi.fn(async () => {}),
+  realBrewInstall: vi.fn(() => ({ ok: true, message: "" })),
+}));
+vi.mock("./platform/macos-prefs.js", () => ({ openPrivacyPane: vi.fn(() => ({ ok: true, url: "", message: "" })) }));
+vi.mock("./cli/control-cmd.js", () => ({ desktopControlDoctor: vi.fn(() => ({ os: "darwin", screencapture: true, cliclick: true, ready: true, notes: [] })) }));
 vi.mock("./brain/store.js", () => ({ writeRegion: vi.fn(async () => {}) }));
 vi.mock("./repl/health-cmd.js", () => ({ gatherCapabilities: vi.fn(async () => []), formatHealth: vi.fn(() => "  CAPS-OK") }));
 vi.mock("./term/select.js", () => ({ select: vi.fn(async () => 1) }));

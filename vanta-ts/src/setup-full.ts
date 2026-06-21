@@ -1,4 +1,4 @@
-import { runSetup, envPath, askLine } from "./setup.js";
+import { runSetup, envPath, askLine, setEnv } from "./setup.js";
 import { select } from "./term/select.js";
 import { SETTINGS, runSettingSection } from "./setup-sections.js";
 import { runToolsSection } from "./setup-tools.js";
@@ -116,9 +116,42 @@ export async function runFullSetup(repoRoot: string, env: NodeJS.ProcessEnv = pr
     console.log("  ✓ Added to Vanta's identity.");
   } else console.log("  Skipped — Vanta forms its personality as you work.");
 
+  await runCapabilitiesSection(repoRoot);
+  loadFreshEnv(repoRoot);
+
   console.log(sectionHeader("Capability availability"));
   console.log(formatHealth(await gatherCapabilities(env)));
   console.log("\n" + box(["✓ Setup complete!"]) + "\n");
   console.log(summaryText(repoRoot, env) + "\n");
   return true;
+}
+
+/**
+ * `vanta setup` step — turn on AND machine-configure desktop control / voice /
+ * auto-tune so the operator doesn't do it by hand: runs `brew install cliclick`,
+ * opens the macOS permission panes, writes the env flags. The pane toggle itself
+ * is the user's one click (the OS forbids any program flipping it for them).
+ */
+export async function runCapabilitiesSection(repoRoot: string): Promise<void> {
+  console.log(sectionHeader("Desktop control · voice · auto-tune"));
+  const desktop = (await select("Let Vanta SEE + CONTROL your screen? (installs cliclick + opens permission panes)", ["Yes — set it up", "Skip"])) === 0;
+  const voice = (await select("Enable push-to-talk VOICE input? (opens the mic permission pane)", ["Yes", "Skip"])) === 0;
+  const autoTune = (await select("AUTO-TRAIN a personal model as you use Vanta? (downloads a small model on first train)", ["Yes", "Skip"])) === 0;
+  if (!desktop && !voice && !autoTune) {
+    console.log("  Skipped — `vanta control` / `vanta voice mic` / `VANTA_LORA_AUTO=1` enable these anytime.");
+    return;
+  }
+  const { desktopControlDoctor } = await import("./cli/control-cmd.js");
+  const { planCapabilities, applyCapabilityPlan, realBrewInstall } = await import("./setup/capabilities.js");
+  const { openPrivacyPane } = await import("./platform/macos-prefs.js");
+  const plan = planCapabilities({
+    platform: process.platform,
+    cliclickPresent: desktopControlDoctor().cliclick,
+    choice: { desktop, voice, autoTune },
+  });
+  await applyCapabilityPlan(plan, {
+    installBrew: realBrewInstall,
+    openPane: (p) => openPrivacyPane(p),
+    writeEnv: (e) => setEnv(repoRoot, e),
+  });
 }
