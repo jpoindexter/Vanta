@@ -27,8 +27,8 @@ flowchart TB
   V1["<b>v1 — feels like an operator</b> — shipped<br/>any model + setup wizard · age-gated resume · fork · handoff<br/>self-improvement · gateway (service · messaging · webhooks)"]
   SM["<b>Selfhood & MCP</b> — shipped<br/>brain (regions + structured entries · guardrails)<br/>MCP mount · serve · runtime mount"]
   OR["<b>Operator & runtime</b> — shipped<br/>operator systems · real Ink terminal UI · mission-control<br/>executive-function gates · ports-and-adapters standard"]
-  NOW["<b>Now</b> — in build<br/>configurable executive-function gate engine"]
-  NEXT["<b>Next</b><br/>TUI depth · automation depth · preference engine · solutioning"]
+  NOW["<b>Now</b> — open beta push<br/>install-anywhere · live-proof the core task paths<br/>multi-channel reach (Telegram · WhatsApp · Signal · Discord · Slack) · images & voice in every channel"]
+  NEXT["<b>Next</b><br/>serverless presence (hibernate + wake-on-message) · zero-context tool pipelines<br/>dialectic user modeling · preference engine"]
   LATER["<b>Later</b><br/>multi-agent fan-out depth · org-chart · budgets and governance · maximizer mode"]
   F --> V0 --> V1 --> SM --> OR --> NOW --> NEXT --> LATER
 ```
@@ -37,9 +37,9 @@ flowchart TB
 
 ```mermaid
 pie showData
-  title 1036 slices by status
+  title 1051 slices by status
   "Shipped" : 888
-  "Next" : 27
+  "Next" : 42
   "Horizon" : 87
   "Parked" : 34
 ```
@@ -58,8 +58,8 @@ Work is organized under five strategy pillars, in priority order (earlier ones a
 
 | Pillar | Slices |
 |--------|-------:|
-| Harness | 465 |
-| Operator | 456 |
+| Harness | 473 |
+| Operator | 463 |
 | Extensibility | 67 |
 | Solutioning | 12 |
 | Cofounder engine | 36 |
