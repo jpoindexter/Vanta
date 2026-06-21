@@ -13008,17 +13008,18 @@
       "id": "BRAIN-ANSWER-OP",
       "track": "Operator",
       "title": "brain 'answer' operation — synthesized provenanced answer from memory",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] memanto's third op beyond remember/recall is ANSWER: a query -> a synthesized direct answer from memory WITH provenance, not just a list of entries. Add a brain answer action: route the query (reuse BRAIN-ROUTER), gather the hits, synthesize a concise provenanced answer via an injected provider (best-effort), fall back to plain recall on failure. Gives the agent a one-call 'what do I know about X' instead of recall-then-read-then-reason.",
       "done": "brain tool gains an answer action (router-backed recall + injected-provider synthesis + provenance, recall fallback on failure); pure prompt/format helpers tested; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "BRAIN-ROUTER"
-      ]
+      ],
+      "notes": "Pure/injectable MemoryEntryRef{id,text} (mirrors world/conflicts CitedMatch provenance) + buildAnswerPrompt (question + numbered control-stripped entries + grounding rules: answer ONLY from these, cite the numbers, exact no memory on that fallback) + parseAnswer (extract ANSWER: body, read cited NUMBERS from CITES: line -> 1-based -> real entry id, DROP out-of-range hallucinated, dedupe, control-strip; requires the explicit CITES: marker not digit-scavenging so no false-cite) + answerFromMemory (injected recall+complete; no entries -> {ok:false,no-memory} with NO complete call asserted; else prompt->complete->parse; throw -> no-memory never throws; model no-memory reply -> no-answer) + providerComplete adapter. GROUNDED-ONLY: answer only when memory recalled AND model cited it; no memory = honest no-answer, NEVER fabricate. SECURITY: recalled text untrusted -> control-stripped in prompt+answer+citation ids. Built+tested; wire = brain.ts answer(question,env) facade -> answerFromMemory with real recall (BrainEntry->MemoryEntryRef) + CHEAP provider (aux-task) + brain tool answer action describeForSafety constant -> Allow (named)."
     },
     {
       "id": "BRAIN-EVAL-LONGMEMEVAL",
