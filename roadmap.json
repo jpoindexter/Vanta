@@ -2567,7 +2567,7 @@
       "id": "VANTA-SWARM-PERM-ROUTING",
       "track": "Harness",
       "title": "Swarm permission routing — workers forward permission asks to lead agent",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Swarm workers serialise permission-ask actions and forward them to the lead agent via mailbox IPC. Poll every 500 ms for allow/reject response. Schema-validates incoming PermissionUpdate entries; drops malformed ones. Coordinator workers run hooks + classifier sequentially before falling through to the interactive dialog.",
       "done": "Worker agent permission asks appear in the lead agent's permission queue; lead's allow/reject propagates back to the worker within ~500 ms; malformed entries logged and dropped.",
@@ -2576,7 +2576,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure immutable router: ForwardedAsk{askId,workerId,request,askedAt} + buildForwardedAsk (mirrors permissions/request shape, carried verbatim) + PermRouterState{pending[]} + enqueueAsk (append, dedupe by askId so a re-forwarded A2A send doesnt double-queue) + routeDecision (find+remove the ask -> {state, target:{workerId,decision}|null}; unknown/already-resolved askId -> unchanged + null) + pendingForWorker + nextPendingAsk (oldest by askedAt). SECURITY: FORWARD NOT BYPASS — kernel assess already ran (the ask is real) + the lead still surfaces a real operator prompt; never auto-approves. Concurrent workers queue independently. Built+tested; wire = worker requestApproval buildForwardedAsk -> A2ABus -> lead enqueue+nextPendingAsk (one prompt) -> routeDecision back (named, transport+prompt = boundary)."
     },
     {
       "id": "VANTA-MEM-TEAM",
