@@ -2887,7 +2887,7 @@
       "id": "VANTA-BYPASS-DIALOG",
       "track": "Operator",
       "title": "BypassPermissions confirmation dialog — explicit gate for dangerous mode",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent shows BypassPermissionsModeDialog when entering bypassPermissions mode, requiring explicit confirmation and showing a risk summary. Prevents accidental activation of the most permissive mode. Vanta allows mode switching without a dedicated confirmation step.",
       "done": "Switching to bypass/bypassPermissions mode shows a modal: risk summary, list of what will be allowed without prompts, explicit confirmation; confirmed mode is shown with a persistent 'dangerous' badge.",
@@ -2895,7 +2895,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-21",
+      "notes": "Pure BYPASS_CONFIRM_TOKEN (enable bypass, multi-word NOT bare y) + buildBypassWarning (names what bypass does + that the kernel block floor still holds + the token) + isBypassConfirmed (typed === token case-insensitive/trimmed; y/yes/empty/near-miss -> false) + resolveBypassActivation (requested AND confirmed; either missing -> false) + bypassAutoApproves (risk !== block: true for ask/allow, FALSE for block). SECURITY (both invariants asserted hard): (1) un-enterable without the exact typed token, (2) bypassAutoApproves(block)===false even when active = immovable kernel block floor. Built+tested; wire = permission-mode requires resolveBypassActivation before flipping to bypass + approval path calls bypassAutoApproves never on a block (mirrors auto-mode block short-circuit). No confirm = off."
     },
     {
       "id": "VANTA-COST-THRESHOLD-UI",
