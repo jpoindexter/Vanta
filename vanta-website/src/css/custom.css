@@ -307,3 +307,22 @@ html, body {
   .card, .uc-card, .button { transition: none; }
   .card:hover, .uc-card:hover { transform: none; }
 }
+
+/* ---------- Footer: one compact strip (was a tall dark band) ---------- */
+.footer { --ifm-footer-padding-vertical: 0.85rem; }
+.footer .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem 1.5rem;
+}
+.footer__links { margin-bottom: 0; flex: 1 1 auto; }
+.footer__links .row { margin: 0; }
+.footer__col { margin-bottom: 0; padding: 0; flex: 0 0 auto; }
+.footer__title { display: none; }                 /* drop "Docs" / "More" headers */
+.footer__items { display: flex; flex-wrap: wrap; gap: 0.1rem 1.25rem; }
+.footer__item { padding: 0; }
+.footer__link-item { font-size: 0.82rem; opacity: 0.85; }
+.footer__bottom { margin-top: 0; text-align: right; flex: 0 0 auto; }
+.footer__copyright { font-size: 0.78rem; opacity: 0.55; }
