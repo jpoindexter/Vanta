@@ -12921,17 +12921,18 @@
       "id": "MEMORY-ADAPTER-MEM0",
       "track": "Operator",
       "title": "mem0 memory-as-a-service adapter — proves the service pattern",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] First memory-as-a-service adapter: write learned memories to mem0 and query it on recall (the Hermes external-memory pattern — content is processed by the provider). Opt-in, off by default, kernel-gated egress, key via env. Proves the service-kind adapter so supermemory/Honcho become trivial follow-ons. The catalog label states plainly that conversation content is sent to the provider.",
       "done": "a mem0 adapter implements the MemoryProvider port (store on learn + query on recall); opt-in/off-by-default; egress kernel-gated; tests with a mocked mem0 endpoint (no network); committed.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ]
+      ],
+      "notes": "Pure/injectable Mem0Memory{id,text,score?} + buildMem0AddBody (->{messages:[{role:user,content}],user_id}) + buildMem0SearchBody (->{query,user_id}) + parseMem0Memories (tolerant bare-array AND {results:[]}; per-row memory||text alias memory-wins, numeric id->string, score optional kept only when finite; non-array/garbage/text-less dropped -> []) + mem0Enabled (VANTA_MEM0_API_KEY present) + makeMem0Adapter({postJson,userId?}) -> {add(text)->{ok}, search(query)->Mem0Memory[]}; exports MEM0_ADD_PATH/MEM0_SEARCH_PATH. Found+fixed: zod z.number() REJECTS NaN but ACCEPTS Infinity -> Number.isFinite guard omits the unusable score keeps the memory (both asserted). SECURITY: key=secret, NEVER an adapter arg — lives only in the injected postJsons Authorization:Token header at the wire, never logged; external memory text control-stripped before a prompt. Errors-as-values: a postJson throw -> add {ok:false}/search [] (fall back to local), never throws. Proves the memory-as-a-service pattern over the drive-sync MemoryAdapter port. Built+tested; wire = memory/provider resolveMemoryProvider (existing MEMORY_CATALOG fork) guarded by mem0Enabled builds a real postJson (VANTA_MEM0_BASE_URL default api.mem0.ai) + routes remember/recall through makeMem0Adapter (named, live REST = boundary)."
     },
     {
       "id": "GATEWAY-SESSION-MANAGER",
