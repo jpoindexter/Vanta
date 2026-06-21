@@ -6,6 +6,7 @@ import { resolveVantaHome } from "../store/home.js";
 import { EFFORT_LEVELS } from "../types.js";
 import { SshProfileSchema } from "../ssh/config.js";
 import { MemorySettingsSchema } from "./memory-settings.js";
+import { UxSettingsSchema, uxSettingsToEnv } from "./ux-settings.js";
 
 // Layered settings.json (user → project → local).
 // Non-secret config (permissions, allowed tools, ui prefs).
@@ -43,7 +44,11 @@ export const SettingsSchema = z.object({
       label: z.string().optional(),
     })).optional(),
   }).optional(),
-  /** UI preferences. */
+  /** UI preferences. VANTA-SETTINGS-UX folds in the display/UX toggles
+   *  (spinnerVerbs/messageTimestamps/timestampStyle/effortIndicator/
+   *  terminalTitle/hyperlinks/awaySummaryMs/idleReturn/jsonFormat) so each maps
+   *  to its existing VANTA_* env var. Applied in `applySettingsEnv` (env wins;
+   *  unset = today's behavior). */
   ui: z.object({
     theme: z.string().optional(),
     spinner: z.string().optional(),
@@ -52,7 +57,7 @@ export const SettingsSchema = z.object({
     composerAnchor: z.enum(["float", "bottom"]).optional(),
     /** Reply verbosity preset (the /output-style choice). */
     outputStyle: z.enum(["concise", "normal", "verbose"]).optional(),
-  }).optional(),
+  }).merge(UxSettingsSchema).optional(),
   /** Opt-in runtime plugin framework config. Plugin code is disabled by default. */
   plugins: z.object({
     enabled: z.array(z.string()).optional(),
@@ -193,6 +198,12 @@ export function applySettingsEnv(settings: Settings, processEnv: NodeJS.ProcessE
   // byte-identical to today's behavior since autoMemory defaults off).
   if (settings.memory?.autoMemory === true && !processEnv.VANTA_EXTRACT_MEMORIES) {
     processEnv.VANTA_EXTRACT_MEMORIES = "1";
+  }
+  // VANTA-SETTINGS-UX: map the set display/UX fields to their VANTA_* env vars,
+  // only when the operator hasn't already pinned the env (env wins; unset =
+  // byte-identical to today's behavior since uxSettingsToEnv({}) is empty).
+  for (const [k, v] of Object.entries(uxSettingsToEnv(settings.ui))) {
+    if (!processEnv[k]) processEnv[k] = v;
   }
   if (!settings.env) return;
   for (const [k, v] of Object.entries(settings.env)) {
