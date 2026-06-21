@@ -14468,7 +14468,7 @@
       "id": "OP-STARTUP-TIPS",
       "track": "Operator",
       "title": "Random feature-discovery tip at REPL start",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "With 110 slash commands and 105 tools, discoverability is poor. Show one random one-line tip (a command, @-ref, keybinding, or flag) at session start, gated behind a 'seen enough' counter. Cheapest discoverability win available.",
       "done": "A random one-line feature tip prints at REPL start from a curated corpus; it stops after a configurable number of sessions; corpus + gating unit-tested.",
@@ -14477,8 +14477,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Pure STARTUP_TIPS (14 readonly tips, each <=80 chars 💡 Tip:) + pickStartupTip (deterministic STARTUP_TIPS[abs(seed)%len]; seed 0 -> first, large wraps, negative/non-finite clamped, never crash/empty — NO Math.random) + startupTipsEnabled (VANTA_TIPS, default ON, =0/false/off/no disables) + formatStartupTip (tip or ). ACCURACY: every tip cross-checked REAL — 11 cite a /command verified present in the imported SLASH_COMMANDS (/handoff /verify /skeptic /next /where /reach /skillify /recover /boundary /auto /deep-research), 3 cite documented env vars (VANTA_VERIFY/PROACTIVE/TUI); a test asserts each tip token + cross-checks every cited command/var against the real set. Deliberately EXCLUDED VANTA_GLIMMER (not in the documented env list — would be fabricated). Built+tested; wire = interactive renderBanner appends formatStartupTip(sessionSeed,env) as the last line when non-empty (seed = session counter / day-of-year so it rotates per session, stable within one; named). Disabled = no tip."
     },
     {
       "id": "OP-COMPACTION-VISIBLE",
