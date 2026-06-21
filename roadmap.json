@@ -3786,7 +3786,7 @@
       "id": "VANTA-KEYBINDING-SYSTEM",
       "track": "Operator",
       "title": "User keybinding customization — ~/.claude/keybindings.json with hot-reload",
-      "status": "next",
+      "status": "parked",
       "size": "M",
       "summary": "another agent loads user keybindings from ~/.claude/keybindings.json (schema-validated via Zod, hot-reloads via chokidar). Users define context-scoped bindings with named action IDs (app:interrupt, history:previous, etc.); default bindings ship as a documented template. /doctor reports validation errors.",
       "done": "Users can add/modify keybindings in ~/.claude/keybindings.json; changes reload without restart; invalid entries reported by /doctor; generating the template pre-fills all defaults.",
@@ -3795,13 +3795,14 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "N/A: depends on the keybinding registry (DEFAULT_BINDINGS/KeyContext/useKeybinding) that was DELETED in the 06-13 TUI rebuild — same situation as KEYBINDING-CONTEXTS/WARNINGS (parked). No binding system exists to add chord sequences / ~/.claude/keybindings.json hot-reload to. Parked unless a binding registry returns."
     },
     {
       "id": "VANTA-CHORD-BINDINGS",
       "track": "Operator",
       "title": "Chord bindings — multi-keystroke sequences (e.g. ctrl+k ctrl+s)",
-      "status": "next",
+      "status": "parked",
       "size": "M",
       "summary": "Keybinding parser handles chord sequences (two or more keystrokes). Resolver tracks pending-chord state; results include chord_started, chord_cancelled, match, none. Platform modifier aliases normalised (ctrl/alt/meta/cmd/super).",
       "done": "Multi-keystroke chords defined in keybindings.json fire correctly; partial chord shows pending state; invalid followup cancels without side effects; modifier aliases all work.",
@@ -3810,7 +3811,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "N/A: depends on the keybinding registry (DEFAULT_BINDINGS/KeyContext/useKeybinding) that was DELETED in the 06-13 TUI rebuild — same situation as KEYBINDING-CONTEXTS/WARNINGS (parked). No binding system exists to add chord sequences / ~/.claude/keybindings.json hot-reload to. Parked unless a binding registry returns."
     },
     {
       "id": "VANTA-MEM-RELEVANCE-LLM",
@@ -3893,7 +3895,7 @@
       "id": "VANTA-AGENTIC-SESSION-SEARCH",
       "track": "Operator",
       "title": "Agentic session search — LLM-powered semantic search across past sessions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "The /resume picker uses agenticSessionSearch to find relevant sessions by content, not just title. Scans up to 2000 chars of transcript per session (max 100 sessions), then side-queries a small/fast model to rank sessions by relevance to the search query.",
       "done": "Typing a search term in the resume picker finds sessions by content (not just name); LLM ranks results by relevance; limited to 100 sessions to stay fast.",
@@ -3902,7 +3904,8 @@
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable buildSessionSearchPrompt (query + candidate id/title/preview -> JSON [{id,why}]) + parseSessionSearchResult (tolerant: strips fences/prose, keeps only valid ids dropping hallucinated, dedup, cap 8, [] on garbage) + lexicalSessionSearch (fallback, reuses recall weighted-token ranker, title 3/preview 1) + searchSessions (injected cheap complete; agentic only when enabled+ok+>=1 valid match else lexical; never throws). Reuses buildSessionPreview. Built+tested; wire = vanta sessions search <q> builds candidates from listSessions+preview + cheap provider (named). Fallback always returns something."
     },
     {
       "id": "VANTA-WAIT-MCP",
