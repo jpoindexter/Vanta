@@ -109,3 +109,38 @@ describe("assertPublicUrl allows + opt-out", () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe("NET-EGRESS-POLICY — allow/deny enforced through assertPublicUrl", () => {
+  it("blocks a public host on the egress deny list", async () => {
+    const r = await assertPublicUrl("https://tracker.evil.com/x", {
+      env: { VANTA_EGRESS_DENY: "evil.com" } as NodeJS.ProcessEnv,
+      resolver: resolveTo("1.2.3.4"),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/deny list/);
+  });
+
+  it("with an allow list, a public host not on it is denied (default-deny)", async () => {
+    const r = await assertPublicUrl("https://api.other.com/x", {
+      env: { VANTA_EGRESS_ALLOW: "github.com" } as NodeJS.ProcessEnv,
+      resolver: resolveTo("1.2.3.4"),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/not in the allow list/);
+  });
+
+  it("an egress deny is a hard stop even with the private-IP guard opted out", async () => {
+    const r = await assertPublicUrl("https://evil.com/x", {
+      env: { VANTA_ALLOW_PRIVATE_FETCH: "1", VANTA_EGRESS_DENY: "evil.com" } as NodeJS.ProcessEnv,
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it("an allow-listed public host passes through to the IP guard", async () => {
+    const r = await assertPublicUrl("https://api.github.com/x", {
+      env: { VANTA_EGRESS_ALLOW: "github.com" } as NodeJS.ProcessEnv,
+      resolver: resolveTo("140.82.112.3"),
+    });
+    expect(r.ok).toBe(true);
+  });
+});

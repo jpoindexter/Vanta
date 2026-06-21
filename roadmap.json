@@ -15466,7 +15466,7 @@
       "id": "NET-EGRESS-POLICY",
       "track": "Harness",
       "title": "Network egress policy — allow/deny for all outbound, not just hooks",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "VANTA-HOOK-SSRF-GUARD blocks private/metadata IPs for HTTP hooks only. Generalize it (OpenClaw's net-policy steal) into a first-class egress policy across ALL outbound — tools, fetch, browser, MCP — with an allow/deny list, private-range/metadata blocking by default, and per-domain rules. The kernel gates actions; this gates where bytes go.",
       "done": "All outbound network paths (web_fetch, browser, MCP, tools) route through one egress policy that blocks private/metadata ranges by default and honors an allow/deny list; bypass attempts are denied + logged.",
@@ -15475,7 +15475,9 @@
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "BETA-LIVE-PROOF"
-      ]
+      ],
+      "updated": "2026-06-22",
+      "notes": "net/egress-policy.ts: allow/deny domain policy (domainMatches apex+sub + *.wildcard, parseEgressPolicy from VANTA_EGRESS_ALLOW/DENY, checkEgressPolicy: deny-wins + allowlist=default-deny) + best-effort logEgressDenial (~/.vanta/egress-denied.log + stderr). Folded into assertPublicUrl so EVERY outbound path (web_fetch/MCP/hooks/reach) inherits it; an explicit deny is a hard stop even with the private-IP guard opted out. 13 policy tests + 4 assertPublicUrl integration tests."
     },
     {
       "id": "PLATFORM-MOBILE-TERMUX",
