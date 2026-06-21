@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-20",
+  "updated": "2026-06-21",
   "items": [
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
@@ -2239,7 +2239,7 @@
       "id": "VANTA-BARE-MODE",
       "track": "Harness",
       "title": "`--bare` mode — minimal output format for scripting and pipelines",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent supports a `--bare` CLI flag that enables bare mode: minimal output formatting suitable for scripting and pipes. In bare mode, decorative UI elements (spinners, boxes, colors, status line) are stripped — only the essential response text is output. Complements `--print` / non-interactive mode.",
       "done": "`claude --bare 'summarize this file' < file.txt` outputs only the summary text, no terminal UI chrome. Suitable for shell pipelines.",
@@ -2248,7 +2248,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure bareEnabled (--bare in argv OR VANTA_BARE=1, default off) + BareEvent union {text|tool|result|decoration} + formatBareEvent (text/result -> stripped+trimmed+newline, empty dropped; tool -> [tool] name minimal; decoration banner/cost/spinner -> suppressed) + bareLines (joined non-empty). Reuses bash-io stripKeepNewlines (newly EXPORTED, additive) -> strips ALL ANSI/CSI/OSC/C0/C1/DEL so a tool result cant inject escapes into a downstream pipe (machine-safe). Built+tested; wire = runInstruction routes to bare callbacks when bareEnabled instead of buildCallbacks rich (named). Default = current rich output."
     },
     {
       "id": "VANTA-PROMPT-CACHE-BREAK",
