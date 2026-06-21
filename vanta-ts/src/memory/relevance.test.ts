@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { classifyMemory, shouldStoreDurably } from "./relevance.js";
+import {
+  classifyMemory,
+  shouldStoreDurably,
+  buildRelevancePrompt,
+  parseRelevanceSelection,
+  relevanceEnabled,
+  selectRelevantMemories,
+  type MemoryFile,
+} from "./relevance.js";
 
 describe("classifyMemory", () => {
   it("marks short noise as non-durable", () => {
@@ -91,5 +99,207 @@ describe("shouldStoreDurably", () => {
   });
   it("returns false for sensitive data", () => {
     expect(shouldStoreDurably("my token is abc")).toBe(false);
+  });
+});
+
+// VANTA-MEM-RELEVANCE-LLM — per-turn memory-file selection via a cheap-model
+// side-query. No real LLM: the cheap-model call is injected.
+
+const FILES: MemoryFile[] = [
+  { name: "1.md", summary: "the Vanta kernel project" },
+  { name: "2.md", summary: "personal site work" },
+  { name: "3.md" },
+];
+const VALID = FILES.map((f) => f.name);
+
+describe("buildRelevancePrompt", () => {
+  it("references the turn text and every file name", () => {
+    const prompt = buildRelevancePrompt("fix the kernel risk classifier", FILES);
+    expect(prompt).toContain("fix the kernel risk classifier");
+    for (const f of FILES) expect(prompt).toContain(f.name);
+  });
+
+  it("includes the summary when present", () => {
+    const prompt = buildRelevancePrompt("anything", FILES);
+    expect(prompt).toContain("the Vanta kernel project");
+  });
+
+  it("asks for a JSON array of names", () => {
+    const prompt = buildRelevancePrompt("x", FILES);
+    expect(prompt.toLowerCase()).toContain("json array");
+  });
+
+  it("handles an empty file list without throwing", () => {
+    const prompt = buildRelevancePrompt("hello", []);
+    expect(prompt).toContain("(none)");
+    expect(prompt).toContain("hello");
+  });
+
+  it("handles empty turn text", () => {
+    const prompt = buildRelevancePrompt("   ", FILES);
+    expect(prompt).toContain("(empty)");
+  });
+});
+
+describe("parseRelevanceSelection", () => {
+  it("keeps only names that are in validNames", () => {
+    const r = parseRelevanceSelection('["1.md", "3.md"]', VALID);
+    expect(r).toEqual(["1.md", "3.md"]);
+  });
+
+  it("drops hallucinated names not in validNames", () => {
+    const r = parseRelevanceSelection('["1.md", "99.md", "ghost.md"]', VALID);
+    expect(r).toEqual(["1.md"]);
+  });
+
+  it("tolerates a ```json fence", () => {
+    const r = parseRelevanceSelection('```json\n["2.md"]\n```', VALID);
+    expect(r).toEqual(["2.md"]);
+  });
+
+  it("tolerates a bare ``` fence", () => {
+    const r = parseRelevanceSelection('```\n["2.md"]\n```', VALID);
+    expect(r).toEqual(["2.md"]);
+  });
+
+  it("tolerates surrounding prose around the array", () => {
+    const r = parseRelevanceSelection(
+      'Sure, the relevant files are: ["1.md", "2.md"]. Done.',
+      VALID,
+    );
+    expect(r).toEqual(["1.md", "2.md"]);
+  });
+
+  it("dedups repeated names", () => {
+    const r = parseRelevanceSelection('["1.md", "1.md"]', VALID);
+    expect(r).toEqual(["1.md"]);
+  });
+
+  it("returns [] on non-array JSON", () => {
+    expect(parseRelevanceSelection('{"name":"1.md"}', VALID)).toEqual([]);
+  });
+
+  it("returns [] on garbage", () => {
+    expect(parseRelevanceSelection("not json at all", VALID)).toEqual([]);
+    expect(parseRelevanceSelection("", VALID)).toEqual([]);
+  });
+
+  it("returns [] when nothing matches validNames", () => {
+    expect(parseRelevanceSelection('["x.md", "y.md"]', VALID)).toEqual([]);
+  });
+
+  it("ignores non-string array entries", () => {
+    const r = parseRelevanceSelection('["1.md", 42, null, true]', VALID);
+    expect(r).toEqual(["1.md"]);
+  });
+});
+
+describe("relevanceEnabled", () => {
+  it("is off by default (preserves current behavior)", () => {
+    expect(relevanceEnabled({})).toBe(false);
+  });
+  it("is on with VANTA_MEM_RELEVANCE=1", () => {
+    expect(relevanceEnabled({ VANTA_MEM_RELEVANCE: "1" })).toBe(true);
+  });
+  it("ignores other truthy-ish values", () => {
+    expect(relevanceEnabled({ VANTA_MEM_RELEVANCE: "true" })).toBe(false);
+    expect(relevanceEnabled({ VANTA_MEM_RELEVANCE: "0" })).toBe(false);
+  });
+});
+
+describe("selectRelevantMemories", () => {
+  const fallback = VALID;
+  const ON = { VANTA_MEM_RELEVANCE: "1" } as NodeJS.ProcessEnv;
+  const OFF = {} as NodeJS.ProcessEnv;
+
+  it("returns the fallback when disabled (no call made)", async () => {
+    let called = false;
+    const r = await selectRelevantMemories(
+      "fix the kernel",
+      FILES,
+      {
+        complete: async () => {
+          called = true;
+          return '["1.md"]';
+        },
+        fallback,
+      },
+      OFF,
+    );
+    expect(r).toEqual(fallback);
+    expect(called).toBe(false);
+  });
+
+  it("returns the parsed selection when enabled and the call succeeds", async () => {
+    const r = await selectRelevantMemories(
+      "fix the kernel",
+      FILES,
+      { complete: async () => '["1.md", "3.md"]', fallback },
+      ON,
+    );
+    expect(r).toEqual(["1.md", "3.md"]);
+  });
+
+  it("passes the side-query prompt (turn + names) to the injected call", async () => {
+    let seen = "";
+    await selectRelevantMemories(
+      "personal site tweak",
+      FILES,
+      {
+        complete: async (prompt) => {
+          seen = prompt;
+          return '["2.md"]';
+        },
+        fallback,
+      },
+      ON,
+    );
+    expect(seen).toContain("personal site tweak");
+    expect(seen).toContain("2.md");
+  });
+
+  it("returns the fallback when the call throws", async () => {
+    const r = await selectRelevantMemories(
+      "x",
+      FILES,
+      {
+        complete: async () => {
+          throw new Error("cheap model down");
+        },
+        fallback,
+      },
+      ON,
+    );
+    expect(r).toEqual(fallback);
+  });
+
+  it("returns the fallback when the selection is empty", async () => {
+    const r = await selectRelevantMemories(
+      "x",
+      FILES,
+      { complete: async () => "[]", fallback },
+      ON,
+    );
+    expect(r).toEqual(fallback);
+  });
+
+  it("returns the fallback when the selection is all hallucinated", async () => {
+    const r = await selectRelevantMemories(
+      "x",
+      FILES,
+      { complete: async () => '["ghost.md"]', fallback },
+      ON,
+    );
+    expect(r).toEqual(fallback);
+  });
+
+  it("never throws — garbage response degrades to the fallback", async () => {
+    const r = await selectRelevantMemories(
+      "x",
+      FILES,
+      { complete: async () => "totally not json", fallback },
+      ON,
+    );
+    expect(r).toEqual(fallback);
   });
 });
