@@ -3612,7 +3612,7 @@
       "id": "VANTA-STATUS-LINE-GITHUB",
       "track": "Operator",
       "title": "Status line GitHub PR info — repo and PR data in status line JSON input",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.145) adds GitHub repo name and PR number/title to the status line JSON input when detected from the git remote and current branch. Status line scripts can now show the active PR inline.",
       "done": "A status line script reads `git.repo` and `git.pr` from the JSON input and displays `owner/repo#42` next to the branch name.",
@@ -3621,7 +3621,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable parseRepoSlug (https/ssh/scp GitHub forms -> owner/name, null non-GitHub) + parsePrJson (gh pr view --json, tolerant object|array, null on empty) + formatGithubStatus (⎇ owner/name@branch · PR #12 ✓approved; reviewDecision->glyph; control-stripped) + gatherGithubStatus (injected runGit/runGh, best-effort, never throws, skips gh for non-GitHub remote). Built+tested; status-bar wire = a RichSegment via composeRichSegments calling formatGithubStatus(gatherGithubStatus) (named). gh/git fetch = boundary. No repo/failure = nothing."
     },
     {
       "id": "VANTA-CTRL-U-CLEAR-ALL",
