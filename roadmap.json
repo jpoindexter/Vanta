@@ -1043,7 +1043,7 @@
       "id": "VANTA-ASK-USER-TOOL",
       "track": "Operator",
       "title": "AskUserQuestion tool — structured multi-question UI with options, previews, multi-select",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's AskUserQuestion tool lets the model present 1-4 structured questions in one call, each with 2-4 labeled options (plus auto-added 'Other'), optional per-option preview content (markdown in a side panel), optional multi-select, and a short header chip. The user's selections plus free-text notes are returned as structured annotations. Richer than a plain clarify tool — preview content enables side-by-side comparisons of code snippets or mockups.",
       "done": "Model can call AskUserQuestion with up to 4 questions. Each question shows options in a tappable list; options with `preview` show a preview pane. User can select + add notes. Returns structured answers.",
@@ -1052,7 +1052,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure AskQuestionSchema (questions[1..4] {header<=12, question, options[2..4] {label,description}, multiSelect?}) + validateAskInput (zod + actionable first-issue error, returns control-stripped questions) + formatAskPrompt (numbered options, pick one/pick any hint) + validateAnswers (coerce 1-based number/numeric-string/case-insensitive label; single-select rejects >1; multi dedupes; out-of-range/unknown/unanswered -> error) + ask_user Tool (end-of-turn like clarify: describeForSafety constant -> kernel Allow; execute validates + returns formatAskPrompt as output). SECURITY: model-supplied text control-stripped (ANSI ESC) before formatting (header<=12 checked pre-strip); only ASKS never acts. Built+tested; deferred wires = ALL_TOOLS registration (the one shared edit) + TUI multi-select picker feeds validateAnswers (named, picker = boundary)."
     },
     {
       "id": "VANTA-ASCIICAST",
