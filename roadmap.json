@@ -3012,7 +3012,7 @@
       "id": "VANTA-AUTO-MODE-OPTIN",
       "track": "Operator",
       "title": "Auto mode opt-in dialog — confirmation flow for ML permission mode",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's AutoModeOptInDialog walks users through enabling auto mode with an explanation of how ML classification works, what actions it auto-approves, and a soft_deny preview. Pairs with VANTA-AUTO-MODE (next). Without this dialog, auto mode activation has no UX scaffolding.",
       "done": "Enabling auto mode shows AutoModeOptInDialog: explains ML classification, shows the soft_deny preset, previews which actions would be auto-approved in the current session, then confirms.",
@@ -3020,7 +3020,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-21",
+      "notes": "Pure buildAutoModeExplanation (names the safe read-only auto-approve set, what STILL prompts writes/destructive/out-of-scope/classifier-unsafe, the untouched kernel block floor, how to confirm/disable) + isAutoModeOptedIn (y/yes/enable case-insensitive/trimmed -> true; n/empty/garbage -> false; lighter than bypasss typed token) + resolveAutoModeActivation (requested AND optedIn) + autoModeMayAutoApprove(risk,classifierSaysSafe) (block=FALSE immovable, ask=classifierSaysSafe so unsafe ask still prompts, allow=true). SECURITY 3 invariants tested: (1) no opt-in = OFF, (2) block NEVER auto-approved, (3) classifier-unsafe ask still PROMPTS. Mirrors bypass-dialog (lighter). Built+tested; wire = auto-mode-cmd shows explanation + requires isAutoModeOptedIn before settings.autoMode.enabled + dispatch classifyAutoModeAction feeds autoModeMayAutoApprove (named)."
     },
     {
       "id": "VANTA-KEYBINDING-WARNINGS",
