@@ -12981,17 +12981,18 @@
       "id": "MEMORY-ADAPTER-MEMANTO",
       "track": "Operator",
       "title": "memanto memory adapter — local-first external memory (MIT), MCP-mount or REST",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] memanto (github moorcheh-ai/memanto, MIT, LOCAL-first: pip+Docker+Ollama, REST at localhost:8000) is a typed semantic memory agent (remember/recall/answer, 13 categories, temporal decay + provenance + contradiction handling; LongMemEval 89.8%). Add it to the memory-provider catalog as the RECOMMENDED local external option (vs cloud mem0 — memanto runs on the user's machine, no egress). Two integration paths: (A) if memanto ships an MCP server, mount it via .mcp.json (zero adapter code, kernel-gated, like terminal-love) — document this quick-start; (B) a MemoryProvider REST adapter (store-on-learn + query-on-recall). Opt-in, off by default, never required for recall.",
       "done": "memanto registered in MEMORY_CATALOG; REST adapter implements the MemoryProvider port (mocked-endpoint tests); documented MCP-mount quick-start; opt-in/off-by-default, local source-of-truth preserved; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ]
+      ],
+      "notes": "Pure/injectable MemantoMemory{id,text,score?} + MemantoMode rest|mcp + buildMemantoAddBody({text}) + buildMemantoSearchBody({query}) + parseMemantoMemories (tolerant array | {memories} | {results}; text|memory|content alias text-wins; numeric-id coercion; finite-score-only; control-stripped tab/newline preserved; [] on garbage) + resolveMemantoMode (VANTA_MEMANTO_MODE=mcp -> mcp else rest = local-first default) + memantoEnabled (VANTA_MEMANTO_URL set OR mode=mcp + VANTA_MEMANTO_MCP_SERVER; LOCAL-FIRST no key check) + makeMemantoAdapter({call:(op,payload)}) -> {add,search} routes via the single injected op-based call seam abstracting REST vs MCP; a throw -> {ok:false}/[] never throws. LOCAL-FIRST: no cloud key by design (a localhost URL / MCP server name) — NO key-shaped literal (gitleaks-safe). External text control-stripped. Both access modes over the established drive-sync MemoryAdapter port (mirrors mem0). Built+tested; wire = provider resolveMemoryProvider guarded by memantoEnabled reads resolveMemantoMode -> builds deps.call as localhost REST fetch (no auth header) OR routed mounted-MCP tool call -> routes recall through makeMemantoAdapter (named, live REST/MCP = boundary)."
     },
     {
       "id": "BRAIN-MEMORY-CATEGORIES",
