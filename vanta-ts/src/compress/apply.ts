@@ -3,6 +3,7 @@ import { compressText, dedupeBlocks } from "./router.js";
 import { stashOriginal } from "./store.js";
 import { estTokens, DEFAULTS } from "./types.js";
 import { isCodeContent, compressTypeScript } from "./ast-compress.js";
+import { pruneContextEnabled, pruneContextText } from "./prune-context.js";
 
 // The impure seam: wrap the pure router with CCR stashing + a retrieval footer.
 // Called once per tool result in the agent loop (never the system prefix, never
@@ -66,6 +67,27 @@ export async function applyCodeCompression(output: string, dataDir: string): Pro
   } catch {
     return { output, tokensSaved: 0 };
   }
+}
+
+/**
+ * OPT-IN context-pruning helper (PRUNE-CONTEXT-WIRE). The live seam a caller routes a
+ * designated context chunk through to apply the winnow `pruneText` token-pruner.
+ *
+ * Default OFF (`VANTA_PRUNE_CONTEXT` unset) → returns `text` BYTE-IDENTICALLY, so any
+ * existing path that adds this call stays unchanged until the operator opts in. When
+ * ON, the chunk is pruned (heuristic floor, zero config) to fewer tokens; a prune
+ * failure degrades to the original. Reports the token delta for observability.
+ *
+ * Separate from `applyCompression` (tool-output, allow-listed) on purpose: pruning is
+ * LOSSY for precision reads, so it is never auto-applied — a caller opts a specific,
+ * advisory context chunk in.
+ */
+export function pruneContext(text: string, env: NodeJS.ProcessEnv = process.env): ApplyResult {
+  if (!pruneContextEnabled(env)) return { output: text, tokensSaved: 0 };
+  const before = estTokens(text);
+  const output = pruneContextText(text, env);
+  const after = estTokens(output);
+  return { output, tokensSaved: Math.max(0, before - after) };
 }
 
 /**
