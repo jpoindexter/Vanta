@@ -11617,7 +11617,7 @@
       "id": "MSG-ADAPTER-SLACK",
       "track": "Operator",
       "title": "Messaging adapter — Slack",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Build the live PlatformAdapter for Slack (gateway/platforms/slack.ts) — connect/disconnect/send/poll over the Slack API, wired to the catalog entry (registry.ts id 'slack'). Approach: @slack/bolt or Socket Mode (xoxb + xapp tokens). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
       "done": "Slack works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
@@ -11626,10 +11626,11 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14",
+      "updated": "2026-06-22",
       "after": [
         "MSG-ADAPTER-WHATSAPP"
-      ]
+      ],
+      "notes": "gateway/platforms/slack.ts: Slack adapter (PlatformAdapter) — Events API inbound (pure parseSlackEvents: plain user messages only, skip bot_id/subtype = anti-loop, DM vs channel) + chat.postMessage outbound + allowlist + injected transport. Wired into factory + catalog implemented:true (VANTA_SLACK_BOT_TOKEN). Offline-tested; live needs an xoxb token + Events API webhook."
     },
     {
       "id": "MSG-ADAPTER-DISCORD",

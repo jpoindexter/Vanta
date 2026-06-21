@@ -6,6 +6,7 @@ import { IrcAdapter, parseNickAllowlist } from "./irc.js";
 import { IMessageAdapter } from "./imessage.js";
 import { SignalAdapter } from "./signal.js";
 import { WhatsappAdapter, httpTransport as whatsappTransport, parseWhatsappAllowlist } from "./whatsapp.js";
+import { SlackAdapter, httpTransport as slackTransport, parseSlackAllowlist } from "./slack.js";
 
 // Messaging adapter factory — the platform analogue of `providers/index.ts`'s
 // `resolveProvider`. Each implemented platform is ONE registration entry below
@@ -99,6 +100,16 @@ const ADAPTERS: Record<string, AdapterEntry> = {
       new WhatsappAdapter({
         transport: whatsappTransport(env.VANTA_WHATSAPP_TOKEN!.trim(), env.VANTA_WHATSAPP_PHONE_ID!.trim()),
         allow: parseWhatsappAllowlist(env),
+      }),
+  },
+  slack: {
+    // Slack: bot token for chat.postMessage; inbound via the Events API webhook
+    // (poll is webhook-fed).
+    configured: (env) => has(env, "VANTA_SLACK_BOT_TOKEN"),
+    build: (env) =>
+      new SlackAdapter({
+        transport: slackTransport(env.VANTA_SLACK_BOT_TOKEN!.trim()),
+        allow: parseSlackAllowlist(env),
       }),
   },
 };

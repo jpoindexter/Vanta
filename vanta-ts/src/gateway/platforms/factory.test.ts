@@ -118,6 +118,7 @@ describe("implementedPlatformIds", () => {
       "imessage",
       "signal",
       "whatsapp",
+      "slack",
     ]);
   });
 });
