@@ -77,6 +77,8 @@ export function captureMicAudio(deps: MicCaptureDeps = {}): MicCaptureResult {
     run(buildFfmpegMicArgs(path, deps.seconds ?? 10, deps.device ?? "0"));
     return { ok: true, path };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    const base = e instanceof Error ? e.message : String(e);
+    // a record failure is usually a missing mic permission — point at the fix
+    return { ok: false, error: `${base} — grant Microphone access: run \`vanta voice mic\`` };
   }
 }

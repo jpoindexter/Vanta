@@ -70,6 +70,7 @@ import { runWatchdogCommand } from "./cli/watchdog-cmd.js";
 import { runAutoResearchCommand } from "./cli/auto-research-cmd.js";
 import { runMetaTuneCommand } from "./cli/meta-tune-cmd.js";
 import { runTuneCommand } from "./cli/tune-cmd.js";
+import { runControlCommand } from "./cli/control-cmd.js";
 import {
   findRepoRoot, loadEnv, startInteractive,
   resumeIdFrom, hasForkSession, parseRunArgs, parseStartupFlags,
@@ -103,7 +104,8 @@ const COMMANDS: Record<string, CommandFn> = {
   room: (root, rest) => runRoomCommand(root, rest),
   modes: (_root, rest) => runModes(process.env, rest[0]),
   auth: (_root, rest) => runAuthCommand(rest),
-  voice: (root) => runVoiceCommand(root),
+  voice: (root, rest) => runVoiceCommand(root, rest),
+  control: (root, rest) => runControlCommand(root, rest),
   hooks: (_root, rest) => runHooksCommand(rest),
   mcp: (root, rest) => runMcpCommand(root, rest),
   roadmap: (root, rest) => runRoadmapCommand(root, rest),
