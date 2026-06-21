@@ -11583,7 +11583,7 @@
       "id": "SETUP-PROVIDER-BEDROCK",
       "track": "Operator",
       "title": "Provider — AWS Bedrock adapter",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "AWS Bedrock is the one provider that's NOT OpenAI-compatible (SigV4 request signing + the Bedrock Converse API, streaming via the event-stream format). Needs a dedicated adapter implementing LLMProvider — either via @aws-sdk/client-bedrock-runtime (multi-MB dep) or hand-rolled SigV4 + fetch (zero-dep). Decide the dep first. Catalog entry + a `bedrock` branch in resolveProvider.",
       "done": "VANTA_PROVIDER=bedrock works with AWS creds (region + access keys / IAM); Claude/Nova/Llama models on Bedrock respond + stream.",
@@ -11592,10 +11592,11 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "infra",
-      "updated": "2026-06-14",
+      "updated": "2026-06-21",
       "after": [
         "SETUP-PROVIDERS-BESPOKE"
-      ]
+      ],
+      "notes": "Pure BEDROCK_MODEL_MAP (5 friendly -> REAL <provider>.<model>:<ver> ids: claude-sonnet->anthropic.claude-3-5-sonnet-20241022-v2:0, claude-haiku/opus, llama-3->meta.llama3-1-70b-instruct-v1:0, titan-text->amazon.titan-text-premier-v1:0) + resolveBedrockModelId (friendly->mapped, dotted-id->passthrough, unknown->default) + zod BedrockConfigSchema{region,modelId} + resolveBedrockConfig (region AWS_REGION|VANTA_BEDROCK_REGION + model VANTA_BEDROCK_MODEL via map + creds presence: key pair OR AWS_PROFILE; incomplete = {ok:false,missing:[region|model|credentials]} no crash) + BEDROCK_CATALOG_ENTRY (typed against the REAL ProviderEntry incl required short/models so its drop-in for PROVIDER_CATALOG). SECURITY: creds reported by PRESENCE only — no secret value (asserted never in output); no credential literal (gitleaks-safe). NO AWS SDK dep added. Built+tested; wire = providers/index resolveProvider case bedrock constructs a BedrockProvider signing via AWS SigV4 @aws-sdk/client-bedrock-runtime — a REAL adapter NOT a baseURL swap (named, SDK = boundary). Incomplete = missing[]."
     },
     {
       "id": "MSG-ADAPTER-SLACK",
