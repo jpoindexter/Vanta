@@ -3770,7 +3770,7 @@
       "id": "VANTA-FILE-INDEX",
       "track": "Operator",
       "title": "Background file index — lazy singleton for @-mention completions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Lazy singleton FileIndex built from git ls-files (tracked) + ripgrep (untracked), respecting .gitignore. Chunks work with event-loop yields. Emits a signal on build completion so typeahead upgrades partial results. Also surfaces CLAUDE.md / rules files as suggestion sources.",
       "done": "@path completions return git-tracked and untracked files; .gitignore entries excluded; partial results upgrade to full after index completes; CLAUDE.md paths surfaced.",
@@ -3779,7 +3779,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable buildFileIndex (paths + lowercase basenames, noise-filtered: drops node_modules/.git/dist/.vanta + dotfile DIR segments, keeps dotfile leaf files) + queryFileIndex (rank basename-startsWith > basename-contains > path-contains, shorter-path tie-break, cap 20, case-insensitive, empty fragment -> first N) + FileIndexHolder lazy getFileIndex (build-once cached) / invalidateFileIndex (rebuild). Walk injected (boundary), throw -> empty never throws. RELATIVE paths only, never reads contents. Built+tested; @-completion wire = at-context/ui.at getFileIndex+queryFileIndex, invalidate on file add (named)."
     },
     {
       "id": "VANTA-KEYBINDING-SYSTEM",
