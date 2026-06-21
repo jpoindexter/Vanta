@@ -3816,7 +3816,7 @@
       "id": "VANTA-MEM-RELEVANCE-LLM",
       "track": "Operator",
       "title": "Memory relevance via Sonnet side-query — LLM-selected memory files per turn",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Each turn, another agent scans memory-file headers (frontmatter name+description only), then fires a dedicated Sonnet side-query to pick up to 5 most-relevant files for the current user query. Excludes API/usage docs for tools already in use. Returns file paths + mtime for staleness annotation.",
       "done": "Only relevant memory files are loaded per turn (not all memories); recently-used tool docs excluded from selection; up to 5 files selected; selection logged for debugging.",
@@ -3825,7 +3825,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "memory",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable buildRelevancePrompt (side-query: file names+summaries + turn -> JSON array of relevant names) + parseRelevanceSelection (tolerant: strips json fences, extracts [...] amid prose, keeps only valid names dropping hallucinated, dedup, [] on garbage) + relevanceEnabled (VANTA_MEM_RELEVANCE=1, default off) + selectRelevantMemories (injected cheap-model complete; enabled+ok+non-empty -> selection else fallback; never throws). Cheap-model aux pattern (mirrors vision). APPENDED to the existing relevance.ts (durable-write classifier) preserving its exports per never-clobber. Built+tested; wire = prepare-helpers loadPromptContext narrows per-goal memory via a cheap provider (named). Default off = current load-all."
     },
     {
       "id": "VANTA-SESSION-BACKGROUNDING",
