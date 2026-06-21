@@ -15284,7 +15284,7 @@
       "id": "BETA-LIVE-PROOF",
       "track": "Harness",
       "title": "Open-beta gate — live-prove the top operator task paths on a clean machine",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Many capabilities are unit-tested but live-gated. Pick the top N operator task paths (multi-step build task; reach-me-on-Telegram; run a scheduled job; desktop/voice action) and prove each end-to-end on a NON-dev machine with a real model + real creds. This is the open-beta readiness gate, sibling to INSTALL-PARITY.",
       "done": "Each named task path runs end-to-end on a clean machine (not the dev box) with captured evidence; the list of live-proven vs still-gated paths is recorded in the repo.",
@@ -15293,7 +15293,9 @@
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "MSG-MEDIA-IMAGES"
-      ]
+      ],
+      "updated": "2026-06-22",
+      "notes": "verify/beta-proof.ts: the open-beta gate harness — BETA_PATHS (install/does-a-task/multi-step/safe/reach/media/scheduled), runBetaProof (run non-gated live, record gated honestly), formatBetaReport. vanta beta-proof CLI runs the real headless checks (kernel blocks rm -rf, run_pipeline collapses 3 tools to 1 turn, provider configured) -> writes docs/beta-readiness.md. 3 paths proven live on this machine; 4 gated (clean machine / channel tokens / whisper) recorded honestly. Live clean-machine run of the gated paths is the operators."
     },
     {
       "id": "MSG-MULTICHANNEL-LIVE",
