@@ -3090,7 +3090,7 @@
       "id": "VANTA-COPY-CMD",
       "track": "Operator",
       "title": "/copy — copy last response as markdown, HTML, or RTF to clipboard",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "The /copy command copies the last assistant response to the system clipboard in the user's chosen format: plain markdown, rendered HTML, or RTF. Uses OSC clipboard sequence for terminal clipboard access.",
       "done": "Running /copy shows a format picker; selected format is copied to clipboard; markdown copies raw text; HTML converts markdown to rendered HTML; RTF for rich text editors.",
@@ -3099,7 +3099,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure CopyFormat md|html|rtf + resolveCopyFormat (trim+lowercase, unknown/empty/mixed-case -> md) + markdownToHtml (headings #..###### -> h1..h6, **bold**->strong, *italic*/_->em, `code`->code, fenced->pre/code, [t](u)->a href, - ->ul/li, 1. ->ol/li, paragraphs->p; ALL literal text + link text/href HTML-ESCAPED so a <script> -> &lt;script&gt; not a live tag) + markdownToRtf ({rtf1 ..} with b/i/mono runs + par breaks; \\ { } escaped) + formatForCopy (md unchanged, html, rtf). SECURITY: response is agent output -> HTML-escaped (no tag injection) + RTF control chars escaped; pure string transforms no execution. Built+tested; wire = existing /copy handler (media-cmds.ts) calls resolveCopyFormat(arg)+formatForCopy before the pbcopy write + catalog desc /copy [md|html|rtf] (named). Unknown = md."
     },
     {
       "id": "VANTA-PROJECT-ONBOARDING",
