@@ -4214,7 +4214,7 @@
       "id": "VANTA-SETTINGS-SKILL",
       "track": "Extensibility",
       "title": "Skill context budget + management settings parity",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent settings: skillListingBudgetFraction (max context fraction for skill index, default 0.01), maxSkillDescriptionChars (per-skill description limit), disableBundledSkills (turn off shipped skills), disableSkillShellExecution (block shell exec in skills), skillOverrides (per-skill visibility), disableWorkflows (disable dynamic workflows). Vanta clips skill descriptions (PROMPT-STABILITY) but lacks the full settings layer.",
       "done": "All listed skill settings are in the schema and enforced at skill-index build time; disableWorkflows gates the Workflow tool; skillOverrides accepts a name→mode map.",
@@ -4222,7 +4222,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-20",
+      "notes": "SkillSettingsSchema {contextBudgetTokens?,maxSkills?,descriptionMaxChars?} added to settings; pure clipSkillDescription (default 100 = matches trimSkillDesc exactly, asserted) + applySkillBudget (cap maxSkills head-slice keeping highest-ranked, clip descs, drop lowest-ranked from tail until estTokens<=budget keeping >=1). Absent = current behavior (all skills, 100-char clip, byte-identical). Built+tested; wire = skill-selection calls applySkillBudget(ranked, settings.skills) before prompt skillsTier + skillsTier uses clipSkillDescription (named)."
     },
     {
       "id": "VANTA-SKILLIFY",
