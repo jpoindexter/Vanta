@@ -3611,7 +3611,7 @@
       "id": "VANTA-VIM-UNDO-REDO",
       "track": "Operator",
       "title": "`/undo` as alias for `/rewind` — consistent session rollback UX",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "another agent (v2.1.108) makes `/undo` an alias for `/rewind`, so the more intuitive command name works. Both now open the rewind checkpoint picker.",
       "done": "Typing `/undo` opens the same rewind menu as `/rewind`. No behavioral difference — purely a discoverability improvement.",
@@ -3620,7 +3620,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "RECONCILE/N-A-as-specified: Vanta ALREADY has BOTH /undo (drop the last conversation turn) AND /rewind [id] (list/restore per-edit file checkpoints) — two DISTINCT, both-valid rollback operations. The card asks to make /undo an ALIAS of /rewind, which would REGRESS the conversation-turn undo (delete valid behavior — violates never-delete-valid-work). The consistent rollback UX the card wants is already served by having both clearly-described commands. Parked unless a deliberate UX redesign merges them."
     },
     {
       "id": "VANTA-USAGE-MERGED",
@@ -4356,7 +4357,7 @@
       "id": "VANTA-PLUGIN-DEPS",
       "track": "Extensibility",
       "title": "Plugin dependency resolution — apt-style presence guarantees with cycle detection",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Plugins can declare dependencies on other plugins. Resolution: DFS walk at install time with cycle detection; load-time `verifyAndDemote` demotes plugins with unsatisfied deps (session-local, no settings write). Cross-marketplace deps blocked. Bare dep names inherit declaring plugin's marketplace.",
       "done": "Installing plugin A with dep on B installs B first; circular deps rejected at install time; if B is removed, A is demoted (not errored) at load time.",
@@ -4365,7 +4366,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure parsePluginDeps (reads dependsOn off the RAW manifest like lsp-config since the strict schema drops unknown keys; tolerant non-array/absent/non-object -> [], drops non-strings/blanks, trims, dedupe first-wins, DROPS self-refs) + PluginNode{name,dependsOn} + resolveLoadOrder ({ok,order}|{ok:false,kind:missing|cycle,detail}) + missingDeps + detectCycle. ALGO: Kahn topo sort (indegree over present-node edges; ready nodes emitted in INPUT order so no-deps preserves original order + stable ties) + DFS grey-set cycle detection (returns the closed cycle path; self-cycle a->a). Missing checked BEFORE cycle. All errors-as-values — never throws (explicit no-throw tests). Tested: chain A->B->C=>C,B,A, diamond, multi-root, no-deps, missing, two-node + self cycle, missing-precedes-cycle, empty + parse tolerance. Built+tested; wire = loader loadEnabledPlugins parsePluginDeps per plugin -> resolveLoadOrder -> load in order, REFUSE on {ok:false} (named). No deps = original order."
     },
     {
       "id": "VANTA-MONITOR-MCP-TASK",
