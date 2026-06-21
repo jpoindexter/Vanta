@@ -19,6 +19,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "setup", desc: "configure the model backend — opens the provider/model picker" },
   { name: "tools", desc: "list available tools" },
   { name: "skills", desc: "list learned + installed skills" },
+  { name: "skillify", arg: "[name]", desc: "distill this session into a draft SKILL.md (write_skill saves it — not auto-written)" },
   { name: "status", desc: "kernel, provider, keys, store health" },
   { name: "health", desc: "capability health — gmail/search/vision/browser/mcp + the exact fix for each gap" },
   { name: "world", arg: "[query]", desc: "view Vanta's world model — entities + relationships across your systems" },
