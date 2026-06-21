@@ -50,14 +50,17 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
 
 **Agent (TypeScript):**
-- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 90 registered tools and 99 slash commands
+- Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 122 registered tools and 125 slash commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
 - **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
+- **Voice & terminal** — push-to-talk voice input (local whisper STT), live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
+- **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
+- **Personal tuning** — `vanta tune lora` trains a local LoRA adapter from your accepted/rejected operator decisions (real MPS/CUDA/CPU training)
 - **Code & dev** — scoped file editing, grep/glob, `run_code`, LSP diagnostics/definition (TS), git tools, regression locks
 - **Autonomous** — cron scheduler, background tasks, subagent delegation, swarm/workflow, A2A bus, team workers
-- **Parallel work** — `vanta fleet run/status/review/accept` fans independent tasks into isolated worktrees for review
+- **Parallel work** — `vanta fleet run/status/review/accept` fans independent tasks into isolated worktrees for review; `vanta fleet tmux` runs a live one-pane-per-task tmux swarm
 - **Auto-research** — `vanta auto-research --objective --metric --bounds` runs an unattended metric loop and keeps only improving candidate commits
 - **Meta-tune** — `vanta meta-tune instructions` scores bounded `PROGRAM.md` variants against evals and requires approval before adoption
 - **Operator systems** — world model, Money OS, opportunity radar, life-wide search, self-repair compartments, reach doctor
