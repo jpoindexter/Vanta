@@ -11658,7 +11658,7 @@
       "id": "MSG-ADAPTER-EMAIL",
       "track": "Operator",
       "title": "Messaging adapter — Email (IMAP + SMTP)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Build the live PlatformAdapter for Email (IMAP + SMTP) (gateway/platforms/email.ts) — connect/disconnect/send/poll over the Email (IMAP + SMTP) API, wired to the catalog entry (registry.ts id 'email'). Approach: IMAP IDLE/poll for inbound + SMTP send (imapflow + nodemailer, or zero-dep). Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
       "done": "Email (IMAP + SMTP) works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
@@ -11667,10 +11667,11 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14",
+      "updated": "2026-06-21",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ]
+      ],
+      "notes": "Pure/injectable parseEmailMessage (raw {from,subject,body,messageId,date?} -> InboundMessage: chatId=from=sender, text=stripControl(stripQuotedReply(body)), id=messageId, isGroup:false) + stripQuotedReply (cuts at first On .. wrote: attribution + trims trailing leading-> quote block) + buildEmailReply (to=sender, subject=Re: <orig> SINGLE-prefix no Re:Re:, body verbatim) + parseEmailAllowlist (VANTA_EMAIL_ALLOWLIST comma -> lower Set, empty -> all) + emailEnabled (VANTA_EMAIL_IMAP_HOST AND VANTA_EMAIL_SMTP_HOST) + EmailAdapter implements PlatformAdapter over injected {fetchInbox,sendMail} (poll fetches+parses+allowlist-filters + learns each senders subject Map for the Re: reply WITHOUT touching base.ts; send builds+control-strips+sends; poll/send NEVER throw). SECURITY: quoted-reply history stripped so a FORGED reply chain is never echoed to the agent; inbound+outbound body control-stripped; IMAP/SMTP passwords=SECRET flow ONLY through the injected transport (imapSmtpTransport at the wire), NEVER a literal (gitleaks-safe). Most-distinct messaging adapter (IMAP/SMTP not a chat API). Built+tested; wires = registry MESSAGING_CATALOG email entry flip implemented:true + resolve.ts resolvePlatform emailEnabled branch (named, live IMAP/SMTP = boundary). Not configured = disabled."
     },
     {
       "id": "MSG-ADAPTER-TEAMS",
