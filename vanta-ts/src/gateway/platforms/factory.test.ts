@@ -53,10 +53,16 @@ describe("createAdapter", () => {
     expect((adapter as { id: string }).id).toBe("signal");
   });
 
-  it("returns a clear error for an unimplemented platform id", () => {
-    const result = createAdapter("whatsapp", { VANTA_WHATSAPP_ENABLE: "1" });
+  it("returns the whatsapp adapter when its token + phone id are set", () => {
+    const adapter = createAdapter("whatsapp", { VANTA_WHATSAPP_TOKEN: "t", VANTA_WHATSAPP_PHONE_ID: "p" });
+    expect(isErr(adapter)).toBe(false);
+    expect((adapter as { id: string }).id).toBe("whatsapp");
+  });
+
+  it("returns a not-configured error for whatsapp without its env", () => {
+    const result = createAdapter("whatsapp", {});
     expect(isErr(result)).toBe(true);
-    expect((result as { error: string }).error).toMatch(/No messaging adapter for "whatsapp"/);
+    expect((result as { error: string }).error).toMatch(/not configured/);
   });
 
   it("returns a clear error for an unknown id and lists the implemented ones", () => {
@@ -103,7 +109,7 @@ describe("resolveMessagingAdapter", () => {
 });
 
 describe("implementedPlatformIds", () => {
-  it("lists exactly the six implemented messaging platforms in priority order", () => {
+  it("lists exactly the implemented messaging platforms in priority order", () => {
     expect(implementedPlatformIds()).toEqual([
       "telegram",
       "mattermost",
@@ -111,6 +117,7 @@ describe("implementedPlatformIds", () => {
       "ntfy",
       "imessage",
       "signal",
+      "whatsapp",
     ]);
   });
 });

@@ -5,6 +5,7 @@ import { MattermostAdapter, parseChannelAllowlist } from "./mattermost.js";
 import { IrcAdapter, parseNickAllowlist } from "./irc.js";
 import { IMessageAdapter } from "./imessage.js";
 import { SignalAdapter } from "./signal.js";
+import { WhatsappAdapter, httpTransport as whatsappTransport, parseWhatsappAllowlist } from "./whatsapp.js";
 
 // Messaging adapter factory — the platform analogue of `providers/index.ts`'s
 // `resolveProvider`. Each implemented platform is ONE registration entry below
@@ -88,6 +89,16 @@ const ADAPTERS: Record<string, AdapterEntry> = {
       new SignalAdapter({
         baseUrl: env.VANTA_SIGNAL_URL!.trim(),
         number: env[SIGNAL_NUMBER_ENV]!.trim(),
+      }),
+  },
+  whatsapp: {
+    // WhatsApp Cloud API: needs the access token + sender phone-number id. Inbound
+    // arrives via the webhook (poll is webhook-fed); outbound POSTs to the Cloud API.
+    configured: (env) => has(env, "VANTA_WHATSAPP_TOKEN") && has(env, "VANTA_WHATSAPP_PHONE_ID"),
+    build: (env) =>
+      new WhatsappAdapter({
+        transport: whatsappTransport(env.VANTA_WHATSAPP_TOKEN!.trim(), env.VANTA_WHATSAPP_PHONE_ID!.trim()),
+        allow: parseWhatsappAllowlist(env),
       }),
   },
 };

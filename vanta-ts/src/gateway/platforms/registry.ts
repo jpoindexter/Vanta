@@ -73,17 +73,18 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
   },
   {
     id: "whatsapp",
-    label: "WhatsApp (unofficial bridge)",
-    implemented: false,
-    requiredEnv: ["VANTA_WHATSAPP_ENABLE"],
-    enableEnv: { VANTA_WHATSAPP_ENABLE: "1" },
-    prerequisite: "Node installed; a one-time QR pair from your phone.",
-    warning:
-      "Unofficial — risks WhatsApp account bans and breaks on protocol changes. The WhatsApp Business API is the ToS-safe path for a real account.",
+    label: "WhatsApp (Cloud API)",
+    implemented: true,
+    requiredEnv: ["VANTA_WHATSAPP_TOKEN", "VANTA_WHATSAPP_PHONE_ID"],
+    secretEnv: "VANTA_WHATSAPP_TOKEN",
+    signupUrl: "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started",
+    prerequisite: "A Meta WhatsApp Business app with the Cloud API enabled (a phone-number id + access token).",
     setupSteps: [
-      "Ensure Node is installed (the bridge runs as a subprocess).",
-      "Start the gateway, then scan the QR shown in the logs from WhatsApp → Linked Devices.",
-      "Credentials are stored in ~/.vanta/whatsapp/ (outside the repo).",
+      "Create a Meta app, add the WhatsApp product, and note the test/real phone-number id.",
+      "Generate a Cloud API access token (a permanent system-user token for production).",
+      "Set VANTA_WHATSAPP_TOKEN (the token) + VANTA_WHATSAPP_PHONE_ID (the sender phone-number id).",
+      "Point the WhatsApp webhook at your gateway's webhook URL so inbound messages reach Vanta.",
+      "Optionally set VANTA_WHATSAPP_ALLOWLIST to a comma list of wa_ids to accept.",
     ],
   },
   {

@@ -12,9 +12,9 @@ describe("buildMessagingEnv", () => {
     expect(buildMessagingEnv(tg, "123:abc")).toEqual({ VANTA_TELEGRAM_TOKEN: "123:abc" });
   });
 
-  it("writes the enable flag (no secret) for whatsapp", () => {
-    const wa = messagingPlatformById("whatsapp")!;
-    expect(buildMessagingEnv(wa)).toEqual({ VANTA_WHATSAPP_ENABLE: "1" });
+  it("writes the enable flag (no secret) for an enable-flag platform (imessage)", () => {
+    const im = messagingPlatformById("imessage")!;
+    expect(buildMessagingEnv(im)).toEqual({ VANTA_IMESSAGE_ENABLE: "1" });
   });
 
   it("omits the secret key when no secret is given", () => {
@@ -31,18 +31,18 @@ describe("renderMessagingMenu", () => {
 
   it("tags unimplemented platforms as planned", () => {
     const menu = renderMessagingMenu({});
-    expect(menu).toMatch(/WhatsApp.*\[planned\]/);
-    // iMessage and Signal are now implemented (available or configured, not planned)
+    expect(menu).toMatch(/Teams.*\[planned\]/);
+    // iMessage/Signal/WhatsApp are now implemented (available or configured, not planned)
     expect(menu).not.toMatch(/iMessage.*\[planned\]/);
+    expect(menu).not.toMatch(/WhatsApp.*\[planned\]/);
   });
 });
 
 describe("renderSetupSteps", () => {
-  it("includes the warning + prerequisite for whatsapp", () => {
+  it("includes the prerequisite + setup steps for whatsapp (Cloud API)", () => {
     const out = renderSetupSteps(messagingPlatformById("whatsapp")!);
-    expect(out).toMatch(/⚠/);
     expect(out).toMatch(/prerequisite:/);
-    expect(out).toMatch(/QR/i);
+    expect(out).toMatch(/Cloud API/i);
   });
 
   it("numbers the telegram steps and shows the BotFather link", () => {
