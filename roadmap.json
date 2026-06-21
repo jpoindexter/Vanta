@@ -2486,7 +2486,7 @@
       "id": "VANTA-MONITOR",
       "track": "Harness",
       "title": "Monitor tool — reactive line-by-line command monitoring",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a Monitor tool that runs a shell command in the background and fires a callback on each output line, enabling event-driven loops (watch a build, react to log lines, stream deploy output). Vanta runs BG tasks but has no line-by-line reactive tool.",
       "done": "A `monitor` tool runs a command and routes each output line as a tool result; the agent can act on each line before the process finishes.",
@@ -2494,7 +2494,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-21",
+      "notes": "Pure parseMonitorPatterns (string ERROR -> alert pattern; object validated, label/kind defaults, garbage dropped, PATTERN_MAX 200) + matchLine (ANSI-stripped line, LITERAL substring test, no patterns/no match -> []) + accumulateMatch (append matches, bump per-label counts, set ready on a ready-pattern; pure) + summarizeMonitor (✓ ready · N alerts · …). SECURITY: literal substring NOT regex = O(n·m) no backtrack so a hostile (a+)+$ cant ReDoS (verified 5000 a in <100ms); LINE_MAX 4000. Reuses bash-io stripKeepNewlines. Built+tested; wire = a monitor tool / shell-cmd streaming feeds each output line through accumulateMatch (named, process stream = boundary). No patterns = none."
     },
     {
       "id": "VANTA-EXEC-BG",
