@@ -13102,14 +13102,15 @@
       "id": "EPHEMERAL-UI-GEN",
       "track": "Operator",
       "title": "Ephemeral UI generation — agent serves a task-specific dashboard on demand",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Karpathy's 'claw presents you UIs / ephemeral software' + Dobby's command-center dashboard: generate and serve a quick task-specific dashboard/UI on demand (a control panel for discovered devices, a data view) instead of a permanent app. Vanta has roadmap/server.ts + desktop-app as references; add a tool that generates a self-contained HTML dashboard from data/spec and serves it locally.",
       "done": "a tool generates a self-contained HTML dashboard from supplied data/spec and serves it on a local port (like roadmap serve), scoped/reversible; pure generator tested; committed.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "tui",
-      "updated": "2026-06-18"
+      "updated": "2026-06-21",
+      "notes": "Pure DashboardSpec{title,sections[]} (section kinds keyvalue rows / table columns+rows / text body, all readonly) + buildDashboardHtml (complete self-contained HTML, inline <style> only NO scripts/external assets; empty sections -> No data page; empty title -> Dashboard) + resolveEphemeralPort (VANTA_EPHEMERAL_PORT or 7790, clamp 1024..65535) + ephemeralUiEnabled (VANTA_EPHEMERAL_UI=1, default OFF) + escapeHtml (<>&\"&apos; & first; stronger than the repos 4-char esc). SECURITY (hard-tested): a <script>alert(1)</script> AND an attr-breakout \"><img onerror= payload in EVERY field render as escaped entities / inert text — never a live tag (load-bearing property: no live tag, not cosmetic text removal); tests assert no <script>/<link href>/src=/inline on* handler. Built+tested; wire = an ephemeral_ui tool buildDashboardHtml -> localhost 127.0.0.1 Node http server (mirrors roadmap/server) + auto-close timeout, returns the URL (named, serve = boundary). Empty = minimal page; default off."
     },
     {
       "id": "VOICE-CALIBRATION",
