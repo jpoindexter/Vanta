@@ -12518,13 +12518,14 @@
       "id": "ARCH-DEAD-BRAIN-CLEANUP",
       "track": "Harness",
       "title": "Resolve dormant brain variants (v2 + brain5d) under the new port",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: brain/v2.ts and brain/entries.ts (brain5d) have zero consumers — their presence implies a swappability the code doesn't provide. After PORT-BRAIN-INTERFACE, EITHER wire them as real adapters behind the Brain port OR delete them. Decide per variant: brain5d (ready) -> adapter behind VANTA_BRAIN; v2 scaffold -> delete if not progressing. No dead code masquerading as modularity. Depends on PORT-BRAIN-INTERFACE.",
       "done": "Each dormant brain variant is either a registered adapter behind the Brain port or deleted; no unreferenced brain implementation remains in the tree.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-21",
+      "notes": "RECONCILE (verified, no delete — never-delete-valid-work): brain5d + neuro = RESOLVED, fully ABSORBED into brain/entries.ts by the 06-11 BRAIN-COHESIVE work (standalone modules deleted; only referenced in entries.ts as the migration source + one-time brain5d.json migration). brain/v2.ts = intentionally PARKED experimental self-evolving substrate behind VANTA_BRAIN_V2=1 (DECISIONS 2026-06-11): verified ZERO production imports (rg --glob !*.test.ts -> none; the ui/launch.tsx v2 match is ui/v2 TUI shell, NOT brain/v2), only its own brain/v2.test.ts imports it, env-gated + kernel-gated writes, git-versioned. NOT dead code (deliberately parked, isolated, tested) — kept. Cleanup outcome: dormant variants resolved (absorbed) or properly isolated (parked behind a flag); nothing orphaned to delete."
     },
     {
       "id": "MEM-RETRIEVAL-EVAL",
@@ -14849,7 +14850,7 @@
       "id": "COFOUNDER-ANTI-SLOP",
       "track": "Cofounder engine",
       "title": "Fold 5-test slop diagnostic into anti-slop",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Strengthen the existing anti-slop with a slop-signature blocklist, a 5-test diagnostic, and suppression techniques (refuse-first-three, force-specificity-via-proper-nouns, weirdness budget). 'Name-dropping a tech stack is NOT specificity' is the sharp reusable rule.",
       "done": "Idea-generation output is run through the 5-test diagnostic and specificity rule; the existing anti-slop gains the blocklist + suppression techniques; diagnostics unit-tested.",
@@ -14858,8 +14859,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "selfhood",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Pure 5-test substance slop diagnostic (verify/, alongside the existing repl/anti-slop.ts VOICE-drift axis): hedgeDensity (weasel words/100w) + fillerDensity (boilerplate phrases) + buzzwordDensity (synergy/leverage/holistic..) + lacksSpecifics (no numbers/proper-nouns/code-tokens -> sloppy) + restatesPrompt (answer-vs-prompt overlap without new tokens) -> runSlopDiagnostic (tests:SlopTest[] {id,label,failed,detail?} ids [hedge,filler,no-specifics,restates-prompt,buzzword]; slopScore weighted avg; isSlop = slopScore>0.34 OR >=3 fail) + formatSlopReport (slop N% — failed: ids / — clean). Substantive text -> low score isSlop false; slop -> high + failed ids; empty -> 1.0 all-failed. Thresholds heuristic, tuned to clear cases not over-fit. Built+tested; wire = the Cofounder work-product reviewer / anti-slop caller runs runSlopDiagnostic(text,prompt) + rejects/flags when isSlop (named)."
     },
     {
       "id": "SOL-MIXTURE-OF-AGENTS",
