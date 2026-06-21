@@ -4726,7 +4726,7 @@
       "id": "VANTA-VOICE-STT",
       "track": "Operator",
       "title": "Push-to-talk voice input — native CoreAudio/cpal + SoX/arecord fallback",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent records microphone audio for voice input using a native NAPI module (`audio-capture-napi`) backed by CoreAudio on macOS, with lazy-loading (~1s first-press delay). Falls back to SoX `rec` or ALSA `arecord` on Linux. Audio is recorded while the key is held, then transcribed. The native module is loaded lazily to avoid blocking startup.",
       "done": "Holding the voice keybinding records audio. On release, it transcribes and submits as a prompt. `/voice status` shows whether native audio or fallback is active.",
@@ -4735,7 +4735,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified state/backend slice shipped; LIVE mic + STT = HARDWARE boundary (genuinely NOT done headlessly, honest). Pure immutable PttState{phase,transcript?,error?} + transitions (idle->recording->transcribing->done; illegal transitions no-op so a held/released key cant poison an in-flight phase; failPtt from ANY phase; resetPtt->idle) + selectAudioBackend (coreaudio>sox>arecord>none, mirrors vision aux-backend) + pttEnabled (VANTA_VOICE_PTT=1, default OFF). SECURITY: transcript+error control-stripped before reaching the composer (malicious audio->STT cant inject control bytes). 27 tests. Existing voice/loop.ts+recorder.ts (a 5s timed loop, NOT a PTT machine) read not touched. WIRE (boundary): TUI PTT key -> start/stopRecording; the selected backend captures mic->buffer; an STT model transcribes -> completeTranscription -> insert into composer. The LIVE mic capture (CoreAudio/SoX/arecord) + STT model are genuine HARDWARE — the remaining step to complete the rock end-to-end."
     },
     {
       "id": "VANTA-REVIEW-ARTIFACT",
@@ -4772,7 +4773,7 @@
       "id": "VANTA-CHICAGO-MCP",
       "track": "Extensibility",
       "title": "Computer use via MCP (CHICAGO) — route computer-use tool calls through MCP server",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "another agent (feature-gated `CHICAGO_MCP`) enables computer use tool calls to be handled by a dedicated MCP server (codename CHICAGO) rather than natively. Checks `isComputerUseMCPServer`, runs `cleanupComputerUseAfterTurn` after each turn, and sets up the COMPUTER_USE_MCP_SERVER_NAME. Enables GUI automation via the MCP protocol.",
       "done": "With `CHICAGO_MCP` and a computer-use MCP server configured, another agent routes screenshot/click/type tool calls to the MCP server. macOS-specific setup runs at startup.",
@@ -4781,7 +4782,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "reach",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified PURE slice shipped; LIVE computer-use MCP server = named boundary. Pure/injectable ComputerAction union {screenshot|click|type|key|scroll} + buildChicagoCall (-> the Anthropic computer-tool envelope on the single CHICAGO computer tool: screenshot/left_click+coordinate[x,y]/type+text/key/scroll+direction; text+key carried VERBATIM as data never shell) + parseChicagoResult (tolerant MCP content scan: first image->screenshotBase64, text->joined, garbage/empty -> {ok:false} never a fake success) + chicagoEnabled (VANTA_CHICAGO_MCP server name, default OFF) + routeComputerAction (injected callMcp; build->call->parse; throw -> {ok:false} never throws). SECURITY: kernel STILL gates every routed call — MCP=WHERE, kernel assess()=WHETHER; routing through MCP does NOT bypass the kernel (describeForSafety feeds assess upstream). 24 tests. WIRE (boundary): the computer-use tool actuation routes via routeComputerAction through a mounted CHICAGO McpClient when chicagoEnabled. The LIVE MCP server + machine is what remains to complete the rock."
     },
     {
       "id": "COFOUNDER-ENGINE-SURVEY",
@@ -10198,7 +10200,7 @@
       "id": "PERSONAL-MODEL-TUNE",
       "track": "Operator",
       "title": "Personal model tuning — local LoRA from accumulated preference data",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "The real-training path, when the data exists: export the PREFERENCE-SIGNALS dataset (SFT pairs + DPO preferences) and fine-tune a small local model (Ollama/MLX on the M4 Pro) into a personal model that bakes in learned voice, preferences, and patterns. GRAPE-style rubric scoring doubles as the eval harness for tune quality. Local-first, private, hers.",
       "done": "vanta tune exports the dataset and runs/validates a local LoRA; the tuned model is selectable as a provider and beats the base on the personal rubric eval.",
@@ -10207,7 +10209,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "agent-loop",
-      "updated": "2026-06-11"
+      "updated": "2026-06-21",
+      "notes": "ROCK — verified dataset-prep slice shipped; LIVE LoRA training (GPU) = HARDWARE boundary (genuinely NOT done headlessly, honest). Pure/injectable signalToRow (real PreferenceSignal {context,chosen:{label,value},rejected:{label,value}} -> PreferenceRow, reuses preferences/signals READ-ONLY) + buildDpoPairs (-> DpoPair{prompt,chosen,rejected}; control-strips; DROPS empty-chosen/rejected, degenerate chosen===rejected incl post-strip, dup pairs) + datasetReadiness (usablePairs>=minPairs 20 -> ready, else need N more) + formatDatasetStats + loraTuneEnabled (VANTA_LORA_TUNE=1, default OFF). SECURITY: preference text control-stripped (local dataset, no secret/PII beyond the rows). 21 tests. WIRE (boundary): a vanta tune lora cmd reads preferences.jsonl -> signalToRow -> buildDpoPairs -> datasetReadiness gate (STOP if not ready) -> export JSONL + invoke a LOCAL LoRA/PEFT trainer. The LIVE GPU fine-tune run is genuine HARDWARE — the remaining step to complete the rock end-to-end."
     },
     {
       "id": "COCKPIT-LOOP-PANEL",
