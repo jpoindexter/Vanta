@@ -3734,7 +3734,7 @@
       "id": "VANTA-SESSION-PREVIEW",
       "track": "Operator",
       "title": "Session preview — visual session content preview in resume picker",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's SessionPreview renders a thumbnail-style preview of a session's content (first user message, message count, last activity, model) in the session resume picker. Vanta's session list (/resume) shows ID + timestamp only.",
       "done": "/resume shows a list with session previews: first prompt (truncated), message count, last-active timestamp, model used; arrow keys navigate; Enter resumes; sessions are searchable by content.",
@@ -3742,7 +3742,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "Pure buildSessionPreview(session, nowMs) ({title, turns=user-msg count, ageLabel via reused formatMessageTime, firstPrompt = first user msg, lastSnippet = last user/assistant msg; both truncate 80 + control/ANSI stripped; empty->empty:true}) + formatSessionPreview (▸ <title> · N turns · <age> + indented firstPrompt + ↳ lastSnippet; empty -> ▸ <title> · (empty)). nowMs injected, deterministic. Built+tested; resume-picker wire = repl/session-cmds sessions handler (needs loadSession for messages) + ui/use-overlay sessionRows (named)."
     },
     {
       "id": "VANTA-SEARCH-BOX",
