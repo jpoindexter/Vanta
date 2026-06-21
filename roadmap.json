@@ -3502,7 +3502,7 @@
       "id": "VANTA-SANDBOX-VIOLATION",
       "track": "Operator",
       "title": "Sandbox violation expanded view — detailed breakdown of blocked sandbox actions",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a `SandboxViolationExpandedView` component that renders an expanded view of sandbox policy violations. When the kernel blocks an action in sandbox mode, the expanded view shows which policy was violated, the command attempted, and context for the decision.",
       "done": "When a sandboxed tool call is blocked, the TUI shows an expandable violation panel listing the blocked command, rule violated, and why it was stopped.",
@@ -3511,7 +3511,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseSandboxViolation (recognizes macOS Seatbelt deny(1) <op> <target>, Linux bwrap/Operation not permitted, network-unreachable -> SandboxViolation{kind file-write|file-read|network|exec|unknown,target,rule}; null when not a sandbox deny) + violationHint (file-write->VANTA_WRITABLE_DIRS, file-read->VANTA_READABLE_DIRS, network->VANTA_SANDBOX_NET=1, exec->unset VANTA_SANDBOX) + formatSandboxViolation (⛔ block + target control-stripped + hint). READ-ONLY. Built+tested; error-path wire = dispatch-tool tool boundary on non-zero exit under VANTA_SANDBOX=1 (named). Non-sandbox error = plain."
     },
     {
       "id": "VANTA-MCP-MULTISELECT",
