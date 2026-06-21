@@ -4,6 +4,7 @@ import { loadCron as defaultLoadCron, isDue } from "./cron.js";
 import type { CronEntry } from "./cron.js";
 import { wakeContextForCron } from "../loop/wake.js";
 import type { WakeContext } from "../loop/types.js";
+import type { ImageAttachment } from "../types.js";
 import {
   fireWindowKey,
   shouldFire,
@@ -55,7 +56,11 @@ export async function saveLastFired(
  * stays testable and decoupled from full agent wiring — `cli.ts` passes a real
  * implementation that calls `runAgent` and gates through the kernel.
  */
-export type RunTask = (instruction: string, wake?: WakeContext) => Promise<{ finalText: string }>;
+export type RunTask = (
+  instruction: string,
+  wake?: WakeContext,
+  images?: ImageAttachment[],
+) => Promise<{ finalText: string }>;
 
 export type DueTaskResult = { id: number; instruction: string; result: string };
 

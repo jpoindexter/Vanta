@@ -50,8 +50,9 @@ export async function runAgent(
   systemPrompt: string,
   instruction: string,
   deps: AgentDeps,
+  images?: ImageAttachment[],
 ): Promise<AgentOutcome> {
-  return createConversation(systemPrompt, deps).send(instruction);
+  return createConversation(systemPrompt, deps).send(instruction, images);
 }
 
 // sanitizeMessages re-exported for tests that import it from agent.ts

@@ -4,10 +4,23 @@
 // platforms like Telegram's getUpdates. A pull model fits the gateway's tick
 // loop without a long-lived socket.
 
+// MSG-MEDIA-IMAGES — an inbound attachment: an image (→ vision) or audio/voice
+// (→ transcription). Carries inline bytes OR a url the bridge fetches.
+export type MediaAttachment = {
+  kind: "image" | "audio";
+  mime: string;
+  /** Inline base64 bytes, when the platform delivers them. */
+  dataBase64?: string;
+  /** A url to fetch the bytes from, when the platform delivers a link instead. */
+  url?: string;
+};
+
 export type InboundMessage = {
   /** Platform-specific conversation id (Telegram chat id, etc.). */
   chatId: string;
   text: string;
+  /** MSG-MEDIA-IMAGES — inbound media: images go to vision, voice memos to STT. */
+  media?: MediaAttachment[];
   /** Display name / handle of the sender, when the platform provides it. */
   from?: string;
   /** Platform message id, when available — used for replay-dedup + reply lookup. */
@@ -31,6 +44,8 @@ export type OutboundMessage = {
   text: string;
   /** Platform message id assigned to the sent message, when known (reply-context key). */
   id?: string;
+  /** MSG-MEDIA-IMAGES — an image to send back with the reply (screenshot, chart, generated). */
+  image?: { mime: string; dataBase64: string };
 };
 
 export interface PlatformAdapter {
