@@ -12376,13 +12376,14 @@
       "id": "ARCH-BOUNDARY-PRECOMMIT",
       "track": "Harness",
       "title": "Pre-commit hook runs the boundary check",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Run scripts/check-boundaries.mjs in a pre-commit git hook (and optionally a another agent PostToolUse hook) so violations surface before CI. Non-blocking on grandfathered warnings, blocking on hard rules. Depends on ARCH-BOUNDARY-FITNESS.",
       "done": "Committing a hard boundary violation is blocked locally by a pre-commit hook before it reaches CI.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-06-21",
+      "notes": "WIRED the existing architectural fitness check (src/arch/cli.ts over arch/boundaries.ts = the 5 port/adapter boundaries; its header already said for CI/pre-commit but it was never wired) INTO scripts/pre-commit, after the size-gate step + mirroring it: runs tsx src/arch/cli.ts when TS is staged + tsx present (whole-repo check, fast), hard-blocks by default with VANTA_BOUNDARY_BLOCK=0 for warn-only (parallels VANTA_LINT_BLOCK), skips cleanly when no TS staged. Verified the repo currently PASSES (✓ all 5 architectural boundaries hold, exit 0) BEFORE wiring so the step cant block a legitimate commit. The hook is symlinked into .git/hooks via install.sh so the edit is immediately live (this very commit ran the new step). Now a cross-boundary import cant slip in."
     },
     {
       "id": "PORT-BRAIN-INTERFACE",
