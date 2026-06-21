@@ -4292,7 +4292,7 @@
       "id": "VANTA-AGENTS-DIR",
       "track": "Extensibility",
       "title": ".claude/agents/ — custom agent definitions from markdown files",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Load custom agent definitions from .claude/agents/*.md. Frontmatter declares effort, allowed tools, MCP servers, tool filters, description. Like skills but specifically for spawning as named sub-agents via @AgentType mention in prompts.",
       "done": "Files in .claude/agents/ appear in @-completions and can be spawned as named sub-agents; frontmatter fields (effort, tools, description) parsed and applied.",
@@ -4301,7 +4301,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable CustomAgentDef{name,description,allowTools?,model?,systemPrompt} + parseAgentDef (frontmatter name/desc/tools/model + body->systemPrompt; tolerant: missing name->slug, missing tools->unrestricted, empty body->minimal) + listAgentDefs (.claude/agents + ~/.vanta/agents via injected reader, project wins) + resolveAgentType (custom by name case-insensitive wins over same-named built-in; built-in-only -> built-in; unknown -> general-purpose; reuses resolveBuiltinAgent). SECURITY: allowTools only narrows; tools/prompt still kernel-gated — cant grant a blocked tool. Built+tested; wire = delegate runDelegate loads defs + resolveAgentType -> exclude+persona+model (named). No files = built-ins only."
     },
     {
       "id": "VANTA-SKILL-IMPROVEMENT",
