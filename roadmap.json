@@ -3518,7 +3518,7 @@
       "id": "VANTA-MCP-MULTISELECT",
       "track": "Operator",
       "title": "MCP server multiselect dialog — batch-enable project MCP servers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent shows a `MCPServerMultiselectDialog` when a project has multiple pending MCP servers in `.mcp.json`. Users can space-select which servers to enable before confirming. More efficient than approving servers one by one through `MCPServerApprovalDialog`.",
       "done": "Opening a project with 3 MCP servers shows a checklist dialog. Selecting 2 and pressing Enter enables those servers for the project.",
@@ -3527,7 +3527,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/immutable MultiSelectState{items,cursor,checked} + openMultiSelect(items,preChecked) + moveCursor(clamp no-wrap) + toggleChecked(only cursor item) + setAll(true|false) + chosenItems(checked NAMES in list order) + formatMultiSelect (▸ [x]/[ ] rows + [space] toggle · [a] all · [enter] confirm, names control-stripped). Never mutates input. Empty handled. Built+tested; mount-dialog wire = open with readMcpConfig server keys when .mcp.json >1, confirm -> chosenItems -> mountOneServer batch (named)."
     },
     {
       "id": "VANTA-MCP-PROJECT-APPROVE",
