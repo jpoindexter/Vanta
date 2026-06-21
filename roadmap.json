@@ -4248,7 +4248,7 @@
       "id": "VANTA-MCP-ELICITATION",
       "track": "Extensibility",
       "title": "MCP elicitation — in-session user input prompts from MCP servers (2025-11-05 spec)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Handles MCP `elicitation/create` requests from servers. Two modes: form (surfaces a dialog for user text input during tool execution) and url (opens browser URL, waits for completion notification via `notifications/elicitationComplete`). Pre/post hooks. Part of MCP 2025-11-05 spec.",
       "done": "MCP tool calling elicitation/create surfaces a dialog; user submits input; server receives the response; url mode opens browser; completion notification resolves the elicitation.",
@@ -4257,7 +4257,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure parseElicitationRequest (params.message + requestedSchema.properties/required -> {message,fields[type string|number|boolean,required]}; tolerant -> [] fields) + buildElicitationPrompt (message + numbered field list, full-ANSI-stripped 500-cap) + validateElicitationResponse (coerce by type; valid -> accept+content; missing/unparseable REQUIRED -> decline; absent optional omitted, never auto-filled) + elicitationCancel (current default shape). SECURITY: server text UNTRUSTED, control-stripped; never auto-fills/executes — only collects operator-typed input. Built+tested; wire = events.ts onElicitation parses -> injected prompter -> validate instead of always-cancel; empty schema/decline -> cancel (named). Delta over the existing always-cancel onElicitation."
     },
     {
       "id": "VANTA-DXT",
