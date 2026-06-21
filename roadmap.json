@@ -1461,7 +1461,7 @@
       "id": "VANTA-PURGE",
       "track": "Harness",
       "title": "vanta project purge — delete local project state",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `claude project purge [path]` deletes all local project state (sessions, auto-memory, checkpoints) for a given project, with `--dry-run`, `-y`, `-i` (interactive), and `--all` flags. Vanta has no cleanup command; stale state accumulates.",
       "done": "`vanta project purge [path]` lists and deletes project-scoped state (sessions + memory + .vanta/ data) with dry-run by default; `--yes` skips confirmation; `--all` purges all known projects.",
@@ -1469,7 +1469,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-06-21",
+      "notes": "PLAN + CONFIRM-GATE ONLY (Rule Zero: NO deletion code — grep-verified no rm/unlink/fs.rm/rmdir). Pure/injectable PURGE_STATE_PATHS (known .vanta state targets, verified vs live layout) + buildPurgePlan (resolves each rel under dataDir, EXCLUDES any path not contained in dataDir = isContained guard, skips non-existing, sizes from injected stat) + PURGE_CONFIRM_TOKEN purge project state + isPurgeConfirmed (exact token case-insensitive/trimmed; y/empty/near-miss -> false; mirrors bypass-dialog) + formatPurgePlan (Would remove N items (X KB) list + total + token instruction + Nothing is deleted yet dry-run note). Targets ONLY the per-project repo-local .vanta/ (NOT ~/.vanta home sessions/ — kept distinct so a project purge cant reach the global store). Built+tested; wire = vanta project purge: resolve dataDir -> plan -> show -> isPurgeConfirmed -> ONLY THEN kernel-gated delete (named, deletion DELIBERATELY unbuilt = boundary). Dry run mutates nothing."
     },
     {
       "id": "VANTA-SAFE-MODE",
