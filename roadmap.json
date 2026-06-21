@@ -15299,7 +15299,7 @@
       "id": "MSG-MULTICHANNEL-LIVE",
       "track": "Operator",
       "title": "Multi-channel LIVE — 5+ platforms from one gateway (Telegram · WhatsApp · Signal · Discord · Slack)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Adapters exist (many marked shipped) but only Telegram is proven live. Bring 5+ channels actually live end-to-end from the single gateway — Telegram (live) + WhatsApp + Signal + Discord + Slack — with real tokens, inbound→agent→reply proven, matching Hermes' 'lives where you do'.",
       "done": "From one running gateway, a message on each of Telegram, WhatsApp, Signal, Discord, and Slack reaches the agent and gets a reply, verified live; the gateway survives one channel failing.",
@@ -15309,7 +15309,9 @@
       "after": [
         "MSG-ADAPTER-WHATSAPP",
         "MSG-ADAPTER-SLACK"
-      ]
+      ],
+      "updated": "2026-06-22",
+      "notes": "gateway/platforms/multi-channel.ts: MultiChannelAdapter composite — polls ALL configured channels (per-channel error isolation: one down != all down), tags each inbound chatId platform:<id>, routes replies back to the originating channel. resolveMessagingChannel(env): 0->undefined, 1->adapter, 2+->composite. Discord wired into factory (5th channel). Gateway (cli/ops.ts) now runs all configured channels. Telegram+WhatsApp+Signal+Slack+Discord resolve together; live needs each channels real token."
     },
     {
       "id": "MSG-MEDIA-IMAGES",

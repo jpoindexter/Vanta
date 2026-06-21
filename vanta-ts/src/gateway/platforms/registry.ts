@@ -100,13 +100,15 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "discord", label: "Discord", implemented: false,
-    requiredEnv: ["VANTA_DISCORD_TOKEN"], secretEnv: "VANTA_DISCORD_TOKEN",
+    id: "discord", label: "Discord", implemented: true,
+    requiredEnv: ["VANTA_DISCORD_TOKEN", "VANTA_DISCORD_CHANNEL"], secretEnv: "VANTA_DISCORD_TOKEN",
     signupUrl: "https://discord.com/developers/applications",
     setupSteps: [
       "Create an application + bot in the Discord Developer Portal.",
       "Enable the MESSAGE CONTENT intent under Bot → Privileged Gateway Intents.",
       "Invite the bot to your server, then set VANTA_DISCORD_TOKEN.",
+      "Set VANTA_DISCORD_CHANNEL to the channel id the bot reads/replies in.",
+      "Optionally set VANTA_DISCORD_ALLOWLIST to a comma list of channel/user ids.",
     ],
   },
   {
