@@ -3594,7 +3594,7 @@
       "id": "VANTA-USAGE-MERGED",
       "track": "Operator",
       "title": "`/usage` — merged `/cost` and `/stats` into tabbed view",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.118) merges `/cost` and `/stats` into `/usage` with tabs. Both `/cost` and `/stats` still work as shortcuts that open the relevant tab. Includes per-model and cache-hit breakdown for subscription users.",
       "done": "Running `/usage` opens a tabbed panel with Cost and Stats tabs. `/cost` and `/stats` jump directly to their respective tab.",
@@ -3603,7 +3603,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure buildUsageView (labeled sections Cost (reuses formatSessionCost) / Session (turns + compact duration) / Tools (topTools count-desc, alpha tie-break, ×N) / Activity (reuses labeledSparkline when a series present); empty -> (no usage yet)) + topTools(n=5). Composes my sparkline + the cost formatter. Built+tested; /usage wire = context-cmds usage handler builds UsageData from ReplState + host-aggregated toolCounts/activitySeries (named)."
     },
     {
       "id": "VANTA-STATUS-LINE-GITHUB",
