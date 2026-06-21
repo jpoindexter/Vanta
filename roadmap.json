@@ -12832,17 +12832,18 @@
       "id": "PRUNE-CONTEXT-WIRE",
       "track": "Harness",
       "title": "Apply pruneText (real scorer) to an opt-in context path — measurable + usable",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] pruneTextAsync is a library fn, never applied in the loop, so prune's effect can't be measured or used. Apply it (with the real logprob scorer from WINNOW-LOGPROB-SCORER) to a bounded, opt-in context path (e.g., oversized pasted/inline context) behind VANTA_PRUNE=1, default OFF; reversible/safe — never prune code or precision reads. Makes prune measurable via the runner and usable in production.",
       "done": "opt-in prune applied to a defined context path, default off, never touches code/precision reads; tests; exercised by vanta eval compress prune; committed to vanta.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "WINNOW-LOGPROB-SCORER"
-      ]
+      ],
+      "notes": "LIVE WIRE (compress/apply.ts): pure/injectable pruneContextEnabled (VANTA_PRUNE_CONTEXT=1, default OFF) + pruneContextText (resolvePruneScorerKind(env,{logprobSource:false}) -> heuristic floor zero-config -> winnow pruneText at keepRatio 0.6; prune failure/inflating/same-length/empty -> ORIGINAL never throws) + a new exported pruneContext(text,env) seam in apply.ts a caller opts a chunk into. DEFAULT OFF = BYTE-IDENTICAL (asserted at BOTH layers: pruneContextText returns the exact input + never reaches the prune fn when off; pruneContext returns identical + tokensSaved:0); real-default ON test proves winnow pruneText actually shrinks tokens. Reuses PRUNE-SCORER-RESOLVE + WINNOW-LOGPROB-SCORER + winnow pruneText (no reimplementation). I re-verified the FULL suite myself (10187 green, tsc clean) since it edits a shared compress path. Non-kernel opt-in wire (safe to do at depth; the 2 kernel-approval-loop wires DELEGATED-AUTHORITY/CHANNEL-PERMISSIONS deferred to fresh attention per security discipline)."
     },
     {
       "id": "COMPRESSION-MEASURE",

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { applyCompression, compressEnabled, shouldCompressTool } from "./apply.js";
+import { applyCompression, compressEnabled, shouldCompressTool, pruneContext } from "./apply.js";
 import { compressText } from "./router.js";
 import { retrieveOriginal } from "./store.js";
 
@@ -104,5 +104,25 @@ describe("read-fidelity: the router WOULD mangle real reads (proving why the all
     // If this ran on a file read, line numbers would shift; allow-list prevents it.
     expect(shouldCompressTool("read_file")).toBe(false);
     expect(shouldCompressTool("lsp_definition")).toBe(false);
+  });
+});
+
+describe("pruneContext (opt-in context-pruning seam)", () => {
+  const CHUNK = [
+    "The system is going to process the request and then it will return a value.",
+    "Please note that the value of the threshold is 0.6 and the identifier is X9F2A.",
+    "It is important to be aware that the function will be called once per iteration.",
+  ].join(" ");
+
+  it("default OFF is byte-identical with zero tokens saved (the safety property)", () => {
+    const r = pruneContext(CHUNK, {});
+    expect(r.output).toBe(CHUNK);
+    expect(r.tokensSaved).toBe(0);
+  });
+
+  it("ON prunes the chunk to fewer tokens and reports the saving", () => {
+    const r = pruneContext(CHUNK, { VANTA_PRUNE_CONTEXT: "1" });
+    expect(r.output.length).toBeLessThanOrEqual(CHUNK.length);
+    expect(r.tokensSaved).toBeGreaterThan(0);
   });
 });
