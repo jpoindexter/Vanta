@@ -4,6 +4,7 @@ import type {
 } from "openai/resources/chat/completions";
 import type { CompletionResult, ToolSchema } from "./interface.js";
 import type { Message, ToolCall } from "../types.js";
+import { repairToolArgs } from "./tool-call-repair.js";
 
 export type ToolCallDelta = {
   index: number;
@@ -58,13 +59,10 @@ export function completedToolCalls(
 }
 
 function parseToolCall(tc: { id: string; function: { name: string; arguments: string } }): ToolCall {
-  let args: Record<string, unknown> = {};
-  try {
-    args = JSON.parse(tc.function.arguments || "{}") as Record<string, unknown>;
-  } catch {
-    args = { _raw: tc.function.arguments };
-  }
-  return { id: tc.id, name: tc.function.name, arguments: args };
+  // TOOL-CALL-REPAIR — repair malformed/partial argument JSON (weak/local models)
+  // instead of failing zod and wasting a turn.
+  const r = repairToolArgs(tc.function.arguments);
+  return { id: tc.id, name: tc.function.name, arguments: r.args, repaired: r.repaired ? r.strategy : undefined };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
