@@ -2907,7 +2907,7 @@
       "id": "VANTA-COST-THRESHOLD-UI",
       "track": "Operator",
       "title": "Cost threshold dialog — alert when approaching budget cap",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's CostThresholdDialog alerts when cumulative session cost approaches a threshold (80% and 100% of --max-budget-usd). Pairs with VANTA-BUDGET-CAP (next). Without this UI, the agent silently stops at budget without user awareness.",
       "done": "At 80% of the budget cap, a non-blocking warning shows in the status; at 100%, a dialog offers to continue with a new cap, stop now, or ignore; actual stop behavior is configurable.",
@@ -2915,7 +2915,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-21",
+      "notes": "Pure CostAlertLevel none|warning|exceeded + CostAlertState{lastAlerted} + costAlertLevel (REUSES budget statusFor DEFAULT_WARN_FRACTION 0.8: <80% none, >=80% warning, >=100% exceeded; non-positive/non-finite limit -> none) + nextCostAlert (alert ONLY on escalation past lastAlerted via LEVEL_RANK, immutable; warning once then exceeded once, same/lower -> null) + formatCostAlert (⚠ approaching budget $X of $Y (80%) / ✖ budget cap reached $Y — actions may pause). WARNING surface BEFORE the existing PCLIP-BUDGET-HARDSTOP. Built+tested; wire = post-turn-gates runPostTurnGates adds a costAlert GateState field reading sessionCost + getBudget cap -> nextCostAlert -> onNote (named; cost footer secondary). No cap = none; same crossing never re-alerts."
     },
     {
       "id": "VANTA-TERMINAL-TITLE",
