@@ -4008,7 +4008,7 @@
       "id": "VANTA-INIT-VERIFIERS",
       "track": "Extensibility",
       "title": "/init-verifiers — create project-specific verifier skills",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Bundled /init-verifiers command: analyzes the project and creates one or more verifier skill files that the Verify agent can use to automatically check code changes. Supports multiple verifiers for different subsystems (API + web UI). Progress tracked via TodoWrite.",
       "done": "Running /init-verifiers creates appropriate verifier skill files; multiple verifiers generated for multi-subsystem projects; output tracked with todos.",
@@ -4017,7 +4017,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "WIRED /init-verifiers: pure detectVerifierCommands (package.json scripts test/build/lint/typecheck -> npm run; Cargo.toml -> cargo test/build; Makefile targets -> make; dedupe by kind, package.json wins; tolerant) + buildVerifierSkill (serializeSkill, name verify-<kind>, body referencing the EXACT command + exit-0 pass criterion) + verifierSkills + runInitVerifiers (injected reader). SECURITY: only emits commands DETECTED from the project config, no synthesized shell. No commands -> generic verifier note. Handler read-only, returns summary; the SKILL.md write delegated to write_skill (boundary). Registered (171 lines)."
     },
     {
       "id": "VANTA-SKILL-USAGE-RANK",

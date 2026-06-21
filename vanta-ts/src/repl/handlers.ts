@@ -59,6 +59,7 @@ import { now } from "./now-cmd.js";
 import { sandbox } from "./sandbox-cmd.js";
 import { contextCmd } from "./context-cmd.js";
 import { init } from "./init-cmd.js";
+import { initVerifiers } from "./init-verifiers-cmd.js";
 import { CLI_PASSTHROUGH } from "./cli-bridge.js";
 import { formatGoalLedger } from "./goal-ledger.js";
 import { readGoalDeps } from "../goals/deps.js";
@@ -151,7 +152,7 @@ const goals: SlashHandler = async (_arg, ctx) => {
 
 /** Command-name → handler. Aliases share a handler (clear/new/reset, exit/quit, status/doctor). */
 export const HANDLERS: Record<string, SlashHandler> = {
-  help, exit, quit: exit, init, clear, new: clear, reset: clear, attachments, history,
+  help, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
