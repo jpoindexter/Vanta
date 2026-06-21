@@ -4,6 +4,7 @@ import { runFleet, acceptFleetWorker, type FleetDeps } from "../fleet/fleet.js";
 import { formatFleetReview, formatFleetStatus } from "../fleet/format.js";
 import { latestFleetId, loadFleetReport } from "../fleet/store.js";
 import { FleetTaskSpecSchema, type FleetTaskSpec } from "../fleet/types.js";
+import { runFleetTmux } from "./fleet-tmux-cmd.js";
 import type { AgentDeps } from "../agent.js";
 
 export type FleetCommandDeps = {
@@ -14,6 +15,7 @@ export type FleetCommandDeps = {
 
 function usage(log: (line: string) => void): number {
   log("Usage: vanta fleet run --task <instruction> [--task <instruction> ...]");
+  log("       vanta fleet tmux --task <instruction> [--task ...]   (spawn workers in tmux panes)");
   log("       vanta fleet status [fleet-id]");
   log("       vanta fleet review [fleet-id]");
   log("       vanta fleet accept <fleet-id> <worker-id>");
@@ -96,6 +98,7 @@ export async function runFleetCommand(repoRoot: string, rest: string[], deps: Fl
   const log = deps.log ?? console.log;
   const [cmd = "status", ...args] = rest;
   if (cmd === "run") return run(repoRoot, args, deps, log);
+  if (cmd === "tmux") return runFleetTmux(repoRoot, args, log);
   if (cmd === "status") return status(repoRoot, args[0], log);
   if (cmd === "review") return review(repoRoot, args[0], log);
   if (cmd === "accept") return accept(repoRoot, args, deps, log);
