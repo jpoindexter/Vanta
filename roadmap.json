@@ -12904,17 +12904,18 @@
       "id": "MEMORY-ADAPTER-DRIVE",
       "track": "Operator",
       "title": "Google Drive memory adapter — sync/backup, reuses existing OAuth",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] First storage adapter: sync ~/.vanta brain+sessions to the user's own Google Drive for durable, cross-device, user-owned backup — reusing the existing google/auth.ts OAuth + tools/drive.ts client (near-zero new auth). Local-first: Drive is sync/backup only, never a recall dependency; offline = full function. Optional client-side encryption before upload so even Drive can't read it. Default off (VANTA_REMOTE_STORE=drive).",
       "done": "a Drive memory adapter pushes/pulls the ~/.vanta store via existing OAuth; local stays source-of-truth; optional client-side encryption; default off; offline-safe; tests with a mocked Drive client; committed.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "memory",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ]
+      ],
+      "notes": "Pure/injectable MemoryFile{name,hash,modifiedMs} + RemoteFile{name,hash?,modifiedMs} + buildMemorySyncPlan -> {toPush,toPull,conflicts,upToDate} (only-local->push, only-remote->pull, same-hash->upToDate, diff-hash local-newer->push / remote-newer->pull, diff-hash equal-mtime OR hashless-remote+equal-mtime->conflict) + formatSyncPlan (N push · M pull · K conflicts · J up-to-date) + MemoryAdapter port (list/push/pull) + runMemorySync (pushes toPush + pulls toPull via injected adapter, SKIPS conflicts NEVER auto-overwrites, per-file error recorded not thrown, never throws; failed listing -> empty remote -> push-all first-backup). SECURITY: memory may hold personal data -> adapter OPERATOR-INITIATED not automatic; a conflict is NEVER silently overwritten. Reuses existing google OAuth (no new auth). Built+tested; wires = a DriveMemoryAdapter (impl over tools/drive + googleFetch) + a vanta memory sync drive command call buildMemorySyncPlan + runMemorySync (named, live Drive = boundary)."
     },
     {
       "id": "MEMORY-ADAPTER-MEM0",
