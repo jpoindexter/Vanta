@@ -8,6 +8,7 @@ import { SshProfileSchema } from "../ssh/config.js";
 import { MemorySettingsSchema } from "./memory-settings.js";
 import { McpAccessSchema } from "./mcp-access.js";
 import { SkillOverridesSchema } from "../skills/overrides.js";
+import { SkillSettingsSchema } from "../skills/budget.js";
 import { UxSettingsSchema, uxSettingsToEnv } from "./ux-settings.js";
 
 // Layered settings.json (user → project → local).
@@ -152,6 +153,16 @@ export const SettingsSchema = z.object({
    *  skills before ranking — NOT wired this round. The kernel still gates every
    *  tool a skill uses. */
   skillOverrides: SkillOverridesSchema.optional(),
+  /** VANTA-SETTINGS-SKILL — skill-index context budget (schema in `skills/budget.ts`).
+   *  `contextBudgetTokens` caps the total tokens the skill index may consume in the
+   *  prompt; `maxSkills` caps how many skills enter the index (highest-ranked first);
+   *  `descriptionMaxChars` clips each skill description. Unset = today's behavior (all
+   *  skills, the existing 100-char clip). The named apply point is `prompt.ts skillsTier`
+   *  (the index from `opts.skills`, ranked upstream via `skills/usage-rank.ts`): the
+   *  skill-selection site would run `applySkillBudget(ranked, settings.skills)` and
+   *  render `clipSkillDescription` BEFORE passing the entries — NOT wired this round.
+   *  The kernel still gates every tool a skill uses. */
+  skills: SkillSettingsSchema.optional(),
 }).strict().partial();
 
 export type Settings = z.infer<typeof SettingsSchema>;
