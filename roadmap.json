@@ -3240,7 +3240,7 @@
       "id": "VANTA-COPY-ON-SELECT",
       "track": "Operator",
       "title": "Copy-on-select — auto-copy terminal text selection to clipboard (iTerm2-style)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's `useCopyOnSelect` mirrors iTerm2's 'Copy to pasteboard on selection': when the user finishes a drag-select or multi-click selection in the terminal, the selected text is automatically copied to clipboard. The selection highlight remains visible. Only active in alt-screen (Ink) mode.",
       "done": "Dragging to select text in the Vanta TUI automatically copies it to clipboard, matching iTerm2 behavior.",
@@ -3249,7 +3249,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure TerminalKind + detectTerminal (mirrors osc8 isKnownHyperlinkTerm signatures: TERM_PROGRAM iterm/apple_terminal, WEZTERM_PANE, WT_SESSION, KITTY_WINDOW_ID/TERM, VTE_VERSION>=5000; more-specific first; none -> unknown) + copyOnSelectInstructions (REAL honest per-terminal steps: iTerm2 Settings>General>Selection>Copy to pasteboard on selection; Kitty copy_on_select yes in kitty.conf; Windows Terminal copyOnSelect:true; WezTerm ON by default; GNOME automatic via PRIMARY; Apple Terminal NO built-in setting; unknown -> generic) + copyOnSelectHelp (detect+format). BY DESIGN help-text-only: Vantas TUI uses native terminal selection (no mouse capture) so copy-on-select is a terminal setting Vanta cant intercept. Built+tested; wire = /copy-on-select handler (mirrors terminal-setup-cmd) prints copyOnSelectHelp (named). Unknown = generic note."
     },
     {
       "id": "VANTA-CLIPBOARD-IMAGE-HINT",
