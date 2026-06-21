@@ -4,6 +4,7 @@ import { ALL_TOOLS } from "./all-tools.js";
 import { buildToolSearchTool } from "./tool-search.js";
 import { buildMountMcpTool } from "./mount-mcp.js";
 import { buildMcpAuthTool } from "./mcp-auth.js";
+import { buildRunPipelineTool } from "./run-pipeline.js";
 
 /**
  * Build the tool registry. With no args it registers every tool. Pass
@@ -25,6 +26,9 @@ export function buildRegistry(opts?: { exclude?: string[] }): ToolRegistry {
   }
   if (!exclude.has("tool_search")) {
     registry.register(buildToolSearchTool(registry));
+  }
+  if (!exclude.has("run_pipeline")) {
+    registry.register(buildRunPipelineTool(registry));
   }
   return registry;
 }
