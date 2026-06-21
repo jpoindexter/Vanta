@@ -3169,7 +3169,7 @@
       "id": "VANTA-TERMINAL-SETUP-CMD",
       "track": "Operator",
       "title": "/terminal-setup — install Shift+Enter keybinding for terminal newlines",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a `/terminal-setup` command that configures the user's terminal to support Shift+Enter for newlines in the input composer. It detects the terminal emulator (Ghostty, Kitty, iTerm2, WezTerm, Apple Terminal, others) and installs the appropriate keybinding. The command is hidden for terminals with native CSI-u/Kitty keyboard protocol support.",
       "done": "`/terminal-setup` detects terminal emulator and configures Shift+Enter (or Option+Enter on Apple Terminal) for multi-line input. Shows instructions for unsupported terminals.",
@@ -3178,7 +3178,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "WIRED /terminal-setup: pure detectTerminal (TERM_PROGRAM/WEZTERM -> iterm|apple-terminal|vscode|wezterm|unknown) + terminalSetupInstructions (per-terminal Shift+Enter -> newline steps: iTerm2 Send Text n, Apple Terminal 012, VS Code keybindings.json sendSequence, WezTerm lua SendString, unknown generic). Print-only — handler returns {output} only, NO file writes (asserted). Registered in catalog+handlers (169 lines)."
     },
     {
       "id": "VANTA-AWAY-SUMMARY",
