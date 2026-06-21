@@ -4088,7 +4088,7 @@
       "id": "VANTA-PLUGIN-AUTOUPDATE",
       "track": "Extensibility",
       "title": "Plugin auto-update — background marketplace and plugin update check on startup",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent calls `autoUpdateMarketplacesAndPluginsInBackground()` during startup housekeeping. Official marketplaces with `autoUpdate: true` are refreshed automatically. Plugin updates are downloaded in the background without blocking the session start.",
       "done": "On next launch after a plugin update is released, the update is applied silently. A notification appears if a restart is needed.",
@@ -4097,7 +4097,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable findPluginUpdates (reuses compareSemver from update/version-check; only strictly-newer latest -> {name,installed,latest}; malformed version never falsely flagged) + buildPluginUpdateNotice (↑ N updates: name i->l — run vanta plugins update / when none) + pluginUpdateEnabled (VANTA_PLUGIN_UPDATE_CHECK default off) + checkPluginUpdates (injected installed+fetchAvailable, fetch throw -> [] never throws, NEVER auto-updates). Plugin analogue of the CLI auto-updater. Built+tested; startup wire = prepareRun when enabled surfaces the notice (named; live fetch = marketplace boundary). No updates/disabled = nothing."
     },
     {
       "id": "VANTA-RELOAD-SKILLS-CMD",
