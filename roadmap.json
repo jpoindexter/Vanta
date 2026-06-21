@@ -1622,7 +1622,7 @@
       "id": "VANTA-PR-STATUS-POLL",
       "track": "Harness",
       "title": "PR status polling — live review state during session",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Polls `gh` every 60 s during an active session to show PR review state (approved / changes-requested / pending) for the current branch. Backs off after 60 min idle; self-disables if a fetch exceeds 4 s.",
       "done": "PR number, URL, and review state visible in session status; polling pauses when session is idle >60 min; disabled if gh is slow.",
@@ -1631,7 +1631,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure/injectable parsePrStatus (tolerant of ghs bare-object|one-elem-array shapes; null on empty/[]/garbage/non-numeric number; statusCheckRollup -> {passing,failing,pending}, CheckRun by conclusion + StatusContext by state, unknown/absent verdict -> pending never silently passing) + formatPrStatusLine (PR #N ✓ approved / ⧗ review pending · checks N✓/N✗ · mergeable/conflicts) + pollPrStatus (injected runGh, throw/non-zero/empty -> null never throws). SECURITY: PR title untrusted -> ANSI+C0/C1 stripped (kept on PrStatus, not rendered inline). Built+tested; wire = status-bar RichSegment + /pr slash call pollPrStatus + formatPrStatusLine (named, live gh = boundary). No PR = null."
     },
     {
       "id": "VANTA-SKILL-LOOP",
