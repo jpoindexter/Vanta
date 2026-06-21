@@ -41,3 +41,17 @@ Keeping the boundary in a small, zero-dependency Rust process means:
 - The safety logic is auditable in isolation, separate from the much larger agent loop.
 - A bug in the TypeScript layer cannot grant itself more authority — it can only ask.
 - The decision log (`.vanta/events.jsonl`) is an independent record of what was assessed and what ran.
+
+## The approval lifecycle
+
+An `Ask` enters the queue and waits for you. `Always` / `Never` persist a tool-scoped rule for next time — but a kernel **Block** is never offered as an allow.
+
+```mermaid
+flowchart LR
+  a["action · Ask"] --> q[("approval queue<br/>.vanta/approvals.tsv")]
+  q --> p{human prompt}
+  p -->|Yes| run([run once])
+  p -->|"Yes · always"| rule[persist allow rule] --> run
+  p -->|No| stop([refused])
+  p -->|"Never"| deny[persist deny rule] --> stop
+```

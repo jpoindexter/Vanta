@@ -26,6 +26,23 @@ each iteration (max VANTA_MAX_ITER):
   3 consecutive empty results → stop
 ```
 
+```mermaid
+flowchart TD
+  s([instruction]) --> c[provider.complete]
+  c --> q{tool calls?}
+  q -->|"no · has text"| done([done])
+  q -->|"no · empty"| nudge[nudge once] --> c
+  q -->|yes| g["describeForSafety → assess"]
+  g --> v{verdict}
+  v -->|block| blocked["result: blocked"] --> append
+  v -->|ask| ap[approval] --> v2{allow?}
+  v2 -->|deny| blocked
+  v2 -->|allow| ex[execute]
+  v -->|allow| ex[execute]
+  ex --> append["append result · log event"]
+  append --> c
+```
+
 ## Two-layer safety
 
 Safety is enforced twice:

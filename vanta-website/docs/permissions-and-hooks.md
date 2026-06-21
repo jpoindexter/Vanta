@@ -20,6 +20,20 @@ vanta auto-mode defaults     # see the built-in classification
 vanta auto-mode config       # view/adjust rules
 ```
 
+```mermaid
+flowchart LR
+  act([action]) --> k{kernel verdict}
+  k -->|block| blocked([refused])
+  k -->|allow| run([runs])
+  k -->|ask| rules[permission rules]
+  rules --> auto[auto-mode]
+  auto --> prof["operator profile<br/>tighten-only"]
+  prof --> dec{decided?}
+  dec -->|auto-allow| run
+  dec -->|auto-deny| blocked
+  dec -->|prompt| human[human approval] --> run
+```
+
 Resolution order for an `ask` action: kernel verdict → permission rules → auto-mode → **operator-profile preferences** (which can only *preserve or tighten*, never loosen). Persisted tool-scoped allow/deny rules come from the approval prompt's "always / never" choices.
 
 ## Operator profile & preference signals
