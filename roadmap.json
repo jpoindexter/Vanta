@@ -968,7 +968,7 @@
       "id": "VANTA-AGENT-DETAIL-UI",
       "track": "Operator",
       "title": "Agent management UI — AgentDetail, AgentEditor, AgentsList, AgentsMenu",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has AgentDetail (full agent view with model/tools/memory), AgentEditor (edit agent config inline), AgentsList + AgentsMenu (browse all defined agents), plus the full creation wizard. Pairs with VANTA-BG-AGENTS (next) and VANTA-AGENT-WIZARD (horizon). Vanta has no agent management UI.",
       "done": "/agents list shows all defined agents; selecting one opens AgentDetail with config; AgentEditor allows inline editing; a ColorPicker and ModelSelector are embedded within the editor.",
@@ -976,7 +976,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-06-21",
+      "notes": "PURE Ink AgentsList({agents,selectedIndex?}) (roster name+status, ❯ on selected, no agents when empty) + AgentDetail({agent}) (name/model/tools-summary/status) + formatToolsSummary (all tools undefined / no tools [] / N tools: a,b,c..). No useInput/useEffect/useState/I/O. VERIFIED HEADLESSLY via test-render (12 tests: both components frame-asserted, selected marker, empty -> clean). Selected row = ❯ glyph + FOCUS color (not color alone, accessible). Operator-authored name/model/tool strings run through stripControl (defense-in-depth on Inks escaping). Literal palette colors no theme. Built+tested; wire = app.tsx / a /agents overlay builds the roster from listAgentDefs (CustomAgentDef) merged with team/tasks running agents -> AgentsList, ⏎ -> AgentDetail (named, mirrors mcp-panel; live agent data = boundary)."
     },
     {
       "id": "VANTA-BASH-IMAGE-OUTPUT",
@@ -1179,7 +1181,7 @@
       "id": "VANTA-SETTINGS-PANEL",
       "track": "Operator",
       "title": "Settings panel UI — Config, Status, Usage tabs",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent's Settings UI has four tabs: Config (all settings as an editable form), Status (connection status for providers/MCP/IDE), Usage (token/cost breakdown per session and total). Vanta has /config (VANTA-CONFIG next) but no full panel UI. The Settings panel makes settings discoverable without editing JSON.",
       "done": "/settings opens the panel; Config tab lists all settings with types + current values editable inline; Status tab shows provider/MCP/IDE connection states; Usage tab shows token + cost charts.",
@@ -1187,7 +1189,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "coding"
+      "lens": "coding",
+      "updated": "2026-06-21",
+      "notes": "PURE Ink SettingsPanel({tab,config,status,usage}) — tab config|status|usage selects the body (config -> settings key/value rows; status -> kernel/provider/keys/store/goals health; usage -> frontier-vs-local cost split via formatSessionCost); tab header marks the active one ▸<name>+FOCUS; nextSettingsTab pure cycle. No useInput/useState/I/O (parent owns input). VERIFIED HEADLESSLY via the real-Ink test-render harness (9 tests: each tab frame asserted, active-tab marker present/absent, unknown tab -> config, empty config/usage/kernel-down -> clean rows not crashes). Literal palette colors no theme. Built+tested; wire = app.tsx mounts as an overlay (config=loadSettings, status=gatherStatus, usage=replState.sessionCost) opened by /settings + Tab key -> setSettingsTab(nextSettingsTab(tab)) (named, live data = boundary)."
     },
     {
       "id": "VANTA-VIM-OPERATORS",
