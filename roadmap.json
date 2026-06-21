@@ -3336,7 +3336,7 @@
       "id": "VANTA-CHROME-GIF-RECORDER",
       "track": "Operator",
       "title": "Chrome automation GIF recorder — capture multi-step browser interactions as GIF",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "During Chrome browser automation (`mcp__claude-in-chrome__*` tools), another agent can record multi-step browser interactions as animated GIFs via `mcp__claude-in-chrome__gif_creator`. The agent is prompted to capture extra frames before/after actions for smooth playback, and to name the file meaningfully. GIFs are saved locally for review or sharing.",
       "done": "After a multi-step browser automation, a named GIF file appears in the working directory showing the full interaction replay.",
@@ -3345,7 +3345,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure GifFrame{afterStepIndex,label,delayMs} + GifSpec{width?,height?,fps,loop} + buildFramePlan (one frame per step, label from action control-stripped, delay = frameDelayMs, optional final-hold frame) + resolveGifSpec (fps default 2 clamp 1..30, loop default true, dims optional) + frameDelayMs (round 1000/fps) + gifRecordEnabled (VANTA_GIF_RECORD=1, default OFF) + buildAssemblyPlan ({frameCount,totalDurationMs sum of delays,spec} = encode-job description NOT bytes). NO dep added. Labels from action data (URL/selector/typed) control-stripped (ANSI-injection guard). Built+tested; wire = browser_act when gifRecordEnabled captures one screenshot/step via screenshot tool (frame SOURCE) -> buildAssemblyPlan -> a gif encoder (DEP BOUNDARY, named). No steps = []."
     },
     {
       "id": "VANTA-EXAMPLE-COMMANDS",
@@ -3479,7 +3480,7 @@
       "id": "VANTA-NATIVE-CLIPBOARD",
       "track": "Operator",
       "title": "Native clipboard image — capture images without external tools (xclip/pbpaste)",
-      "status": "next",
+      "status": "parked",
       "size": "S",
       "summary": "another agent (feature-gated `NATIVE_CLIPBOARD_IMAGE`) uses native OS clipboard APIs for image capture instead of shelling out to `xclip`/`xsel` (Linux) or `pbpaste` (macOS). Faster, works in environments where clipboard tools aren't installed, and avoids subprocess overhead.",
       "done": "Pasting an image from clipboard works on Linux even without xclip installed. `/paste` and auto-detect both use the native API path.",
@@ -3488,7 +3489,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "N/A: Node cannot capture a clipboard IMAGE natively without an external tool/native module. The card asks for image capture WITHOUT external tools (xclip/pbpaste), which Node has no API for — and Vantas existing clipboard path IS osascript/pbpaste, i.e. the external tool the card wants to avoid. Genuinely not buildable in pure Node without adding a native binding (out of scope). Parked unless a native clipboard binding is adopted."
     },
     {
       "id": "VANTA-AUTO-THEME",
