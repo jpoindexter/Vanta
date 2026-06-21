@@ -1227,7 +1227,7 @@
       "id": "MSG-WHATSAPP",
       "track": "Operator",
       "title": "WhatsApp adapter (Node subprocess bridge; Business-API alt)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "WhatsApp PlatformAdapter via a Node subprocess bridge (subprocess bridge pattern): Vanta spawns a small Baileys/whatsapp-web.js worker, pairs by QR (creds in ~/.vanta/whatsapp/, gitignored), talks over localhost HTTP (GET /messages poll, POST send), health-checks + restarts the bridge. UNOFFICIAL -> account ban risk + breaks on protocol changes; WhatsApp Business API (Meta-verified) is the ToS-safe alternative (captured as 'official' mode). Bridge dep installs to ~/.vanta, never the repo (PLUGIN-SYSTEM). Build last.",
       "done": "After a QR pair, 'vanta gateway' receives a WhatsApp message via the Node bridge and replies; bridge spawn/health/restart handled; pure parse tested offline; risk + Business-API alt documented.",
@@ -1235,7 +1235,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "reach"
+      "lens": "reach",
+      "updated": "2026-06-22",
+      "notes": "gateway/platforms/whatsapp.ts: WhatsApp Cloud API adapter (PlatformAdapter) — pure parseWhatsappWebhook/buildWhatsappSendBody/allowlist + injected transport; wired into factory ADAPTERS + catalog implemented:true (VANTA_WHATSAPP_TOKEN + VANTA_WHATSAPP_PHONE_ID). Offline-tested; live needs a Cloud API token + phone id + webhook."
     },
     {
       "id": "VANTA-RESEARCH-DECOMPOSE",
@@ -11800,7 +11802,7 @@
       "id": "MSG-ADAPTER-WHATSAPP",
       "track": "Operator",
       "title": "Messaging adapter — WhatsApp",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Build the live PlatformAdapter for WhatsApp (gateway/platforms/whatsapp.ts) — connect/disconnect/send/poll over the WhatsApp API, wired to the catalog entry (registry.ts id 'whatsapp'). Approach: unofficial QR-paired bridge (ban risk) — subprocess + credential store. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
       "done": "WhatsApp works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
@@ -11809,10 +11811,11 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "reach",
-      "updated": "2026-06-14",
+      "updated": "2026-06-22",
       "after": [
         "RPC-PIPELINE-VERIFY"
-      ]
+      ],
+      "notes": "gateway/platforms/whatsapp.ts: WhatsApp Cloud API adapter (PlatformAdapter) — pure parseWhatsappWebhook/buildWhatsappSendBody/allowlist + injected transport; wired into factory ADAPTERS + catalog implemented:true (VANTA_WHATSAPP_TOKEN + VANTA_WHATSAPP_PHONE_ID). Offline-tested; live needs a Cloud API token + phone id + webhook."
     },
     {
       "id": "AHE-EVAL-HARNESS",

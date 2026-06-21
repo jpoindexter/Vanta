@@ -59,7 +59,11 @@ describe("messaging registry", () => {
     expect(platformAvailability(tg, { VANTA_TELEGRAM_TOKEN: "   " }).configured).toBe(false);
   });
 
-  it("warns on whatsapp (unofficial)", () => {
-    expect(messagingPlatformById("whatsapp")?.warning).toMatch(/ban/i);
+  it("whatsapp is implemented via the Cloud API (token + phone id)", () => {
+    const wa = messagingPlatformById("whatsapp");
+    expect(wa?.implemented).toBe(true);
+    expect(wa?.requiredEnv).toContain("VANTA_WHATSAPP_TOKEN");
+    expect(wa?.requiredEnv).toContain("VANTA_WHATSAPP_PHONE_ID");
+    expect(wa?.secretEnv).toBe("VANTA_WHATSAPP_TOKEN");
   });
 });
