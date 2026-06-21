@@ -13217,13 +13217,15 @@
       "id": "WORKFLOW-LIB-CURRENT-DOCS",
       "track": "Harness",
       "title": "Current-docs-before-use — fetch up-to-date library docs before coding against a lib",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] From the same workflow (context7 usage + the per-project `library docs` context file): before writing code against a third-party library, fetch its CURRENT docs rather than trusting training data. Vanta has the source-grounded skill (the principle) + MCP mounting + web-fetch, but no built-in 'pull up-to-date docs for library X before using it' step. Add a small capability that resolves current docs for a named library (via a context7-style MCP when mounted, else a web-fetch fallback) and returns a short usage digest before the agent codes against it. Reinforces source-grounded; pairs with the per-project context scaffold (VANTA-BLUEPRINTS / VANTA-MAGIC-DOCS). Sand-tier: small, low-risk, foldable into an existing tool if cleaner.",
       "done": "a tool/step resolves current docs for a named library (context7-style MCP when available, web-fetch fallback) and returns a short usage digest; degrades cleanly when offline/unmounted; co-located tests with fixtures (no live network); tsc clean; committed.",
       "tier": "sand",
       "effort": "low",
-      "lens": "infra"
+      "lens": "infra",
+      "updated": "2026-06-21",
+      "notes": "Pure LibRef{name,source:import|mention} + detectLibraries (import/require/from-import + Python from lib import -> import; bare known-lib mentions -> mention, import wins on dedupe; EXCLUDES relative ./../ + absolute + node builtins plain/node: prefix; subpaths stripped to package root; @scope/pkg kept whole) + DOCS_URL_PATTERNS (20 known libs -> docs site) + buildDocsFetchPlan ({name,docsUrl}, npm fallback) + libDocsEnabled (VANTA_LIB_DOCS=1, default OFF) + formatDocsPlan. Mechanical assist for the source-grounded discipline. SECURITY: a name only reaches a URL if it matches SAFE_PACKAGE charset (evil/../../etc/passwd + https://evil.test dropped, tested); npm fallback URL-encodes each segment. No arbitrary URL injection. Built+tested; wire = pre-code path when libDocsEnabled detectLibraries(task) -> buildDocsFetchPlan -> formatDocsPlan via onText -> fetch via web_fetch (named, kernel-gated boundary). No lib = no fetch."
     },
     {
       "id": "SEARCH-RESULT-DENSIFY",
