@@ -996,7 +996,7 @@
       "id": "VANTA-PERMISSION-EXPLAINER",
       "track": "Operator",
       "title": "AI-powered permission explanation — risk level + reasoning for tool calls",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "When a tool call requires permission, another agent fires a side query (sideQuery) to an LLM that analyzes the command and returns a structured explanation: risk level (LOW/MEDIUM/HIGH), plain-English explanation, reasoning, and risk summary. This explanation shows in the permission dialog to help the user make informed decisions.",
       "done": "Permission dialogs show a risk-level badge (LOW/MEDIUM/HIGH) with one-sentence AI explanation of what the command does and why it's being run.",
@@ -1005,7 +1005,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure explainVerdict ({tool,risk,reason?,detail?} -> plain-English why; reasonClause maps kernel reason -> scope/destructive/credential/irreversible/system clauses + tool-specific notes (shell runs a cmd, git push irreversible, write_file edits); unrecognized reason verbatim) + riskLabel (✓ safe / ⚠ needs approval / ✕ blocked) + buildExplanationPrompt + explainPermission (injected complete enriches, falls back to deterministic on no-completer/throw/empty, never throws). EXPLAINS NEVER RE-DECIDES — kernel verdict authoritative. SECURITY: reason/detail/tool AND the LLM enriched output control-stripped (ANSI-injection vectors) + length-capped. Built+tested; wire = approval-prompt renders explainVerdict under request.reason + riskLabel prefix (named). Default = deterministic."
     },
     {
       "id": "VANTA-BASH-SHELL-COMPLETION",
