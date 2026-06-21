@@ -245,7 +245,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 - **DDG html endpoint 403s from datacenter / flagged IPs.** The `duckduckgo` adapter and its parser are correct (unit-tested), but `html.duckduckgo.com` / `lite.duckduckgo.com` block scrapers by IP — verified 403 from this dev environment on every endpoint/header/verb combo. Not a code bug. For reliable search off a residential IP, use Searxng (self-host) or Brave/SerpAPI. `web-fetch` is unaffected (verified live: example.com + Wikipedia → clean Readability markdown).
 
-- **Current source counts beat historical session counts.** Real-counted 2026-06-21 (vitest over the live exports): `ALL_TOOLS` has **116** built-in tools, `buildRegistry().list()` reports **119** registered (incl. factory `mount_mcp`/`tool_search`/`mcp_auth`), and `SLASH_COMMANDS.length` reports **110** commands. Latest full verify: **606 TS test files / 5077 tests** green. Older counts in session-addition notes are milestones, not current truth — don't trust a count without re-running the export.
+- **Current source counts beat historical session counts.** Real-counted 2026-06-21 (vitest over the live exports, after the extensibility/operator grind): `ALL_TOOLS` has **117** built-in tools (`ask_user` newly wired), `buildRegistry().list()` reports **120** registered (incl. factory `mount_mcp`/`tool_search`/`mcp_auth`), and `SLASH_COMMANDS.length` reports **125** commands. Latest full verify: **863 TS test files / 9411 tests** green. Older counts in session-addition notes are milestones, not current truth — don't trust a count without re-running the export.
 
 ## Session additions (2026-06-20) — keep current
 

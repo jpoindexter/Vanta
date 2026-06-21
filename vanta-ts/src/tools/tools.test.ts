@@ -10,6 +10,7 @@ import { configSandboxTool, buildScopedRegistry } from "./config-sandbox.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { openDeepLinkTool } from "./deep-link.js";
 import { maximizerTool } from "./maximizer.js";
+import { askUserTool } from "./ask-user.js";
 import type { ToolContext } from "./types.js";
 
 let root: string;
@@ -36,6 +37,7 @@ describe("registry", () => {
     const r = buildRegistry();
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
+      "ask_user",
       "bg_list",
       "bg_status",
       "brain",
@@ -162,6 +164,17 @@ describe("registry", () => {
     const r = buildRegistry({ exclude: ["delegate"] });
     const names = r.schemas().map((s) => s.name);
     expect(names).not.toContain("delegate");
+  });
+
+  it("registers ask_user (the structured sibling of clarify)", () => {
+    const names = buildRegistry().schemas().map((s) => s.name);
+    expect(names).toContain("ask_user");
+  });
+});
+
+describe("ask_user", () => {
+  it("describeForSafety is a constant internal-op string (kernel Allow)", () => {
+    expect(askUserTool.describeForSafety?.({})).toBe("ask the user a structured question");
   });
 });
 
