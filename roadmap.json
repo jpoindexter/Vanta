@@ -15317,7 +15317,7 @@
       "id": "MSG-MEDIA-IMAGES",
       "track": "Operator",
       "title": "Images + voice memos in/out across channels",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Multimodal messaging: receive an image or voice memo on a channel → into the agent's context (vision/STT); send images back (screenshots, generated images, charts). Vanta already carries images on the internal Message type and has vision + STT — wire them through the channel adapters so 'send Vanta a photo on WhatsApp/Telegram' and 'Vanta replies with an image' work.",
       "done": "On at least Telegram + WhatsApp, an inbound image is understood by the agent and an outbound image is delivered; an inbound voice memo is transcribed; all verified live.",
@@ -15326,7 +15326,9 @@
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "MSG-MULTICHANNEL-LIVE"
-      ]
+      ],
+      "updated": "2026-06-22",
+      "notes": "gateway/media.ts: inbound media bridge (image->vision ImageAttachments, voice->STT injected transcribe, mixed, degrade-on-fail) + resolveInbound. Threaded through runAgent->RunTask->buildCronRunTask->gateway handle(text,images) so inbound images reach the agents vision. media-deps.ts = live whisper+fetch wire. WhatsApp parse extracts inbound image/audio into msg.media. Contracts: InboundMessage.media, OutboundMessage.image. Boundary (live): per-platform auth media byte-download (wa-media: id resolve, Telegram getFile) needs the channel token; outbound-image per-adapter send is the remaining wire."
     },
     {
       "id": "BACKEND-SERVERLESS-LIVE",

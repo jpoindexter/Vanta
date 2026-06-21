@@ -1,5 +1,7 @@
 import { join } from "node:path";
 import { runAgent } from "../agent.js";
+import type { ImageAttachment } from "../types.js";
+import { buildMediaBridgeDeps } from "../gateway/media-deps.js";
 import { runGateway } from "../gateway/run.js";
 import { resolveMessagingChannel } from "../gateway/platforms/factory.js";
 import { resolveDeliver } from "../gateway/webhook.js";
@@ -48,7 +50,7 @@ export async function runLibraryCommand(repoRoot: string, rest: string[]): Promi
 
 // Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
 export function buildCronRunTask(repoRoot: string): RunTask {
-  return async (instruction, wake) => {
+  return async (instruction, wake, images) => {
     const prompt = withWakeContext(instruction, wake);
     const setup = await prepareRun(repoRoot, prompt);
     const outcome = await runAgent(setup.systemPrompt, prompt, {
@@ -59,7 +61,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       requestApproval: async () => false,
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
-    });
+    }, images); // MSG-MEDIA-IMAGES: inbound images reach the agent's vision
     await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: prompt, finalText: outcome.finalText });
     // Budget hard-stop: attribute this run's cost to its scope (a loop when run
     // under a loop wake, else the session). enforceScopeBudget is a no-op unless a
@@ -82,7 +84,8 @@ export function buildCronRunTask(repoRoot: string): RunTask {
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
   const runTask = buildCronRunTask(repoRoot);
   const platform = resolveMessagingChannel(process.env); // MSG-MULTICHANNEL-LIVE: run all configured channels
-  const handle = async (text: string): Promise<string> => (await runTask(text)).finalText;
+  const handle = async (text: string, images?: ImageAttachment[]): Promise<string> =>
+    (await runTask(text, undefined, images)).finalText;
 
   const port = Number(process.env.VANTA_WEBHOOK_PORT);
   const webhook = port
@@ -107,6 +110,7 @@ export async function runGatewayCommand(repoRoot: string): Promise<void> {
     run: runTask,
     platform,
     handle,
+    media: buildMediaBridgeDeps(), // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
     webhook,
     home: resolveVantaHome(),
     tickMs: Number(process.env.VANTA_GATEWAY_TICK_MS) || undefined,

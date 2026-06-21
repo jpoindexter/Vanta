@@ -9,6 +9,8 @@ import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
 import type { PlatformAdapter, InboundMessage, OutboundMessage } from "./platforms/base.js";
+import type { ImageAttachment } from "../types.js";
+import { resolveInbound, type MediaBridgeDeps } from "./media.js";
 import { spawnLoopChild, spawnFactoryChild, pollPlatform, startWebhookIfConfigured } from "./child-ops.js";
 import type { WebhookServer, Deliver } from "./webhook.js";
 import {
@@ -44,7 +46,8 @@ export type GatewayDeps = {
   log?: (msg: string) => void;
   load?: (dataDir: string) => Promise<CronEntry[]>;
   platform?: PlatformAdapter;
-  handle?: (text: string) => Promise<string>;
+  handle?: (text: string, images?: ImageAttachment[]) => Promise<string>;
+  media?: MediaBridgeDeps; // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
   spawnLoop?: (id: string, wake: WakeContext) => void;
   webhook?: {
     port: number;
@@ -136,17 +139,15 @@ async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promi
 
 type SessionRun = {
   platform: PlatformAdapter;
-  handle: (text: string) => Promise<string>;
+  handle: (text: string, images?: ImageAttachment[]) => Promise<string>;
+  media?: MediaBridgeDeps;
   log: (msg: string) => void;
   /** Reply-context store deps; absent → sent replies aren't recorded. */
   reply?: ReplyStoreDeps;
 };
 
-/**
- * Wire point 2 (record-on-send): after the reply is sent, persist its
- * `messageId → text` into the reply-context store so a later inbound reply can
- * quote it. Best-effort; an id-less outbound is skipped.
- */
+// Wire point 2 (record-on-send): persist the sent reply's id→text for later
+// reply-context quoting (best-effort; an id-less outbound is skipped).
 async function recordReply(ctx: SessionRun, out: OutboundMessage): Promise<void> {
   if (!ctx.reply || !out.id) return;
   await recordSent(ctx.reply, out.id, out.text);
@@ -157,9 +158,9 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   ctx.log(`  ✉ ${ctx.platform.id} ${m.from ?? m.chatId}: ${firstLine(m.text)}`);
   // The agent sees the LLM-enriched rendering (timestamp + quote) when the
   // inbound pipeline produced one; otherwise the raw text (unchanged behavior).
-  const forAgent = m.llmText ?? m.text;
+  const { forAgent, images } = await resolveInbound(m, ctx.media ?? {}); // MSG-MEDIA-IMAGES
   let reply: string;
-  try { reply = await ctx.handle(forAgent); }
+  try { reply = await ctx.handle(forAgent, images); }
   catch (err) { reply = `error: ${err instanceof Error ? err.message : String(err)}`; }
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
@@ -220,7 +221,7 @@ async function pollPlatformSession(
     return { state, count: await pollPlatform(deps), seen };
   }
   const log = deps.log ?? ((m: string) => console.log(m));
-  const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, log, reply: replyStoreDeps(deps) };
+  const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, media: deps.media, log, reply: replyStoreDeps(deps) };
   const messages = await deps.platform.poll();
   let s = state;
   let handled = 0;

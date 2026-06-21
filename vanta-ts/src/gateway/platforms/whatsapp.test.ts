@@ -27,11 +27,10 @@ describe("parseWhatsappWebhook", () => {
     const json = webhook([{ from: "999", type: "text", text: { body: "hi" } }]);
     expect(parseWhatsappWebhook(json)[0]).toMatchObject({ chatId: "999", from: "999", text: "hi" });
   });
-  it("skips status updates and non-text message types", () => {
+  it("skips status updates (delivery receipts), keeps real messages", () => {
     const json = {
       entry: [
         { changes: [{ value: { statuses: [{ id: "x", status: "delivered" }] } }] },
-        { changes: [{ value: { messages: [{ from: "1", type: "image", image: { id: "i" } }] } }] },
         { changes: [{ value: { messages: [{ from: "1", type: "text", text: { body: "real" } }] } }] },
       ],
     };
@@ -47,6 +46,27 @@ describe("parseWhatsappWebhook", () => {
     expect(parseWhatsappWebhook(null)).toEqual([]);
     expect(parseWhatsappWebhook({ entry: "nope" })).toEqual([]);
     expect(parseWhatsappWebhook({})).toEqual([]);
+  });
+});
+
+describe("parseWhatsappWebhook — media (MSG-MEDIA-IMAGES)", () => {
+  it("extracts an inbound image with its caption + mime + media ref", () => {
+    const json = webhook([
+      { from: "1", id: "m1", type: "image", image: { id: "media-9", mime_type: "image/png", caption: "look" } },
+    ]);
+    const out = parseWhatsappWebhook(json);
+    expect(out[0]).toMatchObject({ chatId: "1", text: "look" });
+    expect(out[0]!.media).toEqual([{ kind: "image", mime: "image/png", url: "wa-media:media-9" }]);
+  });
+  it("extracts an inbound voice memo as audio media (empty text)", () => {
+    const json = webhook([{ from: "1", type: "audio", audio: { id: "v3", mime_type: "audio/ogg" } }]);
+    const out = parseWhatsappWebhook(json);
+    expect(out[0]!.text).toBe("");
+    expect(out[0]!.media).toEqual([{ kind: "audio", mime: "audio/ogg", url: "wa-media:v3" }]);
+  });
+  it("defaults the mime when the platform omits it", () => {
+    const json = webhook([{ from: "1", type: "image", image: { id: "x" } }]);
+    expect(parseWhatsappWebhook(json)[0]!.media![0]!.mime).toBe("image/jpeg");
   });
 });
 

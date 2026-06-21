@@ -35,12 +35,17 @@ export function stripControl(text: string): string {
 }
 
 const TEXT_TYPE = "text";
+// MSG-MEDIA-IMAGES — an image/audio media object carries a media id (resolved to
+// bytes live via the Cloud API, token-gated) + a mime type.
+const WaMedia = z.object({ id: z.string(), mime_type: z.string().optional(), caption: z.string().optional() });
 
 const WaMessage = z.object({
   from: z.string(),
   id: z.string().optional(),
   type: z.string(),
   text: z.object({ body: z.string() }).optional(),
+  image: WaMedia.optional(),
+  audio: WaMedia.optional(),
 });
 const WaValue = z.object({
   messages: z.array(WaMessage).optional(),
@@ -80,19 +85,39 @@ function contactNames(value: WaValueT): Map<string, string> {
   return map;
 }
 
+// A url scheme the live media bridge resolves to bytes via the Cloud API (token-gated).
+export const WA_MEDIA_REF = "wa-media:";
+
+function mediaInbound(m: z.infer<typeof WaMessage>, from: string): InboundMessage | null {
+  const kind: "image" | "audio" = m.type === "image" ? "image" : "audio";
+  const media = m.image ?? m.audio;
+  if (!media) return null;
+  return {
+    chatId: m.from,
+    from,
+    id: m.id,
+    isGroup: false,
+    text: media.caption ? stripControl(media.caption) : "",
+    media: [{ kind, mime: media.mime_type ?? (kind === "image" ? "image/jpeg" : "audio/ogg"), url: WA_MEDIA_REF + media.id }],
+  };
+}
+
+function toWaInbound(m: z.infer<typeof WaMessage>, names: Map<string, string>): InboundMessage | null {
+  const from = names.get(m.from) ?? m.from;
+  if (m.type === TEXT_TYPE) {
+    return m.text ? { chatId: m.from, from, id: m.id, isGroup: false, text: stripControl(m.text.body) } : null;
+  }
+  if (m.type === "image" || m.type === "audio") return mediaInbound(m, from);
+  return null; // status updates + other non-text/non-media types
+}
+
 export function parseWhatsappWebhook(json: unknown): InboundMessage[] {
   const messages: InboundMessage[] = [];
   for (const value of valuesOf(json)) {
     const names = contactNames(value);
     for (const m of value.messages ?? []) {
-      if (m.type !== TEXT_TYPE || m.text === undefined) continue;
-      messages.push({
-        chatId: m.from,
-        from: names.get(m.from) ?? m.from,
-        text: stripControl(m.text.body),
-        id: m.id,
-        isGroup: false,
-      });
+      const inbound = toWaInbound(m, names);
+      if (inbound) messages.push(inbound);
     }
   }
   return messages;
