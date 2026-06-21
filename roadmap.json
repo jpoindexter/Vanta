@@ -12965,17 +12965,18 @@
       "id": "SETUP-WIZARD-MEMORY",
       "track": "Operator",
       "title": "Surface memory providers + new feature toggles in the setup wizard",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: vanta] Wire the new options into setup: vanta setup memory (catalog-driven picker like vanta setup messaging — local/Drive/Box/mem0/etc., with the per-entry 'what it does'), included as a step in the first-run wizard; plus surface the key opt-in feature toggles (VANTA_SKILL_DISTILLED, VANTA_SKILL_SUBSET, VANTA_TOON_DICT, VANTA_PRUNE, VANTA_REMOTE_STORE) with documented defaults, written to .env via upsertEnv. Users configure everything in one place.",
       "done": "vanta setup memory selects a memory provider (MEMORY_CATALOG, status-labeled like messaging); the first-run wizard includes the memory step; feature toggles are settable in setup with defaults; writes via upsertEnv (preserves other keys); tests; committed.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "infra",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "MEMORY-PROVIDER-FRAMEWORK"
-      ]
+      ],
+      "notes": "Pure MemoryBackendChoice{label,value,env?,needsKey?,note?} + MEMORY_BACKEND_CHOICES (local writes {} default · drive VANTA_MEMORY=drive reuses google OAuth note run vanta auth google · mem0 VANTA_MEMORY=mem0 needsKey · memanto VANTA_MEMORY=memanto + VANTA_MEMANTO_URL note local-first localhost:8000) + buildMemorySection (SettingSection header Memory backend, mem0 choice keyEnv=VANTA_MEM0_API_KEY drives the existing hidden secret prompt) + memoryChoiceEnv (local -> {}, never the secret key) + FEATURE_TOGGLE_CHOICES (proactive VANTA_PROACTIVE=1 · glimmer VANTA_GLIMMER=1 · tips VANTA_TIPS already on). ACCURACY CORRECTION: card said VANTA_MEMORY_PROVIDER/SYNC which DONT exist — the REAL selector is VANTA_MEMORY=<id> (resolveMemoryProvider reads env.VANTA_MEMORY); used the real var + cross-checked every feature env (VANTA_PROACTIVE/GLIMMER/TIPS confirmed in .env.example/policy/glimmer/startup-tips). mem0 key via secret-prompt NEVER a literal (gitleaks-safe, asserted absent from written env). Surfaces the drive/mem0/memanto adapters. Built+tested; wire = setup-full runFullSetup SETTINGS loop includes buildMemorySection (named, mirrors the execution-backend section). Local default = nothing written."
     },
     {
       "id": "MEMORY-ADAPTER-MEMANTO",
