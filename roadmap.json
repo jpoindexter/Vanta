@@ -12873,18 +12873,19 @@
       "id": "PRUNE-SCORER-RESOLVE",
       "track": "Harness",
       "title": "Resolve the pruning scorer (aux-task ladder), heuristic fallback",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "[repo: vanta] Pick the pruning scorer the same way Vanta routes vision (VANTA_VISION_MODEL) and embeddings (VANTA_EMBED_MODEL) — never the main chat model (it cannot echo-score). Ladder: explicit VANTA_PRUNE_SCORER_URL/_MODEL (winnow makeOpenAiLogprobScorer, completions+echo) -> reachable local logprob endpoint (probe) -> local transformers.js scorer (winnow makeLocalLogprobScorer) -> heuristic fallback. PRUNE-CONTEXT-WIRE and COMPRESSION-MEASURE consume the resolved scorer.",
       "done": "resolvePruneScorer(env) returns the best available AsyncTokenScorer per the ladder with heuristic fallback when none; pure resolution tested; wired into PRUNE-CONTEXT-WIRE; documented; committed to vanta.",
       "tier": "pebble",
       "effort": "low",
       "lens": "agent-loop",
-      "updated": "2026-06-18",
+      "updated": "2026-06-21",
       "after": [
         "WINNOW-LOGPROB-SCORER",
         "WINNOW-LOCAL-SCORER"
-      ]
+      ],
+      "notes": "Pure/injectable ScorerKind logprob|local|heuristic + ScorerAvailability{logprobSource?,localScorer?} (injected, never probed; heuristic NOT listed = unconditional floor) + resolvePruneScorerKind (logprob when logprobScorerEnabled(env) AND avail.logprobSource; else local when avail.localScorer; else heuristic; reuses logprobScorerEnabled read-only) + describePruneScorer + pruneScorerLadder (logprob>local>heuristic). NEVER picks an unavailable scorer (every returned kind backed by availability except heuristic = always present); resolver never returns empty. logprob enabled but no source -> NOT logprob; disabled via env even with a source -> not logprob; no config -> heuristic (winnow default, unchanged). Mirrors resolveVisionProvider aux-task ladder. NOTE: pruneText lives in the external winnow npm dep; heuristic floor = pruneText with no injected score. Built+tested; wire = pruneText calls resolvePruneScorerKind(env,{logprobSource,localScorer}) -> dispatch pruneByLogprob vs local vs heuristic (named)."
     },
     {
       "id": "MEMORY-PROVIDER-FRAMEWORK",
