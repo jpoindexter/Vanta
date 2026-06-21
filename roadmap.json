@@ -607,7 +607,7 @@
       "id": "VANTA-BG-FLAG-PRESERVE",
       "track": "Harness",
       "title": "`/bg` flag preservation — backgrounded sessions keep all startup flags",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (v2.1.143-144) ensures `/bg` and `←`-detach preserve all startup flags: `--mcp-config`, `--settings`, `--add-dir`, `--plugin-dir`, `--strict-mcp-config`, `--fallback-model`, `--allow-dangerously-skip-permissions`. Also (v2.1.153): `/bg` while responding continues the active response in the background session instead of dropping it.",
       "done": "Backgrounding a session with `--mcp-config custom.json` spawns a worker with the same MCP config. An in-progress response continues streaming in the background.",
@@ -616,7 +616,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-21",
+      "notes": "Pure PRESERVED_FLAGS allowlist (--model/--provider/--effort/--permission-mode/--resume/--max-budget-usd take a value; --bare/--safe-mode/--fork-session boolean) + captureStartupFlags (parses only allowlisted, handles --f=v + --f v + boolean, value-flag at EOL/before-dash -> value=, ignores unknown + node/script head, empty -> []) + buildRelaunchArgv (preserved + values + extra, extra overrides captured same-flag dedupe, boolean once) + serializeFlags. SECURITY: allowlisted — a stray --dangerous never propagates (asserted). Built+tested; wire = restart-cmd (exit 75 re-exec) / a /bg handler calls buildRelaunchArgv(captureStartupFlags(process.argv)) to spawn the bg session with the SAME config (named). Empty = []."
     },
     {
       "id": "VANTA-HOOK-MCP-TOOL-TYPE",
