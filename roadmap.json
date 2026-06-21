@@ -13919,7 +13919,7 @@
       "id": "MSG-TYPING-HEARTBEAT",
       "track": "Operator",
       "title": "Typing-indicator heartbeat, pausable during approval",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Agent thinks silently for tens of seconds with no chat feedback. Add a sendTyping(chatId) adapter method + a ~2s refresh loop around the turn (each send bounded by ~1.5s timeout), pausable while a kernel approval is pending so the user can still type /approve.",
       "done": "While the agent works, the chat shows a typing indicator refreshed every ~2s; it pauses during a pending approval; resumes after; bounded per-send timeout prevents a hung send killing it.",
@@ -13928,8 +13928,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-21",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Pure immutable TypingState{active,pausedForApproval,lastSentMs} + startTyping(nowMs) (active, stamps lastSentMs=now so the caller sends the opening tick) + stopTyping (inactive + pause cleared, idempotent) + pauseTypingForApproval/resumeTypingAfterApproval (toggle, active+lastSentMs preserved) + nextTypingTick(state,nowMs,intervalMs=5000) -> {state,shouldSend} (send ONLY when active AND !paused AND nowMs-lastSentMs>=interval; on send lastSentMs:=nowMs; else unchanged nothing sent) + typingHeartbeatEnabled (VANTA_TYPING_INDICATOR default ON, =0 disables). KEY BEHAVIOR (tested): a tick while pausedForApproval sends NOTHING even far past the interval — no typing while Vanta is blocked waiting on a human; resume returns ticks. Interval 5000ms under Telegram ~6s typing expiry. Built+tested; wire = pollPlatform startTyping when composing -> timer nextTypingTick -> a NEW optional PlatformAdapter.sendTyping (Telegram sendChatAction typing) when shouldSend -> wrap requestApproval with pause/resume -> stopTyping on reply sent (named, sendTyping = boundary). Not active = nothing."
     },
     {
       "id": "MSG-NO-REPLY-TOKEN",
