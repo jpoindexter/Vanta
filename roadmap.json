@@ -4181,7 +4181,7 @@
       "id": "VANTA-SKILL-DOLLAR-ESCAPE",
       "track": "Extensibility",
       "title": "Skill `\\$` escape — include literal `$` before a digit in skill command bodies",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.163) adds `\\$` escape syntax in skill command bodies to include a literal `$` before a digit. Without escaping, `$1` is interpreted as a command argument placeholder.",
       "done": "A skill with `command: 'echo \\$1.00'` outputs the literal string `$1.00` instead of substituting argument 1.",
@@ -4190,7 +4190,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure single-pass expandArgs (body,args): $1..$9 -> args[0..8], $ARGUMENTS -> join, escape by preceding-backslash PARITY (odd = literal $1, even = substitute; \\$1 = backslash+arg). $ alone / $x non-digit left as-is. Out-of-range/$0 -> empty (shell-collapse choice). One combined regex pass so an escape cant double-process + a substituted arg containing $2 isnt re-scanned. Generalizes the existing frontmatter expandSkillArgs ($ARGUMENTS-only, also unwired). Built+tested; wire = skill/slash run-path body expansion calls expandArgs (named). No $ = unchanged."
     },
     {
       "id": "VANTA-SETTINGS-MCP",
