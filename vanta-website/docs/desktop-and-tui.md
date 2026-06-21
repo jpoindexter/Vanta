@@ -33,6 +33,15 @@ A Vite + React desktop renderer ships under `desktop-app/` — an app shell with
 npm run desktop:build    # build the renderer (served from desktop-app/dist/)
 ```
 
+## Voice, sight & desktop control
+
+Beyond text, Vanta can take voice in and act on the screen. Each is opt-in and configured by the setup wizard, which also walks you through the one-time macOS permissions.
+
+- **Voice input** — hold-to-talk in the composer; speech is transcribed locally on your machine (no audio leaves the device).
+- **Native desktop control** — Vanta can see the screen and click / type / scroll to drive native apps, not just the browser. It works by capturing the screen, grounding the target on-screen, and actuating — or by routing through an external computer-use server.
+- **Terminal capture** — read a live terminal pane's contents into context, so Vanta can act on what a long-running command is printing.
+- **Channel autocomplete** — type `#` in the composer to pick a Slack channel.
+
 ## Accents
 
 The TUI uses a small set of Vanta accent colors (focus / health / activity / goal / risk) applied to symbols over a mostly-monochrome surface — no theme system to configure.

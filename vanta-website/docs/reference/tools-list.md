@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Tool reference
 
-Every built-in tool, generated directly from the source registry — **95 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
+Every built-in tool, generated directly from the source registry — **122 tools**. Each call is gated by the kernel before it runs (tools marked _safety-checked_ send a safety descriptor to the kernel). The model sees a per-turn scoped subset; `tool_search` pulls in the rest on demand.
 
 ## Files & code
 
@@ -70,12 +70,13 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `shell_cmd`
 
-Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately.
+Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `command` | string | yes | The shell command to run |
 | `background` | boolean | no | Run in background (returns task id immediately; check with bg_status) |
+| `ssh` | string | no | A configured SSH profile name or user@host — run the command on that host instead of locally |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -148,6 +149,7 @@ Push commits to a remote. Requires approval.
 |---|---|---|---|
 | `remote` | string | no | Optional remote name |
 | `branch` | string | no | Optional branch name |
+| `force` | boolean | no | Force-push (overwrites remote history) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -605,6 +607,7 @@ Delegate a scoped subtask to a worker agent — optionally on a DIFFERENT model/
 | `provider` | string | no | Optional backend for the worker: openai \| ollama \| anthropic \| gemini \| openrouter. Defaults to the parent's. |
 | `model` | string | no | Optional model id for the worker (e.g. gpt-4o, qwen2.5:14b, gemini-2.5-flash). |
 | `isolation` | string | no | Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict. |
+| `background` | boolean | no | Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -841,12 +844,14 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ### `clarify`
 
-Ask the user a clarifying question when their intent is ambiguous. Returns the formatted question for you to surface in your reply. Use this instead of guessing — wrong assumptions cost rework. Ask one question per turn; await the user's answer before proceeding.
+Ask the user a clarifying question when their intent is ambiguous. Returns the formatted question for you to surface in your reply. Use this instead of guessing — wrong assumptions cost rework. Ask one question per turn; await the user's answer before proceeding. Pass `fields` to request STRUCTURED, schema-validated input (typed values / explicit enum choices); once you have the user's answer, call again with the same `fields` plus `response` to validate and get typed values back. Omit `fields` for free-text (optionally with `options`).
 
 | Param | Type | Required | Description |
 |---|---|---|---|
 | `question` | string | yes | The clarifying question to ask the user. |
-| `options` | array | no | Optional structured choices. Numbered automatically. Omit for open-ended answers. |
+| `options` | array | no | Optional free-text choices. Numbered automatically. Omit for open-ended answers. Ignored when `fields` is set. |
+| `fields` | array | no | Declares typed fields the answer must satisfy (string/number/boolean/enum). Turns this into a structured interview. |
+| `response` | object | no | The user's structured answer. When set with `fields`, it is zod-validated and typed values are returned. |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1048,6 +1053,16 @@ _Safety-checked: sends a descriptor to the kernel for classification._
 
 ## Other
 
+### `ask_user`
+
+Ask the operator a STRUCTURED question set when a genuinely user-owned decision must be collected cleanly — use this over free-text `clarify` when the answer is a choice among labelled options. Provide 1-4 questions; each has a short `header` (≤12 chars), the `question` text, 2-4 `options` (label + description), and optional `multiSelect`. Returns the formatted question set for you to surface; await the user's selection before proceeding. Ask only what the user must decide.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `questions` | array | yes | 1-4 structured questions to put to the operator. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `brief`
 
 Send a structured notification message with optional file attachments. Use 'normal' for routine updates or 'proactive' for agent-initiated alerts. Files are referenced by path and rendered in the user interface.
@@ -1057,6 +1072,19 @@ Send a structured notification message with optional file attachments. Use 'norm
 | `message` | string | yes | The notification message (markdown-safe). |
 | `status` | string | no | Message type: 'normal' or 'proactive' (unsolicited alert). |
 | `files` | array | no | Optional file paths to attach (relative or absolute). |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `budget`
+
+Set, inspect, or clear a scoped spend budget (USD). On overspend the scope auto-pauses; a loop scope ("loop:&lt;id&gt;") also cancels its queued wakes. Scopes: "loop:&lt;id&gt;", "goal:&lt;id&gt;", "session", "agent:&lt;id&gt;".
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | set a limit, show status, or clear a budget |
+| `scope` | string | no | budget scope key, e.g. "loop:nightly" or "session". Omit on status to list all. |
+| `limit_usd` | number | no | hard-stop limit in USD (required for set) |
+| `warn_fraction` | number | no | fraction of the limit that flips to warning (default 0.8) |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1098,6 +1126,86 @@ Find a symbol (function/class/type/variable) by name in the code-intelligence in
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `config_sandbox`
+
+Test a config change end-to-end without touching git. action:save &#123;name, instruction&#125; stores a reusable input under .vanta/sandbox/inputs/. action:run &#123;name, override, baseline?&#125; runs the saved input in an ISOLATED worker with the candidate override (promptPrefix / model / provider / toolNames subset) AND a baseline default-config run, then reports a side-by-side trace (tool calls + outcome) and their diff. No git mutation. action:list explains usage.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `name` | string | no | saved input name (filename-safe) |
+| `instruction` | string | no | save: the instruction text to store |
+| `override` | object | no | run: candidate config override |
+| `baseline` | object | no | run: optional baseline override (defaults to default config) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `config_tool`
+
+Read and update Vanta user settings during a session. 'get &lt;key&gt;' returns a setting's current value; 'list' shows all updatable settings + their values; 'path' returns the settings file path; 'set &lt;key&gt; &lt;value&gt;' persists a supported setting to settings.json. Unsupported keys are rejected.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | get a value · list supported keys · path of the file · set a value |
+| `key` | string | no | Setting key (required for get/set). |
+| `value` | string | no | New value (required for set). |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `council`
+
+Convene a bounded role council (CEO/CTO/COO/CFO + a Reflection role) on one question. Each role deliberates from its lens in a single pass, then the Reflection role synthesizes them into ONE consolidated recommendation. The roster is fixed and capped — no recursion. Use for a multi-perspective decision (ship/no-ship, build-vs-buy, strategy calls).
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `question` | string | yes | The decision/question the council deliberates on |
+| `max_iterations` | integer | no | Optional per-role worker loop cap (1-50) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `distill_trace`
+
+Distill a run's events.jsonl into a sourced root-cause report. Reads the trace (default .vanta/events.jsonl), detects root-cause signals (errors, blocked/denied actions, failures, stalls, retry/repeat loops, long gaps), and writes an overview.md plus one detail file per issue under .vanta/trace-reports/&lt;ts&gt;/ — every claim citing the source trace line(s) as L&lt;n&gt;. Returns the overview.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | no | trace file to distill (default .vanta/events.jsonl) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `enter_worktree`
+
+Create an isolated git worktree (its own branch + directory) for parallel work without touching the main checkout. Returns the worktree path and branch; clean it up afterwards with exit_worktree.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `branch_prefix` | string | no | Optional branch-name prefix (default: agent-worktree) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `exit_worktree`
+
+Remove a git worktree created by enter_worktree. Auto-cleans (drops the worktree directory and its branch) only when it has NO uncommitted changes. If it is dirty, refuses and surfaces the changes — pass force:true to discard them and remove anyway.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Worktree directory path (from enter_worktree) |
+| `branch` | string | yes | Worktree branch name (from enter_worktree) |
+| `force` | boolean | no | Discard uncommitted changes and remove anyway (default false) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `generate_agent`
+
+Generate a new agent definition (identifier + when-to-use + system prompt) from a plain-English description, tailored using repository context, and write it to an agent file under the Vanta home. Use this to create a reusable specialist agent the orchestrator can later delegate to.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `description` | string | yes | Plain-English description of the agent to create (its purpose and behavior) |
+| `repo_context` | string | no | Optional repository/stack context to tailor the agent (e.g. languages, conventions) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `lan_control`
 
 Drive a local LAN device discovered by lan_discover: send a mutating HTTP request (POST/PUT, or GET for control endpoints) to its local API. LAN-only (refuses non-private hosts) and ALWAYS approval-gated — the human confirms the exact request before it is sent.
@@ -1120,6 +1228,48 @@ Read-only scan of the local network (/24 subnet) to find smart-home / LAN device
 |---|---|---|---|
 | `subnet` | string | no | A /24 base like "192.168.1" (auto-detected if omitted) |
 | `timeoutMs` | integer | no | Per-host probe timeout (default 800) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `list_peers`
+
+List other Vanta sessions running on this machine (peer agents discovered over Unix domain sockets). Returns each live peer's id, title, and pid. Use peer_send with a peer's id to collaborate across sessions.
+
+_No parameters._
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `lsp_hover`
+
+Show the type/signature (quick-info) for the symbol at a position in a .ts/.tsx file inside the project scope.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to a .ts/.tsx file relative to the project root |
+| `line` | number | yes | Zero-based line of the symbol |
+| `character` | number | yes | Zero-based character offset of the symbol |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `lsp_references`
+
+Find every reference to the symbol at a position in a .ts/.tsx file inside the project scope.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to a .ts/.tsx file relative to the project root |
+| `line` | number | yes | Zero-based line of the symbol |
+| `character` | number | yes | Zero-based character offset of the symbol |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `lsp_symbols`
+
+List the document symbols (declarations) of a .ts/.tsx file inside the project scope.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to a .ts/.tsx file relative to the project root |
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
@@ -1146,6 +1296,112 @@ Run plain-English assertions as an independent LLM judge against a captured inpu
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 
+### `open_deep_link`
+
+Parse and resolve a vanta:// deep link into a safe launch descriptor for a pre-filled Vanta session. Accepts vanta://run?prompt=...&cwd=...&repo=... — URL-decodes the params, rejects control characters and non-path cwd/repo, and returns the resolved argv (never a shell string). On macOS it may also open a terminal for a fully-validated link; the descriptor is the deliverable.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `url` | string | yes | The vanta:// deep link, e.g. vanta://run?prompt=fix%20auth&cwd=/repo. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `outreach`
+
+Authorized brand/outreach workspace — DRAFT-ONLY, batch-approved. action:draft &#123;to, channel, body, subject?, batchId?&#125; creates a DRAFT (never sends). action:approve_batch &#123;batchId&#125; requests human/kernel approval, then marks that batch's drafts approved (the only path toward sending). action:reply &#123;ref, note?&#125; records an inbound reply to the proof ledger. action:proof &#123;kind, ref, note?&#125; appends a sent/received/changed proof entry. action:list [batchId] shows the brand identity, drafts, and proof-ledger size. There is no autonomous-send action and the identity is the configured brand, never fabricated.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `to` | string | no | draft: recipient |
+| `channel` | string | no | draft: channel (e.g. email) |
+| `body` | string | no | draft: message body |
+| `subject` | string | no | draft: optional subject |
+| `batchId` | string | no | draft/approve_batch/list: batch identifier |
+| `ref` | string | no | reply/proof: the draft or thread reference |
+| `note` | string | no | reply/proof: optional note |
+| `kind` | string | no | proof: ledger entry kind |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `pdf_read`
+
+Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path to the PDF, relative to the project root |
+| `max_bytes` | number | no | Max file size to read in bytes (default 26214400, hard cap 52428800) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `peer_send`
+
+Send a message to another Vanta session over a Unix domain socket. Pass the target peer's id (from list_peers) and the text; it is appended to that peer's inbox. Returns delivered or failed.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `to` | string | yes | The peer agent id to send to (from list_peers). |
+| `text` | string | yes | The message text. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `research_decompose`
+
+Decompose a research objective into independent, labeled sub-queries and run them as PARALLEL research workers, then return a synthesis that shows, per dimension, WHICH tools each ran and what it found. Use for a multi-angle research goal where transparency matters: the report is auditable back to the tools that produced each claim.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `objective` | string | yes | The research objective to fan out across independent dimensions |
+| `dimensions` | integer | no | Optional fan-out cap (number of parallel sub-queries). Default 4. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `review_artifact`
+
+Present a generated file artifact (its full proposed content) for human review before writing. Computes an old-vs-new diff against the existing file (or treats it as a new file), surfaces the change for approval, and writes the file ONLY if the user approves — a rejection leaves it unchanged.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `path` | string | yes | Path (relative to the project root, or a writable-zone path) to review and write. |
+| `content` | string | yes | Full proposed file contents to review. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `run_maximizer`
+
+Maximizer mode: higher-autonomy execution under a HARD budget. Delegates each task in `tasks` to a worker (kernel-gated), follows through across all of them, records a visible activity trail, and STOPS the moment cumulative spend reaches `budgetUsd`. Use it to get more verified output per supervisor — it is bounded autonomy, not a blank check.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `tasks` | array | yes | ordered tasks to delegate and follow through |
+| `budgetUsd` | number | yes | hard USD spend cap for the whole run; execution stops when reached |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `self_correct`
+
+Self-correct a failing command in one loop: confirm the failure, drive a fix (diagnose + gated edits), rerun the failing input, and lock a regression test on success. command = the failing shell command; expect = the substring its output must contain when fixed.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `command` | string | yes | the failing shell command to correct |
+| `expect` | string | yes | substring the command's output must contain once fixed |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `send_chat`
+
+Proactively send a message to a configured chat platform (e.g. telegram) — works WITHOUT the gateway running. Resolves the platform's adapter, connects, sends one message, and disconnects. Use to push an update to a chat from a cron/loop wake. Outbound — approval-gated. Implemented platforms: telegram, mattermost, irc, ntfy, imessage, signal.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `platform` | string | yes | Configured platform id, e.g. telegram |
+| `chatId` | string | yes | Platform-specific conversation id to send to |
+| `text` | string | yes | The message text to send |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
 ### `taste_critique`
 
 Score and critique a generated artifact against a persisted Jason-specific taste model so it isn't generic. Five axes (clarity, usefulness, beauty, credibility, actionability) plus brand-safe defaults the model seeds with. action:score critiques an artifact (content or in-scope path; kind text|markdown|html) and records it; action:before / action:after record a phased critique — after also prints the per-axis delta vs the latest before (before/after memory); action:brand shows the brand-safe defaults + learned preferences; action:prefer adds a durable preference signal to the model (preference=...); action:history shows the recorded critique trail. action:snapshot locks a visual-regression baseline PNG for a generated app (name + target url/in-scope path); action:regress re-captures and compares against the baseline (no-baseline | match | regression, distinguishing a dimension change); action:rebaseline accepts the current capture as the new baseline. Visual snapshots need a screenshot source (chromium) — without one they degrade to a clear message, never hang. project scopes a per-project model + memory (default = global). Records only — never edits the artifact.
@@ -1161,6 +1417,68 @@ Score and critique a generated artifact against a persisted Jason-specific taste
 | `preference` | string | no | a durable preference signal to learn (action:prefer) |
 | `name` | string | no | baseline name for visual snapshot/regress/rebaseline |
 | `target` | string | no | screenshot target for snapshot/regress: an http(s) url or an in-scope file path |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `terminal_capture`
+
+Run a command in a real terminal (tmux) and capture its terminal-faithful output (colors/TUI redraws), returned as clean stripped text. Use when piped stdout loses formatting or a TUI program needs a real terminal.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `command` | string | yes | The shell command to run and capture. |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `ticket`
+
+First-class issue tracker above goals, persisted in .vanta/tickets.json. action:create &#123;title, status?, labels?&#125; opens an issue (default status open, inbox unread). action:comment &#123;id, text&#125; appends a comment. action:attach &#123;id, name, path&#125; records an attachment reference. action:link &#123;id, link:goal|parent|project, target&#125; links the issue to a goal/parent ticket/project. action:inbox &#123;id, inbox:unread|read|archived?, status?&#125; sets inbox and/or status (omit both to show the ticket). action:list lists every ticket; action:board renders the issue board grouped by status.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes |  |
+| `id` | string | no | ticket id (comment/attach/link/inbox) |
+| `title` | string | no | ticket title (create) |
+| `status` | string | no | open\|in_progress\|done\|closed (create/inbox) |
+| `inbox` | string | no | unread\|read\|archived (inbox) |
+| `text` | string | no | comment body (comment) |
+| `name` | string | no | attachment display name (attach) |
+| `path` | string | no | attachment path/reference (attach) |
+| `link` | string | no | link kind (link) |
+| `target` | string | no | link target id (link) |
+| `labels` | array | no | labels (create) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `vision_action`
+
+Locate a UI target from a screenshot and execute one grounded click, then re-observe to confirm the screen changed — detecting a mis-click and retrying. Vanta's perceive→ground→act→verify loop. macOS: needs a vision model + Screen Recording permission + the 'cliclick' helper for OS-level clicks.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `target` | string | yes | The on-screen UI target to act on, in plain language (e.g. 'the blue Login button') |
+| `maxAttempts` | number | no | Re-observe/retry attempts on a mis-click (default 2, max 5) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `vision_watch`
+
+Capture one frame of the screen (or camera), detect a meaningful change versus the prior frame, and on a change describe it with a vision model and alert the operator over the gateway (send_chat). Vanta's 'watch what's next' sense — run it periodically via `vanta cron` for a standing watch. macOS: needs a vision model + Screen Recording permission + a configured gateway platform.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `platform` | string | yes | Configured gateway platform id to alert on, e.g. telegram |
+| `chatId` | string | yes | Platform-specific conversation id to alert |
+| `source` | string | no | What to watch (default screen) |
+| `threshold` | number | no | 0..1 change sensitivity; 0 = any change alerts (default 0) |
+
+_Safety-checked: sends a descriptor to the kernel for classification._
+
+### `voice_input`
+
+Record a short push-to-talk voice clip from the microphone and transcribe it to text (local whisper). No args — records, transcribes, returns the transcript.
+
+_No parameters._
 
 _Safety-checked: sends a descriptor to the kernel for classification._
 

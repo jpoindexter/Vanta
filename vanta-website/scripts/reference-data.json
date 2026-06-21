@@ -1,6 +1,66 @@
 {
   "tools": [
     {
+      "name": "ask_user",
+      "description": "Ask the operator a STRUCTURED question set when a genuinely user-owned decision must be collected cleanly — use this over free-text `clarify` when the answer is a choice among labelled options. Provide 1-4 questions; each has a short `header` (≤12 chars), the `question` text, 2-4 `options` (label + description), and optional `multiSelect`. Returns the formatted question set for you to surface; await the user's selection before proceeding. Ask only what the user must decide.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "questions"
+        ],
+        "properties": {
+          "questions": {
+            "type": "array",
+            "description": "1-4 structured questions to put to the operator.",
+            "items": {
+              "type": "object",
+              "required": [
+                "header",
+                "question",
+                "options"
+              ],
+              "properties": {
+                "header": {
+                  "type": "string",
+                  "description": "Short label, ≤12 chars."
+                },
+                "question": {
+                  "type": "string",
+                  "description": "The question to ask."
+                },
+                "options": {
+                  "type": "array",
+                  "description": "2-4 labelled options.",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "label",
+                      "description"
+                    ],
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "description": "Short option label."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "What the option means."
+                      }
+                    }
+                  }
+                },
+                "multiSelect": {
+                  "type": "boolean",
+                  "description": "Allow picking any number of options (default: pick one)."
+                }
+              }
+            }
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
       "name": "bg_list",
       "description": "List background shell tasks spawned this session. Optionally filter by status (all|running|done|failed).",
       "parameters": {
@@ -309,6 +369,40 @@
       "hasSafety": true
     },
     {
+      "name": "budget",
+      "description": "Set, inspect, or clear a scoped spend budget (USD). On overspend the scope auto-pauses; a loop scope (\"loop:<id>\") also cancels its queued wakes. Scopes: \"loop:<id>\", \"goal:<id>\", \"session\", \"agent:<id>\".",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "set",
+              "status",
+              "clear"
+            ],
+            "description": "set a limit, show status, or clear a budget"
+          },
+          "scope": {
+            "type": "string",
+            "description": "budget scope key, e.g. \"loop:nightly\" or \"session\". Omit on status to list all."
+          },
+          "limit_usd": {
+            "type": "number",
+            "description": "hard-stop limit in USD (required for set)"
+          },
+          "warn_fraction": {
+            "type": "number",
+            "description": "fraction of the limit that flips to warning (default 0.8)"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "calendar_create",
       "description": "Create an event on the user's primary Google calendar. Always requires approval.",
       "parameters": {
@@ -392,7 +486,7 @@
     },
     {
       "name": "clarify",
-      "description": "Ask the user a clarifying question when their intent is ambiguous. Returns the formatted question for you to surface in your reply. Use this instead of guessing — wrong assumptions cost rework. Ask one question per turn; await the user's answer before proceeding.",
+      "description": "Ask the user a clarifying question when their intent is ambiguous. Returns the formatted question for you to surface in your reply. Use this instead of guessing — wrong assumptions cost rework. Ask one question per turn; await the user's answer before proceeding. Pass `fields` to request STRUCTURED, schema-validated input (typed values / explicit enum choices); once you have the user's answer, call again with the same `fields` plus `response` to validate and get typed values back. Omit `fields` for free-text (optionally with `options`).",
       "parameters": {
         "type": "object",
         "required": [
@@ -408,7 +502,53 @@
             "items": {
               "type": "string"
             },
-            "description": "Optional structured choices. Numbered automatically. Omit for open-ended answers."
+            "description": "Optional free-text choices. Numbered automatically. Omit for open-ended answers. Ignored when `fields` is set."
+          },
+          "fields": {
+            "type": "array",
+            "description": "Declares typed fields the answer must satisfy (string/number/boolean/enum). Turns this into a structured interview.",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "type"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Field key."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "enum"
+                  ],
+                  "description": "Field value type."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Human label (defaults to name)."
+                },
+                "choices": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Allowed values; required when type is enum."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Defaults true; false allows omitting the field."
+                }
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "The user's structured answer. When set with `fields`, it is zod-validated and typed values are returned."
           }
         }
       },
@@ -562,6 +702,112 @@
       "hasSafety": true
     },
     {
+      "name": "config_sandbox",
+      "description": "Test a config change end-to-end without touching git. action:save {name, instruction} stores a reusable input under .vanta/sandbox/inputs/. action:run {name, override, baseline?} runs the saved input in an ISOLATED worker with the candidate override (promptPrefix / model / provider / toolNames subset) AND a baseline default-config run, then reports a side-by-side trace (tool calls + outcome) and their diff. No git mutation. action:list explains usage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "run",
+              "save",
+              "list"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "saved input name (filename-safe)"
+          },
+          "instruction": {
+            "type": "string",
+            "description": "save: the instruction text to store"
+          },
+          "override": {
+            "type": "object",
+            "description": "run: candidate config override",
+            "properties": {
+              "promptPrefix": {
+                "type": "string",
+                "description": "text prepended to the system instruction"
+              },
+              "model": {
+                "type": "string",
+                "description": "model id override"
+              },
+              "provider": {
+                "type": "string",
+                "description": "provider override (openai|ollama|anthropic|…)"
+              },
+              "toolNames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "restrict the worker to this tool subset"
+              }
+            }
+          },
+          "baseline": {
+            "type": "object",
+            "description": "run: optional baseline override (defaults to default config)",
+            "properties": {
+              "promptPrefix": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "provider": {
+                "type": "string"
+              },
+              "toolNames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "config_tool",
+      "description": "Read and update Vanta user settings during a session. 'get <key>' returns a setting's current value; 'list' shows all updatable settings + their values; 'path' returns the settings file path; 'set <key> <value>' persists a supported setting to settings.json. Unsupported keys are rejected.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "get",
+              "list",
+              "path",
+              "set"
+            ],
+            "description": "get a value · list supported keys · path of the file · set a value"
+          },
+          "key": {
+            "type": "string",
+            "description": "Setting key (required for get/set)."
+          },
+          "value": {
+            "type": "string",
+            "description": "New value (required for set)."
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
       "name": "cookie_import",
       "description": "Store a browser-exported login cookie for a reach channel (reddit, twitter, …) so its tools can read login-walled content. Three sources: `browser:\"brave\"` reads your live logged-in session straight from the browser's cookie store (no export — macOS, one Keychain approval); or a Cookie-Editor JSON / Netscape cookies.txt / 'k=v' header pasted as `cookie` or read from a saved export via `file`. Stored 0600 in ~/.vanta — local only, never logged or uploaded.",
       "parameters": {
@@ -591,6 +837,29 @@
         },
         "required": [
           "channel"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "council",
+      "description": "Convene a bounded role council (CEO/CTO/COO/CFO + a Reflection role) on one question. Each role deliberates from its lens in a single pass, then the Reflection role synthesizes them into ONE consolidated recommendation. The roster is fixed and capped — no recursion. Use for a multi-perspective decision (ship/no-ship, build-vs-buy, strategy calls).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "The decision/question the council deliberates on"
+          },
+          "max_iterations": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Optional per-role worker loop cap (1-50)"
+          }
+        },
+        "required": [
+          "question"
         ]
       },
       "hasSafety": true
@@ -668,6 +937,10 @@
               "worktree"
             ],
             "description": "Set to 'worktree' to run the agent in a fresh git worktree on a new branch so parallel agents don't conflict."
+          },
+          "background": {
+            "type": "boolean",
+            "description": "Run the worker in the BACKGROUND: the call returns immediately and the worker's result re-enters as a new turn when the session is idle. Use for long subtasks you don't need to block on."
           }
         },
         "required": [
@@ -695,6 +968,20 @@
         "required": [
           "path"
         ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "distill_trace",
+      "description": "Distill a run's events.jsonl into a sourced root-cause report. Reads the trace (default .vanta/events.jsonl), detects root-cause signals (errors, blocked/denied actions, failures, stalls, retry/repeat loops, long gaps), and writes an overview.md plus one detail file per issue under .vanta/trace-reports/<ts>/ — every claim citing the source trace line(s) as L<n>. Returns the overview.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "trace file to distill (default .vanta/events.jsonl)"
+          }
+        }
       },
       "hasSafety": true
     },
@@ -799,6 +1086,68 @@
       "hasSafety": true
     },
     {
+      "name": "enter_worktree",
+      "description": "Create an isolated git worktree (its own branch + directory) for parallel work without touching the main checkout. Returns the worktree path and branch; clean it up afterwards with exit_worktree.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "branch_prefix": {
+            "type": "string",
+            "description": "Optional branch-name prefix (default: agent-worktree)"
+          }
+        },
+        "required": []
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "exit_worktree",
+      "description": "Remove a git worktree created by enter_worktree. Auto-cleans (drops the worktree directory and its branch) only when it has NO uncommitted changes. If it is dirty, refuses and surfaces the changes — pass force:true to discard them and remove anyway.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Worktree directory path (from enter_worktree)"
+          },
+          "branch": {
+            "type": "string",
+            "description": "Worktree branch name (from enter_worktree)"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Discard uncommitted changes and remove anyway (default false)"
+          }
+        },
+        "required": [
+          "path",
+          "branch"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "generate_agent",
+      "description": "Generate a new agent definition (identifier + when-to-use + system prompt) from a plain-English description, tailored using repository context, and write it to an agent file under the Vanta home. Use this to create a reusable specialist agent the orchestrator can later delegate to.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Plain-English description of the agent to create (its purpose and behavior)"
+          },
+          "repo_context": {
+            "type": "string",
+            "description": "Optional repository/stack context to tailor the agent (e.g. languages, conventions)"
+          }
+        },
+        "required": [
+          "description"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "git_branch",
       "description": "Create a branch by name, or list branches when no name given. Requires approval.",
       "parameters": {
@@ -875,6 +1224,10 @@
           "branch": {
             "type": "string",
             "description": "Optional branch name"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Force-push (overwrites remote history)"
           }
         },
         "required": []
@@ -1243,6 +1596,16 @@
       "hasSafety": true
     },
     {
+      "name": "list_peers",
+      "description": "List other Vanta sessions running on this machine (peer agents discovered over Unix domain sockets). Returns each live peer's id, title, and pid. Use peer_send with a peer's id to collaborate across sessions.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "hasSafety": true
+    },
+    {
       "name": "look_at_camera",
       "description": "Capture a frame from the webcam and describe it with the active vision model (macOS, needs imagesnap).",
       "parameters": {
@@ -1343,6 +1706,77 @@
     {
       "name": "lsp_diagnostics",
       "description": "Report TypeScript diagnostics (errors and warnings) for a .ts/.tsx file inside the project scope.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a .ts/.tsx file relative to the project root"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "lsp_hover",
+      "description": "Show the type/signature (quick-info) for the symbol at a position in a .ts/.tsx file inside the project scope.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a .ts/.tsx file relative to the project root"
+          },
+          "line": {
+            "type": "number",
+            "description": "Zero-based line of the symbol"
+          },
+          "character": {
+            "type": "number",
+            "description": "Zero-based character offset of the symbol"
+          }
+        },
+        "required": [
+          "path",
+          "line",
+          "character"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "lsp_references",
+      "description": "Find every reference to the symbol at a position in a .ts/.tsx file inside the project scope.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a .ts/.tsx file relative to the project root"
+          },
+          "line": {
+            "type": "number",
+            "description": "Zero-based line of the symbol"
+          },
+          "character": {
+            "type": "number",
+            "description": "Zero-based character offset of the symbol"
+          }
+        },
+        "required": [
+          "path",
+          "line",
+          "character"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "lsp_symbols",
+      "description": "List the document symbols (declarations) of a .ts/.tsx file inside the project scope.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1528,6 +1962,126 @@
           "input",
           "output",
           "assertions"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "open_deep_link",
+      "description": "Parse and resolve a vanta:// deep link into a safe launch descriptor for a pre-filled Vanta session. Accepts vanta://run?prompt=...&cwd=...&repo=... — URL-decodes the params, rejects control characters and non-path cwd/repo, and returns the resolved argv (never a shell string). On macOS it may also open a terminal for a fully-validated link; the descriptor is the deliverable.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The vanta:// deep link, e.g. vanta://run?prompt=fix%20auth&cwd=/repo."
+          }
+        }
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "outreach",
+      "description": "Authorized brand/outreach workspace — DRAFT-ONLY, batch-approved. action:draft {to, channel, body, subject?, batchId?} creates a DRAFT (never sends). action:approve_batch {batchId} requests human/kernel approval, then marks that batch's drafts approved (the only path toward sending). action:reply {ref, note?} records an inbound reply to the proof ledger. action:proof {kind, ref, note?} appends a sent/received/changed proof entry. action:list [batchId] shows the brand identity, drafts, and proof-ledger size. There is no autonomous-send action and the identity is the configured brand, never fabricated.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approve_batch",
+              "reply",
+              "proof",
+              "list"
+            ]
+          },
+          "to": {
+            "type": "string",
+            "description": "draft: recipient"
+          },
+          "channel": {
+            "type": "string",
+            "description": "draft: channel (e.g. email)"
+          },
+          "body": {
+            "type": "string",
+            "description": "draft: message body"
+          },
+          "subject": {
+            "type": "string",
+            "description": "draft: optional subject"
+          },
+          "batchId": {
+            "type": "string",
+            "description": "draft/approve_batch/list: batch identifier"
+          },
+          "ref": {
+            "type": "string",
+            "description": "reply/proof: the draft or thread reference"
+          },
+          "note": {
+            "type": "string",
+            "description": "reply/proof: optional note"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "received",
+              "changed"
+            ],
+            "description": "proof: ledger entry kind"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "pdf_read",
+      "description": "Extract text from a PDF file (scoped to the project) and return it as context. Enforces a max file-size limit and returns a clear error for encrypted, corrupt, missing, or image-only PDFs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the PDF, relative to the project root"
+          },
+          "max_bytes": {
+            "type": "number",
+            "description": "Max file size to read in bytes (default 26214400, hard cap 52428800)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "peer_send",
+      "description": "Send a message to another Vanta session over a Unix domain socket. Pass the target peer's id (from list_peers) and the text; it is appended to that peer's inbox. Returns delivered or failed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "The peer agent id to send to (from list_peers)."
+          },
+          "text": {
+            "type": "string",
+            "description": "The message text."
+          }
+        },
+        "required": [
+          "to",
+          "text"
         ]
       },
       "hasSafety": true
@@ -1896,6 +2450,29 @@
       "hasSafety": true
     },
     {
+      "name": "research_decompose",
+      "description": "Decompose a research objective into independent, labeled sub-queries and run them as PARALLEL research workers, then return a synthesis that shows, per dimension, WHICH tools each ran and what it found. Use for a multi-angle research goal where transparency matters: the report is auditable back to the tools that produced each claim.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "objective": {
+            "type": "string",
+            "description": "The research objective to fan out across independent dimensions"
+          },
+          "dimensions": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 6,
+            "description": "Optional fan-out cap (number of parallel sub-queries). Default 4."
+          }
+        },
+        "required": [
+          "objective"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "retrieve_original",
       "description": "Expand a compressed tool output back to its full original. Pass the original_id shown in a [vanta compressed …] footer to read the complete content.",
       "parameters": {
@@ -1909,6 +2486,28 @@
         "required": [
           "original_id"
         ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "review_artifact",
+      "description": "Present a generated file artifact (its full proposed content) for human review before writing. Computes an old-vs-new diff against the existing file (or treats it as a new file), surfaces the change for approval, and writes the file ONLY if the user approves — a rejection leaves it unchanged.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "path",
+          "content"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path (relative to the project root, or a writable-zone path) to review and write."
+          },
+          "content": {
+            "type": "string",
+            "description": "Full proposed file contents to review."
+          }
+        }
       },
       "hasSafety": true
     },
@@ -2067,6 +2666,31 @@
       "hasSafety": true
     },
     {
+      "name": "run_maximizer",
+      "description": "Maximizer mode: higher-autonomy execution under a HARD budget. Delegates each task in `tasks` to a worker (kernel-gated), follows through across all of them, records a visible activity trail, and STOPS the moment cumulative spend reaches `budgetUsd`. Use it to get more verified output per supervisor — it is bounded autonomy, not a blank check.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ordered tasks to delegate and follow through"
+          },
+          "budgetUsd": {
+            "type": "number",
+            "description": "hard USD spend cap for the whole run; execution stops when reached"
+          }
+        },
+        "required": [
+          "tasks",
+          "budgetUsd"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "screenshot",
       "description": "Capture a full-page PNG screenshot of an approved URL, saving it to a path inside the project scope.",
       "parameters": {
@@ -2084,6 +2708,28 @@
         "required": [
           "url",
           "path"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "self_correct",
+      "description": "Self-correct a failing command in one loop: confirm the failure, drive a fix (diagnose + gated edits), rerun the failing input, and lock a regression test on success. command = the failing shell command; expect = the substring its output must contain when fixed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "the failing shell command to correct"
+          },
+          "expect": {
+            "type": "string",
+            "description": "substring the command's output must contain once fixed"
+          }
+        },
+        "required": [
+          "command",
+          "expect"
         ]
       },
       "hasSafety": true
@@ -2130,6 +2776,33 @@
       "hasSafety": true
     },
     {
+      "name": "send_chat",
+      "description": "Proactively send a message to a configured chat platform (e.g. telegram) — works WITHOUT the gateway running. Resolves the platform's adapter, connects, sends one message, and disconnects. Use to push an update to a chat from a cron/loop wake. Outbound — approval-gated. Implemented platforms: telegram, mattermost, irc, ntfy, imessage, signal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Configured platform id, e.g. telegram"
+          },
+          "chatId": {
+            "type": "string",
+            "description": "Platform-specific conversation id to send to"
+          },
+          "text": {
+            "type": "string",
+            "description": "The message text to send"
+          }
+        },
+        "required": [
+          "platform",
+          "chatId",
+          "text"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "send_message",
       "description": "Send a message to a named agent registered on the A2A bus. Returns the agent's reply, or a delivery note when the agent returns no reply.",
       "parameters": {
@@ -2157,7 +2830,7 @@
     },
     {
       "name": "shell_cmd",
-      "description": "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately.",
+      "description": "Run a shell command inside the project scope. Returns combined stdout/stderr. Destructive commands are blocked. Set background=true for long-running commands — returns a task id immediately. Set ssh to a settings.sshConfigs profile name or user@host to run the command on that host. In an SSH session (`vanta ssh user@host`) commands default to the remote host.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2168,6 +2841,10 @@
           "background": {
             "type": "boolean",
             "description": "Run in background (returns task id immediately; check with bg_status)"
+          },
+          "ssh": {
+            "type": "string",
+            "description": "A configured SSH profile name or user@host — run the command on that host instead of locally"
           }
         },
         "required": [
@@ -2412,6 +3089,107 @@
       "hasSafety": true
     },
     {
+      "name": "terminal_capture",
+      "description": "Run a command in a real terminal (tmux) and capture its terminal-faithful output (colors/TUI redraws), returned as clean stripped text. Use when piped stdout loses formatting or a TUI program needs a real terminal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The shell command to run and capture."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "ticket",
+      "description": "First-class issue tracker above goals, persisted in .vanta/tickets.json. action:create {title, status?, labels?} opens an issue (default status open, inbox unread). action:comment {id, text} appends a comment. action:attach {id, name, path} records an attachment reference. action:link {id, link:goal|parent|project, target} links the issue to a goal/parent ticket/project. action:inbox {id, inbox:unread|read|archived?, status?} sets inbox and/or status (omit both to show the ticket). action:list lists every ticket; action:board renders the issue board grouped by status.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "comment",
+              "attach",
+              "link",
+              "inbox",
+              "list",
+              "board"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "ticket id (comment/attach/link/inbox)"
+          },
+          "title": {
+            "type": "string",
+            "description": "ticket title (create)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "in_progress",
+              "done",
+              "closed"
+            ],
+            "description": "open|in_progress|done|closed (create/inbox)"
+          },
+          "inbox": {
+            "type": "string",
+            "enum": [
+              "unread",
+              "read",
+              "archived"
+            ],
+            "description": "unread|read|archived (inbox)"
+          },
+          "text": {
+            "type": "string",
+            "description": "comment body (comment)"
+          },
+          "name": {
+            "type": "string",
+            "description": "attachment display name (attach)"
+          },
+          "path": {
+            "type": "string",
+            "description": "attachment path/reference (attach)"
+          },
+          "link": {
+            "type": "string",
+            "enum": [
+              "goal",
+              "parent",
+              "project"
+            ],
+            "description": "link kind (link)"
+          },
+          "target": {
+            "type": "string",
+            "description": "link target id (link)"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "labels (create)"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
       "name": "todo",
       "description": "Track a multi-step plan as a checklist. action=write replaces the list with items [{text, status?}] (status: pending|in_progress|done, default pending) — plan before a complex task and keep it current as you progress. action=list returns the current plan. The user views it with /plan.",
       "parameters": {
@@ -2443,6 +3221,10 @@
                     "done"
                   ],
                   "description": "Defaults to pending"
+                },
+                "activeForm": {
+                  "type": "string",
+                  "description": "Optional present-continuous phrasing (e.g. 'Running the tests'), shown while in_progress"
                 }
               },
               "required": [
@@ -2530,6 +3312,71 @@
         "required": [
           "action"
         ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "vision_action",
+      "description": "Locate a UI target from a screenshot and execute one grounded click, then re-observe to confirm the screen changed — detecting a mis-click and retrying. Vanta's perceive→ground→act→verify loop. macOS: needs a vision model + Screen Recording permission + the 'cliclick' helper for OS-level clicks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "The on-screen UI target to act on, in plain language (e.g. 'the blue Login button')"
+          },
+          "maxAttempts": {
+            "type": "number",
+            "description": "Re-observe/retry attempts on a mis-click (default 2, max 5)"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "vision_watch",
+      "description": "Capture one frame of the screen (or camera), detect a meaningful change versus the prior frame, and on a change describe it with a vision model and alert the operator over the gateway (send_chat). Vanta's 'watch what's next' sense — run it periodically via `vanta cron` for a standing watch. macOS: needs a vision model + Screen Recording permission + a configured gateway platform.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Configured gateway platform id to alert on, e.g. telegram"
+          },
+          "chatId": {
+            "type": "string",
+            "description": "Platform-specific conversation id to alert"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "screen",
+              "camera"
+            ],
+            "description": "What to watch (default screen)"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "0..1 change sensitivity; 0 = any change alerts (default 0)"
+          }
+        },
+        "required": [
+          "platform",
+          "chatId"
+        ]
+      },
+      "hasSafety": true
+    },
+    {
+      "name": "voice_input",
+      "description": "Record a short push-to-talk voice clip from the microphone and transcribe it to text (local whisper). No args — records, transcribes, returns the transcript.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
       },
       "hasSafety": true
     },
@@ -2774,6 +3621,10 @@
       "desc": "auto-minimalism mode — do the least that works (stdlib>deps, deletion>addition); 'review' audits a diff for deletable code"
     },
     {
+      "name": "bgtasks",
+      "desc": "background shell tasks — list status, stop one by id"
+    },
+    {
       "name": "boundary",
       "desc": "mark a task boundary — archive the current task state and begin fresh"
     },
@@ -2792,6 +3643,10 @@
     {
       "name": "bug",
       "desc": "record a structured bug with session + git context"
+    },
+    {
+      "name": "cd",
+      "desc": "change the session working directory for shell_cmd (no arg prints it)"
     },
     {
       "name": "changes",
@@ -2850,6 +3705,10 @@
       "desc": "fan-out research — multi-source search, skeptic-verify, cited synthesis"
     },
     {
+      "name": "describe",
+      "desc": "generate a short LLM description of a file or directory"
+    },
+    {
       "name": "diff",
       "desc": "show uncommitted changes (working tree + staged)"
     },
@@ -2862,8 +3721,16 @@
       "desc": "set model effort for this session"
     },
     {
+      "name": "env",
+      "desc": "session-scoped env vars injected into shell_cmd/run_code child processes"
+    },
+    {
       "name": "exit",
       "desc": "leave the session"
+    },
+    {
+      "name": "explain",
+      "desc": "capability-preservation surface — what changed + why, with a comprehension probe on risky/large changes"
     },
     {
       "name": "export",
@@ -2922,6 +3789,18 @@
       "desc": "generate .claude/CLAUDE.md project context for future sessions"
     },
     {
+      "name": "init-verifiers",
+      "desc": "detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work"
+    },
+    {
+      "name": "learnings",
+      "desc": "per-project learnings index — relevant insights, stale/conflicting flagged"
+    },
+    {
+      "name": "less-permission-prompts",
+      "desc": "scan the session for repeatedly-approved read-only tools and propose allow rules to cut future prompts (propose-only)"
+    },
+    {
       "name": "lifesearch",
       "desc": "search across Vanta's local stores (world/money/radar/team/errors) — source-cited"
     },
@@ -2932,6 +3811,10 @@
     {
       "name": "locks",
       "desc": "regression locks — verified behaviors + passing/regressed status (verification organ)"
+    },
+    {
+      "name": "loop",
+      "desc": "schedule a recurring task from a natural-language interval (e.g. every 2 hours <task>, daily, every monday)"
     },
     {
       "name": "loops",
@@ -2982,8 +3865,16 @@
       "desc": "control response verbosity"
     },
     {
+      "name": "outreach",
+      "desc": "authorized brand workspace — pending drafts + the proof ledger (draft-only, approval-gated)"
+    },
+    {
       "name": "paste",
       "desc": "attach an image from the clipboard (macOS)"
+    },
+    {
+      "name": "peers",
+      "desc": "live Vanta peer sessions on this machine (UDS) — id, title, pid for cross-session collab"
     },
     {
       "name": "permissions",
@@ -2998,8 +3889,16 @@
       "desc": "enforced plan mode — write tools blocked until /planmode approve"
     },
     {
+      "name": "planv2",
+      "desc": "plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10)"
+    },
+    {
       "name": "preferences",
       "desc": "export operator preference signals (~/.vanta/preferences.jsonl)"
+    },
+    {
+      "name": "proactive",
+      "desc": "proactive-autonomy mode (KAIROS) — whether idle ticking is enabled, the throttle, and would-it-tick-now (read-only)"
     },
     {
       "name": "radar",
@@ -3010,8 +3909,20 @@
       "desc": "internet-reach doctor — each channel's active backend + status + the exact fix per gap"
     },
     {
+      "name": "record",
+      "desc": "record terminal output to an asciicast v2 .cast file under ~/.vanta/recordings"
+    },
+    {
       "name": "recover",
       "desc": "classify trouble — targeted bug, polluted context, or wrong assumption"
+    },
+    {
+      "name": "reload-plugins",
+      "desc": "re-scan enabled plugins and load any added this session — reports newly available vs already loaded"
+    },
+    {
+      "name": "reload-skills",
+      "desc": "re-scan skill directories and pick up any added this session — reports added vs already-indexed vs removed"
     },
     {
       "name": "rename",
@@ -3063,7 +3974,11 @@
     },
     {
       "name": "search",
-      "desc": "search conversation history for a term"
+      "desc": "full-text search this session's transcript — ranked matches + highlighted snippets"
+    },
+    {
+      "name": "security-review",
+      "desc": "security audit of the current branch's diff vs base (injection/secret/authz/traversal/exec/SSRF)"
     },
     {
       "name": "sessions",
@@ -3086,6 +4001,10 @@
       "desc": "adversarially verify a claim — refute by default, demand evidence"
     },
     {
+      "name": "skillify",
+      "desc": "distill this session into a draft SKILL.md (write_skill saves it — not auto-written)"
+    },
+    {
       "name": "skills",
       "desc": "list learned + installed skills"
     },
@@ -3098,6 +4017,10 @@
       "desc": "kernel, provider, keys, store health"
     },
     {
+      "name": "stop",
+      "desc": "graceful soft-stop — finish the current tool call, then end the turn with a summary"
+    },
+    {
       "name": "summary",
       "desc": "summarize this session (what was done, what remains)"
     },
@@ -3108,6 +4031,14 @@
     {
       "name": "team",
       "desc": "background worker roster — named agents, roles, status, blockers"
+    },
+    {
+      "name": "terminal-setup",
+      "desc": "print the steps to bind Shift+Enter → newline for your detected terminal (iTerm2/Apple Terminal/VS Code/WezTerm)"
+    },
+    {
+      "name": "tickets",
+      "desc": "issue board — first-class tickets grouped by status, with goal/parent links + inbox state"
     },
     {
       "name": "title",
@@ -3152,6 +4083,10 @@
     {
       "name": "vim",
       "desc": "toggle vi-mode in the composer (normal/insert: hjkl, w/b, dd, yy, p, i/a/o)"
+    },
+    {
+      "name": "wftasks",
+      "desc": "workflow run task list — compose_workflow runs + their running/done/failed status"
     },
     {
       "name": "where",

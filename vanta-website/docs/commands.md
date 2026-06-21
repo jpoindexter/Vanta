@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Slash commands
 
-An interactive session exposes **97 slash commands**. `/help` lists them all; below are the most useful, grouped. The composer also takes `@file` (inline file as context), `!` (shell), and `#` (memory).
+An interactive session exposes **125 slash commands**. `/help` lists them all; below are the most useful, grouped. The composer also takes `@file` (inline file as context), `!` (shell), and `#` (memory).
 
 ## Session & goals
 | Command | Does |
