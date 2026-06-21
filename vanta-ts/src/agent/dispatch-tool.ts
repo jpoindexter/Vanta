@@ -1,15 +1,25 @@
 import type { ToolCall } from "../types.js";
-import type { ToolContext } from "../tools/types.js";
+import type { ToolContext, Tool } from "../tools/types.js";
 import type { AgentDeps } from "./agent-types.js";
 import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-helpers.js";
 import { offloadResult } from "../compress/result-offload.js";
 import { isPlanBlocked } from "./plan-gate.js";
+import { coerceToSchema } from "../providers/tool-call-repair.js";
 import { firePreToolUse, firePostToolUse, fireHooks } from "../hooks/shell-hooks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
 
 export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; tokensSaved?: number };
+
+// TOOL-CALL-REPAIR: log an auto-repair + coerce args to the tool schema so
+// weak/local models clear zod on the first try.
+function normalizeToolCall(call: ToolCall, tool: Tool | undefined, deps: AgentDeps): void {
+  if (call.repaired) {
+    deps.onEvent?.({ type: "note", text: `repaired tool args for ${call.name} (${call.repaired})` });
+  }
+  if (tool) call.arguments = coerceToSchema(call.arguments, tool.schema?.parameters);
+}
 
 export async function dispatchTool(
   call: ToolCall,
@@ -20,6 +30,7 @@ export async function dispatchTool(
   deps.onEvent?.({ type: "tool_start", name: call.name, args: call.arguments });
 
   const tool = deps.registry.get(call.name);
+  normalizeToolCall(call, tool, deps); // TOOL-CALL-REPAIR: log repair + coerce to schema
 
   // Plan mode: enforce read-only restriction when plan mode is active.
   if (isPlanBlocked(call.name, deps.planGate)) {

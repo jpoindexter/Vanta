@@ -15410,7 +15410,7 @@
       "id": "TOOL-CALL-REPAIR",
       "track": "Harness",
       "title": "Tool-call repair — auto-fix malformed tool calls (weak/local models)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "OpenClaw ships a tool-call-repair layer that fixes malformed/partial tool calls before they fail. Vanta targets local + weaker models (Ollama, small open models) where this matters most — repair the JSON/args (coerce types, fill defaults, fix truncation) so a fumbled call retries clean instead of wasting a turn. Reliability for the real-operator bar.",
       "done": "A representative malformed tool call from a weak/local model is repaired and executed instead of erroring; repair is logged; measured drop in tool-call failures on a local model.",
@@ -15419,7 +15419,9 @@
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
-      ]
+      ],
+      "notes": "providers/tool-call-repair.ts: JSON-repair ladder (fences/extract-object/loose-fix/complete-truncated) + schema coercion (string->number/bool) + default-fill. Wired into openai-convert parseToolCall (replaces {_raw} fallback) + dispatch normalizeToolCall (coerce to tool schema, log via note event). ToolCall.repaired flag.",
+      "updated": "2026-06-22"
     },
     {
       "id": "VANTA-CANVAS",

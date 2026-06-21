@@ -7,6 +7,8 @@ export type ToolCall = {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
+  /** TOOL-CALL-REPAIR: the repair strategy used when the model's arg JSON was malformed (else undefined). */
+  repaired?: string;
 };
 
 /** An image attached to a user turn — sent natively to the model (no file tool). */
