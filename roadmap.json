@@ -12764,14 +12764,15 @@
       "id": "WINNOW-LOGPROB-SCORER",
       "track": "Harness",
       "title": "Real LM-logprob scorer for pruneText (genuine LLMLingua-grade)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "[repo: winnow] pruneTextAsync + makeLmScorer (logprob→surprisal) exist but there's no real logprob source — pruning falls back to the heuristic proxy. Add makeOpenAiLogprobScorer({baseURL,model,apiKey?}): fetch the OpenAI-compatible completions API with logprobs (works for OpenAI / Ollama / vLLM / etc.) to get per-token logprobs for a token list and return an AsyncTokenScorer. This is the SOLID fix to ML pruning — drop low-information tokens by a real model's surprisal, not a frequency heuristic. Fetch-only, no SDK; graceful fallback to the heuristic when logprobs are unavailable.",
       "done": "makeOpenAiLogprobScorer returns an AsyncTokenScorer from real per-token logprobs; pruneTextAsync does model-scored pruning; tests with a MOCKED logprob endpoint (no network); heuristic fallback when logprobs absent; CHANGELOG + version bump; pushed to winnow.",
       "tier": "pebble",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-18"
+      "updated": "2026-06-21",
+      "notes": "Pure TokenLogprob{token,logprob} + informationScore (1 - exp(logprob) clamped [0,1]; non-finite -> 0; MONOTONIC DECREASING in logprob: prob~1 -> ~0 info, low prob -> ~1 info) + scoreTokens (order-preserving) + pruneByLogprob (keep top keepRatio by information score, ties -> earlier, always >=1, original order, ratio 1 -> all / 0 -> >=1, clamped) + logprobScorerEnabled (VANTA_WINNOW_LOGPROB=1, default OFF). CORRECT LLMLingua DIRECTION: KEEP surprising/low-logprob (informative) tokens, DROP predictable/high-logprob ones. No LLM dep — the live per-token logprob call is the INJECTED boundary; the standalone winnow prune.js already exposes makeLmScorer (surprisal=-logprob) as the async seam. Built+tested; wire = pruneText uses pruneByLogprob when logprobScorerEnabled + a logprob source, else the heuristic (named). No logprobs = heuristic fallback."
     },
     {
       "id": "SKILL-EVAL-CORPUS",
