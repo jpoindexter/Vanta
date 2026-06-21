@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-21",
+  "updated": "2026-06-22",
   "items": [
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
@@ -4989,7 +4989,7 @@
       "id": "INSTALL-PARITY",
       "track": "Harness",
       "title": "Setup/install UX parity",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit the setup wizard + install flow against best-in-class one-command installs (one-line bootstrap.sh already exists). Smooth first-run to first-value.",
       "done": "A new user goes from install to a working session in one command + one setup step.",
@@ -4997,7 +4997,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "infra"
+      "lens": "infra",
+      "notes": "Dep preflight (setup/preflight.ts: required+recommended tools, per-platform install cmd, injection-safe probe) + vanta preflight CLI + install.sh offers brew auto-install for missing deps. First-run = one command + one setup step.",
+      "updated": "2026-06-22"
     },
     {
       "id": "HP-SECRETS",
