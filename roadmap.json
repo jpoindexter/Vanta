@@ -3642,7 +3642,7 @@
       "id": "VANTA-SETTINGS-UX",
       "track": "Operator",
       "title": "Display/UX settings parity — spinner tips, turn duration, away recap, etc.",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent settings include: spinnerTipsEnabled, spinnerTipsOverride (custom tips), spinnerVerbs (append/replace verbs), showTurnDuration (show elapsed ms), awaySummaryEnabled (show recap on return), syntaxHighlightingDisabled, prefersReducedMotion, autoScrollEnabled, preferredNotifChannel. Vanta has themes and accessibility settings (TUI-THEME) but not this full UX settings layer.",
       "done": "All listed UX settings are recognized in `~/.vanta/settings.json`; their default behaviors match another agent semantics; `vanta config` surfaces them in the settings UI.",
@@ -3650,7 +3650,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-06-20",
+      "notes": "WIRED: UxSettingsSchema (all optional: spinnerVerbs/messageTimestamps/timestampStyle/effortIndicator/terminalTitle/hyperlinks/awaySummaryMs/idleReturn/jsonFormat) merged into the settings ui block; pure uxSettingsToEnv maps each set field -> its existing VANTA_* env var (bools->1/0, verbs->comma, ms->string). applySettingsEnv applies them only when env unset (env wins, mirrors the memory block). Gives settings.json parity for the UX toggles added this session. Unset = byte-identical."
     },
     {
       "id": "VANTA-MSG-PLAN-APPROVAL",
