@@ -4119,7 +4119,7 @@
       "id": "VANTA-PLUGIN-BIN-EXEC",
       "track": "Extensibility",
       "title": "Plugin `bin/` executables — plugins ship binaries invocable from Bash tool",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.91) allows plugins to ship executables under `bin/`. These are added to the PATH for Bash tool subprocesses, so agents can call plugin-provided tools as bare commands without absolute paths.",
       "done": "A plugin ships `bin/my-tool`. The agent calls `my-tool --flag` in Bash without knowing the install path.",
@@ -4128,7 +4128,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable resolvePluginBinDirs (existing <pluginDir>/bin dirs, join under plugin dir + isInside guard so no ../absolute escape; injected exists) + buildPluginPath (bins prepended to basePath, drop empties, dedupe first-wins, path.delimiter) + pluginPathEnv (PATH overlay bins ahead of env.PATH, {} when none = unchanged). SECURITY: only a plugins OWN bin, traversal-guarded; PATH exposure is NOT escalation — the spawned command STILL kernel-gated via assess. Built+tested; wire = shell-cmd childRunOpts merges pluginPathEnv where applySessionEnv merges (named). No bins = unchanged PATH."
     },
     {
       "id": "VANTA-MCP-ALWAYS-LOAD",
