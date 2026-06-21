@@ -3864,7 +3864,7 @@
       "id": "VANTA-AUTO-DREAM-SVC",
       "track": "Operator",
       "title": "Auto-dream — periodic background memory consolidation across sessions",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Background service that consolidates memories across sessions via forked agent. Fires when: time since last consolidation >= minHours AND session count >= minSessions. File-based lock prevents parallel runs. Made visible in task list as DreamTask (phase: starting/updating, files touched, turn summaries).",
       "done": "After accumulating sessions, auto-dream fires; progress visible in footer pill; lock prevents duplicate runs; files touched tracked; consolidation updates MEMORY.md.",
@@ -3873,7 +3873,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable DreamState{lastDreamMs,memoriesSinceLastDream} + shouldDream (enabled AND interval-elapsed AND >= minNewMemories) + resolveDreamConfig (VANTA_AUTO_DREAM=1, VANTA_DREAM_INTERVAL_MS 6h, VANTA_DREAM_MIN_MEMORIES 10; default DISABLED) + recordDream (stamp+reset) + recordNewMemories (accumulate) + runDreamIfDue (injected getState/saveState/now/consolidate; runs + records when due, best-effort consolidate throw -> no state change never throws dreamed:false). Mirrors proactive policy. consolidate typed ()=>Promise<unknown> so brain/consolidate plugs in at the wire without importing it. Built+tested; gateway-tick/cron wire named (persisted .vanta/dream.json). Disabled/not-due = nothing."
     },
     {
       "id": "VANTA-COST-TRACKER-DETAIL",
