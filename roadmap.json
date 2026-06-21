@@ -11621,7 +11621,7 @@
       "id": "MSG-ADAPTER-DISCORD",
       "track": "Operator",
       "title": "Messaging adapter — Discord",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Build the live PlatformAdapter for Discord (gateway/platforms/discord.ts) — connect/disconnect/send/poll over the Discord API, wired to the catalog entry (registry.ts id 'discord'). Approach: discord.js gateway + MESSAGE CONTENT intent. Flips implemented:true so `vanta setup messaging` configures it for real (it's preview-only today).",
       "done": "Discord works end-to-end via the gateway: inbound message → agent → reply, honoring the allowlist; `vanta setup messaging` configures it.",
@@ -11630,10 +11630,11 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-14",
+      "updated": "2026-06-21",
       "after": [
         "SETUP-MESSAGING-PLATFORMS"
-      ]
+      ],
+      "notes": "Pure/injectable parseDiscordMessages (Discord message objects -> InboundMessage: channel_id->chatId, author.id->from, content->stripControl, isGroup; SKIPS author.bot===true ANTI-LOOP; non-array/garbage -> []) + buildDiscordSendBody ({content}, capped at Discords 2000-char limit) + parseDiscordAllowlist (VANTA_DISCORD_ALLOWLIST comma -> Set, empty -> allow-all) + discordEnabled (VANTA_DISCORD_TOKEN present) + stripControl (C0/C1/DEL, keeps \\n\\t). DiscordAdapter implements PlatformAdapter (connect/disconnect/poll/send) over injected {fetchJson,postJson} transport — poll catch -> [] never throws; splitForLimit on send (long replies -> multiple capped, no truncation loss). SECURITY: bot-message skip (anti-loop); token=SECRET read ONLY in httpTransport Authorization: Bot <token> header at the wire, NEVER a literal (gitleaks-safe); inbound text control-stripped. Contract reconciled: base InboundMessage has no platform/userId (off-limits) -> mapped to real chatId/from/text/id/isGroup. Built+tested; wires = registry MESSAGING_CATALOG discord entry flip implemented:true + resolve.ts resolvePlatform adds a discordEnabled branch returning new DiscordAdapter (named; channel id source like Mattermost; live REST/gateway = boundary). Not configured = disabled."
     },
     {
       "id": "MSG-ADAPTER-MATRIX",
