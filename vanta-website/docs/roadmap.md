@@ -33,14 +33,28 @@ flowchart TB
   F --> V0 --> V1 --> SM --> OR --> NOW --> NEXT --> LATER
 ```
 
+## Path to open beta
+
+The current build sequence is ordered to reach a **launchable open beta** — a stranger installs Vanta and it runs as a real operator. Everything else is sequenced behind it.
+
+1. **Frictionless install** — one command, on any machine, no manual setup.
+2. **Robust on local & budget models** — repair fumbled tool calls instead of failing the turn.
+3. **Efficient multi-step work** — collapse a pipeline of tool calls into a single, cheap turn.
+4. **Reaches you on your channels** — WhatsApp, Slack, and Telegram from one gateway.
+5. **Images & voice in every channel** — send it a photo or a voice memo; it replies in kind.
+6. **Proven live on a clean machine** — the core operator tasks verified end-to-end, not just in tests.
+7. **Safe by default** — network egress is allow/deny controlled, on top of the kernel.
+
+Past beta: serverless presence, wake word, ambient companion apps, a visual canvas, proactive outreach, and deeper personalization.
+
 ## Status mix
 
 ```mermaid
 pie showData
   title 1051 slices by status
   "Shipped" : 888
-  "Next" : 42
-  "Horizon" : 87
+  "Next" : 9
+  "Horizon" : 120
   "Parked" : 34
 ```
 
