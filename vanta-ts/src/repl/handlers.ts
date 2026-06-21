@@ -54,6 +54,7 @@ import { tuiCommand } from "./tui-cmd.js";
 import { focusCommand } from "./focus-cmd.js";
 import { permissions } from "./permissions-cmd.js";
 import { lessPerms } from "./less-perms-cmd.js";
+import { reloadPlugins } from "./reload-plugins-cmd.js";
 import { now } from "./now-cmd.js";
 import { sandbox } from "./sandbox-cmd.js";
 import { contextCmd } from "./context-cmd.js";
@@ -154,7 +155,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   export: exportConvo, stop, retry, undo, rewind, hooks, skills, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
   mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
-  routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms,
+  routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
