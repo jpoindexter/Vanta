@@ -4309,7 +4309,7 @@
       "id": "VANTA-SKILL-IMPROVEMENT",
       "track": "Extensibility",
       "title": "Auto skill improvement — periodic LLM review of invoked skills from session turns",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Post-sampling hook fires every N turns to review which skills were invoked, compares against recent messages with a small/fast model, and generates targeted skill updates (section, change, reason). Improves skills organically from actual usage patterns without disrupting the main flow.",
       "done": "After N turns with skill invocations, skill content is automatically refined; updates scoped to specific sections; uses a small/fast model to minimize cost; non-blocking.",
@@ -4318,7 +4318,8 @@
       "effort": "medium",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure/injectable shouldImproveSkill (invoked this turn AND VANTA_SKILL_IMPROVE=1, default OFF) + buildImprovementPrompt (skill body + turn performance -> improved body or no-change sentinel) + parseImprovement (no change/empty/identical -> {improved:false, original verbatim}; different -> {improved:true, body fence-stripped, note}) + proposeSkillImprovement (injected complete; throw -> no-change never throws; NEVER writes). PROPOSAL ONLY — operator/curator gates the overwrite (curator stays non-destructive). Mirrors background-review gating. Built+tested; wire = reviewTurn surfaces the proposal for approval via write_skill (named). Disabled/not-invoked = nothing."
     },
     {
       "id": "VANTA-PLUGIN-DEPS",
