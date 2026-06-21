@@ -3548,7 +3548,7 @@
       "id": "VANTA-SHELL-HISTORY-COMPLETE",
       "track": "Operator",
       "title": "Shell history ghost text — inline completion from zsh/bash history in prompt input",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent reads shell history (zsh/bash) and shows ghost text suffix completions in the prompt input. When the user types the start of a previously-run command, the matching completion appears as dimmed text that can be accepted with the right-arrow key. A 60s LRU cache prevents repeated disk reads.",
       "done": "Typing 'git push' in the prompt shows 'git push origin main' as grey ghost text if that's in shell history. Right arrow accepts.",
@@ -3557,7 +3557,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure suggestGhost (history newest-last; most-recent entry that startsWith(input) + longer, minus prefix; case-sensitive; empty/no-match/exact-equal/multiline -> ; candidate control-stripped BEFORE match so a history entry cant inject an escape into the ghost) + acceptGhost (input+ghost) + formatGhost ({input,ghost} dim split). Built+tested; composer wire = composer.tsx ghost (swap historyTypeahead -> suggestGhost) + composer-view dim Text + handleGhostAccept on rightArrow (named). FOLLOW-UP: the existing live historyTypeahead doesnt control-strip (lower severity, own history) — adopting this module closes it."
     },
     {
       "id": "VANTA-PATH-COMPLETE",
