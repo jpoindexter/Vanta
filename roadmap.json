@@ -4061,7 +4061,7 @@
       "id": "VANTA-PLUGIN-RECOMMEND",
       "track": "Extensibility",
       "title": "Plugin recommendation engine — proactive install suggestions for LSP and hint plugins",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has a `usePluginRecommendationBase` shared state machine that powers proactive plugin install recommendations. Sources include: LSP server plugins (for detected file types) and claude-code-hint plugins (from skill frontmatter). The machine handles gates (remote mode, already-showing, in-flight), async resolution, and shows success/failure notifications. Users can install from the suggestion.",
       "done": "Opening a `.py` file when no Python LSP is installed shows a 'Install pylsp plugin?' suggestion. Accepting installs and activates it.",
@@ -4070,7 +4070,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure LANGUAGE_PLUGIN_MAP (.rs/.py/.go/.ts.. -> LSP plugin) + recommendPlugins (3 lanes: hint plugin score 100 explicit > failing-capability 50 > language LSP scored by summed ext count over threshold 3; dedupe by plugin keeping highest score; sort score-desc; cap 5) + formatRecommendations (reuses buildPluginSuggestion + reason). Unsafe names dropped (reuses isSafePluginName). Never auto-installs. Proactive analogue of plugin-hints. Built+tested; signal-gather wire = prepareRun scans file-ext/hints/failures -> recommendPlugins (named). Inherits the plugins-add->plugin-install copy reconcile."
     },
     {
       "id": "VANTA-PLUGIN-AUTOUPDATE",
