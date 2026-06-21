@@ -3984,7 +3984,7 @@
       "id": "VANTA-PLUGIN-LSP",
       "track": "Extensibility",
       "title": "Plugins can ship LSP server configs — auto-mount language servers",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A plugin can declare LSP server configurations in its manifest. another agent reads the lsp/ directory from the plugin package, validates the config schema, and mounts the LSP server automatically when the plugin is enabled.",
       "done": "Installing a plugin that includes an LSP server config makes that language server available; another agent's LSP manager mounts it; /doctor shows the LSP server status.",
@@ -3993,7 +3993,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-06-20",
+      "notes": "Pure PluginLspConfig{language,command[],extensions[]} + parsePluginLsp (reads .lsp off the raw manifest since the strict schema rejects unknown keys; tolerant, zod-validates each, drops invalid) + resolveLspServers -> {configs,clashes} (dedupe by lowercased language first-wins, clash reported not silent, invalid-command dropped) + lspForExtension (ext normalized with/without dot, case-insensitive). SECURITY: only RESOLVES configs — the spawn is the boundary + still kernel-gated (assess) like any plugin capability. Built+tested; loader.ts loadEnabledPlugins + lsp-mount spawn wire named."
     },
     {
       "id": "VANTA-INIT-VERIFIERS",
