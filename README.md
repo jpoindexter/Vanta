@@ -93,6 +93,7 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 
 - **Enforced boundary** — a separate Rust kernel risk-classifies every action (allow/ask/block + scope + tamper-evident audit chain); the agent loop can't bypass it, and execution runs in an OS sandbox / Docker / SSH.
 - **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
+- **ND-first** — executive-function support baked in: task initiation (smallest next step), choice reduction (top 3), working-memory re-anchoring, closure gates, time-blindness ranges, low-sensory output.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
 - **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…), 5 live-verified.
 - **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/Bedrock/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
