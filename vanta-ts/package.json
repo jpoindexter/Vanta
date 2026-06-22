@@ -28,6 +28,8 @@
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
     "winnow": "github:jpoindexter/winnow#f8181d16d3f0b4090b3c9abbc2110d45cff4dc10",
     "zod": "^3.25.0"
   },
@@ -36,8 +38,6 @@
     "@types/nodemailer": "7.0.4",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
-    "tsx": "^4.19.0",
-    "typescript": "^5.8.0",
     "vite": "^5.4.21",
     "vitest": "^2.1.0"
   }
