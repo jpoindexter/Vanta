@@ -53,7 +53,7 @@
       "id": "PROVIDER-AWARE-WATCHDOG",
       "track": "Harness",
       "title": "Provider-aware model-call watchdog (no false timeout on cold start)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Align the model-call watchdog with per-provider cold-start latency / timeoutSeconds so cron + loops don't false-timeout on a cold provider. Community signal (OpenClaw/Hermes X thread 2026-06-22), @SpaceCityDirk bug screenshot: a watchdog capped independently of the job timeout fires before DeepSeek's cold-start completes — every cron run double-runs and logs a spurious timeout. Extends LIVENESS-WATCHDOG.",
       "done": "the model-call watchdog window derives from (or respects) the active provider’s configured timeout; a cold-provider cron run completes once with no spurious timeout; tested against a slow-first-call provider stub.",
@@ -63,7 +63,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Concrete, reproducible bug class lifted from a real competitor user report."
+      "notes": "Shipped 2026-06-22. providers/timeout.ts is one source of truth for the active provider request timeout (cold-start-aware: ollama/lmstudio 1800s, deepseek/nim/nvidia 900s, custom 1200s, else 600s = SDK default; VANTA_PROVIDER_TIMEOUT_SEC override). Wired into the OpenAI SDK client (explicit timeout, was the hidden default) and resolveWatchdogConfig clamps the liveness stall window UP to provider-timeout + 120s margin, so a too-tight watchdog can never false-fire before a cold call elapses. Tested against a slow-first-call provider config. 945 files/10844 tests green."
     },
     {
       "id": "PUBLISH-SECURITY-AUDIT",

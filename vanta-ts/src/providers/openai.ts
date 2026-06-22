@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import type { CompletionConfig, CompletionResult, LLMProvider, StreamChunk, ToolSchema } from "./interface.js";
 import type { Message } from "../types.js";
 import { buildOpenAIEffortParams, debugEffort } from "./effort.js";
+import { resolveProviderTimeoutMs } from "./timeout.js";
 import {
   foldToolCallDeltas,
   completedToolCalls,
@@ -32,10 +33,15 @@ export class OpenAIProvider implements LLMProvider {
   constructor(opts: {
     apiKey: string; baseURL?: string; model: string;
     defaultQuery?: Record<string, string>; defaultHeaders?: Record<string, string>;
+    timeoutMs?: number;
   }) {
     this.client = new OpenAI({
       apiKey: opts.apiKey, baseURL: opts.baseURL,
       defaultQuery: opts.defaultQuery, defaultHeaders: opts.defaultHeaders,
+      // PROVIDER-AWARE-WATCHDOG: an explicit, cold-start-aware request timeout
+      // (defaults to the active provider's configured value) instead of the SDK's
+      // hidden default, so the liveness watchdog can derive its window from it.
+      timeout: opts.timeoutMs ?? resolveProviderTimeoutMs(process.env),
     });
     this.model = opts.model;
     this.ctxWindow = CONTEXT_WINDOWS[opts.model] ?? 32_000;

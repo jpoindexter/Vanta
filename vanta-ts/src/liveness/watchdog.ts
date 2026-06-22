@@ -1,5 +1,6 @@
 import { listDefs, loadDef, loadState, saveState, saveDef } from "../loop/store.js";
 import { raiseEscalation, hasOpenEscalations } from "../loop/state.js";
+import { watchdogStallMinutes } from "../providers/timeout.js";
 import type { LoopDef, LoopState } from "../loop/types.js";
 
 // Liveness watchdog: a silently-stalled loop is one whose run started but never
@@ -14,7 +15,11 @@ export type WatchdogResult = { reports: StallReport[]; surfaced: number };
 
 export function resolveWatchdogConfig(env: NodeJS.ProcessEnv): WatchdogConfig {
   const n = Number(env.VANTA_WATCHDOG_STALL_MIN);
-  return { stallMinutes: Number.isFinite(n) && n > 0 ? n : 30 };
+  const floor = Number.isFinite(n) && n > 0 ? n : 30;
+  // PROVIDER-AWARE-WATCHDOG: clamp the stall window up to the active provider's
+  // configured timeout + cold-start margin, so a too-tight floor can never trip
+  // before a cold provider's own request timeout could even elapse.
+  return { stallMinutes: watchdogStallMinutes(env, floor) };
 }
 
 /** A loop is silently stalled if a run is in progress past the threshold. Pure. */

@@ -63,9 +63,29 @@ describe("watchdog over the store", () => {
   });
 });
 
-describe("resolveWatchdogConfig", () => {
-  it("defaults to 30m and reads the override", () => {
+describe("resolveWatchdogConfig (provider-aware)", () => {
+  it("defaults to the 30m floor (above the warm-provider 12m window)", () => {
     expect(resolveWatchdogConfig({} as NodeJS.ProcessEnv).stallMinutes).toBe(30);
-    expect(resolveWatchdogConfig({ VANTA_WATCHDOG_STALL_MIN: "10" } as NodeJS.ProcessEnv).stallMinutes).toBe(10);
+  });
+
+  it("honors a generous override", () => {
+    expect(resolveWatchdogConfig({ VANTA_WATCHDOG_STALL_MIN: "60" } as NodeJS.ProcessEnv).stallMinutes).toBe(60);
+  });
+
+  it("clamps a too-tight floor UP to the active provider's timeout window", () => {
+    // VANTA_WATCHDOG_STALL_MIN=10 would false-fire before a 600s openai call;
+    // the window is clamped to ceil((600+120)/60) = 12. This is the bug fix.
+    expect(resolveWatchdogConfig({ VANTA_WATCHDOG_STALL_MIN: "10" } as NodeJS.ProcessEnv).stallMinutes).toBe(12);
+  });
+
+  it("a cold-provider run within its configured timeout is NOT flagged as stalled", () => {
+    // Slow provider: 2400s configured timeout → derived window 42m, even with a 30m floor.
+    const slowEnv = { VANTA_PROVIDER: "custom", VANTA_PROVIDER_TIMEOUT_SEC: "2400" } as NodeJS.ProcessEnv;
+    const cfg = resolveWatchdogConfig(slowEnv);
+    expect(cfg.stallMinutes).toBe(42);
+    // A run in progress for 35m — past the old 30m floor but inside the cold window — stays healthy.
+    expect(detectStall(def("cold"), state("cold", { inProgress: true, runStartedAt: minsAgo(35) }), NOW, cfg.stallMinutes)).toBeNull();
+    // Past the cold window it is correctly surfaced.
+    expect(detectStall(def("cold"), state("cold", { inProgress: true, runStartedAt: minsAgo(45) }), NOW, cfg.stallMinutes)).not.toBeNull();
   });
 });
