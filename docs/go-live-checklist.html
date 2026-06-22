@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vanta — Go-Live Checklist</title>
+<style>
+  :root{
+    --bg:#0c0e13; --surface:#11141b; --surface2:#161a22; --border:#22262f;
+    --text:#f2f5f8; --muted:#9aa4b2; --faint:#6b7280;
+    --focus:#6bdcff; --health:#83f2b0; --activity:#ffb86b; --goal:#b7a4ff; --risk:#ff6b7a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{
+    background:radial-gradient(1100px 420px at 50% -8%,rgba(107,220,255,.10),transparent 60%),var(--bg);
+    color:var(--text);
+    font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    padding:48px 20px 96px;
+  }
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:2rem;font-weight:800;letter-spacing:-.03em;margin:0;text-wrap:balance}
+  .sub{color:var(--muted);margin:.4rem 0 0;font-size:.98rem}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  /* progress */
+  .progress{position:sticky;top:0;z-index:5;margin:22px 0 34px;padding:16px 18px;
+    background:rgba(17,20,27,.82);backdrop-filter:saturate(160%) blur(10px);
+    border:1px solid var(--border);border-radius:var(--radius)}
+  .progress .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .progress b{font-variant-numeric:tabular-nums;font-size:1.05rem}
+  .bar{height:8px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-top:11px}
+  .bar > i{display:block;height:100%;width:0;border-radius:6px;
+    background:linear-gradient(90deg,var(--focus),var(--health));
+    transition:width .35s cubic-bezier(.2,0,0,1)}
+  .reset{background:none;border:1px solid var(--border);color:var(--muted);
+    border-radius:8px;padding:5px 10px;font-size:.78rem;cursor:pointer;transition:scale .15s,border-color .15s}
+  .reset:hover{border-color:var(--focus);color:var(--text)} .reset:active{scale:.96}
+  /* phases */
+  .phase{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
+    margin:16px 0;overflow:hidden}
+  .phase>header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-left:3px solid var(--accent)}
+  .phase .num{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--accent);
+    border:1px solid var(--border);border-radius:7px;padding:3px 8px;font-variant-numeric:tabular-nums}
+  .phase h2{font-size:1.06rem;font-weight:700;margin:0;letter-spacing:-.01em}
+  .phase .why{color:var(--muted);font-size:.85rem;margin-left:auto;text-align:right}
+  .gatetag{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--activity);border:1px solid rgba(255,184,107,.4);border-radius:6px;padding:2px 7px;margin-left:auto}
+  ul{list-style:none;margin:0;padding:6px 18px 16px}
+  li{display:flex;gap:12px;padding:10px 6px;border-top:1px solid rgba(255,255,255,.04);align-items:flex-start}
+  li:first-child{border-top:none}
+  input[type=checkbox]{appearance:none;flex:0 0 20px;width:20px;height:20px;margin-top:1px;
+    border:1.5px solid var(--border);border-radius:6px;background:var(--surface2);cursor:pointer;
+    position:relative;transition:scale .15s,border-color .15s,background .15s}
+  input[type=checkbox]:hover{border-color:var(--accent)}
+  input[type=checkbox]:active{scale:.92}
+  input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+  input[type=checkbox]:checked::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+    border:solid #06222b;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  .item{flex:1;min-width:0}
+  .item .lab{text-wrap:pretty}
+  li.done .lab{color:var(--faint);text-decoration:line-through}
+  .cmd{display:flex;align-items:center;gap:8px;margin-top:8px;background:#0a0c11;border:1px solid var(--border);
+    border-radius:9px;padding:8px 10px;font-family:"JetBrains Mono",monospace;font-size:.82rem;
+    color:#cfe9f3;overflow-x:auto;white-space:nowrap}
+  .cmd code{flex:1}
+  .copy{flex:0 0 auto;background:none;border:1px solid var(--border);color:var(--muted);
+    border-radius:6px;padding:3px 8px;font-size:.7rem;cursor:pointer;transition:scale .15s,color .15s,border-color .15s}
+  .copy:hover{color:var(--focus);border-color:var(--focus)} .copy:active{scale:.94}
+  .copy.ok{color:var(--health);border-color:var(--health)}
+  .note{color:var(--faint);font-size:.8rem;margin-top:6px}
+  .footer{color:var(--faint);font-size:.84rem;text-align:center;margin-top:34px;line-height:1.7}
+  a{color:var(--focus);text-decoration:none} a:hover{text-decoration:underline;text-underline-offset:3px}
+  /* phase accents */
+  #p0{--accent:var(--goal)} #p1{--accent:var(--focus)} #p2{--accent:var(--health)}
+  #p3{--accent:var(--activity)} #p4{--accent:var(--goal)} #p5{--accent:var(--risk)} #p6{--accent:var(--health)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vanta — Go-Live Checklist</h1>
+  <p class="sub">The code is shipped (9/9 beta cards). This is the <b>go-live session</b>: the steps that need real tokens + a clean machine to flip the four 🔒 gates to ✅. Checkboxes save in this browser.</p>
+
+  <div class="progress">
+    <div class="row"><span class="mono" style="color:var(--muted);font-size:.85rem">PROGRESS</span>
+      <span><b id="pdone">0</b> / <b id="ptotal">0</b> &nbsp;·&nbsp; <button class="reset" id="reset">reset</button></span></div>
+    <div class="bar"><i id="pfill"></i></div>
+  </div>
+
+  <section class="phase" id="p0">
+    <header><span class="num">00</span><h2>Pick the narrow beta</h2><span class="why">scope discipline</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Decide the beta = <b>CLI + Telegram</b>, dev/operator tasks, one machine. Don't gate launch on matching the full channel/extension surface.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Write the one-sentence "done": <i>"5 strangers install it and each gets one real task done live, without me in the loop."</i></div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p1">
+    <header><span class="num">01</span><h2>Install on a clean machine</h2><span class="gatetag">🔒 gate 1</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Get a <b>fresh machine</b> — a $5 VPS or a clean container. <b>Not</b> this dev box (that's the whole point of the proof).</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">One-line install (auto-installs deps):</div>
+        <div class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Check optional capability deps (voice/desktop/swarm):</div>
+        <div class="cmd"><code>vanta preflight</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Pick a model backend + key:</div>
+        <div class="cmd"><code>vanta setup</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Health check — must be green:</div>
+        <div class="cmd"><code>vanta doctor</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Prove it does a real task:</div>
+        <div class="cmd"><code>vanta run "read README and summarize"</code><button class="copy">copy</button></div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p2">
+    <header><span class="num">02</span><h2>Reach you on a channel</h2><span class="gatetag">🔒 gate 2</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">In Telegram, open <b>@BotFather</b> → <span class="mono">/newbot</span> → copy the HTTP API token.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Set the token (or use <span class="mono">vanta setup messaging</span>):</div>
+        <div class="cmd"><code>export VANTA_TELEGRAM_TOKEN=&lt;your-token&gt;</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Start the gateway (cron + channels + webhooks, one loop):</div>
+        <div class="cmd"><code>vanta gateway</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Message your bot → confirm it replies. <b>That's gate 2.</b></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab"><i>Optional</i> — add more channels (one gateway runs all): WhatsApp <span class="mono">VANTA_WHATSAPP_TOKEN</span> + <span class="mono">VANTA_WHATSAPP_PHONE_ID</span>; Slack <span class="mono">VANTA_SLACK_BOT_TOKEN</span>; Discord <span class="mono">VANTA_DISCORD_TOKEN</span> + <span class="mono">VANTA_DISCORD_CHANNEL</span>.</div>
+        <div class="note">Inbound for WhatsApp/Slack arrives via their webhook → point it at your gateway's webhook URL.</div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p3">
+    <header><span class="num">03</span><h2>Images + voice in a channel</h2><span class="gatetag">🔒 gate 3</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Install whisper + ffmpeg (local speech-to-text):</div>
+        <div class="cmd"><code>brew install openai-whisper ffmpeg</code><button class="copy">copy</button></div>
+        <div class="note">Linux: <span class="mono">pip install -U openai-whisper</span> + <span class="mono">apt install ffmpeg</span>. Optional: <span class="mono">export VANTA_STT_MODEL=base</span> for better transcripts.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Send the bot a <b>photo</b> → confirm it's understood (vision).</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Send the bot a <b>voice memo</b> → confirm it's transcribed. <b>That's gate 3.</b></div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p4">
+    <header><span class="num">04</span><h2>Runs unattended</h2><span class="gatetag">🔒 gate 4</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Keep the gateway alive across restarts (macOS launchd):</div>
+        <div class="cmd"><code>vanta service install</code><button class="copy">copy</button></div>
+        <div class="note">On a Linux VPS, run <span class="mono">vanta gateway</span> under systemd / a process manager instead.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Add a scheduled job (natural language):</div>
+        <div class="cmd"><code>vanta cron add "8am: summarize my unread email" "0 8 * * *"</code><button class="copy">copy</button></div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Confirm it fires at its time and delivers to your channel. <b>That's gate 4.</b></div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p5">
+    <header><span class="num">05</span><h2>Safe for strangers</h2><span class="why">already on — verify</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Run the full proof gate — aim for all ✅:</div>
+        <div class="cmd"><code>vanta beta-proof</code><button class="copy">copy</button></div>
+        <div class="note">Writes <span class="mono">docs/beta-readiness.md</span>. The kernel already blocks <span class="mono">rm -rf /</span> — that's verified here.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab"><i>Optional</i> — restrict outbound to an allowlist (default-deny everything else):</div>
+        <div class="cmd"><code>export VANTA_EGRESS_ALLOW=github.com,*.anthropic.com</code><button class="copy">copy</button></div></div></li>
+    </ul>
+  </section>
+
+  <section class="phase" id="p6">
+    <header><span class="num">06</span><h2>Ship it</h2><span class="why">the actual launch</span></header>
+    <ul>
+      <li><input type="checkbox"><div class="item"><div class="lab">Get <b>5 strangers</b> to install + each do <b>one real task</b> live.</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Watch the first real session end-to-end (don't intervene — see what they hit).</div></div></li>
+      <li><input type="checkbox"><div class="item"><div class="lab">Capture what broke → file as roadmap cards. <b>That's the beta.</b></div></div></li>
+    </ul>
+  </section>
+
+  <p class="footer">Vanta · open-beta go-live · 4 gates (🔒→✅) get you launched.<br>
+  Post-beta rocks (serverless, wake-word, canvas, companion, proactive, dialectic) are the <i>Next</i>, not blockers.</p>
+</div>
+
+<script>
+  const KEY = "vanta-golive-v1";
+  const boxes = [...document.querySelectorAll('input[type=checkbox]')];
+  boxes.forEach((b,i)=>b.dataset.k = "i"+i);
+  const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+  const pdone=document.getElementById('pdone'), ptotal=document.getElementById('ptotal'),
+        pfill=document.getElementById('pfill');
+  ptotal.textContent = boxes.length;
+
+  function render(){
+    let n=0;
+    boxes.forEach(b=>{ b.closest('li').classList.toggle('done', b.checked); if(b.checked) n++; });
+    pdone.textContent = n;
+    pfill.style.width = (boxes.length ? (n/boxes.length*100) : 0) + "%";
+  }
+  boxes.forEach(b=>{
+    b.checked = !!saved[b.dataset.k];
+    b.addEventListener('change',()=>{ saved[b.dataset.k]=b.checked; localStorage.setItem(KEY,JSON.stringify(saved)); render(); });
+  });
+  document.getElementById('reset').addEventListener('click',()=>{
+    boxes.forEach(b=>b.checked=false); localStorage.removeItem(KEY);
+    for(const k in saved) delete saved[k]; render();
+  });
+  document.querySelectorAll('.copy').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const code = btn.parentElement.querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(()=>{
+        btn.textContent="copied"; btn.classList.add('ok');
+        setTimeout(()=>{btn.textContent="copy"; btn.classList.remove('ok');},1200);
+      });
+    });
+  });
+  render();
+</script>
+</body>
+</html>
