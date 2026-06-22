@@ -5,7 +5,7 @@
       "id": "SETUP-DEAD-SIMPLE",
       "track": "Operator",
       "title": "Dead-simple setup — first install works for a non-CS user (no toolchain)",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "TOP PRIORITY (operator direction 2026-06-22): make the first install work for a non-technical user on a fresh machine. Community signal (OpenClaw/Hermes X thread 2026-06-22) made ease-of-setup the single most-repeated ask — Brian Distelburger (\"switched because it was easier to set up, I don’t have a CS background\"), Felipe H (\"an easier way to set up is essential\"), ASI (\"brand new VM, broke after the first message\"). The wizard already shipped (VANTA-PROJECT-ONBOARDING / INSTALL-PARITY / MSG-WIZARD); the remaining gap is TOOLCHAIN FRICTION. Remove it: prebuilt kernel binaries (no Rust), Node-22 detection + guidance (or a bundled runtime), a zero-config first run that defaults to a working local model, and one obvious happy path. Easy is what converts; the kernel/goal-gating is the wedge.",
       "done": "a non-technical user on a clean machine (no Rust, no preinstalled Node) runs one command and reaches a working chat with at most one guided step for the model backend; verified on a clean Linux + macOS box.",
@@ -15,7 +15,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "First slice = SETUP-PREBUILT-KERNEL. Desktop app is a later, separate lever (DESKTOP-P12)."
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-22. No toolchain needed: scripts/setup-lib.sh downloads a checksum-verified prebuilt kernel (no Rust) AND a portable Node 22 (no system Node); install.sh + run.sh source it; bootstrap.sh needs only git. PROOF: a bare debian:bookworm-slim box (no Rust, no Node) ran install.sh -> downloaded Node v22 + the kernel -> run.sh doctor exit 0 (store created, kernel ready). Linux live-verified end-to-end; macOS verified by construction (darwin binaries published in release v0.2.0, identical code path). Remaining is the one allowed model step (Ollama or an API key). Desktop app = later lever (DESKTOP-P12)."
     },
     {
       "id": "SETUP-PREBUILT-KERNEL",
