@@ -38,7 +38,13 @@ function velocityLines(v: VelocityStats): string[] {
 export function formatStatus(r: StatusReport): string {
   const lines: string[] = ["", "  ⚕ Vanta Status", ""];
 
-  lines.push(`  ${mark(r.kernel.up)} kernel    ${r.kernel.up ? "up" : "down"}  (${r.kernel.url})`);
+  // Kernel "not reachable" before first use is normal — it auto-starts on the first
+  // `vanta run` — so render it as neutral idle, not a red ✗ that reads as broken.
+  lines.push(
+    r.kernel.up
+      ? `  ${mark(true)} kernel    up  (${r.kernel.url})`
+      : `  ○ kernel    idle — starts on first run  (${r.kernel.url})`,
+  );
 
   if (r.provider.ok) {
     lines.push(
@@ -119,7 +125,7 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
       goals = { error: "kernel up but goals unavailable" };
     }
   } else {
-    goals = { error: "kernel down" };
+    goals = { error: "kernel idle (starts on first run)" };
   }
 
   const velEvents = await readVelocityEvents(env).catch(() => []);
