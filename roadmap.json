@@ -5000,8 +5000,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "notes": "Dep preflight (setup/preflight.ts: required+recommended tools, per-platform install cmd, injection-safe probe) + vanta preflight CLI + install.sh offers brew auto-install for missing deps. First-run = one command + one setup step.",
-      "updated": "2026-06-22"
+      "updated": "2026-06-22",
+      "notes": "Dep preflight (setup/preflight.ts: required+recommended tools, per-platform install cmd, injection-safe probe) + vanta preflight CLI + install.sh offers brew auto-install for missing deps. First-run = one command + one setup step."
     },
     {
       "id": "HP-SECRETS",
@@ -11627,10 +11627,10 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-22",
+      "notes": "gateway/platforms/slack.ts: Slack adapter (PlatformAdapter) — Events API inbound (pure parseSlackEvents: plain user messages only, skip bot_id/subtype = anti-loop, DM vs channel) + chat.postMessage outbound + allowlist + injected transport. Wired into factory + catalog implemented:true (VANTA_SLACK_BOT_TOKEN). Offline-tested; live needs an xoxb token + Events API webhook.",
       "after": [
         "MSG-ADAPTER-WHATSAPP"
-      ],
-      "notes": "gateway/platforms/slack.ts: Slack adapter (PlatformAdapter) — Events API inbound (pure parseSlackEvents: plain user messages only, skip bot_id/subtype = anti-loop, DM vs channel) + chat.postMessage outbound + allowlist + injected transport. Wired into factory + catalog implemented:true (VANTA_SLACK_BOT_TOKEN). Offline-tested; live needs an xoxb token + Events API webhook."
+      ]
     },
     {
       "id": "MSG-ADAPTER-DISCORD",
@@ -11813,10 +11813,10 @@
       "codex": "gpt-5.5",
       "lens": "reach",
       "updated": "2026-06-22",
+      "notes": "gateway/platforms/whatsapp.ts: WhatsApp Cloud API adapter (PlatformAdapter) — pure parseWhatsappWebhook/buildWhatsappSendBody/allowlist + injected transport; wired into factory ADAPTERS + catalog implemented:true (VANTA_WHATSAPP_TOKEN + VANTA_WHATSAPP_PHONE_ID). Offline-tested; live needs a Cloud API token + phone id + webhook.",
       "after": [
         "RPC-PIPELINE-VERIFY"
-      ],
-      "notes": "gateway/platforms/whatsapp.ts: WhatsApp Cloud API adapter (PlatformAdapter) — pure parseWhatsappWebhook/buildWhatsappSendBody/allowlist + injected transport; wired into factory ADAPTERS + catalog implemented:true (VANTA_WHATSAPP_TOKEN + VANTA_WHATSAPP_PHONE_ID). Offline-tested; live needs a Cloud API token + phone id + webhook."
+      ]
     },
     {
       "id": "AHE-EVAL-HARNESS",
@@ -14130,8 +14130,8 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Scope folds into MSG-MEDIA-IMAGES (beta) — the inbound image->vision / voice->STT plumbing belongs to that card."
+      "notes": "Scope folds into MSG-MEDIA-IMAGES (beta) — the inbound image->vision / voice->STT plumbing belongs to that card.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "MSG-MEDIA-PATH-RECENCY",
@@ -14726,8 +14726,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Scope folds into INSTALL-PARITY (beta) — add the staged-event/forensic-log/retry detail there, don't build twice."
+      "notes": "Scope folds into INSTALL-PARITY (beta) — add the staged-event/forensic-log/retry detail there, don't build twice.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "HARNESS-EGRESS-ISOLATION",
@@ -15290,12 +15290,12 @@
       "done": "Each named task path runs end-to-end on a clean machine (not the dev box) with captured evidence; the list of live-proven vs still-gated paths is recorded in the repo.",
       "tier": "rock",
       "lens": "infra",
+      "updated": "2026-06-22",
+      "notes": "verify/beta-proof.ts: the open-beta gate harness — BETA_PATHS (install/does-a-task/multi-step/safe/reach/media/scheduled), runBetaProof (run non-gated live, record gated honestly), formatBetaReport. vanta beta-proof CLI runs the real headless checks (kernel blocks rm -rf, run_pipeline collapses 3 tools to 1 turn, provider configured) -> writes docs/beta-readiness.md. 3 paths proven live on this machine; 4 gated (clean machine / channel tokens / whisper) recorded honestly. Live clean-machine run of the gated paths is the operators.",
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "MSG-MEDIA-IMAGES"
-      ],
-      "updated": "2026-06-22",
-      "notes": "verify/beta-proof.ts: the open-beta gate harness — BETA_PATHS (install/does-a-task/multi-step/safe/reach/media/scheduled), runBetaProof (run non-gated live, record gated honestly), formatBetaReport. vanta beta-proof CLI runs the real headless checks (kernel blocks rm -rf, run_pipeline collapses 3 tools to 1 turn, provider configured) -> writes docs/beta-readiness.md. 3 paths proven live on this machine; 4 gated (clean machine / channel tokens / whisper) recorded honestly. Live clean-machine run of the gated paths is the operators."
+      ]
     },
     {
       "id": "MSG-MULTICHANNEL-LIVE",
@@ -15307,13 +15307,13 @@
       "done": "From one running gateway, a message on each of Telegram, WhatsApp, Signal, Discord, and Slack reaches the agent and gets a reply, verified live; the gateway survives one channel failing.",
       "tier": "rock",
       "lens": "reach",
+      "updated": "2026-06-22",
+      "notes": "gateway/platforms/multi-channel.ts: MultiChannelAdapter composite — polls ALL configured channels (per-channel error isolation: one down != all down), tags each inbound chatId platform:<id>, routes replies back to the originating channel. resolveMessagingChannel(env): 0->undefined, 1->adapter, 2+->composite. Discord wired into factory (5th channel). Gateway (cli/ops.ts) now runs all configured channels. Telegram+WhatsApp+Signal+Slack+Discord resolve together; live needs each channels real token.",
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "MSG-ADAPTER-WHATSAPP",
         "MSG-ADAPTER-SLACK"
-      ],
-      "updated": "2026-06-22",
-      "notes": "gateway/platforms/multi-channel.ts: MultiChannelAdapter composite — polls ALL configured channels (per-channel error isolation: one down != all down), tags each inbound chatId platform:<id>, routes replies back to the originating channel. resolveMessagingChannel(env): 0->undefined, 1->adapter, 2+->composite. Discord wired into factory (5th channel). Gateway (cli/ops.ts) now runs all configured channels. Telegram+WhatsApp+Signal+Slack+Discord resolve together; live needs each channels real token."
+      ]
     },
     {
       "id": "MSG-MEDIA-IMAGES",
@@ -15325,12 +15325,12 @@
       "done": "On at least Telegram + WhatsApp, an inbound image is understood by the agent and an outbound image is delivered; an inbound voice memo is transcribed; all verified live.",
       "tier": "rock",
       "lens": "reach",
+      "updated": "2026-06-22",
+      "notes": "gateway/media.ts: inbound media bridge (image->vision ImageAttachments, voice->STT injected transcribe, mixed, degrade-on-fail) + resolveInbound. Threaded through runAgent->RunTask->buildCronRunTask->gateway handle(text,images) so inbound images reach the agents vision. media-deps.ts = live whisper+fetch wire. WhatsApp parse extracts inbound image/audio into msg.media. Contracts: InboundMessage.media, OutboundMessage.image. Boundary (live): per-platform auth media byte-download (wa-media: id resolve, Telegram getFile) needs the channel token; outbound-image per-adapter send is the remaining wire.",
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "MSG-MULTICHANNEL-LIVE"
-      ],
-      "updated": "2026-06-22",
-      "notes": "gateway/media.ts: inbound media bridge (image->vision ImageAttachments, voice->STT injected transcribe, mixed, degrade-on-fail) + resolveInbound. Threaded through runAgent->RunTask->buildCronRunTask->gateway handle(text,images) so inbound images reach the agents vision. media-deps.ts = live whisper+fetch wire. WhatsApp parse extracts inbound image/audio into msg.media. Contracts: InboundMessage.media, OutboundMessage.image. Boundary (live): per-platform auth media byte-download (wa-media: id resolve, Telegram getFile) needs the channel token; outbound-image per-adapter send is the remaining wire."
+      ]
     },
     {
       "id": "BACKEND-SERVERLESS-LIVE",
@@ -15357,12 +15357,12 @@
       "done": "A representative multi-step task (fetch→transform→write across several tools) runs as a single scripted RPC pipeline in one turn, with measured context savings vs the per-tool-call path and a documented worked example.",
       "tier": "rock",
       "lens": "agent-loop",
+      "updated": "2026-06-22",
+      "notes": "SCRIPT-RPC-PIPELINE made first-class: tools/run-pipeline.ts run_pipeline factory tool (kernel-gated callTool per step: assess->approval->execute; cannot bypass gate). Only final result returns; intermediate outputs stay in bindings. measureSavings reports tokens kept out of context. Worked fetch->transform->write example in description + test. Registered tools 122->123.",
       "source": "hermes-openclaw-audit-2026-06-21",
       "after": [
         "TOOL-CALL-REPAIR"
-      ],
-      "notes": "SCRIPT-RPC-PIPELINE made first-class: tools/run-pipeline.ts run_pipeline factory tool (kernel-gated callTool per step: assess->approval->execute; cannot bypass gate). Only final result returns; intermediate outputs stay in bindings. measureSavings reports tokens kept out of context. Worked fetch->transform->write example in description + test. Registered tools 122->123.",
-      "updated": "2026-06-22"
+      ]
     },
     {
       "id": "USER-MODEL-DIALECTIC",
@@ -15428,12 +15428,12 @@
       "done": "A representative malformed tool call from a weak/local model is repaired and executed instead of erroring; repair is logged; measured drop in tool-call failures on a local model.",
       "tier": "rock",
       "lens": "agent-loop",
+      "updated": "2026-06-22",
+      "notes": "providers/tool-call-repair.ts: JSON-repair ladder (fences/extract-object/loose-fix/complete-truncated) + schema coercion (string->number/bool) + default-fill. Wired into openai-convert parseToolCall (replaces {_raw} fallback) + dispatch normalizeToolCall (coerce to tool schema, log via note event). ToolCall.repaired flag.",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "INSTALL-PARITY"
-      ],
-      "notes": "providers/tool-call-repair.ts: JSON-repair ladder (fences/extract-object/loose-fix/complete-truncated) + schema coercion (string->number/bool) + default-fill. Wired into openai-convert parseToolCall (replaces {_raw} fallback) + dispatch normalizeToolCall (coerce to tool schema, log via note event). ToolCall.repaired flag.",
-      "updated": "2026-06-22"
+      ]
     },
     {
       "id": "VANTA-CANVAS",
@@ -15472,12 +15472,12 @@
       "done": "All outbound network paths (web_fetch, browser, MCP, tools) route through one egress policy that blocks private/metadata ranges by default and honors an allow/deny list; bypass attempts are denied + logged.",
       "tier": "pebble",
       "lens": "infra",
+      "updated": "2026-06-22",
+      "notes": "net/egress-policy.ts: allow/deny domain policy (domainMatches apex+sub + *.wildcard, parseEgressPolicy from VANTA_EGRESS_ALLOW/DENY, checkEgressPolicy: deny-wins + allowlist=default-deny) + best-effort logEgressDenial (~/.vanta/egress-denied.log + stderr). Folded into assertPublicUrl so EVERY outbound path (web_fetch/MCP/hooks/reach) inherits it; an explicit deny is a hard stop even with the private-IP guard opted out. 13 policy tests + 4 assertPublicUrl integration tests.",
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "BETA-LIVE-PROOF"
-      ],
-      "updated": "2026-06-22",
-      "notes": "net/egress-policy.ts: allow/deny domain policy (domainMatches apex+sub + *.wildcard, parseEgressPolicy from VANTA_EGRESS_ALLOW/DENY, checkEgressPolicy: deny-wins + allowlist=default-deny) + best-effort logEgressDenial (~/.vanta/egress-denied.log + stderr). Folded into assertPublicUrl so EVERY outbound path (web_fetch/MCP/hooks/reach) inherits it; an explicit deny is a hard stop even with the private-IP guard opted out. 13 policy tests + 4 assertPublicUrl integration tests."
+      ]
     },
     {
       "id": "PLATFORM-MOBILE-TERMUX",
@@ -15515,11 +15515,11 @@
       "title": "Public API + embeddable SDK — drive Vanta programmatically (versioned contract)",
       "status": "horizon",
       "size": "L",
+      "summary": "Vanta's plugin framework is in-process and MCP/ACP/headless surfaces exist, but there is no published, documented external API + embeddable SDK with a versioned, stable contract for third parties to build on or drive Vanta programmatically. As an ecosystem forms this is the gap (OpenClaw ships gateway-protocol + plugin-sdk + plugin-package-contract). Pairs with PCLIP-PLUGIN-WORKERS (out-of-process plugins) and EXT-MCP-SERVE-COMMS.",
+      "done": "A documented, versioned public API (HTTP + typed client) lets an external program start a session, send input, stream output, and resolve approvals; a published SDK package wraps it; the plugin contract is versioned and stable. Every call still routes through the kernel.",
       "tier": "pebble",
       "lens": "infra",
-      "source": "parked-audit-2026-06-21",
-      "summary": "Vanta's plugin framework is in-process and MCP/ACP/headless surfaces exist, but there is no published, documented external API + embeddable SDK with a versioned, stable contract for third parties to build on or drive Vanta programmatically. As an ecosystem forms this is the gap (OpenClaw ships gateway-protocol + plugin-sdk + plugin-package-contract). Pairs with PCLIP-PLUGIN-WORKERS (out-of-process plugins) and EXT-MCP-SERVE-COMMS.",
-      "done": "A documented, versioned public API (HTTP + typed client) lets an external program start a session, send input, stream output, and resolve approvals; a published SDK package wraps it; the plugin contract is versioned and stable. Every call still routes through the kernel."
+      "source": "parked-audit-2026-06-21"
     },
     {
       "id": "KEYBINDING-CUSTOMIZATION",
@@ -15527,11 +15527,65 @@
       "title": "User-customizable keybindings — rebuilt on the current TUI",
       "status": "horizon",
       "size": "M",
+      "summary": "The old keybinding registry (DEFAULT_BINDINGS/KeyContext) was deleted in the 06-13 TUI rebuild, parking KEYBINDING-CONTEXTS/-SYSTEM/CHORD-BINDINGS as N/A. The capability — user-defined, context-scoped, chord-capable keybindings from a config file — is still a real product feature users expect. This is the fresh card to rebuild it on the current Ink TUI, replacing those three stale ones.",
+      "done": "Users can define context-scoped keybindings (incl. chords) in a config file, hot-reloaded and schema-validated, layered over sensible defaults, on the current TUI.",
       "tier": "pebble",
       "lens": "tui",
-      "source": "parked-audit-2026-06-21",
-      "summary": "The old keybinding registry (DEFAULT_BINDINGS/KeyContext) was deleted in the 06-13 TUI rebuild, parking KEYBINDING-CONTEXTS/-SYSTEM/CHORD-BINDINGS as N/A. The capability — user-defined, context-scoped, chord-capable keybindings from a config file — is still a real product feature users expect. This is the fresh card to rebuild it on the current Ink TUI, replacing those three stale ones.",
-      "done": "Users can define context-scoped keybindings (incl. chords) in a config file, hot-reloaded and schema-validated, layered over sensible defaults, on the current TUI."
+      "source": "parked-audit-2026-06-21"
+    },
+    {
+      "id": "BRAIN-ENTITY-SIGNAL",
+      "track": "Operator",
+      "title": "Entity-match recall signal — mem0's 3rd retrieval signal beyond lexical+semantic",
+      "status": "next",
+      "size": "M",
+      "summary": "Vanta's recall fuses lexical + semantic (search/rrf.ts). mem0's v3 jump (LoCoMo 71→92) adds a THIRD signal: extract entities from each memory, link them across memories, and boost retrieval by entity match — with an IDF-like down-weight for over-linked entities (1/(1+0.001·(n-1)^2)) so a ubiquitous entity doesn't dominate. Add entity extraction + an entity-match score into the brain's fused ranker.",
+      "done": "Brain recall scores an entity-match signal alongside lexical + semantic; entities are extracted, stored, and linked across memories; LongMemEval/LoCoMo recall@k improves vs the 2-signal baseline (measured via `vanta eval mem public`), else the signal is dropped.",
+      "tier": "rock",
+      "lens": "memory",
+      "source": "mem0-audit-2026-06-22"
+    },
+    {
+      "id": "BRAIN-BM25-LEXICAL",
+      "track": "Operator",
+      "title": "True BM25 lexical signal (IDF + lemmatization + sigmoid normalize)",
+      "status": "next",
+      "size": "S",
+      "summary": "Vanta's lexical recall is token-density ranking (search/life-rank.ts). mem0 uses real BM25 — IDF-weighted, lemmatized, and sigmoid-normalized to 0..1 (normalize_bm25(raw, midpoint, steepness)) so it fuses cleanly with the semantic + entity signals. Upgrade the lexical signal to BM25 (zero-dep) and A/B it on the eval harness.",
+      "done": "The lexical recall signal is IDF-weighted BM25 with lemmatization and bounded 0..1 normalization; LongMemEval/LoCoMo recall@k is at least as good as the token-density baseline, kept only if it improves.",
+      "tier": "pebble",
+      "lens": "memory",
+      "source": "mem0-audit-2026-06-22",
+      "after": [
+        "BRAIN-ENTITY-SIGNAL"
+      ]
+    },
+    {
+      "id": "BRAIN-FUSION-AB-SUMNORM",
+      "track": "Operator",
+      "title": "A/B mem0's sum-of-normalized-scores fusion vs the existing RRF",
+      "status": "horizon",
+      "size": "S",
+      "summary": "Vanta fuses recall signals with reciprocal-rank-fusion (search/rrf.ts). mem0 instead sums normalized signal scores ((semantic + bm25 + entity_boost)/max_possible). Run both fusions through the existing mem-eval LongMemEval/LoCoMo harness and keep whichever ranks better — a cheap, decisive A/B Vanta is uniquely set up to run.",
+      "done": "Both fusion methods are benchmarked on LongMemEval + LoCoMo via `vanta eval mem public`; the winner is adopted with the delta recorded; the loser is documented, not silently dropped.",
+      "tier": "sand",
+      "lens": "memory",
+      "source": "mem0-audit-2026-06-22",
+      "after": [
+        "BRAIN-ENTITY-SIGNAL"
+      ]
+    },
+    {
+      "id": "BRAIN-ADD-ONLY-AB",
+      "track": "Operator",
+      "title": "A/B ADD-only memory formation (agent-facts first-class) vs crystallization",
+      "status": "horizon",
+      "size": "S",
+      "summary": "mem0's v3 uses single-pass ADD-only extraction (one LLM call, no UPDATE/DELETE; memories accumulate) and stores agent-confirmed facts with equal weight — and it benchmarks higher than its prior update/merge approach. This conflicts with Vanta's brain thesis (crystallization, consolidation, forgetting). Don't adopt blindly: A/B ADD-only-accumulate vs the current formation on LongMemEval/LoCoMo, and capture agent-confirmed actions as first-class memories.",
+      "done": "An ADD-only formation path is benchmarked against the crystallization path on the eval harness; the result (and whether agent-confirmed facts as first-class help) is recorded in a decision; the better path is adopted or the experiment is parked with its number.",
+      "tier": "sand",
+      "lens": "memory",
+      "source": "mem0-audit-2026-06-22"
     }
   ]
 }
