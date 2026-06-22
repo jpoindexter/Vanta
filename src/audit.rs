@@ -222,9 +222,16 @@ mod tests {
     use std::path::PathBuf;
 
     fn tmp() -> PathBuf {
+        // Unique per CALL: the nanosecond clock alone can collide when two tests
+        // run in parallel and read the same instant — an atomic seq + pid make the
+        // dir unique so concurrent audit tests never share key/head/events state.
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static SEQ: AtomicU64 = AtomicU64::new(0);
         let d = std::env::temp_dir().join(format!(
-            "vanta-audit-{}",
-            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()
+            "vanta-audit-{}-{}-{}",
+            std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos(),
+            SEQ.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir_all(&d).unwrap();
         d

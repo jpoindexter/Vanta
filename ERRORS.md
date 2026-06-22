@@ -2,6 +2,14 @@
 
 Append-only. Approaches that took >2 attempts. Check this before debugging similar tasks.
 
+## 2026-06-22 — Kernel audit test flake (`intact_chain_verifies`) under parallel run
+
+**Symptom:** `cargo test` intermittently failed `audit::tests::intact_chain_verifies` ("line 1 broke the audit chain (tampered, reordered, or inserted)") — 61 passed / 1 failed. Passed **alone** and **serial** (`cargo test -- --test-threads=1` → 62/62).
+
+**Root cause:** the test helper `tmp()` keyed its temp dir on `SystemTime::now()...as_nanos()` only. Two audit tests starting in parallel can read the *same* nanosecond → the *same* temp dir → they share `audit.key` / `events.jsonl` / `audit.head`. A sibling test (`tampered_line_breaks_chain` writes "HACKED", `deleted_line_breaks_chain` removes a line, key rotation) then corrupts the chain `intact_chain_verifies` is verifying. A clock read is **not** collision-proof under parallelism.
+
+**Fix:** make `tmp()` unique per *call* with an atomic `SEQ` counter + `process::id()` on top of the timestamp. 3 consecutive default-parallel `cargo test` runs → 62/62 green. (General rule: temp-dir uniqueness needs an explicit per-call counter, never just a timestamp.)
+
 ## 2026-06-10 — Alt-screen TUI ghost frames (stacked composer boxes)
 
 **Symptom:** With `VANTA_NO_FLICKER=1`, the TUI rendered the composer box repeatedly stacked down the screen (ghost frames), each with a varying-width top border. Worse on short terminals. Sometimes a blank screen.
