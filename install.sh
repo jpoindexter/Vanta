@@ -39,7 +39,10 @@ if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
 fi
 if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
   echo -e "${CYAN}→${NC} installing agent dependencies (first run)…"
-  (cd "$SCRIPT_DIR/vanta-ts" && npm install)
+  # Users install runtime deps only (--omit=dev) — keeps the test toolchain (vitest/vite)
+  # and its advisories off a tester's machine. tsx + typescript are runtime deps (the app
+  # runs via tsx; the size gate / LSP use the TS compiler API), so they stay installed.
+  (cd "$SCRIPT_DIR/vanta-ts" && npm install --omit=dev)
 fi
 echo -e "${GREEN}✓${NC} kernel + deps ready"
 
