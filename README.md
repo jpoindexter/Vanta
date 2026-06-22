@@ -98,7 +98,7 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 - **ND-first** — executive-function support baked in: task initiation (smallest next step), choice reduction (top 3), working-memory re-anchoring, closure gates, time-blindness ranges, low-sensory output.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
 - **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…), 5 live-verified.
-- **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/Bedrock/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
+- **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
 - **MIT + self-hosted** — your data residency, no vendor lock-in.
 
 More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.

@@ -27,7 +27,7 @@ Every outbound action (send / draft / create / update) is approval-gated. Provis
 
 ## Messaging
 
-`vanta setup messaging` runs a registry-driven wizard. **Telegram** is the live adapter (long-poll `getUpdates` + `sendMessage`, no SDK) — enable with `VANTA_TELEGRAM_TOKEN` from @BotFather. iMessage / Signal / WhatsApp are planned (the wizard never writes a fake enable flag for a missing adapter).
+`vanta setup messaging` runs a registry-driven wizard. **20 messaging adapters are wired** (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, WebChat, Nostr, Google Chat, Email) — five are live today (**Telegram · WhatsApp · Signal · Discord · Slack**); the rest are wired and configurable. Telegram, for example, uses a long-poll `getUpdates` + `sendMessage` loop (no SDK) — enable it with `VANTA_TELEGRAM_TOKEN` from @BotFather. The wizard reads the catalog per platform and never writes a fake enable flag for an unconfigured adapter.
 
 The `send_message` tool delivers an outbound message through a configured platform (approval-gated).
 

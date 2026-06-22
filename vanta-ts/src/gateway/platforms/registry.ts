@@ -3,9 +3,11 @@
 // and whether it's configured. Mirrors providers/catalog.ts. Adding a platform
 // = one entry here + its PlatformAdapter file; nothing central to edit.
 //
-// `implemented` is the honesty flag: only Telegram has a live adapter today, so
-// the wizard *configures* Telegram and only *previews* the planned ones — it
-// never writes an enable flag for an adapter that doesn't exist yet.
+// `implemented` is the honesty flag: the wizard *configures* a platform only
+// when it has a live PlatformAdapter, and *previews* any that don't — it never
+// writes an enable flag for an adapter that doesn't exist. All 20 platforms here
+// are implemented today (see adapter-registry.ts); the flag stays so a future
+// preview-only catalog entry degrades safely.
 
 export type MessagingPlatform = {
   /** Stable id (matches the PlatformAdapter id). */

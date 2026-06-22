@@ -28,7 +28,7 @@ The default is local **Ollama** (`qwen2.5:14b`) — no API key, runs offline.
 vanta setup messaging   # registry-driven wizard
 ```
 
-Each platform shows an `[available | configured | planned]` status with numbered steps. **Telegram** is the live adapter — paste a @BotFather token and it configures `VANTA_TELEGRAM_TOKEN` for you. See [Comms & gateway](./comms-and-gateway.md).
+Each platform shows an `[available | configured | planned]` status with numbered steps. **20 messaging adapters are wired** — five are live today (**Telegram · WhatsApp · Signal · Discord · Slack**), the rest are wired and configurable. For Telegram, paste a @BotFather token and it configures `VANTA_TELEGRAM_TOKEN` for you. See [Comms & gateway](./comms-and-gateway.md).
 
 ## Other one-time setup
 
@@ -42,7 +42,7 @@ vanta auth google     # one-time OAuth for gmail / calendar / drive
 vanta doctor          # kernel ping · provider reachable · key presence · store · goals
 ```
 
-The setup assistant probes the provider completion, the Google OAuth path, MCP mount/list-tools, and any configured Telegram token — reporting errors as values with secrets redacted.
+The setup assistant probes the provider completion, the Google OAuth path, MCP mount/list-tools, and any configured messaging token — reporting errors as values with secrets redacted.
 
 ## Keys without .env
 

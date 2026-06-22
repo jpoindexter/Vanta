@@ -17,6 +17,10 @@ Vanta is model-agnostic. The agent loop only sees the `LLMProvider` interface, s
 | `anthropic` | Anthropic Claude models; thinking-capable models use extended thinking on high/max effort |
 | `gemini` | Google, via the OpenAI-compatible adapter (baseURL swap) |
 | `openrouter` | Many models behind one key, via the OpenAI adapter |
+| `azure` | Azure OpenAI / AI Foundry (deployment + `api-version`) |
+| `custom` | **Any** OpenAI-compatible endpoint — point `VANTA_OPENAI_BASE_URL` at it |
+
+Plus subscription-OAuth backends (`codex` for ChatGPT, `claude-code` for a Claude Pro/Max plan) and named OpenAI-compatible shortcuts (`deepseek`, `xai`, `groq`, `mistral`, `together`, `fireworks`, `cerebras`, `nvidia`, `perplexity`, and more — each just a baseURL + key swap).
 
 Set it interactively with `vanta setup`, or edit `vanta-ts/.env`.
 

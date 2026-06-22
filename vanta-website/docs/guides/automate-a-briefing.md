@@ -45,10 +45,10 @@ vanta service install         # keep it alive via launchd (macOS)
 ## 5. Deliver it to your phone (optional)
 
 ```bash
-vanta setup messaging         # configure Telegram (paste a @BotFather token)
+vanta setup messaging         # pick a gateway from the menu (e.g. Telegram — paste a @BotFather token)
 ```
 
-With the gateway running, inbound Telegram messages route through the agent and replies come back. You can also have the scheduled brief sent to you. Outbound sends are approval-gated unless you've set an auto/permission rule — see [Permissions & hooks](../permissions-and-hooks.md).
+The wizard offers 20 messaging adapters (Telegram, Slack, Discord, WhatsApp, Signal, iMessage, Email, and more). With the gateway running, inbound messages route through the agent and replies come back. You can also have the scheduled brief sent to you. Outbound sends are approval-gated unless you've set an auto/permission rule — see [Permissions & hooks](../permissions-and-hooks.md).
 
 ## Result
 

@@ -8,6 +8,11 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-06-22 — public launch (v0.2.0)
+- **Open source** — the repo is public at [github.com/jpoindexter/Vanta](https://github.com/jpoindexter/Vanta) under the **MIT** license.
+- **Zero-toolchain install** — only `git` is required. The Rust safety kernel ships as a prebuilt binary and a portable Node 22 is fetched automatically on first run (both checksum-verified); no Rust or system Node to install.
+- **Messaging** — 20 adapters wired (Telegram · WhatsApp · Signal · Discord · Slack live today; the rest configurable).
+
 ## Voice, desktop & on-device tuning
 - **Voice input** — hold-to-talk speech-to-text, transcribed locally on your machine.
 - **Native desktop control** — Vanta can see the screen and click/type/scroll to drive native apps, in addition to the browser.
@@ -39,7 +44,7 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 - Hook to **any model** (OpenAI/Ollama/Anthropic/Gemini/OpenRouter) via a first-run **setup wizard**.
 - **Continuity** — age-gated resume, fork, handoff, session memory, standing loops.
 - **Self-improvement loop**, bundled **skill library**.
-- **Gateway** — run as a service, messaging (Telegram), webhooks.
+- **Gateway** — run as a service, messaging (20 adapters wired; Telegram · WhatsApp · Signal · Discord · Slack live), webhooks.
 
 ## v0 — all the parts
 - Rust **safety kernel** — risk classifier (allow/ask/block), approval queue, goal ledger, tamper-evident event log, HTTP sidecar.
