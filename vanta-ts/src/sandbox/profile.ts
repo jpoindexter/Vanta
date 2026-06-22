@@ -20,6 +20,11 @@ function dangerousAbs(): string[] {
   return DANGEROUS_DIRS.map((p) => resolve(expandHome(p)));
 }
 
+/** Pseudo-devices nearly every program opens read+write (git/node/shells open
+ *  /dev/null O_RDWR). Safe to grant — not credential paths. `/dev/tty` (+ioctl) and
+ *  `/dev/fd` (subpath) are handled separately in the profile. */
+const DEV_WRITE = ["/dev/null", "/dev/zero", "/dev/stdout", "/dev/stderr", "/dev/dtracehelper"];
+
 /** Quote a path for an SBPL `subpath`/`literal` clause (escapes `"` and `\`). */
 function sb(path: string): string {
   return `"${path.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
@@ -50,6 +55,12 @@ export function buildSeatbeltProfile(
     "(allow signal (target self))",
     "; reads: permissive (system libs, binaries, project) — dangerous dirs denied below",
     "(allow file-read*)",
+    "; pseudo-devices: reads are covered above; grant WRITE-DATA so tools that open",
+    "; /dev/null|tty|fd O_RDWR (git, node, shells) don't get EPERM. Specific ops (not",
+    "; file-write*) so the 'only root+zones get file-write*' invariant still holds.",
+    ...DEV_WRITE.map((d) => `(allow file-write-data (literal ${sb(d)}))`),
+    `(allow file-write-data file-ioctl (literal ${sb("/dev/tty")}))`,
+    `(allow file-write-data (subpath ${sb("/dev/fd")}))`,
     "; writes: ONLY under the project root + resolved writable zones (incl. temp)",
     ...writable.map((z) => `(allow file-write* (subpath ${sb(z)}))`),
     "; DANGEROUS_DIRS: deny LAST so this overrides the broad read-allow above",
@@ -91,7 +102,9 @@ export function buildBwrapArgs(
   maskDirs: string[] = dangerousAbs(),
 ): string[] {
   const writable = [resolve(root), ...writableZones.map((z) => resolve(z))];
-  const args = ["--ro-bind", "/", "/"];
+  // `--ro-bind / /` binds the host /dev read-only → /dev/null writes EPERM. `--dev`
+  // overlays a fresh minimal devtmpfs (null/zero/random/urandom/tty/fd, writable).
+  const args = ["--ro-bind", "/", "/", "--dev", "/dev"];
   for (const d of maskDirs.map((p) => resolve(p))) {
     if (!within(d, writable)) args.push("--tmpfs", d);
   }

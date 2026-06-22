@@ -69,6 +69,22 @@ describe("buildSeatbeltProfile", () => {
     const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
     expect(p).toContain("(allow process-exec*)");
   });
+
+  it("grants WRITE to /dev/null + pseudo-devices (git opens /dev/null O_RDWR)", () => {
+    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
+    expect(p).toContain('(allow file-write-data (literal "/dev/null"))');
+    expect(p).toContain('(allow file-write-data (literal "/dev/zero"))');
+    expect(p).toContain('(allow file-write-data file-ioctl (literal "/dev/tty"))');
+    expect(p).toContain('(allow file-write-data (subpath "/dev/fd"))');
+  });
+
+  it("keeps device writes OUTSIDE the file-write* invariant (uses file-write-data)", () => {
+    // The device allows must not count as file-write* — else the root+zones
+    // invariant breaks. They use the specific file-write-data op instead.
+    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
+    const devWriteStar = p.split("\n").filter((l) => l.includes("/dev/") && l.includes("file-write*"));
+    expect(devWriteStar).toEqual([]);
+  });
 });
 
 describe("buildBwrapArgs", () => {
@@ -78,6 +94,11 @@ describe("buildBwrapArgs", () => {
     const j = a.join(" ");
     expect(j).toContain(`--bind ${resolve(ROOT)} ${resolve(ROOT)}`);
     for (const z of ZONES) expect(j).toContain(`--bind ${z} ${z}`);
+  });
+
+  it("overlays a writable /dev (--dev /dev) so /dev/null works under the ro-bind", () => {
+    const a = buildBwrapArgs(ROOT, ZONES, { net: false });
+    expect(a.join(" ")).toContain("--dev /dev");
   });
 
   it("tmpfs-masks every dangerous dir not inside a writable zone", () => {
