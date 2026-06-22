@@ -7,6 +7,7 @@ import { runFullSetup } from "./setup-full.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { runTtsSetup } from "./setup-tts.js";
 import { runStatus } from "./status.js";
+import { runMigrate } from "./cli/migrate-cmd.js";
 import { runPreflight, formatPreflight, commandExists, detectPlatform } from "./setup/preflight.js";
 import { runBetaProofCommand } from "./cli/beta-proof-cmd.js";
 import {
@@ -91,6 +92,7 @@ const COMMANDS: Record<string, CommandFn> = {
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
   status: (_root, rest) => runStatus(process.env, rest),
   doctor: (_root, rest) => runStatus(process.env, rest),
+  migrate: (_root, rest) => runMigrate(rest),
   preflight: () => {
     const res = runPreflight(commandExists);
     console.log(formatPreflight(res, detectPlatform()));

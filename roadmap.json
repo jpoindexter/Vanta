@@ -245,7 +245,7 @@
       "id": "VANTA-MIGRATE",
       "track": "Operator",
       "title": "vanta migrate — import from OpenClaw / Hermes (skills + MCP servers + model config)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "Mirror what the category already ships (openclaw migrate; hermes 'migrate from openclaw'): a kernel-gated importer that reads ~/.openclaw and ~/.hermes and brings skills, MCP server configs, and model/provider config into ~/.vanta. Locked scope #1: OpenClaw + Hermes sources, skills + MCP + model-config footprint (memory/session import and Codex/Claude Code sources deferred to children). Preview plan -> checkbox select -> backup -> apply; secrets redacted in the report; never overwrites without approval.",
       "done": "vanta migrate openclaw / vanta migrate hermes previews a plan, lets the operator select items, backs up ~/.vanta, then imports skills + MCP servers + model config; pure parsers tested offline against fixture ~/.openclaw and ~/.hermes trees; kernel-gated, secrets redacted, reversible.",
@@ -255,7 +255,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "On-pattern for the category (both competitors ship importers). Pairs with the docs comparison page. OVERLAPS existing OP-MIGRATION-IMPORT (horizon, generic 'import-from-other-agent onboarding + honest gaps report') — VANTA-MIGRATE is the concrete OpenClaw/Hermes implementation of it; build them together, do NOT duplicate. Children: VANTA-MIGRATE-MEMORY (session/brain import), VANTA-MIGRATE-MORE-SOURCES (add Codex CLI + Claude Code)."
+      "notes": "Shipped 2026-06-22. vanta migrate <openclaw|hermes>: preview (formatPlan, secrets redacted) -> select (footprint flags --skills/--mcp/--model; --overwrite for conflicts) -> backup ~/.vanta (tar) -> apply (writeSkill + merge mcp.json + upsertEnv model config into ~/.vanta/.env). Kernel-gated (assess() block->refuse). Conflicts skipped unless --overwrite; reversible via backup-first. PURE parsers (migrate/parse.ts) + plan (migrate/plan.ts, injected reads like purge-plan) tested offline against fixture ~/.openclaw + ~/.hermes trees (skills/<slug>/SKILL.md + mcpServers JSON + provider/model config). Source layout is the de-facto agent convention (documented assumption; live tree is the boundary). Locked scope #1 (skills+MCP+model). Follow-ups: per-item checkbox selection (currently footprint-level), memory/session import + Codex/Claude-Code sources (deferred to children per card). 954 files/10909 tests green."
     },
     {
       "id": "VANTA-SESSION-MEMORY-SVC",

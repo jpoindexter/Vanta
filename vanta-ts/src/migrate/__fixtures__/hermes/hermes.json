@@ -1,0 +1,11 @@
+{
+  "provider": "openai",
+  "defaultModel": "gpt-4o",
+  "mcpServers": {
+    "slack": {
+      "command": "node",
+      "args": ["slack-mcp.js"],
+      "env": { "SLACK_BOT_TOKEN": "<slack-bot-token-here>" }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+import { createInterface } from "node:readline/promises";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { homedir } from "node:os";
+import { listSkills } from "../skills/store.js";
+import { createKernelClient } from "../kernel/client.js";
+import { storeDir, runBackup } from "../cli-dx/backup.js";
+import { MIGRATE_SOURCES, parseMcpServers, type MigrateSource } from "../migrate/parse.js";
+import { buildMigrationPlan, formatPlan, type PlanDeps, type MigrationPlan } from "../migrate/plan.js";
+import { applyMigration, defaultApplyDeps, type ApplySelection, type ApplyResult } from "../migrate/apply.js";
+
+// VANTA-MIGRATE — `vanta migrate <openclaw|hermes>`: preview → select → backup →
+// apply. Kernel-gated (the apply is assessed; a block refuses), secrets redacted
+// in the preview, conflicts skipped unless --overwrite, and ~/.vanta is backed up
+// first so the whole thing is reversible.
+
+const FLAG_RE = /^--/;
+
+function usage(log: (s: string) => void): number {
+  log("  usage: vanta migrate <openclaw|hermes> [--skills] [--mcp] [--model] [--overwrite] [--yes]");
+  log("         default brings all three footprints; pass any of --skills/--mcp/--model to narrow.");
+  return 1;
+}
+
+/** Selection from flags: any explicit footprint flag narrows; none = all. Pure. */
+export function parseSelection(flags: string[]): ApplySelection {
+  const has = (f: string): boolean => flags.includes(f);
+  const narrowed = has("--skills") || has("--mcp") || has("--model");
+  return {
+    skills: narrowed ? has("--skills") : true,
+    mcp: narrowed ? has("--mcp") : true,
+    model: narrowed ? has("--model") : true,
+    overwrite: has("--overwrite"),
+  };
+}
+
+/** Live read-only fs deps for the planner, rooted at ~/.<source>. */
+async function livePlanDeps(source: MigrateSource, env: NodeJS.ProcessEnv): Promise<PlanDeps> {
+  const sourceRoot = join(homedir(), `.${source}`);
+  const skills = await listSkills(env).catch(() => []);
+  const existingSkillNames = new Set(skills.map((s) => s.meta.name));
+  const mcpText = readSafe(join(storeDir(env), "mcp.json"));
+  const existingMcpNames = new Set(Object.keys(mcpText ? parseMcpServers(mcpText) : {}));
+  return {
+    sourceRoot,
+    exists: (p) => existsSync(p),
+    readText: readSafe,
+    listDirs: (p) => {
+      try {
+        return readdirSync(p, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
+      } catch {
+        return [];
+      }
+    },
+    existingSkillNames,
+    existingMcpNames,
+  };
+}
+
+function readSafe(path: string): string | null {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+async function confirm(question: string): Promise<boolean> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return (await rl.question(question)).trim().toLowerCase().startsWith("y");
+  } finally {
+    rl.close();
+  }
+}
+
+const hasContent = (plan: MigrationPlan): boolean =>
+  plan.skills.length > 0 || plan.mcpServers.length > 0 || plan.modelConfig !== null;
+
+/** Kernel-gate the outward action; ask/allow proceed to the human confirm. */
+async function kernelBlocks(env: NodeJS.ProcessEnv, source: MigrateSource): Promise<{ blocked: boolean; reason: string }> {
+  const verdict = await createKernelClient(env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788")
+    .assess(`migrate import from ${source} into ~/.vanta (skills + mcp + model)`)
+    .catch(() => ({ risk: "ask" as const, needsHuman: true, reason: "kernel unreachable" }));
+  return { blocked: verdict.risk === "block", reason: verdict.reason };
+}
+
+const proceed = async (flags: string[]): Promise<boolean> =>
+  flags.includes("--yes") || confirm("  Back up ~/.vanta and import the selected items? (y/n) ");
+
+function printReport(log: (s: string) => void, source: MigrateSource, plan: MigrationPlan, result: ApplyResult): void {
+  log(`  ✓ migrated from ${source} (backup: ${result.backup})`);
+  if (result.skillsAdded.length) log(`    skills:  ${result.skillsAdded.join(", ")}`);
+  if (result.mcpAdded.length) log(`    mcp:     ${result.mcpAdded.join(", ")}`);
+  if (result.modelApplied) log(`    model:   ${plan.modelConfig?.provider}/${plan.modelConfig?.model} → ~/.vanta/.env`);
+  if (result.skipped.length) log(`    skipped: ${result.skipped.join("; ")} (use --overwrite to replace)`);
+}
+
+export async function runMigrate(rest: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
+  const log = console.log;
+  const source = rest[0] as MigrateSource | undefined;
+  if (!source || !MIGRATE_SOURCES.includes(source)) return usage(log);
+  const flags = rest.filter((a) => FLAG_RE.test(a));
+  const selection = parseSelection(flags);
+
+  const plan = buildMigrationPlan(source, await livePlanDeps(source, env));
+  log(formatPlan(plan));
+  if (!plan.found) return 1;
+  if (!hasContent(plan)) {
+    log("  nothing to import.");
+    return 0;
+  }
+
+  const gate = await kernelBlocks(env, source);
+  if (gate.blocked) {
+    log(`  ✗ blocked by kernel: ${gate.reason}`);
+    return 1;
+  }
+
+  if (!(await proceed(flags))) {
+    log("  cancelled — nothing changed.");
+    return 0;
+  }
+
+  const backupOut = join(homedir(), `vanta-backup-before-${source}-migrate.tgz`);
+  const result = await applyMigration(
+    plan,
+    selection,
+    defaultApplyDeps(env, async () => {
+      await runBackup([backupOut], env);
+      return backupOut;
+    }),
+  );
+  printReport(log, source, plan, result);
+  return 0;
+}
