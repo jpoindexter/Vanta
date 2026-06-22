@@ -23,19 +23,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Both Apple targets build on Apple Silicon (macos-14): aarch64 native,
+          # x86_64 cross-compiled (one Xcode toolchain serves both arches). This
+          # avoids the scarce/slow Intel macos-13 runner pool entirely.
           - { os: macos-14, target: aarch64-apple-darwin }
-          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: macos-14, target: x86_64-apple-darwin }
           - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
     steps:
       - uses: actions/checkout@v4
-      - name: Build kernel (release, native)
-        run: cargo build --release --bin vanta-kernel
+      - name: Add Rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Build kernel (release)
+        run: cargo build --release --bin vanta-kernel --target ${{ matrix.target }}
       - name: Package binary + checksum
         shell: bash
         run: |
           out="vanta-kernel-${{ matrix.target }}"
-          cp "target/release/vanta-kernel" "$out"
+          cp "target/${{ matrix.target }}/release/vanta-kernel" "$out"
           if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$out" > "$out.sha256";
           else sha256sum "$out" > "$out.sha256"; fi
           ls -la "$out" "$out.sha256"
