@@ -15,10 +15,12 @@ import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js
 //   not be echoed back into the agent turn.
 // Outbound: buildEmailReply(inbound, text) → {to, subject:"Re: <orig>", body}. To = the
 //   sender; the subject is "Re:"-prefixed exactly once (no "Re: Re:" pile-up).
-// Enable: VANTA_EMAIL_IMAP_HOST AND VANTA_EMAIL_SMTP_HOST present. Optional
-//   VANTA_EMAIL_ALLOWLIST = comma list of sender addresses to accept (empty → allow
-//   all). The IMAP/SMTP passwords are SECRETS: they are only ever read into the
-//   injected transport (named at the wire below), never a literal in this file.
+// Enable: VANTA_EMAIL_IMAP + VANTA_EMAIL_SMTP (hosts, optional `:port`) + VANTA_EMAIL_USER
+//   + VANTA_EMAIL_PASS all present. Optional VANTA_EMAIL_ALLOWLIST = comma list of sender
+//   addresses to accept (empty → allow all). The IMAP/SMTP password is a SECRET: it is only
+//   ever read into the live transport (`imapSmtpTransport`, the wire below), never a literal
+//   in this file. The live transport dynamic-imports `imapflow` (IMAP receive) + `nodemailer`
+//   (SMTP send) INSIDE its methods, so this module + all pure-fn tests load without the deps.
 
 // Strip C0/C1 control chars (incl. ESC, DEL) from untrusted inbound text, but KEEP
 // newline (\x0a) and tab (\x09) — both are legitimate in an email body and the agent
@@ -129,17 +131,65 @@ export function parseEmailAllowlist(env: NodeJS.ProcessEnv): Set<string> {
   );
 }
 
+// The four env keys the live transport needs: an IMAP host (inbound), an SMTP host
+// (outbound), and the shared mailbox user + password. A host accepts an optional
+// `:port` suffix (e.g. "imap.x.com:993"); the password is a SECRET, read only inside
+// `imapSmtpTransport` (never logged, never stored on the adapter).
+const ENV_IMAP = "VANTA_EMAIL_IMAP";
+const ENV_SMTP = "VANTA_EMAIL_SMTP";
+const ENV_USER = "VANTA_EMAIL_USER";
+const ENV_PASS = "VANTA_EMAIL_PASS";
+
 /**
- * Email is enabled only when BOTH an IMAP host (inbound) and an SMTP host (outbound)
- * are configured — a one-way mailbox isn't a messaging channel. Pure.
+ * Email is enabled only when ALL FOUR live-transport env vars are present (non-blank):
+ * the IMAP host (inbound), the SMTP host (outbound), and the mailbox user + password.
+ * A one-way or unauthenticated mailbox isn't a usable messaging channel. Pure — and the
+ * same gate `configured(env)` uses, so "enabled" and "buildable" never disagree.
  */
 export function emailEnabled(env: NodeJS.ProcessEnv): boolean {
-  return Boolean(
-    env.VANTA_EMAIL_IMAP_HOST &&
-      env.VANTA_EMAIL_IMAP_HOST.trim() &&
-      env.VANTA_EMAIL_SMTP_HOST &&
-      env.VANTA_EMAIL_SMTP_HOST.trim(),
-  );
+  return [ENV_IMAP, ENV_SMTP, ENV_USER, ENV_PASS].every((k) => Boolean(env[k]?.trim()));
+}
+
+// `configured` is the build(env) gate: it's exactly `emailEnabled` (all four keys
+// present), named at the wire so the call site reads as "is the transport configured?".
+export const configured = emailEnabled;
+
+// Defaults for the standard implicit-TLS ports when a host carries no `:port` suffix:
+// IMAPS 993, SMTPS 465. Both use secure (TLS-from-connect) sockets by default.
+const DEFAULT_IMAP_PORT = 993;
+const DEFAULT_SMTP_PORT = 465;
+
+/** One end's connection params — host/port/secure plus the shared mailbox credentials. */
+export type MailHost = { host: string; port: number; secure: boolean; user: string; pass: string };
+
+/** The IMAP+SMTP connection config the live transport dials. Built from env by `build`. */
+export type EmailConfig = { imap: MailHost; smtp: MailHost };
+
+// Split a "host" or "host:port" value into {host, port}, falling back to the default port
+// when no numeric suffix is present. Pure.
+function splitHostPort(value: string, defaultPort: number): { host: string; port: number } {
+  const at = value.lastIndexOf(":");
+  if (at > 0) {
+    const port = Number(value.slice(at + 1));
+    if (Number.isInteger(port) && port > 0) return { host: value.slice(0, at).trim(), port };
+  }
+  return { host: value.trim(), port: defaultPort };
+}
+
+/**
+ * Build the live `EmailConfig` from the four env vars (the host values may carry an
+ * optional `:port`; the password is the secret). Call only when `configured(env)` is
+ * true — it reads the raw values (blank when absent). Pure (a plain projection of env).
+ */
+export function build(env: NodeJS.ProcessEnv): EmailConfig {
+  const user = (env[ENV_USER] ?? "").trim();
+  const pass = env[ENV_PASS] ?? "";
+  const imap = splitHostPort(env[ENV_IMAP] ?? "", DEFAULT_IMAP_PORT);
+  const smtp = splitHostPort(env[ENV_SMTP] ?? "", DEFAULT_SMTP_PORT);
+  return {
+    imap: { ...imap, secure: imap.port !== 587, user, pass },
+    smtp: { ...smtp, secure: smtp.port !== 587, user, pass },
+  };
 }
 
 // The message the SMTP transport sends — the built reply addressed to the recipient.
@@ -216,20 +266,7 @@ export class EmailAdapter implements PlatformAdapter {
   }
 }
 
-/**
- * Build the live IMAP+SMTP transport. THE WIRE: the IMAP/SMTP passwords (secrets) are
- * read ONLY here, into the injected mail client — never stored on the adapter and never
- * a literal in this file. Live use needs a real `imapClient` (new-mail fetch) and
- * `smtpClient` (send), each constructed by the caller with its own credentials from the
- * environment. The clients are injected so this module stays dependency-free and
- * offline-testable; constructing the real ones is the caller's documented boundary.
- */
-export function imapSmtpTransport(clients: {
-  imapClient: { fetchNew: () => Promise<RawEmail[]> };
-  smtpClient: { send: (msg: OutboundEmail) => Promise<void> };
-}): EmailTransport {
-  return {
-    fetchInbox: () => clients.imapClient.fetchNew(),
-    sendMail: (msg) => clients.smtpClient.send(msg),
-  };
-}
+// The live IMAP+SMTP transport (and its dynamic `imapflow`/`nodemailer` imports) lives in
+// `email-transport.ts` to keep this file under the size gate. Re-exported so the public
+// surface (`import { imapSmtpTransport } from "./email.js"`) is unchanged.
+export { imapSmtpTransport } from "./email-transport.js";

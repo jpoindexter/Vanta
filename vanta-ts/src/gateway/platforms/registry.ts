@@ -121,7 +121,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "email", label: "Email (IMAP + SMTP)", implemented: false,
+    id: "email", label: "Email (IMAP + SMTP)", implemented: true,
     requiredEnv: ["VANTA_EMAIL_IMAP", "VANTA_EMAIL_SMTP", "VANTA_EMAIL_USER", "VANTA_EMAIL_PASS"], secretEnv: "VANTA_EMAIL_PASS",
     setupSteps: [
       "Get IMAP + SMTP host/port for your mailbox (an app password for Gmail/Outlook).",
@@ -129,7 +129,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "teams", label: "Microsoft Teams", implemented: false,
+    id: "teams", label: "Microsoft Teams", implemented: true,
     requiredEnv: ["VANTA_TEAMS_APP_ID", "VANTA_TEAMS_APP_PASSWORD"], secretEnv: "VANTA_TEAMS_APP_PASSWORD",
     signupUrl: "https://dev.teams.microsoft.com",
     setupSteps: [
@@ -149,11 +149,11 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "googlechat", label: "Google Chat", implemented: false,
+    id: "googlechat", label: "Google Chat", implemented: true,
     requiredEnv: ["VANTA_GOOGLECHAT_SA"], secretEnv: "VANTA_GOOGLECHAT_SA",
     setupSteps: [
       "Enable the Google Chat API in a Google Cloud project; create a service account.",
-      "Set VANTA_GOOGLECHAT_SA to the service-account JSON path.",
+      "Set VANTA_GOOGLECHAT_SA to the service-account JSON content.",
     ],
   },
   {
@@ -183,6 +183,58 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     setupSteps: [
       "Create a LINE Messaging API channel in the LINE Developers console.",
       "Set VANTA_LINE_TOKEN (channel access token) and VANTA_LINE_SECRET.",
+    ],
+  },
+  {
+    id: "twitch", label: "Twitch chat", implemented: true,
+    requiredEnv: ["VANTA_TWITCH_TOKEN", "VANTA_TWITCH_NICK", "VANTA_TWITCH_CHANNEL"], secretEnv: "VANTA_TWITCH_TOKEN",
+    signupUrl: "https://dev.twitch.tv/console",
+    setupSteps: [
+      "Get a chat OAuth token (without the oauth: prefix) for your bot account.",
+      "Set VANTA_TWITCH_TOKEN, VANTA_TWITCH_NICK (bot login), and VANTA_TWITCH_CHANNEL (e.g. #channel).",
+    ],
+  },
+  {
+    id: "sms", label: "SMS (Twilio)", implemented: true,
+    requiredEnv: ["VANTA_TWILIO_SID", "VANTA_TWILIO_TOKEN", "VANTA_TWILIO_FROM"], secretEnv: "VANTA_TWILIO_TOKEN",
+    signupUrl: "https://www.twilio.com/console",
+    setupSteps: [
+      "Get your Twilio Account SID + Auth Token and a sending number.",
+      "Set VANTA_TWILIO_SID, VANTA_TWILIO_TOKEN, VANTA_TWILIO_FROM; point the number's inbound webhook at the gateway.",
+    ],
+  },
+  {
+    id: "zalo", label: "Zalo OA", implemented: true,
+    requiredEnv: ["VANTA_ZALO_TOKEN"], secretEnv: "VANTA_ZALO_TOKEN",
+    signupUrl: "https://developers.zalo.me",
+    setupSteps: [
+      "Create a Zalo Official Account app and get its OA access token.",
+      "Set VANTA_ZALO_TOKEN; point the OA webhook at the gateway.",
+    ],
+  },
+  {
+    id: "feishu", label: "Feishu / Lark", implemented: true,
+    requiredEnv: ["VANTA_FEISHU_APP_ID", "VANTA_FEISHU_APP_SECRET"], secretEnv: "VANTA_FEISHU_APP_SECRET",
+    signupUrl: "https://open.feishu.cn",
+    setupSteps: [
+      "Create a Feishu/Lark app; enable the im:message bot scopes + event subscription.",
+      "Set VANTA_FEISHU_APP_ID and VANTA_FEISHU_APP_SECRET; point the event webhook at the gateway.",
+    ],
+  },
+  {
+    id: "webchat", label: "WebChat (self-hosted)", implemented: true,
+    requiredEnv: ["VANTA_WEBCHAT_ENABLE"], enableEnv: { VANTA_WEBCHAT_ENABLE: "1" },
+    setupSteps: [
+      "Set VANTA_WEBCHAT_ENABLE=1 to enable the local web chat surface.",
+      "Open the gateway's web chat endpoint in a browser to message Vanta.",
+    ],
+  },
+  {
+    id: "nostr", label: "Nostr", implemented: true,
+    requiredEnv: ["VANTA_NOSTR_PRIVKEY", "VANTA_NOSTR_RELAYS"], secretEnv: "VANTA_NOSTR_PRIVKEY",
+    setupSteps: [
+      "Generate a Nostr secret key (hex) and pick one or more wss:// relays.",
+      "Set VANTA_NOSTR_PRIVKEY (hex) and VANTA_NOSTR_RELAYS (comma-separated relay URLs).",
     ],
   },
 ];

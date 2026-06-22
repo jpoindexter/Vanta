@@ -136,6 +136,15 @@ describe("implementedPlatformIds", () => {
       "discord",
       "matrix",
       "line",
+      "teams",
+      "twitch",
+      "sms",
+      "zalo",
+      "feishu",
+      "webchat",
+      "nostr",
+      "googlechat",
+      "email",
     ]);
   });
 });
