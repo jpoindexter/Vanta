@@ -1,31 +1,21 @@
+import { createSign } from "node:crypto";
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 
-// Google Chat adapter — connects Vanta to Google Chat as a messaging channel,
-// implementing the same PlatformAdapter contract as Telegram/Discord/Matrix so the
-// gateway treats it like any other channel. The live Chat API (a bot/event source for
-// inbound + a spaces.messages.create POST for outbound) is the injected boundary: the
-// pure parse/build/allowlist fns are unit-tested offline; the transport ({poll,
-// postMessage}) is supplied by the caller (a real Chat bot live).
+// Google Chat adapter — connects Vanta to Google Chat as a messaging channel on the shared
+// PlatformAdapter contract (like Telegram/Discord/Matrix). The live Chat API (a bot/event
+// source for inbound + a spaces.messages.create POST for outbound) is the injected boundary:
+// the pure parse/build/allowlist fns are unit-tested offline; the transport ({poll,
+// postMessage}) is supplied by the caller. Per-fn docstrings carry the event/body shapes.
 //
-// Inbound shape (a Google Chat event):
-//   {type:"MESSAGE", message:{name, sender:{name, type}, text, space:{name}}}.
-//   parse → InboundMessage[]. The space name IS the conversation key (chatId), so a reply
-//   threads back to the same space; sender.name → `from` (also the allowlist key); text is
-//   control-stripped → text; message.name → id. A Chat space is multi-user → isGroup.
-//   BOT-sent events (message.sender.type === "BOT") are SKIPPED so the bot never replies to
-//   its own (or another bot's) message — the anti-loop guard. Non-MESSAGE event types
-//   (ADDED_TO_SPACE/REMOVED_FROM_SPACE/CARD_CLICKED/…) carry no agent text and are SKIPPED.
-// Outbound: buildGoogleChatSend(text) → {text}; the adapter POSTs it to the space via the
-//   injected transport.
-// Enable: VANTA_GOOGLE_CHAT_TOKEN present (a service-account / OAuth bearer token). The
-//   existing google OAuth flow (`vanta auth google`) can supply that token instead — wire it
-//   into the injected transport the same way. Optional VANTA_GOOGLE_CHAT_ALLOWLIST = comma
-//   list of space/sender names to accept (empty → allow all). The token is a SECRET: it is
-//   only ever read into the injected transport at the wire (named below), never a literal in
-//   this file.
+// Enable: VANTA_GOOGLECHAT_SA present (the service-account JSON — `client_email` + the PEM
+//   `private_key`). The adapter mints + caches a Chat-bot bearer token from it internally via
+//   `serviceAccountTransport`; the SA's private key is a SECRET, read only in that minting
+//   boundary, never logged or stored on the adapter. `httpTransport(token)` (an already-minted
+//   bearer) stays for callers that supply their own token. Optional VANTA_GOOGLE_CHAT_ALLOWLIST
+//   = comma list of space/sender names to accept (empty → allow all).
 
 // Strip C0/C1 control chars (incl. ESC, DEL) from untrusted inbound text, but KEEP
 // newline (\x0a) and tab (\x09) — both are legitimate in a chat message and the agent
@@ -60,16 +50,11 @@ const GoogleChatEvent = z.object({
 
 /**
  * Parse a Google Chat events payload (an array of events) into inbound messages. Skips any
- * event whose `message.sender.type` is "BOT" so the bot never replies to itself or another
- * bot — the anti-loop guard. Skips any event whose `type` is not "MESSAGE" (ADDED_TO_SPACE /
- * CARD_CLICKED / … carry no agent text). Tolerant: a non-array, or any element that fails the
- * MESSAGE shape, is dropped (garbage → []). Inbound text is control-stripped. Pure.
- *
- * Google Chat's {message.space.name, message.sender.name, message.text} map onto the shared
- * `InboundMessage` contract (`gateway/platforms/base.ts`, off-limits this round):
- * message.space.name → chatId (the conversation/routing key), message.sender.name → `from`
- * (the sender, also the allowlist key), message.text → text, message.name → id. A Chat space
- * is multi-user → isGroup.
+ * "BOT"-sent event (anti-loop: never reply to itself/another bot) and any non-"MESSAGE" type
+ * (ADDED_TO_SPACE / CARD_CLICKED / … carry no agent text). Tolerant: a non-array, or any element
+ * failing the MESSAGE shape, is dropped (garbage → []). Inbound text is control-stripped. Pure.
+ * Maps onto the shared `InboundMessage` contract: message.space.name → chatId (routing key),
+ * message.sender.name → `from` (allowlist key), message.text → text, message.name → id, isGroup.
  */
 export function parseGoogleChatEvents(json: unknown): InboundMessage[] {
   if (!Array.isArray(json)) return [];
@@ -114,12 +99,13 @@ export function parseGoogleChatAllowlist(env: NodeJS.ProcessEnv): Set<string> {
 }
 
 /**
- * Google Chat is enabled when a bearer token is configured (VANTA_GOOGLE_CHAT_TOKEN — a
- * service-account or OAuth token). The existing google OAuth (`vanta auth google`) can supply
- * that token instead by wiring it into the injected transport. Pure.
+ * Google Chat is enabled when a service-account is configured (VANTA_GOOGLECHAT_SA — the SA
+ * JSON, holding `client_email` + the PEM `private_key`). The adapter mints + caches a Chat-bot
+ * bearer token from it internally (see `serviceAccountTransport`); the SA's private key is a
+ * SECRET, read only inside that minting boundary, never logged or stored on the adapter. Pure.
  */
 export function googleChatEnabled(env: NodeJS.ProcessEnv): boolean {
-  return Boolean(env.VANTA_GOOGLE_CHAT_TOKEN && env.VANTA_GOOGLE_CHAT_TOKEN.trim());
+  return Boolean(env.VANTA_GOOGLECHAT_SA && env.VANTA_GOOGLECHAT_SA.trim());
 }
 
 // Google Chat caps a message's text well above any chat reply; split at a generous char
@@ -181,11 +167,10 @@ export class GoogleChatAdapter implements PlatformAdapter {
 const GOOGLE_CHAT_API_BASE = "https://chat.googleapis.com/v1";
 
 /**
- * Build the live Google Chat REST transport. THE WIRE: the bearer token (a secret) is read
- * ONLY here, into the `Authorization: Bearer <token>` header — never stored on the adapter and
- * never a literal in this file. `poll`/`postMessage` are errors-tolerant at the call site (poll
- * catches; the gateway loop never throws). Live use needs a real token (service account or the
- * google OAuth token from `vanta auth google`) against a real Chat bot.
+ * Build the live Google Chat REST transport from an already-minted bearer token. THE WIRE: the
+ * token (a secret) is read ONLY here, into the `Authorization: Bearer <token>` header — never
+ * stored on the adapter, never a literal. `serviceAccountTransport` below mints + caches the
+ * token from a service account; this fn is the lower wire for callers that supply their own.
  */
 export function httpTransport(token: string, apiBase?: string): GoogleChatTransport {
   const base = (apiBase ?? GOOGLE_CHAT_API_BASE).replace(/\/+$/, "");
@@ -206,5 +191,110 @@ export function httpTransport(token: string, apiBase?: string): GoogleChatTransp
         signal: AbortSignal.timeout(5000),
       });
     },
+  };
+}
+
+// Service-account → Chat-bot bearer minting (JWT-bearer grant, RFC 7523). The SA's PEM private
+// key is read ONLY inside this block (sign the JWT) — never logged, never on the adapter.
+const CHAT_BOT_SCOPE = "https://www.googleapis.com/auth/chat.bot"; // minted token can only act as a Chat bot
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"; // JWT `aud` + token-exchange POST target
+const JWT_BEARER_GRANT = "urn:ietf:params:oauth:grant-type:jwt-bearer";
+const JWT_TTL_SEC = 3600; // Google caps `exp` at iat + 1h — the documented max
+const TOKEN_REFRESH_SKEW_SEC = 60; // re-mint a touch early so no in-flight request carries a just-expired token
+
+// A parsed service-account key — only the fields the JWT-bearer flow reads (`private_key` is the
+// PEM secret; `token_uri` overrides the default token endpoint when the SA JSON carries it).
+const ServiceAccount = z.object({
+  client_email: z.string().min(1),
+  private_key: z.string().min(1),
+  token_uri: z.string().optional(),
+});
+export type ServiceAccount = z.infer<typeof ServiceAccount>;
+
+const b64url = (input: string): string => Buffer.from(input, "utf8").toString("base64url");
+const nowSecEpoch = (): number => Math.floor(Date.now() / 1000);
+
+/**
+ * Build + RS256-sign a Google service-account JWT assertion. Header `{alg:"RS256", typ:"JWT"}`,
+ * claims `{iss:client_email, scope:chat.bot, aud:token endpoint, iat:nowSec, exp:nowSec+1h}`;
+ * `header.claims` is signed with the SA's PEM `private_key` via node:crypto `RSA-SHA256`. Pure.
+ */
+export function buildServiceAccountJwt(sa: ServiceAccount, nowSec: number): string {
+  const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claims = b64url(
+    JSON.stringify({
+      iss: sa.client_email,
+      scope: CHAT_BOT_SCOPE,
+      aud: sa.token_uri ?? GOOGLE_TOKEN_URL,
+      iat: nowSec,
+      exp: nowSec + JWT_TTL_SEC,
+    }),
+  );
+  const signingInput = `${header}.${claims}`;
+  const signature = createSign("RSA-SHA256").update(signingInput).end().sign(sa.private_key, "base64url");
+  return `${signingInput}.${signature}`;
+}
+
+type CachedToken = { token: string; refreshAt: number }; // token + epoch-sec to refresh at (before expiry)
+
+/**
+ * Exchange a service-account JWT at Google's token endpoint for a Chat-bot access_token (the
+ * form-encoded `jwt-bearer` grant); returns the token + when to refresh it (`expires_in` − skew).
+ * Throws on a non-OK exchange — the caller treats a mint failure as errors-as-values.
+ */
+async function mintToken(sa: ServiceAccount): Promise<CachedToken> {
+  const issuedAt = nowSecEpoch();
+  const assertion = buildServiceAccountJwt(sa, issuedAt);
+  const res = await fetch(sa.token_uri ?? GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: JWT_BEARER_GRANT, assertion }).toString(),
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!res.ok) throw new Error(`google chat token exchange failed: ${res.status}`);
+  const body = z.object({ access_token: z.string().min(1), expires_in: z.number() }).parse(await res.json());
+  return { token: body.access_token, refreshAt: issuedAt + body.expires_in - TOKEN_REFRESH_SKEW_SEC };
+}
+
+/**
+ * A token provider that mints once and reuses the cached token until ~expiry, then re-mints. The
+ * SA is captured in the closure (the only place the private key lives); the fn does the network
+ * on a cache miss and hands callers only the short-lived bearer token.
+ */
+function tokenProvider(sa: ServiceAccount): () => Promise<string> {
+  let cached: CachedToken | undefined;
+  return async () => {
+    if (cached && nowSecEpoch() < cached.refreshAt) return cached.token;
+    cached = await mintToken(sa);
+    return cached.token;
+  };
+}
+
+/** Parse JSON, undefined (not throwing) on garbage — keeps the SA parse errors-as-values. */
+function safeJson(text: string): unknown {
+  try { return JSON.parse(text); } catch { return undefined; }
+}
+
+/**
+ * Build the live Google Chat transport from ONLY the service-account JSON (VANTA_GOOGLECHAT_SA).
+ * Parses the SA, mints + caches a Chat-bot bearer token internally, and threads a fresh token
+ * through the `httpTransport` wire per call. THE SECRET BOUNDARY: the SA's private key is read
+ * only here + in the minting closure (never on the adapter, never logged). Errors-as-values: an
+ * unparseable SA or a failed mint makes `poll` return undefined (→ []) and `postMessage` a no-op.
+ */
+export function serviceAccountTransport(saJson: string, apiBase?: string): GoogleChatTransport {
+  const parsed = ServiceAccount.safeParse(safeJson(saJson));
+  const getToken = parsed.success ? tokenProvider(parsed.data) : undefined;
+  const withToken = async <T>(use: (t: GoogleChatTransport) => Promise<T>, fallback: T): Promise<T> => {
+    if (!getToken) return fallback;
+    try {
+      return await use(httpTransport(await getToken(), apiBase));
+    } catch {
+      return fallback; // mint/parse/network failure → errors-as-values
+    }
+  };
+  return {
+    poll: () => withToken((t) => t.poll(), undefined),
+    postMessage: (space, body) => withToken((t) => t.postMessage(space, body), undefined),
   };
 }

@@ -29,10 +29,11 @@ describe("renderMessagingMenu", () => {
     expect(renderMessagingMenu({})).toMatch(/Telegram\s+\[available\]/);
   });
 
-  it("tags unimplemented platforms as planned", () => {
+  it("shows every catalogued platform as available/configured (all implemented now)", () => {
     const menu = renderMessagingMenu({});
-    expect(menu).toMatch(/Teams.*\[planned\]/);
-    // iMessage/Signal/WhatsApp are now implemented (available or configured, not planned)
+    // Full channel-parity sweep landed: no platform is still `planned`.
+    expect(menu).not.toMatch(/\[planned\]/);
+    expect(menu).toMatch(/Teams.*\[available\]/);
     expect(menu).not.toMatch(/iMessage.*\[planned\]/);
     expect(menu).not.toMatch(/WhatsApp.*\[planned\]/);
   });

@@ -1,12 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { generateKeyPairSync, verify, type KeyObject } from "node:crypto";
 import {
   parseGoogleChatEvents,
   buildGoogleChatSend,
   parseGoogleChatAllowlist,
   googleChatEnabled,
   stripControl,
+  buildServiceAccountJwt,
+  serviceAccountTransport,
   GoogleChatAdapter,
   type GoogleChatTransport,
+  type ServiceAccount,
 } from "./google-chat.js";
 import type { OutboundMessage } from "./base.js";
 
@@ -124,14 +128,14 @@ describe("parseGoogleChatAllowlist", () => {
 });
 
 describe("googleChatEnabled", () => {
-  it("true only when the token is present + non-blank", () => {
-    expect(googleChatEnabled({ VANTA_GOOGLE_CHAT_TOKEN: "tok" } as NodeJS.ProcessEnv)).toBe(true);
+  it("true only when the service-account JSON is present + non-blank", () => {
+    expect(googleChatEnabled({ VANTA_GOOGLECHAT_SA: '{"client_email":"x"}' } as NodeJS.ProcessEnv)).toBe(true);
   });
 
-  it("false when the token is absent or blank (not configured = disabled)", () => {
+  it("false when the SA is absent or blank (not configured = disabled)", () => {
     expect(googleChatEnabled({} as NodeJS.ProcessEnv)).toBe(false);
-    expect(googleChatEnabled({ VANTA_GOOGLE_CHAT_TOKEN: "" } as NodeJS.ProcessEnv)).toBe(false);
-    expect(googleChatEnabled({ VANTA_GOOGLE_CHAT_TOKEN: "  " } as NodeJS.ProcessEnv)).toBe(false);
+    expect(googleChatEnabled({ VANTA_GOOGLECHAT_SA: "" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(googleChatEnabled({ VANTA_GOOGLECHAT_SA: "  " } as NodeJS.ProcessEnv)).toBe(false);
   });
 });
 
@@ -249,5 +253,148 @@ describe("GoogleChatAdapter (injected transport — no real Google Chat API)", (
     const adapter = new GoogleChatAdapter({ transport });
     await expect(adapter.connect()).resolves.toBeUndefined();
     await expect(adapter.disconnect()).resolves.toBeUndefined();
+  });
+});
+
+/** Generate a throwaway RSA keypair + an SA using its private key — no real Google credential. */
+function testServiceAccount(over: Partial<ServiceAccount> = {}): { sa: ServiceAccount; publicKey: KeyObject } {
+  const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const sa: ServiceAccount = {
+    client_email: "bot@vanta-test.iam.gserviceaccount.com",
+    private_key: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+    ...over,
+  };
+  return { sa, publicKey };
+}
+
+/** Decode a base64url JWT segment back to its JSON object. */
+function decodeSegment(seg: string): Record<string, unknown> {
+  return JSON.parse(Buffer.from(seg, "base64url").toString("utf8"));
+}
+
+/** Split a JWT into its three string segments (asserts the shape so segments aren't `undefined`). */
+function jwtSegments(jwt: string): [header: string, claims: string, signature: string] {
+  const parts = jwt.split(".");
+  expect(parts).toHaveLength(3);
+  return parts as [string, string, string];
+}
+
+describe("buildServiceAccountJwt", () => {
+  it("builds a 3-segment JWT with the correct RS256 header", () => {
+    const { sa } = testServiceAccount();
+    const [header, claims, signature] = jwtSegments(buildServiceAccountJwt(sa, 1_700_000_000));
+    expect([header, claims, signature].every(Boolean)).toBe(true);
+    expect(decodeSegment(header)).toEqual({ alg: "RS256", typ: "JWT" });
+  });
+
+  it("builds the documented claim set (iss/scope/aud/iat/exp, exp = iat + 1h)", () => {
+    const { sa } = testServiceAccount();
+    const now = 1_700_000_000;
+    const [, claims] = jwtSegments(buildServiceAccountJwt(sa, now));
+    expect(decodeSegment(claims)).toEqual({
+      iss: "bot@vanta-test.iam.gserviceaccount.com",
+      scope: "https://www.googleapis.com/auth/chat.bot",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+    });
+  });
+
+  it("signs header.claims with the SA private key — verifies against the public key", () => {
+    const { sa, publicKey } = testServiceAccount();
+    const [header, claims, signature] = jwtSegments(buildServiceAccountJwt(sa, 1_700_000_000));
+    const ok = verify("RSA-SHA256", Buffer.from(`${header}.${claims}`), publicKey, Buffer.from(signature, "base64url"));
+    expect(ok).toBe(true);
+  });
+
+  it("a tampered claim set fails signature verification", () => {
+    const { sa, publicKey } = testServiceAccount();
+    const [header, , signature] = jwtSegments(buildServiceAccountJwt(sa, 1_700_000_000));
+    const forged = Buffer.from(JSON.stringify({ iss: "attacker" }), "utf8").toString("base64url");
+    const ok = verify("RSA-SHA256", Buffer.from(`${header}.${forged}`), publicKey, Buffer.from(signature, "base64url"));
+    expect(ok).toBe(false);
+  });
+
+  it("honors a token_uri override as the JWT aud", () => {
+    const { sa } = testServiceAccount({ token_uri: "https://oauth2.example.test/token" });
+    const [, claims] = jwtSegments(buildServiceAccountJwt(sa, 1));
+    expect(decodeSegment(claims).aud).toBe("https://oauth2.example.test/token");
+  });
+});
+
+describe("serviceAccountTransport (mints + caches a bearer token from the SA JSON)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  /** A fetch stub: the SA's token_uri returns a token; the Chat API records calls. */
+  function stubFetch(opts: { tokenOk?: boolean; expiresIn?: number } = {}): {
+    calls: Array<{ url: string; init?: RequestInit }>;
+    mintCount: () => number;
+  } {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const tokenOk = opts.tokenOk ?? true;
+    const expiresIn = opts.expiresIn ?? 3600;
+    const handler = async (url: string, init?: RequestInit): Promise<unknown> => {
+      calls.push({ url, init });
+      if (url.includes("/token")) {
+        return tokenOk
+          ? { ok: true, status: 200, json: async () => ({ access_token: "minted-tok", token_type: "Bearer", expires_in: expiresIn }) }
+          : { ok: false, status: 401, json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => [] };
+    };
+    vi.stubGlobal("fetch", vi.fn(handler));
+    return { calls, mintCount: () => calls.filter((c) => c.url.includes("/token")).length };
+  }
+
+  function saJsonWithTokenUri(): string {
+    const { sa } = testServiceAccount({ token_uri: "https://oauth2.example.test/token" });
+    return JSON.stringify(sa);
+  }
+
+  it("mints a token then sends with `Authorization: Bearer <minted>` to the Chat API", async () => {
+    const { calls } = stubFetch();
+    const t = serviceAccountTransport(saJsonWithTokenUri(), "https://chat.example.test/v1");
+    await t.postMessage("spaces/AAA", { text: "hi" });
+    const tokenCall = calls.find((c) => c.url.includes("/token"));
+    expect(tokenCall?.init?.method).toBe("POST");
+    expect(String(tokenCall?.init?.body)).toContain("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer");
+    const apiCall = calls.find((c) => c.url.includes("chat.example.test"));
+    expect((apiCall?.init?.headers as Record<string, string>).Authorization).toBe("Bearer minted-tok");
+  });
+
+  it("caches the token — two calls mint exactly once", async () => {
+    const { mintCount } = stubFetch();
+    const t = serviceAccountTransport(saJsonWithTokenUri(), "https://chat.example.test/v1");
+    await t.poll();
+    await t.postMessage("spaces/AAA", { text: "hi" });
+    expect(mintCount()).toBe(1);
+  });
+
+  it("errors-as-values: a failed token mint makes poll → undefined, postMessage → no-op (never throws)", async () => {
+    stubFetch({ tokenOk: false });
+    const t = serviceAccountTransport(saJsonWithTokenUri(), "https://chat.example.test/v1");
+    await expect(t.poll()).resolves.toBeUndefined();
+    await expect(t.postMessage("spaces/AAA", { text: "hi" })).resolves.toBeUndefined();
+  });
+
+  it("errors-as-values: an unparseable SA JSON never throws (poll → undefined)", async () => {
+    stubFetch();
+    const t = serviceAccountTransport("not json", "https://chat.example.test/v1");
+    await expect(t.poll()).resolves.toBeUndefined();
+    await expect(t.postMessage("spaces/AAA", { text: "hi" })).resolves.toBeUndefined();
+  });
+
+  it("a minted-token transport drives the adapter end-to-end (SA JSON → live poll → InboundMessage)", async () => {
+    const handler = async (url: string): Promise<unknown> => {
+      if (url.includes("/token")) {
+        return { ok: true, status: 200, json: async () => ({ access_token: "minted-tok", token_type: "Bearer", expires_in: 3600 }) };
+      }
+      return { ok: true, status: 200, json: async () => [messageEvent({ text: "ping" })] };
+    };
+    vi.stubGlobal("fetch", vi.fn(handler));
+    const transport = serviceAccountTransport(saJsonWithTokenUri(), "https://chat.example.test/v1");
+    const adapter = new GoogleChatAdapter({ transport });
+    const inbound = await adapter.poll();
+    expect(inbound.map((m) => m.text)).toEqual(["ping"]);
   });
 });

@@ -5,6 +5,8 @@ import {
   buildEmailReply,
   parseEmailAllowlist,
   emailEnabled,
+  configured,
+  build,
   stripControl,
   EmailAdapter,
   imapSmtpTransport,
@@ -127,20 +129,54 @@ describe("parseEmailAllowlist", () => {
   });
 });
 
+/** A fully-configured email env (all four live-transport keys present). */
+function fullEnv(over: Partial<Record<string, string>> = {}): NodeJS.ProcessEnv {
+  return {
+    VANTA_EMAIL_IMAP: "imap.x.com",
+    VANTA_EMAIL_SMTP: "smtp.x.com",
+    VANTA_EMAIL_USER: "me@x.com",
+    VANTA_EMAIL_PASS: "secret",
+    ...over,
+  } as NodeJS.ProcessEnv;
+}
+
 describe("emailEnabled", () => {
-  it("true only when BOTH IMAP and SMTP hosts are present", () => {
-    expect(
-      emailEnabled({ VANTA_EMAIL_IMAP_HOST: "imap.x.com", VANTA_EMAIL_SMTP_HOST: "smtp.x.com" } as NodeJS.ProcessEnv),
-    ).toBe(true);
+  it("true only when ALL FOUR live-transport env vars are present", () => {
+    expect(emailEnabled(fullEnv())).toBe(true);
   });
 
-  it("false when either host is missing/blank (not configured = disabled)", () => {
+  it("false when any of the four is missing/blank (not configured = disabled)", () => {
     expect(emailEnabled({} as NodeJS.ProcessEnv)).toBe(false);
-    expect(emailEnabled({ VANTA_EMAIL_IMAP_HOST: "imap.x.com" } as NodeJS.ProcessEnv)).toBe(false);
-    expect(emailEnabled({ VANTA_EMAIL_SMTP_HOST: "smtp.x.com" } as NodeJS.ProcessEnv)).toBe(false);
-    expect(
-      emailEnabled({ VANTA_EMAIL_IMAP_HOST: "  ", VANTA_EMAIL_SMTP_HOST: "smtp.x.com" } as NodeJS.ProcessEnv),
-    ).toBe(false);
+    expect(emailEnabled(fullEnv({ VANTA_EMAIL_IMAP: undefined }))).toBe(false);
+    expect(emailEnabled(fullEnv({ VANTA_EMAIL_SMTP: undefined }))).toBe(false);
+    expect(emailEnabled(fullEnv({ VANTA_EMAIL_USER: undefined }))).toBe(false);
+    expect(emailEnabled(fullEnv({ VANTA_EMAIL_PASS: undefined }))).toBe(false);
+    expect(emailEnabled(fullEnv({ VANTA_EMAIL_IMAP: "  " }))).toBe(false);
+  });
+
+  it("configured is the same gate as emailEnabled (enabled ⇔ buildable)", () => {
+    expect(configured(fullEnv())).toBe(true);
+    expect(configured(fullEnv({ VANTA_EMAIL_PASS: undefined }))).toBe(false);
+  });
+});
+
+describe("build (env → EmailConfig — the build(env) projection)", () => {
+  it("builds IMAP+SMTP hosts on the default secure ports (993/465) with the shared creds", () => {
+    expect(build(fullEnv())).toEqual({
+      imap: { host: "imap.x.com", port: 993, secure: true, user: "me@x.com", pass: "secret" },
+      smtp: { host: "smtp.x.com", port: 465, secure: true, user: "me@x.com", pass: "secret" },
+    });
+  });
+
+  it("honors an explicit `:port` suffix on a host", () => {
+    const cfg = build(fullEnv({ VANTA_EMAIL_IMAP: "imap.x.com:143", VANTA_EMAIL_SMTP: "smtp.x.com:587" }));
+    expect(cfg.imap.port).toBe(143);
+    expect(cfg.smtp.port).toBe(587);
+  });
+
+  it("uses STARTTLS (secure:false) for the submission port 587", () => {
+    const cfg = build(fullEnv({ VANTA_EMAIL_SMTP: "smtp.x.com:587" }));
+    expect(cfg.smtp.secure).toBe(false);
   });
 });
 
@@ -252,20 +288,23 @@ describe("EmailAdapter (injected transport — no real IMAP/SMTP)", () => {
   });
 });
 
-describe("imapSmtpTransport (the wire — secrets only inside the injected clients)", () => {
-  it("routes fetchInbox/sendMail to the injected IMAP/SMTP clients", async () => {
-    const fetched: RawEmail[] = [raw({ messageId: "m1" })];
-    const sent: OutboundEmail[] = [];
-    const transport = imapSmtpTransport({
-      imapClient: { fetchNew: async () => fetched },
-      smtpClient: {
-        send: async (msg) => {
-          sent.push(msg);
-        },
-      },
-    });
-    expect(await transport.fetchInbox()).toEqual(fetched);
-    await transport.sendMail({ to: "a@x.com", subject: "Re: hi", body: "b" });
-    expect(sent).toEqual([{ to: "a@x.com", subject: "Re: hi", body: "b" }]);
+describe("imapSmtpTransport (the wire — built from EmailConfig, deps dynamic-imported)", () => {
+  // These run WITHOUT imapflow/nodemailer installed: the dynamic import inside each
+  // transport method rejects, the errors-as-values catch returns the empty result. This
+  // proves (a) the module + transport load without the deps and (b) failures never throw.
+  const transport = imapSmtpTransport(build(fullEnv()));
+
+  it("fetchInbox returns [] (never throws) when imapflow is unavailable", async () => {
+    await expect(transport.fetchInbox()).resolves.toEqual([]);
+  });
+
+  it("sendMail resolves (never throws) when nodemailer is unavailable", async () => {
+    await expect(transport.sendMail({ to: "a@x.com", subject: "Re: hi", body: "b" })).resolves.toBeUndefined();
+  });
+
+  it("is a valid EmailTransport the adapter can drive end-to-end (live deps absent → empty poll)", async () => {
+    const adapter = new EmailAdapter({ transport });
+    await expect(adapter.poll()).resolves.toEqual([]);
+    await expect(adapter.send({ chatId: "a@x.com", text: "hi" })).resolves.toBeUndefined();
   });
 });
