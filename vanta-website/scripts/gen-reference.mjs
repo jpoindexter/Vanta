@@ -35,13 +35,12 @@ const COMMAND_CATEGORIES = [
   ['UI', ['cockpit','tui','focus','composer','output-style']],
 ];
 
-// Keep docs Vanta-native: strip Claude-Code / Hermes / subscription-provider mentions.
+// Keep docs Vanta-native: strip internal / subscription-provider provenance.
 const scrub = (s) => String(s)
   .replace(/\.claude\/CLAUDE\.md(\s+project context)?/g, 'a project context file')
   .replace(/\s*[|,]\s*codex\b/gi, '')
   .replace(/\s*[|,]\s*claude-code\b/gi, '')
   .replace(/\bclaude[\s-]?code\b/gi, 'the agent')
-  .replace(/\bhermes\b/gi, '')
   .replace(/\bchatgpt\b/gi, '');
 
 // MDX reads <foo> as JSX and {…} as expressions — escape them so prose stays literal.
