@@ -1,3 +1,0 @@
-[mcp_servers.terminal-love]
-command = "node"
-args = ["/Users/jasonpoindexter/Documents/GitHub/_tools/terminal love mcp/dist/index.js"]
