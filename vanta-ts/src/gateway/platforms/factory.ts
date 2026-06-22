@@ -8,6 +8,8 @@ import { SignalAdapter } from "./signal.js";
 import { WhatsappAdapter, httpTransport as whatsappTransport, parseWhatsappAllowlist } from "./whatsapp.js";
 import { SlackAdapter, httpTransport as slackTransport, parseSlackAllowlist } from "./slack.js";
 import { DiscordAdapter, httpTransport as discordTransport, parseDiscordAllowlist } from "./discord.js";
+import { MatrixAdapter, httpTransport as matrixTransport, parseMatrixAllowlist, matrixEnabled } from "./matrix.js";
+import { LineAdapter, httpTransport as lineTransport, parseLineAllowlist, lineEnabled } from "./line.js";
 import { MultiChannelAdapter } from "./multi-channel.js";
 
 // Messaging adapter factory — the platform analogue of `providers/index.ts`'s
@@ -122,6 +124,27 @@ const ADAPTERS: Record<string, AdapterEntry> = {
         transport: discordTransport(env.VANTA_DISCORD_TOKEN!.trim()),
         channelId: env.VANTA_DISCORD_CHANNEL!.trim(),
         allow: parseDiscordAllowlist(env.VANTA_DISCORD_ALLOWLIST),
+      }),
+  },
+  matrix: {
+    // Matrix: homeserver URL + access token; replies route back to the originating
+    // room (msg.chatId). VANTA_MATRIX_USER_ID (optional) skips the bot's own echoes.
+    configured: matrixEnabled,
+    build: (env) =>
+      new MatrixAdapter({
+        transport: matrixTransport(env.VANTA_MATRIX_HOMESERVER!.trim(), env.VANTA_MATRIX_TOKEN!.trim()),
+        selfUserId: env.VANTA_MATRIX_USER_ID?.trim() || undefined,
+        allow: parseMatrixAllowlist(env),
+      }),
+  },
+  line: {
+    // LINE: channel access token (inbound arrives via the channel webhook); replies
+    // PUSH back keyed by the source id (msg.chatId).
+    configured: lineEnabled,
+    build: (env) =>
+      new LineAdapter({
+        transport: lineTransport(env.VANTA_LINE_TOKEN!.trim()),
+        allow: parseLineAllowlist(env),
       }),
   },
 };

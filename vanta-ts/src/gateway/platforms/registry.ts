@@ -112,7 +112,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "matrix", label: "Matrix", implemented: false,
+    id: "matrix", label: "Matrix", implemented: true,
     requiredEnv: ["VANTA_MATRIX_HOMESERVER", "VANTA_MATRIX_TOKEN"], secretEnv: "VANTA_MATRIX_TOKEN",
     setupSteps: [
       "Pick a homeserver (matrix.org or self-hosted) and create a bot account.",
@@ -177,7 +177,7 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
-    id: "line", label: "LINE", implemented: false,
+    id: "line", label: "LINE", implemented: true,
     requiredEnv: ["VANTA_LINE_TOKEN", "VANTA_LINE_SECRET"], secretEnv: "VANTA_LINE_TOKEN",
     signupUrl: "https://developers.line.biz",
     setupSteps: [
