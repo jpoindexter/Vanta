@@ -89,19 +89,16 @@ Vanta is not laptop-bound — it runs on any host you control and the **kernel t
 
 Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfigs` profile and use the **ssh** backend — the loop runs locally, commands run on the host you control. (Serverless / hibernate-when-idle is a later, data-residency-gated child — `roadmap.json` `BACKEND-SERVERLESS`.)
 
-## How Vanta compares
+## Why Vanta
 
-Same category as **[Hermes Agent](https://github.com/NousResearch/hermes-agent)** (Nous Research) and **[OpenClaw](https://github.com/openclaw/openclaw)** — local, self-hosted, provider-agnostic personal agents. Mostly at parity (`≈`); the honest differences:
+- **Enforced boundary** — a separate Rust kernel risk-classifies every action (allow/ask/block + scope + tamper-evident audit chain); the agent loop can't bypass it, and execution runs in an OS sandbox / Docker / SSH.
+- **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
+- **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
+- **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…), 5 live-verified.
+- **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/Bedrock/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
+- **MIT + self-hosted** — your data residency, no vendor lock-in.
 
-| | Vanta | Hermes | OpenClaw |
-|---|---|---|---|
-| **Safety boundary** | **separate Rust kernel gates every action (allow/ask/block + scope + audit chain); sandbox contains execution** | in-process approval + container | channel allowlists |
-| **Goal-aware gating** | **goal ledger + dependency graph** | — | per-sender sessions |
-| **Personal tuning** | **local LoRA from your accept/reject decisions** | RL (Atropos) | — |
-| Messaging channels | 20 adapters wired (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Teams, Twitch, SMS, Zalo, Feishu, Nostr, Email…), 5 verified live | 20+ | 13+ |
-| Self-improvement | auto skill-review + reflection-from-correction + experiential memory + meta-tune | self-improving + Skills Hub | plugin marketplace |
-
-The wedge is the enforced boundary: `assess()` is a gate the agent talks _through_, not _around_. Full sourced breakdown → **[Vanta vs Hermes vs OpenClaw](https://docs.vanta.theft.studio/comparison)**.
+More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.
 
 ## Related
 

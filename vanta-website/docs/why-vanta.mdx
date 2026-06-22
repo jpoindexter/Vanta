@@ -1,0 +1,66 @@
+---
+id: why-vanta
+title: Why Vanta
+description: Why choose Vanta — a local, trusted-operator agent with an enforced safety boundary, goal-aware execution, 20 messaging channels, any model, and MIT self-hosting.
+sidebar_position: 3
+---
+
+# Why Vanta
+
+Vanta is a **local, trusted-operator agent**: it knows the goal before it picks a tool,
+enforces scope on every action, and reports only verified output. It runs on your hardware,
+on any model, and the safety boundary travels with it.
+
+Here's what that buys you — each point is a concrete, checkable claim, not a slogan.
+
+### A boundary the agent can't talk its way past
+
+Vanta's [Rust kernel](/kernel) risk-classifies **every** action into allow / ask / block,
+enforces [scope containment](/safety-model), and writes a tamper-evident audit chain — and
+the agent loop *cannot bypass it*. Execution runs inside an OS sandbox, Docker, or SSH
+backend. The safety boundary is a separate enforced layer, not a feature the model can
+reason around.
+
+### It knows the goal before it acts
+
+A goal ledger plus a dependency graph mean Vanta carries *what it's trying to do* into
+every step — so an action that doesn't serve the goal is visible as such, before it runs.
+See the [agent loop](/agent-loop).
+
+### It learns *you*, on your machine
+
+`vanta tune lora` trains a local adapter from the operator decisions you've actually
+accepted and rejected — real on-device (MPS / CUDA / CPU) training, nothing leaves the
+machine. Plus auto skill-improvement, reflection-from-correction, and an evolving memory.
+See [self-improvement](/self-improvement).
+
+### Reachable from anywhere you already are
+
+**20 messaging adapters from one gateway** — Telegram, Slack, Discord, Signal, WhatsApp,
+iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, WebChat,
+Nostr, Google Chat, Email (5 verified live end-to-end; the rest need only your
+credentials). See [comms & gateway](/comms-and-gateway).
+
+### Any model, any host you control
+
+Provider-agnostic: any OpenAI-compatible endpoint (custom base URL) plus Azure, Bedrock,
+OpenRouter (200+ models), Ollama, OpenAI, Anthropic, and Gemini — and Vanta exposes its
+own OpenAI-compatible proxy. Run it local, in a sandbox, in Docker, over SSH, or on a $5
+VPS; the kernel enforces scope identically everywhere. See [providers](/providers).
+
+### Yours, not rented
+
+**MIT-licensed and fully self-hosted.** Your data residency, no vendor lock-in, no hosted
+service in the loop.
+
+---
+
+## Honest about the bar
+
+Some capabilities are live-proven today; others are built and need one-time setup for live
+use (a provider key, OAuth client, browser binaries, or a platform credential). We label
+which is which rather than implying everything is turnkey — see [what works now](/intro)
+and each capability page. The claims above are things you can verify by running it, not
+marketing superlatives.
+
+Ready? [Quickstart](/quickstart) gets you talking to Vanta in one command.
