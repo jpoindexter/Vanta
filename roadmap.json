@@ -229,7 +229,7 @@
       "id": "VANTA-SELF-LEARNING-LOOP",
       "track": "Harness",
       "title": "Self-learning loop — agent auto-writes and improves its own skills from what it does (the Hermes wedge to own)",
-      "status": "next",
+      "status": "building",
       "size": "L",
       "summary": "Make autonomous self-improvement first-class, not scattered. Hermes Agent's real advantage is a closed learning loop: agent-curated memory + autonomous skill creation + skill self-improvement during use + procedural memory. Vanta already has the pieces — learned skills (~/.vanta/skills), a curator, per-goal memory, LoRA tuning, meta-tune — but no single always-on loop that, after a task, decides whether to mint or refine a skill and proves it improved. This epic unifies them into one named closed loop: observe trajectory -> propose skill or edit -> validate against evals -> adopt (gated) -> measure recurrence. The whole point of the product is that it learns by doing; this makes that real.",
       "done": "After completing tasks Vanta autonomously proposes a new or improved skill, validates it does not regress (eval-gated), adopts it on approval, and a measurable metric shows reuse/improvement over a session; the loop is on by default (adoption gated) and documented as the core differentiator.",
@@ -239,7 +239,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "REVISED 2026-06-22 — more is shipped than this card first assumed: VANTA-SKILL-IMPROVEMENT (periodic LLM review of used skills), REFLECT-CORRECT (learn-from-correction, extract the rule), AHE-SELF-EVOLVE (self-evolving harness), PAPER-EXPERIENTIAL-MEMORY (evolving playbook), META-TUNE-INSTRUCTIONS, MEM-CURATOR. Do NOT rebuild. Re-scope: UNIFY these scattered shipped pieces into ONE named, surfaced, always-on loop with an explicit eval-gate (AHE-EVAL-HARNESS) + a reuse metric, so the self-improvement is legible to the operator. The genuine gap vs Hermes is the shareable Skills Hub ecosystem, not the loop itself."
+      "notes": "SLICE 1 shipped 2026-06-22 (epic, status building). The scattered pieces are now UNIFIED into one named closed loop: learning/loop.ts runLearningCycle = observe trajectory -> propose (reuses background-review reviewTurn) -> eval-gate (learning/eval-gate.ts gateSkill: rejects thin bodies, refusal/negative-claim skills that harden into self-imposed limits, and shadows of hand-authored skills; injectable so the AHE skill-eval corpus can plug as a stronger gate) -> adopt-or-archive (skills/store archiveSkill reversibly retires a rejected skill, Rule Zero) -> measure (learning/ledger.ts: minted/refined/adopted/rejected + adoption rate). On by default (gated by shouldReview/VANTA_SELF_IMPROVE), wired into reviewAfterTurn. Surfaced via /learning (127 slash commands). All deps injected -> fully unit-tested. REMAINING for done: richer live skill-reuse metric (currently refine+adoption proxy), public-docs writeup as the core differentiator, and the separate Skills Hub ecosystem (the real Hermes gap per the card). 950 files/10885 tests green."
     },
     {
       "id": "VANTA-MIGRATE",

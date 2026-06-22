@@ -1,4 +1,6 @@
-import { reviewTurn, shouldReview } from "../review/background-review.js";
+import { join } from "node:path";
+import { shouldReview } from "../review/background-review.js";
+import { runLearningCycle, defaultLearningDeps, formatCycleNote } from "../learning/loop.js";
 import { shouldUpdateSessionMemory, updateSessionMemory } from "../memory/session-memory.js";
 import { runMemoryExtractor } from "../memory/extractor.js";
 import { shouldLearn, learnFromTranscript } from "../brain/learn.js";
@@ -30,13 +32,20 @@ export async function reviewAfterTurn(opts: {
 }): Promise<void> {
   const env = opts.env ?? process.env;
   if (shouldReview(opts.toolIterations, opts.turnIndex, env)) {
-    const { wrote } = await reviewTurn({
-      provider: opts.provider,
-      safety: opts.safety,
-      root: opts.root,
-      transcript: opts.transcript,
-    });
-    if (wrote.length) console.log(`  ▸ self-improvement: learned ${wrote.join(", ")}`);
+    // VANTA-SELF-LEARNING-LOOP: the named closed loop — propose (reviewTurn) →
+    // eval-gate → adopt-or-archive → measure (ledger). On by default, gated.
+    const result = await runLearningCycle(
+      defaultLearningDeps({
+        provider: opts.provider,
+        safety: opts.safety,
+        root: opts.root,
+        dataDir: join(opts.root, ".vanta"),
+        transcript: opts.transcript,
+        env,
+      }),
+    );
+    const note = formatCycleNote(result);
+    if (note) console.log(note);
   }
   completionVerifierAfterTurn({
     provider: opts.provider,

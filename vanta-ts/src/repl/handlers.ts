@@ -26,6 +26,7 @@ import { record } from "./record-cmd.js";
 import { restart } from "./restart-cmd.js";
 import { bug } from "./bug-cmd.js";
 import { feedback } from "./feedback-cmd.js";
+import { learning } from "./learning-cmd.js";
 import { handoff } from "./handoff-cmd.js";
 import { open } from "./open-cmd.js";
 import { edit } from "./edit-cmd.js";
@@ -163,7 +164,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   help, exit, quit: exit, init, "init-verifiers": initVerifiers, clear, new: clear, reset: clear, attachments, history,
   export: exportConvo, stop, retry, undo, rewind, hooks, skills, skillify, tools, model, effort, env, cd, setup: model, status, doctor: status,
   plan, compress, compact: compress, memory, learnings, goals, goal, sessions, resume, title, fork, context: contextCmd,
-  mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, feedback, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
+  mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
   ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,

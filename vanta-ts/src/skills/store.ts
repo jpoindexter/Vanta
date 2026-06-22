@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, rename } from "node:fs/promises";
 import { join } from "node:path";
 import {
   skillsDir,
@@ -78,6 +78,25 @@ export async function writeSkill(
   await commitInHome(join("skills", slug, SKILL_FILE), `skill: ${slug}`, env);
 
   return { skill, path };
+}
+
+/**
+ * Reversibly retire a skill by moving its dir into `_archive` (mirrors the
+ * curator; NEVER deletes — Rule Zero). The self-learning loop uses this to revert
+ * a proposed skill that fails its eval-gate. Returns false (no-op) if the skill
+ * dir is absent or the move fails — best-effort, never throws.
+ */
+export async function archiveSkill(name: string, env?: NodeJS.ProcessEnv): Promise<boolean> {
+  const slug = slugifySkillName(name);
+  const root = skillsDir(env);
+  try {
+    await mkdir(join(root, ARCHIVE_DIR), { recursive: true });
+    await rename(join(root, slug), join(root, ARCHIVE_DIR, slug));
+    await commitInHome(join("skills", ARCHIVE_DIR, slug, SKILL_FILE), `archive skill: ${slug}`, env);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Load a single skill by name, or null if it has not been written. */
