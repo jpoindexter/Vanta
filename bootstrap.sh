@@ -22,18 +22,10 @@ echo ""
 echo -e "${CYAN}⚓ Vanta bootstrap${NC}"
 
 # --- prerequisites ----------------------------------------------------------
-# git + Node are required. Rust is NOT — install.sh downloads a prebuilt kernel
-# binary for your platform from the latest GitHub release, and only falls back to
-# `cargo build` (which needs Rust) when no prebuilt binary is available.
-for tool in git node; do
-  command -v "$tool" >/dev/null 2>&1 || {
-    case "$tool" in
-      node) echo -e "${RED}✗${NC} Node.js 22+ not found — install from https://nodejs.org" ;;
-      git)  echo -e "${RED}✗${NC} git not found" ;;
-    esac
-    exit 1
-  }
-done
+# Only git is required up front. install.sh provides the rest with no toolchain:
+# it downloads a prebuilt kernel (no Rust) and a portable Node 22 (no system Node)
+# when they're missing — both checksum-verified.
+command -v git >/dev/null 2>&1 || { echo -e "${RED}✗${NC} git not found — install it first"; exit 1; }
 
 # --- clone or update --------------------------------------------------------
 if [ -d "$DIR/.git" ]; then
