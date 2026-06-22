@@ -1,5 +1,7 @@
 # Vanta
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-6d28d9.svg)](https://docs.vanta.theft.studio)
+
 A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.
 
 Goal-aware, boundary-enforced operation with visible decisions before action.
@@ -108,3 +110,11 @@ More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.
 ## Rule zero
 
 Do no harm. No deletes, no overwrites, no touching outside authorized scope without explicit approval. The Rust kernel enforces this on every tool call — it is a gate, not a suggestion.
+
+## Contributing
+
+Issues and PRs welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the code standards (size gate, ESM, zod boundaries), and how to run the suite. We follow a [Code of Conduct](CODE_OF_CONDUCT.md). Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report privately, not in a public issue.
+
+## License
+
+[MIT](LICENSE) © Jason Poindexter.

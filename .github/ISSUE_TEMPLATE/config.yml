@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://docs.vanta.theft.studio
+    about: Setup, architecture, and capability docs.
+  - name: Security vulnerability
+    url: https://github.com/jpoindexter/Vanta/security/policy
+    about: Please report vulnerabilities privately — do not open a public issue.
