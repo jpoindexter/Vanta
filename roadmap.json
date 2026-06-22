@@ -21,7 +21,7 @@
       "id": "SETUP-PREBUILT-KERNEL",
       "track": "Operator",
       "title": "Prebuilt vanta-kernel binaries via GitHub Releases (no Rust to install)",
-      "status": "next",
+      "status": "shipped",
       "size": "M",
       "summary": "First slice of SETUP-DEAD-SIMPLE and the biggest single friction remover: ship prebuilt vanta-kernel binaries per OS/arch via GitHub Releases (CI-built) so bootstrap.sh downloads the binary instead of running cargo build — removing the Rust toolchain prereq entirely. The kernel is zero-dependency Rust, so cross-compile + release is clean. Falls back to cargo build when no matching release exists (devs unaffected).",
       "done": "a GitHub Actions release workflow builds vanta-kernel for macOS (arm64/x64) + Linux (arm64/x64); bootstrap.sh detects the platform, downloads the released binary (checksum-verified), and skips cargo build when Rust is absent; a fresh box with NO Rust installs and runs.",
@@ -31,7 +31,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Now possible: repo is public, so Releases + Actions are available. Pairs with the --omit=dev runtime-only npm install already shipped."
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-22. release.yml builds the kernel for macOS arm64/x64 + Linux arm64/x64 (Apple targets cross-built on Apple Silicon), published to GitHub release v0.2.0 (4 binaries + sha256, latest/download resolves). install.sh downloads the platform binary to target/debug/vanta-kernel (checksum-verified), cargo only as fallback; bootstrap.sh no longer requires Rust. PROOF: a clean node:22 container with NO Rust ran install.sh -> downloaded the aarch64-linux prebuilt -> vanta-kernel doctor returned status:ready. Pairs with the --omit=dev runtime-only npm install."
     },
     {
       "id": "PUBLIC-ROADMAP-PAGE",
