@@ -248,7 +248,7 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 
 ## Gotchas
 
-- **Run the test suite from `vanta-ts/`, never the repo root.** `npx vitest run` from the root picks up the root config, which also scans the bundled `reference/` quarry repos (goose, hermes-agent) — ~229 extra `.test.*` files that fail under Vanta's config (0-test collection, wrong env, foreign platform assumptions) and report ~159 spurious file failures. From `vanta-ts/` the real count is **606 files / 5077 tests**. The shell cwd persists across Bash calls, so confirm `pwd` before a full run.
+- **Run the test suite from `vanta-ts/`, never the repo root.** `npx vitest run` from the root picks up the root config, which also scans the bundled `reference/` quarry repos (goose + other reference agents) — ~229 extra `.test.*` files that fail under Vanta's config (0-test collection, wrong env, foreign platform assumptions) and report ~159 spurious file failures. From `vanta-ts/` the real count is **606 files / 5077 tests**. The shell cwd persists across Bash calls, so confirm `pwd` before a full run.
 
 - **gitleaks pre-commit hook** runs `gitleaks protect --staged` on every commit. Hook lives at `scripts/pre-commit`; `install.sh` symlinks it into `.git/hooks/`. Example files (`.env.example`, `.mcp.json.example`) and test fixtures are allowlisted in `.gitleaks.toml`. If you get a false positive, add a pattern to the `allowlists` section — don't skip the hook.
 

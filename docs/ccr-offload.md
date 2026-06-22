@@ -13,7 +13,7 @@ Measured by `vanta eval ccr` over this install's live `.vanta/events.jsonl` + `.
 
 ## Reading
 
-The whole-retrieve rate is the deciding signal. Vanta's CCR makes re-expansion **optional** (an `original_id` in a footer), unlike the forced full-retrieve that made CCR net-negative in NousResearch/hermes-agent PR #47866. A **low** rate means the compressed/skeletoned view sufficed and CCR saved tokens; a **high** rate means the agent pulls originals back whole and pays the double-context tax.
+The whole-retrieve rate is the deciding signal. Vanta's CCR makes re-expansion **optional** (an `original_id` in a footer), unlike the forced full-retrieve that made CCR net-negative (a known failure mode). A **low** rate means the compressed/skeletoned view sufficed and CCR saved tokens; a **high** rate means the agent pulls originals back whole and pays the double-context tax.
 
 - **keep** (<1/3): compressed view usually sufficed — CCR nets positive on the live tool path.
 - **scope** (1/3–2/3): restrict CCR to history-compaction, off the live tool path.
