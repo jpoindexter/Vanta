@@ -42,7 +42,7 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 
 ## Where Vanta is genuinely different
 
-Three things, and only three, are real differentiators:
+Two are Vanta-only; the third is a local-first take on something Hermes also does:
 
 1. **The boundary is a separate enforced layer, not a feature of the agent.** Vanta's
    [Rust kernel](/kernel) risk-classifies every action into allow / ask / block, enforces
@@ -50,13 +50,15 @@ Three things, and only three, are real differentiators:
    agent loop _cannot bypass it_. Hermes and OpenClaw both have real controls (command
    approval, container isolation, allowlists), but those live inside the same process as
    the agent. Vanta's `assess()` is a gate the agent talks _through_, not _around_; the
-   sandbox is the containment.
+   sandbox is the containment. _(Vanta-only.)_
 2. **Goal-aware gating.** Vanta carries a goal ledger and dependency graph, so it knows
    the goal _before_ it chooses a tool, and an action that doesn't serve the goal is
-   visible as such.
-3. **Personal tuning from your own decisions.** `vanta tune lora` trains a local adapter
-   from the operator decisions you've actually accepted and rejected — real on-device
-   (MPS / CUDA / CPU) training, no data leaving the machine.
+   visible as such. _(Vanta-only.)_
+3. **Local, on-device personal tuning.** `vanta tune lora` trains a local adapter from the
+   operator decisions you've accepted and rejected — on-device (MPS / CUDA / CPU), nothing
+   leaves the machine. Hermes also supports tuning (RL via Atropos); Vanta's distinction is
+   that it's local-first and driven by _your own_ operator decisions, not a separate
+   training pipeline. OpenClaw has no personal tuning.
 
 ## Where Hermes and OpenClaw lead today
 
@@ -64,9 +66,10 @@ We'd rather you hear it here than find out later. The honest gaps are **ecosyste
 reach**, not core capability — Vanta's channels and self-improvement loop are already
 shipped (see [Comms & gateway](/comms-and-gateway) and [Self-improvement](/self-improvement)):
 
-- **Shareable ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace are
-  public, shareable skill/plugin exchanges. Vanta's skills and channels are equally
-  capable but local — there's no public exchange yet.
+- **Shareable public ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace
+  are _public_ exchanges for sharing and pulling skills/plugins. Vanta has skill
+  search/install/manage, a plugin framework, and bundled skills — but no public community
+  marketplace yet; its skills stay local.
 - **Raw channel count & native mobile.** Hermes advertises 20+ platforms; OpenClaw ships
   dedicated mobile nodes (iOS/Android with camera and voice). Vanta is in the same range
   (~13 shipped adapters, 5 verified live) but doesn't yet match Hermes's raw breadth or
