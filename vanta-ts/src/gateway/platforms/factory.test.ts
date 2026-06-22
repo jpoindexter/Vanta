@@ -59,6 +59,20 @@ describe("createAdapter", () => {
     expect((adapter as { id: string }).id).toBe("whatsapp");
   });
 
+  it("returns the matrix adapter when homeserver + token are set", () => {
+    const adapter = createAdapter("matrix", {
+      VANTA_MATRIX_HOMESERVER: "https://matrix.org",
+      VANTA_MATRIX_TOKEN: "tok",
+    });
+    expect(isErr(adapter)).toBe(false);
+    expect((adapter as { id: string }).id).toBe("matrix");
+  });
+
+  it("returns the line adapter when its channel access token is set", () => {
+    const adapter = createAdapter("line", { VANTA_LINE_TOKEN: "tok" });
+    expect((adapter as { id: string }).id).toBe("line");
+  });
+
   it("returns a not-configured error for whatsapp without its env", () => {
     const result = createAdapter("whatsapp", {});
     expect(isErr(result)).toBe(true);
@@ -120,6 +134,8 @@ describe("implementedPlatformIds", () => {
       "whatsapp",
       "slack",
       "discord",
+      "matrix",
+      "line",
     ]);
   });
 });
