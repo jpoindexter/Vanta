@@ -14,13 +14,13 @@ See `docs/prd.md` for the full roadmap.
 
 ## Install
 
-One command on a fresh machine — clones Vanta into `~/vanta`, builds the kernel, and puts a global `vanta` on your PATH:
+One command on a fresh machine — clones Vanta into `~/vanta`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
 ```
 
-> The curl one-liner works once the repo is public. While it's private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `VANTA_DIR=/path bash bootstrap.sh`. Prereqs: git, Rust, Node 22.
+> **Only `git` is required.** No Rust toolchain, no system Node — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable **Node 22** (from nodejs.org) when they're missing. Already have Rust + Node? It uses them. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
 
 Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) → `vanta doctor` (health check).
 
@@ -30,7 +30,7 @@ Then: `vanta setup` (pick a model backend) → `vanta` (interactive session) →
 ./run.sh run "read README.md and summarize it"
 ```
 
-First run builds the Rust kernel and installs agent deps (once); after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `vanta-ts/.env` to switch to OpenAI/Anthropic.
+First run downloads the prebuilt kernel (and a portable Node if needed) and installs agent deps once; after that it's instant. The kernel auto-starts when the agent needs it. Provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make sure Ollama is running. Edit `vanta-ts/.env` to switch to OpenAI/Anthropic.
 
 ```bash
 ./run.sh                                   # list all commands
@@ -45,7 +45,7 @@ First run builds the Rust kernel and installs agent deps (once); after that it's
 ./run.sh auth google                       # one-time Google OAuth (gmail/calendar/drive)
 ```
 
-(`./vanta` is an alias for `./run.sh`. Prereqs: Rust + Node 22.)
+(`./vanta` is an alias for `./run.sh`. Only `git` is needed — the kernel and Node are fetched automatically.)
 
 ## What works now
 

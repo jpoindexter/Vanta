@@ -10,7 +10,7 @@ Run Vanta fully local — no API keys, no data leaving your machine — on a loc
 
 ## 1. Install the prerequisites
 
-- **Rust** + **Node 22** (for the kernel and agent layer)
+- **git** — the only required tool; the Rust kernel and Node 22 are downloaded automatically by the installer (no toolchain needed).
 - **[Ollama](https://ollama.com)** for local models
 
 ```bash
@@ -21,8 +21,8 @@ ollama serve                  # keep it running
 ## 2. Install Vanta
 
 ```bash
-git clone <your-vanta-repo> ~/vanta && cd ~/vanta
-./install.sh                  # builds the kernel, installs deps, adds `vanta` to PATH
+git clone https://github.com/jpoindexter/Vanta ~/vanta && cd ~/vanta
+./install.sh                  # downloads the prebuilt kernel + Node, installs deps, adds `vanta` to PATH
 ```
 
 ## 3. Point it at Ollama

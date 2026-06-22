@@ -6,17 +6,17 @@ sidebar_position: 2
 
 # Quickstart
 
-**Prereqs:** git, Rust, Node 22.
+**Prereqs:** `git`. That's it — the Rust kernel and Node 22 are downloaded automatically on first install (no toolchain needed).
 
 ## Install
 
-One command on a fresh machine — clones Vanta, builds the kernel, and puts a global `vanta` on your PATH:
+One command on a fresh machine — clones Vanta, downloads the prebuilt kernel, and puts a global `vanta` on your PATH:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
 ```
 
-> While the repo is private, clone with your GitHub auth and run `./install.sh` (or `bash bootstrap.sh` locally). Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
+> No Rust or system Node required — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable Node 22 (from nodejs.org) when they're missing. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
 
 Then pick a model backend and start a session:
 
@@ -37,7 +37,7 @@ The provider defaults to local **Ollama** (`qwen2.5:14b`, no API key) — make s
 ./run.sh help                              # list all subcommands
 ```
 
-First run builds the Rust kernel and installs agent deps once; after that it's instant. The kernel auto-starts whenever the agent needs it. (`./vanta` is an alias for `./run.sh`.)
+First run downloads the prebuilt kernel (and a portable Node if needed) and installs agent deps once; after that it's instant. The kernel auto-starts whenever the agent needs it. (`./vanta` is an alias for `./run.sh`.)
 
 ## Common subcommands
 
