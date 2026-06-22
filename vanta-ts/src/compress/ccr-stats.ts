@@ -2,7 +2,7 @@
 // output (retrieve_original) often enough that CCR costs more than it saves? A LOW
 // whole-retrieve rate means the compressed view usually sufficed → CCR nets positive.
 // A HIGH rate is the double-context tax the agent-harness literature warns about
-// (NousResearch/hermes-agent PR #47866, where a FORCED full-retrieve made CCR net-negative).
+// (a FORCED full-retrieve makes CCR net-negative — the failure mode this avoids).
 // Vanta's design makes retrieval OPTIONAL (an id in a footer), so this rate is the verdict.
 // Pure: feed it the event log + the stash count; no I/O.
 
