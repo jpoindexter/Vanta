@@ -47,7 +47,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "On-pattern for the category (both competitors ship importers). Pairs with the docs comparison page. Children: VANTA-MIGRATE-MEMORY (session/brain import), VANTA-MIGRATE-MORE-SOURCES (add Codex CLI + Claude Code)."
+      "notes": "On-pattern for the category (both competitors ship importers). Pairs with the docs comparison page. OVERLAPS existing OP-MIGRATION-IMPORT (horizon, generic 'import-from-other-agent onboarding + honest gaps report') — VANTA-MIGRATE is the concrete OpenClaw/Hermes implementation of it; build them together, do NOT duplicate. Children: VANTA-MIGRATE-MEMORY (session/brain import), VANTA-MIGRATE-MORE-SOURCES (add Codex CLI + Claude Code)."
     },
     {
       "id": "VANTA-SESSION-MEMORY-SVC",
