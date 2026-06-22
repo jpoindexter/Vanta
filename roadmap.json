@@ -7,8 +7,8 @@
       "title": "Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage",
       "status": "next",
       "size": "L",
-      "summary": "Umbrella epic: bring Vanta's gateway to channel parity with Hermes Agent (20+ platforms) and OpenClaw (13+). Today Vanta ships Telegram + WhatsApp adapters + Slack #channel suggest (app horizon) + Gmail/Calendar/Drive. Target adapter set via the existing PlatformAdapter pattern (gateway/platforms/*): Discord, Signal, iMessage, Matrix, Microsoft Teams, Google Chat, email/SMS, plus finishing the Slack app. Each adapter = pure parse/build + injected transport + allowlist, kernel-gated, creds in ~/.vanta (never the repo). This epic SUPERSEDES the prior 'out of scope for a local operator' disposition on the per-channel cards (VANTA-H-SLACK et al.) — channels are in-scope per repeated operator direction.",
-      "done": "vanta gateway speaks at least 10 platforms via PlatformAdapter (Discord, Signal, iMessage, Matrix, Teams, Google Chat, Slack app, Telegram, WhatsApp, email/SMS); each adapter has offline parse/build tests + allowlist + kernel-gated send; channel count tracked toward 13+/20+.",
+      "summary": "REVISED 2026-06-22 — verification found most adapters ALREADY SHIPPED: MSG-ADAPTER-DISCORD/MATRIX/GOOGLECHAT/SLACK/EMAIL/MATTERMOST/IRC/NTFY/LINE/WHATSAPP, MSG-SIGNAL, MSG-IMESSAGE, Telegram (HP-21-PLATFORMS claims 21), with 5 verified LIVE from one gateway (MSG-MULTICHANNEL-LIVE: Telegram/WhatsApp/Signal/Discord/Slack). Channels are NOT an unbuilt gap. Re-scoped from 'build adapters' to the REMAINING delta: finish MSG-ADAPTER-TEAMS (horizon), run a live-verify pass over the coded-but-not-live adapters, and decide whether to add OpenClaw-style native mobile nodes + a shareable channel/skills ecosystem (the genuine gap vs the Hermes Skills Hub). The earlier 'out of scope -> in scope' framing on this card came from an incomplete first scan of the roadmap.",
+      "done": "MSG-ADAPTER-TEAMS shipped + live; each previously-coded adapter has a logged live-verify result; a recorded decision on native-mobile-nodes + shareable-ecosystem scope. (Core adapter build is already done.)",
       "tier": "rock",
       "model": "sonnet",
       "effort": "high",
@@ -31,7 +31,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Recurring high-priority operator ask. Differentiator-to-own, not just parity — Hermes leads here. Builds on the existing skills curator, meta-tune (PROGRAM.md variants), LoRA from accept/reject decisions, and the brain/memory layers; the deliverable is one named, always-on closed loop."
+      "notes": "REVISED 2026-06-22 — more is shipped than this card first assumed: VANTA-SKILL-IMPROVEMENT (periodic LLM review of used skills), REFLECT-CORRECT (learn-from-correction, extract the rule), AHE-SELF-EVOLVE (self-evolving harness), PAPER-EXPERIENTIAL-MEMORY (evolving playbook), META-TUNE-INSTRUCTIONS, MEM-CURATOR. Do NOT rebuild. Re-scope: UNIFY these scattered shipped pieces into ONE named, surfaced, always-on loop with an explicit eval-gate (AHE-EVAL-HARNESS) + a reuse metric, so the self-improvement is legible to the operator. The genuine gap vs Hermes is the shareable Skills Hub ecosystem, not the loop itself."
     },
     {
       "id": "VANTA-MIGRATE",
