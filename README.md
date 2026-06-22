@@ -89,6 +89,20 @@ Vanta is not laptop-bound — it runs on any host you control and the **kernel t
 
 Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfigs` profile and use the **ssh** backend — the loop runs locally, commands run on the host you control. (Serverless / hibernate-when-idle is a later, data-residency-gated child — `roadmap.json` `BACKEND-SERVERLESS`.)
 
+## How Vanta compares
+
+Same category as **[Hermes Agent](https://github.com/NousResearch/hermes-agent)** (Nous Research) and **[OpenClaw](https://github.com/openclaw/openclaw)** — local, self-hosted, provider-agnostic personal agents. Mostly at parity (`≈`); the honest differences:
+
+| | Vanta | Hermes | OpenClaw |
+|---|---|---|---|
+| **Safety boundary** | **separate Rust kernel gates every action (allow/ask/block + scope + audit chain); sandbox contains execution** | in-process approval + container | channel allowlists |
+| **Goal-aware gating** | **goal ledger + dependency graph** | — | per-sender sessions |
+| **Personal tuning** | **local LoRA from your accept/reject decisions** | RL (Atropos) | — |
+| Messaging channels | Telegram / WhatsApp / Slack / Google _(parity in progress)_ | 20+ | 13+ |
+| Self-improvement | curator + meta-tune _(loop in progress)_ | self-improving + Skills Hub | plugin marketplace |
+
+The wedge is the enforced boundary: `assess()` is a gate the agent talks _through_, not _around_. Full sourced breakdown → **[Vanta vs Hermes vs OpenClaw](https://docs.vanta.theft.studio/comparison)**.
+
 ## Related
 
 - **[obsidian-vault-mcp](https://github.com/jpoindexter/obsidian-vault-mcp)** — MCP server that gives Vanta (or any MCP client) a self-improving Obsidian knowledge base. 10 tools: read, keyword + semantic search, full self-ingest, hot cache. Zero dependencies, local ollama embeddings.

@@ -1,0 +1,87 @@
+---
+id: comparison
+title: Vanta vs Hermes vs OpenClaw
+description: An honest, sourced comparison of Vanta against Hermes Agent (Nous Research) and OpenClaw — what's at parity, what each leads, and the one wedge that's really different.
+sidebar_position: 3
+---
+
+# Vanta vs Hermes vs OpenClaw
+
+Vanta, [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research), and
+[OpenClaw](https://github.com/openclaw/openclaw) are the same category: local, self-hosted
+personal agents you run on your own hardware, model-provider-agnostic, reachable from your
+own machine or a cheap VPS. They share most of their shape — CLI + TUI, messaging
+gateways, skills, cross-session memory, subagents, scheduled jobs, browser and shell
+control, MCP, an Electron desktop app.
+
+:::note Honest by design
+Because the three are so close, most rows below are **parity** (`≈`) — and we mark them as
+parity, not as Vanta advantages. There are exactly three rows where Vanta is genuinely
+different, and a few where Hermes or OpenClaw lead today. A comparison table is only worth
+anything if you can trust it, so this one is built to survive a skeptic, not to win.
+:::
+
+## At a glance
+
+| Capability | Vanta | Hermes Agent | OpenClaw |
+|---|---|---|---|
+| **Safety boundary** | **Two layers: a separate Rust kernel risk-classifies _every_ action (allow / ask / block + scope containment + a tamper-evident audit chain), and an OS sandbox / Docker / SSH backend _contains_ execution** | In-process command approval + container isolation | Channel allowlists + mention-gating |
+| **Goal-aware gating** | **A goal ledger + dependency graph; Vanta knows the goal before it picks a tool** | Memory & skills, no goal gate | Per-sender session isolation |
+| **Personal tuning** | **Local LoRA trained from _your own_ accept/reject decisions (real on-device training)** | RL training via Atropos | — |
+| Interfaces | ≈ CLI + TUI + web cockpit + Electron desktop | ≈ CLI + TUI + Electron desktop | CLI + Web Control UI + mobile nodes |
+| Messaging channels | Telegram + WhatsApp + Slack + Gmail / Calendar / Drive — [parity in progress](/comms-and-gateway) | **20+ platforms** | **13+ (incl. iMessage, Teams, Matrix, Nostr…)** |
+| Memory | ≈ brain / memory layers + public LongMemEval / LoCoMo benchmarks | ≈ FTS5 recall + Honcho user-modeling | Session memory |
+| Skills / self-improvement | Learned skills + curator + meta-tune ([loop in progress](/self-improvement)) | **Self-improving skills + Skills Hub** | **Plugin marketplace** |
+| Subagents / parallel | ≈ subagents + worktree fleet + tmux swarm | ≈ subagent delegation | Multi-agent routing |
+| Scheduling | ≈ cron scheduler | ≈ built-in cron delivery | ≈ scheduler / heartbeat |
+| Model providers | OpenAI / Anthropic / Gemini / OpenRouter / Ollama | Nous Portal / OpenRouter / OpenAI / any endpoint | Provider-agnostic |
+| Execution backends | ≈ local / sandbox / Docker / SSH | ≈ VPS / GPU / serverless / container | Self-hosted |
+| MCP | ≈ yes | ≈ yes | ≈ yes |
+| License / status | MIT | Open | Open |
+| Migrate _from_ | OpenClaw / Hermes — [planned](#migrating-to-vanta) | OpenClaw | Codex CLI / Claude / Hermes |
+
+## Where Vanta is genuinely different
+
+Three things, and only three, are real differentiators:
+
+1. **The boundary is a separate enforced layer, not a feature of the agent.** Vanta's
+   [Rust kernel](/kernel) risk-classifies every action into allow / ask / block, enforces
+   [scope containment](/safety-model), and writes a tamper-evident audit chain — and the
+   agent loop _cannot bypass it_. Hermes and OpenClaw both have real controls (command
+   approval, container isolation, allowlists), but those live inside the same process as
+   the agent. Vanta's `assess()` is a gate the agent talks _through_, not _around_; the
+   sandbox is the containment.
+2. **Goal-aware gating.** Vanta carries a goal ledger and dependency graph, so it knows
+   the goal _before_ it chooses a tool, and an action that doesn't serve the goal is
+   visible as such.
+3. **Personal tuning from your own decisions.** `vanta tune lora` trains a local adapter
+   from the operator decisions you've actually accepted and rejected — real on-device
+   (MPS / CUDA / CPU) training, no data leaving the machine.
+
+## Where Hermes and OpenClaw lead today
+
+We'd rather you hear it here than find out later:
+
+- **Messaging breadth.** OpenClaw ships 13+ channels and mobile nodes; Hermes 20+. Vanta
+  ships Telegram, WhatsApp, Slack, and Gmail/Calendar/Drive today and is closing the gap —
+  see [Comms & gateway](/comms-and-gateway).
+- **Self-improvement maturity.** Hermes's closed learning loop (agent-curated memory +
+  autonomous skill creation) is more mature than Vanta's. Vanta has the pieces (curator,
+  meta-tune, LoRA) and is unifying them into one loop — see [Self-improvement](/self-improvement).
+- **Ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace have a head start,
+  and both have larger public communities.
+
+## Migrating to Vanta
+
+Importers between these tools are standard in this category — OpenClaw imports from Codex
+CLI, Claude, and Hermes; Hermes imports from OpenClaw. Vanta is building the same:
+`vanta migrate openclaw|hermes` will import your skills, MCP servers, and model config into
+`~/.vanta`, with a preview → select → backup → apply flow and secrets redacted in the
+report. It's a tracked next-up item on the roadmap (`VANTA-MIGRATE`).
+
+---
+
+_Last verified 2026-06-22 against each project's public repo and docs:
+[OpenClaw](https://github.com/openclaw/openclaw) ·
+[Hermes Agent](https://github.com/NousResearch/hermes-agent). Spotted something out of
+date? Open an issue — accuracy is the point._
