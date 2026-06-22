@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
+    "gen:roadmap": "node scripts/gen-roadmap.mjs",
+    "prestart": "node scripts/gen-roadmap.mjs",
+    "prebuild": "node scripts/gen-roadmap.mjs",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",

@@ -37,7 +37,7 @@
       "id": "PUBLIC-ROADMAP-PAGE",
       "track": "Operator",
       "title": "Public roadmap + changelog page on the docs site",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Surface the roadmap (roadmap.json / the KANBAN board) + a changelog on the public docs site so users can see direction and what's shipping. Community signal (OpenClaw/Hermes X thread 2026-06-22): Oliver Hassell, Dennis X, Brion Hickey, Bonsai all asked \"where's the roadmap / what's next?\". The data already exists; it needs a published page. Extends KANBAN (the local board).",
       "done": "docs.vanta.theft.studio has a roadmap/changelog page rendering current shipped/next/horizon plus recent changes, linked in the sidebar.",
@@ -47,7 +47,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Timely now that the repo is public. Generate from roadmap.json so it stays in sync."
+      "notes": "Shipped 2026-06-22. vanta-website/scripts/gen-roadmap.mjs reads repo-root roadmap.json and generates docs/roadmap.md: In-flight (next cards, clean), Recently shipped (top 20 by date + total), On the horizon (grouped by track, counts + curated samples). Public-safe scrub strips provenance + competitor/strategy framing (migrate title keeps source names intentionally); sentence-level competitor filter on descriptions. Linked in sidebars.ts; prestart/prebuild hooks regenerate. Docusaurus build green."
     },
     {
       "id": "PROVIDER-AWARE-WATCHDOG",
