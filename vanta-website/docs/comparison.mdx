@@ -29,9 +29,9 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 | **Goal-aware gating** | **A goal ledger + dependency graph; Vanta knows the goal before it picks a tool** | Memory & skills, no goal gate | Per-sender session isolation |
 | **Personal tuning** | **Local LoRA trained from _your own_ accept/reject decisions (real on-device training)** | RL training via Atropos | — |
 | Interfaces | ≈ CLI + TUI + web cockpit + Electron desktop | ≈ CLI + TUI + Electron desktop | CLI + Web Control UI + mobile nodes |
-| Messaging channels | Telegram + WhatsApp + Slack + Gmail / Calendar / Drive — [parity in progress](/comms-and-gateway) | **20+ platforms** | **13+ (incl. iMessage, Teams, Matrix, Nostr…)** |
+| Messaging channels | ≈ ~13 adapters shipped — Discord, Matrix, Signal, iMessage, Google Chat, Slack, Email, IRC, LINE, ntfy, Mattermost, WhatsApp, Telegram — [5 verified live from one gateway](/comms-and-gateway) | **20+ platforms** | 13+ (incl. iMessage, Teams, Matrix, Nostr…) |
 | Memory | ≈ brain / memory layers + public LongMemEval / LoCoMo benchmarks | ≈ FTS5 recall + Honcho user-modeling | Session memory |
-| Skills / self-improvement | Learned skills + curator + meta-tune ([loop in progress](/self-improvement)) | **Self-improving skills + Skills Hub** | **Plugin marketplace** |
+| Skills / self-improvement | ≈ Auto skill-improvement (periodic LLM review of used skills) + reflection-from-correction + experiential playbook + meta-tune + LoRA | Self-improving skills + **Skills Hub (shareable)** | **Plugin marketplace** |
 | Subagents / parallel | ≈ subagents + worktree fleet + tmux swarm | ≈ subagent delegation | Multi-agent routing |
 | Scheduling | ≈ cron scheduler | ≈ built-in cron delivery | ≈ scheduler / heartbeat |
 | Model providers | ≈ Any OpenAI-compatible endpoint (custom base URL) + Azure / Bedrock + OpenRouter (200+) + Ollama (any local) + OpenAI / Anthropic / Gemini — and exposes its own OpenAI-compatible proxy | ≈ Nous Portal / OpenRouter / OpenAI / any endpoint | ≈ Provider-agnostic |
@@ -60,16 +60,19 @@ Three things, and only three, are real differentiators:
 
 ## Where Hermes and OpenClaw lead today
 
-We'd rather you hear it here than find out later:
+We'd rather you hear it here than find out later. The honest gaps are **ecosystem and
+reach**, not core capability — Vanta's channels and self-improvement loop are already
+shipped (see [Comms & gateway](/comms-and-gateway) and [Self-improvement](/self-improvement)):
 
-- **Messaging breadth.** OpenClaw ships 13+ channels and mobile nodes; Hermes 20+. Vanta
-  ships Telegram, WhatsApp, Slack, and Gmail/Calendar/Drive today and is closing the gap —
-  see [Comms & gateway](/comms-and-gateway).
-- **Self-improvement maturity.** Hermes's closed learning loop (agent-curated memory +
-  autonomous skill creation) is more mature than Vanta's. Vanta has the pieces (curator,
-  meta-tune, LoRA) and is unifying them into one loop — see [Self-improvement](/self-improvement).
-- **Ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace have a head start,
-  and both have larger public communities.
+- **Shareable ecosystem.** Hermes's Skills Hub and OpenClaw's plugin marketplace are
+  public, shareable skill/plugin exchanges. Vanta's skills and channels are equally
+  capable but local — there's no public exchange yet.
+- **Raw channel count & native mobile.** Hermes advertises 20+ platforms; OpenClaw ships
+  dedicated mobile nodes (iOS/Android with camera and voice). Vanta is in the same range
+  (~13 shipped adapters, 5 verified live) but doesn't yet match Hermes's raw breadth or
+  OpenClaw's native mobile clients.
+- **Community & maturity.** Both have a head start in public users and contributions;
+  Vanta is newer.
 
 ## Migrating to Vanta
 
