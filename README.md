@@ -98,7 +98,7 @@ Same category as **[Hermes Agent](https://github.com/NousResearch/hermes-agent)*
 | **Safety boundary** | **separate Rust kernel gates every action (allow/ask/block + scope + audit chain); sandbox contains execution** | in-process approval + container | channel allowlists |
 | **Goal-aware gating** | **goal ledger + dependency graph** | — | per-sender sessions |
 | **Personal tuning** | **local LoRA from your accept/reject decisions** | RL (Atropos) | — |
-| Messaging channels | ~13 adapters shipped (Discord, Signal, iMessage, Matrix, Slack, Email…), 5 verified live | 20+ | 13+ |
+| Messaging channels | 11 adapters wired (Discord, Signal, iMessage, Matrix, LINE, Slack…), 5 verified live | 20+ | 13+ |
 | Self-improvement | auto skill-review + reflection-from-correction + experiential memory + meta-tune | self-improving + Skills Hub | plugin marketplace |
 
 The wedge is the enforced boundary: `assess()` is a gate the agent talks _through_, not _around_. Full sourced breakdown → **[Vanta vs Hermes vs OpenClaw](https://docs.vanta.theft.studio/comparison)**.
