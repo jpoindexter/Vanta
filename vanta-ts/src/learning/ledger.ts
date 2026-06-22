@@ -6,16 +6,19 @@ import { dirname, join } from "node:path";
 // back as operator-facing stats. Durable + greppable at .vanta/learning/ledger.jsonl,
 // like .vanta/bugs and .vanta/feedback.
 
-/** What a single cycle did. `minted` = a brand-new skill; `refined` = re-wrote an
- *  existing learned skill (the "improved over a session" signal). `adopted` is
- *  false when the eval-gate rejected it (then it was archived). */
+/** What a single event records. `minted` = a brand-new skill; `refined` = re-wrote
+ *  an existing learned skill (the "improved over a session" signal); `reused` = a
+ *  learned skill was recalled into a later task (the live reuse signal). `adopted`
+ *  is false when the eval-gate rejected a proposed skill (then it was archived). */
 export type LearningEvent = {
   ts: string;
   skill: string;
-  kind: "minted" | "refined";
+  kind: "minted" | "refined" | "reused";
   adopted: boolean;
   reason: string;
 };
+
+const KINDS: ReadonlySet<string> = new Set(["minted", "refined", "reused"]);
 
 const LEDGER_REL = join("learning", "ledger.jsonl");
 
@@ -46,7 +49,7 @@ export async function readLearning(dataDir: string): Promise<LearningEvent[]> {
     if (!line.trim()) continue;
     try {
       const e = JSON.parse(line) as LearningEvent;
-      if (e && typeof e.skill === "string" && (e.kind === "minted" || e.kind === "refined")) out.push(e);
+      if (e && typeof e.skill === "string" && KINDS.has(e.kind)) out.push(e);
     } catch {
       /* skip a corrupt row, keep the rest */
     }
@@ -55,6 +58,7 @@ export async function readLearning(dataDir: string): Promise<LearningEvent[]> {
 }
 
 export type LearningStats = {
+  /** Propose cycles (minted + refined) — excludes reuse events. */
   cycles: number;
   minted: number;
   refined: number;
@@ -62,20 +66,25 @@ export type LearningStats = {
   rejected: number;
   /** Share of proposed skills that passed the eval-gate (0..1, or null if none). */
   adoptionRate: number | null;
+  /** Times a learned skill was recalled into a later task — the live reuse metric. */
+  reused: number;
   /** Distinct learned skills touched — the breadth of what the loop has captured. */
   distinctSkills: number;
 };
 
-/** Summarise the ledger. Pure. */
+/** Summarise the ledger. Pure. Reuse events are counted separately from the
+ *  propose cycles so adoption stats stay about proposals, reuse about recall. */
 export function learningStats(events: LearningEvent[]): LearningStats {
-  const adopted = events.filter((e) => e.adopted);
+  const cycles = events.filter((e) => e.kind !== "reused");
+  const adopted = cycles.filter((e) => e.adopted);
   return {
-    cycles: events.length,
-    minted: events.filter((e) => e.kind === "minted").length,
-    refined: events.filter((e) => e.kind === "refined").length,
+    cycles: cycles.length,
+    minted: cycles.filter((e) => e.kind === "minted").length,
+    refined: cycles.filter((e) => e.kind === "refined").length,
     adopted: adopted.length,
-    rejected: events.length - adopted.length,
-    adoptionRate: events.length ? adopted.length / events.length : null,
+    rejected: cycles.length - adopted.length,
+    adoptionRate: cycles.length ? adopted.length / cycles.length : null,
+    reused: events.filter((e) => e.kind === "reused").length,
     distinctSkills: new Set(events.map((e) => e.skill)).size,
   };
 }

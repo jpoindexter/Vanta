@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { buildMigrationPlan, formatPlan, type PlanDeps } from "./plan.js";
+import { buildMigrationPlan, formatPlan, numberedItems, parseItemSelection, filterPlanByNumbers, narrowByFootprint, type PlanDeps } from "./plan.js";
 
 const fixture = (name: string): string => fileURLToPath(new URL(`./__fixtures__/${name}`, import.meta.url));
 
@@ -73,5 +73,39 @@ describe("formatPlan never leaks a secret", () => {
     const out = formatPlan(buildMigrationPlan("openclaw", fsDeps(fixture("openclaw"))));
     expect(out).not.toContain("<github-token-here>"); // env values never reach the preview
     expect(out).toMatch(/secrets: GITHUB_TOKEN → redacted/);
+  });
+});
+
+describe("per-item selection", () => {
+  const plan = buildMigrationPlan("openclaw", fsDeps(fixture("openclaw")));
+
+  it("numbers skills, then MCP servers, then model", () => {
+    const items = numberedItems(plan);
+    expect(items.map((i) => i.kind)).toEqual(["skill", "skill", "mcp", "mcp", "model"]);
+    expect(items[0]).toMatchObject({ n: 1, kind: "skill" });
+  });
+
+  it("parseItemSelection handles all / none / lists / ranges and drops out-of-range", () => {
+    expect(parseItemSelection("all", 5)).toEqual(new Set([1, 2, 3, 4, 5]));
+    expect(parseItemSelection("", 3)).toEqual(new Set([1, 2, 3]));
+    expect(parseItemSelection("none", 5)).toEqual(new Set());
+    expect(parseItemSelection("1,3", 5)).toEqual(new Set([1, 3]));
+    expect(parseItemSelection("2-4", 5)).toEqual(new Set([2, 3, 4]));
+    expect(parseItemSelection("1, 9, 2", 5)).toEqual(new Set([1, 2])); // 9 dropped
+  });
+
+  it("filterPlanByNumbers keeps only the chosen items", () => {
+    const items = numberedItems(plan); // [1,2]=skills (sorted), [3,4]=mcp (json order), [5]=model
+    const filtered = filterPlanByNumbers(plan, items, new Set([1, 3]));
+    expect(filtered.skills.map((s) => s.name)).toEqual(["debug-flaky-test"]);
+    expect(filtered.mcpServers.map((m) => m.name)).toEqual(["github"]); // item 3 = first mcp (json insertion order)
+    expect(filtered.modelConfig).toBeNull(); // 5 not selected
+  });
+
+  it("narrowByFootprint drops whole footprints", () => {
+    const onlySkills = narrowByFootprint(plan, { skills: true, mcp: false, model: false });
+    expect(onlySkills.skills.length).toBe(2);
+    expect(onlySkills.mcpServers).toEqual([]);
+    expect(onlySkills.modelConfig).toBeNull();
   });
 });

@@ -2,9 +2,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { recallTool } from "./recall.js";
+import { recallTool, reuseEvent } from "./recall.js";
 import { skillsDir, slugifySkillName } from "../store/home.js";
+import { LEARNED_TAG } from "../skills/store.js";
 import type { ToolContext } from "./types.js";
+import type { Skill } from "../skills/types.js";
 
 // Deterministic temp home derived from the suite name, not time/randomness.
 const VANTA_HOME = join(tmpdir(), "vanta-recall-test-store");
@@ -73,5 +75,24 @@ describe("recallTool", () => {
   it("never leaks the raw query in describeForSafety", () => {
     const label = recallTool.describeForSafety?.({ query: "rm -rf danger" });
     expect(label).toBe("search vanta's skill library");
+  });
+});
+
+describe("reuseEvent (recall → self-learning reuse signal)", () => {
+  const skill = (tags: string[]): Skill => ({
+    meta: { name: "debug-vitest", description: "d", created: "", updated: "", tags },
+    body: "body",
+  });
+  const NOW = new Date("2026-06-22T00:00:00Z");
+
+  it("records a reuse event when a loop-authored (learned) skill is recalled", () => {
+    const e = reuseEvent(skill([LEARNED_TAG]), NOW);
+    expect(e).toMatchObject({ skill: "debug-vitest", kind: "reused", adopted: true });
+    expect(e?.reason).not.toMatch(/query/i); // never echoes the recall query
+  });
+
+  it("does NOT record reuse for a hand-authored skill (not loop-authored)", () => {
+    expect(reuseEvent(skill(["docs"]), NOW)).toBeNull();
+    expect(reuseEvent(skill([]), NOW)).toBeNull();
   });
 });

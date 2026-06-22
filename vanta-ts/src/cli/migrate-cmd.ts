@@ -6,7 +6,17 @@ import { listSkills } from "../skills/store.js";
 import { createKernelClient } from "../kernel/client.js";
 import { storeDir, runBackup } from "../cli-dx/backup.js";
 import { MIGRATE_SOURCES, parseMcpServers, type MigrateSource } from "../migrate/parse.js";
-import { buildMigrationPlan, formatPlan, type PlanDeps, type MigrationPlan } from "../migrate/plan.js";
+import {
+  buildMigrationPlan,
+  formatPlan,
+  narrowByFootprint,
+  numberedItems,
+  numberedList,
+  parseItemSelection,
+  filterPlanByNumbers,
+  type PlanDeps,
+  type MigrationPlan,
+} from "../migrate/plan.js";
 import { applyMigration, defaultApplyDeps, type ApplySelection, type ApplyResult } from "../migrate/apply.js";
 
 // VANTA-MIGRATE — `vanta migrate <openclaw|hermes>`: preview → select → backup →
@@ -65,15 +75,6 @@ function readSafe(path: string): string | null {
   }
 }
 
-async function confirm(question: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    return (await rl.question(question)).trim().toLowerCase().startsWith("y");
-  } finally {
-    rl.close();
-  }
-}
-
 const hasContent = (plan: MigrationPlan): boolean =>
   plan.skills.length > 0 || plan.mcpServers.length > 0 || plan.modelConfig !== null;
 
@@ -85,8 +86,30 @@ async function kernelBlocks(env: NodeJS.ProcessEnv, source: MigrateSource): Prom
   return { blocked: verdict.risk === "block", reason: verdict.reason };
 }
 
-const proceed = async (flags: string[]): Promise<boolean> =>
-  flags.includes("--yes") || confirm("  Back up ~/.vanta and import the selected items? (y/n) ");
+async function ask(question: string): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return (await rl.question(question)).trim();
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * Decide what to import. Footprint flags (--skills/--mcp/--model) pre-narrow the
+ * candidates; `--yes` imports them all unprompted; otherwise the operator picks
+ * per item from a numbered list. Returns null when nothing is chosen (cancel).
+ */
+async function chooseToApply(plan: MigrationPlan, flags: string[], log: (s: string) => void): Promise<MigrationPlan | null> {
+  const candidate = narrowByFootprint(plan, parseSelection(flags));
+  if (flags.includes("--yes")) return hasContent(candidate) ? candidate : null;
+  const items = numberedItems(candidate);
+  if (!items.length) return null;
+  log(numberedList(items));
+  const selected = parseItemSelection(await ask("  Import which? (all / none / e.g. 1,3): "), items.length);
+  if (!selected.size) return null;
+  return filterPlanByNumbers(candidate, items, selected);
+}
 
 function printReport(log: (s: string) => void, source: MigrateSource, plan: MigrationPlan, result: ApplyResult): void {
   log(`  ✓ migrated from ${source} (backup: ${result.backup})`);
@@ -101,7 +124,6 @@ export async function runMigrate(rest: string[], env: NodeJS.ProcessEnv = proces
   const source = rest[0] as MigrateSource | undefined;
   if (!source || !MIGRATE_SOURCES.includes(source)) return usage(log);
   const flags = rest.filter((a) => FLAG_RE.test(a));
-  const selection = parseSelection(flags);
 
   const plan = buildMigrationPlan(source, await livePlanDeps(source, env));
   log(formatPlan(plan));
@@ -117,20 +139,22 @@ export async function runMigrate(rest: string[], env: NodeJS.ProcessEnv = proces
     return 1;
   }
 
-  if (!(await proceed(flags))) {
-    log("  cancelled — nothing changed.");
+  const chosen = await chooseToApply(plan, flags, log);
+  if (!chosen || !hasContent(chosen)) {
+    log("  nothing selected — cancelled.");
     return 0;
   }
 
   const backupOut = join(homedir(), `vanta-backup-before-${source}-migrate.tgz`);
+  const allFootprints: ApplySelection = { skills: true, mcp: true, model: true, overwrite: flags.includes("--overwrite") };
   const result = await applyMigration(
-    plan,
-    selection,
+    chosen,
+    allFootprints,
     defaultApplyDeps(env, async () => {
       await runBackup([backupOut], env);
       return backupOut;
     }),
   );
-  printReport(log, source, plan, result);
+  printReport(log, source, chosen, result);
   return 0;
 }

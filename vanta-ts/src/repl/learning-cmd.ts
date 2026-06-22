@@ -17,7 +17,7 @@ export function formatLearning(stats: LearningStats, recent: string[]): string {
     "  🌱 Self-learning loop",
     "",
     `  cycles    ${stats.cycles}  (${stats.distinctSkills} distinct skill${stats.distinctSkills === 1 ? "" : "s"})`,
-    `  minted    ${stats.minted}   refined ${stats.refined}   ← improvement signal`,
+    `  minted    ${stats.minted}   refined ${stats.refined}   reused ${stats.reused}   ← improvement + reuse`,
     `  adopted   ${stats.adopted}   gated out ${stats.rejected}   (adoption rate ${rate})`,
   ];
   if (recent.length) {

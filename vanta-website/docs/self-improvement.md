@@ -8,6 +8,27 @@ sidebar_position: 3
 
 Vanta can improve its own codebase and its own reasoning — bounded, verified, and gated. These are operator-triggered, never silent.
 
+## The self-learning loop — Vanta learns by doing
+
+This is the core idea: **an agent that gets better at your work the more it does it.** After a substantive task, Vanta runs one closed loop, on by default:
+
+1. **Observe** the task it just finished.
+2. **Propose** a reusable skill — mint a new one, or refine an existing one.
+3. **Eval-gate** it: a proposed skill is adopted only if it passes. The gate rejects thin, one-off, or *refusal-shaped* skills ("tool X is broken, never use it") that would otherwise harden into self-imposed limits.
+4. **Adopt or revert**: a passing skill is kept; a failing one is archived (reversibly — nothing is deleted). Adoption is gated, never silent.
+5. **Measure**: every cycle is recorded, and recalling a learned skill in a later task counts as reuse.
+
+See what it has learned with **`/learning`** — skills minted, refined, adopted vs gated out, and how often they've been reused:
+
+```
+🌱 Self-learning loop
+  cycles    7  (5 distinct skills)
+  minted    4   refined 3   reused 9   ← improvement + reuse
+  adopted   6   gated out 1   (adoption rate 86%)
+```
+
+It's on by default (`VANTA_SELF_IMPROVE=0` to disable); adoption is always gated, and a rejected skill is archived, not deleted.
+
 ## The factory — improve the codebase
 
 The factory orchestrates autonomous codebase improvement slice by slice, with kernel-enforced safety (the kernel source / "skeleton" is protected; reflexes, limbs, and memory are autonomous).

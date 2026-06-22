@@ -1,9 +1,27 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
-import { listSkills } from "../skills/store.js";
+import { join } from "node:path";
+import type { Tool, ToolContext } from "./types.js";
+import { listSkills, LEARNED_TAG } from "../skills/store.js";
 import { searchSkills } from "../skills/recall.js";
 import { markVolatile } from "../skills/volatile.js";
 import { distilledEnabled, readDistilled } from "../skills/distill.js";
+import { recordLearning, type LearningEvent } from "../learning/ledger.js";
+import type { Skill } from "../skills/types.js";
+
+/** VANTA-SELF-LEARNING-LOOP: recalling a LEARNED skill IS reuse. Returns the reuse
+ *  event to record, or null if the recalled skill wasn't loop-authored. Pure
+ *  decision (no query text — describeForSafety forbids echoing the query). */
+export function reuseEvent(top: Skill, now: Date = new Date()): LearningEvent | null {
+  if (!top.meta.tags?.includes(LEARNED_TAG)) return null;
+  return { ts: now.toISOString(), skill: top.meta.name, kind: "reused", adopted: true, reason: "recalled during a task" };
+}
+
+/** Fire-and-forget the reuse event to the project ledger (never slows recall). */
+function recordReuse(top: Skill, ctx?: ToolContext): void {
+  if (!ctx?.root) return;
+  const event = reuseEvent(top);
+  if (event) void recordLearning(join(ctx.root, ".vanta"), event).catch(() => {});
+}
 
 const Args = z.object({ query: z.string().min(1) });
 
@@ -29,7 +47,7 @@ export const recallTool: Tool = {
   },
   // Constant: never echo the raw query — it can contain words that trip safety triggers.
   describeForSafety: () => "search vanta's skill library",
-  async execute(raw) {
+  async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
       return { ok: false, output: 'recall needs a "query" string' };
@@ -43,6 +61,7 @@ export const recallTool: Tool = {
       // Return the BODY of the best match (on-demand load), plus a short "see also"
       // index of the runner-up matches so the agent can recall a different one.
       const top = matches[0]!.skill;
+      recordReuse(top, ctx);
       // Serve the distilled (worked-examples) form when enabled and present — fewer tokens
       // than the full procedural doc (SKILL-DISTILL-EXAMPLES); falls back to the full body.
       let body = top.body.trim();

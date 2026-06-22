@@ -54,4 +54,16 @@ describe("learningStats", () => {
   it("adoptionRate is null with no cycles", () => {
     expect(learningStats([]).adoptionRate).toBeNull();
   });
+
+  it("counts reuse events separately from propose cycles", () => {
+    const s = learningStats([
+      ev({ skill: "a", kind: "minted", adopted: true }),
+      ev({ skill: "a", kind: "reused", adopted: true }),
+      ev({ skill: "a", kind: "reused", adopted: true }),
+    ]);
+    expect(s.cycles).toBe(1); // reuse events are NOT propose cycles
+    expect(s.minted).toBe(1);
+    expect(s.reused).toBe(2);
+    expect(s.adoptionRate).toBe(1); // 1/1 proposals adopted, reuse excluded
+  });
 });

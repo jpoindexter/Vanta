@@ -17,12 +17,14 @@ describe("formatLearning", () => {
         { ts: "", skill: "a", kind: "minted", adopted: true, reason: "ok" },
         { ts: "", skill: "a", kind: "refined", adopted: true, reason: "ok" },
         { ts: "", skill: "b", kind: "minted", adopted: false, reason: "refusal" },
+        { ts: "", skill: "a", kind: "reused", adopted: true, reason: "recalled during a task" },
       ]),
       ["✓ a (refined) — ok"],
     );
-    expect(out).toMatch(/cycles    3/);
+    expect(out).toMatch(/cycles    3/); // reuse events are not propose cycles
     expect(out).toMatch(/minted    2/);
     expect(out).toMatch(/refined 1/);
+    expect(out).toMatch(/reused 1/);
     expect(out).toMatch(/adoption rate 67%/);
     expect(out).toMatch(/✓ a \(refined\)/);
   });
