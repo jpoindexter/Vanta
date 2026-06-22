@@ -16,9 +16,19 @@ export const TRIGGER_MARKER = "skills trigger-emit";
 
 const KNOWN_EVENTS: ReadonlySet<string> = new Set(SHELL_HOOK_EVENTS);
 
-/** Claude Code events the compiler targets. PreToolUse is supported via the
- *  Vanta→Claude tool map below (Claude tool names differ from Vanta's). */
-const CLAUDE_EVENTS: ReadonlySet<string> = new Set(["Stop", "UserPromptSubmit", "PreToolUse"]);
+/** Claude Code events the compiler targets. PreToolUse maps tool names via the
+ *  Vanta→Claude tool map; a PostToolUse+error trigger maps to PostToolUseFailure
+ *  (Claude's plain PostToolUse fires only on SUCCESS — errors are a separate event). */
+const CLAUDE_EVENTS: ReadonlySet<string> = new Set([
+  "Stop", "UserPromptSubmit", "PreToolUse", "PostToolUse", "PostToolUseFailure",
+]);
+
+/** Translate a trigger to the Claude event that actually fires it. A Vanta
+ *  `PostToolUse` + `when:"errors…"` means "on tool error" → Claude `PostToolUseFailure`. */
+function claudeEventFor(t: SkillTrigger): string {
+  if (t.event === "PostToolUse" && /error/i.test(t.when ?? "")) return "PostToolUseFailure";
+  return t.event;
+}
 
 /** Vanta tool name (a trigger `match`) → Claude Code matcher + an optional command
  *  substring the emitter must find in `tool_input.command` (since e.g. a git push is
@@ -82,21 +92,23 @@ export function compileTriggers(skill: Skill, vantaBin = "vanta"): { event: Shel
 export type ClaudeHookEntry = { event: string; matcher: string; command: string };
 
 /** Compile a skill's triggers into Claude Code settings.json entries. v1 supports
- *  only Stop + UserPromptSubmit (Claude tool names differ from Vanta's, so
- *  fine-grained PreToolUse matching is deferred). Pure. */
+ *  Stop, UserPromptSubmit, PreToolUse (tool-name-mapped), and PostToolUse(+error
+ *  → PostToolUseFailure). Pure. */
 export function compileTriggersForClaude(skill: Skill, vantaBin = "vanta"): ClaudeHookEntry[] {
   const slug = slugifySkillName(skill.meta.name);
   const seen = new Set<string>();
   const out: ClaudeHookEntry[] = [];
   for (const t of skill.meta.triggers ?? []) {
     if (!CLAUDE_EVENTS.has(t.event)) continue;
-    const matcher = t.event === "PreToolUse" ? claudeToolMap(t.match).matcher : "";
-    const key = `${t.event}:${matcher}`;
+    const event = claudeEventFor(t);
+    const matcher = t.match ? claudeToolMap(t.match).matcher : "";
+    const key = `${event}:${matcher}`;
     if (seen.has(key)) continue;
     seen.add(key);
     // `--claude` tells the emitter to read Claude's stdin payload + emit Claude's
-    // hookSpecificOutput JSON (vs Vanta's stderr/additionalContext form).
-    out.push({ event: t.event, matcher, command: `${emitCommand(slug, t.event, vantaBin)} --claude 2>/dev/null` });
+    // hookSpecificOutput JSON (input-gated for PreToolUse; PostToolUseFailure only
+    // fires on error, so no gate is needed there).
+    out.push({ event, matcher, command: `${emitCommand(slug, event, vantaBin)} --claude 2>/dev/null` });
   }
   return out;
 }

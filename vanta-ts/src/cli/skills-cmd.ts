@@ -120,7 +120,7 @@ async function runSyncTriggers(rest: string[]): Promise<void> {
   console.log(`✓ synced ${v.written} skill-trigger hook(s) → ~/.vanta/hooks.json${v.events.length ? ` (${v.events.join(", ")})` : ""}`);
   if (rest.includes("--claude")) {
     const c = await syncSkillTriggersForClaude({ env: process.env });
-    console.log(`✓ synced ${c.written} → ~/.claude/settings.json (PreToolUse · UserPromptSubmit · Stop)`);
+    console.log(`✓ synced ${c.written} → ~/.claude/settings.json (PreToolUse · PostToolUseFailure · UserPromptSubmit · Stop)`);
   }
 }
 

@@ -52,8 +52,12 @@ describe("compileTriggersForClaude", () => {
     expect(pre.command).toMatch(/2>\/dev\/null$/);
   });
 
-  it("skips genuinely-unsupported events (PostToolUse stays Vanta-only)", () => {
-    expect(compileTriggersForClaude(skill([{ event: "PostToolUse", when: "errors>=3" }]), "vanta")).toEqual([]);
+  it("maps a PostToolUse+error trigger to Claude's PostToolUseFailure event", () => {
+    const out = compileTriggersForClaude(skill([{ event: "PostToolUse", when: "errors>=3" }]), "vanta");
+    expect(out).toHaveLength(1);
+    expect(out[0]!.event).toBe("PostToolUseFailure");
+    expect(out[0]!.matcher).toBe("");
+    expect(out[0]!.command).toContain("trigger-emit ship-preflight PostToolUseFailure --claude");
   });
 });
 
