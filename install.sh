@@ -30,12 +30,51 @@ need() {
 }
 need node node "https://nodejs.org"
 need git git "https://git-scm.com/downloads"
-need cargo "" "https://rustup.rs  (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh)"
+# Prebuilt kernel: download the platform binary from the latest GitHub release so
+# users don't need the Rust toolchain. Falls back to `cargo build` (needs Rust)
+# only when no prebuilt binary is available. On success the binary lands at
+# target/debug/vanta-kernel (the path the launcher already uses).
+KERNEL_RELEASE_BASE="${VANTA_KERNEL_RELEASE_BASE:-https://github.com/jpoindexter/Vanta/releases/latest/download}"
+fetch_prebuilt_kernel() {
+  command -v curl >/dev/null 2>&1 || return 1
+  local target
+  case "$(uname -s)/$(uname -m)" in
+    Darwin/arm64)              target="aarch64-apple-darwin" ;;
+    Darwin/x86_64)             target="x86_64-apple-darwin" ;;
+    Linux/aarch64|Linux/arm64) target="aarch64-unknown-linux-gnu" ;;
+    Linux/x86_64)              target="x86_64-unknown-linux-gnu" ;;
+    *) return 1 ;;
+  esac
+  local tmp; tmp="$(mktemp -d)"
+  curl -fsSL "$KERNEL_RELEASE_BASE/vanta-kernel-$target" -o "$tmp/vanta-kernel" || { rm -rf "$tmp"; return 1; }
+  # Verify the checksum when the release ships one (it does).
+  if curl -fsSL "$KERNEL_RELEASE_BASE/vanta-kernel-$target.sha256" -o "$tmp/sum" 2>/dev/null && [ -s "$tmp/sum" ]; then
+    local want got
+    want="$(awk '{print $1}' "$tmp/sum")"
+    if command -v shasum >/dev/null 2>&1; then got="$(shasum -a 256 "$tmp/vanta-kernel" | awk '{print $1}')";
+    else got="$(sha256sum "$tmp/vanta-kernel" | awk '{print $1}')"; fi
+    if [ -n "$want" ] && [ "$want" != "$got" ]; then
+      echo -e "${RED}✗${NC} kernel checksum mismatch — discarding the download"; rm -rf "$tmp"; return 1
+    fi
+  fi
+  mkdir -p "$SCRIPT_DIR/target/debug"
+  cp "$tmp/vanta-kernel" "$SCRIPT_DIR/target/debug/vanta-kernel" || { rm -rf "$tmp"; return 1; }
+  chmod +x "$SCRIPT_DIR/target/debug/vanta-kernel"
+  xattr -d com.apple.quarantine "$SCRIPT_DIR/target/debug/vanta-kernel" 2>/dev/null || true
+  rm -rf "$tmp"
+  return 0
+}
 
-# --- build kernel + install deps (first run only) ---------------------------
+# --- acquire kernel + install deps (first run only) -------------------------
 if [ ! -x "$SCRIPT_DIR/target/debug/vanta-kernel" ]; then
-  echo -e "${CYAN}→${NC} building the Rust safety kernel (first run)…"
-  cargo build
+  echo -e "${CYAN}→${NC} acquiring the Rust safety kernel (first run)…"
+  if fetch_prebuilt_kernel; then
+    echo -e "${GREEN}✓${NC} downloaded prebuilt kernel ($(uname -s)/$(uname -m)) — no Rust toolchain needed"
+  else
+    echo -e "${YELLOW}⚠${NC}  no prebuilt kernel for this platform/release — building from source (needs Rust)"
+    need cargo "" "https://rustup.rs  (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh)"
+    cargo build
+  fi
 fi
 if [ ! -d "$SCRIPT_DIR/vanta-ts/node_modules" ]; then
   echo -e "${CYAN}→${NC} installing agent dependencies (first run)…"

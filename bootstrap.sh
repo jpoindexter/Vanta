@@ -22,12 +22,14 @@ echo ""
 echo -e "${CYAN}⚓ Vanta bootstrap${NC}"
 
 # --- prerequisites ----------------------------------------------------------
-for tool in git cargo node; do
+# git + Node are required. Rust is NOT — install.sh downloads a prebuilt kernel
+# binary for your platform from the latest GitHub release, and only falls back to
+# `cargo build` (which needs Rust) when no prebuilt binary is available.
+for tool in git node; do
   command -v "$tool" >/dev/null 2>&1 || {
     case "$tool" in
-      cargo) echo -e "${RED}✗${NC} Rust not found — install from https://rustup.rs" ;;
-      node)  echo -e "${RED}✗${NC} Node.js 22+ not found — install from https://nodejs.org" ;;
-      git)   echo -e "${RED}✗${NC} git not found" ;;
+      node) echo -e "${RED}✗${NC} Node.js 22+ not found — install from https://nodejs.org" ;;
+      git)  echo -e "${RED}✗${NC} git not found" ;;
     esac
     exit 1
   }

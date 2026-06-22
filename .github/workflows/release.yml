@@ -1,0 +1,69 @@
+name: release
+
+# Build the zero-dependency Rust kernel for every supported platform and publish
+# the binaries to a GitHub Release, so `bootstrap.sh` / `install.sh` can download a
+# prebuilt kernel instead of requiring the Rust toolchain on the user's machine.
+#
+#   git tag v0.2.0 && git push origin v0.2.0   → builds + cuts the release
+#   (workflow_dispatch builds the binaries as artifacts without publishing)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-14, target: aarch64-apple-darwin }
+          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build kernel (release, native)
+        run: cargo build --release --bin vanta-kernel
+      - name: Package binary + checksum
+        shell: bash
+        run: |
+          out="vanta-kernel-${{ matrix.target }}"
+          cp "target/release/vanta-kernel" "$out"
+          if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$out" > "$out.sha256";
+          else sha256sum "$out" > "$out.sha256"; fi
+          ls -la "$out" "$out.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vanta-kernel-${{ matrix.target }}
+          path: |
+            vanta-kernel-${{ matrix.target }}
+            vanta-kernel-${{ matrix.target }}.sha256
+          if-no-files-found: error
+
+  release:
+    name: publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: ls -la dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Vanta ${{ github.ref_name }}
+          prerelease: false
+          generate_release_notes: true
+          files: dist/*
