@@ -24,14 +24,15 @@ describe("formatStatus", () => {
     expect(out).toContain("2 active / 4 total");
   });
 
-  it("shows a down kernel and the goals fallback", () => {
+  it("shows an idle (not-yet-started) kernel as neutral, not a failure", () => {
     const out = formatStatus({
       ...base,
       kernel: { url: base.kernel.url, up: false },
-      goals: { error: "kernel down" },
+      goals: { error: "kernel idle (starts on first run)" },
     });
-    expect(out).toContain("✗ kernel    down");
-    expect(out).toContain("goals     — kernel down");
+    expect(out).toContain("○ kernel    idle — starts on first run");
+    expect(out).not.toContain("✗ kernel");
+    expect(out).toContain("goals     — kernel idle (starts on first run)");
   });
 
   it("shows the provider error when resolution fails", () => {
