@@ -8,45 +8,27 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_903 capabilities shipped · 4 in flight · 146 on the horizon. Updated 2026-06-22._
+_907 capabilities shipped · 0 in flight · 146 on the horizon. Updated 2026-06-22._
 
 ## In flight
 
 What we are actively building next.
 
-### Context-aware /status + /doctor verbosity
-
-**Harness** · S-size
-
-Make /status + /doctor output context-aware — condense the firehose when a non-default model/provider is active
-
-### In-product /feedback + feature-request flow
-
-**Operator** · S-size
-
-In-product /feedback (and feature-request) flow that files to GitHub Issues with redaction
-
-### Self-learning loop — agent auto-writes and improves its own skills from what it does
-
-**Harness** · L-size
-
-Make autonomous self-improvement first-class, not scattered. Vanta already has the pieces — learned skills (~/.vanta/skills), a curator, per-goal memory, LoRA tuning, meta-tune — but no single always-on loop that, after a task, decides whether to mint or refine a skill and proves it improved. This epic unifies them into one named closed loop: observe trajectory -&gt; propose skill or edit -&gt; validate against evals -&gt; adopt (gated) -&gt; measure recurrence. The whole point of the product is that it learns by doing; this makes that real
-
-### vanta migrate — import from OpenClaw / Hermes (skills + MCP servers + model config)
-
-**Operator** · M-size
-
-Preview plan -&gt; checkbox select -&gt; backup -&gt; apply; secrets redacted in the report; never overwrites without approval
+_Nothing in flight right now — see the horizon below._
 
 ## Recently shipped
 
-The latest of 903+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 907+ capabilities. See the [changelog](./changelog) for curated milestones.
 
 - **Dead-simple setup — first install works for a non-CS user (no toolchain)** — Operator · 2026-06-22
 - **Prebuilt vanta-kernel binaries via GitHub Releases (no Rust to install)** — Operator · 2026-06-22
 - **Public roadmap + changelog page on the docs site** — Operator · 2026-06-22
 - **Provider-aware model-call watchdog (no false timeout on cold start)** — Harness · 2026-06-22
 - **Public security page — threat model + pentest summary** — Operator · 2026-06-22
+- **Context-aware /status + /doctor verbosity** — Harness · 2026-06-22
+- **In-product /feedback + feature-request flow** — Operator · 2026-06-22
+- **Self-learning loop — agent auto-writes and improves its own skills from what it does** — Harness · 2026-06-22
+- **vanta migrate — import from OpenClaw / Hermes (skills + MCP servers + model config)** — Operator · 2026-06-22
 - **WhatsApp adapter (Node subprocess bridge; Business-API alt)** — Operator · 2026-06-22
 - **Setup/install UX parity** — Harness · 2026-06-22
 - **Messaging adapter — Slack** — Operator · 2026-06-22
@@ -58,10 +40,6 @@ The latest of 903+ capabilities. See the [changelog](./changelog) for curated mi
 - **Tool-call repair — auto-fix malformed tool calls (weak/local models)** — Harness · 2026-06-22
 - **Network egress policy — allow/deny for all outbound, not just hooks** — Harness · 2026-06-22
 - **`/bg` flag preservation — backgrounded sessions keep all startup flags** — Harness · 2026-06-21
-- **Agent management UI — AgentDetail, AgentEditor, AgentsList, AgentsMenu** — Operator · 2026-06-21
-- **AI-powered permission explanation — risk level + reasoning for tool calls** — Operator · 2026-06-21
-- **Shell tab-completion in bash input — command, variable, and file suggestions** — Operator · 2026-06-21
-- **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-06-21
 
 ## On the horizon
 
