@@ -29,7 +29,7 @@ anything if you can trust it, so this one is built to survive a skeptic, not to 
 | **Goal-aware gating** | **A goal ledger + dependency graph; Vanta knows the goal before it picks a tool** | Memory & skills, no goal gate | Per-sender session isolation |
 | **Personal tuning** | **Local LoRA trained from _your own_ accept/reject decisions (real on-device training)** | RL training via Atropos | — |
 | Interfaces | ≈ CLI + TUI + web cockpit + Electron desktop | ≈ CLI + TUI + Electron desktop | CLI + Web Control UI + mobile nodes |
-| Messaging channels | ≈ 11 adapters wired (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy) — [5 verified live from one gateway](/comms-and-gateway); Email / Google Chat / Teams in progress | **20+ platforms** | 13+ (incl. iMessage, Teams, Matrix, Nostr…) |
+| Messaging channels | ≈ **20 adapters wired** (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Matrix, LINE, Mattermost, IRC, ntfy, Teams, Twitch, SMS, Zalo, Feishu, WebChat, Nostr, Google Chat, Email) — [5 verified live from one gateway](/comms-and-gateway); the rest need per-platform creds | 20+ platforms | 13+ (incl. iMessage, Teams, Matrix, Nostr…) |
 | Memory | ≈ brain / memory layers + public LongMemEval / LoCoMo benchmarks | ≈ FTS5 recall + Honcho user-modeling | Session memory |
 | Skills / self-improvement | ≈ Auto skill-improvement (periodic LLM review of used skills) + reflection-from-correction + experiential playbook + meta-tune + LoRA | Self-improving skills + **Skills Hub (shareable)** | **Plugin marketplace** |
 | Subagents / parallel | ≈ subagents + worktree fleet + tmux swarm | ≈ subagent delegation | Multi-agent routing |
@@ -70,10 +70,9 @@ shipped (see [Comms & gateway](/comms-and-gateway) and [Self-improvement](/self-
   are _public_ exchanges for sharing and pulling skills/plugins. Vanta has skill
   search/install/manage, a plugin framework, and bundled skills — but no public community
   marketplace yet; its skills stay local.
-- **Raw channel count & native mobile.** Hermes advertises 20+ platforms; OpenClaw ships
-  dedicated mobile nodes (iOS/Android with camera and voice). Vanta is in the same range
-  (~13 shipped adapters, 5 verified live) but doesn't yet match Hermes's raw breadth or
-  OpenClaw's native mobile clients.
+- **Native mobile.** OpenClaw ships dedicated mobile nodes (iOS/Android with camera and
+  voice); Vanta has no native mobile client yet (a Termux path is on the roadmap). Channel
+  _count_ is now at parity — 20 adapters wired (5 verified live, rest need creds).
 - **Community & maturity.** Both have a head start in public users and contributions;
   Vanta is newer.
 

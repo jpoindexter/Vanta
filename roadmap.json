@@ -15,7 +15,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Recurring high-priority operator ask (requested many times). Root cause of prior slippage: per-channel cards were marked horizon/'out of scope'. PROGRESS 2026-06-22: Matrix + LINE wired into gateway/platforms/factory.ts (9->11 resolvable adapters; both had classes+tests but were unregistered). Remaining build: Email (needs an IMAP/SMTP transport — no transport exported today), Google Chat (needs SA-JSON -> bearer-token minting; transport wants a token, env is VANTA_GOOGLECHAT_SA), Teams (no adapter file — full build + Azure app). Then per-platform live creds + native mobile (PLATFORM-MOBILE-TERMUX). Rolls up MSG-WHATSAPP, Telegram, VANTA-SLACK-CHANNEL-SUGGEST, VANTA-CHANNEL-MSG, VANTA-CHANNEL-PERMISSIONS, VANTA-H-SLACK."
+      "notes": "Recurring high-priority operator ask. SWEEP COMPLETE 2026-06-22: full channel-parity build landed — 20 adapters wired in gateway/platforms/adapter-registry.ts (added Teams, Twitch, SMS/Twilio, Zalo, Feishu, WebChat, Nostr; finished Google Chat SA->token + Email IMAP/SMTP; earlier Matrix + LINE). At parity with Hermes 20+/OpenClaw 13+. New deps (dynamic-imported): @noble/curves (Nostr), nodemailer + imapflow (Email). 944 files/10831 tests green. REMAINING (not build — operator-side): per-platform live credential verification (5 verified live so far: Telegram/WhatsApp/Signal/Discord/Slack) + native mobile client (PLATFORM-MOBILE-TERMUX, separate card). Rolls up MSG-WHATSAPP, Telegram, VANTA-SLACK-CHANNEL-SUGGEST, VANTA-CHANNEL-MSG, VANTA-CHANNEL-PERMISSIONS, VANTA-H-SLACK."
     },
     {
       "id": "VANTA-SELF-LEARNING-LOOP",
