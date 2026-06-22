@@ -57,6 +57,10 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
 async function loadSkillIndex(): Promise<{ name: string; description: string }[]> {
   const { installSkillLibrary } = await import("../skills/library.js");
   await installSkillLibrary({ env: process.env }).catch(() => {});
+  // SKILL-TRIGGERS: (re)register declared triggers into ~/.vanta/hooks.json (user
+  // scope, idempotent). Best-effort — never blocks session start.
+  const { syncSkillTriggers } = await import("../skills/triggers-sync.js");
+  await syncSkillTriggers({ env: process.env }).catch(() => {});
   return (await listSkills(process.env).catch(() => [])).map((s) => ({
     name: s.meta.name,
     description: s.meta.description,

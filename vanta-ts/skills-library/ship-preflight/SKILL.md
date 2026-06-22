@@ -4,6 +4,7 @@ description: "Pre-deploy gate: typecheck (must exit 0) -> full test suite (all p
 created: 2026-06-07
 updated: 2026-06-07
 tags: [deploy, ship, preflight, gate, tests, typecheck, build, release, safety]
+triggers: [{"event":"PreToolUse","match":"git_push"}]
 ---
 
 # Ship Preflight

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { Skill, SkillMeta } from "./types.js";
+import type { Skill, SkillMeta, SkillTrigger } from "./types.js";
 
 // Anchored at the start: opening fence, the frontmatter block, closing fence.
 // Lazy body capture so the FIRST "\n---" closes it. No second fence => no match
@@ -16,6 +16,21 @@ function parseTags(value: string): string[] {
     .map((t) => t.trim())
     // Drops the [""] artifact from empty/"[]" input and trailing commas.
     .filter((t) => t.length > 0);
+}
+
+/** Parse a single-line JSON array of triggers (SKILL-TRIGGERS). Lenient: bad JSON
+ *  or non-array → []; entries without a string `event` are dropped. Must be one line
+ *  (the frontmatter parser is line-based) — compact JSON satisfies that. */
+function parseTriggers(value: string): SkillTrigger[] {
+  try {
+    const arr: unknown = JSON.parse(value);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(
+      (t): t is SkillTrigger => !!t && typeof t === "object" && typeof (t as { event?: unknown }).event === "string",
+    );
+  } catch {
+    return [];
+  }
 }
 
 /** Read flat "key: value" frontmatter lines into the fixed SkillMeta shape. */
@@ -39,6 +54,7 @@ function parseMeta(block: string): SkillMeta {
     else if (key === "updated") meta.updated = value;
     else if (key === "tags") meta.tags = parseTags(value);
     else if (key === "volatile") meta.volatile = value === "true";
+    else if (key === "triggers") meta.triggers = parseTriggers(value);
     // Unknown keys are ignored — SkillMeta is a closed shape.
   }
   return meta;
@@ -113,6 +129,7 @@ export function serializeSkill(skill: Skill): string {
     `updated: ${meta.updated}`,
     `tags: [${meta.tags.join(", ")}]`,
     ...(meta.volatile ? ["volatile: true"] : []),
+    ...(meta.triggers?.length ? [`triggers: ${JSON.stringify(meta.triggers)}`] : []),
     "---",
   ].join("\n");
   return `${frontmatter}\n\n${body}`;

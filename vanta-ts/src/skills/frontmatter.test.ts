@@ -21,6 +21,31 @@ describe("frontmatter", () => {
     expect(parseSkill(serializeSkill(skill))).toEqual(skill);
   });
 
+  it("round-trips a skill with triggers (SKILL-TRIGGERS) as single-line JSON", () => {
+    const skill: Skill = {
+      meta: {
+        name: "ship-preflight",
+        description: "run the suite before a push",
+        created: "2026-06-02T10:00:00.000Z",
+        updated: "2026-06-02T10:00:00.000Z",
+        tags: ["ship"],
+        triggers: [{ event: "PreToolUse", match: "git_push" }, { event: "Stop", when: "errors>=3" }],
+      },
+      body: "# Preflight\n\nRun typecheck + tests.",
+    };
+    const out = serializeSkill(skill);
+    expect(out).toContain('triggers: [{"event":"PreToolUse"');
+    expect(out.split("triggers:")[1]!.split("\n")[0]).toBeTruthy(); // single line
+    expect(parseSkill(out)).toEqual(skill);
+  });
+
+  it("drops malformed triggers JSON without breaking other keys", () => {
+    const md = "---\nname: x\ndescription: d\ncreated: c\nupdated: u\ntags: [a]\ntriggers: not json\n---\n\nbody";
+    const parsed = parseSkill(md);
+    expect(parsed.meta.triggers).toEqual([]);
+    expect(parsed.meta.tags).toEqual(["a"]); // other keys still parse
+  });
+
   it("preserves ISO timestamps that contain colons", () => {
     const skill: Skill = {
       meta: {

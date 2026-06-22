@@ -1,6 +1,7 @@
 ---
 name: systematic-debugging
 description: "4-phase root cause debugging: understand bugs before fixing."
+triggers: [{"event":"PostToolUse","when":"errors>=3"}]
 ---
 
 # Systematic Debugging

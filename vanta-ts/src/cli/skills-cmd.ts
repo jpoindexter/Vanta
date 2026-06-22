@@ -54,7 +54,44 @@ async function runSkillsBundle(rest: string[]): Promise<void> {
   console.log(`Bundle: ${cfg.name}\n  Skills: ${cfg.skills.join(", ")}\n${cfg.instruction ? `  Instruction: ${cfg.instruction}` : ""}`);
 }
 
+/** SKILL-TRIGGERS — `vanta skills trigger-emit <slug> <event>`: surface a recall
+ *  note for the skill, shaped per the event's injection capability. NEVER runs the
+ *  skill body or anything irreversible. */
+async function runTriggerEmit(rest: string[]): Promise<void> {
+  const [, slug, event] = rest;
+  if (!slug || !event) {
+    console.error("usage: vanta skills trigger-emit <slug> <event>");
+    process.exit(1);
+  }
+  const skill = await readSkill(slug);
+  if (!skill) return; // skill removed since sync — no-op (exit 0)
+  const { buildTriggerNote } = await import("../skills/triggers.js");
+  const note = buildTriggerNote(skill, event);
+  if (event === "Stop") return void process.stdout.write(`${JSON.stringify({ additionalContext: note })}\n`);
+  if (event === "PreToolUse") {
+    process.stderr.write(`${note}\n`);
+    const blocks = (skill.meta.triggers ?? []).some((t) => t.event === "PreToolUse" && t.action === "block");
+    if (blocks) process.exit(2); // hard gate; else advisory (statusMessage already warned)
+    return;
+  }
+  process.stdout.write(`${note}\n`); // UserPromptSubmit + others: Claude injects stdout
+}
+
+/** `vanta skills sync-triggers [--claude]` — (re)compile every skill's triggers
+ *  into ~/.vanta/hooks.json, and optionally ~/.claude/settings.json. */
+async function runSyncTriggers(rest: string[]): Promise<void> {
+  const { syncSkillTriggers, syncSkillTriggersForClaude } = await import("../skills/triggers-sync.js");
+  const v = await syncSkillTriggers({ env: process.env });
+  console.log(`✓ synced ${v.written} skill-trigger hook(s) → ~/.vanta/hooks.json${v.events.length ? ` (${v.events.join(", ")})` : ""}`);
+  if (rest.includes("--claude")) {
+    const c = await syncSkillTriggersForClaude({ env: process.env });
+    console.log(`✓ synced ${c.written} → ~/.claude/settings.json (Stop + UserPromptSubmit)`);
+  }
+}
+
 export async function runSkillsCommand(rest: string[]): Promise<void> {
+  if (rest[0] === "trigger-emit") return runTriggerEmit(rest);
+  if (rest[0] === "sync-triggers") return runSyncTriggers(rest);
   if (rest[0] === "lint") {
     const { lintSkills, formatLint } = await import("../skills/lint.js");
     const issues = await lintSkills();
