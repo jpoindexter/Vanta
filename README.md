@@ -111,6 +111,8 @@ More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.
 
 Do no harm. No deletes, no overwrites, no touching outside authorized scope without explicit approval. The Rust kernel enforces this on every tool call — it is a gate, not a suggestion.
 
+Full threat model + the 2026-06-20 pentest (findings & fixes): **[Security](https://docs.vanta.theft.studio/security)** · report a vulnerability privately via [SECURITY.md](SECURITY.md).
+
 ## Contributing
 
 Issues and PRs welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the code standards (size gate, ESM, zod boundaries), and how to run the suite. We follow a [Code of Conduct](CODE_OF_CONDUCT.md). Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report privately, not in a public issue.

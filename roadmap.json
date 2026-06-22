@@ -69,7 +69,7 @@
       "id": "PUBLISH-SECURITY-AUDIT",
       "track": "Operator",
       "title": "Public security page — threat model + pentest summary",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Publish a public security page (threat model + pentest summary) from SECURITY.md on the docs site. Community signal (OpenClaw/Hermes X thread 2026-06-22): the entire OpenClaw/Hermes beef centers on @steipete’s jab \"they copied features but skipped security hardening, not a single report published\" — visible, published security work is a trust differentiator. Vanta did a pentest; surface it.",
       "done": "a /security docs page summarizes the kernel boundary, threat model, and the pentest findings + fixes, linked from the README and docs nav.",
@@ -79,7 +79,7 @@
       "codex": "gpt-5.4",
       "lens": "agent-loop",
       "updated": "2026-06-22",
-      "notes": "Turns the work in SECURITY.md into a launch-time trust asset."
+      "notes": "SHIPPED 2026-06-22. Rewrote vanta-website/docs/security.md into a comprehensive /security page from SECURITY.md: kernel boundary, the honest execution-boundary caveat (denylist is defense-in-depth, the sandbox is the real boundary), untrusted-repo trust model, the full 2026-06-20 pentest findings/fixes (Critical/High/Med + verified-solid), secrets/SSRF, and private reporting. Linked from README (Rule zero) + already in the docs nav. Live at docs.vanta.theft.studio/security."
     },
     {
       "id": "GATEWAY-CHANNEL-SELFHEAL",
