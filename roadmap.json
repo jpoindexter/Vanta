@@ -101,7 +101,7 @@
       "id": "STATUS-VERBOSITY-CONTEXT",
       "track": "Harness",
       "title": "Context-aware /status + /doctor verbosity",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Make /status + /doctor output context-aware — condense the firehose when a non-default model/provider is active. Community signal (OpenClaw/Hermes X thread 2026-06-22), @gliang9: \"/status shows too much information when using non-default models — the previous design was better.\" Extends VANTA-STATUSLINE-RICH + VANTA-BARE-MODE.",
       "done": "status/doctor output adapts verbosity to the active config (fuller for default, condensed for non-default/scripted); --verbose restores the full dump.",
@@ -111,7 +111,7 @@
       "codex": "gpt-5.4",
       "lens": "tui",
       "updated": "2026-06-22",
-      "notes": "Small, concrete UX fix lifted from a real user complaint."
+      "notes": "Shipped 2026-06-22. status.ts: formatStatus(r,{condensed}) drops the full per-provider API-key matrix (shows only the active provider key) + velocity in condensed mode, keeps kernel/provider/store/goals/notices, adds a --verbose hint. isDefaultConfig(env) = provider running its catalog defaultModel; resolveStatusCondensed = --verbose->full, non-TTY->condensed, else condensed iff non-default model. Wired: vanta status/doctor pass argv (--verbose/-v, VANTA_STATUS_VERBOSE=1) + TTY detect; /status [-v] in REPL. Addresses @gliang9 firehose complaint. 946 files/10867 tests green."
     },
     {
       "id": "MARKETING-ANALYTICS-CONNECTORS",

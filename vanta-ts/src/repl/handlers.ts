@@ -1,5 +1,5 @@
 import { listSkills } from "../skills/store.js";
-import { gatherStatus, formatStatus } from "../status.js";
+import { gatherStatus, formatStatus, resolveStatusCondensed } from "../status.js";
 import { newSessionId } from "../sessions/store.js";
 import { slashHelp } from "./catalog.js";
 import { oneLine, lastUserIndex } from "./format.js";
@@ -133,7 +133,12 @@ const skills: SlashHandler = async (_arg, ctx) => {
 const tools: SlashHandler = (_arg, ctx) => ({ output: `  ${ctx.setup.registry.schemas().map((s) => s.name).join(", ")}` });
 const cockpit: SlashHandler = () => ({ output: "  mission-control is a TUI view — run `vanta` (interactive) and type /cockpit, or `vanta serve` for the web cockpit." });
 const agents: SlashHandler = () => ({ output: "  the task panel is a TUI view — run `vanta` (interactive) and type /agents, or `vanta agents` for the CLI list." });
-const status: SlashHandler = async (_arg, ctx) => ({ output: formatStatus(await gatherStatus(ctx.env)) });
+const status: SlashHandler = async (arg, ctx) => {
+  // Interactive = TTY; condense only when on a non-default model (unless --verbose).
+  const verbose = /(?:^|\s)(?:--verbose|-v)(?:\s|$)/.test(arg);
+  const condensed = resolveStatusCondensed(ctx.env, { verbose, isTTY: true });
+  return { output: formatStatus(await gatherStatus(ctx.env), { condensed }) };
+};
 
 const plan: SlashHandler = async (_arg, ctx) => {
   const { readTodos, formatTodos } = await import("../todo/store.js");

@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import { createKernelClient } from "./kernel/client.js";
 import { resolveProvider } from "./providers/index.js";
-import { PROVIDER_CATALOG } from "./providers/catalog.js";
+import { PROVIDER_CATALOG, providerById } from "./providers/catalog.js";
 import { resolveVantaHome, memoriesDir } from "./store/home.js";
 import { listSkills } from "./skills/store.js";
 import { readVelocityEvents, velocityStats, type VelocityStats } from "./velocity/store.js";
@@ -34,49 +34,79 @@ function velocityLines(v: VelocityStats): string[] {
   return [`  velocity  capture:ship 7d  ${v.captures}:${v.ships} (${ratioStr})${note}`];
 }
 
-/** Render a report to a boxed terminal block. Pure. */
-export function formatStatus(r: StatusReport): string {
-  const lines: string[] = ["", "  ⚕ Vanta Status", ""];
+/** Kernel line — neutral idle before first use (it auto-starts on first run), not a red failure. */
+function kernelLine(r: StatusReport): string {
+  return r.kernel.up
+    ? `  ${mark(true)} kernel    up  (${r.kernel.url})`
+    : `  ○ kernel    idle — starts on first run  (${r.kernel.url})`;
+}
 
-  // Kernel "not reachable" before first use is normal — it auto-starts on the first
-  // `vanta run` — so render it as neutral idle, not a red ✗ that reads as broken.
-  lines.push(
-    r.kernel.up
-      ? `  ${mark(true)} kernel    up  (${r.kernel.url})`
-      : `  ○ kernel    idle — starts on first run  (${r.kernel.url})`,
-  );
+/** Active-provider line (or its resolution error). */
+function providerLine(r: StatusReport): string {
+  return r.provider.ok
+    ? `  ${mark(true)} provider  ${r.provider.id} · ${r.provider.model} · ${r.provider.contextWindow?.toLocaleString()} ctx`
+    : `  ${mark(false)} provider  ${r.provider.id} — ${r.provider.error}`;
+}
 
-  if (r.provider.ok) {
-    lines.push(
-      `  ${mark(true)} provider  ${r.provider.id} · ${r.provider.model} · ${r.provider.contextWindow?.toLocaleString()} ctx`,
-    );
-  } else {
-    lines.push(`  ${mark(false)} provider  ${r.provider.id} — ${r.provider.error}`);
+/** API-key section: the full matrix when expanded; only the ACTIVE provider's key
+ *  when condensed (the per-provider matrix is the firehose a configured user hit). */
+function keysSection(r: StatusReport, condensed: boolean): string[] {
+  if (!condensed) {
+    return ["", "  API keys:", ...r.keys.map((k) => `    ${mark(k.present)} ${k.envVar}  (${k.label})`)];
   }
+  const envVar = providerById(r.provider.id)?.envVar;
+  if (!envVar) return ["", `  API key   ${r.provider.id} — local, none needed`];
+  const k = r.keys.find((x) => x.envVar === envVar);
+  return ["", `  API key   ${mark(Boolean(k?.present))} ${envVar}`];
+}
 
-  lines.push("", "  API keys:");
-  for (const k of r.keys) {
-    lines.push(`    ${mark(k.present)} ${k.envVar}  (${k.label})`);
-  }
+function storeLines(r: StatusReport): string[] {
+  return ["", `  store     ${r.store.home}`, `            ${r.store.skills} skill(s) · ${r.store.memories} memory file(s)`];
+}
 
-  lines.push("", `  store     ${r.store.home}`);
-  lines.push(`            ${r.store.skills} skill(s) · ${r.store.memories} memory file(s)`);
+function goalsLine(r: StatusReport): string {
+  return "error" in r.goals ? `  goals     — ${r.goals.error}` : `  goals     ${r.goals.active} active / ${r.goals.total} total`;
+}
 
-  if ("error" in r.goals) {
-    lines.push(`  goals     — ${r.goals.error}`);
-  } else {
-    lines.push(`  goals     ${r.goals.active} active / ${r.goals.total} total`);
-  }
+function noticesSection(r: StatusReport): string[] {
+  return r.notices.length ? ["", "  ⚠ notices:", ...r.notices.map((n) => `    • ${n}`)] : [];
+}
 
-  if (r.velocity) lines.push(...velocityLines(r.velocity));
-
-  if (r.notices.length) {
-    lines.push("", "  ⚠ notices:");
-    for (const n of r.notices) lines.push(`    • ${n}`);
-  }
-
+/**
+ * Render a report to a terminal block. `condensed` drops the full per-provider key
+ * matrix + velocity (the firehose a configured user complained about) and keeps the
+ * essentials; the default (and `--verbose`) restore the full dump. Pure.
+ */
+export function formatStatus(r: StatusReport, opts: { condensed?: boolean } = {}): string {
+  const condensed = opts.condensed ?? false;
+  const lines: string[] = ["", "  ⚕ Vanta Status", "", kernelLine(r), providerLine(r)];
+  lines.push(...keysSection(r, condensed), ...storeLines(r), goalsLine(r));
+  if (!condensed && r.velocity) lines.push(...velocityLines(r.velocity));
+  lines.push(...noticesSection(r));
+  if (condensed) lines.push("", "  · condensed — `vanta status --verbose` for the full report");
   lines.push("");
   return lines.join("\n");
+}
+
+/**
+ * Is the active config the out-of-box default — the provider running its catalog
+ * DEFAULT model? A user who picked a specific non-default model is "non-default"
+ * and gets the condensed report. Unknown provider → treated as non-default. Pure.
+ */
+export function isDefaultConfig(env: NodeJS.ProcessEnv): boolean {
+  const entry = providerById(env.VANTA_PROVIDER ?? "openai");
+  if (!entry) return false;
+  return (env.VANTA_MODEL ?? entry.defaultModel) === entry.defaultModel;
+}
+
+/**
+ * Decide status verbosity: `--verbose` always full; a non-TTY (scripted/piped) run
+ * is condensed; otherwise condensed only when the config is non-default. Pure.
+ */
+export function resolveStatusCondensed(env: NodeJS.ProcessEnv, opts: { verbose: boolean; isTTY: boolean }): boolean {
+  if (opts.verbose) return false;
+  if (!opts.isTTY) return true;
+  return !isDefaultConfig(env);
 }
 
 async function countMemories(env: NodeJS.ProcessEnv): Promise<number> {
@@ -147,6 +177,12 @@ export async function gatherStatus(env: NodeJS.ProcessEnv): Promise<StatusReport
   };
 }
 
-export async function runStatus(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  console.log(formatStatus(await gatherStatus(env)));
+export async function runStatus(
+  env: NodeJS.ProcessEnv = process.env,
+  argv: string[] = [],
+  isTTY: boolean = Boolean(process.stdout.isTTY),
+): Promise<void> {
+  const verbose = argv.includes("--verbose") || argv.includes("-v") || env.VANTA_STATUS_VERBOSE === "1";
+  const condensed = resolveStatusCondensed(env, { verbose, isTTY });
+  console.log(formatStatus(await gatherStatus(env), { condensed }));
 }

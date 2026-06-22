@@ -89,8 +89,8 @@ const COMMANDS: Record<string, CommandFn> = {
   "-h": () => usage(),
   "--help": () => usage(),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },
-  status: () => runStatus(),
-  doctor: () => runStatus(),
+  status: (_root, rest) => runStatus(process.env, rest),
+  doctor: (_root, rest) => runStatus(process.env, rest),
   preflight: () => {
     const res = runPreflight(commandExists);
     console.log(formatPreflight(res, detectPlatform()));
