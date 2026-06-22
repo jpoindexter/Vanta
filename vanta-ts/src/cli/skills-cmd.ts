@@ -57,16 +57,51 @@ async function runSkillsBundle(rest: string[]): Promise<void> {
 /** SKILL-TRIGGERS — `vanta skills trigger-emit <slug> <event>`: surface a recall
  *  note for the skill, shaped per the event's injection capability. NEVER runs the
  *  skill body or anything irreversible. */
+/** Read a JSON payload from stdin (a hook's piped context), or null if none/invalid. */
+async function readStdinJson(): Promise<Record<string, unknown> | null> {
+  if (process.stdin.isTTY) return null;
+  const chunks: Buffer[] = [];
+  for await (const c of process.stdin) chunks.push(c as Buffer);
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** Claude Code emit: read the stdin payload and emit a hookSpecificOutput JSON.
+ *  For PreToolUse, the matcher is broad (e.g. "Bash"), so we confirm the command
+ *  actually matches the trigger (e.g. contains "git push") before surfacing. */
+async function runClaudeEmit(slug: string, event: string, note: string): Promise<void> {
+  const { claudeToolMap } = await import("../skills/triggers.js");
+  const { readSkill } = await import("../skills/store.js");
+  const skill = await readSkill(slug);
+  if (!skill) return;
+  if (event === "PreToolUse") {
+    const trig = (skill.meta.triggers ?? []).find((t) => t.event === "PreToolUse");
+    const { inputContains } = claudeToolMap(trig?.match);
+    const payload = await readStdinJson();
+    const cmd = String((payload?.tool_input as { command?: unknown } | undefined)?.command ?? JSON.stringify(payload?.tool_input ?? ""));
+    if (inputContains && !cmd.includes(inputContains)) return; // not this tool — silent
+    const out = trig?.action === "block"
+      ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: note } }
+      : { hookSpecificOutput: { hookEventName: "PreToolUse", additionalContext: note } };
+    return void process.stdout.write(`${JSON.stringify(out)}\n`);
+  }
+  process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: event, additionalContext: note } })}\n`);
+}
+
 async function runTriggerEmit(rest: string[]): Promise<void> {
   const [, slug, event] = rest;
   if (!slug || !event) {
-    console.error("usage: vanta skills trigger-emit <slug> <event>");
+    console.error("usage: vanta skills trigger-emit <slug> <event> [--claude]");
     process.exit(1);
   }
   const skill = await readSkill(slug);
   if (!skill) return; // skill removed since sync — no-op (exit 0)
   const { buildTriggerNote } = await import("../skills/triggers.js");
   const note = buildTriggerNote(skill, event);
+  if (rest.includes("--claude")) return runClaudeEmit(slug, event, note);
   if (event === "Stop") return void process.stdout.write(`${JSON.stringify({ additionalContext: note })}\n`);
   if (event === "PreToolUse") {
     process.stderr.write(`${note}\n`);
@@ -85,7 +120,7 @@ async function runSyncTriggers(rest: string[]): Promise<void> {
   console.log(`✓ synced ${v.written} skill-trigger hook(s) → ~/.vanta/hooks.json${v.events.length ? ` (${v.events.join(", ")})` : ""}`);
   if (rest.includes("--claude")) {
     const c = await syncSkillTriggersForClaude({ env: process.env });
-    console.log(`✓ synced ${c.written} → ~/.claude/settings.json (Stop + UserPromptSubmit)`);
+    console.log(`✓ synced ${c.written} → ~/.claude/settings.json (PreToolUse · UserPromptSubmit · Stop)`);
   }
 }
 

@@ -5,6 +5,7 @@ import {
   buildTriggerNote,
   mergeVantaHooks,
   mergeClaudeSettings,
+  claudeToolMap,
   TRIGGER_MARKER,
 } from "./triggers.js";
 import type { Skill, SkillTrigger } from "./types.js";
@@ -39,13 +40,32 @@ describe("compileTriggers", () => {
 });
 
 describe("compileTriggersForClaude", () => {
-  it("supports Stop + UserPromptSubmit and skips Vanta-only events", () => {
+  it("compiles Stop, UserPromptSubmit, and PreToolUse (mapped to a Claude matcher)", () => {
     const entries = compileTriggersForClaude(
       skill([{ event: "Stop" }, { event: "UserPromptSubmit" }, { event: "PreToolUse", match: "git_push" }]),
       "vanta",
     );
-    expect(entries.map((e) => e.event).sort()).toEqual(["Stop", "UserPromptSubmit"]);
-    expect(entries[0]!.command).toMatch(/2>\/dev\/null$/);
+    expect(entries.map((e) => e.event).sort()).toEqual(["PreToolUse", "Stop", "UserPromptSubmit"]);
+    const pre = entries.find((e) => e.event === "PreToolUse")!;
+    expect(pre.matcher).toBe("Bash"); // git_push → Bash; the emitter input-gates on "git push"
+    expect(pre.command).toContain("--claude");
+    expect(pre.command).toMatch(/2>\/dev\/null$/);
+  });
+
+  it("skips genuinely-unsupported events (PostToolUse stays Vanta-only)", () => {
+    expect(compileTriggersForClaude(skill([{ event: "PostToolUse", when: "errors>=3" }]), "vanta")).toEqual([]);
+  });
+});
+
+describe("claudeToolMap", () => {
+  it("maps known Vanta tool names to Claude matchers + input guards", () => {
+    expect(claudeToolMap("git_push")).toEqual({ matcher: "Bash", inputContains: "git push" });
+    expect(claudeToolMap("write_file")).toEqual({ matcher: "Write|Edit" });
+    expect(claudeToolMap("read_file")).toEqual({ matcher: "Read" });
+  });
+  it("falls back to the raw match for an unknown tool, '' for none", () => {
+    expect(claudeToolMap("CustomTool")).toEqual({ matcher: "CustomTool" });
+    expect(claudeToolMap(undefined)).toEqual({ matcher: "" });
   });
 });
 

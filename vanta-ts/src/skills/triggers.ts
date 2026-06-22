@@ -16,8 +16,32 @@ export const TRIGGER_MARKER = "skills trigger-emit";
 
 const KNOWN_EVENTS: ReadonlySet<string> = new Set(SHELL_HOOK_EVENTS);
 
-/** Claude Code v1 only injects context on these events; the rest are Vanta-only. */
-const CLAUDE_EVENTS: ReadonlySet<string> = new Set(["Stop", "UserPromptSubmit"]);
+/** Claude Code events the compiler targets. PreToolUse is supported via the
+ *  Vanta→Claude tool map below (Claude tool names differ from Vanta's). */
+const CLAUDE_EVENTS: ReadonlySet<string> = new Set(["Stop", "UserPromptSubmit", "PreToolUse"]);
+
+/** Vanta tool name (a trigger `match`) → Claude Code matcher + an optional command
+ *  substring the emitter must find in `tool_input.command` (since e.g. a git push is
+ *  a `Bash` call, not a `git_push` tool in Claude). Unknown → used as the matcher. */
+const VANTA_TO_CLAUDE: Record<string, { matcher: string; inputContains?: string }> = {
+  git_push: { matcher: "Bash", inputContains: "git push" },
+  git_commit: { matcher: "Bash", inputContains: "git commit" },
+  shell_cmd: { matcher: "Bash" },
+  run_code: { matcher: "Bash" },
+  write_file: { matcher: "Write|Edit" },
+  edit_file: { matcher: "Edit" },
+  read_file: { matcher: "Read" },
+  grep_files: { matcher: "Grep" },
+  glob_files: { matcher: "Glob" },
+  web_fetch: { matcher: "WebFetch" },
+  web_search: { matcher: "WebSearch" },
+};
+
+/** Resolve a trigger `match` to a Claude matcher + optional input guard. Pure. */
+export function claudeToolMap(match: string | undefined): { matcher: string; inputContains?: string } {
+  if (!match) return { matcher: "" };
+  return VANTA_TO_CLAUDE[match] ?? { matcher: match };
+}
 
 /** The emit command a trigger hook runs. `vantaBin` defaults to the PATH `vanta`. */
 export function emitCommand(slug: string, event: string, vantaBin = "vanta"): string {
@@ -65,9 +89,14 @@ export function compileTriggersForClaude(skill: Skill, vantaBin = "vanta"): Clau
   const seen = new Set<string>();
   const out: ClaudeHookEntry[] = [];
   for (const t of skill.meta.triggers ?? []) {
-    if (!CLAUDE_EVENTS.has(t.event) || seen.has(t.event)) continue;
-    seen.add(t.event);
-    out.push({ event: t.event, matcher: "", command: `${emitCommand(slug, t.event, vantaBin)} 2>/dev/null` });
+    if (!CLAUDE_EVENTS.has(t.event)) continue;
+    const matcher = t.event === "PreToolUse" ? claudeToolMap(t.match).matcher : "";
+    const key = `${t.event}:${matcher}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // `--claude` tells the emitter to read Claude's stdin payload + emit Claude's
+    // hookSpecificOutput JSON (vs Vanta's stderr/additionalContext form).
+    out.push({ event: t.event, matcher, command: `${emitCommand(slug, t.event, vantaBin)} --claude 2>/dev/null` });
   }
   return out;
 }
