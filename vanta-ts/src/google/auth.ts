@@ -54,14 +54,14 @@ async function readClientFile(path: string): Promise<ClientCreds> {
 }
 
 /** Creds from a --client file when given, else from env. */
-async function resolveClientCreds(
+export async function resolveClientCreds(
   clientPath: string | undefined,
   env: NodeJS.ProcessEnv,
 ): Promise<ClientCreds> {
   return clientPath ? readClientFile(clientPath) : readClientCreds(env);
 }
 
-async function buildClient(
+export async function buildClient(
   redirectUri: string | undefined,
   creds: ClientCreds,
 ): Promise<OAuth2Client> {
@@ -134,14 +134,14 @@ function awaitLoopbackCode(): Promise<{
 // code; the agent polls /api/oauth/poll (token-gated) until it arrives.
 // ---------------------------------------------------------------------------
 
-async function readApiToken(env: NodeJS.ProcessEnv): Promise<string | null> {
+export async function readApiToken(env: NodeJS.ProcessEnv): Promise<string | null> {
   const { resolveVantaHome } = await import("../store/home.js");
   return readFile(join(resolveVantaHome(env), "api-token"), "utf8")
     .then((t) => t.trim())
     .catch(() => null);
 }
 
-async function pollKernelForCode(kernelUrl: string, apiToken: string): Promise<string> {
+export async function pollKernelForCode(kernelUrl: string, apiToken: string): Promise<string> {
   for (let i = 0; i < 150; i++) {
     await new Promise<void>((r) => setTimeout(r, 2000));
     const res = await fetch(`${kernelUrl}/api/oauth/poll`, {

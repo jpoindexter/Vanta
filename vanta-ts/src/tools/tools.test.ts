@@ -86,6 +86,7 @@ describe("registry", () => {
       "gmail_read",
       "gmail_search",
       "gmail_send",
+      "google_auth",
       "graph_query",
       "grep_files",
       "inspect_state",
