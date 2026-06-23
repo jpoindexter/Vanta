@@ -41,6 +41,26 @@ describe("extractLastTurnCalls", () => {
     ];
     expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
   });
+
+  it("marks OS-level error patterns as isError=true", () => {
+    const msgs: Message[] = [
+      makeMsg("assistant", { toolCalls: [{ id: "tc1", name: "shell_cmd" }] }),
+      makeMsg("tool", { toolCallId: "tc1", name: "shell_cmd", content: "./run.sh: line 21: /home/.vanta/repo-path: Operation not permitted" }),
+    ];
+    expect(extractLastTurnCalls(msgs)[0]!.isError).toBe(true);
+  });
+
+  it("propagates tool call args through TurnCall", () => {
+    const msgs: Message[] = [
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: [{ id: "tc1", name: "shell_cmd", arguments: { command: "vanta auth google" } }],
+      },
+      makeMsg("tool", { toolCallId: "tc1", name: "shell_cmd", content: "ok" }),
+    ];
+    expect(extractLastTurnCalls(msgs)[0]!.args).toEqual({ command: "vanta auth google" });
+  });
 });
 
 describe("detectAnomalies", () => {
@@ -95,6 +115,30 @@ describe("detectAnomalies", () => {
     const calls = [
       { name: "read_file", result: "content", isError: false },
       { name: "write_file", result: "wrote ok", isError: false },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+  });
+
+  it("does NOT flag blind-write for auth/setup shell_cmd before a read", () => {
+    const calls = [
+      { name: "shell_cmd", result: "oauth ok", isError: false, args: { command: "./run.sh auth google" } },
+      { name: "read_file", result: "content", isError: false },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
+  });
+
+  it("DOES flag blind-write for a shell_cmd that redirects output before a read", () => {
+    const calls = [
+      { name: "shell_cmd", result: "wrote ok", isError: false, args: { command: "echo foo > important.ts" } },
+      { name: "read_file", result: "content", isError: false },
+    ];
+    expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(true);
+  });
+
+  it("does NOT flag blind-write for a shell_cmd that produced an OS-level error", () => {
+    const calls = [
+      { name: "shell_cmd", result: "./run.sh: line 21: /path: Operation not permitted", isError: true },
+      { name: "read_file", result: "content", isError: false },
     ];
     expect(detectAnomalies(calls).some((x) => x.type === "blind-write")).toBe(false);
   });

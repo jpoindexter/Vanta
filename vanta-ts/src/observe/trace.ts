@@ -13,7 +13,7 @@ export type TraceAnomaly = {
   severity: AnomalySeverity;
 };
 
-export type TurnCall = { name: string; result: string; isError: boolean };
+export type TurnCall = { name: string; result: string; isError: boolean; args?: Record<string, unknown> };
 
 const WRITE_TOOLS = new Set(["write_file", "edit_file", "shell_cmd", "run_code"]);
 const READ_TOOLS = new Set([
@@ -22,6 +22,9 @@ const READ_TOOLS = new Set([
 ]);
 const LOOP_THRESHOLD = 3;    // same tool ≥N times → warn; ≥6 → alert
 const ERROR_THRESHOLD = 3;   // ≥N consecutive errors → alert
+
+// Matches common OS-level error patterns that don't start with "Error:"
+const OS_ERROR_PATTERN = /\b(operation not permitted|permission denied|eperm|enoent|eacces|eaddrinuse|command not found)\b/i;
 
 /**
  * Extract the tool calls (+ their results) from the last assistant turn in
@@ -39,8 +42,9 @@ export function extractLastTurnCalls(messages: Message[]): TurnCall[] {
       const byId = toolResults.find((m) => m.role === "tool" && m.toolCallId === tc.id);
       const resultMsg = byId ?? toolResults[idx];
       const content = resultMsg?.role === "tool" ? resultMsg.content : "";
-      const isError = /^(error|blocked|failed|unsupported)/i.test(content.trim());
-      return { name: tc.name, result: content, isError };
+      const isError = /^(error|blocked|failed|unsupported)/i.test(content.trim())
+        || OS_ERROR_PATTERN.test(content);
+      return { name: tc.name, result: content, isError, args: tc.arguments };
     });
   }
   return [];
@@ -72,12 +76,24 @@ function detectErrorSpike(calls: TurnCall[]): TraceAnomaly[] {
     : [];
 }
 
+// Heuristic: shell_cmd is a write only when the command redirects output or
+// invokes file-mutating operations. Auth/setup/status commands are neutral.
+const SHELL_WRITE_PATTERN = /(?:^|[;&|])\s*(?:rm\s|mv\s|cp\s|chmod|chown|truncate|dd\s|tee\s|mkdir|touch\s)|[>]/;
+
+function shellCmdIsWrite(args?: Record<string, unknown>): boolean {
+  if (!args) return true; // conservative: no info → treat as write
+  const cmd = typeof args.command === "string" ? args.command.trim() : "";
+  return !cmd || SHELL_WRITE_PATTERN.test(cmd);
+}
+
 /** First write-class tool appears before any read-class tool. */
 function detectBlindWrite(calls: TurnCall[]): TraceAnomaly[] {
   let hadRead = false;
-  for (const { name, isError } of calls) {
+  for (const { name, isError, args } of calls) {
     if (READ_TOOLS.has(name)) { hadRead = true; continue; }
-    if (WRITE_TOOLS.has(name) && !hadRead && !isError) {
+    const isWrite = WRITE_TOOLS.has(name)
+      && (name !== "shell_cmd" || shellCmdIsWrite(args));
+    if (isWrite && !hadRead && !isError) {
       return [{ type: "blind-write", detail: `${name} before any read`, severity: "warn" }];
     }
   }
