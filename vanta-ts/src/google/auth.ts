@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import type { OAuth2Client, Credentials } from "google-auth-library";
@@ -108,10 +109,10 @@ function awaitLoopbackCode(): Promise<{
     server.once("error", (err) => {
       const nodeErr = err as NodeJS.ErrnoException;
       if (nodeErr.code === "EPERM" || nodeErr.code === "EACCES") {
-        rejectServer(new Error(
-          "Google OAuth needs a localhost callback server, which is blocked in this environment " +
-          "(sandbox or restricted shell).\nRun this in a regular terminal:\n  ./run.sh auth google",
-        ));
+        // Signal to runGoogleAuth to try the kernel-relay fallback.
+        const blocked = new Error("loopback-blocked") as NodeJS.ErrnoException;
+        blocked.code = "LOOPBACK_BLOCKED";
+        rejectServer(blocked);
       } else {
         rejectServer(err);
       }
@@ -123,6 +124,61 @@ function awaitLoopbackCode(): Promise<{
       resolveServer({ redirectUri: `http://127.0.0.1:${port}`, code });
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Kernel-relay OAuth fallback: when localhost TCP listen is blocked (sandbox),
+// route the callback through the Vanta kernel's HTTP server (already running
+// on port 7788 outside the sandbox). The browser redirects to
+// http://127.0.0.1:7788/oauth/callback?code=... and the kernel stores the
+// code; the agent polls /api/oauth/poll (token-gated) until it arrives.
+// ---------------------------------------------------------------------------
+
+async function readApiToken(env: NodeJS.ProcessEnv): Promise<string | null> {
+  const { resolveVantaHome } = await import("../store/home.js");
+  return readFile(join(resolveVantaHome(env), "api-token"), "utf8")
+    .then((t) => t.trim())
+    .catch(() => null);
+}
+
+async function pollKernelForCode(kernelUrl: string, apiToken: string): Promise<string> {
+  for (let i = 0; i < 150; i++) {
+    await new Promise<void>((r) => setTimeout(r, 2000));
+    const res = await fetch(`${kernelUrl}/api/oauth/poll`, {
+      headers: { "X-Vanta-Token": apiToken },
+    }).catch(() => null);
+    if (!res?.ok) continue;
+    const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!data) continue;
+    if (typeof data.error === "string") throw new Error(`OAuth error: ${data.error}`);
+    if (typeof data.code === "string") return data.code;
+  }
+  throw new Error("Google OAuth timed out waiting for authorization (5 min limit).");
+}
+
+async function awaitCodeViaKernelRelay(
+  env: NodeJS.ProcessEnv,
+  notify: (msg: string) => void,
+): Promise<{ redirectUri: string; code: Promise<string> }> {
+  const kernelUrl = (env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788").replace(/\/$/, "");
+  const apiToken = await readApiToken(env);
+  if (!apiToken) {
+    throw new Error(
+      "Loopback server blocked and kernel API token not found — run `vanta doctor`.\n" +
+      "Or run `./run.sh auth google` in a regular terminal.",
+    );
+  }
+  const status = await fetch(`${kernelUrl}/api/status`).catch(() => null);
+  if (!status?.ok) {
+    throw new Error(
+      `Loopback server blocked and kernel not reachable at ${kernelUrl}.\n` +
+      "Start it with `cargo run -- serve` or `./run.sh`, then retry.",
+    );
+  }
+  notify("\n(Loopback blocked — routing callback through the kernel on port 7788)\n");
+  const redirectUri = `${kernelUrl}/oauth/callback`;
+  const code = pollKernelForCode(kernelUrl, apiToken);
+  return { redirectUri, code };
 }
 
 /**
@@ -149,7 +205,17 @@ export async function runGoogleAuth(
   // safe default ("unknown") surfaces the 7-day Testing-token warning + guidance.
   const warning = publishStateWarning("unknown");
   if (warning) notify(`\n${warning}\n`);
-  const { redirectUri, code } = await awaitLoopbackCode();
+
+  // Try the loopback server first; fall back to the kernel relay when blocked.
+  let redirectUri: string;
+  let code: Promise<string>;
+  try {
+    ({ redirectUri, code } = await awaitLoopbackCode());
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "LOOPBACK_BLOCKED") throw err;
+    ({ redirectUri, code } = await awaitCodeViaKernelRelay(env, notify));
+  }
+
   const client = await buildClient(redirectUri, creds);
   const authUrl = client.generateAuthUrl({
     access_type: "offline",

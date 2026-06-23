@@ -122,6 +122,28 @@ fn handle(stream: &mut TcpStream, state: &app::State, token: &str) -> Result<(),
             Ok(()) => json(stream, "{\"logged\":true}"),
             Err(err) => json(stream, &format!("{{\"error\":\"{}\"}}", app::esc(&err))),
         }
+    } else if head.starts_with("GET /api/oauth/poll") {
+        // One-shot poll: returns the stored OAuth code (and clears it) or {pending:true}.
+        match poll_oauth_code(state) {
+            Some(code) if code.starts_with("error:") => {
+                json(stream, &format!("{{\"error\":\"{}\"}}", app::esc(&code[6..])))
+            }
+            Some(code) => json(stream, &format!("{{\"code\":\"{}\"}}", app::esc(&code))),
+            None => json(stream, "{\"pending\":true}"),
+        }
+    } else if head.starts_with("GET /oauth/callback") {
+        // Browser redirect from Google's OAuth consent — no token required (browser origin).
+        let path = request_path(head);
+        let code = extract_query_param(path, "code").unwrap_or_default();
+        let error = extract_query_param(path, "error");
+        if !code.is_empty() {
+            let _ = store_oauth_code(state, &code);
+            html(stream, "<html><body><h2>Vanta authorized.</h2><p>You can close this tab.</p></body></html>")
+        } else {
+            let msg = error.as_deref().unwrap_or("no code");
+            let _ = store_oauth_code(state, &format!("error:{msg}"));
+            html(stream, "<html><body><h2>Authorization failed.</h2><p>You can close this tab.</p></body></html>")
+        }
     } else {
         html(stream, INDEX)
     }
@@ -285,6 +307,56 @@ fn write_response(stream: &mut TcpStream, mime: &str, body: &str) -> Result<(), 
         .map_err(|e| e.to_string())
 }
 
+// ---------------------------------------------------------------------------
+// OAuth kernel-relay helpers
+// ---------------------------------------------------------------------------
+
+/// Extract a single query-parameter value from a URL path (minimal, no deps).
+fn extract_query_param(path: &str, key: &str) -> Option<String> {
+    let query = path.split_once('?')?.1;
+    query.split('&').find_map(|pair| {
+        let (k, v) = pair.split_once('=')?;
+        if k.split_once(' ').map(|(k, _)| k).unwrap_or(k) == key {
+            Some(url_decode(v.split_whitespace().next().unwrap_or(v)))
+        } else {
+            None
+        }
+    })
+}
+
+/// Percent-decode an OAuth code or error value (no external dep).
+fn url_decode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '%' {
+            let h1 = chars.next().unwrap_or('0');
+            let h2 = chars.next().unwrap_or('0');
+            if let Ok(byte) = u8::from_str_radix(&format!("{h1}{h2}"), 16) {
+                out.push(byte as char);
+            }
+        } else if c == '+' {
+            out.push(' ');
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+fn store_oauth_code(state: &app::State, code: &str) -> Result<(), String> {
+    std::fs::write(state.data_dir.join("oauth-pending.txt"), code)
+        .map_err(|e| e.to_string())
+}
+
+fn poll_oauth_code(state: &app::State) -> Option<String> {
+    let path = state.data_dir.join("oauth-pending.txt");
+    let code = std::fs::read_to_string(&path).ok()?.trim().to_string();
+    if code.is_empty() { return None; }
+    let _ = std::fs::remove_file(&path);
+    Some(code)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{api_auth, cross_origin, request_path, ApiAuth};
@@ -321,6 +393,18 @@ mod tests {
     fn request_path_reads_the_second_token() {
         assert_eq!(request_path("POST /api/run HTTP/1.1"), "/api/run");
         assert_eq!(request_path("garbage"), "/");
+    }
+
+    #[test]
+    fn extract_query_param_parses_oauth_code() {
+        use super::extract_query_param;
+        let path = "/oauth/callback?code=4%2F0Abc123&state=xyz HTTP/1.1";
+        assert_eq!(extract_query_param(path, "code").as_deref(), Some("4/0Abc123"));
+        assert_eq!(extract_query_param(path, "state").as_deref(), Some("xyz"));
+        assert_eq!(extract_query_param(path, "missing"), None);
+        // error param
+        let errpath = "/oauth/callback?error=access_denied HTTP/1.1";
+        assert_eq!(extract_query_param(errpath, "error").as_deref(), Some("access_denied"));
     }
 }
 
