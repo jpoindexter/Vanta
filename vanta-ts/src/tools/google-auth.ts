@@ -40,6 +40,14 @@ async function startAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
     scope: GOOGLE_SCOPES,
     redirect_uri: redirectUri,
   });
+  // Clear any stale code from a prior aborted attempt BEFORE the user can
+  // approve, so complete's poll only accepts the code from this consent.
+  // Safe to drain here (no approval yet); draining in complete would race a
+  // fast approval. Best-effort — pure hygiene.
+  const token = await readApiToken(env);
+  if (token) {
+    await fetch(`${kernelBase()}/api/oauth/poll`, { headers: { "X-Vanta-Token": token } }).catch(() => null);
+  }
   const opened = await openBrowser(authUrl);
   return {
     ok: true,
