@@ -61,7 +61,13 @@ const Args = z.object({
 });
 
 // Belt-and-suspenders local block, in addition to the kernel safety gate.
-const DESTRUCTIVE = /\brm\s+-rf?\b|\bsudo\b|\bchmod\s+777\b|\bmkfs\b|>\s*\/dev\/|:\(\)\s*\{/;
+// Writes to a real device node (> /dev/sda, dd of=/dev/disk0) are destructive,
+// but the safe pseudo-devices (/dev/null, /dev/stderr, etc.) are not — the old
+// `>\s*/dev/` flagged the ubiquitous `2>/dev/null` as destructive (false positive).
+const SAFE_DEV = "null|zero|stdout|stderr|stdin|tty|fd|random|urandom|console|full|ptmx";
+const DESTRUCTIVE = new RegExp(
+  `\\brm\\s+-rf?\\b|\\bsudo\\b|\\bchmod\\s+777\\b|\\bmkfs\\b|(?:>\\s*|of=)\\/dev\\/(?!(?:${SAFE_DEV})\\b)|:\\(\\)\\s*\\{`,
+);
 
 const MAX_OUTPUT = 1024 * 1024;
 const TIMEOUT_MS = 30_000;

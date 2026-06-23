@@ -2,7 +2,7 @@ use std::path::Path;
 // Path/scope resolution lives in scope.rs; re-export the two the rest of the kernel
 // calls as `safety::*` so callers (app.rs) need no change.
 pub use crate::scope::{inside_scope, is_protected_path};
-use crate::scope::{mentions_outside_home, mentions_outside_scope, references_abs_path_outside_root};
+use crate::scope::{is_safe_dev_device, mentions_outside_home, mentions_outside_scope, references_abs_path_outside_root};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Risk {
@@ -37,9 +37,12 @@ impl Verdict {
 const DESTRUCTIVE: &[&str] = &[
     "rm -rf", "rm -fr", "rm -r", "rm -f", "rmdir", "rmtree", "shutil.rmtree", "os.remove",
     "os.unlink", "unlink(", "pathlib", "delete", "erase", "nuke", "wipe", "trash",
-    "dd if", "dd of", "mkfs", "> /dev", ":(){", "fork bomb", "git clean -fd", "git clean -df",
-    "shred", "> /dev/sd", "of=/dev",
+    "mkfs", ":(){", "fork bomb", "git clean -fd", "git clean -df", "shred",
 ];
+// Writes to a real device node (`> /dev/sda`, `dd of=/dev/disk0`) are destructive,
+// but the safe pseudo-devices (/dev/null, /dev/stderr, /dev/tty*, …) are not — the
+// old broad `> /dev` / `of=/dev` substrings blocked the ubiquitous `> /dev/null
+// 2>&1` and `dd of=/dev/null`. Detected precisely by writes_to_block_device().
 const DATA_LOSS: &[&str] = &["overwrite", "replace whole", "truncate", "drop table", "reset --hard", "git push --force", "push -f"];
 const EXFIL: &[&str] = &["blackmail", "exfiltrate", "steal", "leak token", "api key"];
 // Arbitrary-code-execution vectors: a keyword denylist can't foresee what these do,
@@ -94,7 +97,7 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
     // (rm  -rf, r"m" -rf, rm\ -rf). True containment still needs a sandbox.
     let t = normalize_cmd(&raw);
 
-    if has_any(&t, DESTRUCTIVE) {
+    if has_any(&t, DESTRUCTIVE) || writes_to_block_device(&t) {
         return block("destructive file operation violates rule zero");
     }
     if has_any(&t, DATA_LOSS) {
@@ -170,6 +173,30 @@ fn normalize_cmd(s: &str) -> String {
 
 fn has_any(text: &str, needles: &[&str]) -> bool {
     needles.iter().any(|needle| text.contains(needle))
+}
+
+/// True when the (normalized) command writes to a REAL device node under /dev/
+/// — `> /dev/sda`, `2>/dev/disk0`, `dd of=/dev/nvme0n1`. The write target must be
+/// immediately preceded by a redirect (`>`) or `of=`, so reading a device or a
+/// path that merely contains "/dev/" is not flagged. Safe pseudo-devices
+/// (is_safe_device) are excluded, so `> /dev/null 2>&1` and `dd of=/dev/null` pass.
+fn writes_to_block_device(t: &str) -> bool {
+    let mut from = 0;
+    while let Some(rel) = t[from..].find("/dev/") {
+        let idx = from + rel;
+        let before = t[..idx].trim_end();
+        if before.ends_with('>') || before.ends_with("of=") {
+            let name: String = t[idx + 5..]
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                .collect();
+            if !is_safe_dev_device(&name) {
+                return true;
+            }
+        }
+        from = idx + 5;
+    }
+    false
 }
 
 /// True for explicit read-only search actions whose fixed tool prefix means a

@@ -105,6 +105,31 @@ use std::path::PathBuf;
     }
 
     #[test]
+    fn allows_dev_null_redirects() {
+        // Regression: broad `> /dev` / `of=/dev` BLOCKED, and the bare `/dev/null`
+        // token tripped the outside-scope Ask. Harmless pseudo-device writes must Allow.
+        for cmd in [
+            "run shell command: ls > /dev/null 2>&1",
+            "run shell command: cargo build 2>/dev/null",
+            "run shell command: dd if=seed of=/dev/null",
+            "run shell command: echo hi > /dev/stderr",
+        ] {
+            assert_eq!(assess_action(cmd, &root()).risk, Risk::Allow, "{cmd}");
+        }
+    }
+
+    #[test]
+    fn blocks_writes_to_real_device_nodes() {
+        for cmd in [
+            "run shell command: echo x > /dev/sda",
+            "run shell command: dd if=z of=/dev/disk0",
+            "run shell command: cat a > /dev/nvme0n1",
+        ] {
+            assert_eq!(assess_action(cmd, &root()).risk, Risk::Block, "{cmd}");
+        }
+    }
+
+    #[test]
     fn protected_path_blocks_kernel_source() {
         let r = root();
         assert!(is_protected_path(&r.join("src/safety.rs"), &r));

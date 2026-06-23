@@ -18,6 +18,26 @@ describe("shell_cmd local execution", () => {
     expect(r.ok).toBe(false);
     expect(r.output).toMatch(/destructive/);
   });
+
+  it("does NOT flag benign /dev/null redirects as destructive", async () => {
+    // Regression: `>\s*/dev/` used to block the ubiquitous `2>/dev/null`.
+    for (const command of [
+      'test -d "$HOME/x" 2>/dev/null && echo found',
+      "ls > /dev/null 2>&1",
+      "dd if=seed of=/dev/null",
+    ]) {
+      const r = await shellCmdTool.execute({ command }, ctx());
+      expect(r.output, command).not.toMatch(/destructive/);
+    }
+  });
+
+  it("still blocks writes to real device nodes", async () => {
+    for (const command of ["echo x > /dev/sda", "dd if=z of=/dev/disk0", "cat a > /dev/nvme0n1"]) {
+      const r = await shellCmdTool.execute({ command }, ctx());
+      expect(r.ok, command).toBe(false);
+      expect(r.output, command).toMatch(/destructive/);
+    }
+  });
 });
 
 describe("shell_cmd plugin hints (strip from stderr + surface suggestion)", () => {

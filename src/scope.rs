@@ -11,8 +11,33 @@ use std::path::{Component, Path, PathBuf};
 /// sibling-prefix path (`/a/vanta-evil` vs `/a/vanta`) can no longer slip through.
 pub(crate) fn references_abs_path_outside_root(text: &str, root: &Path) -> bool {
     let base = lex_norm_str(root);
-    text.split_whitespace()
-        .any(|tok| tok.starts_with('/') && tok.len() > 1 && !is_inside(&lex_norm_str(Path::new(tok)), &base))
+    text.split_whitespace().any(|tok| {
+        tok.starts_with('/')
+            && tok.len() > 1
+            && !is_safe_dev_path(tok)
+            && !is_inside(&lex_norm_str(Path::new(tok)), &base)
+    })
+}
+
+/// `/dev/null` and the other safe pseudo-devices are universal bit-buckets, not
+/// in-scope paths — writing to them is harmless, so they must NOT count as
+/// "outside scope" (else `cmd > /dev/null` always escalates to Ask). Real device
+/// nodes (/dev/sda) are caught as destructive by safety.rs, not here.
+fn is_safe_dev_path(tok: &str) -> bool {
+    tok.strip_prefix("/dev/").is_some_and(|rest| {
+        let name: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
+        is_safe_dev_device(&name)
+    })
+}
+
+/// The character pseudo-devices that are harmless to write to. Single source of
+/// truth shared with safety.rs's device-write block check.
+pub(crate) fn is_safe_dev_device(name: &str) -> bool {
+    const SAFE: &[&str] = &[
+        "null", "zero", "stdout", "stderr", "stdin", "fd",
+        "random", "urandom", "console", "full", "ptmx",
+    ];
+    name.starts_with("tty") || SAFE.contains(&name)
 }
 
 /// Is `path` inside `root`? Resolves symlinks + `..` via the filesystem when the
