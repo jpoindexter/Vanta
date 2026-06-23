@@ -1,3 +1,4 @@
+import { execFile } from "node:child_process";
 import {
   resolveClientCreds,
   buildClient,
@@ -17,6 +18,18 @@ function kernelBase(): string {
   return (process.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788").replace(/\/$/, "");
 }
 
+/** Best-effort open of the consent page in the user's default browser. A plain
+ *  spawn (no IPC pipe), so it survives the sandbox that blocks tsx's pipe. */
+function openBrowser(url: string): Promise<boolean> {
+  const [cmd, args] =
+    process.platform === "darwin" ? ["open", [url]]
+    : process.platform === "win32" ? ["cmd", ["/c", "start", "", url]]
+    : ["xdg-open", [url]];
+  return new Promise((resolve) => {
+    execFile(cmd as string, args as string[], (err) => resolve(!err));
+  });
+}
+
 async function startAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
   const creds = await resolveClientCreds(undefined, env);
   const redirectUri = `${kernelBase()}/oauth/callback`;
@@ -27,11 +40,13 @@ async function startAuth(env: NodeJS.ProcessEnv): Promise<ToolResult> {
     scope: GOOGLE_SCOPES,
     redirect_uri: redirectUri,
   });
+  const opened = await openBrowser(authUrl);
   return {
     ok: true,
     output:
-      `Open this URL in your browser to authorize Vanta with Google:\n\n${authUrl}\n\n` +
-      `After approving, call google_auth with action='complete' to finish.`,
+      (opened ? "Opened the Google consent page in your browser.\n\n" : "") +
+      `Authorize Vanta with Google at this URL:\n\n${authUrl}\n\n` +
+      `Then call google_auth with action='complete' to finish.`,
   };
 }
 

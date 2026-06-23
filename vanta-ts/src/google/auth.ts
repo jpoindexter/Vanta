@@ -135,10 +135,20 @@ function awaitLoopbackCode(): Promise<{
 // ---------------------------------------------------------------------------
 
 export async function readApiToken(env: NodeJS.ProcessEnv): Promise<string | null> {
-  const { resolveVantaHome } = await import("../store/home.js");
-  return readFile(join(resolveVantaHome(env), "api-token"), "utf8")
-    .then((t) => t.trim())
-    .catch(() => null);
+  // Walk up from VANTA_ROOT/cwd — same logic as kernel/client.ts so we find
+  // the per-project token even when cwd is vanta-ts/ and the token is at the repo root.
+  const { readFileSync } = await import("node:fs");
+  let dir = env.VANTA_ROOT ?? process.cwd();
+  for (let i = 0; i < 20; i++) {
+    try {
+      const t = readFileSync(join(dir, ".vanta", "api-token"), "utf8").trim();
+      if (t) return t;
+    } catch { /* not here */ }
+    const parent = join(dir, "..");
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
 }
 
 export async function pollKernelForCode(kernelUrl: string, apiToken: string): Promise<string> {

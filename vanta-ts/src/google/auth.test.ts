@@ -6,6 +6,7 @@ import {
   parseTokenFile,
   hasGoogleAuth,
   getAccessToken,
+  readApiToken,
 } from "./auth.js";
 import { runAuthCommand } from "./commands.js";
 
@@ -103,5 +104,35 @@ describe("runAuthCommand", () => {
     // before awaitLoopbackCode() is reached, so no localhost TCP bind needed.
     const code = await runAuthCommand(["google"], {});
     expect(code).toBe(1);
+  });
+});
+
+describe("readApiToken", () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "vanta-token-"));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("finds the token in VANTA_ROOT/.vanta/api-token", async () => {
+    await mkdir(join(dir, ".vanta"), { recursive: true });
+    await writeFile(join(dir, ".vanta", "api-token"), "tok-abc\n", "utf8");
+    expect(await readApiToken({ VANTA_ROOT: dir })).toBe("tok-abc");
+  });
+
+  it("walks up to an ancestor's .vanta/api-token (cwd differs from repo root)", async () => {
+    await mkdir(join(dir, ".vanta"), { recursive: true });
+    await writeFile(join(dir, ".vanta", "api-token"), "tok-root", "utf8");
+    const nested = join(dir, "vanta-ts", "src");
+    await mkdir(nested, { recursive: true });
+    expect(await readApiToken({ VANTA_ROOT: nested })).toBe("tok-root");
+  });
+
+  it("returns null when no api-token exists in the tree", async () => {
+    expect(await readApiToken({ VANTA_ROOT: dir })).toBeNull();
   });
 });
