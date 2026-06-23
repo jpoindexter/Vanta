@@ -7,6 +7,7 @@ import {
   hasGoogleAuth,
   getAccessToken,
 } from "./auth.js";
+import { runAuthCommand } from "./commands.js";
 
 const NOT_AUTH = "Google not authorized — run: vanta auth google";
 
@@ -88,5 +89,19 @@ describe("token file persistence", () => {
   it("getAccessToken throws the actionable error when refresh_token is missing", async () => {
     await writeTokens({ access_token: "a" });
     await expect(getAccessToken(env)).rejects.toThrow(NOT_AUTH);
+  });
+});
+
+describe("runAuthCommand", () => {
+  it("exits 1 and prints usage when subcommand is not google", async () => {
+    const code = await runAuthCommand(["slack"]);
+    expect(code).toBe(1);
+  });
+
+  it("exits 1 when client credentials are missing (throws before opening loopback)", async () => {
+    // Empty env = no VANTA_GOOGLE_CLIENT_ID/SECRET → credential check fires
+    // before awaitLoopbackCode() is reached, so no localhost TCP bind needed.
+    const code = await runAuthCommand(["google"], {});
+    expect(code).toBe(1);
   });
 });

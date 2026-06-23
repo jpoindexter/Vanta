@@ -75,12 +75,13 @@ async function buildClient(
 /**
  * Start a one-shot loopback server, return its base URL plus a promise that
  * resolves with the OAuth ?code (or rejects on ?error). Closes after one hit.
+ * Rejects with an actionable message if the sandbox blocks localhost TCP binding.
  */
 function awaitLoopbackCode(): Promise<{
   redirectUri: string;
   code: Promise<string>;
 }> {
-  return new Promise((resolveServer) => {
+  return new Promise((resolveServer, rejectServer) => {
     let resolveCode!: (code: string) => void;
     let rejectCode!: (err: Error) => void;
     const code = new Promise<string>((res, rej) => {
@@ -104,7 +105,20 @@ function awaitLoopbackCode(): Promise<{
       else rejectCode(new Error("OAuth redirect missing code"));
     });
 
+    server.once("error", (err) => {
+      const nodeErr = err as NodeJS.ErrnoException;
+      if (nodeErr.code === "EPERM" || nodeErr.code === "EACCES") {
+        rejectServer(new Error(
+          "Google OAuth needs a localhost callback server, which is blocked in this environment " +
+          "(sandbox or restricted shell).\nRun this in a regular terminal:\n  ./run.sh auth google",
+        ));
+      } else {
+        rejectServer(err);
+      }
+    });
+
     server.listen(0, "127.0.0.1", () => {
+      server.removeAllListeners("error");
       const port = (server.address() as AddressInfo).port;
       resolveServer({ redirectUri: `http://127.0.0.1:${port}`, code });
     });

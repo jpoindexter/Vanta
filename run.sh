@@ -18,7 +18,9 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 # location updates the pointer; no install.sh re-run needed.
 VANTA_STATE_HOME="${VANTA_HOME:-$HOME/.vanta}"
 mkdir -p "$VANTA_STATE_HOME" 2>/dev/null || true
-printf '%s\n' "$DIR" > "$VANTA_STATE_HOME/repo-path" 2>/dev/null || true
+# Subshell isolates the redirect failure so the shell's own error message goes
+# to the subshell's stderr (redirected to /dev/null) rather than our output.
+( printf '%s\n' "$DIR" > "$VANTA_STATE_HOME/repo-path" ) 2>/dev/null || true
 
 # --- no-toolchain helpers (kernel + node download), shared with install.sh ----
 . "$DIR/scripts/setup-lib.sh"
