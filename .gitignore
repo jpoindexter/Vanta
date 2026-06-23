@@ -46,3 +46,7 @@ HANDOFF.md
 docs/superpowers/
 docs/desktop-completion-plan.md
 launch-posts.html
+
+# Sensitive compiled-vault source: ingested from .vanta runtime session memory
+# (operator preferences/task context) — never commit to the public repo
+Compiled-Vaults/**/Sources/local-vanta-session-memory.md
