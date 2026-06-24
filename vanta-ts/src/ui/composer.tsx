@@ -108,10 +108,10 @@ export function Composer(props: {
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
-    const burst = isPasteBurst(inputAtRef.current); // opt-in: a return mid-burst = a paste newline
-    inputAtRef.current = Date.now();
+    const burst = isPasteBurst(inputAtRef.current); inputAtRef.current = Date.now(); // a return mid-burst = a paste newline
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
     if (vimHandle.handle({ input, key, value, cursor, setBuf })) return; // vi normal mode owns the key; insert falls through
+    if (isMultiLinePaste(input)) { pasteText(input); return; } // raw multi-line paste chunk → normalize, never submit
     if (handleReturnKey(key, burst, insertNewline, submitNow)) return;
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
@@ -152,19 +152,41 @@ export function isImagePasteSignal(pasted: string): boolean {
   return pasted.trim() === "";
 }
 
+/**
+ * Normalize pasted text for the buffer: CRLF and lone CR → LF. A raw carriage
+ * return returns the terminal cursor to column 0 WITHOUT a line feed, so the next
+ * line overwrites the previous one — the interleaved "scramble" — and a CR also
+ * reads as Enter (submitting mid-paste). Many clipboards use CRLF/CR endings, so a
+ * CR must never enter the buffer.
+ */
+export function normalizePaste(text: string): string {
+  return text.replace(/\r\n?/g, "\n");
+}
+
+/**
+ * A multi-char input chunk containing a line break is a raw (non-bracketed) paste
+ * fragment — route it through the paste path so its CRs are normalized and it can
+ * never be read as Enter. A lone keystroke (incl. a bare Enter) or an escape
+ * sequence (arrows have no CR/LF) is left to normal key handling.
+ */
+export function isMultiLinePaste(input: string): boolean {
+  return input.length > 1 && /[\r\n]/.test(input);
+}
+
 type TextPasteOpts = {
   read: () => { value: string; cursor: number }; focused: boolean;
   setBuf: (v: string, c: number) => void; onImagePaste?: () => void;
 };
 
 function useTextPaste(o: TextPasteOpts): (text: string) => void {
-  const pasteText = (text: string): void => {
+  const pasteText = (raw: string): void => {
     if (!o.focused) return;
     // Raw-image Cmd+V: an image-only clipboard has no text representation, so the
     // terminal sends an empty bracketed paste (Ink emits usePaste("")). Grab the
     // clipboard image instead of inserting nothing. Harmless on a truly-empty
     // clipboard (the /paste handler just reports "no image").
-    if (o.onImagePaste && isImagePasteSignal(text)) { o.onImagePaste(); return; }
+    if (o.onImagePaste && isImagePasteSignal(raw)) { o.onImagePaste(); return; }
+    const text = normalizePaste(raw); // CR → LF so it can't overwrite the render or submit
     const { value, cursor } = o.read(); // refs → the LATEST buffer, never a stale closure
     const next = value.slice(0, cursor) + text + value.slice(cursor);
     o.setBuf(next, cursor + text.length);

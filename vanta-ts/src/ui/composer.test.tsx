@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderUi, tick, waitUntil, waitForFrame } from "./test-render.js";
-import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal } from "./composer.js";
+import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal, normalizePaste } from "./composer.js";
 import { matchSlash } from "./slash.js";
 import type { SlackChannel } from "../repl/slack-suggest.js";
 
@@ -296,6 +296,40 @@ describe("Composer — paste-burst guard (newline mid-paste must not submit)", (
     inst.input("\r");
     await waitUntil(() => onSubmit.mock.calls.length > 0);
     expect(onSubmit).toHaveBeenCalledWith("hello");
+    inst.unmount();
+  });
+});
+
+describe("normalizePaste — carriage returns never enter the buffer", () => {
+  it("converts CRLF and lone CR to LF", () => {
+    expect(normalizePaste("a\r\nb\rc")).toBe("a\nb\nc");
+    expect(normalizePaste("line1\r\nline2\r\nline3")).toBe("line1\nline2\nline3");
+    expect(normalizePaste("no carriage returns here")).toBe("no carriage returns here");
+  });
+
+  it("a lone-CR bracketed paste pills instead of scrambling (CR→LF makes the lines countable)", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    // Old-mac / clipboard CR endings: without normalization countLines sees 1 line and
+    // the raw CRs overwrite the render. Normalized → 5 LF lines → pill, no submit.
+    inst.input("\x1b[200~one\rtwo\rthree\rfour\rfive\x1b[201~");
+    await waitForFrame(inst, "Pasted text");
+    expect(onSubmit).not.toHaveBeenCalled();
+    inst.unmount();
+  });
+});
+
+describe("Composer — raw (non-bracketed) multi-line paste chunk", () => {
+  it("normalizes a raw chunk with CRs and does not submit mid-paste", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    // A multi-char input containing CRs (raw paste, bracketed paste off) — must be
+    // inserted (normalized), never treated as Enter.
+    inst.input("alpha\rbravo\rcharlie\rdelta\recho");
+    await waitForFrame(inst, "Pasted text");
+    expect(onSubmit).not.toHaveBeenCalled();
     inst.unmount();
   });
 });
