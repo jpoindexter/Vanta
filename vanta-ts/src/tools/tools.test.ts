@@ -50,6 +50,7 @@ describe("registry", () => {
       "calendar_create",
       "calendar_read",
       "calendar_update",
+      "call_agent",
       "clarify",
       "code_affected",
       "code_context",

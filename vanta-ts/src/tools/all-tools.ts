@@ -80,6 +80,7 @@ import {
   gitCheckoutTool,
 } from "./git.js";
 import { delegateTool } from "./delegate.js";
+import { callAgentTool } from "./call-agent.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
@@ -222,6 +223,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   gitBranchTool,
   gitCheckoutTool,
   delegateTool,
+  callAgentTool,
   gmailSearchTool,
   gmailReadTool,
   gmailDraftTool,
