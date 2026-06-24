@@ -26,6 +26,7 @@ import { runAdvisor } from "./advisor.js";
 import { compactOversizedResult } from "../compress/reactive.js";
 import type { AgentDeps, AgentOutcome } from "./agent-types.js";
 import { buildStopSummary } from "../repl/stop-cmd.js";
+import { CONTINUE_NUDGE, shouldAutoContinue } from "./auto-continue.js";
 import { join } from "node:path";
 
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -54,10 +55,12 @@ type TurnState = {
   tokensSaved: number;
   /** VANTA-STOP-CMD: names of tools completed this turn, for the soft-stop summary. */
   toolNames: string[];
+  /** VANTA-AUTOCONTINUE: how many times this turn auto-continued past a premature stop. */
+  autoContinues: number;
 };
 
 function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [] };
+  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], autoContinues: 0 };
 }
 
 function recordUsage(state: TurnState, result: CompletionResult): void {
@@ -143,7 +146,14 @@ async function handleNoToolCalls(args: NoToolCallsArgs): Promise<AgentOutcome | 
   const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
   if (result.text.trim()) {
     messages.push({ role: "assistant", content: result.text });
-    return { finalText: await displayText(deps, result.text), iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
+    const shown = await displayText(deps, result.text);
+    if (await shouldAutoContinue({ result, messages, autoContinues: state.autoContinues, toolNames: state.toolNames, deps })) {
+      state.autoContinues++;
+      if (shown) deps.onText?.(shown); // surface the interim text, then push through
+      messages.push({ role: "user", content: CONTINUE_NUDGE });
+      return null;
+    }
+    return { finalText: shown, iterations: iter, stoppedReason: "done", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
   }
   messages.push({ role: "assistant", content: "" });
   messages.push({ role: "user", content: "You returned nothing. State your result or call a tool." });
