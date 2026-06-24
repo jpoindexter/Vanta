@@ -27,6 +27,11 @@ export function countLines(value: string): number {
 }
 
 export const PASTE_PILL_THRESHOLD = 3;
+// Also collapse a long paste whose newlines got normalized away by the terminal —
+// it arrives as a few very long lines (≤3), so the line threshold alone misses it
+// and the long lines wrap/overlap into a scramble. A buffer this long is a paste,
+// not typing, so collapse it to the pill regardless of line count.
+export const PASTE_PILL_CHARS = 500;
 
 export function Composer(props: {
   onSubmit: (text: string) => void;
@@ -134,11 +139,14 @@ function usePastePill(value: string): { pill?: { count: number; lines: number };
   const pasteCountRef = useRef(0);
   const wasPillRef = useRef(false);
   const lineCount = countLines(value);
-  const isPill = lineCount > PASTE_PILL_THRESHOLD;
+  const isPill = lineCount > PASTE_PILL_THRESHOLD || value.length > PASTE_PILL_CHARS;
   if (isPill && !wasPillRef.current) pasteCountRef.current++;
   wasPillRef.current = isPill;
+  // Report the VISUAL line count: a newline-stripped paste is one long logical
+  // line, so estimate wrapped rows from length (~80 cols) so the pill reads sensibly.
+  const displayLines = Math.max(lineCount, Math.ceil(value.length / 80));
   return {
-    pill: isPill ? { count: pasteCountRef.current, lines: lineCount } : undefined,
+    pill: isPill ? { count: pasteCountRef.current, lines: displayLines } : undefined,
     clearPill: () => { wasPillRef.current = false; },
   };
 }

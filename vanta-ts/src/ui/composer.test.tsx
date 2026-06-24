@@ -73,6 +73,27 @@ describe("ComposerView — paste pill", () => {
   });
 });
 
+describe("Composer — long paste collapses to a pill even with newlines stripped", () => {
+  it("pills a long single-line paste (≤3 lines) via the char threshold", async () => {
+    const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    const longPaste = "word ".repeat(140); // ~700 chars, ONE line (newlines stripped) — used to wrap/scramble
+    inst.input(longPaste);
+    await waitForFrame(inst, "Pasted text");
+    expect(inst.lastFrame()).not.toContain("word word word"); // raw text collapsed, not rendered as a scramble
+    inst.unmount();
+  });
+
+  it("does NOT pill ordinary short typed input", async () => {
+    const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("a normal short message");
+    await waitForFrame(inst, "a normal short message");
+    expect(inst.lastFrame()).not.toContain("Pasted text");
+    inst.unmount();
+  });
+});
+
 describe("Composer focus handling", () => {
   it("does not insert printable keys when the composer is not focused", async () => {
     const inst = renderUi(h(Composer, { focused: false, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
