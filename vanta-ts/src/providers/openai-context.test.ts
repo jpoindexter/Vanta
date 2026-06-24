@@ -18,3 +18,12 @@ describe("resolveContextWindow", () => {
     expect(resolveContextWindow("gpt-4o", { VANTA_CONTEXT_WINDOW: "0" } as unknown as NodeJS.ProcessEnv)).toBe(128_000);
   });
 });
+
+describe("resolveContextWindow — router-prefixed model ids", () => {
+  it("strips a provider prefix (colon or slash) and matches case-insensitively", () => {
+    const e = {} as NodeJS.ProcessEnv;
+    expect(resolveContextWindow("minimax:MiniMax-M3", e)).toBe(1_048_576); // TokenRouter
+    expect(resolveContextWindow("minimax/minimax-m3", e)).toBe(1_048_576); // OpenRouter style
+    expect(resolveContextWindow("openai:gpt-4o", e)).toBe(128_000);
+  });
+});

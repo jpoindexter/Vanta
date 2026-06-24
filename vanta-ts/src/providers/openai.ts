@@ -38,7 +38,15 @@ const DEFAULT_CONTEXT_WINDOW = 32_000;
 export function resolveContextWindow(model: string, env: NodeJS.ProcessEnv = process.env): number {
   const override = Number(env.VANTA_CONTEXT_WINDOW);
   if (Number.isFinite(override) && override > 0) return Math.floor(override);
-  return CONTEXT_WINDOWS[model] ?? DEFAULT_CONTEXT_WINDOW;
+  // Routers (TokenRouter "minimax:MiniMax-M3", OpenRouter "minimax/minimax-m3")
+  // prefix the id with a provider segment — strip it, and match case-insensitively.
+  const want = model.toLowerCase();
+  const bare = model.replace(/^[^:/]+[:/]/, "").toLowerCase();
+  for (const [k, v] of Object.entries(CONTEXT_WINDOWS)) {
+    const key = k.toLowerCase();
+    if (key === want || key === bare) return v;
+  }
+  return DEFAULT_CONTEXT_WINDOW;
 }
 
 export class OpenAIProvider implements LLMProvider {
