@@ -12,9 +12,11 @@ Turn scattered, authorized signal about the operator into ONE organized, durable
 
 - **Vanta brain + memory** — `recall` existing user_model / identity / preferences FIRST; build on it, don't duplicate.
 - **Mounted vault / knowledge base** — `vault_search` (or equivalent) for notes about the operator: their person/entity note, builder profile, stated preferences.
-- **Files the operator names** — read only the paths they point you at, in scope.
+- **The operator's OWN files** — when they grant disk/folder access ("scrape my hd", "use my Desktop", "u decide", or a named path), read THEIR OWN writing samples, bios, notes, and repo docs in scope. This is authorized own-data, not private-account scraping — it's the richest tone source, so USE it rather than retreating to public-only; just skip any secrets/keys/ID/payment files.
 - **Public web** — `web_search` / `web_fetch` the operator's PUBLIC footprint (sites, repos, profiles) for durable facts. Public only.
 - **The live conversation** — the operator's own messages are the best available tone sample.
+
+**Try each source ONCE; skip failures, never re-fetch.** A source that 404s, times out, is empty, or is blocked (Cloudflare / bot-protection is common on the operator's own marketing site) is *unavailable* — note it once and MOVE ON to the next source. Re-hitting the same failed URL is the spinning failure mode this skill exists to avoid.
 
 NOT authorized — do not attempt: browser history, memories stored in other AI services, private accounts/inboxes without an explicit per-source grant, anything behind a login the operator has not handed you. "Scrape everything" is never the plan.
 
@@ -29,7 +31,7 @@ NOT authorized — do not attempt: browser history, memories stored in other AI 
    - **Work / shipping style** — how they decide, scope discipline, what "done" means to them, approval thresholds.
    - **Purchasing criteria** — budget bands, must-haves and deal-breakers, brands trusted or avoided, when to ask vs proceed.
    - **Document / site review checklist** — what they check for, what makes them reject, their quality bar.
-3. **Self-score sufficiency (the gate).** Score the draft 0–10 against EACH of the three goals: draft-in-voice, review-to-standard, recommend-purchases. If any score is below 9: name the specific gap, gather more from authorized sources, or ask the operator one targeted question. Loop until each goal is ≥ 9, or the operator says save it anyway.
+3. **Self-score, then CONVERGE — do not loop.** Make exactly ONE gathering pass over the authorized sources (skipping any that failed). Then score 0–10 against EACH goal: draft-in-voice, review-to-standard, recommend-purchases. The score is a READOUT, not a loop condition. If a goal is still below 9 after that pass, the gap needs the operator's own input (private writing samples, budget rules, the doc types they actually want reviewed) or an unavailable source — you cannot raise it by re-scraping, so DON'T. Name each remaining gap and ask for it once. A 6/10 with a clear, specific intake ask is a finished turn — not a reason to keep gathering or re-fetch a blocked URL.
 4. **Save organized to the brain.** `brain remember` each section as its own user_model entry (one cohesive fact per entry, tagged) so it integrates with the brain's recall and scoring, and link related entries. Do NOT dump one giant blob, and do NOT silently overwrite — refresh existing entries.
 5. **Report** what was saved, the per-goal scores, the gaps left, and what you deliberately refused to store.
 
