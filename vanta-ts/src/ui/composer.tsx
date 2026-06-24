@@ -34,6 +34,19 @@ export const PASTE_PILL_THRESHOLD = 3;
 export const PASTE_PILL_CHARS = 500;
 
 /**
+ * Opt-in paste guard for terminals that DON'T bracket pastes (so a multi-line
+ * paste arrives as raw keystrokes and its newlines look like Enter, submitting
+ * mid-paste). Set `VANTA_PASTE_BURST_MS` (e.g. 6): a return arriving within that
+ * many ms of the previous keystroke is treated as a paste newline, not a submit
+ * — a human types-then-Enter with a >80ms gap, a paste delivers it in a few ms.
+ * Default 0 = OFF (bracketed paste, when the terminal supports it, handles this).
+ */
+export function isPasteBurst(lastInputAt: number): boolean {
+  const ms = Number(process.env.VANTA_PASTE_BURST_MS) || 0;
+  return ms > 0 && Date.now() - lastInputAt < ms;
+}
+
+/**
  * Composer buffer state with a SYNCHRONOUS value+cursor mirror (`valueRef`/
  * `cursorRef`). A paste can arrive as several useInput chunks within one React
  * tick; reading the `value` closure there is stale (no re-render yet), so each
@@ -73,6 +86,7 @@ export function Composer(props: {
   const killRef = useRef("");
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
+  const inputAtRef = useRef(0); // ms timestamp of the last keystroke (paste-burst detection)
   const { pill, clearPill } = usePastePill(value);
   const { slashMatches, atMatches, channelMatches, activeLen } = useComposerPalettes({ value, cursor, files: props.files, channels: props.channels, skills: props.skills });
   const selClamped = Math.min(sel, Math.max(0, activeLen - 1));
@@ -94,9 +108,11 @@ export function Composer(props: {
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
+    const burst = isPasteBurst(inputAtRef.current); // opt-in: a return mid-burst = a paste newline
+    inputAtRef.current = Date.now();
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
     if (vimHandle.handle({ input, key, value, cursor, setBuf })) return; // vi normal mode owns the key; insert falls through
-    if (handleReturnKey(key, insertNewline, submitNow)) return;
+    if (handleReturnKey(key, burst, insertNewline, submitNow)) return;
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
@@ -175,9 +191,9 @@ function usePastePill(value: string): { pill?: { count: number; lines: number };
 }
 
 /** Enter submits (or shift+enter newlines). True when handled. */
-function handleReturnKey(key: Key, insertNewline: () => void, submitNow: () => void): boolean {
+function handleReturnKey(key: Key, pasteBurst: boolean, insertNewline: () => void, submitNow: () => void): boolean {
   if (!key.return) return false;
-  key.shift ? insertNewline() : submitNow();
+  (key.shift || pasteBurst) ? insertNewline() : submitNow();
   return true;
 }
 

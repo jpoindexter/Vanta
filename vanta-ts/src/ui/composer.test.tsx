@@ -1,5 +1,5 @@
 import { createElement as h } from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderUi, tick, waitUntil, waitForFrame } from "./test-render.js";
 import { countLines, Composer, ComposerView, PASTE_PILL_THRESHOLD, isImagePasteSignal } from "./composer.js";
 import { matchSlash } from "./slash.js";
@@ -266,6 +266,36 @@ describe("Composer — race-safe input (paste arriving as rapid chunks)", () => 
     inst.input("first-chunk-");
     inst.input("second-chunk");
     await waitForFrame(inst, "first-chunk-second-chunk");
+    inst.unmount();
+  });
+});
+
+describe("Composer — paste-burst guard (newline mid-paste must not submit)", () => {
+  beforeEach(() => { process.env.VANTA_PASTE_BURST_MS = "6"; }); // opt-in for these cases
+  afterEach(() => { delete process.env.VANTA_PASTE_BURST_MS; });
+
+  it("does NOT submit on a newline that arrives in a rapid burst (a paste)", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    // text then \r then more, all back-to-back (no await) = a paste burst.
+    inst.input("line one");
+    inst.input("\r");
+    inst.input("line two");
+    await tick();
+    expect(onSubmit).not.toHaveBeenCalled(); // did not submit mid-paste
+    inst.unmount();
+  });
+
+  it("DOES submit on an isolated Enter after a human-speed gap", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(Composer, { focused: true, onSubmit, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    inst.input("hello");
+    await tick(); // 10ms gap > the 6ms burst threshold
+    inst.input("\r");
+    await waitUntil(() => onSubmit.mock.calls.length > 0);
+    expect(onSubmit).toHaveBeenCalledWith("hello");
     inst.unmount();
   });
 });
