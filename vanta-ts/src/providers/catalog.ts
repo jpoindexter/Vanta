@@ -27,6 +27,13 @@ export type ProviderEntry = {
   signupUrl?: string;
   /** One-line hint shown under the label. */
   note?: string;
+  /**
+   * A model ROUTER (TokenRouter, OpenRouter, …): one token reaches every model it
+   * proxies, so the wizard shouldn't pin a fixed list — it goes straight to a
+   * free-typed model id (`models` stays a short example set). `VANTA_MODEL` accepts
+   * any id regardless; this just makes "any model" the default UX for routers.
+   */
+  router?: boolean;
 };
 
 // Reused by both API-key Anthropic and the Pro/Max subscription backend.
@@ -109,6 +116,7 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
       "deepseek/deepseek-chat",
     ],
     signupUrl: "https://openrouter.ai/keys",
+    router: true,
   },
   {
     id: "codex",
@@ -157,7 +165,7 @@ export const PROVIDER_CATALOG: ProviderEntry[] = [
   { id: "cerebras", label: "Cerebras (ultra-fast)", short: "Cerebras", envVar: "CEREBRAS_API_KEY", defaultModel: "llama-3.3-70b", models: ["llama-3.3-70b", "llama3.1-8b", "qwen-3-32b"], signupUrl: "https://cloud.cerebras.ai" },
   { id: "moonshot", label: "Moonshot / Kimi", short: "Kimi", envVar: "MOONSHOT_API_KEY", defaultModel: "kimi-k2-0905-preview", models: ["kimi-k2-0905-preview", "moonshot-v1-128k", "moonshot-v1-32k"], signupUrl: "https://platform.moonshot.ai/console/api-keys" },
   { id: "minimax", label: "MiniMax", short: "MiniMax", envVar: "MINIMAX_API_KEY", defaultModel: "MiniMax-M2", models: ["MiniMax-M2", "abab6.5s-chat"], signupUrl: "https://www.minimax.io/platform" },
-  { id: "tokenrouter", label: "TokenRouter (OpenAI-compatible router)", short: "TokenRouter", envVar: "TOKENROUTER_API_KEY", defaultModel: "MiniMax-M3", models: ["MiniMax-M3"], signupUrl: "https://www.tokenrouter.com/" },
+  { id: "tokenrouter", label: "TokenRouter (one key → many models)", short: "TokenRouter", envVar: "TOKENROUTER_API_KEY", defaultModel: "MiniMax-M3", models: ["MiniMax-M3"], signupUrl: "https://www.tokenrouter.com/", router: true },
   { id: "zai", label: "Z.AI / GLM (Zhipu)", short: "GLM", envVar: "ZAI_API_KEY", defaultModel: "glm-4.6", models: ["glm-4.6", "glm-4.5", "glm-4-flash"], signupUrl: "https://z.ai/manage-apikey/apikey-list" },
   { id: "qwen", label: "Qwen / DashScope (Alibaba)", short: "Qwen", envVar: "DASHSCOPE_API_KEY", defaultModel: "qwen-max", models: ["qwen-max", "qwen-plus", "qwen-turbo", "qwen2.5-72b-instruct"], signupUrl: "https://dashscope.console.aliyun.com" },
   { id: "novita", label: "NovitaAI (open models)", short: "Novita", envVar: "NOVITA_API_KEY", defaultModel: "deepseek/deepseek-v3-0324", models: ["deepseek/deepseek-v3-0324", "meta-llama/llama-3.3-70b-instruct", "qwen/qwen-2.5-72b-instruct"], signupUrl: "https://novita.ai/settings/key-management" },

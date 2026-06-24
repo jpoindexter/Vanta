@@ -144,6 +144,11 @@ async function chooseProviderStep(): Promise<ProviderEntry> {
 
 /** Model picker (↑↓ · Enter · Esc = back). Returns the model id, or "" for back. */
 async function chooseModelStep(entry: ProviderEntry): Promise<string> {
+  // A router reaches every model it proxies, so don't pin a list — free-type any id.
+  if (entry.router) {
+    const eg = entry.models[0] ?? entry.defaultModel;
+    return askLine(`  ${entry.short} routes to many models — enter any model id (e.g. ${eg}) [${entry.defaultModel}]: `, entry.defaultModel);
+  }
   const opts = [...entry.models, CUSTOM];
   const cur = entry.models.indexOf(process.env.VANTA_MODEL ?? "");
   const i = await select(`Select model for ${entry.short}:`, opts, {
