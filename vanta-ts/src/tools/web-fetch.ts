@@ -75,6 +75,36 @@ function cap(text: string): string {
   return text.slice(0, MAX_OUTPUT - TRUNCATED_MARKER.length) + TRUNCATED_MARKER;
 }
 
+// Per-session memo of URLs that failed, so a repeat web_fetch short-circuits
+// instead of re-hitting a dead/blocked source. This is the deterministic fix for
+// "spinning on a 404 / Cloudflare-blocked URL" — no skill or model cooperation
+// needed. Cleared on process restart (a site that was down may be back up).
+const failedUrls = new Map<string, string>();
+
+/** Test hook: clear the failed-URL memo between cases. */
+export function __resetWebFetchMemo(): void {
+  failedUrls.clear();
+}
+
+/** Human-readable, retry-discouraging reason for a non-OK HTTP status. */
+function classifyHttpFailure(status: number): string {
+  if (status === 404 || status === 410) return `HTTP ${status} (page not found)`;
+  if ([401, 403, 429, 503].includes(status))
+    return `HTTP ${status} (blocked — likely Cloudflare/bot-protection or an auth wall)`;
+  return `HTTP ${status}`;
+}
+
+/** Memoize a failure and return a clear, non-retryable result for the model. */
+function recordFailure(url: string, reason: string): { ok: false; output: string } {
+  failedUrls.set(url, reason);
+  return {
+    ok: false,
+    output:
+      `fetch failed: ${reason}. ${url} is unavailable to automated fetch — ` +
+      `do NOT retry it; ask the user to paste the content if you need it.`,
+  };
+}
+
 export const webFetchTool: Tool = {
   schema: {
     name: "web_fetch",
@@ -95,23 +125,28 @@ export const webFetchTool: Tool = {
       return { ok: false, output: 'web_fetch needs a valid "url"' };
     }
     const { url } = parsed.data;
+    const cached = failedUrls.get(url);
+    if (cached) {
+      return { ok: false, output: `skipped ${url} — it already failed this session (${cached}). Not retrying; paste the content if you need it.` };
+    }
     const settings = await loadSettings(ctx.root, process.env);
     const skip = shouldSkipPreflight(settings, process.env);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
       const fetched = await fetchGuarded(url, controller.signal, skip);
-      if (!fetched.ok) return fetched;
-      const { res } = fetched;
-      if (!res.ok) {
-        return { ok: false, output: `fetch failed: HTTP ${res.status}` };
+      if (!fetched.ok) {
+        failedUrls.set(url, fetched.output);
+        return fetched;
       }
+      const { res } = fetched;
+      if (!res.ok) return recordFailure(url, classifyHttpFailure(res.status));
       const html = await res.text();
       const { title, text } = extractReadable(html, res.url || url);
       const body = title ? `# ${title}\n\n${text}` : text;
       return { ok: true, output: cap(body) };
     } catch (err) {
-      return { ok: false, output: `fetch failed: ${(err as Error).message}` };
+      return recordFailure(url, `error: ${(err as Error).message}`);
     } finally {
       clearTimeout(timer);
     }

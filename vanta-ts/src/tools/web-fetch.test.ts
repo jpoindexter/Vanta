@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { extractReadable, webFetchTool } from "./web-fetch.js";
+import { extractReadable, webFetchTool, __resetWebFetchMemo } from "./web-fetch.js";
 import { SKIP_WEBFETCH_PREFLIGHT_ENV } from "./webfetch-preflight.js";
 import type { ToolContext } from "./types.js";
 
@@ -79,6 +79,7 @@ beforeEach(async () => {
   process.env.VANTA_HOME = join(tmp, "home");
   delete process.env[SKIP_WEBFETCH_PREFLIGHT_ENV];
   fakeCtx = { root: tmp } as ToolContext;
+  __resetWebFetchMemo();
 });
 
 afterEach(async () => {
@@ -142,5 +143,45 @@ describe("webFetchTool skipWebFetchPreflight bypass", () => {
 
     expect(res.ok).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(1); // guard skipped → the fetch is issued
+  });
+});
+
+describe("webFetchTool failed-URL memo", () => {
+  beforeEach(() => { process.env[SKIP_WEBFETCH_PREFLIGHT_ENV] = "1"; }); // bypass SSRF guard for the stub
+
+  it("memoizes a 404 and short-circuits the retry without re-fetching", async () => {
+    const fetchSpy = vi.fn(async () => new Response("", { status: 404 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const url = "https://theft.studio/";
+
+    const first = await webFetchTool.execute({ url }, fakeCtx);
+    expect(first.ok).toBe(false);
+    expect(first.output).toContain("404");
+    expect(first.output).toMatch(/do NOT retry/i);
+
+    const second = await webFetchTool.execute({ url }, fakeCtx);
+    expect(second.ok).toBe(false);
+    expect(second.output).toMatch(/already failed|skipped/i);
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // the second call never hit the network
+  });
+
+  it("classifies a 403 as a likely Cloudflare/bot block", async () => {
+    const fetchSpy = vi.fn(async () => new Response("", { status: 403 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await webFetchTool.execute({ url: "https://cf-blocked.example/" }, fakeCtx);
+    expect(res.ok).toBe(false);
+    expect(res.output).toMatch(/blocked.*Cloudflare|Cloudflare.*blocked/i);
+  });
+
+  it("lets a different URL through after one failed", async () => {
+    const fetchSpy = vi.fn(async (u: string) =>
+      u.includes("dead") ? new Response("", { status: 404 }) : new Response("<title>Live</title><p>hello there world</p>", { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await webFetchTool.execute({ url: "https://dead.example/" }, fakeCtx);
+    const ok = await webFetchTool.execute({ url: "https://live.example/" }, fakeCtx);
+    expect(ok.ok).toBe(true);
   });
 });
