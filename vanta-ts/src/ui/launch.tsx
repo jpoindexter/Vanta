@@ -4,6 +4,7 @@ import { AppV2 } from "./v2/app-v2.js";
 import { prepareRun, maybeCurate } from "../session.js";
 import { RESTART_EXIT_CODE } from "../repl/restart-cmd.js";
 import { installResizeGhostFix } from "../term/resize-fix.js";
+import { enableBracketedPaste } from "../term/bracketed-paste.js";
 import { promptTrust } from "./trust-prompt.js";
 
 export type TuiSurface = "v1" | "v2";
@@ -29,6 +30,12 @@ export async function runTuiV2(repoRoot: string): Promise<void> {
     { kittyKeyboard: { mode: "auto" } },
   );
   await installResizeGhostFix(process.stdout); // force absolute clear on resize (kills rewrap ghosting)
+  // Own bracketed paste: Ink's usePaste-driven toggle proved unreliable (Terminal.app
+  // delivered multi-line pastes as raw keystrokes → a newline submitted mid-paste).
+  // Forcing the mode makes the terminal wrap pastes so Ink reassembles them as one unit.
+  const disableBracketedPaste = enableBracketedPaste(process.stdout);
+  process.once("exit", disableBracketedPaste);
   await instance.waitUntilExit();
+  disableBracketedPaste();
   if (process.exitCode === RESTART_EXIT_CODE) process.exit(RESTART_EXIT_CODE);
 }
