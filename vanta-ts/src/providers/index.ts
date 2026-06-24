@@ -73,6 +73,7 @@ const OPENAI_COMPAT: Record<string, { url: string; key: string; model: string }>
   cerebras: { url: "https://api.cerebras.ai/v1", key: "CEREBRAS_API_KEY", model: "llama-3.3-70b" },
   moonshot: { url: "https://api.moonshot.ai/v1", key: "MOONSHOT_API_KEY", model: "kimi-k2-0905-preview" },
   minimax: { url: "https://api.minimax.io/v1", key: "MINIMAX_API_KEY", model: "MiniMax-M2" },
+  tokenrouter: { url: "https://api.tokenrouter.io/v1", key: "TOKENROUTER_API_KEY", model: "MiniMax-M3" }, // OpenAI-compat router (sk- keys)
   zai: { url: "https://api.z.ai/api/paas/v4", key: "ZAI_API_KEY", model: "glm-4.6" },
   qwen: { url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1", key: "DASHSCOPE_API_KEY", model: "qwen-max" },
   novita: { url: "https://api.novita.ai/v3/openai", key: "NOVITA_API_KEY", model: "deepseek/deepseek-v3-0324" },
