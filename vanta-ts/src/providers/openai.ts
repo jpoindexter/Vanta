@@ -23,7 +23,23 @@ const CONTEXT_WINDOWS: Record<string, number> = {
   "gemini-2.5-pro": 1_000_000,
   "gemini-2.5-flash": 1_000_000,
   "gemini-2.0-flash": 1_000_000,
+  "MiniMax-M3": 1_048_576, // 1M (minimax.io/models/text/m3)
+  "MiniMax-M2": 204_800,
 };
+
+const DEFAULT_CONTEXT_WINDOW = 32_000;
+
+/**
+ * Resolve a model's context window. `VANTA_CONTEXT_WINDOW` overrides everything so
+ * an UNMAPPED model (a new release Vanta doesn't know yet) isn't silently capped at
+ * the conservative 32k default — which makes the context gauge read wrong and Vanta
+ * over-compact. Falls back to the table, then the default.
+ */
+export function resolveContextWindow(model: string, env: NodeJS.ProcessEnv = process.env): number {
+  const override = Number(env.VANTA_CONTEXT_WINDOW);
+  if (Number.isFinite(override) && override > 0) return Math.floor(override);
+  return CONTEXT_WINDOWS[model] ?? DEFAULT_CONTEXT_WINDOW;
+}
 
 export class OpenAIProvider implements LLMProvider {
   private readonly client: OpenAI;
@@ -44,7 +60,7 @@ export class OpenAIProvider implements LLMProvider {
       timeout: opts.timeoutMs ?? resolveProviderTimeoutMs(process.env),
     });
     this.model = opts.model;
-    this.ctxWindow = CONTEXT_WINDOWS[opts.model] ?? 32_000;
+    this.ctxWindow = resolveContextWindow(opts.model);
   }
 
   modelId(): string { return this.model; }
