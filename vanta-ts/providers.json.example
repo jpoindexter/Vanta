@@ -1,0 +1,20 @@
+{
+  "_comment": "Copy to ~/.vanta/providers.json to add ANY OpenAI-compatible provider without a code change. Then: VANTA_PROVIDER=<id> (+ optional VANTA_MODEL). The SECRET never lives here — only the env-var NAME in keyEnv; the actual key goes in vanta-ts/.env. Omit keyEnv for keyless local endpoints. A user entry overrides a built-in of the same id, so you can also fix a built-in's URL/model yourself. router:true makes the setup wizard free-type any model id.",
+  "providers": {
+    "nvidia-free": {
+      "baseURL": "https://integrate.api.nvidia.com/v1",
+      "keyEnv": "NVIDIA_API_KEY",
+      "model": "deepseek-ai/deepseek-r1"
+    },
+    "tokenrouter": {
+      "baseURL": "https://api.tokenrouter.com/v1",
+      "keyEnv": "TOKENROUTER_API_KEY",
+      "model": "MiniMax-M3",
+      "router": true
+    },
+    "lan-llm": {
+      "baseURL": "http://192.168.1.5:8000/v1",
+      "model": "qwen2.5:32b"
+    }
+  }
+}

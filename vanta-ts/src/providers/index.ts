@@ -2,6 +2,7 @@ import { OpenAIProvider } from "./openai.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { CodexProvider } from "./codex.js";
 import { resolveClaudeCodeToken } from "./claude-code-auth.js";
+import { loadUserProviders, makeUserProvider } from "./user-providers.js";
 import type { LLMProvider } from "./interface.js";
 
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
@@ -144,8 +145,10 @@ const PROVIDERS: Record<string, (env: NodeJS.ProcessEnv) => LLMProvider> = {
  */
 export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   const id = (env.VANTA_PROVIDER ?? "openai").toLowerCase();
+  const user = loadUserProviders(env)[id]; // user-declared providers win, so you can add OR fix any backend
+  if (user) return makeUserProvider(env, id, user);
   const factory = PROVIDERS[id];
-  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Run \`vanta setup\` to pick one, or see the list: ${Object.keys(PROVIDERS).join(", ")}.`);
+  if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Run \`vanta setup\`, declare it in ~/.vanta/providers.json, or pick from: ${Object.keys(PROVIDERS).join(", ")}.`);
   return factory(env);
 }
 
