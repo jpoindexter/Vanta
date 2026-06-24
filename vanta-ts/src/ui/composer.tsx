@@ -33,6 +33,31 @@ export const PASTE_PILL_THRESHOLD = 3;
 // not typing, so collapse it to the pill regardless of line count.
 export const PASTE_PILL_CHARS = 500;
 
+/**
+ * Composer buffer state with a SYNCHRONOUS value+cursor mirror (`valueRef`/
+ * `cursorRef`). A paste can arrive as several useInput chunks within one React
+ * tick; reading the `value` closure there is stale (no re-render yet), so each
+ * chunk would overwrite the previous and characters get lost/scrambled. Edit
+ * handlers read the refs so every chunk builds on the latest buffer.
+ */
+function useComposerBuffer(): {
+  value: string; cursor: number; sel: number;
+  setSel: (n: number) => void;
+  valueRef: { current: string }; cursorRef: { current: number };
+  setBuf: (v: string, c: number) => void;
+} {
+  const [value, setValue] = useState("");
+  const [cursor, setCursor] = useState(0);
+  const [sel, setSel] = useState(0);
+  const valueRef = useRef("");
+  const cursorRef = useRef(0);
+  const setBuf = (v: string, c: number): void => {
+    valueRef.current = v; cursorRef.current = c;
+    setValue(v); setCursor(c); setSel(0);
+  };
+  return { value, cursor, sel, setSel, valueRef, cursorRef, setBuf };
+}
+
 export function Composer(props: {
   onSubmit: (text: string) => void;
   placeholder: string;
@@ -44,9 +69,7 @@ export function Composer(props: {
   focused?: boolean;
   vim?: boolean;
 }): ReactElement {
-  const [value, setValue] = useState("");
-  const [cursor, setCursor] = useState(0);
-  const [sel, setSel] = useState(0);
+  const { value, cursor, sel, setSel, valueRef, cursorRef, setBuf } = useComposerBuffer();
   const killRef = useRef("");
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
@@ -57,7 +80,6 @@ export function Composer(props: {
 
   const focused = props.focused ?? true;
   const vimHandle = useVim((props.vim ?? false) && focused);
-  const setBuf = (v: string, c: number): void => { setValue(v); setCursor(c); setSel(0); };
   const submitNow = (): void => {
     const text = (isPartialSlash(value, slashMatches) ? completeSlash(value, slashMatches, selClamped) : value).trim();
     setBuf("", 0); histRef.current = EMPTY_HIST; clearPill(); vimHandle.reset();
@@ -67,7 +89,7 @@ export function Composer(props: {
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const pasteText = useTextPaste({ value, cursor, setBuf, focused, onImagePaste: props.onPaste });
+  const pasteText = useTextPaste({ read: () => ({ value: valueRef.current, cursor: cursorRef.current }), setBuf, focused, onImagePaste: props.onPaste });
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
@@ -78,7 +100,7 @@ export function Composer(props: {
     if (handleSpecialChord(input, key, { openEditor, undo, pasteText, paste: props.onPaste })) return;
     if (activeLen > 0 && handlePaletteKey({ key, len: activeLen, sel: selClamped, setSel, complete: completeNow })) return;
     if (handleHistory(input, key, histNav)) return;
-    handleGhostOrEdit({ input, key, ghost, value, cursor, killRing: killRef.current, setBuf, applyEdit });
+    handleGhostOrEdit({ input, key, ghost, value: valueRef.current, cursor: cursorRef.current, killRing: killRef.current, setBuf, applyEdit });
   }, { isActive: focused });
 
   return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
@@ -115,7 +137,7 @@ export function isImagePasteSignal(pasted: string): boolean {
 }
 
 type TextPasteOpts = {
-  value: string; cursor: number; focused: boolean;
+  read: () => { value: string; cursor: number }; focused: boolean;
   setBuf: (v: string, c: number) => void; onImagePaste?: () => void;
 };
 
@@ -127,8 +149,9 @@ function useTextPaste(o: TextPasteOpts): (text: string) => void {
     // clipboard image instead of inserting nothing. Harmless on a truly-empty
     // clipboard (the /paste handler just reports "no image").
     if (o.onImagePaste && isImagePasteSignal(text)) { o.onImagePaste(); return; }
-    const next = o.value.slice(0, o.cursor) + text + o.value.slice(o.cursor);
-    o.setBuf(next, o.cursor + text.length);
+    const { value, cursor } = o.read(); // refs → the LATEST buffer, never a stale closure
+    const next = value.slice(0, cursor) + text + value.slice(cursor);
+    o.setBuf(next, cursor + text.length);
   };
   // Bracketed paste mode: text with newlines arrives as one string, not returns.
   usePaste(pasteText);

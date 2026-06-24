@@ -256,3 +256,16 @@ describe("Composer #channel completion (live wire)", () => {
     inst.unmount();
   });
 });
+
+describe("Composer — race-safe input (paste arriving as rapid chunks)", () => {
+  it("does not drop the first chunk when two inputs land in one tick", async () => {
+    const inst = renderUi(h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask", files: [], history: [] }));
+    await tick();
+    // Two chunks with NO await between them — the stale-closure bug would compute
+    // the second from value="" and drop the first; the synchronous refs prevent it.
+    inst.input("first-chunk-");
+    inst.input("second-chunk");
+    await waitForFrame(inst, "first-chunk-second-chunk");
+    inst.unmount();
+  });
+});
