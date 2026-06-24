@@ -19,7 +19,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'How it works',
       collapsed: false,
-      items: ['how-it-works', 'architecture', 'kernel', 'agent-loop', 'safety-model', 'security', 'modularity'],
+      items: ['how-it-works', 'architecture', 'kernel', 'agent-loop', 'safety-model', 'security', 'modularity', 'context-compression'],
     },
     {
       type: 'category',
