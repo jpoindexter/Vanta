@@ -18,6 +18,7 @@ import type { PluginSource } from "./plugin-source-flags.js";
 import { buildCallbacks } from "./output-callbacks.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { maybeAugmentPrompt } from "../templates/templates.js";
+import { buildAgentRouteHint } from "../repl/agent-route.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import { errorDetails, fireCwdChanged, fireStopFailure, stopFailureType } from "../hooks/runtime-events.js";
@@ -117,6 +118,17 @@ function oneShotDeps(o: { setup: Awaited<ReturnType<typeof prepareRun>>; root: s
   };
 }
 
+/**
+ * The one-shot user message: template augmentation + the cross-agent route hint
+ * (VANTA-AGENT-ROUTING-DISCOVERY), so `vanta run "talk to claude"` reaches for
+ * call_agent like the interactive buildSendText does. `VANTA_AGENT_ROUTE=0` off.
+ */
+export function buildOneShotSendText(instruction: string): string {
+  const augmented = maybeAugmentPrompt(instruction);
+  const routeHint = process.env.VANTA_AGENT_ROUTE !== "0" ? buildAgentRouteHint(instruction) : null;
+  return routeHint ? `${routeHint}\n\n${augmented}` : augmented;
+}
+
 export async function runInstruction(
   repoRoot: string,
   instruction: string,
@@ -142,7 +154,7 @@ export async function runInstruction(
     await fireHooks(join(root, ".vanta"), "SessionStart", { source: "startup", sessionType: "one-shot" }, { cwd: root, matcherValue: "startup", sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     const convo = createConversation(setup.systemPrompt, agentDeps);
     await fireHooks(join(root, ".vanta"), "UserPromptSubmit", { prompt: instruction }, { cwd: root, prompt: instruction, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
-    const outcome = await convo.send(maybeAugmentPrompt(instruction));
+    const outcome = await convo.send(buildOneShotSendText(instruction));
     await fireHooks(join(root, ".vanta"), "Stop", { finalResponse: outcome.finalText, turnIndex: 1 }, { cwd: root, sessionType: "one-shot", ...buildAgentHookDeps(agentDeps) });
     emitOutput(format, outcome.finalText, setup.provider.modelId());
     if (!structured) console.log(`\n[${outcome.stoppedReason} · ${outcome.iterations} iteration(s)]`);

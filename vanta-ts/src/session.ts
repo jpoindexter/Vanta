@@ -168,9 +168,20 @@ export function approver(
   rl: Readline,
 ): (action: string, reason: string) => Promise<boolean> {
   return async (action, reason) => {
-    const answer = await rl.question(
-      `\n[APPROVAL NEEDED] ${action}\nReason: ${reason}\nApprove? (y/n) `,
-    );
-    return answer.trim().toLowerCase().startsWith("y");
+    // No interactive TTY (piped/headless `vanta run`) → we can't ask, so decline
+    // cleanly instead of crashing the run on a closed readline. Approve such actions
+    // from an interactive session (or pre-allow the tool in ~/.vanta/permissions.tsv).
+    if (!process.stdin.isTTY) {
+      console.warn(`\n[APPROVAL NEEDED] ${action}\n  → declined: no interactive terminal to confirm. Run an interactive session to approve.`);
+      return false;
+    }
+    try {
+      const answer = await rl.question(
+        `\n[APPROVAL NEEDED] ${action}\nReason: ${reason}\nApprove? (y/n) `,
+      );
+      return answer.trim().toLowerCase().startsWith("y");
+    } catch {
+      return false; // readline closed mid-prompt → decline, don't crash the turn
+    }
   };
 }
