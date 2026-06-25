@@ -3,16 +3,16 @@ import type { SlashHandler } from "./types.js";
 import { resolveComposerAnchor, type ComposerAnchor } from "../ui/pinned-region.js";
 import { setConfig } from "../cli-dx/config.js";
 
-// /composer — choose where the input box sits: "float" (default; just below the
-// last line) or "bottom" (pinned to the terminal floor, chat
-// box). Returns a `composerAnchor` signal the TUI applies live, and persists the
-// choice to .env (VANTA_COMPOSER_ANCHOR) so it sticks across sessions.
+// /composer — choose where the input box sits: "bottom" (default; pinned to the
+// terminal floor, chat box) or "float" (just below the last line). Returns a
+// `composerAnchor` signal the TUI applies live, and persists the choice to .env
+// (VANTA_COMPOSER_ANCHOR) so it sticks across sessions.
 
-const MODES: ComposerAnchor[] = ["float", "bottom"];
+const MODES: ComposerAnchor[] = ["bottom", "float"];
 
 const DESC: Record<ComposerAnchor, string> = {
-  float: "float  — input sits just below the last line (default)",
-  bottom: "bottom — pinned to the terminal floor (chat box)",
+  bottom: "bottom — pinned to the terminal floor (chat box, default)",
+  float: "float  — input sits just below the last line",
 };
 
 export const composer: SlashHandler = async (arg, ctx) => {

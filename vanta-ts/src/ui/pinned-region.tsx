@@ -13,15 +13,15 @@ import { Box } from "ink";
 // 0, the spacer collapses, and the composer flows naturally just below the latest
 // line (where inline rendering already puts it at the bottom).
 //
-// OPT-IN: the default is "float" (composer sits just below the last line).
-// `enabled` (VANTA_COMPOSER_ANCHOR=bottom or /composer bottom) turns
-// on the bottom-pin. When off, children render in a plain column (float behavior).
+// DEFAULT is "bottom" — the input rides the terminal floor (chat-box feel) so the
+// composer isn't stranded mid-screen with dead space below it. `VANTA_COMPOSER_ANCHOR=float`
+// or `/composer float` opts back into the float behavior (composer just below the last line).
 
 export type ComposerAnchor = "float" | "bottom";
 
-/** Resolve the composer anchor from env. Default "float". */
+/** Resolve the composer anchor from env. Default "bottom" (input pinned to the floor). */
 export function resolveComposerAnchor(env: NodeJS.ProcessEnv): ComposerAnchor {
-  return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "bottom" ? "bottom" : "float";
+  return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "float" ? "float" : "bottom";
 }
 
 export function pinSpacerHeight(viewportRows: number, committedRows: number): number {

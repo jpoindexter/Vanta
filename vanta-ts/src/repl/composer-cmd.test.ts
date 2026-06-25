@@ -12,30 +12,30 @@ function ctx(env: Record<string, string> = {}): ReplCtx {
 }
 
 describe("resolveComposerAnchor", () => {
-  it("defaults to float when unset", () => {
-    expect(resolveComposerAnchor({})).toBe("float");
+  it("defaults to bottom when unset (input rides the terminal floor)", () => {
+    expect(resolveComposerAnchor({})).toBe("bottom");
   });
-  it("returns bottom only for an explicit 'bottom' (case-insensitive)", () => {
-    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "bottom" })).toBe("bottom");
-    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "BOTTOM" })).toBe("bottom");
+  it("returns float only for an explicit 'float' (case-insensitive); else bottom", () => {
     expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "float" })).toBe("float");
-    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "garbage" })).toBe("float");
+    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "FLOAT" })).toBe("float");
+    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "bottom" })).toBe("bottom");
+    expect(resolveComposerAnchor({ VANTA_COMPOSER_ANCHOR: "garbage" })).toBe("bottom");
   });
 });
 
 describe("/composer", () => {
-  it("lists modes and marks the current one when called with no arg", async () => {
+  it("lists modes and marks the current one (bottom) when called with no arg", async () => {
     const r = await composer("", ctx());
-    expect(r.output).toContain("current: float");
+    expect(r.output).toContain("current: bottom");
     expect(r.output).toContain("float");
     expect(r.output).toContain("bottom");
     expect(r.composerAnchor).toBeUndefined();
   });
 
-  it("emits a composerAnchor signal switching to bottom", async () => {
-    const r = await composer("bottom", ctx());
-    expect(r.composerAnchor).toBe("bottom");
-    expect(r.output).toContain("bottom");
+  it("emits a composerAnchor signal switching away from the default (to float)", async () => {
+    const r = await composer("float", ctx());
+    expect(r.composerAnchor).toBe("float");
+    expect(r.output).toContain("float");
   });
 
   it("is a no-op when already on the requested mode", async () => {
