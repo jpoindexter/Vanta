@@ -15948,7 +15948,7 @@
       "id": "VANTA-AGENT-SESSION-INTERACTIVE",
       "track": "Harness",
       "title": "Persistent interactive external-agent session — drive Claude Code turn-by-turn",
-      "status": "next",
+      "status": "shipped",
       "size": "L",
       "summary": "call_agent is ONE-SHOT (execFile -> capture stdout): it delegates a single prompt, it can't hold a conversation. The user's literal ask was 'start one up and keep talking to it.' Build a persistent, drivable session over primitives Vanta already ships LIVE: spawn the agent CLI in a detached tmux pane (reuse fleet/tmux-backend.ts, proven live), inject prompts with `tmux send-keys`, read replies with the tmux-backed terminal_capture tool, loop. New `agent_session` tool: open(agent)->id / send(id,text) / read(id) / close(id). Each action kernel-gated; output bounded; idle/stall detection (reuse tools/shell-stall.ts). Runs through a Vanta-owned tmux channel so it sidesteps the shell-sandbox background refusal (see VANTA-SANDBOX-AGENT-REDIRECT). This is the Cofounder-engine 'drive a sub-operator' mechanic made real; pty path stays blocked on node v24 (node-pty native binding), so tmux is the substrate.",
       "done": "Vanta opens a live Claude Code session, sends 3 sequential prompts where the 2nd/3rd depend on the 1st's context, reads each reply back into the transcript, and closes it cleanly — verified live end-to-end against the installed `claude` CLI, every send/read kernel-gated.",
@@ -15959,7 +15959,9 @@
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ]
+      ],
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. agent_session tool (open/send/read/close/list) drives a PERSISTENT interactive session over another agent CLI via a detached tmux session. agents/agent-session.ts = pure orchestration over an injected SessionBackend port (open primes past the startup modal: boot-wait + Escape — found live, claude's MCP picker ate the first prompt; send polls capture until output settles; read/close). agents/tmux-session-backend.ts = live execFileSync tmux backend (send-keys -l literal text, no shell). Kernel-gated (describeForSafety) + approval-gated (open/send/close). LIVE PROOF vs real claude CLI: opened session, 'Remember 42'->OK, 'What number?'->42 (context carried across turns), closed clean, no stray tmux. Tests: agent-session.test.ts (9, fake backend) + tools roster. Full suite 965 files/11049 green; tsc clean; size gate exit 0. Boundary: tmux required; pty blocked on node v24.",
+      "updated": "2026-06-25"
     },
     {
       "id": "VANTA-ACP-CLIENT",

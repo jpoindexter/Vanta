@@ -37,6 +37,7 @@ describe("registry", () => {
     const r = buildRegistry();
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
+      "agent_session",
       "ask_user",
       "bg_list",
       "bg_status",
