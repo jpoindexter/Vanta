@@ -125,10 +125,12 @@ const skills: SlashHandler = async (_arg, ctx) => {
   const s = await listSkills(ctx.env);
   const mcp = ctx.setup.mcpSkills ?? [];
   if (!s.length && !mcp.length) return { output: "  (no skills yet — `vanta skills install`)" };
+  const { termWidth } = await import("../term/width.js");
   const names = [...s.map((x) => x.meta.name), ...mcp.map((m) => m.name)];
-  const w = Math.min(24, Math.max(0, ...names.map((n) => n.length)) + 2);
-  const rows = s.map((x) => `  ${x.meta.name.padEnd(w)}${oneLine(x.meta.description, 72)}`);
-  const mcpRows = mcp.map((m) => `  ${m.name.padEnd(w)}${oneLine(`${m.description} (mcp:${m.server})`, 72)}`);
+  const w = Math.min(40, Math.max(0, ...names.map((n) => n.length)) + 2); // fit long skill names (was 24 → they overflowed)
+  const descW = Math.max(40, termWidth(100) - w - 4); // responsive, not a fixed 72-char clip
+  const rows = s.map((x) => `  ${x.meta.name.padEnd(w)}${oneLine(x.meta.description, descW)}`);
+  const mcpRows = mcp.map((m) => `  ${m.name.padEnd(w)}${oneLine(`${m.description} (mcp:${m.server})`, descW)}`);
   return { output: `  ${s.length + mcp.length} skill(s):\n${[...rows, ...mcpRows].join("\n")}` };
 };
 

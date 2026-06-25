@@ -9,6 +9,7 @@ import {
   CATEGORY_ICON,
   type QuickItem,
 } from "./quick-open-filter.js";
+import { planColumns, clipTo, termWidth } from "../term/width.js";
 
 // VANTA-QUICK-OPEN — the Ctrl+P unified picker. One fuzzy search over files,
 // recent sessions, slash commands, and skills. Lives in the live region (not
@@ -16,7 +17,7 @@ import {
 // quick-open-filter.ts; this component only loads sources + drives input.
 
 const RESULT_LIMIT = 12;
-const HINT_MAX = 44;
+const PREFIX = 4; // "❯ " + category icon + space before the label
 
 /** Async-load the two store-backed sources; files + commands come from props. */
 function useQuickItems(files: string[]): QuickItem[] {
@@ -46,6 +47,7 @@ export function QuickOpen(props: {
   const [sel, setSel] = useState(0);
   const results = fuzzyFilter(items, query, RESULT_LIMIT);
   const clamped = Math.min(sel, Math.max(0, results.length - 1));
+  const cols = planColumns(results.map((r) => r.label), { width: termWidth() - PREFIX, nameCap: 30 });
 
   const onType = (next: string): void => { setQuery(next); setSel(0); };
   useInput((input, key) => {
@@ -62,7 +64,7 @@ export function QuickOpen(props: {
       <Text bold>Quick Open · {query ? query : <Text dimColor>type to filter files · sessions · commands · skills</Text>}</Text>
       {results.length === 0
         ? <Text dimColor>  no matches</Text>
-        : results.map((r, i) => <QuickRow key={`${r.category}:${r.command}`} item={r} active={i === clamped} />)}
+        : results.map((r, i) => <QuickRow key={`${r.category}:${r.command}`} item={r} active={i === clamped} nameCol={cols.nameCol} descW={cols.descW} />)}
       <Text dimColor>  ↑/↓ select · ⏎ open · Esc close</Text>
     </Box>
   );
@@ -73,15 +75,14 @@ function activate(item: QuickItem | undefined, onActivate: (command: string) => 
   if (item) onActivate(item.command);
 }
 
-function QuickRow(props: { item: QuickItem; active: boolean }): ReactElement {
-  const { item, active } = props;
-  const hint = item.hint && item.hint.length > HINT_MAX ? `${item.hint.slice(0, HINT_MAX - 1)}…` : item.hint;
+function QuickRow(props: { item: QuickItem; active: boolean; nameCol: number; descW: number }): ReactElement {
+  const { item, active, nameCol, descW } = props;
   return (
     <Box>
       <Text>{active ? "❯ " : "  "}</Text>
       <Text dimColor>{CATEGORY_ICON[item.category]} </Text>
-      <Text inverse={active}>{item.label}</Text>
-      {hint ? <Text dimColor>  {hint}</Text> : null}
+      <Text inverse={active}>{item.label.padEnd(nameCol)}</Text>
+      {item.hint ? <Text dimColor> {clipTo(item.hint, descW)}</Text> : null}
     </Box>
   );
 }

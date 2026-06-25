@@ -1,14 +1,17 @@
 import { type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
+import { clipTo, termWidth } from "../term/width.js";
 import type { LoopSummary } from "../loop/summary.js";
 
 // Read-only inline panel — lists all loops with status glyphs, scores, and
 // escalation counts. Esc closes. Opened from the cockpit or /loops command.
 
-const GOAL_MAX = 60;
+// Reserve ~40 cols for the "  iter N · score N · ⚠ N escalations" suffix; the
+// goal takes the rest of the terminal instead of a fixed 60-char clip.
+const SUFFIX_BUDGET = 40;
 
 function clip(s: string): string {
-  return s.length > GOAL_MAX ? `${s.slice(0, GOAL_MAX - 1)}…` : s;
+  return clipTo(s, Math.max(40, termWidth() - SUFFIX_BUDGET));
 }
 
 type GlyphResult = { glyph: string; color: string };
