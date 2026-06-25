@@ -5,6 +5,7 @@ import {
   getMethod,
   recommendMethod,
   routeIdeationMethod,
+  type IdeationBalance,
   type IdeationDomain,
   type IdeationMethodId,
   type IdeationPhase,
@@ -13,18 +14,31 @@ import {
 } from "./ideation.js";
 
 const PHASES: IdeationPhase[] = ["discovery", "framing", "generation", "stuck", "validation"];
-const DOMAINS: IdeationDomain[] = ["product", "technical", "business", "creative", "process"];
+const DOMAINS: IdeationDomain[] = ["product", "technical", "business", "creative", "process", "writing"];
 const SPECIFICITIES: IdeationSpecificity[] = ["vague", "focused", "constrained"];
+const BALANCES: IdeationBalance[] = ["feasible", "balanced", "novel"];
+
+const CREATIVE_IDS: IdeationMethodId[] = [
+  "polya", "affinity-diagrams", "creative-discipline", "pattern-languages",
+  "compression-progress", "volume-generation", "story-skeletons", "oulipo",
+  "defamiliarization", "derive-mapping", "chance-remix", "pataphysics",
+];
 
 const signals = (
   phase: IdeationPhase,
   domain: IdeationDomain,
   specificity: IdeationSpecificity,
-): IdeationSignals => ({ phase, domain, specificity });
+  balance?: IdeationBalance,
+): IdeationSignals => ({ phase, domain, specificity, ...(balance ? { balance } : {}) });
 
 describe("METHOD_CATALOG", () => {
-  it("contains the ten named ideation methods", () => {
-    expect(METHOD_CATALOG).toHaveLength(10);
+  it("contains the twenty-two named ideation methods", () => {
+    expect(METHOD_CATALOG).toHaveLength(22);
+  });
+
+  it("includes all twelve creative methods", () => {
+    const ids = new Set(METHOD_CATALOG.map((m) => m.id));
+    for (const id of CREATIVE_IDS) expect(ids.has(id)).toBe(true);
   });
 
   it("has unique ids", () => {
@@ -32,8 +46,11 @@ describe("METHOD_CATALOG", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("gives every method a when-to-use, when-not, and a multi-step procedure", () => {
+  it("gives every method an origin, a 0..1 creativity weight, when/when-not, and a multi-step procedure", () => {
     for (const m of METHOD_CATALOG) {
+      expect(m.origin.trim().length).toBeGreaterThan(0);
+      expect(m.creativity).toBeGreaterThanOrEqual(0);
+      expect(m.creativity).toBeLessThanOrEqual(1);
       expect(m.whenToUse.trim().length).toBeGreaterThan(0);
       expect(m.whenNot.trim().length).toBeGreaterThan(0);
       expect(m.procedure.length).toBeGreaterThanOrEqual(3);
@@ -58,7 +75,7 @@ describe("getMethod", () => {
   });
 });
 
-describe("routeIdeationMethod", () => {
+describe("routeIdeationMethod — base route (unchanged behavior)", () => {
   it("routes any stuck problem to a fixation-breaker regardless of other signals", () => {
     for (const domain of DOMAINS) {
       for (const spec of SPECIFICITIES) {
@@ -73,9 +90,7 @@ describe("routeIdeationMethod", () => {
   });
 
   it("lets stuck win over the technical-constrained contradiction rule", () => {
-    expect(routeIdeationMethod(signals("stuck", "technical", "constrained"))).toBe(
-      "oblique-strategies",
-    );
+    expect(routeIdeationMethod(signals("stuck", "technical", "constrained"))).toBe("oblique-strategies");
   });
 
   it("routes discovery to jobs-to-be-done", () => {
@@ -86,10 +101,12 @@ describe("routeIdeationMethod", () => {
     expect(routeIdeationMethod(signals("framing", "business", "focused"))).toBe("first-principles");
   });
 
+  it("routes a writing-framing constraint problem to Oulipo", () => {
+    expect(routeIdeationMethod(signals("framing", "writing", "focused"))).toBe("oulipo");
+  });
+
   it("routes validation to a premortem", () => {
-    expect(routeIdeationMethod(signals("validation", "process", "focused"))).toBe(
-      "premortem-inversion",
-    );
+    expect(routeIdeationMethod(signals("validation", "process", "focused"))).toBe("premortem-inversion");
   });
 
   it("grounds a vague generation problem in first-principles before diverging", () => {
@@ -99,21 +116,20 @@ describe("routeIdeationMethod", () => {
   it("routes focused generation by domain to the medium-appropriate family", () => {
     expect(routeIdeationMethod(signals("generation", "technical", "focused"))).toBe("biomimicry");
     expect(routeIdeationMethod(signals("generation", "product", "focused"))).toBe("jobs-to-be-done");
-    expect(routeIdeationMethod(signals("generation", "business", "focused"))).toBe(
-      "analogy-blending",
-    );
-    expect(routeIdeationMethod(signals("generation", "creative", "focused"))).toBe(
-      "lateral-provocations",
-    );
+    expect(routeIdeationMethod(signals("generation", "business", "focused"))).toBe("analogy-blending");
+    expect(routeIdeationMethod(signals("generation", "creative", "focused"))).toBe("lateral-provocations");
     expect(routeIdeationMethod(signals("generation", "process", "focused"))).toBe("leverage-points");
+    expect(routeIdeationMethod(signals("generation", "writing", "focused"))).toBe("story-skeletons");
   });
 
-  it("always returns a method id that exists in the catalog for every signal combo", () => {
+  it("always returns a catalog method for every signal combo (with and without balance)", () => {
     for (const phase of PHASES) {
       for (const domain of DOMAINS) {
         for (const spec of SPECIFICITIES) {
-          const id = routeIdeationMethod(signals(phase, domain, spec));
-          expect(getMethod(id)).toBeDefined();
+          expect(getMethod(routeIdeationMethod(signals(phase, domain, spec)))).toBeDefined();
+          for (const balance of BALANCES) {
+            expect(getMethod(routeIdeationMethod(signals(phase, domain, spec, balance)))).toBeDefined();
+          }
         }
       }
     }
@@ -125,10 +141,35 @@ describe("routeIdeationMethod", () => {
   });
 });
 
+describe("routeIdeationMethod — feasibility↔creativity balance lever", () => {
+  it("'balanced' is identical to the unset base route", () => {
+    const base = signals("generation", "technical", "focused");
+    expect(routeIdeationMethod({ ...base, balance: "balanced" })).toBe(routeIdeationMethod(base));
+  });
+
+  it("'novel' escalates to the phase's divergent method", () => {
+    expect(routeIdeationMethod(signals("stuck", "product", "vague", "novel"))).toBe("pataphysics");
+    expect(routeIdeationMethod(signals("generation", "creative", "focused", "novel"))).toBe("chance-remix");
+    expect(routeIdeationMethod(signals("framing", "business", "focused", "novel"))).toBe("defamiliarization");
+  });
+
+  it("'feasible' grounds to the phase's buildable method", () => {
+    expect(routeIdeationMethod(signals("framing", "product", "vague", "feasible"))).toBe("polya");
+    expect(routeIdeationMethod(signals("discovery", "product", "focused", "feasible"))).toBe("affinity-diagrams");
+    expect(routeIdeationMethod(signals("stuck", "creative", "vague", "feasible"))).toBe("pattern-languages");
+  });
+});
+
 describe("recommendMethod", () => {
   it("returns the full method entry for a routed problem", () => {
     const m = recommendMethod(signals("stuck", "creative", "vague"));
     expect(m?.id).toBe("oblique-strategies");
     expect(m?.procedure.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("returns a divergent entry when novelty is requested", () => {
+    const m = recommendMethod(signals("generation", "creative", "focused", "novel"));
+    expect(m?.id).toBe("chance-remix");
+    expect(m?.creativity).toBeGreaterThan(0.7);
   });
 });

@@ -1,57 +1,71 @@
 ---
 name: ideation-methods
-description: Use when generating ideas, framing a problem, breaking a fixation, or validating a plan and you want ONE deliberate ideation method instead of generic brainstorming. Routes a problem's signals (phase / domain / specificity) to a single named method — first-principles, biomimicry, oblique-strategies, jobs-to-be-done, TRIZ, SCAMPER, leverage-points, lateral-provocations, premortem-inversion, analogy-blending — and applies its procedure. Feeds the solutioning / cofounder work.
+description: Use when generating ideas, framing a problem, breaking a fixation, or validating a plan and you want ONE deliberate creative method instead of generic brainstorming. Routes a problem's signals (phase / domain / specificity / feasibility↔creativity balance) to ONE of 22 named methods from artists, scientists, and designers — Eno, Dalí-adjacent Jarry, Cage, de Bono, Pólya, Alexander, Meadows, Vonnegut, Tharp and more — and runs its procedure. Backed by a deterministic, tested router (src/solutioning/ideation.ts), so the choice is reproducible, not vibes. Feeds the solutioning / cofounder pillar.
+tags: [creativity, ideation, solutioning, cofounder]
+triggers: [{"event":"UserPromptSubmit","match":"(?i)\\b(ideate|brainstorm|fresh (ideas?|inspiration|angle)|new angle|come up with (ideas?|something)|i'?m stuck|out of ideas|creative ideas?|need inspiration)\\b"}]
 ---
 
 # Ideation Methods — route, don't brainstorm
 
-Generic "let's brainstorm" wastes the move. A named method earns its keep by being *the wrong tool for most problems and exactly right for one*. This skill picks one and runs it.
+Generic "let's brainstorm" wastes the move. A named method earns its keep by being *the wrong tool for most problems and exactly right for one*. This skill picks one and runs it — and unlike a prose library, the choice is computed by a **deterministic, tested router**, so the same problem routes the same way every time.
 
-The routing logic and the method catalog are not prose to interpret — they live as a pure, tested module at `src/solutioning/ideation.ts` (`routeIdeationMethod` + `METHOD_CATALOG`). Read this skill to apply a method by hand; call the module when you want the route computed deterministically.
+The router and the 22-method catalog live as a pure, tested module at `src/solutioning/ideation.ts` (`routeIdeationMethod` + `METHOD_CATALOG`). Read this skill to apply a method by hand; call the module when you want the route computed.
 
-## Route on three signals
+## Route on four signals
 
-Reduce the problem to three axes, then take the FIRST matching rule:
+Reduce the problem to four axes; the first three pick the method, the fourth tunes how wild it gets:
 
 - **phase** — `discovery` · `framing` · `generation` · `stuck` · `validation`
-- **domain** — `product` · `technical` · `business` · `creative` · `process`
+- **domain** — `product` · `technical` · `business` · `creative` · `process` · `writing`
 - **specificity** — `vague` · `focused` · `constrained`
+- **balance** — `feasible` ↔ `balanced` ↔ `novel` — the feasibility/creativity lever
 
-| Signal | Method |
-|---|---|
-| phase = `stuck` (any domain/specificity) | **oblique-strategies** — break the fixation first |
-| domain = `technical` + specificity = `constrained` (not stuck) | **triz** — it's a contradiction, resolve it |
-| phase = `generation` + specificity = `vague` | **first-principles** — ground it before diverging |
-| phase = `generation` + domain = `product` | **jobs-to-be-done** |
-| phase = `generation` + domain = `technical` | **biomimicry** |
-| phase = `generation` + domain = `business` | **analogy-blending** |
-| phase = `generation` + domain = `creative` | **lateral-provocations** |
-| phase = `generation` + domain = `process` | **leverage-points** |
-| phase = `discovery` | **jobs-to-be-done** |
-| phase = `framing` | **first-principles** |
-| phase = `validation` | **premortem-inversion** |
-| anything unmatched | **first-principles** (safe default) |
+Base rules (first match wins): `stuck` → a fixation-breaker, always. `technical` + `constrained` → **TRIZ** (it's a contradiction). `generation` refines by domain (widest catalog); a still-`vague` generation grounds in first-principles first. `framing` + `writing` → **Oulipo**. Else the phase route. **Then balance overrides:** `novel` escalates to the phase's divergent method, `feasible` grounds to its buildable one, `balanced`/unset keeps the base route. *That balance axis is what a phase/domain-only router can't do — it's how you hit the "perfect balance of feasibility and creativity."*
 
-`stuck` always wins. The technical-contradiction rule beats the phase route. Generation refines by domain because the catalog is widest there.
+## The 22 methods — grouped on the feasibility↔creativity axis
 
-## Method catalog (apply the routed one)
+Run the routed method's procedure (in the module); don't blend several at once. Origin is attribution, not decoration — a method carries the judgment of whoever forged it.
 
-Each method below mirrors a `METHOD_CATALOG` entry. Run its procedure; don't blend several at once.
+**Grounding (buildable — pick when `balance: feasible`)**
+- **Pólya** (Pólya) — work a well-posed problem with understand → plan → execute → look-back.
+- **Premortem Inversion** (Klein) — assume the plan failed; design out every cause.
+- **Affinity Diagrams** (Kawakita / KJ) — cluster scattered notes in silence until structure emerges.
+- **First-Principles** — rebuild from what must be true, not how it's done.
+- **Jobs-To-Be-Done** (Christensen / Ulwick) — frame around the progress a user wants.
+- **Creative Discipline** (Tharp) — feed the spine to carry a long work past the novelty high.
+- **Pattern Languages** (Alexander) — capture a recurring solution as context → forces → resolution.
+- **TRIZ** (Altshuller) — resolve the design contradiction instead of trading X for Y.
+- **Leverage Points** (Meadows) — intervene at rules/goals, not surface parameters.
 
-- **first-principles** — rebuild from what must be true. *When:* the framing carries dead weight or you want a clean foundation. *Not:* constraints are genuinely fixed. *Run:* state the bare outcome → list smuggled assumptions → keep only laws, drop conventions → recompose.
-- **biomimicry** — borrow a strategy biology already evolved. *When:* the problem is a physical/functional verb (move, sense, distribute, cool). *Not:* it's abstract or social. *Run:* restate as a function → find organisms that survive on it → extract the mechanism (not the animal) → transfer it.
-- **oblique-strategies** — a sideways provocation card to dislodge a fixation. *When:* you're looping on the same ideas. *Not:* the decision needs rigor now. *Run:* name the fixation → draw one provocation ("do the opposite", "remove the most important part") → apply it literally for a minute → keep the fragment.
-- **jobs-to-be-done** — frame around the progress a user wants, not features. *When:* generating product/feature ideas. *Not:* purely internal/technical with no user. *Run:* name person + trigger → "when I _, I want to _, so I can _" → list what they hire today → find the under-served gap.
-- **triz** — resolve a design contradiction instead of compromising. *When:* improving X degrades Y and a trade-off feels forced. *Not:* there's no real contradiction. *Run:* name "to improve X, Y worsens" → try separating in time/space/scale/condition → apply an inventive move that dissolves the trade-off.
-- **scamper** — transform an existing thing along seven operators. *When:* you have a concrete artifact and want fast variations. *Not:* the page is blank. *Run:* sweep Substitute / Combine / Adapt / Modify / Put-to-other-use / Eliminate / Reverse → keep the non-obvious mutations → hybridize survivors.
-- **leverage-points** — intervene where a system yields most. *When:* a process with feedback where shallow tweaks keep failing. *Not:* a one-shot artifact with no loops. *Run:* map stocks/flows/loops → climb parameters → rules → goals → paradigm → act on the highest rung you can move.
-- **lateral-provocations** — plant an unreasonable statement and harvest the path to make it work. *When:* you need genuinely new ideas and logic returns the familiar. *Not:* you're converging on a decision. *Run:* reverse/exaggerate an assumption → state it as a provocation you needn't believe → ask what would make it useful → keep the idea, drop the provocation.
-- **premortem-inversion** — assume the plan failed, then design out every cause. *When:* validating/hardening a candidate plan. *Not:* there's no plan yet. *Run:* declare failure → list every cause → rank by likelihood × damage → generate the change that removes each top cause → fold safeguards back in.
-- **analogy-blending** — fuse a distant domain to inherit its solution shape. *When:* the problem feels novel but is solved elsewhere. *Not:* it's tightly constrained. *Run:* abstract to the bare relationship → find a far domain with the same relationship → name the transferable move → blend, then patch only what breaks in translation.
+**Balanced**
+- **Compression-Progress** (Schmidhuber) — keep the idea whose insight compresses the most.
+- **Biomimicry** (Benyus) — borrow a strategy biology already evolved.
+- **SCAMPER** (Osborn / Eberle) — transform an artifact along seven operators.
+- **Volume Generation** (Glass) — generate many with judgment off, then cut hard.
+- **Story Skeletons** (Vonnegut) — borrow a narrative arc to shape a sequence.
+- **Analogy & Blending** (Fauconnier & Turner) — fuse a distant domain's solution shape.
+
+**Divergent (wild — pick when `balance: novel`)**
+- **Oulipo Constraints** (Queneau & Perec) — let an arbitrary hard constraint do the inventing.
+- **Defamiliarization** (Shklovsky) — strip the names off a familiar thing to see it again.
+- **Oblique Strategies** (Eno & Schmidt) — a sideways provocation card to break a fixation.
+- **Dérive & Mapping** (Debord) — drift the space with no goal, then map the adjacency.
+- **Lateral Provocation / PO** (de Bono) — plant an unreasonable statement, harvest the path.
+- **Chance & Remix** (Cage · Eno · Ferguson) — let a real random input pick what taste won't.
+- **Pataphysics** (Jarry) — engineer an imaginary solution rigorously, port back what survives.
+
+## Operating principles
+
+- **Constraint + direction makes the spark** — a method without a target produces slop; a target without a method produces the obvious.
+- **Reject the first idea as the default** — the un-routed LLM answer is exactly what this skill exists to displace. If you generate without routing, you've defeated it.
+- **One method per response** — finish its procedure before reaching for another.
+- **Mechanisms over abstractions** — the output is a concrete idea or a sharpened frame, not a description of the technique. Apply it; don't narrate it.
+- **Keep the weird buildable** — `novel` is for breaking orbit, but land it back on something that ships. That's the balance lever's whole job.
+- **Attribute the method** — name the originator; it signals which judgment you're borrowing.
+- **Commit to the user's pick** — if they name a method, run it; don't regenerate endlessly.
 
 ## Anti-slop
 
-- Route to ONE method and finish its procedure before reaching for another.
-- The output is a generated idea or a sharpened frame, not a description of the method. Don't narrate the technique — apply it.
-- If the route surprises you, trust the signal you fed it before overriding — most "wrong route" feelings are a mislabeled phase.
-- Default routes to first-principles only when no rule fires; that's a fallback, not a recommendation — sharpen the signals if you land there often.
+- If the route surprises you, trust the signals you fed it before overriding — most "wrong route" feelings are a mislabeled phase.
+- The default lands on first-principles only when no rule fires; that's a fallback, not a recommendation — sharpen the signals if you land there often.
+- Don't reach for `novel` to look clever or `feasible` to play safe — pick the balance the *problem* needs.
