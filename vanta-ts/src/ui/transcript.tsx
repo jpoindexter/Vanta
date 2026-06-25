@@ -20,6 +20,9 @@ const vbidi = (text: string): string => (hasRtl(text) ? reorderBidi(text) : text
 
 const DIFF_MAX = 12;
 const THINK_MAX = 3;
+// A subtle background highlights the user's own turn (Claude Code's userMessageBackground
+// pattern) so what YOU said reads distinctly from the assistant's prose.
+const USER_BG = "#2b2f3a";
 
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
@@ -33,7 +36,7 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   // flexGrow on the text column makes Ink wrap to (terminalWidth − marker) instead
   // of the full width — without it, marker + full-width text overflows by the marker
   // size and the terminal re-wraps the spillover (the mangled "als↵o" wrap bug).
-  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Box width={proseWidth}><Text>{vbidi(e.text)}</Text></Box></Box>;
+  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Box width={proseWidth}><Text backgroundColor={USER_BG}>{vbidi(e.text)}</Text></Box></Box>;
   if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column" width={proseWidth}><Markdown text={vbidi(e.text)} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
