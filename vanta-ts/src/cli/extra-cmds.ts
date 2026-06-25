@@ -94,6 +94,10 @@ export async function runAcpServeCommand(root: string): Promise<number> {
 /** `vanta acp [serve | <port>]` — ACP server. `serve` = stdio; a port = the HTTP shim. */
 export async function runAcpCommand(root: string, rest: string[]): Promise<number> {
   if (rest[0] === "serve") return runAcpServeCommand(root);
+  if (rest[0] === "connect") {
+    const { runAcpConnect } = await import("./acp-connect.js");
+    return runAcpConnect(root, rest.slice(1));
+  }
   const port = Number(rest[0]) || 7792;
   const { startAcpServer, writeAgentJson } = await import("../acp/server.js");
   const { prepareRun, buildSummarizer } = await import("../session.js");

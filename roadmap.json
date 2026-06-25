@@ -15967,7 +15967,7 @@
       "id": "VANTA-ACP-CLIENT",
       "track": "Extensibility",
       "title": "ACP client — drive another ACP agent (Claude Code) over the protocol, not the terminal",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Vanta already SERVES ACP (acp/serve.ts + acp/acp-server.ts: `vanta acp serve` exposes Vanta AS an ACP agent to an editor, gating actions through the kernel as session/request_permission). The inverse — an ACP CLIENT that drives ANOTHER ACP agent — doesn't exist. Claude Code can run as an ACP agent, and an ACP client is the clean STRUCTURED interactive bridge (typed initialize/session/prompt/update/permission JSON-RPC) versus scraping a tmux pane (VANTA-AGENT-SESSION-INTERACTIVE). Reuse the pure protocol codec (acp/protocol.ts) + a stdio transport; add an outbound AcpClient: initialize -> new session -> prompt-turn loop with streamed session/update surfaced in the transcript, forwarding the PEER's permission requests to OUR kernel. STRATEGY E6 named ACP 'the real interop path' — this is its client half. Two bridges, one captured intent: ship the tmux session first (works with any CLI), this for agents that speak ACP.",
       "done": "Vanta connects to a real ACP agent over stdio, runs a multi-turn session (initialize -> new session -> >=2 prompt turns with streamed updates shown in the transcript) and routes the peer's permission requests through the Vanta kernel — verified live against Claude Code (or another ACP agent), with a recorded session.",
@@ -15978,7 +15978,9 @@
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ]
+      ],
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. acp/client.ts = the OUTBOUND ACP half (Vanta already SERVES ACP): AcpClient drives another ACP agent over stdio (initialize -> session/new -> session/prompt turns), reusing the pure protocol codec; forwards the peer's session/update notifications to onUpdate and routes its session/request_permission through the kernel (kernelApprover: assess -> allow-only, picks the matching allow/reject option). spawnAcpTransport (child stdio) + runAcpClientSession orchestration. CLI: vanta acp connect <cmd> [args] -- <prompt> (cli/acp-connect.ts) wires the real kernelApprover. LIVE PROOF vs real 'vanta acp serve': initialize + session/new (real id) + 2 prompt turns + 4 streamed session/update (tool_call/tool_call_update); separate run drove the peer to write outside root -> session/request_permission routed through the kernel -> rejected (verdict false) -> write blocked. Tests: client.test.ts (6, fake transport: round-trip, updates, close-rejects-pending, allow/reject option routing, multi-turn orchestration). Full suite 967/11063 green; tsc + size gate + boundaries clean. STRATEGY E6 = 'ACP is the real interop path' — client half now built.",
+      "updated": "2026-06-25"
     },
     {
       "id": "VANTA-SANDBOX-AGENT-REDIRECT",
