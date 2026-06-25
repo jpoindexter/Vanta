@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-24",
+  "updated": "2026-06-25",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -15186,6 +15186,34 @@
       "effort": "low",
       "updated": "2026-06-24",
       "notes": "Found 2026-06-24 during ideation-skill activation. Symptom: `vanta skills install --force` from inside Vanta hit 'sandbox EPERM on tsx IPC pipe'; the agent fell back to VANTA_HOME=.vanta-state + node --import tsx, installing the 22-method skill + syncing triggers to a throwaway repo-local dir instead of ~/.vanta — activation silently no-op'd against the real store. Fixed manually by re-running both against ~/.vanta; the stray .vanta-state is now gitignored + removed. Root fix: allow the tsx IPC pipe under the shell sandbox for self-calls, OR have the launcher fall back without overriding VANTA_HOME. Separately exposed VANTA-CLAUDE-USERPROMPT-GATE (fixed same day): Claude ignores `matcher` for UserPromptSubmit, so the synced ideation trigger fired on every prompt until the emitter was taught to gate on the prompt regex (promptMatchesTrigger)."
+    },
+    {
+      "id": "VANTA-MENU-WIDTH-RESPONSIVE",
+      "track": "Operator",
+      "title": "Width-responsive TUI menus — kill fixed truncation across every palette/list",
+      "status": "shipped",
+      "size": "S",
+      "summary": "The slash/skills/overlay menus clipped descriptions at hardcoded widths (48/52/72), so they cramped on a wide terminal and misaligned on a narrow one — long skill names rammed straight into their descriptions. Operator readability fix surfaced 2026-06-25 from a screenshot of the cramped /skills menu; user asked to fix every menu, not just skills.",
+      "done": "a shared width helper sizes the label column to the longest entry and gives the description the rest of the real terminal width; applied to the slash palette, the overlay menu (model/sessions/skills/themes picker), quick-open, the /skills text list, and the loops panel; descriptions align into one scannable column; tests green.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-25",
+      "notes": "Shipped 2026-06-25 (commit 9893473). New term/width.ts (planColumns + clipTo + termWidth, pure + tested) drives every menu: ui/slash-palette, ui/overlay-list (high-leverage — model/sessions/skills/themes all inherit), ui/quick-open, repl/handlers /skills (name col 24→40 so long design-skill names fit + responsive desc), ui/loops-panel. Descriptions dimmed (command name = scannable anchor), active row inverse. Reasoned from dec-cognitive-load (fixed clip = extraneous load), dec-krug (one scannable column), dec-ux-laws/Von Restorff. Left as-is: @/# palettes (name-only), config/settings panels (aligned key:value), task-rows (pure unit-tested shaper). 963 files/11028 tests green."
+    },
+    {
+      "id": "VANTA-CLAUDE-USERPROMPT-GATE",
+      "track": "Harness",
+      "title": "Gate UserPromptSubmit skill triggers on the prompt regex for Claude Code",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Claude Code ignores the `matcher` field for UserPromptSubmit hooks (it's tool-name-only), so a synced SKILL-TRIGGERS match-trigger fired on EVERY Claude prompt — the ideation-methods recall note spammed every turn. Found 2026-06-25 while activating the ideation auto-fire across agents (sibling of VANTA-SANDBOX-TSX-SELFCALL).",
+      "done": "the trigger-emit emitter reads the prompt from the hook payload and only injects the recall note when it matches the trigger's regex; a non-matching prompt emits nothing; verified live + unit-tested.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-25",
+      "notes": "Shipped 2026-06-25 (commit 6c5e7a4). Pure promptMatchesTrigger (skills/triggers.ts) handles the (?i) inline flag JS RegExp lacks; cli/skills-cmd.ts userPromptGatedOut reads stdin payload.prompt and suppresses the note on a non-match. Vanta's own hook engine already gated upstream (toolNamePattern) — only the Claude path leaked. 3 unit tests; full suite green."
     },
     {
       "id": "COFOUNDER-ANTI-SLOP",
