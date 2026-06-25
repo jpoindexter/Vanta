@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import { Markdown } from "./markdown.js";
 import { linkify } from "../term/linkify.js";
 import { hasRtl, reorderBidi } from "../term/bidi.js";
@@ -23,9 +23,18 @@ const THINK_MAX = 3;
 
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
+  // Wrap prose to (cols − marker). An explicit width is needed because the `⏺ `/`❯ `
+  // markers are ambiguous-width glyphs the terminal renders wider than Ink measures —
+  // flexGrow alone leaves the text 1–2 cols too wide, so it overflows and the terminal
+  // re-wraps the spillover (mangled "als↵o"). Reserve 3 cells; clamp to a sane floor.
+  const cols = useStdout().stdout?.columns ?? 100;
+  const proseWidth = Math.max(20, cols - 3);
   // A blank line above a user turn separates turns visually (Claude/Cursor rhythm).
-  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Text>{vbidi(e.text)}</Text></Box>;
-  if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column"><Markdown text={vbidi(e.text)} /></Box></Box>;
+  // flexGrow on the text column makes Ink wrap to (terminalWidth − marker) instead
+  // of the full width — without it, marker + full-width text overflows by the marker
+  // size and the terminal re-wraps the spillover (the mangled "als↵o" wrap bug).
+  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Box width={proseWidth}><Text>{vbidi(e.text)}</Text></Box></Box>;
+  if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column" width={proseWidth}><Markdown text={vbidi(e.text)} /></Box></Box>;
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
