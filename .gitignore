@@ -15,6 +15,7 @@ node_modules
 
 # Runtime data dirs (state, not source)
 .vanta/
+.vanta-state/
 .nexarion/
 
 # CodeGraph index (rebuildable from source)
