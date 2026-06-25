@@ -15984,7 +15984,7 @@
       "id": "VANTA-SANDBOX-AGENT-REDIRECT",
       "track": "Harness",
       "title": "Sandbox dead-end -> redirect a refused agent launch to the supported path",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "In the transcript Vanta tried to start Claude Code via `shell_cmd background:true` and `tmux new-session` and got two terminal refusals with no way forward: 'background tasks are not sandboxed ...' (shell-cmd.ts:253, auto-on macOS sandbox) and tmux's 'Operation not permitted' (seatbelt). Both refusals are CORRECT but dead-end — they don't point at the supported path. Make them actionable: when a refused background/tmux command looks like launching a known agent CLI (claude/codex/gemini/cursor-agent/opencode), the refusal text names `call_agent` / `agent_session` as the route. Optionally add a NARROW Vanta-owned sandbox-exempt spawn channel reserved for the agent-orchestration tools (those tools own their cleanup) — NOT a general background bypass — so the supported path works under auto-sandbox without weakening arbitrary shell_cmd.",
       "done": "Under default macOS auto-sandbox, a shell_cmd attempt to launch a known agent CLI in background/tmux returns a refusal that NAMES call_agent/agent_session; and the supported agent-spawn tool runs successfully under the same sandbox — both verified live.",
@@ -15995,7 +15995,9 @@
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ]
+      ],
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. tools/agent-launch-hint.ts (pure): agentLaunchRedirect(cmd) returns a tail naming call_agent + agent_session when a known agent CLI (claude/codex/gemini/cursor-agent/opencode) appears; isTmuxAgentLaunch(cmd) = tmux + agent. shell-cmd.ts: sandboxAgentRefusal(cmd) (exported) refuses a tmux-agent launch under the sandbox with the redirect; wired as a pre-check in execute (after the destructive check) AND appended to the background-under-sandbox refusal. LIVE PROOF (VANTA_SHELL_SANDBOX=1): (a) shell_cmd 'tmux new-session -d -s probe claude' -> refused, output names BOTH call_agent and agent_session; (b) the agent_session tmux backend spawned + cleaned up a session under the SAME sandbox env (bypasses shell_cmd's sandbox via execFileSync). Tests: agent-launch-hint.test.ts (6) + shell-cmd.test.ts (12) green. Full suite 966/11057 green; tsc + size gate + boundaries clean.",
+      "updated": "2026-06-25"
     },
     {
       "id": "VANTA-CALL-AGENT-STREAM",

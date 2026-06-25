@@ -7,6 +7,7 @@ import type { Tool, ToolResult } from "./types.js";
 import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError } from "../sandbox/run.js";
+import { agentLaunchRedirect, isTmuxAgentLaunch } from "./agent-launch-hint.js";
 import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
@@ -167,6 +168,14 @@ function warnPrefix(command: string): string {
   return warn ? `⚠ ${warn}\n` : "";
 }
 
+/** VANTA-SANDBOX-AGENT-REDIRECT: refuse a tmux-agent launch under the sandbox (it
+ *  dead-ends), naming the supported call_agent/agent_session path. Null otherwise. */
+export function sandboxAgentRefusal(command: string): ToolResult | null {
+  if (!isTmuxAgentLaunch(command)) return null;
+  if (shellSandboxEnv(process.env).VANTA_SANDBOX !== "1") return null;
+  return { ok: false, output: `refused: launching an agent via tmux under the sandbox dead-ends (tmux is denied).${agentLaunchRedirect(command) ?? ""}` };
+}
+
 /** The cwd a child spawn runs in: the session dir if `/cd` changed it this
  *  session, else the tool's root. Until a `/cd` happens this is exactly `root`,
  *  so the spawn is byte-identical to today's. (VANTA-CD-CMD) */
@@ -237,6 +246,8 @@ export const shellCmdTool: Tool = {
     if (DESTRUCTIVE.test(command)) {
       return { ok: false, output: "refused: command matches a destructive pattern" };
     }
+    const agentRefusal = sandboxAgentRefusal(command);
+    if (agentRefusal) return agentRefusal;
     const pfx = warnPrefix(command);
     // An explicit ssh arg wins; otherwise an active SSH session (`vanta ssh
     // user@host` sets VANTA_SSH_SESSION) routes every command to the remote host.
@@ -250,7 +261,7 @@ export const shellCmdTool: Tool = {
       // cleanup for an unref'd child). The sandbox only ever TIGHTENS, so when it's
       // requested we REFUSE the unsandboxed bypass rather than silently weaken it.
       if (shellSandboxEnv(process.env).VANTA_SANDBOX === "1") {
-        return { ok: false, output: "refused: background tasks are not sandboxed; run without background=true under sandbox mode, or unset VANTA_SANDBOX/VANTA_SHELL_SANDBOX" };
+        return { ok: false, output: `refused: background tasks are not sandboxed; run without background=true under sandbox mode, or unset VANTA_SANDBOX/VANTA_SHELL_SANDBOX${agentLaunchRedirect(command) ?? ""}` };
       }
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
