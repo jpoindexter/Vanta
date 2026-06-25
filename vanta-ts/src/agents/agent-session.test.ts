@@ -9,6 +9,7 @@ import {
   closeSession,
   listSessions,
   knownInteractiveAgents,
+  tailOf,
   type SessionBackend,
 } from "./agent-session.js";
 
@@ -127,6 +128,21 @@ describe("sendToSession (turn-by-turn context)", () => {
     expect(reply3).toContain("remember blue");
     expect(reply3).toContain("reply-to: what did I say?");
   });
+  it("returns settled:true when the pane stabilizes (quick reply)", async () => {
+    const s = (await open("claude", "ag-settle")) as { id: string };
+    const r = await sendToSession({ backend, dataDir: dir, id: s.id, text: "hi", wait: { settleMs: 1000, maxMs: 5000, sleep: noSleep } });
+    expect((r as { settled: boolean }).settled).toBe(true);
+  });
+  it("returns settled:false AND streams progress when the agent keeps working past maxMs", async () => {
+    const s = (await open("claude", "ag-busy")) as { id: string };
+    let n = 0;
+    backend.capture = () => `building step ${n++}…`; // never the same twice → never settles
+    const seen: string[] = [];
+    const r = await sendToSession({ backend, dataDir: dir, id: s.id, text: "build a landing page", onProgress: (x) => seen.push(x), wait: { settleMs: 1000, maxMs: 8000, sleep: noSleep } });
+    expect((r as { settled: boolean }).settled).toBe(false); // still working at the cap
+    expect(seen.length).toBeGreaterThan(0); // progress was streamed (not a silent block)
+  });
+
   it("errors on an unknown session id", async () => {
     const r = await sendToSession({ backend, dataDir: dir, id: "ag-missing", text: "hi", wait: fastWait });
     expect((r as { error: string }).error).toContain("no agent session");
@@ -136,6 +152,26 @@ describe("sendToSession (turn-by-turn context)", () => {
     backend.kill("vanta-ag-dead");
     const r = await sendToSession({ backend, dataDir: dir, id: s.id, text: "hi", wait: fastWait });
     expect((r as { error: string }).error).toContain("no longer running");
+  });
+});
+
+describe("tailOf — progress snapshot skips TUI chrome", () => {
+  it("returns the agent's activity line, not dividers/footer/input box", () => {
+    const pane = [
+      "⏺ Write(hello.html)",
+      "  wrote 1 line",
+      "────────────────────────────",
+      "❯ ",
+      "  ⏵⏵ accept edits on (shift+tab to cycle) · ← for agents",
+    ].join("\n");
+    const t = tailOf(pane);
+    expect(t).toContain("Write(hello.html)");
+    expect(t).not.toContain("accept edits");
+    expect(t).not.toContain("❯");
+    expect(t).not.toMatch(/────/);
+  });
+  it("falls back to 'working…' when only chrome is present", () => {
+    expect(tailOf("❯ \n────────\n  ⏵⏵ accept edits on (shift+tab)")).toBe("working…");
   });
 });
 

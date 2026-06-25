@@ -63,8 +63,12 @@ export type AgentSession = { id: string; agent: string; backendName: string; cre
 const REGISTRY = "agent-sessions.json";
 const DEFAULT_MAX_LINES = 120;
 const DEFAULT_SETTLE_MS = 2500;
-const DEFAULT_MAX_MS = 120_000;
+// Cap an interactive send at 40s: a quick reply settles well within this; a LONG task
+// (e.g. "build a landing page") never settles, so we return a "still working" status with
+// the window to watch instead of blocking Vanta silently (was 120s — felt like a hang).
+const DEFAULT_MAX_MS = 40_000;
 const POLL_MS = 750;
+const PROGRESS_MS = 3000; // emit a progress heartbeat at most this often while waiting
 // Prime: agent TUIs (claude's MCP picker / trust prompt) show a startup modal
 // that swallows the first keystrokes. Wait for boot, then Escape to clear it, so
 // the first real prompt lands in the chat input — found live (2026-06-25).
@@ -139,49 +143,66 @@ export async function openSession(o: {
   return session;
 }
 
-/** Poll the pane until output settles (unchanged for `settleMs`) or `maxMs` elapses. */
+// TUI chrome to skip when summarizing progress: box-drawing dividers, the ❯ input line,
+// and the agent's footer/hint lines — so the snapshot shows the agent's ACTUAL activity.
+const CHROME = /^[\s─│╭╮╰╯┌┐└┘▔▁]*$|^❯|⏵⏵|shift\+tab|for agents|^\s*tmux |PgUp|focus-events|set -g/i;
+
+/** The last couple of MEANINGFUL pane lines (chrome filtered) — a "what's happening" signal. */
+export function tailOf(pane: string): string {
+  const lines = pane.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() && !CHROME.test(l));
+  return lines.slice(-2).join(" / ").slice(0, 120) || "working…";
+}
+
+/** Poll the pane until output settles (unchanged for `settleMs`) or `maxMs` elapses.
+ * Streams a progress heartbeat via `onProgress` as the pane changes (so a long task isn't
+ * a silent block). `settled` is false when it timed out still changing — i.e. still working. */
 async function waitForReply(o: {
   backend: SessionBackend;
   name: string;
   settleMs?: number;
   maxMs?: number;
   sleep?: (ms: number) => Promise<void>;
-}): Promise<string> {
+  onProgress?: (snapshot: string) => void;
+}): Promise<{ text: string; settled: boolean }> {
   const settleMs = o.settleMs ?? DEFAULT_SETTLE_MS;
   const maxMs = o.maxMs ?? DEFAULT_MAX_MS;
   const sleep = o.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   let last = "";
   let stableFor = 0;
   let elapsed = 0;
+  let lastEmit = 0;
   while (elapsed < maxMs) {
     await sleep(POLL_MS);
     elapsed += POLL_MS;
     const cur = o.backend.capture(o.name);
     if (cur === last) {
       stableFor += POLL_MS;
-      if (stableFor >= settleMs) break;
+      if (stableFor >= settleMs) return { text: processCapture(last, { maxLines: DEFAULT_MAX_LINES }), settled: true };
     } else {
       last = cur;
       stableFor = 0;
+      if (o.onProgress && elapsed - lastEmit >= PROGRESS_MS) { lastEmit = elapsed; o.onProgress(tailOf(cur)); }
     }
   }
-  return processCapture(last, { maxLines: DEFAULT_MAX_LINES });
+  return { text: processCapture(last, { maxLines: DEFAULT_MAX_LINES }), settled: false };
 }
 
-/** Send `text` to the session, wait for the reply to settle, return the captured pane. */
+/** Send `text` to the session, stream progress, return the pane + whether it settled.
+ * `settled:false` means the agent was still working when the wait capped (long task). */
 export async function sendToSession(o: {
   backend: SessionBackend;
   dataDir: string;
   id: string;
   text: string;
   wait?: { settleMs?: number; maxMs?: number; sleep?: (ms: number) => Promise<void> };
-}): Promise<{ reply: string } | { error: string }> {
+  onProgress?: (snapshot: string) => void;
+}): Promise<{ reply: string; settled: boolean } | { error: string }> {
   const session = find(o.dataDir, o.id);
   if (!session) return { error: `no agent session "${o.id}" — open one first (agent_session open)` };
   if (!o.backend.has(session.backendName)) return { error: `agent session "${o.id}" is no longer running` };
   o.backend.sendText(session.backendName, o.text);
-  const reply = await waitForReply({ backend: o.backend, name: session.backendName, ...o.wait });
-  return { reply };
+  const r = await waitForReply({ backend: o.backend, name: session.backendName, onProgress: o.onProgress, ...o.wait });
+  return { reply: r.text, settled: r.settled };
 }
 
 /** Read the session's current pane without sending anything. */

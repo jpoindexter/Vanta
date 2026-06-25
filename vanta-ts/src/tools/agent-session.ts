@@ -70,9 +70,11 @@ async function doSend(ctx: ToolContext, dir: string, id?: string, text?: string)
   if (!id || text === undefined) return missing("send", "id, text");
   const approved = await ctx.requestApproval(`send to agent session ${id}: ${text.slice(0, 80)}`, "drives the external agent session (it runs in its own harness + approval mode)", "agent_session");
   if (!approved) return { ok: false, output: "agent_session: declined" };
-  const r = await sendToSession({ backend, dataDir: dir, id, text });
+  const onProgress = ctx.onProgress ? (s: string) => ctx.onProgress?.(`⋯ ${id}: ${s}`) : undefined; // stream live progress
+  const r = await sendToSession({ backend, dataDir: dir, id, text, onProgress });
   if ("error" in r) return { ok: false, output: r.error };
-  return { ok: true, output: `[${id}]\n${r.reply || "(no output captured — try agent_session read)"}` };
+  const note = r.settled ? "" : `\n(still working — watch the window, or agent_session(action:"read", id:"${id}") for an update)`;
+  return { ok: true, output: `[${id}]\n${r.reply || "(no output captured — try agent_session read)"}${note}` };
 }
 
 function doRead(dir: string, id?: string): ToolResult {
