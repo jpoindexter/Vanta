@@ -15128,8 +15128,8 @@
       "codex": "gpt-5.4",
       "lens": "selfhood",
       "updated": "2026-06-24",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-06-20 (10 methods); EXPANDED 2026-06-24 to the full 22 creative methods + a feasibility<->creativity 'balance' axis the Hermes (SHL0MS creative-ideation, MIT) prose skill lacks. solutioning/ideation.ts split into ideation-catalog.ts (analytic 10) + ideation-creative.ts (12 artist/thinker methods: Oulipo/Queneau-Perec, Story Skeletons/Vonnegut, Chance-Remix/Cage, Pataphysics/Jarry, Pattern Languages/Alexander, Derive/Debord, Compression-Progress/Schmidhuber, Polya, Defamiliarization/Shklovsky, Creative Discipline/Tharp, Affinity Diagrams/KJ, Volume Generation), each with origin attribution + a 0..1 creativity weight. New balance signal (feasible|balanced|novel): novel escalates to the phase's divergent method, feasible grounds it, unset/balanced keeps the backward-compatible base route. SKILL.md rewritten for 22 grouped on the axis + an UserPromptSubmit auto-fire trigger. NOT a verbatim port (native procedures, our tested deterministic router beats the prose one). 962 files/11018 tests green."
+      "notes": "Shipped 2026-06-20 (10 methods); EXPANDED 2026-06-24 to the full 22 creative methods + a feasibility<->creativity 'balance' axis the Hermes (SHL0MS creative-ideation, MIT) prose skill lacks. solutioning/ideation.ts split into ideation-catalog.ts (analytic 10) + ideation-creative.ts (12 artist/thinker methods: Oulipo/Queneau-Perec, Story Skeletons/Vonnegut, Chance-Remix/Cage, Pataphysics/Jarry, Pattern Languages/Alexander, Derive/Debord, Compression-Progress/Schmidhuber, Polya, Defamiliarization/Shklovsky, Creative Discipline/Tharp, Affinity Diagrams/KJ, Volume Generation), each with origin attribution + a 0..1 creativity weight. New balance signal (feasible|balanced|novel): novel escalates to the phase's divergent method, feasible grounds it, unset/balanced keeps the backward-compatible base route. SKILL.md rewritten for 22 grouped on the axis + an UserPromptSubmit auto-fire trigger. NOT a verbatim port (native procedures, our tested deterministic router beats the prose one). 962 files/11018 tests green.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "PROVIDER-USER-REGISTRY",
@@ -15927,6 +15927,88 @@
       "tier": "sand",
       "lens": "memory",
       "source": "mem0-audit-2026-06-22"
+    },
+    {
+      "id": "VANTA-AGENT-ROUTING-DISCOVERY",
+      "track": "Harness",
+      "title": "Route 'talk to / start Claude Code' to the existing call_agent tool",
+      "status": "next",
+      "size": "S",
+      "summary": "Root cause from a real 2026-06-25 session: a user asked Vanta (gpt-5.5) to 'talk to / start up Claude Code'. Vanta HAS a purpose-built tool for exactly this — `call_agent` (tools/call-agent.ts + agents/external-cli.ts: calls claude/codex/gemini/cursor-agent/opencode non-interactively, 300s timeout, 16MB buffer, kernel- AND approval-gated) — but never reached for it. It fell back to raw `shell_cmd` (`claude`, `claude -p`, `tmux new-session`) and dead-ended on the auto-on macOS shell sandbox (background+tmux refused) plus shell_cmd's 30s timeout. The capability existed; DISCOVERY failed. Fix routing so 'talk to / start / use / ask <agent-name>' intent surfaces call_agent first: a stable system-prompt line naming call_agent for cross-agent intent, a UserPromptSubmit skill-trigger that injects a recall note when a known agent name (claude/codex/gemini/cursor-agent/opencode) appears, and guarantee call_agent's full schema is never hidden by deferred tool-scoping (agent/tool-scope.ts) for those prompts.",
+      "done": "In a fresh session the instruction 'talk to Claude Code' (or 'ask claude to ...') makes Vanta call the call_agent tool — not raw shell — on the first attempt, verified live with a logged tool call (the model that failed in the transcript, or an equivalent local model).",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "source": "session-2026-06-25-talk-to-claude-code"
+    },
+    {
+      "id": "VANTA-AGENT-SESSION-INTERACTIVE",
+      "track": "Harness",
+      "title": "Persistent interactive external-agent session — drive Claude Code turn-by-turn",
+      "status": "next",
+      "size": "L",
+      "summary": "call_agent is ONE-SHOT (execFile -> capture stdout): it delegates a single prompt, it can't hold a conversation. The user's literal ask was 'start one up and keep talking to it.' Build a persistent, drivable session over primitives Vanta already ships LIVE: spawn the agent CLI in a detached tmux pane (reuse fleet/tmux-backend.ts, proven live), inject prompts with `tmux send-keys`, read replies with the tmux-backed terminal_capture tool, loop. New `agent_session` tool: open(agent)->id / send(id,text) / read(id) / close(id). Each action kernel-gated; output bounded; idle/stall detection (reuse tools/shell-stall.ts). Runs through a Vanta-owned tmux channel so it sidesteps the shell-sandbox background refusal (see VANTA-SANDBOX-AGENT-REDIRECT). This is the Cofounder-engine 'drive a sub-operator' mechanic made real; pty path stays blocked on node v24 (node-pty native binding), so tmux is the substrate.",
+      "done": "Vanta opens a live Claude Code session, sends 3 sequential prompts where the 2nd/3rd depend on the 1st's context, reads each reply back into the transcript, and closes it cleanly — verified live end-to-end against the installed `claude` CLI, every send/read kernel-gated.",
+      "tier": "rock",
+      "model": "opus",
+      "effort": "high",
+      "lens": "agent-loop",
+      "source": "session-2026-06-25-talk-to-claude-code",
+      "after": [
+        "VANTA-AGENT-ROUTING-DISCOVERY"
+      ]
+    },
+    {
+      "id": "VANTA-ACP-CLIENT",
+      "track": "Extensibility",
+      "title": "ACP client — drive another ACP agent (Claude Code) over the protocol, not the terminal",
+      "status": "horizon",
+      "size": "L",
+      "summary": "Vanta already SERVES ACP (acp/serve.ts + acp/acp-server.ts: `vanta acp serve` exposes Vanta AS an ACP agent to an editor, gating actions through the kernel as session/request_permission). The inverse — an ACP CLIENT that drives ANOTHER ACP agent — doesn't exist. Claude Code can run as an ACP agent, and an ACP client is the clean STRUCTURED interactive bridge (typed initialize/session/prompt/update/permission JSON-RPC) versus scraping a tmux pane (VANTA-AGENT-SESSION-INTERACTIVE). Reuse the pure protocol codec (acp/protocol.ts) + a stdio transport; add an outbound AcpClient: initialize -> new session -> prompt-turn loop with streamed session/update surfaced in the transcript, forwarding the PEER's permission requests to OUR kernel. STRATEGY E6 named ACP 'the real interop path' — this is its client half. Two bridges, one captured intent: ship the tmux session first (works with any CLI), this for agents that speak ACP.",
+      "done": "Vanta connects to a real ACP agent over stdio, runs a multi-turn session (initialize -> new session -> >=2 prompt turns with streamed updates shown in the transcript) and routes the peer's permission requests through the Vanta kernel — verified live against Claude Code (or another ACP agent), with a recorded session.",
+      "tier": "pebble",
+      "model": "opus",
+      "effort": "high",
+      "lens": "agent-loop",
+      "source": "session-2026-06-25-talk-to-claude-code",
+      "after": [
+        "VANTA-AGENT-ROUTING-DISCOVERY"
+      ]
+    },
+    {
+      "id": "VANTA-SANDBOX-AGENT-REDIRECT",
+      "track": "Harness",
+      "title": "Sandbox dead-end -> redirect a refused agent launch to the supported path",
+      "status": "horizon",
+      "size": "S",
+      "summary": "In the transcript Vanta tried to start Claude Code via `shell_cmd background:true` and `tmux new-session` and got two terminal refusals with no way forward: 'background tasks are not sandboxed ...' (shell-cmd.ts:253, auto-on macOS sandbox) and tmux's 'Operation not permitted' (seatbelt). Both refusals are CORRECT but dead-end — they don't point at the supported path. Make them actionable: when a refused background/tmux command looks like launching a known agent CLI (claude/codex/gemini/cursor-agent/opencode), the refusal text names `call_agent` / `agent_session` as the route. Optionally add a NARROW Vanta-owned sandbox-exempt spawn channel reserved for the agent-orchestration tools (those tools own their cleanup) — NOT a general background bypass — so the supported path works under auto-sandbox without weakening arbitrary shell_cmd.",
+      "done": "Under default macOS auto-sandbox, a shell_cmd attempt to launch a known agent CLI in background/tmux returns a refusal that NAMES call_agent/agent_session; and the supported agent-spawn tool runs successfully under the same sandbox — both verified live.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "lens": "agent-loop",
+      "source": "session-2026-06-25-talk-to-claude-code",
+      "after": [
+        "VANTA-AGENT-ROUTING-DISCOVERY"
+      ]
+    },
+    {
+      "id": "VANTA-CALL-AGENT-STREAM",
+      "track": "Harness",
+      "title": "Stream a called agent's output live instead of a silent wait-then-dump",
+      "status": "horizon",
+      "size": "M",
+      "summary": "runExternalAgent (agents/external-cli.ts) uses execFile and returns ONLY after the child exits — up to a 300s wait with zero feedback, then one dump. In the transcript the user watched a hung terminal with no signal the agent was even working. Switch the call path to a streamed spawn (child_process.spawn, line-buffered) that forwards the called agent's stdout/stderr into the Vanta transcript as it arrives (reuse the StreamEvent surface used elsewhere), plus an elapsed/working heartbeat and the existing stall watchdog (tools/shell-stall.ts). Keep the one-shot return contract identical; this purely makes a long delegated call OBSERVABLE. Benefits call_agent today and the interactive session (VANTA-AGENT-SESSION-INTERACTIVE).",
+      "done": "A call_agent run to a real agent CLI shows incremental output (or at minimum a periodic elapsed/working heartbeat) in the transcript BEFORE the child exits, verified live with a multi-second call; the final returned result is byte-equivalent to today's.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "medium",
+      "lens": "agent-loop",
+      "source": "session-2026-06-25-talk-to-claude-code",
+      "after": [
+        "VANTA-AGENT-ROUTING-DISCOVERY"
+      ]
     }
   ]
 }
