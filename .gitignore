@@ -18,6 +18,10 @@ node_modules
 .vanta-state/
 .nexarion/
 
+# Personal compiled brain-vault + local op notes — NEVER in the repo (private data)
+Compiled-Vaults/
+BLOCKERS-GUIDE.html
+
 # CodeGraph index (rebuildable from source)
 .codegraph/
 
