@@ -8,6 +8,11 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-06-24 — model freedom & creative ideation
+- **Add any model provider with no code** — declare any OpenAI-compatible backend in `~/.vanta/providers.json` (`{baseURL, keyEnv, model}`); `VANTA_PROVIDER=<id>` just works. The secret stays in `.env` (the file holds only the env-var name); keyless local endpoints supported; a user entry can even override a built-in. See [Providers](./providers.md).
+- **Routers reach every model** — pick `tokenrouter`/`openrouter` in `vanta setup` and free-type any model the token serves, instead of a pinned list.
+- **Creative ideation, routed** — the `ideation-methods` skill grew to **22 named methods** from artists, scientists, and designers (Eno, Jarry, Cage, de Bono, Pólya, Alexander, Meadows, Vonnegut, Tharp…), with a feasibility↔creativity dial and a deterministic, tested router — so "give me a fresh angle" gets a deliberate method, not generic brainstorming. Fires automatically on ideation-intent prompts.
+
 ## 2026-06-22 — public launch (v0.2.0)
 - **Open source** — the repo is public at [github.com/jpoindexter/Vanta](https://github.com/jpoindexter/Vanta) under the **MIT** license.
 - **Zero-toolchain install** — only `git` is required. The Rust safety kernel ships as a prebuilt binary and a portable Node 22 is fetched automatically on first run (both checksum-verified); no Rust or system Node to install.

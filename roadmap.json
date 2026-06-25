@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-22",
+  "updated": "2026-06-24",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -15127,8 +15127,51 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "selfhood",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-06-24",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-06-20 (10 methods); EXPANDED 2026-06-24 to the full 22 creative methods + a feasibility<->creativity 'balance' axis the Hermes (SHL0MS creative-ideation, MIT) prose skill lacks. solutioning/ideation.ts split into ideation-catalog.ts (analytic 10) + ideation-creative.ts (12 artist/thinker methods: Oulipo/Queneau-Perec, Story Skeletons/Vonnegut, Chance-Remix/Cage, Pataphysics/Jarry, Pattern Languages/Alexander, Derive/Debord, Compression-Progress/Schmidhuber, Polya, Defamiliarization/Shklovsky, Creative Discipline/Tharp, Affinity Diagrams/KJ, Volume Generation), each with origin attribution + a 0..1 creativity weight. New balance signal (feasible|balanced|novel): novel escalates to the phase's divergent method, feasible grounds it, unset/balanced keeps the backward-compatible base route. SKILL.md rewritten for 22 grouped on the axis + an UserPromptSubmit auto-fire trigger. NOT a verbatim port (native procedures, our tested deterministic router beats the prose one). 962 files/11018 tests green."
+    },
+    {
+      "id": "PROVIDER-USER-REGISTRY",
+      "track": "Extensibility",
+      "title": "User-extensible provider registry (~/.vanta/providers.json)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Add ANY OpenAI-compatible provider without a code change, mirroring the agents.json / mcp.json pattern. Came out of a TokenRouter setup session: a router token reaches many models but each provider was hand-coded in the OPENAI_COMPAT map. A user registry removes that friction and lets users self-fix a built-in's URL/model without waiting on a release.",
+      "done": "~/.vanta/providers.json declares {baseURL, keyEnv?, model?, router?} per id; VANTA_PROVIDER=<id> resolves it; the secret stays in .env (only the env-var NAME is in the file); keyless local endpoints work; a user entry overrides a built-in of the same id; resolveProvider checks the registry before the built-in table; unit-tested.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-24",
+      "notes": "Shipped 2026-06-24 (commit 6fdca3c). providers/user-providers.ts: loadUserProviders (tolerant read/validate, bad entry dropped) + makeUserProvider (requireKey from keyEnv, '-' placeholder for keyless, model from VANTA_MODEL>entry, clear errors). Wired: resolveProvider checks loadUserProviders[id] first (user wins -> add OR fix any backend). providers.json.example + .env.example document it. 11 unit tests + full suite 11012 green."
+    },
+    {
+      "id": "PROVIDER-ROUTER-FREEFORM",
+      "track": "Operator",
+      "title": "Router providers free-type any model in the setup wizard",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Fix the 'I select TokenRouter but it only shows MiniMax' confusion: a router's one token reaches every model it proxies, so the wizard shouldn't pin a fixed suggestion list. VANTA_MODEL already accepted any id; this makes the setup UX match the capability.",
+      "done": "ProviderEntry gains router?:boolean; tokenrouter + openrouter flagged; setup wizard chooseModelStep goes straight to free-typed 'enter any model id' for routers instead of a pinned pick; tests green.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-24",
+      "notes": "Shipped 2026-06-24 (commit b908aa2). Also fixed the TokenRouter built-in: base URL is api.tokenrouter.com/v1 (not .io) and model ids are bare (MiniMax-M3), verified live against a real token (commit b5955f0). 11001 tests green."
+    },
+    {
+      "id": "IDEATION-AUTOFIRE-AGENTS",
+      "track": "Cofounder engine",
+      "title": "Auto-fire ideation routing across Vanta / Claude / Codex",
+      "status": "next",
+      "size": "S",
+      "summary": "Make the 22-method ideation routing fire automatically when an ideation-intent prompt arrives, in every agent the operator uses. Vanta side is done (UserPromptSubmit trigger in the skill frontmatter, auto-synced to ~/.vanta/hooks.json each session). The cross-agent half writes global agent config, so it stays confirm-gated.",
+      "done": "vanta skills sync-triggers --claude installs the UserPromptSubmit hook into ~/.claude/settings.json; an AGENTS.md snippet carries the routing for Codex (no event hooks); both verified to fire on an ideation-intent prompt.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-24",
+      "notes": "Vanta auto-fire SHIPPED in the ideation-methods SKILL.md trigger (2026-06-24). Claude (~/.claude/settings.json via sync-triggers --claude) + Codex (AGENTS.md) PENDING — both touch global agent config, confirm-first per Rule Zero."
     },
     {
       "id": "COFOUNDER-ANTI-SLOP",
