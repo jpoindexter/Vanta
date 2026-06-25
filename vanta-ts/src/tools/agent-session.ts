@@ -22,6 +22,7 @@ const Args = z.object({
   id: z.string().optional(),
   text: z.string().optional(),
   show: z.boolean().optional(), // open: pop a visible terminal window to watch (default true)
+  coding: z.boolean().optional(), // open: launch the agent build-ready (auto-accepts file edits)
 });
 
 const backend = tmuxSessionBackend;
@@ -48,15 +49,21 @@ function describeAction(a: Record<string, unknown>): string {
   return "list agent sessions";
 }
 
-async function doOpen(ctx: ToolContext, dir: string, agent?: string, show?: boolean): Promise<ToolResult> {
+async function doOpen(o: { ctx: ToolContext; dir: string; agent?: string; show?: boolean; coding?: boolean }): Promise<ToolResult> {
+  const { ctx, dir, agent, show, coding } = o;
   if (!agent) return missing("open", "agent");
   const visible = show ?? process.env.VANTA_AGENT_SHOW !== "0"; // default: pop a window to watch
-  const approved = await ctx.requestApproval(`open interactive ${agent} session${visible ? " (opens a terminal window)" : ""}`, "spawns a persistent external agent CLI you can drive turn-by-turn", "agent_session");
+  const mode = coding ? " in BUILD mode (auto-accepts file edits)" : "";
+  const detail = coding
+    ? "spawns the agent build-ready — it auto-accepts file edits and can change files in this project on its own"
+    : "spawns a persistent external agent CLI you can drive turn-by-turn";
+  const approved = await ctx.requestApproval(`open interactive ${agent} session${mode}${visible ? " (opens a terminal window)" : ""}`, detail, "agent_session");
   if (!approved) return { ok: false, output: "agent_session: declined" };
-  const r = await openSession({ backend, dataDir: dir, agent, show: visible });
+  const r = await openSession({ backend, dataDir: dir, agent, show: visible, coding });
   if ("error" in r) return { ok: false, output: r.error };
   const watch = visible ? `\nA terminal window opened so you can watch it work (or run: tmux attach -t ${r.backendName}).` : "";
-  return { ok: true, output: `opened ${agent} session: ${r.id}${watch}\nsend with agent_session(action:"send", id:"${r.id}", text:"…"); close with agent_session(action:"close", id:"${r.id}")` };
+  const build = coding ? "\nBUILD mode: it auto-accepts file edits (approve any bash prompt in the window)." : "";
+  return { ok: true, output: `opened ${agent} session: ${r.id}${build}${watch}\nsend with agent_session(action:"send", id:"${r.id}", text:"…"); close with agent_session(action:"close", id:"${r.id}")` };
 }
 
 async function doSend(ctx: ToolContext, dir: string, id?: string, text?: string): Promise<ToolResult> {
@@ -93,7 +100,7 @@ export const agentSessionTool: Tool = {
   schema: {
     name: "agent_session",
     description:
-      "Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemini/cursor-agent/opencode) and drive it turn-by-turn — unlike call_agent (one-shot, headless), this keeps its conversation context AND opens a VISIBLE terminal window the user can watch the agent work in. Use this (not call_agent) when the user says open/start/watch a session or wants to see it. Actions: open {agent} → id (pops a window; pass show:false for headless); send {id, text} (returns the agent's reply); read {id} (re-read the pane); close {id}; list. Backed by a tmux session.",
+      "Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemini/cursor-agent/opencode) and drive it turn-by-turn — unlike call_agent (one-shot, headless), this keeps its conversation context AND opens a VISIBLE terminal window the user can watch the agent work in. Use this (not call_agent) when the user says open/start/watch a session or wants to see it. Pass coding:true to launch it BUILD-READY (auto-accepts file edits so it can actually write/change code hands-free) — use that when the user wants the agent to build/implement/fix code, not just chat. Actions: open {agent, coding?} → id (pops a window; pass show:false for headless); send {id, text} (returns the agent's reply); read {id} (re-read the pane); close {id}; list. Backed by a tmux session.",
     parameters: {
       type: "object",
       properties: {
@@ -102,6 +109,7 @@ export const agentSessionTool: Tool = {
         id: { type: "string", description: "For send/read/close: the session id from open" },
         text: { type: "string", description: "For send: the prompt to send to the agent" },
         show: { type: "boolean", description: "For open: open a visible terminal window to watch (default true; false = headless)" },
+        coding: { type: "boolean", description: "For open: launch build-ready (auto-accepts file edits so the agent can write/change code hands-free). Default false." },
       },
       required: ["action"],
     },
@@ -110,13 +118,13 @@ export const agentSessionTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: "agent_session needs {action: open|send|read|close|list, ...}" };
-    const { action, agent, id, text, show } = parsed.data;
+    const { action, agent, id, text, show, coding } = parsed.data;
     const dir = dataDir(ctx.root);
     switch (action) {
       case "list":
         return doList(dir);
       case "open":
-        return doOpen(ctx, dir, agent, show);
+        return doOpen({ ctx, dir, agent, show, coding });
       case "send":
         return doSend(ctx, dir, id, text);
       case "read":

@@ -87,6 +87,21 @@ describe("openSession", () => {
     expect(opened).toEqual([]);
   });
 
+  it("launches BUILD-READY (claude --permission-mode acceptEdits) when coding:true", async () => {
+    await openSession({ backend, dataDir: dir, agent: "claude", idGen: () => "code1", startupMs: 0, sleep: noSleep, coding: true });
+    expect(backend.capture("vanta-code1")).toContain("claude --permission-mode acceptEdits");
+  });
+  it("launches plain interactive (no edit flag) when coding is unset", async () => {
+    await openSession({ backend, dataDir: dir, agent: "claude", idGen: () => "code2", startupMs: 0, sleep: noSleep });
+    const pane = backend.capture("vanta-code2");
+    expect(pane).toContain("$ claude\n");
+    expect(pane).not.toContain("permission-mode");
+  });
+  it("falls back to plain launch for an agent without a coding variant (best-effort)", async () => {
+    await openSession({ backend, dataDir: dir, agent: "gemini", idGen: () => "code3", startupMs: 0, sleep: noSleep, coding: true });
+    expect(backend.capture("vanta-code3")).toContain("$ gemini\n"); // no gemini edit-flag known → plain
+  });
+
   it("rejects an unknown agent", async () => {
     const r = await open("nope");
     expect(r).toHaveProperty("error");

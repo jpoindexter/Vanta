@@ -40,6 +40,19 @@ const LAUNCH: Record<string, string> = {
   opencode: "opencode",
 };
 
+// Build-ready launch: the agent auto-accepts file EDITS so it can actually code hands-free
+// (it still prompts for riskier tools like bash — approve those in the visible window).
+// claude's flag is verified against the CLI; agents without an entry fall back to plain
+// interactive launch when `coding` is set (the edit-mode flag is per-agent, add as verified).
+const CODING_LAUNCH: Record<string, string> = {
+  claude: "claude --permission-mode acceptEdits",
+};
+
+/** Resolve the launch command for an agent — build-ready when `coding`, else interactive. */
+function launchFor(agent: string, coding?: boolean): string | undefined {
+  return coding ? (CODING_LAUNCH[agent] ?? LAUNCH[agent]) : LAUNCH[agent];
+}
+
 /** The agents this tool can open an interactive session for. */
 export function knownInteractiveAgents(): string[] {
   return Object.keys(LAUNCH).sort();
@@ -110,9 +123,10 @@ export async function openSession(o: {
   startupMs?: number;
   sleep?: (ms: number) => Promise<void>;
   show?: boolean;
+  coding?: boolean;
   openTerminal?: (tmuxName: string) => { ok: true } | { error: string };
 }): Promise<AgentSession | { error: string }> {
-  const launch = LAUNCH[o.agent];
+  const launch = launchFor(o.agent, o.coding);
   if (!launch) return { error: `unknown agent "${o.agent}". Known: ${knownInteractiveAgents().join(", ")}` };
   if (!o.backend.available()) return { error: "tmux is not available — the interactive session backend needs tmux on PATH" };
   const id = (o.idGen ?? genId)();
