@@ -101,7 +101,13 @@ export function parseRunArgs(rest: string[]): { instruction: string; outputForma
     rawFmt === "json" || rawFmt === "stream-json" ? rawFmt : "text";
   const schemaIdx = rest.indexOf("--json-schema");
   const jsonSchema = schemaIdx >= 0 ? rest[schemaIdx + 1] : undefined;
-  const skipIdxs = new Set<number>([fmtIdx, fmtIdx + 1, schemaIdx, schemaIdx + 1].filter((i) => i >= 0));
+  // Only skip a flag + its value when the flag was actually found. The old
+  // `[fmtIdx+1, …].filter(i >= 0)` skipped index 0 when fmtIdx was -1 (-1+1=0),
+  // dropping the instruction itself on a flagless `vanta run "<instr>"` → empty
+  // user message (claude 400s / lenient models greet). Pre-existing; fixed here.
+  const skipIdxs = new Set<number>();
+  if (fmtIdx >= 0) { skipIdxs.add(fmtIdx); skipIdxs.add(fmtIdx + 1); }
+  if (schemaIdx >= 0) { skipIdxs.add(schemaIdx); skipIdxs.add(schemaIdx + 1); }
   const instrArgs = rest.filter((_, i) => !skipIdxs.has(i));
   return { instruction: instrArgs.join(" "), outputFormat, jsonSchema };
 }
