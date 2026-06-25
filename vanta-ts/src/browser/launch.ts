@@ -32,14 +32,18 @@ export type Acquired = { page: AcquiredPage; close: () => Promise<void> };
 export async function acquirePage(
   chromium: Chromium,
   env: NodeJS.ProcessEnv,
-  opts: { headless?: boolean } = {},
+  opts: { headless?: boolean; userAgent?: string } = {},
 ): Promise<Acquired> {
   const headless = opts.headless ?? true;
+  // A real UA dodges bot-detection (Brave/search/anti-automation). Only included
+  // when provided, so callers that pass none get byte-identical launch options.
+  const ua = opts.userAgent;
 
   if (usesPersistentProfile(env)) {
-    const context = await chromium.launchPersistentContext(browserProfileDir(env), {
-      headless,
-    });
+    const context = await chromium.launchPersistentContext(
+      browserProfileDir(env),
+      ua ? { headless, userAgent: ua } : { headless },
+    );
     // A persistent context opens with one page already; reuse it.
     const pages = context.pages();
     const page = (pages[0] ?? (await context.newPage())) as AcquiredPage;
@@ -47,6 +51,6 @@ export async function acquirePage(
   }
 
   const browser = await chromium.launch({ headless });
-  const page = (await browser.newPage()) as AcquiredPage;
+  const page = (await browser.newPage(ua ? { userAgent: ua } : undefined)) as AcquiredPage;
   return { page, close: () => browser.close() };
 }

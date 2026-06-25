@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { resolveSearchProvider, resolveSearchProviders } from "./index.js";
 
 describe("search provider resolution", () => {
-  it("auto falls back to keyless Bing and DuckDuckGo when no keys are set", () => {
+  it("auto leads with keyless brave_browser (the one that works), then the fetch scrapers", () => {
     const providers = resolveSearchProviders({} as NodeJS.ProcessEnv);
-    expect(providers.map((p) => p.id)).toEqual(["bing", "jina_ddg", "ddg"]);
+    expect(providers.map((p) => p.id)).toEqual(["brave_browser", "bing", "jina_ddg", "ddg"]);
   });
 
   it("auto prefers configured API providers, then keyless engines as final fallbacks", () => {
@@ -14,7 +14,7 @@ describe("search provider resolution", () => {
       VANTA_SEARCH_URL: "http://localhost:8080",
     } as NodeJS.ProcessEnv);
 
-    expect(providers.map((p) => p.id)).toEqual(["brave", "serpapi", "searxng", "bing", "jina_ddg", "ddg"]);
+    expect(providers.map((p) => p.id)).toEqual(["brave", "serpapi", "searxng", "brave_browser", "bing", "jina_ddg", "ddg"]);
   });
 
   it("uses only DuckDuckGo when explicitly requested", () => {
