@@ -15,6 +15,12 @@ describe("hasAgentIntent", () => {
   it("fires on a generic 'another agent' reference", () => {
     expect(hasAgentIntent("get a second opinion from another agent")).toBe(true);
   });
+  it("fires on the phrasings that slipped through live (interact / agent-to-agent / drive / connect)", () => {
+    expect(hasAgentIntent("why can't you interact with claude")).toBe(true);
+    expect(hasAgentIntent("can you do this agent to agent")).toBe(true);
+    expect(hasAgentIntent("drive claude code for me")).toBe(true);
+    expect(hasAgentIntent("connect to the codex agent")).toBe(true);
+  });
   it("does NOT fire on a bare model mention with no use-intent", () => {
     expect(hasAgentIntent("switch my model to gemini")).toBe(false);
     expect(hasAgentIntent("the claude 4 release notes")).toBe(false);
@@ -40,7 +46,8 @@ describe("buildAgentRouteHint", () => {
     const hint = buildAgentRouteHint("talk to claude code");
     expect(hint).toContain("call_agent");
     expect(hint).toContain('agent:"claude"');
-    expect(hint).toContain("Do NOT shell out");
+    expect(hint).toContain("agent_session"); // offers the interactive path too
+    expect(hint).toMatch(/can't|FALSE/); // busts the confabulated limitation
   });
   it("routes a generic request without binding a specific agent", () => {
     const hint = buildAgentRouteHint("get another agent to look at this");
