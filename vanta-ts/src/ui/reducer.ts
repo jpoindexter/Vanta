@@ -28,12 +28,15 @@ export function reduce(state: UiState, a: Action): UiState {
     }
     case "turnStart":
       return { ...state, busy: true, streaming: "", activeTools: [] };
-    case "delta":
-      // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows
-      // into scrollback, scrolling old content up). Only the in-progress paragraph stays
-      // in the redrawing live region. Without this the response is a bounded window pinned
-      // under the user's message instead of scrolling up.
-      return drainParagraphs({ ...state, streaming: state.streaming + a.d });
+    case "delta": {
+      // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
+      // scrollback, scrolling old content up). Only the in-progress paragraph stays in the
+      // redrawing live region. But NOT while a tool run is buffered — committed text must
+      // land AFTER the tool group (turnEnd flushes the group first), preserving real
+      // text→tool→text order; draining mid-flight would jump text ahead of the tool.
+      const s = { ...state, streaming: state.streaming + a.d };
+      return s.activeTools.length > 0 || s.pendingGroup.length > 0 ? s : drainParagraphs(s);
+    }
     case "thinking": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "thinking", text: a.text }] };
@@ -73,16 +76,35 @@ function pushAssistant(state: UiState, text: string): Entry[] {
 /** Commit in-flight streamed text to history (→ <Static>) WITHOUT ending the turn,
  * clearing `streaming` so the redrawing live region drops it. No-op when empty. */
 function commitText(state: UiState): UiState {
-  const text = state.streaming.trim();
+  let text = state.streaming.trim();
   if (!text) return state;
+  // Close a dangling ``` so a turn/tool interrupting mid-code-block never commits a broken
+  // half-fence to immutable <Static> scrollback (markdown would swallow everything after it).
+  if (!fencesBalanced(text)) text += "\n```";
   return { ...state, entries: pushAssistant(state, text), streaming: "" };
 }
 
-/** Flush COMPLETE paragraphs (everything before the last blank line) into <Static>
- * during streaming, keeping the in-progress paragraph in `streaming`. No-op until a
- * paragraph boundary appears. This is what makes streamed text flow up into scrollback. */
+/** True when ``` fences are balanced (even) — i.e. NOT inside an open code block. */
+function fencesBalanced(s: string): boolean {
+  return ((s.match(/```/g) ?? []).length) % 2 === 0;
+}
+
+/** The latest blank-line boundary whose preceding text has balanced code fences, so a
+ * drain never splits a ```code block``` that contains a blank line. -1 if none. */
+function drainBoundary(text: string): number {
+  for (let from = text.length; ; ) {
+    const brk = text.lastIndexOf("\n\n", from - 1);
+    if (brk < 0) return -1;
+    if (fencesBalanced(text.slice(0, brk))) return brk;
+    from = brk;
+  }
+}
+
+/** Flush COMPLETE paragraphs (everything before the latest fence-safe blank line) into
+ * <Static> during streaming, keeping the in-progress paragraph in `streaming`. No-op until
+ * such a boundary appears. This is what makes streamed text flow up into scrollback. */
 function drainParagraphs(state: UiState): UiState {
-  const brk = state.streaming.lastIndexOf("\n\n");
+  const brk = drainBoundary(state.streaming);
   if (brk < 0) return state;
   const complete = state.streaming.slice(0, brk).trim();
   const rest = state.streaming.slice(brk + 2);

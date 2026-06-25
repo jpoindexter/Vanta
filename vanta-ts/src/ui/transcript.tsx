@@ -3,6 +3,7 @@ import { Box, Text, useStdout } from "ink";
 import { Markdown } from "./markdown.js";
 import { linkify } from "../term/linkify.js";
 import { hasRtl, reorderBidi } from "../term/bidi.js";
+import { wrapText } from "../term/wrap.js";
 import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
@@ -36,7 +37,15 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   // flexGrow on the text column makes Ink wrap to (terminalWidth − marker) instead
   // of the full width — without it, marker + full-width text overflows by the marker
   // size and the terminal re-wraps the spillover (the mangled "als↵o" wrap bug).
-  if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Box width={proseWidth}><Text backgroundColor={USER_BG}>{vbidi(e.text)}</Text></Box></Box>;
+  // Each wrapped line is padded to the full column so the background highlight fills a
+  // clean rectangular band (Claude Code's userMessageBackground), not a ragged right edge.
+  if (e.kind === "user") {
+    const lines = wrapText(vbidi(e.text), proseWidth);
+    return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text>
+      <Box flexDirection="column" width={proseWidth}>
+        {lines.map((l, i) => <Text key={i} backgroundColor={USER_BG}>{l.padEnd(proseWidth)}</Text>)}
+      </Box></Box>;
+  }
   // A streamed reply commits paragraph-by-paragraph; continuation chunks (`cont`)
   // align under the text with no fresh ⏺ marker, so it reads as one flowing reply.
   if (e.kind === "assistant") {

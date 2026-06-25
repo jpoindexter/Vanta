@@ -56,6 +56,48 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.streaming).toBe("");
   });
 
+  it("never splits a code fence that contains a blank line (no unbalanced ``` entries)", () => {
+    const reply = "Intro:\n\n```python\ndef foo():\n    pass\n\ndef bar():\n    pass\n```\n\nDone.";
+    const chunks = reply.match(/[\s\S]{1,5}/g) ?? [];
+    const s = run([
+      { t: "submit", text: "go" },
+      { t: "turnStart" },
+      ...chunks.map((c): Action => ({ t: "delta", d: c })),
+      { t: "turnEnd" },
+    ]);
+    const assistants = s.entries.filter((e): e is Extract<typeof e, { kind: "assistant" }> => e.kind === "assistant");
+    // every committed assistant chunk has balanced fences (the code block stays whole)
+    for (const e of assistants) expect((e.text.match(/```/g) ?? []).length % 2).toBe(0);
+    // and the full reply is preserved across the chunks
+    expect(assistants.map((e) => e.text).join("\n\n")).toContain("```python\ndef foo():\n    pass\n\ndef bar():\n    pass\n```");
+  });
+
+  it("closes a dangling code fence on turnEnd (no broken half-fence in scrollback)", () => {
+    const s = run([
+      { t: "submit", text: "go" },
+      { t: "turnStart" },
+      { t: "delta", d: "```js\nlet x = 1" }, // turn ends mid-fence (truncation/abort)
+      { t: "turnEnd" },
+    ]);
+    const a = s.entries.find((e): e is Extract<typeof e, { kind: "assistant" }> => e.kind === "assistant")!;
+    expect((a.text.match(/```/g) ?? []).length % 2).toBe(0); // balanced — fence was closed
+    expect(a.text.endsWith("```")).toBe(true);
+  });
+
+  it("keeps text→tool→text order when text streams after a tool call (no mid-flight reorder)", () => {
+    const s = run([
+      { t: "submit", text: "go" },
+      { t: "turnStart" },
+      { t: "delta", d: "Plan.\n\n" }, // commits "Plan." (no tool buffered yet)
+      { t: "toolCall", verb: "run", name: "shell_cmd", detail: "" },
+      { t: "delta", d: "After.\n\n" }, // streams during the tool run — must NOT jump ahead
+      { t: "toolResult", name: "shell_cmd", ok: true },
+      { t: "turnEnd" },
+    ]);
+    // text after the tool stays AFTER the tool group, not merged before it
+    expect(s.entries.map((e) => e.kind)).toEqual(["user", "assistant", "toolGroup", "assistant"]);
+  });
+
   it("does not commit an empty assistant turn", () => {
     const s = run([{ t: "turnStart" }, { t: "turnEnd" }]);
     expect(s.entries).toHaveLength(0);
