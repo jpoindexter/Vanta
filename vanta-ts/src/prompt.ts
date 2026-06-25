@@ -58,6 +58,7 @@ function stableTier(soul: string, root: string, tools: ToolSchema[], density: Ou
     // digital life through the approved tools — all gated by the safety kernel.
     `\nYour working directory is ${root} — file reads and writes are scoped there. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel, so you are not confined to this directory for non-file work.`,
     `\n${toolHeader}`,
+    `\nTo use ANOTHER AI coding agent (claude / claude code, codex, gemini, cursor-agent, opencode), call the \`call_agent\` tool ({agent, prompt}) — it runs the real agent in its own harness and returns its answer. Never shell out (claude -p, tmux) to launch another agent yourself.`,
     `\nHow you operate — no exceptions:`,
     `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,

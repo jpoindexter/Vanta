@@ -8,6 +8,7 @@ import { readClipboardImage } from "./term/clipboard-image.js";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/session-cap.js";
 import { buildModeHint } from "./repl/mode-detect.js";
+import { buildAgentRouteHint } from "./repl/agent-route.js";
 import { maybeAugmentPrompt } from "./templates/templates.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { shouldSuggestContextUpgrade, buildContextUpgradeNote } from "./repl/context-upgrade.js";
@@ -254,6 +255,8 @@ export function buildSendText(
 ): string {
   const wmCtx = workingMemory.isEmpty() ? "" : `\n\n${workingMemory.format()}\n\n---\n\n`;
   const modeHint = process.env.VANTA_MODE_DETECT !== "0" ? buildModeHint(text) : null;
-  const prefix = `${modeHint ? `${modeHint}\n\n` : ""}${wmCtx}`;
+  // VANTA-AGENT-ROUTING-DISCOVERY: surface call_agent for "talk to/start another agent".
+  const routeHint = process.env.VANTA_AGENT_ROUTE !== "0" ? buildAgentRouteHint(text) : null;
+  const prefix = `${routeHint ? `${routeHint}\n\n` : ""}${modeHint ? `${modeHint}\n\n` : ""}${wmCtx}`;
   return `${prefix}${maybeAugmentPrompt(text)}`;
 }

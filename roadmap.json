@@ -15932,7 +15932,7 @@
       "id": "VANTA-AGENT-ROUTING-DISCOVERY",
       "track": "Harness",
       "title": "Route 'talk to / start Claude Code' to the existing call_agent tool",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Root cause from a real 2026-06-25 session: a user asked Vanta (gpt-5.5) to 'talk to / start up Claude Code'. Vanta HAS a purpose-built tool for exactly this — `call_agent` (tools/call-agent.ts + agents/external-cli.ts: calls claude/codex/gemini/cursor-agent/opencode non-interactively, 300s timeout, 16MB buffer, kernel- AND approval-gated) — but never reached for it. It fell back to raw `shell_cmd` (`claude`, `claude -p`, `tmux new-session`) and dead-ended on the auto-on macOS shell sandbox (background+tmux refused) plus shell_cmd's 30s timeout. The capability existed; DISCOVERY failed. Fix routing so 'talk to / start / use / ask <agent-name>' intent surfaces call_agent first: a stable system-prompt line naming call_agent for cross-agent intent, a UserPromptSubmit skill-trigger that injects a recall note when a known agent name (claude/codex/gemini/cursor-agent/opencode) appears, and guarantee call_agent's full schema is never hidden by deferred tool-scoping (agent/tool-scope.ts) for those prompts.",
       "done": "In a fresh session the instruction 'talk to Claude Code' (or 'ask claude to ...') makes Vanta call the call_agent tool — not raw shell — on the first attempt, verified live with a logged tool call (the model that failed in the transcript, or an equivalent local model).",
@@ -15940,7 +15940,9 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "source": "session-2026-06-25-talk-to-claude-code"
+      "source": "session-2026-06-25-talk-to-claude-code",
+      "notes": "SHIPPED 2026-06-25. repl/agent-route.ts (pure: hasAgentIntent/detectAgentName/buildAgentRouteHint) prepends a one-line route hint in buildSendText (interactive-turn.ts, both hosts, VANTA_AGENT_ROUTE=0 disables). agent/tool-scope.ts adds an 'agents' group + HINT so call_agent/delegate schemas stay callable under deferred scoping on any cross-agent mention (the hidden-schema root cause). prompt.ts stable line names call_agent for claude/codex/gemini/cursor-agent/opencode, forbids shelling out. Tests: agent-route.test.ts (11) + tool-scope.test.ts case; prompt's 34 tests still green; tsc clean; size gate exit 0.",
+      "updated": "2026-06-25"
     },
     {
       "id": "VANTA-AGENT-SESSION-INTERACTIVE",

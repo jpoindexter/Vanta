@@ -13,7 +13,7 @@ function schema(name: string, description = `${name} tool`): ToolSchema {
 const manySchemas = [
   "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
   "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics",
-  "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move",
+  "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move", "call_agent", "delegate",
 ].map((name) => schema(name));
 
 const fakeSafety = {
@@ -36,6 +36,14 @@ describe("per-task tool scoping", () => {
     for (const core of ["read_file", "write_file", "edit_file", "shell_cmd"]) {
       expect(scoped).toContain(core); // never hidden behind tool_search
     }
+  });
+
+  it("keeps call_agent callable when the user wants to talk to another agent (VANTA-AGENT-ROUTING-DISCOVERY)", () => {
+    const scoped = scopeToolSchemas(manySchemas, "talk to claude code about this bug").map((s) => s.name);
+    expect(scoped).toContain("call_agent");
+    // and not surfaced for an unrelated request
+    const emailScope = scopeToolSchemas(manySchemas, "send an email to bob about the meeting").map((s) => s.name);
+    expect(emailScope).not.toContain("call_agent");
   });
 
   it("returns the full set when the user explicitly asks for all tools", () => {
