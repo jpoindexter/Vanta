@@ -75,6 +75,18 @@ describe("openSession", () => {
     expect(backend.keys).toContain("vanta-ag-test1:Escape"); // primed to clear startup modal
     expect(listSessions(dir).map((s) => s.id)).toContain("ag-test1");
   });
+  it("opens a VISIBLE terminal window (injected) when show:true, named for the session", async () => {
+    const opened: string[] = [];
+    const r = await openSession({ backend, dataDir: dir, agent: "claude", idGen: () => "vis1", startupMs: 0, sleep: noSleep, show: true, openTerminal: (n) => { opened.push(n); return { ok: true }; } });
+    expect(r).toMatchObject({ id: "vis1", backendName: "vanta-vis1" });
+    expect(opened).toEqual(["vanta-vis1"]); // the watch-window targets this session
+  });
+  it("does NOT open a terminal window when show is unset (back-compat)", async () => {
+    const opened: string[] = [];
+    await openSession({ backend, dataDir: dir, agent: "claude", idGen: () => "vis2", startupMs: 0, sleep: noSleep, openTerminal: (n) => { opened.push(n); return { ok: true }; } });
+    expect(opened).toEqual([]);
+  });
+
   it("rejects an unknown agent", async () => {
     const r = await open("nope");
     expect(r).toHaveProperty("error");

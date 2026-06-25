@@ -21,6 +21,7 @@ const Args = z.object({
   agent: z.string().optional(),
   id: z.string().optional(),
   text: z.string().optional(),
+  show: z.boolean().optional(), // open: pop a visible terminal window to watch (default true)
 });
 
 const backend = tmuxSessionBackend;
@@ -47,13 +48,15 @@ function describeAction(a: Record<string, unknown>): string {
   return "list agent sessions";
 }
 
-async function doOpen(ctx: ToolContext, dir: string, agent?: string): Promise<ToolResult> {
+async function doOpen(ctx: ToolContext, dir: string, agent?: string, show?: boolean): Promise<ToolResult> {
   if (!agent) return missing("open", "agent");
-  const approved = await ctx.requestApproval(`open interactive ${agent} session`, "spawns a persistent external agent CLI you can drive turn-by-turn", "agent_session");
+  const visible = show ?? process.env.VANTA_AGENT_SHOW !== "0"; // default: pop a window to watch
+  const approved = await ctx.requestApproval(`open interactive ${agent} session${visible ? " (opens a terminal window)" : ""}`, "spawns a persistent external agent CLI you can drive turn-by-turn", "agent_session");
   if (!approved) return { ok: false, output: "agent_session: declined" };
-  const r = await openSession({ backend, dataDir: dir, agent });
+  const r = await openSession({ backend, dataDir: dir, agent, show: visible });
   if ("error" in r) return { ok: false, output: r.error };
-  return { ok: true, output: `opened ${agent} session: ${r.id}\nsend with agent_session(action:"send", id:"${r.id}", text:"…"); close with agent_session(action:"close", id:"${r.id}")` };
+  const watch = visible ? `\nA terminal window opened so you can watch it work (or run: tmux attach -t ${r.backendName}).` : "";
+  return { ok: true, output: `opened ${agent} session: ${r.id}${watch}\nsend with agent_session(action:"send", id:"${r.id}", text:"…"); close with agent_session(action:"close", id:"${r.id}")` };
 }
 
 async function doSend(ctx: ToolContext, dir: string, id?: string, text?: string): Promise<ToolResult> {
@@ -90,7 +93,7 @@ export const agentSessionTool: Tool = {
   schema: {
     name: "agent_session",
     description:
-      "Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemini/cursor-agent/opencode) and drive it turn-by-turn — unlike call_agent (one-shot), the session keeps its conversation context so follow-ups build on earlier turns. Actions: open {agent} → id; send {id, text} (returns the agent's reply); read {id} (re-read the pane); close {id}; list. Backed by a detached tmux session.",
+      "Open a PERSISTENT interactive session over another agent CLI (claude/codex/gemini/cursor-agent/opencode) and drive it turn-by-turn — unlike call_agent (one-shot, headless), this keeps its conversation context AND opens a VISIBLE terminal window the user can watch the agent work in. Use this (not call_agent) when the user says open/start/watch a session or wants to see it. Actions: open {agent} → id (pops a window; pass show:false for headless); send {id, text} (returns the agent's reply); read {id} (re-read the pane); close {id}; list. Backed by a tmux session.",
     parameters: {
       type: "object",
       properties: {
@@ -98,6 +101,7 @@ export const agentSessionTool: Tool = {
         agent: { type: "string", description: "For open: which agent CLI (claude/codex/gemini/cursor-agent/opencode)" },
         id: { type: "string", description: "For send/read/close: the session id from open" },
         text: { type: "string", description: "For send: the prompt to send to the agent" },
+        show: { type: "boolean", description: "For open: open a visible terminal window to watch (default true; false = headless)" },
       },
       required: ["action"],
     },
@@ -106,13 +110,13 @@ export const agentSessionTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: "agent_session needs {action: open|send|read|close|list, ...}" };
-    const { action, agent, id, text } = parsed.data;
+    const { action, agent, id, text, show } = parsed.data;
     const dir = dataDir(ctx.root);
     switch (action) {
       case "list":
         return doList(dir);
       case "open":
-        return doOpen(ctx, dir, agent);
+        return doOpen(ctx, dir, agent, show);
       case "send":
         return doSend(ctx, dir, id, text);
       case "read":

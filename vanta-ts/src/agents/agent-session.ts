@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { processCapture } from "../term/terminal-capture.js";
+import { openVisibleTerminal } from "./visible-terminal.js";
 
 /** Injectable terminal-session backend (tmux in production, a fake in tests). */
 export interface SessionBackend {
@@ -98,7 +99,9 @@ async function primeSession(o: {
   await sleep(PRIME_SETTLE_MS);
 }
 
-/** Open a fresh interactive session for `agent` and prime it ready. Errors as values. */
+/** Open a fresh interactive session for `agent` and prime it ready. Errors as values.
+ * `show:true` also opens a VISIBLE terminal window attached to the session (best-effort,
+ * via an injectable `openTerminal`) so the operator can watch the agent work. */
 export async function openSession(o: {
   backend: SessionBackend;
   dataDir: string;
@@ -106,6 +109,8 @@ export async function openSession(o: {
   idGen?: () => string;
   startupMs?: number;
   sleep?: (ms: number) => Promise<void>;
+  show?: boolean;
+  openTerminal?: (tmuxName: string) => { ok: true } | { error: string };
 }): Promise<AgentSession | { error: string }> {
   const launch = LAUNCH[o.agent];
   if (!launch) return { error: `unknown agent "${o.agent}". Known: ${knownInteractiveAgents().join(", ")}` };
@@ -114,6 +119,7 @@ export async function openSession(o: {
   const backendName = `vanta-${id}`;
   o.backend.start(backendName, launch);
   await primeSession({ backend: o.backend, name: backendName, startupMs: o.startupMs, sleep: o.sleep });
+  if (o.show) (o.openTerminal ?? openVisibleTerminal)(backendName); // pop a window to watch — best-effort
   const session: AgentSession = { id, agent: o.agent, backendName, createdAt: new Date().toISOString() };
   saveSessions(o.dataDir, [...listSessions(o.dataDir), session]);
   return session;
