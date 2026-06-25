@@ -1,4 +1,4 @@
-import type { PendingTool, ToolEntry, UiState } from "./types.js";
+import type { Entry, PendingTool, ToolEntry, UiState } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { TodoItem } from "../todo/store.js";
 
@@ -29,7 +29,11 @@ export function reduce(state: UiState, a: Action): UiState {
     case "turnStart":
       return { ...state, busy: true, streaming: "", activeTools: [] };
     case "delta":
-      return { ...state, streaming: state.streaming + a.d };
+      // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows
+      // into scrollback, scrolling old content up). Only the in-progress paragraph stays
+      // in the redrawing live region. Without this the response is a bounded window pinned
+      // under the user's message instead of scrolling up.
+      return drainParagraphs({ ...state, streaming: state.streaming + a.d });
     case "thinking": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "thinking", text: a.text }] };
@@ -57,12 +61,33 @@ function flushGroup(state: UiState): UiState {
   return { ...state, entries: [...state.entries, { kind: "toolGroup", tools: state.pendingGroup }], pendingGroup: [] };
 }
 
+/** Append an assistant chunk. `cont:true` (no fresh ⏺ marker) ONLY when the newest
+ * entry is already assistant text — a continuation of the same streamed reply. The
+ * key is omitted otherwise, so a fresh reply stays `{kind,text}` (stateless, derived). */
+function pushAssistant(state: UiState, text: string): Entry[] {
+  const cont = state.entries[state.entries.length - 1]?.kind === "assistant";
+  const entry: Entry = cont ? { kind: "assistant", text, cont: true } : { kind: "assistant", text };
+  return [...state.entries, entry];
+}
+
 /** Commit in-flight streamed text to history (→ <Static>) WITHOUT ending the turn,
  * clearing `streaming` so the redrawing live region drops it. No-op when empty. */
 function commitText(state: UiState): UiState {
   const text = state.streaming.trim();
   if (!text) return state;
-  return { ...state, entries: [...state.entries, { kind: "assistant", text }], streaming: "" };
+  return { ...state, entries: pushAssistant(state, text), streaming: "" };
+}
+
+/** Flush COMPLETE paragraphs (everything before the last blank line) into <Static>
+ * during streaming, keeping the in-progress paragraph in `streaming`. No-op until a
+ * paragraph boundary appears. This is what makes streamed text flow up into scrollback. */
+function drainParagraphs(state: UiState): UiState {
+  const brk = state.streaming.lastIndexOf("\n\n");
+  if (brk < 0) return state;
+  const complete = state.streaming.slice(0, brk).trim();
+  const rest = state.streaming.slice(brk + 2);
+  if (!complete) return { ...state, streaming: rest };
+  return { ...state, entries: pushAssistant(state, complete), streaming: rest };
 }
 
 /** Commit both pending text and the pending tool run, in turn order (text first).

@@ -37,7 +37,12 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   // of the full width — without it, marker + full-width text overflows by the marker
   // size and the terminal re-wraps the spillover (the mangled "als↵o" wrap bug).
   if (e.kind === "user") return <Box marginTop={1}><Text bold color={FOCUS}>❯ </Text><Box width={proseWidth}><Text backgroundColor={USER_BG}>{vbidi(e.text)}</Text></Box></Box>;
-  if (e.kind === "assistant") return <Box marginTop={1}><Text>⏺ </Text><Box flexDirection="column" width={proseWidth}><Markdown text={vbidi(e.text)} /></Box></Box>;
+  // A streamed reply commits paragraph-by-paragraph; continuation chunks (`cont`)
+  // align under the text with no fresh ⏺ marker, so it reads as one flowing reply.
+  if (e.kind === "assistant") {
+    const body = <Box flexDirection="column" width={proseWidth}><Markdown text={vbidi(e.text)} /></Box>;
+    return e.cont ? <Box marginTop={1} marginLeft={2}>{body}</Box> : <Box marginTop={1}><Text>⏺ </Text>{body}</Box>;
+  }
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;

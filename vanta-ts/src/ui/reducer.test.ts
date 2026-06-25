@@ -24,6 +24,38 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.entries).toEqual([{ kind: "assistant", text: "done." }]);
   });
 
+  it("drains COMPLETE paragraphs into <Static> as they stream (flows up), keeping the in-progress one live", () => {
+    const s = run([
+      { t: "submit", text: "go" },
+      { t: "turnStart" },
+      { t: "delta", d: "para one.\n\n" }, // complete → commits (first chunk, gets ⏺)
+      { t: "delta", d: "para two.\n\n" }, // complete → commits as a continuation (no marker)
+      { t: "delta", d: "para three (in progress)" }, // no boundary → stays live
+    ]);
+    expect(s.entries).toEqual([
+      { kind: "user", text: "go" },
+      { kind: "assistant", text: "para one." },
+      { kind: "assistant", text: "para two.", cont: true },
+    ]);
+    expect(s.streaming).toBe("para three (in progress)");
+  });
+
+  it("commits the trailing paragraph as a continuation on turnEnd", () => {
+    const s = run([
+      { t: "submit", text: "go" },
+      { t: "turnStart" },
+      { t: "delta", d: "first.\n\n" },
+      { t: "delta", d: "last." },
+      { t: "turnEnd" },
+    ]);
+    expect(s.entries).toEqual([
+      { kind: "user", text: "go" },
+      { kind: "assistant", text: "first." },
+      { kind: "assistant", text: "last.", cont: true },
+    ]);
+    expect(s.streaming).toBe("");
+  });
+
   it("does not commit an empty assistant turn", () => {
     const s = run([{ t: "turnStart" }, { t: "turnEnd" }]);
     expect(s.entries).toHaveLength(0);

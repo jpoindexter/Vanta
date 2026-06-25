@@ -28,7 +28,9 @@ export type ToolGroupEntry = { kind: "toolGroup"; tools: ToolEntry[] };
 
 export type Entry =
   | { kind: "user"; text: string }
-  | { kind: "assistant"; text: string }
+  // `cont` = a continuation chunk of a streamed reply (committed paragraph-by-paragraph
+  // so it flows into scrollback); rendered without a fresh ⏺ marker.
+  | { kind: "assistant"; text: string; cont?: boolean }
   | ToolEntry
   | ToolGroupEntry
   | { kind: "note"; text: string }
