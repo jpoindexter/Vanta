@@ -1,6 +1,7 @@
 import { listSkills, readSkill } from "../skills/store.js";
 import { installSkillLibrary } from "../skills/library.js";
 import { runInstruction } from "./commands.js";
+import type { Skill } from "../skills/types.js";
 
 async function runSkillsDistill(rest: string[]): Promise<void> {
   const { distillAll, formatDistillReport } = await import("../skills/distill-all.js");
@@ -69,6 +70,18 @@ async function readStdinJson(): Promise<Record<string, unknown> | null> {
   }
 }
 
+/** UserPromptSubmit gate: Claude Code ignores the `matcher` field for this event
+ *  (it's tool-name-only), so the hook fires on EVERY prompt — suppress the note
+ *  unless the prompt actually matches the trigger's regex. */
+async function userPromptGatedOut(skill: Skill, event: string): Promise<boolean> {
+  if (event !== "UserPromptSubmit") return false;
+  const m = (skill.meta.triggers ?? []).find((t) => t.event === "UserPromptSubmit")?.match;
+  if (!m) return false;
+  const { promptMatchesTrigger } = await import("../skills/triggers.js");
+  const prompt = String((await readStdinJson())?.prompt ?? "");
+  return Boolean(prompt) && !promptMatchesTrigger(m, prompt);
+}
+
 /** Claude Code emit: read the stdin payload and emit a hookSpecificOutput JSON.
  *  For PreToolUse, the matcher is broad (e.g. "Bash"), so we confirm the command
  *  actually matches the trigger (e.g. contains "git push") before surfacing. */
@@ -88,6 +101,7 @@ async function runClaudeEmit(slug: string, event: string, note: string): Promise
       : { hookSpecificOutput: { hookEventName: "PreToolUse", additionalContext: note } };
     return void process.stdout.write(`${JSON.stringify(out)}\n`);
   }
+  if (await userPromptGatedOut(skill, event)) return; // gate UserPromptSubmit on the prompt regex
   process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: event, additionalContext: note } })}\n`);
 }
 

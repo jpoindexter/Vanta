@@ -6,9 +6,26 @@ import {
   mergeVantaHooks,
   mergeClaudeSettings,
   claudeToolMap,
+  promptMatchesTrigger,
   TRIGGER_MARKER,
 } from "./triggers.js";
 import type { Skill, SkillTrigger } from "./types.js";
+
+describe("promptMatchesTrigger (UserPromptSubmit gate — Claude ignores `matcher` for it)", () => {
+  const ideation = "(?i)\\b(ideate|brainstorm|fresh (ideas?|inspiration|angle)|i'?m stuck|creative ideas?)\\b";
+  it("matches an ideation-intent prompt (case-insensitive via the (?i) flag)", () => {
+    expect(promptMatchesTrigger(ideation, "help me Brainstorm names")).toBe(true);
+    expect(promptMatchesTrigger(ideation, "I'm stuck on this")).toBe(true);
+  });
+  it("does NOT match an unrelated prompt", () => {
+    expect(promptMatchesTrigger(ideation, "file the card and add the codex snippet")).toBe(false);
+    expect(promptMatchesTrigger(ideation, "fix the failing test")).toBe(false);
+  });
+  it("treats an empty or malformed pattern as always-match (never suppresses wrongly)", () => {
+    expect(promptMatchesTrigger("", "anything")).toBe(true);
+    expect(promptMatchesTrigger("(unclosed", "anything")).toBe(true);
+  });
+});
 
 const skill = (triggers: SkillTrigger[], name = "ship-preflight"): Skill => ({
   meta: { name, description: "Run the suite before a push", created: "", updated: "", tags: [], triggers },

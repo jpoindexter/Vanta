@@ -68,6 +68,21 @@ export function buildTriggerNote(skill: Skill, event: string): string {
   return `🎯 Trigger (${event}): recall and apply skill "${skill.meta.name}" — ${skill.meta.description}`;
 }
 
+/** Test a UserPromptSubmit prompt against a trigger's `match` regex. Claude Code
+ *  ignores the `matcher` field for UserPromptSubmit (it's tool-name-only), so the
+ *  emitter must gate here or the note fires on every prompt. Handles a leading
+ *  `(?i)` inline flag (JS RegExp has no inline flags). Empty/malformed → true so a
+ *  bad pattern never silently suppresses a legitimate recall. */
+export function promptMatchesTrigger(match: string, prompt: string): boolean {
+  if (!match) return true;
+  try {
+    const ci = match.match(/^\(\?i\)([\s\S]*)$/);
+    return (ci ? new RegExp(ci[1]!, "i") : new RegExp(match)).test(prompt);
+  } catch {
+    return true;
+  }
+}
+
 /** Compile a skill's triggers into Vanta hook entries. Unknown events are skipped
  *  (forward-compatible). `when` containing "error" maps to onError; `match` to a
  *  tool-name pattern. Pure. */

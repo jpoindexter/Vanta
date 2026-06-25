@@ -15174,6 +15174,20 @@
       "notes": "Vanta auto-fire SHIPPED in the ideation-methods SKILL.md trigger (2026-06-24). Claude (~/.claude/settings.json via sync-triggers --claude) + Codex (AGENTS.md) PENDING — both touch global agent config, confirm-first per Rule Zero."
     },
     {
+      "id": "VANTA-SANDBOX-TSX-SELFCALL",
+      "track": "Harness",
+      "title": "Internal sandbox blocks tsx when Vanta shells out to its own CLI (EPERM on IPC pipe)",
+      "status": "next",
+      "size": "S",
+      "summary": "When Vanta (the agent) runs a shell command that invokes its OWN CLI via the tsx launcher, the shell sandbox denies the tsx IPC pipe with EPERM, so the command fails. Found 2026-06-24: an internal `vanta skills install --force` + `sync-triggers --claude` failed under the sandbox; the agent worked around it by pointing VANTA_HOME at a throwaway .vanta-state dir + `node --import tsx`, which silently installed the new skill + synced triggers to the WRONG home — the real ~/.vanta was left stale and activation no-op'd. The bug is the sandbox/tsx-IPC interaction; the wrong-home write is a downstream symptom of the fallback.",
+      "done": "a Vanta-initiated `vanta skills …` (or any self-CLI) call runs under the shell sandbox without EPERM on the tsx IPC pipe — OR the launcher detects the sandbox and runs the CLI a way that works AND respects the real VANTA_HOME (never silently a throwaway dir). Repro + regression test.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "low",
+      "updated": "2026-06-24",
+      "notes": "Found 2026-06-24 during ideation-skill activation. Symptom: `vanta skills install --force` from inside Vanta hit 'sandbox EPERM on tsx IPC pipe'; the agent fell back to VANTA_HOME=.vanta-state + node --import tsx, installing the 22-method skill + syncing triggers to a throwaway repo-local dir instead of ~/.vanta — activation silently no-op'd against the real store. Fixed manually by re-running both against ~/.vanta; the stray .vanta-state is now gitignored + removed. Root fix: allow the tsx IPC pipe under the shell sandbox for self-calls, OR have the launcher fall back without overriding VANTA_HOME. Separately exposed VANTA-CLAUDE-USERPROMPT-GATE (fixed same day): Claude ignores `matcher` for UserPromptSubmit, so the synced ideation trigger fired on every prompt until the emitter was taught to gate on the prompt regex (promptMatchesTrigger)."
+    },
+    {
       "id": "COFOUNDER-ANTI-SLOP",
       "track": "Cofounder engine",
       "title": "Fold 5-test slop diagnostic into anti-slop",
