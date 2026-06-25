@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, delimiter } from "node:path";
+import { spawn as nodeSpawn } from "node:child_process";
 import { resolveVantaHome } from "../store/home.js";
 
 // VANTA-CALL-AGENT — drive ANY AI coding-agent CLI as a subprocess, like a human
@@ -93,36 +94,77 @@ export function buildAgentInvocation(
 
 export type RunResult = { ok: boolean; stdout: string; stderr: string; code: number | null; notInstalled?: boolean };
 
-/** Injectable exec seam (matches node:child_process execFile's callback form). */
-export type ExecFn = (
-  cmd: string,
-  args: string[],
-  opts: { cwd: string; timeout: number; maxBuffer: number },
-  cb: (err: (Error & { code?: string | number; killed?: boolean }) | null, stdout: string, stderr: string) => void,
-) => void;
+/** The minimal child-process surface runExternalAgent depends on (real or fake). */
+export type ChildLike = {
+  stdout: { on(ev: "data", cb: (d: unknown) => void): void } | null;
+  stderr: { on(ev: "data", cb: (d: unknown) => void): void } | null;
+  on(ev: "error", cb: (e: NodeJS.ErrnoException) => void): void;
+  on(ev: "close", cb: (code: number | null, signal: NodeJS.Signals | null) => void): void;
+  kill(signal?: NodeJS.Signals): void;
+};
+
+/** Injectable spawn seam (real child_process.spawn in production, a fake in tests). */
+export type SpawnFn = (cmd: string, args: string[], opts: { cwd: string; env: NodeJS.ProcessEnv }) => ChildLike;
+
+const defaultSpawn: SpawnFn = (cmd, args, opts) =>
+  nodeSpawn(cmd, args, { cwd: opts.cwd, env: opts.env }) as unknown as ChildLike;
 
 const MAX_OUTPUT = 60_000;
+const DEFAULT_HEARTBEAT_MS = 8000;
 
 function timeoutMs(env: NodeJS.ProcessEnv): number {
   const v = Number(env.VANTA_CALL_AGENT_TIMEOUT_MS);
   return Number.isFinite(v) && v > 0 ? v : 300_000;
 }
 
-/** Spawn the agent CLI, capture output, classify not-installed vs timeout vs failure. */
+/**
+ * Run the agent CLI, STREAMING its output via `onChunk` (line-buffered) + a periodic
+ * heartbeat as it runs — instead of the old execFile wait-then-dump. The returned
+ * RunResult is byte-equivalent to before: full stdout/stderr (capped), exit code,
+ * not-installed (ENOENT) and timeout classification unchanged. CALL-AGENT-STREAM.
+ */
 export async function runExternalAgent(
   inv: Invocation,
-  opts: { cwd: string; env?: NodeJS.ProcessEnv; exec?: ExecFn },
+  opts: { cwd: string; env?: NodeJS.ProcessEnv; spawn?: SpawnFn; onChunk?: (text: string) => void; heartbeatMs?: number },
 ): Promise<RunResult> {
   const env = opts.env ?? process.env;
-  const exec = opts.exec ?? ((await import("node:child_process")).execFile as unknown as ExecFn);
-  return new Promise((resolve) => {
-    exec(inv.cmd, inv.args, { cwd: opts.cwd, timeout: timeoutMs(env), maxBuffer: 16 * 1024 * 1024 }, (err, stdout, stderr) => {
-      const out = String(stdout ?? "").slice(0, MAX_OUTPUT);
-      const errOut = String(stderr ?? "").slice(0, MAX_OUTPUT);
-      if (err?.code === "ENOENT") return resolve({ ok: false, stdout: out, stderr: errOut, code: null, notInstalled: true });
-      if (err?.killed) return resolve({ ok: false, stdout: out, stderr: "timed out", code: null });
-      const code = typeof err?.code === "number" ? err.code : err ? 1 : 0;
-      resolve({ ok: !err, stdout: out, stderr: errOut, code });
+  const spawn = opts.spawn ?? defaultSpawn;
+  const onChunk = opts.onChunk;
+  const startMs = Date.now();
+  return new Promise<RunResult>((resolve) => {
+    let stdout = "";
+    let stderr = "";
+    let lineBuf = "";
+    let settled = false;
+    let timedOut = false;
+    const cap = (s: string) => s.slice(0, MAX_OUTPUT);
+    const emitLines = (t: string) => {
+      if (!onChunk) return;
+      lineBuf += t;
+      const parts = lineBuf.split("\n");
+      lineBuf = parts.pop() ?? "";
+      for (const line of parts) if (line.trim()) onChunk(line);
+    };
+    const finish = (r: RunResult) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(killTimer);
+      clearInterval(hb);
+      if (lineBuf.trim()) onChunk?.(lineBuf);
+      resolve(r);
+    };
+    const child = spawn(inv.cmd, inv.args, { cwd: opts.cwd, env });
+    const killTimer = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, timeoutMs(env));
+    const hb = setInterval(() => onChunk?.(`… ${inv.cmd} working (${Math.round((Date.now() - startMs) / 1000)}s)`), opts.heartbeatMs ?? DEFAULT_HEARTBEAT_MS);
+    child.stdout?.on("data", (d) => { const t = String(d); stdout += t; emitLines(t); });
+    child.stderr?.on("data", (d) => { const t = String(d); stderr += t; emitLines(t); });
+    child.on("error", (e) => {
+      if (e.code === "ENOENT") return finish({ ok: false, stdout: cap(stdout), stderr: cap(stderr), code: null, notInstalled: true });
+      finish({ ok: false, stdout: cap(stdout), stderr: e.message, code: null });
+    });
+    child.on("close", (code, signal) => {
+      if (timedOut) return finish({ ok: false, stdout: cap(stdout), stderr: "timed out", code: null });
+      finish({ ok: code === 0, stdout: cap(stdout), stderr: cap(stderr), code: code ?? (signal ? 1 : 0) });
     });
   });
 }

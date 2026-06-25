@@ -72,6 +72,7 @@ export const callAgentTool: Tool = {
     const approved = await ctx.requestApproval(`call agent ${agent}: ${(prompt ?? "").slice(0, 100)}`, "spawns an autonomous external agent CLI", "call_agent");
     if (!approved) return { ok: false, output: "call_agent: declined" };
 
-    return formatResult(agent, await runExternalAgent(resolved.inv, { cwd: ctx.root }));
+    // CALL-AGENT-STREAM: stream the called agent's output to the transcript as it runs.
+    return formatResult(agent, await runExternalAgent(resolved.inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
   },
 };

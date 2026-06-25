@@ -16001,7 +16001,7 @@
       "id": "VANTA-CALL-AGENT-STREAM",
       "track": "Harness",
       "title": "Stream a called agent's output live instead of a silent wait-then-dump",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "runExternalAgent (agents/external-cli.ts) uses execFile and returns ONLY after the child exits — up to a 300s wait with zero feedback, then one dump. In the transcript the user watched a hung terminal with no signal the agent was even working. Switch the call path to a streamed spawn (child_process.spawn, line-buffered) that forwards the called agent's stdout/stderr into the Vanta transcript as it arrives (reuse the StreamEvent surface used elsewhere), plus an elapsed/working heartbeat and the existing stall watchdog (tools/shell-stall.ts). Keep the one-shot return contract identical; this purely makes a long delegated call OBSERVABLE. Benefits call_agent today and the interactive session (VANTA-AGENT-SESSION-INTERACTIVE).",
       "done": "A call_agent run to a real agent CLI shows incremental output (or at minimum a periodic elapsed/working heartbeat) in the transcript BEFORE the child exits, verified live with a multi-second call; the final returned result is byte-equivalent to today's.",
@@ -16012,7 +16012,9 @@
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ]
+      ],
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. runExternalAgent (agents/external-cli.ts) switched from execFile wait-then-dump to a STREAMED child_process.spawn: line-buffered onChunk forwards the called agent's stdout/stderr as it arrives + a periodic heartbeat (… <cmd> working (Ns)) via setInterval; injectable SpawnFn seam for tests. RunResult is byte-equivalent (full stdout/stderr capped 60k, exit code, ENOENT->notInstalled, timeout classification unchanged). ToolContext gained optional onProgress (tools/types.ts); dispatch-tool.ts wires it to the 'note' StreamEvent (deps.onEvent); call_agent passes ctx.onProgress as onChunk. LIVE PROOF vs real claude (multi-second call): 11 chunks streamed before the final return — heartbeats at +3/6/9/12s during the 12s think, then output streamed line-by-line, final ok=true at +13.4s. Tests: external-cli.test.ts (9, incl. line-streaming + return-identical-with/without-onChunk via fake spawn). Full suite 965/11051 green; tsc + size gate + boundaries clean.",
+      "updated": "2026-06-25"
     }
   ]
 }

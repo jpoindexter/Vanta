@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildAgentInvocation, runExternalAgent, knownAgents, detectInstalledAgents, type ExecFn } from "./external-cli.js";
+import { buildAgentInvocation, runExternalAgent, knownAgents, detectInstalledAgents, type SpawnFn, type ChildLike } from "./external-cli.js";
 
 describe("buildAgentInvocation — verified built-ins", () => {
   const env = {} as NodeJS.ProcessEnv;
@@ -40,23 +40,53 @@ describe("detectInstalledAgents — what the user actually has", () => {
   });
 });
 
-describe("runExternalAgent — spawn + classify", () => {
-  it("returns stdout on success", async () => {
-    const exec: ExecFn = (_c, _a, _o, cb) => cb(null, "the answer", "");
-    const r = await runExternalAgent({ cmd: "claude", args: ["-p", "x"] }, { cwd: "/tmp", exec });
+/** A fake spawn that emits given stdout/stderr then closes (or errors). */
+function fakeSpawn(o: { stdout?: string; stderr?: string; code?: number | null; errorCode?: string }): SpawnFn {
+  return () => {
+    const h: Record<string, (...a: unknown[]) => void> = {};
+    const child: ChildLike = {
+      stdout: { on: (_e, cb) => { if (o.stdout !== undefined) cb(o.stdout); } },
+      stderr: { on: (_e, cb) => { if (o.stderr !== undefined) cb(o.stderr); } },
+      on: (ev, cb) => { h[ev] = cb as (...a: unknown[]) => void; },
+      kill: () => {},
+    };
+    queueMicrotask(() => {
+      if (o.errorCode) h.error?.(Object.assign(new Error("x"), { code: o.errorCode }));
+      else h.close?.(o.code ?? 0, null);
+    });
+    return child;
+  };
+}
+
+describe("runExternalAgent — stream + classify", () => {
+  it("returns stdout on success (byte-equivalent return)", async () => {
+    const r = await runExternalAgent({ cmd: "claude", args: ["-p", "x"] }, { cwd: "/tmp", spawn: fakeSpawn({ stdout: "the answer", code: 0 }) });
     expect(r.ok).toBe(true);
     expect(r.stdout).toBe("the answer");
   });
   it("flags a not-installed CLI (ENOENT)", async () => {
-    const exec: ExecFn = (_c, _a, _o, cb) => cb(Object.assign(new Error("nope"), { code: "ENOENT" }), "", "");
-    const r = await runExternalAgent({ cmd: "ghost", args: [] }, { cwd: "/tmp", exec });
+    const r = await runExternalAgent({ cmd: "ghost", args: [] }, { cwd: "/tmp", spawn: fakeSpawn({ errorCode: "ENOENT" }) });
     expect(r.notInstalled).toBe(true);
   });
   it("reports a non-zero exit as failure", async () => {
-    const exec: ExecFn = (_c, _a, _o, cb) => cb(Object.assign(new Error("bad"), { code: 2 }), "", "boom");
-    const r = await runExternalAgent({ cmd: "claude", args: [] }, { cwd: "/tmp", exec });
+    const r = await runExternalAgent({ cmd: "claude", args: [] }, { cwd: "/tmp", spawn: fakeSpawn({ stderr: "boom", code: 2 }) });
     expect(r.ok).toBe(false);
     expect(r.code).toBe(2);
     expect(r.stderr).toBe("boom");
+  });
+  it("STREAMS output line-by-line via onChunk while running", async () => {
+    const chunks: string[] = [];
+    const r = await runExternalAgent(
+      { cmd: "claude", args: [] },
+      { cwd: "/tmp", spawn: fakeSpawn({ stdout: "line one\nline two\n", code: 0 }), onChunk: (t) => chunks.push(t) },
+    );
+    expect(chunks).toEqual(["line one", "line two"]); // streamed before return
+    expect(r.stdout).toBe("line one\nline two\n"); // full output still returned unchanged
+  });
+  it("return is identical whether or not onChunk is supplied", async () => {
+    const spawn = () => fakeSpawn({ stdout: "same output", code: 0 })("", [], { cwd: "/tmp", env: {} as NodeJS.ProcessEnv });
+    const withCb = await runExternalAgent({ cmd: "c", args: [] }, { cwd: "/tmp", spawn, onChunk: () => {} });
+    const without = await runExternalAgent({ cmd: "c", args: [] }, { cwd: "/tmp", spawn });
+    expect(withCb).toEqual(without);
   });
 });

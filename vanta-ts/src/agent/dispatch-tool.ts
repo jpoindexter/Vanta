@@ -50,7 +50,9 @@ export async function dispatchTool(
   const preBlocked = await applyPreToolUseHooks(call, deps, ctx, hookDeps);
   if (preBlocked) return preBlocked;
 
-  const execCtx = executionContext(call.name, ctx);
+  // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
+  // StreamEvent, so a long external call streams output/heartbeats mid-execution.
+  const execCtx: ToolContext = { ...executionContext(call.name, ctx), onProgress: (text) => deps.onEvent?.({ type: "note", text }) };
   const res = await executeWithRetry(call, deps, execCtx, tool);
   const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
   if (postBlocked) return postBlocked;
