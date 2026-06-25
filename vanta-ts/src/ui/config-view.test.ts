@@ -12,7 +12,7 @@ describe("config-view — effective state", () => {
     const s = configState({}, noEnv);
     expect(s.effort).toBe("medium");
     expect(s.outputStyle).toBe("normal");
-    expect(s.composerAnchor).toBe("bottom");
+    expect(s.composerAnchor).toBe("float");
     expect(s.autoMode).toBe(false);
     expect(s.gates.antiSlop).toBe(true);
     expect(s.gates.stallUnblock).toBe(true);

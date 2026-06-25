@@ -45,7 +45,7 @@ function asStyle(value: string | undefined): OutputStyle {
 
 function asAnchor(value: string | undefined, persisted: ComposerAnchor | undefined): ComposerAnchor {
   if (value === "float" || value === "bottom") return value;
-  return persisted ?? "bottom";
+  return persisted ?? "float";
 }
 
 /** Read the effective state. env overrides persisted settings where it can. */

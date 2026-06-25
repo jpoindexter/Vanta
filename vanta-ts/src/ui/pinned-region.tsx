@@ -13,15 +13,18 @@ import { Box } from "ink";
 // 0, the spacer collapses, and the composer flows naturally just below the latest
 // line (where inline rendering already puts it at the bottom).
 //
-// DEFAULT is "bottom" — the input rides the terminal floor (chat-box feel) so the
-// composer isn't stranded mid-screen with dead space below it. `VANTA_COMPOSER_ANCHOR=float`
-// or `/composer float` opts back into the float behavior (composer just below the last line).
+// DEFAULT is "float" — the composer trails the last committed line, exactly like
+// Claude Code / hermes (inline, native scrollback). This is RESIZE-IMMUNE: there is no
+// spacer to mis-size. The "bottom" pin reserves dead space from an ESTIMATE of the
+// committed height, which desyncs from real un-rewrapped scrollback on resize and strands
+// the input mid-screen (audited 2026-06-25 vs CC/goose/hermes) — so it's opt-in only.
+// `VANTA_COMPOSER_ANCHOR=bottom` / `/composer bottom` opt into the (fragile) floor-pin.
 
 export type ComposerAnchor = "float" | "bottom";
 
-/** Resolve the composer anchor from env. Default "bottom" (input pinned to the floor). */
+/** Resolve the composer anchor from env. Default "float" (resize-immune, CC-style). */
 export function resolveComposerAnchor(env: NodeJS.ProcessEnv): ComposerAnchor {
-  return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "float" ? "float" : "bottom";
+  return env.VANTA_COMPOSER_ANCHOR?.trim().toLowerCase() === "bottom" ? "bottom" : "float";
 }
 
 export function pinSpacerHeight(viewportRows: number, committedRows: number): number {
