@@ -16091,6 +16091,15 @@
       "size": "S",
       "summary": "Found 2026-06-26 by driving a real task end-to-end. One-shot `run` printed the answer + '[done]' then HUNG — never exited; zombie `node … cli.ts run` procs piled up across sessions (a 'what is 2+2' run was alive after a DAY). Root cause: cli.ts dispatched run via `return runInstruction(...)` (void) — never called process.exit, so MCP stdio children (torn down only on process.once('exit')) stayed alive and their handles kept the event loop open. Fix: await runInstruction then process.exit(0). Live-verified: fresh run exits ~4s, 0 zombies. Follow-up: check skill/room one-shots (same runInstruction path via COMMANDS) for the same class.",
       "done": "a `vanta run \"…\"` completes AND exits (no lingering node, MCP children killed); verified a fresh run exits in ~4s with zero zombies."
+    },
+    {
+      "id": "VANTA-SANDBOX-TMP-WRITE",
+      "track": "Harness",
+      "title": "Sandbox denied /tmp writes (default-on shell sandbox; /tmp not in writable zones)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Found 2026-06-26 by driving a real task ('write to /tmp'). shell_cmd defaults the OS sandbox ON wherever a backend exists (seatbelt is always present on macOS), but writableZonesFor included $TMPDIR (/var/folders) NOT the system /tmp (/private/tmp) — so `> /tmp/…` got EPERM 'Operation not permitted', surfaced to the model as 'Blocked by scope'. Reproduced in BOTH the dev harness AND the user's direct terminal (not a confound). Fix: sandbox/run.ts writableZonesFor adds realpathSync('/tmp'), deduped vs $TMPDIR. /tmp is scratch, not a credential dir; DANGEROUS_DIRS denies still override. Verified: a sandboxed /tmp write now succeeds; 53 sandbox tests green.",
+      "done": "a shell_cmd `> /tmp/…` write succeeds under the default-on macOS shell sandbox; darwin-gated regression test."
     }
   ]
 }

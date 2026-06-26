@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { realpathSync, writeFileSync, mkdtempSync, existsSync } from "node:fs";
+import { realpathSync, writeFileSync, rmSync, mkdtempSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { readFile, stat } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
@@ -115,5 +115,18 @@ describe("tsx self-call under the real seatbelt sandbox (darwin)", () => {
     expect(sx("node", ["--import", "tsx", script]).trim()).toBe("RAN:42");
     // the bug, documented: the tsx CLI's IPC server is denied → EPERM
     expect(() => sx("node_modules/.bin/tsx", [script])).toThrow(/EPERM|listen/);
+  });
+});
+
+// The system /tmp (/private/tmp) must be writable under the default-on shell sandbox —
+// it's the canonical scratch path tools/agents write to (was denied → EPERM). Regression.
+describe("sandbox permits the system /tmp (darwin)", () => {
+  const canRun = process.platform === "darwin" && existsSync("/usr/bin/sandbox-exec");
+  it.skipIf(!canRun)("a `> /tmp/…` write succeeds under VANTA_SANDBOX=1", async () => {
+    const sb = await maybeSandbox({ env: { ...process.env, VANTA_SANDBOX: "1" }, root: process.cwd(), baseCmd: "sh", baseArgs: ["-c", "echo ok > /tmp/vanta-sb-regress.txt"] });
+    if (isSandboxError(sb)) return; // no backend on this box → skip
+    expect(() => execFileSync(sb.cmd, sb.args, { encoding: "utf8" })).not.toThrow();
+    await sb.cleanup?.();
+    rmSync("/tmp/vanta-sb-regress.txt", { force: true });
   });
 });

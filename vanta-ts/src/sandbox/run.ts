@@ -45,16 +45,25 @@ function netAllowed(env: NodeJS.ProcessEnv): boolean {
   return env.VANTA_SANDBOX_NET === "1";
 }
 
+/** The system /tmp (→ /private/tmp on macOS), symlink-resolved. Null only if it's missing. */
+function systemTmp(): string | null {
+  try { return realpathSync("/tmp"); } catch { return null; }
+}
+
 /**
  * The writable set the sandbox must permit: the project root + every configured
- * writable zone + the OS temp dir. tmpdir() is load-bearing — run_code execs its
- * interpreter from a `mkdtemp(tmpdir()/…)` dir OUTSIDE root/zones, so a sandbox
- * without it would deny rustc's output / python's __pycache__ and break the tool.
- * Using the real (symlink-resolved) tmp path matters on macOS (/var/folders/…).
+ * writable zone + BOTH temp dirs. tmpdir() ($TMPDIR, /var/folders/…) is load-bearing —
+ * run_code execs its interpreter from a `mkdtemp(tmpdir()/…)` dir OUTSIDE root/zones.
+ * The system /tmp (/private/tmp) is added too: it's the canonical scratch path users and
+ * tools (pip, build steps, agents writing `> /tmp/…`) reach for — denying it under the
+ * default-on shell sandbox surprised real workflows with EPERM. Safe — /tmp is scratch,
+ * not a credential dir; the DANGEROUS_DIRS denies still override for anything sensitive.
  */
 function writableZonesFor(env: NodeJS.ProcessEnv): string[] {
   const tmp = realpathSync(tmpdir());
-  return [...resolveWritableZones(env).map((z) => resolve(z)), tmp];
+  const sys = systemTmp();
+  const temps = sys && sys !== tmp ? [tmp, sys] : [tmp];
+  return [...resolveWritableZones(env).map((z) => resolve(z)), ...temps];
 }
 
 /**
