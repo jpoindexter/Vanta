@@ -60,6 +60,23 @@ use std::path::PathBuf;
     }
 
     #[test]
+    fn read_only_pathlib_verify_is_not_blocked() {
+        // Verifying a built file with pathlib is read-only — must NOT be a destructive Block.
+        let v = assess_action(
+            "run shell command: python3 -c \"from pathlib import Path; print(Path('/repo/projects/vanta/index.html').read_text()[:80])\"",
+            &root(),
+        );
+        assert_ne!(v.risk, Risk::Block, "read-only pathlib must not Block (it's a verify, not a delete)");
+    }
+
+    #[test]
+    fn destructive_pathlib_methods_still_block() {
+        // The dangerous pathlib operations are still caught by their method names.
+        assert_eq!(assess_action("run shell command: python3 -c \"from pathlib import Path; Path('x').unlink()\"", &root()).risk, Risk::Block);
+        assert_eq!(assess_action("run shell command: python3 -c \"from pathlib import Path; Path('d').rmdir()\"", &root()).risk, Risk::Block);
+    }
+
+    #[test]
     fn blocks_double_space_rm() {
         assert_eq!(assess_action("run shell command: rm  -rf  /tmp/x", &root()).risk, Risk::Block);
         assert_eq!(assess_action("run shell command: rm -r -f build", &root()).risk, Risk::Block);

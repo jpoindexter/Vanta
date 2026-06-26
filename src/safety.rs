@@ -34,9 +34,13 @@ impl Verdict {
 
 // Destructive operations — broadened beyond the trivial "rm -rf" so shell/interpreter
 // variants don't slip through. Matched on the NORMALIZED string.
+// NOTE: the bare module name "pathlib" is intentionally NOT in this list — it over-matched
+// ANY read-only pathlib use (e.g. `Path(x).read_text()`, `.exists()`) and blocked legitimate
+// verify/read commands. The destructive pathlib METHODS are still caught: `.unlink()` by
+// "unlink(", `.rmdir()` by "rmdir", `shutil.rmtree` / `os.remove` by their own entries.
 const DESTRUCTIVE: &[&str] = &[
     "rm -rf", "rm -fr", "rm -r", "rm -f", "rmdir", "rmtree", "shutil.rmtree", "os.remove",
-    "os.unlink", "unlink(", "pathlib", "delete", "erase", "nuke", "wipe", "trash",
+    "os.unlink", "unlink(", "delete", "erase", "nuke", "wipe", "trash",
     "mkfs", ":(){", "fork bomb", "git clean -fd", "git clean -df", "shred",
 ];
 // Writes to a real device node (`> /dev/sda`, `dd of=/dev/disk0`) are destructive,
