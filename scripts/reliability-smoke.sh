@@ -23,7 +23,12 @@ TASKS=(
   "write:::write the exact text smoke-ok to $PROBE then read it back and confirm the contents:::smoke-ok"
   "codeexec:::write a python script to /tmp/vanta-sum.py that prints the sum of 1 to 10, run it with python3, and tell me the result:::(^|[^0-9])55([^0-9]|$)"
   "multitool:::find the 3 largest TypeScript files under vanta-ts/src by line count excluding tests, and name them with their line counts:::\\.ts"
-  "a2a:::use the call_agent tool to ask claude to reply with exactly the single word READY:::READY"
+  # a2a: the bar is the ACTUAL call_agent invocation targeting claude — NOT a loose "READY"
+  # text match (which the prompt echo would satisfy without delegating). In a non-interactive
+  # run the call then declines for lack of a TTY (correct: no approve-all unattended) and Vanta
+  # reports it honestly. So this proves ROUTING + INVOCATION; true end-to-end delegation (claude
+  # actually replies) needs an interactive TTY or an autoMode `allow call_agent` rule.
+  "a2a:::use the call_agent tool to ask claude to reply with exactly the single word READY:::call_agent.*claude"
 )
 
 pass=0; fail=0; i=0
