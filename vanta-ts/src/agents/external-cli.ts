@@ -9,12 +9,14 @@ import { resolveVantaHome } from "../store/home.js";
 // has installed: a few verified built-ins out of the box, auto-detection of what's
 // on PATH, and ~/.vanta/agents.json to declare ANY other CLI/harness.
 
-/** A resolved agent: command + a builder turning (prompt, model) into argv. */
-type AgentSpec = { cmd: string; build: (prompt: string, model?: string) => string[] };
+/** A resolved agent: command + a builder turning (prompt, model, coding) into argv.
+ * `coding` = run the agent BUILD-READY (auto-accepts file edits) so a headless A2A call
+ * can actually write/change code, not just answer — verified per-agent against the CLI. */
+type AgentSpec = { cmd: string; build: (prompt: string, model?: string, coding?: boolean) => string[] };
 
 // Verified non-interactive invocations (2026-06; flags change — re-verify with `<cli> --help`).
 const BUILTINS: Record<string, AgentSpec> = {
-  "claude":       { cmd: "claude",       build: (p, m) => ["-p", ...(m ? ["--model", m] : []), p] },
+  "claude":       { cmd: "claude",       build: (p, m, c) => ["-p", ...(m ? ["--model", m] : []), ...(c ? ["--permission-mode", "acceptEdits"] : []), p] },
   "codex":        { cmd: "codex",        build: (p, m) => ["exec", ...(m ? ["-m", m] : []), p] },
   "gemini":       { cmd: "gemini",       build: (p, m) => [...(m ? ["-m", m] : []), "-p", p] },
   "cursor-agent": { cmd: "cursor-agent", build: (p, m) => ["-p", ...(m ? ["--model", m] : []), p] },
@@ -81,15 +83,16 @@ export function detectInstalledAgents(env: NodeJS.ProcessEnv = process.env): str
 
 export type Invocation = { cmd: string; args: string[] };
 
-/** Resolve an agent's argv for a prompt. Null when the agent isn't known/configured. */
+/** Resolve an agent's argv for a prompt. Null when the agent isn't known/configured.
+ * `opts.coding` builds a build-ready invocation (auto-accepts edits) for headless A2A. */
 export function buildAgentInvocation(
   agent: string,
   prompt: string,
-  model?: string,
-  env: NodeJS.ProcessEnv = process.env,
+  opts: { model?: string; env?: NodeJS.ProcessEnv; coding?: boolean } = {},
 ): Invocation | null {
+  const env = opts.env ?? process.env;
   const spec = registry(env)[agent];
-  return spec ? { cmd: spec.cmd, args: spec.build(prompt, model) } : null;
+  return spec ? { cmd: spec.cmd, args: spec.build(prompt, opts.model, opts.coding) } : null;
 }
 
 export type RunResult = { ok: boolean; stdout: string; stderr: string; code: number | null; notInstalled?: boolean };
@@ -106,8 +109,10 @@ export type ChildLike = {
 /** Injectable spawn seam (real child_process.spawn in production, a fake in tests). */
 export type SpawnFn = (cmd: string, args: string[], opts: { cwd: string; env: NodeJS.ProcessEnv }) => ChildLike;
 
+// stdin is IGNORED so the agent CLI doesn't block ~3s waiting on stdin it never gets
+// ("no stdin data received in 3s" warning) — A2A calls are prompt-in-argv, output-out.
 const defaultSpawn: SpawnFn = (cmd, args, opts) =>
-  nodeSpawn(cmd, args, { cwd: opts.cwd, env: opts.env }) as unknown as ChildLike;
+  nodeSpawn(cmd, args, { cwd: opts.cwd, env: opts.env, stdio: ["ignore", "pipe", "pipe"] }) as unknown as ChildLike;
 
 const MAX_OUTPUT = 60_000;
 const DEFAULT_HEARTBEAT_MS = 8000;

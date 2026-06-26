@@ -7,12 +7,23 @@ import { buildAgentInvocation, runExternalAgent, knownAgents, detectInstalledAge
 describe("buildAgentInvocation — verified built-ins", () => {
   const env = {} as NodeJS.ProcessEnv;
   it("builds claude / codex / gemini non-interactive argv", () => {
-    expect(buildAgentInvocation("claude", "hi", undefined, env)).toEqual({ cmd: "claude", args: ["-p", "hi"] });
-    expect(buildAgentInvocation("codex", "hi", "gpt-5", env)).toEqual({ cmd: "codex", args: ["exec", "-m", "gpt-5", "hi"] });
-    expect(buildAgentInvocation("gemini", "hi", undefined, env)).toEqual({ cmd: "gemini", args: ["-p", "hi"] });
+    expect(buildAgentInvocation("claude", "hi", { env })).toEqual({ cmd: "claude", args: ["-p", "hi"] });
+    expect(buildAgentInvocation("codex", "hi", { model: "gpt-5", env })).toEqual({ cmd: "codex", args: ["exec", "-m", "gpt-5", "hi"] });
+    expect(buildAgentInvocation("gemini", "hi", { env })).toEqual({ cmd: "gemini", args: ["-p", "hi"] });
+  });
+  it("coding:true makes claude build-ready (--permission-mode acceptEdits) so it can edit headless", () => {
+    expect(buildAgentInvocation("claude", "build a page", { coding: true, env })).toEqual({
+      cmd: "claude",
+      args: ["-p", "--permission-mode", "acceptEdits", "build a page"],
+    });
+    // model + coding compose, in CLI order
+    expect(buildAgentInvocation("claude", "x", { model: "opus", coding: true, env })).toEqual({
+      cmd: "claude",
+      args: ["-p", "--model", "opus", "--permission-mode", "acceptEdits", "x"],
+    });
   });
   it("returns null for an unknown agent", () => {
-    expect(buildAgentInvocation("nope", "hi", undefined, env)).toBeNull();
+    expect(buildAgentInvocation("nope", "hi", { env })).toBeNull();
   });
 });
 
@@ -24,7 +35,7 @@ describe("custom agents from ~/.vanta/agents.json — any harness", () => {
   }
   it("resolves a user-declared CLI with a {prompt} token", () => {
     const env = homeWith({ aider: { cmd: "aider", args: ["--message", "{prompt}"], modelFlag: "--model" } });
-    expect(buildAgentInvocation("aider", "fix bug", "sonnet", env)).toEqual({ cmd: "aider", args: ["--model", "sonnet", "--message", "fix bug"] });
+    expect(buildAgentInvocation("aider", "fix bug", { model: "sonnet", env })).toEqual({ cmd: "aider", args: ["--model", "sonnet", "--message", "fix bug"] });
     expect(knownAgents(env)).toContain("aider");
   });
 });
