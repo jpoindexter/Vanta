@@ -82,6 +82,7 @@ import {
 import { delegateTool } from "./delegate.js";
 import { callAgentTool } from "./call-agent.js";
 import { agentSessionTool } from "./agent-session.js";
+import { buildWithAgentTool } from "./build-with-agent.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
@@ -226,6 +227,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   delegateTool,
   callAgentTool,
   agentSessionTool,
+  buildWithAgentTool,
   gmailSearchTool,
   gmailReadTool,
   gmailDraftTool,

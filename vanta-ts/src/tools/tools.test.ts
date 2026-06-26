@@ -48,6 +48,7 @@ describe("registry", () => {
       "browser_navigate",
       "browser_read",
       "budget",
+      "build_with_agent",
       "calendar_create",
       "calendar_read",
       "calendar_update",
