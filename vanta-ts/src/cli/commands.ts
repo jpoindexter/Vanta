@@ -198,7 +198,7 @@ export async function runVoiceCommand(repoRoot: string, rest: string[] = []): Pr
   });
 }
 
-export async function runRoomCommand(repoRoot: string, rest: string[]): Promise<void> {
+export async function runRoomCommand(repoRoot: string, rest: string[]): Promise<number | void> {
   const [name, ...instr] = rest;
   if (!name) return usageExit();
   const room = await resolveRoomOrExit(name, process.env);
@@ -206,4 +206,5 @@ export async function runRoomCommand(repoRoot: string, rest: string[]): Promise<
   if (instr.length === 0) return void console.log(room.path);
   if (room.path !== repoRoot) await fireCwdChanged(room.path, repoRoot, room.path);
   await runInstruction(repoRoot, instr.join(" "), { root: room.path });
+  return 0; // one-shot DONE — numeric return → cli.ts process.exit, so MCP handles don't hang
 }

@@ -158,7 +158,7 @@ export async function runSkillsCommand(rest: string[]): Promise<void> {
   }
 }
 
-export async function runSkillCommand(repoRoot: string, rest: string[]): Promise<void> {
+export async function runSkillCommand(repoRoot: string, rest: string[]): Promise<number | void> {
   const { usageExit } = await import("./commands.js");
   const [name, ...instr] = rest;
   if (!name) return usageExit();
@@ -169,4 +169,6 @@ export async function runSkillCommand(repoRoot: string, rest: string[]): Promise
   if (!skill) { console.log(`No skill named "${name}".`); process.exit(1); }
   if (instr.length === 0) return void console.log(`# ${skill.meta.name}\n\n${skill.body}`);
   await runInstruction(repoRoot, instr.join(" "), { skillBody: skill.body });
+  return 0; // one-shot DONE — a numeric return makes cli.ts process.exit, so MCP child handles
+  // don't keep the event loop alive forever (VANTA-ONESHOT-RUN-HANG, same class as `run`).
 }
