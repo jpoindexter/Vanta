@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-25",
+  "updated": "2026-06-26",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -15940,9 +15940,9 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "source": "session-2026-06-25-talk-to-claude-code",
+      "updated": "2026-06-25",
       "notes": "SHIPPED 2026-06-25. repl/agent-route.ts (pure: hasAgentIntent/detectAgentName/buildAgentRouteHint) prepends a one-line route hint in buildSendText (interactive-turn.ts, both hosts, VANTA_AGENT_ROUTE=0 disables). agent/tool-scope.ts adds an 'agents' group + HINT so call_agent/delegate schemas stay callable under deferred scoping on any cross-agent mention (the hidden-schema root cause). prompt.ts stable line names call_agent for claude/codex/gemini/cursor-agent/opencode, forbids shelling out. Tests: agent-route.test.ts (11) + tool-scope.test.ts case; prompt's 34 tests still green; tsc clean; size gate exit 0.",
-      "updated": "2026-06-25"
+      "source": "session-2026-06-25-talk-to-claude-code"
     },
     {
       "id": "VANTA-AGENT-SESSION-INTERACTIVE",
@@ -15956,12 +15956,12 @@
       "model": "opus",
       "effort": "high",
       "lens": "agent-loop",
+      "updated": "2026-06-25",
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. agent_session tool (open/send/read/close/list) drives a PERSISTENT interactive session over another agent CLI via a detached tmux session. agents/agent-session.ts = pure orchestration over an injected SessionBackend port (open primes past the startup modal: boot-wait + Escape — found live, claude's MCP picker ate the first prompt; send polls capture until output settles; read/close). agents/tmux-session-backend.ts = live execFileSync tmux backend (send-keys -l literal text, no shell). Kernel-gated (describeForSafety) + approval-gated (open/send/close). LIVE PROOF vs real claude CLI: opened session, 'Remember 42'->OK, 'What number?'->42 (context carried across turns), closed clean, no stray tmux. Tests: agent-session.test.ts (9, fake backend) + tools roster. Full suite 965 files/11049 green; tsc clean; size gate exit 0. Boundary: tmux required; pty blocked on node v24.",
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ],
-      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. agent_session tool (open/send/read/close/list) drives a PERSISTENT interactive session over another agent CLI via a detached tmux session. agents/agent-session.ts = pure orchestration over an injected SessionBackend port (open primes past the startup modal: boot-wait + Escape — found live, claude's MCP picker ate the first prompt; send polls capture until output settles; read/close). agents/tmux-session-backend.ts = live execFileSync tmux backend (send-keys -l literal text, no shell). Kernel-gated (describeForSafety) + approval-gated (open/send/close). LIVE PROOF vs real claude CLI: opened session, 'Remember 42'->OK, 'What number?'->42 (context carried across turns), closed clean, no stray tmux. Tests: agent-session.test.ts (9, fake backend) + tools roster. Full suite 965 files/11049 green; tsc clean; size gate exit 0. Boundary: tmux required; pty blocked on node v24.",
-      "updated": "2026-06-25"
+      ]
     },
     {
       "id": "VANTA-ACP-CLIENT",
@@ -15975,12 +15975,12 @@
       "model": "opus",
       "effort": "high",
       "lens": "agent-loop",
+      "updated": "2026-06-25",
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. acp/client.ts = the OUTBOUND ACP half (Vanta already SERVES ACP): AcpClient drives another ACP agent over stdio (initialize -> session/new -> session/prompt turns), reusing the pure protocol codec; forwards the peer's session/update notifications to onUpdate and routes its session/request_permission through the kernel (kernelApprover: assess -> allow-only, picks the matching allow/reject option). spawnAcpTransport (child stdio) + runAcpClientSession orchestration. CLI: vanta acp connect <cmd> [args] -- <prompt> (cli/acp-connect.ts) wires the real kernelApprover. LIVE PROOF vs real 'vanta acp serve': initialize + session/new (real id) + 2 prompt turns + 4 streamed session/update (tool_call/tool_call_update); separate run drove the peer to write outside root -> session/request_permission routed through the kernel -> rejected (verdict false) -> write blocked. Tests: client.test.ts (6, fake transport: round-trip, updates, close-rejects-pending, allow/reject option routing, multi-turn orchestration). Full suite 967/11063 green; tsc + size gate + boundaries clean. STRATEGY E6 = 'ACP is the real interop path' — client half now built.",
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ],
-      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. acp/client.ts = the OUTBOUND ACP half (Vanta already SERVES ACP): AcpClient drives another ACP agent over stdio (initialize -> session/new -> session/prompt turns), reusing the pure protocol codec; forwards the peer's session/update notifications to onUpdate and routes its session/request_permission through the kernel (kernelApprover: assess -> allow-only, picks the matching allow/reject option). spawnAcpTransport (child stdio) + runAcpClientSession orchestration. CLI: vanta acp connect <cmd> [args] -- <prompt> (cli/acp-connect.ts) wires the real kernelApprover. LIVE PROOF vs real 'vanta acp serve': initialize + session/new (real id) + 2 prompt turns + 4 streamed session/update (tool_call/tool_call_update); separate run drove the peer to write outside root -> session/request_permission routed through the kernel -> rejected (verdict false) -> write blocked. Tests: client.test.ts (6, fake transport: round-trip, updates, close-rejects-pending, allow/reject option routing, multi-turn orchestration). Full suite 967/11063 green; tsc + size gate + boundaries clean. STRATEGY E6 = 'ACP is the real interop path' — client half now built.",
-      "updated": "2026-06-25"
+      ]
     },
     {
       "id": "VANTA-SANDBOX-AGENT-REDIRECT",
@@ -15994,12 +15994,12 @@
       "model": "sonnet",
       "effort": "low",
       "lens": "agent-loop",
+      "updated": "2026-06-25",
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. tools/agent-launch-hint.ts (pure): agentLaunchRedirect(cmd) returns a tail naming call_agent + agent_session when a known agent CLI (claude/codex/gemini/cursor-agent/opencode) appears; isTmuxAgentLaunch(cmd) = tmux + agent. shell-cmd.ts: sandboxAgentRefusal(cmd) (exported) refuses a tmux-agent launch under the sandbox with the redirect; wired as a pre-check in execute (after the destructive check) AND appended to the background-under-sandbox refusal. LIVE PROOF (VANTA_SHELL_SANDBOX=1): (a) shell_cmd 'tmux new-session -d -s probe claude' -> refused, output names BOTH call_agent and agent_session; (b) the agent_session tmux backend spawned + cleaned up a session under the SAME sandbox env (bypasses shell_cmd's sandbox via execFileSync). Tests: agent-launch-hint.test.ts (6) + shell-cmd.test.ts (12) green. Full suite 966/11057 green; tsc + size gate + boundaries clean.",
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ],
-      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. tools/agent-launch-hint.ts (pure): agentLaunchRedirect(cmd) returns a tail naming call_agent + agent_session when a known agent CLI (claude/codex/gemini/cursor-agent/opencode) appears; isTmuxAgentLaunch(cmd) = tmux + agent. shell-cmd.ts: sandboxAgentRefusal(cmd) (exported) refuses a tmux-agent launch under the sandbox with the redirect; wired as a pre-check in execute (after the destructive check) AND appended to the background-under-sandbox refusal. LIVE PROOF (VANTA_SHELL_SANDBOX=1): (a) shell_cmd 'tmux new-session -d -s probe claude' -> refused, output names BOTH call_agent and agent_session; (b) the agent_session tmux backend spawned + cleaned up a session under the SAME sandbox env (bypasses shell_cmd's sandbox via execFileSync). Tests: agent-launch-hint.test.ts (6) + shell-cmd.test.ts (12) green. Full suite 966/11057 green; tsc + size gate + boundaries clean.",
-      "updated": "2026-06-25"
+      ]
     },
     {
       "id": "VANTA-CALL-AGENT-STREAM",
@@ -16013,12 +16013,57 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
+      "updated": "2026-06-25",
+      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. runExternalAgent (agents/external-cli.ts) switched from execFile wait-then-dump to a STREAMED child_process.spawn: line-buffered onChunk forwards the called agent's stdout/stderr as it arrives + a periodic heartbeat (… <cmd> working (Ns)) via setInterval; injectable SpawnFn seam for tests. RunResult is byte-equivalent (full stdout/stderr capped 60k, exit code, ENOENT->notInstalled, timeout classification unchanged). ToolContext gained optional onProgress (tools/types.ts); dispatch-tool.ts wires it to the 'note' StreamEvent (deps.onEvent); call_agent passes ctx.onProgress as onChunk. LIVE PROOF vs real claude (multi-second call): 11 chunks streamed before the final return — heartbeats at +3/6/9/12s during the 12s think, then output streamed line-by-line, final ok=true at +13.4s. Tests: external-cli.test.ts (9, incl. line-streaming + return-identical-with/without-onChunk via fake spawn). Full suite 965/11051 green; tsc + size gate + boundaries clean.",
       "source": "session-2026-06-25-talk-to-claude-code",
       "after": [
         "VANTA-AGENT-ROUTING-DISCOVERY"
-      ],
-      "notes": "SHIPPED + LIVE-VERIFIED 2026-06-25. runExternalAgent (agents/external-cli.ts) switched from execFile wait-then-dump to a STREAMED child_process.spawn: line-buffered onChunk forwards the called agent's stdout/stderr as it arrives + a periodic heartbeat (… <cmd> working (Ns)) via setInterval; injectable SpawnFn seam for tests. RunResult is byte-equivalent (full stdout/stderr capped 60k, exit code, ENOENT->notInstalled, timeout classification unchanged). ToolContext gained optional onProgress (tools/types.ts); dispatch-tool.ts wires it to the 'note' StreamEvent (deps.onEvent); call_agent passes ctx.onProgress as onChunk. LIVE PROOF vs real claude (multi-second call): 11 chunks streamed before the final return — heartbeats at +3/6/9/12s during the 12s think, then output streamed line-by-line, final ok=true at +13.4s. Tests: external-cli.test.ts (9, incl. line-streaming + return-identical-with/without-onChunk via fake spawn). Full suite 965/11051 green; tsc + size gate + boundaries clean.",
-      "updated": "2026-06-25"
+      ]
+    },
+    {
+      "id": "VANTA-A2A-DELEGATE-BUILD",
+      "track": "Harness",
+      "title": "Delegate a build to Claude — headless, streaming, fast (Sonnet)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Agent-to-agent build delegation that works. call_agent/agent_session gained coding:true (claude --permission-mode acceptEdits) so the agent WRITES code, not just answers. Builds default to fast Sonnet (not the slow Opus default that 15-min-timed-out) and run --output-format stream-json (parsed by agents/claude-stream.ts) → Vanta streams live progress instead of a silent block. agent_session(show:true) can pop a VISIBLE terminal to watch. stdin ignored (kills the 3s warning).",
+      "done": "call_agent(coding:true) builds via claude on Sonnet, streams live Write/Bash progress, returns the result; verified end-to-end (landing page in 26s)."
+    },
+    {
+      "id": "VANTA-A2A-ROUTE-BUILD",
+      "track": "Harness",
+      "title": "Route 'have claude build X' to call_agent(coding:true) + verify (A2A piece 1)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Reliability: a build delegation reliably takes the build path instead of confabulating/answer-only. agent-route.ts detects a build verb NEAR an agent name (\"have claude build…\") as delegation intent; hasBuildIntent steers the hint to coding:true AND verify before reporting done.",
+      "done": "buildAgentRouteHint detects a build verb near an agent name and steers to call_agent(coding:true) + verify; 15 route tests green."
+    },
+    {
+      "id": "VANTA-A2A-BUILD-LOOP",
+      "track": "Harness",
+      "title": "build_with_agent — the cofounder loop: delegate → verify → fix (A2A piece 3)",
+      "status": "shipped",
+      "size": "M",
+      "summary": "Closes the loop instead of one-shot-and-hope. agents/build-loop.ts = pure runBuildLoop (delegate + verify injected): delegate → verify → fix→verify… until pass or maxIters; an agent failure re-delegates with the error; verify runs only after a successful delegate. tools/build-with-agent.ts wires delegate=call_agent(coding) + verify=expectFiles/verifyCmd. Now 123 built-in tools.",
+      "done": "build_with_agent delegates a build, verifies (expectFiles + verifyCmd), and re-delegates a targeted fix until pass or maxIters; pure loop unit-tested."
+    },
+    {
+      "id": "VANTA-A2A-KERNEL-VERIFY",
+      "track": "Harness",
+      "title": "Un-block read-only verify in the kernel (pathlib over-match)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "So the A2A loop can VERIFY what Claude built. The kernel blocked Vanta parsing built HTML via python3+pathlib as 'destructive' — the bare module name 'pathlib' was in the DESTRUCTIVE denylist but over-matched read-only Path(x).read_text(). Removed the bare name; the destructive METHODS still block (unlink(/rmdir/rmtree/os.remove).",
+      "done": "A read-only python3+pathlib verify no longer Blocks; destructive pathlib methods still Block; 67 kernel tests green."
+    },
+    {
+      "id": "VANTA-A2A-AUTONOMOUS-SANDBOX",
+      "track": "Harness",
+      "title": "Autonomous (bash) builds inside the sandbox — BLOCKED on sandbox-claude (A2A piece 2)",
+      "status": "parked",
+      "size": "L",
+      "summary": "Real projects need bash (npm install, bundlers) acceptEdits headless can't run; plan was full autonomy (claude --permission-mode bypassPermissions) contained in Vanta's OS sandbox. BLOCKER (verified 2026-06-26): claude can't RUN inside sandbox-exec — times out even with ~/.claude/.config/.cache writable; the macOS seatbelt profile is too tight for claude's Node runtime, tuning it blind is open-ended. Reverted the wiring (didn't ship a broken mode). Paths: (a) tune the sandbox profile for claude, (b) run claude in the Docker backend with the project mounted, (c) unsandboxed bypass scoped by cwd (loses containment, explicit opt-in). Needs operator decision.",
+      "done": "An autonomous (bypassPermissions) claude build runs contained in the OS sandbox and completes a real npm-driven build."
     }
   ]
 }
