@@ -1,7 +1,9 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { realpathSync } from "node:fs";
+import { realpathSync, writeFileSync, mkdtempSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { readFile, stat } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { buildSeatbeltProfile } from "./profile.js";
 import { resolve } from "node:path";
 import { isSandboxError, maybeSandbox } from "./run.js";
 
@@ -93,5 +95,25 @@ describe("maybeSandbox — bwrap (linux)", () => {
     expect(r.args).toContain("--tmpfs");
     expect(r.args.slice(-2)).toEqual(["python3", "main.py"]);
     expect(r.cleanup).toBeUndefined();
+  });
+});
+
+// VANTA-SANDBOX-TSX-SELFCALL — a self-CLI call under the OS sandbox must work. The `tsx`
+// CLI starts an IPC server (listens on a $TMPDIR/*.pipe unix socket) that seatbelt denies
+// (EPERM; even `(allow network*)` doesn't cover a unix-socket listen under deny-default), so
+// the launcher runs `node --import tsx` (the loader, no IPC server). This locks that in.
+describe("tsx self-call under the real seatbelt sandbox (darwin)", () => {
+  const canRun = process.platform === "darwin" && existsSync("/usr/bin/sandbox-exec") && existsSync("node_modules/tsx");
+  it.skipIf(!canRun)("node --import tsx runs a .ts under the profile; the tsx CLI EPERMs", () => {
+    const dir = mkdtempSync(resolve(realpathSync(tmpdir()), "sb-tsx-"));
+    const script = resolve(dir, "t.ts");
+    writeFileSync(script, 'console.log("RAN:" + (40 + 2 as number));\n');
+    const profilePath = resolve(dir, "p.sb");
+    writeFileSync(profilePath, buildSeatbeltProfile(process.cwd(), [], { net: false }));
+    const sx = (cmd: string, args: string[]) => execFileSync("sandbox-exec", ["-f", profilePath, cmd, ...args], { encoding: "utf8", cwd: process.cwd() });
+    // the fix: the loader has no IPC server → runs sandboxed
+    expect(sx("node", ["--import", "tsx", script]).trim()).toBe("RAN:42");
+    // the bug, documented: the tsx CLI's IPC server is denied → EPERM
+    expect(() => sx("node_modules/.bin/tsx", [script])).toThrow(/EPERM|listen/);
   });
 });

@@ -48,13 +48,17 @@ if [ ! -d "$DIR/vanta-ts/node_modules" ]; then
 fi
 
 # --- launch (cli.ts finds the repo root from its own path; cwd is irrelevant) -
-# Use the local tsx binary directly (not `npx`) so stdin/stdout stay a real TTY —
-# the Ink TUI needs that, and the npx wrapper can interpose a non-TTY pipe.
+# Run the CLI via `node --import tsx` (the loader), NOT the `tsx` CLI binary. The tsx CLI
+# starts an IPC server — it listen()s on a $TMPDIR/tsx-*/<pid>.pipe unix socket — which the
+# OS sandbox DENIES (EPERM, and seatbelt's network* family doesn't cover a unix-socket listen
+# under deny-default). So a self-CLI call (e.g. `vanta skills …`) made under VANTA_SHELL_SANDBOX
+# fails. The loader has no IPC server, runs cli.ts identically, and keeps stdin/stdout a real
+# TTY (which the Ink TUI needs; npx could interpose a non-TTY pipe). See VANTA-SANDBOX-TSX-SELFCALL.
 cd "$DIR/vanta-ts"
-if [ -x "node_modules/.bin/tsx" ]; then
-  TSX="node_modules/.bin/tsx"
+if [ -d "node_modules/tsx" ]; then
+  TSX="node --import tsx"
 else
-  TSX="npx tsx"
+  TSX="npx tsx"   # degraded fallback (deps not installed) — still carries the IPC server
 fi
 
 # Relaunch loop: /restart exits with code 75 → re-run tsx so edited source is

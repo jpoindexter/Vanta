@@ -15177,7 +15177,7 @@
       "id": "VANTA-SANDBOX-TSX-SELFCALL",
       "track": "Harness",
       "title": "Internal sandbox blocks tsx when Vanta shells out to its own CLI (EPERM on IPC pipe)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "When Vanta (the agent) runs a shell command that invokes its OWN CLI via the tsx launcher, the shell sandbox denies the tsx IPC pipe with EPERM, so the command fails. Found 2026-06-24: an internal `vanta skills install --force` + `sync-triggers --claude` failed under the sandbox; the agent worked around it by pointing VANTA_HOME at a throwaway .vanta-state dir + `node --import tsx`, which silently installed the new skill + synced triggers to the WRONG home — the real ~/.vanta was left stale and activation no-op'd. The bug is the sandbox/tsx-IPC interaction; the wrong-home write is a downstream symptom of the fallback.",
       "done": "a Vanta-initiated `vanta skills …` (or any self-CLI) call runs under the shell sandbox without EPERM on the tsx IPC pipe — OR the launcher detects the sandbox and runs the CLI a way that works AND respects the real VANTA_HOME (never silently a throwaway dir). Repro + regression test.",

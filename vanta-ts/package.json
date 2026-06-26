@@ -8,7 +8,7 @@
     "vanta": "bin/vanta.mjs"
   },
   "scripts": {
-    "vanta": "tsx src/cli.ts",
+    "vanta": "node --import tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "desktop:dev": "vite --host 127.0.0.1 --config desktop-app/vite.config.ts",

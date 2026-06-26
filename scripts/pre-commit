@@ -20,7 +20,7 @@ fi
 # Skips cleanly when no TS is staged or tsx is absent.
 STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.tsx?$' | grep -vE '\.(d|test)\.tsx?$' || true)
 if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
-  if ! (cd vanta-ts && node_modules/.bin/tsx src/cli.ts lint --staged); then
+  if ! (cd vanta-ts && node --import tsx src/cli.ts lint --staged); then
     if [ "${VANTA_LINT_BLOCK:-1}" = "0" ]; then
       echo "⚠  size violations above (warn-only; VANTA_LINT_BLOCK=0). Fix before shipping."
     else
@@ -35,7 +35,7 @@ fi
 # can't slip in. Hard-blocks by default; set VANTA_BOUNDARY_BLOCK=0 for warn-only.
 # Whole-repo check (fast); skips cleanly when no TS is staged or tsx is absent.
 if [ -n "$STAGED_TS" ] && [ -x vanta-ts/node_modules/.bin/tsx ]; then
-  if ! (cd vanta-ts && node_modules/.bin/tsx src/arch/cli.ts); then
+  if ! (cd vanta-ts && node --import tsx src/arch/cli.ts); then
     if [ "${VANTA_BOUNDARY_BLOCK:-1}" = "0" ]; then
       echo "⚠  architectural boundary violation above (warn-only; VANTA_BOUNDARY_BLOCK=0)."
     else
