@@ -16064,6 +16064,24 @@
       "size": "L",
       "summary": "Real projects need bash (npm install, bundlers) acceptEdits headless can't run; plan was full autonomy (claude --permission-mode bypassPermissions) contained in Vanta's OS sandbox. BLOCKER (verified 2026-06-26): claude can't RUN inside sandbox-exec — times out even with ~/.claude/.config/.cache writable; the macOS seatbelt profile is too tight for claude's Node runtime, tuning it blind is open-ended. Reverted the wiring (didn't ship a broken mode). Paths: (a) tune the sandbox profile for claude, (b) run claude in the Docker backend with the project mounted, (c) unsandboxed bypass scoped by cwd (loses containment, explicit opt-in). Needs operator decision.",
       "done": "An autonomous (bypassPermissions) claude build runs contained in the OS sandbox and completes a real npm-driven build."
+    },
+    {
+      "id": "VANTA-A2A-DOCKER-AUTONOMOUS",
+      "track": "Harness",
+      "title": "Autonomous (bash) builds in a Docker container — the containment that works",
+      "status": "next",
+      "size": "L",
+      "summary": "Replaces the parked sandbox-exec approach (VANTA-A2A-AUTONOMOUS-SANDBOX), where claude couldn't even RUN inside macOS seatbelt. A Docker container gives claude a FULL machine where it runs normally, boxed to exactly the folders Vanta mounts (the mount-set IS the boundary). Daytona was the obvious purpose-built fit but went open→CLOSED source — don't build Vanta's autonomy on a ruggable platform; use the open Docker primitive Vanta ALREADY ships (exec/backend.ts buildDockerArgs / the BACKEND-DOCKER card). Plumbing left: a small claude-image (node + `npm i -g @anthropic-ai/claude-code`) + per-run OAuth-token injection, --network on for npm, project bind-mounted. CONTAINMENT PROVEN LIVE 2026-06-26: a real OrbStack/Docker container cleaned a mounted /tmp folder (organized by type) and provably could NOT read an un-mounted folder or ~/.ssh; work persisted on disk after --rm. Can't live-verify the claude bypass from Claude Code's own harness (it blocks the flag) → build the image + adapter here, operator verifies the first real run. Apple's open `container` runtime is a macOS-native lighter alternative to evaluate.",
+      "done": "call_agent(autonomous:true) runs `claude --dangerously-skip-permissions` inside a Docker container scoped to the mounted dir(s); a real npm-driven build completes, streams progress, and provably can't touch anything outside the mounts."
+    },
+    {
+      "id": "VANTA-A2A-MOUNT-SCOPE",
+      "track": "Harness",
+      "title": "Mount-set = scope: Vanta picks + approves the agent's blast radius per task",
+      "status": "next",
+      "size": "M",
+      "summary": "The policy layer over VANTA-A2A-DOCKER-AUTONOMOUS. The container turns Vanta's existing 'scope' concept into a HARD, OS-enforced boundary — a mount can't be talked-past the way a keyword denylist can. Vanta infers the mount-set from the task (build → a fresh output dir; clean Downloads → ~/Downloads rw; fix repo X → that repo; analyze photos → ~/Pictures ro), SURFACES it for human approval (the blast radius) before spinning up, then runs the agent boxed to it. Whole-system tasks ('find big files across my disk') don't fit a box (mounting / = no containment) → fall back to host + approval-gating, or ask. Caveat to design for: the box scopes WHERE, not WHETHER-reversible — 'clean up' inside the mount still means real deletes, so destructive-within-scope wants a dry-run/confirm or a pre-snapshot of the dir.",
+      "done": "for a delegated task Vanta derives the mount-set (the folders it needs), shows it for approval, and runs the boxed agent with exactly those mounts (ro/rw); a destructive-within-scope task gets a dry-run/confirm or a pre-snapshot."
     }
   ]
 }
