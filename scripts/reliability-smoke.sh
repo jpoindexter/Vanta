@@ -21,6 +21,9 @@ TASKS=(
   "git:::how many commits are in this repo today? use git log and reply with the number:::[0-9]"
   "reason:::read vanta-ts/package.json and tell me the required node major version in one short line:::22|node|engine"
   "write:::write the exact text smoke-ok to $PROBE then read it back and confirm the contents:::smoke-ok"
+  "codeexec:::write a python script to /tmp/vanta-sum.py that prints the sum of 1 to 10, run it with python3, and tell me the result:::(^|[^0-9])55([^0-9]|$)"
+  "multitool:::find the 3 largest TypeScript files under vanta-ts/src by line count excluding tests, and name them with their line counts:::\\.ts"
+  "a2a:::use the call_agent tool to ask claude to reply with exactly the single word READY:::READY"
 )
 
 pass=0; fail=0; i=0
