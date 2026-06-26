@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hasAgentIntent, detectAgentName, buildAgentRouteHint } from "./agent-route.js";
+import { hasAgentIntent, hasBuildIntent, detectAgentName, buildAgentRouteHint } from "./agent-route.js";
 
 describe("hasAgentIntent", () => {
   it("fires on the transcript phrasing 'talk to claude code'", () => {
@@ -57,5 +57,24 @@ describe("buildAgentRouteHint", () => {
   it("returns null when there is no cross-agent intent", () => {
     expect(buildAgentRouteHint("switch my model to gemini")).toBeNull();
     expect(buildAgentRouteHint("add a license header")).toBeNull();
+  });
+});
+
+describe("hasBuildIntent + build routing", () => {
+  it("detects build/implement intent", () => {
+    expect(hasBuildIntent("have claude build me a landing page")).toBe(true);
+    expect(hasBuildIntent("get claude to create a react component")).toBe(true);
+    expect(hasBuildIntent("ask claude to implement the auth flow")).toBe(true);
+    expect(hasBuildIntent("what does claude think of this design?")).toBe(false);
+  });
+  it("a BUILD delegation steers to coding:true + verify", () => {
+    const hint = buildAgentRouteHint("have claude build me a landing page")!;
+    expect(hint).toContain("coding:true");
+    expect(hint).toContain('agent:"claude"');
+    expect(hint).toMatch(/verify/i);
+  });
+  it("a non-build delegation does NOT add coding:true", () => {
+    const hint = buildAgentRouteHint("ask claude what it thinks of this code")!;
+    expect(hint).not.toContain("coding:true");
   });
 });
