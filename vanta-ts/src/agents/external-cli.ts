@@ -14,9 +14,22 @@ import { resolveVantaHome } from "../store/home.js";
  * can actually write/change code, not just answer — verified per-agent against the CLI. */
 type AgentSpec = { cmd: string; build: (prompt: string, model?: string, coding?: boolean) => string[] };
 
+/** claude non-interactive argv. A BUILD (coding) defaults to fast Sonnet — not claude's slow
+ * Opus default that timed out — auto-accepts edits, and streams events (stream-json) so the
+ * caller can show live progress (call_agent parses that stream). Plain calls stay text. */
+function claudeArgs(prompt: string, model?: string, coding?: boolean): string[] {
+  const m = model ?? (coding ? "sonnet" : undefined);
+  return [
+    "-p",
+    ...(m ? ["--model", m] : []),
+    ...(coding ? ["--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose"] : []),
+    prompt,
+  ];
+}
+
 // Verified non-interactive invocations (2026-06; flags change — re-verify with `<cli> --help`).
 const BUILTINS: Record<string, AgentSpec> = {
-  "claude":       { cmd: "claude",       build: (p, m, c) => ["-p", ...(m ? ["--model", m] : []), ...(c ? ["--permission-mode", "acceptEdits"] : []), p] },
+  "claude":       { cmd: "claude",       build: claudeArgs },
   "codex":        { cmd: "codex",        build: (p, m) => ["exec", ...(m ? ["-m", m] : []), p] },
   "gemini":       { cmd: "gemini",       build: (p, m) => [...(m ? ["-m", m] : []), "-p", p] },
   "cursor-agent": { cmd: "cursor-agent", build: (p, m) => ["-p", ...(m ? ["--model", m] : []), p] },
@@ -130,7 +143,7 @@ function timeoutMs(env: NodeJS.ProcessEnv): number {
  */
 export async function runExternalAgent(
   inv: Invocation,
-  opts: { cwd: string; env?: NodeJS.ProcessEnv; spawn?: SpawnFn; onChunk?: (text: string) => void; heartbeatMs?: number },
+  opts: { cwd: string; env?: NodeJS.ProcessEnv; spawn?: SpawnFn; onChunk?: (text: string) => void; heartbeatMs?: number; timeoutMs?: number },
 ): Promise<RunResult> {
   const env = opts.env ?? process.env;
   const spawn = opts.spawn ?? defaultSpawn;
@@ -159,7 +172,7 @@ export async function runExternalAgent(
       resolve(r);
     };
     const child = spawn(inv.cmd, inv.args, { cwd: opts.cwd, env });
-    const killTimer = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, timeoutMs(env));
+    const killTimer = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, opts.timeoutMs ?? timeoutMs(env));
     const hb = setInterval(() => onChunk?.(`… ${inv.cmd} working (${Math.round((Date.now() - startMs) / 1000)}s)`), opts.heartbeatMs ?? DEFAULT_HEARTBEAT_MS);
     child.stdout?.on("data", (d) => { const t = String(d); stdout += t; emitLines(t); });
     child.stderr?.on("data", (d) => { const t = String(d); stderr += t; emitLines(t); });

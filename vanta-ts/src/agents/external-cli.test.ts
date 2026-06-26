@@ -11,15 +11,15 @@ describe("buildAgentInvocation — verified built-ins", () => {
     expect(buildAgentInvocation("codex", "hi", { model: "gpt-5", env })).toEqual({ cmd: "codex", args: ["exec", "-m", "gpt-5", "hi"] });
     expect(buildAgentInvocation("gemini", "hi", { env })).toEqual({ cmd: "gemini", args: ["-p", "hi"] });
   });
-  it("coding:true makes claude build-ready (--permission-mode acceptEdits) so it can edit headless", () => {
+  it("coding:true builds claude on fast Sonnet, build-ready, streaming (not slow Opus, no stream)", () => {
     expect(buildAgentInvocation("claude", "build a page", { coding: true, env })).toEqual({
       cmd: "claude",
-      args: ["-p", "--permission-mode", "acceptEdits", "build a page"],
+      args: ["-p", "--model", "sonnet", "--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose", "build a page"],
     });
-    // model + coding compose, in CLI order
+    // an explicit model overrides the Sonnet default
     expect(buildAgentInvocation("claude", "x", { model: "opus", coding: true, env })).toEqual({
       cmd: "claude",
-      args: ["-p", "--model", "opus", "--permission-mode", "acceptEdits", "x"],
+      args: ["-p", "--model", "opus", "--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose", "x"],
     });
   });
   it("returns null for an unknown agent", () => {

@@ -7,7 +7,34 @@ import {
   type Invocation,
   type RunResult,
 } from "../agents/external-cli.js";
+import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+
+const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min headroom
+
+/** Run a claude BUILD: parse stream-json events → live progress (Write/Bash/…) + the final
+ * result, instead of a silent block that buffers everything until done. */
+async function runCodingClaude(ctx: ToolContext, inv: Invocation): Promise<ToolResult> {
+  let result = "";
+  let isError = false;
+  let last = "";
+  const onChunk = (line: string) => {
+    const ev = parseClaudeStreamLine(line);
+    if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
+    if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
+  };
+  const res = await runExternalAgent(inv, { cwd: ctx.root, onChunk, timeoutMs: CODING_TIMEOUT_MS });
+  if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH." };
+  if (!result) return { ok: false, output: `claude build did not finish: ${(res.stderr || res.stdout).trim().slice(0, 500) || `exit ${res.code ?? "?"}`}` };
+  return { ok: !isError, output: `[claude]\n${result}` };
+}
+
+/** Dispatch the resolved call: a claude BUILD streams stream-json for live progress;
+ * everything else streams text output. Split out to keep execute under the complexity gate. */
+async function runResolved(ctx: ToolContext, agent: string, inv: Invocation, coding?: boolean): Promise<ToolResult> {
+  if (coding && agent === "claude") return runCodingClaude(ctx, inv);
+  return formatResult(agent, await runExternalAgent(inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
+}
 
 const Args = z.object({
   agent: z.string().optional(),
@@ -75,7 +102,6 @@ export const callAgentTool: Tool = {
     const approved = await ctx.requestApproval(`call agent ${agent}${coding ? " in BUILD mode" : ""}: ${(prompt ?? "").slice(0, 100)}`, why, "call_agent");
     if (!approved) return { ok: false, output: "call_agent: declined" };
 
-    // CALL-AGENT-STREAM: stream the called agent's output to the transcript as it runs.
-    return formatResult(agent, await runExternalAgent(resolved.inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
+    return runResolved(ctx, agent, resolved.inv, coding);
   },
 };
