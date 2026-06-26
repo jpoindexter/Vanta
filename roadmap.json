@@ -16082,6 +16082,15 @@
       "size": "M",
       "summary": "The policy layer over VANTA-A2A-DOCKER-AUTONOMOUS. The container turns Vanta's existing 'scope' concept into a HARD, OS-enforced boundary — a mount can't be talked-past the way a keyword denylist can. Vanta infers the mount-set from the task (build → a fresh output dir; clean Downloads → ~/Downloads rw; fix repo X → that repo; analyze photos → ~/Pictures ro), SURFACES it for human approval (the blast radius) before spinning up, then runs the agent boxed to it. Whole-system tasks ('find big files across my disk') don't fit a box (mounting / = no containment) → fall back to host + approval-gating, or ask. Caveat to design for: the box scopes WHERE, not WHETHER-reversible — 'clean up' inside the mount still means real deletes, so destructive-within-scope wants a dry-run/confirm or a pre-snapshot of the dir.",
       "done": "for a delegated task Vanta derives the mount-set (the folders it needs), shows it for approval, and runs the boxed agent with exactly those mounts (ro/rw); a destructive-within-scope task gets a dry-run/confirm or a pre-snapshot."
+    },
+    {
+      "id": "VANTA-ONESHOT-RUN-HANG",
+      "track": "Harness",
+      "title": "One-shot `vanta run` hangs after completing (never exits — MCP handles)",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Found 2026-06-26 by driving a real task end-to-end. One-shot `run` printed the answer + '[done]' then HUNG — never exited; zombie `node … cli.ts run` procs piled up across sessions (a 'what is 2+2' run was alive after a DAY). Root cause: cli.ts dispatched run via `return runInstruction(...)` (void) — never called process.exit, so MCP stdio children (torn down only on process.once('exit')) stayed alive and their handles kept the event loop open. Fix: await runInstruction then process.exit(0). Live-verified: fresh run exits ~4s, 0 zombies. Follow-up: check skill/room one-shots (same runInstruction path via COMMANDS) for the same class.",
+      "done": "a `vanta run \"…\"` completes AND exits (no lingering node, MCP children killed); verified a fresh run exits in ~4s with zero zombies."
     }
   ]
 }

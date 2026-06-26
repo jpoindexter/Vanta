@@ -209,7 +209,11 @@ async function main(): Promise<void> {
   if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle, pluginSources });
   if (cmd === "run" && rest.length > 0) {
     const { instruction, outputFormat, jsonSchema } = parseRunArgs(rest);
-    return runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle, pluginSources });
+    await runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle, pluginSources });
+    // One-shot is DONE — exit explicitly. Without this the process hangs forever: MCP stdio
+    // children (and other open handles) keep the event loop alive, and the teardown registered
+    // on `process.once("exit")` only fires on an actual exit. (Found by driving a real task.)
+    process.exit(0);
   }
 
   const handler = COMMANDS[cmd];
