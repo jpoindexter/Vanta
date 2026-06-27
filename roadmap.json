@@ -16169,7 +16169,7 @@
       "id": "RELIABILITY-CONCURRENCY-SOAK",
       "track": "Harness",
       "title": "Higher-concurrency kernel soak (>16 parallel) to find the contention ceiling",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "16x parallel held clean (0 zombies). Push to 32-64x to find the kernel contention ceiling (assess/log/audit-chain under load on the raw-TCP HTTP server).",
       "done": "the kernel survives >=32x parallel runs with 0 zombies, or the contention ceiling is identified and documented.",
