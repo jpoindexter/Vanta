@@ -22,17 +22,24 @@ export function classifyTouchedFiles(
   return { newTestFiles, otherFiles };
 }
 
+/**
+ * True if a (lower-cased) path is kernel-protected. Mirrors `is_protected_path` in `src/safety.rs` —
+ * the conditions below MUST stay byte-identical to the kernel (verifier.test.ts guards this mirror).
+ */
+function isProtectedPath(s: string): boolean {
+  return (
+    (s.startsWith("src/") && (s.endsWith(".rs") || s.endsWith(".toml") || s.endsWith(".lock"))) ||
+    s === "cargo.toml" ||
+    s === "cargo.lock" ||
+    (s.startsWith("vanta-ts/src/factory/") && s.endsWith(".ts")) ||
+    s === "manifesto.md"
+  );
+}
+
 /** Check that no touched file is a protected path. Mirrors is_protected_path in src/safety.rs. */
 export function checkNoProtectedPaths(files: string[], _root: string): VerifyResult {
   for (const f of files) {
-    const s = f.toLowerCase();
-    if (
-      (s.startsWith("src/") && (s.endsWith(".rs") || s.endsWith(".toml") || s.endsWith(".lock"))) ||
-      s === "cargo.toml" ||
-      s === "cargo.lock" ||
-      (s.startsWith("vanta-ts/src/factory/") && s.endsWith(".ts")) ||
-      s === "manifesto.md"
-    ) {
+    if (isProtectedPath(f.toLowerCase())) {
       return { ok: false, reason: `protected path touched: ${f}` };
     }
   }
