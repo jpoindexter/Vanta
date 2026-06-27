@@ -41,3 +41,18 @@ export function resolveToolRetries(env: NodeJS.ProcessEnv = process.env): number
   if (!Number.isFinite(raw)) return 1;
   return Math.max(0, Math.min(5, Math.trunc(raw)));
 }
+
+/** True when an error (any shape, incl. its cause) reads as a transient/retryable failure. */
+export function isTransientError(err: unknown): boolean {
+  const cause = err instanceof Error && err.cause ? ` ${err.cause instanceof Error ? `${err.cause.name} ${err.cause.message}` : String(err.cause)}` : "";
+  const text = err instanceof Error ? `${err.name} ${err.message}${cause}` : String(err);
+  return TRANSIENT.test(text);
+}
+
+/** Provider-call retry budget from env (default 2, clamped 0..5). A long run makes many model
+ * calls; a transient hiccup on one shouldn't crash the whole run. */
+export function resolveProviderRetries(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = Number(env.VANTA_PROVIDER_RETRIES);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.max(0, Math.min(5, Math.trunc(raw)));
+}

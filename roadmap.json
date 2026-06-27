@@ -16181,7 +16181,7 @@
       "id": "RELIABILITY-PROVIDER-HARDENING",
       "track": "Harness",
       "title": "Provider hardening for long unattended runs — request/idle timeout + transient retry",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Found by the long-run stress harness (RELIABILITY-LONG-RUN-PROOF). Two latent provider-reliability gaps a multi-hour unattended run will eventually hit (invisible to short runs): (1) the codex provider's raw SSE fetch had NO request/idle timeout (openai.ts got the PROVIDER-AWARE-WATCHDOG timeout; codex.ts did not), so a stalled stream hangs the run forever — the silent-hang failure mode. (2) turn-loop.ts:257/264 re-throw every non-context-length provider error (429/timeout/reset), crashing the run exit=1 instead of retrying. The keystone long-run is otherwise PROVEN (12/12 scope-corrected); these are defensive hardening for the 'close your laptop for hours' claim.",
       "done": "a transient provider error (idle timeout / 429 / connection reset) during a long run is survived (bounded retry) or fails gracefully (clean stop, no exit=1 crash, no silent hang); covered by unit tests + a long-run re-check.",

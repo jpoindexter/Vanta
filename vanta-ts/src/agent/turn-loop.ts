@@ -1,18 +1,10 @@
-import type { LLMProvider, CompletionResult, ToolSchema } from "../providers/interface.js";
+import type { LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { ToolCall } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
 import type { Message, ImageAttachment } from "../types.js";
-import { sanitizeMessages } from "../context.js";
 import type { Summarizer } from "../context.js";
 import { isErrorResult, buildErrorDetectText, DEFAULT_ERRORDETECT_THRESHOLD } from "../repl/error-detect.js";
-import {
-  persistCompaction,
-  beginTurnContext,
-  prepareCallMessages,
-  compressAfterContextError,
-  isContextLengthError,
-} from "./context-pipeline.js";
-import { consumeStream } from "./stream-dispatch.js";
+import { beginTurnContext, prepareCallMessages } from "./context-pipeline.js";
 import { applyMessageDisplay } from "./message-display.js";
 import { globalHookBus } from "../plugins/hooks.js";
 import { dispatchTool } from "./dispatch-tool.js";
@@ -20,6 +12,7 @@ import type { DispatchOutcome } from "./dispatch-tool.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { scopeToolSchemas, toolScopeContext } from "./tool-scope.js";
+import { getCompletionWithContextRetry } from "./provider-call.js";
 import { maybeStructuredOutput, schemasWithStructuredOutput, structuredOutcome } from "./structured-output.js";
 import { buildStructuredOutputInstruction } from "../tools/structured-output.js";
 import { runAdvisor } from "./advisor.js";
@@ -232,66 +225,9 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   return { finalText: `Reached the ${maxIter}-iteration limit before completing.`, iterations: maxIter, stoppedReason: "max_iterations", toolIterations: ti(), usage: usage(), tokensSaved: ts() };
 }
 
-type ProviderCall = {
-  ctx: ToolContext;
-  prefetched: Map<string, Promise<DispatchOutcome>>;
-  schemas: ToolSchema[];
-};
-
-type CompletionRetryArgs = {
-  deps: AgentDeps;
-  depsWithTools: AgentDeps & { currentTools: ToolSchema[] };
-  messages: Message[];
-  turnCtx: ReturnType<typeof beginTurnContext>;
-  signal?: AbortSignal;
-  providerCall: ProviderCall;
-};
-
-async function getCompletionWithContextRetry(
-  args: CompletionRetryArgs,
-): Promise<{ ok: true; result: CompletionResult } | { ok: false; error: string }> {
-  try {
-    const result = await getCompletion(args.deps, sanitizeMessages(args.messages), args.signal, args.providerCall);
-    return { ok: true, result };
-  } catch (err) {
-    if (!isContextLengthError(err)) throw err;
-  }
-  const compacted = await compressAfterContextError(args.messages, args.depsWithTools, args.turnCtx);
-  try {
-    const result = await getCompletion(args.deps, sanitizeMessages(compacted), args.signal, args.providerCall);
-    return { ok: true, result };
-  } catch (err) {
-    if (!isContextLengthError(err)) throw err;
-    return { ok: false, error: "Stopped: provider context window exceeded after one compaction retry." };
-  }
-}
-
 async function displayText(deps: AgentDeps, text: string): Promise<string> {
   await fireHooks(join(deps.root, ".vanta"), "MessageDisplay", { text, role: "assistant" }, { cwd: deps.root, ...buildAgentHookDeps(deps) });
   return (await applyMessageDisplay(deps.hooks ?? globalHookBus, text)).text;
-}
-
-async function getCompletion(
-  deps: AgentDeps,
-  messages: Message[],
-  signal?: AbortSignal,
-  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: import("../providers/interface.js").ToolSchema[] },
-): Promise<CompletionResult> {
-  const schemas = pf?.schemas ?? schemasWithStructuredOutput(
-    scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
-    deps.outputSchema,
-  );
-  const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
-  if (deps.provider.stream && deps.onTextDelta) {
-    const onSafeToolCall = pf
-      ? (call: ToolCall) => {
-          if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
-        }
-      : undefined;
-    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, signal, onSafeToolCall });
-    if (result) return result;
-  }
-  return deps.provider.complete(messages, schemas, cfg);
 }
 
 // Keep Summarizer in scope for agent.ts which re-exports via session
