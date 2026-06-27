@@ -55,3 +55,6 @@ launch-posts.html
 # Sensitive compiled-vault source: ingested from .vanta runtime session memory
 # (operator preferences/task context) — never commit to the public repo
 Compiled-Vaults/**/Sources/local-vanta-session-memory.md
+
+# vitest 3 in-repo temp fixtures (plugin loader dynamic-import tests)
+.vitest-tmp/

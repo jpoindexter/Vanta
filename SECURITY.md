@@ -151,15 +151,13 @@ Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · 
   **build-time** (frontmatter parsing during `docusaurus build`), **unreachable** by a site visitor
   (the served site is static HTML), on **self-authored** content. Accepted until js-yaml/gray-matter
   ship a fix.
-- **`vanta-ts` dev deps — ACCEPTED (dev-only, unreachable).** vite/vitest/esbuild advisories
-  (incl. a vitest 9.8) are **dev/test tooling**, excluded from the shipped artifact by `--omit=dev`;
-  the vulnerable paths are dev-server / exposed-API modes, which Vanta's headless `vitest run` does
-  not use. They have **no patch in the 5.x/2.x line** (fixed only in vite 6 / vitest 3), so clearing
-  them needs the major migration — which is **blocked**: vitest 3's module runner intercepts the
-  plugin loader's runtime `import()` of a file written outside its module graph and fails it
-  (`plugins/loader.test.ts`, minimal-reproduced; config-externalize, `@vite-ignore`, and a
-  `new Function` native-import indirection were all defeated by the runner). Tracked as a separate
-  test-infra migration; **not** blind-bumped past a red suite.
+- **`vanta-ts` dev deps — FIXED.** Migrated to **vitest 3 / vite 6** (+ esbuild `overrides ^0.28.1`),
+  clearing every dev-tooling advisory (incl. the vitest 9.8) → `osv-scanner` **0 vulnerabilities**
+  (276 packages). The migration's one blocker: vitest 3's module runner only resolves dynamic
+  `import()` of files **under the project root**, so the plugin loader's runtime-import test failed on
+  an `os.tmpdir()` fixture (minimal-reproduced — IN-REPO imports OK, OS-tmpdir "Cannot find module").
+  Fixed by relocating **that test's** fixtures in-repo (`.vitest-tmp/`, gitignored); the production
+  `loader.ts` is unchanged. **Full suite 977 files / 11132 tests green** on vitest 3, `tsc` clean.
 - **SAST (semgrep) — 0 real.** One hit: a fake AWS key in `cofounder/company-template.test.ts` — a
   **fixture that tests the secret scanner**, allowlisted in `.gitleaks.toml`. Not a credential.
 

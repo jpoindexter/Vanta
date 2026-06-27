@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
+
+// vitest 3's module runner only resolves dynamic import() of files UNDER the project root — a plugin
+// entry written to os.tmpdir() fails "Cannot find module". The loader imports the entry at runtime,
+// so these fixtures live in-repo (gitignored). Production (tsx/Node) resolves either location.
+const TMP_BASE = fileURLToPath(new URL("../../.vitest-tmp/", import.meta.url));
 import { ToolRegistry } from "../tools/registry.js";
 import { dispatchTool } from "../agent/dispatch-tool.js";
 import { PluginCommandRegistry } from "./commands.js";
@@ -13,8 +18,9 @@ let home: string;
 let env: NodeJS.ProcessEnv;
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), "vanta-plugin-root-"));
-  home = await mkdtemp(join(tmpdir(), "vanta-plugin-home-"));
+  await mkdir(TMP_BASE, { recursive: true });
+  root = await mkdtemp(join(TMP_BASE, "vanta-plugin-root-"));
+  home = await mkdtemp(join(TMP_BASE, "vanta-plugin-home-"));
   env = { VANTA_HOME: home };
   await mkdir(join(root, ".vanta", "plugins"), { recursive: true });
   await mkdir(join(home, "plugins"), { recursive: true });
