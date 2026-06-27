@@ -69,7 +69,10 @@ async function stashAndSnapshot(repoRoot: string, log: (s: string) => void): Pro
 
 async function pullLatest(repoRoot: string, before: string, stashed: string | null, log: (s: string) => void): Promise<boolean> {
   try {
-    const pullOut = await git(["pull", "--ff-only"], repoRoot);
+    // Pull from origin/<current-branch> explicitly — a bare `git pull` needs upstream tracking,
+    // which a fresh clone (or one whose tracking ref was lost) may not have set.
+    const branch = (await git(["rev-parse", "--abbrev-ref", "HEAD"], repoRoot)).trim();
+    const pullOut = await git(["pull", "--ff-only", "origin", branch], repoRoot);
     const after = await git(["rev-parse", "HEAD"], repoRoot);
     if (before === after) {
       log("  ✓ already up to date");
