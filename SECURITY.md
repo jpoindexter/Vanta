@@ -135,6 +135,28 @@ chain; `jsonv.rs` bounded (no deep-nest/quadratic/panic); no prototype pollution
 npm `0 vulnerabilities`; kernel is zero-dependency; MCP/plugin trust gates fail safe; headless
 approver fails closed.
 
+## 7b. Dependency & scan audit (2026-06-27)
+
+Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · semgrep). Triaged by
+**reachability before severity** — recorded here so the next audit doesn't re-litigate.
+
+- **Shipped runtime — CLEAN.** Secrets: gitleaks **0 leaks** over 2003 commits. Runtime deps:
+  `npm audit --omit=dev` clean; kernel `cargo audit` clean (zero-dependency). The artifact a user
+  installs (`npm install --omit=dev` + the prebuilt kernel) carries no known CVE.
+- **Docs site (`vanta-website`, Docusaurus) — 1 high FIXED.** serialize-javascript RCE/DoS
+  (GHSA-5c6j / GHSA-qj8w) → forced `overrides` to `^7.0.5` (7.0.6), `docusaurus build` verified.
+  The remaining ~26 moderate are **build-time** transitive deps (js-yaml/uuid/webpack) processing
+  **self-authored** content — not reachable by a site visitor; no Docusaurus-compatible patch yet.
+- **`vanta-ts` dev deps — ACCEPTED (dev-only, unreachable).** vite/vitest/esbuild advisories
+  (incl. a vitest 9.8) are **dev/test tooling**, excluded from the shipped artifact by `--omit=dev`;
+  the vulnerable paths are dev-server / exposed-API modes, which Vanta's headless `vitest run` does
+  not use. The vitest 3 / vite 6 bump clears them but breaks 5 plugin tests → **deferred to a
+  deliberate migration**, not blind-bumped (the suite is the gate).
+- **SAST (semgrep) — 0 real.** One hit: a fake AWS key in `cofounder/company-template.test.ts` — a
+  **fixture that tests the secret scanner**, allowlisted in `.gitleaks.toml`. Not a credential.
+
+Re-run any time: `./security-skills/scan.sh .` (no agent needed).
+
 ## 8. Operator guidance
 
 - **Untrusted repo?** Don't trust it in the dialog; keep `VANTA_ENABLE_PROJECT_HOOKS` unset;
