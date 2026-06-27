@@ -1,15 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { toAnthropicMessages, parseResponse, promptCache1hEnabled, AnthropicProvider } from "./anthropic.js";
 import type { Message } from "../types.js";
-import type { ToolSchema } from "./interface.js";
+import type { ToolSchema, StreamChunk } from "./interface.js";
 
-// Hoisted mock fn so the vi.mock factory can reference it.
+// Hoisted mock fns so the vi.mock factory can reference them.
 const mockSdkCountTokens = vi.hoisted(() => vi.fn());
+const mockSdkCreate = vi.hoisted(() => vi.fn());
 
 vi.mock("@anthropic-ai/sdk", () => ({
   default: class MockAnthropic {
     constructor() {}
-    messages = { countTokens: mockSdkCountTokens, create: vi.fn() };
+    messages = { countTokens: mockSdkCountTokens, create: mockSdkCreate };
   },
 }));
 
@@ -215,5 +216,34 @@ describe("AnthropicProvider.countTokens", () => {
     mockSdkCountTokens.mockResolvedValueOnce({});
     const provider = new AnthropicProvider({ apiKey: "test-key" });
     expect(await provider.countTokens(msgs, [])).toBe(0);
+  });
+});
+
+describe("AnthropicProvider.stream", () => {
+  async function* fakeEvents() {
+    yield { type: "message_start", message: { usage: { input_tokens: 5, output_tokens: 0 } } };
+    yield { type: "content_block_start", index: 0, content_block: { type: "thinking" } };
+    yield { type: "content_block_delta", index: 0, delta: { type: "thinking_delta", thinking: "hmm" } };
+    yield { type: "content_block_stop", index: 0 };
+    yield { type: "content_block_start", index: 1, content_block: { type: "text" } };
+    yield { type: "content_block_delta", index: 1, delta: { type: "text_delta", text: "hi" } };
+    yield { type: "content_block_stop", index: 1 };
+    yield { type: "message_delta", delta: { stop_reason: "end_turn" }, usage: { output_tokens: 2 } };
+  }
+
+  it("requests a stream and yields live thinking + text chunks, then done", async () => {
+    mockSdkCreate.mockReturnValueOnce(fakeEvents());
+    const provider = new AnthropicProvider({ apiKey: "test-key" });
+    const chunks: StreamChunk[] = [];
+    for await (const c of provider.stream!([{ role: "user", content: "hi" }], [])) chunks.push(c);
+    expect(mockSdkCreate).toHaveBeenCalled();
+    expect((mockSdkCreate.mock.calls[0]?.[0] as { stream?: boolean }).stream).toBe(true);
+    const d = (t: "text" | "thinking") => chunks.filter((c) => c.type === t).map((c) => (c as { delta: string }).delta);
+    expect(d("thinking")).toEqual(["hmm"]);
+    expect(d("text")).toEqual(["hi"]);
+    const done = chunks.at(-1) as Extract<StreamChunk, { type: "done" }>;
+    expect(done.type).toBe("done");
+    expect(done.result.text).toBe("hi");
+    expect(done.result.usage).toEqual({ inputTokens: 5, outputTokens: 2 });
   });
 });

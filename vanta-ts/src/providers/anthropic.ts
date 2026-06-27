@@ -1,8 +1,8 @@
-import type { CompletionConfig, CompletionResult, LLMProvider, ToolSchema } from "./interface.js";
+import type { CompletionConfig, CompletionResult, LLMProvider, StreamChunk, ToolSchema } from "./interface.js";
 import type { Message } from "../types.js";
 import { buildAnthropicEffortParams, debugEffort } from "./effort.js";
 import { buildAnthropicBetas } from "./interleaved-thinking.js";
-import { toAnthropicMessages, toAnthropicTool, parseResponse } from "./anthropic-convert.js";
+import { toAnthropicMessages, toAnthropicTool, parseResponse, streamAnthropicEvents } from "./anthropic-convert.js";
 import type { AnthropicTextBlock } from "./anthropic-convert.js";
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
@@ -58,6 +58,24 @@ export class AnthropicProvider implements LLMProvider {
       result.usage = { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens };
     }
     return result;
+  }
+
+  async *stream(messages: Message[], tools: ToolSchema[], config?: CompletionConfig): AsyncIterable<StreamChunk> {
+    const { default: Anthropic } = await import("@anthropic-ai/sdk");
+    const oauth = Boolean(this.authToken);
+    const { system, amsgs } = buildConvertedMessages(messages, oauth);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createParams = buildCreateParams({ model: this.model, system, amsgs, tools, config }) as any;
+    const thinkingActive = Boolean(createParams.thinking);
+    const client = buildAnthropicClient(Anthropic, { oauth, authToken: this.authToken, apiKey: this.apiKey, thinking: { model: this.model, thinkingActive } });
+    let sdkStream: AsyncIterable<unknown>;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sdkStream = await (client.messages.create({ ...createParams, stream: true }, { signal: config?.signal }) as any);
+    } catch (err) {
+      throw translateError(err, this.model);
+    }
+    yield* streamAnthropicEvents(sdkStream);
   }
 
   async countTokens(messages: Message[], tools: ToolSchema[]): Promise<number> {
