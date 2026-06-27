@@ -404,3 +404,45 @@ All items below were previously in `PARKED.md`. Promoted in full — nothing del
 - [ ] **VANTA-COST-GUARD** (S·horizon) — real-time cost tracking with configurable hard caps per session/day. Surfaced in `/status` + status bar.
 
 - [ ] **VANTA-SUGGESTIONS** (M·horizon) — proactive operator suggestions: Vanta notices patterns (repeated tasks, stalled goals, unused tools) and proposes next actions unprompted. Extends nd-task-initiation + EF gates.
+
+- [ ] **AHE-SELF-EVOLVE** (XL·horizon) — closed self-evolution loop: observe trajectory → propose skill/edit → eval-gate → adopt → measure reuse. Requires AHE-EVAL-HARNESS + AHE-TRACE-DISTILLER first. Build only when real users + a reward signal exist.
+
+### Streaming & providers
+
+- [ ] **STREAMING-PROVIDERS** (M) — streaming (`LLMProvider.stream()`) for all providers, not just OpenAI-family. OpenAI/Anthropic/Gemini have SSE streaming; Codex, Ollama, OpenRouter need their own paths. Done = every provider streams token deltas; no provider falls back to full-completion in a streaming session.
+
+### Worktree recoveries — remaining (re-port to current main)
+
+All below are preserved as `parked/<sha>` git tags. Built on pre-06-13 codebase (before real-Ink TUI rebuild + size-gate decomposition); re-port the diff by hand, don't merge.
+
+- [ ] **LSP-DELTA** (S) — LSP diagnostic-delta + an `edit_file` tool backed by LSP. Tag `parked/a25c364f2bcccce87`. Check vs current `lsp/` before re-porting — may be partially superseded.
+
+- [ ] **COMPACTION-REMIND** (S) — compaction-remind + `context.ts` improvements. Tag `parked/a54f3a6bcaf32c2f7`. Check vs current `context.ts` before re-porting.
+
+- [ ] **VANTA-CONTEXT-SUGGESTIONS** (S) — actionable suggestions when context fills (prompt the user what to drop or compact). Tag `parked/a26e763a2529de5ca`. Check vs current context UX.
+
+- [ ] **COMPRESS-FLAGS** (S) — `/compress` focus instructions + `VANTA_DISABLE_COMPACT` gate. Tags `parked/a8130bd…` / `parked/aac5129481d980bab`. Check vs current `/compress`.
+
+- [ ] **KEEP-GOING-RESUME** (S) — "keep going" resumes prior task; negative-keyword recognition (detect "stop", "cancel", "nevermind"). Tag `parked/a9499176bf8ac114a`.
+
+- [ ] **INVALID-JSON-NOTICE** (S) — actionable notice when a config file (`.vanta/mcp.json`, `.env`, etc.) is invalid JSON instead of a silent failure. Tag `parked/a3f814553d37a522d`.
+
+- [ ] **DEPRECATED-MODEL-WARN** (S) — warn at session start when the active model ID is a known-deprecated model string. Tag `parked/a30937211b2e36851`.
+
+- [ ] **VANTA-MEM-FRESHNESS** (S) — staleness caveat injected for memories older than 1 day ("this memory is N days old — verify before acting"). Tag `parked/acfb2e69ab2f55425`. Likely partially superseded by brain confidence/recency fields — audit before building.
+
+- [ ] **TUI-KEYS** (S) — readline/Emacs keybindings in the TUI composer. Tag `parked/a2ed381d918efc514`. **Obsolete** — built on deleted `src/tui/`; must be re-implemented against current `src/ui/` (real Ink 7). Effort: S once the current render layer is understood.
+
+- [ ] **VANTA-PERMISSIONS** (S) — pure rule layer + `/permissions` command for managing kernel permission rules interactively. Tag `parked/ad52d4ad12952fd6c`. Likely partially superseded by `permissions.tsv` + `loadRules` + `ui/grant.ts` — audit overlap before building.
+
+### Live-use setup (one-time, not features)
+
+- [ ] **SETUP-GOOGLE-OAUTH** — provision a Google Cloud OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`) for `vanta auth google` (calendar/email/drive). ~30 min in Google Cloud Console + 2 env vars. Unblocks all Google comms tools live.
+
+- [ ] **SETUP-BROWSER-BINS** — run `npx playwright install chromium` to activate browser tools. Tools degrade gracefully until then. One command.
+
+### Deferred pipelines (not runtime)
+
+- [ ] **TRAJECTORY-DATAGEN** (XL·horizon) — batch trajectory runner → ShareGPT JSONL → fine-tuning pipeline. Training-data infrastructure, not runtime. Only relevant if Vanta ever fine-tunes a model. Prerequisite: real users + a task set.
+
+- [ ] **MULTI-CRED-POOL** (M·demand-driven) — round-robin/least-used credential pool across multiple API keys per provider. Single-user, single-key for now; build when multi-key rotation becomes needed.
