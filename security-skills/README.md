@@ -4,6 +4,19 @@ A small, opinionated pack of **agent skills for running security scans** — sec
 
 These aren't generated prose. Each skill is grounded in a scan that was actually run against a real Rust + TypeScript codebase, and each carries the part that tooling tutorials skip: **how to triage the output** (reachability before severity, source→sink before fixing) and **the boundary** (what the scan does *not* establish).
 
+## Run it — one command, no agent required
+
+```bash
+git clone https://github.com/jpoindexter/security-skills
+./security-skills/scan.sh /path/to/your/repo      # defaults to the current dir
+```
+
+`scan.sh` is the `security-preflight` gate as an executable: it runs the whole pack — **secrets → dependency CVEs → SAST** — with whatever scanners you have installed, and prints a verdict. Only a leaked **secret** hard-fails (it's irreversible once a repo is public); dependency and SAST findings are reported for you to triage per the runbooks. Install the scanners once:
+
+```bash
+brew install gitleaks osv-scanner cargo-audit semgrep   # macOS; each tool documents other platforms
+```
+
 ## The skills
 
 | Skill | Scans | What it adds beyond "run the tool" |
