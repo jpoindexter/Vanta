@@ -1,4 +1,3 @@
-import { appendFile, readFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
@@ -171,31 +170,6 @@ export async function readAgentMemory(
   }
 }
 
-/**
- * Build {@link AgentMemoryDeps} backed by the real scoped JSONL file for an
- * agent type. The path is resolved (and the agentType sanitized) via
- * {@link resolveAgentMemoryPath}, so the on-disk file can never escape the
- * scope's agent-memory dir. The spawn wiring uses this; tests inject their own.
- */
-export function defaultAgentMemoryDeps(
-  agentType: string,
-  scope: AgentMemoryScope,
-  repoRoot: string,
-  env: NodeJS.ProcessEnv = process.env,
-): AgentMemoryDeps {
-  const { dir, path } = resolveAgentMemoryPath(agentType, scope, repoRoot, env);
-  return {
-    read: async () => {
-      try {
-        return await readFile(path, "utf8");
-      } catch {
-        return null; // missing file → tolerant reader yields []
-      }
-    },
-    append: async (line) => {
-      await mkdir(dir, { recursive: true });
-      await appendFile(path, line, "utf8");
-    },
-    now: () => new Date(),
-  };
-}
+// The real-FS deps adapter (the one impure seam) lives in agent-memory-deps.ts.
+// Re-exported here so the spawn wiring + tests use the same module path.
+export { defaultAgentMemoryDeps } from "./agent-memory-deps.js";

@@ -5,7 +5,6 @@ import { createConversation, type AgentDeps } from "./agent.js";
 import { listSkills } from "./skills/store.js";
 import { type ReplState } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
-import { groupToolsByDomain } from "./term/capabilities.js";
 import { prepareRun, buildSummarizer, consoleCallbacks, approver, maybeCurate } from "./session.js";
 import { freshGateState } from "./repl/post-turn-gates.js";
 import { softStopPredicate, consumeSoftStop, SOFT_STOP } from "./repl/stop-cmd.js";
@@ -22,40 +21,14 @@ import { PLAN_MARKER } from "./repl/plan-mode.js";
 import { forkSession, loadSession, newSessionId } from "./sessions/store.js";
 import { registerSession, deregisterSession, defaultRegistryDeps } from "./sessions/active-registry.js";
 import { buildShutdownMessage } from "./repl/shutdown-msg.js";
-import type { Goal } from "./types.js";
 import { executeUserTurn, type TurnDeps } from "./interactive-turn.js";
 import { runLifecycleHooks, type LifecycleFlags } from "./cli/lifecycle.js";
 import { runReplLoop } from "./interactive-repl.js";
 import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
 import type { TrustConfirmer } from "./settings/trust-gate.js";
 
-const LOGO = String.raw`
-   █████╗ ██████╗  ██████╗  ██████╗
-  ██╔══██╗██╔══██╗██╔════╝ ██╔═══██╗
-  ███████║██████╔╝██║  ███╗██║   ██║
-  ██╔══██║██╔══██╗██║   ██║██║   ██║
-  ██║  ██║██║  ██║╚██████╔╝╚██████╔╝
-  ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝`;
-
-type BannerData = { modelId: string; root: string; goals: Goal[]; toolNames: string[]; skillNames: string[] };
-
-export function renderBanner(d: BannerData): string {
-  const active = d.goals.filter((g) => g.status === "active");
-  const goalLines = active.length
-    ? active.map((g) => `    [${g.id}] ${g.text}`).join("\n")
-    : "    (none — add one with: cargo run -- goals add \"...\")";
-  const skills = d.skillNames.length ? d.skillNames.join(", ") : "(none yet — run `modes install`, or the agent writes its own)";
-  return [
-    LOGO, "",
-    "  Vanta — trusted operator. Knows the goal, gates every action, reports only verified output.",
-    `  model   ${d.modelId}`, `  root    ${d.root}`, "",
-    "  Active goals:", goalLines, "",
-    `  Capabilities (${d.toolNames.length} tools):`,
-    ...groupToolsByDomain(d.toolNames).map((g) => `    ${g.label.padEnd(34)} ${g.tools.join(", ")}`),
-    "", `  Skills: ${skills}`, "",
-    "  Type a message and press enter. /help for commands, /exit to quit.", "",
-  ].join("\n");
-}
+import { renderBanner } from "./interactive-banner.js";
+export { renderBanner };
 
 /** Trust confirmer for the readline REPL host; undefined off a TTY → headless fail-safe. */
 async function replTrustConfirmer(rl: ReturnType<typeof createInterface>): Promise<TrustConfirmer | undefined> {

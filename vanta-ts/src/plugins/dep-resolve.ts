@@ -11,8 +11,12 @@
  * `resolveLoadOrder(nodes)`, and load in `order` — refusing to load on
  * `{ok:false}` (cycle or missing dep) rather than loading in a broken order.
  * Today that loader iterates `enabled` insertion order with no dep awareness;
- * this module is the drop-in resolver for that wire.
+ * this module is the drop-in resolver for that wire. Manifest dep-parsing
+ * (`parsePluginDeps`) is the sibling `dep-parse.ts` concern, re-exported below.
  */
+
+// Re-exported so importers + tests keep the `./dep-resolve.js` path.
+export { parsePluginDeps } from "./dep-parse.js";
 
 /** A plugin reduced to its dependency-relevant shape: a name + declared deps. */
 export type PluginNode = {
@@ -45,34 +49,6 @@ export type LoadOrderErr = {
 };
 
 export type LoadOrderResult = LoadOrderOk | LoadOrderErr;
-
-/**
- * Read an optional `dependsOn` array off a parsed plugin manifest (a plain
- * record; NOT routed through the strict `PluginManifestSchema`, which rejects
- * unknown keys — mirror `parsePluginLsp`). Absent / non-array / garbage → [].
- * Each entry must be a non-empty string; non-strings and blanks are dropped.
- * Self-references are dropped (a plugin can't depend on itself). Deduped,
- * order-preserving (first occurrence wins).
- */
-export function parsePluginDeps(manifest: unknown): string[] {
-  if (!manifest || typeof manifest !== "object") return [];
-  const record = manifest as Record<string, unknown>;
-  const raw = record.dependsOn;
-  if (!Array.isArray(raw)) return [];
-  const self = typeof record.name === "string" ? record.name.trim() : "";
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const entry of raw) {
-    if (typeof entry !== "string") continue;
-    const name = entry.trim();
-    if (!name) continue;
-    if (name === self) continue; // drop self-refs
-    if (seen.has(name)) continue; // dedupe
-    seen.add(name);
-    out.push(name);
-  }
-  return out;
-}
 
 /** Declared deps that aren't present in the node set, per plugin (in order). */
 export function missingDeps(nodes: PluginNode[]): MissingDep[] {

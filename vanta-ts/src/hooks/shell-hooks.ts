@@ -164,43 +164,10 @@ export async function loadShellHooks(dataDir: string): Promise<ShellHooksConfig>
   }
 }
 
-/** Returns true if pattern (regex) matches text. Absent pattern = match all; absent text with pattern = no match. */
-function matchesPattern(pattern: string | undefined, text: string | undefined): boolean {
-  if (pattern === undefined) return true;
-  if (text === undefined) return false;
-  try { return new RegExp(pattern).test(text); }
-  catch { return pattern === text; }
-}
-
-function namePatternBlocked(hook: ShellHook, ctx: MatchContext): boolean {
-  const pat = hook.toolNamePattern ?? hook.matcher;
-  const matchTarget = ctx.toolName ?? ctx.matcherValue;
-  // Matcher patterns only apply when the caller supplies the event-specific value.
-  return pat !== undefined && matchTarget !== undefined && !matchesPattern(pat, matchTarget);
-}
-
-function sessionTypeBlocked(hook: ShellHook, ctx: MatchContext): boolean {
-  return !!(hook.sessionType && ctx.sessionType && hook.sessionType !== ctx.sessionType);
-}
-
-function maintenanceBlocked(hook: ShellHook, ctx: MatchContext): boolean {
-  return hook.maintenance !== undefined && hook.maintenance !== (ctx.maintenance ?? false);
-}
-
-function hookMatches(hook: ShellHook, ctx: MatchContext): boolean {
-  if (namePatternBlocked(hook, ctx)) return false;
-  if (!matchesPattern(hook.inputPattern, ctx.toolInputJson)) return false;
-  if (!matchesPattern(hook.promptPattern, ctx.prompt)) return false;
-  if (hook.onError && ctx.isError !== true) return false;
-  if (sessionTypeBlocked(hook, ctx)) return false;
-  if (maintenanceBlocked(hook, ctx)) return false;
-  return true;
-}
-
-/** Hooks for an event whose conditional matchers all pass against ctx. */
-export function matchingHooks(config: ShellHooksConfig, event: ShellHookEvent, ctx: MatchContext = {}): ShellHook[] {
-  return (config[event] ?? []).filter((h) => hookMatches(h, ctx));
-}
+// The conditional-matcher logic (which hooks fire for an event) lives in a
+// sibling so this file stays the schema + loader concern. Re-exported here for a
+// stable import path (interactive.ts / shell-hook-run.ts / file-watch.ts).
+export { matchingHooks } from "./shell-hook-match.js";
 
 export type { ShellHookResult } from "./shell-hook-run.js";
 export { runShellHook, runExecHook, runOneHook, firePreToolUse, firePostToolUse, fireStopHook, fireStatusHook, fireHooks } from "./shell-hook-run.js";

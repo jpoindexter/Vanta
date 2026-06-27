@@ -1,6 +1,17 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import {
+  defaultRead,
+  defaultWrite,
+  defaultCodexAuthPath,
+  readCodexAuth,
+  type ReadFile,
+  type WriteFile,
+  type AuthFile,
+  type CodexTokens,
+} from "./codex-auth-file.js";
+
+// The shared ~/.codex/auth.json file-access seam lives in `codex-auth-file.ts`
+// (re-exported below so `./codex-auth.js` keeps its public surface).
+export { defaultCodexAuthPath, readCodexAuth, type CodexTokens } from "./codex-auth-file.js";
 
 // OAuth for the OpenAI Codex (ChatGPT subscription) backend. Vanta treats the
 // Codex CLI's own ~/.codex/auth.json as the shared, canonical token store:
@@ -19,20 +30,7 @@ export const CODEX_TOKEN_URL = "https://auth.openai.com/oauth/token";
 export const CODEX_BASE_URL = process.env.VANTA_CODEX_BASE_URL?.trim() || "https://chatgpt.com/backend-api/codex";
 const REFRESH_SKEW_SECONDS = 300;
 
-export type CodexTokens = { access_token: string; refresh_token: string; account_id: string; id_token?: string };
 export type CodexCreds = { accessToken: string; accountId: string };
-
-type ReadFile = (path: string) => string;
-type WriteFile = (path: string, data: string) => void;
-
-const defaultRead: ReadFile = (p) => readFileSync(p, "utf8");
-const defaultWrite: WriteFile = (p, d) => writeFileSync(p, d, { mode: 0o600 });
-
-/** Path to the Codex CLI auth file (honours CODEX_HOME, like the Codex CLI). */
-export function defaultCodexAuthPath(home: string = homedir(), env: NodeJS.ProcessEnv = process.env): string {
-  const codexHome = env.CODEX_HOME?.trim() || join(home, ".codex");
-  return join(codexHome, "auth.json");
-}
 
 /** Decode a JWT's `exp` claim (seconds since epoch). Null if unparseable. */
 export function jwtExp(token: string): number | null {
@@ -73,23 +71,6 @@ export async function refreshCodexTokens(
   const json = (await res.json()) as { access_token?: string; refresh_token?: string };
   if (!json.access_token) throw new Error("Codex token refresh returned no access_token.");
   return { access_token: json.access_token, refresh_token: json.refresh_token || refreshToken };
-}
-
-type AuthFile = { auth_mode?: string; tokens?: CodexTokens; last_refresh?: string; [k: string]: unknown };
-
-/** Read + parse ~/.codex/auth.json. Throws an actionable error if absent/garbage. */
-export function readCodexAuth(path: string, read: ReadFile = defaultRead): AuthFile {
-  let raw: string;
-  try {
-    raw = read(path);
-  } catch {
-    throw new Error(`No Codex login found at ${path}. Run \`codex login\` (ChatGPT subscription), then retry.`);
-  }
-  try {
-    return JSON.parse(raw) as AuthFile;
-  } catch {
-    throw new Error(`Codex auth file at ${path} is not valid JSON. Run \`codex login\` to re-authenticate.`);
-  }
 }
 
 export type LoadCredsDeps = {

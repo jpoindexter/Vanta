@@ -1,0 +1,60 @@
+const USAGE_LINES = [
+      "Vanta — a local trusted operator. Knows the goal, gates every action, reports only verified output.",
+      "The bar is finishing real tasks reliably and unattended, not feature count.",
+      "",
+      "Usage: vanta                              start an interactive session",
+      "       vanta --effort <low|medium|high|max>   set model effort for this session",
+      "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
+      "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
+      "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",
+      "       vanta setup                        complete guided wizard: model, messaging, MCP, personality, health",
+      "       vanta setup model                  just the model/provider picker",
+      "       vanta setup messaging              configure a messaging gateway (Telegram, …)",
+      "       vanta setup tts                    configure the voice/TTS provider (Edge keyless, OpenAI, ElevenLabs, local)",
+      "       vanta config <get|set|edit|check>  manage settings (~/.vanta/config.json; secrets → .env)",
+      "       vanta status | doctor              health check (kernel, provider, keys, store)",
+      "       vanta goals                        show kernel goals plus dependency graph state",
+      '       vanta run "<instruction>"          run one instruction and exit',
+      "       vanta skills [install [--force]|lint]   list / install bundled / validate SKILL.md files",
+      '       vanta skill <name> ["<instruction>"]  print a skill, or run with it',
+      '       vanta schedule "<instruction>" --cron "<expr>" | schedule list',
+      "       vanta cron                         run due tasks once (for launchd/cron)",
+      "       vanta gateway                      run the scheduler as a foreground daemon",
+      "       vanta service [install|uninstall|status]   manage the background launchd agent",
+      "       vanta agents [list|logs|attach|stop|rm|respawn]   manage background agent sessions",
+      "       vanta hire <role> --adapter <id> [--budget <usd>]   add a budgeted, role-tagged agent to the roster",
+      "       vanta heartbeat                    one coalesced wakeup: budget→workspace→secret→skill→adapter + orphan recovery",
+      "       vanta fleet run --task <instruction> [--task <instruction> ...]   fan out worktree workers",
+      "       vanta daemon [status|stop]          inspect or stop the background supervisor",
+      "       vanta auto-mode [defaults|config]  inspect auto permission classifier config",
+      "       vanta auto-research --objective <text> --metric <cmd> --bounds <text>   improve a numeric metric in worktrees",
+      "       vanta meta-tune instructions [--iters N] [--adopt]   score bounded PROGRAM.md variants",
+      "       vanta rooms | room <name> [\"<instruction>\"]   project rooms",
+      "       vanta modes [list|install]         operator modes",
+      "       vanta auth google [--client <json>] one-time Google OAuth (ingests client_secret.json)",
+      "       vanta mcp [list|serve]             list MCP servers Vanta consumes, or serve Vanta's tools over MCP stdio",
+      "       vanta roadmap                      build roadmap.html from roadmap.json and open it",
+      "       vanta roadmap move <id> <status>   move an item (shipped|building|next|horizon)",
+      "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
+      "       vanta desktop [port]                start local desktop command center",
+      "       vanta audit                        npm + cargo dependency security scan",
+      "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
+      "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",
+      "       vanta pairing [list | approve <chatId>]  manage messaging platform pairings",
+      "       vanta update [--rollback]              pull latest + rebuild; --rollback restores last snapshot",
+      "       vanta open <file[:line]>           open a file:line in your editor",
+      "       vanta prompt-size                  per-turn token breakdown (prompt + tool schemas)",
+      "       vanta completion [bash|zsh|fish]   print a shell completion script",
+      "       vanta backup [out.tgz] | import <in.tgz>   archive / restore ~/.vanta",
+      "       vanta improve                      run one factory cycle (review mode — prints plan)",
+      "       vanta factory [approve|status]     execute or check the dark factory (autonomy L1-4 via VANTA_AUTONOMY_LEVEL)",
+];
+
+export function usage(): void {
+  console.log(USAGE_LINES.join("\n"));
+}
+
+export function usageExit(): never {
+  usage();
+  process.exit(1);
+}
