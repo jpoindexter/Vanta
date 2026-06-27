@@ -36,3 +36,14 @@ Stop at 0, or after 3 consecutive wakes with zero delta.
 (per wake: `Unproven before → after (delta) | did: <what> | evidence: <real run result>`)
 
 - **Wake 1** (long-run proof): 5→5 net (−1 long-run proven, +1 hardening found). **Built** `scripts/reliability-longrun.sh` (one big multi-stage task ×N, scored reliable+completed). **Found** the early ~80% was a self-inflicted confound — my task wrote/read `/tmp` (out-of-scope) → `read_file` refused unattended → derail/hang. Fixed the harness (in-scope `/tmp` zone + honest run-count). **Evidence:** scope-corrected re-run = **12/12 reliable + 12/12 completed (100%)** → keystone PROVEN. **Spinoff:** the captured hang exposed two real-but-latent provider gaps (codex no request/idle timeout vs openai.ts; `turn-loop.ts:257` re-throws transient errors) → new card RELIABILITY-PROVIDER-HARDENING, fixing next.
+
+## Use-case gap audit (2026-06-27) — vs the Hermes/OpenClaw 262-story corpus
+
+Surface test (`scripts/usecase-surfaces.sh`): **12/12 surfaces engage a genuine `→ tool(` call** on a real run (cron, write_skill, brain, web_search, delegate, todo, run_code, obsidian-MCP, + live-gated calendar_create/gmail_draft/speak/browser_read route then approval-gate). The 4 named "gaps", triaged:
+
+1. **Live completion needs creds** — NOT a code defect. Routing is proven; live send needs a token (same bar Hermes requires). Telegram live-verified; the other 19 adapters are offline-tested.
+2. **Web search / DDG 403** — **RESOLVED + was partly stale.** Default is `auto` (keyless `bing`/`jina_ddg` ahead of DDG; fails only if all error). Verified live: `web_search "Hermes agent Nous Research"` → 3 correct results w/ URLs. Stale CLAUDE.md gotcha corrected.
+3. **Niche adapters** — partly wrong: **LINE, Feishu, Zalo already wired**; only **QQ + WeChat** missing → card `REACH-QQ-WECHAT` (China API + creds to verify). **Mobile app** → `SURFACE-MOBILE-APP` (real reach gap; thin client over the API/gateway). **Termux/Android** → `RUN-ANYWHERE-TERMUX` (kernel needs aarch64-android).
+4. **Trading/health "buildable-not-native"** — NOT a defect. Same as Hermes users: built as skills over `run_code` + web + schedule + MCP + the skill-writing loop. The primitives are present and execution-verified.
+
+**Net:** of 4 named gaps, 1 resolved (search), 1 corrected (LINE/Feishu/Zalo present; QQ/WeChat carded), 2 are non-defects (creds, buildable). The only genuine *new builds* are QQ/WeChat adapters, a mobile surface, and Termux — all carded (horizon), none a wake-sized fix.

@@ -16189,6 +16189,40 @@
       "effort": "low",
       "updated": "2026-06-27",
       "notes": "PART 1 SHIPPED 2026-06-27: codex idle-timeout (codex.ts stream() — AbortController reset per SSE chunk, reuses resolveProviderTimeoutMs; combined with the user interrupt signal). Test: stalled stream aborts in ~1s instead of hanging. PART 2 REMAINING: turn-loop bounded transient-retry (reuse tool-retry TRANSIENT) so the abort is survived, not just turned into a clean crash."
+    },
+    {
+      "id": "REACH-QQ-WECHAT",
+      "track": "Operator",
+      "title": "China messaging adapters — QQ + WeChat (the two gaps in the 20)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Use-case audit vs the Hermes corpus (2026-06-27): of the China/SEA platforms Hermes users build for, Vanta already wires LINE, Feishu, Zalo — but NOT QQ or WeChat (a Hermes user shipped an 822-line QQ adapter). Add both as PlatformAdapters in adapter-registry.ts. Build needs the China platform API + a bot token to live-verify (untestable from here), so it's adapter code + an offline parser test, live-gated like the other 19.",
+      "done": "QQ and WeChat PlatformAdapters registered (connect/send/poll + pure parsers, offline-tested); live-verified when a token is provisioned.",
+      "tier": "pebble",
+      "updated": "2026-06-27"
+    },
+    {
+      "id": "SURFACE-MOBILE-APP",
+      "track": "Operator",
+      "title": "Native mobile surface (iOS/Android) over the Hermes API/gateway",
+      "status": "horizon",
+      "size": "XL",
+      "summary": "Real reach gap surfaced by the use-case audit: Hermes community built native Android + iOS wrappers; Vanta has TUI (Ink) + desktop-app (Vite/React) + cockpit web, but no mobile. Lowest-effort path is a thin mobile client over the existing kernel API server / gateway (streaming chat, sessions, slash, tool viz) rather than a full native agent. Messaging (Telegram etc.) already gives phone reach today — this is the dedicated-app gap, not a capability gap.",
+      "done": "a mobile client (iOS and/or Android) connects to a running Vanta host over the API/gateway with streaming chat + session management.",
+      "tier": "rock",
+      "effort": "high",
+      "updated": "2026-06-27"
+    },
+    {
+      "id": "RUN-ANYWHERE-TERMUX",
+      "track": "Operator",
+      "title": "Termux / Android runtime (run-anywhere North Star gap)",
+      "status": "horizon",
+      "size": "M",
+      "summary": "Hermes explicitly supports Termux (Android); Vanta is Node 22 + a Rust kernel and is unproven there. Node runs on Termux; the gap is the kernel — needs an aarch64-android prebuilt (extend release.yml) OR a cargo build on Termux, plus setup-lib.sh Termux detection. Aligns with the 'runs anywhere you control' North Star (a phone IS a host you control).",
+      "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",
+      "tier": "pebble",
+      "updated": "2026-06-27"
     }
   ]
 }
