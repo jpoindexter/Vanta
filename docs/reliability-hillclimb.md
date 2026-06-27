@@ -47,3 +47,9 @@ Surface test (`scripts/usecase-surfaces.sh`): **12/12 surfaces engage a genuine 
 4. **Trading/health "buildable-not-native"** — NOT a defect. Same as Hermes users: built as skills over `run_code` + web + schedule + MCP + the skill-writing loop. The primitives are present and execution-verified.
 
 **Net:** of 4 named gaps, 1 resolved (search), 1 corrected (LINE/Feishu/Zalo present; QQ/WeChat carded), 2 are non-defects (creds, buildable). The only genuine *new builds* are QQ/WeChat adapters, a mobile surface, and Termux — all carded (horizon), none a wake-sized fix.
+
+### Caveats closed (2026-06-27 — "fix everything" pass)
+
+- **Caveat 1 (provider-hardening never live-fired)** → **CLOSED.** `scripts/reliability-faultinject.sh` forces a real codex timeout: idle-abort → 3 retries → graceful stop in 4s, exit 0 (no hang, no crash). Live-verified, reproducible. (Recovery-from-transient stays unit-verified — timeout injection deterministically proves the failure/graceful-stop path; a flaky-then-succeed live retry isn't deterministically inducible.)
+- **Caveat 2 (19 adapters offline-tested only)** → **not a code defect.** The `PlatformAdapter` contract is type-enforced (`build: (env) => PlatformAdapter`); all 20 adapters have dedicated tests; **543 platform tests pass green** + a registry metadata guard. Live per-adapter verification genuinely needs that platform's token (same bar Hermes requires) — a credentials reality, not fixable in code. A runtime contract test would be redundant with TS + the per-adapter tests.
+- **Build-scope gaps** (QQ/WeChat adapters, mobile app, Termux/Android kernel) → carded horizon; genuine builds, unverifiable here (need China APIs / an app / CI cross-compile), deliberately NOT fake-fixed.
