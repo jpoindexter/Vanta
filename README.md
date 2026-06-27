@@ -47,6 +47,25 @@ First run downloads the prebuilt kernel (and a portable Node if needed) and inst
 
 (`./vanta` is an alias for `./run.sh`. Only `git` is needed — the kernel and Node are fetched automatically.)
 
+## What you can build
+
+Vanta is a **general operator**, not a coding tool — one agent runs every category of work, gated by the kernel:
+
+- **Scheduled ops** — *"every weekday 9am, summarize my inbox and post to Slack"* (`vanta schedule`, natural-language cron).
+- **Self-improving skills** — it writes a reusable `SKILL.md` after solving something hard, then it's faster next time.
+- **Research briefs** — search → synthesize → deliver to your channel, on a cron.
+- **Multi-agent builds** — `vanta fleet` / `vanta swarm` fan independent tasks into isolated worktrees, then review + merge.
+- **Long unattended runs** — hand it a multi-step task and walk away; it finishes **verified** or stops honestly (no silent hangs — *measured*, see [`docs/reliability-results.md`](docs/reliability-results.md)).
+- **Reach you anywhere** — one gateway, 20 messaging adapters (Telegram + ntfy live-verified; the rest need their platform token).
+
+## Troubleshooting
+
+- **`vanta doctor` says no provider** → run `vanta setup` and pick a backend (Ollama for free/local, or paste an API key).
+- **Local model "not responding"** → make sure Ollama is running (`ollama serve`) and the model is pulled (`ollama pull qwen2.5:14b`).
+- **Kernel won't bind / "port 7788 in use"** → a stale kernel from a prior build: `lsof -nP -iTCP:7788 -sTCP:LISTEN`, kill the PID, re-run.
+- **macOS blocks the downloaded kernel** ("cannot be opened") → clear the Gatekeeper quarantine: `xattr -dr com.apple.quarantine ~/vanta` (or build from source: `cargo build`).
+- **Messaging / email / voice "didn't send"** → those *route* correctly but need the platform's credential (e.g. a Telegram bot token from @BotFather). The agent works fully with just a model backend; add tokens later in `vanta-ts/.env`.
+
 ## What works now
 
 **Kernel (Rust):** enforced risk classifier (allow/ask/block), approval queue, goal ledger, event log, HTTP cockpit + JSON API, `VANTA_ROOT` scoping.
@@ -98,11 +117,28 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 - **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
 - **ND-first** — executive-function support baked in: task initiation (smallest next step), choice reduction (top 3), working-memory re-anchoring, closure gates, time-blindness ranges, low-sensory output.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
-- **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…), 5 live-verified.
+- **20 messaging channels** from one gateway (Telegram, Slack, Discord, Signal, WhatsApp, iMessage, Teams, Email, Nostr…) — Telegram + ntfy live-verified end-to-end; the rest offline-tested, each needs its platform token.
 - **Any model, any host** — provider-agnostic (any OpenAI-compatible endpoint + Azure/OpenRouter/Ollama); runs local / sandbox / Docker / SSH / $5 VPS, kernel-scoped everywhere.
 - **MIT + self-hosted** — your data residency, no vendor lock-in.
 
 More → **[Why Vanta](https://docs.vanta.theft.studio/why-vanta)**.
+
+## Coming from OpenClaw or Hermes?
+
+`vanta migrate <openclaw|hermes>` imports your existing agent's **skills, MCP servers, and model config** into `~/.vanta` — preview → pick → backup-first → apply, every step kernel-gated and reversible:
+
+```bash
+vanta migrate hermes        # or: openclaw   (--skills/--mcp/--model to narrow; --yes to take all)
+```
+
+It reads the other agent's `skills/<slug>/SKILL.md`, `mcpServers` config, and provider/model settings, **flags secret env keys without copying the secret**, and only writes after you confirm — your `~/.vanta` is backed up first.
+
+## Community
+
+- 💬 **[Discussions](https://github.com/jpoindexter/Vanta/discussions)** — questions, ideas, show-and-tell.
+- 🐛 **[Issues](https://github.com/jpoindexter/Vanta/issues)** — bugs + feature requests (templates provided).
+- 📚 **[Docs](https://docs.vanta.theft.studio)** — the full guide.
+- 📦 **[Releases](https://github.com/jpoindexter/Vanta/releases)** — prebuilt kernels for macOS + Linux (arm64 / x64).
 
 ## Related
 
