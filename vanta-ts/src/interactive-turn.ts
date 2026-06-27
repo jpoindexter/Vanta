@@ -5,39 +5,24 @@
 import { join } from "node:path";
 import { maybeDroppedImage, maybeDroppedVideo, splitPastedImagePaths, looksLikeTempImagePath } from "./repl-commands.js";
 import { readClipboardImage } from "./term/clipboard-image.js";
-import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
-import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/session-cap.js";
 import { buildModeHint } from "./repl/mode-detect.js";
 import { buildAgentRouteHint } from "./repl/agent-route.js";
 import { maybeAugmentPrompt } from "./templates/templates.js";
-import { maybeAutoHandoff } from "./repl/auto-handoff.js";
-import { shouldSuggestContextUpgrade, buildContextUpgradeNote } from "./repl/context-upgrade.js";
-import { pruneVolatileSkills } from "./skills/volatile.js";
-import {
-  writeRunMemory,
-  reviewAfterTurn,
-  memoryExtractAfterTurn,
-  sessionMemoryAfterTurn,
-  brainLearnAfterTurn,
-  criticAfterTurn,
-  antiSlopAfterText,
-} from "./session.js";
-import { runPostTurnGates, type GateState } from "./repl/post-turn-gates.js";
-import { suggestSkillFromRun } from "./projects/commands.js";
+import type { GateState } from "./repl/post-turn-gates.js";
 import { scoreComplexity, shouldSuggestPlanMode, buildComplexityNote } from "./repl/complexity-gate.js";
 import { scoreClarity, shouldClarify, resolveClarityThreshold, buildClarityNote } from "./repl/clarity-gate.js";
 import { isTopicShift, buildTopicShiftNote } from "./repl/task-boundary.js";
 import { getInProgressItems, buildClosureGateText } from "./repl/closure-gate.js";
-import { saveSession } from "./sessions/store.js";
-import { reflectAfterTurn } from "./repl/reflect-correct.js";
-import { checkGoalLoop, buildGoalLoopMax } from "./repl/goal-condition.js";
-import { fireHooks, fireStopHook } from "./hooks/shell-hooks.js";
-import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
-import type { HookRunDeps } from "./hooks/shell-hook-run.js";
+import { buildGoalLoopMax } from "./repl/goal-condition.js";
+import { fireHooks } from "./hooks/shell-hooks.js";
+import { runPostTurnPipeline, turnHookDeps } from "./interactive-post-turn.js";
 import type { ReplState } from "./repl-commands.js";
 import type { RunSetup } from "./session.js";
 import type { SessionWorkingMemory } from "./memory/working.js";
 import type { AgentDeps, createConversation } from "./agent.js";
+
+export { runPostTurnPipeline } from "./interactive-post-turn.js";
+export type { PostTurnOpts } from "./interactive-post-turn.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
 
@@ -112,109 +97,6 @@ export function printPreTurnNotes(
   }
 }
 
-export type PostTurnOpts = {
-  outcome: Awaited<ReturnType<ConvoRef["send"]>>;
-  text: string;
-  t0: number;
-  turnStart: string;
-  deps: TurnDeps;
-};
-
-/** Post-send pipeline: cost, handoff, save, review, session memory, gates, reflect.
- *  Returns continueWith when an active goal has an unmet done-condition. */
-export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWith: string | null }> {
-  const { outcome, text, t0, turnStart, deps } = o;
-  const { convo, setup, state, repoRoot, gatesRef } = deps;
-  pruneVolatileSkills(convo.messages);
-  console.log(`\n${outcome.finalText}`);
-  if (outcome.usage) {
-    const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
-    console.log(`  ${formatTurnCost({ inputTokens: outcome.usage.inputTokens, outputTokens: outcome.usage.outputTokens, elapsedMs: Date.now() - t0, cost, tokensSaved: outcome.tokensSaved })}`);
-    state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
-    maybeHaltOnBudgetCap(deps);
-  }
-  await handleAutoHandoff(outcome, deps);
-  maybeSuggestContextUpgrade(outcome, deps);
-  await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
-  await writeRunMemory({ provider: setup.provider, goals: setup.goals, instruction: text, finalText: outcome.finalText, now: turnStart, sessionId: state.sessionId, turnIndex: state.turnIndex });
-  await suggestSkillFromRun(text, process.env);
-  await antiSlopAfterText(outcome.finalText, (note) => console.log(`\n${note}`)).catch(() => {});
-  await reviewAfterTurn({ provider: setup.provider, safety: setup.safety, root: repoRoot, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
-  memoryExtractAfterTurn({ provider: setup.provider, transcript: convo.messages });
-  const newScratch = await sessionMemoryAfterTurn({ provider: setup.provider, dataDir: join(repoRoot, ".vanta"), transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
-  if (newScratch) convo.setSessionMemory(newScratch);
-  const learned = await brainLearnAfterTurn({ provider: setup.provider, transcript: convo.messages, toolIterations: outcome.toolIterations, turnIndex: state.turnIndex });
-  if (learned.length) console.log(`  ◈ learned: ${learned.map((l) => (l.length > 60 ? `${l.slice(0, 57)}…` : l)).join(" · ")}`);
-  const activeGoalText = setup.goals.find((g) => g.status === "active")?.text ?? "";
-  await criticAfterTurn({ provider: setup.provider, goal: activeGoalText, messages: convo.messages, onNote: (note) => console.log(`\n${note}`) });
-  gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`), turnIndex: state.turnIndex, startedMs: Date.parse(state.started) || Date.now(), now: Date.now() });
-  const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
-  const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
-  await reflectAfterTurn(lastUserText, process.env);
-  const stopCtx = { sessionId: state.sessionId, finalResponse: outcome.finalText, turnIndex: state.turnIndex };
-  const [goalContinue, hookContext] = await Promise.all([
-    checkGoalLoop({ safety: setup.safety, cwd: repoRoot, onNote: (n) => console.log(n) }).catch(() => null),
-    fireStopHook(join(repoRoot, ".vanta"), stopCtx, { cwd: repoRoot, ...turnHookDeps(deps) }).catch(() => null),
-  ]);
-  return { continueWith: goalContinue ?? hookContext ?? null };
-}
-
-/**
- * VANTA-BUDGET-CAP: stop the loop when accumulated frontier spend reaches the
- * --max-budget-usd / VANTA_MAX_BUDGET_USD cap. No-op when unset (cap === null),
- * so behavior is byte-identical without a cap. Prints current spend, then flags
- * the halt ref the REPL loop reads to end the session cleanly (no throw).
- */
-function maybeHaltOnBudgetCap(deps: TurnDeps): void {
-  const cap = resolveSessionCap(process.env);
-  const spent = deps.state.sessionCost?.frontierUsd ?? 0;
-  if (!isOverCap(spent, cap) || cap === null) return;
-  console.log(`\n${buildCapExceededMessage(spent, cap)}`);
-  if (deps.capHaltedRef) deps.capHaltedRef.current = true;
-}
-
-async function handleAutoHandoff(
-  outcome: Awaited<ReturnType<ConvoRef["send"]>>,
-  deps: TurnDeps,
-): Promise<void> {
-  const { convo, setup, state, repoRoot, autoHandoffNotedRef } = deps;
-  const ah = await maybeAutoHandoff({
-    estTokens: outcome.usage?.inputTokens ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4),
-    contextWindow: setup.provider.contextWindow(),
-    messages: convo.messages,
-    sessionId: state.sessionId,
-    provider: process.env.VANTA_PROVIDER ?? "unknown",
-    model: setup.provider.modelId(),
-    repoRoot,
-    safety: setup.safety,
-    now: new Date(),
-  });
-  if (ah.wrote && !autoHandoffNotedRef.current) {
-    console.log(`\n  ↻ context filling up — saved a resume block to ${ah.path} (auto-reloads next launch)`);
-    autoHandoffNotedRef.current = true;
-  }
-}
-
-/**
- * VANTA-CONTEXT-UPGRADE: when context usage nears the active model's window AND
- * the model isn't already an extended-context variant, surface a one-line
- * non-blocking suggestion to switch to a 1M-context model — at most once per
- * session. Below the threshold = no output (pure check, no behavior change).
- */
-function maybeSuggestContextUpgrade(
-  outcome: Awaited<ReturnType<ConvoRef["send"]>>,
-  deps: TurnDeps,
-): void {
-  if (deps.contextUpgradeNotedRef?.current) return;
-  const { convo, setup } = deps;
-  const used = outcome.usage?.inputTokens
-    ?? Math.round(convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0) / 4);
-  const modelId = setup.provider.modelId();
-  if (!shouldSuggestContextUpgrade(used, setup.provider.contextWindow(), modelId, process.env)) return;
-  console.log(`\n  ${buildContextUpgradeNote(modelId)}`);
-  if (deps.contextUpgradeNotedRef) deps.contextUpgradeNotedRef.current = true;
-}
-
 /**
  * Execute one user turn, looping automatically when the active goal has a
  * "done when `<cmd>`" condition that has not yet passed (up to VANTA_GOAL_LOOP_MAX).
@@ -239,13 +121,6 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
     turnText = result.continueWith;
     loopCount++;
   }
-}
-
-function turnHookDeps(deps: TurnDeps): HookRunDeps {
-  const onStatus = (m: string) => console.log(m);
-  return deps.agentDeps
-    ? buildAgentHookDeps(deps.agentDeps, onStatus)
-    : { promptProvider: deps.setup.provider, onStatus };
 }
 
 /** Build the mode-aware send text (working memory prefix + mode hint). */

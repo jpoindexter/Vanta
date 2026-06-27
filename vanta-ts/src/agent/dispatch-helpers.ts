@@ -8,13 +8,7 @@ import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { densifySearchResult, shouldDensifyTool } from "../compress/search-densify.js";
 import { toonView, compressReadFile } from "./toon-output.js";
-import { tighten, matchRule } from "../permissions/rules.js";
-import { loadRules } from "../permissions/store.js";
-import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
-import { classifyTighten, classifierEnabled } from "../permissions/auto-classifier.js";
-import { classifyBashSafety, bashClassifierEnabled } from "../permissions/bash-classifier.js";
-import { loadSettings } from "../settings/store.js";
-import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
+import { resolveLayeredDecision } from "./decision-chain.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
@@ -90,82 +84,6 @@ async function handleBlockDecision(o: {
   if (shouldFirePermDenied(decision)) await firePermissionEvent(root, "PermissionDenied", call.name, buildPermDeniedPayload(call.name, reason, action));
   deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
   return { approved: false, reason: `blocked: ${reason}` };
-}
-
-async function applyOperatorProfile(
-  current: { decision: "allow" | "ask" | "block"; reason: string },
-  kernelRisk: "allow" | "ask" | "block",
-  toolName: string,
-  action: string,
-): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
-  if (current.decision === "block") return current;
-  const profile = await loadOperatorProfile(process.env).catch(() => null);
-  if (!profile) return current;
-  const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
-  return next.decision === current.decision ? current : next;
-}
-
-/** VANTA-BASH-CLASSIFIER: loosen a kernel/auto-mode ASK to allow ONLY for a
- * shell_cmd whose command is classified clearly-safe (read-only/idempotent), and
- * ONLY when armed. Never touches a block/allow — the kernel block floor stands,
- * and the downstream tighteners can still re-escalate. Off by default. */
-/** The tightening chain over the kernel verdict: rules → auto-mode → bash-classifier
- * → operator-profile → advisory classifier. The kernel verdict is the floor; every
- * stage may TIGHTEN (escalate to ask/block) but NEVER loosen a kernel block. */
-async function resolveLayeredDecision(
-  verdict: Verdict,
-  call: ToolCall,
-  action: string,
-  ctx: ToolContext,
-): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
-  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
-  const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
-  const bashDecision = applyBashClassifier(autoDecision, call);
-  const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
-  return applyAdvisoryClassifier(profileDecision, call.name, action);
-}
-
-function applyBashClassifier(
-  current: { decision: "allow" | "ask" | "block"; reason: string },
-  call: ToolCall,
-): { decision: "allow" | "ask" | "block"; reason: string } {
-  if (current.decision !== "ask" || call.name !== "shell_cmd" || !bashClassifierEnabled(process.env)) return current;
-  // Classify the REAL command (call.arguments.command), not the describeForSafety
-  // string — "run shell command: <cmd>" would always classify as unknown (dead).
-  const command = typeof call.arguments.command === "string" ? call.arguments.command : "";
-  return classifyBashSafety(command) === "safe"
-    ? { decision: "allow", reason: "bash-classifier: safe read-only command auto-approved" }
-    : current;
-}
-
-/** PAPER-AUTO-CLASSIFIER: final tighten-only advisory pass. Off by default; can
- * only escalate (allow→ask/block), never loosen. A kernel block already short-
- * circuits upstream, so this only ever sees allow/ask. */
-function applyAdvisoryClassifier(
-  current: { decision: "allow" | "ask" | "block"; reason: string },
-  toolName: string,
-  action: string,
-): { decision: "allow" | "ask" | "block"; reason: string } {
-  if (current.decision === "block" || !classifierEnabled(process.env)) return current;
-  const next = classifyTighten({ decision: current.decision, toolName, action });
-  return next.decision === current.decision ? current : next;
-}
-
-async function applyAutoMode(
-  decision: "allow" | "ask" | "block",
-  toolName: string,
-  descriptor: string,
-  ctx: ToolContext,
-): Promise<{ decision: "allow" | "ask" | "block"; reason: string }> {
-  if (decision === "block") return { decision, reason: "denied by a permission rule" };
-  const settings = await loadSettings(ctx.root ?? process.cwd(), process.env);
-  if (!isAutoModeEnabled(process.env, settings)) return { decision, reason: "kernel or permission rule" };
-  return classifyAutoModeAction({
-    kernelRisk: decision,
-    toolName,
-    descriptor,
-    config: resolveAutoModeConfig(settings),
-  });
 }
 
 async function handleApprovalRequest(o: {
