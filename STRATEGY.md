@@ -31,8 +31,8 @@ Auto-park, no debate: Anthropic cloud/account/billing coupling · enterprise pol
 The bar is **measured, not asserted**. The failure modes that separate a demo from a ready harness:
 
 - **Always terminates** (no hangs) · **completes multi-step tool chains end-to-end** · **recovers from a failed tool call** (no loop, no lie) · **keeps the goal across a long run / compaction** · **reports only verified output** — all **unattended**.
-- Seed in place: `scripts/reliability-smoke.sh` drives real one-shot tasks and asserts clean exit + sane output (the hang bug class). Binary and narrow today (8 one-shot tasks).
-- The path: turn it into a **scored pass-rate over N runs** across a broader battery (add multi-turn + error-recovery tasks). That number IS "ready." This is the **measurement half** of `AHE-EVAL-HARNESS`; the auto-*evolution* half stays parked (DECISIONS 2026-06-16 — no users/reward signal yet → platform-thinking).
+- **Built (reliability hill-climb, complete 2026-06-27):** `scripts/reliability-{smoke,stress,longhorizon,longrun,eval}.sh` drive the real agent across batteries (two-axis: RELIABILITY = the bar, model-agnostic vs SUCCESS = model quality). `reliability-eval.sh` records a dated **scored pass-rate** to `docs/reliability-results.md` — the **measurement half** of `AHE-EVAL-HARNESS` (the auto-*evolution* half stays parked, DECISIONS 2026-06-16). State + per-card proof: `docs/reliability-hillclimb.md`.
+- **Measured (executed runs, not assertions):** long autonomous run **12/12** unattended · provider hardening (codex idle-timeout + bounded transient-retry) · provider variance codex 100% / ollama 90% · kernel concurrency clean to **1024×** parallel. The harnesses found+fixed **3 real reliability bugs**; `vanta run` is the headless interface (DECISIONS 2026-06-27).
 
 > Adding a feature does not move this number; closing a reliability failure mode does. When the bar and a new feature compete for a slice, **the bar wins**.
 

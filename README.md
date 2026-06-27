@@ -94,7 +94,7 @@ Prefer to keep the agent on your laptop but execute on the VPS? Add an `sshConfi
 ## Why Vanta
 
 - **Enforced boundary** — a separate Rust kernel risk-classifies every action (allow/ask/block + scope + tamper-evident audit chain); the agent loop can't bypass it, and execution runs in an OS sandbox / Docker / SSH.
-- **Reliable, not just capable** — the bar is finishing real multi-step tasks unattended and reporting only verified output (no hangs, recovers from tool errors, keeps the goal), exercised by a reliability battery (`scripts/reliability-smoke.sh`). Feature count is table stakes, not the bar.
+- **Reliable, not just capable** — the bar is finishing real multi-step tasks unattended and reporting only verified output (no hangs, recovers from tool errors, keeps the goal), **measured** by a tracked reliability eval (`scripts/reliability-eval.sh` → `docs/reliability-results.md`) that found and fixed real bugs. Feature count is table stakes, not the bar.
 - **Goal-aware** — a goal ledger + dependency graph mean Vanta knows the goal before it picks a tool.
 - **ND-first** — executive-function support baked in: task initiation (smallest next step), choice reduction (top 3), working-memory re-anchoring, closure gates, time-blindness ranges, low-sensory output.
 - **Learns you, locally** — `vanta tune lora` trains a local adapter from your own accept/reject decisions; nothing leaves the machine.
