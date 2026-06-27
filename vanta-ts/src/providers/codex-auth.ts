@@ -13,7 +13,10 @@ import { join } from "node:path";
 
 export const CODEX_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
 export const CODEX_TOKEN_URL = "https://auth.openai.com/oauth/token";
-export const CODEX_BASE_URL = "https://chatgpt.com/backend-api/codex";
+// The ChatGPT Codex backend. Overridable via `VANTA_CODEX_BASE_URL` so an operator can point codex
+// at a proxy / compatible endpoint (and so the provider-hardening recovery path is live-testable
+// against a fault-injecting proxy). Read at module load; each `vanta run` is a fresh process.
+export const CODEX_BASE_URL = process.env.VANTA_CODEX_BASE_URL?.trim() || "https://chatgpt.com/backend-api/codex";
 const REFRESH_SKEW_SECONDS = 300;
 
 export type CodexTokens = { access_token: string; refresh_token: string; account_id: string; id_token?: string };
