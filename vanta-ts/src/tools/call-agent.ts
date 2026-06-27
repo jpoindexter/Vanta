@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import {
   buildAgentInvocation,
   runExternalAgent,
@@ -7,8 +9,24 @@ import {
   type Invocation,
   type RunResult,
 } from "../agents/external-cli.js";
+import { buildAutonomousDockerInvocation, type Mount } from "../agents/autonomous-docker.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+
+/** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
+ *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
+ *  network stays on because the agent must reach its model API; the FILESYSTEM is what's boxed. */
+export function autonomousInvocation(agent: string, prompt: string, model: string | undefined, root: string): { inv: Invocation; mounts: Mount[] } | { error: string } {
+  if (agent !== "claude") return { error: `autonomous (Docker-boxed) mode supports claude only, not "${agent}"` };
+  const bare = buildAgentInvocation(agent, prompt, { model, env: process.env, autonomous: true });
+  if (!bare) return { error: `unknown agent "${agent}"` };
+  const mounts: Mount[] = [
+    { host: root, container: "/work", mode: "rw" },
+    { host: join(homedir(), ".claude"), container: "/root/.claude", mode: "ro" },
+  ];
+  const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? "vanta-agent";
+  return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: "/work", network: true }), mounts };
+}
 
 const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min headroom
 
@@ -36,11 +54,27 @@ async function runResolved(ctx: ToolContext, agent: string, inv: Invocation, cod
   return formatResult(agent, await runExternalAgent(inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
 }
 
+/** Resolve → approve (showing the exact mount boundary) → run the boxed agent, streaming progress. */
+async function runAutonomous(ctx: ToolContext, agent: string, prompt: string | undefined, model?: string): Promise<ToolResult> {
+  if (!prompt) return { ok: false, output: "call_agent autonomous needs a prompt" };
+  const boxed = autonomousInvocation(agent, prompt, model, ctx.root);
+  if ("error" in boxed) return { ok: false, output: boxed.error };
+  const where = boxed.mounts.map((m) => `${m.mode} ${m.host.replace(homedir(), "~")}`).join(" + ");
+  const approved = await ctx.requestApproval(
+    `run ${agent} AUTONOMOUSLY in a Docker box: ${prompt.slice(0, 80)}`,
+    `fully autonomous (--dangerously-skip-permissions) but OS-boxed to exactly [${where}] — it cannot touch anything else on the host`,
+    "call_agent",
+  );
+  if (!approved) return { ok: false, output: "call_agent: declined" };
+  return runCodingClaude(ctx, boxed.inv);
+}
+
 const Args = z.object({
   agent: z.string().optional(),
   prompt: z.string().optional(),
   model: z.string().optional(),
   coding: z.boolean().optional(), // build-ready: the agent auto-accepts file edits so it can actually BUILD headless
+  autonomous: z.boolean().optional(), // FULL autonomy, OS-boxed in a mount-scoped Docker container
 });
 
 /** List the agent CLIs actually installed on this machine (and how to add more). */
@@ -82,18 +116,20 @@ export const callAgentTool: Tool = {
         prompt: { type: "string", description: "The prompt/task to send to the agent" },
         model: { type: "string", description: "Optional model override passed through to that agent's CLI" },
         coding: { type: "boolean", description: "Delegate BUILDING: the agent auto-accepts file edits so it can write/change code headless. Default false (answer-only)." },
+        autonomous: { type: "boolean", description: "FULL autonomy, OS-contained: runs the agent with --dangerously-skip-permissions inside a Docker container scoped to exactly this project (rw) + its auth (ro), network on only for the model API. The container is the boundary — it provably cannot touch any other host path. For hands-free builds you want boxed. claude only; needs Docker + a VANTA_AGENT_DOCKER_IMAGE that has the agent CLI." },
       },
       required: [],
     },
   },
   describeForSafety: (a) =>
-    `call external agent ${String(a.agent ?? "list")}: ${String(a.prompt ?? "")}`.slice(0, 200),
+    `${a.autonomous ? "run docker-boxed autonomous agent" : "call external agent"} ${String(a.agent ?? "list")}: ${String(a.prompt ?? "")}`.slice(0, 200),
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: "call_agent needs {agent, prompt} (or no agent to list installed ones)" };
-    const { agent, prompt, model, coding } = parsed.data;
+    const { agent, prompt, model, coding, autonomous } = parsed.data;
 
     if (!agent || agent === "list") return listAgents();
+    if (autonomous) return runAutonomous(ctx, agent, prompt, model);
 
     const resolved = resolveCall(agent, prompt, model, coding);
     if ("error" in resolved) return { ok: false, output: resolved.error };

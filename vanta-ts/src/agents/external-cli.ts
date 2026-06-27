@@ -12,19 +12,22 @@ import { resolveVantaHome } from "../store/home.js";
 /** A resolved agent: command + a builder turning (prompt, model, coding) into argv.
  * `coding` = run the agent BUILD-READY (auto-accepts file edits) so a headless A2A call
  * can actually write/change code, not just answer — verified per-agent against the CLI. */
-type AgentSpec = { cmd: string; build: (prompt: string, model?: string, coding?: boolean) => string[] };
+type AgentSpec = { cmd: string; build: (prompt: string, model?: string, coding?: boolean, autonomous?: boolean) => string[] };
 
 /** claude non-interactive argv. A BUILD (coding) defaults to fast Sonnet — not claude's slow
  * Opus default that timed out — auto-accepts edits, and streams events (stream-json) so the
- * caller can show live progress (call_agent parses that stream). Plain calls stay text. */
-function claudeArgs(prompt: string, model?: string, coding?: boolean): string[] {
-  const m = model ?? (coding ? "sonnet" : undefined);
-  return [
-    "-p",
-    ...(m ? ["--model", m] : []),
-    ...(coding ? ["--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose"] : []),
-    prompt,
-  ];
+ * caller can show live progress (call_agent parses that stream). Plain calls stay text.
+ * `autonomous` = FULL autonomy (`--dangerously-skip-permissions`): safe ONLY because the caller
+ * runs this inside a mount-scoped Docker box (the container is the boundary, not the flag). */
+function claudeArgs(prompt: string, model?: string, coding?: boolean, autonomous?: boolean): string[] {
+  const build = coding || autonomous;
+  const m = model ?? (build ? "sonnet" : undefined);
+  const mode = autonomous
+    ? ["--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose"]
+    : coding
+      ? ["--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose"]
+      : [];
+  return ["-p", ...(m ? ["--model", m] : []), ...mode, prompt];
 }
 
 // Verified non-interactive invocations (2026-06; flags change — re-verify with `<cli> --help`).
@@ -101,11 +104,11 @@ export type Invocation = { cmd: string; args: string[] };
 export function buildAgentInvocation(
   agent: string,
   prompt: string,
-  opts: { model?: string; env?: NodeJS.ProcessEnv; coding?: boolean } = {},
+  opts: { model?: string; env?: NodeJS.ProcessEnv; coding?: boolean; autonomous?: boolean } = {},
 ): Invocation | null {
   const env = opts.env ?? process.env;
   const spec = registry(env)[agent];
-  return spec ? { cmd: spec.cmd, args: spec.build(prompt, opts.model, opts.coding) } : null;
+  return spec ? { cmd: spec.cmd, args: spec.build(prompt, opts.model, opts.coding, opts.autonomous) } : null;
 }
 
 export type RunResult = { ok: boolean; stdout: string; stderr: string; code: number | null; notInstalled?: boolean };
