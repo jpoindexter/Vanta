@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-26",
+  "updated": "2026-06-27",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -16100,6 +16100,82 @@
       "size": "S",
       "summary": "Found 2026-06-26 by driving a real task ('write to /tmp'). shell_cmd defaults the OS sandbox ON wherever a backend exists (seatbelt is always present on macOS), but writableZonesFor included $TMPDIR (/var/folders) NOT the system /tmp (/private/tmp) — so `> /tmp/…` got EPERM 'Operation not permitted', surfaced to the model as 'Blocked by scope'. Reproduced in BOTH the dev harness AND the user's direct terminal (not a confound). Fix: sandbox/run.ts writableZonesFor adds realpathSync('/tmp'), deduped vs $TMPDIR. /tmp is scratch, not a credential dir; DANGEROUS_DIRS denies still override. Verified: a sandboxed /tmp write now succeeds; 53 sandbox tests green.",
       "done": "a shell_cmd `> /tmp/…` write succeeds under the default-on macOS shell sandbox; darwin-gated regression test."
+    },
+    {
+      "id": "RELIABILITY-STRESS-HARNESS",
+      "track": "Harness",
+      "title": "Reliability stress harness — scored, repeated, concurrency + long-horizon batteries",
+      "status": "shipped",
+      "size": "M",
+      "summary": "The measurement half of the readiness bar (STRATEGY §\"The readiness bar\"). Two-axis scoring: RELIABILITY (terminates/clean-exit/no-zombie/survives-load = the bar, model-agnostic) vs SUCCESS (also-correct output). scripts/reliability-smoke.sh (binary gate), reliability-stress.sh (K-repeat + concurrency burst), reliability-longhorizon.sh (long-loop + piped-REPL multi-turn probe). Found+fixed the interactive-REPL exit hang (MCP-handle leak, same class as VANTA-ONESHOT-RUN-HANG; cli.ts 79fce703).",
+      "done": "scripts drive real agent tasks, score reliability/success, exit on a reliability threshold; first codex/gpt-5.5 campaign ~131 runs 100% reliable (98% success), 16x concurrency clean, 1 bug found+fixed.",
+      "tier": "rock",
+      "updated": "2026-06-27",
+      "notes": "SHIPPED 2026-06-27 (commits 6c55dfd9, 75452eb0, 79fce703)."
+    },
+    {
+      "id": "RELIABILITY-LONG-RUN-PROOF",
+      "track": "Harness",
+      "title": "Prove a long autonomous run finishes unattended (Pillar 1 win condition)",
+      "status": "building",
+      "size": "M",
+      "summary": "THE riskiest unproven assumption (discovery/Working-Backwards 2026-06-27): every reliability test so far is a one-shot. Pillar 1's actual bar — \"a long autonomous run finishes verified work without babysitting\" — is untested. Build a real ~10-min, 30+-tool-call multi-stage task into the harness, run it unattended Nx, score reliability + stays-on-goal + verified-output (no false-done). This is the headline 'close your laptop' PR claim and must be proven before claiming readiness like Hermes/OpenClaw.",
+      "done": "a real long-horizon task runs unattended >=5x at a high reliability pass-rate — no hang, no goal-drift, no false-done — scored by the harness.",
+      "tier": "rock",
+      "effort": "medium",
+      "updated": "2026-06-27",
+      "notes": "Hill-climb keystone (2026-06-27). Riskiest-assumption-first per Build-Measure-Learn."
+    },
+    {
+      "id": "RELIABILITY-HEADLESS-MULTITURN",
+      "track": "Harness",
+      "title": "Headless multi-turn: fix the input mechanism or declare run the only path",
+      "status": "next",
+      "size": "S",
+      "summary": "Stress testing surfaced that the only headless multi-turn path (piping into the non-TTY REPL) does not consume lines as turns (readline/promises emits 'line' before question() awaits, so turns are lost). The exit-hang was fixed (79fce703); the INPUT mechanism remains. Decide: queue piped lines as sequential turns in the REPL, OR declare `vanta run` the only headless interface and document it.",
+      "done": "either a headless multi-turn conversation carries context across turns (verified by the multi-turn probe showing context-carried=1), or an explicit documented decision that run is the only headless path.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-27"
+    },
+    {
+      "id": "RELIABILITY-SCORED-EVAL-CI",
+      "track": "Harness",
+      "title": "Wire the reliability harnesses into a tracked scored eval",
+      "status": "next",
+      "size": "S",
+      "summary": "Turn the harnesses into a tracked pass-rate-over-time signal (the measurement half of AHE-EVAL-HARNESS). Per discovery: do this AFTER the long-run proof — don't plumb a metric that's already ~100% on short tasks until there is a meaningful (long-run) signal to track.",
+      "done": "one command runs the battery and records a dated pass-rate to a results file; deltas tracked over time (and optionally a CI job).",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-27",
+      "after": [
+        "RELIABILITY-LONG-RUN-PROOF"
+      ]
+    },
+    {
+      "id": "RELIABILITY-PROVIDER-VARIANCE",
+      "track": "Harness",
+      "title": "Reliability across providers (cold-start / timeout / tool-parse variance)",
+      "status": "next",
+      "size": "S",
+      "summary": "Ollama showed cold-start/timeout sensitivity in stress testing; codex was clean. Run the battery across providers to surface provider-specific reliability (streaming/tool-parse/cold-start). PROVIDER-AWARE-WATCHDOG addresses cold-start timeouts structurally; this validates it live.",
+      "done": "the battery runs green (reliability) on >=2 providers (codex + ollama) with provider-appropriate timeouts/warmup.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-27"
+    },
+    {
+      "id": "RELIABILITY-CONCURRENCY-SOAK",
+      "track": "Harness",
+      "title": "Higher-concurrency kernel soak (>16 parallel) to find the contention ceiling",
+      "status": "next",
+      "size": "S",
+      "summary": "16x parallel held clean (0 zombies). Push to 32-64x to find the kernel contention ceiling (assess/log/audit-chain under load on the raw-TCP HTTP server).",
+      "done": "the kernel survives >=32x parallel runs with 0 zombies, or the contention ceiling is identified and documented.",
+      "tier": "sand",
+      "effort": "low",
+      "updated": "2026-06-27"
     }
   ]
 }
