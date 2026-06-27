@@ -6,6 +6,7 @@ import { resolveProviderTimeoutMs } from "./timeout.js";
 import {
   foldToolCallDeltas,
   completedToolCalls,
+  reasoningDelta,
   mapCompletionResponse,
   toOpenAIMessage,
   toOpenAITool,
@@ -107,6 +108,8 @@ export class OpenAIProvider implements LLMProvider {
       if (!choice) continue;
       const delta = choice.delta;
       if (delta?.content) { text += delta.content; yield { type: "text", delta: delta.content }; }
+      const think = reasoningDelta(delta);
+      if (think) yield { type: "thinking", delta: think };
       if (delta?.tool_calls?.length) {
         for (const tc of delta.tool_calls) toolDeltas.push({ index: tc.index, id: tc.id, function: tc.function });
         const newly = completedToolCalls(toolDeltas, emittedThrough);

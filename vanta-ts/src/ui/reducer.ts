@@ -17,6 +17,7 @@ export type Action =
   | { t: "todos"; items: TodoItem[] }
   | { t: "enqueue"; text: string }
   | { t: "dequeue" }
+  | { t: "thinkingDelta"; d: string }
   | { t: "turnStart" }
   | { t: "turnEnd" };
 
@@ -27,14 +28,14 @@ export function reduce(state: UiState, a: Action): UiState {
       return { ...s, entries: [...s.entries, { kind: "user", text: a.text }] };
     }
     case "turnStart":
-      return { ...state, busy: true, streaming: "", activeTools: [] };
+      return { ...state, busy: true, streaming: "", activeTools: [], liveThinking: "" };
     case "delta": {
       // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
       // scrollback, scrolling old content up). Only the in-progress paragraph stays in the
       // redrawing live region. But NOT while a tool run is buffered — committed text must
       // land AFTER the tool group (turnEnd flushes the group first), preserving real
       // text→tool→text order; draining mid-flight would jump text ahead of the tool.
-      const s = { ...state, streaming: state.streaming + a.d };
+      const s = { ...state, streaming: state.streaming + a.d, liveThinking: "" };
       return s.activeTools.length > 0 || s.pendingGroup.length > 0 ? s : drainParagraphs(s);
     }
     case "thinking": {
@@ -131,6 +132,9 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, queued: [...state.queued, a.text] };
     case "dequeue":
       return { ...state, queued: state.queued.slice(1) };
+    case "thinkingDelta":
+      // Live reasoning preview (live region only). Cleared the moment real output text begins.
+      return { ...state, liveThinking: state.liveThinking + a.d };
     default:
       return state;
   }
@@ -157,5 +161,5 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
 
 /** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
-  return { ...commitText(state), activeTools: [], busy: false };
+  return { ...commitText(state), activeTools: [], busy: false, liveThinking: "" };
 }

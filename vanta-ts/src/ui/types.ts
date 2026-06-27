@@ -54,6 +54,10 @@ export type UiState = {
   /** Messages submitted while busy — drained one per turn when idle. */
   queued: string[];
   busy: boolean;
+  /** Live reasoning preview for THIS turn (live region only, never committed). Reasoning models
+   *  that stream their thinking fill this during the pre-output phase; cleared when output text
+   *  begins or the turn ends. Empty for backends that hide reasoning (e.g. codex). */
+  liveThinking: string;
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "" };

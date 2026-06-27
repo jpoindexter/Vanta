@@ -85,7 +85,7 @@ export async function getCompletion(
           if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
         }
       : undefined;
-    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, signal, onSafeToolCall });
+    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, onThinkingDelta: deps.onThinkingDelta, signal, onSafeToolCall });
     if (result) return result;
   }
   return deps.provider.complete(messages, schemas, cfg);

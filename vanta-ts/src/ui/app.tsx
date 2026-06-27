@@ -77,7 +77,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
         <PinnedRegion enabled={composerAnchor === "bottom"} viewportRows={vp.rows} committedRows={estimateCommittedRows(state.entries, vp.cols)}>
           {pending && mode !== "auto"
             ? <ApprovalPrompt pending={pending} focusedTarget={focus} onFocusTargetChange={setFocus} onDone={() => setPending(null)} />
-            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
+            : <LiveRegion streaming={state.streaming} activeTools={state.activeTools} busy={state.busy} tick={tick} liveThinking={state.liveThinking} agents={agents} selectedAgent={teammate.selectedAgent} leaderTokens={est} />}
           <LiveBody quickOpen={quickOpen} overlay={overlay} pending={pending} mode={mode} focus={focus} todos={state.todos} files={files} history={history} skills={skillMatches} channels={channels} vim={vimEnabled} onQuickActivate={(c) => { setQuickOpen(false); runSlash(c); }} onQuickClose={() => setQuickOpen(false)} onSubmit={onSubmit} onPaste={() => runSlash("/paste")} onSelect={selectRow} onClose={closeOverlay} />
           {!pending && !overlay ? <Footer model={provider.modelId()} effortLevel={replStateRef.current.effortLevel ?? props.setup.effortLevel} ctxPct={contextPct(est, provider.contextWindow())} tokens={est} contextWindow={provider.contextWindow()} turns={replStateRef.current.turnIndex} busy={state.busy} queued={state.queued.length} goal={replStateRef.current.activeGoal} mcp={mcp} elapsed={elapsed} agents={agents} rich={rich} /> : null}
         </PinnedRegion>

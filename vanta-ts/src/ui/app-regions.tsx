@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import { StatusBar } from "./status-bar.js";
-import { StreamPreview } from "./stream-view.js";
+import { StreamPreview, ThinkingPreview } from "./stream-view.js";
 import { busyLabel } from "./busy.js";
 import { toolLoaderRows } from "./tool-loader.js";
 import { buildTeammateTree, type LeaderState, type TreeRow } from "./teammate-tree.js";
@@ -96,8 +96,16 @@ function SingleSpinner(props: { frame: string; verb: string; secs: number; suffi
   return <Text><Text color={ACTIVITY}>{frame}</Text> {verb}… ({secs}s · esc to interrupt){tail}</Text>;
 }
 
-export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number }): ReactElement | null {
-  const { streaming, activeTools, busy, tick, agents = [], selectedAgent = -1, leaderTokens = 0 } = props;
+/** The single-agent busy indicator: the live reasoning preview when the model is streaming its
+ *  thinking (DeepSeek-R1/OpenRouter/Anthropic/…), else the generic rotating spinner. */
+function BusyIndicator(props: { liveThinking: string; frame: string; verb: string; secs: number; suffix: string }): ReactElement {
+  return props.liveThinking
+    ? <ThinkingPreview text={props.liveThinking} frame={props.frame} secs={props.secs} />
+    : <SingleSpinner frame={props.frame} verb={props.verb} secs={props.secs} suffix={props.suffix} />;
+}
+
+export function LiveRegion(props: { streaming: string; activeTools: PendingTool[]; busy: boolean; tick: number; liveThinking?: string; agents?: SubagentProgress[]; selectedAgent?: number; leaderTokens?: number }): ReactElement | null {
+  const { streaming, activeTools, busy, tick, liveThinking = "", agents = [], selectedAgent = -1, leaderTokens = 0 } = props;
   if (!busy && !streaming) return null;
   const loaders = toolLoaderRows(activeTools, tick);
   const { frame, verb, suffix } = busyLabel(tick);
@@ -117,7 +125,7 @@ export function LiveRegion(props: { streaming: string; activeTools: PendingTool[
           agents → the single thinking spinner, shown when no tool is running. */}
       {tree}
       {busy && !streaming && loaders.length === 0 && !tree
-        ? <SingleSpinner frame={frame} verb={verb} secs={secs} suffix={suffix} />
+        ? <BusyIndicator liveThinking={liveThinking} frame={frame} verb={verb} secs={secs} suffix={suffix} />
         : null}
     </Box>
   );

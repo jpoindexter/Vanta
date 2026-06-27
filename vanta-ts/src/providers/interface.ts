@@ -39,6 +39,7 @@ export type Usage = { inputTokens: number; outputTokens: number };
  */
 export type StreamChunk =
   | { type: "text"; delta: string }
+  | { type: "thinking"; delta: string }
   | { type: "tool_call"; call: ToolCall }
   | { type: "done"; result: CompletionResult };
 

@@ -70,6 +70,7 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
     onThinking: (text) => deps.dispatch({ t: "thinking", text }),
     onTextDelta: (d) => deps.dispatch({ t: "delta", d }),
+    onThinkingDelta: (d) => deps.dispatch({ t: "thinkingDelta", d }),
     onToolCall: (name, args) => {
       const disp = toolDisplay(name, args);
       deps.dispatch({ t: "toolCall", name, verb: disp.verb, detail: disp.detail });

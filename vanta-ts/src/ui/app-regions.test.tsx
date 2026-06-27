@@ -101,3 +101,17 @@ describe("LiveRegion spinner", () => {
     inst.unmount();
   });
 });
+
+describe("LiveRegion thinking preview (universal reasoning display)", () => {
+  it("shows the model's streamed reasoning when liveThinking is present", async () => {
+    const inst = renderUi(h(LiveRegion, { streaming: "", activeTools: [], busy: true, tick: 5, liveThinking: "weighing the options" }));
+    await waitForFrame(inst, "weighing the options");
+    inst.unmount();
+  });
+  it("falls back to the generic spinner when no reasoning is streamed (e.g. codex)", async () => {
+    const inst = renderUi(h(LiveRegion, { streaming: "", activeTools: [], busy: true, tick: 5, liveThinking: "" }));
+    const frame = await waitForFrame(inst, "esc to interrupt");
+    expect(frame).not.toContain("weighing");
+    inst.unmount();
+  });
+});

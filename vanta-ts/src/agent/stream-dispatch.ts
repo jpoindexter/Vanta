@@ -40,12 +40,15 @@ export async function consumeStream(opts: {
   onTextDelta: (delta: string) => void;
   signal?: AbortSignal;
   onSafeToolCall?: (call: ToolCall) => void;
+  onThinkingDelta?: (delta: string) => void;
 }): Promise<CompletionResult | null> {
   let result: CompletionResult | null = null;
   for await (const chunk of opts.stream) {
     if (opts.signal?.aborted) throw new DOMException("Aborted", "AbortError");
     if (chunk.type === "text") {
       opts.onTextDelta(chunk.delta);
+    } else if (chunk.type === "thinking") {
+      opts.onThinkingDelta?.(chunk.delta);
     } else if (chunk.type === "tool_call") {
       if (opts.onSafeToolCall && isConcurrencySafe(chunk.call.name)) opts.onSafeToolCall(chunk.call);
     } else {

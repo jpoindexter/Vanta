@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { Box, Text, useStdout } from "ink";
 import { wrapText } from "../term/wrap.js";
+import { ACTIVITY } from "../term/palette.js";
 
 // The live streaming preview. Ink re-renders the non-<Static> region in place, which
 // only works while that region fits the viewport — so we show a BOUNDED window of the
@@ -35,6 +36,23 @@ export function StreamPreview(props: { text: string }): ReactElement {
           <Text>{i === 0 ? "⏺ " : "  "}</Text>{l}
         </Text>
       ))}
+    </Box>
+  );
+}
+
+const THINK_TAIL_LINES = 6;
+
+/** Live reasoning preview — the spinner header + a dimmed tail of the model's STREAMED thinking.
+ *  Shown (in place of the generic spinner) when a reasoning model streams its reasoning: DeepSeek-R1,
+ *  OpenRouter reasoning models, Anthropic thinking, or any OpenAI-compatible model that does. */
+export function ThinkingPreview(props: { text: string; frame: string; secs: number }): ReactElement {
+  const out = useStdout().stdout;
+  const cols = out?.columns ?? 80;
+  const lines = streamingTail(props.text, cols, THINK_TAIL_LINES);
+  return (
+    <Box flexDirection="column">
+      <Text><Text color={ACTIVITY}>{props.frame}</Text> thinking… ({props.secs}s · esc to interrupt)</Text>
+      {lines.map((l, i) => <Text key={i} dimColor>  {l}</Text>)}
     </Box>
   );
 }

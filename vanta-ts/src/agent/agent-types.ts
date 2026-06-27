@@ -26,6 +26,10 @@ export type AgentDeps = {
   /** Live token deltas as the model streams. When set (and the provider supports
    * streaming), the loop streams instead of waiting for the full completion. */
   onTextDelta?: (delta: string) => void;
+  /** Live reasoning/thinking deltas as the model streams them (DeepSeek-R1 `reasoning_content`,
+   *  OpenRouter `reasoning`, Anthropic thinking). Transient — for a live "thinking" display, not
+   *  committed output. No-op for backends that hide reasoning (e.g. codex), so it's universal. */
+  onThinkingDelta?: (delta: string) => void;
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, ok: boolean, output: string, diff?: DiffLine[]) => void;
   maxIterations?: number;

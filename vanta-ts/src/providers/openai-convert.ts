@@ -14,6 +14,18 @@ export type ToolCallDelta = {
 
 type IndexedCall = { index: number; call: ToolCall };
 
+/** Reasoning models stream their thinking in a NON-standard streamed-delta field: DeepSeek-R1 uses
+ *  `reasoning_content`, OpenRouter (and several gateways) normalize to `reasoning`. The OpenAI SDK
+ *  types don't include either, so we read them off the raw delta. Returns the thinking text when
+ *  present — empty/absent (every non-reasoning model, and reasoning models that hide it) → undefined,
+ *  so surfacing it is universal and self-disabling per model. */
+export function reasoningDelta(delta: unknown): string | undefined {
+  if (!delta || typeof delta !== "object") return undefined;
+  const d = delta as { reasoning_content?: unknown; reasoning?: unknown };
+  const r = typeof d.reasoning_content === "string" ? d.reasoning_content : d.reasoning;
+  return typeof r === "string" && r.length > 0 ? r : undefined;
+}
+
 function parseArgs(raw: string): Record<string, unknown> {
   try {
     return JSON.parse(raw || "{}") as Record<string, unknown>;

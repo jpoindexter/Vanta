@@ -219,3 +219,19 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(group?.tools[1]?.tokens).toBe(50);
   });
 });
+
+describe("live thinking (reasoning preview)", () => {
+  it("accumulates thinkingDelta into liveThinking", () => {
+    const s = run([{ t: "turnStart" }, { t: "thinkingDelta", d: "rea" }, { t: "thinkingDelta", d: "son" }]);
+    expect(s.liveThinking).toBe("reason");
+  });
+  it("clears liveThinking the moment output text begins", () => {
+    const s = run([{ t: "turnStart" }, { t: "thinkingDelta", d: "weighing" }, { t: "delta", d: "answer" }]);
+    expect(s.liveThinking).toBe("");
+    expect(s.streaming).toContain("answer");
+  });
+  it("resets liveThinking on turnStart and clears it on turnEnd", () => {
+    expect(run([{ t: "thinkingDelta", d: "stale" }, { t: "turnStart" }]).liveThinking).toBe("");
+    expect(run([{ t: "turnStart" }, { t: "thinkingDelta", d: "x" }, { t: "turnEnd" }]).liveThinking).toBe("");
+  });
+});
