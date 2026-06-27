@@ -143,15 +143,23 @@ Full scan with the bundled `security-skills` gate (gitleaks · npm/cargo/osv · 
 - **Shipped runtime — CLEAN.** Secrets: gitleaks **0 leaks** over 2003 commits. Runtime deps:
   `npm audit --omit=dev` clean; kernel `cargo audit` clean (zero-dependency). The artifact a user
   installs (`npm install --omit=dev` + the prebuilt kernel) carries no known CVE.
-- **Docs site (`vanta-website`, Docusaurus) — 1 high FIXED.** serialize-javascript RCE/DoS
-  (GHSA-5c6j / GHSA-qj8w) → forced `overrides` to `^7.0.5` (7.0.6), `docusaurus build` verified.
-  The remaining ~26 moderate are **build-time** transitive deps (js-yaml/uuid/webpack) processing
-  **self-authored** content — not reachable by a site visitor; no Docusaurus-compatible patch yet.
+- **Docs site (`vanta-website`, Docusaurus) — high + uuid FIXED.** serialize-javascript RCE/DoS
+  (GHSA-5c6j / GHSA-qj8w) → `overrides` `^7.0.5`; uuid bounds bug (GHSA-w5hq) → `overrides` `^11.1.1`;
+  `docusaurus build` verified after each. The remaining **23 are a single advisory** — js-yaml
+  quadratic DoS (GHSA-h67p-54hq-rp68) — cascading through every `@docusaurus/*` package via
+  `gray-matter`. **No upstream patch exists** (can't override to a version that isn't released). It's
+  **build-time** (frontmatter parsing during `docusaurus build`), **unreachable** by a site visitor
+  (the served site is static HTML), on **self-authored** content. Accepted until js-yaml/gray-matter
+  ship a fix.
 - **`vanta-ts` dev deps — ACCEPTED (dev-only, unreachable).** vite/vitest/esbuild advisories
   (incl. a vitest 9.8) are **dev/test tooling**, excluded from the shipped artifact by `--omit=dev`;
   the vulnerable paths are dev-server / exposed-API modes, which Vanta's headless `vitest run` does
-  not use. The vitest 3 / vite 6 bump clears them but breaks 5 plugin tests → **deferred to a
-  deliberate migration**, not blind-bumped (the suite is the gate).
+  not use. They have **no patch in the 5.x/2.x line** (fixed only in vite 6 / vitest 3), so clearing
+  them needs the major migration — which is **blocked**: vitest 3's module runner intercepts the
+  plugin loader's runtime `import()` of a file written outside its module graph and fails it
+  (`plugins/loader.test.ts`, minimal-reproduced; config-externalize, `@vite-ignore`, and a
+  `new Function` native-import indirection were all defeated by the runner). Tracked as a separate
+  test-infra migration; **not** blind-bumped past a red suite.
 - **SAST (semgrep) — 0 real.** One hit: a fake AWS key in `cofounder/company-template.test.ts` — a
   **fixture that tests the secret scanner**, allowlisted in `.gitleaks.toml`. Not a credential.
 
