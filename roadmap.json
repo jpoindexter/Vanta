@@ -16117,7 +16117,7 @@
       "id": "RELIABILITY-LONG-RUN-PROOF",
       "track": "Harness",
       "title": "Prove a long autonomous run finishes unattended (Pillar 1 win condition)",
-      "status": "building",
+      "status": "shipped",
       "size": "M",
       "summary": "THE riskiest unproven assumption (discovery/Working-Backwards 2026-06-27): every reliability test so far is a one-shot. Pillar 1's actual bar — \"a long autonomous run finishes verified work without babysitting\" — is untested. Build a real ~10-min, 30+-tool-call multi-stage task into the harness, run it unattended Nx, score reliability + stays-on-goal + verified-output (no false-done). This is the headline 'close your laptop' PR claim and must be proven before claiming readiness like Hermes/OpenClaw.",
       "done": "a real long-horizon task runs unattended >=5x at a high reliability pass-rate — no hang, no goal-drift, no false-done — scored by the harness.",
@@ -16176,6 +16176,19 @@
       "tier": "sand",
       "effort": "low",
       "updated": "2026-06-27"
+    },
+    {
+      "id": "RELIABILITY-PROVIDER-HARDENING",
+      "track": "Harness",
+      "title": "Provider hardening for long unattended runs — request/idle timeout + transient retry",
+      "status": "building",
+      "size": "S",
+      "summary": "Found by the long-run stress harness (RELIABILITY-LONG-RUN-PROOF). Two latent provider-reliability gaps a multi-hour unattended run will eventually hit (invisible to short runs): (1) the codex provider's raw SSE fetch had NO request/idle timeout (openai.ts got the PROVIDER-AWARE-WATCHDOG timeout; codex.ts did not), so a stalled stream hangs the run forever — the silent-hang failure mode. (2) turn-loop.ts:257/264 re-throw every non-context-length provider error (429/timeout/reset), crashing the run exit=1 instead of retrying. The keystone long-run is otherwise PROVEN (12/12 scope-corrected); these are defensive hardening for the 'close your laptop for hours' claim.",
+      "done": "a transient provider error (idle timeout / 429 / connection reset) during a long run is survived (bounded retry) or fails gracefully (clean stop, no exit=1 crash, no silent hang); covered by unit tests + a long-run re-check.",
+      "tier": "pebble",
+      "effort": "low",
+      "updated": "2026-06-27",
+      "notes": "PART 1 SHIPPED 2026-06-27: codex idle-timeout (codex.ts stream() — AbortController reset per SSE chunk, reuses resolveProviderTimeoutMs; combined with the user interrupt signal). Test: stalled stream aborts in ~1s instead of hanging. PART 2 REMAINING: turn-loop bounded transient-retry (reuse tool-retry TRANSIENT) so the abort is survived, not just turned into a clean crash."
     }
   ]
 }
