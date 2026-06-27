@@ -13,7 +13,7 @@ sidebar_position: 2
 One command on a fresh machine — clones Vanta, downloads the prebuilt kernel, and puts a global `vanta` on your PATH:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
+curl -fsSL https://vanta.theft.studio/install.sh | bash
 ```
 
 > No Rust or system Node required — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable Node 22 (from nodejs.org) when they're missing. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.

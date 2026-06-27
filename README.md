@@ -21,7 +21,7 @@ See `docs/prd.md` for the full roadmap.
 One command on a fresh machine — clones Vanta into `~/vanta`, downloads the prebuilt kernel (and a portable Node if you don't have one), and puts a global `vanta` on your PATH:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/bootstrap.sh | bash
+curl -fsSL https://vanta.theft.studio/install.sh | bash
 ```
 
 > **Only `git` is required.** No Rust toolchain, no system Node — `install.sh` downloads a checksum-verified prebuilt kernel (from the GitHub release) and a portable **Node 22** (from nodejs.org) when they're missing. Already have Rust + Node? It uses them. Override the location with `VANTA_DIR=/path bash bootstrap.sh`.
