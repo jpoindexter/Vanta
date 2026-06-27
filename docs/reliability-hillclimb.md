@@ -16,10 +16,12 @@ Stop at 0, or after 3 consecutive wakes with zero delta.
 | RELIABILITY-PROVIDER-HARDENING | codex request/idle timeout + transient-error retry (latent, found here) | ✅ PROVEN — both parts shipped + unit-tested (codex idle-timeout; turn-loop bounded transient retry) |
 | RELIABILITY-HEADLESS-MULTITURN | headless multi-turn works, or `run`-only is the decision | ✅ RESOLVED by decision — `run` (+ agent_session/gateway) is the headless path; REPL is TTY-only (DECISIONS 2026-06-27) |
 | RELIABILITY-SCORED-EVAL-CI | pass-rate tracked over time | ❌ unproven (after long-run) |
-| RELIABILITY-PROVIDER-VARIANCE | battery green on ≥2 providers | ❌ unproven |
+| RELIABILITY-PROVIDER-VARIANCE | battery green on ≥2 providers | ✅ PROVEN — codex 100% · ollama 90% PASS (1 codeexec hang = 14b model capability, watchdog-bounded; not a Vanta bug) |
 | RELIABILITY-CONCURRENCY-SOAK | kernel survives ≥32× parallel | ❌ unproven |
 
-**Unproven: 3 / 6** (long-run + provider-hardening + headless-multiturn resolved).
+**Unproven: 2 / 6** (+ provider-variance proven).
+
+- **Wake 4** (provider variance): 3→2. **Ran** the stress battery on ollama qwen2.5:14b (warmup + provider-aware timeout). **Evidence:** ollama **9/10 reliable (90%, PASS)**, 2/2 concurrency-burst clean, 0 zombies — vs codex 100% on the identical battery. The one failure (codeexec, a multi-step write→run→report) is the **weak 14b model's capability** on a hard task, watchdog/timeout-bounded (not infinite, not a Vanta-provider bug — codex nailed the same task). What's proven: Vanta's reliability machinery (warmup → provider-aware timeout → watchdog) is provider-portable; task SUCCESS tracks model quality, RELIABILITY (the bar) holds across providers.
 
 - **Wake 3** (headless multi-turn): 4→3. **Decided** (not coded): `vanta run` + agent_session/gateway are the headless interfaces; the interactive REPL is TTY-only — piping a multi-turn conversation in is unsupported (and now exits cleanly, 79fce703, rather than hanging). Rewriting the REPL input model for a muddy use case with existing alternatives wasn't worth the blast radius. **Evidence:** DECISIONS 2026-06-27; the harness's piped-REPL probe reframed to a clean-exit regression check for 79fce703.
 

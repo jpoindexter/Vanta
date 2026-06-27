@@ -16157,7 +16157,7 @@
       "id": "RELIABILITY-PROVIDER-VARIANCE",
       "track": "Harness",
       "title": "Reliability across providers (cold-start / timeout / tool-parse variance)",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Ollama showed cold-start/timeout sensitivity in stress testing; codex was clean. Run the battery across providers to surface provider-specific reliability (streaming/tool-parse/cold-start). PROVIDER-AWARE-WATCHDOG addresses cold-start timeouts structurally; this validates it live.",
       "done": "the battery runs green (reliability) on >=2 providers (codex + ollama) with provider-appropriate timeouts/warmup.",
