@@ -13,7 +13,7 @@ Stop at 0, or after 3 consecutive wakes with zero delta.
 | Card | Proves | Status |
 |------|--------|--------|
 | RELIABILITY-LONG-RUN-PROOF | a long autonomous run finishes unattended (riskiest) | ✅ PROVEN — 12/12 reliable + completed (scope-corrected) |
-| RELIABILITY-PROVIDER-HARDENING | codex request/idle timeout + transient-error retry (latent, found here) | ✅ PROVEN — both parts shipped + unit-tested (codex idle-timeout; turn-loop bounded transient retry) |
+| RELIABILITY-PROVIDER-HARDENING | codex request/idle timeout + transient-error retry (latent, found here) | ✅ PROVEN — both parts shipped; unit-tested (vs *simulated* stall/429) **+ long-run re-check 4/4 clean, no regression** (2026-06-27 vd-audit). Note: a *live* provider stall/429 triggering the fix was never reproduced — the fixes are defensive/latent, unit + long-run verified, not live-failure verified. |
 | RELIABILITY-HEADLESS-MULTITURN | headless multi-turn works, or `run`-only is the decision | ✅ RESOLVED by decision — `run` (+ agent_session/gateway) is the headless path; REPL is TTY-only (DECISIONS 2026-06-27) |
 | RELIABILITY-SCORED-EVAL-CI | pass-rate tracked over time | ✅ PROVEN — `scripts/reliability-eval.sh` records a dated pass-rate to `docs/reliability-results.md` (first row: codex, all 100% PASS) |
 | RELIABILITY-PROVIDER-VARIANCE | battery green on ≥2 providers | ✅ PROVEN — codex 100% · ollama 90% PASS (1 codeexec hang = 14b model capability, watchdog-bounded; not a Vanta bug) |
