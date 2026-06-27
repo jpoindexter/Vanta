@@ -331,118 +331,119 @@ Synthesized from improvement dumps + the Vanta Brand Style Guide. **Key truth: m
 
 ---
 
-## Promoted from PARKED — 2026-06-27
+## Build order — Hermes / OpenClaw parity (2026-06-27)
 
-All items below were previously in `PARKED.md`. Promoted in full — nothing deleted from PARKED.
+Execute top-down. Each phase must be green before the next starts.
+Target: match Hermes (20+ channels, MOA, streaming, self-learning loop) and OpenClaw (13+ channels, migration importer).
 
-### Intelligence & model quality
+---
 
-- [ ] **MOA — Mixture of Agents** (M) — virtual model provider: run N reference models (no tools, trimmed context) in parallel per turn; aggregator synthesizes their outputs and acts as the real model with tools. Appears as a normal `/model` selection. Benchmark lift: ~6pt vs best single model alone (Hermes HermesBench). Done = a `moa` provider in `providers/moa.ts`, configurable reference/aggregator pairs in `.env`/`mcp.json`, prompt-cache-safe injection (reference outputs appended as tail of last user turn). Size: M/L — 3–5 days. *(Hermes MoA comparison, 2026-06-27)*
+### P1 — Stability (ship first, ~2 days)
+Bugs that silently break sessions. No new features until these are green.
 
-- [ ] **REFLECT-CORRECT** (S) — cross-session correction persistence. Post-turn hook detects correction signals ("no, don't do X", negation, rephrasing of failed output) → writes structured entry to `brain/reflections.md` + `brain/user_model.md` → injected next session. Done = same mistake does not recur across sessions. Full spec in `PARKED.md`. No new infra — `writeRunMemory` + B3 + brain injection are live; wiring + prompt work only. *(already named pebble in Arc A — promoting with done-condition)* 1–2 days.
+- [ ] **TOOL-RESULT-MERGE** (S) — merge adjacent `tool_result` blocks in `toAnthropicMessages`. Prevents silent 400s on multi-tool turns with Anthropic. One file change.
+- [ ] **UX-MODEL-FIX** (S) — model choice not persisting across relaunches. Diagnose `setup.ts upsertEnv` + `/model` write path + launcher env precedence. Done = pick model → still active next launch.
+- [ ] **INVALID-JSON-NOTICE** (S) — surface actionable error when a config file (`.vanta/mcp.json`, `.env`) is invalid JSON. Tag `parked/a3f814553d37a522d` — re-port to current main.
+- [ ] **DEPRECATED-MODEL-WARN** (S) — warn at session start when the active model ID is a known-deprecated string. Tag `parked/a30937211b2e36851`.
+- [ ] **VITEST4** (S) — upgrade vitest past the esbuild advisory (`npm audit fix --force`). Audit test compatibility first.
+- [ ] **SETUP-GOOGLE-OAUTH** (setup) — provision Google Cloud OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`). ~30 min. Unblocks all Google comms tools live.
+- [ ] **SETUP-BROWSER-BINS** (setup) — `npx playwright install chromium`. One command. Unblocks browser tools.
 
-- [ ] **B-v2 · Emergent self-designed brain** (XL) — Vanta designs her own brain substrate (format/code/tech, not human-readable md). The md brain is the bootstrap. Open research; pursue when the md brain feels limiting. *(no clear done line — ship only after evidence md brain is the bottleneck)*
+---
 
-- [ ] **E-eff2 · Prefer-local routing** (S) — auto-route simple/cheap subtasks to local Ollama on M4 Pro; reserve frontier models for hard reasoning. Extends `routing/model-router.ts` + `delegate`.
+### P2 — Session & context reliability (~1 week)
+Hermes is known for long-session stability. These close that gap.
 
-### Reliability & hardening
+- [ ] **VANTA-TOOL-RESULT-DISK** (S) — oversized tool outputs saved to `.vanta/tool-results/<id>.txt`; context gets a stub reference. Done = results over `VANTA_RESULT_MAX_TOKENS` never bloat the window. Tag `parked/ac9ecf1ed89da1e0e`.
+- [ ] **TIME-MICROCOMPACT** (S) — auto-clear tool results older than `VANTA_RESULT_TTL_TURNS` turns. Tag `parked/a8130bd4887679171`.
+- [ ] **VANTA-SHELL-STALL-DETECT** (S) — watchdog interrupts a hung `shell_cmd` after a configurable timeout and reports elapsed time. Tag `parked/af2e5090de92795ba`.
+- [ ] **KEEP-GOING-RESUME** (S) — "keep going" resumes prior task; negative-keyword recognition ("stop", "cancel", "nevermind"). Tag `parked/a9499176bf8ac114a`.
+- [ ] **COMPACTION-REMIND** (S) — remind the user to `/compress` when context is nearing the limit. Tag `parked/a54f3a6bcaf32c2f7`. Check vs current `context.ts` before re-porting.
+- [ ] **VANTA-CONTEXT-SUGGESTIONS** (S) — actionable suggestions (what to drop or compact) when context fills. Tag `parked/a26e763a2529de5ca`.
+- [ ] **COMPRESS-FLAGS** (S) — `/compress` focus instructions + `VANTA_DISABLE_COMPACT` gate. Tags `parked/a8130bd…` / `parked/aac5129481d980bab`.
 
-- [ ] **VANTA-SANDBOX** (M) — opt-in OS isolation for `shell_cmd` + `run_code`. Recovered from parked worktree `parked/a6217a9b43934ee79`. Conflicts with current main; re-port the diff. Done = `VANTA_SHELL_SANDBOX=1` runs commands in a confined environment; kernel still gates, sandbox adds OS-level boundary.
+---
 
-- [ ] **VANTA-SHELL-STALL-DETECT** (S) — background watchdog detects shell commands that hang indefinitely and surfaces them rather than silently blocking. Recovered from `parked/af2e5090de92795ba`. Done = a stalled `shell_cmd` is interrupted + reported with elapsed time after a configurable timeout.
+### P3 — Channel parity → Hermes 20+ / OpenClaw 13+ (~2 weeks)
+Biggest visible competitive gap. MSG-CHANNEL-PARITY is the umbrella already at the top of this file.
 
-- [ ] **VANTA-TOOL-RESULT-DISK** (S) — persist oversized tool outputs to a temp file instead of bloating context; inject a reference instead of the raw text. Recovered from `parked/ac9ecf1ed89da1e0e`. Done = tool results over `VANTA_RESULT_MAX_TOKENS` (default e.g. 8k) are written to `.vanta/tool-results/<id>.txt` and the context receives a `[result saved: .vanta/tool-results/<id>.txt — N tokens]` stub.
+- [ ] **MSG-CHANNEL-PARITY** (L) — Discord, Signal, iMessage, Matrix, Teams, Google Chat, email/SMS + finish Slack app. `PlatformAdapter` pattern; Telegram + WhatsApp already shipped. *(see top of file for full spec)*
+- [ ] **PLATFORMS-LONG-TAIL** (demand-driven) — remaining ~19 platforms beyond the umbrella above. Build on explicit request.
 
-- [ ] **TIME-MICROCOMPACT** (S) — automatically clear stale tool results from context after idle time. Recovered from `parked/a8130bd4887679171`. Done = tool results older than `VANTA_RESULT_TTL_TURNS` (default e.g. 10 turns) are stripped from the active window.
+---
 
-- [ ] **SECRET-SCANNER-MEMORY** (S) — client-side secret scanner blocks secrets from being written to brain/memory sync. Recovered from `parked/ac637030536a45f69`. Complements the existing `gitleaks` pre-commit hook. Done = regex-based scanner runs before any `writeRunMemory`/`brain` write; matches on known secret shapes (API key, token, private key headers); write is refused with a clear message.
+### P4 — Streaming parity (~1 week)
+Hermes streams every provider. Vanta has OpenAI streaming; gaps elsewhere.
 
-- [ ] **AUTH-BROWSER** (M) — persistent browser profile for logged-in sites, so Vanta can operate as the user in browser sessions without re-authenticating each time. Recovered from `parked/ac9ecf1ed89da1e0e`. Done = a named persistent Playwright profile is created on first auth; subsequent sessions reuse it. Kernel-gated, user-approved on first site.
+- [ ] **STREAMING-PROVIDERS** (M) — streaming (`LLMProvider.stream()`) for all providers. OpenAI/Anthropic/Gemini have SSE; Codex, Ollama, OpenRouter need their own paths. Done = every provider streams; no full-completion fallback in a streaming session.
 
-- [ ] **OAUTH-PKCE** (S) — add PKCE (S256) to `google/auth.ts` (currently confidential-client loopback flow). ~4 lines of additional hardening. Cost: <1 day.
+---
 
-- [ ] **TOOL-RESULT-MERGE** (S) — `toAnthropicMessages` emits consecutive tool results one-per-message; merge adjacent `tool_result` blocks for multi-tool turns to satisfy Anthropic's role-alternation requirement. Prevents silent 400s on multi-tool turns with Anthropic provider.
+### P5 — Self-improvement quality (~1 week)
+The "wedge to own" vs Hermes. Closes the loop the raw capability already supports.
 
-- [ ] **VITEST4** (S) — upgrade vitest devDependency past the esbuild advisory (`npm audit fix --force`). Breaking change; audit test compatibility first. Pre-existing from Phase 1.
+- [ ] **REFLECT-CORRECT** (S) — post-turn hook detects correction signals → writes structured entry to `brain/reflections.md` + `user_model.md` → injected next session. Done = same mistake does not recur across sessions. Full spec in `PARKED.md`. No new infra needed. 1–2 days.
+- [ ] **SECRET-SCANNER-MEMORY** (S) — regex scanner before any `writeRunMemory`/`brain` write; blocks API keys/tokens from landing in memory. Tag `parked/ac637030536a45f69`.
+- [ ] **VANTA-MEM-FRESHNESS** (S) — inject staleness caveat for memories older than 1 day. Tag `parked/acfb2e69ab2f55425`. Audit vs brain confidence/recency fields first.
+- [ ] **S5 · Heartbeat** (S) — wire brain selfhood updates (S2/S3) onto the gateway tick. Daemon exists (E1); wiring is the remaining piece.
+- [ ] **E-eff2 · Prefer-local routing** (S) — auto-route simple/cheap subtasks to local Ollama; reserve frontier for hard reasoning. Extends `routing/model-router.ts` + `delegate`.
+- [ ] **VANTA-SELF-LEARNING-LOOP** (L) — one always-on closed loop: observe trajectory → propose skill/edit → eval-gate → adopt → measure reuse. Unifies curator, meta-tune, LoRA, brain. *(see top of file for full spec)*
 
-### Extensibility & reach
+---
 
-- [ ] **A2A-NETWORK** (L) — networked A2A transport (HTTP/Google A2A protocol) slotted behind the existing `A2ATransport` port (`a2a/types.ts`). The in-process `A2ABus` stays as the local adapter; an HTTP adapter enables cross-process + cross-machine agent-to-agent calls. Supersedes E6 ACP wrapper — A2A is the open protocol, ACP is now the transport layer. Done = two Vanta instances on the same network can exchange `A2AMessage`s via HTTP; in-process `A2ABus` unchanged.
+### P6 — MOA: Mixture of Agents (~1 week)
+Single biggest quality differentiator vs Hermes. Adds ~6pt lift on hard tasks.
 
-- [ ] **LSP-MULTILANG** (M) — extend `lsp_diagnostics`/`lsp_definition` beyond `.ts/.tsx` to at least Rust (rust-analyzer) and Python (pyright/pylance). Currently TS compiler API only. Done = `LSP_LANG=rust` runs rust-analyzer, `LSP_LANG=python` runs pyright; existing TS path unchanged.
+- [ ] **MOA** (M/L) — virtual model provider: N reference models (no tools, trimmed context) run per turn; aggregator synthesizes and acts as the real model. Appears as a normal `/model` selection. Done = `providers/moa.ts`, configurable reference/aggregator pairs in `.env`/`mcp.json`, prompt-cache-safe injection (reference outputs as tail of last user turn). 3–5 days.
 
-- [ ] **PROVIDERS-LONG-TAIL** (demand-driven) — umbrella for the ~24 niche model providers beyond OpenAI/Anthropic/Ollama/Gemini/OpenRouter (Bedrock, DeepSeek, xAI, Qwen, Kimi, Nous, Copilot, …). Each is a small add via the provider registry (A2); build on explicit request.
+---
 
-- [ ] **PLATFORMS-LONG-TAIL** (demand-driven) — umbrella for the remaining ~19 messaging platforms beyond what's shipped (Discord, Signal, iMessage, Matrix, Teams, Google Chat, …). Supersedes per-platform cards; build on explicit request via `PlatformAdapter`.
+### P7 — Migration: unlock new users (~3–5 days)
+OpenClaw ships an importer. So does Hermes. This is how users arrive.
 
-- [ ] **IMG-GEN-VOICE-REG** (demand-driven) — DALL-E/Whisper/etc provider registries for image generation and voice transcription. Not on the operator path; build when asked.
+- [ ] **VANTA-MIGRATE** (M) — `vanta migrate openclaw|hermes`: import skills + MCP servers + model config into `~/.vanta`. Preview → select → backup → apply. *(see top of file for full spec)*
 
-### UI & polish (post-users)
+---
 
-- [ ] **COCKPIT-RICHER** (M) — richer kernel cockpit UI beyond the current inlined HTML at `:7788`. Better goal/approval/event views; brand-guide aesthetic. Seed for DESKTOP.
+### P8 — Security & isolation (~1–2 weeks)
 
-- [ ] **RUN-CODE-SANDBOX** (M) — multi-language `run_code` sandboxing beyond the current shell execution. Scoped containers or WASM for at least Python + JS.
+- [ ] **VANTA-SANDBOX** (M) — opt-in OS isolation for `shell_cmd` + `run_code`. `VANTA_SHELL_SANDBOX=1`. Tag `parked/a6217a9b43934ee79` — re-port to current main.
+- [ ] **AUTH-BROWSER** (M) — persistent Playwright profile for logged-in browser sessions. Kernel-gated, user-approved on first site. Tag `parked/ac9ecf1ed89da1e0e`.
+- [ ] **OAUTH-PKCE** (S) — add PKCE (S256) to `google/auth.ts`. ~4 lines. <1 day.
+- [ ] **VANTA-PERMISSIONS** (S) — `/permissions` command + pure rule layer for kernel permission rules. Tag `parked/ad52d4ad12952fd6c`. Audit overlap with `permissions.tsv` + `loadRules` + `ui/grant.ts` first.
 
-- [ ] **GOAL-NAMESPACING** (S) — project-room goal namespacing: goals scoped to a project dir, not just the global `.vanta/goals.tsv`. Done = `vanta goals --project <path>` and `VANTA_GOALS_DIR` override.
+---
 
-- [ ] **D2 · Skill bundles** (S) — YAML bundle schema: one `/slash` loads a named set of skills + an instruction block. Why: composite operator commands. Factory can implement.
+### P9 — Extensibility (ongoing, parallel-safe)
 
-- [ ] **S5 · Heartbeat** (S) — wire selfhood updates (brain regions S2/S3) onto the gateway tick so identity evolves continuously. The daemon (E1) exists; wiring is the remaining piece.
+- [ ] **LSP-MULTILANG** (M) — extend `lsp_diagnostics`/`lsp_definition` to Rust (rust-analyzer) + Python (pyright). Done = `LSP_LANG=rust|python` works; TS path unchanged.
+- [ ] **LSP-DELTA** (S) — LSP diagnostic-delta + `edit_file` tool backed by LSP. Tag `parked/a25c364f2bcccce87`. Check vs current `lsp/` first.
+- [ ] **A2A-NETWORK** (L) — HTTP transport slotted behind `A2ATransport` port (`a2a/types.ts`). In-process `A2ABus` stays; HTTP adapter enables cross-machine agent calls.
+- [ ] **D2 · Skill bundles** (S) — YAML bundle schema: one `/slash` loads a named skill set + instruction. Factory can implement.
+- [ ] **PROVIDERS-LONG-TAIL** (demand-driven) — ~24 niche providers (Bedrock, DeepSeek, xAI, Qwen, …). Each is a small add via provider registry (A2); build on request.
+- [ ] **IMG-GEN-VOICE-REG** (demand-driven) — DALL-E/Whisper provider registries. Build on request.
 
-### Horizon (AHE / cofounder engine)
+---
 
-- [ ] **AHE-EVAL-HARNESS** (L·horizon) — evaluation harness: falsifiable task set + run harness + scored results. Prerequisite before the self-evolution loop is worth building. Methodology from `docs/agentic-harness-engineering.md`. Build only when Vanta has real users + a reward signal.
+### P10 — UX & polish (post-parity)
 
-- [ ] **AHE-TRACE-DISTILLER** (L·horizon) — distill agent traces into training signal (skill proposals, correction entries). Pairs with AHE-EVAL-HARNESS.
+- [ ] **TUI-KEYS** (S) — readline/Emacs keybindings in TUI composer. Must re-implement against current `src/ui/` (real Ink 7) — tag `parked/a2ed381d918efc514` is obsolete (built on deleted `src/tui/`).
+- [ ] **COCKPIT-RICHER** (M) — richer kernel cockpit at `:7788`. Better goal/approval/event views; brand aesthetic. Seed for DESKTOP.
+- [ ] **GOAL-NAMESPACING** (S) — goals scoped per project dir. `vanta goals --project <path>` + `VANTA_GOALS_DIR`.
+- [ ] **VANTA-COST-GUARD** (S) — real-time cost tracking + configurable hard caps. Surfaced in `/status` + status bar.
+- [ ] **RUN-CODE-SANDBOX** (M) — multi-language `run_code` sandboxing (containers or WASM for Python + JS).
+- [ ] **B-v2 · Emergent self-designed brain** (XL) — Vanta designs her own brain substrate. Open research; pursue when the md brain feels limiting.
 
-- [ ] **VANTA-KANBAN** (M·horizon) — operator kanban surface (goals × in-progress × blocked × done) inspired by reference-agent pattern. Visual loop-closer.
+---
 
-- [ ] **VANTA-BLUEPRINTS** (M·horizon) — reusable workflow blueprints (named multi-step sequences the agent can recall and replay). Pairs with D2 skill bundles.
+### Horizon (post-users, requires real eval signal)
 
-- [ ] **VANTA-SKILLS-HUB** (M·horizon) — a browsable, searchable hub for operator-published skills. Distribution layer above the current install mechanism.
-
-- [ ] **VANTA-COST-GUARD** (S·horizon) — real-time cost tracking with configurable hard caps per session/day. Surfaced in `/status` + status bar.
-
-- [ ] **VANTA-SUGGESTIONS** (M·horizon) — proactive operator suggestions: Vanta notices patterns (repeated tasks, stalled goals, unused tools) and proposes next actions unprompted. Extends nd-task-initiation + EF gates.
-
-- [ ] **AHE-SELF-EVOLVE** (XL·horizon) — closed self-evolution loop: observe trajectory → propose skill/edit → eval-gate → adopt → measure reuse. Requires AHE-EVAL-HARNESS + AHE-TRACE-DISTILLER first. Build only when real users + a reward signal exist.
-
-### Streaming & providers
-
-- [ ] **STREAMING-PROVIDERS** (M) — streaming (`LLMProvider.stream()`) for all providers, not just OpenAI-family. OpenAI/Anthropic/Gemini have SSE streaming; Codex, Ollama, OpenRouter need their own paths. Done = every provider streams token deltas; no provider falls back to full-completion in a streaming session.
-
-### Worktree recoveries — remaining (re-port to current main)
-
-All below are preserved as `parked/<sha>` git tags. Built on pre-06-13 codebase (before real-Ink TUI rebuild + size-gate decomposition); re-port the diff by hand, don't merge.
-
-- [ ] **LSP-DELTA** (S) — LSP diagnostic-delta + an `edit_file` tool backed by LSP. Tag `parked/a25c364f2bcccce87`. Check vs current `lsp/` before re-porting — may be partially superseded.
-
-- [ ] **COMPACTION-REMIND** (S) — compaction-remind + `context.ts` improvements. Tag `parked/a54f3a6bcaf32c2f7`. Check vs current `context.ts` before re-porting.
-
-- [ ] **VANTA-CONTEXT-SUGGESTIONS** (S) — actionable suggestions when context fills (prompt the user what to drop or compact). Tag `parked/a26e763a2529de5ca`. Check vs current context UX.
-
-- [ ] **COMPRESS-FLAGS** (S) — `/compress` focus instructions + `VANTA_DISABLE_COMPACT` gate. Tags `parked/a8130bd…` / `parked/aac5129481d980bab`. Check vs current `/compress`.
-
-- [ ] **KEEP-GOING-RESUME** (S) — "keep going" resumes prior task; negative-keyword recognition (detect "stop", "cancel", "nevermind"). Tag `parked/a9499176bf8ac114a`.
-
-- [ ] **INVALID-JSON-NOTICE** (S) — actionable notice when a config file (`.vanta/mcp.json`, `.env`, etc.) is invalid JSON instead of a silent failure. Tag `parked/a3f814553d37a522d`.
-
-- [ ] **DEPRECATED-MODEL-WARN** (S) — warn at session start when the active model ID is a known-deprecated model string. Tag `parked/a30937211b2e36851`.
-
-- [ ] **VANTA-MEM-FRESHNESS** (S) — staleness caveat injected for memories older than 1 day ("this memory is N days old — verify before acting"). Tag `parked/acfb2e69ab2f55425`. Likely partially superseded by brain confidence/recency fields — audit before building.
-
-- [ ] **TUI-KEYS** (S) — readline/Emacs keybindings in the TUI composer. Tag `parked/a2ed381d918efc514`. **Obsolete** — built on deleted `src/tui/`; must be re-implemented against current `src/ui/` (real Ink 7). Effort: S once the current render layer is understood.
-
-- [ ] **VANTA-PERMISSIONS** (S) — pure rule layer + `/permissions` command for managing kernel permission rules interactively. Tag `parked/ad52d4ad12952fd6c`. Likely partially superseded by `permissions.tsv` + `loadRules` + `ui/grant.ts` — audit overlap before building.
-
-### Live-use setup (one-time, not features)
-
-- [ ] **SETUP-GOOGLE-OAUTH** — provision a Google Cloud OAuth client (`VANTA_GOOGLE_CLIENT_ID/SECRET`) for `vanta auth google` (calendar/email/drive). ~30 min in Google Cloud Console + 2 env vars. Unblocks all Google comms tools live.
-
-- [ ] **SETUP-BROWSER-BINS** — run `npx playwright install chromium` to activate browser tools. Tools degrade gracefully until then. One command.
-
-### Deferred pipelines (not runtime)
-
-- [ ] **TRAJECTORY-DATAGEN** (XL·horizon) — batch trajectory runner → ShareGPT JSONL → fine-tuning pipeline. Training-data infrastructure, not runtime. Only relevant if Vanta ever fine-tunes a model. Prerequisite: real users + a task set.
-
-- [ ] **MULTI-CRED-POOL** (M·demand-driven) — round-robin/least-used credential pool across multiple API keys per provider. Single-user, single-key for now; build when multi-key rotation becomes needed.
+- [ ] **AHE-EVAL-HARNESS** (L) — falsifiable task set + run harness + scored results. Prerequisite for AHE-SELF-EVOLVE. Build only after real users + reward signal.
+- [ ] **AHE-TRACE-DISTILLER** (L) — distill traces into training signal. Pairs with AHE-EVAL-HARNESS.
+- [ ] **AHE-SELF-EVOLVE** (XL) — closed self-evolution loop. Requires both AHE cards first.
+- [ ] **VANTA-KANBAN** (M) — operator kanban (goals × in-progress × blocked × done).
+- [ ] **VANTA-BLUEPRINTS** (M) — reusable named workflow blueprints. Pairs with D2 skill bundles.
+- [ ] **VANTA-SKILLS-HUB** (M) — browsable, searchable hub for operator-published skills.
+- [ ] **VANTA-SUGGESTIONS** (M) — proactive suggestions: Vanta notices patterns and proposes next actions unprompted.
+- [ ] **MULTI-CRED-POOL** (M) — round-robin credential pool across multiple keys per provider. Build when multi-key rotation is needed.
+- [ ] **TRAJECTORY-DATAGEN** (XL) — batch trajectory → ShareGPT JSONL → fine-tuning pipeline. Training infra only; prerequisite: real users + task set.
