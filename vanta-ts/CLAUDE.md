@@ -468,7 +468,7 @@ Counts after: **122 built-in tools** (126 registered) · **128 slash commands**.
 
 ## Session additions (2026-06-11) — keep current
 
-**v0.2.0.** Four Harness rocks + a full size-gate cleanup. All editable TS now passes file ≤300 / fn ≤50 / params ≤4 / cx ≤10 (only kernel-protected `factory/*` excepted).
+**v0.2.0.** Four Harness rocks + a full size-gate cleanup. All TS now passes file ≤300 / fn ≤50 / params ≤4 / cx ≤10 — **no exemptions** (`factory/*` brought into compliance 2026-06-27: `run.ts`/`planner.ts`/`verifier.ts` refactored behavior-preserving, the `is_protected_path` kernel-mirror kept byte-identical).
 
 - **Session memory** (`memory/session-memory.ts`) — a forked distiller maintains `.vanta/session-memory.md` during the session (periodic / busy turns); re-injected interior on compaction (`context.ts`) and into the system prompt on resume (`prepareRun`). `Conversation.setSessionMemory` refreshes the live injection. Env: `VANTA_SESSION_MEMORY[_EVERY|_MIN_TOOLS]`. Post-turn wiring lives in `session/after-turn.ts`.
 - **Streaming tool execution** (`agent/stream-dispatch.ts`) — providers emit a `tool_call` stream chunk when a block completes; the loop prefetches concurrency-safe reads (`CONCURRENCY_SAFE_TOOLS`) mid-stream and reuses the in-flight result. openai emits via the pure `completedToolCalls` fold. `done` stays the source of truth (backward-compatible).
