@@ -14,12 +14,14 @@ Stop at 0, or after 3 consecutive wakes with zero delta.
 |------|--------|--------|
 | RELIABILITY-LONG-RUN-PROOF | a long autonomous run finishes unattended (riskiest) | ✅ PROVEN — 12/12 reliable + completed (scope-corrected) |
 | RELIABILITY-PROVIDER-HARDENING | codex request/idle timeout + transient-error retry (latent, found here) | ✅ PROVEN — both parts shipped + unit-tested (codex idle-timeout; turn-loop bounded transient retry) |
-| RELIABILITY-HEADLESS-MULTITURN | headless multi-turn works, or `run`-only is the decision | ❌ unproven |
+| RELIABILITY-HEADLESS-MULTITURN | headless multi-turn works, or `run`-only is the decision | ✅ RESOLVED by decision — `run` (+ agent_session/gateway) is the headless path; REPL is TTY-only (DECISIONS 2026-06-27) |
 | RELIABILITY-SCORED-EVAL-CI | pass-rate tracked over time | ❌ unproven (after long-run) |
 | RELIABILITY-PROVIDER-VARIANCE | battery green on ≥2 providers | ❌ unproven |
 | RELIABILITY-CONCURRENCY-SOAK | kernel survives ≥32× parallel | ❌ unproven |
 
-**Unproven: 4 / 6** (long-run + provider-hardening proven).
+**Unproven: 3 / 6** (long-run + provider-hardening + headless-multiturn resolved).
+
+- **Wake 3** (headless multi-turn): 4→3. **Decided** (not coded): `vanta run` + agent_session/gateway are the headless interfaces; the interactive REPL is TTY-only — piping a multi-turn conversation in is unsupported (and now exits cleanly, 79fce703, rather than hanging). Rewriting the REPL input model for a muddy use case with existing alternatives wasn't worth the blast radius. **Evidence:** DECISIONS 2026-06-27; the harness's piped-REPL probe reframed to a clean-exit regression check for 79fce703.
 
 - **Wake 2** (provider hardening): 5→4. **Fixed** both provider gaps from wake 1. Part 1: codex SSE idle-timeout (`codex.ts`, AbortController reset per chunk; commit 2a3ef344) — a stalled stream aborts in ~1s instead of hanging. Part 2: bounded transient-retry in `getCompletionWithContextRetry` (extracted to `agent/provider-call.ts` for the size gate; reuses `tool-retry` TRANSIENT) — a transient provider error (429/timeout/reset) is retried then stopped gracefully; non-transient fails fast. **Evidence:** 3 unit tests (retry→succeed, exhaust→graceful, non-transient→throw) green; turn-loop tests intact; full suite green.
 

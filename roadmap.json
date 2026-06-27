@@ -16130,7 +16130,7 @@
       "id": "RELIABILITY-HEADLESS-MULTITURN",
       "track": "Harness",
       "title": "Headless multi-turn: fix the input mechanism or declare run the only path",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Stress testing surfaced that the only headless multi-turn path (piping into the non-TTY REPL) does not consume lines as turns (readline/promises emits 'line' before question() awaits, so turns are lost). The exit-hang was fixed (79fce703); the INPUT mechanism remains. Decide: queue piped lines as sequential turns in the REPL, OR declare `vanta run` the only headless interface and document it.",
       "done": "either a headless multi-turn conversation carries context across turns (verified by the multi-turn probe showing context-carried=1), or an explicit documented decision that run is the only headless path.",

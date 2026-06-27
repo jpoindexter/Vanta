@@ -77,31 +77,26 @@ for entry in "${TASKS[@]}"; do
 done
 rm -f "${TMP_PREFIX}"-*.txt "${TMP_PREFIX}"-fib.py
 
-# ── Multi-turn probe: drive the non-TTY REPL with a piped conversation. Turn 2 can only answer
-# from turn 1's context, so a correct answer PROVES cross-turn context carry. Timeout-guarded so
-# a REPL that fails to exit on EOF can't hang the harness.
-echo "── multi-turn context-carry probe (piped REPL, ${TIMEOUT}s cap) ──"
+# ── Piped-REPL exit probe (regression for fix 79fce703). Per DECISIONS 2026-06-27, piping a
+# multi-turn conversation into the non-TTY REPL is NOT a supported path (headless = `vanta run`;
+# programmatic multi-turn = agent_session/gateway, which DO carry context). The bar here is only
+# that the REPL EXITS CLEANLY on stdin EOF instead of hanging on mounted MCP handles (79fce703).
+echo "── piped-REPL exit probe (regression for 79fce703, ${TIMEOUT}s cap) ──"
 mt_out="$(mktemp)"
-( printf 'remember that my favorite number is 73\nwhat is my favorite number? reply with only the number\n' \
-    | VANTA_NO_TUI=1 ./run.sh >"$mt_out" 2>&1; echo "[[EXIT $?]]" >>"$mt_out" ) &
+( printf 'what is 2+2? reply with only the number\n' | VANTA_NO_TUI=1 ./run.sh >"$mt_out" 2>&1; echo "[[EXIT $?]]" >>"$mt_out" ) &
 mtpid=$!; mtstart=$SECONDS
 until grep -q '\[\[EXIT' "$mt_out" 2>/dev/null || [ $((SECONDS - mtstart)) -gt "$TIMEOUT" ]; do sleep 2; done
-mtdur=$((SECONDS - mtstart)); mt_reliable=0; mt_success=0
-if grep -q '\[\[EXIT' "$mt_out"; then
-  mt_reliable=1
-  grep -qE '(^|[^0-9])73([^0-9]|$)' "$mt_out" && mt_success=1
-else
-  kill "$mtpid" 2>/dev/null; pkill -f 'cli.ts' 2>/dev/null
-fi
-echo "  multi-turn: reliable=${mt_reliable} context-carried=${mt_success} (${mtdur}s)"
+mtdur=$((SECONDS - mtstart)); mt_reliable=0
+if grep -q '\[\[EXIT' "$mt_out"; then mt_reliable=1; else kill "$mtpid" 2>/dev/null; pkill -f 'cli.ts' 2>/dev/null; fi
+echo "  piped-REPL: exits-clean=${mt_reliable} (${mtdur}s)"
 rm -f "$mt_out"
 
 echo "──────────────────────────────────────────────"
 OREL="$(pct "$RELIABLE" "$RUNS")"; OSUCC="$(pct "$SUCCESS" "$RUNS")"
 echo "long-horizon → RUNS=$RUNS RELIABLE=${RELIABLE} (${OREL}%) SUCCESS=${SUCCESS} (${OSUCC}%)"
 echo "failure modes → hangs=$HANGS bad-exit=$BADEXIT zombies=$ZOMBIE output-miss=$MISMATCH"
-echo "multi-turn    → reliable=${mt_reliable} context-carried=${mt_success}"
+echo "piped-REPL    → exits-clean=${mt_reliable} (piped multi-turn unsupported by design — DECISIONS 2026-06-27)"
 echo "lingering procs: $(pgrep -f 'cli.ts' | wc -l | tr -d ' ')"
 awk -v r="$OREL" -v t="$THRESHOLD" 'BEGIN{exit !(r+0 >= t+0)}' && [ "$mt_reliable" -eq 1 ] \
-  && { echo "VERDICT: PASS (long-horizon ${OREL}% ≥ ${THRESHOLD}%, multi-turn reliable)"; exit 0; } \
-  || { echo "VERDICT: FAIL (long-horizon ${OREL}% vs ${THRESHOLD}%, or multi-turn unreliable)"; exit 1; }
+  && { echo "VERDICT: PASS (long-horizon ${OREL}% ≥ ${THRESHOLD}%, piped-REPL exits clean)"; exit 0; } \
+  || { echo "VERDICT: FAIL (long-horizon ${OREL}% vs ${THRESHOLD}%, or piped-REPL hung)"; exit 1; }
