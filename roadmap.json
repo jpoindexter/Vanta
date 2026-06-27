@@ -16142,7 +16142,7 @@
       "id": "RELIABILITY-SCORED-EVAL-CI",
       "track": "Harness",
       "title": "Wire the reliability harnesses into a tracked scored eval",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Turn the harnesses into a tracked pass-rate-over-time signal (the measurement half of AHE-EVAL-HARNESS). Per discovery: do this AFTER the long-run proof — don't plumb a metric that's already ~100% on short tasks until there is a meaningful (long-run) signal to track.",
       "done": "one command runs the battery and records a dated pass-rate to a results file; deltas tracked over time (and optionally a CI job).",
