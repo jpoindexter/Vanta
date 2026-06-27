@@ -2,6 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-6d28d9.svg)](https://docs.vanta.theft.studio)
 
+<p align="center">
+  <img src="assets/vanta-demo.gif" alt="Vanta TUI: a goal in, a kernel-gated shell tool call, a verified answer out" width="820">
+</p>
+
 A local trusted-operator agent runtime. The agent that knows the goal, knows the boundary, acts verified.
 
 Goal-aware, boundary-enforced operation with visible decisions before action.
