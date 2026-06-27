@@ -1,7 +1,13 @@
-import { mkdir, readFile, writeFile, appendFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { appendProof } from "./proof.js";
+
+// The proof ledger (sent/received/changed audit trail) is a distinct sub-concern
+// — its schema + read/append live in ./proof.ts, re-exported here so the outreach
+// store stays one import for callers.
+export * from "./proof.js";
 
 // Authorized brand/outreach workspace — DRAFT-ONLY, approval-gated.
 // Two hard invariants the store enforces structurally, not by convention:
@@ -34,15 +40,6 @@ export const DraftSchema = z.object({
 });
 export type Draft = z.infer<typeof DraftSchema>;
 
-export const PROOF_KINDS = ["sent", "received", "changed"] as const;
-export const ProofSchema = z.object({
-  at: z.string().min(1),
-  kind: z.enum(PROOF_KINDS),
-  ref: z.string().min(1),
-  note: z.string(),
-});
-export type Proof = z.infer<typeof ProofSchema>;
-
 const StoreSchema = z.object({
   version: z.literal(1),
   workspace: WorkspaceSchema.nullable(),
@@ -57,9 +54,6 @@ function dir(dataDir: string): string {
 }
 function statePath(dataDir: string): string {
   return join(dir(dataDir), "workspace.json");
-}
-function proofPath(dataDir: string): string {
-  return join(dir(dataDir), "proof.jsonl");
 }
 
 /** Read the store, tolerating a missing/corrupt file (returns an empty store). */
@@ -178,54 +172,6 @@ export async function markSent(
   await writeStore(dataDir, { ...store, drafts });
   await appendProof(dataDir, { kind: "sent", ref: draftId, note: `${sent.channel} → ${sent.to}` }, now);
   return { ok: true, draft: sent };
-}
-
-/** Append one entry to the append-only proof ledger. */
-export async function appendProof(
-  dataDir: string,
-  entry: { kind: (typeof PROOF_KINDS)[number]; ref: string; note?: string },
-  now: () => Date = () => new Date(),
-): Promise<Proof> {
-  const proof: Proof = ProofSchema.parse({
-    at: now().toISOString(),
-    kind: entry.kind,
-    ref: entry.ref,
-    note: entry.note ?? "",
-  });
-  await mkdir(dir(dataDir), { recursive: true });
-  await appendFile(proofPath(dataDir), `${JSON.stringify(proof)}\n`, "utf8");
-  return proof;
-}
-
-/** Record an inbound reply → a proof ledger "received" entry. */
-export async function recordReply(
-  dataDir: string,
-  ref: string,
-  note?: string,
-  now: () => Date = () => new Date(),
-): Promise<Proof> {
-  return appendProof(dataDir, { kind: "received", ref, note }, now);
-}
-
-/** Read the proof ledger, dropping corrupt lines (tolerant reader). */
-export async function readProof(dataDir: string): Promise<Proof[]> {
-  let raw: string;
-  try {
-    raw = await readFile(proofPath(dataDir), "utf8");
-  } catch {
-    return [];
-  }
-  const out: Proof[] = [];
-  for (const line of raw.split("\n")) {
-    if (!line.trim()) continue;
-    try {
-      const parsed = ProofSchema.safeParse(JSON.parse(line));
-      if (parsed.success) out.push(parsed.data);
-    } catch {
-      // skip a malformed line — one bad record never breaks the ledger
-    }
-  }
-  return out;
 }
 
 export async function listDrafts(dataDir: string): Promise<Draft[]> {

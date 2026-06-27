@@ -9,6 +9,12 @@
 // result.isSlop, mirroring how clarity-gate / nl-assertions reject low-quality
 // output before it reaches the operator.
 
+import {
+  HEDGE_TERMS, FILLER_PHRASES, BUZZWORDS, HEDGE_FAIL_AT, FILLER_FAIL_AT,
+  BUZZWORD_FAIL_AT, RESTATE_FAIL_AT, SLOP_SCORE_CUTOFF, FAILED_TEST_CUTOFF,
+  DENSITY_NORM, WORD_RE, NUMBER_RE, PROPER_NOUN_RE, CODE_TOKEN_RE,
+} from "./slop-rubric.js";
+
 export type SlopTest = {
   id: SlopTestId;
   label: string;
@@ -28,62 +34,6 @@ export type SlopResult = {
   slopScore: number; // 0..1, weighted average of the density signals
   isSlop: boolean;
 };
-
-// --- word/phrase lists (small + documented; heuristic, not exhaustive) ---
-
-/** Weasel words that hedge a claim without adding information. */
-const HEDGE_TERMS = [
-  "might",
-  "perhaps",
-  "generally",
-  "it depends",
-  "in some cases",
-  "arguably",
-  "to some extent",
-  "more or less",
-  "kind of",
-  "sort of",
-];
-
-/** Boilerplate filler phrases that pad without saying anything. */
-const FILLER_PHRASES = [
-  "it's important to note",
-  "it is important to note",
-  "at the end of the day",
-  "when it comes to",
-  "in today's world",
-  "needless to say",
-  "the fact of the matter is",
-];
-
-/** Empty corporate buzzwords. */
-const BUZZWORDS = [
-  "synergy",
-  "leverage",
-  "holistic",
-  "paradigm",
-  "robust",
-  "seamless",
-  "cutting-edge",
-  "best-in-class",
-  "next-generation",
-  "game-changer",
-];
-
-// --- thresholds (heuristic — tuned to the clear cases, not over-fit) ---
-
-const HEDGE_FAIL_AT = 0.04; // hedge terms per word
-const FILLER_FAIL_AT = 0.015; // filler phrases per word
-const BUZZWORD_FAIL_AT = 0.03; // buzzwords per word
-const RESTATE_FAIL_AT = 0.6; // prompt-token overlap fraction
-const SLOP_SCORE_CUTOFF = 0.34; // isSlop when slopScore exceeds this
-const FAILED_TEST_CUTOFF = 3; // ...or when at least this many tests fail
-const DENSITY_NORM = 0.05; // density that maps to a full 1.0 signal
-
-const WORD_RE = /[a-z0-9][a-z0-9'-]*/gi;
-const NUMBER_RE = /\d/;
-const PROPER_NOUN_RE = /(?:^|[^.!?]\s)([A-Z][a-zA-Z]+)/; // Capitalized, not sentence-start-only
-const CODE_TOKEN_RE = /`[^`]+`|\b[\w/-]+\.[a-z]{1,5}\b|\b\w+\([^)]*\)|\b\w+_\w+\b/;
 
 function words(text: string): string[] {
   return text.match(WORD_RE) ?? [];
