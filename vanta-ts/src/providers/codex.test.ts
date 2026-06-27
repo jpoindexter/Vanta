@@ -124,4 +124,35 @@ describe("CodexProvider.stream", () => {
     });
     await expect(p.complete([{ role: "user", content: "x" }], [])).rejects.toThrow(/Codex request failed \(401\)/);
   });
+
+  it("aborts a stalled stream after the provider timeout instead of hanging forever", async () => {
+    const enc = new TextEncoder();
+    // A fetch that returns one SSE delta then stalls — but, like real fetch, errors the body
+    // stream when the request signal aborts. Without the idle timeout in stream(), this hangs.
+    const stalling = (async (_url: string, init?: RequestInit) => {
+      const signal = init?.signal ?? undefined;
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(enc.encode('data: {"type":"response.output_text.delta","delta":"hi"}\n\n'));
+          signal?.addEventListener("abort", () => controller.error(signal.reason ?? new Error("aborted")));
+          // never close — the stream goes quiet until the idle timeout aborts it
+        },
+      });
+      return new Response(stream, { status: 200, headers: { "content-type": "text/event-stream" } });
+    }) as unknown as typeof fetch;
+    const p = new CodexProvider({
+      model: "gpt-5.5",
+      loadCreds: async () => ({ accessToken: "tok", accountId: "acc" }),
+      fetchImpl: stalling,
+    });
+    const prev = process.env.VANTA_PROVIDER_TIMEOUT_SEC;
+    process.env.VANTA_PROVIDER_TIMEOUT_SEC = "1"; // 1s idle window for the test
+    try {
+      const drain = (async () => { for await (const c of p.stream([{ role: "user", content: "x" }], [])) void c; })();
+      await expect(drain).rejects.toThrow(/provider timeout/);
+    } finally {
+      if (prev === undefined) delete process.env.VANTA_PROVIDER_TIMEOUT_SEC;
+      else process.env.VANTA_PROVIDER_TIMEOUT_SEC = prev;
+    }
+  }, 8000);
 });

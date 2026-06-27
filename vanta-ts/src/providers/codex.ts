@@ -3,6 +3,7 @@ import type { CompletionConfig, CompletionResult, LLMProvider, StreamChunk, Tool
 import type { Message } from "../types.js";
 import { CODEX_BASE_URL, defaultCodexAuthPath, loadCodexCreds, readCodexAuth, type CodexCreds } from "./codex-auth.js";
 import { drainCodexSSE, toCodexInput, toCodexTools } from "./codex-codec.js";
+import { resolveProviderTimeoutMs } from "./timeout.js";
 export { toCodexInput, toCodexTools, sanitizeCodexParams } from "./codex-codec.js";
 
 // Provider for the OpenAI Codex (ChatGPT subscription) backend. Unlike OpenAI's
@@ -65,8 +66,27 @@ export class CodexProvider implements LLMProvider {
   async *stream(messages: Message[], tools: ToolSchema[], config?: CompletionConfig): AsyncIterable<StreamChunk> {
     const creds = await this.resolveCreds();
     const body = buildCodexBody(this.model, messages, tools, config);
-    const res = await fetchCodexStream({ fetchImpl: this.fetchImpl, creds, sessionId: this.sessionId, body, config });
-    yield* drainCodexSSE(res.body!);
+    // The raw SSE fetch has no built-in request timeout (unlike the OpenAI SDK adapter), so a
+    // stalled stream would hang the run forever — the silent-hang failure mode the long-run
+    // stress harness surfaced. Abort on idle: the timer resets on every received chunk and fires
+    // only if the stream goes quiet for the provider timeout. The user's interrupt signal still
+    // aborts too (combined). Reuses the cold-start-aware window from PROVIDER-AWARE-WATCHDOG.
+    const timeoutMs = resolveProviderTimeoutMs(process.env);
+    const idle = new AbortController();
+    const signal = config?.signal ? AbortSignal.any([config.signal, idle.signal]) : idle.signal;
+    const timer = setTimeout(
+      () => idle.abort(new Error(`Codex: no stream activity for ${timeoutMs}ms — provider timeout`)),
+      timeoutMs,
+    );
+    try {
+      const res = await fetchCodexStream({ fetchImpl: this.fetchImpl, creds, sessionId: this.sessionId, body, config: { ...config, signal } });
+      for await (const chunk of drainCodexSSE(res.body!)) {
+        timer.refresh();
+        yield chunk;
+      }
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
 }
