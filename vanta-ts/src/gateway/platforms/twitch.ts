@@ -1,6 +1,7 @@
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
+import { buildTwitchPrivmsg, parseTwitchLine, parseTwitchMessages } from "./twitch-parse.js";
 
 // Twitch-chat adapter — Twitch chat IS IRC-over-WebSocket, so this mirrors the raw
 // `irc.ts` adapter but swaps the TCP socket for a global `WebSocket` to
@@ -8,114 +9,30 @@ import { splitForLimit } from "./split.js";
 // / JOIN #channel; the server PINGs and we PONG to stay alive; inbound PRIVMSG lines
 // are buffered as they arrive and `poll()` drains them into the gateway tick loop.
 // chatId IS the channel (`#channel`, so a reply PRIVMSGs back to it) and `from` is the
-// sender's Twitch login. The line parser (parseTwitchLine) is PURE and offline-tested —
-// the socket only feeds raw text in. Set VANTA_TWITCH_TOKEN (the oauth token, WITHOUT the
-// `oauth:` prefix — the wire adds it), VANTA_TWITCH_NICK, VANTA_TWITCH_CHANNEL; optional
-// VANTA_TWITCH_ALLOWLIST = comma list of accepted logins.
+// sender's Twitch login. The line parsers (parseTwitchLine/parseTwitchMessages) are PURE
+// and live in `twitch-parse.ts` (re-exported below so `./twitch.js` is unchanged). Set
+// VANTA_TWITCH_TOKEN (the oauth token, WITHOUT the `oauth:` prefix — the wire adds it),
+// VANTA_TWITCH_NICK, VANTA_TWITCH_CHANNEL; optional VANTA_TWITCH_ALLOWLIST = comma list of
+// accepted logins.
 //
 // The oauth token is a SECRET: it is read ONLY inside `httpTransport` (the wire), into the
 // PASS line — never stored on the adapter and never a literal elsewhere in this file.
+
+// Re-export the pure helpers so importers of `./twitch.js` see an unchanged surface.
+export type { TwitchEvent } from "./twitch-parse.js";
+export {
+  parseTwitchLine,
+  parseTwitchMessages,
+  buildTwitchPrivmsg,
+  parseTwitchAllowlist,
+  twitchEnabled,
+} from "./twitch-parse.js";
 
 const TWITCH_WS_URL = "wss://irc-ws.chat.twitch.tv:443";
 const CONNECT_TIMEOUT_MS = 10_000;
 // Twitch caps a single chat message at ~500 characters; reply text over that is split into
 // multiple PRIVMSGs before the wire so the server never truncates it mid-send.
 const TWITCH_TEXT_BUDGET = 450;
-
-export type TwitchEvent =
-  | { kind: "privmsg"; from: string; target: string; text: string }
-  | { kind: "ping"; token: string }
-  | { kind: "other" };
-
-/**
- * Strip the IRCv3 tag prefix (`@key=val;... `) Twitch prepends when `twitch.tv/tags` is
- * negotiated, returning the bare `:prefix COMMAND ...` line. A line with no tags is returned
- * unchanged. Pure — the parser stays correct whether or not tags are requested.
- */
-function stripTags(line: string): string {
-  if (!line.startsWith("@")) return line;
-  const space = line.indexOf(" ");
-  return space === -1 ? line : line.slice(space + 1);
-}
-
-/** Parse a `:prefix PRIVMSG <target> :<text>` line into from/target/text. Returns
- * `other` if it isn't a usable PRIVMSG (wrong command, missing target, empty body). Pure. */
-function parsePrivmsg(prefix: string, rest: string): TwitchEvent {
-  const parts = rest.split(" ");
-  if (parts[0] !== "PRIVMSG" || parts.length < 3) return { kind: "other" };
-  const target = parts[1] ?? "";
-  const colon = rest.indexOf(" :");
-  const text = colon === -1 ? parts.slice(2).join(" ") : rest.slice(colon + 2);
-  // The Twitch login is the nick portion of `nick!user@host` (also `:nick.tmi.twitch.tv`).
-  const from = prefix.split("!")[0] ?? prefix;
-  if (!from || !target || !text.trim()) return { kind: "other" };
-  return { kind: "privmsg", from, target, text };
-}
-
-/**
- * Parse one raw Twitch IRC line into a structured event. Handles a PRIVMSG
- * (`:nick!nick@nick.tmi.twitch.tv PRIVMSG #chan :text` → from/target/text), strips any
- * IRCv3 `@tag` prefix first, and a server PING (`PING :tmi.twitch.tv` → token, so the
- * caller can PONG). Everything else (CAP/JOIN/NOTICE/numerics/USERSTATE…) is `other`.
- * Pure — no socket, no state.
- */
-export function parseTwitchLine(line: string): TwitchEvent {
-  const trimmed = stripTags(line.replace(/\r$/, "").trim());
-  if (!trimmed) return { kind: "other" };
-  if (trimmed.startsWith("PING")) {
-    return { kind: "ping", token: trimmed.slice(4).trim().replace(/^:/, "") };
-  }
-  if (!trimmed.startsWith(":")) return { kind: "other" };
-  const space = trimmed.indexOf(" ");
-  if (space === -1) return { kind: "other" };
-  return parsePrivmsg(trimmed.slice(1, space), trimmed.slice(space + 1));
-}
-
-/**
- * Parse a raw multi-line socket payload into inbound messages: split on CRLF/LF, parse each
- * line, and keep only the PRIVMSGs whose target matches `channel` → InboundMessage[]. PING
- * and every other line is dropped (the transport answers PINGs at the wire). Twitch carries
- * no message/reply id, so those inbound fields stay undefined; a `#channel` target is always
- * a group. Pure — offline-testable with an inline fixture.
- */
-export function parseTwitchMessages(payload: string, channel: string): InboundMessage[] {
-  const messages: InboundMessage[] = [];
-  for (const line of payload.split("\n")) {
-    const event = parseTwitchLine(line);
-    if (event.kind !== "privmsg" || event.target !== channel) continue;
-    messages.push({ chatId: channel, text: event.text, from: event.from, isGroup: true });
-  }
-  return messages;
-}
-
-/** Build a `PRIVMSG <channel> :<text>` send line (no trailing CRLF — the wire adds it).
- * The channel is normalized to a leading `#`. Pure. */
-export function buildTwitchPrivmsg(channel: string, text: string): string {
-  const chan = channel.startsWith("#") ? channel : `#${channel}`;
-  return `PRIVMSG ${chan} :${text}`;
-}
-
-/** Parse the VANTA_TWITCH_ALLOWLIST login allowlist (comma list, lowercased). Empty/absent →
- * an empty set, which the adapter treats as "allow all". Pure. */
-export function parseTwitchAllowlist(env: NodeJS.ProcessEnv): Set<string> {
-  return new Set(
-    (env.VANTA_TWITCH_ALLOWLIST ?? "")
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
-
-/**
- * Twitch chat is enabled when token, nick, and channel are all configured
- * (VANTA_TWITCH_TOKEN / VANTA_TWITCH_NICK / VANTA_TWITCH_CHANNEL). Any missing = disabled.
- * Pure.
- */
-export function twitchEnabled(env: NodeJS.ProcessEnv): boolean {
-  return Boolean(
-    env.VANTA_TWITCH_TOKEN?.trim() && env.VANTA_TWITCH_NICK?.trim() && env.VANTA_TWITCH_CHANNEL?.trim(),
-  );
-}
 
 /**
  * The injected Twitch transport — the live boundary that owns the WebSocket. `connect` opens
