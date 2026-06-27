@@ -203,10 +203,19 @@ async function main(): Promise<void> {
   // command dispatch (the short-circuit lives in startInteractive).
   if (dumpPrompt) return startInteractive(repoRoot, { dumpPrompt });
 
-  // Interactive entry points parse flags, so they stay explicit.
-  if (cmd === undefined || cmd === "chat")
-    return startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui"), forkSession: hasForkSession(rest), lifecycle, pluginSources });
-  if (cmd === "--resume" || cmd === "resume") return startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle, pluginSources });
+  // Interactive entry points parse flags, so they stay explicit. They must exit
+  // explicitly when the REPL ends — same hang class as `run` below: mounted MCP stdio
+  // children keep the event loop alive, so a returning session lingers forever (a
+  // non-TTY/piped session reaches EOF and never exits). `/restart` exits internally
+  // with RESTART_EXIT_CODE before these awaits resolve. (Found by stress-driving the REPL.)
+  if (cmd === undefined || cmd === "chat") {
+    await startInteractive(repoRoot, { resumeId: resumeIdFrom(rest), noTui: rest.includes("--no-tui"), forkSession: hasForkSession(rest), lifecycle, pluginSources });
+    process.exit(0);
+  }
+  if (cmd === "--resume" || cmd === "resume") {
+    await startInteractive(repoRoot, { resumeId: rest[0], forkSession: hasForkSession(rest), lifecycle, pluginSources });
+    process.exit(0);
+  }
   if (cmd === "run" && rest.length > 0) {
     const { instruction, outputFormat, jsonSchema } = parseRunArgs(rest);
     await runInstruction(repoRoot, instruction, { outputFormat, jsonSchema, lifecycle, pluginSources });
