@@ -11,8 +11,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | File | Responsibility |
 |------|----------------|
 | `types.ts` | Core types: `Message`, `ToolCall`, `Verdict`, `Goal`, `Risk` |
-| `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`. Non-streaming (see decisions) |
-| `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas) + pure `foldToolCallDeltas` |
+| `providers/interface.ts` | `LLMProvider` interface, `ToolSchema`, `CompletionResult`, **`StreamChunk`** (`text`/`thinking`/`tool_call`/`done` — the universal streaming contract) |
+| `providers/openai.ts` | OpenAI **+ Ollama/Gemini/OpenRouter** (same SDK, `baseURL` swap). Converts internal↔OpenAI shapes. **`stream()`** (token deltas **+ `reasoning_content`/`reasoning` → `thinking` chunks**) + pure `foldToolCallDeltas`/`reasoningDelta` |
 | `ui/app.tsx` | The default TUI App: `<Static>` committed scrollback + live composer/status rows. Delegates state to `ui/reducer.ts`, agent I/O to `ui/use-agent.ts` |
 | `ui/focus.ts` | VANTA-TAB-NAV — pure focus targets/traversal for Tab/Shift+Tab across composer, overlays, and approval actions. |
 | `ui/v2/` | Opt-in mission-control shell selected by `VANTA_TUI=v2`; wraps the shared v1 engine in durable-state / safety+memory+telemetry rails |
@@ -69,7 +69,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `tools/lsp.ts` + `lsp/ts-service.ts` | Phase 4 — diagnostics + go-to-definition for .ts/.tsx via the **TS compiler API** (no separate language server) |
 | `tools/git.ts` | Phase 4 — 6 git tools. status/diff read-only; commit/push/branch/checkout call `requestApproval` (risk:ask) |
 | `browser/allowlist.ts` | `isAllowedDomain`/`extractDomain` — `VANTA_ALLOWED_DOMAINS` gate for browser tools |
-| `providers/anthropic.ts` | Phase 4 full Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). Pure `toAnthropicMessages` |
+| `providers/anthropic.ts` | Anthropic adapter (lazy `@anthropic-ai/sdk`, default `claude-sonnet-4-6`). `complete()` **+ `stream()`** (live text + **extended thinking** via pure `streamAnthropicEvents` in `anthropic-convert.ts`). Pure `toAnthropicMessages` |
 | `tools/delegate.ts` | Phase 6 — spawns a scoped subagent. Child registry excludes `delegate` (no runaway recursion) |
 | `schedule/cron.ts` | Phase 6 — `isDue` (5-field cron) + `.vanta/cron.tsv` load/add/save |
 | `schedule/runner.ts` | Phase 6 — `runDueTasks({dataDir, now, run})` runs due active tasks, passes compact cron wake context to `RunTask`; one failure doesn't abort the batch |
@@ -219,7 +219,7 @@ Implement `SearchProvider` (`id` + `search(query, config)`) in `search/<name>.ts
 
 ## Key decisions (don't re-litigate without new info)
 
-- **Non-streaming in v0** — the loop waits for the full tool call before executing anyway; streaming only adds live text display. Fits behind the interface later.
+- **Streaming is the default when the provider supports it** (was "non-streaming in v0"; shipped 2026-06-28) — `stream()` yields incremental `StreamChunk`s (`text` · `thinking` for reasoning models · `tool_call` · `done`). The loop streams when `provider.stream` AND `onTextDelta` are set, else `complete()`. The **universal `thinking` chunk** surfaces any model's reasoning live (OpenAI-adapter `reasoning_content`/`reasoning`, Anthropic `thinking_delta`); backends that hide reasoning (codex) no-op to the spinner. `done` stays the source of truth, so the loop is byte-identical to the non-streaming path.
 - **No Anthropic stub** — `resolveProvider` throws a clear "Phase 4" error instead of a fake adapter. Per global rule: no stubs returning fake values.
 - **Kernel is the boundary** — TS never decides safety; it asks the kernel. `assess` before every tool.
 - **Tool results are values, not exceptions** — `{ok, output}`. The loop never crashes on a tool error.
@@ -255,6 +255,16 @@ Phase 5 (comms): `VANTA_GOOGLE_CLIENT_ID` + `VANTA_GOOGLE_CLIENT_SECRET` (one-ti
 - **Web search defaults to `auto`, NOT plain DDG (the old 403 caveat is resolved).** `resolveAutoProviders` chains keyless *reliable* providers (`bing` HTML, `jina_ddg`) AHEAD of the raw `duckduckgo` scraper, and `web_search` only fails if ALL error — so a flaky/IP-blocked DDG day degrades, doesn't break. (`html.duckduckgo.com` historically 403'd from some datacenter IPs; the auto chain routes around that, and DDG itself returned HTTP 200 from this box on 2026-06-27.) **Verified live 2026-06-27:** `web_search "Hermes agent Nous Research"` returned 3 correct titled results with URLs. Force a specific provider with `VANTA_SEARCH_PROVIDER=searxng|brave|serpapi` (+ `VANTA_SEARCH_URL`/`BRAVE_KEY`/`SERPAPI_KEY`). `web-fetch` is unaffected (clean Readability markdown).
 
 - **Current source counts beat historical session counts.** Real-counted 2026-06-26 (vitest over the live exports): `ALL_TOOLS` has **123** built-in tools, `buildRegistry().list()` reports **127** registered (incl. factory `mount_mcp`/`tool_search`/`mcp_auth`/`run_pipeline`), and `SLASH_COMMANDS.length` reports **128** commands (`vanta tune` is a CLI command, not a slash). Latest full verify (2026-06-27): **977 TS test files / 11132 tests** green (+3 live-gated voice/LoRA tests skip without their opt-in env) · **67 kernel tests** green · `tsc` clean · size gate clean. Older counts in session-addition notes are milestones, not current truth — don't trust a count without re-running the export.
+
+## Session additions (2026-06-28) — keep current
+
+**UNIVERSAL LIVE REASONING DISPLAY — stream any model's thinking, provider-agnostic.** From a "the TUI freezes then dumps" report on codex/gpt-5.5: investigated, proved the streaming+spinner layer works 4 independent ways (live provider stream, `consumeStream` forwarding, a new TUI regression test, a real headless run), and root-caused the freeze to the **ChatGPT Codex backend sending zero reasoning events** (raw-SSE-confirmed — not fixable; graceful spinner is correct). Then built the real fix: a **universal `thinking` `StreamChunk`** any provider emits when its backend exposes reasoning.
+
+- **Contract + plumbing:** `StreamChunk` gained `{type:"thinking",delta}`; `onThinkingDelta` flows `consumeStream` → `provider-call` → `AgentDeps` → the TUI. The reducer holds a transient `liveThinking` (live-region only, cleared when output text begins or the turn ends); `LiveRegion`/`ThinkingPreview` render the model's reasoning dimmed in place of the generic spinner (`BusyIndicator` chooses).
+- **OpenAI adapter (covers DeepSeek-R1, OpenRouter, Ollama, Gemini + any user-added OpenAI-compatible model):** pure `reasoningDelta(delta)` reads `reasoning_content` (DeepSeek) / `reasoning` (OpenRouter); `openai.ts stream()` emits a `thinking` chunk. **Live-verified:** DeepSeek-R1 via OpenRouter streamed **163 reasoning chunks**.
+- **Anthropic now streams at all** (it had `complete()` only — no streaming): `streamAnthropicEvents` (pure, in `anthropic-convert.ts`) maps Messages SSE events → chunks (`text_delta`→text, `thinking_delta`→thinking, `tool_use`+`input_json_delta`→tool_call). `AnthropicProvider.stream()` is thin glue. TDD'd; **verified end-to-end against the REAL SDK parser** (`Stream.fromSSEResponse` over real wire bytes — no key needed). `claude-code` provider inherits it.
+- **codex:** no-op (backend hides reasoning) → spinner. **Every** backend now streams (3 concrete providers + `FallbackChain` delegate).
+- Also this session: **branded install URL** `curl -fsSL https://vanta.theft.studio/install.sh | bash` (Cloudflare Pages custom domain + build-synced `install.sh`); **`vanta update` fix** (`cli/update.ts` pulls `origin/<branch>` explicitly — bare `git pull --ff-only` failed without upstream tracking). Full suite **980 files / 11149 tests** green, `tsc` + size gate clean throughout.
 
 ## Session additions (2026-06-27) — keep current
 

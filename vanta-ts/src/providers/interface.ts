@@ -44,9 +44,10 @@ export type StreamChunk =
   | { type: "done"; result: CompletionResult };
 
 /**
- * An LLM backend. v0 is non-streaming: the agent loop waits for the full tool
- * call before executing anyway, so streaming only buys live text display —
- * deferred to keep v0 reliable. Streaming can be added behind this interface.
+ * An LLM backend. `complete()` is the non-streaming path; the optional `stream()` yields incremental
+ * StreamChunks (text · thinking for reasoning models · tool_call · done). The loop streams when
+ * `stream` AND an onTextDelta callback are present, else it calls `complete()`. `done` carries the
+ * full assembled result on both paths, so the loop behaves identically either way.
  */
 export interface LLMProvider {
   complete(

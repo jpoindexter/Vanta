@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Unreleased
+
+**Universal live reasoning display.** A model's *thinking* now streams live in the TUI for any provider whose backend exposes reasoning — provider-agnostic, so it works for whatever models you add.
+
+### Added
+- **Universal `thinking` streaming** — a `thinking` stream-chunk any provider emits: the OpenAI-compatible adapter (`reasoning_content` / `reasoning` → DeepSeek-R1, OpenRouter reasoning models, Ollama, Gemini, and any custom OpenAI-compatible endpoint) and Anthropic (`thinking_delta`, extended thinking). The TUI shows the reasoning live (dimmed) in place of the generic spinner; backends that hide reasoning (e.g. codex) fall back to the spinner. Live-verified with DeepSeek-R1 (163 reasoning chunks streamed).
+- **Anthropic streaming** — `AnthropicProvider` gained `stream()` (live text **and** extended thinking); it previously had no streaming at all and buffered every response. Verified end-to-end against the real Anthropic SDK SSE parser.
+- **Branded install URL** — `curl -fsSL https://vanta.theft.studio/install.sh | bash` (Cloudflare Pages custom domain serving a build-synced copy of the bootstrap installer).
+
+### Fixed
+- **`vanta update`** — now pulls `origin/<branch>` explicitly; a bare `git pull --ff-only` failed with "no tracking information" on a clone whose upstream tracking ref wasn't set.
+
 ## v0.4.0 — 2026-06-27
 
 **Security + modularity.** A security-skills pack you can run on any repo, every fixable CVE cleared, and a codebase-wide modularity pass — all behavior-preserving (full suite green throughout).
