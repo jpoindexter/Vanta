@@ -25,6 +25,9 @@ import { errorDetails, fireCwdChanged, fireStopFailure, stopFailureType } from "
 import { join } from "node:path";
 
 const USAGE_LINES = [
+      "Vanta — a local trusted operator. Knows the goal, gates every action, reports only verified output.",
+      "The bar is finishing real tasks reliably and unattended, not feature count.",
+      "",
       "Usage: vanta                              start an interactive session",
       "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",

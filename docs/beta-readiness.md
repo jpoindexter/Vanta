@@ -2,6 +2,8 @@
 
 _Generated 2026-06-21. All headless-provable paths green._
 
+> **Two senses of "ready" — don't conflate.** This doc = **live-proof readiness** (does it install & run on a clean box, are channels live). The **competitive reliability bar** ("ready like a serious agent harness" = reliably finishing real multi-step tasks unattended, _measured_) lives in STRATEGY.md §"The readiness bar" + DECISIONS 2026-06-26. Feature count is neither.
+
 ## Proven on this machine
 - ✅ **Does a real task** — a provider is configured: gpt-5.5
 - ✅ **Efficient multi-step work** — 3 tools ran in one turn; only the final result returned (true)

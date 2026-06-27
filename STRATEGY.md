@@ -24,6 +24,18 @@ Other agents are reference points, not templates: adopt only what serves the pil
 
 Auto-park, no debate: Anthropic cloud/account/billing coupling · enterprise policy/MDM · IDE-plugin surfaces · their telemetry · duplicate of an existing card · conflicts with rule zero (e.g. speculative pre-execution). Parked cards go to PARKED.md with the reason; full bodies recoverable from git history.
 
+## The readiness bar (what "ready" means)
+
+"Ready" — credible against any serious agent harness — **is Pillar 1's win condition**: Vanta reliably **finishes real multi-step tasks unattended and reports only verified output**. Feature count is the **capability floor** (table stakes, per MANIFESTO §"The capability floor"), never the bar. The competitive axis vs other harnesses is reliability at running real tasks, not parity on a feature list. (Locked: DECISIONS 2026-06-26.)
+
+The bar is **measured, not asserted**. The failure modes that separate a demo from a ready harness:
+
+- **Always terminates** (no hangs) · **completes multi-step tool chains end-to-end** · **recovers from a failed tool call** (no loop, no lie) · **keeps the goal across a long run / compaction** · **reports only verified output** — all **unattended**.
+- Seed in place: `scripts/reliability-smoke.sh` drives real one-shot tasks and asserts clean exit + sane output (the hang bug class). Binary and narrow today (8 one-shot tasks).
+- The path: turn it into a **scored pass-rate over N runs** across a broader battery (add multi-turn + error-recovery tasks). That number IS "ready." This is the **measurement half** of `AHE-EVAL-HARNESS`; the auto-*evolution* half stays parked (DECISIONS 2026-06-16 — no users/reward signal yet → platform-thinking).
+
+> Adding a feature does not move this number; closing a reliability failure mode does. When the bar and a new feature compete for a slice, **the bar wins**.
+
 ## One source of truth
 
 - `roadmap.json` — the only work database. **Every card carries `track` = one of the 5 pillars.** Edit via tools/scripts (`roadmap_add`, `roadmap_move`, `vanta roadmap …`), never by hand-editing generated views.
