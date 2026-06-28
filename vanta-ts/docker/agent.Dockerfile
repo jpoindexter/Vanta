@@ -14,4 +14,7 @@ RUN apt-get update \
 
 RUN npm install -g @anthropic-ai/claude-code
 
+# Run as a NON-ROOT user: claude refuses --dangerously-skip-permissions under root/sudo (found live).
+# node:22 ships a `node` user (uid 1000); credentials mount at /home/node/.claude:ro at runtime.
+USER node
 WORKDIR /work

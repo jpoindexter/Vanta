@@ -24,7 +24,7 @@ export function autonomousInvocation(agent: string, prompt: string, model: strin
   if (!bare) return { error: `unknown agent "${agent}"` };
   // VANTA-A2A-MOUNT-SCOPE: derive the blast radius from the task (project rw/ro + dry-run on destructive).
   const plan = deriveMountScope({ task: prompt, outputDir: root });
-  const mounts: Mount[] = [...plan.mounts, { host: join(homedir(), ".claude"), container: "/root/.claude", mode: "ro" }];
+  const mounts: Mount[] = [...plan.mounts, { host: join(homedir(), ".claude"), container: "/home/node/.claude", mode: "ro" }];
   const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? AUTONOMOUS_IMAGE_DEFAULT;
   return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: plan.workdir, network: true }), mounts, plan };
 }

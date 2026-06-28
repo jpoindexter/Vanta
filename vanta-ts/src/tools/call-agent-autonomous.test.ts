@@ -18,7 +18,7 @@ describe("call_agent autonomous — claude boxed in a mount-scoped container", (
     expect(r.inv.cmd).toBe("docker");
     // a build → project mounted rw at /work, auth mounted ro
     expect(r.inv.args).toContain("/proj:/work:rw");
-    expect(r.inv.args).toContain(`${homedir()}/.claude:/root/.claude:ro`);
+    expect(r.inv.args).toContain(`${homedir()}/.claude:/home/node/.claude:ro`);
     expect(r.inv.args).toContain("claude");
     expect(r.inv.args).toContain("--dangerously-skip-permissions");
     expect(r.mounts.find((m) => m.mode === "rw")?.host).toBe("/proj");
