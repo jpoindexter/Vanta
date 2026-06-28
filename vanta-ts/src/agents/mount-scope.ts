@@ -26,14 +26,16 @@ export function classifyMountIntent(task: string): MountIntent {
  * a pure read), plus each read input mounted read-only. A destructive intent sets `dryRun` so the
  * caller previews the plan before running the boxed agent. Nothing outside these mounts is reachable.
  */
-export function deriveMountScope(opts: { task: string; outputDir: string; readDirs?: string[]; containerRoot?: string }): ScopePlan {
+export function deriveMountScope(opts: { task: string; outputDir: string; readDirs?: string[]; containerRoot?: string; apply?: boolean }): ScopePlan {
   const root = opts.containerRoot ?? "/work";
   const intent = classifyMountIntent(opts.task);
-  const outMode: "ro" | "rw" = intent.kind === "read" ? "ro" : "rw";
+  // A destructive task previews FIRST: dry-run unless `apply` is set. The dry-run is OS-enforced —
+  // the output mounts read-only, so the boxed agent physically cannot write, only describe its plan.
+  const dryRun = intent.destructive && !opts.apply;
+  const outMode: "ro" | "rw" = intent.kind === "read" || dryRun ? "ro" : "rw";
   const mounts: Mount[] = [{ host: opts.outputDir, container: root, mode: outMode }];
   (opts.readDirs ?? []).forEach((d, i) => mounts.push({ host: d, container: `/ro/${i}`, mode: "ro" }));
   const readPart = opts.readDirs?.length ? `; ro ${opts.readDirs.join(", ")}` : "";
-  const dryRun = intent.destructive;
-  const summary = `${outMode} ${opts.outputDir} → ${root}${readPart}${dryRun ? " (dry-run first — destructive intent)" : ""}`;
+  const summary = `${outMode} ${opts.outputDir} → ${root}${readPart}${dryRun ? " (dry-run: read-only preview — re-run with apply to write)" : ""}`;
   return { mounts, workdir: root, summary, dryRun };
 }

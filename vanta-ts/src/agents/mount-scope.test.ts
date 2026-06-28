@@ -33,10 +33,16 @@ describe("deriveMountScope — exactly the folders the task needs", () => {
     const s = deriveMountScope({ task: "analyze the logs", outputDir: "/var/logs" });
     expect(s.mounts[0]).toEqual({ host: "/var/logs", container: "/work", mode: "ro" });
   });
-  it("a destructive-within-scope task is flagged for a dry-run and says so in the preview", () => {
+  it("a destructive task dry-runs read-only (OS-enforced — the agent physically can't write)", () => {
     const s = deriveMountScope({ task: "clean out ~/Downloads", outputDir: "/home/u/Downloads" });
     expect(s.dryRun).toBe(true);
     expect(s.summary).toMatch(/dry-run/i);
+    expect(s.mounts[0]?.mode).toBe("ro");
+  });
+
+  it("apply:true on a destructive task writes (rw) — the confirmed second pass", () => {
+    const s = deriveMountScope({ task: "clean out ~/Downloads", outputDir: "/home/u/Downloads", apply: true });
+    expect(s.dryRun).toBe(false);
     expect(s.mounts[0]?.mode).toBe("rw");
   });
 });
