@@ -126,15 +126,19 @@ async function runTriggerEmit(rest: string[]): Promise<void> {
   process.stdout.write(`${note}\n`); // UserPromptSubmit + others: Claude injects stdout
 }
 
-/** `vanta skills sync-triggers [--claude]` — (re)compile every skill's triggers
- *  into ~/.vanta/hooks.json, and optionally ~/.claude/settings.json. */
+/** `vanta skills sync-triggers [--claude] [--codex]` — (re)compile every skill's triggers
+ *  into ~/.vanta/hooks.json, and optionally ~/.claude/settings.json and ~/.codex/AGENTS.md. */
 async function runSyncTriggers(rest: string[]): Promise<void> {
-  const { syncSkillTriggers, syncSkillTriggersForClaude } = await import("../skills/triggers-sync.js");
+  const { syncSkillTriggers, syncSkillTriggersForClaude, syncSkillTriggersForCodex } = await import("../skills/triggers-sync.js");
   const v = await syncSkillTriggers({ env: process.env });
   console.log(`✓ synced ${v.written} skill-trigger hook(s) → ~/.vanta/hooks.json${v.events.length ? ` (${v.events.join(", ")})` : ""}`);
   if (rest.includes("--claude")) {
     const c = await syncSkillTriggersForClaude({ env: process.env });
     console.log(`✓ synced ${c.written} → ~/.claude/settings.json (PreToolUse · PostToolUseFailure · UserPromptSubmit · Stop)`);
+  }
+  if (rest.includes("--codex")) {
+    const x = await syncSkillTriggersForCodex({ env: process.env });
+    console.log(`✓ synced ${x.written} prompt-routing line(s) → ${x.path} (Codex reads AGENTS.md each session — no event hooks)`);
   }
 }
 

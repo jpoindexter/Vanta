@@ -1,10 +1,11 @@
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolveVantaHome, skillsDir } from "../store/home.js";
 import { shellHooksPath } from "../hooks/shell-hooks.js";
 import { listSkills } from "./store.js";
 import { compileTriggers, compileTriggersForClaude, mergeVantaHooks, mergeClaudeSettings } from "./triggers.js";
+import { compileTriggersForCodex, mergeAgentsMd } from "./triggers-codex.js";
 
 // SKILL-TRIGGERS — the disk upserters. The single side-effecting layer: read all
 // skills' triggers, compile them, and idempotently UPSERT the generated hooks into
@@ -66,6 +67,30 @@ export async function syncSkillTriggersForClaude(opts: { env?: NodeJS.ProcessEnv
     /* best-effort */
   }
   return { written: compiled.length };
+}
+
+async function readText(path: string): Promise<string> {
+  try { return await readFile(path, "utf8"); } catch { return ""; }
+}
+
+/**
+ * Opt-in: merge every skill's prompt-level routing into an AGENTS.md (default ~/.codex/AGENTS.md) —
+ * the Codex equivalent of the Claude settings sync. Codex has no event hooks, so routing is a
+ * standing instruction it reads each session. Idempotent; preserves the rest of the file.
+ */
+export async function syncSkillTriggersForCodex(opts: { env?: NodeJS.ProcessEnv; path?: string } = {}): Promise<{ written: number; path: string }> {
+  const env = opts.env ?? process.env;
+  const skills = await listSkills(env).catch(() => []);
+  const lines = skills.map((s) => compileTriggersForCodex(s)).filter((l): l is string => l !== null);
+  const path = opts.path ?? join(homedir(), ".codex", "AGENTS.md");
+  const merged = mergeAgentsMd(await readText(path), lines);
+  try {
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, merged, "utf8");
+  } catch {
+    /* best-effort */
+  }
+  return { written: lines.length, path };
 }
 
 /** Resolve a skill's on-disk SKILL.md path (for the emitter). */
