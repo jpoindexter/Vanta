@@ -11,18 +11,26 @@ describe("call_agent autonomous — claude boxed in a mount-scoped container", (
     expect(inv?.args.at(-1)).toBe("build a landing page");
   });
 
-  it("wraps claude in docker scoped to the project (rw) + ~/.claude auth (ro)", () => {
-    const r = autonomousInvocation("claude", "ship it", undefined, "/proj");
+  it("wraps a build task in docker scoped to the project (rw) + ~/.claude auth (ro), no dry-run", () => {
+    const r = autonomousInvocation("claude", "build the landing page", undefined, "/proj");
     expect("inv" in r).toBe(true);
     if (!("inv" in r)) return;
     expect(r.inv.cmd).toBe("docker");
-    // project mounted rw at /work, auth mounted ro
+    // a build → project mounted rw at /work, auth mounted ro
     expect(r.inv.args).toContain("/proj:/work:rw");
     expect(r.inv.args).toContain(`${homedir()}/.claude:/root/.claude:ro`);
-    // the boxed command is claude in autonomous mode
     expect(r.inv.args).toContain("claude");
     expect(r.inv.args).toContain("--dangerously-skip-permissions");
     expect(r.mounts.find((m) => m.mode === "rw")?.host).toBe("/proj");
+    expect(r.plan.dryRun).toBe(false);
+  });
+
+  it("flags a destructive task for a dry-run (mount-scope policy)", () => {
+    const r = autonomousInvocation("claude", "clean out the build artifacts", undefined, "/proj");
+    expect("inv" in r).toBe(true);
+    if (!("inv" in r)) return;
+    expect(r.plan.dryRun).toBe(true);
+    expect(r.plan.summary).toMatch(/dry-run/i);
   });
 
   it("refuses autonomous mode for a non-claude agent (only claude is wired)", () => {

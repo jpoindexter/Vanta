@@ -10,22 +10,22 @@ import {
   type RunResult,
 } from "../agents/external-cli.js";
 import { buildAutonomousDockerInvocation, type Mount } from "../agents/autonomous-docker.js";
+import { deriveMountScope, type ScopePlan } from "../agents/mount-scope.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 
 /** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
  *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
  *  network stays on because the agent must reach its model API; the FILESYSTEM is what's boxed. */
-export function autonomousInvocation(agent: string, prompt: string, model: string | undefined, root: string): { inv: Invocation; mounts: Mount[] } | { error: string } {
+export function autonomousInvocation(agent: string, prompt: string, model: string | undefined, root: string): { inv: Invocation; mounts: Mount[]; plan: ScopePlan } | { error: string } {
   if (agent !== "claude") return { error: `autonomous (Docker-boxed) mode supports claude only, not "${agent}"` };
   const bare = buildAgentInvocation(agent, prompt, { model, env: process.env, autonomous: true });
   if (!bare) return { error: `unknown agent "${agent}"` };
-  const mounts: Mount[] = [
-    { host: root, container: "/work", mode: "rw" },
-    { host: join(homedir(), ".claude"), container: "/root/.claude", mode: "ro" },
-  ];
+  // VANTA-A2A-MOUNT-SCOPE: derive the blast radius from the task (project rw/ro + dry-run on destructive).
+  const plan = deriveMountScope({ task: prompt, outputDir: root });
+  const mounts: Mount[] = [...plan.mounts, { host: join(homedir(), ".claude"), container: "/root/.claude", mode: "ro" }];
   const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? "vanta-agent";
-  return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: "/work", network: true }), mounts };
+  return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: plan.workdir, network: true }), mounts, plan };
 }
 
 const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min headroom
@@ -59,10 +59,13 @@ async function runAutonomous(ctx: ToolContext, agent: string, prompt: string | u
   if (!prompt) return { ok: false, output: "call_agent autonomous needs a prompt" };
   const boxed = autonomousInvocation(agent, prompt, model, ctx.root);
   if ("error" in boxed) return { ok: false, output: boxed.error };
-  const where = boxed.mounts.map((m) => `${m.mode} ${m.host.replace(homedir(), "~")}`).join(" + ");
+  const where = `${boxed.plan.summary}; ro ~/.claude (auth)`;
+  const tail = boxed.plan.dryRun
+    ? `DESTRUCTIVE intent — preview the plan before approving`
+    : `it cannot touch anything else on the host`;
   const approved = await ctx.requestApproval(
     `run ${agent} AUTONOMOUSLY in a Docker box: ${prompt.slice(0, 80)}`,
-    `fully autonomous (--dangerously-skip-permissions) but OS-boxed to exactly [${where}] — it cannot touch anything else on the host`,
+    `fully autonomous (--dangerously-skip-permissions) but OS-boxed to exactly [${where}] — ${tail}`,
     "call_agent",
   );
   if (!approved) return { ok: false, output: "call_agent: declined" };
