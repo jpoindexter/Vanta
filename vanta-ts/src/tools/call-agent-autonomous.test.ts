@@ -1,9 +1,13 @@
-import { describe, it, expect } from "vitest";
-import { homedir } from "node:os";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { autonomousInvocation } from "./call-agent.js";
 import { buildAgentInvocation } from "../agents/external-cli.js";
 
-describe("call_agent autonomous — claude boxed in a mount-scoped container", () => {
+// An explicit env credential makes resolveBoxCredential deterministic AND keeps the tests from
+// reading the host keychain.
+describe("call_agent autonomous — claude boxed in a mount-scoped container, env-authed", () => {
+  beforeEach(() => { process.env.ANTHROPIC_API_KEY = "sk-test-box"; });
+  afterEach(() => { delete process.env.ANTHROPIC_API_KEY; });
+
   it("builds claude with --dangerously-skip-permissions (autonomous flag)", () => {
     const inv = buildAgentInvocation("claude", "build a landing page", { autonomous: true });
     expect(inv?.args).toContain("--dangerously-skip-permissions");
@@ -11,21 +15,21 @@ describe("call_agent autonomous — claude boxed in a mount-scoped container", (
     expect(inv?.args.at(-1)).toBe("build a landing page");
   });
 
-  it("wraps a build task in docker scoped to the project (rw) + ~/.claude auth (ro), no dry-run", () => {
+  it("forwards the credential as `-e NAME` (value NEVER in argv) + mounts the project rw", () => {
     const r = autonomousInvocation("claude", "build the landing page", undefined, "/proj");
     expect("inv" in r).toBe(true);
     if (!("inv" in r)) return;
     expect(r.inv.cmd).toBe("docker");
-    // a build → project mounted rw at /work, auth mounted ro
     expect(r.inv.args).toContain("/proj:/work:rw");
-    expect(r.inv.args).toContain(`${homedir()}/.claude:/home/node/.claude:ro`);
-    expect(r.inv.args).toContain("claude");
+    expect(r.inv.args).toContain("-e");
+    expect(r.inv.args).toContain("ANTHROPIC_API_KEY"); // name forwarded
+    expect(r.inv.args).not.toContain("sk-test-box");   // the SECRET VALUE is never in argv
     expect(r.inv.args).toContain("--dangerously-skip-permissions");
-    expect(r.mounts.find((m) => m.mode === "rw")?.host).toBe("/proj");
+    expect(r.cred).toEqual({ name: "ANTHROPIC_API_KEY", value: "sk-test-box" });
     expect(r.plan.dryRun).toBe(false);
   });
 
-  it("flags a destructive task for a dry-run (mount-scope policy)", () => {
+  it("flags a destructive task for a read-only dry-run (mount-scope policy)", () => {
     const r = autonomousInvocation("claude", "clean out the build artifacts", undefined, "/proj");
     expect("inv" in r).toBe(true);
     if (!("inv" in r)) return;

@@ -17,6 +17,9 @@ export type AutonomousDockerOpts = {
   workdir: string;
   /** Egress. Off by default (`--network none`); only opened when a task genuinely needs it. */
   network?: boolean;
+  /** Env var NAMES to forward into the container (`-e NAME`). The VALUE comes from the parent process
+   *  env at run time, so a credential never appears in the docker argv / `ps` / logs. */
+  passEnv?: string[];
 };
 
 const DEFAULT_IMAGE = "node:22-slim";
@@ -32,12 +35,14 @@ export function buildAutonomousDockerInvocation(base: Invocation, opts: Autonomo
     throw new Error("autonomous container needs at least one mount — the mount-set is the boundary");
   }
   const mountArgs = opts.mounts.flatMap((m) => ["-v", `${m.host}:${m.container}:${m.mode}`]);
+  const envArgs = (opts.passEnv ?? []).flatMap((name) => ["-e", name]); // name-only → value from parent env
   const net = opts.network ? [] : ["--network", "none"];
   return {
     cmd: "docker",
     args: [
       "run", "--rm", "-i",
       ...mountArgs,
+      ...envArgs,
       "-w", opts.workdir,
       ...net,
       opts.image ?? DEFAULT_IMAGE,

@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import {
   buildAgentInvocation,
   runExternalAgent,
@@ -12,28 +10,32 @@ import {
 import { buildAutonomousDockerInvocation, type Mount } from "../agents/autonomous-docker.js";
 import { deriveMountScope, type ScopePlan } from "../agents/mount-scope.js";
 import { autonomousPreflight, AUTONOMOUS_IMAGE_DEFAULT } from "../agents/autonomous-preflight.js";
+import { resolveBoxCredential, type BoxCredential } from "../agents/autonomous-creds.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 
 /** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
  *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
  *  network stays on because the agent must reach its model API; the FILESYSTEM is what's boxed. */
-export function autonomousInvocation(agent: string, prompt: string, model: string | undefined, root: string): { inv: Invocation; mounts: Mount[]; plan: ScopePlan } | { error: string } {
+export function autonomousInvocation(agent: string, prompt: string, model: string | undefined, root: string): { inv: Invocation; mounts: Mount[]; plan: ScopePlan; cred: BoxCredential | null } | { error: string } {
   if (agent !== "claude") return { error: `autonomous (Docker-boxed) mode supports claude only, not "${agent}"` };
   const bare = buildAgentInvocation(agent, prompt, { model, env: process.env, autonomous: true });
   if (!bare) return { error: `unknown agent "${agent}"` };
   // VANTA-A2A-MOUNT-SCOPE: derive the blast radius from the task (project rw/ro + dry-run on destructive).
   const plan = deriveMountScope({ task: prompt, outputDir: root });
-  const mounts: Mount[] = [...plan.mounts, { host: join(homedir(), ".claude"), container: "/home/node/.claude", mode: "ro" }];
+  // Auth: a Linux container can't read the macOS keychain, so the credential is forwarded as env
+  // (`-e NAME`, value from the parent) rather than mounting host creds. See autonomous-creds.ts.
+  const cred = resolveBoxCredential(process.env);
   const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? AUTONOMOUS_IMAGE_DEFAULT;
-  return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: plan.workdir, network: true }), mounts, plan };
+  const inv = buildAutonomousDockerInvocation(bare, { image, mounts: plan.mounts, workdir: plan.workdir, network: true, passEnv: cred ? [cred.name] : [] });
+  return { inv, mounts: plan.mounts, plan, cred };
 }
 
 const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min headroom
 
 /** Run a claude BUILD: parse stream-json events → live progress (Write/Bash/…) + the final
  * result, instead of a silent block that buffers everything until done. */
-async function runCodingClaude(ctx: ToolContext, inv: Invocation): Promise<ToolResult> {
+async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.ProcessEnv): Promise<ToolResult> {
   let result = "";
   let isError = false;
   let last = "";
@@ -42,7 +44,7 @@ async function runCodingClaude(ctx: ToolContext, inv: Invocation): Promise<ToolR
     if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
     if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
   };
-  const res = await runExternalAgent(inv, { cwd: ctx.root, onChunk, timeoutMs: CODING_TIMEOUT_MS });
+  const res = await runExternalAgent(inv, { cwd: ctx.root, env, onChunk, timeoutMs: CODING_TIMEOUT_MS });
   if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH." };
   if (!result) return { ok: false, output: `claude build did not finish: ${(res.stderr || res.stdout).trim().slice(0, 500) || `exit ${res.code ?? "?"}`}` };
   return { ok: !isError, output: `[claude]\n${result}` };
@@ -62,17 +64,16 @@ async function runAutonomous(ctx: ToolContext, agent: string, prompt: string | u
   if (!pf.ready) return { ok: false, output: `call_agent autonomous: ${pf.reason}. ${pf.hint}` };
   const boxed = autonomousInvocation(agent, prompt, model, ctx.root);
   if ("error" in boxed) return { ok: false, output: boxed.error };
-  const where = `${boxed.plan.summary}; ro ~/.claude (auth)`;
-  const tail = boxed.plan.dryRun
-    ? `DESTRUCTIVE intent — preview the plan before approving`
-    : `it cannot touch anything else on the host`;
+  if (!boxed.cred) return { ok: false, output: "call_agent autonomous: no credential to authenticate the boxed agent. Set ANTHROPIC_API_KEY, or run `claude setup-token` and export CLAUDE_CODE_OAUTH_TOKEN (a container can't read the macOS keychain)." };
+  const where = `${boxed.plan.summary}; auth via ${boxed.cred.name}`;
+  const tail = boxed.plan.dryRun ? "DESTRUCTIVE intent — preview the plan before approving" : "it cannot touch anything else on the host";
   const approved = await ctx.requestApproval(
     `run ${agent} AUTONOMOUSLY in a Docker box: ${prompt.slice(0, 80)}`,
     `fully autonomous (--dangerously-skip-permissions) but OS-boxed to exactly [${where}] — ${tail}`,
     "call_agent",
   );
   if (!approved) return { ok: false, output: "call_agent: declined" };
-  return runCodingClaude(ctx, boxed.inv);
+  return runCodingClaude(ctx, boxed.inv, { ...process.env, [boxed.cred.name]: boxed.cred.value });
 }
 
 const Args = z.object({
