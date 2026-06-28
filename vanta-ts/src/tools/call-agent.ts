@@ -11,6 +11,7 @@ import {
 } from "../agents/external-cli.js";
 import { buildAutonomousDockerInvocation, type Mount } from "../agents/autonomous-docker.js";
 import { deriveMountScope, type ScopePlan } from "../agents/mount-scope.js";
+import { autonomousPreflight, AUTONOMOUS_IMAGE_DEFAULT } from "../agents/autonomous-preflight.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 
@@ -24,7 +25,7 @@ export function autonomousInvocation(agent: string, prompt: string, model: strin
   // VANTA-A2A-MOUNT-SCOPE: derive the blast radius from the task (project rw/ro + dry-run on destructive).
   const plan = deriveMountScope({ task: prompt, outputDir: root });
   const mounts: Mount[] = [...plan.mounts, { host: join(homedir(), ".claude"), container: "/root/.claude", mode: "ro" }];
-  const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? "vanta-agent";
+  const image = process.env.VANTA_AGENT_DOCKER_IMAGE ?? AUTONOMOUS_IMAGE_DEFAULT;
   return { inv: buildAutonomousDockerInvocation(bare, { image, mounts, workdir: plan.workdir, network: true }), mounts, plan };
 }
 
@@ -57,6 +58,8 @@ async function runResolved(ctx: ToolContext, agent: string, inv: Invocation, cod
 /** Resolve → approve (showing the exact mount boundary) → run the boxed agent, streaming progress. */
 async function runAutonomous(ctx: ToolContext, agent: string, prompt: string | undefined, model?: string): Promise<ToolResult> {
   if (!prompt) return { ok: false, output: "call_agent autonomous needs a prompt" };
+  const pf = autonomousPreflight(process.env.VANTA_AGENT_DOCKER_IMAGE ?? AUTONOMOUS_IMAGE_DEFAULT);
+  if (!pf.ready) return { ok: false, output: `call_agent autonomous: ${pf.reason}. ${pf.hint}` };
   const boxed = autonomousInvocation(agent, prompt, model, ctx.root);
   if ("error" in boxed) return { ok: false, output: boxed.error };
   const where = `${boxed.plan.summary}; ro ~/.claude (auth)`;
@@ -119,7 +122,7 @@ export const callAgentTool: Tool = {
         prompt: { type: "string", description: "The prompt/task to send to the agent" },
         model: { type: "string", description: "Optional model override passed through to that agent's CLI" },
         coding: { type: "boolean", description: "Delegate BUILDING: the agent auto-accepts file edits so it can write/change code headless. Default false (answer-only)." },
-        autonomous: { type: "boolean", description: "FULL autonomy, OS-contained: runs the agent with --dangerously-skip-permissions inside a Docker container scoped to exactly this project (rw) + its auth (ro), network on only for the model API. The container is the boundary — it provably cannot touch any other host path. For hands-free builds you want boxed. claude only; needs Docker + a VANTA_AGENT_DOCKER_IMAGE that has the agent CLI." },
+        autonomous: { type: "boolean", description: "FULL autonomy, OS-contained: runs the agent with --dangerously-skip-permissions inside a Docker container scoped to exactly this project (rw) + its auth (ro), network on only for the model API. The container is the boundary — it provably cannot touch any other host path. For hands-free builds you want boxed. claude only; needs Docker — run `vanta agent-image build` once to set up the container image (override with VANTA_AGENT_DOCKER_IMAGE)." },
       },
       required: [],
     },

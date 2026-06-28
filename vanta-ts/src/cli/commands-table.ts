@@ -12,6 +12,7 @@ import { runMessagingSetup } from "../setup-messaging.js";
 import { runTtsSetup } from "../setup-tts.js";
 import { runStatus } from "../status.js";
 import { runMigrate } from "./migrate-cmd.js";
+import { runAgentImageCommand } from "./agent-image-cmd.js";
 import { runPreflight, formatPreflight, commandExists, detectPlatform } from "../setup/preflight.js";
 import { runBetaProofCommand } from "./beta-proof-cmd.js";
 import {
@@ -91,6 +92,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   status: (_root, rest) => runStatus(process.env, rest),
   doctor: (_root, rest) => runStatus(process.env, rest),
   migrate: (_root, rest) => runMigrate(rest),
+  "agent-image": (_root, rest) => runAgentImageCommand(rest),
   preflight: () => {
     const res = runPreflight(commandExists);
     console.log(formatPreflight(res, detectPlatform()));
