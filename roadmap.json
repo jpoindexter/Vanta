@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-27",
+  "updated": "2026-06-29",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -16225,6 +16225,22 @@
       "done": "install.sh + run.sh bring up a working Vanta (kernel + agent) on Termux/Android, doctor green; aarch64-android kernel published or built on-device.",
       "tier": "pebble",
       "updated": "2026-06-27"
+    },
+    {
+      "id": "RELIABILITY-SHELL-BG-WEDGE",
+      "track": "Harness",
+      "title": "shell_cmd foreground exec wedges the session on a backgrounded / long-running process",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Found live: a real 'build a dashboard + serve it' task wedged the REPL ('vanta just stops'). Root cause CONFIRMED by minimal reproduction: shell_cmd's foreground runLocal uses promisify(execFile), which does not resolve until ALL inherited stdio pipes hit EOF — not when the direct child exits. When the model starts a long-running server with a trailing '&' (manual backgrounding) instead of background:true, the backgrounded grandchild inherits the open stderr pipe, so execFile blocks for the FULL process lifetime; for a never-exiting server it blocks until the 30s TIMEOUT_MS, then the timeout kills sh/sandbox-exec but the orphaned daemon survives in its own group and keeps holding the port. Repro: `sleep 6 & echo $!` resolved in 6014ms (waited the whole child lifetime) vs `sleep 6 >/dev/null 2>&1 & echo $!` in 7ms. The reliability harnesses never spawned a long-lived process, so 12/12 'reliable' missed this whole failure class — exactly the thin-evidence gap behind the readiness bar.",
+      "done": "a foreground shell_cmd that backgrounds a process (real trailing '&' control operator) or starts a known long-running server is refused with guidance to re-run with background:true (the detached spawnBackground path that already unref()s), so it can never block the turn or orphan a daemon. Pure detection helper + tool-level test prove the refusal; full vanta-ts TS suite + size gate + tsc green.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-06-29",
+      "notes": "Fix #1 (this card): detect-and-steer in shell-cmd.ts (pure helper, tested). Fast-follow #2 (separate card if pursued): reap at the source — spawn foreground commands in their own process group and SIGKILL the group on exit/timeout so even an undetected long-runner can't orphan. Evidence + chain in the session transcript 2026-06-29. SHIPPED 2026-06-29: detect-and-steer in shell-cmd.ts (globalRefusal extraction + needsBackground) over pure helper shell-background-detect.ts (looksLikeBackgrounding/isLongRunningServer) + 8 tests. Full vanta-ts suite 988 files / 11186 tests green (3 live-gated skipped), tsc + size gate clean."
     }
   ]
 }

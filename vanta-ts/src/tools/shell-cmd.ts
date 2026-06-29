@@ -8,6 +8,7 @@ import { spawnBackground } from "./bg-tasks.js";
 import { destructiveWarning } from "./destructive-warn.js";
 import { isSandboxError } from "../sandbox/run.js";
 import { agentLaunchRedirect, isTmuxAgentLaunch } from "./agent-launch-hint.js";
+import { needsBackground } from "./shell-background-detect.js";
 import { wrapExec } from "../exec/backend.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveSshTarget, buildSshArgs } from "../ssh/config.js";
@@ -101,6 +102,16 @@ function warnPrefix(command: string): string {
   return warn ? `⚠ ${warn}\n` : "";
 }
 
+/** Refusals that apply to EVERY path (destructive pattern, sandbox agent-launch
+ *  dead-end). Returns the first refusal, or null to proceed. Kept out of execute()
+ *  to hold its branching under the complexity gate. */
+function globalRefusal(command: string): ToolResult | null {
+  if (DESTRUCTIVE.test(command)) {
+    return { ok: false, output: "refused: command matches a destructive pattern" };
+  }
+  return sandboxAgentRefusal(command);
+}
+
 /** VANTA-SANDBOX-AGENT-REDIRECT: refuse a tmux-agent launch under the sandbox (it
  *  dead-ends), naming the supported call_agent/agent_session path. Null otherwise. */
 export function sandboxAgentRefusal(command: string): ToolResult | null {
@@ -166,11 +177,8 @@ export const shellCmdTool: Tool = {
       return { ok: false, output: 'shell_cmd needs a "command" string' };
     }
     const { command, background, ssh } = parsed.data;
-    if (DESTRUCTIVE.test(command)) {
-      return { ok: false, output: "refused: command matches a destructive pattern" };
-    }
-    const agentRefusal = sandboxAgentRefusal(command);
-    if (agentRefusal) return agentRefusal;
+    const refusal = globalRefusal(command);
+    if (refusal) return refusal;
     const pfx = warnPrefix(command);
     // An explicit ssh arg wins; otherwise an active SSH session (`vanta ssh
     // user@host` sets VANTA_SSH_SESSION) routes every command to the remote host.
@@ -188,6 +196,16 @@ export const shellCmdTool: Tool = {
       }
       const task = await spawnBackground(command, join(ctx.root, ".vanta"), ctx.root);
       return { ok: true, output: `background task started: ${task.id}\ncheck with: bg_status(${task.id})` };
+    }
+    // RELIABILITY-SHELL-BG-WEDGE: a foreground command that backgrounds a child ('&')
+    // or starts a never-exiting server holds the inherited stdio pipe open, so the
+    // execFile-based foreground path blocks the whole turn (then orphans the daemon at
+    // the 30s timeout). Steer it to the detached, unref'd background path instead.
+    if (needsBackground(command)) {
+      return {
+        ok: false,
+        output: `refused: "${command}" is long-running or backgrounded — run foreground it would block the session and can orphan the process. Re-run with background:true (returns a task id immediately; tail it with bg_status).`,
+      };
     }
     // Sandbox: opt-in OS isolation (VANTA_SANDBOX=1 or shell-only VANTA_SHELL_SANDBOX=1). Off → base unchanged.
     return runLocal(command, ctx.root, pfx);
