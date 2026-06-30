@@ -16256,7 +16256,7 @@
       "codex": "gpt-5.4",
       "lens": "reach",
       "updated": "2026-06-30",
-      "notes": "Fix: twitter.ts auto-heal-and-retry-once on 404 + stale404() fallback message; twitter-read.ts passes refreshQueryIds as the injected heal (no import cycle — heal imports twitter.ts, so injection avoids it). Full vanta-ts suite green, tsc + size gate clean. Follow-up if X search stays flaky: consider making web_search site:x.com the primary X path and twitter_read opt-in."
+      "notes": "Fix: twitter.ts auto-heal-and-retry-once on 404 + stale404() fallback message; twitter-read.ts passes refreshQueryIds as the injected heal (no import cycle — heal imports twitter.ts, so injection avoids it). Full vanta-ts suite green, tsc + size gate clean. Follow-up if X search stays flaky: consider making web_search site:x.com the primary X path and twitter_read opt-in. CORRECTION 2026-06-30: live `reach heal twitter` proved the channel heal works (browser capture, refreshed SearchTimeline+Bookmarks qids), so X search is functional again — root cause (stale qid) confirmed. The auto-heal injection was switched from refreshQueryIds (bundle-scrape only) to healTwitter (browser capture first, bundle-scrape fallback) — the same proven heal the manual command uses; loads its own cookie, cycle-safe (twitter-read→twitter-capture)."
     }
   ]
 }

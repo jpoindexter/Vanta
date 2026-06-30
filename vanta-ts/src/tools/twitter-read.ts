@@ -1,8 +1,13 @@
 import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { loadCookie } from "../reach/cookie.js";
-import { searchTwitter, bookmarks, type TwitterPost } from "../reach/twitter.js";
-import { refreshQueryIds } from "../reach/twitter-heal.js";
+import { searchTwitter, bookmarks, type TwitterPost, type HealFn } from "../reach/twitter.js";
+import { healTwitter } from "../reach/twitter-capture.js";
+
+// Auto-heal on a 404 uses the channel's FULL heal — browser capture first, static
+// bundle-scrape as fallback (the path proven to refresh X's rotated query ids) — not
+// the bundle scrape alone. It loads its own cookie, so the passed one is unused.
+const autoHeal: HealFn = (_cookie, env) => healTwitter(env);
 
 const Args = z.object({
   action: z.enum(["search", "bookmarks"]),
@@ -49,11 +54,11 @@ export const twitterReadTool: Tool = {
     if (!cookie) return { ok: false, output: NO_COOKIE };
     const a = parsed.data;
     if (a.action === "bookmarks") {
-      const r = await bookmarks({ max: a.max }, cookie, process.env, refreshQueryIds);
+      const r = await bookmarks({ max: a.max }, cookie, process.env, autoHeal);
       return r.ok ? { ok: true, output: format("Bookmarks", r.posts) } : { ok: false, output: `twitter bookmarks failed: ${r.error}` };
     }
     if (!a.query) return { ok: false, output: "search needs a query" };
-    const r = await searchTwitter({ query: a.query, max: a.max, latest: a.latest }, cookie, process.env, refreshQueryIds);
+    const r = await searchTwitter({ query: a.query, max: a.max, latest: a.latest }, cookie, process.env, autoHeal);
     return r.ok ? { ok: true, output: format(`Search "${a.query}"`, r.posts) } : { ok: false, output: `twitter search failed: ${r.error}` };
   },
 };
