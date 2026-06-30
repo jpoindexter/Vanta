@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-29",
+  "updated": "2026-06-30",
   "items": [
     {
       "id": "SETUP-DEAD-SIMPLE",
@@ -16241,6 +16241,22 @@
       "lens": "agent-loop",
       "updated": "2026-06-29",
       "notes": "Fix #1 (this card): detect-and-steer in shell-cmd.ts (pure helper, tested). Fast-follow #2 (separate card if pursued): reap at the source — spawn foreground commands in their own process group and SIGKILL the group on exit/timeout so even an undetected long-runner can't orphan. Evidence + chain in the session transcript 2026-06-29. SHIPPED 2026-06-29: detect-and-steer in shell-cmd.ts (globalRefusal extraction + needsBackground) over pure helper shell-background-detect.ts (looksLikeBackgrounding/isLongRunningServer) + 8 tests. Full vanta-ts suite 988 files / 11186 tests green (3 live-gated skipped), tsc + size gate clean."
+    },
+    {
+      "id": "REACH-X-SEARCH-STALE-QID",
+      "track": "Operator",
+      "title": "X/Twitter search 404s on a stale query id — wire the self-heal to the 404 signal",
+      "status": "shipped",
+      "size": "S",
+      "summary": "Found in two live 'search X for biz ideas' runs: twitter_read returned 'X returned HTTP 404'. Root cause CONFIRMED: a cookie IS configured (~/.vanta/cookies/twitter.cookie) and qids ARE cached incl. SearchTimeline, yet X 404s — on X's GraphQL a 404 (not 403) = the persisted-query hash (queryId) rotated since the last heal (Jun 14). The channel calls itself self-healing (reach/twitter-heal.ts refreshQueryIds re-scrapes current ids) but nothing triggered the heal on the 404 — it only ran on a manual `reach heal twitter`, so a healed qid goes stale within days and every search 404s until re-healed by hand.",
+      "done": "a twitter_read 404 auto-triggers ONE heal+retry (inject refreshQueryIds into twitter.ts xGraphQL, cycle-safe; retry only if the qid actually changed); if heal can't refresh, return actionable guidance to re-import a cookie or fall back to web_search \"site:x.com <query>\" (which the agent already uses successfully). Unit-tested: 404→heal→retry→success, and 404→heal-no-change→fallback guidance. HONEST LIVE CAVEAT: the wiring is tested green, but whether the live heal beats X's current anti-scraping (and whether the cookie is still valid) is NOT verified here — native cookie-scraped X search is inherently fragile, which is why the deterministic web_search fallback matters.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4",
+      "lens": "reach",
+      "updated": "2026-06-30",
+      "notes": "Fix: twitter.ts auto-heal-and-retry-once on 404 + stale404() fallback message; twitter-read.ts passes refreshQueryIds as the injected heal (no import cycle — heal imports twitter.ts, so injection avoids it). Full vanta-ts suite green, tsc + size gate clean. Follow-up if X search stays flaky: consider making web_search site:x.com the primary X path and twitter_read opt-in."
     }
   ]
 }

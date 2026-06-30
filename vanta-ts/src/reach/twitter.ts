@@ -85,42 +85,77 @@ function xHeaders(cookie: string, ct0: string, env: NodeJS.ProcessEnv): Record<s
   };
 }
 
+// Injected so twitter.ts stays free of a twitter-heal import (heal imports this
+// file → injection avoids the cycle). The tool passes the real refreshQueryIds.
+export type HealFn = (cookie: string | null, env: NodeJS.ProcessEnv) => Promise<unknown>;
+
+type FetchOutcome = { ok: boolean; status: number; json: unknown } | { error: string };
+
+type GqlCtx = { cookie: string; env: NodeJS.ProcessEnv; heal?: HealFn };
+
+/** One GraphQL request: build the URL, SSRF-guard it, fetch. Returns the raw
+ *  status (+ body on success) or a guard/network error string. */
+async function fetchOnce(
+  op: string,
+  variables: object,
+  req: { qid: string; ct0: string; cookie: string; env: NodeJS.ProcessEnv },
+): Promise<FetchOutcome> {
+  const { qid, ct0, cookie, env } = req;
+  const features = env.VANTA_TWITTER_FEATURES ?? JSON.stringify(FEATURES);
+  const url = `https://x.com/i/api/graphql/${qid}/${op}?variables=${encodeURIComponent(JSON.stringify(variables))}&features=${encodeURIComponent(features)}`;
+  const guard = await assertPublicUrl(url, { env });
+  if (!guard.ok) return { error: guard.error };
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    const res = await fetch(url, { headers: xHeaders(cookie, ct0, env), signal: ctrl.signal });
+    clearTimeout(timer);
+    return { ok: res.ok, status: res.status, json: res.ok ? await res.json() : undefined };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+const stale404 = (op: string): string =>
+  `X returned HTTP 404 — the ${op} query id is stale and an auto-heal didn't refresh it ` +
+  `(X changed its web app, or the x.com cookie expired). Re-import a fresh cookie ` +
+  `(cookie_import channel "twitter"), or fall back to web_search "site:x.com <query>".`;
+
 async function xGraphQL(
   op: string,
   variables: object,
-  cookie: string,
-  env: NodeJS.ProcessEnv,
+  ctx: GqlCtx,
 ): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
+  const { cookie, env, heal } = ctx;
   const auth = extractAuth(cookie);
   if (!auth) return { ok: false, error: "twitter cookie missing auth_token/ct0 — re-import it" };
   const qid = resolveQid(op, env);
   if (!qid) return { ok: false, error: `no query id for ${op} — run reach heal twitter to fetch current ids` };
-  const features = env.VANTA_TWITTER_FEATURES ?? JSON.stringify(FEATURES);
-  const url = `https://x.com/i/api/graphql/${qid}/${op}?variables=${encodeURIComponent(JSON.stringify(variables))}&features=${encodeURIComponent(features)}`;
-  const guard = await assertPublicUrl(url, { env });
-  if (!guard.ok) return { ok: false, error: guard.error };
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    const res = await fetch(url, { headers: xHeaders(cookie, auth.ct0, env), signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!res.ok) return { ok: false, error: `X returned HTTP ${res.status}${res.status === 403 ? " (cookie expired or blocked)" : ""}` };
-    const json: unknown = await res.json();
-    const ge = graphqlError(json);
-    return ge ? { ok: false, error: ge } : { ok: true, value: json };
-  } catch (err) {
-    return { ok: false, error: (err as Error).message };
+  const res = await fetchOnce(op, variables, { qid, ct0: auth.ct0, cookie, env });
+  if ("error" in res) return { ok: false, error: res.error };
+  // 404 = X rotated this op's persisted-query hash. Self-heal once (the channel
+  // claims to be self-healing; wire it to the signal): re-scrape current ids, and
+  // retry ONLY if the id actually changed — else the retry would 404 identically.
+  if (res.status === 404 && heal) {
+    await heal(cookie, env);
+    return resolveQid(op, env) !== qid
+      ? xGraphQL(op, variables, { cookie, env })
+      : { ok: false, error: stale404(op) };
   }
+  if (!res.ok) return { ok: false, error: `X returned HTTP ${res.status}${res.status === 403 ? " (cookie expired or blocked)" : ""}` };
+  const ge = graphqlError(res.json);
+  return ge ? { ok: false, error: ge } : { ok: true, value: res.json };
 }
 
 export async function searchTwitter(
   opts: { query: string; max?: number; latest?: boolean },
   cookie: string | null,
   env: NodeJS.ProcessEnv = process.env,
+  heal?: HealFn,
 ): Promise<Posts> {
   if (!cookie) return { ok: false, error: "no twitter cookie" };
   const variables = { rawQuery: opts.query, count: opts.max ?? 20, querySource: "typed_query", product: opts.latest ? "Latest" : "Top" };
-  const r = await xGraphQL("SearchTimeline", variables, cookie, env);
+  const r = await xGraphQL("SearchTimeline", variables, { cookie, env, heal });
   return r.ok ? { ok: true, posts: parseTimeline(r.value) } : r;
 }
 
@@ -128,8 +163,9 @@ export async function bookmarks(
   opts: { max?: number },
   cookie: string | null,
   env: NodeJS.ProcessEnv = process.env,
+  heal?: HealFn,
 ): Promise<Posts> {
   if (!cookie) return { ok: false, error: "no twitter cookie" };
-  const r = await xGraphQL("Bookmarks", { count: opts.max ?? 20, includePromotedContent: false }, cookie, env);
+  const r = await xGraphQL("Bookmarks", { count: opts.max ?? 20, includePromotedContent: false }, { cookie, env, heal });
   return r.ok ? { ok: true, posts: parseTimeline(r.value) } : r;
 }

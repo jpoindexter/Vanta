@@ -82,6 +82,55 @@ describe("native client mocked fetch paths", () => {
   });
 });
 
+describe("auto-heal on a stale-qid 404", () => {
+  // parseTimeline walks the whole tree, so a flat node with legacy.full_text is enough.
+  const oneTweet = {
+    result: {
+      rest_id: "123",
+      core: { user_results: { result: { core: { screen_name: "jane" } } } },
+      legacy: { full_text: "invoices by hand is painful", favorite_count: 7 },
+    },
+  };
+
+  it("heals, reloads the refreshed id, and retries once → success", async () => {
+    saveQids({ SearchTimeline: "STALE" }, process.env);
+    const fetchSpy = vi.fn(async (url: string) =>
+      String(url).includes("/STALE/")
+        ? { ok: false, status: 404, json: async () => ({}) }
+        : { ok: true, status: 200, json: async () => oneTweet },
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    const heal = vi.fn(async () => { saveQids({ SearchTimeline: "FRESH" }, process.env); });
+    try {
+      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
+      const r = await searchTwitter({ query: "invoices" }, "auth_token=a; ct0=b", env, heal);
+      expect(heal).toHaveBeenCalledOnce();
+      expect(fetchSpy).toHaveBeenCalledTimes(2); // 404 on STALE, retried on FRESH
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(r.posts[0]).toMatchObject({ handle: "jane" });
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("when heal can't refresh the id, returns web_search fallback guidance (no retry)", async () => {
+    saveQids({ SearchTimeline: "STALE" }, process.env);
+    const fetchSpy = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const heal = vi.fn(async () => {}); // runs, but the id stays stale
+    try {
+      const env = { ...process.env, VANTA_ALLOW_PRIVATE_FETCH: "1" } as NodeJS.ProcessEnv;
+      const r = await searchTwitter({ query: "x" }, "auth_token=a; ct0=b", env, heal);
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error).toMatch(/site:x\.com/);
+      expect(heal).toHaveBeenCalledOnce();
+      expect(fetchSpy).toHaveBeenCalledOnce(); // no retry — id unchanged
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+});
+
 describe("SSRF guard (xGraphQL choke point)", () => {
   // The xGraphQL fetch is preceded by assertPublicUrl on this exact URL shape.
   // The guard returns a clean errors-as-value failure (never throws), which the

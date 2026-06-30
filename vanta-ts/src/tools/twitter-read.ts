@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { loadCookie } from "../reach/cookie.js";
 import { searchTwitter, bookmarks, type TwitterPost } from "../reach/twitter.js";
+import { refreshQueryIds } from "../reach/twitter-heal.js";
 
 const Args = z.object({
   action: z.enum(["search", "bookmarks"]),
@@ -48,11 +49,11 @@ export const twitterReadTool: Tool = {
     if (!cookie) return { ok: false, output: NO_COOKIE };
     const a = parsed.data;
     if (a.action === "bookmarks") {
-      const r = await bookmarks({ max: a.max }, cookie);
+      const r = await bookmarks({ max: a.max }, cookie, process.env, refreshQueryIds);
       return r.ok ? { ok: true, output: format("Bookmarks", r.posts) } : { ok: false, output: `twitter bookmarks failed: ${r.error}` };
     }
     if (!a.query) return { ok: false, output: "search needs a query" };
-    const r = await searchTwitter({ query: a.query, max: a.max, latest: a.latest }, cookie);
+    const r = await searchTwitter({ query: a.query, max: a.max, latest: a.latest }, cookie, process.env, refreshQueryIds);
     return r.ok ? { ok: true, output: format(`Search "${a.query}"`, r.posts) } : { ok: false, output: `twitter search failed: ${r.error}` };
   },
 };
