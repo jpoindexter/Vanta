@@ -2,7 +2,10 @@
 # VANTA RELIABILITY SMOKE — drive REAL one-shot `vanta run` tasks end-to-end and assert each
 # one COMPLETES, EXITS CLEAN (no hang), leaves NO zombie process, and returns sane output.
 # This catches the bug class unit tests miss (one-shot hangs, sandbox denials, MCP-handle
-# leaks) — the things that only surface by actually running the agent on real tasks.
+# leaks, long-lived-process wedges) — the things that only surface by actually running the
+# agent on real tasks. The `daemon` task specifically exercises the spawn-a-server class
+# (RELIABILITY-SHELL-BG-WEDGE): a foreground server blocks the turn, so the agent must route
+# it to background:true — if it doesn't, this task HANGs and the gate catches it.
 #
 # Needs: the kernel built + a configured provider (it makes real LLM calls).
 # Usage:  scripts/reliability-smoke.sh [maxTasks]
@@ -23,6 +26,10 @@ TASKS=(
   "write:::write the exact text smoke-ok to $PROBE then read it back and confirm the contents:::smoke-ok"
   "codeexec:::write a python script to /tmp/vanta-sum.py that prints the sum of 1 to 10, run it with python3, and tell me the result:::(^|[^0-9])55([^0-9]|$)"
   "multitool:::find the 3 largest TypeScript files under vanta-ts/src by line count excluding tests, and name them with their line counts:::\\.ts"
+  # daemon: spawn a long-lived server. A foreground server blocks the turn (the
+  # RELIABILITY-SHELL-BG-WEDGE class), so a healthy agent must use background:true. The
+  # bar is a CLEAN EXIT + no zombie — if it runs the server foreground it HANGs and fails.
+  "daemon:::start an http server serving the current directory on port 8123 in the background, confirm it is listening, then stop it and report done:::(background|listen|serv|stopp|done|task)"
   # a2a: the bar is the ACTUAL call_agent invocation targeting claude — NOT a loose "READY"
   # text match (which the prompt echo would satisfy without delegating). In a non-interactive
   # run the call then declines for lack of a TTY (correct: no approve-all unattended) and Vanta

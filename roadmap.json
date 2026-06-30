@@ -16257,6 +16257,54 @@
       "lens": "reach",
       "updated": "2026-06-30",
       "notes": "Fix: twitter.ts auto-heal-and-retry-once on 404 + stale404() fallback message; twitter-read.ts passes refreshQueryIds as the injected heal (no import cycle — heal imports twitter.ts, so injection avoids it). Full vanta-ts suite green, tsc + size gate clean. Follow-up if X search stays flaky: consider making web_search site:x.com the primary X path and twitter_read opt-in. CORRECTION 2026-06-30: live `reach heal twitter` proved the channel heal works (browser capture, refreshed SearchTimeline+Bookmarks qids), so X search is functional again — root cause (stale qid) confirmed. The auto-heal injection was switched from refreshQueryIds (bundle-scrape only) to healTwitter (browser capture first, bundle-scrape fallback) — the same proven heal the manual command uses; loads its own cookie, cycle-safe (twitter-read→twitter-capture)."
+    },
+    {
+      "id": "RELIABILITY-HARNESS-DAEMON-SPAWN",
+      "track": "Harness",
+      "title": "Reliability battery never spawned a long-lived process — add a daemon-spawn task",
+      "status": "shipped",
+      "size": "S",
+      "summary": "The 12/12 'reliable' battery never spawned a long-lived process, so the shell-bg-wedge class (RELIABILITY-SHELL-BG-WEDGE) was invisible to it — a real ad-hoc 'serve a dashboard' task is what found the wedge. Closed the gap: scripts/reliability-smoke.sh now has a `daemon` task that starts a server, confirms it, and stops it; the bar is a CLEAN EXIT + no zombie (a foreground server blocks the turn, so the agent must route to background:true).",
+      "done": "smoke battery includes a server-spawn task. LIVE-VERIFIED both modes: sandbox-ON → server can't start (background refused + foreground EPERM) but Vanta gives up cleanly (exit 0, 0 zombies, port clear, honest report — no wedge); sandbox-OFF → foreground '&' server REFUSED by the fix → agent steered to background:true → detached spawn → confirmed LISTEN on :8123 → stopped → exit 0, 0 zombies, port clear. End-to-end proof of RELIABILITY-SHELL-BG-WEDGE against the real agent.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-06-30",
+      "notes": "Evidence: the sandbox-off run shows the exact chain — `✗ shell_cmd refused` on the foreground '&', then `✓ background task started: bg-...`, then lsof LISTEN, then kill→stopped, exit 0. This is the live close-out the prior fix lacked."
+    },
+    {
+      "id": "RELIABILITY-HARNESS-REACH-STALENESS",
+      "track": "Harness",
+      "title": "Battery doesn't exercise stale external creds/query-ids (reach-channel staleness class)",
+      "status": "next",
+      "size": "S",
+      "summary": "The reliability battery never exercises a stale external credential / rotated query id — the class behind REACH-X-SEARCH-STALE-QID (X search 404'd on a stale qid for days). The 404→auto-heal→retry path is guarded by deterministic vitest (reach/twitter.test.ts), but no battery scenario simulates staleness, so a regression in the heal wiring would only show up in live use.",
+      "done": "a deterministic reliability scenario seeds a synthetic stale qid (no dependency on live X) and asserts the channel either auto-heals + retries or degrades gracefully (actionable fallback) — never a wedge, never a fake success. The vitest auto-heal tests are the current guard; this is the live-battery half.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4",
+      "lens": "reach",
+      "updated": "2026-06-30",
+      "notes": "Pairs with REACH-X-SEARCH-STALE-QID. Keep it fixture-based (a stored stale qid + a mock heal) so it runs without a real cookie or X cooperation."
+    },
+    {
+      "id": "SANDBOX-SERVE-FASTFAIL",
+      "track": "Harness",
+      "title": "Under the default sandbox the agent can't serve a web app — fail fast with guidance",
+      "status": "next",
+      "size": "S",
+      "summary": "Found live running 'serve a dashboard' under the default auto-sandbox: there is NO path to start a listening server — background:true is refused (no exit-time profile cleanup for an unref'd child under sandbox) AND a foreground bind gets EPERM (deny-default network). The agent discovers this only by burning 3 consecutive tool failures → the repair loop opens, then it honestly reports the blocker. Reliable (clean exit, no wedge) but poor UX, and it directly blocks the 'dashboard you can run a biz from' use case.",
+      "done": "shell_cmd detects a server/listen intent under an active sandbox and fails FAST with clear, actionable guidance (e.g. 'serving a web app needs a non-sandboxed run: VANTA_SHELL_SANDBOX=0') BEFORE the agent burns 3 tool failures + the repair loop. Reliability already holds; this is a clarity/UX fix for the serve path.",
+      "tier": "sand",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4",
+      "lens": "agent-loop",
+      "updated": "2026-06-30",
+      "notes": "Judgment call deferred to operator: fast-fail-with-guidance vs auto-suggest sandbox-off vs allow a scoped listen in the sandbox profile. The last weakens the boundary, so default to fast-fail-with-guidance. Relevant to previewing/serving any built web artifact."
     }
   ]
 }
