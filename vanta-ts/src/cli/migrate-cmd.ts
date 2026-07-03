@@ -18,6 +18,7 @@ import {
   type MigrationPlan,
 } from "../migrate/plan.js";
 import { applyMigration, defaultApplyDeps, type ApplySelection, type ApplyResult } from "../migrate/apply.js";
+import { runMigrateMemory } from "./migrate-memory-cmd.js";
 
 // VANTA-MIGRATE — `vanta migrate <openclaw|hermes>`: preview → select → backup →
 // apply. Kernel-gated (the apply is assessed; a block refuses), secrets redacted
@@ -29,6 +30,7 @@ const FLAG_RE = /^--/;
 function usage(log: (s: string) => void): number {
   log("  usage: vanta migrate <openclaw|hermes> [--skills] [--mcp] [--model] [--overwrite] [--yes]");
   log("         default brings all three footprints; pass any of --skills/--mcp/--model to narrow.");
+  log("         vanta migrate memory <claude-code|codex> [path]  — import another agent's memory into the brain.");
   return 1;
 }
 
@@ -121,6 +123,7 @@ function printReport(log: (s: string) => void, source: MigrateSource, plan: Migr
 
 export async function runMigrate(rest: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
   const log = console.log;
+  if (rest[0] === "memory") return runMigrateMemory(rest.slice(1), env); // CROSS-AGENT-MEMORY-UNIFY
   const source = rest[0] as MigrateSource | undefined;
   if (!source || !MIGRATE_SOURCES.includes(source)) return usage(log);
   const flags = rest.filter((a) => FLAG_RE.test(a));

@@ -165,7 +165,7 @@
       "id": "CROSS-AGENT-MEMORY-UNIFY",
       "track": "Operator",
       "title": "Unified cross-agent memory — ingest from Codex/Claude Code/ChatGPT",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A unified memory/knowledge layer that ingests from other agents/tools (Codex, Claude Code, ChatGPT) so knowledge isn't fragmented across them. Community signal (OpenClaw/Hermes X thread 2026-06-22), @ennyonx: \"how do you deal with knowledge getting fragmented when using different agents besides openclaw?\". Extends VANTA-MIGRATE (the memory child) + the brain/memory layers — the read-side complement to migrate.",
       "done": "vanta imports + unifies memory/context from at least one external agent’s store into the brain, deduped + provenance-tagged; recall surfaces the merged knowledge.",
@@ -174,8 +174,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-22",
-      "notes": "Pairs with VANTA-MIGRATE; the ongoing-sync version of a one-time import."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. The read-side complement to VANTA-MIGRATE: `vanta migrate memory <claude-code|codex> [path]` imports another agent's memory store into the brain, deduped + provenance-tagged. migrate/memory.ts is PURE: parseAgentMemory (markdown → facts: bullets/prose lines, drops headings/frontmatter/code-fences/sub-threshold noise + in-file dedup) → planMemoryIngest (splits new vs already-known keyed on the brain's own entryId(region,content) → re-import never duplicates) → ingestAgentMemory (injected read/existingIds/remember/idOf, errors-as-values). cli/migrate-memory-cmd.ts wires the live boundary through the Brain PORT (resolveBrain().remember, NOT the concrete brain — architecture boundary brain-variant-port) with sourceType 'external' + sourceRef '<source>' provenance, all facts in the semantic region; kernel-gated (assess block→refuse). LIVE-VERIFIED end-to-end: `vanta migrate memory claude-code` read the real ~/.claude/CLAUDE.md → imported 178 facts (region semantic / sourceType external / sourceRef claude-code) into a temp brain; recall surfaced an imported fact; re-import deduped 100% (0 new). Scoped to claude-code+codex sources (ChatGPT has no local store); one-time import (the ongoing-sync version stays a follow-up). 8 memory tests + full suite 995 files/11267 green, tsc + size gate + architecture boundaries clean."
     },
     {
       "id": "AMBIENT-SCREEN-CONTEXT",
