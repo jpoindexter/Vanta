@@ -16408,7 +16408,7 @@
       "id": "WEB-DOMAIN-SCOPING",
       "track": "Harness",
       "title": "allowed_domains / excluded_domains scoping on web_search",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes supports domain allow/exclude lists (mutually exclusive, capped) so a search stays inside or avoids specific sites. Vanta agents already hand-roll this via 'site:x.com' query hacks (see REACH-X-SEARCH-STALE-QID). Add a first-class allowed/excluded_domains param on web_search, applied per-provider (native where supported, query-rewrite fallback otherwise). Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "web_search accepts allowed_domains|excluded_domains (validated mutually-exclusive, capped); providers that support it natively pass it through, others get a site:/-site: query rewrite; tested for both paths.",
@@ -16417,14 +16417,14 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Replaces the ad-hoc 'site:' hacks agents currently use."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. web_search gained allowed_domains|excluded_domains params. search/scope.ts (pure): validateDomainScope (mutually-exclusive + capped at MAX_SCOPE_DOMAINS=10 + non-blank), hasDomainScope, and scopeQuery (allowed → `q (site:a OR site:b)`, excluded → `q -site:a -site:b`, normalizing scheme/path/case). SearchProvider gained a filtersDomains capability flag; the extracted testable searchAcross(providers, query, config) router passes domains through to a native-filtering provider (raw query) and query-rewrites for every other provider (dropping the domain config) — proving both paths. No built-in provider sets filtersDomains yet (all use the rewrite), but the seam is ready for xAI Grok (WEB-BACKEND-XAI-GROK). Replaces the ad-hoc 'site:' hacks. 10 web-search + 9 scope tests; 112 search/ tests green; tsc + size gate clean."
     },
     {
       "id": "WEB-SEARCH-CATEGORY-PAGINATION",
       "track": "Harness",
       "title": "Search category filtering + pagination",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes' searxng-search skill teaches category filtering (news/images/etc.) and pagination handling over the search API. Vanta returns a flat first page; add optional category + page/offset params so agents can scope by type and walk deeper result sets. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "web_search accepts optional category and page/offset params, honored by providers that support them (SearXNG natively) and ignored gracefully elsewhere; tested.",
@@ -16433,8 +16433,8 @@
       "effort": "low",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Low effort; most useful with SearXNG/Brave backends."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. web_search gained optional category + 1-based page params, carried through SearchConfig. SearXNG honors them natively: buildSearxngUrl (extracted pure fn) adds &categories= and &pageno= when present, plain first-page search otherwise (unchanged default). Other providers simply don't read them (graceful ignore). searchAcross forwards category/page in the config unchanged. Tested: buildSearxngUrl (plain / category+page / non-positive-page omit) + config passthrough. 8 searxng + 10 web-search tests green; tsc + size gate clean."
     }
   ]
 }

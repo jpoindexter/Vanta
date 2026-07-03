@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapSearxngJson } from "./searxng.js";
+import { mapSearxngJson, buildSearxngUrl } from "./searxng.js";
 
 const THREE_RESULTS = {
   results: [
@@ -8,6 +8,24 @@ const THREE_RESULTS = {
     { title: "Third", url: "https://c.example", content: "gamma snippet" },
   ],
 };
+
+describe("buildSearxngUrl (WEB-SEARCH-CATEGORY-PAGINATION)", () => {
+  it("builds a plain first-page JSON search by default", () => {
+    const url = buildSearxngUrl("http://localhost:8080", "vanta agent");
+    expect(url).toBe("http://localhost:8080/search?q=vanta+agent&format=json");
+  });
+
+  it("adds categories and pageno when a category/page are given", () => {
+    const url = buildSearxngUrl("http://localhost:8080/", "news", { category: "news", page: 3 });
+    expect(url).toContain("categories=news");
+    expect(url).toContain("pageno=3");
+    expect(url.startsWith("http://localhost:8080/search?")).toBe(true); // trailing slash trimmed
+  });
+
+  it("omits pageno for a non-positive page", () => {
+    expect(buildSearxngUrl("http://x", "q", { page: 0 })).not.toContain("pageno");
+  });
+});
 
 describe("mapSearxngJson", () => {
   it("maps content to snippet for each result", () => {

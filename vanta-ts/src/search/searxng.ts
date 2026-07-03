@@ -22,7 +22,7 @@ export class SearxngProvider implements SearchProvider {
 
   async search(query: string, config?: SearchConfig): Promise<SearchResult[]> {
     const max = config?.maxResults ?? DEFAULT_MAX_RESULTS;
-    const url = `${this.baseUrl}/search?q=${encodeURIComponent(query)}&format=json`;
+    const url = buildSearxngUrl(this.baseUrl, query, config);
 
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -42,6 +42,18 @@ export class SearxngProvider implements SearchProvider {
     const json: unknown = await res.json();
     return mapSearxngJson(json, max);
   }
+}
+
+/**
+ * Build the SearXNG JSON-API URL. WEB-SEARCH-CATEGORY-PAGINATION: SearXNG honors
+ * `categories` (news/images/…) and 1-based `pageno` natively, so a category/page in
+ * the config is passed through; unset → a plain first-page search (unchanged).
+ */
+export function buildSearxngUrl(baseUrl: string, query: string, config?: SearchConfig): string {
+  const params = new URLSearchParams({ q: query, format: "json" });
+  if (config?.category) params.set("categories", config.category);
+  if (config?.page && config.page > 0) params.set("pageno", String(config.page));
+  return `${baseUrl.replace(/\/+$/, "")}/search?${params.toString()}`;
 }
 
 /**
