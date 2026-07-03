@@ -224,6 +224,26 @@ export const MESSAGING_CATALOG: MessagingPlatform[] = [
     ],
   },
   {
+    id: "qq", label: "QQ (官方机器人)", implemented: true,
+    requiredEnv: ["VANTA_QQ_APP_ID", "VANTA_QQ_APP_SECRET"], secretEnv: "VANTA_QQ_APP_SECRET",
+    signupUrl: "https://bot.q.qq.com",
+    setupSteps: [
+      "Create a QQ bot on the 官方机器人 platform (bot.q.qq.com) and get its AppID + AppSecret.",
+      "Enable the group @-message event; set the callback (webhook) URL to the gateway.",
+      "Set VANTA_QQ_APP_ID and VANTA_QQ_APP_SECRET (optional VANTA_QQ_ALLOWLIST of group/member openids).",
+    ],
+  },
+  {
+    id: "wechat", label: "WeChat (公众号)", implemented: true,
+    requiredEnv: ["VANTA_WECHAT_APP_ID", "VANTA_WECHAT_APP_SECRET"], secretEnv: "VANTA_WECHAT_APP_SECRET",
+    signupUrl: "https://mp.weixin.qq.com",
+    setupSteps: [
+      "Create a WeChat Official Account (公众号) and get its AppID + AppSecret.",
+      "Configure the server URL (message webhook) to the gateway and verify it.",
+      "Set VANTA_WECHAT_APP_ID and VANTA_WECHAT_APP_SECRET (optional VANTA_WECHAT_ALLOWLIST of openids).",
+    ],
+  },
+  {
     id: "webchat", label: "WebChat (self-hosted)", implemented: true,
     requiredEnv: ["VANTA_WEBCHAT_ENABLE"], enableEnv: { VANTA_WEBCHAT_ENABLE: "1" },
     setupSteps: [

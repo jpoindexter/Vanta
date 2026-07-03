@@ -15,6 +15,8 @@ import { TwitchAdapter, httpTransport as twitchTransport, parseTwitchAllowlist, 
 import { SmsAdapter, httpTransport as smsTransport, parseSmsAllowlist, smsEnabled } from "./sms.js";
 import { ZaloAdapter, httpTransport as zaloTransport, parseZaloAllowlist, zaloEnabled } from "./zalo.js";
 import { FeishuAdapter, httpTransport as feishuTransport, parseFeishuAllowlist, feishuEnabled } from "./feishu.js";
+import { QQAdapter, httpTransport as qqTransport, parseQQAllowlist, qqEnabled } from "./qq.js";
+import { WeChatAdapter, httpTransport as wechatTransport, parseWeChatAllowlist, wechatEnabled } from "./wechat.js";
 import { WebChatAdapter, createWebChatBuffer, parseWebChatAllowlist, webchatEnabled } from "./webchat.js";
 import {
   NostrAdapter,
@@ -201,6 +203,26 @@ export const ADAPTERS: Record<string, AdapterEntry> = {
       new FeishuAdapter({
         transport: feishuTransport(env.VANTA_FEISHU_APP_ID!.trim(), env.VANTA_FEISHU_APP_SECRET!.trim()),
         allow: parseFeishuAllowlist(env),
+      }),
+  },
+  qq: {
+    // QQ 官方机器人 v2: app id + secret; QQBot access_token minted internally. Inbound
+    // webhook-fed; replies route PASSIVELY to the group's last inbound message (5-min window).
+    configured: qqEnabled,
+    build: (env) =>
+      new QQAdapter({
+        transport: qqTransport(env.VANTA_QQ_APP_ID!.trim(), env.VANTA_QQ_APP_SECRET!.trim()),
+        allow: parseQQAllowlist(env),
+      }),
+  },
+  wechat: {
+    // WeChat Official Account (公众号): app id + secret; access_token minted internally. Inbound
+    // message-XML webhook-fed; replies via the custom-service send API (48h window).
+    configured: wechatEnabled,
+    build: (env) =>
+      new WeChatAdapter({
+        transport: wechatTransport(env.VANTA_WECHAT_APP_ID!.trim(), env.VANTA_WECHAT_APP_SECRET!.trim()),
+        allow: parseWeChatAllowlist(env),
       }),
   },
   webchat: {

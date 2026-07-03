@@ -16198,12 +16198,13 @@
       "id": "REACH-QQ-WECHAT",
       "track": "Operator",
       "title": "China messaging adapters — QQ + WeChat (the two gaps in the 20)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Use-case audit vs the Hermes corpus (2026-06-27): of the China/SEA platforms Hermes users build for, Vanta already wires LINE, Feishu, Zalo — but NOT QQ or WeChat (a Hermes user shipped an 822-line QQ adapter). Add both as PlatformAdapters in adapter-registry.ts. Build needs the China platform API + a bot token to live-verify (untestable from here), so it's adapter code + an offline parser test, live-gated like the other 19.",
       "done": "QQ and WeChat PlatformAdapters registered (connect/send/poll + pure parsers, offline-tested); live-verified when a token is provisioned.",
       "tier": "pebble",
-      "updated": "2026-06-27"
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. QQ 官方机器人 v2 + WeChat 公众号 PlatformAdapters (gateway/platforms/qq.ts + wechat.ts), same injected-transport + webhook-buffer pattern as feishu/line/whatsapp — poll() drains the caller's webhook buffer (default none), the live wiring is the documented boundary. Pure parsers offline-tested: qq-parse.ts parseQQEvents (GROUP_AT_MESSAGE_CREATE → group_openid=chatId, author.member_openid=from, d.id=inbound msg_id) + buildQQMessage; QQAdapter tracks the last inbound msg_id per group and replies PASSIVELY (msg_type 0 + msg_id + unique incrementing msg_seq per split-part) because active group messages are QQ-capped (4/mo). wechat-parse.ts parseWeChatMessage (dependency-free flat-CDATA XML via xmlTag → FromUserName=openid=chatId, Content=text, MsgId=id) + buildWeChatMessage (custom/send {touser,msgtype:text,text}). httpTransports mint+cache the QQBot access_token (POST bots.qq.com/app/getAppAccessToken) / WeChat access_token (/cgi-bin/token), secret read only there. Registered qq+wechat in adapter-registry.ts (**22 adapters now**) + MESSAGING_CATALOG (vanta setup messaging). Enable: VANTA_QQ_APP_ID/SECRET, VANTA_WECHAT_APP_ID/SECRET (+ optional *_ALLOWLIST). WIRE-SHAPE honesty: QQ send + WeChat inbound XML/outbound are doc-confirmed; QQ inbound is the botpy/QQ-v2 convention (tolerant zod parser, documented assumption) — live-verified when a token is provisioned, same bar as the other 19 live-gated adapters. 25 QQ/WeChat tests + full suite 997 files/11285 green, tsc + size gate + architecture boundaries clean."
     },
     {
       "id": "SURFACE-MOBILE-APP",

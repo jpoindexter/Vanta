@@ -141,6 +141,8 @@ describe("implementedPlatformIds", () => {
       "sms",
       "zalo",
       "feishu",
+      "qq",
+      "wechat",
       "webchat",
       "nostr",
       "googlechat",
