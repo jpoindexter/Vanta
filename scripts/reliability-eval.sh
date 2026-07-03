@@ -14,7 +14,7 @@ DATE="${VANTA_EVAL_DATE:-unset}"                 # inject a date for a determini
 # (vanta-ts/.env's VANTA_PROVIDER), else unknown.
 PROVIDER="${VANTA_PROVIDER:-$(grep -E '^VANTA_PROVIDER=' vanta-ts/.env 2>/dev/null | head -1 | cut -d= -f2)}"
 PROVIDER="${PROVIDER:-unknown}"
-RESULTS="docs/reliability-results.md"
+RESULTS="${VANTA_EVAL_RESULTS:-docs/reliability-results.md}"   # override to a private/gitignored path for scheduled runs
 
 # Each row: label ::: command. Bounded so the eval is runnable regularly (not the full soak).
 run_one() {  # <label> <cmd...> → "label|reliability%|verdict"
