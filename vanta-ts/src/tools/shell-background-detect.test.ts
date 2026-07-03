@@ -5,6 +5,8 @@ import { join } from "node:path";
 import {
   looksLikeBackgrounding,
   isLongRunningServer,
+  looksLikeListenServer,
+  looksLikeServeIntent,
   needsBackground,
 } from "./shell-background-detect.js";
 import { shellCmdTool } from "./shell-cmd.js";
@@ -42,6 +44,34 @@ describe("isLongRunningServer", () => {
     expect(isLongRunningServer("python3 analyze.py")).toBe(false);
     expect(isLongRunningServer("ls -la")).toBe(false);
     expect(isLongRunningServer("git status")).toBe(false);
+  });
+});
+
+describe("looksLikeListenServer", () => {
+  it("flags raw netcat/socat port binds", () => {
+    expect(looksLikeListenServer("nc -l 8123")).toBe(true);
+    expect(looksLikeListenServer("ncat -lk 0.0.0.0 9000")).toBe(true);
+    expect(looksLikeListenServer("socat TCP-LISTEN:8000,fork EXEC:/bin/cat")).toBe(true);
+  });
+
+  it("does NOT flag one-shot netcat clients or unrelated commands", () => {
+    expect(looksLikeListenServer("nc example.com 80")).toBe(false);
+    expect(looksLikeListenServer("ls -la")).toBe(false);
+    expect(looksLikeListenServer("echo socat")).toBe(false);
+  });
+});
+
+describe("looksLikeServeIntent", () => {
+  it("is true for named dev servers AND raw port binds", () => {
+    expect(looksLikeServeIntent("python3 -m http.server 8123")).toBe(true);
+    expect(looksLikeServeIntent("npx serve -s build")).toBe(true);
+    expect(looksLikeServeIntent("nc -l 8123")).toBe(true);
+  });
+
+  it("is false for one-shot commands", () => {
+    expect(looksLikeServeIntent("npm run build")).toBe(false);
+    expect(looksLikeServeIntent("git status")).toBe(false);
+    expect(looksLikeServeIntent("cat index.html")).toBe(false);
   });
 });
 

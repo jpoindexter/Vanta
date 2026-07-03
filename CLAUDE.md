@@ -50,6 +50,7 @@ scripts/reliability-smoke.sh              # binary gate: real one-shot tasks exi
 scripts/reliability-eval.sh               # tracked scored eval → docs/reliability-results.md
 K=2 scripts/reliability-stress.sh         # repeated battery + concurrency burst
 N=5 scripts/reliability-longrun.sh        # one big multi-stage task ×N, unattended
+scripts/reliability-reach-staleness.sh    # deterministic: stale-qid → auto-heal+retry OR graceful degrade (no live X)
 # VANTA_PROVIDER=ollama VANTA_MODEL=… … scripts/reliability-stress.sh   # cross-provider
 ```
 

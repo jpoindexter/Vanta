@@ -49,6 +49,28 @@ export function isLongRunningServer(command: string): boolean {
   return SERVER_PATTERNS.some((re) => re.test(s));
 }
 
+// Raw port-bind listeners not covered by the named dev-server list — a netcat/ncat
+// listen or a socat TCP-LISTEN. These are the other way an agent starts something
+// that binds a port and never returns on its own.
+const LISTEN_PATTERNS: RegExp[] = [
+  /\bn(?:et)?c(?:at)?\s+(?:-\w*\s+)*-\w*l/, // nc -l / ncat -l / nc -lk (listen)
+  /\bsocat\b.*\bLISTEN\b/i, // socat TCP-LISTEN:8000,...
+];
+
+/** True when the command binds a port to listen (raw netcat/socat listener). */
+export function looksLikeListenServer(command: string): boolean {
+  const s = stripQuoted(command);
+  return LISTEN_PATTERNS.some((re) => re.test(s));
+}
+
+/** A command whose intent is to start a LISTENING server — a named dev server
+ *  (`http.server`, `npm run dev`, `serve`, …) or a raw port bind (`nc -l`, `socat
+ *  LISTEN`). This is the class that has NO working path under the shell sandbox:
+ *  background isn't sandboxed and a foreground bind is denied by the network. */
+export function looksLikeServeIntent(command: string): boolean {
+  return isLongRunningServer(command) || looksLikeListenServer(command);
+}
+
 /** A foreground command that should have been background:true — it would block the
  *  turn (and risk orphaning a daemon) on the execFile path. */
 export function needsBackground(command: string): boolean {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { shellCmdTool } from "./shell-cmd.js";
+import { shellCmdTool, sandboxServeRefusal } from "./shell-cmd.js";
 import type { ToolContext } from "./types.js";
 
 function ctx(root = "/tmp"): ToolContext {
@@ -97,5 +97,58 @@ describe("shell_cmd VANTA_SSH_SESSION (session-wide remote routing)", () => {
   it("an explicit ssh arg overrides the session host", () => {
     process.env.VANTA_SSH_SESSION = "deploy@host";
     expect(shellCmdTool.describeForSafety?.({ command: "ls", ssh: "other@box" })).toMatch(/ssh "other@box".*ls/);
+  });
+});
+
+// SANDBOX-SERVE-FASTFAIL: a listening server has no working path under the sandbox
+// (background isn't sandboxed, a foreground bind EPERMs). Fail fast with the one fix
+// instead of letting the agent burn the background↔foreground refusal ping-pong.
+describe("shell_cmd SANDBOX-SERVE-FASTFAIL", () => {
+  const prevSandbox = process.env.VANTA_SHELL_SANDBOX;
+  afterEach(() => {
+    if (prevSandbox === undefined) delete process.env.VANTA_SHELL_SANDBOX;
+    else process.env.VANTA_SHELL_SANDBOX = prevSandbox;
+  });
+
+  it("sandboxServeRefusal: refuses a serve intent under an active sandbox, naming the fix", () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    const r = sandboxServeRefusal("python3 -m http.server 8123");
+    expect(r?.ok).toBe(false);
+    expect(r?.output).toMatch(/no working path under the shell sandbox/);
+    expect(r?.output).toMatch(/VANTA_SHELL_SANDBOX=0/);
+  });
+
+  it("sandboxServeRefusal: null when the sandbox is off (server still runs the normal path)", () => {
+    process.env.VANTA_SHELL_SANDBOX = "0";
+    expect(sandboxServeRefusal("npx serve -s build")).toBeNull();
+  });
+
+  it("sandboxServeRefusal: null for a non-serve command even under sandbox", () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    expect(sandboxServeRefusal("npm run build")).toBeNull();
+  });
+
+  it("execute: fast-fails a serve with background:true under sandbox (pre-empts the bg-sandbox refusal)", async () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    const r = await shellCmdTool.execute({ command: "python3 -m http.server 8123", background: true }, ctx());
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/no working path under the shell sandbox/);
+    expect(r.output).not.toMatch(/run without background=true/); // NOT the generic bg-sandbox branch
+  });
+
+  it("execute: fast-fails a foreground serve under sandbox (pre-empts the needs-background steer)", async () => {
+    process.env.VANTA_SHELL_SANDBOX = "1";
+    const r = await shellCmdTool.execute({ command: "npx serve -s build" }, ctx());
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/VANTA_SHELL_SANDBOX=0/);
+    expect(r.output).not.toMatch(/is long-running or backgrounded/); // NOT the wedge-steer branch
+  });
+
+  it("execute: sandbox OFF — a foreground serve still gets the background steer, not the serve fast-fail", async () => {
+    process.env.VANTA_SHELL_SANDBOX = "0";
+    const r = await shellCmdTool.execute({ command: "python3 -m http.server 8123" }, ctx());
+    expect(r.ok).toBe(false);
+    expect(r.output).toMatch(/is long-running or backgrounded/);
+    expect(r.output).not.toMatch(/no working path/);
   });
 });
