@@ -2,7 +2,17 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { saveSession, loadSession, listSessions, newSessionId, forkSession } from "./store.js";
+import {
+  saveSession,
+  loadSession,
+  listSessions,
+  newSessionId,
+  forkSession,
+  createFsSessionStore,
+  type Session,
+  type SessionMeta,
+  type SessionStore,
+} from "./store.js";
 import type { Message } from "../types.js";
 
 const TRANSCRIPT: Message[] = [
@@ -85,5 +95,66 @@ describe("session store", () => {
     expect(fork?.messages).toEqual(TRANSCRIPT);
     expect(original?.updated).toBe("2026-06-02T12:00:00.000Z");
     expect((await listSessions(env())).map((s) => s.id)).toEqual(["20260603-120000", "20260602-120000"]);
+  });
+});
+
+// PORT-SESSION-STORE: persistence goes through a SessionStore interface; the fs-JSON
+// impl is the default adapter and an alternate store replaces it without caller edits.
+describe("SessionStore port (PORT-SESSION-STORE)", () => {
+  let home: string;
+  const prev = process.env.VANTA_HOME;
+  beforeEach(async () => { home = await mkdtemp(join(tmpdir(), "vanta-store-port-")); });
+  afterEach(async () => {
+    if (prev === undefined) delete process.env.VANTA_HOME;
+    else process.env.VANTA_HOME = prev;
+    await rm(home, { recursive: true, force: true });
+  });
+
+  it("the default fs adapter round-trips save → load → list → delete", async () => {
+    const store = createFsSessionStore({ VANTA_HOME: home } as NodeJS.ProcessEnv);
+    await store.save("s1", TRANSCRIPT, { now: "2026-07-03T00:00:00.000Z" });
+    expect((await store.load("s1"))?.messages).toEqual(TRANSCRIPT);
+    expect((await store.list()).map((m) => m.id)).toEqual(["s1"]);
+    await store.delete("s1");
+    expect(await store.load("s1")).toBeNull();
+    expect(await store.list()).toEqual([]);
+  });
+
+  // An alternate (in-memory) adapter — proves the interface is the real seam: a
+  // store-agnostic consumer runs against it with no knowledge of the backend.
+  function inMemoryStore(): SessionStore {
+    const db = new Map<string, Session>();
+    return {
+      async save(id, messages, opts = {}) {
+        const now = opts.now ?? "2026-07-03T00:00:00.000Z";
+        db.set(id, { id, title: opts.title ?? "mem", started: opts.started ?? now, updated: now, messages });
+      },
+      async load(id) { return db.get(id) ?? null; },
+      async list() {
+        const metas: SessionMeta[] = [...db.values()].map((s) => ({
+          id: s.id, title: s.title, started: s.started, updated: s.updated,
+          projectId: s.projectId, turns: s.messages.filter((m) => m.role === "user").length,
+        }));
+        return metas.sort((a, b) => b.updated.localeCompare(a.updated));
+      },
+      async delete(id) { db.delete(id); },
+    };
+  }
+
+  // The consumer is written against SessionStore only — swapping fs↔memory needs no edit here.
+  async function saveThenCount(store: SessionStore, id: string): Promise<number> {
+    await store.save(id, TRANSCRIPT);
+    return (await store.list()).find((m) => m.id === id)?.turns ?? -1;
+  }
+
+  it("an in-memory adapter satisfies the same interface and consumer", async () => {
+    const mem = inMemoryStore();
+    expect(await saveThenCount(mem, "m1")).toBe(1); // one user message in TRANSCRIPT
+    expect((await mem.load("m1"))?.messages).toEqual(TRANSCRIPT);
+  });
+
+  it("the same consumer runs unchanged against the fs adapter", async () => {
+    const fs = createFsSessionStore({ VANTA_HOME: home } as NodeJS.ProcessEnv);
+    expect(await saveThenCount(fs, "f1")).toBe(1);
   });
 });

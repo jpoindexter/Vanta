@@ -1,5 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { applyOutputDensity, buildSystemPrompt, splitStableVolatile, TIER_SEP, trimSkillDesc } from "./prompt.js";
+import {
+  applyOutputDensity,
+  assembleTiers,
+  buildSystemPrompt,
+  PROMPT_TIERS,
+  splitStableVolatile,
+  TIER_SEP,
+  trimSkillDesc,
+  type PromptTier,
+  type PromptTierContext,
+} from "./prompt.js";
 import type { Goal } from "./types.js";
 
 const LENGTH_RULE = "10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer.";
@@ -408,5 +418,44 @@ describe("buildSystemPrompt — MSG-PLATFORM-HINTS", () => {
     process.env.VANTA_GATEWAY_PLATFORM = "irc";
     const prompt = await buildSystemPrompt(base);
     expect(prompt).toContain("You're on IRC");
+  });
+});
+
+// PORT-PROMPT-TIERS: the tier registry is a port — order, replacement, and additions
+// are data (the tier LIST), assembled by ONE logic path (assembleTiers). These tests
+// lock that contract: an alternate list runs through the same assembler with no core edit.
+describe("PROMPT_TIERS registry (PORT-PROMPT-TIERS)", () => {
+  const tier = (id: string, out: string): PromptTier => ({ id, render: () => out });
+  // assembleTiers only reads what the tiers themselves read; custom tiers here ignore ctx.
+  const ctx = {} as PromptTierContext;
+
+  it("renders tiers in list order and joins them with TIER_SEP", async () => {
+    const out = await assembleTiers([tier("a", "AAA"), tier("b", "BBB"), tier("c", "CCC")], ctx);
+    expect(out).toBe(["AAA", "BBB", "CCC"].join(TIER_SEP));
+  });
+
+  it("reordering the list reorders the output — no assembler edit", async () => {
+    const tiers = [tier("a", "AAA"), tier("b", "BBB"), tier("c", "CCC")];
+    const reversed = await assembleTiers([...tiers].reverse(), ctx);
+    expect(reversed).toBe(["CCC", "BBB", "AAA"].join(TIER_SEP));
+  });
+
+  it("drops empty-rendering tiers (no stray separators)", async () => {
+    const out = await assembleTiers([tier("a", "AAA"), tier("gap", ""), tier("c", "CCC")], ctx);
+    expect(out).toBe(["AAA", "CCC"].join(TIER_SEP));
+    expect(out).not.toContain(`${TIER_SEP}${TIER_SEP}`);
+  });
+
+  it("supports adding a new tier and awaits async renders", async () => {
+    const asyncTier: PromptTier = { id: "async", render: async () => "LATE" };
+    const out = await assembleTiers([tier("a", "AAA"), asyncTier], ctx);
+    expect(out).toBe(["AAA", "LATE"].join(TIER_SEP));
+  });
+
+  it("the real registry starts with the cache-stable tier and ends with volatile", () => {
+    const ids = PROMPT_TIERS.map((t) => t.id);
+    expect(ids[0]).toBe("stable");
+    expect(ids[ids.length - 1]).toBe("volatile");
+    expect(new Set(ids).size).toBe(ids.length); // ids are unique
   });
 });

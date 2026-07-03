@@ -12725,25 +12725,27 @@
       "id": "PORT-PROMPT-TIERS",
       "track": "Harness",
       "title": "Prompt-tier strategy port (3-tier assembly)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
-      "summary": "Audit: the 3-tier prompt is a core selling point but buildSystemPrompt concatenates private tier fns (prompt.ts:208-217) — can't reorder, replace, or add a tier without editing core. Define a PromptTier interface + ordered registry so tiers are pluggable. Depends on the convention being locked.",
+      "summary": "Audit: the 3-tier prompt is a core selling point but buildSystemPrompt concatenated private tier fns — couldn't reorder, replace, or add a tier without editing core. Define a PromptTier interface + ordered registry so tiers are pluggable.",
       "done": "Prompt tiers are registered behind a PromptTier interface in an ordered list; adding/replacing/reordering a tier needs no edit to the assembler's core logic.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. The port was already in place (prompt.ts: PromptTier interface {id,render} + the ordered PROMPT_TIERS registry + a registry-driven buildSystemPrompt) — the gap was that the pluggability guarantee was UNPROVEN. Extracted the 2-line assembler into an exported pure assembleTiers(tiers, ctx) (render each → drop empties → join TIER_SEP), so an alternate/reordered/extended tier list runs through the SAME code path a real tier set uses, and added a PROMPT_TIERS-registry test block locking the contract: list-order = output-order, reversing the list reverses output (no assembler edit), empty tiers are dropped (no stray separators), async renders are awaited, and the real registry stays stable-first/volatile-last with unique ids. 39 prompt tests green; tsc + size gate clean."
     },
     {
       "id": "PORT-SESSION-STORE",
       "track": "Harness",
       "title": "SessionStore port (currently fs + fixed JSON path)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
-      "summary": "Audit: session persistence is free functions over fs at a fixed JSON path (sessions/store.ts:88,97) with no port. Define a SessionStore interface; fs-JSON is the default adapter; enables DB/remote/encrypted session storage without rewriting callers.",
+      "summary": "Audit: session persistence was free functions over fs at a fixed JSON path with no port. Define a SessionStore interface; fs-JSON is the default adapter; enables DB/remote/encrypted session storage without rewriting callers.",
       "done": "Session persistence goes through a SessionStore interface with the fs-JSON impl as default adapter; an alternate store can replace it without consumer edits.",
       "tier": "pebble",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. sessions/store.ts now exposes a SessionStore interface {save,load,list,delete} + createFsSessionStore(env) as the default fs-JSON adapter (binds <vanta-home>/sessions once; methods carry no env). The existing saveSession/loadSession/listSessions/deleteSession/forkSession are now thin delegators over the default store, so all consumers (interactive, ui, repl, cross-session/project, checkpoint, from-pr, auto-title, hooks) stay byte-unchanged — proven by the 8 pre-existing behavior tests still green. Added a port test block: the fs adapter round-trips save→load→list→delete, and a store-agnostic consumer (saveThenCount) runs unchanged against BOTH the fs adapter and an in-memory SessionStore — locking that an alternate backend replaces fs with no caller edits. 11 store tests + 186 across sessions/ consumers green; tsc + size gate clean."
     },
     {
       "id": "PORT-MESSAGING-FACTORY",

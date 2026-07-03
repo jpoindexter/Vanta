@@ -121,7 +121,18 @@ export async function buildSystemPrompt(opts: BuildPromptOptions): Promise<strin
   const stack = await readStack(join(opts.root, ".vanta")).catch(() => ({ tasks: [] }));
   const tasksTier = taskStackSummary(stack) ? `Operator task stack:\n${taskStackSummary(stack)}` : "";
   const ctx: PromptTierContext = { opts, soul, tasksTier };
-  const rendered = await Promise.all(PROMPT_TIERS.map((t) => t.render(ctx)));
+  return assembleTiers(PROMPT_TIERS, ctx);
+}
+
+/**
+ * Assemble an ordered tier list into the final prompt: render each tier, drop the
+ * empties, join with TIER_SEP. This is the ENTIRE assembler — adding, replacing, or
+ * reordering a tier is a change to the tier LIST (e.g. {@link PROMPT_TIERS}), never to
+ * this logic (PORT-PROMPT-TIERS). Exported so an alternate list can be assembled +
+ * tested through the same code path a real tier set uses.
+ */
+export async function assembleTiers(tiers: PromptTier[], ctx: PromptTierContext): Promise<string> {
+  const rendered = await Promise.all(tiers.map((t) => t.render(ctx)));
   return rendered.filter(Boolean).join(TIER_SEP);
 }
 
