@@ -123,7 +123,8 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `verify/completion-verifier.ts` | VANTA-VERIFICATION-AGENT — `VANTA_VERIFY=1` trigger detector + timeout-bound verifier call. Completion claims (`done`/`complete`/`finished`/`shipped` or TaskUpdate completed) get original task/goals + recent tool output evidence; pass logs only, fail appends a `⚠ Verifier:` system message. |
 | `sessions/store.ts` | Session persist/resume/fork: `saveSession`/`loadSession`/`forkSession`/`listSessions`/`newSessionId`. JSON files `~/.vanta/sessions/<id>.json` (id `YYYYMMDD-HHMMSS`), zod-validated. `vanta sessions`/`resume <id>`/`--resume`; `--fork-session` creates a new seeded session. `createConversation(...,{history})` seeds resumed turns |
 | `search/interface.ts` | `SearchProvider` interface, `SearchResult`, `SearchConfig`, `DEFAULT_MAX_RESULTS` |
-| `search/{duckduckgo,searxng,serpapi,brave}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing |
+| `search/{duckduckgo,searxng,serpapi,brave,exa}.ts` | Search adapters. Each exports a `*Provider` class + a pure mapper/parser for testing. `exa` (neural/semantic) sets `filtersDomains=true` → native `includeDomains`/`excludeDomains` |
+| `search/scope.ts` | WEB-DOMAIN-SCOPING — pure `validateDomainScope`/`hasDomainScope`/`scopeQuery` (site:/-site: rewrite for providers without native domain filtering) |
 | `search/index.ts` | `resolveSearchProvider(env)` — reads `VANTA_SEARCH_PROVIDER`. Mirrors `providers/index.ts` |
 | `prompt.ts` | `buildSystemPrompt()` — tiers: stable (SOUL+tools+rules) / brain / skills / context / `errorsLogTier` (ERRORS.md, capped 3k) / volatile (Ralph paused continuity + goals+time+memory) |
 | `ralph/state.ts` | HARNESS-RALPH-LOOP — `.vanta/ralph-loop.json` store: goal, ordered features, status, summaries, files, next action, paused continuity formatter. |

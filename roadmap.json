@@ -16360,7 +16360,7 @@
       "id": "WEB-BACKEND-EXA",
       "track": "Harness",
       "title": "Exa neural/semantic search+extract backend",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Exa (1k searches/mo) does embeddings/neural retrieval rather than keyword match — a genuinely different recall profile from the existing keyword scrapers, useful for 'find pages about X' queries. Add as a SearchProvider with extract support; folds into the RRF fusion chain. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "ExaProvider implements SearchProvider (+extract); selectable via VANTA_SEARCH_PROVIDER=exa and eligible in the auto chain; mocked-fetch unit tests; key in .env.example.",
@@ -16369,8 +16369,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Distinct from the keyword backends — semantic recall complements RRF fusion (search/rrf.ts)."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. search/exa.ts: ExaProvider implements SearchProvider against the VERIFIED live Exa API (POST api.exa.ai/search, x-api-key; shape confirmed via docs, not assumed). Pure buildExaBody (maps our SearchConfig domain scope → Exa's NATIVE includeDomains/excludeDomains; requests a text snippet) + mapExaJson (highlights→text→summary snippet, skips title/url-less, caps to max, tolerant). Because Exa filters domains natively, ExaProvider sets filtersDomains=true — making it the FIRST real consumer of the WEB-DOMAIN-SCOPING seam (the tool passes the scope through instead of a site: rewrite). Wired: VANTA_SEARCH_PROVIDER=exa (named, key-gated) + leads the auto chain when EXA_API_KEY is set; EXA_API_KEY documented in .env.example. 9 exa + 8 resolver tests; 121 search/ tests green; tsc + size gate clean. The '+extract' backend half is deferred with WEB-BACKEND-SPLIT (no extract-backend concept exists yet); this is the search side."
     },
     {
       "id": "WEB-BACKEND-XAI-GROK",

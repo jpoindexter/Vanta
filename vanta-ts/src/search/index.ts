@@ -5,6 +5,7 @@ import { BraveProvider } from "./brave.js";
 import { BingProvider } from "./bing.js";
 import { JinaDdgProvider } from "./jina.js";
 import { BraveBrowserProvider } from "./brave-browser.js";
+import { ExaProvider } from "./exa.js";
 import type { SearchProvider } from "./interface.js";
 
 /**
@@ -32,6 +33,7 @@ function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
   // fallback so search works out-of-the-box with zero config. web_search tries each
   // in order and only fails if ALL error — so a flaky DDG day degrades, not breaks.
   const providers: SearchProvider[] = [];
+  if (env.EXA_API_KEY) providers.push(new ExaProvider({ apiKey: env.EXA_API_KEY }));
   if (env.BRAVE_KEY) providers.push(new BraveProvider({ apiKey: env.BRAVE_KEY }));
   if (env.SERPAPI_KEY) providers.push(new SerpapiProvider({ apiKey: env.SERPAPI_KEY }));
   if (env.VANTA_SEARCH_URL) providers.push(new SearxngProvider({ baseUrl: env.VANTA_SEARCH_URL }));
@@ -72,8 +74,13 @@ function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchP
       if (!apiKey) throw new Error("BRAVE_KEY is required for brave. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.");
       return new BraveProvider({ apiKey });
     }
+    case "exa": {
+      const apiKey = env.EXA_API_KEY;
+      if (!apiKey) throw new Error("EXA_API_KEY is required for exa. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.");
+      return new ExaProvider({ apiKey });
+    }
     default:
-      throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use auto, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg.`);
+      throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use auto, exa, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg.`);
   }
 }
 

@@ -34,4 +34,18 @@ describe("search provider resolution", () => {
 
     expect(provider.id).toBe("jina_ddg");
   });
+
+  it("selects Exa by name (needs EXA_API_KEY) — WEB-BACKEND-EXA", () => {
+    const provider = resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "exa", EXA_API_KEY: "exa-key" } as NodeJS.ProcessEnv);
+    expect(provider.id).toBe("exa");
+  });
+
+  it("errors when exa is requested without a key", () => {
+    expect(() => resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "exa" } as NodeJS.ProcessEnv)).toThrow(/EXA_API_KEY/);
+  });
+
+  it("auto leads with Exa when EXA_API_KEY is present", () => {
+    const providers = resolveSearchProviders({ EXA_API_KEY: "exa-key" } as NodeJS.ProcessEnv);
+    expect(providers[0]?.id).toBe("exa");
+  });
 });
