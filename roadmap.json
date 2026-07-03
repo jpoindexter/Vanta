@@ -85,7 +85,7 @@
       "id": "GATEWAY-CHANNEL-SELFHEAL",
       "track": "Operator",
       "title": "Gateway channel self-heal — auto-reconnect + health recovery",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Messaging-channel auto-reconnect + health recovery so a dropped channel self-heals without a restart. Community signal (OpenClaw/Hermes X thread 2026-06-22): Felipe H (\"WhatsApp always disconnected, gateway broke\"), ASI Appreciator (\"brand new VM, broke after the first Telegram message\"), and repeated \"daily gateway failures\" were the top reliability complaints against competitors. Extends MSG-MULTICHANNEL-LIVE per-channel isolation + HP-GATEWAY-DAEMON + REACH-DOCTOR.",
       "done": "a dropped channel reconnects automatically with backoff; the gateway survives a flapping channel; vanta gateway reports per-channel health + last reconnect; tested with an adapter that fails then recovers.",
@@ -94,8 +94,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-22",
-      "notes": "Directly validated by the fresh-install + gateway reliability work already done."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. SupervisedChannel (gateway/platforms/channel-supervisor.ts) wraps each child adapter: a failed poll marks the channel down + schedules an exponential-backoff reconnect (backoffMs, BASE 1s→MAX 60s) attempted inside poll() on the gateway tick loop (clock-injected, no timers). MultiChannelAdapter wraps every child + exposes health() (per-channel status/failures/lastError/lastReconnectAt); runGatewayLoop diffs health each tick and logs up/down transitions via the gateway log — the per-channel health + last-reconnect report. One flapping channel never blocks the others; poll/send/connect never throw across the seam. Offline-tested with an adapter that fails then recovers (channel-supervisor.test.ts + multi-channel.test.ts self-heal cases). 35 gateway tests green, tsc + size gate clean."
     },
     {
       "id": "STATUS-VERBOSITY-CONTEXT",

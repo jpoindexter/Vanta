@@ -16,6 +16,11 @@ import type { WebhookServer, Deliver } from "./webhook.js";
 import { initialState, type SessionState } from "./session-manager.js";
 import { newSeenIds, type SeenIds } from "./inbound.js";
 import { pollPlatformSession } from "./run-session.js";
+import {
+  changedHealth,
+  formatHealthTransition,
+  type ChannelHealth,
+} from "./platforms/channel-supervisor.js";
 import { drainLoopWakes } from "../loop/wake.js";
 import { withCaffeinate, resolveCaffeinate } from "../power/caffeinate.js";
 import { runWatchdog, resolveWatchdogConfig } from "../liveness/watchdog.js";
@@ -126,6 +131,23 @@ async function sleepInterval(tickMs: number, stillRunning: () => boolean): Promi
 
 export { pollPlatformSession };
 
+/** GATEWAY-CHANNEL-SELFHEAL — read a composite platform's per-channel health, if any. */
+function readChannelHealth(platform: PlatformAdapter | undefined): ChannelHealth[] {
+  const p = platform as { health?: () => ChannelHealth[] } | undefined;
+  return p?.health ? p.health() : [];
+}
+
+/** Log any channel that changed up/down since the last tick; return the new snapshot. */
+function logChannelHealth(
+  platform: PlatformAdapter | undefined,
+  prev: ChannelHealth[],
+  log: (msg: string) => void,
+): ChannelHealth[] {
+  const curr = readChannelHealth(platform);
+  for (const h of changedHealth(prev, curr)) log(`vanta gateway: ${formatHealthTransition(h)}`);
+  return curr;
+}
+
 type GatewayLoopArgs = {
   deps: GatewayDeps;
   tickMs: number;
@@ -138,12 +160,14 @@ async function runGatewayLoop(args: GatewayLoopArgs): Promise<void> {
   const { deps, tickMs, log, isRunning } = args;
   let session: SessionState = initialState();
   let seen: SeenIds = newSeenIds();
+  let health: ChannelHealth[] = [];
   while (isRunning()) {
     try {
       await gatewayTick(deps);
       const polled = await pollPlatformSession(deps, session, seen);
       session = polled.state;
       seen = polled.seen;
+      health = logChannelHealth(deps.platform, health, log);
     } catch (err) {
       log(`vanta gateway: tick error — ${err instanceof Error ? err.message : String(err)}`);
     }

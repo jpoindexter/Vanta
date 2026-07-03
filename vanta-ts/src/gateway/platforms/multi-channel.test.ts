@@ -74,6 +74,41 @@ describe("MultiChannelAdapter", () => {
     const m = new MultiChannelAdapter([fakeAdapter("slack", [], []), fakeAdapter("discord", [], [])]);
     expect(m.channelIds()).toEqual(["slack", "discord"]);
   });
+
+  it("reports per-channel health for every channel", () => {
+    const m = new MultiChannelAdapter([fakeAdapter("slack", [], []), fakeAdapter("discord", [], [])]);
+    expect(m.health().map((h) => ({ id: h.id, status: h.status }))).toEqual([
+      { id: "slack", status: "up" },
+      { id: "discord", status: "up" },
+    ]);
+  });
+
+  it("GATEWAY-CHANNEL-SELFHEAL — a flapping channel recovers while the other keeps delivering", async () => {
+    // A stateful child that fails poll while `broken`, controlled by the test.
+    const flap = { broken: true };
+    const flapping: PlatformAdapter = {
+      id: "slack",
+      connect: async () => {},
+      disconnect: async () => {},
+      poll: async () => { if (flap.broken) throw new Error("slack down"); return [{ chatId: "C1", text: "healed" }]; },
+      send: async () => {},
+    };
+    let now = 0;
+    const m = new MultiChannelAdapter([flapping, fakeAdapter("telegram", [{ chatId: "42", text: "b" }], [])], {
+      now: () => now,
+    });
+
+    // Tick 1: slack is down, telegram still delivers; slack marked down.
+    expect((await m.poll()).map((x) => x.chatId)).toEqual(["telegram:42"]);
+    expect(m.health().find((h) => h.id === "slack")?.status).toBe("down");
+
+    // Tick 2: slack recovers, backoff elapsed → both deliver, slack back up.
+    flap.broken = false;
+    now = 60_000;
+    const msgs = await m.poll();
+    expect(msgs.map((x) => x.chatId)).toEqual(["slack:C1", "telegram:42"]);
+    expect(m.health().find((h) => h.id === "slack")?.status).toBe("up");
+  });
 });
 
 describe("resolveMessagingChannel — from env", () => {
