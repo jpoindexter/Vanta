@@ -48,4 +48,21 @@ describe("search provider resolution", () => {
     const providers = resolveSearchProviders({ EXA_API_KEY: "exa-key" } as NodeJS.ProcessEnv);
     expect(providers[0]?.id).toBe("exa");
   });
+
+  it("selects each managed backend by name — WEB-BACKENDS-MANAGED", () => {
+    expect(resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "firecrawl", FIRECRAWL_API_KEY: "k" } as NodeJS.ProcessEnv).id).toBe("firecrawl");
+    expect(resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "tavily", TAVILY_API_KEY: "k" } as NodeJS.ProcessEnv).id).toBe("tavily");
+    expect(resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "parallel", PARALLEL_API_KEY: "k" } as NodeJS.ProcessEnv).id).toBe("parallel");
+  });
+
+  it("errors when a managed backend is requested without its key", () => {
+    expect(() => resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "firecrawl" } as NodeJS.ProcessEnv)).toThrow(/FIRECRAWL_API_KEY/);
+  });
+
+  it("auto detects managed backends in the documented priority (Firecrawl → Parallel → Tavily → Exa)", () => {
+    const providers = resolveSearchProviders({
+      FIRECRAWL_API_KEY: "f", PARALLEL_API_KEY: "p", TAVILY_API_KEY: "t", EXA_API_KEY: "e",
+    } as NodeJS.ProcessEnv);
+    expect(providers.slice(0, 4).map((p) => p.id)).toEqual(["firecrawl", "parallel", "tavily", "exa"]);
+  });
 });

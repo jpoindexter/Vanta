@@ -6,6 +6,9 @@ import { BingProvider } from "./bing.js";
 import { JinaDdgProvider } from "./jina.js";
 import { BraveBrowserProvider } from "./brave-browser.js";
 import { ExaProvider } from "./exa.js";
+import { FirecrawlProvider } from "./firecrawl.js";
+import { TavilyProvider } from "./tavily.js";
+import { ParallelProvider } from "./parallel.js";
 import type { SearchProvider } from "./interface.js";
 
 /**
@@ -33,6 +36,12 @@ function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
   // fallback so search works out-of-the-box with zero config. web_search tries each
   // in order and only fails if ALL error — so a flaky DDG day degrades, not breaks.
   const providers: SearchProvider[] = [];
+  // Managed keyed backends first (highest-quality titled results + native domain
+  // filtering / semantic recall), in the documented priority: Firecrawl → Parallel
+  // → Tavily → Exa → Brave → SerpApi → SearXNG, then the keyless engines.
+  if (env.FIRECRAWL_API_KEY) providers.push(new FirecrawlProvider({ apiKey: env.FIRECRAWL_API_KEY }));
+  if (env.PARALLEL_API_KEY) providers.push(new ParallelProvider({ apiKey: env.PARALLEL_API_KEY }));
+  if (env.TAVILY_API_KEY) providers.push(new TavilyProvider({ apiKey: env.TAVILY_API_KEY }));
   if (env.EXA_API_KEY) providers.push(new ExaProvider({ apiKey: env.EXA_API_KEY }));
   if (env.BRAVE_KEY) providers.push(new BraveProvider({ apiKey: env.BRAVE_KEY }));
   if (env.SERPAPI_KEY) providers.push(new SerpapiProvider({ apiKey: env.SERPAPI_KEY }));
@@ -55,33 +64,30 @@ const KEYLESS: Record<string, () => SearchProvider> = {
   brave_browser: () => new BraveBrowserProvider(),
 };
 
+/** Keyed providers — resolved by name from a required env var (data table keeps
+ *  resolveNamedProvider under the complexity gate as backends grow). `env` is the
+ *  var to read; `make` builds the provider from its value. */
+const KEYED: Record<string, { env: string; make: (value: string) => SearchProvider }> = {
+  searxng: { env: "VANTA_SEARCH_URL", make: (baseUrl) => new SearxngProvider({ baseUrl }) },
+  serpapi: { env: "SERPAPI_KEY", make: (apiKey) => new SerpapiProvider({ apiKey }) },
+  brave: { env: "BRAVE_KEY", make: (apiKey) => new BraveProvider({ apiKey }) },
+  exa: { env: "EXA_API_KEY", make: (apiKey) => new ExaProvider({ apiKey }) },
+  firecrawl: { env: "FIRECRAWL_API_KEY", make: (apiKey) => new FirecrawlProvider({ apiKey }) },
+  tavily: { env: "TAVILY_API_KEY", make: (apiKey) => new TavilyProvider({ apiKey }) },
+  parallel: { env: "PARALLEL_API_KEY", make: (apiKey) => new ParallelProvider({ apiKey }) },
+};
+
+const NAMED_HINT =
+  "auto, firecrawl, tavily, parallel, exa, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg";
+
 function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchProvider {
   const keyless = KEYLESS[provider];
   if (keyless) return keyless();
-  switch (provider) {
-    case "searxng": {
-      const baseUrl = env.VANTA_SEARCH_URL;
-      if (!baseUrl) throw new Error("VANTA_SEARCH_URL is required for searxng. Set it in vanta-ts/.env (e.g. http://localhost:8080).");
-      return new SearxngProvider({ baseUrl });
-    }
-    case "serpapi": {
-      const apiKey = env.SERPAPI_KEY;
-      if (!apiKey) throw new Error("SERPAPI_KEY is required for serpapi. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.");
-      return new SerpapiProvider({ apiKey });
-    }
-    case "brave": {
-      const apiKey = env.BRAVE_KEY;
-      if (!apiKey) throw new Error("BRAVE_KEY is required for brave. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.");
-      return new BraveProvider({ apiKey });
-    }
-    case "exa": {
-      const apiKey = env.EXA_API_KEY;
-      if (!apiKey) throw new Error("EXA_API_KEY is required for exa. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.");
-      return new ExaProvider({ apiKey });
-    }
-    default:
-      throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use auto, exa, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg.`);
-  }
+  const keyed = KEYED[provider];
+  if (!keyed) throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use ${NAMED_HINT}.`);
+  const value = env[keyed.env];
+  if (!value) throw new Error(`${keyed.env} is required for ${provider}. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.`);
+  return keyed.make(value);
 }
 
 export type { SearchProvider, SearchResult } from "./interface.js";

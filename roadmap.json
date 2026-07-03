@@ -16344,7 +16344,7 @@
       "id": "WEB-BACKENDS-MANAGED",
       "track": "Harness",
       "title": "Managed keyed search+extract backends — Firecrawl, Tavily, Parallel",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes ships keyed REST backends that do BOTH search and extract: Firecrawl (default, 500 credits/mo), Tavily (1k searches/mo), Parallel (paid). Vanta's SearchProvider interface already fits search-only keyed backends (Brave/SerpApi); add these three as combined search+extract providers, with auto-detect credential priority (Firecrawl→Parallel→Tavily→Exa→SearXNG). Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "FirecrawlProvider/TavilyProvider/ParallelProvider implement SearchProvider (+extract where supported); resolveSearchProvider auto-detects via API-key presence in the documented priority order; each provider unit-tested with a mocked fetch; keys documented in .env.example.",
@@ -16353,8 +16353,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Skip Noun Portal/Tool Gateway managed route — already classed as trash in the setup-wizard notes."
+      "updated": "2026-07-03",
+      "notes": "Shipped 2026-07-03. search/{firecrawl,tavily,parallel}.ts add three managed backends as SearchProviders, each against its VERIFIED live API (shapes confirmed from docs, not assumed): Firecrawl (POST /v2/search, Bearer, native includeDomains/excludeDomains → filtersDomains=true, results data.web[]), Tavily (POST /search, Bearer, native include/exclude_domains → filtersDomains=true, results[]), Parallel (POST /v1/search, x-api-key, objective+search_queries[] → results[{title,url,excerpts}]; no native domain filter so it uses the site: rewrite). Each has a pure build*Body + map*Json (skip title/url-less, cap to max, tolerant) unit-tested with fixtures. resolveSearchProviders auto-detects by API-key presence in the documented priority Firecrawl→Parallel→Tavily→Exa→…; resolveNamedProvider refactored to a KEYED data table (holds the growing switch under the cx gate). Keys documented in .env.example. 137 search/ tests green; tsc + size gate clean. The '+extract' half awaits WEB-BACKEND-SPLIT (no extract-backend concept yet). Skipped Noun Portal/Tool Gateway per prior note."
     },
     {
       "id": "WEB-BACKEND-EXA",
