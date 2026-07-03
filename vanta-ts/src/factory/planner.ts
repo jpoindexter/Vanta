@@ -1,4 +1,5 @@
 import type { WorkItem, FactoryPlan } from "./types.js";
+import type { CodeIntelProvider } from "../code-intel/provider.js";
 
 /** Build the agent instruction for a given work item. Pure — no I/O. */
 export function buildPlan(item: WorkItem, root: string): FactoryPlan {
@@ -7,6 +8,28 @@ export function buildPlan(item: WorkItem, root: string): FactoryPlan {
     instruction: buildInstruction(item, root),
     touchedDirs: inferTouchedDirs(item, root),
   };
+}
+
+/**
+ * CODE-INTEL-FACTORY-WIRING — augment a plan's instruction with a code map so the executor
+ * builds with the relevant existing code in view instead of blind. Guarded + ADDITIVE: an
+ * unavailable engine, a failed lookup, or empty context returns the plan UNCHANGED (identical
+ * to today's blind build). Removing this call reverts the factory to prior behavior with no
+ * other impact — factory only calls the port, which returns a plain string.
+ */
+export async function augmentPlanWithCodeIntel(
+  plan: FactoryPlan,
+  provider: CodeIntelProvider,
+): Promise<FactoryPlan> {
+  if (!(await provider.available())) return plan;
+  const ctx = await provider.context(plan.workItem.description);
+  if (!ctx.ok || !ctx.value.trim()) return plan;
+  const map = [
+    ``,
+    `CODE MAP (from code intelligence — the relevant existing code for this slice; build against it):`,
+    ctx.value.trim(),
+  ].join("\n");
+  return { ...plan, instruction: `${plan.instruction}\n${map}` };
 }
 
 const PROVEN_PATTERNS = [

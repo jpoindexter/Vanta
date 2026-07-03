@@ -116,6 +116,7 @@ describe("verify chain (PORT-FACTORY-DEPS)", () => {
       "no-existing-test-modified",
       "new-files-size",
       "new-tests-fail-on-prechange",
+      "affected-tests",
       "full-suite",
       "tsc",
       "intent-judge",

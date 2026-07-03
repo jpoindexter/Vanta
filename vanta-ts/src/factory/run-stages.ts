@@ -2,10 +2,19 @@ import { autonomyCapForFiles } from "./compartments.js";
 import { assessMergeRisk, resolveMergeTarget } from "./merge.js";
 import { listPreExistingFiles } from "./verifier.js";
 import type { FactoryConfig, CycleResult, FactoryDeps, FactoryPlan, WorkItem, SliceArtifact } from "./types.js";
+import type { CodeIntelProvider } from "../code-intel/provider.js";
 
 // The execute→verify→land pipeline a factory cycle runs after gating + planning. Still under
 // factory/ so it stays kernel-protected (no autonomous write can touch it); `run.ts` orchestrates it.
-export type CycleCtx = { config: FactoryConfig; item: WorkItem; deps: FactoryDeps; log: (msg: string) => void };
+// CODE-INTEL-FACTORY-WIRING: `codeIntel` (when present) reaches the verify gate's affected-tests
+// fast-check; absent → the gate is skipped and verify behaves exactly as before.
+export type CycleCtx = {
+  config: FactoryConfig;
+  item: WorkItem;
+  deps: FactoryDeps;
+  log: (msg: string) => void;
+  codeIntel?: CodeIntelProvider;
+};
 type ExecOutcome = { ok: boolean; artifact: SliceArtifact; reason?: string };
 
 /**
@@ -25,7 +34,7 @@ export async function executeWithVerify(
   const escalateAfter = Math.max(1, parseInt(process.env.VANTA_FACTORY_ESCALATE_AFTER ?? "1", 10));
   let artifact = await deps.execute(config.vantaRoot, plan, config.budgetTokens);
   log(`factory: executing… ${artifact.touchedFiles.length} file(s) touched, ~${artifact.tokenSpend.toLocaleString()} tokens`);
-  let verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+  let verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item, codeIntel: ctx.codeIntel });
   let totalTokens = artifact.tokenSpend;
   for (let retry = 1; !verifyResult.ok && retry <= maxRetries; retry++) {
     const escalate = retry >= escalateAfter && process.env.VANTA_MODEL_EXPENSIVE;
@@ -41,7 +50,7 @@ export async function executeWithVerify(
     if (escalate) delete process.env.VANTA_MODEL; // restore default after retry
     totalTokens += artifact.tokenSpend;
     log(`factory: retry ${retry}: ${artifact.touchedFiles.length} file(s), ~${artifact.tokenSpend.toLocaleString()} tokens (total ~${totalTokens.toLocaleString()})`);
-    verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item });
+    verifyResult = await deps.verify(config.vantaRoot, artifact, preExisting, { workItem: item, codeIntel: ctx.codeIntel });
   }
   return { ok: verifyResult.ok, artifact, reason: verifyResult.reason };
 }

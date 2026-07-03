@@ -1,12 +1,14 @@
 import { join } from "node:path";
 import { triage } from "./triage.js";
-import { buildPlan } from "./planner.js";
+import { buildPlan, augmentPlanWithCodeIntel } from "./planner.js";
+import { resolveCodeIntel } from "../code-intel/index.js";
 import { execute } from "./executor.js";
 import { verify, listPreExistingFiles } from "./verifier.js";
 import { shouldClarify, buildPrefightNote } from "./preflight.js";
 import { defaultVcs } from "./vcs.js";
 import { executeWithVerify, landVerifiedSlice, type CycleCtx } from "./run-stages.js";
-import type { FactoryConfig, CycleResult, AutonomyLevel, FactoryDeps } from "./types.js";
+import type { FactoryConfig, CycleResult, AutonomyLevel, FactoryDeps, FactoryPlan, WorkItem } from "./types.js";
+import type { CodeIntelProvider } from "../code-intel/provider.js";
 
 // --- Pure helpers ---
 
@@ -87,6 +89,21 @@ export const defaultFactoryDeps: FactoryDeps = {
   vcs: defaultVcs,
 };
 
+/**
+ * CODE-INTEL-FACTORY-WIRING — build the slice plan, augmented with a code map when code
+ * intelligence is available (an absent/unavailable engine leaves the plan unchanged). Returns
+ * the provider too, so the verify gate's affected-tests fast-check can reuse it.
+ */
+async function preparePlan(
+  config: FactoryConfig,
+  item: WorkItem,
+  deps: FactoryDeps,
+): Promise<{ plan: FactoryPlan; codeIntel: CodeIntelProvider }> {
+  const codeIntel = resolveCodeIntel(config.vantaRoot, process.env);
+  const plan = await augmentPlanWithCodeIntel(deps.plan(item, config.vantaRoot), codeIntel);
+  return { plan, codeIntel };
+}
+
 /** Acquire the lock then run the pre-cycle gate; reports whether we hold the lock + a bail reason. */
 async function enterGate(config: FactoryConfig, deps: FactoryDeps): Promise<{ acquired: boolean; bail: string | null }> {
   const acquired = await acquireLock(config.dataDir);
@@ -126,7 +143,9 @@ export async function runCycle(
       return { status: "aborted", reason: "item too vague — add context then re-run" };
     }
 
-    const plan = deps.plan(item, config.vantaRoot);
+    // CODE-INTEL-FACTORY-WIRING: build with a code map when code intelligence is available;
+    // an absent/unavailable engine leaves the plan unchanged (blind build, exactly as before).
+    const { plan, codeIntel } = await preparePlan(config, item, deps);
     if (config.interactive) log(`\nPlan:\n${plan.instruction}\n`);
     if (config.autonomyLevel <= 1) {
       // L1 suggest — print the plan, change nothing (no branch).
@@ -139,7 +158,7 @@ export async function runCycle(
     const branch = await deps.vcs.createBranch(config.vantaRoot);
     log(`factory: branched → ${branch}`);
 
-    const ctx: CycleCtx = { config, item, deps, log };
+    const ctx: CycleCtx = { config, item, deps, log, codeIntel };
     const result = await executeWithVerify(ctx, plan, preExisting);
     if (!result.ok) {
       log(`factory: verification failed — ${result.reason}`);

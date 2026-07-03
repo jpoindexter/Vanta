@@ -1,4 +1,5 @@
 import type { LLMProvider } from "../providers/interface.js";
+import type { CodeIntelProvider } from "../code-intel/provider.js";
 
 /** Priority-ordered categories of work triage finds. */
 export type WorkCategory = "quality" | "test-failure" | "type-error" | "roadmap" | "parked";
@@ -99,6 +100,11 @@ export type VerifyOpts = {
   workItem?: WorkItem;
   /** Override the LLM judge provider (default: resolved from env when workItem is set). */
   provider?: LLMProvider;
+  /**
+   * CODE-INTEL-FACTORY-WIRING — code-intel port for the affected-tests fast-gate. Absent/unavailable
+   * → the gate is skipped and the full-suite check remains the pass floor (identical behavior).
+   */
+  codeIntel?: CodeIntelProvider;
 };
 
 /** Context every verify check receives. */

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { existsSync } from "node:fs";
 import type { SliceArtifact, VerifyResult, VerifyOpts, VerifyCheck, VerifyCheckCtx } from "./types.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { checkIntentSatisfied } from "./intent-judge.js";
@@ -98,6 +99,45 @@ const newTestsFailOnPreChangeCheck: VerifyCheck = {
   },
 };
 
+/**
+ * CODE-INTEL-FACTORY-WIRING — extract runnable *.test.ts paths (relative to tsRoot) from an
+ * affected() report, keeping ONLY files that actually exist. Strips a leading `vanta-ts/` so a
+ * repo-root path normalizes to tsRoot-relative; a stale/garbage path is dropped rather than
+ * false-failing the slice. Reads existence (best-effort), otherwise pure.
+ */
+export function affectedTestPaths(report: string, tsRoot: string): string[] {
+  const matches = report.match(/[\w./-]+\.test\.tsx?/g) ?? [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of matches) {
+    const rel = raw.replace(/^vanta-ts\//, "");
+    if (seen.has(rel)) continue;
+    seen.add(rel);
+    if (existsSync(join(tsRoot, rel))) out.push(rel);
+  }
+  return out;
+}
+
+// CODE-INTEL-FACTORY-WIRING — when code intelligence is available, run the tests AFFECTED by the
+// changed files first as a fast-fail pre-gate. ADDITIVE + guarded: no provider / unavailable /
+// failed lookup / no existing affected test → {ok:true} (no-op), and the full-suite check below
+// stays the pass floor. Because affected tests ⊆ the full suite, this can only fast-fail a slice
+// the full-suite check would also fail — it never weakens the gate. Removing this entry reverts
+// the factory to full-verify with no other impact.
+const affectedTestsCheck: VerifyCheck = {
+  name: "affected-tests",
+  run: async ({ artifact, tsRoot, opts }) => {
+    const provider = opts?.codeIntel;
+    if (!provider || !(await provider.available())) return { ok: true };
+    const res = await provider.affected(artifact.touchedFiles);
+    if (!res.ok) return { ok: true };
+    const testFiles = affectedTestPaths(res.value, tsRoot);
+    if (testFiles.length === 0) return { ok: true };
+    const fails = await runTestFiles(tsRoot, testFiles);
+    return fails > 0 ? { ok: false, reason: `${fails} affected test(s) failing` } : { ok: true };
+  },
+};
+
 const fullSuiteCheck: VerifyCheck = {
   name: "full-suite",
   run: async ({ tsRoot }) => {
@@ -168,6 +208,7 @@ export function buildVerifyChecks(): VerifyCheck[] {
     noExistingTestModifiedCheck,
     newFilesSizeCheck,
     newTestsFailOnPreChangeCheck,
+    affectedTestsCheck,
     fullSuiteCheck,
     tscCheck,
     intentJudgeCheck,
