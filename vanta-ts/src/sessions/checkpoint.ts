@@ -28,6 +28,20 @@ export class CheckpointStore {
     return this.stack.pop() ?? null;
   }
 
+  /**
+   * Look up a checkpoint by id (`cp-2`) or label — WITHOUT popping it, so a
+   * named checkpoint can be restored (or branched) repeatedly and the stack
+   * stays intact. Ids are unique; a repeated label resolves to the MOST RECENT
+   * one. Returns null if no checkpoint matches.
+   */
+  find(nameOrId: string): Checkpoint | null {
+    for (let i = this.stack.length - 1; i >= 0; i -= 1) {
+      const cp = this.stack[i];
+      if (cp && (cp.id === nameOrId || cp.label === nameOrId)) return cp;
+    }
+    return null;
+  }
+
   latest(): Checkpoint | null {
     return this.stack[this.stack.length - 1] ?? null;
   }

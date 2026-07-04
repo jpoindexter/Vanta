@@ -16,16 +16,18 @@ function printCpOutput(r: unknown): void {
   if (r && typeof r === "object" && "output" in r) console.log((r as { output: unknown }).output);
 }
 
-async function tryCheckpointCmd(o: { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn }): Promise<SlashResult | null> {
-  if (o.firstToken === "checkpoint") { printCpOutput(o.cp(o.line.slice(o.firstToken.length + 1).trim(), o.ctx)); return {}; }
+async function tryCheckpointCmd(o: { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn }): Promise<SlashResult | null> {
+  const rest = o.line.slice(o.firstToken.length + 1).trim();
+  if (o.firstToken === "checkpoint") { printCpOutput(o.cp(rest, o.ctx)); return {}; }
   if (o.firstToken === "rollback") { printCpOutput(o.rb("", o.ctx)); return {}; }
+  if (o.firstToken === "restore") { printCpOutput(await o.rs(rest, o.ctx)); return {}; }
   return null;
 }
 
-type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; userCommands: UserCommand[]; repoRoot: string; runUserTurn: (t: string) => Promise<void> };
+type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn; userCommands: UserCommand[]; repoRoot: string; runUserTurn: (t: string) => Promise<void> };
 
 async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
-  const cpResult = await tryCheckpointCmd({ line: o.line, firstToken: o.firstToken, ctx: o.ctx, cp: o.cp, rb: o.rb });
+  const cpResult = await tryCheckpointCmd({ line: o.line, firstToken: o.firstToken, ctx: o.ctx, cp: o.cp, rb: o.rb, rs: o.rs });
   if (cpResult) return cpResult;
   const userCmd = o.userCommands.find((c) => c.name === o.firstToken);
   if (userCmd) {
@@ -58,6 +60,7 @@ export type ReplDeps = {
   ctx: SlashCtx;
   cp: CpFn;
   rb: CpFn;
+  rs: CpFn;
   userCommands: UserCommand[];
   setup: RunSetup;
   repoRoot: string;
@@ -90,7 +93,7 @@ async function replIteration(
   if (applyEditMode(line, editState, d.convo)) return {};
   const firstToken = line.slice(1).split(/\s/)[0] ?? "";
   if (line.startsWith("/") && !firstToken.includes("/")) {
-    const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, userCommands: d.userCommands, repoRoot: d.repoRoot, runUserTurn: d.runUserTurn });
+    const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, rs: d.rs, userCommands: d.userCommands, repoRoot: d.repoRoot, runUserTurn: d.runUserTurn });
     if (r.exit) return { stop: true };
     if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return { stop: true }; }
     if (r.editPrefill !== undefined) { editState.prefill = r.editPrefill; editState.msgIdx = r.editMsgIdx ?? -1; }

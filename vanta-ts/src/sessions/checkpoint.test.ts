@@ -50,4 +50,35 @@ describe("CheckpointStore", () => {
     expect((list[0] as Record<string, unknown>).messages).toBeUndefined();
     expect(list[0]?.label).toBe("a");
   });
+
+  it("find looks up by id without popping (non-destructive, unlike rollback)", () => {
+    const s = new CheckpointStore();
+    s.save("first", [msg("a")], 0);
+    s.save("second", [msg("b")], 1);
+    const cp = s.find("cp-1");
+    expect(cp?.label).toBe("first");
+    // find must NOT mutate the stack — both checkpoints still present.
+    expect(s.count()).toBe(2);
+    expect(s.find("cp-1")?.label).toBe("first"); // re-findable
+  });
+
+  it("find looks up by label", () => {
+    const s = new CheckpointStore();
+    s.save("before-migrate", [msg("a")], 3);
+    expect(s.find("before-migrate")?.turnIndex).toBe(3);
+  });
+
+  it("find resolves a repeated label to the most recent checkpoint", () => {
+    const s = new CheckpointStore();
+    s.save("dup", [msg("old")], 0);
+    s.save("dup", [msg("new")], 5);
+    expect(s.find("dup")?.turnIndex).toBe(5);
+  });
+
+  it("find returns null for an unknown name or id", () => {
+    const s = new CheckpointStore();
+    s.save("real", [], 0);
+    expect(s.find("nope")).toBeNull();
+    expect(s.find("cp-99")).toBeNull();
+  });
 });

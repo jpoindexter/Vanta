@@ -92,7 +92,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const stopPeer = await advertiseSession(state.sessionId, repoRoot);
 
   const checkpoints = new CheckpointStore();
-  const { checkpoint: cp, rollback: rb } = buildCheckpointHandlers(checkpoints);
+  const { checkpoint: cp, rollback: rb, restore: rs } = buildCheckpointHandlers(checkpoints);
   const userCommands = await loadUserCommands(process.env);
   const ctx = { convo, setup, dataDir: join(repoRoot, ".vanta"), state, env: process.env, now: () => new Date(), workingMemory };
   const capHaltedRef = { current: false };
@@ -102,7 +102,7 @@ export async function runChat(repoRoot: string, opts: { resumeId?: string; forkS
   const runUserTurn = (text: string) => { consumeSoftStop(SOFT_STOP); return executeUserTurn(text, turnDeps); };
 
   try {
-    await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, userCommands, setup, repoRoot, runUserTurn, state, agentDeps, capHaltedRef });
+    await runLoopWithFailureHook({ rl, convo, ctx, cp, rb, rs, userCommands, setup, repoRoot, runUserTurn, state, agentDeps, capHaltedRef });
   } finally {
     // VANTA-CONCURRENT-SESSIONS: deregister on clean exit (a crash leaves a stale
     // row that the next `listActiveSessions` prunes via the dead-pid check).

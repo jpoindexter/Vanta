@@ -12221,13 +12221,15 @@
       "id": "ASI-CHECKPOINT-RESTORE",
       "track": "Harness",
       "title": "Full-state checkpoints — snapshot + restore/branch a session's complete state",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From 'From AGI to ASI' Table 1 (lossless replication: backup & restore arbitrarily; spawn/halt/resume). Beyond today's resume/fork: named checkpoints capturing the COMPLETE state (messages + brain/memory + goals + todos), restorable or branchable mid-run. Gives an autonomous run a rollback floor — return to a known-good point after a bad turn. See docs/from-agi-to-asi-notes.md.",
       "done": "`/checkpoint <name>` snapshots full state; `/restore <name>` returns to it (or branches a new session); verified across an autonomous run.",
       "tier": "pebble",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04 to the done line. Prior state was in-memory LIFO only (/checkpoint saved, /rollback POPPED the latest — no random access, no restore-by-name, no branch). Added: CheckpointStore.find(nameOrId) (non-destructive lookup by cp-id or label, most-recent on repeated label) + a /restore <name|id> [branch] handler (repl/checkpoint-cmd.ts) — restores messages+turnIndex in place, or `branch` forks a NEW persisted session from the checkpoint via injected saveSession/newSessionId. Wired into the readline REPL dispatch (interactive-repl.ts tryCheckpointCmd) alongside the existing checkpoint/rollback; cataloged /checkpoint + /restore. Verified: 16 unit tests (round-trip restore, by-id, non-destructive re-restore, unknown-name no-op, branch persists a new session with the checkpoint messages while leaving the live convo untouched); tsc + size gate clean. BOUNDARY: the checkpoint snapshots the CONVERSATION state (messages + turnIndex); the summary's broader 'brain/memory/goals/todos' are NOT bundled into the checkpoint — they already persist via their own stores (brain git-versioned, goals in the kernel ledger). Bundling those into one checkpoint blob is a follow-up if wanted.",
+      "source": "asi-table1"
     },
     {
       "id": "ASI-FLEET-DIGEST",
