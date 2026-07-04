@@ -6,6 +6,7 @@ import { createHmac } from "node:crypto";
 import {
   verifyGithubSignature,
   resolveDeliver,
+  registerDeliveryTarget,
   startWebhookServer,
   type WebhookServer,
 } from "./webhook.js";
@@ -57,6 +58,23 @@ describe("resolveDeliver", () => {
   it("throws on a telegram target with no sender, and on unknown targets", () => {
     expect(() => resolveDeliver("telegram:1")).toThrow(/VANTA_TELEGRAM_TOKEN/);
     expect(() => resolveDeliver("carrier-pigeon")).toThrow(/unknown deliver target/);
+  });
+
+  it("routes the bare/empty target to local stdout (no throw)", () => {
+    expect(() => resolveDeliver("local")).not.toThrow();
+    expect(() => resolveDeliver("")).not.toThrow();
+  });
+
+  it("a new channel is added by REGISTRATION, not by editing resolveDeliver", async () => {
+    const captured: string[] = [];
+    // Registering `webhook-test-sink:` makes `resolveDeliver` route to it —
+    // the whole point of the registry (no switch edit).
+    registerDeliveryTarget("webhook-test-sink", (rest) => async (t) => void captured.push(`${rest}=${t}`));
+    const deliver = resolveDeliver("webhook-test-sink:room7");
+    await deliver("hello");
+    expect(captured).toEqual(["room7=hello"]);
+    // The error message now lists the registered schemes (incl. the new one).
+    expect(() => resolveDeliver("nope-scheme")).toThrow(/registered:.*webhook-test-sink/);
   });
 });
 

@@ -25,26 +25,47 @@ export function verifyGithubSignature(
 
 export type Deliver = (text: string) => Promise<void>;
 
+/** Injected sinks a delivery builder may need (kept out of the pure builders). */
+export type DeliverDeps = { telegram?: (chatId: string, text: string) => Promise<void> };
+/** Builds a Deliver from the target's `rest` (the part after `scheme:`). */
+export type DeliverBuilder = (rest: string, deps: DeliverDeps) => Deliver;
+
+// PORT-DELIVERY-REGISTRY — delivery targets resolve through a registry, so a new
+// channel (e.g. `slack:`) is a `registerDeliveryTarget("slack", …)` call, not an
+// edit to a switch in resolveDeliver. Built-ins register below.
+const DELIVERY_TARGETS = new Map<string, DeliverBuilder>();
+
+/** Register (or override) the builder for a `scheme:` delivery target. */
+export function registerDeliveryTarget(scheme: string, build: DeliverBuilder): void {
+  DELIVERY_TARGETS.set(scheme, build);
+}
+
+registerDeliveryTarget("local", () => async (t) => void console.log(t));
+registerDeliveryTarget("file", (path) => async (t) => appendFile(path, `${t}\n`, "utf8"));
+registerDeliveryTarget("telegram", (chatId, deps) => {
+  if (!deps.telegram) throw new Error("telegram deliver target needs VANTA_TELEGRAM_TOKEN set");
+  return async (t) => deps.telegram!(chatId, t);
+});
+
 /**
- * Resolve a `--deliver`-style target into a delivery function. Pure (the
- * returned closure does the I/O). Targets: `local` (stdout), `file:<path>`
- * (append), `telegram:<chatId>` (needs the injected sender). Shared by cron + webhooks.
+ * Resolve a `--deliver`-style target into a delivery function via the registry.
+ * `scheme` is the part before the first `:` (bare `local`/`""` → `local`); the
+ * remainder is passed to the registered builder. Pure (the returned closure
+ * does the I/O). Shared by cron + webhooks.
  */
 export function resolveDeliver(
   target: string,
   telegram?: (chatId: string, text: string) => Promise<void>,
 ): Deliver {
-  if (target === "" || target === "local") return async (t) => void console.log(t);
-  if (target.startsWith("file:")) {
-    const path = target.slice(5);
-    return async (t) => appendFile(path, `${t}\n`, "utf8");
+  const t = target === "" ? "local" : target;
+  const colon = t.indexOf(":");
+  const scheme = colon >= 0 ? t.slice(0, colon) : t;
+  const rest = colon >= 0 ? t.slice(colon + 1) : "";
+  const build = DELIVERY_TARGETS.get(scheme);
+  if (!build) {
+    throw new Error(`unknown deliver target "${target}" (registered: ${[...DELIVERY_TARGETS.keys()].join(" | ")})`);
   }
-  if (target.startsWith("telegram:")) {
-    const chatId = target.slice("telegram:".length);
-    if (!telegram) throw new Error("telegram deliver target needs VANTA_TELEGRAM_TOKEN set");
-    return async (t) => telegram(chatId, t);
-  }
-  throw new Error(`unknown deliver target "${target}" (use local | file:<path> | telegram:<chatId>)`);
+  return build(rest, { telegram });
 }
 
 export type WebhookServer = { port: number; close: () => Promise<void> };
