@@ -14754,7 +14754,7 @@
       "id": "OP-SETUP-FIELD-VALIDATE",
       "track": "Operator",
       "title": "Setup-wizard field validation + wrong-key detection",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Setup accepts pasted secrets without shape checks. Add per-field shape validation, 'you pasted the wrong key type' detection (e.g. xoxb vs xapp), and contextual 'where to find this value' help in the wizard.",
       "done": "Pasting a malformed or wrong-type key in setup is caught with a specific message and a where-to-find hint; validation unit-tested per field.",
@@ -14763,7 +14763,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. setup/validate-key.ts (pure) validateProviderKey(providerId,key,hint): high-confidence cross-vendor detection (xoxb-/sk-ant-/AIza/telegram-bot/... most-specific-first, so sk-ant- beats sk-) → 'This looks like a <Slack/Anthropic/…> key, but <Provider> keys start with \"<prefix>\"'; malformed → 'should start with \"<prefix>\"'; empty → caught; hint = the provider's catalog signupUrl. Conservative: only enforces providers with a reliable prefix (openai sk-/anthropic sk-ant-/openrouter sk-or-/gemini AIza) and passes everything else (ollama/keyless/router/oauth) so a valid-but-unusual key is never blocked. Wired into setup.ts runSetup key prompt (re-prompts on a caught key). Verified: 13 per-field unit tests (accept-right-shape ×4, wrong-vendor ×4, malformed/empty ×2, unenforced-passthrough ×3); setup tests (21) regression-clean; tsc + size gate clean.",
       "source": "ref-audit-2026-06-20"
     },
     {

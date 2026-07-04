@@ -2,6 +2,7 @@ import { createInterface, type Interface as Readline } from "node:readline/promi
 import { PROVIDER_CATALOG, type ProviderEntry } from "./providers/catalog.js";
 import { select } from "./term/select.js";
 import { buildEnvUpdates, setEnv, envPath } from "./setup-env.js";
+import { validateProviderKey } from "./setup/validate-key.js";
 
 // `vanta setup` — first-run wizard. Picks a provider, takes a key (if needed) and
 // a model, and MERGES the result into vanta-ts/.env without disturbing any other
@@ -116,6 +117,12 @@ export async function runSetup(repoRoot: string, opts: SetupOpts = {}): Promise<
       console.log(`\n  Get a key: ${entry.signupUrl ?? "(provider console)"}`);
       apiKey = await askSecret(`  Paste your ${entry.envVar} (hidden · empty = back to providers): `);
       if (!apiKey) { entry = await chooseProviderStep(); continue; }
+      const check = validateProviderKey(entry.id, apiKey, entry.signupUrl);
+      if (!check.ok) {
+        console.log(`  ⚠ ${check.message}`);
+        if (check.hint) console.log(`    Get the right key: ${check.hint}`);
+        continue; // re-prompt this provider's key (empty = back to providers)
+      }
     }
     const model = await chooseModelStep(entry);
     if (model) return writeProvider({ repoRoot, entry, apiKey, model, opts });
