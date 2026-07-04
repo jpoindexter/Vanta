@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.8.0 — 2026-07-05
+
+**Web extraction closes the standout gap vs Hermes.** `web_fetch` no longer blind-truncates a large page; it now routes through a size-tiered pipeline, and a new xAI/Grok search backend adds a fundamentally different search shape — a reasoning model performing the search itself.
+
+### Added
+- **Size-tiered web extraction** — `web_fetch` routes extracted text through 4 tiers matching Hermes' documented thresholds: ≤5k chars returned as-is, 5k–500k single-pass LLM summary, 500k–2M parallel-chunked (100k-char chunks, concurrent per-chunk summarize + one final synthesis pass), >2M refused with guidance to pick a more focused source. All thresholds are env-configurable.
+- **Auxiliary extraction model + independent timeout** — extraction summarization can target a separate (often cheaper) model via `VANTA_EXTRACT_MODEL`/`_PROVIDER` (same pattern as vision routing), and always gets its own request timeout (`VANTA_EXTRACT_TIMEOUT_SEC`, default 360s matching Hermes) independent of the main model's — a big-page digest never inherits a timeout tuned for snappy interactive chat.
+- **xAI/Grok native search backend** — `VANTA_SEARCH_PROVIDER=xai`: a reasoning model performs the search itself and returns one grounded answer with inline citations, mapped onto Vanta's `SearchResult` shape. Verified against the real `/v1/responses` API (a documented OpenClaw integration bug — github.com/openclaw/openclaw#13171 — confirmed the correct response path; the naive top-level `output_text`/`citations` fields don't exist). Native domain filtering, capped at 5 domains each.
+
 ## v0.7.0 — 2026-07-04
 
 **Governance, config safety, and cost attribution.** A regulator-facing audit trail over every gated action, versioned `.env` with rollback, and a persisted spend ledger broken down by goal/agent/provider/model.
