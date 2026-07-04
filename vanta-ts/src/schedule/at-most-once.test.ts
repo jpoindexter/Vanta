@@ -3,6 +3,7 @@ import {
   fireWindowKey,
   shouldFire,
   markFired,
+  reconcileWindow,
   type LastFired,
 } from "./at-most-once.js";
 
@@ -94,5 +95,47 @@ describe("markFired", () => {
     expect(shouldFire(1, next, lf)).toBe(true);
     lf = markFired(lf, 1, next);
     expect(shouldFire(1, next, lf)).toBe(false);
+  });
+});
+
+describe("reconcileWindow", () => {
+  const KEY = "2026-06-01T08:07";
+
+  it("splits due ids into already-fired (armed) vs still-pending", () => {
+    const lastFired: LastFired = { "1": KEY, "2": "2026-06-01T08:06" };
+    // 1 fired THIS window (armed); 2 fired a PRIOR window (pending again); 3 never fired (pending).
+    expect(reconcileWindow([1, 2, 3], KEY, lastFired)).toEqual({
+      armed: ["1"],
+      pending: ["2", "3"],
+    });
+  });
+
+  it("treats an empty ledger as all-pending (fresh boot)", () => {
+    expect(reconcileWindow([1, 2], KEY, {})).toEqual({
+      armed: [],
+      pending: ["1", "2"],
+    });
+  });
+
+  it("is all-armed when every due task already fired this window (post-restart no-op)", () => {
+    const lastFired: LastFired = { "1": KEY, "2": KEY };
+    expect(reconcileWindow([1, 2], KEY, lastFired)).toEqual({
+      armed: ["1", "2"],
+      pending: [],
+    });
+  });
+
+  it("preserves input order and stringifies numeric ids", () => {
+    const lastFired: LastFired = { "5": KEY };
+    const r = reconcileWindow([3, 5, 1], KEY, lastFired);
+    expect(r.pending).toEqual(["3", "1"]);
+    expect(r.armed).toEqual(["5"]);
+  });
+
+  it("pending here matches shouldFire=true (reconcile agrees with the per-task gate)", () => {
+    const lastFired: LastFired = { "1": KEY };
+    const { pending, armed } = reconcileWindow([1, 2], KEY, lastFired);
+    for (const id of pending) expect(shouldFire(id, KEY, lastFired)).toBe(true);
+    for (const id of armed) expect(shouldFire(id, KEY, lastFired)).toBe(false);
   });
 });

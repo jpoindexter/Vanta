@@ -14636,7 +14636,7 @@
       "id": "HARNESS-CRON-SCALE-ZERO",
       "track": "Harness",
       "title": "One-shot-per-job scale-to-zero cron + reconcile",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Beyond the OS-scheduler tick, the strong pattern is arming exactly one external one-shot per job at its real next-fire time, waking the (stopped) agent via an authed webhook, then re-arming — with at-most-once via store compare-and-set and a desired-vs-armed reconcile on boot. Keep the CAS+reconcile idea; the hosted machinery is out of scope for local-first.",
       "done": "Captured as a hardening reference for vanta cron; the store-CAS + reconcile pattern noted for the cron ledger.",
@@ -14645,7 +14645,8 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. The store-CAS + reconcile pattern made real on the cron ledger (hosted one-shot machinery correctly out of scope). schedule/cron-cas.ts adds claimFire() — an atomic O_EXCL per-(taskId,windowKey) claim (same primitive as team/checkout.ts) giving cross-PROCESS at-most-once, closing the double-run race the in-process at-most-once.ts map can't (gateway tick + manual `vanta cron run`, or a launchd double-invoke, both read cron-fired.json as not-fired and both fire); fails soft toward firing on non-EEXIST io error so a broken FS never silently drops a due fire. sweepClaims() prunes old-window claim files. at-most-once.ts gains pure reconcileWindow() (desired-vs-armed split on boot). runner.ts takes an optional claim dep (fire iff shouldFire AND claim wins; omitted = byte-identical), wired live into schedule/commands.ts (`vanta cron`) + gateway/run.ts. Verified: 24-way concurrent claim -> exactly 1 winner; 40 schedule tests + 738 gateway/schedule-command tests green; tsc + size gate clean.",
       "source": "ref-audit-2026-06-20"
     },
     {

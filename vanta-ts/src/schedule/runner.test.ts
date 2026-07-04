@@ -217,3 +217,66 @@ describe("runDueTasks at-most-once dedup", () => {
     expect(ran.length).toBe(2);
   });
 });
+
+describe("runDueTasks cross-process claim (store-CAS)", () => {
+  const due = loaderFor([
+    entry({ id: 1, instruction: "a", cron: ALWAYS }),
+    entry({ id: 2, instruction: "b", cron: ALWAYS }),
+  ]);
+
+  it("a task whose claim is lost (another process holds it) does NOT fire", async () => {
+    // Simulate the other process having already claimed task 1 this window.
+    const claim = async (id: number): Promise<boolean> => id !== 1;
+    const results = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run: echoRun,
+      load: due,
+      lastFired: {},
+      claim,
+    });
+    expect(results.results.map((r) => r.id)).toEqual([2]);
+    // The skipped task is NOT recorded as fired locally — the winner owns it.
+    expect(results.lastFired).toEqual({ "2": fireWindowKey(now) });
+  });
+
+  it("records the claim call per due task and fires all when every claim wins", async () => {
+    const claimed: Array<[number, string]> = [];
+    const claim = async (id: number, windowKey: string): Promise<boolean> => {
+      claimed.push([id, windowKey]);
+      return true;
+    };
+    const results = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run: echoRun,
+      load: due,
+      lastFired: {},
+      claim,
+    });
+    expect(results.results.map((r) => r.id)).toEqual([1, 2]);
+    expect(claimed).toEqual([
+      [1, fireWindowKey(now)],
+      [2, fireWindowKey(now)],
+    ]);
+  });
+
+  it("does not consult the claim for a task already deduped in-process", async () => {
+    // Task 1 pre-recorded this window → shouldFire=false → claim never called for it.
+    let claimCalls = 0;
+    const claim = async (): Promise<boolean> => {
+      claimCalls += 1;
+      return true;
+    };
+    const results = await runDueTasksTracked({
+      dataDir: DATA_DIR,
+      now,
+      run: echoRun,
+      load: due,
+      lastFired: { "1": fireWindowKey(now) },
+      claim,
+    });
+    expect(results.results.map((r) => r.id)).toEqual([2]);
+    expect(claimCalls).toBe(1); // only task 2 reached the CAS gate
+  });
+});

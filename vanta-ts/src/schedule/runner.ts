@@ -83,6 +83,14 @@ type RunDueTasksOptions = {
    * call — the original behavior, unchanged byte-for-byte.
    */
   lastFired?: LastFired;
+  /**
+   * Cross-process at-most-once claim. When provided, a due task fires only if
+   * the claim wins (returns true) — the store-CAS that stops two overlapping
+   * PROCESSES (gateway tick + manual run) double-firing the same task, which
+   * the in-process `lastFired` map alone can't. Omitted → no cross-process
+   * gate (behavior unchanged). See `cron-cas.ts`.
+   */
+  claim?: (taskId: number, windowKey: string) => Promise<boolean>;
 };
 
 /**
@@ -138,6 +146,8 @@ export async function runDueTasksTracked(
   const results: DueTaskResult[] = [];
   for (const entry of due) {
     if (tracking && !shouldFire(entry.id, windowKey, lastFired)) continue;
+    // Cross-process CAS: if another process already claimed this fire, skip.
+    if (opts.claim && !(await opts.claim(entry.id, windowKey))) continue;
     // Pre-advance: record the fire before running so an overlapping tick skips.
     if (tracking) lastFired = markFired(lastFired, entry.id, windowKey);
     results.push(await runOne(entry, opts.now, opts.run));

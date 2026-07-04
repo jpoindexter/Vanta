@@ -5,6 +5,8 @@ import {
   saveLastFired,
 } from "./runner.js";
 import type { RunTask } from "./runner.js";
+import { fireWindowKey } from "./at-most-once.js";
+import { claimFire, sweepClaims } from "./cron-cas.js";
 
 /**
  * Pull the value following `--cron` out of an argv slice. Returns the cron
@@ -78,8 +80,10 @@ export async function runCron(
     now,
     run,
     lastFired,
+    claim: (id, windowKey) => claimFire(dataDir, id, windowKey),
   });
   await saveLastFired(dataDir, updated);
+  await sweepClaims(dataDir, fireWindowKey(now));
   if (results.length === 0) {
     console.log("vanta cron: no tasks due");
     return;

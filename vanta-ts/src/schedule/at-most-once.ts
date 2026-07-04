@@ -58,3 +58,34 @@ export function markFired(
 ): LastFired {
   return { ...lastFired, [String(taskId)]: windowKey };
 }
+
+/** Desired-vs-armed split for one fire window (see `reconcileWindow`). */
+export type Reconciliation = {
+  /** Ids already fired for `windowKey` (armed) — must NOT re-fire. */
+  armed: string[];
+  /** Ids due this window but not yet fired (desired) — the ones to arm/fire. */
+  pending: string[];
+};
+
+/**
+ * Reconcile desired-vs-armed for a fire window. Given the ids due at `windowKey`
+ * and the persisted dedup map, split them into already-fired (`armed`) and
+ * still-to-fire (`pending`). This is the boot-time reconcile: after a restart
+ * the runner re-derives which due tasks were already claimed for the current
+ * window (so it doesn't re-fire them) vs which still need firing — without a
+ * separate "armed" ledger, since `lastFired` already IS the durable arm record.
+ * Pure: no I/O, order-preserving.
+ */
+export function reconcileWindow(
+  dueIds: ReadonlyArray<string | number>,
+  windowKey: string,
+  lastFired: LastFired,
+): Reconciliation {
+  const armed: string[] = [];
+  const pending: string[] = [];
+  for (const raw of dueIds) {
+    const id = String(raw);
+    (lastFired[id] === windowKey ? armed : pending).push(id);
+  }
+  return { armed, pending };
+}
