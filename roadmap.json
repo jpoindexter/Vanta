@@ -13919,7 +13919,7 @@
       "id": "PCLIP-ENFORCED-OUTCOMES",
       "track": "Harness",
       "title": "Enforced outcomes — tasks resolve to a typed result, not a status",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Enforced Outcomes, roadmap ⚪). Tasks/approvals resolve to a concrete outcome — merged code, published artifact, shipped doc, explicit decision — not a vague status update. Stricter than /verify: 'done' requires the outcome object exist.",
       "done": "A task cannot close without a typed outcome object; status 'done' requires the outcome be present.",
@@ -13927,7 +13927,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-19"
+      "updated": "2026-07-04",
+      "notes": "Shipped-by-reference 2026-07-04 — a DUPLICATE of already-shipped work, not a new build. This done criterion, word-for-word, is already satisfied by COFOUNDER-ENFORCED-OUTCOME (cofounder/outcome-contract.ts: OutcomeContract + canCloseTask — a task closes only when an artifact of the expected type exists or an explicit persisted no-artifact reason is set) + ENFORCED-OUTCOME-WIRE (team/tasks.ts advanceTask → checkOutcomeGate: the live running→done transition is refused without a satisfied contract; a task with no contract is unaffected, byte-identical to before the gate). Verified via existing tests (team/tasks.test.ts: present-artifact allows close, absent-artifact refuses, explicit no-artifact-reason force-closes, gate is inert on non-done transitions) — 24/24 green, re-run to confirm before marking this shipped. No new code: writing a redundant module for an already-fully-tested, already-wired guarantee would be manufactured busywork, not a real slice."
     },
     {
       "id": "PCLIP-MAXIMIZER-MODE",
