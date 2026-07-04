@@ -5,6 +5,8 @@ import type { Tool } from "./types.js";
 import { assertPublicUrl } from "../net/ssrf-guard.js";
 import { loadSettings } from "../settings/store.js";
 import { shouldSkipPreflight } from "./webfetch-preflight.js";
+import { resolveExtractProvider } from "../routing/extract.js";
+import { runExtractPipeline, resolveExtractThresholds, resolveChunkSize, type Summarizer } from "./extract-pipeline.js";
 
 const Args = z.object({ url: z.string().url() });
 
@@ -94,6 +96,29 @@ function classifyHttpFailure(status: number): string {
   return `HTTP ${status}`;
 }
 
+// WEB-EXTRACT-PIPELINE: instead of blindly truncating a huge page, route the
+// extracted text through the size-tiered pipeline (as-is / summarize /
+// chunk+synthesize / refuse). The live summarizer resolves an (optionally
+// separate, cheaper) auxiliary provider — see routing/extract.ts — so a big
+// page's digest doesn't have to burn the main conversation model.
+const SUMMARIZE_SYSTEM =
+  "Summarize the following web page content concisely, preserving key facts, figures, and structure. " +
+  "Do not add commentary about summarizing or mention that this is a summary.";
+
+function liveSummarizer(env: NodeJS.ProcessEnv): Summarizer {
+  return async (text, targetChars) => {
+    const provider = resolveExtractProvider(env);
+    const result = await provider.complete(
+      [
+        { role: "system", content: `${SUMMARIZE_SYSTEM} Target length: under ~${targetChars.toLocaleString()} characters.` },
+        { role: "user", content: text },
+      ],
+      [],
+    );
+    return result.text;
+  };
+}
+
 /** Memoize a failure and return a clear, non-retryable result for the model. */
 function recordFailure(url: string, reason: string): { ok: false; output: string } {
   failedUrls.set(url, reason);
@@ -109,7 +134,8 @@ export const webFetchTool: Tool = {
   schema: {
     name: "web_fetch",
     description:
-      "Fetch a URL and return its main content as clean, readable text (markdown-ish). Strips nav, scripts, and boilerplate.",
+      "Fetch a URL and return its main content as clean, readable text (markdown-ish). Strips nav, scripts, and boilerplate. " +
+      "Large pages are size-tiered: small pages return as-is, large pages are summarized, huge pages are chunked and synthesized, and pages beyond a hard ceiling are refused with guidance to pick a more focused source.",
     parameters: {
       type: "object",
       properties: {
@@ -144,7 +170,14 @@ export const webFetchTool: Tool = {
       const html = await res.text();
       const { title, text } = extractReadable(html, res.url || url);
       const body = title ? `# ${title}\n\n${text}` : text;
-      return { ok: true, output: cap(body) };
+      const { tier, output } = await runExtractPipeline(body, {
+        thresholds: resolveExtractThresholds(process.env),
+        chunkSize: resolveChunkSize(process.env),
+        summarize: liveSummarizer(process.env),
+      });
+      // cap() stays as an absolute backstop even past the pipeline (a misbehaving
+      // summarizer that ignores the target length must never blow past the ceiling).
+      return { ok: tier !== "refuse", output: cap(output) };
     } catch (err) {
       return recordFailure(url, `error: ${(err as Error).message}`);
     } finally {

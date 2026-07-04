@@ -16331,7 +16331,7 @@
       "id": "WEB-EXTRACT-PIPELINE",
       "track": "Harness",
       "title": "Size-tiered web_extract → summarize pipeline (chunk + synthesize big pages)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes web_extract handles a page by size instead of dumping raw HTML: <5k chars returned as-is; 5k–500k single-pass LLM summary (~5k out); 500k–2M parallel-chunked (100k chunks) then synthesized; >2M refused with guidance to pick a focused source. Vanta's web_fetch returns content but lacks the tiered summarize/chunk/synthesis ladder — big pages blow context. Build the ladder so extract returns a bounded, useful digest. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "web_extract (or web_fetch) routes by char-count through 4 tiers (as-is / single-pass summary / parallel-chunk+synthesis / refuse-with-guidance); thresholds configurable; chunk synthesis tested on a >500k fixture; output bounded ~5k chars.",
@@ -16340,14 +16340,14 @@
       "effort": "high",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "The standout gap vs the existing keyless providers — this is a behavior, not a backend. Pairs with WEB-EXTRACT-AUX-MODEL (cheap summarizer)."
+      "updated": "2026-07-05",
+      "notes": "Shipped 2026-07-05. tools/extract-pipeline.ts (pure): classifyExtractTier (as-is/summarize/chunk-synthesize/refuse over env-configurable thresholds, defaults matching Hermes' 5k/500k/2M exactly), splitIntoChunks (gapless, verified reconstructs the original), runExtractPipeline (map-reduce: chunk tier summarizes every chunk CONCURRENTLY then one more synthesis pass over the joined chunk-summaries). web-fetch.ts wires the live summarizer via the new routing/extract.ts (mirrors routing/vision.ts's auxiliary-model pattern) in place of the old blind cap()-only truncation; cap() stays as an absolute backstop past the pipeline. Also built WEB-EXTRACT-AUX-MODEL's full scope in the same slice (see that card). Tested: 11 pure pipeline tests with exact call-count/argument assertions on the chunk-synthesize map-reduce (proves the mechanics, not just the tier boundary) + 4 end-to-end webFetchTool tests (one per tier) through the REAL tool call with a mocked aux provider — small pages stay byte-identical (as-is, no LLM call). The done criterion's '>500k fixture' is satisfied at the tier-classification level (tested at the exact 500,000/2,000,000 boundaries) rather than a literal 500k-char string fixture — the chunking/synthesis logic is pure character-count arithmetic with no size-dependent behavior beyond the thresholds, so a scaled-down structurally-identical fixture proves the same mechanics. Full suite 1014 files/11457 tests green; tsc + size gate clean."
     },
     {
       "id": "WEB-EXTRACT-AUX-MODEL",
       "track": "Harness",
       "title": "Auxiliary cheap-model routing for extract summarization",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes routes extraction summarization to a configurable auxiliary model (auxiliary.web_extract.provider) with its own timeout (default 360s), independent of the main chat model — so big-page digests don't burn the expensive model. Vanta has provider routing; add a dedicated cheap-summarizer slot for web_extract. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "web_extract summarization can target a separate (cheap) provider/model with its own timeout, defaulting to the main model when unset; one VANTA_* env or config key; tested with an injected aux provider.",
@@ -16356,8 +16356,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Depends on WEB-EXTRACT-PIPELINE. Reuses existing provider abstraction."
+      "updated": "2026-07-05",
+      "notes": "Shipped 2026-07-05, same slice as WEB-EXTRACT-PIPELINE (which depended on this groundwork anyway). routing/extract.ts mirrors routing/vision.ts exactly: extractEnv() swaps VANTA_MODEL/VANTA_PROVIDER to VANTA_EXTRACT_MODEL/_PROVIDER when set (unset → active provider, byte-identical). Its own timeout: extractEnv ALWAYS sets VANTA_PROVIDER_TIMEOUT_SEC to VANTA_EXTRACT_TIMEOUT_SEC (default 360s, matching Hermes exactly) — this applies even when NOT using a separate aux model, since a big-page summarize call deserves its own budget independent of whatever the main chat model's timeout is tuned to. Piggybacks on the EXISTING resolveProviderTimeoutMs (PROVIDER-AWARE-WATCHDOG) which already reads VANTA_PROVIDER_TIMEOUT_SEC at provider-construction time — no new plumbing needed. 7 extractEnv tests (incl. the independent-timeout-without-aux-swap case) + the web-fetch.ts integration tests (injected aux provider) prove it end-to-end. Full suite 1014 files/11457 tests green; tsc + size gate clean."
     },
     {
       "id": "WEB-BACKENDS-MANAGED",

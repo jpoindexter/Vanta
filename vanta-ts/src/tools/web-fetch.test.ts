@@ -6,6 +6,14 @@ import { extractReadable, webFetchTool, __resetWebFetchMemo } from "./web-fetch.
 import { SKIP_WEBFETCH_PREFLIGHT_ENV } from "./webfetch-preflight.js";
 import type { ToolContext } from "./types.js";
 
+// WEB-EXTRACT-PIPELINE: mock the auxiliary provider resolution so large-page
+// tests never hit a real network/model — existing small fixtures below never
+// reach this path (they resolve to the as-is tier), so it's safe file-wide.
+const completeSpy = vi.hoisted(() => vi.fn(async () => ({ text: "MOCKED SUMMARY", toolCalls: [], finishReason: "stop" as const })));
+vi.mock("../routing/extract.js", () => ({
+  resolveExtractProvider: () => ({ complete: completeSpy, modelId: () => "fake-extract-model", contextWindow: () => 100_000 }),
+}));
+
 const ARTICLE_HTML = `<!doctype html>
 <html>
   <head>
@@ -183,5 +191,75 @@ describe("webFetchTool failed-URL memo", () => {
     await webFetchTool.execute({ url: "https://dead.example/" }, fakeCtx);
     const ok = await webFetchTool.execute({ url: "https://live.example/" }, fakeCtx);
     expect(ok.ok).toBe(true);
+  });
+});
+
+// WEB-EXTRACT-PIPELINE: a page's extracted text is routed by size instead of
+// being blindly truncated.
+describe("webFetchTool size-tiered extract pipeline", () => {
+  beforeEach(() => {
+    process.env[SKIP_WEBFETCH_PREFLIGHT_ENV] = "1"; // bypass SSRF guard for the stub
+    completeSpy.mockClear();
+  });
+
+  function htmlOfLength(paragraphChars: number): string {
+    // One long <article><p> so extractReadable returns exactly this much text
+    // (a title-less body means output === the raw text, no "# Title\n\n" prefix).
+    return `<html><body><article><p>${"a".repeat(paragraphChars)}</p></article></body></html>`;
+  }
+
+  it("a small page (as-is tier) is returned unchanged — no summarize call", async () => {
+    const fetchSpy = vi.fn(async () => new Response(htmlOfLength(200), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const res = await webFetchTool.execute({ url: "https://small.example/" }, fakeCtx);
+    expect(res.ok).toBe(true);
+    expect(res.output).toContain("a".repeat(200));
+    expect(completeSpy).not.toHaveBeenCalled();
+  });
+
+  it("a large page (summarize tier) is summarized via the auxiliary provider", async () => {
+    process.env.VANTA_EXTRACT_ASIS_MAX = "100"; // force the tier boundaries down so a modest fixture crosses them
+    process.env.VANTA_EXTRACT_SUMMARIZE_MAX = "10000";
+    const fetchSpy = vi.fn(async () => new Response(htmlOfLength(500), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const res = await webFetchTool.execute({ url: "https://medium.example/" }, fakeCtx);
+    expect(res.ok).toBe(true);
+    expect(res.output).toBe("MOCKED SUMMARY");
+    expect(completeSpy).toHaveBeenCalledOnce();
+    delete process.env.VANTA_EXTRACT_ASIS_MAX;
+    delete process.env.VANTA_EXTRACT_SUMMARIZE_MAX;
+  });
+
+  it("a huge page (chunk-synthesize tier) summarizes each chunk then synthesizes once more", async () => {
+    process.env.VANTA_EXTRACT_ASIS_MAX = "10";
+    process.env.VANTA_EXTRACT_SUMMARIZE_MAX = "20";
+    process.env.VANTA_EXTRACT_CHUNK_MAX = "1000";
+    process.env.VANTA_EXTRACT_CHUNK_SIZE = "100";
+    const fetchSpy = vi.fn(async () => new Response(htmlOfLength(300), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const res = await webFetchTool.execute({ url: "https://huge.example/" }, fakeCtx);
+    expect(res.ok).toBe(true);
+    expect(res.output).toBe("MOCKED SUMMARY");
+    expect(completeSpy.mock.calls.length).toBeGreaterThan(1); // per-chunk calls + one final synthesis
+    delete process.env.VANTA_EXTRACT_ASIS_MAX;
+    delete process.env.VANTA_EXTRACT_SUMMARIZE_MAX;
+    delete process.env.VANTA_EXTRACT_CHUNK_MAX;
+    delete process.env.VANTA_EXTRACT_CHUNK_SIZE;
+  });
+
+  it("a page past the hard ceiling is refused with actionable guidance — no summarize call", async () => {
+    process.env.VANTA_EXTRACT_ASIS_MAX = "10";
+    process.env.VANTA_EXTRACT_SUMMARIZE_MAX = "20";
+    process.env.VANTA_EXTRACT_CHUNK_MAX = "50";
+    const fetchSpy = vi.fn(async () => new Response(htmlOfLength(300), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const res = await webFetchTool.execute({ url: "https://toobig.example/" }, fakeCtx);
+    expect(res.ok).toBe(false);
+    expect(res.output).toMatch(/too large to extract/);
+    expect(res.output).toMatch(/focused source|paste/);
+    expect(completeSpy).not.toHaveBeenCalled();
+    delete process.env.VANTA_EXTRACT_ASIS_MAX;
+    delete process.env.VANTA_EXTRACT_SUMMARIZE_MAX;
+    delete process.env.VANTA_EXTRACT_CHUNK_MAX;
   });
 });
