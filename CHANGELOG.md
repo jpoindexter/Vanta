@@ -3,6 +3,34 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.6.0 — 2026-07-04
+
+**Search backend expansion, safety hardening, and architecture ports.** Four new managed/semantic search backends, a reliability class of fixes (shell wedge, X search auto-heal, cross-process cron dedup), delegated-authority auto-approval, structural secret redaction at log-emit time, cross-agent memory import, and a batch of ports (prompt-tier, session-store, gateway delivery/formatter) that lock existing pluggability guarantees with tests.
+
+### Added
+- **Managed + semantic search backends** — `ExaProvider` (neural/semantic, native domain filtering), `FirecrawlProvider`, `TavilyProvider`, and `ParallelProvider`, each built against its verified live API. `web_search` gained first-class `allowed_domains`/`excluded_domains` scoping (native pass-through on providers that support it, `site:`/`-site:` query rewrite otherwise) and `category`/`page` params (honored natively by SearXNG). Auto-detect priority: Firecrawl → Parallel → Tavily → Exa → Brave → SerpApi → SearXNG → keyless engines.
+- **Gateway channel self-heal** — a dropped messaging channel (WhatsApp/Telegram/etc.) now auto-reconnects with exponential backoff instead of needing a restart; per-channel health is reported each gateway tick. Closes the top reliability complaint reported by competitor users.
+- **QQ + WeChat messaging adapters** — closes the last named China-platform gap, bringing gateway coverage to 22 adapters.
+- **Cross-agent memory import** — `vanta migrate memory <claude-code|codex>` imports another agent's memory store into Vanta's brain, deduped and provenance-tagged. Live-verified importing 178 facts from a real `~/.claude/CLAUDE.md`.
+- **`/restore <name>`** — restore a named checkpoint in place, or branch it into a new persisted session, completing the checkpoint/rollback pair.
+- **Cross-process cron dedup** — an atomic claim-file primitive stops two overlapping processes (a gateway tick + a manual `vanta cron run`, or a launchd double-invoke) from double-firing the same due task.
+- **Delegated authority in the approval gate** — a `write_file`/`edit_file` inside an owner's active write-scope grant now auto-approves without a human prompt (audited); everything else still prompts. No active grants = byte-identical behavior to before.
+- **Structural secret redaction at log-emit time** — masks positional secrets (URL query credentials, auth header values, connection-string passwords) that have no recognizable vendor prefix, composed with the existing vendor-secret scan before anything is written to `events.jsonl`.
+- **MCP mount-time egress advisory** — flags a mounting MCP server whose command has a download-into-shell or bare-egress-binary shape (advisory only; the kernel still gates every tool call).
+- **Setup key validation** — catches the two common paste mistakes (wrong-vendor key, malformed key) before writing a provider API key, with a pointer to the right signup page.
+- **Factory code-intelligence wiring** — the autonomous build pipeline's planner appends a code map when code intelligence is available, and verify fast-fails on affected tests as a guarded subset of the full-suite floor (never a weaker gate). No-op when code intelligence is absent.
+- **Reliability battery: reach-staleness + sandbox-serve-fastfail** — a deterministic scenario proves the reach-channel stale-query-id path either auto-heals or degrades gracefully; `shell_cmd` now fails fast with actionable guidance when a serve/listen command has no working path under the shell sandbox, instead of burning the background↔foreground refusal loop.
+- **`vanta run --output-format json`** — the stream-event formatter is now a registry (`VANTA_EVENT_FORMAT`), with a compact JSON formatter for programmatic/log consumers alongside the existing text formatter.
+
+### Fixed
+- **Shell command wedge on a backgrounded/long-running foreground command** — `shell_cmd`'s foreground exec path didn't resolve until every inherited stdio pipe closed, so a command ending in `&` (or a never-exiting server) blocked the whole turn until the 30s timeout and orphaned the process. Now detected and refused with a pointer to `background:true` before it can reach the exec path.
+- **X/Twitter search auto-heal** — a stale rotated query id 404'd every search; auto-heal on 404 now runs through the same browser-capture heal path proven live, not the weaker bundle-scrape-only fallback.
+
+### Changed
+- **Prompt-tier and session-store ports locked with tests** — the prompt assembler and session persistence layer already had the right shape (`PromptTier` registry, free functions over fs); both now go through an exported pure assembler / a `SessionStore` interface with a proven alternate-adapter test, so the pluggability guarantee is verified, not assumed.
+- **Gateway delivery targets via a registry** — `resolveDeliver`'s local/file/telegram prefix switch became a registration map; adding a delivery channel is now a registration, not a core edit.
+- **Reliability eval cron wrapper de-hardcoded** — self-locates its repo path and Node binary instead of a pinned absolute path + version, so the scheduled job works from any clone.
+
 ## v0.5.0 — 2026-06-28
 
 **Autonomous boxed agents + universal live reasoning.** Vanta can now run another agent *fully autonomously* inside an OS-enforced Docker box scoped to exactly the folders it's given — and a model's thinking streams live in the TUI across every provider.
