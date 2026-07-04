@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## v0.7.0 — 2026-07-04
+
+**Governance, config safety, and cost attribution.** A regulator-facing audit trail over every gated action, versioned `.env` with rollback, and a persisted spend ledger broken down by goal/agent/provider/model.
+
+### Added
+- **`vanta governance export`** — an externally-auditable markdown report of every gated action, its kernel verdict, and its final resolution (EU AI Act oversight/transparency). Closed a real completeness gap first: `applySafetyGate` now logs a durable audit event at **every** exit (allow, blocked, approved, denied, accept-edits-auto, delegated-auto, kernel-unreachable) — including the case where a rule/auto-mode *tightens* an allow/ask verdict down to blocked, recording both the kernel's raw verdict and the final resolution. Distinct from the pre-existing `vanta audit` (dependency-vulnerability scan).
+- **`vanta config revisions` / `vanta config rollback [REV]`** — every `.env` write is now versioned; rollback restores a specific revision or undoes the last change when none is given. A rollback snapshots the current state first, so it's itself reversible — never a dead end.
+- **`/usage breakdown [--since <ISO>]`** — a persisted, cross-session spend ledger broken down by goal, agent (interactive vs. gateway), provider, and model, complementing the existing per-session `/usage` view. Wired at both real cost-computing call sites (the interactive turn loop and the cron/gateway run task).
+
+### Fixed
+- A stale test assumption in the secret-redaction suite (asserted `logEvent` called exactly once) was updated for the new second audit-log call — and now proves both log lines are secret-free, a strictly stronger guarantee than before.
+
 ## v0.6.0 — 2026-07-04
 
 **Search backend expansion, safety hardening, and architecture ports.** Four new managed/semantic search backends, a reliability class of fixes (shell wedge, X search auto-heal, cross-process cron dedup), delegated-authority auto-approval, structural secret redaction at log-emit time, cross-agent memory import, and a batch of ports (prompt-tier, session-store, gateway delivery/formatter) that lock existing pluggability guarantees with tests.
