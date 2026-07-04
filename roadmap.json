@@ -15619,7 +15619,7 @@
       "id": "DELEGATED-AUTHORITY-WIRE",
       "track": "Cofounder engine",
       "title": "Wire checkDelegated into the live kernel ask-tier approval",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "COFOUNDER-DELEGATED-AUTHORITY shipped the pure checkDelegated + audit. At the requestApproval site, on an ASK verdict, consult checkDelegated(request, activeGrants); if it auto-approves, resolve the approval and appendAuditRecord. The kernel Block floor stays immovable (never delegated).",
       "done": "An ask-tier action within an active grant's bound is auto-approved without a human prompt and the decision is in the audit log; out-of-bound/block-floor still prompts.",
@@ -15628,7 +15628,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
+      "notes": "Shipped 2026-07-04. agent/delegated-gate.ts wires the pure checkDelegated at the ASK branch of dispatch-helpers.ts applySafetyGate: delegatedRequestForCall maps a write_file/edit_file call -> a writeScope DelegatedRequest (path from args); tryDelegatedAutoApprove reads active grants, and on an in-bound match auto-approves WITHOUT the human prompt + appends the audit record (auditDelegatedDecision -> authority-audit.jsonl). SAFETY: runs ONLY in the ask branch (kernel BLOCK is handled above, never reaches here); checkDelegated is default-deny + never auto-approves a non-ask; NO active grants -> readGrants returns [] -> byte-identical to before (zero behavior change for anyone without a grant); a grant-read/audit-write failure degrades to the prompt, never an auto-approve. Verified: 7 delegated-gate unit tests (write-path extraction, no-grants->prompt, in-scope->auto-approve+audit, out-of-scope->prompt, revoked->prompt, fs-throw->prompt) + 360 agent/permissions regression tests green; tsc + size gate clean (applySafetyGate kept <=50 via a delegatedGateResult helper).",
+      "updated": "2026-07-04",
       "source": "cofounder-survey-2026-06-20"
     },
     {

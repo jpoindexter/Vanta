@@ -8,6 +8,8 @@ import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { densifySearchResult, shouldDensifyTool } from "../compress/search-densify.js";
 import { toonView, compressReadFile } from "./toon-output.js";
+import { tryDelegatedAutoApprove } from "./delegated-gate.js";
+import { readGrants, appendAuditRecord } from "../cofounder/delegated-authority.js";
 import { resolveLayeredDecision } from "./decision-chain.js";
 import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferences/signals.js";
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
@@ -59,11 +61,25 @@ export async function applySafetyGate(
     if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
       return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
     }
+    // DELEGATED-AUTHORITY-WIRE: an Ask within an active grant's bound is
+    // auto-approved (+ audited) without a prompt; no grant → falls through.
+    const delegated = await delegatedGateResult(call, action);
+    if (delegated) return delegated;
     await firePermissionEvent(ctx.root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
     return handleApprovalRequest({ call, action, verdict, deps, root: ctx.root });
   }
 
   return { approved: true };
+}
+
+/** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
+ *  pure gate with the real grant store + audit log. */
+async function delegatedGateResult(call: ToolCall, action: string): Promise<SafetyGateResult | null> {
+  const delegated = await tryDelegatedAutoApprove(call, action, {
+    readGrants: () => readGrants(process.env),
+    appendAudit: (r) => appendAuditRecord(r, process.env),
+  });
+  return delegated ? { approved: true, reason: `delegated authority (grant ${delegated.grantId})` } : null;
 }
 
 /**
