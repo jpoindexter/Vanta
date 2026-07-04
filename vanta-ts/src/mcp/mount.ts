@@ -1,5 +1,6 @@
 import { McpClient, stdioTransport, type Transport } from "./client.js";
 import { mcpClientEvents } from "./events.js";
+import { detectMcpEgressRisk, formatEgressWarning } from "./egress-warn.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import { resolveMcpTrust } from "../settings/trust-gate.js";
 import { isAuthRequiredError } from "./auth-detect.js";
@@ -65,6 +66,10 @@ async function mountOneServer(opts: {
   trust?: McpTrust;
 }): Promise<number> {
   const { name, spec, registry, env, children, deferred, cwd, log, trust } = opts;
+  if (spec.command) {
+    const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
+    if (risk.risky) log(formatEgressWarning(name, risk.reason));
+  }
   const transport = await resolveTransport(name, spec, env, children);
   if (!transport) { log(`  · mcp: ${name} skipped — no command or url`); return 0; }
   const client = new McpClient(transport, mcpClientEvents(cwd, name));

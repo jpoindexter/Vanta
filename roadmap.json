@@ -14606,7 +14606,7 @@
       "id": "HARNESS-MCP-EGRESS-WARN",
       "track": "Harness",
       "title": "Mount-time warn for shell-interpreter MCP egress",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "User-added MCP servers aren't vetted at mount. Add an advisory warning (not a block) when a mounted MCP server is a shell interpreter (bash/pwsh) whose inline args invoke network egress (curl/wget/nc//dev/tcp/Invoke-WebRequest), upgraded if exfil-shaped (--data-binary, .env, POST). Complements the sandbox.",
       "done": "Mounting an MCP server that pipes a shell interpreter to egress tooling prints a clear advisory warning; benign servers are silent; heuristic unit-tested.",
@@ -14615,7 +14615,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. mcp/egress-warn.ts (pure) detectMcpEgressRisk(command,args): risky when a download pipes into a shell (curl … | bash), a shell interpreter (sh/bash/zsh/dash/ash/ksh/csh) reaches the network (curl/wget/nc/ncat/telnet/scp/sftp/ftp/ssh), or the server command IS a bare egress binary. Benign servers (node server.js / python -m mcp / npx @vendor/mcp) are silent; word-boundary matching so 'curly-server.js' doesn't trip 'curl'. formatEgressWarning notes the kernel still gates each tool call. Wired as an advisory (never a block) in mount.ts mountOneServer before spawn. Verified: 10 unit tests (4 risky shapes, 5 benign, 1 formatter) + mount tests (17) regression-clean; tsc + size gate clean.",
       "source": "ref-audit-2026-06-20"
     },
     {
