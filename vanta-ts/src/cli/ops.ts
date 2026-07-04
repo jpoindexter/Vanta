@@ -12,6 +12,7 @@ import type { RunTask } from "../schedule/runner.js";
 import { withWakeContext, wakeContextFromEnv } from "../loop/wake.js";
 import { estimateCostUsd } from "../pricing.js";
 import { enforceScopeBudget, scopeForLoop } from "../budget/enforce.js";
+import { recordTurnSpend } from "../cost/ledger.js";
 
 // Operational subcommands (gateway / service / mcp / factory + the
 // non-interactive cron task). Extracted from cli.ts to keep each file <300.
@@ -74,6 +75,16 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       const wakeCtx = wake ?? wakeContextFromEnv();
       const scope = wakeCtx?.goal_id ? scopeForLoop(wakeCtx.goal_id) : "session";
       await enforceScopeBudget({ dataDir: dataDirFor(repoRoot), scope, deltaUsd: cost }).catch(() => {});
+      // PCLIP-COST-ATTRIBUTION: persist the priced run for /usage breakdowns.
+      await recordTurnSpend(dataDirFor(repoRoot), {
+        costUsd: cost,
+        provider: process.env.VANTA_PROVIDER ?? "unknown",
+        model: setup.provider.modelId(),
+        inputTokens: usage!.inputTokens,
+        outputTokens: usage!.outputTokens,
+        agent: "gateway",
+        goal: wakeCtx?.goal_id,
+      });
     }
     return { finalText: outcome.finalText };
   };

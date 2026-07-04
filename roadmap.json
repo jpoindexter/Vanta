@@ -13875,7 +13875,7 @@
       "id": "PCLIP-COST-ATTRIBUTION",
       "track": "Harness",
       "title": "Multi-dimensional cost attribution (by goal/agent/provider/model)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Budget & Cost Control). Token/$ rollups attributed by goal, agent, project, provider, and model over a window — Vanta's pricing.ts is per-turn only. Feeds budgets + operator visibility.",
       "done": "/usage breaks spend down by goal/agent/provider/model over a chosen window.",
@@ -13883,7 +13883,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-19"
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04 — the done criterion's scope: goal/agent/provider/model (the summary also mentions 'project', but Vanta is single-project-per-repo today; project-level attribution would need the VANTA_PROJECTS_DIR rooms concept threaded through, out of this slice's bar). cost/ledger.ts (zod-validated .vanta/spend-ledger.jsonl, tolerant reads) + cost/attribution.ts (pure summarizeSpend/filterSpendSince/formatSpendBreakdown) is the persisted complement to pricing.ts's in-memory session view. Wired at BOTH real cost-computing call sites: interactive-post-turn.ts (extracted + exported recordTurnCost, held runPostTurnPipeline under the cx gate) tags agent:'interactive'; cli/ops.ts buildCronRunTask tags agent:'gateway' — both attribute to the active kernel goal id when one exists, both no-op on null/zero cost (unpriced model, local provider). New `/usage breakdown [--since <ISO>]` in repl/context-cmds.ts; bare `/usage` stays the unchanged session-scoped view. 15 cost/ tests + 5 context-cmds tests + 4 recordTurnCost tests; full suite 1012 files/11435 tests green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-APPROVAL-STAGES",

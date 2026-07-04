@@ -2,6 +2,8 @@ import { join } from "node:path";
 import { loadCron } from "../schedule/cron.js";
 import { formatExport, formatHistory, lines } from "./format.js";
 import { formatSessionCost } from "../pricing.js";
+import { listSpend } from "../cost/ledger.js";
+import { filterSpendSince, summarizeSpend, formatSpendBreakdown } from "../cost/attribution.js";
 import type { SlashHandler } from "./types.js";
 
 export const history: SlashHandler = (_arg, ctx) => ({ output: formatHistory(ctx.convo.messages) || "  (no history yet)" });
@@ -33,7 +35,23 @@ export const compress: SlashHandler = async (arg, ctx) => {
   return { output: `  · compressed ${before} → ${compressed.length} messages` };
 };
 
-export const usage: SlashHandler = (_arg, ctx) => {
+/** PCLIP-COST-ATTRIBUTION: `/usage breakdown [--since <ISO date>]` — persisted
+ *  cross-session spend by goal/agent/provider/model (vs the plain `/usage`'s
+ *  session-scoped view). Indented to match the rest of the /usage output. */
+async function usageBreakdown(arg: string, ctx: Parameters<SlashHandler>[1]): Promise<{ output: string }> {
+  const sinceRaw = /--since\s+(\S+)/.exec(arg)?.[1];
+  let entries = await listSpend(ctx.dataDir);
+  if (sinceRaw) {
+    const sinceMs = Date.parse(sinceRaw);
+    if (Number.isNaN(sinceMs)) return { output: `  invalid --since date: "${sinceRaw}" (expected an ISO date)` };
+    entries = filterSpendSince(entries, sinceMs);
+  }
+  const report = formatSpendBreakdown(summarizeSpend(entries));
+  return { output: report.split("\n").map((l) => (l ? `  ${l}` : l)).join("\n") };
+}
+
+export const usage: SlashHandler = (arg, ctx) => {
+  if (arg.trim().split(/\s+/)[0] === "breakdown") return usageBreakdown(arg, ctx);
   const chars = ctx.convo.messages.reduce((n, m) => n + (("content" in m ? m.content : "") ?? "").length, 0);
   const est = Math.round(chars / 4);
   const ctxWin = ctx.setup.provider.contextWindow();
@@ -41,7 +59,8 @@ export const usage: SlashHandler = (_arg, ctx) => {
   return {
     output:
       `  ~${est.toLocaleString()} tokens / ${ctxWin.toLocaleString()} ctx (${pct}%) · ${ctx.state.turnIndex} turn(s) · ${ctx.setup.provider.modelId()}\n` +
-      `  ${formatSessionCost(ctx.state.sessionCost)}`,
+      `  ${formatSessionCost(ctx.state.sessionCost)}\n` +
+      `  (see \`/usage breakdown\` for spend by goal/agent/provider/model)`,
   };
 };
 

@@ -7,6 +7,7 @@
  */
 import { join } from "node:path";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
+import { recordTurnSpend } from "./cost/ledger.js";
 import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/session-cap.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { shouldSuggestContextUpgrade, buildContextUpgradeNote } from "./repl/context-upgrade.js";
@@ -48,12 +49,7 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const { convo, setup, state, repoRoot, gatesRef } = deps;
   pruneVolatileSkills(convo.messages);
   console.log(`\n${outcome.finalText}`);
-  if (outcome.usage) {
-    const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
-    console.log(`  ${formatTurnCost({ inputTokens: outcome.usage.inputTokens, outputTokens: outcome.usage.outputTokens, elapsedMs: Date.now() - t0, cost, tokensSaved: outcome.tokensSaved })}`);
-    state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
-    maybeHaltOnBudgetCap(deps);
-  }
+  if (outcome.usage) await recordTurnCost(outcome, t0, deps);
   await handleAutoHandoff(outcome, deps);
   maybeSuggestContextUpgrade(outcome, deps);
   await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title }).catch(() => {});
@@ -86,6 +82,34 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
  * so behavior is byte-identical without a cap. Prints current spend, then flags
  * the halt ref the REPL loop reads to end the session cleanly (no throw).
  */
+/** Console-log the turn's cost, fold it into the session total, persist it to the
+ *  spend ledger for `/usage breakdown` (PCLIP-COST-ATTRIBUTION), and check the
+ *  session budget cap. No-ops if the turn reported no usage. Exported for direct
+ *  unit testing — the full pipeline pulls in too many unrelated subsystems to
+ *  mock cheaply. */
+export async function recordTurnCost(
+  outcome: Awaited<ReturnType<ConvoRef["send"]>>,
+  t0: number,
+  deps: TurnDeps,
+): Promise<void> {
+  if (!outcome.usage) return;
+  const { setup, state, repoRoot } = deps;
+  const cost = estimateCostUsd(setup.provider.modelId(), outcome.usage.inputTokens, outcome.usage.outputTokens);
+  console.log(`  ${formatTurnCost({ inputTokens: outcome.usage.inputTokens, outputTokens: outcome.usage.outputTokens, elapsedMs: Date.now() - t0, cost, tokensSaved: outcome.tokensSaved })}`);
+  state.sessionCost = addTurnCost(state.sessionCost, process.env.VANTA_PROVIDER, cost, outcome.tokensSaved);
+  const activeGoalId = setup.goals.find((g) => g.status === "active")?.id;
+  await recordTurnSpend(join(repoRoot, ".vanta"), {
+    costUsd: cost,
+    provider: process.env.VANTA_PROVIDER ?? "unknown",
+    model: setup.provider.modelId(),
+    inputTokens: outcome.usage.inputTokens,
+    outputTokens: outcome.usage.outputTokens,
+    agent: "interactive",
+    goal: activeGoalId,
+  });
+  maybeHaltOnBudgetCap(deps);
+}
+
 function maybeHaltOnBudgetCap(deps: TurnDeps): void {
   const cap = resolveSessionCap(process.env);
   const spent = deps.state.sessionCost?.frontierUsd ?? 0;
