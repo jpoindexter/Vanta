@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Goal, Verdict } from "./types.js";
 import type { KernelClient } from "./kernel/client.js";
+import { redactForLog } from "./store/redact-structural.js";
 
 const VerdictResponse = z.object({
   risk: z.enum(["allow", "ask", "block"]),
@@ -97,7 +98,9 @@ export class SafetyClient implements KernelClient {
 
   async logEvent(event: string): Promise<void> {
     try {
-      await this.req("/api/log", { method: "POST", body: event });
+      // OP-REDACT-STRUCTURAL: redact credentials at emit time so a secret in a
+      // tool output / event string is never persisted to events.jsonl.
+      await this.req("/api/log", { method: "POST", body: redactForLog(event) });
     } catch {
       // logging is best-effort; never break the loop on a log failure
     }

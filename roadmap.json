@@ -14703,7 +14703,7 @@
       "id": "OP-REDACT-STRUCTURAL",
       "track": "Operator",
       "title": "Structural secret redaction + logging formatter",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The redaction rule-list misses structural secrets in logged tool I/O. Add patterns for URL query/userinfo, Authorization headers, JWTs, DB connection strings, and a logger-level redacting formatter that scrubs every emitted line (each regex gated behind a cheap substring pre-check).",
       "done": "A logged URL with ?token=, an auth header, and a connection string are all redacted at emit time by a logging formatter; structural patterns unit-tested.",
@@ -14712,7 +14712,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. store/redact-structural.ts (pure) redacts secrets by POSITION (complements secret-scan.ts's vendor-VALUE redaction): URL query credentials (?token=/&api_key=/?access_token=/?password=… -> key kept, value masked to the next delimiter), auth headers (Authorization/X-Api-Key/Cookie/… -> value masked to line end), and connection-string passwords (scheme://user:pass@host -> user+host kept, pass masked). redactForLog(text)=redactSecrets(redactStructural(text)) is the logging formatter, wired at emit time in safety-client.ts logEvent() so a secret in tool output/an event never persists to events.jsonl. Verified: 12 unit tests covering all three done cases + composition + a bare-vendor-secret + no-false-positive on plain prose/non-secret query params; 19 logEvent-touching test files (88 tests) regression-clean; tsc + size gate clean.",
       "source": "ref-audit-2026-06-20"
     },
     {
