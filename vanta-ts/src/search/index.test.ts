@@ -65,4 +65,20 @@ describe("search provider resolution", () => {
     } as NodeJS.ProcessEnv);
     expect(providers.slice(0, 4).map((p) => p.id)).toEqual(["firecrawl", "parallel", "tavily", "exa"]);
   });
+
+  it("selects xai by name (needs XAI_API_KEY) — WEB-BACKEND-XAI-GROK", () => {
+    const provider = resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "xai", XAI_API_KEY: "xai-key" } as NodeJS.ProcessEnv);
+    expect(provider.id).toBe("xai");
+  });
+
+  it("errors when xai is requested without a key", () => {
+    expect(() => resolveSearchProvider({ VANTA_SEARCH_PROVIDER: "xai" } as NodeJS.ProcessEnv)).toThrow(/XAI_API_KEY/);
+  });
+
+  it("auto slots xai in right after Exa, ahead of Brave", () => {
+    const providers = resolveSearchProviders({
+      EXA_API_KEY: "e", XAI_API_KEY: "x", BRAVE_KEY: "b",
+    } as NodeJS.ProcessEnv);
+    expect(providers.map((p) => p.id)).toEqual(["exa", "xai", "brave", "brave_browser", "bing", "jina_ddg", "ddg"]);
+  });
 });

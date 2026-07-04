@@ -9,6 +9,7 @@ import { ExaProvider } from "./exa.js";
 import { FirecrawlProvider } from "./firecrawl.js";
 import { TavilyProvider } from "./tavily.js";
 import { ParallelProvider } from "./parallel.js";
+import { XaiSearchProvider } from "./xai.js";
 import type { SearchProvider } from "./interface.js";
 
 /**
@@ -17,6 +18,7 @@ import type { SearchProvider } from "./interface.js";
  *   VANTA_SEARCH_PROVIDER=searxng → self-hosted SearXNG (needs VANTA_SEARCH_URL)
  *   VANTA_SEARCH_PROVIDER=serpapi → SerpApi (needs SERPAPI_KEY)
  *   VANTA_SEARCH_PROVIDER=brave   → Brave Search API (needs BRAVE_KEY)
+ *   VANTA_SEARCH_PROVIDER=xai     → xAI/Grok native live search (needs XAI_API_KEY)
  *   VANTA_SEARCH_PROVIDER=bing    → Bing HTML scrape (keyless fallback)
  *   VANTA_SEARCH_PROVIDER=jina_ddg → Jina Reader over DuckDuckGo HTML (keyless fallback)
  *   VANTA_SEARCH_PROVIDER=ddg     → DuckDuckGo HTML scrape (explicit fallback only)
@@ -43,6 +45,7 @@ function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
   if (env.PARALLEL_API_KEY) providers.push(new ParallelProvider({ apiKey: env.PARALLEL_API_KEY }));
   if (env.TAVILY_API_KEY) providers.push(new TavilyProvider({ apiKey: env.TAVILY_API_KEY }));
   if (env.EXA_API_KEY) providers.push(new ExaProvider({ apiKey: env.EXA_API_KEY }));
+  if (env.XAI_API_KEY) providers.push(new XaiSearchProvider({ apiKey: env.XAI_API_KEY, model: env.VANTA_XAI_SEARCH_MODEL }));
   if (env.BRAVE_KEY) providers.push(new BraveProvider({ apiKey: env.BRAVE_KEY }));
   if (env.SERPAPI_KEY) providers.push(new SerpapiProvider({ apiKey: env.SERPAPI_KEY }));
   if (env.VANTA_SEARCH_URL) providers.push(new SearxngProvider({ baseUrl: env.VANTA_SEARCH_URL }));
@@ -66,8 +69,9 @@ const KEYLESS: Record<string, () => SearchProvider> = {
 
 /** Keyed providers — resolved by name from a required env var (data table keeps
  *  resolveNamedProvider under the complexity gate as backends grow). `env` is the
- *  var to read; `make` builds the provider from its value. */
-const KEYED: Record<string, { env: string; make: (value: string) => SearchProvider }> = {
+ *  var to read; `make` builds the provider from its value (+ the full env, for a
+ *  provider like xai that reads a secondary override key). */
+const KEYED: Record<string, { env: string; make: (value: string, env: NodeJS.ProcessEnv) => SearchProvider }> = {
   searxng: { env: "VANTA_SEARCH_URL", make: (baseUrl) => new SearxngProvider({ baseUrl }) },
   serpapi: { env: "SERPAPI_KEY", make: (apiKey) => new SerpapiProvider({ apiKey }) },
   brave: { env: "BRAVE_KEY", make: (apiKey) => new BraveProvider({ apiKey }) },
@@ -75,10 +79,11 @@ const KEYED: Record<string, { env: string; make: (value: string) => SearchProvid
   firecrawl: { env: "FIRECRAWL_API_KEY", make: (apiKey) => new FirecrawlProvider({ apiKey }) },
   tavily: { env: "TAVILY_API_KEY", make: (apiKey) => new TavilyProvider({ apiKey }) },
   parallel: { env: "PARALLEL_API_KEY", make: (apiKey) => new ParallelProvider({ apiKey }) },
+  xai: { env: "XAI_API_KEY", make: (apiKey, env) => new XaiSearchProvider({ apiKey, model: env.VANTA_XAI_SEARCH_MODEL }) },
 };
 
 const NAMED_HINT =
-  "auto, firecrawl, tavily, parallel, exa, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg";
+  "auto, firecrawl, tavily, parallel, exa, xai, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg";
 
 function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchProvider {
   const keyless = KEYLESS[provider];
@@ -87,7 +92,7 @@ function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchP
   if (!keyed) throw new Error(`Unknown VANTA_SEARCH_PROVIDER "${provider}". Use ${NAMED_HINT}.`);
   const value = env[keyed.env];
   if (!value) throw new Error(`${keyed.env} is required for ${provider}. Set it in vanta-ts/.env, or use VANTA_SEARCH_PROVIDER=auto.`);
-  return keyed.make(value);
+  return keyed.make(value, env);
 }
 
 export type { SearchProvider, SearchResult } from "./interface.js";

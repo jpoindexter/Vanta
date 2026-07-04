@@ -16395,7 +16395,7 @@
       "id": "WEB-BACKEND-XAI-GROK",
       "track": "Harness",
       "title": "xAI Grok native grounded-search backend (+ domain filters)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Hermes can use xAI/Grok's native live search: a reasoning model (default grok-build-0.1) returns grounded results, with allowed_domains/excluded_domains (max 5 each, mutually exclusive), and a 90s timeout. Different shape from REST search — the model does the searching. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "XaiSearchProvider implements SearchProvider via the xAI live-search API; supports model override, allowed/excluded_domains (capped 5, mutually exclusive, validated), and timeout; auth via XAI_API_KEY; mocked unit tests; key in .env.example.",
@@ -16404,8 +16404,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Pairs with WEB-DOMAIN-SCOPING for the cross-provider domain-filter surface."
+      "updated": "2026-07-05",
+      "notes": "Shipped 2026-07-05. Verified the REAL API before coding (docs.x.ai + a real integration bug — github.com/openclaw/openclaw#13171 — confirmed the response has NO top-level output_text/citations; the actual path is output[].content[].annotations on the message's output_text block, each annotation carrying {title,url,start_index,end_index}). search/xai.ts: XaiSearchProvider calls POST /v1/responses with a web_search tool (domain filters nest under tools[0].filters.allowed_domains|excluded_domains, verified shape); mapXaiResponse maps each citation annotation to a SearchResult (title/url + the cited text span as snippet) — a fundamentally different shape from every other backend (one reasoning-model answer with citations, not a REST result index), but a genuinely honest, non-lossy mapping since annotations already carry structured {title,url} pairs. filtersDomains=true (native, capped at 5 each, mutually exclusive — validateXaiDomains rejects both the cap and combining allowed+excluded, defense-in-depth since web_search's shared validateDomainScope already enforces this upstream). Model override via VANTA_XAI_SEARCH_MODEL (default grok-4.3 — the roadmap card's 'grok-build-0.1' was stale; verified the current docs example). 90s timeout (matches the card; xAI's own live-search call is itself agentic/multi-step). Wired into the resolver (named 'xai' + auto-chain right after Exa). 13 xai.ts tests (incl. the exact real-shape fixture proving the openclaw bug class doesn't recur) + 3 resolver tests; full suite 1015 files/11473 tests green; tsc + size gate clean."
     },
     {
       "id": "WEB-BACKEND-SPLIT",
