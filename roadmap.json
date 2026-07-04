@@ -12779,13 +12779,14 @@
       "id": "PORT-DISPLAY-FORMATTER",
       "track": "Operator",
       "title": "Display/output formatter port across frontends",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: no shared 'format a StreamEvent for display' interface — Ink uses term/toolDisplay, desktop hand-rolls eventLabel (handlers.ts:30), each surface re-derives presentation; the unwired json-format.ts has nowhere to plug in. Define a DisplayFormatter port so frontends share formatting and new output modes register.",
       "done": "Frontends format StreamEvents via a shared DisplayFormatter port; desktop/Ink stop re-deriving labels independently; json-format plugs into the same port.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. The StreamEventFormatter port (term/event-format.ts) already existed and desktop/handlers.ts eventLabel delegates to it (desktop no longer re-derives). Ink deliberately stays separate — it renders React, a different output type, not the string-label port (locked DECISIONS 2026-06-17, documented in event-format.ts). This slice closed the residual 'new output modes register': resolveEventFormatter was hardcoded to one formatter; now a FORMATTERS registry + registerEventFormatter(mode, fmt) selects by VANTA_EVENT_FORMAT, and a jsonEventFormatter output mode (compact JSON label per event, for programmatic SSE/log consumers) plugs into the same port. resolveEventFormatter(env=process.env) — existing zero-arg callers (desktop/shell-output/settings) unchanged. Verified: 9 unit tests (default+json formatters, mode selection, unknown-mode fallback, register-a-new-mode) + desktop tests regression-clean; tsc + size gate clean."
     },
     {
       "id": "PORT-A2A-TRANSPORT",

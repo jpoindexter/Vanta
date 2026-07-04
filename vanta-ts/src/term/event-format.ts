@@ -26,7 +26,35 @@ export const defaultEventFormatter: StreamEventFormatter = {
   },
 };
 
-/** Resolve the active string-surface formatter. Swap = a new adapter here. */
-export function resolveEventFormatter(): StreamEventFormatter {
-  return defaultEventFormatter;
+/**
+ * A machine-readable output MODE that plugs into the SAME port: each event
+ * becomes a compact JSON line, for programmatic SSE/log consumers. The label
+ * IS the JSON; `ok` is carried through so a string surface can still colour it.
+ */
+export const jsonEventFormatter: StreamEventFormatter = {
+  format(event) {
+    if (event.type === "tool_start") return { label: JSON.stringify({ event: "tool_start", name: event.name }) };
+    if (event.type === "tool_end") {
+      return { label: JSON.stringify({ event: "tool_end", name: event.name, ok: event.ok, output: event.output.slice(0, 90) }), ok: event.ok };
+    }
+    if (event.type === "note") return { label: JSON.stringify({ event: "note", text: event.text.slice(0, 100) }) };
+    return null;
+  },
+};
+
+// PORT-DISPLAY-FORMATTER — string-surface formatters register by MODE name, so a
+// new output mode is a `registerEventFormatter` call, not an edit to resolve().
+const FORMATTERS = new Map<string, StreamEventFormatter>([
+  ["default", defaultEventFormatter],
+  ["json", jsonEventFormatter],
+]);
+
+/** Register (or override) the formatter for a `VANTA_EVENT_FORMAT` mode. */
+export function registerEventFormatter(mode: string, formatter: StreamEventFormatter): void {
+  FORMATTERS.set(mode, formatter);
+}
+
+/** Resolve the active string-surface formatter by `VANTA_EVENT_FORMAT` (default → labels). */
+export function resolveEventFormatter(env: NodeJS.ProcessEnv = process.env): StreamEventFormatter {
+  return FORMATTERS.get(env.VANTA_EVENT_FORMAT ?? "default") ?? defaultEventFormatter;
 }
