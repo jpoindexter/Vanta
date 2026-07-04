@@ -78,24 +78,31 @@ export async function runPairingCommand(rest: string[]): Promise<void> {
   }
 }
 
+const CONFIG_USAGE = "Usage: vanta config [show | get KEY | set KEY VALUE | edit | check | migrate | revisions | rollback [REV]]";
+
+/** One entry per `vanta config <sub>` subcommand — a data table keeps the
+ *  dispatcher's complexity flat as subcommands grow (CODE-SIZE-GATE). */
+type ConfigModule = typeof import("../cli-dx/config.js");
+const CONFIG_SUBCOMMANDS: Record<string, (m: ConfigModule, repoRoot: string, rest: string[]) => Promise<string | void>> = {
+  show: (m, root) => m.showConfig(root),
+  edit: (m, root) => m.editConfig(root),
+  migrate: (m, root) => m.migrateConfig(root),
+  check: (m, root) => m.checkConfig(root),
+  get: (m, root, rest) => (rest[1] ? m.getConfig(root, rest[1]) : Promise.resolve("Usage: vanta config get KEY")),
+  set: (m, root, rest) =>
+    rest[1] && rest[2] !== undefined
+      ? m.setConfig(root, rest[1], rest.slice(2).join(" "))
+      : Promise.resolve("Usage: vanta config set KEY VALUE"),
+  revisions: async (m, root) => m.formatRevisionList(await m.listConfigRevisions(root)),
+  rollback: (m, root, rest) => m.rollbackConfig(root, rest[1] ? Number(rest[1]) : undefined),
+};
+
 export async function runConfigCommand(repoRoot: string, rest: string[]): Promise<void> {
   const sub = rest[0] ?? "show";
   const m = await import("../cli-dx/config.js");
-  const run = async (): Promise<string | void> => {
-    if (sub === "show") return m.showConfig(repoRoot);
-    if (sub === "edit") return m.editConfig(repoRoot);
-    if (sub === "migrate") return m.migrateConfig(repoRoot);
-    if (sub === "get") return rest[1] ? m.getConfig(repoRoot, rest[1]) : "Usage: vanta config get KEY";
-    if (sub === "set") {
-      return rest[1] && rest[2] !== undefined
-        ? m.setConfig(repoRoot, rest[1], rest.slice(2).join(" "))
-        : "Usage: vanta config set KEY VALUE";
-    }
-    if (sub === "check") return m.checkConfig(repoRoot);
-    return "Usage: vanta config [show | get KEY | set KEY VALUE | edit | check | migrate]";
-  };
+  const handler = CONFIG_SUBCOMMANDS[sub];
   try {
-    const out = await run();
+    const out = handler ? await handler(m, repoRoot, rest) : CONFIG_USAGE;
     if (typeof out === "string") console.log(out);
   } catch (err: unknown) {
     console.error(err instanceof Error ? err.message : String(err));

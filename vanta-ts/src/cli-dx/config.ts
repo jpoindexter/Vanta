@@ -6,8 +6,21 @@ import { envPath as getEnvPath, upsertEnvMigratingLegacy, removeEnvKeys } from "
 import { mirrorLegacyEnv } from "../env-compat.js";
 import { PROVIDER_CATALOG } from "../providers/catalog.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
+import { appendRevision, getRevision, latestRevision, listRevisions, type ConfigRevision } from "./config-revisions.js";
 
 export const envPath = getEnvPath;
+
+/** Project-local revision store dir for this repo's .env (PCLIP-CONFIG-REVISION). */
+function revisionsDataDir(repoRoot: string): string {
+  return join(repoRoot, ".vanta");
+}
+
+/** Snapshot the CURRENT .env content as a revision before it gets replaced. */
+async function snapshotBeforeWrite(repoRoot: string, note?: string): Promise<void> {
+  const path = getEnvPath(repoRoot);
+  const current = existsSync(path) ? await readFile(path, "utf-8") : "";
+  await appendRevision(revisionsDataDir(repoRoot), current, note);
+}
 
 const VANTA_KEYS = [
   "VANTA_PROVIDER",
@@ -147,6 +160,7 @@ export async function migrateConfig(repoRoot: string): Promise<void> {
   const migrated = removeEnvKeys(text, argoKeys);
   const final = upsertEnvMigratingLegacy(migrated, updates);
 
+  await snapshotBeforeWrite(repoRoot, `migrate: ${Object.keys(updates).join(", ")}`);
   await writeFile(path, final, { mode: 0o600 });
   await fireHooks(join(repoRoot, ".vanta"), "ConfigChange", { source: "project_settings", path, keys: Object.keys(updates) }, { cwd: repoRoot, matcherValue: "project_settings" });
   console.log(`Migrated ${Object.keys(updates).length} ARGO_* keys to VANTA_*.`);
@@ -167,9 +181,44 @@ export async function setConfig(repoRoot: string, key: string, value: string): P
   if (!/^[A-Z][A-Z0-9_]*$/.test(key)) return `invalid key "${key}" — use UPPER_SNAKE_CASE`;
   const path = getEnvPath(repoRoot);
   const existing = existsSync(path) ? await readFile(path, "utf-8") : "";
+  await snapshotBeforeWrite(repoRoot, `set ${key}`);
   await writeFile(path, upsertEnvMigratingLegacy(existing, { [key]: value }), { mode: 0o600 });
   await fireHooks(join(repoRoot, ".vanta"), "ConfigChange", { source: "project_settings", path, key }, { cwd: repoRoot, matcherValue: "project_settings" });
   return isSensitive(key) ? `✓ ${key} set (hidden) → .env` : `✓ ${key}=${value} → .env`;
+}
+
+/** List recorded .env revisions, newest first (secrets NOT shown — content is
+ *  the raw prior .env text, so callers must mask before printing). */
+export async function listConfigRevisions(repoRoot: string): Promise<ConfigRevision[]> {
+  return (await listRevisions(revisionsDataDir(repoRoot))).slice().reverse();
+}
+
+/** Format a revision listing with secrets masked per-line (mirrors printEnvBlock). */
+export function formatRevisionList(revisions: ConfigRevision[]): string {
+  if (revisions.length === 0) return "No config revisions recorded yet.";
+  return revisions
+    .map((r) => `rev ${r.rev}  ${r.ts}${r.note ? `  (${r.note})` : ""}`)
+    .join("\n");
+}
+
+/**
+ * Restore .env to a prior revision. `rev` omitted → the most recently recorded
+ * snapshot (undo the last change). The CURRENT content is snapshotted first, so
+ * a rollback is itself a recorded, reversible revision — never a dead end.
+ */
+export async function rollbackConfig(repoRoot: string, rev?: number): Promise<string> {
+  const dataDir = revisionsDataDir(repoRoot);
+  const target = rev === undefined ? await latestRevision(dataDir) : await getRevision(dataDir, rev);
+  if (!target) {
+    return rev === undefined
+      ? "no config revisions recorded yet — nothing to roll back to"
+      : `revision ${rev} not found — run \`vanta config revisions\` to list what's available`;
+  }
+  const path = getEnvPath(repoRoot);
+  await snapshotBeforeWrite(repoRoot, `rollback to rev ${target.rev}`);
+  await writeFile(path, target.content, { mode: 0o600 });
+  await fireHooks(join(repoRoot, ".vanta"), "ConfigChange", { source: "project_settings", path, key: `rollback:rev${target.rev}` }, { cwd: repoRoot, matcherValue: "project_settings" });
+  return `✓ restored .env to revision ${target.rev} (${target.ts})`;
 }
 
 /** Validate .env: provider chosen + its key present. The common "configured but no key" check. */

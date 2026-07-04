@@ -13903,7 +13903,7 @@
       "id": "PCLIP-CONFIG-REVISION",
       "track": "Harness",
       "title": "Config/agent/skill revisioning with safe rollback",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Governance with rollback). Config, agent, and skill changes are versioned and safely roll-back-able; a bad change reverts cleanly. Pairs with SELFHARNESS-SANDBOX (test a change before it lands).",
       "done": "A config change is versioned and `vanta config rollback` restores the prior revision.",
@@ -13911,7 +13911,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-19"
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04 — the done criterion's scope: config revisioning + rollback (agent/skill revisioning is broader than the done bar; skills already have their own git-backed versioning + reversible archiveSkill, so left out of this slice). cli-dx/config-revisions.ts (pure, zod-validated): appendRevision/listRevisions/getRevision/latestRevision over .vanta/config-revisions.jsonl, tolerant reads (a corrupt line never wedges rollback). config.ts's setConfig + migrateConfig now snapshot the PRE-write .env content before every write, so the jsonl accumulates exactly the prior states. New `vanta config rollback [REV]` restores a specific numbered revision, or the latest (undo-last-change) when omitted — and snapshots the current state FIRST, so a rollback is itself a recorded, reversible revision (proven: rolling back twice restores the more-recent state). New `vanta config revisions` lists history. ops-app.ts's runConfigCommand subcommand dispatch refactored from an if-chain to a CONFIG_SUBCOMMANDS data table (held the cx gate as 2 subcommands were added). 24 config.ts + config-revisions.ts tests green; full suite 1008 files/11411 tests green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-ENFORCED-OUTCOMES",

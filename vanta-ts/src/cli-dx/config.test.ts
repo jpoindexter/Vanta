@@ -3,7 +3,17 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { showConfig, migrateConfig, envPath, getConfig, setConfig, checkConfig } from "./config.js";
+import {
+  showConfig,
+  migrateConfig,
+  envPath,
+  getConfig,
+  setConfig,
+  checkConfig,
+  listConfigRevisions,
+  formatRevisionList,
+  rollbackConfig,
+} from "./config.js";
 
 describe("config command", () => {
   let tmpDir: string;
@@ -136,5 +146,79 @@ describe("config command", () => {
     expect(await checkConfig(tmpDir)).toContain("OPENAI_API_KEY");
     await writeFile(envPath(tmpDir), "VANTA_PROVIDER=openai\nOPENAI_API_KEY=sk-x\n");
     expect(await checkConfig(tmpDir)).toContain("valid");
+  });
+});
+
+// PCLIP-CONFIG-REVISION: every config write is versioned and `rollback` restores
+// a prior revision. Vertical slice over setConfig/migrateConfig + the new rollback.
+describe("config revisions + rollback", () => {
+  let tmpDir: string;
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "vanta-config-rev-test-"));
+    await mkdir(join(tmpDir, "vanta-ts"), { recursive: true });
+  });
+  afterEach(async () => { await rm(tmpDir, { recursive: true, force: true }); });
+
+  it("no revisions before any write; setConfig records one revision per write", async () => {
+    expect(await listConfigRevisions(tmpDir)).toEqual([]);
+    await setConfig(tmpDir, "VANTA_THEME", "dark");
+    const afterFirst = await listConfigRevisions(tmpDir);
+    expect(afterFirst).toHaveLength(1);
+    expect(afterFirst[0]?.content).toBe(""); // snapshotted BEFORE the first write — .env was empty
+
+    await setConfig(tmpDir, "VANTA_THEME", "light");
+    const afterSecond = await listConfigRevisions(tmpDir);
+    expect(afterSecond).toHaveLength(2);
+    expect(afterSecond[0]?.content).toContain("VANTA_THEME=dark"); // newest-first; this is the pre-2nd-write state
+  });
+
+  it("rollback() with no arg undoes the last change", async () => {
+    await setConfig(tmpDir, "VANTA_THEME", "dark");
+    await setConfig(tmpDir, "VANTA_THEME", "light");
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toBe("VANTA_THEME=light");
+
+    const msg = await rollbackConfig(tmpDir);
+    expect(msg).toContain("restored .env to revision");
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toBe("VANTA_THEME=dark");
+  });
+
+  it("rollback(rev) restores a specific numbered revision", async () => {
+    await setConfig(tmpDir, "VANTA_THEME", "dark"); // rev 1 = "" (empty .env)
+    await setConfig(tmpDir, "VANTA_THEME", "light"); // rev 2 = "VANTA_THEME=dark"
+    await setConfig(tmpDir, "VANTA_THEME", "auto"); // rev 3 = "VANTA_THEME=light"
+
+    await rollbackConfig(tmpDir, 1); // back to the pre-first-write empty state
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toContain("unset");
+  });
+
+  it("a rollback is itself reversible (rolling back twice restores the more-recent state)", async () => {
+    await setConfig(tmpDir, "VANTA_THEME", "dark");
+    await setConfig(tmpDir, "VANTA_THEME", "light");
+    await rollbackConfig(tmpDir); // → dark
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toBe("VANTA_THEME=dark");
+    await rollbackConfig(tmpDir); // rollback recorded ITS OWN pre-state (light) → undo the rollback
+    expect(await getConfig(tmpDir, "VANTA_THEME")).toBe("VANTA_THEME=light");
+  });
+
+  it("rollback with no history, or an unknown revision, reports cleanly (no throw)", async () => {
+    expect(await rollbackConfig(tmpDir)).toContain("nothing to roll back to");
+    await setConfig(tmpDir, "VANTA_THEME", "dark");
+    expect(await rollbackConfig(tmpDir, 999)).toContain("not found");
+  });
+
+  it("migrateConfig also snapshots before rewriting (ARGO_* migration is undoable)", async () => {
+    await writeFile(envPath(tmpDir), "ARGO_PROVIDER=openai\n");
+    await migrateConfig(tmpDir);
+    expect(await getConfig(tmpDir, "VANTA_PROVIDER")).toBe("VANTA_PROVIDER=openai");
+    await rollbackConfig(tmpDir);
+    expect(await readFile(envPath(tmpDir), "utf-8")).toBe("ARGO_PROVIDER=openai\n");
+  });
+
+  it("formatRevisionList renders a readable, chronological-newest-first listing", async () => {
+    expect(formatRevisionList([])).toContain("No config revisions");
+    await setConfig(tmpDir, "VANTA_THEME", "dark");
+    const list = formatRevisionList(await listConfigRevisions(tmpDir));
+    expect(list).toMatch(/rev 1/);
+    expect(list).toContain("set VANTA_THEME");
   });
 });
