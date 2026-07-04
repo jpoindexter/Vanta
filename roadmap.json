@@ -5107,7 +5107,7 @@
       "id": "VANTA-H-GITHUB",
       "track": "Operator",
       "title": "GitHub integration",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "another agent: /install-github-app, GitHub Actions CI, PR status badges, --from-pr. Needs a hosted GitHub App; Vanta has local git tools + a webhook gateway.",
       "done": "Out of scope for a local, provider-agnostic, kernel-gated operator; revisit only if Vanta grows this surface.",
@@ -5115,13 +5115,15 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-07-04",
+      "notes": "Parked 2026-07-04 (was miscategorized as horizon/buildable). The card's own done criterion says out of scope — a hosted GitHub App is platform-thinking-before-users for a local operator. Matches the 82df9082 precedent (5 similar anti-scope cards). Promote if Vanta ever grows a hosted-app surface."
     },
     {
       "id": "VANTA-H-SLACK",
       "track": "Operator",
       "title": "Slack app",
-      "status": "horizon",
+      "status": "parked",
       "size": "M",
       "summary": "another agent: /install-slack-app, trigger Claude from Slack. Vanta proves the messaging-adapter pattern with Telegram (others planned in the messaging registry).",
       "done": "Out of scope for a local, provider-agnostic, kernel-gated operator; revisit only if Vanta grows this surface.",
@@ -5129,7 +5131,9 @@
       "model": "sonnet",
       "effort": "low",
       "codex": "gpt-5.4-mini",
-      "lens": "agent-loop"
+      "lens": "agent-loop",
+      "updated": "2026-07-04",
+      "notes": "Parked 2026-07-04 (was miscategorized as horizon/buildable). The card's own done criterion says out of scope — a hosted Slack app is platform-thinking-before-users; Vanta already proves the messaging-adapter pattern (22 adapters incl. Slack) without a hosted app. Matches the 82df9082 precedent. Promote if Vanta ever grows a hosted-app surface."
     },
     {
       "id": "VANTA-STRUCTURED-DIFF",
