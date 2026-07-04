@@ -10873,7 +10873,7 @@
       "id": "PAPER-GOVERNANCE-AUDIT",
       "track": "Harness",
       "title": "Regulator-facing audit export (EU AI Act-aware)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "arXiv:2604.14228 (Dive into another agent) §12.5: emerging regulation (EU AI Act fully applicable Aug 2026) constrains logging/transparency/oversight. Vanta has events.jsonl; add an externally-auditable export of the action log — every gated action, its verdict, who decided, resolution — in a regulator-facing format.",
       "done": "An audit export summarizes every gated action + verdict + resolution for external review.",
@@ -10882,7 +10882,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-13"
+      "updated": "2026-07-04",
+      "notes": "Shipped 2026-07-04. Closed the real completeness gap first: assess() verdicts were only durably logged for a couple of branches (mostly the Ask/human-decision path), so 'every gated action' had nothing complete to summarize. agent/dispatch-helpers.ts applySafetyGate now calls auditGate (best-effort, try/catch — never blocks the gate decision) at EVERY exit: allow, blocked (incl. when a rule/auto-mode TIGHTENS an allow/ask verdict — both the kernel's raw risk and the final resolution are recorded, since the tightening itself is governance-relevant), approved, denied, accept-edits-auto, delegated-auto, and kernel-unreachable. Extracted handleAskDecision to hold applySafetyGate under the fn-length gate. governance/audit.ts (pure) parses the resulting kind:'gate' events back out of events.jsonl (reusing trace/distill.ts's parseTrace), summarizes by risk + resolution, and renders an external-review markdown report. cli/governance-cmd.ts wires `vanta governance export [--since <ISO>] [--out <path>]` (distinct from the pre-existing `vanta audit` dependency-vulnerability scan — different subject, kept unnamespaced-clash-free). Found + fixed a real regression while wiring this: turn-loop.test.ts's secret-redaction test asserted logEvent called exactly once, now correctly 2 (gate-audit + post-execution) — updated to assert BOTH lines are secret-free, which is a strictly stronger proof than before. 7 new permission-gate audit tests (all 7 resolutions incl. the tightening case + the audit-log-throw-never-blocks case), 9 governance/audit.ts tests, 7 governance-cmd CLI tests. Full suite 1007 files / 11397 tests green (3 skipped, live-gated), tsc + size gate clean."
     },
     {
       "id": "PAPER-CAPABILITY-PRESERVATION",

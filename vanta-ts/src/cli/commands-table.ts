@@ -123,6 +123,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   evolve: (root, rest) => runEvolveCommand(root, rest),
   desktop: (root, rest) => runDesktopCommand(root, rest),
   browser: async (_root, rest) => (await import("./browser-cmd.js")).runBrowserCommand(rest),
+  governance: async (root, rest) => (await import("./governance-cmd.js")).runGovernanceCommand(root, rest),
   memory: (_root, rest) => runMemoryCommand(rest),
   audit: async (root) => (await import("./audit.js")).runAudit(root),
   lint: async (root, rest) => (await import("../lint/run.js")).runLint(root, rest),

@@ -123,12 +123,17 @@ describe("tool-output logging redaction", () => {
     });
 
     expect(out.finalText).toBe("done");
-    expect(logEvent).toHaveBeenCalledTimes(1);
-    const logged = logEvent.mock.calls[0]?.[0] as string;
-    // The secret must NOT appear in the event log line…
-    expect(logged).not.toContain(secret);
-    // …and the line is the status + char-count marker.
-    expect(logged).toBe(`read_secret: ok (${secret.length} chars)`);
+    // PAPER-GOVERNANCE-AUDIT adds one gate-audit log call ahead of the existing
+    // post-execution status line — 2 total, neither carrying the secret.
+    expect(logEvent).toHaveBeenCalledTimes(2);
+    const [gateLine, resultLine] = logEvent.mock.calls.map((c) => c[0] as string);
+    expect(gateLine).not.toContain(secret);
+    expect(resultLine).not.toContain(secret);
+    // The gate-audit line only ever carries describeForSafety's output (args, never
+    // tool output) — proven here by the constant "read_secret" action string.
+    expect(JSON.parse(gateLine!)).toMatchObject({ kind: "gate", tool: "read_secret", risk: "allow", resolution: "allow" });
+    // …and the post-execution line is the status + char-count marker.
+    expect(resultLine).toBe(`read_secret: ok (${secret.length} chars)`);
   });
 });
 

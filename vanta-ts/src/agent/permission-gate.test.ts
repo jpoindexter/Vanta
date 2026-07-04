@@ -48,7 +48,7 @@ async function writeRules(rows: string): Promise<void> {
   await writeFile(join(home, "permissions.tsv"), rows, "utf8");
 }
 
-type GateOpts = { risk: "allow" | "ask" | "block"; approve?: boolean; onAsk?: () => void };
+type GateOpts = { risk: "allow" | "ask" | "block"; approve?: boolean; onAsk?: () => void; loggedEvents?: string[] };
 function makeDeps(o: GateOpts): AgentDeps {
   return {
     registry: { get: () => ({ describeForSafety: (a: { cmd?: string }) => `run ${a.cmd ?? "x"}` }) },
@@ -57,6 +57,7 @@ function makeDeps(o: GateOpts): AgentDeps {
       proposeApproval: async () => "id1",
       approve: async () => {},
       deny: async () => {},
+      logEvent: async (event: string) => { o.loggedEvents?.push(event); },
     },
     requestApproval: async () => { o.onAsk?.(); return o.approve ?? true; },
     onToolResult: () => {},
@@ -298,5 +299,67 @@ describe("applySafetyGate + permissions", () => {
     deps.registry = { get: () => ({ describeForSafety: () => "read file /repo/README.md" }) } as unknown as AgentDeps["registry"];
     await applySafetyGate({ ...call, name: "read_file" }, deps, ctx);
     await expect(readPreferenceSignals()).resolves.toEqual([]);
+  });
+});
+
+// PAPER-GOVERNANCE-AUDIT: applySafetyGate logs one durable `gate` event at every
+// exit — proves the audit trail is genuinely complete, not just the Ask branch.
+describe("applySafetyGate — governance audit logging (PAPER-GOVERNANCE-AUDIT)", () => {
+  function gateEvents(logged: string[]): { risk: string; resolution: string; tool: string }[] {
+    return logged.map((e) => JSON.parse(e));
+  }
+
+  it("logs resolution=allow for a kernel Allow", async () => {
+    const loggedEvents: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "allow", loggedEvents }), ctx);
+    const events = gateEvents(loggedEvents);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ risk: "allow", resolution: "allow", tool: "shell_cmd" });
+  });
+
+  it("logs resolution=blocked for a kernel Block (with the kernel's raw risk preserved)", async () => {
+    const loggedEvents: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "block", loggedEvents }), ctx);
+    expect(gateEvents(loggedEvents)[0]).toMatchObject({ risk: "block", resolution: "blocked" });
+  });
+
+  it("logs resolution=blocked when a rule TIGHTENS an Allow verdict to blocked (verdict.risk stays allow)", async () => {
+    await writeRules("deny\tshell_cmd\t\n");
+    const loggedEvents: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "allow", loggedEvents }), ctx);
+    // The audit shows BOTH facts: the kernel said allow, but the FINAL resolution was blocked.
+    expect(gateEvents(loggedEvents)[0]).toMatchObject({ risk: "allow", resolution: "blocked" });
+  });
+
+  it("logs resolution=approved / denied for a human decision on an Ask", async () => {
+    const approvedLog: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "ask", approve: true, loggedEvents: approvedLog }), ctx);
+    expect(gateEvents(approvedLog)[0]).toMatchObject({ risk: "ask", resolution: "approved" });
+
+    const deniedLog: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "ask", approve: false, loggedEvents: deniedLog }), ctx);
+    expect(gateEvents(deniedLog)[0]).toMatchObject({ risk: "ask", resolution: "denied" });
+  });
+
+  it("logs resolution=accept-edits-auto under acceptEdits mode (no human prompt)", async () => {
+    process.env.VANTA_PERMISSION_MODE = "acceptEdits";
+    const loggedEvents: string[] = [];
+    const deps = makeDeps({ risk: "ask", loggedEvents });
+    deps.registry = { get: () => ({ describeForSafety: () => "edit file /repo/x.ts" }) } as unknown as AgentDeps["registry"];
+    await applySafetyGate({ ...call, name: "write_file" }, deps, ctx);
+    expect(gateEvents(loggedEvents)[0]).toMatchObject({ risk: "ask", resolution: "accept-edits-auto" });
+  });
+
+  it("logs the action text (the same risk-scoped string sent to assess, never file content)", async () => {
+    const loggedEvents: string[] = [];
+    await applySafetyGate(call, makeDeps({ risk: "allow", loggedEvents }), ctx);
+    expect(gateEvents(loggedEvents)[0]).toMatchObject({ action: "run ls" });
+  });
+
+  it("an audit-log failure never blocks the gate decision (best-effort)", async () => {
+    const deps = makeDeps({ risk: "allow" });
+    deps.safety = { ...deps.safety, logEvent: async () => { throw new Error("kernel down"); } } as AgentDeps["safety"];
+    const res = await applySafetyGate(call, deps, ctx);
+    expect(res.approved).toBe(true); // the throw inside auditGate never propagates
   });
 });

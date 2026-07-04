@@ -15,9 +15,24 @@ import { appendPreferenceSignal, signalFromApprovalDecision } from "../preferenc
 import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { buildPermDeniedPayload, shouldFirePermDenied } from "../hooks/perm-denied.js";
+import { gateAuditEvent, type GateResolution } from "../governance/audit.js";
 import { join } from "node:path";
 
 export type SafetyGateResult = { approved: boolean; reason?: string };
+
+/** PAPER-GOVERNANCE-AUDIT: log one durable, tamper-evident `gate` event per
+ *  applySafetyGate exit — the kernel's raw verdict plus how it was finally
+ *  resolved. Best-effort (never blocks the turn on a log failure). */
+async function auditGate(
+  deps: AgentDeps,
+  o: { tool: string; action: string; risk: Verdict["risk"] | "unknown"; resolution: GateResolution },
+): Promise<void> {
+  try {
+    await deps.safety.logEvent(gateAuditEvent(o));
+  } catch {
+    /* best-effort — an audit-log failure must never block the gate decision */
+  }
+}
 
 /**
  * Apply safety gate (assess + request approval) before tool execution.
@@ -44,6 +59,7 @@ export async function applySafetyGate(
     const msg = err instanceof Error ? err.message : String(err);
     const output = `blocked: safety kernel unreachable (${msg}) — restart vanta to relaunch it`;
     deps.onToolResult?.(call.name, false, output);
+    await auditGate(deps, { tool: call.name, action, risk: "unknown", resolution: "kernel-unreachable" });
     return { approved: false, reason: output };
   }
 
@@ -54,22 +70,41 @@ export async function applySafetyGate(
   }
 
   if (decision.decision === "ask") {
-    // acceptEdits auto-confirms the ASK tier for edit-class tools (skips the prompt)
-    // — but only AFTER the kernel ran, so a kernel BLOCK (protected paths: src/*.rs,
-    // factory/*, MANIFESTO) is still enforced above. Previously this short-circuited
-    // before assess(), letting acceptEdits rewrite the security boundary itself.
-    if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
-      return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
-    }
-    // DELEGATED-AUTHORITY-WIRE: an Ask within an active grant's bound is
-    // auto-approved (+ audited) without a prompt; no grant → falls through.
-    const delegated = await delegatedGateResult(call, action);
-    if (delegated) return delegated;
-    await firePermissionEvent(ctx.root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
-    return handleApprovalRequest({ call, action, verdict, deps, root: ctx.root });
+    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root });
   }
 
+  await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });
   return { approved: true };
+}
+
+/**
+ * An `ask` verdict: acceptEdits auto-confirms edit-class tools (only after the
+ * kernel ran, so a kernel BLOCK — protected paths: src/*.rs, factory/*, MANIFESTO
+ * — is still enforced above); else an active delegated-authority grant
+ * auto-approves; else it prompts the human.
+ */
+async function handleAskDecision(o: {
+  call: ToolCall;
+  action: string;
+  verdict: Verdict;
+  decision: { decision: "allow" | "ask" | "block"; reason: string };
+  deps: AgentDeps;
+  root: string;
+}): Promise<SafetyGateResult> {
+  const { call, action, verdict, decision, deps, root } = o;
+  if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+    await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "accept-edits-auto" });
+    return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
+  }
+  // DELEGATED-AUTHORITY-WIRE: an Ask within an active grant's bound is
+  // auto-approved (+ audited) without a prompt; no grant → falls through.
+  const delegated = await delegatedGateResult(call, action);
+  if (delegated) {
+    await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "delegated-auto" });
+    return delegated;
+  }
+  await firePermissionEvent(root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
+  return handleApprovalRequest({ call, action, verdict, deps, root });
 }
 
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
@@ -99,6 +134,7 @@ async function handleBlockDecision(o: {
   const reason = verdict.risk === "block" ? verdict.reason : decision.reason;
   if (shouldFirePermDenied(decision)) await firePermissionEvent(root, "PermissionDenied", call.name, buildPermDeniedPayload(call.name, reason, action));
   deps.onToolResult?.(call.name, false, `blocked: ${reason}`);
+  await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "blocked" });
   return { approved: false, reason: `blocked: ${reason}` };
 }
 
@@ -120,9 +156,11 @@ async function handleApprovalRequest(o: {
     if (id) await deps.safety.deny(id).catch(() => {});
     await firePermissionEvent(root, "PermissionDenied", call.name, { tool: call.name, action, reason: why });
     deps.onToolResult?.(call.name, false, "denied by user");
+    await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "denied" });
     return { approved: false, reason: `denied by user: ${why}` };
   }
   if (id) await deps.safety.approve(id).catch(() => {});
+  await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "approved" });
   return { approved: true };
 }
 

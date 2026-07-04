@@ -182,6 +182,7 @@ Node 22, ESM, `"type": "module"`. Run via `tsx` (no build step). Native `fetch`,
 | `desktop/assets.ts` | Safe built-asset resolver for desktop root + `/assets/*`; falls back to `desktop/page.ts` when dist is missing |
 | `cli-dx/` | CLI-DX-PACK: `prompt-size.ts` (token breakdown), `completion.ts` (shell completion + CLI_COMMANDS), `backup.ts` (tar ~/.vanta) |
 | `permissions/auto-mode.ts` | Auto permission classifier: default read-only allows, soft-deny presets, and `settings.autoMode.rules` overrides. Applied after kernel + permission rules; kernel block remains immovable. Operator profile preferences run after this and can only preserve/escalate. |
+| `governance/audit.ts` | PAPER-GOVERNANCE-AUDIT — parses `gate` events (kind-discriminated JSON emitted by `agent/dispatch-helpers.ts auditGate` at every `applySafetyGate` exit) out of `events.jsonl`, summarizes by kernel risk + final resolution, and renders an external-review markdown report. `cli/governance-cmd.ts` is `vanta governance export [--since <ISO>] [--out <path>]` — distinct from `vanta audit` (dependency-vulnerability scan). |
 
 ## The loop (`agent.ts`)
 
