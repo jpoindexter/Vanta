@@ -2,6 +2,7 @@ import { appendFile, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { resolveVantaHome } from "../store/home.js";
 import { canCloseTask, type HasArtifact, type OutcomeContract } from "../cofounder/outcome-contract.js";
+import { checkReviewGate } from "./review-stage.js";
 
 // Task assignment + status ledger for background workers.
 // Append-only JSONL (~/.vanta/team-tasks.jsonl), global across projects.
@@ -23,6 +24,9 @@ export type WorkerTask = {
   // gated through the contract (an artifact of the expected type must exist, or
   // an explicit no-artifact reason must be set). Absent → unchanged behavior.
   outcome?: OutcomeContract;
+  // PCLIP-APPROVAL-STAGES: named review stages routed to reviewers; done is
+  // refused while any stage is not approved. Absent → unchanged behavior.
+  reviewStages?: import("./review-stage.js").ReviewStage[];
 };
 
 export type TaskResult<T> =
@@ -113,6 +117,9 @@ export function advanceTask(
   }
   const gate = checkOutcomeGate(task, toStatus, hasArtifact);
   if (!gate.ok) return gate;
+  // PCLIP-APPROVAL-STAGES: done is refused while any review stage is unapproved.
+  const review = checkReviewGate(task, toStatus);
+  if (!review.ok) return review;
   const updated = new Date().toISOString();
   const patch: Partial<WorkerTask> = { status: toStatus, updated };
   if (toStatus === "done") patch.result = detail;

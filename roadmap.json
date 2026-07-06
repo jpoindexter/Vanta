@@ -13890,7 +13890,7 @@
       "id": "PCLIP-APPROVAL-STAGES",
       "track": "Harness",
       "title": "Staged review/approval as first-class workflow steps",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Governance & Approvals / Agent Reviews). Execution policies with named review + approval STAGES — reviewer routing, change-requests, approval gates — beyond Vanta's per-action y/n. Sits on the kernel approval queue.",
       "done": "A task can require a named review stage that routes to a reviewer and blocks completion until approved.",
@@ -13898,7 +13898,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "agent-loop",
-      "updated": "2026-06-19"
+      "updated": "2026-07-06",
+      "notes": "Shipped 2026-07-06. team/review-stage.ts (pure): ReviewStage {name, reviewerId, status pending|approved|rejected, decidedBy/reason/decidedAt}; requireStage (dedup by name, refused on done/removed tasks), decideStage (provenance; a rejected stage can be re-approved after rework), blockingStages, checkReviewGate (done is refused while ANY stage is not APPROVED — pending and rejected both block: completion requires an explicit approval, not the absence of a decision), reviewQueue (the routes-to-a-reviewer surface: pending stages per reviewer across the ledger). Same additive contract as COFOUNDER-ENFORCED-OUTCOME: WorkerTask gains optional reviewStages; advanceTask consults the review gate right after the outcome gate; stage-free tasks byte-identical. Tool surface: `team` gains require_review / review / reviews actions (schema + zod + dispatch). 13 new pure tests (gate via the REAL advanceTask, multi-stage all-must-approve, reject-then-redeem, queue routing) + REAL tool-path verified end-to-end via ALL_TOOLS (dispatch -> require_review -> done REFUSED naming stage+reviewer -> reviews queue -> approve -> done closes). Full suite 1022 files/11536 green; tsc + size gate clean. NOTE (pre-existing, not this slice): importing tools/team.js directly (not via all-tools/registry) hits a module-init cycle team-run -> tools/index -> all-tools — reproduced with this slice stashed; registry entry unaffected."
     },
     {
       "id": "PCLIP-CONFIG-REVISION",

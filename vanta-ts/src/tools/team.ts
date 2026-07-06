@@ -11,12 +11,13 @@ import {
   type TaskStatus,
 } from "../team/tasks.js";
 import { doRun } from "./team-run.js";
+import { requireStage, decideStage, reviewQueue } from "../team/review-stage.js";
 import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
 
 const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
 
 const Args = z.object({
-  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run"]),
+  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews"]),
   id: z.string().optional(),
   role: z.string().optional(),
   model: z.string().optional(),
@@ -29,6 +30,10 @@ const Args = z.object({
   title: z.string().optional(),
   taskStatus: z.enum(TASK_STATUSES).optional(),
   detail: z.string().optional(),
+  // PCLIP-APPROVAL-STAGES fields
+  stage: z.string().optional(),
+  reviewerId: z.string().optional(),
+  approve: z.boolean().optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -107,6 +112,38 @@ async function doTasks(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: lines.join("\n") };
 }
 
+/** PCLIP-APPROVAL-STAGES — load a task by id, apply a pure stage transition, persist. */
+async function withTask(taskId: string | undefined, apply: (t: import("../team/tasks.js").WorkerTask) => import("../team/tasks.js").TaskResult<import("../team/tasks.js").WorkerTask>): Promise<ToolResult> {
+  if (!taskId) return { ok: false, output: "needs taskId" };
+  const task = latestTasks(await readTasks()).find((t) => t.id === taskId);
+  if (!task) return { ok: false, output: `unknown task id "${taskId}" — dispatch it first` };
+  const result = apply(task);
+  if (!result.ok) return { ok: false, output: result.error };
+  await appendTask(result.value);
+  return { ok: true, output: "" };
+}
+
+async function doRequireReview(a: Parsed): Promise<ToolResult> {
+  if (!a.stage || !a.reviewerId) return { ok: false, output: "require_review needs taskId, stage, reviewerId" };
+  const r = await withTask(a.taskId, (t) => requireStage(t, a.stage!, a.reviewerId!));
+  return r.ok ? { ok: true, output: `task ${a.taskId}: review stage "${a.stage}" required, routed to ${a.reviewerId}` } : r;
+}
+
+async function doReview(a: Parsed): Promise<ToolResult> {
+  if (!a.stage || a.approve === undefined || !a.reviewerId) {
+    return { ok: false, output: "review needs taskId, stage, approve (true|false), reviewerId (who decides); optional detail = reason" };
+  }
+  const r = await withTask(a.taskId, (t) => decideStage(t, { name: a.stage!, approve: a.approve!, by: a.reviewerId!, reason: a.detail }));
+  return r.ok ? { ok: true, output: `task ${a.taskId}: stage "${a.stage}" ${a.approve ? "approved" : "rejected"} by ${a.reviewerId}` } : r;
+}
+
+async function doReviews(a: Parsed): Promise<ToolResult> {
+  if (!a.reviewerId) return { ok: false, output: "reviews needs reviewerId" };
+  const queue = reviewQueue(latestTasks(await readTasks()), a.reviewerId);
+  if (!queue.length) return { ok: true, output: `no pending reviews for ${a.reviewerId}` };
+  return { ok: true, output: queue.map((q) => `${q.taskId} · stage "${q.stage.name}" · ${q.title}`).join("\n") };
+}
+
 function dispatchAction(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
   if (a.action === "define") return doDefine(a);
   if (a.action === "status") return doStatus(a);
@@ -114,6 +151,9 @@ function dispatchAction(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
   if (a.action === "advance") return doAdvance(a);
   if (a.action === "tasks") return doTasks(a);
   if (a.action === "run") return doRun(a.taskId, a.detail, ctx);
+  if (a.action === "require_review") return doRequireReview(a);
+  if (a.action === "review") return doReview(a);
+  if (a.action === "reviews") return doReviews(a);
   return doList();
 }
 
@@ -128,14 +168,17 @@ export const teamTool: Tool = {
       "action:dispatch — assign a task to a worker (taskId, workerId, title); " +
       "action:advance — move a task to a new status (taskId, taskStatus: assigned|running|done|blocked, detail?); " +
       "action:tasks — list tasks (optional: workerId to filter); " +
-      "action:run — actually execute a dispatched task by spawning a worker agent (taskId; optional detail = instruction), updating the task to done/blocked with the result.",
+      "action:run — actually execute a dispatched task by spawning a worker agent (taskId; optional detail = instruction), updating the task to done/blocked with the result; " +
+      "action:require_review — add a named review stage that BLOCKS the task's done transition until approved (taskId, stage, reviewerId); " +
+      "action:review — approve/reject a stage (taskId, stage, approve, reviewerId = who decides, detail? = reason); " +
+      "action:reviews — list pending review stages routed to a reviewer (reviewerId).",
     parameters: {
       type: "object",
       properties: {
         action: {
           type: "string",
-          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run"],
-          description: "define worker | update worker status | list roster | dispatch task | advance task | list tasks | run task (spawn worker)",
+          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews"],
+          description: "define worker | update worker status | list roster | dispatch task | advance task | list tasks | run task (spawn worker) | require review stage | decide review | list pending reviews",
         },
         id: { type: "string", description: "worker id (define/status)" },
         role: { type: "string", description: "worker role (define)" },
@@ -147,7 +190,10 @@ export const teamTool: Tool = {
         workerId: { type: "string", description: "worker id target (dispatch/tasks)" },
         title: { type: "string", description: "task description (dispatch)" },
         taskStatus: { type: "string", enum: TASK_STATUSES, description: "target task status (advance)" },
-        detail: { type: "string", description: "result or blocker text (advance, optional)" },
+        detail: { type: "string", description: "result or blocker text (advance, optional); review reason (review, optional)" },
+        stage: { type: "string", description: "review stage name (require_review/review)" },
+        reviewerId: { type: "string", description: "reviewer the stage routes to (require_review/reviews) or who decides (review)" },
+        approve: { type: "boolean", description: "review decision (review): true approves, false rejects" },
       },
       required: ["action"],
     },
@@ -155,7 +201,7 @@ export const teamTool: Tool = {
   describeForSafety: (a) => `team ${String(a.action ?? "")}`,
   async execute(raw, ctx) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "team needs action: define|status|list|dispatch|advance|tasks|run" };
+    if (!p.success) return { ok: false, output: "team needs action: define|status|list|dispatch|advance|tasks|run|require_review|review|reviews" };
     return dispatchAction(p.data, ctx);
   },
 };
