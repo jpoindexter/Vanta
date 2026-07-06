@@ -1,4 +1,4 @@
-import { addCron, loadCron, type CronMode } from "./cron.js";
+import { addCron, loadCron, type CronMode, type RoutinePolicy } from "./cron.js";
 import {
   runDueTasksTracked,
   loadLastFired,
@@ -30,24 +30,38 @@ export function parseCronFlag(args: string[]): {
   return { cron: value, rest };
 }
 
-/** HARNESS-CRON-SCRIPT-MODE — parse `--mode no_agent|script_context` + `--script "<cmd>"`. */
+/** HARNESS-CRON-SCRIPT-MODE + PCLIP-ROUTINES-ISSUE — parse `--mode`, `--script`,
+ * and `--routine [skip|once]` (bare `--routine` defaults to skip). */
 export function parseScheduleFlags(args: string[]): {
   cron: string | null;
   mode: CronMode | undefined;
   script: string | undefined;
+  routine: RoutinePolicy | undefined;
   invalidMode: string | null;
   rest: string[];
 } {
   const c = parseValueFlag(args, "--cron");
   const m = parseValueFlag(c.rest, "--mode");
   const s = parseValueFlag(m.rest, "--script");
+  // --routine takes an OPTIONAL policy value; a bare flag (next word is another
+  // flag / absent) means "routine with the default skip policy".
+  let routine: RoutinePolicy | undefined;
+  let rest = s.rest;
+  const rIdx = rest.indexOf("--routine");
+  if (rIdx !== -1) {
+    const v = rest[rIdx + 1];
+    const explicit = v === "skip" || v === "once";
+    routine = explicit ? v : "skip";
+    rest = [...rest.slice(0, rIdx), ...rest.slice(rIdx + (explicit ? 2 : 1))];
+  }
   const validMode = m.value === "no_agent" || m.value === "script_context" ? m.value : undefined;
   return {
     cron: c.value,
     mode: validMode,
     script: s.value ?? undefined,
+    routine,
     invalidMode: m.value !== null && !validMode ? m.value : null,
-    rest: s.rest,
+    rest,
   };
 }
 
@@ -56,40 +70,56 @@ export function parseScheduleFlags(args: string[]): {
  * list` prints stored tasks. Returns an exit code — non-zero on bad usage so
  * the CLI can print usage and exit accordingly.
  */
+async function runScheduleList(dataDir: string): Promise<number> {
+  const entries = await loadCron(dataDir);
+  if (entries.length === 0) {
+    console.log("(no scheduled tasks)");
+    return 0;
+  }
+  for (const e of entries) {
+    console.log(`#${e.id} [${e.status}] ${e.cron} — ${e.instruction}`);
+  }
+  return 0;
+}
+
+/** Flag validation for `vanta schedule` adds; a returned string is the error. */
+function scheduleFlagError(f: ReturnType<typeof parseScheduleFlags>): string | null {
+  if (f.invalidMode) return `--mode must be no_agent or script_context, got "${f.invalidMode}"`;
+  if (f.mode === "script_context" && !f.script) {
+    return '--mode script_context needs --script "<cmd>" (its stdout is injected into the agent turn)';
+  }
+  return null;
+}
+
 export async function runScheduleCommand(
   dataDir: string,
   rest: string[],
 ): Promise<number> {
-  if (rest[0] === "list") {
-    const entries = await loadCron(dataDir);
-    if (entries.length === 0) {
-      console.log("(no scheduled tasks)");
-      return 0;
-    }
-    for (const e of entries) {
-      console.log(`#${e.id} [${e.status}] ${e.cron} — ${e.instruction}`);
-    }
-    return 0;
-  }
+  if (rest[0] === "list") return runScheduleList(dataDir);
 
-  const { cron, mode, script, invalidMode, rest: words } = parseScheduleFlags(rest);
-  const instruction = words.join(" ").trim();
-  if (!cron || instruction === "") return 1;
-  if (invalidMode) {
-    console.error(`--mode must be no_agent or script_context, got "${invalidMode}"`);
-    return 1;
-  }
-  if (mode === "script_context" && !script) {
-    console.error("--mode script_context needs --script \"<cmd>\" (its stdout is injected into the agent turn)");
+  const flags = parseScheduleFlags(rest);
+  const instruction = flags.rest.join(" ").trim();
+  if (!flags.cron || instruction === "") return 1;
+  const err = scheduleFlagError(flags);
+  if (err) {
+    console.error(err);
     return 1;
   }
 
-  const entry = await addCron(dataDir, cron, instruction, { mode, script });
-  const modeTag = entry.mode ? ` (${entry.mode})` : "";
+  const entry = await addCron(dataDir, flags.cron, instruction, { mode: flags.mode, script: flags.script, routine: flags.routine });
+  const modeTag = [entry.mode ? ` (${entry.mode})` : "", entry.routine ? ` (routine:${entry.routine})` : ""].join("");
   console.log(
     `scheduled #${entry.id} [${entry.status}]${modeTag} ${entry.cron} — ${entry.instruction}`,
   );
   return 0;
+}
+
+/** PCLIP-ROUTINES-ISSUE — live issue creator: a routine fire lands as an unread ticket. */
+export async function createRoutineIssue(dataDir: string, title: string): Promise<string> {
+  const { createTicket } = await import("../tickets/store.js");
+  const { randomUUID } = await import("node:crypto");
+  const t = await createTicket(dataDir, { title, labels: ["routine"] }, { now: () => new Date(), id: () => `tkt-${randomUUID().slice(0, 8)}` });
+  return t.id;
 }
 
 function firstLine(text: string): string {
@@ -118,6 +148,7 @@ export async function runCron(
     lastFired,
     claim: (id, windowKey) => claimFire(dataDir, id, windowKey),
     runScript: (script) => runCronScript(script),
+    createIssue: (title) => createRoutineIssue(dataDir, title),
   });
   await saveLastFired(dataDir, updated);
   await sweepClaims(dataDir, fireWindowKey(now));

@@ -14025,7 +14025,7 @@
       "id": "PCLIP-ROUTINES-ISSUE",
       "track": "Operator",
       "title": "Routines that create a tracked issue + wake the agent (catch-up policy)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Routines & Schedules). Beyond Vanta cron: each routine run CREATES A TRACKED ISSUE and wakes the assigned agent, with cron/webhook/API triggers and concurrency + catch-up policies (so missed runs after downtime are handled).",
       "done": "A routine fires on schedule/webhook, creates a tracked issue, wakes its agent, and honors a catch-up policy after downtime.",
@@ -14033,7 +14033,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. CronEntry gains `routine?: 'skip'|'once'` (presence = routine, value = catch-up policy; TSV col 7, legacy lines parse unchanged). ON FIRE: runner's routinePrefix creates a TRACKED ISSUE via the injected CreateIssue seam (live wiring = tickets/store createTicket, label 'routine', inbox unread — the existing first-class issue tracker, no new store) and the agent turn is prefixed '[tracked issue <id>]' so the run is traceable to it (composes with script modes; wired at BOTH call sites: `vanta cron` + the gateway tick, which also serves webhook-scheduled entries). CATCH-UP: pure hasMissedFire(cron, since, now) scans bounded (48h default, 7d hard cap); runDueTasksTracked extends the due set with routine-once entries that are NOT due now but missed a window since their last recorded fire — 'skip'/non-routines keep today's drop behavior; a never-fired routine has nothing to catch up; the catch-up advances the dedup map so it fires exactly once. `vanta schedule … --routine [skip|once]` (bare = skip). 7 new test blocks (missed-window detection incl. cap + strictly-after, issue+wake prefix, non-routine isolation, once-fires/skip-drops/never-fired, flag+TSV round-trip). LIVE real-path: scheduled a no_agent routine, `vanta cron` fired it → ticket tkt-d3ffb3e2 'Routine #2: nightly sync' landed unread + result carried the issue ref; state restored. Full suite 1027 files/11572 green; tsc + size gate clean (parseLine/runScheduleCommand cx refactored)."
     },
     {
       "id": "PCLIP-ACTIVITY-FEED",

@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { loadCron as defaultLoadCron, isDue } from "./cron.js";
+import { loadCron as defaultLoadCron, isDue, hasMissedFire } from "./cron.js";
 import type { CronEntry } from "./cron.js";
 import { wakeContextForCron } from "../loop/wake.js";
 import type { WakeContext } from "../loop/types.js";
@@ -67,6 +67,9 @@ export type DueTaskResult = { id: number; instruction: string; result: string };
 /** Runs a cron entry's script (HARNESS-CRON-SCRIPT-MODE). Injected like `run`. */
 export type RunScript = (script: string) => Promise<{ ok: boolean; output: string }>;
 
+/** Creates a tracked issue for a routine fire, returning its id (PCLIP-ROUTINES-ISSUE). */
+export type CreateIssue = (title: string) => Promise<string>;
+
 type RunDueTasksOptions = {
   dataDir: string;
   now: Date;
@@ -101,6 +104,12 @@ type RunDueTasksOptions = {
    * agent turn. `cli.ts`/gateway pass the real `runCronScript`.
    */
   runScript?: RunScript;
+  /**
+   * Tracked-issue creator for `routine` entries (PCLIP-ROUTINES-ISSUE): every
+   * routine fire creates an issue first and the agent turn references it.
+   * Omitted → routine entries run without an issue (clearly logged in result).
+   */
+  createIssue?: CreateIssue;
 };
 
 /**
@@ -132,24 +141,51 @@ async function runScriptMode(
   return (await run(turn, wakeContextForCron(entry, now))).finalText;
 }
 
+/** PCLIP-ROUTINES-ISSUE — create the tracked issue for a routine fire; the
+ * agent turn is prefixed with the issue id so the run is traceable to it. */
+async function routinePrefix(entry: CronEntry, createIssue?: CreateIssue): Promise<string> {
+  if (!entry.routine) return "";
+  if (!createIssue) return "[routine — no issue tracker wired] ";
+  const id = await createIssue(`Routine #${entry.id}: ${entry.instruction.slice(0, 80)}`);
+  return `[tracked issue ${id}] `;
+}
+
 /** Run one due entry, capturing a throw as an "error: <message>" result. */
 async function runOne(
   entry: CronEntry,
   now: Date,
   run: RunTask,
-  runScript?: RunScript,
+  opts: { runScript?: RunScript; createIssue?: CreateIssue } = {},
 ): Promise<DueTaskResult> {
   const done = (result: string): DueTaskResult => ({ id: entry.id, instruction: entry.instruction, result });
   try {
+    const prefix = await routinePrefix(entry, opts.createIssue);
     if (entry.mode === "no_agent" || entry.mode === "script_context") {
-      return done(await runScriptMode(entry, now, run, runScript));
+      const out = await runScriptMode(entry, now, run, opts.runScript);
+      return done(prefix + out);
     }
-    const { finalText } = await run(entry.instruction, wakeContextForCron(entry, now));
-    return done(finalText);
+    const { finalText } = await run(prefix + entry.instruction, wakeContextForCron(entry, now));
+    return done(prefix + finalText);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return done(`error: ${message}`);
   }
+}
+
+/**
+ * PCLIP-ROUTINES-ISSUE catch-up: a routine with policy "once" that is NOT due
+ * this minute but has a fire window it missed since its last recorded fire
+ * (host downtime) fires one catch-up run now. "skip" (and non-routines) keep
+ * today's behavior — missed windows are dropped. Pure over the dedup map.
+ */
+function catchUpEntries(entries: CronEntry[], now: Date, lastFired: LastFired): CronEntry[] {
+  return entries.filter((e) => {
+    if (e.status !== "active" || e.routine !== "once" || isDue(e.cron, now)) return false;
+    const last = lastFired[String(e.id)];
+    if (!last) return false; // never fired → nothing to catch up from
+    const sinceMs = new Date(last).getTime();
+    return Number.isFinite(sinceMs) && hasMissedFire(e.cron, sinceMs, now.getTime()) !== null;
+  });
 }
 
 /**
@@ -177,6 +213,9 @@ export async function runDueTasksTracked(
   const windowKey = fireWindowKey(opts.now);
   let lastFired: LastFired = opts.lastFired ?? {};
 
+  // Routine catch-up needs the dedup history — only meaningful when tracking.
+  if (tracking) due.push(...catchUpEntries(entries, opts.now, lastFired));
+
   const results: DueTaskResult[] = [];
   for (const entry of due) {
     if (tracking && !shouldFire(entry.id, windowKey, lastFired)) continue;
@@ -184,7 +223,7 @@ export async function runDueTasksTracked(
     if (opts.claim && !(await opts.claim(entry.id, windowKey))) continue;
     // Pre-advance: record the fire before running so an overlapping tick skips.
     if (tracking) lastFired = markFired(lastFired, entry.id, windowKey);
-    results.push(await runOne(entry, opts.now, opts.run, opts.runScript));
+    results.push(await runOne(entry, opts.now, opts.run, { runScript: opts.runScript, createIssue: opts.createIssue }));
   }
 
   return { results, lastFired };

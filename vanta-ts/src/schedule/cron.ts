@@ -7,6 +7,11 @@ import { loadDurableCron } from "./durable-cron.js";
 //   script_context: run `script`, then inject its stdout into the agent turn.
 export type CronMode = "no_agent" | "script_context";
 
+// PCLIP-ROUTINES-ISSUE — a routine entry creates a tracked issue on every fire
+// and honors a catch-up policy after downtime: "skip" (missed windows are
+// dropped) or "once" (one catch-up fire when missed windows are detected).
+export type RoutinePolicy = "skip" | "once";
+
 export type CronEntry = {
   id: number;
   cron: string;
@@ -16,6 +21,8 @@ export type CronEntry = {
   mode?: CronMode;
   /** The shell command for script modes (no_agent falls back to `instruction`). */
   script?: string;
+  /** Present = this entry is a routine; the value is its catch-up policy. */
+  routine?: RoutinePolicy;
 };
 
 const CRON_FILE = "cron.tsv";
@@ -98,6 +105,23 @@ export function isDue(cronExpr: string, date: Date): boolean {
   return true;
 }
 
+/**
+ * True when `cron` matched at least one minute in (since, now] — the routine
+ * catch-up detector after downtime. Bounded scan (default 48h, hard cap 7d);
+ * a `since` older than the cap scans only the capped window. Pure.
+ */
+export function hasMissedFire(cron: string, sinceMs: number, nowMs: number, capMinutes = 2880): number | null {
+  const cap = Math.min(capMinutes, 10_080);
+  const start = Math.max(sinceMs, nowMs - cap * 60_000);
+  const firstMinute = Math.floor(start / 60_000) + 1; // strictly after `since`
+  const lastMinute = Math.floor(nowMs / 60_000);
+  for (let m = lastMinute; m >= firstMinute; m -= 1) {
+    const t = new Date(m * 60_000);
+    if (isDue(cron, t)) return m * 60_000; // most recent missed window
+  }
+  return null;
+}
+
 function cronPath(dataDir: string): string {
   return join(dataDir, CRON_FILE);
 }
@@ -106,7 +130,7 @@ function cronPath(dataDir: string): string {
 function parseLine(line: string): CronEntry | null {
   const cells = line.split("\t");
   if (cells.length < 4) return null;
-  const [idCell, cron, instruction, status, modeCell, scriptCell] = cells;
+  const [idCell, cron, instruction, status, modeCell, scriptCell, routineCell] = cells;
   const id = Number(idCell);
   if (
     cron === undefined ||
@@ -116,9 +140,14 @@ function parseLine(line: string): CronEntry | null {
   ) {
     return null;
   }
-  const entry: CronEntry = { id, cron, instruction, status };
+  return withOptionalCells({ id, cron, instruction, status }, modeCell, scriptCell, routineCell);
+}
+
+/** Apply the optional TSV columns (mode/script/routine) onto a base entry. Pure. */
+function withOptionalCells(entry: CronEntry, modeCell?: string, scriptCell?: string, routineCell?: string): CronEntry {
   if (modeCell === "no_agent" || modeCell === "script_context") entry.mode = modeCell;
   if (scriptCell) entry.script = scriptCell;
+  if (routineCell === "skip" || routineCell === "once") entry.routine = routineCell;
   return entry;
 }
 
@@ -147,7 +176,7 @@ export async function saveCron(
   const path = cronPath(dataDir);
   await mkdir(dirname(path), { recursive: true });
   const body = entries
-    .map((e) => [e.id, e.cron, e.instruction, e.status, e.mode ?? "", e.script ?? ""].join("\t"))
+    .map((e) => [e.id, e.cron, e.instruction, e.status, e.mode ?? "", e.script ?? "", e.routine ?? ""].join("\t"))
     .join("\n");
   await writeFile(path, body === "" ? "" : `${body}\n`, "utf8");
 }
@@ -157,7 +186,7 @@ export async function addCron(
   dataDir: string,
   cron: string,
   instruction: string,
-  opts: { mode?: CronMode; script?: string } = {},
+  opts: { mode?: CronMode; script?: string; routine?: RoutinePolicy } = {},
 ): Promise<CronEntry> {
   const entries = await loadCron(dataDir);
   const nextId = entries.reduce((max, e) => Math.max(max, e.id), 0) + 1;
