@@ -5,7 +5,20 @@ Project: `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta` · branch `main` (
 Goal (session Stop-hook): keep pushing through the roadmap in logical order toward Hermes/OpenClaw operator stats; everything green; no stubs; commit+push every slice.
 
 ## State
-Horizon **125 → 103** (22 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path executed → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1035 files / 11662 tests** @ `a3194bd3`. Kernel untouched (67 tests).
+Horizon **125 → 100** (25 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path executed → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1038 files / 11683 tests** @ `9bf0e577`. Kernel untouched (67 tests).
+
+### Slices 23–25 (after the numbered list below):
+23. PCLIP-SCOPED-SECRETS — `secrets/scope.ts`, per-run secret grants, fail-closed
+24. EXT-MODEL-CATALOG-REMOTE — `providers/catalog-manifest.ts`, remote manifest w/ full fallback chain + atomic cache
+25. EXT-MCP-CATALOG — `mcp/catalog.ts`, `vanta mcp install`, per-server `tools` allowlist wired into the mount loop (read-mostly default)
+
+### ⚠️ Near-queue is now decision/precondition-gated (why the clean grind paused here)
+The next `next`/small cards in build-order are NOT clean buildable slices — each waits on a precondition or a Jason decision, so they were skipped (skip-don't-force):
+- **MSG-PLUGIN-PLATFORMS** — done = "demonstrated when a second transport lands"; no second transport exists yet.
+- **HARNESS-EGRESS-ISOLATION** — "captured for the SEC backlog / a future Docker deployment story"; deployment-layer, not code.
+- **EXT-MCP-SERVE-COMMS** — "full bridge deferred until multi-platform comms exist" (the `events_wait` primitive already split out).
+- Remaining rocks need LIVE infra / hardware / a decision: BACKEND-SERVERLESS-LIVE, VOICE-WAKE-WORD, AMBIENT-SCREEN-CONTEXT, MSG-CHANNEL-PARITY (needs a live-verify pass + a recorded native-mobile/ecosystem decision), SURFACE-MOBILE-APP, MARKETING-ANALYTICS-CONNECTORS.
+**Next-session move:** either (a) pick a TUI/desktop card (TUI-V2-RAILS, VANTA-STRUCTURED-DIFF, hooks/teams/agents UIs — need ink-testing-library patterns) or (b) get a Jason decision on MSG-CHANNEL-PARITY scope + the serverless-live rock. Regenerate the queue first; ids shift.
 
 ### Slices 14–22 (after the list below), all green + pushed:
 15. EXT-ACP-EDIT-DIFF — `acp/edit-policy.ts`, pre-exec diff + session allow_always w/ sensitive-path floor (fixed a dynamic-import flake, ERRORS.md)
