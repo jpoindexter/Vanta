@@ -1,5 +1,6 @@
 import { EFFORT_LEVELS, type EffortLevel } from "../types.js";
 import { isEffortLevel } from "../effort.js";
+import { rememberEffort } from "../models/presets.js";
 import type { SlashHandler } from "./types.js";
 
 function usage(current: EffortLevel): string {
@@ -14,5 +15,8 @@ export const effort: SlashHandler = (arg, ctx) => {
   ctx.state.effortLevel = raw;
   ctx.setup.effortLevel = raw;
   ctx.env.VANTA_EFFORT_LEVEL = raw;
+  // OP-MODEL-PRESETS: the choice sticks to THIS model and re-applies on reselect.
+  const modelId = ctx.setup.provider?.modelId?.();
+  if (modelId) void rememberEffort(modelId, raw, ctx.env);
   return { output: `  effort ${raw}` };
 };

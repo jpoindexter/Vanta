@@ -14856,7 +14856,7 @@
       "id": "OP-MODEL-PRESETS",
       "track": "Operator",
       "title": "Per-model reasoning-effort / fast-mode preset memory",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Reasoning effort and fast-mode don't persist per model across switches. Remember a {effort, fast} preset per model globally and re-apply it whenever that model is selected. Fits the operator-profile system.",
       "done": "Selecting a model re-applies its remembered effort/fast preset; changing it updates the per-model memory; persistence unit-tested.",
@@ -14865,8 +14865,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "tui",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. models/presets.ts: per-model preference memory at ~/.vanta/model-presets.json (zod, tolerant load — corrupt store degrades to empty and self-heals on next remember). rememberPreset/presetFor pure; rememberEffort best-effort (never breaks the triggering command). WIRED at the two shared slash handlers BOTH hosts funnel through (verified: buildProviderForSelection has exactly one non-picker caller): /effort persists the level keyed by the ACTIVE provider's modelId (guarded — a setup without a provider skips); /model applies the remembered effort after a switch into state+setup+env and says so ('effort max (remembered)'). SCOPE NOTE: Vanta has no separate 'fast mode' toggle (the card's 'fast' is CC-specific; effort IS the dial here — zero fastMode hits in src) — schema leaves room for future per-model keys. 6 test blocks, incl. BOTH real handlers driven end-to-end (effort→persisted file asserted; model switch with codex→remembered effort restored). Full suite 1029 files/11586 green; tsc + size gate clean."
     },
     {
       "id": "OP-ADVERSARIAL-UX",

@@ -1,6 +1,7 @@
 import { dirname } from "node:path";
 import { providerById } from "../providers/catalog.js";
 import { buildProviderForSelection, persistSelectionGlobal, parseModelArg } from "../term/model-switch.js";
+import { loadPresets, presetFor } from "../models/presets.js";
 import type { SlashHandler } from "./types.js";
 
 // `/model` — bare prints the active model; `/model <arg>` switches it. The TUI
@@ -33,5 +34,14 @@ export const model: SlashHandler = async (arg, ctx) => {
   const entry = providerById(sel.providerId);
   if (entry?.envVar && sel.apiKey) ctx.env[entry.envVar] = sel.apiKey;
   await persistSelectionGlobal(sel, dirname(ctx.dataDir)).catch(() => {});
-  return { output: `  ⚓ model → ${provider.modelId()} (saved to .env)`, provider };
+  // OP-MODEL-PRESETS: re-apply the effort last used WITH this model.
+  const preset = presetFor(await loadPresets(ctx.env), provider.modelId());
+  let presetNote = "";
+  if (preset?.effort) {
+    ctx.state.effortLevel = preset.effort;
+    ctx.setup.effortLevel = preset.effort;
+    ctx.env.VANTA_EFFORT_LEVEL = preset.effort;
+    presetNote = ` · effort ${preset.effort} (remembered)`;
+  }
+  return { output: `  ⚓ model → ${provider.modelId()} (saved to .env)${presetNote}`, provider };
 };
