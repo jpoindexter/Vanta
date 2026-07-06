@@ -5078,7 +5078,7 @@
       "id": "VANTA-SELF-HOSTED",
       "track": "Harness",
       "title": "Self-hosted runner — dedicated entrypoint for running another agent as a CI/CD runner",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `SELF_HOSTED_RUNNER`) adds a `self-hosted-runner` CLI entrypoint that bypasses the interactive REPL and enters a dedicated runner mode. Designed for running another agent as an automated agent in CI/CD pipelines with job-queue polling.",
       "done": "Running `claude self-hosted-runner` starts a job-polling loop. Incoming jobs from the queue are executed as another agent sessions and results posted back.",
@@ -5087,7 +5087,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-09"
+      "updated": "2026-07-06",
+      "notes": "Shipped 2026-07-06. `vanta runner` — the dedicated non-REPL CI/CD entrypoint. runner/queue.ts: file-per-job queue under .vanta/runner-jobs/{queued,running,done}/ with ATOMIC claim via rename queued->running (two pollers never execute the same job — same primitive class as cron-cas); external CI producers enqueue by dropping a {id?,instruction,agent?} JSON into queued/ (tested); malformed files skipped, results posted back as done/failed with the output. runner/loop.ts: poll->claim->execute->post loop, executor INJECTED; --once drains and exits (pipeline mode), --interval tunes idle polling, maxJobs bounds; a throwing executor marks the job failed and the loop continues. cli/runner-cmd.ts wires two real executors: job.agent set -> buildAgentInvocation+runExternalAgent (streamed, coding:true — the 'another agent session' path); absent -> buildCronRunTask (Vanta one-shot, kernel-gated, same path as cron). `vanta runner add|list|start` in the dispatch table. 7 tests (claim exclusivity, CI-dropped file pickup, failure continuation, late-arriving job via injected sleep). LIVE real-path executed: `runner add` -> `runner start --once` claimed the job, ran a REAL codex one-shot through the kernel, posted RUNNER-OK back, `runner list` shows [done]. Full suite 1023 files/11543 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-SSH-CONFIGS",
