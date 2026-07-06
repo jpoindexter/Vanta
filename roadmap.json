@@ -14420,7 +14420,7 @@
       "id": "MSG-MEDIA-PATH-RECENCY",
       "track": "Harness",
       "title": "Outbound media path validation with recency constraint",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "If/when the agent sends local files, validate the path is under allowed roots, not under denied prefixes, AND recently produced — so the agent can't be tricked into exfiltrating an arbitrary old file. Route through the existing kernel assess()/writable-zones; the recency constraint is the new idea.",
       "done": "A file send is rejected unless the path is in-scope and recently produced; enforced via the kernel; anti-exfil case unit-tested.",
@@ -14429,8 +14429,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. gateway/media-send-guard.ts: validateMediaSend(rawPath, opts) gates sending a LOCAL file out over a channel. Two checks in order: (1) SCOPE — reuses resolveReadablePath (the exact policy read_file uses: expand ~, in-root/zone, protected-credential + out-of-zone refused with its message); (2) RECENCY — the new idea: mtime must be within a window (VANTA_MEDIA_MAX_AGE_SEC, default 1h) so even an in-scope file can't be exfiltrated if the agent is tricked into naming an arbitrary OLD file — a legit send is of something Vanta JUST produced (screenshot/chart/report). Scope is checked FIRST (no stat on a path we'd refuse anyway; error names the right reason). stat injected (fsStatMtime live adapter → mtimeMs or null). Errors-as-values, never throws; the caller still routes the eventual read through the kernel. 7 tests incl. the anti-exfil case (in-scope but 2h-old → rejected), out-of-scope-refused-before-stat, protected-cred path, null-mtime, custom window. Full suite 1040 files/11697 green; tsc + size gate clean. Guard is ready for whenever a file-send tool lands (OutboundMessage.image exists; no live send tool yet — the recency guard is the shippable anti-exfil primitive the card scopes)."
     },
     {
       "id": "MSG-SIGNAL-RATELIMIT",
