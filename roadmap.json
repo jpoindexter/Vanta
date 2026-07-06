@@ -14009,7 +14009,7 @@
       "id": "PCLIP-WORK-QUEUES",
       "track": "Operator",
       "title": "Work queues — continuous routing for repeatable inputs",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Work Queues, roadmap ⚪). Queue-style work streams for repeatable inputs — support, triage, review, backlog intake — routed continuously to assigned agents instead of a one-off workflow per item.",
       "done": "A queue accepts repeated inputs and routes each to an assigned agent without a one-off workflow per item.",
@@ -14017,7 +14017,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. queues/work-queue.ts: named queue configs (.vanta/work-queues/<name>.json — kebab-slug name, ASSIGNED workerId, instruction template with {input} substitution or append). Item storage/claiming REUSES the runner's atomic-claim primitives, generalized behavior-preserving with an optional QueueLoc subdir (runner defaults byte-identical, its 7 tests untouched); items live under .vanta/work-queues/<name>/{queued,running,done}. cli/queue-cmd.ts: `vanta queue define|push|work [--once]|list`; the work executor routes EVERY item through the real team path — assignTask to the queue's worker on the team ledger, then team-run doRun (subagent with the teammate model, kernel-gated, outcome/review gates apply) — no one-off workflow per item. 11 tests (config round-trip, slug rejection as error-value, template render, multi-item routing with per-queue isolation). LIVE real-path executed: defined worker ana, `queue define triage --template 'Reply with exactly: TRIAGED[{input}]'`, `queue push triage case-7`, `queue work triage --once` ran a REAL teammate subagent → queue item done + ledger task q-triage-…:done:TRIAGED[case-7]. Full suite 1025 files/11561 green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-ROUTINES-ISSUE",

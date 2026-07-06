@@ -78,6 +78,7 @@ import { runMetaTuneCommand } from "./meta-tune-cmd.js";
 import { runTuneCommand } from "./tune-cmd.js";
 import { runControlCommand } from "./control-cmd.js";
 import { runRunnerCommand } from "./runner-cmd.js";
+import { runQueueCommand } from "./queue-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -182,6 +183,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   proactive: (root, rest) => runProactiveCommand(root, rest),
   watchdog: (root, rest) => runWatchdogCommand(root, rest),
   runner: (root, rest) => runRunnerCommand(root, rest),
+  queue: (root, rest) => runQueueCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
   logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),
   respawn: (root, rest) => runAgentsCommand(root, ["respawn", ...rest]),

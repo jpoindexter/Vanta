@@ -19,6 +19,8 @@ export type RunnerLoopOpts = {
   log?: (msg: string) => void;
   /** Injected sleep for tests. */
   sleep?: (ms: number) => Promise<void>;
+  /** Queue directory override (PCLIP-WORK-QUEUES: "work-queues/<name>"). */
+  subdir?: string;
 };
 
 const defaultSleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -26,7 +28,7 @@ const defaultSleep = (ms: number): Promise<void> => new Promise((r) => setTimeou
 /** Claim + execute + post back one job. Returns false when the queue was empty. */
 async function runOneJob(opts: RunnerLoopOpts): Promise<boolean> {
   const log = opts.log ?? (() => {});
-  const job = await claimNextJob(opts.dataDir);
+  const job = await claimNextJob(opts.dataDir, new Date(), { subdir: opts.subdir });
   if (!job) return false;
   log(`runner: ${job.id} started — ${job.instruction.slice(0, 80)}`);
   let outcome: { ok: boolean; result: string };
@@ -35,7 +37,7 @@ async function runOneJob(opts: RunnerLoopOpts): Promise<boolean> {
   } catch (err) {
     outcome = { ok: false, result: `error: ${err instanceof Error ? err.message : String(err)}` };
   }
-  await completeJob(opts.dataDir, job, outcome);
+  await completeJob(opts.dataDir, job, { ...outcome, subdir: opts.subdir });
   log(`runner: ${job.id} ${outcome.ok ? "done" : "FAILED"}`);
   return true;
 }

@@ -23,32 +23,39 @@ export type Job = z.infer<typeof JobSchema>;
 const DIRS = ["queued", "running", "done"] as const;
 type JobDir = (typeof DIRS)[number];
 
-export function runnerDir(dataDir: string): string {
-  return join(dataDir, "runner-jobs");
+// PCLIP-WORK-QUEUES generalization: the atomic-claim primitives serve any
+// queue directory — the self-hosted runner uses the default "runner-jobs",
+// named work queues pass `subdir: "work-queues/<name>"`.
+const DEFAULT_SUBDIR = "runner-jobs";
+
+export type QueueLoc = { subdir?: string };
+
+export function runnerDir(dataDir: string, loc: QueueLoc = {}): string {
+  return join(dataDir, loc.subdir ?? DEFAULT_SUBDIR);
 }
 
-function dirFor(dataDir: string, d: JobDir): string {
-  return join(runnerDir(dataDir), d);
+function dirFor(dataDir: string, d: JobDir, loc: QueueLoc = {}): string {
+  return join(runnerDir(dataDir, loc), d);
 }
 
-async function ensureDirs(dataDir: string): Promise<void> {
-  for (const d of DIRS) await mkdir(dirFor(dataDir, d), { recursive: true });
+async function ensureDirs(dataDir: string, loc: QueueLoc = {}): Promise<void> {
+  for (const d of DIRS) await mkdir(dirFor(dataDir, d, loc), { recursive: true });
 }
 
-async function writeJob(dataDir: string, d: JobDir, job: Job): Promise<void> {
-  await writeFile(join(dirFor(dataDir, d), `${job.id}.json`), `${JSON.stringify(job, null, 2)}\n`, "utf8");
+async function writeJob(dataDir: string, d: JobDir, job: Job, loc: QueueLoc = {}): Promise<void> {
+  await writeFile(join(dirFor(dataDir, d, loc), `${job.id}.json`), `${JSON.stringify(job, null, 2)}\n`, "utf8");
 }
 
 /** Enqueue a job (id defaults to a timestamp-random slug). */
 export async function enqueueJob(
   dataDir: string,
-  opts: { instruction: string; agent?: string; id?: string; now?: Date },
+  opts: { instruction: string; agent?: string; id?: string; now?: Date } & QueueLoc,
 ): Promise<Job> {
-  await ensureDirs(dataDir);
+  await ensureDirs(dataDir, opts);
   const now = (opts.now ?? new Date()).toISOString();
   const id = opts.id ?? `job-${now.replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
   const job: Job = { id, instruction: opts.instruction, agent: opts.agent, status: "queued", created: now, updated: now };
-  await writeJob(dataDir, "queued", job);
+  await writeJob(dataDir, "queued", job, opts);
   return job;
 }
 
@@ -67,12 +74,12 @@ async function readJob(path: string): Promise<Job | null> {
  * A lost race (another process claimed it first) moves on to the next file.
  * Returns null when the queue is empty.
  */
-export async function claimNextJob(dataDir: string, now: Date = new Date()): Promise<Job | null> {
-  await ensureDirs(dataDir);
-  const files = (await readdir(dirFor(dataDir, "queued"))).filter((f) => f.endsWith(".json")).sort();
+export async function claimNextJob(dataDir: string, now: Date = new Date(), loc: QueueLoc = {}): Promise<Job | null> {
+  await ensureDirs(dataDir, loc);
+  const files = (await readdir(dirFor(dataDir, "queued", loc))).filter((f) => f.endsWith(".json")).sort();
   for (const f of files) {
-    const from = join(dirFor(dataDir, "queued"), f);
-    const to = join(dirFor(dataDir, "running"), f);
+    const from = join(dirFor(dataDir, "queued", loc), f);
+    const to = join(dirFor(dataDir, "running", loc), f);
     try {
       await rename(from, to); // atomic claim — loser of the race gets ENOENT
     } catch {
@@ -81,7 +88,7 @@ export async function claimNextJob(dataDir: string, now: Date = new Date()): Pro
     const job = await readJob(to);
     if (!job) continue; // malformed file: leave it in running/ for inspection
     const claimed: Job = { ...job, status: "running", updated: now.toISOString() };
-    await writeJob(dataDir, "running", claimed);
+    await writeJob(dataDir, "running", claimed, loc);
     return claimed;
   }
   return null;
@@ -91,7 +98,7 @@ export async function claimNextJob(dataDir: string, now: Date = new Date()): Pro
 export async function completeJob(
   dataDir: string,
   job: Job,
-  outcome: { ok: boolean; result: string; now?: Date },
+  outcome: { ok: boolean; result: string; now?: Date } & QueueLoc,
 ): Promise<Job> {
   const finished: Job = {
     ...job,
@@ -99,18 +106,18 @@ export async function completeJob(
     result: outcome.result,
     updated: (outcome.now ?? new Date()).toISOString(),
   };
-  await writeJob(dataDir, "done", finished);
-  await rm(join(dirFor(dataDir, "running"), `${job.id}.json`), { force: true });
+  await writeJob(dataDir, "done", finished, outcome);
+  await rm(join(dirFor(dataDir, "running", outcome), `${job.id}.json`), { force: true });
   return finished;
 }
 
 /** All jobs across the three states (for `vanta runner list`). */
-export async function listJobs(dataDir: string): Promise<Job[]> {
-  await ensureDirs(dataDir);
+export async function listJobs(dataDir: string, loc: QueueLoc = {}): Promise<Job[]> {
+  await ensureDirs(dataDir, loc);
   const out: Job[] = [];
   for (const d of DIRS) {
-    for (const f of (await readdir(dirFor(dataDir, d))).filter((x) => x.endsWith(".json")).sort()) {
-      const job = await readJob(join(dirFor(dataDir, d), f));
+    for (const f of (await readdir(dirFor(dataDir, d, loc))).filter((x) => x.endsWith(".json")).sort()) {
+      const job = await readJob(join(dirFor(dataDir, d, loc), f));
       if (job) out.push(job);
     }
   }
