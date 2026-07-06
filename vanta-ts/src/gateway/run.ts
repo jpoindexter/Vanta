@@ -52,6 +52,10 @@ export type GatewayDeps = {
     deliver: Deliver;
   };
   home?: string;
+  /** CHANNEL-PERMISSIONS-WIRE: pending-approval reply bus — an inbound message
+   * referencing a pending request id is consumed as an approval reply instead
+   * of becoming an agent turn. Absent → behavior unchanged. */
+  replyBus?: { tryConsume(msg: { chatId: string; text: string }): boolean; drainBypassed(): unknown[] };
   /** Inbound-pipeline config: the bot's @-handle + optional group-gating + tz label. */
   inbound?: {
     /** Bot @-handle (no leading @) for mention-gating + strip; absent → no group gate. */

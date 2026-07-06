@@ -15391,7 +15391,7 @@
       "id": "CHANNEL-PERMISSIONS-WIRE",
       "track": "Operator",
       "title": "Wire channel permission relay into the live approval loop",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "VANTA-CHANNEL-PERMISSIONS shipped the pure relay/race/parse core (permissions/channel-relay.ts). Wire it live: at the requestApproval site (agent/dispatch-tool.ts -> applySafetyGate -> AgentDeps.requestApproval), generate a stable requestId, call relayApproval with send=send_chat (per configured approver platform/chat), replies=the gateway inbound stream filtered to this requestId, localResolve=the existing host approver, allowlist=the operator-profile approver chat-ids. Persist the pending request. Touches the hot approval path + gateway + operator-profile, so it is its own careful slice.",
       "done": "An approval prompt is sent to the configured channel; replying yes/no <id> from an allowlisted chat resolves it, raced against the local prompt (first wins); only allowlisted chats can approve; tested with an injected gateway stream.",
@@ -15400,8 +15400,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. The pure relay core (permissions/channel-relay.ts) wired LIVE, opt-in via VANTA_APPROVER_CHATS (unset -> byte-identical deny behavior). permissions/reply-bus.ts: in-process bridge between the gateway inbound loop and pending relays — consumes an inbound ONLY when its text references a pending request id (normal messages pass through); subscribers get an abortable async stream; plus a bypass stash (below). permissions/channel-approver.ts: buildChannelApprover -> requestApproval that relays the prompt (buildPermissionRequest, id embedded), races the allowlisted channel reply vs a DENY-AT-TIMEOUT local resolver (VANTA_CHANNEL_APPROVAL_TIMEOUT_SEC, 120s default) — headless 'instant deny' becomes 'human can approve from chat within the window'. DEADLOCK FOUND & FIXED BEFORE SHIP: the gateway loop is BLOCKED while a turn awaits approval, so the reply would never be polled and every race would time out — the relay now pumps platform.poll() itself while pending (safe: the blocked single-threaded loop means no concurrent getUpdates) and parks non-approval messages on the bus; pollPlatformSession drains parked messages first, so none are lost. Wired: buildCronRunTask gains opts.requestApproval; runGatewayCommand assembles bus+approver (buildGatewayApprover); GatewayDeps.replyBus consume in the poll loop. 7 test blocks incl. the pump deadlock-breaker (bypassed message preserved) and a pollPlatformSession integration (reply consumed, parked message runs as a turn, relay stream receives the reply); stranger yes ignored, ambiguous never approves (core relay tests pre-existing). Full suite 1028 files/11579 green; tsc + size gate clean. Live channel not exercised (needs a real Telegram token + human) — the injected-stream integration is the executed path, per the card's own done criterion."
     },
     {
       "id": "COFOUNDER-DEPARTMENT-UNIT",

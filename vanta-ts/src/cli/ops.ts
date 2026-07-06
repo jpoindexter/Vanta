@@ -3,6 +3,7 @@ import { runAgent } from "../agent.js";
 import type { ImageAttachment } from "../types.js";
 import { buildMediaBridgeDeps } from "../gateway/media-deps.js";
 import { runGateway } from "../gateway/run.js";
+import type { PlatformAdapter } from "../gateway/platforms/base.js";
 import { resolveMessagingChannel } from "../gateway/platforms/factory.js";
 import { resolveDeliver } from "../gateway/webhook.js";
 import { installService, uninstallService, serviceStatus } from "../service/manager.js";
@@ -49,8 +50,14 @@ export async function runLibraryCommand(repoRoot: string, rest: string[]): Promi
   return run(repoRoot, rest);
 }
 
-// Non-interactive task runner for `vanta cron` / gateway: approvals denied (no TTY).
-export function buildCronRunTask(repoRoot: string): RunTask {
+// Non-interactive task runner for `vanta cron` / gateway: approvals denied (no
+// TTY) — unless CHANNEL-PERMISSIONS-WIRE passes a channel approver, which
+// relays ask-tier actions to the configured approver chat and races the reply
+// against a deny-at-timeout.
+export function buildCronRunTask(
+  repoRoot: string,
+  opts: { requestApproval?: (action: string, reason: string, toolName?: string) => Promise<boolean> } = {},
+): RunTask {
   return async (instruction, wake, images) => {
     const prompt = withWakeContext(instruction, wake);
     const setup = await prepareRun(repoRoot, prompt);
@@ -59,7 +66,7 @@ export function buildCronRunTask(repoRoot: string): RunTask {
       safety: setup.safety,
       registry: setup.registry,
       root: repoRoot,
-      requestApproval: async () => false,
+      requestApproval: opts.requestApproval ?? (async () => false),
       maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
       summarize: buildSummarizer(setup.provider),
     }, images); // MSG-MEDIA-IMAGES: inbound images reach the agent's vision
@@ -90,11 +97,36 @@ export function buildCronRunTask(repoRoot: string): RunTask {
   };
 }
 
+// CHANNEL-PERMISSIONS-WIRE — opt-in: with VANTA_APPROVER_CHATS set and a live
+// channel, ask-tier approvals relay to the first approver chat and an
+// allowlisted "yes/no <id>" reply resolves them (raced vs deny-at-timeout).
+async function buildGatewayApprover(platform: PlatformAdapter | undefined): Promise<{
+  replyBus?: import("../permissions/reply-bus.js").ReplyBus;
+  requestApproval?: (action: string, reason: string, toolName?: string) => Promise<boolean>;
+}> {
+  const { resolveApproverChats, approvalTimeoutMs, buildChannelApprover } = await import("../permissions/channel-approver.js");
+  const { createReplyBus } = await import("../permissions/reply-bus.js");
+  const approverChats = resolveApproverChats(process.env);
+  if (!approverChats.length || !platform) return {};
+  const replyBus = createReplyBus();
+  const requestApproval = buildChannelApprover({
+    send: (text) => platform.send({ chatId: approverChats[0]!, text }),
+    bus: replyBus,
+    allowlist: approverChats,
+    timeoutMs: approvalTimeoutMs(process.env),
+    poll: () => platform.poll(),
+    log: (m) => console.log(`  ${m}`),
+  });
+  return { replyBus, requestApproval };
+}
+
 // `vanta gateway` — run the cron scheduler as a foreground daemon (the long-lived
 // process that fires scheduled tasks without an external trigger).
 export async function runGatewayCommand(repoRoot: string): Promise<void> {
-  const runTask = buildCronRunTask(repoRoot);
   const platform = resolveMessagingChannel(process.env); // MSG-MULTICHANNEL-LIVE: run all configured channels
+
+  const { replyBus, requestApproval } = await buildGatewayApprover(platform);
+  const runTask = buildCronRunTask(repoRoot, { requestApproval });
   const handle = async (text: string, images?: ImageAttachment[]): Promise<string> =>
     (await runTask(text, undefined, images)).finalText;
 
@@ -121,6 +153,7 @@ export async function runGatewayCommand(repoRoot: string): Promise<void> {
     run: runTask,
     platform,
     handle,
+    replyBus,
     media: buildMediaBridgeDeps(), // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
     webhook,
     home: resolveVantaHome(),

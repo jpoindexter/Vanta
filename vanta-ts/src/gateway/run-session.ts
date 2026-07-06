@@ -58,6 +58,15 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   await recordReply(ctx, out);
 }
 
+/** Route one enriched inbound message: run now, queue, or surface the command. */
+async function routeOne(ctx: SessionRun, s: SessionState, enriched: InboundMessage): Promise<SessionState> {
+  const routed = routeInbound(s, enriched);
+  if (routed.action === "run-now") await runOne(ctx, enriched);
+  else if (routed.action === "queue") ctx.log(`  ⏳ queued (busy): ${firstLine(enriched.text)}`);
+  else ctx.log(`  ⤳ ${routed.action} (${classifyInbound(enriched.text)}): ${firstLine(enriched.text)}`);
+  return routed.state;
+}
+
 /** Drain the FIFO queue once the current run is finished. */
 async function drainQueue(ctx: SessionRun, state: SessionState): Promise<SessionState> {
   let s = markFinished(state);
@@ -110,7 +119,10 @@ async function pollPlatformSession(
   }
   const log = deps.log ?? ((m: string) => console.log(m));
   const ctx: SessionRun = { platform: deps.platform, handle: deps.handle, media: deps.media, log, reply: replyStoreDeps(deps) };
-  const messages = await deps.platform.poll();
+  // CHANNEL-PERMISSIONS-WIRE: messages the approval pump polled (and parked)
+  // while a turn was blocked come first — none are lost to the pump.
+  const parked = (deps.replyBus?.drainBypassed() ?? []) as InboundMessage[];
+  const messages = [...parked, ...await deps.platform.poll()];
   let s = state;
   let handled = 0;
   for (const m of messages) {
@@ -121,12 +133,14 @@ async function pollPlatformSession(
       continue;
     }
     const enriched = processed.verdict.message;
+    // CHANNEL-PERMISSIONS-WIRE: a reply to a pending approval is consumed here —
+    // it resolves the relay race and must not become an agent turn.
+    if (deps.replyBus?.tryConsume(enriched)) {
+      log(`  ✓ approval reply consumed: ${firstLine(enriched.text)}`);
+      continue;
+    }
     handled++;
-    const routed = routeInbound(s, enriched);
-    s = routed.state;
-    if (routed.action === "run-now") await runOne(ctx, enriched);
-    else if (routed.action === "queue") ctx.log(`  ⏳ queued (busy): ${firstLine(enriched.text)}`);
-    else ctx.log(`  ⤳ ${routed.action} (${classifyInbound(enriched.text)}): ${firstLine(enriched.text)}`);
+    s = await routeOne(ctx, s, enriched);
   }
   if (s.running) s = await drainQueue(ctx, s);
   return { state: s, count: handled, seen };
