@@ -15103,7 +15103,7 @@
       "id": "EXT-MEMORY-FIELD-SCHEMA",
       "track": "Extensibility",
       "title": "Declarative config field-descriptor -> generic setup",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Adding a configurable backend means bespoke setup/endpoint code. Add a pure-data field descriptor (kind=text/select/secret, env_key, aliases, env_fallbacks) so one generic renderer + one generic config path handle any pluggable surface; secrets route to env-store and are never read back (only is_set).",
       "done": "A new configurable surface is added by declaring fields only, with no bespoke setup UI; secrets are write-only; the generic renderer is unit-tested.",
@@ -15112,8 +15112,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. config/field-schema.ts (pure data + generic behavior): FieldDescriptor {key, label, kind text|select|secret, envKey, aliases, envFallbacks, options, placeholder}. resolveField reads text/select across envKey→aliases→fallbacks (first hit wins) and a SECRET yields ONLY {isSet} — the value is never returned (write-only). renderField/renderSurface = the one generic renderer (secret masked '•••• (set)'/'not set', text shows value-or-placeholder). fieldUpdate = the one generic config path (select validates against options; text/secret write verbatim to envKey — write-only means never READ back, not never written; empty rejected). A new configurable surface is now added by declaring a FieldDescriptor[] with zero bespoke setup UI — the test defines a whole pluggable memory-backend surface (provider select / endpoint text / api key secret) as data alone and drives it through the generic renderer + config path. 7 tests, incl. explicit assertions that a secret's value never appears in resolve/render output (including via alias). Full suite 1034 files/11654 green; tsc + size gate clean. Existing setup surfaces keep their bespoke code; this is the primitive future pluggable surfaces declare against (env writes route through the existing setup-env upsert)."
     },
     {
       "id": "EXT-MODEL-NORMALIZE",
