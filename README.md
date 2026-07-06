@@ -78,7 +78,8 @@ Vanta is a **general operator**, not a coding tool — one agent runs every cate
 - Core loop: goal-inject → plan → assess → execute → verify; OpenAI/Ollama/Anthropic/Gemini/OpenRouter providers; 127 registered tools and 128 slash commands
 - **Goals** — kernel goal ledger plus TS dependency graph (`/goal blocks`, `/goal blocked_by`, `vanta goals`)
 - **Skills & memory** — learned `~/.vanta/skills`, per-goal memory, curator, LLM context compression (git-versioned)
-- **Web search** — DuckDuckGo/Searxng/SerpAPI/Brave + `web_fetch` (readable extraction)
+- **Web search** — keyless (DuckDuckGo/SearXNG) + keyed (Brave/SerpAPI/Exa/Firecrawl/Tavily/Parallel/xAI Grok grounded search) with domain scoping; `web_fetch` readable extraction routes large pages through a size-tiered summarize/chunk/synthesize pipeline (configurable aux model)
+- **Governance & cost** — `vanta governance export` (auditable report of every gated action), versioned `.env` + `vanta config rollback`, persisted spend ledger via `/usage breakdown`
 - **Browser & vision** — screenshot / navigate / extract / read / act (Playwright) + image/video understanding
 - **Voice & terminal** — push-to-talk voice input (local whisper STT), live terminal capture (tmux-backed), Slack `#channel` autocomplete in the composer
 - **Desktop control** — native screen control (screencapture → vision grounding → cliclick, or the CHICAGO computer-use MCP); `vanta control setup` grants OS permissions
