@@ -4,6 +4,7 @@ import { CodexProvider } from "./codex.js";
 import { resolveClaudeCodeToken } from "./claude-code-auth.js";
 import { loadUserProviders, makeUserProvider } from "./user-providers.js";
 import type { LLMProvider } from "./interface.js";
+import { normalizeModelForProvider } from "./normalize-model.js";
 
 const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
 const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
@@ -149,7 +150,11 @@ export function resolveProvider(env: NodeJS.ProcessEnv): LLMProvider {
   if (user) return makeUserProvider(env, id, user);
   const factory = PROVIDERS[id];
   if (!factory) throw new Error(`Unknown VANTA_PROVIDER "${id}". Run \`vanta setup\`, declare it in ~/.vanta/providers.json, or pick from: ${Object.keys(PROVIDERS).join(", ")}.`);
-  return factory(env);
+  // EXT-MODEL-NORMALIZE: canonicalize the model id for THIS provider (vendor
+  // prefix add/strip) before the factory reads VANTA_MODEL — kills wrong-shape
+  // 400s. Unset model / unknown shape → pass-through (factory defaults stand).
+  const model = normalizeModelForProvider(id, env.VANTA_MODEL);
+  return factory(model === env.VANTA_MODEL ? env : { ...env, VANTA_MODEL: model });
 }
 
 export type { LLMProvider } from "./interface.js";

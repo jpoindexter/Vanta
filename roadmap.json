@@ -15118,7 +15118,7 @@
       "id": "EXT-MODEL-NORMALIZE",
       "track": "Extensibility",
       "title": "normalizeModelForProvider() id canonicalizer",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Routing to OpenRouter/Ollama hits 'right model, wrong id-shape' 400s. Add a small normalizeModelForProvider() that strips/prepends vendor prefix, detects vendor from a bare id, and applies the few provider-specific id quirks the providers actually hit. Keep it tiny.",
       "done": "A model id is canonicalized for the target provider before the API call, preventing wrong-shape 400s; covered for each routed provider.",
@@ -15127,8 +15127,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. providers/normalize-model.ts (tiny, pure): normalizeModelForProvider(providerId, model) canonicalizes the id for the TARGET provider before the factory reads VANTA_MODEL, killing wrong-shape 400s. Two real quirk classes: OpenRouter wants vendor/model — a bare id gets the detected vendor prepended (detectVendor: gpt/o1-4/chatgpt→openai, claude→anthropic, gemini→google, llama→meta-llama, mistral/mixtral→mistralai, qwen/deepseek/grok→…), an already-slashed id untouched; native openai/anthropic/gemini/codex/claude-code want a BARE id — a KNOWN-vendor prefix is stripped. SAFETY: an unknown vendor is never fabricated (bare→bare) and an unrecognized namespace on a native provider is NOT stripped (a user's 'team/internal-7b' survives); freeform backends (ollama/custom/openai-compat) pass through untouched (their ids legitimately carry tags + hf.co/… paths). Wired at the single resolveProvider seam — the factory gets a normalized-VANTA_MODEL env only when the id actually changed (else the original env, so unset-model factory defaults are byte-identical). 19 tests incl. 4 end-to-end through resolveProvider (bare→OpenRouter vendor/model, OpenRouter-shaped→native bare, correct/unset left alone). Full suite 1033 files/11643 green; tsc + size gate clean."
     },
     {
       "id": "EXT-MCP-SERVE-COMMS",
