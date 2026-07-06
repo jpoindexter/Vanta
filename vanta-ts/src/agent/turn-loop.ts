@@ -7,6 +7,7 @@ import { DEFAULT_ERRORDETECT_THRESHOLD } from "../repl/error-detect.js";
 import { beginTurnContext, prepareCallMessages } from "./context-pipeline.js";
 import { applyMessageDisplay } from "./message-display.js";
 import { globalHookBus } from "../plugins/hooks.js";
+import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { dispatchTool } from "./dispatch-tool.js";
 import type { DispatchOutcome } from "./dispatch-tool.js";
 import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
@@ -143,6 +144,8 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const usage = () => (state.sawUsage ? { ...state.turnUsage } : undefined);
   const ti = () => state.toolIterations;
   const ts = () => (state.tokensSaved > 0 ? state.tokensSaved : undefined);
+  // OP-CHECKPOINT-ROLLBACK: mark a new turn so file snapshots group per turn.
+  globalFileCheckpointStore.beginTurn();
   const turnCtx = beginTurnContext(messages, deps);
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted)

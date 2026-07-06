@@ -14921,7 +14921,7 @@
       "id": "OP-CHECKPOINT-ROLLBACK",
       "track": "Operator",
       "title": "Verify turn-granular shadow-git rollback coverage",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A shadow-git store snapshots working dirs before file-mutating ops (once per turn) with rollback independent of the user's real git. Vanta already has checkpoint/rewind + ~/.vanta git-init; verify the existing surface covers turn-granular rollback before building — likely covered.",
       "done": "Confirmed whether existing checkpoint/rewind offers turn-granular rollback via a store that never touches user git; build only if a gap is found.",
@@ -14930,8 +14930,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07 — confirm-or-build found a REAL gap and built the delta. Confirmed present: FileCheckpointStore snapshots pre-mutation content on every write_file/edit_file and restores independent of the user's real git (writeFile/rm, never touches user VCS) — `/rewind <id>` restores one file. GAP: it was per-MUTATION with no turn grouping, so there was no turn-granular rollback (the card's done criterion). Built the minimal delta: FileCheckpoint gains `turn`; the store owns a turn counter advanced by beginTurn() called from turn-loop.ts at each turn start (beside beginTurnContext); save() is now ONCE-PER-TURN-per-path (a later mutation of the same file in the same turn does NOT re-snapshot → a turn rollback restores the PRE-TURN state, not a mid-turn one) and returns the existing id on dedup; restoreTurn(turn?) rolls back every file mutation of a turn (default latest) in reverse, still git-independent; latestTurn()/currentTurn() helpers. `/rewind turn [n]` rolls back the last (or nth) turn's file mutations; bare `/rewind <id>` unchanged; the list now shows the turn + a hint. 5 new store tests (once-per-turn dedup, cross-file turn rollback incl. a created-file removal, empty/unknown-turn no-op) — existing 20-cap + restore-by-id tests green untouched. Full suite 1031 files/11617 green; tsc + size gate clean."
     },
     {
       "id": "OP-HOMEASSISTANT",
