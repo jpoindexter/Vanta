@@ -2,11 +2,20 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { loadDurableCron } from "./durable-cron.js";
 
+// HARNESS-CRON-SCRIPT-MODE — `mode` (absent = classic agent turn):
+//   no_agent:       run `script` and deliver its stdout — NO model call.
+//   script_context: run `script`, then inject its stdout into the agent turn.
+export type CronMode = "no_agent" | "script_context";
+
 export type CronEntry = {
   id: number;
   cron: string;
   instruction: string;
   status: "active" | "paused";
+  /** Script mode; absent = plain agent instruction (back-compatible). */
+  mode?: CronMode;
+  /** The shell command for script modes (no_agent falls back to `instruction`). */
+  script?: string;
 };
 
 const CRON_FILE = "cron.tsv";
@@ -97,7 +106,7 @@ function cronPath(dataDir: string): string {
 function parseLine(line: string): CronEntry | null {
   const cells = line.split("\t");
   if (cells.length < 4) return null;
-  const [idCell, cron, instruction, status] = cells;
+  const [idCell, cron, instruction, status, modeCell, scriptCell] = cells;
   const id = Number(idCell);
   if (
     cron === undefined ||
@@ -107,7 +116,10 @@ function parseLine(line: string): CronEntry | null {
   ) {
     return null;
   }
-  return { id, cron, instruction, status };
+  const entry: CronEntry = { id, cron, instruction, status };
+  if (modeCell === "no_agent" || modeCell === "script_context") entry.mode = modeCell;
+  if (scriptCell) entry.script = scriptCell;
+  return entry;
 }
 
 /** Read all cron entries from <dataDir>/cron.tsv, or [] if absent. */
@@ -135,7 +147,7 @@ export async function saveCron(
   const path = cronPath(dataDir);
   await mkdir(dirname(path), { recursive: true });
   const body = entries
-    .map((e) => [e.id, e.cron, e.instruction, e.status].join("\t"))
+    .map((e) => [e.id, e.cron, e.instruction, e.status, e.mode ?? "", e.script ?? ""].join("\t"))
     .join("\n");
   await writeFile(path, body === "" ? "" : `${body}\n`, "utf8");
 }
@@ -145,10 +157,11 @@ export async function addCron(
   dataDir: string,
   cron: string,
   instruction: string,
+  opts: { mode?: CronMode; script?: string } = {},
 ): Promise<CronEntry> {
   const entries = await loadCron(dataDir);
   const nextId = entries.reduce((max, e) => Math.max(max, e.id), 0) + 1;
-  const entry: CronEntry = { id: nextId, cron, instruction, status: "active" };
+  const entry: CronEntry = { id: nextId, cron, instruction, status: "active", ...opts };
   entries.push(entry);
   await saveCron(dataDir, entries);
   return entry;

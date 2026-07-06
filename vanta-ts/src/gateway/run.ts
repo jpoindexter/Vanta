@@ -7,6 +7,7 @@ import {
 import { isDue, loadCron } from "../schedule/cron.js";
 import { fireWindowKey } from "../schedule/at-most-once.js";
 import { claimFire, sweepClaims } from "../schedule/cron-cas.js";
+import { runCronScript } from "../schedule/script-run.js";
 import { tickLoops } from "./loops-tick.js";
 import type { RunTask } from "../schedule/runner.js";
 import type { CronEntry } from "../schedule/cron.js";
@@ -108,6 +109,7 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
     load: async () => regularEntries,
     lastFired,
     claim: (id, windowKey) => claimFire(deps.dataDir, id, windowKey),
+    runScript: (script) => runCronScript(script),
   });
   await saveLastFired(deps.dataDir, updatedFired);
   await sweepClaims(deps.dataDir, fireWindowKey(now));

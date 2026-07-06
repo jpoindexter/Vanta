@@ -1,4 +1,4 @@
-import { addCron, loadCron } from "./cron.js";
+import { addCron, loadCron, type CronMode } from "./cron.js";
 import {
   runDueTasksTracked,
   loadLastFired,
@@ -7,6 +7,15 @@ import {
 import type { RunTask } from "./runner.js";
 import { fireWindowKey } from "./at-most-once.js";
 import { claimFire, sweepClaims } from "./cron-cas.js";
+import { runCronScript } from "./script-run.js";
+
+/** Pull `--<flag> <value>` out of an argv slice (value + remaining args). */
+function parseValueFlag(args: string[], flag: string): { value: string | null; rest: string[] } {
+  const idx = args.indexOf(flag);
+  if (idx === -1) return { value: null, rest: args };
+  const value = args[idx + 1] ?? null;
+  return { value, rest: [...args.slice(0, idx), ...args.slice(idx + 2)] };
+}
 
 /**
  * Pull the value following `--cron` out of an argv slice. Returns the cron
@@ -17,11 +26,29 @@ export function parseCronFlag(args: string[]): {
   cron: string | null;
   rest: string[];
 } {
-  const idx = args.indexOf("--cron");
-  if (idx === -1) return { cron: null, rest: args };
-  const cron = args[idx + 1] ?? null;
-  const rest = [...args.slice(0, idx), ...args.slice(idx + 2)];
-  return { cron, rest };
+  const { value, rest } = parseValueFlag(args, "--cron");
+  return { cron: value, rest };
+}
+
+/** HARNESS-CRON-SCRIPT-MODE — parse `--mode no_agent|script_context` + `--script "<cmd>"`. */
+export function parseScheduleFlags(args: string[]): {
+  cron: string | null;
+  mode: CronMode | undefined;
+  script: string | undefined;
+  invalidMode: string | null;
+  rest: string[];
+} {
+  const c = parseValueFlag(args, "--cron");
+  const m = parseValueFlag(c.rest, "--mode");
+  const s = parseValueFlag(m.rest, "--script");
+  const validMode = m.value === "no_agent" || m.value === "script_context" ? m.value : undefined;
+  return {
+    cron: c.value,
+    mode: validMode,
+    script: s.value ?? undefined,
+    invalidMode: m.value !== null && !validMode ? m.value : null,
+    rest: s.rest,
+  };
 }
 
 /**
@@ -45,13 +72,22 @@ export async function runScheduleCommand(
     return 0;
   }
 
-  const { cron, rest: words } = parseCronFlag(rest);
+  const { cron, mode, script, invalidMode, rest: words } = parseScheduleFlags(rest);
   const instruction = words.join(" ").trim();
   if (!cron || instruction === "") return 1;
+  if (invalidMode) {
+    console.error(`--mode must be no_agent or script_context, got "${invalidMode}"`);
+    return 1;
+  }
+  if (mode === "script_context" && !script) {
+    console.error("--mode script_context needs --script \"<cmd>\" (its stdout is injected into the agent turn)");
+    return 1;
+  }
 
-  const entry = await addCron(dataDir, cron, instruction);
+  const entry = await addCron(dataDir, cron, instruction, { mode, script });
+  const modeTag = entry.mode ? ` (${entry.mode})` : "";
   console.log(
-    `scheduled #${entry.id} [${entry.status}] ${entry.cron} — ${entry.instruction}`,
+    `scheduled #${entry.id} [${entry.status}]${modeTag} ${entry.cron} — ${entry.instruction}`,
   );
   return 0;
 }
@@ -81,6 +117,7 @@ export async function runCron(
     run,
     lastFired,
     claim: (id, windowKey) => claimFire(dataDir, id, windowKey),
+    runScript: (script) => runCronScript(script),
   });
   await saveLastFired(dataDir, updated);
   await sweepClaims(dataDir, fireWindowKey(now));

@@ -64,6 +64,9 @@ export type RunTask = (
 
 export type DueTaskResult = { id: number; instruction: string; result: string };
 
+/** Runs a cron entry's script (HARNESS-CRON-SCRIPT-MODE). Injected like `run`. */
+export type RunScript = (script: string) => Promise<{ ok: boolean; output: string }>;
+
 type RunDueTasksOptions = {
   dataDir: string;
   now: Date;
@@ -91,6 +94,13 @@ type RunDueTasksOptions = {
    * gate (behavior unchanged). See `cron-cas.ts`.
    */
   claim?: (taskId: number, windowKey: string) => Promise<boolean>;
+  /**
+   * Script executor for `mode: no_agent` / `script_context` entries
+   * (HARNESS-CRON-SCRIPT-MODE). When omitted, script-mode entries report a
+   * clear "no script runner" error result rather than silently running as an
+   * agent turn. `cli.ts`/gateway pass the real `runCronScript`.
+   */
+  runScript?: RunScript;
 };
 
 /**
@@ -102,19 +112,43 @@ export type RunDueTasksResult = {
   lastFired: LastFired;
 };
 
+/**
+ * HARNESS-CRON-SCRIPT-MODE — run a script-mode entry: no_agent delivers the
+ * script's stdout with NO model call; script_context runs the script first and
+ * injects its stdout into the agent turn.
+ */
+async function runScriptMode(
+  entry: CronEntry,
+  now: Date,
+  run: RunTask,
+  runScript?: RunScript,
+): Promise<string> {
+  if (!runScript) return "error: script-mode entry but no script runner configured";
+  const script = entry.script ?? (entry.mode === "no_agent" ? entry.instruction : undefined);
+  if (!script) return "error: script_context entry has no script";
+  const res = await runScript(script);
+  if (entry.mode === "no_agent") return res.ok ? res.output : `error: ${res.output}`;
+  const turn = `${entry.instruction}\n\n[script output]\n${res.output}`;
+  return (await run(turn, wakeContextForCron(entry, now))).finalText;
+}
+
 /** Run one due entry, capturing a throw as an "error: <message>" result. */
 async function runOne(
   entry: CronEntry,
   now: Date,
   run: RunTask,
+  runScript?: RunScript,
 ): Promise<DueTaskResult> {
+  const done = (result: string): DueTaskResult => ({ id: entry.id, instruction: entry.instruction, result });
   try {
-    const wake = wakeContextForCron(entry, now);
-    const { finalText } = await run(entry.instruction, wake);
-    return { id: entry.id, instruction: entry.instruction, result: finalText };
+    if (entry.mode === "no_agent" || entry.mode === "script_context") {
+      return done(await runScriptMode(entry, now, run, runScript));
+    }
+    const { finalText } = await run(entry.instruction, wakeContextForCron(entry, now));
+    return done(finalText);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return { id: entry.id, instruction: entry.instruction, result: `error: ${message}` };
+    return done(`error: ${message}`);
   }
 }
 
@@ -150,7 +184,7 @@ export async function runDueTasksTracked(
     if (opts.claim && !(await opts.claim(entry.id, windowKey))) continue;
     // Pre-advance: record the fire before running so an overlapping tick skips.
     if (tracking) lastFired = markFired(lastFired, entry.id, windowKey);
-    results.push(await runOne(entry, opts.now, opts.run));
+    results.push(await runOne(entry, opts.now, opts.run, opts.runScript));
   }
 
   return { results, lastFired };

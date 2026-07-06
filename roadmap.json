@@ -14584,7 +14584,7 @@
       "id": "HARNESS-CRON-SCRIPT-MODE",
       "track": "Harness",
       "title": "No-agent / script cron mode (no-LLM watchdog)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Cron entries always force an agent turn. Add two cheaper modes: a script job whose stdout is injected as prompt context (change-detection), and a no_agent job where the script IS the job and stdout is delivered verbatim (classic watchdog, no LLM cost).",
       "done": "A no_agent cron job runs a script and delivers its stdout with no model call; a script-context job injects stdout into the agent turn; both modes unit-tested.",
@@ -14593,8 +14593,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-06",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-06. CronEntry gains optional mode ('no_agent'|'script_context') + script (TSV columns 5/6; absent = classic agent turn — legacy 4-column lines verified parseable, all pre-existing cron tests untouched). schedule/script-run.ts: runCronScript via `sh -c` with a hard timeout (VANTA_CRON_SCRIPT_TIMEOUT_SEC, default 60s), 20k output cap, errors-as-values (non-zero exit / timeout / spawn failure all return {ok:false} — never throws); precedent for direct script exec is the hooks engine (owner-configured = consent; agent-mode cron still kernel-gates every tool call). runner.ts runOne branches via runScriptMode with the executor INJECTED (RunDueTasksOptions.runScript) so schedule stays decoupled per the folder contract; missing runner or missing script = explicit error result, never a silent agent run. no_agent falls back to instruction-as-script. Wired at both call sites: `vanta cron` (commands.ts) + the gateway tick (gateway/run.ts). CLI: `vanta schedule \"…\" --cron \"…\" --mode no_agent|script_context --script \"cmd\"` with invalid-mode and script_context-needs-script rejections. 17 new tests (round-trip + back-compat, both modes through the runner incl. no-model-call assertions, flag parsing, real-exec timeout kill). LIVE real-path verified: scheduled a no_agent df-h entry, `vanta cron` delivered real stdout with zero model involvement, state restored. Full suite 1021 files/11526 green; tsc + size gate clean (runOne cx fixed by extracting runScriptMode)."
     },
     {
       "id": "HARNESS-BLUEPRINT-SKILLS",
