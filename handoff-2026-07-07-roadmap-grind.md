@@ -5,7 +5,18 @@ Project: `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta` · branch `main` (
 Goal (session Stop-hook): keep pushing through the roadmap in logical order toward Hermes/OpenClaw operator stats; everything green; no stubs; commit+push every slice.
 
 ## State
-Horizon **125 → 111** (14 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path executed → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1029 files / 11587 tests** @ `79b0e2fd`. Kernel untouched (67 tests).
+Horizon **125 → 103** (22 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path executed → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1035 files / 11662 tests** @ `a3194bd3`. Kernel untouched (67 tests).
+
+### Slices 14–22 (after the list below), all green + pushed:
+15. EXT-ACP-EDIT-DIFF — `acp/edit-policy.ts`, pre-exec diff + session allow_always w/ sensitive-path floor (fixed a dynamic-import flake, ERRORS.md)
+16. DECISION-CLASSIFIER — `agent/decision-log.ts`, user-challenge can't ride an auto-approve grant; taste batches at `/where`
+17. OP-CHECKPOINT-ROLLBACK — turn-granular file rollback, `/rewind turn` (gap found: was per-mutation)
+18. MSG-CAPABILITY-DESCRIPTOR — `gateway/platforms/capabilities.ts`, adapters declare charLimit/lenUnit/edit/threads/dialect
+19. EXT-MODEL-NORMALIZE — `providers/normalize-model.ts`, vendor-prefix canonicalizer at the resolveProvider seam
+20. PORT-A2A-TRANSPORT — `a2a/local.ts` DeliveryTransport seam, networked transport drops in without editing send()
+21. EXT-MEMORY-FIELD-SCHEMA — `config/field-schema.ts`, config surface as data, secrets write-only
+22. ASI-FORECAST-CALIBRATION — `solutioning/calibration.ts`, calibrated ranges + uncertainty drivers + revisit trigger
+(OP-MODEL-PRESETS was slice 13/14 boundary — `models/presets.ts`, per-model effort memory.)
 
 ## Shipped this session (details in roadmap.json notes per card)
 1. PROACTIVE-CHANNEL-OUTREACH — `proactive/outreach*`, `vanta proactive silence`, VANTA_OUTREACH*
