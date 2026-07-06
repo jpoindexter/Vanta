@@ -67,12 +67,20 @@ async function announceSessionStart(o: {
   else if (o.resumeId) console.log(`  (no session "${o.resumeId}" found — starting fresh)\n`);
 }
 
+/** Load skills and, best-effort, sync skill-declared cron schedules on load
+ *  (HARNESS-BLUEPRINT-SKILLS — register/unregister via the existing scheduler). */
+async function loadSkillsWithCronSync(repoRoot: string): Promise<Awaited<ReturnType<typeof listSkills>>> {
+  const skills = await listSkills();
+  void import("./skills/scheduled.js").then((m) => m.syncSkillCrons(join(repoRoot, ".vanta"))).catch(() => {});
+  return skills;
+}
+
 export async function runChat(repoRoot: string, opts: { resumeId?: string; forkSession?: boolean; lifecycle?: LifecycleFlags } = {}): Promise<void> {
   if (opts.lifecycle && await runLifecycleHooks(repoRoot, opts.lifecycle, "interactive")) return;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const setup = await prepareRun(repoRoot, "interactive session", undefined, { confirmTrust: await replTrustConfirmer(rl) });
   await maybeCurate();
-  const skills = await listSkills();
+  const skills = await loadSkillsWithCronSync(repoRoot);
   const resumed = opts.resumeId ? await loadResumeTarget(opts.resumeId, opts.forkSession) : null;
   const state: ReplState = {
     sessionId: resumed?.id ?? newSessionId(),

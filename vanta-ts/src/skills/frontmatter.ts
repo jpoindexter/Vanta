@@ -61,6 +61,24 @@ function parseMeta(block: string): SkillMeta {
 }
 
 /**
+ * Parse the RAW frontmatter block into a flat key→string record (ALL keys,
+ * unlike {@link parseSkill}'s closed SkillMeta). For fields SkillMeta drops —
+ * `schedule` (HARNESS-BLUEPRINT-SKILLS), `activateOn`, etc. First-colon split
+ * (ISO timestamps contain colons); no frontmatter → {}. Pure.
+ */
+export function readSkillFrontmatter(md: string): Record<string, string> {
+  const match = md.match(FRONTMATTER_RE);
+  if (!match) return {};
+  const out: Record<string, string> = {};
+  for (const line of (match[1] ?? "").split("\n")) {
+    const sep = line.indexOf(":");
+    if (sep === -1) continue;
+    out[line.slice(0, sep).trim()] = line.slice(sep + 1).trim();
+  }
+  return out;
+}
+
+/**
  * Parse a SKILL.md string into a {@link Skill}. The leading "---\n…\n---\n"
  * frontmatter block (if any) becomes {@link SkillMeta}; the remainder is the
  * trimmed body. With no frontmatter, meta fields are empty and the whole input

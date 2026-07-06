@@ -76,6 +76,22 @@ function parseField(field: string, min: number, max: number): Set<number> | null
 }
 
 /**
+ * Structural validity of a 5-field cron expression: correct field count and
+ * every field parses within its bounds. Never throws. Pure. (HARNESS-BLUEPRINT-SKILLS)
+ */
+export function isValidCron(cronExpr: string): boolean {
+  const fields = cronExpr.trim().split(/\s+/);
+  if (fields.length !== FIELD_COUNT) return false;
+  for (let i = 0; i < FIELD_COUNT; i++) {
+    const bound = BOUNDS[i];
+    const field = fields[i];
+    if (bound === undefined || field === undefined) return false;
+    if (parseField(field, bound[0], bound[1]) === null) return false;
+  }
+  return true;
+}
+
+/**
  * Match a standard 5-field cron expression against a Date's local fields.
  * Returns false (never throws) on a malformed expression.
  */

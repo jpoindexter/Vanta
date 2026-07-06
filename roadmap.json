@@ -14616,7 +14616,7 @@
       "id": "HARNESS-BLUEPRINT-SKILLS",
       "track": "Harness",
       "title": "Self-scheduling skills (cron in skill frontmatter)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Skills, cron, and hooks are separate. Let a skill's frontmatter optionally declare a cron expression so loading the skill registers a recurring job via the existing scheduler — skills become self-scheduling automations with no new subsystem.",
       "done": "A skill with a schedule field in frontmatter registers a cron job on load and unregisters on unload; wired to the existing cron; unit-tested.",
@@ -14625,8 +14625,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. A skill's frontmatter `schedule: <cron>` self-registers a recurring job on the EXISTING durable scheduler — no new subsystem. cron.ts gains a real isValidCron (uses its own field parser — first probe attempt via time-sweep was buggy: hour-step 6 missed 09:00 and couldn't cover dom/dow, so validity moved to the parser where it belongs). frontmatter.ts gains readSkillFrontmatter (raw key→string record; SkillMeta is closed + drops `schedule`, same reason conditional-activate mines raw). skills/scheduled.ts: parseSkillSchedule, skillCronInstruction/skillNameFromInstruction (SKILL_CRON_PREFIX tags skill-owned crons), reconcileSkillCrons (PURE: add new/changed, remove skill-owned crons whose skill unloaded or re-timed, NEVER touch hand-added jobs), loadScheduledSkills (reads raw SKILL.md files), syncSkillCrons (applies the reconcile to the durable-cron store). Wired at interactive session start (loadSkillsWithCronSync, best-effort) so load = register, unload = unregister on the next sync. 13 tests incl. a LIVE temp-skills-dir round-trip (write a scheduled skill → sync registers it → rm the skill → sync unregisters it) + reconcile keeps hand-added crons. Full suite 1042 files/11710 green; tsc + size gate clean."
     },
     {
       "id": "HARNESS-MCP-EGRESS-WARN",
