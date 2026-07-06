@@ -14088,7 +14088,7 @@
       "id": "PCLIP-SCOPED-SECRETS",
       "track": "Extensibility",
       "title": "Scoped secret injection — secrets reach only the run that needs them",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Secrets & Storage). Instance + per-agent encrypted secrets injected into a run ONLY when that scoped run explicitly needs them — kept out of every other run's prompt and logs. Tightens Vanta's kernel secret handling with per-run scoping.",
       "done": "A run receives a named secret only when scoped to it; it never appears in the prompt or logs of other runs.",
@@ -14096,7 +14096,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "infra",
-      "updated": "2026-06-19"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. secrets/scope.ts (pure model + tolerant store): SecretGrant {name, scopes[]} maps a secret name → the run scopes allowed to resolve it (\"session\"/\"loop:<id>\"/\"agent:<id>\", or \"*\" instance-wide). secretsForScope(grants, scope) returns ONLY the names a run may resolve — a secret granted to another scope is absent from this run's resolution set, so it never enters that run's prompt/logs (the value SHAPE is already handled by redactForLog/secret-scan; this decides EXPOSURE, the missing half). filterInjectable = the injection allowlist (a run is offered only its scoped candidates, never the instance's full set); isSecretInScope = the single-name gate; grantSecret merges scopes. Store at ~/.vanta/secret-scopes.json FAILS CLOSED: missing/corrupt → zero grants → nothing exposed (a scoping bug must under-expose, never over-expose). Sits ABOVE the existing use-time SecretProvider (decides WHICH names a scope may resolve before the provider fetches a value). 5 tests proving cross-run isolation (release-loop token withheld from other runs; * reaches all; filter offers only granted names; fail-closed load). Full suite 1036 files/11667 green; tsc + size gate clean. The gate + grant model is the deliverable; wiring it into a specific run launcher's secret injection is the follow-up (the provider abstraction it gates already exists)."
     },
     {
       "id": "PCLIP-SANDBOX-AGENTS",
