@@ -216,24 +216,75 @@ export async function runMcpCommand(repoRoot: string, rest: string[]): Promise<v
     return;
   }
 
-  if (sub === "import-desktop") {
-    const { importDesktopMcp } = await import("../mcp/desktop-import.js");
-    const r = await importDesktopMcp();
-    if (!r.ok) { console.log(`  ${r.error}`); return; }
-    console.log(`  imported ${r.imported.length}, skipped ${r.skipped.length} → ${r.targetPath}`);
-    if (r.imported.length > 0) console.log(`  imported: ${r.imported.join(", ")}`);
-    if (r.skipped.length > 0) console.log(`  skipped (already present): ${r.skipped.join(", ")}`);
-    return;
-  }
+  if (sub === "catalog") { await runMcpCatalog(); return; }
+  if (sub === "install") { await runMcpInstall(rest.slice(1)); return; }
+  if (sub === "import-desktop") { await runMcpImportDesktop(); return; }
 
   // default: list configured MCP servers Vanta would consume (MCP-1 side)
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(process.env).catch(() => ({ servers: {} }));
   const names = Object.keys(cfg.servers);
   if (names.length === 0) {
-    console.log("  (no MCP servers — set VANTA_MCP_SERVERS, ./.mcp.json, or ~/.vanta/mcp.json)");
+    console.log("  (no MCP servers — set VANTA_MCP_SERVERS, ./.mcp.json, or ~/.vanta/mcp.json; or `vanta mcp catalog`)");
   } else {
     for (const n of names) console.log(`  ${n}`);
+  }
+}
+
+/** EXT-MCP-CATALOG — print the vetted catalog. */
+async function runMcpCatalog(): Promise<void> {
+  const { MCP_CATALOG } = await import("../mcp/catalog.js");
+  console.log("Vetted MCP servers (vanta mcp install <name>):");
+  for (const e of MCP_CATALOG) {
+    console.log(`  ${e.name} — ${e.description}`);
+    console.log(`    default tools (read-mostly): ${e.defaultTools.join(", ")}`);
+    if (e.optInTools?.length) console.log(`    opt-in (--with-tool <name>): ${e.optInTools.join(", ")}`);
+  }
+}
+
+async function runMcpImportDesktop(): Promise<void> {
+  const { importDesktopMcp } = await import("../mcp/desktop-import.js");
+  const r = await importDesktopMcp();
+  if (!r.ok) { console.log(`  ${r.error}`); return; }
+  console.log(`  imported ${r.imported.length}, skipped ${r.skipped.length} → ${r.targetPath}`);
+  if (r.imported.length > 0) console.log(`  imported: ${r.imported.join(", ")}`);
+  if (r.skipped.length > 0) console.log(`  skipped (already present): ${r.skipped.join(", ")}`);
+}
+
+/** EXT-MCP-CATALOG — `vanta mcp install <name> [--with-tool <t>]…` writes a vetted
+ * server (read-mostly default tools) into ~/.vanta/mcp.json. */
+async function runMcpInstall(rest: string[]): Promise<void> {
+  const name = rest[0];
+  if (!name) { console.error('usage: vanta mcp install <name> [--with-tool <tool>]…  (see `vanta mcp catalog`)'); return; }
+  const { catalogEntry, buildInstallSpec, installIntoConfig } = await import("../mcp/catalog.js");
+  const entry = catalogEntry(name);
+  if (!entry) { console.error(`unknown MCP server "${name}" — run \`vanta mcp catalog\` for the vetted list`); return; }
+  const withTools: string[] = [];
+  for (let i = 1; i < rest.length; i += 1) if (rest[i] === "--with-tool" && rest[i + 1]) withTools.push(rest[++i]!);
+
+  const built = buildInstallSpec(entry, withTools);
+  if (!built.ok) { console.error(built.error); return; }
+
+  const { writeFile, mkdir } = await import("node:fs/promises");
+  const { join, dirname } = await import("node:path");
+  const { resolveVantaHome } = await import("../store/home.js");
+  const path = join(resolveVantaHome(process.env), "mcp.json");
+  const merged = installIntoConfig(await readMcpJson(path), name, built.spec);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify({ servers: merged.servers }, null, 2)}\n`, "utf8");
+  console.log(`installed "${name}" → ${path} (${built.toolCount} tool(s), read-mostly)`);
+  if (entry.authEnv?.length) console.log(`  set ${entry.authEnv.join(", ")} in your env before use`);
+  if (entry.optInTools?.length && !withTools.length) console.log(`  mutating tools are opt-in: reinstall with --with-tool <name> (${entry.optInTools.join(", ")})`);
+}
+
+/** Read ~/.vanta/mcp.json into the {servers} shape, tolerant of both key conventions. */
+async function readMcpJson(path: string): Promise<{ servers: Record<string, import("../mcp/mount-config.js").ServerSpec> }> {
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const raw = JSON.parse(await readFile(path, "utf8")) as { servers?: Record<string, never>; mcpServers?: Record<string, never> };
+    return { servers: { ...(raw.mcpServers ?? {}), ...(raw.servers ?? {}) } };
+  } catch {
+    return { servers: {} };
   }
 }
 

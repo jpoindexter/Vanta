@@ -34,6 +34,10 @@ const ServerSchema = z.object({
   clientId: z.string().optional(),
   clientSecret: z.string().optional(),
   scope: z.string().optional(),
+  // EXT-MCP-CATALOG: a read-mostly default tool allowlist. When present, ONLY
+  // these tool names are mounted from the server — mutating tools stay opt-in
+  // (add them here explicitly). Absent → all of the server's tools mount.
+  tools: z.array(z.string()).optional(),
 }).refine((s) => s.command || s.url, "either command or url is required");
 
 // Accept both "servers" (Vanta) and "mcpServers" (common convention) keys; merge with servers winning.

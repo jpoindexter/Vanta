@@ -15073,7 +15073,7 @@
       "id": "EXT-MCP-CATALOG",
       "track": "Extensibility",
       "title": "Vetted MCP catalog + vanta mcp install",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Mounting MCPs is raw-config today. Add a declarative manifest standard (transport, auth shape, install bootstrap, a read-mostly default tool subset) and a vanta mcp install <name> over a small approved catalog, so mutating tools are opt-in per threat model. Pairs with per-tool kernel gating.",
       "done": "vanta mcp install <name> installs and configures a vetted server from a catalog with a read-mostly default tool subset; manifest schema + install path unit-tested.",
@@ -15082,8 +15082,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. mcp/catalog.ts: a vetted MCP_CATALOG (filesystem/github/fetch — official servers) where each McpCatalogEntry declares transport (command+args or url), authEnv, and a READ-MOSTLY defaultTools subset with mutating tools separated into optInTools. buildInstallSpec produces the .mcp.json ServerSpec with tools = defaultTools + explicitly-requested opt-ins (an opt-in not in the entry's declared set is REJECTED, never silently mounted); authEnv becomes ${VAR} placeholders. installIntoConfig merges (name wins on re-install). THREAT MODEL MADE REAL, not cosmetic: added an optional `tools` allowlist to the MCP ServerSchema and wired the mount loop (filterAllowedTools) to mount ONLY allowlisted tools — so a catalog install's read-mostly subset actually excludes mutating tools at mount time (kernel still gates every call on top). `vanta mcp catalog` lists the vetted set; `vanta mcp install <name> [--with-tool <t>]…` writes ~/.vanta/mcp.json. 12 tests (read-mostly invariant across the catalog, default excludes mutating, opt-in adds it, unknown-tool rejected, http vs stdio spec, config merge/overwrite). LIVE real-path executed: `mcp install github` wrote 6 read-only tools with create_issue ABSENT + the auth-env reminder; `--with-tool create_issue` added it. Full suite 1038 files/11683 green; tsc + size gate clean (mountOneServer/runMcpCommand refactored under cx)."
     },
     {
       "id": "EXT-MODEL-CATALOG-REMOTE",

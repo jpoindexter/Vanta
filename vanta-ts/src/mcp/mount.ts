@@ -54,6 +54,14 @@ async function resolveTransport(
   return null;
 }
 
+/** EXT-MCP-CATALOG: a per-server `tools` allowlist mounts ONLY those tools (the
+ * catalog's read-mostly default); absent/empty → all tools mount. Pure. */
+function filterAllowedTools<T extends { name: string }>(defs: T[], allow: string[] | undefined): T[] {
+  if (!allow || allow.length === 0) return defs;
+  const set = new Set(allow);
+  return defs.filter((d) => set.has(d.name));
+}
+
 async function mountOneServer(opts: {
   name: string;
   spec: ServerSpec;
@@ -80,9 +88,11 @@ async function mountOneServer(opts: {
     const ok = await resolveMcpTrust(trust.root, name, tools, trust.confirm);
     if (!ok) { log(`  · mcp: ${name} skipped — not trusted`); return 0; }
   }
-  for (const def of defs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
-  log(`  · mcp: mounted ${name} (${defs.length} tool(s))${spec.url ? " [http]" : ""}`);
-  return defs.length;
+  const mountDefs = filterAllowedTools(defs, spec.tools);
+  for (const def of mountDefs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
+  const skipped = defs.length - mountDefs.length;
+  log(`  · mcp: mounted ${name} (${mountDefs.length} tool(s)${skipped ? `, ${skipped} not in allowlist` : ""})${spec.url ? " [http]" : ""}`);
+  return mountDefs.length;
 }
 
 /**
