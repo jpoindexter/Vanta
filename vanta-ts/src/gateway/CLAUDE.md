@@ -9,3 +9,5 @@ Gateway order matters:
 5. Poll platform messages.
 
 Webhook handling responds quickly and runs the agent turn asynchronously. When adding wake paths, pass a compact `WakeContext`; do not pass raw history or secrets.
+
+Outbound replies copy `threadId` from the inbound message (forum-topic routing, MSG-TELEGRAM-ROBUST) — any adapter that understands threads reads `OutboundMessage.threadId`; Telegram sends `message_thread_id`, retries 429 flood control bounded, and suppresses link previews.
