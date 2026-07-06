@@ -15051,7 +15051,7 @@
       "id": "EXT-ACP-EDIT-DIFF",
       "track": "Operator",
       "title": "Pre-exec edit-diff approval + sensitive-path policy",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Before a file mutation, surface an old/new diff to the client for approve/deny, with session-scoped auto-approve policies (ask/session/always) that still force-prompt on sensitive paths (.env/.git/.ssh/id_rsa). The always-ask-on-secrets auto-approve policy is worth stealing into the permission rules even without ACP.",
       "done": "A file edit surfaces a diff for approval; an auto-approve-for-session policy still prompts on sensitive paths; policy unit-tested; integrates with EXT-ACP-ADAPTER.",
@@ -15060,8 +15060,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. acp/edit-policy.ts (pure): isSensitivePath (.env/.env.*/.git/.ssh/id_rsa|ed25519/*.pem|key|p12/credentials/.aws/.npmrc/secrets.*), decideEditPrompt (a session 'Allow edits this session' grant auto-approves NON-sensitive file edits; a sensitive path ALWAYS re-prompts even under the grant — the steal-worthy floor the card names), buildLineDiff (prefix/suffix-trimmed old/new preview, capped), EDIT_PERMISSION_OPTIONS (allow / allow_always / reject). Tool gained describeDiff (computed BEFORE approval; write_file diffs proposed content vs on-disk, edit_file mirrors its own replace/replace_all semantics — both never throw/mutate); applySafetyGate awaits it and passes {diff} through the widened requestApproval(...,detail). ACP session: file-tool asks carry the diff as tool-call content + the allow_always option which arms session.autoApproveEdits; the permission channel now round-trips the selected optionId end-to-end (dispatch permissionOptionId, sink Promise<string>) so allow_always is distinguishable from allow. 19 policy tests + a SessionManager grant test (allow_always → later non-sensitive edits skip the prompt, .env re-prompts, diff rides the ask) + updated round-trip (file tool → 3-option menu). Full suite 1030 files/11606 green; tsc + size gate clean. Fixed a pre-ship dynamic-import flake (edit-policy made a static import — see ERRORS.md 2026-07-07). Live editor tap not exercised (needs a real ACP client); the SessionManager + dispatch paths are driven by tests with an injected sink, per the card's own done criterion."
     },
     {
       "id": "EXT-MCP-CATALOG",
