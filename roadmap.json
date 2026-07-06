@@ -14532,7 +14532,7 @@
       "id": "HARNESS-FLATTEN-TEXT",
       "track": "Harness",
       "title": "Canonical multimodal message-text flattener",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Multiple code paths (titling, logging, assertion-judging, brain ingest) need the visible text of any provider message shape. Add flattenMessageText(content) that returns text from str | parts-list | object, skipping image/audio parts and probing the common text keys.",
       "done": "A single helper returns the text of any chat/Responses content shape, skipping media parts; reused by titling/logging/assertions; unit-tested across shapes.",
@@ -14541,8 +14541,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. agent/flatten-text.ts: flattenMessageText(content: unknown) → the visible text of ANY provider content shape (string | parts-array | object), pure/total/never-throws. Skips media (image/image_url/input_image/audio/input_audio/file/tool_use/tool_result parts), probes the common text keys (text/content/value/input_text/output_text), and RECURSES into a nested parts array under a content key (Anthropic/Responses block shape). Wired into the two concrete sites that previously DROPPED non-string content: sessions/auto-title.ts (formatLine was 'content' in message ? message.content : '') and sessions/search.ts (was typeof===string ? content : '') — both now flatten parts arrays instead of losing them, a real behavior improvement for titling/search over multimodal turns. 7 tests across every shape (string, text-parts join, media-skip, object text-key probe, nested content recursion, null/number/unknown→'', bare-string element). Full suite 1039 files/11690 green; tsc + size gate clean. The helper is exported for the remaining named consumers (logging/assertion-judging/brain-ingest) to adopt as they touch raw provider payloads."
     },
     {
       "id": "HARNESS-IMAGE-SHRINK",

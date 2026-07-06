@@ -1,4 +1,5 @@
 import type { Message } from "../types.js";
+import { flattenMessageText } from "../agent/flatten-text.js";
 
 // AUTO-TITLE — auto-generate a session name from the first substantive exchange
 // via a CHEAP model (e.g. Haiku), an AUXILIARY task (cf. routing/vision.ts and
@@ -36,7 +37,7 @@ export function titleGenEnabled(env: NodeJS.ProcessEnv): boolean {
 /** One transcript line for the prompt, role-tagged and length-capped. */
 function formatLine(message: Message): string {
   const role = message.role;
-  const text = "content" in message ? message.content : "";
+  const text = flattenMessageText("content" in message ? message.content : "");
   const oneLine = text.replace(/\s+/g, " ").trim().slice(0, MESSAGE_CHARS);
   return `${role}: ${oneLine}`;
 }

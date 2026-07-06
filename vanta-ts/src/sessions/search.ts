@@ -1,4 +1,5 @@
 import { listSessions, loadSession } from "./store.js";
+import { flattenMessageText } from "../agent/flatten-text.js";
 
 // SESSION-SEARCH — full-text search across all persisted sessions.
 // Scans message content (user + assistant only; system/tool excluded).
@@ -35,7 +36,7 @@ function scanSession(session: Session, query: string, lower: string, max: number
   for (const msg of session.messages) {
     if (msg.role !== "user" && msg.role !== "assistant") continue;
     turnIndex++;
-    const text = typeof msg.content === "string" ? msg.content : "";
+    const text = flattenMessageText(msg.content);
     if (!text.toLowerCase().includes(lower)) continue;
     found.push({ sessionId: session.id, turnIndex, role: msg.role, snippet: makeSnippet(text, query) });
     if (found.length >= max) break;
