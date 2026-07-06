@@ -1,6 +1,7 @@
 import {
   byApproval,
   byDepartment,
+  bySourceTask,
   listWorkProducts,
   readWorkProducts,
   type WorkProduct,
@@ -23,12 +24,14 @@ export type ApprovalFilter = "all" | "approved" | "pending";
 export type LibraryListArgs = {
   /** Restrict to one department's artifacts. */
   deptId?: string;
+  /** PCLIP-WORK-PRODUCTS: restrict to one task's linked artifacts. */
+  taskId?: string;
   approval: ApprovalFilter;
 };
 
 const USAGE = [
   "usage:",
-  "  vanta library list [--dept <id>] [--approved|--pending]",
+  "  vanta library list [--dept <id>] [--task <id>] [--approved|--pending]",
 ].join("\n");
 
 /** Read the single value following a flag, or undefined. Pure. */
@@ -42,6 +45,15 @@ function oneFlag(rest: string[], flag: string): string | undefined {
  * `--approved` / `--pending` filter by approval state (mutually exclusive).
  * Pure — no I/O. Errors-as-values.
  */
+/** Read an id-valued flag; error when present without a usable value. Pure. */
+function idFlag(rest: string[], flag: string, what: string): { ok: true; value?: string } | { ok: false; error: string } {
+  const v = oneFlag(rest, flag);
+  if (rest.includes(flag) && (v === undefined || v.startsWith("--"))) {
+    return { ok: false, error: `${flag} needs a ${what}` };
+  }
+  return { ok: true, value: v?.trim() || undefined };
+}
+
 export function parseLibraryListArgs(rest: string[]): { ok: true; value: LibraryListArgs } | { ok: false; error: string } {
   const wantApproved = rest.includes("--approved");
   const wantPending = rest.includes("--pending");
@@ -49,18 +61,19 @@ export function parseLibraryListArgs(rest: string[]): { ok: true; value: Library
     return { ok: false, error: "use only one of --approved / --pending" };
   }
 
-  const deptFlag = oneFlag(rest, "--dept");
-  if (rest.includes("--dept") && (deptFlag === undefined || deptFlag.startsWith("--"))) {
-    return { ok: false, error: "--dept needs a department id" };
-  }
+  const dept = idFlag(rest, "--dept", "department id");
+  if (!dept.ok) return dept;
+  const task = idFlag(rest, "--task", "task id");
+  if (!task.ok) return task;
 
   const approval: ApprovalFilter = wantApproved ? "approved" : wantPending ? "pending" : "all";
-  return { ok: true, value: { deptId: deptFlag?.trim() || undefined, approval } };
+  return { ok: true, value: { deptId: dept.value, taskId: task.value, approval } };
 }
 
 /** Apply department + approval filters, then order newest-first. Pure. */
 export function selectWorkProducts(all: WorkProduct[], args: LibraryListArgs): WorkProduct[] {
   let rows = args.deptId ? byDepartment(all, args.deptId) : all;
+  if (args.taskId) rows = bySourceTask(rows, args.taskId);
   if (args.approval !== "all") rows = byApproval(rows, args.approval === "approved");
   return listWorkProducts(rows);
 }
@@ -74,12 +87,12 @@ export function formatWorkProduct(p: WorkProduct): string {
 /** Render the full library listing as text lines (header + rows). Pure. */
 export function formatLibrary(rows: WorkProduct[], args: LibraryListArgs): string {
   if (rows.length === 0) {
-    const scope = args.deptId ? ` for "${args.deptId}"` : "";
+    const scope = args.deptId ? ` for "${args.deptId}"` : args.taskId ? ` for task "${args.taskId}"` : "";
     const state = args.approval === "all" ? "" : ` (${args.approval})`;
     return `no work products${scope}${state} — completed department tasks land here as artifacts`;
   }
   const header = [
-    args.deptId ? `dept:${args.deptId}` : "all departments",
+    args.taskId ? `task:${args.taskId}` : args.deptId ? `dept:${args.deptId}` : "all departments",
     args.approval === "all" ? "all" : args.approval,
     `${rows.length} artifact(s)`,
   ].join(" · ");

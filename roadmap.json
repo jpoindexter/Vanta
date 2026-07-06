@@ -13995,7 +13995,7 @@
       "id": "PCLIP-WORK-PRODUCTS",
       "track": "Operator",
       "title": "Artifacts & work products — first-class agent outputs",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Artifacts & Work Products, roadmap ⚪). Make outputs first-class: generated artifacts, previews, deployable outputs, and the handoff from \"agent did work\" to \"here is the result\" — visible without reading the transcript.",
       "done": "A completed task carries linked work-product artifacts (files/preview/deploy) viewable without reading the transcript.",
@@ -14003,7 +14003,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. The COFOUNDER-WORK-PRODUCTS store already carried provenance-tagged artifacts; the gap was (a) no live writer at the task level and (b) no per-task view. Closed both: work-products.ts gains bySourceTask (pure); `team` tool gains action:artifact (records a file/preview-url/deploy ref against a task — validates the task exists, producedBy=the task's worker, departmentId 'team', kind-aware) and action:artifacts (a task's linked artifacts WITHOUT reading the transcript); the tasks listing appends '· N artifact(s)' per task; `vanta library list --task <id>` filters the Library to one task (idFlag helper keeps the parser under the cx gate). team.ts dispatch went map-based (12 actions would have blown cx). 4 new test blocks + all existing library/work-products/team tests green untouched. REAL path executed via ALL_TOOLS + the real CLI: dispatch -> record code+asset artifacts -> artifacts view lists both -> tasks shows '2 artifact(s)' -> `vanta library list --task ship-1` renders both with provenance. Full suite 1026 files/11565 green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-WORK-QUEUES",

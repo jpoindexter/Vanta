@@ -111,6 +111,11 @@ export function byDepartment(list: WorkProduct[], departmentId: string): WorkPro
   return list.filter((p) => p.departmentId === departmentId);
 }
 
+/** Artifacts produced by one task (the task's linked work products). Pure. */
+export function bySourceTask(list: WorkProduct[], taskId: string): WorkProduct[] {
+  return list.filter((p) => p.sourceTaskId === taskId);
+}
+
 /** Artifacts filtered by approval state (true = approved, false = pending). Pure. */
 export function byApproval(list: WorkProduct[], approved: boolean): WorkProduct[] {
   return list.filter((p) => p.approved === approved);

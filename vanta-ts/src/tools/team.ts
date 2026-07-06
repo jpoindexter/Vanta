@@ -12,12 +12,13 @@ import {
 } from "../team/tasks.js";
 import { doRun } from "./team-run.js";
 import { requireStage, decideStage, reviewQueue } from "../team/review-stage.js";
+import { readWorkProducts, recordWorkProduct, bySourceTask, WORK_PRODUCT_KINDS, type WorkProductKind } from "../cofounder/work-products.js";
 import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
 
 const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
 
 const Args = z.object({
-  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews"]),
+  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts"]),
   id: z.string().optional(),
   role: z.string().optional(),
   model: z.string().optional(),
@@ -34,6 +35,9 @@ const Args = z.object({
   stage: z.string().optional(),
   reviewerId: z.string().optional(),
   approve: z.boolean().optional(),
+  // PCLIP-WORK-PRODUCTS fields
+  artifact: z.string().optional(),
+  artifactKind: z.enum(WORK_PRODUCT_KINDS).optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -105,10 +109,41 @@ async function doTasks(a: Parsed): Promise<ToolResult> {
   const recs = await readTasks();
   const tasks = a.workerId ? tasksForWorker(recs, a.workerId) : latestTasks(recs);
   if (!tasks.length) return { ok: true, output: "no tasks found" };
+  // PCLIP-WORK-PRODUCTS: linked artifacts are visible from the listing itself.
+  const products = await readWorkProducts().catch(() => []);
   const lines = tasks.map((t) => {
     const extra = t.result ? ` → ${t.result}` : t.blocker ? ` ⚠ ${t.blocker}` : "";
-    return `${t.id} · ${t.workerId} · ${t.status} · ${t.title}${extra}`;
+    const n = bySourceTask(products, t.id).length;
+    return `${t.id} · ${t.workerId} · ${t.status} · ${t.title}${extra}${n ? ` · ${n} artifact(s)` : ""}`;
   });
+  return { ok: true, output: lines.join("\n") };
+}
+
+/** PCLIP-WORK-PRODUCTS — record an artifact (file/preview/deploy ref) on a task. */
+async function doArtifact(a: Parsed): Promise<ToolResult> {
+  if (!a.taskId || !a.artifact) return { ok: false, output: "artifact needs taskId, artifact (path/url/content ref); optional artifactKind" };
+  const task = latestTasks(await readTasks()).find((t) => t.id === a.taskId);
+  if (!task) return { ok: false, output: `unknown task id "${a.taskId}" — dispatch it first` };
+  const existing = await readWorkProducts().catch(() => []);
+  const r = recordWorkProduct(existing, {
+    artifact: a.artifact,
+    kind: a.artifactKind as WorkProductKind | undefined,
+    sourceTaskId: task.id,
+    departmentId: "team",
+    producedBy: task.workerId,
+  });
+  if (!r.ok) return { ok: false, output: r.error };
+  const { writeWorkProducts } = await import("../cofounder/work-products.js");
+  await writeWorkProducts([...existing, r.value]);
+  return { ok: true, output: `task ${task.id}: artifact recorded (${r.value.kind}) — ${a.artifact.slice(0, 80)}` };
+}
+
+/** PCLIP-WORK-PRODUCTS — view a task's linked artifacts without the transcript. */
+async function doArtifacts(a: Parsed): Promise<ToolResult> {
+  if (!a.taskId) return { ok: false, output: "artifacts needs taskId" };
+  const linked = bySourceTask(await readWorkProducts().catch(() => []), a.taskId);
+  if (!linked.length) return { ok: true, output: `task ${a.taskId}: no linked artifacts` };
+  const lines = linked.map((p) => `[${p.kind}] ${p.approved ? "✓" : "·"} ${p.artifact} (by ${p.producedBy})`);
   return { ok: true, output: lines.join("\n") };
 }
 
@@ -144,17 +179,22 @@ async function doReviews(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: queue.map((q) => `${q.taskId} · stage "${q.stage.name}" · ${q.title}`).join("\n") };
 }
 
+const ACTIONS: Record<string, (a: Parsed, ctx: ToolContext) => Promise<ToolResult>> = {
+  define: (a) => doDefine(a),
+  status: (a) => doStatus(a),
+  dispatch: (a) => doDispatch(a),
+  advance: (a) => doAdvance(a),
+  tasks: (a) => doTasks(a),
+  run: (a, ctx) => doRun(a.taskId, a.detail, ctx),
+  require_review: (a) => doRequireReview(a),
+  review: (a) => doReview(a),
+  reviews: (a) => doReviews(a),
+  artifact: (a) => doArtifact(a),
+  artifacts: (a) => doArtifacts(a),
+};
+
 function dispatchAction(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
-  if (a.action === "define") return doDefine(a);
-  if (a.action === "status") return doStatus(a);
-  if (a.action === "dispatch") return doDispatch(a);
-  if (a.action === "advance") return doAdvance(a);
-  if (a.action === "tasks") return doTasks(a);
-  if (a.action === "run") return doRun(a.taskId, a.detail, ctx);
-  if (a.action === "require_review") return doRequireReview(a);
-  if (a.action === "review") return doReview(a);
-  if (a.action === "reviews") return doReviews(a);
-  return doList();
+  return (ACTIONS[a.action] ?? (() => doList()))(a, ctx);
 }
 
 export const teamTool: Tool = {
@@ -171,13 +211,15 @@ export const teamTool: Tool = {
       "action:run — actually execute a dispatched task by spawning a worker agent (taskId; optional detail = instruction), updating the task to done/blocked with the result; " +
       "action:require_review — add a named review stage that BLOCKS the task's done transition until approved (taskId, stage, reviewerId); " +
       "action:review — approve/reject a stage (taskId, stage, approve, reviewerId = who decides, detail? = reason); " +
-      "action:reviews — list pending review stages routed to a reviewer (reviewerId).",
+      "action:reviews — list pending review stages routed to a reviewer (reviewerId); " +
+      "action:artifact — record a work-product artifact (file path/preview url/deploy ref) on a task (taskId, artifact, artifactKind?); " +
+      "action:artifacts — list a task's linked artifacts without reading the transcript (taskId).",
     parameters: {
       type: "object",
       properties: {
         action: {
           type: "string",
-          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews"],
+          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts"],
           description: "define worker | update worker status | list roster | dispatch task | advance task | list tasks | run task (spawn worker) | require review stage | decide review | list pending reviews",
         },
         id: { type: "string", description: "worker id (define/status)" },
@@ -194,6 +236,8 @@ export const teamTool: Tool = {
         stage: { type: "string", description: "review stage name (require_review/review)" },
         reviewerId: { type: "string", description: "reviewer the stage routes to (require_review/reviews) or who decides (review)" },
         approve: { type: "boolean", description: "review decision (review): true approves, false rejects" },
+        artifact: { type: "string", description: "work-product ref — file path, preview/deploy url, or content (artifact action)" },
+        artifactKind: { type: "string", enum: [...WORK_PRODUCT_KINDS], description: "artifact category (artifact action, default document)" },
       },
       required: ["action"],
     },
@@ -201,7 +245,7 @@ export const teamTool: Tool = {
   describeForSafety: (a) => `team ${String(a.action ?? "")}`,
   async execute(raw, ctx) {
     const p = Args.safeParse(raw);
-    if (!p.success) return { ok: false, output: "team needs action: define|status|list|dispatch|advance|tasks|run|require_review|review|reviews" };
+    if (!p.success) return { ok: false, output: "team needs action: define|status|list|dispatch|advance|tasks|run|require_review|review|reviews|artifact|artifacts" };
     return dispatchAction(p.data, ctx);
   },
 };
