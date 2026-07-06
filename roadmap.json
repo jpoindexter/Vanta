@@ -14037,7 +14037,7 @@
       "id": "PCLIP-ACTIVITY-FEED",
       "track": "Operator",
       "title": "Operator activity feed — queryable timeline over events",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Activity & Events). An operator-facing, filterable timeline over events.jsonl: mutating actions, heartbeat state changes, cost events, approvals, comments, work products — \"audit what happened and why\" without reading raw jsonl.",
       "done": "/activity shows a filterable timeline of who/what/why across runs, not raw jsonl.",
@@ -14045,7 +14045,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19"
+      "updated": "2026-07-06",
+      "notes": "Shipped 2026-07-06. activity/feed.ts (pure, read-only over the tamper-evident log — same contract as governance/audit.ts, no new store): parseActivity classifies every events.jsonl line into gate (tool + kernel verdict + final resolution = the WHY, parsed from the structured gate events PAPER-GOVERNANCE-AUDIT already emits) / tool (label-prefix convention, the WHO+WHAT) / note; filterActivity compiles present conditions into predicates (--who/--kind/--risk-or-resolution/--since/substring); parseSince (30m|2h|3d); formatActivity renders a newest-last timeline with resolution glyphs (✓/✗/⚠/·) and an explicit hidden-count header when capped (no silent truncation). repl/activity-cmd.ts: /activity slash with table-driven flag parsing (malformed --since is flagged, not ignored), wired into handlers + catalog. 7 test blocks (classification incl. malformed-line skip, every filter axis, since parsing, glyph/cap rendering, arg parsing). REAL-path verified against the repo's live events.jsonl (4900+ events): today's runner-test gate events render as 'shell_cmd [ask→denied] brew install cowsay' / '[block→blocked] rm -rf /tmp/x'. Full suite 1024 files/11557 green; tsc + size gate clean (both cx hits refactored table-driven)."
     },
     {
       "id": "PCLIP-MOBILE-CONTROL",

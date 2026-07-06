@@ -77,6 +77,7 @@ import { stop } from "./stop-cmd.js";
 import { securityReview } from "./security-review-cmd.js";
 import { loopSchedule } from "./loop-schedule-cmd.js";
 import { proactive } from "./proactive-cmd.js";
+import { activity } from "./activity-cmd.js";
 import { skillify } from "./skillify-cmd.js";
 import { learn } from "./learn-cmd.js";
 import { terminalSetup } from "./terminal-setup-cmd.js";
@@ -170,7 +171,7 @@ export const HANDLERS: Record<string, SlashHandler> = {
   mcp, usage, copy, update, image, paste, cron, loop: loopSchedule, proactive, moim, record, next, now, planmode: planMode, planv2: planV2, boundary, where, explain, recover, wm, restart, bug, feedback, learning, handoff, open, edit, tasks, bgtasks, wftasks, btw, describe: describeCmd, diff, search, dashboard, repro, brief, review, simplify, verify, run, auto,
   routes, files, composer, vim, cockpit, agents, sandbox, rename, branch, summary, "output-style": outputStyle, permissions, "less-permission-prompts": lessPerms, "reload-plugins": reloadPlugins, "reload-skills": reloadSkills,
   tui: tuiCommand, focus: focusCommand, "terminal-setup": terminalSetup, preferences: async (arg, ctx) => (await import("./preferences-cmd.js")).preferences(arg, ctx),
-  ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach,
+  ultrathink, ultracode, "deep-research": deepResearch, skeptic, "security-review": securityReview, health, world, money, radar, team, lifesearch, compartments, locks, reach, cookie, nd, peers, tickets, outreach, activity,
   "add-dir": addDir, ...CLI_PASSTHROUGH,
 };
 
