@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { stripControl } from "./line.js";
 import { formatForDialect } from "./format.js";
-import { splitForLimit } from "./split.js";
+import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
 
 // WebChat adapter — connects Vanta to a LOCAL browser chat widget (no external account,
 // no third-party API). It implements the same PlatformAdapter contract as the LINE/Telegram
@@ -28,6 +28,8 @@ import { splitForLimit } from "./split.js";
 // Browser-side budget: WebChat renders the reply as text in the page, so there is no hard
 // platform cap. We still split long replies into separate chat bubbles for readable rendering.
 const WEBCHAT_TEXT_LIMIT = 4000;
+// MSG-CAPABILITY-DESCRIPTOR — webchat renders markdown natively and counts chars.
+const WEBCHAT_CAPABILITIES: AdapterCapabilities = capabilities({ charLimit: WEBCHAT_TEXT_LIMIT, lenUnit: "chars", markdownDialect: "markdown" });
 
 // The marker env value that turns the WebChat channel on. Presence alone is not enough — an
 // empty/other value leaves it off, so a stray export doesn't silently enable a chat surface.
@@ -144,6 +146,7 @@ export function createWebChatBuffer(): WebChatBuffer {
 
 export class WebChatAdapter implements PlatformAdapter {
   readonly id = "webchat";
+  readonly capabilities = WEBCHAT_CAPABILITIES;
   private readonly buffer: WebChatBuffer;
   private readonly allow: Set<string>;
 
@@ -180,7 +183,7 @@ export class WebChatAdapter implements PlatformAdapter {
     // plain text, then split into per-bubble parts and enqueue each keyed by chatId.
     try {
       const formatted = formatForDialect(msg.text, "plain");
-      for (const part of splitForLimit(formatted, WEBCHAT_TEXT_LIMIT, "chars")) {
+      for (const part of segmentsFor(formatted, this.capabilities)) {
         const reply = buildWebChatReply(msg.chatId, part);
         this.buffer.pushOutbound(reply.chatId, reply.text);
       }

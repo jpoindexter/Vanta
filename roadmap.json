@@ -14383,7 +14383,7 @@
       "id": "MSG-CAPABILITY-DESCRIPTOR",
       "track": "Extensibility",
       "title": "Adapter capability interface (limits declared, not guessed)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The static platform catalog doesn't drive rendering, so splitting/format paths hard-guess 4096/chars. Add an AdapterCapabilities interface (charLimit, lenUnit, supportsEdit/threads, markdownDialect) read by the send/split path so each adapter declares its real limits and consumers degrade automatically.",
       "done": "Send/split logic reads capabilities off the live adapter rather than constants; an adapter that declares no-edit degrades to one-message-per-segment; interface unit-tested.",
@@ -14392,8 +14392,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. gateway/platforms/capabilities.ts: AdapterCapabilities {charLimit, lenUnit, supportsEdit, supportsThreads, markdownDialect} + DEFAULT_CAPABILITIES (conservative: chars/4000/no-edit/plain) + capabilities(over) builder + resolveCapabilities(adapter) (declared-or-default) + segmentsFor(text, caps) (the send-path seam wrapping splitForLimit with the adapter's real budget+unit) + deliveryMode (supportsEdit → 'edit-in-place' | 'one-message-per-segment' — the card's no-edit degrade). PlatformAdapter gains an optional readonly capabilities; an adapter that omits it keeps the safe defaults (all 22 unchanged). Converted 3 reference adapters to DECLARE + read off the instance instead of hardcoded constants at the split call: telegram (4096/utf16/threads/telegram-dialect), webchat (4000/chars/markdown), sms (SMS_TEXT_LIMIT/chars/plain) — each now `segmentsFor(formatted, this.capabilities)`. 10 capability tests (resolve declared-vs-default, real TelegramAdapter instance read, utf16 astral counting, budget split never over-limit, no-edit→one-message-per-segment degrade) + the 3 adapters' existing send tests green untouched. Full suite 1032 files/11624 green; tsc + size gate clean. The remaining ~19 adapters inherit the defaults until they declare — the interface + seam is the deliverable; per-adapter declarations are mechanical follow-ups."
     },
     {
       "id": "MSG-MEDIA-VOICE",

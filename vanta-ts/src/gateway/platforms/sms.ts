@@ -1,7 +1,9 @@
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
-import { splitForLimit } from "./split.js";
+import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
 import { SMS_TEXT_LIMIT, buildSmsForm, parseTwilioInbound } from "./sms-parse.js";
+// MSG-CAPABILITY-DESCRIPTOR — SMS is plain text, char-budgeted, no edit/threads.
+const SMS_CAPABILITIES: AdapterCapabilities = capabilities({ charLimit: SMS_TEXT_LIMIT, lenUnit: "chars", markdownDialect: "plain" });
 
 // Re-export the pure parse/build/allowlist/enable helpers so importers keep the same
 // module path (`./sms.js`). Their implementation lives in `sms-parse.ts`.
@@ -50,6 +52,7 @@ export type SmsTransport = {
 
 export class SmsAdapter implements PlatformAdapter {
   readonly id = "sms";
+  readonly capabilities = SMS_CAPABILITIES;
   private readonly transport: SmsTransport;
   private readonly allow: Set<string>;
 
@@ -78,7 +81,7 @@ export class SmsAdapter implements PlatformAdapter {
     // then split to the budget and POST each part keyed by chatId (the sender's number). The
     // configured Twilio sender number is held in the transport (the wire), not on the adapter.
     const formatted = formatForDialect(msg.text, "plain");
-    for (const part of splitForLimit(formatted, SMS_TEXT_LIMIT, "chars")) {
+    for (const part of segmentsFor(formatted, this.capabilities)) {
       await this.transport.push(buildSmsForm(msg.chatId, "", part)).catch(() => {
         /* errors-as-values: a push failure must not throw through the gateway loop */
       });

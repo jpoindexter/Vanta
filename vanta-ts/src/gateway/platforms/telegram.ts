@@ -1,10 +1,16 @@
 import { z } from "zod";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
-import { splitForLimit } from "./split.js";
+import { capabilities, segmentsFor, type AdapterCapabilities } from "./capabilities.js";
 
-// Telegram Bot API caps sendMessage text at 4096 UTF-16 code units.
-const TELEGRAM_LIMIT = 4096;
+// Telegram Bot API caps sendMessage text at 4096 UTF-16 code units. Declared as
+// capabilities (MSG-CAPABILITY-DESCRIPTOR) so the send path reads them off the adapter.
+const TELEGRAM_CAPABILITIES: AdapterCapabilities = capabilities({
+  charLimit: 4096,
+  lenUnit: "utf16",
+  supportsThreads: true,
+  markdownDialect: "telegram",
+});
 
 // Telegram Bot API adapter — long-poll getUpdates for inbound, sendMessage for
 // outbound. Pure fetch, no SDK. Get a token from @BotFather and set
@@ -162,6 +168,7 @@ async function safeJson(res: Response): Promise<unknown> {
 
 export class TelegramAdapter implements PlatformAdapter {
   readonly id = "telegram";
+  readonly capabilities = TELEGRAM_CAPABILITIES;
   private offset = 0;
   private readonly base: string;
   private readonly allow: Set<string>;
@@ -229,7 +236,7 @@ export class TelegramAdapter implements PlatformAdapter {
     // Escape the agent's markdown for Telegram's MarkdownV2 (code protected first)
     // BEFORE splitting, then send with parse_mode so bold/code render — not leak.
     const formatted = formatForDialect(msg.text, "telegram");
-    for (const part of splitForLimit(formatted, TELEGRAM_LIMIT, "utf16")) {
+    for (const part of segmentsFor(formatted, this.capabilities)) {
       const id = await this.sendPart(msg, part);
       // Record the FIRST sent part's id as the message's reply-context key, so the
       // gateway's record-on-send (reply-store) can key the bot's reply. A split

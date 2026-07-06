@@ -59,6 +59,11 @@ export type OutboundMessage = {
 export interface PlatformAdapter {
   /** Stable platform id, e.g. "telegram". */
   readonly id: string;
+  /** MSG-CAPABILITY-DESCRIPTOR — declared limits (charLimit/lenUnit/supportsEdit/
+   * supportsThreads/markdownDialect) the send/split path reads instead of guessing.
+   * Optional: an adapter that omits it gets conservative defaults. Typed loosely
+   * here (import type would cycle base↔capabilities); the shape is AdapterCapabilities. */
+  readonly capabilities?: import("./capabilities.js").AdapterCapabilities;
   /** Establish any state needed before polling/sending (no-op for stateless HTTP). */
   connect(): Promise<void>;
   /** Tear down. */
