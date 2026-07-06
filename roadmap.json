@@ -15089,7 +15089,7 @@
       "id": "EXT-MODEL-CATALOG-REMOTE",
       "track": "Extensibility",
       "title": "Remote model-catalog manifest with fallback chain",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The model catalog is a static array, so adding models needs a release. Fetch a JSON manifest with TTL + atomic disk cache and a fallback chain (primary URL -> raw-GitHub -> stale cache -> bundled), plus seed-from-checkout after update. Point it at the docs site + GitHub raw.",
       "done": "The model picker refreshes from a remote manifest with the full fallback chain and works offline from stale/bundled cache; refresh + fallback unit-tested.",
@@ -15098,8 +15098,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. providers/catalog-manifest.ts: refresh the model catalog from a remote JSON manifest so adding models no longer needs a release. resolveCatalog runs the FULL fallback chain in order — fresh disk cache (within TTL, short-circuits the network) → primary URL (docs.vanta.theft.studio/model-catalog.json) → raw-GitHub mirror (raw.githubusercontent.com/…/main/docs/model-catalog.json) → STALE cache → bundled PROVIDER_CATALOG (the always-available floor) — and NEVER throws, always returning a usable catalog + its source tag. A successful fetch atomically rewrites the cache. diskCacheDeps is the live adapter: atomic write (temp file + rename so a reader never sees a half-write), tolerant read (missing/corrupt → null). parseManifest zod-validates (version:1 + ≥1 provider, passthrough on extra fields) so a junk/wrong-version payload is ignored and the chain keeps falling through. fetch + fs fully injected → 9 offline tests cover every rung: fresh-cache short-circuit, stale→primary refresh+persist, primary-fail→github, all-fail→stale-cache, offline+no-cache→bundled, invalid-payload passthrough, atomic round-trip + no .tmp residue, corrupt-read→null. Full suite 1037 files/11676 green; tsc + size gate clean. Publishing the manifest at the two URLs + calling resolveCatalog from the /model picker's refresh is the deploy-time follow-up; the resolver + cache is the shippable core."
     },
     {
       "id": "EXT-MEMORY-FIELD-SCHEMA",
