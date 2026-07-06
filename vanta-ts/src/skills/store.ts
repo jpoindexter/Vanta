@@ -7,6 +7,7 @@ import {
   commitInHome,
 } from "../store/home.js";
 import { parseSkill, serializeSkill } from "./frontmatter.js";
+import { scanForInjection } from "./gating.js";
 import type { Skill } from "./types.js";
 
 /** Subdir reserved for retired skills; never returned by listSkills. */
@@ -36,7 +37,17 @@ function skillPath(slug: string, env?: NodeJS.ProcessEnv): string {
 /** Read+parse a SKILL.md, returning null if it does not exist. */
 async function tryReadSkill(path: string): Promise<Skill | null> {
   try {
-    return parseSkill(await readFile(path, "utf8"));
+    const raw = await readFile(path, "utf8");
+    // HARNESS-SKILL-GATING: injection-scan the body BEFORE the skill enters the
+    // offerable set. A dirty skill is skipped (not loaded) unless the operator
+    // opts in via VANTA_SKILL_ALLOW_UNSAFE=1 — trusted-operator posture: skill
+    // content is an author/LLM boundary, not implicitly trusted.
+    const scan = scanForInjection(raw);
+    if (!scan.clean && process.env.VANTA_SKILL_ALLOW_UNSAFE !== "1") {
+      console.error(`  ⚠ skill skipped (injection scan: ${scan.hits.join(", ")}): ${path}`);
+      return null;
+    }
+    return parseSkill(raw);
   } catch {
     // missing file or unparseable — treat as absent
     return null;

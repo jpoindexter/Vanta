@@ -14699,7 +14699,7 @@
       "id": "HARNESS-SKILL-GATING",
       "track": "Harness",
       "title": "Skill prereq/env gating + injection-scan on bodies",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Mine two ideas if absent: offer-time gating on OS + runtime env + declared prerequisites (env_vars/commands) with setup.collect_secrets, and a prompt-injection pattern scan on skill/plugin content before load (security-relevant given the trusted-operator posture).",
       "done": "Skills declare prerequisites and are gated by platform/env at offer time; skill bodies are injection-scanned before load; both unit-tested.",
@@ -14708,8 +14708,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. skills/gating.ts (pure): (1) OFFER-TIME GATING — parseSkillPrereqs reads platforms/env_vars/commands from a skill's raw frontmatter (list or comma-string; accepts platform/requiresEnv/requiresCommands aliases); gateSkill(prereqs, {platform, env, hasCommand}) offers a skill only where its OS matches + required env vars are set + required commands are on PATH, first-unmet-is-the-reason. (2) INJECTION SCAN — scanForInjection(text) matches 6 prompt-injection pattern banks (override-instructions, reveal-system-prompt, role-hijack, exfil-secrets, hidden zero-width/bidi control chars, fake-tool-call incl. curl|sh & rm -rf) returning {clean, hits}, tuned to flag intent not incidental prose ('set your OPENAI_API_KEY in .env' stays clean). WIRED: store.ts tryReadSkill scans every SKILL.md BEFORE parse — a tainted skill is SKIPPED (not loaded, logged with the hit list) unless VANTA_SKILL_ALLOW_UNSAFE=1, so listSkills/readSkill never surface an injected skill. 13 gating tests (prereq parse, each gate reason, all-satisfied, clean pass, each injection pattern incl. bidi, benign-prose negatives) + a store test proving listSkills drops an injected skill beside a clean one. Full suite 1043 files/11723 green; tsc + size gate clean. gateSkill is exported for the selector/offer path (the kernel still gates every tool call regardless)."
     },
     {
       "id": "SEC-GODMODE-DETECT",
