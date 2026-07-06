@@ -15812,7 +15812,7 @@
       "id": "PROACTIVE-CHANNEL-OUTREACH",
       "track": "Operator",
       "title": "Proactive outreach — Vanta messages you first on a channel",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "KAIROS proactivity + nudge cadence exist internally, but Vanta doesn't reach OUT on a channel on its own. Make it initiate: briefings, alerts, 'you should look at X', finished-task pings — delivered to Telegram/WhatsApp/etc., throttled and budget-bounded. The Jarvis 'Sir, you have a meeting' behaviour. Strictly opt-in and rate-limited.",
       "done": "On a real trigger (schedule, watcher, or finished autonomous task), Vanta sends an unprompted message to a configured channel, within throttle + budget limits, opt-in and easy to silence.",
@@ -15821,7 +15821,9 @@
       "source": "vision-gap-audit-2026-06-21",
       "after": [
         "MSG-MULTICHANNEL-LIVE"
-      ]
+      ],
+      "updated": "2026-07-06",
+      "notes": "Shipped 2026-07-06. proactive/outreach.ts (pure): OutreachConfig from VANTA_OUTREACH/_TO/_INTERVAL_MIN/_MAX_PER_DAY/_BUDGET_SCOPE (strictly opt-in: enabled AND platform:chatId target required), decideOutreach (silencedUntil -> budget hard-stop -> min-interval -> daily cap, mirroring the KAIROS policy shape), recordOutreach/silenceOutreach, parseOutreachTarget (colon-keeping so matrix:!room:server works), outreachTickText. outreach-store.ts persists .vanta/outreach.json (tolerant load, same contract as proactive/store.ts). outreach-send.ts orchestrates resolve->decide->createAdapter(platform,env)->connect/send/disconnect->record, with adapter + budget verdict injected; a FAILED send reports the reason and does NOT consume the throttle. REAL TRIGGER wired: `vanta proactive run` (the cron-invoked KAIROS tick) pings the channel after advancing queued loop wakes (finished-autonomous-work ping); `vanta proactive silence <minutes|off>` + a status line = easy to silence; env keys documented in .env.example. 24 new tests (19 policy/parse/text + 5 orchestrator e2e through a fake PlatformAdapter, incl. throttle-not-consumed-on-failure and no-adapter-touch-when-refused); CLI real-path verified live (status disabled hint / silence set+lift persisted / enabled target line). tsc + size gate clean."
     },
     {
       "id": "NET-EGRESS-POLICY",

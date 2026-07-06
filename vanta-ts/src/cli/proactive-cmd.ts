@@ -1,16 +1,21 @@
 import { dataDirFor, buildCronRunTask } from "./ops.js";
-import { resolveProactiveConfig, decideProactiveTick } from "../proactive/policy.js";
+import { resolveProactiveConfig, decideProactiveTick, type ProactiveConfig } from "../proactive/policy.js";
 import { loadProactiveState } from "../proactive/store.js";
 import { runProactiveTick } from "../proactive/tick.js";
+import { resolveOutreachConfig, silenceOutreach, outreachTickText } from "../proactive/outreach.js";
+import { loadOutreachState, saveOutreachState } from "../proactive/outreach-store.js";
+import { sendOutreach } from "../proactive/outreach-send.js";
 import { peekLoopWakeCount, drainLoopWakes } from "../loop/wake.js";
 import { loadDef } from "../loop/store.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
 
 // `vanta proactive` — KAIROS heartbeat. `status` shows the throttle + whether it
-// would tick now; `run` fires one throttled pickup of queued loop wakes. Designed
-// to be cron-invoked: an idle, user-away host advances queued loops on its own,
-// gated by idle-time + cadence + the budget hard-stop.
+// would tick now; `run` fires one throttled pickup of queued loop wakes, then
+// (PROACTIVE-CHANNEL-OUTREACH) pings the configured channel about the finished
+// work — opt-in, throttled, budget-bounded; `silence <minutes|off>` pauses the
+// pings. Designed to be cron-invoked: an idle, user-away host advances queued
+// loops on its own and messages you FIRST when it did.
 
 async function budgetExceededFor(dataDir: string, scope: string): Promise<boolean> {
   const b = await getBudget(dataDir, scope);
@@ -31,38 +36,75 @@ async function fireQueuedWakes(repoRoot: string, dataDir: string, log: (m: strin
   return ran;
 }
 
+/** One human line on the outreach channel state, appended to `status`. */
+async function outreachStatusLine(dataDir: string, env: NodeJS.ProcessEnv, now: Date): Promise<string> {
+  const c = resolveOutreachConfig(env);
+  if (!c.enabled || !c.to) return "  outreach: disabled (set VANTA_OUTREACH=1 + VANTA_OUTREACH_TO=platform:chatId to get pinged)";
+  const s = await loadOutreachState(dataDir);
+  if (s.silencedUntil && now < new Date(s.silencedUntil)) return `  outreach: silenced until ${s.silencedUntil} (\`vanta proactive silence off\` to resume)`;
+  const sentToday = s.day === now.toISOString().slice(0, 10) ? s.sentToday : 0;
+  return `  outreach: → ${c.to} · interval≥${c.minIntervalMin}m · ${sentToday}/${c.maxPerDay} today`;
+}
+
+async function runStatus(dataDir: string, config: ProactiveConfig): Promise<number> {
+  const now = new Date();
+  const decision = decideProactiveTick({
+    config,
+    state: await loadProactiveState(dataDir),
+    now,
+    queuedCount: await peekLoopWakeCount(dataDir),
+    budgetExceeded: await budgetExceededFor(dataDir, config.budgetScope),
+  });
+  console.log(`proactive: ${config.enabled ? "enabled" : "disabled"} · would tick now: ${decision.tick ? "yes" : `no (${decision.reason})`}`);
+  console.log(`  throttle: idle≥${config.minIdleMin}m · interval≥${config.minIntervalMin}m · ≤${config.maxPerDay}/day · budget scope "${config.budgetScope}"`);
+  console.log(await outreachStatusLine(dataDir, process.env, now));
+  return 0;
+}
+
+async function runOnce(repoRoot: string, dataDir: string, config: ProactiveConfig): Promise<number> {
+  const log = (m: string): void => console.log(`  ${m}`);
+  const result = await runProactiveTick({
+    dataDir,
+    now: new Date(),
+    config,
+    queuedCount: await peekLoopWakeCount(dataDir),
+    budgetExceeded: await budgetExceededFor(dataDir, config.budgetScope),
+    runBatch: () => fireQueuedWakes(repoRoot, dataDir, log),
+  });
+  console.log(result.tick ? `proactive tick: fired ${result.ran} queued wake(s)` : `proactive tick skipped: ${result.reason}`);
+  if (result.tick && result.ran > 0) {
+    const ping = await sendOutreach({ dataDir, env: process.env, now: new Date(), text: outreachTickText(result.ran) });
+    console.log(ping.sent ? `  outreach: pinged ${resolveOutreachConfig(process.env).to}` : `  outreach skipped: ${ping.reason}`);
+  }
+  return 0;
+}
+
+/** `silence <minutes|off>` — pause (or resume) the unprompted pings. */
+async function runSilence(dataDir: string, arg: string | undefined): Promise<number> {
+  const state = await loadOutreachState(dataDir);
+  if (arg === "off") {
+    await saveOutreachState(dataDir, silenceOutreach(state, null));
+    console.log("outreach: silence lifted");
+    return 0;
+  }
+  const minutes = Number(arg);
+  if (!arg || !Number.isFinite(minutes) || minutes <= 0) {
+    console.error("usage: vanta proactive silence <minutes|off>");
+    return 1;
+  }
+  const until = new Date(Date.now() + minutes * 60_000);
+  await saveOutreachState(dataDir, silenceOutreach(state, until));
+  console.log(`outreach: silenced until ${until.toISOString()}`);
+  return 0;
+}
+
 export async function runProactiveCommand(repoRoot: string, rest: string[]): Promise<number> {
   const dataDir = dataDirFor(repoRoot);
   const config = resolveProactiveConfig(process.env);
   const sub = rest[0] ?? "status";
-
-  if (sub === "status") {
-    const decision = decideProactiveTick({
-      config,
-      state: await loadProactiveState(dataDir),
-      now: new Date(),
-      queuedCount: await peekLoopWakeCount(dataDir),
-      budgetExceeded: await budgetExceededFor(dataDir, config.budgetScope),
-    });
-    console.log(`proactive: ${config.enabled ? "enabled" : "disabled"} · would tick now: ${decision.tick ? "yes" : `no (${decision.reason})`}`);
-    console.log(`  throttle: idle≥${config.minIdleMin}m · interval≥${config.minIntervalMin}m · ≤${config.maxPerDay}/day · budget scope "${config.budgetScope}"`);
-    return 0;
-  }
-
-  if (sub === "run") {
-    const log = (m: string): void => console.log(`  ${m}`);
-    const result = await runProactiveTick({
-      dataDir,
-      now: new Date(),
-      config,
-      queuedCount: await peekLoopWakeCount(dataDir),
-      budgetExceeded: await budgetExceededFor(dataDir, config.budgetScope),
-      runBatch: () => fireQueuedWakes(repoRoot, dataDir, log),
-    });
-    console.log(result.tick ? `proactive tick: fired ${result.ran} queued wake(s)` : `proactive tick skipped: ${result.reason}`);
-    return 0;
-  }
-
-  console.error("usage: vanta proactive [status|run]");
+  if (sub === "status") return runStatus(dataDir, config);
+  if (sub === "run") return runOnce(repoRoot, dataDir, config);
+  if (sub === "silence") return runSilence(dataDir, rest[1]);
+  console.error("usage: vanta proactive [status|run|silence <minutes|off>]");
   return 1;
 }
