@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import { exec as execCb } from "node:child_process";
 import type { Tool, ToolResult, ToolContext } from "./types.js";
 import { appendLock, latestLocks, findLock, type Lock } from "../verify/store.js";
+import { detectStaleLocks, formatStaleReport } from "../verify/suite-prune.js";
 import { gradeRun, formatLock, formatCheckReport, type CheckResult } from "../verify/check.js";
 
 const exec = promisify(execCb);
@@ -10,7 +11,7 @@ const CHECK_TIMEOUT_MS = 60_000;
 const MAX_BUFFER = 4_000_000;
 
 const Args = z.object({
-  action: z.enum(["lock", "check", "list"]),
+  action: z.enum(["lock", "check", "list", "prune"]),
   id: z.string().min(1).optional(),
   claim: z.string().min(1).optional(),
   command: z.string().min(1).optional(),
@@ -78,6 +79,15 @@ async function doCheck(args: z.infer<typeof Args>, ctx: ToolContext, now: number
   return { ok: !regressed, output: formatCheckReport(results) };
 }
 
+/** SELFHARNESS-SUITE-PRUNE — flag locks whose tool/schema assumptions went stale. */
+async function doPrune(now: number): Promise<ToolResult> {
+  const locks = latestLocks();
+  if (locks.length === 0) return { ok: true, output: "No regression locks to prune." };
+  const { COMMANDS } = await import("../cli/commands-table.js");
+  const stale = detectStaleLocks(locks, { knownCommands: new Set(Object.keys(COMMANDS)), now });
+  return { ok: true, output: formatStaleReport(stale, locks.length) };
+}
+
 function doList(): ToolResult {
   const locks = latestLocks();
   if (locks.length === 0) return { ok: true, output: "No regression locks yet." };
@@ -91,11 +101,11 @@ export const regressionLockTool: Tool = {
       "Lock a verified behavior so a later change can't silently break it. " +
       "action:lock {claim, command, expect} records a claim + the shell command that proves it + the substring its output must contain. " +
       "action:check [id] re-runs the locked command(s) and flags a regression if the substring is gone or the command fails (each run is approval-gated). " +
-      "action:list shows every lock and its current status.",
+      "action:list shows every lock and its current status. action:prune flags locks whose tool/schema assumptions went stale (removed command, not re-verified, long-regressed) for refresh/removal — never auto-deletes.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["lock", "check", "list"] },
+        action: { type: "string", enum: ["lock", "check", "list", "prune"] },
         id: { type: "string", description: "lock id (check: limit to one; lock: optional explicit id)" },
         claim: { type: "string", description: "lock: the behavior being proven" },
         command: { type: "string", description: "lock: shell command that proves it" },
@@ -109,7 +119,9 @@ export const regressionLockTool: Tool = {
       ? `lock regression check: ${String(a.command ?? "")}`
       : a.action === "check"
         ? "run regression checks"
-        : "list regression locks",
+        : a.action === "prune"
+          ? "audit regression locks for staleness"
+          : "list regression locks",
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'regression_lock needs an "action" (lock|check|list)' };
@@ -117,6 +129,7 @@ export const regressionLockTool: Tool = {
     const now = Date.now();
     if (args.action === "lock") return doLock(args, now);
     if (args.action === "check") return doCheck(args, ctx, now);
+    if (args.action === "prune") return doPrune(now);
     return doList();
   },
 };

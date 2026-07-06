@@ -11150,7 +11150,7 @@
       "id": "SELFHARNESS-SUITE-PRUNE",
       "track": "Harness",
       "title": "Prune the regression suite as tools/schema evolve",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Your Agent Harness Should Repair Itself (Pachaar, 2026) (comment thread): a locked regression input goes STALE when the tools or schema move under it — the suite needs pruning to stay honest, or it just gets better at explaining yesterday bug. A maintenance pass that detects locked inputs whose tool/schema assumptions no longer hold and flags them for refresh/removal.",
       "done": "Stale locked inputs (tool/schema drift) are detected and flagged for refresh or removal; the suite stays honest.",
@@ -11159,7 +11159,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-14"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. verify/suite-prune.ts (pure): detectStaleLocks(locks, {knownCommands, now, maxAgeDays, maxRegressedDays}) flags a regression lock whose assumptions went stale — three deterministic signals: unknown-command (the lock's check command references a `vanta <sub>` no longer in the dispatch table = tool/schema drift; vantaSubcommand parses vanta/run.sh/npm-run-vanta invocations), not-reverified (updated older than the window, default 30d — assumptions unchecked), long-regressed (regressed + unrepaired past 14d = noise not signal). Reasons stack per lock; formatStaleReport prints a refresh-or-remove list, NEVER a deletion (Rule Zero — the operator decides). Wired as `regression_lock action:prune`: reads latest locks, builds knownCommands from cli/commands-table COMMANDS keys, reports flagged ones. 8 tests (subcommand parse incl. non-vanta null, healthy=no-reasons, each signal, multi-reason stack, detect filters to flagged, all-honest vs N/M-flagged report). Full suite 1044 files/11730 green; tsc + size gate clean. The suite stays honest: a lock that only explains yesterday's bug (removed command / never re-run) surfaces for pruning instead of silently passing."
     },
     {
       "id": "NET-KEYLESS-SEARCH",
