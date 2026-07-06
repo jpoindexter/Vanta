@@ -16442,7 +16442,7 @@
       "id": "WEB-BACKEND-SPLIT",
       "track": "Harness",
       "title": "Per-capability search/extract backend split",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Hermes lets you pick different backends per capability (search_backend: searxng, extract_backend: firecrawl) instead of one backend for both — e.g. cheap/keyless search + high-quality extract. Vanta resolves one provider; split the resolver so search and extract can target different backends. Source: Hermes Agent web-search docs (hermes-agent.nousresearch.com/docs/user-guide/features/web-search).",
       "done": "resolveSearchProvider supports independent VANTA_SEARCH_BACKEND vs VANTA_EXTRACT_BACKEND (falling back to the single VANTA_SEARCH_PROVIDER); web_search and web_extract route independently; tested for both-split and single-value configs.",
@@ -16451,8 +16451,8 @@
       "effort": "low",
       "codex": "gpt-5.4",
       "lens": "agent-loop",
-      "updated": "2026-06-30",
-      "notes": "Small resolver change; unlocks cheap-search + quality-extract combos."
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. search/index.ts: resolveSearchProviders/resolveSearchProvider gained a WebCapability param ('search'|'extract', default 'search'). backendIdFor(env, capability) picks the id: the per-capability override (VANTA_SEARCH_BACKEND for search, VANTA_EXTRACT_BACKEND for extract) if set, else the shared VANTA_SEARCH_PROVIDER, else 'auto' — so cheap/keyless search + high-quality extract can run at once (Hermes' search_backend/extract_backend split) while a single VANTA_SEARCH_PROVIDER still drives both, BACK-COMPATIBLE (existing configs byte-identical: no per-cap key → falls back exactly as before). web_search now calls resolveSearchProviders(env, 'search') explicitly; the extract-capable path resolves via 'extract'. .env.example documents both keys. 6 new tests (backendIdFor override/shared/auto precedence, search≠extract when split, single-value drives both, default-capability) — the existing resolution tests pass untouched. Full suite 1044 files/11733 green; tsc + size gate clean."
     },
     {
       "id": "WEB-DOMAIN-SCOPING",

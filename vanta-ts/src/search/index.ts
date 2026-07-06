@@ -23,14 +23,34 @@ import type { SearchProvider } from "./interface.js";
  *   VANTA_SEARCH_PROVIDER=jina_ddg → Jina Reader over DuckDuckGo HTML (keyless fallback)
  *   VANTA_SEARCH_PROVIDER=ddg     → DuckDuckGo HTML scrape (explicit fallback only)
  */
-export function resolveSearchProviders(env: NodeJS.ProcessEnv): SearchProvider[] {
-  const provider = (env.VANTA_SEARCH_PROVIDER ?? "auto").toLowerCase();
+/** WEB-BACKEND-SPLIT — a web capability can target its OWN backend. */
+export type WebCapability = "search" | "extract";
+
+/**
+ * The provider id for a capability: its per-capability override
+ * (VANTA_SEARCH_BACKEND / VANTA_EXTRACT_BACKEND) if set, else the shared
+ * VANTA_SEARCH_PROVIDER, else "auto". So cheap/keyless search + high-quality
+ * extract can run at once, while a single VANTA_SEARCH_PROVIDER still drives
+ * both (back-compatible). Pure.
+ */
+export function backendIdFor(env: NodeJS.ProcessEnv, capability: WebCapability): string {
+  const perCap = capability === "extract" ? env.VANTA_EXTRACT_BACKEND : env.VANTA_SEARCH_BACKEND;
+  return (perCap ?? env.VANTA_SEARCH_PROVIDER ?? "auto").toLowerCase();
+}
+
+/**
+ * Resolve the ordered providers for a web capability (default "search"). Reads
+ * the capability's backend id (see backendIdFor); "auto" fans out the priority
+ * chain, a named id resolves that one provider.
+ */
+export function resolveSearchProviders(env: NodeJS.ProcessEnv, capability: WebCapability = "search"): SearchProvider[] {
+  const provider = backendIdFor(env, capability);
   if (provider === "auto") return resolveAutoProviders(env);
   return [resolveNamedProvider(provider, env)];
 }
 
-export function resolveSearchProvider(env: NodeJS.ProcessEnv): SearchProvider {
-  return resolveSearchProviders(env)[0] as SearchProvider;
+export function resolveSearchProvider(env: NodeJS.ProcessEnv, capability: WebCapability = "search"): SearchProvider {
+  return resolveSearchProviders(env, capability)[0] as SearchProvider;
 }
 
 function resolveAutoProviders(env: NodeJS.ProcessEnv): SearchProvider[] {

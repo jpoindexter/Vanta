@@ -97,7 +97,7 @@ export const webSearchTool: Tool = {
     const scopeErr = validateDomainScope({ allowedDomains: allowed_domains, excludedDomains: excluded_domains });
     if (scopeErr) return { ok: false, output: scopeErr };
     try {
-      const providers = resolveSearchProviders(process.env);
+      const providers = resolveSearchProviders(process.env, "search");
       const config: SearchConfig = {
         maxResults: max_results,
         allowedDomains: allowed_domains,

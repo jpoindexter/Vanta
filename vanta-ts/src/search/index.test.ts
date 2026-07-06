@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSearchProvider, resolveSearchProviders } from "./index.js";
+import { resolveSearchProvider, resolveSearchProviders, backendIdFor } from "./index.js";
 
 describe("search provider resolution", () => {
   it("auto leads with keyless brave_browser (the one that works), then the fetch scrapers", () => {
@@ -80,5 +80,32 @@ describe("search provider resolution", () => {
       EXA_API_KEY: "e", XAI_API_KEY: "x", BRAVE_KEY: "b",
     } as NodeJS.ProcessEnv);
     expect(providers.map((p) => p.id)).toEqual(["exa", "xai", "brave", "brave_browser", "bing", "jina_ddg", "ddg"]);
+  });
+});
+
+describe("WEB-BACKEND-SPLIT — per-capability backend", () => {
+  it("backendIdFor: per-capability override wins, else the shared provider, else auto", () => {
+    const env = { VANTA_SEARCH_PROVIDER: "brave", VANTA_SEARCH_BACKEND: "ddg", VANTA_EXTRACT_BACKEND: "exa" } as NodeJS.ProcessEnv;
+    expect(backendIdFor(env, "search")).toBe("ddg");
+    expect(backendIdFor(env, "extract")).toBe("exa");
+    // No per-cap override → the shared provider drives both.
+    expect(backendIdFor({ VANTA_SEARCH_PROVIDER: "brave" } as NodeJS.ProcessEnv, "search")).toBe("brave");
+    expect(backendIdFor({ VANTA_SEARCH_PROVIDER: "brave" } as NodeJS.ProcessEnv, "extract")).toBe("brave");
+    // Nothing set → auto.
+    expect(backendIdFor({} as NodeJS.ProcessEnv, "search")).toBe("auto");
+  });
+
+  it("search and extract resolve to DIFFERENT backends when split", () => {
+    const env = { VANTA_SEARCH_BACKEND: "ddg", VANTA_EXTRACT_BACKEND: "bing" } as NodeJS.ProcessEnv;
+    expect(resolveSearchProvider(env, "search").id).toBe("ddg");
+    expect(resolveSearchProvider(env, "extract").id).toBe("bing");
+  });
+
+  it("a single VANTA_SEARCH_PROVIDER drives both capabilities (back-compatible)", () => {
+    const env = { VANTA_SEARCH_PROVIDER: "bing" } as NodeJS.ProcessEnv;
+    expect(resolveSearchProvider(env, "search").id).toBe("bing");
+    expect(resolveSearchProvider(env, "extract").id).toBe("bing");
+    // default capability is search
+    expect(resolveSearchProvider(env).id).toBe("bing");
   });
 });
