@@ -116,6 +116,16 @@ export const writeFileTool: Tool = {
     },
   },
   describeForSafety: (a) => `write file ${String(a.path ?? "")}`,
+  // EXT-ACP-EDIT-DIFF — old/new preview attached to the approval ask.
+  describeDiff: async (a, root) => {
+    const { readFile } = await import("node:fs/promises");
+    const { resolve } = await import("node:path");
+    const { buildLineDiff } = await import("../acp/edit-policy.js");
+    const path = String(a.path ?? "");
+    if (!path || typeof a.content !== "string") return undefined;
+    const old = await readFile(resolve(root, path), "utf8").catch(() => "");
+    return buildLineDiff(old, a.content);
+  },
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {

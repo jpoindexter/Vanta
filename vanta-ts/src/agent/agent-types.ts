@@ -14,7 +14,7 @@ export type AgentDeps = {
   root: string;
   /** Ask the human to approve a gated action. `toolName` lets the host key an
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
-  requestApproval: (action: string, reason: string, toolName?: string) => Promise<boolean>;
+  requestApproval: (action: string, reason: string, toolName?: string, detail?: { diff?: string }) => Promise<boolean>;
   onText?: (text: string) => void;
   /** Extended thinking / reasoning text returned by the provider (e.g. Anthropic
    * extended thinking). Called once per turn when the provider returns thinking. */

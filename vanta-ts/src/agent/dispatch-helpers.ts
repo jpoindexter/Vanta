@@ -70,7 +70,7 @@ export async function applySafetyGate(
   }
 
   if (decision.decision === "ask") {
-    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root });
+    return handleAskDecision({ call, action, verdict, decision, deps, root: ctx.root, tool });
   }
 
   await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "allow" });
@@ -83,6 +83,9 @@ export async function applySafetyGate(
  * — is still enforced above); else an active delegated-authority grant
  * auto-approves; else it prompts the human.
  */
+/** The one Tool capability the approval path reads (EXT-ACP-EDIT-DIFF). */
+type DiffCapable = { describeDiff?: (args: Record<string, unknown>, root: string) => Promise<string | undefined> };
+
 async function handleAskDecision(o: {
   call: ToolCall;
   action: string;
@@ -90,8 +93,9 @@ async function handleAskDecision(o: {
   decision: { decision: "allow" | "ask" | "block"; reason: string };
   deps: AgentDeps;
   root: string;
+  tool?: DiffCapable;
 }): Promise<SafetyGateResult> {
-  const { call, action, verdict, decision, deps, root } = o;
+  const { call, action, verdict, decision, deps, root, tool } = o;
   if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
     await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "accept-edits-auto" });
     return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
@@ -104,7 +108,7 @@ async function handleAskDecision(o: {
     return delegated;
   }
   await firePermissionEvent(root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
-  return handleApprovalRequest({ call, action, verdict, deps, root });
+  return handleApprovalRequest({ call, action, verdict, deps, root, tool });
 }
 
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
@@ -144,10 +148,13 @@ async function handleApprovalRequest(o: {
   verdict: Verdict;
   deps: AgentDeps;
   root: string;
+  tool?: DiffCapable;
 }): Promise<SafetyGateResult> {
   const { call, action, verdict, deps, root } = o;
   const why = verdict.reason || "permission rule";
-  const approved = await deps.requestApproval(action, why, call.name);
+  // EXT-ACP-EDIT-DIFF: file tools attach an old/new preview to the ask.
+  const diff = await o.tool?.describeDiff?.(call.arguments, root).catch(() => undefined);
+  const approved = await deps.requestApproval(action, why, call.name, diff ? { diff } : undefined);
   await recordApprovalSignal(call.name, action, why, approved);
   // Reconcile the kernel approval queue ONLY when the kernel itself asked.
   // Queue bookkeeping is best-effort — a kernel hiccup must not abort the turn.

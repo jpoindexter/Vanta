@@ -33,16 +33,16 @@ export type AcpServerDeps = {
  * created per call so each server instance is isolated (clean for tests).
  */
 export function runAcpServer(transport: AcpTransport, deps: AcpServerDeps): Promise<void> {
-  const pendingPermissions = new Map<JsonRpcId, (allowed: boolean) => void>();
+  const pendingPermissions = new Map<JsonRpcId, (optionId: string) => void>();
   let nextOutId = 1;
 
   const sink = {
     update(sessionId: string, update: SessionUpdate): void {
       transport.send(serializeNotification("session/update", { sessionId, update }));
     },
-    requestPermission(sessionId: string, req: PermissionRequest): Promise<boolean> {
+    requestPermission(sessionId: string, req: PermissionRequest): Promise<string> {
       const id = `perm-${nextOutId++}`;
-      return new Promise<boolean>((resolve) => {
+      return new Promise<string>((resolve) => {
         pendingPermissions.set(id, resolve);
         transport.send(serializeRequest(id, "session/request_permission", { sessionId, ...req }));
       });
@@ -63,7 +63,7 @@ export function runAcpServer(transport: AcpTransport, deps: AcpServerDeps): Prom
       }
     });
     transport.onClose(() => {
-      for (const resolveOne of pendingPermissions.values()) resolveOne(false);
+      for (const resolveOne of pendingPermissions.values()) resolveOne("");
       pendingPermissions.clear();
       resolve();
     });

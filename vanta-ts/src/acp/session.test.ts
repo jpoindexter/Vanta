@@ -11,7 +11,7 @@ function fakeSink(permissionAnswer = true): { sink: SessionSink; updates: Array<
     update: (sessionId, update) => updates.push({ sessionId, update }),
     requestPermission: async (sessionId) => {
       perms.push({ sessionId });
-      return permissionAnswer;
+      return permissionAnswer ? "allow" : "";
     },
   };
   return { sink, updates, perms };

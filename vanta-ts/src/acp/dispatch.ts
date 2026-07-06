@@ -39,11 +39,11 @@ export function buildInitializeResult(): {
   };
 }
 
-/** Resolve a client's permission outcome → allowed boolean. `selected` allow* = true. */
-function permissionAllowed(result: unknown): boolean {
+/** Resolve a client's permission outcome → the selected optionId ("" = denied/unselected). */
+function permissionOptionId(result: unknown): string {
   const outcome = (result as { outcome?: { outcome?: string; optionId?: string } } | undefined)?.outcome;
-  if (!outcome || outcome.outcome !== "selected") return false;
-  return outcome.optionId === "allow" || String(outcome.optionId).startsWith("allow");
+  if (!outcome || outcome.outcome !== "selected") return "";
+  return String(outcome.optionId ?? "");
 }
 
 /** Parse one inbound line and dispatch it; emits a response/error for requests. */
@@ -51,7 +51,7 @@ export async function handleLine(
   line: string,
   manager: SessionManager,
   transport: AcpTransport,
-  pending: Map<JsonRpcId, (allowed: boolean) => void>,
+  pending: Map<JsonRpcId, (optionId: string) => void>,
 ): Promise<void> {
   const inbound = parseMessage(line);
   if (inbound.kind === "parse_error") {
@@ -62,7 +62,7 @@ export async function handleLine(
     const resolveOne = pending.get(inbound.id);
     if (resolveOne) {
       pending.delete(inbound.id);
-      resolveOne(inbound.error ? false : permissionAllowed(inbound.result));
+      resolveOne(inbound.error ? "" : permissionOptionId(inbound.result));
     }
     return;
   }

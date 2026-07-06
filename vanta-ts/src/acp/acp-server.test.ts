@@ -131,7 +131,8 @@ describe("ACP server: request_permission round-trip", () => {
     await tick();
     const ask = sent(s.out).find((m) => m.method === "session/request_permission");
     expect(ask).toBeTruthy();
-    expect(ask.params.options.map((o: { optionId: string }) => o.optionId)).toEqual(["allow", "reject"]);
+    // EXT-ACP-EDIT-DIFF: a file tool gets the 3-option edit menu (allow / allow-session / reject).
+    expect(ask.params.options.map((o: { optionId: string }) => o.optionId)).toEqual(["allow", "allow_always", "reject"]);
     // client answers: selected the allow option
     s.push({ jsonrpc: "2.0", id: ask.id, result: { outcome: { outcome: "selected", optionId: "allow" } } });
     await tick();

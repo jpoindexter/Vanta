@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { FILE_TOOLS, EDIT_PERMISSION_OPTIONS, decideEditPrompt, pathFromAction } from "./edit-policy.js";
 import type { StreamEvent } from "../agent/agent-types.js";
 
 // ACP session lifecycle — PURE + injectable. Owns the set of live sessions, maps
@@ -17,7 +18,7 @@ export type RunRequest = {
   /** Emit an agent StreamEvent — the session converts it to a session/update. */
   emit: (event: StreamEvent) => void;
   /** Ask the host to approve a gated action; resolves true=allow, false=deny. */
-  approve: (action: string, reason: string, toolName?: string) => Promise<boolean>;
+  approve: (action: string, reason: string, toolName?: string, detail?: { diff?: string }) => Promise<boolean>;
 };
 
 /** The injected agent runner: drives a Vanta conversation for one prompt turn. */
@@ -29,9 +30,10 @@ export type SessionSink = {
   update: (sessionId: string, update: SessionUpdate) => void;
   /**
    * Send an agent→client `session/request_permission` request and await the
-   * client's chosen option. Returns true when an allow option was selected.
+   * client's chosen optionId ("" = denied/closed). EXT-ACP-EDIT-DIFF reads the
+   * id (not just allow-ness) so "allow_always" can arm the session grant.
    */
-  requestPermission: (sessionId: string, req: PermissionRequest) => Promise<boolean>;
+  requestPermission: (sessionId: string, req: PermissionRequest) => Promise<string>;
 };
 
 /** The `session/update` payload union (the subset Vanta emits). */
@@ -46,7 +48,7 @@ export type ToolCallContent = { type: "content"; content: { type: "text"; text: 
 
 /** The permission ask carried to the client (mirrors ACP `request_permission`). */
 export type PermissionRequest = {
-  toolCall: { toolCallId: string; title: string };
+  toolCall: { toolCallId: string; title: string; content?: ToolCallContent[] };
   options: PermissionOption[];
 };
 export type PermissionOption = { optionId: string; name: string; kind: PermissionOptionKind };
@@ -64,6 +66,8 @@ type Session = {
   modeId: string;
   /** The current turn's abort controller, when a prompt is running. */
   abort?: AbortController;
+  /** EXT-ACP-EDIT-DIFF: "Allow edits this session" grant (sensitive paths still prompt). */
+  autoApproveEdits?: boolean;
 };
 
 /** Map an agent StreamEvent to its `session/update` payload, or null if it has none. */
@@ -136,6 +140,31 @@ export class SessionManager {
     return true;
   }
 
+  /**
+   * EXT-ACP-EDIT-DIFF — route one approval ask through the edit policy: file
+   * tools carry the old/new diff + an "Allow edits this session" option, and a
+   * standing grant auto-approves NON-sensitive paths without a prompt
+   * (sensitive paths always prompt). Non-file asks keep the classic menu.
+   */
+  private async approveWithEditPolicy(
+    s: Session,
+    ask: { action: string; reason: string; toolName?: string; diff?: string },
+  ): Promise<boolean> {
+    const isFileTool = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName);
+    if (isFileTool && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
+      return true;
+    }
+    const content: ToolCallContent[] | undefined = ask.diff
+      ? [{ type: "content", content: { type: "text", text: ask.diff } }]
+      : undefined;
+    const optionId = await this.sink.requestPermission(s.id, {
+      toolCall: { toolCallId: ask.toolName ? toolId(ask.toolName) : "approval", title: ask.reason || ask.action, content },
+      options: isFileTool ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS,
+    });
+    if (optionId === "allow_always" && isFileTool) s.autoApproveEdits = true;
+    return optionId.startsWith("allow");
+  }
+
   /** Cancel the in-flight prompt for a session (best-effort; no-op if idle). */
   cancel(sessionId: string): void {
     this.sessions.get(sessionId)?.abort?.abort();
@@ -155,11 +184,8 @@ export class SessionManager {
       const update = eventToUpdate(event);
       if (update) this.sink.update(sessionId, update);
     };
-    const approve = (action: string, reason: string, toolName?: string): Promise<boolean> =>
-      this.sink.requestPermission(sessionId, {
-        toolCall: { toolCallId: toolName ? toolId(toolName) : "approval", title: reason || action },
-        options: PERMISSION_OPTIONS,
-      });
+    const approve = (action: string, reason: string, toolName?: string, detail?: { diff?: string }): Promise<boolean> =>
+      this.approveWithEditPolicy(s, { action, reason, toolName, diff: detail?.diff });
     try {
       const { stopReason } = await this.runner({ sessionId, prompt, signal: abort.signal, emit, approve });
       return { stopReason: abort.signal.aborted ? "cancelled" : stopReason };

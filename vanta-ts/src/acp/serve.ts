@@ -28,7 +28,7 @@ export function buildAcpRunner(setup: Setup, root: string, buildSummarizer: (p: 
       safety: setup.safety,
       registry: setup.registry,
       root,
-      requestApproval: (action, reason, toolName) => req.approve(action, reason, toolName),
+      requestApproval: (action, reason, toolName, detail) => req.approve(action, reason, toolName, detail),
       onEvent: (event: StreamEvent) => req.emit(event),
       summarize: buildSummarizer(setup.provider) as never,
       signal: req.signal,

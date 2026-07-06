@@ -88,6 +88,20 @@ export const editFileTool: Tool = {
     },
   },
   describeForSafety: (a) => `edit file ${String(a.path ?? "")}`,
+  // EXT-ACP-EDIT-DIFF — old/new preview attached to the approval ask.
+  describeDiff: async (a, root) => {
+    const { readFile } = await import("node:fs/promises");
+    const { resolve } = await import("node:path");
+    const { buildLineDiff } = await import("../acp/edit-policy.js");
+    const path = String(a.path ?? "");
+    const oldStr = typeof a.old_string === "string" ? a.old_string : "";
+    const newStr = typeof a.new_string === "string" ? a.new_string : "";
+    if (!path || !oldStr) return undefined;
+    const old = await readFile(resolve(root, path), "utf8").catch(() => null);
+    if (old === null || !old.includes(oldStr)) return undefined;
+    const next = a.replace_all === true ? old.split(oldStr).join(newStr) : old.replace(oldStr, newStr);
+    return buildLineDiff(old, next);
+  },
   async execute(raw, ctx) {
     const parsed = Args.safeParse(raw);
     if (!parsed.success) {
