@@ -12798,13 +12798,14 @@
       "id": "PORT-A2A-TRANSPORT",
       "track": "Extensibility",
       "title": "A2A networked transport behind a Transport interface",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Audit: A2ABus register/send is a clean port (a2a/local.ts:12) but only an in-process impl exists; networked transport is deferred and the handler map + dispatch are fused (local.ts:23). Mirror MCP's Transport interface so an HTTP/remote A2A transport drops in under the existing bus.",
       "done": "A2A has a Transport seam below the bus; a networked transport can be added without editing send(); mirrors mcp/client.ts Transport.",
       "tier": "sand",
       "effort": "low",
-      "updated": "2026-06-17"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. A2ABus.send() no longer fuses the handler-map lookup + dispatch: extracted a DeliveryTransport seam BELOW the bus (deliver(msg)->reply + reaches()), mirroring mcp/client.ts's Transport interface. LocalDelivery implements it over the handler map (the default in-process adapter; owns register/unregister/has/reaches). A2ABus now composes a LocalDelivery + an OPTIONAL injected remote transport: send() routes local-registered targets through local delivery and any other target through the remote transport when one was passed to the constructor — so an HTTP / Google-A2A transport drops in as a constructor arg, NOT an edit to send() (the card's exact criterion). list() unions local + remote reach; no-remote + unknown target keeps the original helpful 'no agent registered' error. Fully backward-compatible: register/send/list signatures unchanged, globalBus untouched, the 7 existing tests pass verbatim. 4 new tests (remote handles non-local target without send() edits, local target skips remote, list union, LocalDelivery-as-transport). Full suite 1033 files/11647 green; tsc + size gate clean. The remote transport itself (HTTP client) is the follow-up adapter — this ships the seam it slots into, per the port card's scope."
     },
     {
       "id": "ARCH-DEAD-BRAIN-CLEANUP",

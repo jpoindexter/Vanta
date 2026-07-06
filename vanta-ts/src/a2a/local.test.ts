@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { A2ABus, makeMessage } from "./local.js";
+import { A2ABus, LocalDelivery, makeMessage, type DeliveryTransport } from "./local.js";
 import type { A2AMessage, A2AHandler } from "./types.js";
 
 const echo: A2AHandler = (msg: A2AMessage) =>
@@ -83,5 +83,47 @@ describe("makeMessage", () => {
     const n2 = Number(second.id.replace("a2a-", ""));
     expect(first.id).toMatch(/^a2a-\d+$/);
     expect(n2).toBe(n1 + 1);
+  });
+});
+
+describe("PORT-A2A-TRANSPORT — the delivery seam below the bus", () => {
+  const reply = (to: string, from: string): A2AMessage => makeMessage({ from: to, to: from, text: "ok", role: "agent" });
+
+  it("a networked transport handles a non-local target WITHOUT editing send()", async () => {
+    const delivered: string[] = [];
+    const remote: DeliveryTransport = {
+      deliver: async (m) => { delivered.push(m.to); return reply(m.to, m.from); },
+      reaches: () => ["cloud-agent"],
+    };
+    const bus = new A2ABus(remote);
+    bus.register("local-agent", (m) => reply(m.to, m.from));
+
+    // Local target → local delivery (remote not touched).
+    await bus.send(makeMessage({ from: "me", to: "local-agent", text: "hi" }));
+    expect(delivered).toEqual([]);
+    // Unknown-locally target → the injected remote transport handles it.
+    const r = await bus.send(makeMessage({ from: "me", to: "cloud-agent", text: "hi" }));
+    expect(delivered).toEqual(["cloud-agent"]);
+    expect(r?.role).toBe("agent");
+  });
+
+  it("list() unions local + remote reach", () => {
+    const remote: DeliveryTransport = { deliver: async () => null, reaches: () => ["cloud-a", "cloud-b"] };
+    const bus = new A2ABus(remote);
+    bus.register("local-a", (m) => reply(m.to, m.from));
+    expect(bus.list().sort()).toEqual(["cloud-a", "cloud-b", "local-a"]);
+  });
+
+  it("no remote transport + unknown target → the local helpful error (unchanged)", async () => {
+    const bus = new A2ABus();
+    await expect(bus.send(makeMessage({ from: "me", to: "ghost", text: "?" }))).rejects.toThrow(/no agent registered for "ghost"/);
+  });
+
+  it("LocalDelivery is itself a DeliveryTransport (the default adapter)", async () => {
+    const local = new LocalDelivery();
+    local.register("x", (m) => reply(m.to, m.from));
+    expect(local.has("x")).toBe(true);
+    expect(local.reaches()).toEqual(["x"]);
+    expect((await local.deliver(makeMessage({ from: "me", to: "x", text: "hi" })))?.role).toBe("agent");
   });
 });
