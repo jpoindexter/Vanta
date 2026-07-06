@@ -4,6 +4,7 @@ import type { ToolContext } from "../tools/types.js";
 import type { ToolCall, Verdict } from "../types.js";
 import type { AgentDeps } from "../agent.js";
 import { shouldWarn, buildSelfMonitorText } from "../repl/self-monitor.js";
+import { autoApproveOverridden, recordAutoDecision } from "./decision-log.js";
 import { shouldRetryTool, resolveToolRetries } from "../tool-retry.js";
 import { applyCompression, compressEnabled, shouldCompressTool } from "../compress/apply.js";
 import { densifySearchResult, shouldDensifyTool } from "../compress/search-densify.js";
@@ -96,14 +97,21 @@ async function handleAskDecision(o: {
   tool?: DiffCapable;
 }): Promise<SafetyGateResult> {
   const { call, action, verdict, decision, deps, root, tool } = o;
-  if (acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+  // DECISION-CLASSIFIER: a blanket auto-approve grant must NOT silently clear a
+  // decision that overrides the operator's stated direction (user-challenge) —
+  // it is forced to the prompt below. Taste decisions auto-decide but are logged
+  // for the final-gate batch. Guarded so a grantless run is byte-identical.
+  const overridesDirection = autoApproveOverridden(action, deps.activeGoalText);
+  if (!overridesDirection && acceptsEditsWithoutKernel(resolvePermissionMode(process.env), call.name)) {
+    recordAutoDecision(action, deps.activeGoalText); // log a taste auto-decision for the final gate
     await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "accept-edits-auto" });
     return { approved: true, reason: "acceptEdits (kernel block still enforced)" };
   }
   // DELEGATED-AUTHORITY-WIRE: an Ask within an active grant's bound is
   // auto-approved (+ audited) without a prompt; no grant → falls through.
-  const delegated = await delegatedGateResult(call, action);
+  const delegated = overridesDirection ? null : await delegatedGateResult(call, action);
   if (delegated) {
+    recordAutoDecision(action, deps.activeGoalText);
     await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "delegated-auto" });
     return delegated;
   }
