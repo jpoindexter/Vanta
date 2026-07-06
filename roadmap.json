@@ -14329,7 +14329,7 @@
       "id": "MSG-TELEGRAM-ROBUST",
       "track": "Operator",
       "title": "Telegram flood-control retry + forum-topic routing",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The basic Telegram adapter skips real edge cases. Add RetryAfter flood-control retry with backoff, forum/DM topic routing via message_thread_id, and disable_web_page_preview to avoid unfurl spam.",
       "done": "A 429 RetryAfter triggers a backoff-retry instead of a dropped send; replies route to the correct forum topic; link previews are suppressed; covered by adapter tests.",
@@ -14338,8 +14338,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-06",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-06. telegram.ts: (1) 429 flood-control backoff-retry — parseRetryAfter reads Telegram's {error_code:429, parameters.retry_after} shape (capped 30s, default 1s), sendPart retries up to 3 attempts with an injected sleep seam, the retried send's message id is still recorded for the reply-context store; sustained flood gives up bounded, never hangs. (2) Forum-topic routing — inbound getUpdates parses message_thread_id + is_topic_message; threadId is set ONLY for real topic messages (message_thread_id also rides on plain replies where echoing it back would be wrong — tested); Inbound/OutboundMessage gain optional threadId (additive, 46-caller blast radius untouched) and run-session.ts copies it inbound->reply GENERICALLY (any adapter can adopt the field); sends include message_thread_id when set. (3) link_preview_options:{is_disabled:true} on every send (Bot API 7+ shape). 7 new adapter tests (fetch-stubbed send path: preview suppression, topic routing, plain-send omission, retry-then-succeed with sleep assertion + id recovery, bounded give-up, topic-vs-plain-reply parse). Full suite 1023 files/11550 green; tsc + size gate clean. Live Telegram not exercised (needs VANTA_TELEGRAM_TOKEN) — the fetch-level request bodies are asserted byte-exact instead."
     },
     {
       "id": "MSG-INLINE-APPROVAL",

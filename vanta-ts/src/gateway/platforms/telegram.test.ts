@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseUpdates, parseAllowlist, parseSentId } from "./telegram.js";
+import type { OutboundMessage } from "./base.js";
+import { TelegramAdapter, parseRetryAfter, parseUpdates, parseAllowlist, parseSentId } from "./telegram.js";
 
 describe("parseUpdates", () => {
   it("extracts text messages and advances the offset past the max update_id", () => {
@@ -96,5 +97,101 @@ describe("parseAllowlist", () => {
   });
   it("is empty (allow-all) for undefined", () => {
     expect(parseAllowlist(undefined).size).toBe(0);
+  });
+});
+
+describe("parseRetryAfter", () => {
+  it("reads Telegram's 429 flood-control shape, capped at 30s", () => {
+    expect(parseRetryAfter({ ok: false, error_code: 429, parameters: { retry_after: 4 } })).toBe(4);
+    expect(parseRetryAfter({ ok: false, error_code: 429, parameters: { retry_after: 900 } })).toBe(30);
+    expect(parseRetryAfter({ ok: false, error_code: 429 })).toBe(1);
+    expect(parseRetryAfter({ ok: false, error_code: 400 })).toBeUndefined();
+    expect(parseRetryAfter({ ok: true, result: { message_id: 1 } })).toBeUndefined();
+  });
+});
+
+describe("MSG-TELEGRAM-ROBUST send behavior", () => {
+  type Sent = { body: Record<string, unknown> };
+
+  function fetchStub(responses: unknown[], sent: Sent[]): typeof fetch {
+    let i = 0;
+    return (async (_url: unknown, init?: RequestInit) => {
+      sent.push({ body: JSON.parse(String(init?.body)) as Record<string, unknown> });
+      const payload = responses[Math.min(i, responses.length - 1)];
+      i += 1;
+      return { json: async () => payload } as Response;
+    }) as typeof fetch;
+  }
+
+  const OK = { ok: true, result: { message_id: 77 } };
+  const FLOOD = { ok: false, error_code: 429, parameters: { retry_after: 2 } };
+
+  async function withFetch(responses: unknown[], run: (a: TelegramAdapter, sent: Sent[], sleeps: number[]) => Promise<void>): Promise<void> {
+    const sent: Sent[] = [];
+    const sleeps: number[] = [];
+    const real = globalThis.fetch;
+    globalThis.fetch = fetchStub(responses, sent);
+    try {
+      const adapter = new TelegramAdapter({ token: "T", sleep: async (ms) => void sleeps.push(ms) });
+      await run(adapter, sent, sleeps);
+    } finally {
+      globalThis.fetch = real;
+    }
+  }
+
+  it("suppresses link previews on every send", async () => {
+    await withFetch([OK], async (a, sent) => {
+      await a.send({ chatId: "5", text: "see https://example.com" });
+      expect(sent[0]?.body.link_preview_options).toEqual({ is_disabled: true });
+    });
+  });
+
+  it("routes a threaded reply back to its forum topic", async () => {
+    await withFetch([OK], async (a, sent) => {
+      await a.send({ chatId: "5", threadId: "42", text: "hi" });
+      expect(sent[0]?.body.message_thread_id).toBe(42);
+    });
+  });
+
+  it("omits message_thread_id for plain (non-topic) sends", async () => {
+    await withFetch([OK], async (a, sent) => {
+      await a.send({ chatId: "5", text: "hi" });
+      expect("message_thread_id" in (sent[0]?.body ?? {})).toBe(false);
+    });
+  });
+
+  it("retries a 429 after retry_after seconds instead of dropping the send", async () => {
+    await withFetch([FLOOD, OK], async (a, sent, sleeps) => {
+      const msg: OutboundMessage = { chatId: "5", text: "hi" };
+      await a.send(msg);
+      expect(sent).toHaveLength(2);
+      expect(sleeps).toEqual([2000]);
+      expect(msg.id).toBe("77"); // the retried send's id is still recorded
+    });
+  });
+
+  it("gives up after bounded attempts under sustained flood control", async () => {
+    await withFetch([FLOOD, FLOOD, FLOOD, FLOOD], async (a, sent, sleeps) => {
+      const msg: OutboundMessage = { chatId: "5", text: "hi" };
+      await a.send(msg);
+      expect(sent).toHaveLength(3); // MAX_SEND_ATTEMPTS
+      expect(sleeps).toEqual([2000, 2000]);
+      expect(msg.id).toBeUndefined();
+    });
+  });
+});
+
+describe("parseUpdates forum topics", () => {
+  it("carries threadId only for real topic messages", () => {
+    const payload = {
+      ok: true,
+      result: [
+        { update_id: 1, message: { message_id: 10, text: "in topic", chat: { id: 5, type: "supergroup" }, message_thread_id: 42, is_topic_message: true } },
+        { update_id: 2, message: { message_id: 11, text: "plain reply", chat: { id: 5, type: "supergroup" }, message_thread_id: 10, reply_to_message: { message_id: 10 } } },
+      ],
+    };
+    const { messages } = parseUpdates(payload, 0);
+    expect(messages[0]?.threadId).toBe("42");
+    expect(messages[1]?.threadId).toBeUndefined(); // thread id on a plain reply is NOT a topic
   });
 });

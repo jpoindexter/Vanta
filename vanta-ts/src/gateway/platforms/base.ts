@@ -31,6 +31,8 @@ export type InboundMessage = {
   isGroup?: boolean;
   /** Id of the message this one replies to, when the platform provides it. */
   replyToId?: string;
+  /** Forum topic / thread the message belongs to; replies route back to it. */
+  threadId?: string;
   /**
    * Internal: the LLM-facing rendering of `text` (timestamp + quote enriched).
    * Set by the inbound pipeline for the agent turn only; `text` stays the clean,
@@ -44,6 +46,8 @@ export type OutboundMessage = {
   text: string;
   /** Platform message id assigned to the sent message, when known (reply-context key). */
   id?: string;
+  /** Forum topic / thread to deliver into (copied from the inbound message). */
+  threadId?: string;
   /** MSG-MEDIA-IMAGES — an image to send back with the reply (screenshot, chart, generated). */
   image?: { mime: string; dataBase64: string };
 };

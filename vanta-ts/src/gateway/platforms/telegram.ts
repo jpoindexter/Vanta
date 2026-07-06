@@ -21,6 +21,8 @@ const UpdatesResponse = z.object({
           message_id: z.number().optional(),
           text: z.string().optional(),
           chat: z.object({ id: z.number(), type: z.string().optional() }),
+          message_thread_id: z.number().optional(),
+          is_topic_message: z.boolean().optional(),
           from: z.object({ username: z.string().optional(), first_name: z.string().optional() }).optional(),
           reply_to_message: z.object({ message_id: z.number().optional() }).optional(),
         })
@@ -69,6 +71,10 @@ export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpd
       from: m.from?.username ?? m.from?.first_name,
       id: m.message_id !== undefined ? String(m.message_id) : undefined,
       isGroup: isGroupChat(m.chat.type),
+      // MSG-TELEGRAM-ROBUST: only a real forum-topic message routes replies to
+      // its topic — message_thread_id also rides on plain replies, where it is
+      // NOT a topic and must not be echoed back.
+      threadId: m.is_topic_message && m.message_thread_id !== undefined ? String(m.message_thread_id) : undefined,
       replyToId: replyToId !== undefined ? String(replyToId) : undefined,
     });
   }
@@ -91,6 +97,23 @@ export function parseSentId(payload: unknown): string | undefined {
   return String(parsed.data.result.message_id);
 }
 
+// Telegram flood control: {ok:false, error_code:429, parameters:{retry_after:N}}.
+const RetryResponse = z.object({
+  ok: z.literal(false),
+  error_code: z.number(),
+  parameters: z.object({ retry_after: z.number() }).optional(),
+});
+
+const MAX_SEND_ATTEMPTS = 3;
+const MAX_RETRY_AFTER_SEC = 30;
+
+/** Seconds to wait per Telegram's 429 flood-control response, or undefined. Pure. */
+export function parseRetryAfter(payload: unknown): number | undefined {
+  const parsed = RetryResponse.safeParse(payload);
+  if (!parsed.success || parsed.data.error_code !== 429) return undefined;
+  return Math.min(parsed.data.parameters?.retry_after ?? 1, MAX_RETRY_AFTER_SEC);
+}
+
 /** Read a response body as JSON, returning undefined instead of throwing. */
 async function safeJson(res: Response): Promise<unknown> {
   try {
@@ -105,10 +128,12 @@ export class TelegramAdapter implements PlatformAdapter {
   private offset = 0;
   private readonly base: string;
   private readonly allow: Set<string>;
+  private readonly sleep: (ms: number) => Promise<void>;
 
-  constructor(opts: { token: string; allow?: Set<string>; apiBase?: string }) {
+  constructor(opts: { token: string; allow?: Set<string>; apiBase?: string; sleep?: (ms: number) => Promise<void> }) {
     this.base = `${opts.apiBase ?? "https://api.telegram.org"}/bot${opts.token}`;
     this.allow = opts.allow ?? new Set();
+    this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 
   async connect(): Promise<void> {
@@ -125,20 +150,41 @@ export class TelegramAdapter implements PlatformAdapter {
     return this.allow.size === 0 ? messages : messages.filter((m) => this.allow.has(m.chatId));
   }
 
+  /** POST one part, retrying on 429 flood control per Telegram's retry_after
+   * (bounded attempts) instead of dropping the send. Returns the sent id. */
+  private async sendPart(msg: OutboundMessage, part: string): Promise<string | undefined> {
+    const body = JSON.stringify({
+      chat_id: msg.chatId,
+      text: part,
+      parse_mode: "MarkdownV2",
+      // MSG-TELEGRAM-ROBUST: replies to a forum topic route back to it; link
+      // previews are suppressed (agent replies are often link-dense).
+      ...(msg.threadId !== undefined ? { message_thread_id: Number(msg.threadId) } : {}),
+      link_preview_options: { is_disabled: true },
+    });
+    for (let attempt = 1; ; attempt += 1) {
+      const res = await fetch(`${this.base}/sendMessage`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+      });
+      const payload = await safeJson(res);
+      const retryAfterSec = parseRetryAfter(payload);
+      if (retryAfterSec === undefined || attempt >= MAX_SEND_ATTEMPTS) return parseSentId(payload);
+      await this.sleep(retryAfterSec * 1000);
+    }
+  }
+
   async send(msg: OutboundMessage): Promise<void> {
     // Escape the agent's markdown for Telegram's MarkdownV2 (code protected first)
     // BEFORE splitting, then send with parse_mode so bold/code render — not leak.
     const formatted = formatForDialect(msg.text, "telegram");
     for (const part of splitForLimit(formatted, TELEGRAM_LIMIT, "utf16")) {
-      const res = await fetch(`${this.base}/sendMessage`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ chat_id: msg.chatId, text: part, parse_mode: "MarkdownV2" }),
-      });
+      const id = await this.sendPart(msg, part);
       // Record the FIRST sent part's id as the message's reply-context key, so the
       // gateway's record-on-send (reply-store) can key the bot's reply. A split
       // message's head is the stable reply target.
-      if (msg.id === undefined) msg.id = await parseSentId(await safeJson(res));
+      if (msg.id === undefined) msg.id = id;
     }
   }
 }

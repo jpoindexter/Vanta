@@ -52,7 +52,8 @@ async function runOne(ctx: SessionRun, m: InboundMessage): Promise<void> {
   // MSG-NO-REPLY-TOKEN: an exact whole-response silence marker suppresses delivery
   // (group/channel surfaces); prose mentioning the marker still sends.
   if (isIntentionalSilence(reply)) { ctx.log(`  🤫 silence (${reply.trim()}): no reply sent`); return; }
-  const out: OutboundMessage = { chatId: m.chatId, text: reply };
+  // MSG-TELEGRAM-ROBUST: a forum-topic inbound routes the reply back to its topic.
+  const out: OutboundMessage = { chatId: m.chatId, threadId: m.threadId, text: reply };
   await ctx.platform.send(out);
   await recordReply(ctx, out);
 }
