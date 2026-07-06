@@ -12268,13 +12268,14 @@
       "id": "ASI-FORECAST-CALIBRATION",
       "track": "Solutioning",
       "title": "Calibrated solutioning — ranged/ensembled recommendations + revisit triggers",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "From 'From AGI to ASI' (recurring): entertain a range of possibilities, attach uncertainty estimates to forecasts, ensemble, and frequently revisit. Make Vanta's solutioning recommendations carry calibrated ranges (best/realistic/worst) instead of point estimates, and emit a revisit trigger when a key assumption is cheap to check or likely stale. See docs/from-agi-to-asi-notes.md.",
       "done": "A solutioning recommendation ships with a range + named uncertainty drivers + a concrete revisit trigger, not a single-point claim.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. solutioning/calibration.ts (pure, from docs/from-agi-to-asi-notes.md): CalibratedRecommendation = {claim, metric, range best/realistic/worst, confidence, uncertaintyDrivers[], revisitTrigger} — the SHAPE a solutioning recommendation must ship in, never a bare point. calibrateRange widens the best↔worst band as confidence drops (higherIsBetter flips it for good-when-larger metrics); ensembleRange means independent estimates and DERIVES confidence from their divergence (≤25% spread→high, >60%→low — 'entertain a range, ensemble' made concrete; throws on empty); isCalibrated enforces the contract (≥1 named driver + a revisit trigger + ordered range) so a point estimate is rejected; formatRecommendation renders range+drivers+trigger. 8 tests (band widening + flip, ensemble agree/diverge/empty, isCalibrated rejects a bare point / missing trigger / inverted range, formatter shows all three parts). Full suite 1035 files/11662 green; tsc + size gate clean. The primitive is what solutioning outputs (ideation/launchpad/research-decompose) format against; no single emit hook existed to retrofit, so the calibrated shape + its guard is the deliverable per the done criterion."
     },
     {
       "id": "AHE-REGRESSION-FORESIGHT",
