@@ -14,6 +14,8 @@ import { schemasWithStructuredOutput } from "./structured-output.js";
 import { consumeStream } from "./stream-dispatch.js";
 import { dispatchTool } from "./dispatch-tool.js";
 import { isTransientError, resolveProviderRetries } from "../tool-retry.js";
+import { classifyProviderError } from "../providers/error-taxonomy.js";
+import { stripAllImages } from "./image-recovery.js";
 
 export type ProviderCall = {
   ctx: ToolContext;
@@ -45,11 +47,9 @@ export async function getCompletionWithContextRetry(
     try {
       return { ok: true, result: await getCompletion(args.deps, sanitizeMessages(args.messages), args.signal, args.providerCall) };
     } catch (err) {
-      if (isContextLengthError(err)) break; // context window → compaction path below
-      if (!isTransientError(err)) throw err; // non-transient → fail fast (a real bug, not a hiccup)
-      if (attempt >= retries || args.signal?.aborted) {
-        return { ok: false, error: `Stopped: provider error after ${attempt + 1} attempt(s) — ${err instanceof Error ? err.message : String(err)}` };
-      }
+      const action = await handleAttemptError(err, args, attempt, retries);
+      if (action === "compact") break; // context window → the compaction path below
+      if (action !== "retry") return action; // a settled result (image recovery or a stop)
       await backoff(attempt);
     }
   }
@@ -59,6 +59,45 @@ export async function getCompletionWithContextRetry(
   } catch (err) {
     if (!isContextLengthError(err)) throw err;
     return { ok: false, error: "Stopped: provider context window exceeded after one compaction retry." };
+  }
+}
+
+type SettledResult = { ok: true; result: CompletionResult } | { ok: false; error: string };
+type AttemptAction = SettledResult | "compact" | "retry";
+
+/**
+ * Decide what a failed completion attempt should do: "compact" (context-window
+ * error → the compaction path), a settled result (413/image recovery, or the
+ * stop verdict once retries are spent), "retry" (transient → backoff + loop), or
+ * throw (non-transient). Extracted so the loop stays under the size gate.
+ */
+async function handleAttemptError(err: unknown, args: CompletionRetryArgs, attempt: number, retries: number): Promise<AttemptAction> {
+  if (isContextLengthError(err)) return "compact";
+  // HARNESS-IMAGE-SHRINK: a 413/image_too_large is recoverable by stripping the
+  // oversized image parts and retrying as text — once, before giving up.
+  const imgRetry = await tryImageStripRetry(err, args);
+  if (imgRetry) return imgRetry;
+  if (!isTransientError(err)) throw err; // non-transient → fail fast (a real bug, not a hiccup)
+  if (attempt >= retries || args.signal?.aborted) {
+    return { ok: false, error: `Stopped: provider error after ${attempt + 1} attempt(s) — ${err instanceof Error ? err.message : String(err)}` };
+  }
+  return "retry";
+}
+
+/** HARNESS-IMAGE-SHRINK — if `err` is a 413/image error and the messages carry
+ * images, strip them and retry ONCE as text; else null (let the normal path run). */
+async function tryImageStripRetry(
+  err: unknown,
+  args: CompletionRetryArgs,
+): Promise<{ ok: true; result: CompletionResult } | { ok: false; error: string } | null> {
+  const reason = classifyProviderError(err).reason;
+  if (reason !== "image_too_large" && reason !== "payload_too_large") return null;
+  const { messages: stripped, stripped: n } = stripAllImages(args.messages);
+  if (n === 0) return null; // no images to shed → not the recoverable case
+  try {
+    return { ok: true, result: await getCompletion(args.deps, sanitizeMessages(stripped), args.signal, args.providerCall) };
+  } catch (retryErr) {
+    return { ok: false, error: `Stopped: image too large; retry without ${n} image(s) also failed — ${retryErr instanceof Error ? retryErr.message : String(retryErr)}` };
   }
 }
 

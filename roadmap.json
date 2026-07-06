@@ -14550,7 +14550,7 @@
       "id": "HARNESS-IMAGE-SHRINK",
       "track": "Harness",
       "title": "Strip historical media on compaction + shrink-on-413 retry",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Vision-to-action screenshots bloat context and cause image_too_large/413 failures. Strip historical media on compaction so old screenshots stop costing tokens, and on a 413/image_too_large shrink or strip oversized image parts in-place and retry instead of failing the turn.",
       "done": "Old screenshots are dropped from compacted history; a 413 image error triggers an in-place shrink-and-retry rather than a turn failure; both paths unit-tested.",
@@ -14559,8 +14559,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "agent-loop",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. agent/image-recovery.ts (pure): stripHistoricalImages(messages, keepLast=1) drops the images field (text intact) from all but the most-recent image-bearing message — wired into context.ts compactConversation so post-compaction historical screenshots stop costing tokens (bug caught+fixed pre-ship: slice(-0) returns the WHOLE array, so keepLast=0 short-circuits to keep nothing). stripAllImages removes every image + leaves a '[image omitted — too large]' breadcrumb per affected message (never silently lost), returning the stripped count. 413/IMAGE RETRY: provider-call.ts getCompletionWithContextRetry now routes each attempt error through handleAttemptError (extracted for the cx gate) → on a classifyProviderError image_too_large/payload_too_large verdict with images present, stripAllImages + retry ONCE as text instead of failing the turn; no images → falls through to the normal transient/fail-fast path. 7 tests (keep-most-recent, keepLast=0 strips all, no-op, strip-all breadcrumb incl. empty-content message, stripped=0 skip) + existing context/provider-call suites green. Full suite 1041 files/11702 green; tsc + size gate clean. Reuses the pre-existing error-taxonomy image_too_large/payload_too_large classes (were retryable:false / compress-only — now actually recovered in-place)."
     },
     {
       "id": "HARNESS-EVENTS-WAIT",

@@ -135,6 +135,8 @@ export type CompactResult = { messages: Message[]; compacted: boolean; dropped: 
  * shrink it. Returns compacted=false (with the originals) when under threshold,
  * too short to compact, or the summarizer throws.
  */
+import { stripHistoricalImages } from "./agent/image-recovery.js";
+
 export async function compactConversation(
   messages: Message[],
   contextWindow: number,
@@ -153,7 +155,10 @@ export async function compactConversation(
     await opts.onPreCompact?.(middle).catch(() => {});
     const summary = await summarize(middle);
     const note: Message = { role: "user", content: `[Summary of ${middle.length} earlier messages]: ${summary}` };
-    return { messages: [...system, ...head, note, ...tail], compacted: true, dropped: middle.length, summary, compactedWindow: middle };
+    // HARNESS-IMAGE-SHRINK: historical screenshots stop costing tokens post-compaction —
+    // keep images only on the most recent image-bearing survivor.
+    const survivors = stripHistoricalImages([...system, ...head, note, ...tail]).messages;
+    return { messages: survivors, compacted: true, dropped: middle.length, summary, compactedWindow: middle };
   } catch {
     return none;
   }
