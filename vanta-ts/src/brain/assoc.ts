@@ -5,6 +5,7 @@ import {
   isDecayed,
   type BrainEntry,
 } from "./entries.js";
+import { buildEntityIndexFrom, entityScores } from "../search/entities.js";
 
 // Association — how the brain connects ideas. Memories auto-link to similar
 // memories when written, and recall is SPREADING ACTIVATION: a direct hit also
@@ -86,12 +87,23 @@ export async function autoLink(entry: BrainEntry, env?: NodeJS.ProcessEnv): Prom
 
 export type Activation = { entry: BrainEntry; activation: number; via: "direct" | "association" };
 
-/** Rank direct matches: score × relevance (similarity, with substring affinity). */
+// BRAIN-ENTITY-SIGNAL — mem0's third signal: rarity-weighted entity match, a
+// score COMPONENT on top of token similarity (rank-fusing it as a peer list
+// measurably hurt — see mem-eval/retrievers.ts). 0.25 matches the measured
+// LoCoMo-optimal blend; a full match alone (0.25) clears DIRECT_MIN_REL, so a
+// memory sharing only a rare name with the query becomes recallable.
+const ENTITY_REL_BOOST = 0.25;
+
+/** Rank direct matches: score × relevance (similarity + substring + entity match). */
 function directHits(query: string | undefined, live: BrainEntry[], now: Date): Activation[] {
   const q = query?.trim();
+  const ent = q
+    ? entityScores(q, buildEntityIndexFrom(live.map((e) => ({ id: e.id, entities: e.entities }))))
+    : new Map<string, number>();
   return live
     .map((entry) => {
-      const rel = !q ? 1 : Math.max(similarity(q, entry.content), entry.content.toLowerCase().includes(q.toLowerCase()) ? 0.6 : 0);
+      const base = !q ? 1 : Math.max(similarity(q, entry.content), entry.content.toLowerCase().includes(q.toLowerCase()) ? 0.6 : 0);
+      const rel = !q ? 1 : Math.min(1, base + ENTITY_REL_BOOST * (ent.get(entry.id) ?? 0));
       return { entry, activation: entryScore(entry, now) * rel, via: "direct" as const, rel };
     })
     .filter((h) => h.rel >= (q ? DIRECT_MIN_REL : 1))

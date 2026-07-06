@@ -22,6 +22,7 @@ function entry(overrides: Partial<BrainEntry>): BrainEntry {
     sourceRef: overrides.sourceRef,
     contradicts: overrides.contradicts ?? [],
     relatedIds: overrides.relatedIds ?? [],
+    entities: overrides.entities ?? [],
     crystalStatus: overrides.crystalStatus ?? "raw",
     forgetAfter: overrides.forgetAfter,
   };

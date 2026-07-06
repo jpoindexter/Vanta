@@ -15900,13 +15900,15 @@
       "id": "BRAIN-ENTITY-SIGNAL",
       "track": "Operator",
       "title": "Entity-match recall signal — mem0's 3rd retrieval signal beyond lexical+semantic",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Vanta's recall fuses lexical + semantic (search/rrf.ts). mem0's v3 jump (LoCoMo 71→92) adds a THIRD signal: extract entities from each memory, link them across memories, and boost retrieval by entity match — with an IDF-like down-weight for over-linked entities (1/(1+0.001·(n-1)^2)) so a ubiquitous entity doesn't dominate. Add entity extraction + an entity-match score into the brain's fused ranker.",
       "done": "Brain recall scores an entity-match signal alongside lexical + semantic; entities are extracted, stored, and linked across memories; LongMemEval/LoCoMo recall@k improves vs the 2-signal baseline (measured via `vanta eval mem public`), else the signal is dropped.",
       "tier": "rock",
       "lens": "memory",
-      "source": "mem0-audit-2026-06-22"
+      "source": "mem0-audit-2026-06-22",
+      "updated": "2026-07-06",
+      "notes": "Shipped 2026-07-06 — MEASURED LIFT on the public benchmark. search/entities.ts (pure, deterministic — no LLM, honoring mem-eval's no-live-model rule): extractEntities (proper-noun spans + each word, emails, @handles; trailing punctuation breaks a span; cap-stopword filter), buildEntityIndex/buildEntityIndexFrom (entity -> record ids = the cross-memory links), entityWeight = 1/(1+0.001*(n-1)^2) (the card's exact over-link down-weight), entityScores (query-normalized 0..1) + entityRank. KEY NEGATIVE RESULT locked in a comment: fusing entity as an equal-rank RRF peer list DROPPED LoCoMo recall@5 32.4->14.8 (rank fusion flattens the rarity weights the formula exists to carry); the working shape is mem0's own — a score COMPONENT blended into lexical relevance (ENTITY_BLEND swept 0.25/0.5/1.0/2.0 -> 0.25 optimal). MEASURED via `vanta eval mem public`: LoCoMo recall@5 hybrid 32.4% -> 34.9% (+2.5pt; every category up: temporal 41.9->47.8, multi-session 9.4->14.5, IE 11.3->12.4, world-knowledge 38.9->40.3, adversarial 31.5->33.7); LongMemEval unregressed at 99.9%. Eval gains an `entity` mode (41.2% LongMemEval / 7.9% LoCoMo alone — weak solo, additive blended, exactly mem0's claim). BRAIN WIRING: BrainEntry gains `entities` (extracted at write in normalizeEntry, backfilled for legacy entries on load — every load path normalizes); assoc.ts directHits adds ENTITY_REL_BOOST 0.25 so a memory sharing only a rare name with the query clears DIRECT_MIN_REL and becomes recallable (tested). 10 entities tests + 5 brain entity-signal tests (storage, backfill, below-floor rare-entity recall, rank-above-equal-similarity); full suite 1019 files/11512 green; tsc + size gate clean."
     },
     {
       "id": "BRAIN-BM25-LEXICAL",

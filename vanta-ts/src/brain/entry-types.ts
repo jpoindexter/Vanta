@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { extractEntities } from "../search/entities.js";
 import { brainDir } from "./store.js";
 import { join } from "node:path";
 
@@ -66,6 +67,8 @@ export const RawEntrySchema = z
     sourceRef: z.string().optional(),
     contradicts: z.array(z.string()).optional(),
     relatedIds: z.array(z.string()).optional(),
+    /** BRAIN-ENTITY-SIGNAL — extracted at write; legacy entries backfill on load. */
+    entities: z.array(z.string()).optional(),
     crystalStatus: z.string().optional(),
     forgetAfter: z.string().optional(),
   })
@@ -88,6 +91,8 @@ export type BrainEntry = {
   sourceRef?: string;
   contradicts: string[];
   relatedIds: string[];
+  /** BRAIN-ENTITY-SIGNAL — deterministic entity keys for cross-memory linking. */
+  entities: string[];
   crystalStatus: CrystalStatus;
   forgetAfter?: string;
 };
@@ -128,6 +133,7 @@ export function normalizeEntry(raw: z.infer<typeof RawEntrySchema>, now = new Da
     sourceRef: raw.sourceRef,
     contradicts: raw.contradicts ?? [],
     relatedIds: raw.relatedIds ?? [],
+    entities: raw.entities ?? extractEntities(raw.content),
     crystalStatus: pickEnum<CrystalStatus>(raw.crystalStatus, CRYSTAL_STATUSES, "raw"),
     forgetAfter: raw.forgetAfter,
   };
