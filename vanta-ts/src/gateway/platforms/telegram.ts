@@ -16,6 +16,17 @@ const UpdatesResponse = z.object({
   result: z.array(
     z.object({
       update_id: z.number(),
+      // MSG-INLINE-APPROVAL — a tapped inline button arrives as callback_query;
+      // its `data` becomes the inbound text (e.g. "yes ab12cd"), which the
+      // approval reply bus consumes exactly like a typed reply.
+      callback_query: z
+        .object({
+          id: z.string(),
+          data: z.string().optional(),
+          from: z.object({ username: z.string().optional(), first_name: z.string().optional() }).optional(),
+          message: z.object({ chat: z.object({ id: z.number() }) }).optional(),
+        })
+        .optional(),
       message: z
         .object({
           message_id: z.number().optional(),
@@ -48,7 +59,38 @@ const SendResponse = z.object({
   result: z.object({ message_id: z.number() }).optional(),
 });
 
-export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number };
+export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number; callbackIds: string[] };
+
+type RawCallback = NonNullable<z.infer<typeof UpdatesResponse>["result"][number]["callback_query"]>;
+type RawMessage = z.infer<typeof UpdatesResponse>["result"][number]["message"];
+
+/** MSG-INLINE-APPROVAL — a tapped button becomes an inbound whose text is the callback data. */
+function callbackInbound(cb: RawCallback): InboundMessage | null {
+  if (!cb.data || !cb.message) return null;
+  return {
+    chatId: String(cb.message.chat.id),
+    text: cb.data,
+    from: cb.from?.username ?? cb.from?.first_name,
+    id: `cb-${cb.id}`,
+  };
+}
+
+/** A plain text update → inbound (thread routing per MSG-TELEGRAM-ROBUST). */
+function messageInbound(m: RawMessage): InboundMessage | null {
+  if (!m?.text) return null;
+  const replyToId = m.reply_to_message?.message_id;
+  return {
+    chatId: String(m.chat.id),
+    text: m.text,
+    from: m.from?.username ?? m.from?.first_name,
+    id: m.message_id !== undefined ? String(m.message_id) : undefined,
+    isGroup: isGroupChat(m.chat.type),
+    // Only a real forum-topic message routes replies to its topic —
+    // message_thread_id also rides on plain replies, where it is NOT a topic.
+    threadId: m.is_topic_message && m.message_thread_id !== undefined ? String(m.message_thread_id) : undefined,
+    replyToId: replyToId !== undefined ? String(replyToId) : undefined,
+  };
+}
 
 /**
  * Parse a getUpdates payload into inbound messages + the next offset (max
@@ -56,29 +98,24 @@ export type ParsedUpdates = { messages: InboundMessage[]; nextOffset: number };
  */
 export function parseUpdates(payload: unknown, currentOffset: number): ParsedUpdates {
   const parsed = UpdatesResponse.safeParse(payload);
-  if (!parsed.success || !parsed.data.ok) return { messages: [], nextOffset: currentOffset };
+  if (!parsed.success || !parsed.data.ok) return { messages: [], nextOffset: currentOffset, callbackIds: [] };
 
   const messages: InboundMessage[] = [];
+  const callbackIds: string[] = [];
   let maxId = currentOffset - 1;
   for (const u of parsed.data.result) {
     maxId = Math.max(maxId, u.update_id);
-    const m = u.message;
-    if (!m?.text) continue;
-    const replyToId = m.reply_to_message?.message_id;
-    messages.push({
-      chatId: String(m.chat.id),
-      text: m.text,
-      from: m.from?.username ?? m.from?.first_name,
-      id: m.message_id !== undefined ? String(m.message_id) : undefined,
-      isGroup: isGroupChat(m.chat.type),
-      // MSG-TELEGRAM-ROBUST: only a real forum-topic message routes replies to
-      // its topic — message_thread_id also rides on plain replies, where it is
-      // NOT a topic and must not be echoed back.
-      threadId: m.is_topic_message && m.message_thread_id !== undefined ? String(m.message_thread_id) : undefined,
-      replyToId: replyToId !== undefined ? String(replyToId) : undefined,
-    });
+    const cb = u.callback_query;
+    if (cb) {
+      callbackIds.push(cb.id);
+      const tapped = callbackInbound(cb);
+      if (tapped) messages.push(tapped);
+      continue;
+    }
+    const inbound = messageInbound(u.message);
+    if (inbound) messages.push(inbound);
   }
-  return { messages, nextOffset: maxId + 1 };
+  return { messages, nextOffset: maxId + 1, callbackIds };
 }
 
 /** Parse the VANTA_TELEGRAM_ALLOW chat-id allowlist (empty = allow all). Pure. */
@@ -145,8 +182,16 @@ export class TelegramAdapter implements PlatformAdapter {
 
   async poll(): Promise<InboundMessage[]> {
     const res = await fetch(`${this.base}/getUpdates?timeout=0&offset=${this.offset}`);
-    const { messages, nextOffset } = parseUpdates(await res.json(), this.offset);
+    const { messages, nextOffset, callbackIds } = parseUpdates(await res.json(), this.offset);
     this.offset = nextOffset;
+    // Ack every callback so Telegram stops the button spinner (best-effort).
+    for (const id of callbackIds) {
+      await fetch(`${this.base}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ callback_query_id: id }),
+      }).catch(() => {});
+    }
     return this.allow.size === 0 ? messages : messages.filter((m) => this.allow.has(m.chatId));
   }
 
@@ -160,6 +205,11 @@ export class TelegramAdapter implements PlatformAdapter {
       // MSG-TELEGRAM-ROBUST: replies to a forum topic route back to it; link
       // previews are suppressed (agent replies are often link-dense).
       ...(msg.threadId !== undefined ? { message_thread_id: Number(msg.threadId) } : {}),
+      // MSG-INLINE-APPROVAL — tappable buttons; the callback data round-trips
+      // as the inbound text the approval relay already parses.
+      ...(msg.buttons?.length
+        ? { reply_markup: { inline_keyboard: [msg.buttons.map((b) => ({ text: b.label, callback_data: b.data }))] } }
+        : {}),
       link_preview_options: { is_disabled: true },
     });
     for (let attempt = 1; ; attempt += 1) {

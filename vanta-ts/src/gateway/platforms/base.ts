@@ -48,6 +48,10 @@ export type OutboundMessage = {
   id?: string;
   /** Forum topic / thread to deliver into (copied from the inbound message). */
   threadId?: string;
+  /** MSG-INLINE-APPROVAL — tappable buttons; adapters without native buttons ignore
+   * them (the text itself must carry the fallback instruction). `data` is delivered
+   * back as an inbound message's text when tapped. */
+  buttons?: Array<{ label: string; data: string }>;
   /** MSG-MEDIA-IMAGES — an image to send back with the reply (screenshot, chart, generated). */
   image?: { mime: string; dataBase64: string };
 };

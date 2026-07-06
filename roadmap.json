@@ -14350,7 +14350,7 @@
       "id": "MSG-INLINE-APPROVAL",
       "track": "Operator",
       "title": "Inline-keyboard Approve/Deny for kernel approvals (Telegram)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Over chat, kernel approvals are plain-text only (type /approve). Render a pending approval as a tappable Approve/Deny inline keyboard on Telegram (shared callback-id convention), degrading gracefully to text on adapters that don't override. Reuses the existing permissions/request model.",
       "done": "A tool-call approval appears as Approve/Deny buttons in Telegram; tapping resolves the kernel approval; other adapters still show text; callback resolution unit-tested.",
@@ -14359,8 +14359,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07, directly on the CHANNEL-PERMISSIONS-WIRE relay shipped the same day. KEY DESIGN: a button's callback data IS the 'yes <id>'/'no <id>' reply text, so a tap flows through the exact same reply bus + relay race + allowlist as a typed reply — zero new approval logic, and the ALLOWLIST applies to taps identically (callback chatId = the approver chat). OutboundMessage gains optional buttons[] (label+data; adapters without native buttons ignore them and the prompt text still carries the typed instruction — the graceful text degrade the card requires). channel-approver sends ✅ Approve/❌ Deny buttons with every prompt. telegram.ts: send() attaches reply_markup.inline_keyboard when buttons present (verified exact body shape); parseUpdates handles callback_query updates via extracted callbackInbound (data -> inbound text, id 'cb-<id>', update_id advances the offset) and poll() ACKS every callback via answerCallbackQuery (best-effort) so the button spinner clears. 3 new test blocks (callback->inbound mapping, keyboard body shape + plain-send omission, poll ack) + the existing relay/bus race tests cover tap resolution end-to-end (a tap is literally a bus reply). Full suite 1028 files/11582 green; tsc + size gate clean (parseUpdates split into callbackInbound/messageInbound). Live tap not exercised (needs real Telegram + human); the request/response bodies are asserted byte-exact at the fetch boundary."
     },
     {
       "id": "MSG-PLATFORM-HINTS",

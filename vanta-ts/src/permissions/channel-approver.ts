@@ -33,9 +33,14 @@ function timerDeny(timeoutMs: number): (signal: AbortSignal) => Promise<boolean>
     });
 }
 
+export type ApprovalButton = { label: string; data: string };
+
 export type ChannelApproverOpts = {
-  /** Deliver the prompt to the approver chat (adapter send, curried on chatId). */
-  send: (text: string) => Promise<void>;
+  /** Deliver the prompt to the approver chat (adapter send, curried on chatId).
+   * MSG-INLINE-APPROVAL: `buttons` carry tappable Approve/Deny whose callback
+   * data is the same "yes/no <id>" reply text — adapters without buttons ignore
+   * them and the text instruction still works. */
+  send: (text: string, buttons?: ApprovalButton[]) => Promise<void>;
   bus: ReplyBus;
   /** Chat ids permitted to approve (VANTA_APPROVER_CHATS). */
   allowlist: readonly string[];
@@ -79,10 +84,14 @@ export function buildChannelApprover(
     const pumpController = new AbortController();
     startPump(opts, pumpController.signal);
     try {
+      const buttons: ApprovalButton[] = [
+        { label: "✅ Approve", data: `yes ${requestId}` },
+        { label: "❌ Deny", data: `no ${requestId}` },
+      ];
       const outcome = await relayApproval({
         request,
         requestId,
-        send: opts.send,
+        send: (text) => opts.send(text, buttons),
         replies: opts.bus.stream,
         localResolve: opts.localResolve ?? timerDeny(opts.timeoutMs),
         allowlist: opts.allowlist,

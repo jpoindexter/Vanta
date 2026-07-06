@@ -74,8 +74,8 @@ describe("parseUpdates", () => {
   });
 
   it("returns no-op on a malformed or not-ok payload", () => {
-    expect(parseUpdates({ ok: false, result: [] }, 7)).toEqual({ messages: [], nextOffset: 7 });
-    expect(parseUpdates("garbage", 3)).toEqual({ messages: [], nextOffset: 3 });
+    expect(parseUpdates({ ok: false, result: [] }, 7)).toEqual({ messages: [], nextOffset: 7, callbackIds: [] });
+    expect(parseUpdates("garbage", 3)).toEqual({ messages: [], nextOffset: 3, callbackIds: [] });
   });
 });
 
@@ -193,5 +193,60 @@ describe("parseUpdates forum topics", () => {
     const { messages } = parseUpdates(payload, 0);
     expect(messages[0]?.threadId).toBe("42");
     expect(messages[1]?.threadId).toBeUndefined(); // thread id on a plain reply is NOT a topic
+  });
+});
+
+describe("MSG-INLINE-APPROVAL", () => {
+  it("maps a tapped button (callback_query) to an inbound whose text is the callback data", () => {
+    const payload = {
+      ok: true,
+      result: [
+        { update_id: 9, callback_query: { id: "cbq77", data: "yes ab12cd", from: { username: "jason" }, message: { chat: { id: 5 } } } },
+      ],
+    };
+    const { messages, callbackIds, nextOffset } = parseUpdates(payload, 0);
+    expect(messages[0]).toMatchObject({ chatId: "5", text: "yes ab12cd", from: "jason", id: "cb-cbq77" });
+    expect(callbackIds).toEqual(["cbq77"]);
+    expect(nextOffset).toBe(10);
+  });
+
+  it("send attaches an inline keyboard when buttons are present, none otherwise", async () => {
+    const sent: Array<Record<string, unknown>> = [];
+    const real = globalThis.fetch;
+    globalThis.fetch = (async (_u: unknown, init?: RequestInit) => {
+      sent.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+      return { json: async () => ({ ok: true, result: { message_id: 1 } }) } as Response;
+    }) as typeof fetch;
+    try {
+      const a = new TelegramAdapter({ token: "T" });
+      await a.send({ chatId: "5", text: "approve?", buttons: [{ label: "✅ Approve", data: "yes ab" }, { label: "❌ Deny", data: "no ab" }] });
+      expect(sent[0]?.reply_markup).toEqual({ inline_keyboard: [[{ text: "✅ Approve", callback_data: "yes ab" }, { text: "❌ Deny", callback_data: "no ab" }]] });
+      await a.send({ chatId: "5", text: "plain" });
+      expect("reply_markup" in (sent[1] ?? {})).toBe(false);
+    } finally {
+      globalThis.fetch = real;
+    }
+  });
+
+  it("poll acks every callback via answerCallbackQuery", async () => {
+    const urls: string[] = [];
+    const real = globalThis.fetch;
+    globalThis.fetch = (async (u: unknown, init?: RequestInit) => {
+      urls.push(String(u));
+      if (String(u).includes("getUpdates")) {
+        return { json: async () => ({ ok: true, result: [{ update_id: 1, callback_query: { id: "cbq9", data: "no x", message: { chat: { id: 5 } } } }] }) } as Response;
+      }
+      urls.push(`body:${String(init?.body)}`);
+      return { json: async () => ({ ok: true }) } as Response;
+    }) as typeof fetch;
+    try {
+      const a = new TelegramAdapter({ token: "T" });
+      const msgs = await a.poll();
+      expect(msgs[0]?.text).toBe("no x");
+      expect(urls.some((u) => u.includes("answerCallbackQuery"))).toBe(true);
+      expect(urls.some((u) => u.includes("cbq9"))).toBe(true);
+    } finally {
+      globalThis.fetch = real;
+    }
   });
 });

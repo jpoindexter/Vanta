@@ -110,7 +110,7 @@ async function buildGatewayApprover(platform: PlatformAdapter | undefined): Prom
   if (!approverChats.length || !platform) return {};
   const replyBus = createReplyBus();
   const requestApproval = buildChannelApprover({
-    send: (text) => platform.send({ chatId: approverChats[0]!, text }),
+    send: (text, buttons) => platform.send({ chatId: approverChats[0]!, text, buttons }),
     bus: replyBus,
     allowlist: approverChats,
     timeoutMs: approvalTimeoutMs(process.env),
