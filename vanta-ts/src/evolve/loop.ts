@@ -1,4 +1,5 @@
 import { shouldKeep, diffOutcomes, predictionPrecision } from "./decide.js";
+import { predictAtRisk, type AtRisk } from "./regression-foresight.js";
 import type { EvalReport } from "../eval/types.js";
 import type { Snapshot } from "./snapshot.js";
 import type { EvolveIteration, EvolveOutcome } from "./types.js";
@@ -25,6 +26,9 @@ export type EvolveDeps = {
   /** Back up the editable component before propose() touches it. */
   snapshot: () => Snapshot;
   onIteration?: (it: EvolveIteration) => void;
+  /** AHE-REGRESSION-FORESIGHT: the ranked at-risk-task set, emitted BEFORE the
+   * edit is measured/committed, from the journal-so-far + the edit's scope. */
+  onForesight?: (risk: AtRisk[]) => void;
 };
 
 export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOutcome> {
@@ -36,6 +40,8 @@ export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOut
     const before = best.passAt1;
     const snap = deps.snapshot();
     const proposal = await deps.propose(best);
+    // Emit the at-risk set BEFORE the edit is committed (the foresight gate).
+    deps.onForesight?.(predictAtRisk(iterations, proposal.predictedFix));
     const after = await deps.evalOnce();
     const { fixed, regressions } = diffOutcomes(best.results, after.results);
     const keep = shouldKeep(before, after.passAt1);

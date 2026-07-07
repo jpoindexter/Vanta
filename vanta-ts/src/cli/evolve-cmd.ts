@@ -6,6 +6,7 @@ import { evolve, type Proposal } from "../evolve/loop.js";
 import { snapshotDir, withFrozen } from "../evolve/snapshot.js";
 import { appendJournal } from "../evolve/journal.js";
 import { computeRecursionMetrics, formatRecursionMetrics } from "../evolve/recursion-metrics.js";
+import { backtestRegressionRecall, formatAtRisk } from "../evolve/regression-foresight.js";
 import { resolveVantaHome } from "../store/home.js";
 import type { EvalReport } from "../eval/types.js";
 import type { EvolveIteration } from "../evolve/types.js";
@@ -61,8 +62,25 @@ export async function runEvolveMetrics(repoRoot: string): Promise<void> {
   console.log(formatRecursionMetrics(computeRecursionMetrics(baseline, rows)));
 }
 
+/** ASI/AHE — read the journal + backtest regression-foresight vs the frequency baseline. */
+async function runEvolveForesight(repoRoot: string): Promise<void> {
+  const { readFile } = await import("node:fs/promises");
+  const rows = await readFile(join(repoRoot, JOURNAL), "utf8").then(
+    (t) => t.split("\n").filter(Boolean).map((l) => JSON.parse(l) as EvolveIteration),
+    () => [] as EvolveIteration[],
+  );
+  if (rows.length === 0) { console.log(`vanta evolve foresight: no journal yet (${JOURNAL}) — run \`vanta evolve\` first.`); return; }
+  const bt = backtestRegressionRecall(rows);
+  console.log(
+    `Regression-foresight backtest over ${rows.length} iteration(s), ${bt.scored} with regressions:\n` +
+    `  foresight recall ${Math.round(bt.foresightRecall * 100)}%  vs  frequency baseline ${Math.round(bt.baselineRecall * 100)}%  → ${bt.beatsBaseline ? "BEATS baseline ✓" : "does not beat baseline"}\n` +
+    `  evolution curve: ${bt.monotone ? "monotone ✓" : "NON-monotone ✗"}`,
+  );
+}
+
 export async function runEvolveCommand(repoRoot: string, rest: string[] = []): Promise<void> {
   if (rest[0] === "metrics") return runEvolveMetrics(repoRoot);
+  if (rest[0] === "foresight") return runEvolveForesight(repoRoot);
   const iters = Math.max(1, parseInt(rest[0] ?? "3", 10));
   const tasks = loadCorpus(join(repoRoot, DEFAULT_CORPUS));
   if (!tasks.length) {
@@ -81,6 +99,7 @@ export async function runEvolveCommand(repoRoot: string, rest: string[] = []): P
     evalOnce: () => runEval({ tasks, baseDir, run, rollouts, isolateRollout: (fn) => withFrozen(brainDir, fn) }),
     propose: (cur) => proposeEdit(repoRoot, cur),
     snapshot: () => snapshotDir(brainDir),
+    onForesight: (risk) => console.log(formatAtRisk(risk)),
     onIteration: (it) => {
       const reg = it.regressions.length ? ` [regressions: ${it.regressions.join(", ")}]` : "";
       console.log(`  iter ${it.iter}: ${it.note}${reg}`);

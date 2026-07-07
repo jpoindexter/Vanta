@@ -12291,16 +12291,17 @@
       "id": "AHE-REGRESSION-FORESIGHT",
       "track": "Cofounder engine",
       "title": "Regression foresight — predict what an evolve edit will BREAK, not just fix",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "The AHE paper's #1 open problem (arXiv 2604.25850): the evolve loop predicts fixes well (~5x baseline) but is blind to regressions (~2x baseline) — it can't name the tasks an edit is about to break, which causes non-monotone evolution. Add a regression-foresight pass: before applying an edit, predict at-risk tasks (from the trace corpus + edit scope) and gate/scope/targeted-re-eval accordingly. Closes the gap the paper calls the clearest direction for future self-evolution loops. See docs/agentic-harness-engineering.md. UPDATE 2026-06-16: regression DETECTION now works (live run reverted a fix-sum regression). Still open: FORESIGHT (predict at-risk tasks BEFORE the edit) — this card's core.",
       "done": "Before an edit is committed, the loop emits a ranked at-risk-task set; measured regression-recall beats the current ~11% baseline and the evolution curve trends monotone.",
       "tier": "pebble",
       "effort": "high",
-      "updated": "2026-06-16",
+      "updated": "2026-07-07",
       "after": [
         "AHE-EVOLVE-AGENT"
-      ]
+      ],
+      "notes": "2026-07-07: the FORESIGHT MECHANISM (the paper's #1 open problem) shipped + unit-proven, offline. evolve/regression-foresight.ts (pure): predictAtRisk(history, predictedFix, k) ranks tasks an edit is about to BREAK from the journal — a task scores 2× when past edits of a SIMILAR scope (overlapping predictedFix) regressed it, 1× for any historical regression; backtestRegressionRecall(journal, k) does a leave-prior-out backtest measuring foresight recall vs a frequency-only baseline + a monotone-curve check (reverts hold the best score, kept edits only raise it). WIRED: loop.ts emits the at-risk set via onForesight BEFORE the edit is measured/committed (the foresight gate); `vanta evolve foresight` backtests a real journal and prints recall-vs-baseline + monotone. 7 tests incl. a scoped-regression fixture where scope-aware foresight BEATS the frequency baseline (the mechanism's value, measured), + monotone/non-monotone detection. STILL OPEN (why building, not shipped): the card's headline — 'measured regression-recall beats the ~11% baseline on the REAL corpus + the real-run curve trends monotone' — needs a live `vanta evolve` journal (agent turns over eval/tasks) to cite; the backtest tool + emission are in place to produce/measure it, but no real journal exists in-repo to quote a live number. Mechanism + offline-beats-baseline are real and tested, not a stub. Full suite 1061 files/11888 green; tsc + size gate clean."
     },
     {
       "id": "AHE-EVOLVE-GUARDRAILS",
