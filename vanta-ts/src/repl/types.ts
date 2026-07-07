@@ -28,6 +28,9 @@ export type ReplState = {
    * Reset to false whenever /planmode is toggled or the session clears.
    */
   planApproved?: boolean;
+  /** ND-TIME-RANGES — ISO timestamp of the last completed turn; powers `/time`'s
+   *  "since last action". Stamped post-turn; absent until the first turn ends. */
+  lastActionAt?: string;
 };
 
 export type ReplCtx = {

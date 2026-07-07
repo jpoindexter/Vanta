@@ -115,6 +115,7 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
     const t0 = Date.now();
     const outcome = await deps.convo.send(buildSendText(turnText, deps.workingMemory), images);
     const result = await runPostTurnPipeline({ outcome, text: turnText, t0, turnStart, deps });
+    deps.state.lastActionAt = new Date().toISOString(); // ND-TIME-RANGES: powers /time "since last action"
     images = undefined;
     if (deps.capHaltedRef?.current) break;
     if (!result.continueWith || loopCount >= loopMax) break;

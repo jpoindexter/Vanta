@@ -12516,13 +12516,14 @@
       "id": "ND-TIME-RANGES",
       "track": "Operator",
       "title": "ND: time-blindness supports — ranged estimates + elapsed",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Effort/time estimates as best/realistic/worst with named hidden costs (never a single point); surface elapsed + time-since-last-action. Counters time-blindness. See .",
       "done": "Any effort estimate Vanta gives is a range with hidden costs; the session surfaces elapsed/since-last.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. repl/time-ranges.ts (pure): estimateRange (naive guess → best 0.6× / realistic / worst 2×, the planning-fallacy correction, floored at 1m), formatEstimateRange (ALWAYS a best/realistic/worst range + named hidden costs — never a single point, the nd-time-blindness contract), formatMinutes/formatSpan (durations), sessionTimes (elapsed + since-last-action line). Wired: `/time` slash command shows session elapsed + time-since-last-action; ReplState gained lastActionAt (optional), stamped post-turn in interactive-turn.ts so since-last is real. 11 tests (range 0.6/2× + floor, minute/span formatting, always-a-range, hidden costs, elapsed+since-last, elapsed-only). The nd-time-blindness estimate discipline is also active via the always-on ND skill; this is its concrete testable surface. New slash command. Full suite 1070 files/11978 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-ASYNC-DELEGATE",
