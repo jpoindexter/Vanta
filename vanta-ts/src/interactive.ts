@@ -28,6 +28,7 @@ import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
 import type { TrustConfirmer } from "./settings/trust-gate.js";
 
 import { renderBanner } from "./interactive-banner.js";
+import { resumeRecap } from "./repl/suggestions.js";
 export { renderBanner };
 
 /** Trust confirmer for the readline REPL host; undefined off a TTY → headless fail-safe. */
@@ -63,8 +64,11 @@ async function announceSessionStart(o: {
   await registerSession({ pid: process.pid, sessionId: o.state.sessionId, project: o.repoRoot }, defaultRegistryDeps());
   console.log(renderBanner({ modelId: o.setup.provider.modelId(), root: o.repoRoot, goals: o.setup.goals, toolNames: o.setup.registry.schemas().map((s) => s.name), skillNames: o.skills.map((s) => s.meta.name) }));
   printRalphContinuityNotice(o.setup.ralphContinuity);
-  if (o.resumed) console.log(`  ↻ Resumed session ${o.resumed.id} "${o.resumed.title}" (${o.resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
-  else if (o.resumeId) console.log(`  (no session "${o.resumeId}" found — starting fresh)\n`);
+  if (o.resumed) {
+    console.log(`  ↻ Resumed session ${o.resumed.id} "${o.resumed.title}" (${o.resumed.messages.filter((m) => m.role === "user").length} turn(s))\n`);
+    const recap = await resumeRecap({ getGoals: () => o.setup.safety.getGoals(), dataDir: join(o.repoRoot, ".vanta") }).catch(() => "");
+    if (recap) console.log(`${recap}\n`);
+  } else if (o.resumeId) console.log(`  (no session "${o.resumeId}" found — starting fresh)\n`);
 }
 
 /** Load skills and, best-effort, sync skill-declared cron schedules on load

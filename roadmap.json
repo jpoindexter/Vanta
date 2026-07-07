@@ -12383,13 +12383,14 @@
       "id": "VANTA-SUGGESTIONS",
       "track": "Operator",
       "title": "Proactive suggestions + session recap",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "From a reference agent (suggestions_cmd + tips + session_recap): surface proactive next-step suggestions during a session and a concise recap on resume (what happened, where you left off, what's next) — beyond Vanta's existing handoff/resume block. Operator daily-driver polish.",
       "done": "On resume Vanta shows a recap (done / in-progress / next); during a session it can offer a ranked next-step suggestion on request.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. repl/suggestions.ts (pure + one handler): formatRecap (done/in-progress/next, 3-section, empty-state text, caps 3), rankSuggestions (DETERMINISTIC, top-3: finish in-progress first → ship smallest ready backlog pebble-first → advance an idle active goal), formatSuggestions, buildSuggestView (recap + ranked list). Both DONE clauses met: (1) `/suggest` slash command — deterministic recap + ranked next-step ON REQUEST, no model turn (distinct from /next which asks the model); (2) resumeRecap auto-shown ON RESUME — wired into interactive.ts announceSessionStart after the '↻ Resumed session' notice (best-effort, never throws). Gathers active/done kernel goals + top roadmap backlog (reuses next.ts readNextItems + choice-reduce topNextItems). 12 tests incl. resumeRecap with injected getGoals + the kernel-down degrade path. 129 slash commands. Full suite 1059 files/11872 green; tsc + size gate clean."
     },
     {
       "id": "KERNEL-DEJASONIFY",

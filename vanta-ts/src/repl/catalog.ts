@@ -84,6 +84,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "ultracode", arg: "<task>", desc: "multi-agent coding push — decompose, parallel subagents, verify, synthesize" },
   { name: "deep-research", arg: "<question>", desc: "fan-out research — multi-source search, skeptic-verify, cited synthesis" },
   { name: "next", desc: "surface one concrete next micro-step from your active goals" },
+  { name: "suggest", desc: "deterministic recap (done/in-progress/next) + ranked next-step suggestions" },
   { name: "now", desc: "execute items in the Now column — agent picks up whatever you put there" },
   { name: "planmode", arg: "[on|off|approve]", desc: "enforced plan mode — write tools blocked until /planmode approve" },
   { name: "planv2", arg: "<task>", desc: "plan mode v2 — fan a task out across N concurrent plan-execution agents (VANTA_PLAN_V2_AGENT_COUNT, 1-10)" },
