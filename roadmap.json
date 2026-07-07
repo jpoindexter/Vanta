@@ -1409,7 +1409,7 @@
       "id": "TUI-SELECT",
       "track": "Operator",
       "title": "Shift-select + clipboard ops in the composer",
-      "status": "horizon",
+      "status": "building",
       "size": "M",
       "summary": "A selection model (anchor+cursor) + the shift-select shortcuts: Shift+arrows (char/line), Shift+Alt+arrows (word), Shift+Cmd+arrows (to line start/end), Shift+Home/End, Cmd+A select-all; typing/cut replaces the selection; copy (Cmd+C) reads it, cut (Cmd+X), paste (Cmd+V). Prerequisite for the selection-based shortcuts in TUI-KEYS. Builds on the existing /copy + /paste. docs/tui-keybindings.md.",
       "done": "Shift+arrow/word/line extends a visible selection in the composer; Cmd+A selects all; Cmd+C/X/V copy/cut/paste operate on the selection; typing over a selection replaces it.",
@@ -1417,7 +1417,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-07",
+      "notes": "2026-07-07: the SELECTION MODEL (the card's lead deliverable + the named TUI-KEYS prerequisite) shipped as ui/selection.ts (pure, 15 tests): Sel {anchor,cursor}, selRange/selEmpty/selectedText, selectAll, deleteSelection, replaceSelection (typing/paste over a selection), motionCursor (char/word/line-start-end/line-up-down/buf-start-end reusing composer-edits wordLeft/Right + vim-motions lineBounds/moveVertical), extendSelection (drops the anchor on a fresh shift-motion, moves the cursor, shrinks back through the anchor). VERIFIED CONSTRAINT blocking the rest of the card: the card specifies Cmd+A/Cmd+C/X/V, but macOS Cmd NEVER reaches a TTY (the terminal emulator owns it) and Ink's key.meta is Alt/Option, not Cmd — so 2 of the 4 done-clauses (Cmd-select-all, Cmd-copy/cut/paste) are terminal-infeasible AS WRITTEN. Deliverable subset for the composer wiring (next step): Shift+Arrow char + Shift+⌥Arrow word (Ink surfaces key.shift/key.meta) + replace-on-type + a visible highlight in composer-view; copy/cut must remap to Ctrl chords or the existing /copy /paste system-clipboard path. DECISION NEEDED: remap Cmd→Ctrl/Shift for select-all/copy/cut, or accept the terminal owns Cmd. Marked building (not shipped) — the engine is real+green, not a stub, but the interactive Cmd UX can't honestly be called done in a terminal."
     },
     {
       "id": "VANTA-TEXT-SELECT-TUI",
