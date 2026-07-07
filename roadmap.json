@@ -14722,7 +14722,7 @@
       "id": "SEC-GODMODE-DETECT",
       "track": "Harness",
       "title": "Harvest jailbreak signatures as kernel detection inputs",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Defensive-only: the obfuscation/refusal-suppression signatures used by jailbreak tooling are useful as DETECTION inputs for the kernel safety denylist (recognize these attacks against Vanta itself), never as capability. Low priority.",
       "done": "A set of jailbreak/obfuscation signatures is available to the kernel safety layer as detection patterns; capability use explicitly excluded.",
@@ -14731,8 +14731,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. DEFENSIVE-ONLY. prompt/jailbreak-signatures.ts (pure, zero capability — only regexes that FLAG attack shapes, no bypass/how-to): detectJailbreak(text) → {flagged, signatures[]} over 6 signature banks — persona-unlock (DAN/dev-mode/god-mode/jailbreak), refusal-suppression (no restrictions/bypass safety/disable filter), unbounded-claim (you have no limits/are free), policy-void (pretend no policy applies), encoded-payload (base64/rot13 decode-and-run smuggling), sim-launder (fictional/roleplay-with-no-rules framing). Tuned to flag intent, not ordinary prose ('the game has rules and a hard mode' stays clean). WIRED as a detection input: folded into skills/gating.ts scanForInjection (jailbreak hits prefixed 'jailbreak:'), so a jailbreak-tainted skill/plugin body is flagged on load through the same path — available to the safety layer as detection, never a capability. 11 tests (each signature, benign negatives, id set, folded-scan flags a tainted body). Full suite 1049 files/11785 green; tsc + size gate clean. Capability use explicitly excluded, per the card."
     },
     {
       "id": "OP-REDACT-STRUCTURAL",

@@ -6,6 +6,7 @@
 //       patterns before load (trusted-operator posture: skill content is an
 //       author/LLM boundary, not implicitly trusted).
 // Pure; no I/O. The store/selector wire these in.
+import { detectJailbreak } from "../prompt/jailbreak-signatures.js";
 
 // ── Offer-time gating ──────────────────────────────────────────────────────
 
@@ -74,8 +75,10 @@ const INJECTION_PATTERNS: ReadonlyArray<[string, RegExp]> = [
 
 export type InjectionScan = { clean: boolean; hits: string[] };
 
-/** Scan skill/plugin content for prompt-injection patterns. Pure, never throws. */
+/** Scan skill/plugin content for prompt-injection + jailbreak signatures (SEC-
+ * GODMODE-DETECT folds its defensive detection set in here). Pure, never throws. */
 export function scanForInjection(text: string): InjectionScan {
-  const hits = INJECTION_PATTERNS.filter(([, re]) => re.test(text)).map(([name]) => name);
+  const injHits = INJECTION_PATTERNS.filter(([, re]) => re.test(text)).map(([name]) => name);
+  const hits = [...injHits, ...detectJailbreak(text).signatures.map((s) => `jailbreak:${s}`)];
   return { clean: hits.length === 0, hits };
 }
