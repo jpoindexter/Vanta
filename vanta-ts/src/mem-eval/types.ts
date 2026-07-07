@@ -6,7 +6,7 @@ import { z } from "zod";
 // recall@k of the gold supporting memories — so it is trustworthy and un-gameable
 // (no LLM judge). The hybrid/temporal/router cards validate their lift against this.
 
-export const RetrievalModeSchema = z.enum(["lexical", "semantic", "hybrid", "temporal", "entity"]);
+export const RetrievalModeSchema = z.enum(["lexical", "semantic", "hybrid", "temporal", "entity", "bm25"]);
 export type RetrievalMode = z.infer<typeof RetrievalModeSchema>;
 
 export const NoiseLevelSchema = z.enum(["s5", "s10", "s20", "full"]);

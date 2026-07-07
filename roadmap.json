@@ -15946,7 +15946,7 @@
       "id": "BRAIN-BM25-LEXICAL",
       "track": "Operator",
       "title": "True BM25 lexical signal (IDF + lemmatization + sigmoid normalize)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Vanta's lexical recall is token-density ranking (search/life-rank.ts). mem0 uses real BM25 — IDF-weighted, lemmatized, and sigmoid-normalized to 0..1 (normalize_bm25(raw, midpoint, steepness)) so it fuses cleanly with the semantic + entity signals. Upgrade the lexical signal to BM25 (zero-dep) and A/B it on the eval harness.",
       "done": "The lexical recall signal is IDF-weighted BM25 with lemmatization and bounded 0..1 normalization; LongMemEval/LoCoMo recall@k is at least as good as the token-density baseline, kept only if it improves.",
@@ -15955,7 +15955,9 @@
       "source": "mem0-audit-2026-06-22",
       "after": [
         "BRAIN-ENTITY-SIGNAL"
-      ]
+      ],
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 — the session's biggest MEASURED recall win. search/bm25.ts (pure, zero-dep): lemmatize (light suffix stemmer: -ies→y, -sses→ss, -ing/-ed strip, bare -s), tokenizeLemmas (stopword-filtered, lemmatized), buildBm25Index (doc lengths, avgdl, docFreq), idf (Robertson-Spärck-Jones +1-guarded), bm25Score (k1=1.5,b=0.75, length-normalized), normalizeBm25 (sigmoid → 0..1, mem0's normalize_bm25 shape), bm25Rank (nonzero-only, ties keep order). A/B ON THE HARNESS: LoCoMo recall@5 lexical 32.4% → 47.8% (+15.4pt; adversarial 31.5→54.4, world-knowledge 38.9→54.6, multi-session 9.4→19.4), LongMemEval flat 99.9→99.8 (saturated). KEPT (card: only if it improves) — so the eval's lexical retriever now IS BM25, and hybrid's lexical base swapped density→BM25 (hybrid 34.9% → 48.4%, still ≥ lexical so the entity blend adds on top of BM25). A dedicated `bm25` eval mode added for ongoing A/B. 16 bm25 unit tests (lemmatize table, IDF rare>common, sigmoid monotonic, more-terms-wins ranking, length-normalization, empty-signal, plural-query match) + mem-eval suite green. Full suite 1048 files/11775 green (one Ollama-network flake on the first run, green on re-run); tsc + size gate clean."
     },
     {
       "id": "BRAIN-FUSION-AB-SUMNORM",

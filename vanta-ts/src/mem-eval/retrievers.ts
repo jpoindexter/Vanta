@@ -1,7 +1,7 @@
-import { rankResults } from "../search/life-rank.js";
 import { cosineSim } from "../search/embed.js";
 import { fuseRrf } from "../search/rrf.js";
 import { buildEntityIndex, entityRank, entityScores } from "../search/entities.js";
+import { bm25Rank, bm25Score, buildBm25Index, tokenizeLemmas, normalizeBm25 } from "../search/bm25.js";
 import { buildTemporalIndex, temporalRank } from "../brain/temporal.js";
 import type { MemoryRecord, RetrievalMode } from "./types.js";
 
@@ -35,10 +35,21 @@ export type Retriever = {
   rank(query: string, records: MemoryRecord[], ctx: RankCtx): string[];
 };
 
-/** Map records → LifeHit shape (source=id so ranked output maps cleanly back). */
-function rankLexical(query: string, records: MemoryRecord[], now: number): string[] {
-  const hits = records.map((r) => ({ source: r.id, snippet: r.text }));
-  return rankResults(hits, query, now).map((h) => h.source);
+// BRAIN-BM25-LEXICAL — the lexical signal is BM25 (IDF-weighted, lemmatized,
+// 0..1-normalized). Measured: LoCoMo recall@5 32.4→47.8 vs the old density
+// ranker; LongMemEval flat (saturated). `now` is unused (BM25 has no recency
+// term — recency lives in the life-rank tool path, not memory recall).
+function rankLexical(query: string, records: MemoryRecord[], _now: number): string[] {
+  return bm25Rank(query, records.map((r) => ({ id: r.id, text: r.text }))).map((x) => x.id);
+}
+
+/** Per-doc normalized BM25 scores for the entity blend (0..1). */
+function bm25Scores(query: string, records: MemoryRecord[]): Map<string, number> {
+  const index = buildBm25Index(records.map((r) => ({ id: r.id, text: r.text })));
+  const q = tokenizeLemmas(query);
+  const out = new Map<string, number>();
+  for (const r of records) out.set(r.id, normalizeBm25(bm25Score(q, r.id, index)));
+  return out;
 }
 
 function rankSemantic(records: MemoryRecord[], ctx: RankCtx): string[] {
@@ -80,12 +91,14 @@ const ENTITY_BLEND = 0.25;
 // not an equal-rank peer list — rank fusion would flatten the rarity weights
 // the signal exists to carry). Measured: equal-weight RRF of a separate entity
 // list DROPPED LoCoMo recall@5 32.4→14.8; the score blend is the working shape.
-function rankLexicalEntity(query: string, records: MemoryRecord[], now: number): string[] {
-  const hits = records.map((r) => ({ source: r.id, snippet: r.text }));
+function rankLexicalEntity(query: string, records: MemoryRecord[], _now: number): string[] {
+  const lex = bm25Scores(query, records);
   const ent = entityScores(query, buildEntityIndex(records));
-  return rankResults(hits, query, now)
-    .map((h) => ({ id: h.source, s: h.relevance + ENTITY_BLEND * (ent.get(h.source) ?? 0) }))
-    .sort((a, b) => b.s - a.s)
+  const pos = new Map(records.map((r, i) => [r.id, i]));
+  return records
+    .map((r) => ({ id: r.id, s: (lex.get(r.id) ?? 0) + ENTITY_BLEND * (ent.get(r.id) ?? 0) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s || (pos.get(a.id) ?? 0) - (pos.get(b.id) ?? 0))
     .map((x) => x.id);
 }
 
@@ -102,6 +115,14 @@ const hybrid: Retriever = {
   },
 };
 
+// BRAIN-BM25-LEXICAL — IDF-weighted BM25 lexical ranking (A/B vs the density lexical).
+const bm25: Retriever = {
+  mode: "bm25",
+  needsEmbeddings: false,
+  canRunWithoutEmbeddings: true,
+  rank: (q, records) => bm25Rank(q, records.map((r) => ({ id: r.id, text: r.text }))).map((x) => x.id),
+};
+
 // Temporal-aware: ranks date/duration-bearing memories first for when/earliest/
 // latest/in-year/duration queries, lexical fallback otherwise. No embeddings.
 const temporal: Retriever = {
@@ -111,10 +132,10 @@ const temporal: Retriever = {
   rank: (q, records, ctx) => temporalRank(q, records, buildTemporalIndex(records), ctx.now),
 };
 
-const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid, temporal, entity };
+const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid, temporal, entity, bm25 };
 
 export function resolveRetriever(mode: RetrievalMode): Retriever {
   return RETRIEVERS[mode];
 }
 
-export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid", "temporal", "entity"];
+export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid", "temporal", "entity", "bm25"];
