@@ -33,29 +33,29 @@ function parseTriggers(value: string): SkillTrigger[] {
   }
 }
 
+// key → how to write it onto the meta. Unknown keys have no entry and are
+// ignored (SkillMeta is a closed shape). Table-driven to stay flat.
+const META_SETTERS: Record<string, (m: SkillMeta, v: string) => void> = {
+  name: (m, v) => { m.name = v; },
+  description: (m, v) => { m.description = v; },
+  created: (m, v) => { m.created = v; },
+  updated: (m, v) => { m.updated = v; },
+  tags: (m, v) => { m.tags = parseTags(v); },
+  volatile: (m, v) => { m.volatile = v === "true"; },
+  triggers: (m, v) => { m.triggers = parseTriggers(v); },
+  "allowed-tools": (m, v) => { m.allowedTools = parseTags(v); }, // agentskills.io interop
+  allowedTools: (m, v) => { m.allowedTools = parseTags(v); },
+  license: (m, v) => { m.license = v; },
+};
+
 /** Read flat "key: value" frontmatter lines into the fixed SkillMeta shape. */
 function parseMeta(block: string): SkillMeta {
-  const meta: SkillMeta = {
-    name: "",
-    description: "",
-    created: "",
-    updated: "",
-    tags: [],
-  };
+  const meta: SkillMeta = { name: "", description: "", created: "", updated: "", tags: [] };
   for (const line of block.split("\n")) {
     // Split on the FIRST colon only — ISO timestamps contain colons.
     const sep = line.indexOf(":");
     if (sep === -1) continue;
-    const key = line.slice(0, sep).trim();
-    const value = line.slice(sep + 1).trim();
-    if (key === "name") meta.name = value;
-    else if (key === "description") meta.description = value;
-    else if (key === "created") meta.created = value;
-    else if (key === "updated") meta.updated = value;
-    else if (key === "tags") meta.tags = parseTags(value);
-    else if (key === "volatile") meta.volatile = value === "true";
-    else if (key === "triggers") meta.triggers = parseTriggers(value);
-    // Unknown keys are ignored — SkillMeta is a closed shape.
+    META_SETTERS[line.slice(0, sep).trim()]?.(meta, line.slice(sep + 1).trim());
   }
   return meta;
 }
@@ -148,6 +148,8 @@ export function serializeSkill(skill: Skill): string {
     `tags: [${meta.tags.join(", ")}]`,
     ...(meta.volatile ? ["volatile: true"] : []),
     ...(meta.triggers?.length ? [`triggers: ${JSON.stringify(meta.triggers)}`] : []),
+    ...(meta.allowedTools?.length ? [`allowed-tools: [${meta.allowedTools.join(", ")}]`] : []),
+    ...(meta.license ? [`license: ${meta.license}`] : []),
     "---",
   ].join("\n");
   return `${frontmatter}\n\n${body}`;

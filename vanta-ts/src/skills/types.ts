@@ -15,6 +15,11 @@ export type SkillMeta = {
   /** SKILL-TRIGGERS — declared harness events that should auto-surface this skill
    *  (compiled into hooks). Empty/absent = relevance-fired only (the default). */
   triggers?: SkillTrigger[];
+  /** VANTA-SKILLS-HUB — agentskills.io interop: the `allowed-tools` the skill
+   *  declares (preserved on import so export round-trips). Vanta-native runs ignore it. */
+  allowedTools?: string[];
+  /** VANTA-SKILLS-HUB — agentskills.io interop: the skill's SPDX license id, when declared. */
+  license?: string;
 };
 
 /**

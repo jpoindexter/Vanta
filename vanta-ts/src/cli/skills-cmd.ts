@@ -142,18 +142,27 @@ async function runSyncTriggers(rest: string[]): Promise<void> {
   }
 }
 
+async function runSkillsLint(): Promise<void> {
+  const { lintSkills, formatLint } = await import("../skills/lint.js");
+  const issues = await lintSkills();
+  console.log(formatLint(issues));
+  if (issues.some((i) => i.level === "error")) process.exit(1);
+}
+
+/** Handle a `vanta skills <sub>` subcommand; false when it isn't one (→ install/list). */
+async function runSkillsSub(rest: string[]): Promise<boolean> {
+  const cmd = rest[0];
+  if (cmd === "trigger-emit") { await runTriggerEmit(rest); return true; }
+  if (cmd === "sync-triggers") { await runSyncTriggers(rest); return true; }
+  if (cmd === "lint") { await runSkillsLint(); return true; }
+  if (cmd === "bundle") { await runSkillsBundle(rest); return true; }
+  if (cmd === "distill") { await runSkillsDistill(rest); return true; }
+  const { runSkillsInterop } = await import("./skills-interop.js");
+  return runSkillsInterop(rest); // import / export / hub (agentskills.io)
+}
+
 export async function runSkillsCommand(rest: string[]): Promise<void> {
-  if (rest[0] === "trigger-emit") return runTriggerEmit(rest);
-  if (rest[0] === "sync-triggers") return runSyncTriggers(rest);
-  if (rest[0] === "lint") {
-    const { lintSkills, formatLint } = await import("../skills/lint.js");
-    const issues = await lintSkills();
-    console.log(formatLint(issues));
-    if (issues.some((i) => i.level === "error")) process.exit(1);
-    return;
-  }
-  if (rest[0] === "bundle") return runSkillsBundle(rest);
-  if (rest[0] === "distill") return runSkillsDistill(rest);
+  if (await runSkillsSub(rest)) return;
   if (rest[0] !== "install") return runSkillsList();
   const { installed, skipped } = await installSkillLibrary({ force: rest.includes("--force") });
   console.log(`Installed ${installed.length} skill(s)${installed.length ? `: ${installed.join(", ")}` : ""}.`);

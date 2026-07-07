@@ -12361,13 +12361,14 @@
       "id": "VANTA-SKILLS-HUB",
       "track": "Extensibility",
       "title": "Skills hub — discover/share skills + agentskills.io standard compat",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From a reference agent (skills_hub + agentskills.io open standard): beyond authoring skills locally, discover/import/share skills via a hub and stay compatible with the agentskills.io open format so Vanta skills interop with the wider ecosystem.",
       "done": "Vanta can import/export skills in the agentskills.io format and pull from a hub; a third-party skill loads without code changes.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Interop with the agentskills.io / Anthropic Agent Skills open format (SKILL.md + YAML frontmatter: name/description/allowed-tools/license + body). skills/agentskills-format.ts (pure): fromAgentSkills (maps the spec frontmatter → Vanta Skill; allowed-tools scalar-or-list + license preserved; created/updated default to now; unknown fields like `version` dropped so ANY conformant third-party skill loads with no code change) + toAgentSkills (emits only the portable fields — Vanta's created/updated/tags/triggers omitted). Made the STORE round-trip lossless: parseMeta (now table-driven) + serializeSkill + writeSkill carry allowedTools/license (added as optional SkillMeta fields). CLI (cli/skills-interop.ts): `vanta skills import <file>` (load a third-party SKILL.md), `export <name> --format agentskills` (emit interop format), `hub <url>` (fetch any hub-hosted SKILL.md over the open format + import). LIVE-VERIFIED: a third-party 'Interop Demo' skill with allowed-tools+license+version imported, then exported → allowed-tools [Bash, Read] + license Apache-2.0 preserved through the store. 8 format unit tests (third-party load, scalar/list allowed-tools, unknown-field tolerance, import→export→import round-trip, minimal output). The hub is a generic open-format URL fetch (not a proprietary API) — honest, works with any agentskills.io host. Full suite 1062 files/11896 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-COST-GUARD",

@@ -28,6 +28,9 @@ type WriteInput = {
   description: string;
   body: string;
   tags?: string[];
+  /** agentskills.io interop (VANTA-SKILLS-HUB) — persisted so an imported skill round-trips. */
+  allowedTools?: string[];
+  license?: string;
 };
 
 function skillPath(slug: string, env?: NodeJS.ProcessEnv): string {
@@ -94,6 +97,8 @@ export async function writeSkill(
       created,
       updated: now,
       tags: input.tags ?? [],
+      ...(input.allowedTools?.length ? { allowedTools: input.allowedTools } : {}),
+      ...(input.license ? { license: input.license } : {}),
     },
     body: input.body,
   };
