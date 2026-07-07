@@ -8,7 +8,9 @@
 import { join } from "node:path";
 import { estimateCostUsd, addTurnCost, formatTurnCost } from "./pricing.js";
 import { recordTurnSpend } from "./cost/ledger.js";
-import { resolveSessionCap, isOverCap, buildCapExceededMessage } from "./budget/session-cap.js";
+import { guardBeforeTurn } from "./budget/guard.js";
+import { statusFor, DEFAULT_WARN_FRACTION, type Budget } from "./budget/types.js";
+import { resolveSessionCap } from "./budget/session-cap.js";
 import { maybeAutoHandoff } from "./repl/auto-handoff.js";
 import { shouldSuggestContextUpgrade, buildContextUpgradeNote } from "./repl/context-upgrade.js";
 import { pruneVolatileSkills } from "./skills/volatile.js";
@@ -107,14 +109,21 @@ export async function recordTurnCost(
     agent: "interactive",
     goal: activeGoalId,
   });
-  maybeHaltOnBudgetCap(deps);
+  maybeHaltOnBudgetCap(deps, cost ?? 0);
 }
 
-function maybeHaltOnBudgetCap(deps: TurnDeps): void {
+// VANTA-COST-GUARD: the session cap now WARNS as it nears the ceiling and HALTS
+// using the next-turn estimate (last turn's cost) so it stops BEFORE the turn
+// that would cross — not only after. No-op when no cap is set (byte-identical).
+function maybeHaltOnBudgetCap(deps: TurnDeps, lastCost: number): void {
   const cap = resolveSessionCap(process.env);
+  if (cap === null) return;
   const spent = deps.state.sessionCost?.frontierUsd ?? 0;
-  if (!isOverCap(spent, cap) || cap === null) return;
-  console.log(`\n${buildCapExceededMessage(spent, cap)}`);
+  const budget: Budget = { scope: "session", limitUsd: cap, warnFraction: DEFAULT_WARN_FRACTION, spentUsd: spent, status: statusFor(spent, cap, DEFAULT_WARN_FRACTION), updatedAt: "" };
+  const decision = guardBeforeTurn(budget, lastCost);
+  if (decision.action === "warn") return void console.log(`  ${decision.message}`);
+  if (decision.action === "allow") return;
+  console.log(`\n${decision.message}`);
   if (deps.capHaltedRef) deps.capHaltedRef.current = true;
 }
 

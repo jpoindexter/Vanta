@@ -12375,13 +12375,14 @@
       "id": "VANTA-COST-GUARD",
       "track": "Operator",
       "title": "Cost guard — hard per-run/session budget ceiling that warns/blocks",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "From a reference agent (model_cost_guard): Vanta TRACKS cost but doesn't gate on it. Add a configurable ceiling (per run / per session) that warns as it approaches and blocks/asks before exceeding — so an autonomous run can't silently overspend. Operator-trust feature.",
       "done": "A run with a budget set warns near the ceiling and halts (or asks) before exceeding it; the limit is configurable per run/session.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 on the existing budget module (PCLIP-BUDGET-HARDSTOP). budget/guard.ts (pure): guardBeforeTurn(budget|null, estimatedNextUsd, mode) → allow/warn/halt/ask. No budget→allow; already-exceeded OR spent+estimate would cross the limit→halt (or ask in ask mode) BEFORE the turn overspends; in the warn band (≥warnFraction, next turn still fits)→warn+proceed; else allow. estimate 0 = unknown → only current spend gates. Wired into interactive-post-turn.ts maybeHaltOnBudgetCap: the pre-existing VANTA_MAX_BUDGET_USD/--max-budget-usd session cap now WARNS as it nears the ceiling (was halt-only) and HALTS using last-turn cost as the next-turn estimate so it stops BEFORE the crossing turn, not only after. Byte-identical when no cap is set (early return). Configurable per run/session via the existing flag/env; the generic budget module already scopes session/goal/loop/agent and the `budget` tool sets per-scope limits. ask-mode is built (headless wiring uses halt as the safe autonomous default). 7 guard tests (allow/warn/halt-before-cross/already-exceeded/ask/unknown-estimate). Full suite 1065 files/11914 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-SUGGESTIONS",
