@@ -5,7 +5,22 @@ Project: `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta` · branch `main` (
 Goal (session Stop-hook): keep pushing through the roadmap in logical order toward Hermes/OpenClaw operator stats; everything green; no stubs; commit+push every slice.
 
 ## State
-Horizon **125 → 91** (34 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path/model verified → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1046 files / 11751 tests** @ `0bc4e9c9`. Kernel untouched (67 tests).
+Horizon **125 → 86** (39 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path/model verified → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1051 files / 11798 tests** @ `1631dd8a`. Kernel untouched (67 tests).
+
+### Slices 35–39 (after the numbered list below):
+35. PCLIP-WORKSPACE-PORTABILITY — `workspace/portability.ts` + `vanta workspace export/import` (scrubbed bundle, collision handling). Also fixed a HARNESS-SKILL-GATING regression (was skipping the operator's own security-topic skills — now warn-don't-skip; VANTA_SKILL_STRICT=1 to hard-skip).
+36. BRAIN-BM25-LEXICAL — `search/bm25.ts`; MEASURED LoCoMo recall@5 32.4→47.8, hybrid 34.9→48.4 (the session's biggest recall win).
+37. SEC-GODMODE-DETECT — `prompt/jailbreak-signatures.ts` (defensive, folded into the skill injection scan).
+38. HARNESS-EVENTS-WAIT — `events/cursor-reader.ts` (cursor read + capped long-poll).
+39. PCLIP-DELEGATION-UPDOWN — `team/delegation.ts` (org delegate-down / escalate-up → task ledger).
+
+### The clean pure-slice vein is WORKED OUT (why the per-turn pebble cadence ends here)
+After 39 slices the scan (`/tmp/scan3.py`) returns only larger-grained cards, none shippable as a crisp unit-tested pebble:
+- **Agent-loop behavior**: AHE-REGRESSION-FORESIGHT (ranked at-risk-task set before commit — needs the loop + edit graph + measurement), OP-ADVERSARIAL-UX (a live run driving the app as a persona), AHE-INTERACTION-AWARE, PCLIP-CEO-CHAT.
+- **Live TUI/Ink component wiring** (need ink-testing-library render tests, not pure logic): TUI-SELECT, VANTA-TEXT-SELECT-TUI, VANTA-VIM-OPERATORS (engine is pure but composer wiring is Ink), VANTA-TEAMS-UI, VANTA-HOOKS-CONFIG-UI, VANTA-MESSAGE-ACTIONS, VANTA-STRUCTURED-DIFF navigator overlay, TUI-V2-RAILS, GLOBAL-SEARCH-OPEN-TRIGGER, OP-COMPACTION-VISIBLE.
+- **Registry-gated**: KEYBINDING-CUSTOMIZATION (build DEFAULT_BINDINGS + ~/.vanta/keybindings.json loader + live app-keys dispatch rewire) → unlocks VANTA-SHORTCUT-DISPLAY + VANTA-SHORTCUT-DISPLAY.
+- **Live-infra / decision rocks**: BACKEND-SERVERLESS-LIVE, VOICE-WAKE-WORD, AMBIENT-SCREEN-CONTEXT, SURFACE-MOBILE-APP/RUN-ANYWHERE-TERMUX, MARKETING-ANALYTICS-CONNECTORS, MSG-CHANNEL-PARITY, DESKTOP-*.
+**Next-session decision for Jason:** pick a tranche — (a) the TUI component pass (needs an ink-testing-library harness pattern established first), (b) the agent-loop AHE/cofounder behavior cards (integration + eval-measured), (c) the KEYBINDING registry unblocker, or (d) a decision on the live-infra rocks. Regenerate the queue first; ids shift.
 
 ### Slices 26–34 (after the numbered list below):
 26. HARNESS-FLATTEN-TEXT — `agent/flatten-text.ts` (any content shape → text)

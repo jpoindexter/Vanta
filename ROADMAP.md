@@ -12,7 +12,7 @@ Runtime flow: `docs/vanta-flow.md`. Locked choices: `DECISIONS.md`. Deferred: `P
 skills+memory, web/reach, browser+vision, code/dev, autonomy primitives, comms,
 operator systems, and the real Ink 7 TUI. Current source counts: **123 built-in tools**
 (127 registered) and **131 slash commands**. Last recorded full verify (2026-07-07):
-**11775 TS tests** (1048 files), `tsc` clean, **67 kernel tests** green. Live status +
+**11798 TS tests** (1051 files), `tsc` clean, **67 kernel tests** green. Live status +
 release log: root `CLAUDE.md` §Status and `CHANGELOG.md` (v0.8.0).
 
 **v1 = "is a full personal agent".** v0 felt like scripts because the *experience and
