@@ -13796,7 +13796,7 @@
       "id": "PCLIP-WORKSPACE-PORTABILITY",
       "track": "Cofounder engine",
       "title": "Export/import an operator workspace (scrubbed bundle)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Company Portability / companies.sh). Export and import a whole operator workspace — agents, skills, goals, routines, tasks — with secret scrubbing and id-collision handling. Reframed from Paperclip's multi-company export to single-workspace; aligns with Vanta's local-first / your-data-residency values.",
       "done": "vanta export writes a scrubbed bundle; vanta import re-creates agents/skills/goals/routines with collision handling.",
@@ -13804,7 +13804,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "infra",
-      "updated": "2026-06-19"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Distinct from `vanta backup` (raw whole-store tarball, unscrubbed): a SCRUBBED, SELECTIVE, collision-handled workspace bundle. workspace/portability.ts (pure, collection-generic — a collection = a named list of {id,...} records): parseBundle (zod, version:1, drops id-less records), scrubBundle (recurses every string field through redactForLog — vendor-key + positional URL/header/conn-string credential masking; new bundle, input untouched), mergeCollection (id-collision handling: skip keeps existing / overwrite lets incoming win / rename adds incoming under a fresh '<id>-imported[-n]' id; order-stable, returns added/skipped/renamed/overwritten counts). cli/workspace-cmd.ts: `vanta workspace export [file]` gathers via collection adapters → scrub → JSON; `import <file> [--on-collision skip|rename|overwrite]` merges back per-collection. Adapters wired for skills (writeSkill) + routines (durable-cron) — both with clean list/write APIs; the engine is collection-generic so goals/agents/tasks are additive one-adapter-each. 8 engine tests (parse+drop, scrub incl. nested + no-mutation, all 4 collision behaviors incl. -imported suffix bump). LIVE real-path: exported a skill workspace (scrub verified — a real 48-char sk- key masked; a sub-threshold 14-char token correctly kept, near-zero-false-positive by design) then imported into a fresh home (+1 added). Full suite 1047 files/11759 green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-MULTI-COMPANY",
@@ -14715,7 +14716,7 @@
       "lens": "infra",
       "updated": "2026-07-07",
       "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-07. skills/gating.ts (pure): (1) OFFER-TIME GATING — parseSkillPrereqs reads platforms/env_vars/commands from a skill's raw frontmatter (list or comma-string; accepts platform/requiresEnv/requiresCommands aliases); gateSkill(prereqs, {platform, env, hasCommand}) offers a skill only where its OS matches + required env vars are set + required commands are on PATH, first-unmet-is-the-reason. (2) INJECTION SCAN — scanForInjection(text) matches 6 prompt-injection pattern banks (override-instructions, reveal-system-prompt, role-hijack, exfil-secrets, hidden zero-width/bidi control chars, fake-tool-call incl. curl|sh & rm -rf) returning {clean, hits}, tuned to flag intent not incidental prose ('set your OPENAI_API_KEY in .env' stays clean). WIRED: store.ts tryReadSkill scans every SKILL.md BEFORE parse — a tainted skill is SKIPPED (not loaded, logged with the hit list) unless VANTA_SKILL_ALLOW_UNSAFE=1, so listSkills/readSkill never surface an injected skill. 13 gating tests (prereq parse, each gate reason, all-satisfied, clean pass, each injection pattern incl. bidi, benign-prose negatives) + a store test proving listSkills drops an injected skill beside a clean one. Full suite 1043 files/11723 green; tsc + size gate clean. gateSkill is exported for the selector/offer path (the kernel still gates every tool call regardless)."
+      "notes": "Shipped 2026-07-07. skills/gating.ts (pure): (1) OFFER-TIME GATING — parseSkillPrereqs reads platforms/env_vars/commands from a skill's raw frontmatter (list or comma-string; accepts platform/requiresEnv/requiresCommands aliases); gateSkill(prereqs, {platform, env, hasCommand}) offers a skill only where its OS matches + required env vars are set + required commands are on PATH, first-unmet-is-the-reason. (2) INJECTION SCAN — scanForInjection(text) matches 6 prompt-injection pattern banks (override-instructions, reveal-system-prompt, role-hijack, exfil-secrets, hidden zero-width/bidi control chars, fake-tool-call incl. curl|sh & rm -rf) returning {clean, hits}, tuned to flag intent not incidental prose ('set your OPENAI_API_KEY in .env' stays clean). WIRED: store.ts tryReadSkill scans every SKILL.md BEFORE parse. CORRECTED 2026-07-07 to warn-don't-skip by default (a false skip on the OPERATOR'S OWN security-topic skills — llm-safety, writing-plans, etc. legitimately quote 'ignore previous instructions' — broke real skills; 5 legit skills were being dropped). Default: FLAG (warn once per path, still loads). Opt into hard-skip with VANTA_SKILL_STRICT=1 (env-threaded through listSkills). 13 gating tests (prereq parse, each gate reason, all-satisfied, clean pass, each injection pattern incl. bidi, benign-prose negatives) + a store test proving listSkills drops an injected skill beside a clean one. Full suite 1043 files/11723 green; tsc + size gate clean. gateSkill is exported for the selector/offer path (the kernel still gates every tool call regardless)."
     },
     {
       "id": "SEC-GODMODE-DETECT",

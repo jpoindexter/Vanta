@@ -34,18 +34,32 @@ function skillPath(slug: string, env?: NodeJS.ProcessEnv): string {
   return join(skillsDir(env), slug, SKILL_FILE);
 }
 
+// listSkills runs many times per process; a scan warning should surface once
+// per path, not on every call (HARNESS-SKILL-GATING noise control).
+const warnedPaths = new Set<string>();
+function warnOnce(message: string): void {
+  const key = message.slice(message.lastIndexOf(":") + 1).trim();
+  if (warnedPaths.has(key)) return;
+  warnedPaths.add(key);
+  console.error(message);
+}
+
 /** Read+parse a SKILL.md, returning null if it does not exist. */
-async function tryReadSkill(path: string): Promise<Skill | null> {
+async function tryReadSkill(path: string, env: NodeJS.ProcessEnv = process.env): Promise<Skill | null> {
   try {
     const raw = await readFile(path, "utf8");
-    // HARNESS-SKILL-GATING: injection-scan the body BEFORE the skill enters the
-    // offerable set. A dirty skill is skipped (not loaded) unless the operator
-    // opts in via VANTA_SKILL_ALLOW_UNSAFE=1 — trusted-operator posture: skill
-    // content is an author/LLM boundary, not implicitly trusted.
+    // HARNESS-SKILL-GATING: injection-scan the body before it enters the
+    // offerable set. These are the OPERATOR'S OWN skills — a security-topic
+    // skill legitimately quotes "ignore previous instructions", so the default
+    // is FLAG (warn once), not skip: a false skip breaks a real skill. Opt in to
+    // hard-skipping tainted skills with VANTA_SKILL_STRICT=1.
     const scan = scanForInjection(raw);
-    if (!scan.clean && process.env.VANTA_SKILL_ALLOW_UNSAFE !== "1") {
-      console.error(`  ⚠ skill skipped (injection scan: ${scan.hits.join(", ")}): ${path}`);
-      return null;
+    if (!scan.clean) {
+      if (env.VANTA_SKILL_STRICT === "1") {
+        warnOnce(`  ⚠ skill skipped (VANTA_SKILL_STRICT, injection scan: ${scan.hits.join(", ")}): ${path}`);
+        return null;
+      }
+      warnOnce(`  ⚠ skill flagged (injection scan: ${scan.hits.join(", ")}) — loaded; set VANTA_SKILL_STRICT=1 to skip: ${path}`);
     }
     return parseSkill(raw);
   } catch {
@@ -70,7 +84,7 @@ export async function writeSkill(
   const path = skillPath(slug, env);
 
   // Preserve the first-write timestamp if the skill already exists.
-  const existing = await tryReadSkill(path);
+  const existing = await tryReadSkill(path, env);
   const created = existing?.meta.created ?? now;
 
   const skill: Skill = {
@@ -115,7 +129,7 @@ export async function readSkill(
   name: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Skill | null> {
-  return tryReadSkill(skillPath(slugifySkillName(name), env));
+  return tryReadSkill(skillPath(slugifySkillName(name), env), env);
 }
 
 /**
@@ -136,7 +150,7 @@ export async function listSkills(env?: NodeJS.ProcessEnv): Promise<Skill[]> {
   const skills: Skill[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name === ARCHIVE_DIR) continue;
-    const skill = await tryReadSkill(join(dir, entry.name, SKILL_FILE));
+    const skill = await tryReadSkill(join(dir, entry.name, SKILL_FILE), env);
     if (skill) skills.push(skill);
   }
 
