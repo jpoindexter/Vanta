@@ -2,6 +2,7 @@ import { type ReactElement } from "react";
 import { Box, Text } from "ink";
 import { highlightLine, type HlSeg } from "./highlight.js";
 import { LinkedText } from "./linked-text.js";
+import { layoutTable, parseAlignments, type Align } from "./markdown-table.js";
 
 // Minimal markdown renderer for the transcript: fenced code blocks, h1–h3,
 // bullet/numbered lists, inline **bold** and `code`. Theme-colored (headings →
@@ -32,9 +33,8 @@ export type Block =
   | { type: "numbered"; n: number; text: string }
   | { type: "paragraph"; text: string }
   | { type: "spacer" }
-  | { type: "table"; headers: string[]; rows: string[][] };
+  | { type: "table"; headers: string[]; rows: string[][]; aligns: Align[] };
 
-const MAX_CELL = 40;
 
 function parseCells(line: string): string[] {
   return line
@@ -55,13 +55,14 @@ function parseTableBlock(
   const sepLine = lines[from + 1] ?? "";
   if (!headerLine.trim().startsWith("|") || !isSepLine(sepLine)) return null;
   const headers = parseCells(headerLine);
+  const aligns = parseAlignments(parseCells(sepLine), headers.length);
   const rows: string[][] = [];
   let i = from + 2;
   while (i < lines.length && lines[i]!.trim().startsWith("|")) {
     rows.push(parseCells(lines[i]!));
     i++;
   }
-  return { block: { type: "table", headers, rows }, end: i };
+  return { block: { type: "table", headers, rows, aligns }, end: i };
 }
 
 function parseFencedCode(lines: string[], from: number): { block: Block; end: number } {
@@ -109,24 +110,13 @@ function Inline(props: { tokens: InlineToken[] }): ReactElement {
 }
 
 function TableView(props: { block: Extract<Block, { type: "table" }> }): ReactElement {
-  const { headers, rows } = props.block;
-  const colWidths = headers.map((h, ci) => {
-    const dataMax = rows.reduce((acc, r) => Math.max(acc, (r[ci] ?? "").length), 0);
-    return Math.min(Math.max(h.length, dataMax), MAX_CELL);
-  });
-  const pad = (s: string, w: number) => s.slice(0, w).padEnd(w);
-  const sep = colWidths.map((w) => "─".repeat(w)).join("  ");
+  const { headers, rows, aligns } = props.block;
+  // Bordered, aligned, wrap-wide lines (VANTA-MARKDOWN-TABLES). Line 1 = top rule,
+  // lines 2..k = header rows, then the header rule, then data rows, then bottom.
+  const lines = layoutTable(headers, rows, aligns);
   return (
     <Box flexDirection="column">
-      <Text bold>
-        {headers.map((h, ci) => pad(h, colWidths[ci]!)).join("  ")}
-      </Text>
-      <Text>{sep}</Text>
-      {rows.map((row, ri) => (
-        <Text key={ri}>
-          {headers.map((_, ci) => pad(row[ci] ?? "", colWidths[ci]!)).join("  ")}
-        </Text>
-      ))}
+      {lines.map((l, i) => <Text key={i} bold={i >= 1 && i <= headers.length}>{l}</Text>)}
     </Box>
   );
 }

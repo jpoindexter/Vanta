@@ -5354,7 +5354,7 @@
       "id": "VANTA-MARKDOWN-TABLES",
       "track": "Operator",
       "title": "Markdown table rendering — GFM table support in terminal output",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's MarkdownTable renders GitHub-Flavored Markdown tables with aligned columns, borders, and header separators in the terminal. Vanta's markdown renderer (VANTA-S-MARKDOWN shipped) handles headers/bullets/code but not tables.",
       "done": "GFM table syntax renders as aligned terminal tables with column borders; wide tables wrap or scroll; empty cells and alignment directives (left/right/center) are respected.",
@@ -5362,7 +5362,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4-mini",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. The markdown renderer already PARSED GFM tables but rendered them as 2-space-gapped columns with no borders, no alignment, and slice-TRUNCATED wide cells (data lost) — the card's real gaps. ui/markdown-table.ts (pure, no React): parseAlignments (:---/:--:/---: → left/center/right, padded to col count), wrapCell (word-boundary wrap, hard-split an over-long word — NO truncation), padAligned (left/right/center), columnWidths (max header+data, capped MAX_COL_WIDTH 40), layoutTable → full bordered lines (┌┬┐ / header / ├┼┤ / rows / └┴┘) with wide cells wrapped across physical lines. Block.table gained `aligns`; parseTableBlock now captures the separator directives (previously dropped); TableView renders layoutTable's lines (header rows bolded). 12 new pure tests (alignment parse+pad, word-wrap + hard-split, capped widths, bordered/aligned/right-align layout, wide-cell wrap keeps all data, empty/ragged cells) + the existing markdown table tests strengthened to assert captured aligns. Full suite 1045 files/11744 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-WORKFLOW-MULTISELECT",

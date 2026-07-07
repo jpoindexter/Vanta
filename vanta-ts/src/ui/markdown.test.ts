@@ -41,6 +41,7 @@ describe("parseBlocks — tables", () => {
         ["app", "12k"],
         ["cli", "4k"],
       ],
+      aligns: ["left", "left"],
     });
   });
 
@@ -51,13 +52,14 @@ describe("parseBlocks — tables", () => {
       type: "table",
       headers: ["A", "B", "C"],
       rows: [["1", "2", "3"]],
+      aligns: ["left", "center", "right"],
     });
   });
 
   it("table with no body rows is still a table", () => {
     const md = "| Col |\n| --- |";
     const blocks = parseBlocks(md);
-    expect(blocks[0]).toEqual({ type: "table", headers: ["Col"], rows: [] });
+    expect(blocks[0]).toEqual({ type: "table", headers: ["Col"], rows: [], aligns: ["left"] });
   });
 
   it("a pipe line without a separator on the next line stays a paragraph", () => {
