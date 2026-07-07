@@ -1453,7 +1453,7 @@
       "id": "VANTA-VIM-OPERATORS",
       "track": "Operator",
       "title": "Vim operator system — text objects, find motions, counts, dot-repeat, yank register",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Full vim operator system beyond basic hjkl: operators (d/c/y/>/< with motion), text objects (iw/aw/i''/a''/i(/a(/i[/a[/i{/a{), find motions (f/F/t/T with ; repeat), count prefix (3w, 2dd), dot-repeat (.), yank register, r replace, linewise vs characterwise resolution. Extends VANTA-VIM-MODE.",
       "done": "Operators with motions and counts work (3dw deletes 3 words); text objects work (ci' changes inside quotes); find motions work (f( moves to next '('); dot-repeat re-applies last change; yank register shared across d/c/y.",
@@ -1462,7 +1462,8 @@
       "effort": "high",
       "codex": "gpt-5.5",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Extended the composer's pure vi-mode engine from basic motions + dd/yy to the full operator grammar. NEW ui/vim-motions.ts (pure geometry): motionTarget (h l w b e 0 ^ $ j k + find f/F/t/T, count-aware), findChar, moveVertical, isInclusiveMotion, textObjectRange (quotes '/\"/\\`, bracket pairs ()/[]/{}/<> via enclosing-pair scan, inner/around word). vim-mode.ts rewritten as a parser: `pending` accumulates the command buffer so COUNTS (3w, 3dw, d2w = count×count), OPERATOR+MOTION (dw/d$/db/de/dl over inclusive-aware ranges), TEXT OBJECTS (ci'/di\"/ci(/da(/diw — change enters insert), and FIND MOTIONS (f(/t)/F./df)/dt,) all compose; dd/cc/yy stay linewise (×count); x/p/i/a/A/I/o/O unchanged. Fixed two latent bugs found by the existing tests: j/k vertical motion had been dropped, and the operator-apply paths leaked `pending` (spread ...st without clearing). All 3 card examples proven — 3dw deletes 3 words, ci' changes inside quotes, f( jumps to the paren. 25 existing vim tests green + 21 new operator/count/text-object/find tests. Composer wiring (useVim → vimNormalKey) already in place — no change needed. Full suite 1056 files/11840 green; tsc + size gate clean."
     },
     {
       "id": "AGENT-COUNCIL",

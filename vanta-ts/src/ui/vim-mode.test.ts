@@ -99,8 +99,9 @@ describe("vim dd — delete line", () => {
     expect(after.value).toBe("");
     expect(after.state.register).toBe("solo\n");
   });
-  it("a non-d after d cancels the pending operator", () => {
-    const r = vimNormalKey(st({ pending: "d" }), "abc", 0, "l", k());
+  it("an invalid (non-motion) key after d cancels the pending operator", () => {
+    // 'z' is neither a motion nor a text object → the operator is abandoned.
+    const r = vimNormalKey(st({ pending: "d" }), "abc", 0, "z", k());
     expect(r.value).toBe("abc");
     expect(r.state.pending).toBe("");
   });

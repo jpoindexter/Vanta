@@ -1,59 +1,40 @@
-import { wordLeft } from "../term/composer-edits.js";
 import type { Key } from "./composer-keys.js";
+import {
+  lineBounds, motionTarget, isInclusiveMotion, textObjectRange,
+} from "./vim-motions.js";
 
-// Pure vi-mode state machine for the composer. No React, no Ink — a keypress in
-// normal mode maps (state, value, cursor) → new (state, value, cursor). Insert
-// mode is handled by the composer's normal readline path; this module only owns
-// normal-mode motions/operators and the transitions that enter insert mode.
-// Fully unit-testable in isolation (vim-mode.test.ts). `register` is vi's single
-// unnamed line register; `pending` holds a half-typed operator (d→dd, y→yy).
+// Pure vi-mode state machine for the composer. A normal-mode keypress maps
+// (state, value, cursor) → new (state, value, cursor). Insert mode is the
+// composer's normal readline path. VANTA-VIM-OPERATORS: `pending` accumulates a
+// half-typed command so counts (3w), operator+motion (dw/d$/3dw), text objects
+// (ci'/di(), and find motions (f(/dt,) all compose. vim-motions.ts is the pure
+// geometry; this module is the parser + operator application.
 
 export type VimMode = "normal" | "insert";
-
-/** Vim state carried across keypresses. */
+/** Vim state carried across keypresses. `pending` = the accumulated command buffer. */
 export type VimState = { mode: VimMode; register: string; pending: string };
-
 export const INITIAL_VIM: VimState = { mode: "normal", register: "", pending: "" };
 
-/** Result of one normal-mode keypress. `handled:false` means the composer should
- * drop the key (normal mode never inserts a printable char). */
 export type VimResult = { value: string; cursor: number; state: VimState; handled: boolean };
 
-/** Bounds of the line containing `cursor`: [start, end) excluding the newline. */
-function lineBounds(value: string, cursor: number): { start: number; end: number } {
-  const c = Math.max(0, Math.min(cursor, value.length));
-  const start = value.lastIndexOf("\n", c - 1) + 1;
-  const nl = value.indexOf("\n", c);
-  return { start, end: nl === -1 ? value.length : nl };
-}
-
-/** Clamp the cursor to a valid normal-mode column (rest on the last char like
- * vi; one-past-end only on an empty line). */
+/** Clamp to a valid normal-mode column (rest on the last char like vi). */
 function clampNormal(value: string, cursor: number): number {
   const { start, end } = lineBounds(value, cursor);
-  if (end === start) return start; // empty line
+  if (end === start) return start;
   return Math.max(start, Math.min(cursor, end - 1));
-}
-
-const isWs = (ch: string | undefined): boolean => ch === undefined || /\s/.test(ch);
-
-/** vi `w` — start of the NEXT word: skip the current word, then leading space. */
-function nextWordStart(value: string, cursor: number): number {
-  let j = Math.max(0, Math.min(cursor, value.length));
-  while (j < value.length && !isWs(value[j])) j++; // off the current word
-  while (j < value.length && isWs(value[j])) j++; // onto the next word's first char
-  return j;
 }
 
 const done = (value: string, cursor: number, st: VimState, handled = true): VimResult =>
   ({ value, cursor: clampNormal(value, cursor), state: { ...st, pending: "" }, handled });
 
-type Op = (value: string, cursor: number, st: VimState) => VimResult;
+/** Keep the half-typed command; the composer waits for the next key. */
+const waiting = (value: string, cursor: number, st: VimState, buffer: string): VimResult =>
+  ({ value, cursor: clampNormal(value, cursor), state: { ...st, pending: buffer }, handled: true });
 
 const enterInsert = (value: string, cursor: number, st: VimState): VimResult =>
   ({ value, cursor: Math.max(0, Math.min(cursor, value.length)), state: { ...st, mode: "insert", pending: "" }, handled: true });
 
-/** i/a/A/I/o/O — enter insert mode at the right spot. */
+type Op = (value: string, cursor: number, st: VimState) => VimResult;
 const INSERT_OPS: Record<string, Op> = {
   i: (v, c, st) => enterInsert(v, c, st),
   a: (v, c, st) => enterInsert(v, Math.min(v.length, c + (lineBounds(v, c).end > lineBounds(v, c).start ? 1 : 0)), st),
@@ -63,43 +44,86 @@ const INSERT_OPS: Record<string, Op> = {
   O: (v, c, st) => { const { start } = lineBounds(v, c); return enterInsert(v.slice(0, start) + "\n" + v.slice(start), start, st); },
 };
 
-/** hjkl, w, b — return a new cursor on the same value. */
-const MOTIONS: Record<string, (v: string, c: number) => number> = {
-  h: (v, c) => { const { start } = lineBounds(v, c); return Math.max(start, c - 1); },
-  l: (v, c) => clampNormal(v, c + 1),
-  j: (v, c) => moveVertical(v, c, 1),
-  k: (v, c) => moveVertical(v, c, -1),
-  w: (v, c) => clampNormal(v, nextWordStart(v, c)),
-  b: (v, c) => clampNormal(v, wordLeft(v, c)),
-};
-
-/** Move down/up one line, keeping the column where the target line allows. */
-function moveVertical(value: string, cursor: number, dir: 1 | -1): number {
-  const { start, end } = lineBounds(value, cursor);
-  const col = cursor - start;
-  if (dir === 1) {
-    if (end >= value.length) return clampNormal(value, cursor); // no line below
-    const next = lineBounds(value, end + 1);
-    return clampNormal(value, next.start + Math.min(col, next.end - next.start));
+/** dd/cc/yy over `count` lines (linewise). `op` decides delete/change/yank. */
+function linewiseOp(value: string, cursor: number, st: VimState, o: { op: string; count: number }): VimResult {
+  const { op, count } = o;
+  const first = lineBounds(value, cursor);
+  let end = first.end;
+  for (let i = 1; i < count; i++) { if (end >= value.length) break; end = lineBounds(value, end + 1).end; }
+  const register = value.slice(first.start, end) + "\n";
+  if (op === "y") return done(value, cursor, { ...st, register });
+  if (op === "c") { // clear the line(s), enter insert at the start
+    const next = value.slice(0, first.start) + value.slice(end);
+    return { value: next, cursor: first.start, state: { ...st, register, mode: "insert", pending: "" }, handled: true };
   }
-  if (start === 0) return clampNormal(value, cursor); // no line above
-  const prev = lineBounds(value, start - 1);
-  return clampNormal(value, prev.start + Math.min(col, prev.end - prev.start));
+  const hasNl = end < value.length; // dd removes the trailing newline too
+  const next = value.slice(0, first.start) + value.slice(hasNl ? end + 1 : end);
+  return { value: next, cursor: clampNormal(next, first.start), state: { ...st, register, pending: "" }, handled: true };
 }
 
-/** dd — delete the current line into the register (linewise). */
-function deleteLine(value: string, cursor: number, st: VimState): VimResult {
-  const { start, end } = lineBounds(value, cursor);
-  const hasNl = end < value.length;
-  const next = value.slice(0, start) + value.slice(hasNl ? end + 1 : end);
-  const register = value.slice(start, end) + "\n";
+/** Apply delete/change/yank over a [start,end) range. */
+function applyOpRange(op: string, value: string, range: { start: number; end: number }, st: VimState): VimResult {
+  const { start, end } = range;
+  const register = value.slice(start, end);
+  if (op === "y") return done(value, start, { ...st, register });
+  const next = value.slice(0, start) + value.slice(end);
+  if (op === "c") return { value: next, cursor: start, state: { ...st, register, mode: "insert", pending: "" }, handled: true };
   return { value: next, cursor: clampNormal(next, start), state: { ...st, register, pending: "" }, handled: true };
 }
 
-/** yy — yank the current line into the register (buffer unchanged). */
-function yankLine(value: string, cursor: number, st: VimState): VimResult {
-  const { start, end } = lineBounds(value, cursor);
-  return done(value, cursor, { ...st, register: value.slice(start, end) + "\n" });
+/** The [start,end) span an operator+motion covers, honoring inclusive motions. */
+function motionRange(value: string, cursor: number, motion: string, o: { count: number; arg?: string }): { start: number; end: number } | null {
+  const target = motionTarget(value, cursor, motion, o);
+  if (target === null) return null;
+  if (target >= cursor) return { start: cursor, end: target + (isInclusiveMotion(motion) ? 1 : 0) };
+  return { start: target, end: cursor };
+}
+
+const isOperator = (ch: string): boolean => ch === "d" || ch === "y" || ch === "c";
+const isFind = (ch: string): boolean => ch === "f" || ch === "F" || ch === "t" || ch === "T";
+/** Split a leading count off a command fragment (1 when absent). */
+function splitCount(s: string): { count: number; rest: string } {
+  const m = s.match(/^([1-9][0-9]*)([\s\S]*)$/);
+  return m ? { count: parseInt(m[1] ?? "1", 10), rest: m[2] ?? "" } : { count: 1, rest: s };
+}
+
+type Span = { start: number; end: number };
+// The range an operator's TARGET (text object / find / motion) covers:
+// a Span, "wait" (needs more keys), or null (invalid → cancel).
+function operatorTargetRange(value: string, cursor: number, a: string, n: number): Span | "wait" | null {
+  const a0 = a.charAt(0), a1 = a.charAt(1);
+  if (a0 === "i" || a0 === "a") return a.length < 2 ? "wait" : textObjectRange(value, cursor, a0 === "a", a1);
+  if (isFind(a0)) return a.length < 2 ? "wait" : motionRange(value, cursor, a0, { count: n, arg: a1 });
+  return motionRange(value, cursor, a0, { count: n }); // dw d$ d0 db de dh dl
+}
+
+/** Resolve an operator command from `value/cursor/st` + {op, count, arg, buffer}. */
+function resolveOperator(value: string, cursor: number, st: VimState, o: { op: string; count: number; arg: string; buffer: string }): VimResult {
+  const inner = splitCount(o.arg); // d3w → count*3
+  const n = o.count * inner.count;
+  const a = inner.rest;
+  if (a === "") return waiting(value, cursor, st, o.buffer);
+  if (a === o.op) return linewiseOp(value, cursor, st, { op: o.op, count: n }); // dd/cc/yy
+  const r = operatorTargetRange(value, cursor, a, n);
+  if (r === "wait") return waiting(value, cursor, st, o.buffer);
+  return r ? applyOpRange(o.op, value, r, st) : done(value, cursor, st);
+}
+
+/** Resolve a non-operator command (motion / insert entry / x / p). */
+function resolveSimple(value: string, cursor: number, st: VimState, o: { count: number; rest: string; buffer: string }): VimResult {
+  const { count, rest, buffer } = o;
+  const ch = rest.charAt(0);
+  const insertOp = INSERT_OPS[ch];
+  if (insertOp) return insertOp(value, clampNormal(value, cursor), st);
+  if (isFind(ch)) { // f( t) F" T,
+    if (rest.length < 2) return waiting(value, cursor, st, buffer);
+    const target = motionTarget(value, cursor, ch, { count, arg: rest.charAt(1) });
+    return target === null ? done(value, cursor, st) : done(value, target, st);
+  }
+  if (ch === "x") { const { end } = lineBounds(value, cursor); const to = Math.min(end, cursor + Math.max(1, count)); return applyOpRange("d", value, { start: cursor, end: to }, st); }
+  if (ch === "p") return paste(value, cursor, st);
+  const target = motionTarget(value, cursor, ch, { count }); // h l w b e 0 ^ $
+  return target === null ? done(value, cursor, st, false) : done(value, target, st);
 }
 
 /** p — paste the register's line below the current line (linewise). */
@@ -113,30 +137,18 @@ function paste(value: string, cursor: number, st: VimState): VimResult {
 /** A normal-mode keypress: the carried state plus the buffer it acts on. */
 export type VimKey = { st: VimState; value: string; cursor: number; input: string; key: Key };
 
-/** Resolve a pending operator (d→dd, y→yy). Any other key cancels it. */
-function pendingStep(k: VimKey): VimResult {
-  const { st, value, cursor, input } = k;
-  if (st.pending === "d") return input === "d" ? deleteLine(value, cursor, st) : done(value, cursor, st);
-  return input === "y" ? yankLine(value, cursor, st) : done(value, cursor, st);
-}
-
-/** Resolve a fresh keypress (no pending operator). */
-function freshStep(k: VimKey): VimResult {
-  const { st, value, cursor, input, key } = k;
-  if (key.ctrl || key.meta) return done(value, cursor, st, false);
-  if (input === "d" || input === "y") return { value, cursor: clampNormal(value, cursor), state: { ...st, pending: input }, handled: true };
-  const insertOp = INSERT_OPS[input];
-  if (insertOp) return insertOp(value, clampNormal(value, cursor), st);
-  const motion = MOTIONS[input];
-  if (motion) return done(value, motion(value, clampNormal(value, cursor)), st);
-  if (input === "p") return paste(value, cursor, st);
-  return done(value, cursor, st, false);
-}
-
-/** Apply one normal-mode keypress to (value, cursor). Threads d/y operator state
- * through `st.pending`. Insert mode is handled by the composer, not here. */
+/**
+ * Apply one normal-mode keypress. Accumulates into `pending` until a full
+ * command (count? operator? motion|textobject|find) is typed, then executes.
+ */
 export function vimNormalKey(k: VimKey): VimResult {
-  if (k.key.escape) return done(k.value, k.cursor, k.st);
-  if (k.st.pending) return pendingStep(k);
-  return freshStep(k);
+  const { st, value, cursor, input, key } = k;
+  if (key.escape) return done(value, cursor, { ...st, pending: "" });
+  if (key.ctrl || key.meta || input === "") return done(value, cursor, st, false);
+  const buffer = st.pending + input;
+  const { count, rest } = splitCount(buffer);
+  if (rest === "") return waiting(value, cursor, st, buffer); // building a count
+  const head = rest.charAt(0);
+  if (isOperator(head)) return resolveOperator(value, cursor, st, { op: head, count, arg: rest.slice(1), buffer });
+  return resolveSimple(value, cursor, st, { count, rest, buffer });
 }
