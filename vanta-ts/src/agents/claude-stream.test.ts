@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseClaudeStreamLine } from "./claude-stream.js";
+import { parseClaudeStreamLine, extractEditedPath } from "./claude-stream.js";
 
 describe("parseClaudeStreamLine", () => {
   it("extracts a result event's final text + error flag", () => {
@@ -21,5 +21,20 @@ describe("parseClaudeStreamLine", () => {
     expect(parseClaudeStreamLine('{"type":"assistant","message":{"content":[]}}')).toEqual({});
     expect(parseClaudeStreamLine("not json")).toEqual({});
     expect(parseClaudeStreamLine("")).toEqual({});
+  });
+});
+
+describe("extractEditedPath (VANTA-COMMIT-ATTRIBUTION seam)", () => {
+  it("returns the file_path of a Write tool_use", () => {
+    const line = '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Write","input":{"file_path":"src/x.ts","content":"y"}}]}}';
+    expect(extractEditedPath(line)).toBe("src/x.ts");
+  });
+  it("returns the file_path of an Edit tool_use", () => {
+    const line = '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Edit","input":{"file_path":"a.ts"}}]}}';
+    expect(extractEditedPath(line)).toBe("a.ts");
+  });
+  it("returns null for a non-edit tool (Read) or noise", () => {
+    expect(extractEditedPath('{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Read","input":{"file_path":"a.ts"}}]}}')).toBeNull();
+    expect(extractEditedPath("not json")).toBeNull();
   });
 });

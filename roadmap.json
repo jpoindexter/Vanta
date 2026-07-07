@@ -2171,7 +2171,7 @@
       "id": "VANTA-COMMIT-ATTRIBUTION",
       "track": "Harness",
       "title": "Commit attribution — track another agent-modified files for git co-authorship",
-      "status": "horizon",
+      "status": "building",
       "size": "S",
       "summary": "another agent tracks which files it modifies across a session using content hashes and session IDs. Attribution snapshots feed into git commit co-authorship metadata. Excludes generated files. Tracks git remote URL for cross-repo attribution. Used to attribute changes to the AI assistant in commit messages.",
       "done": "Files edited by another agent tracked with hashes; git commits include proper Co-Authored-By attribution; generated files excluded; remote URL included in attribution metadata.",
@@ -2180,7 +2180,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-09"
+      "updated": "2026-07-07",
+      "notes": "2026-07-07: the ATTRIBUTION MECHANISM shipped + tested (29 tests); all four DONE clauses implemented as a verifiable unit. agents/attribution.ts (pure): hashContent (sha256), isGeneratedFile (excludes lockfiles/dist/node_modules/.min/.map/.vanta — tested), newAttribution/recordEdit (hash-tracks authored files, dedupes, skips generated, remote URL carried), coAuthoredBy + attributionTrailers (Co-Authored-By line + 'Vanta-Attribution: session=… files=… remote=…' metadata), withTrailers (idempotent commit-message merge). agents/attribution-store.ts: .vanta/attribution/<sessionId>.json persistence — recordAgentEdit (load→record→save, best-effort) + trailersForSession. agents/claude-stream.ts: extractEditedPath (the recording SEAM — pulls a Write/Edit tool_use's file_path from the external agent's stream; caller reads the file back to hash it). STILL OPEN (why building): the end-to-end auto-wire — the git commit tool consuming trailersForSession + external-cli calling recordAgentEdit per stream line — needs an optional sessionId threaded into ToolContext (it currently only has `root`) + a file-read-back in the stream loop. Mechanism + all four clauses are real+tested, not a stub; the live commit-path wire is the remaining bounded thread. Full suite 1069 files/11967 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-CONCURRENT-SESSIONS",

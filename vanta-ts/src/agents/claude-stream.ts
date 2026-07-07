@@ -31,6 +31,24 @@ function summarize(parts: unknown[]): string | undefined {
   return undefined;
 }
 
+/** VANTA-COMMIT-ATTRIBUTION — the file path a Write/Edit tool_use touched in this
+ * stream line, or null. The recording seam: the caller reads the file back +
+ * hashes it (the stream doesn't reliably carry full content). Pure. */
+export function extractEditedPath(line: string): string | null {
+  let ev: unknown;
+  try { ev = JSON.parse(line); } catch { return null; }
+  const msg = asObj(asObj(ev)?.message);
+  const content = msg && Array.isArray(msg.content) ? msg.content : [];
+  for (const p of content) {
+    const o = asObj(p);
+    if (o?.type === "tool_use" && (o.name === "Write" || o.name === "Edit")) {
+      const fp = asObj(o.input)?.file_path ?? asObj(o.input)?.path;
+      if (typeof fp === "string") return fp;
+    }
+  }
+  return null;
+}
+
 /** Parse one stream-json line. Returns {} for noise (system/hook/unparseable) lines. */
 export function parseClaudeStreamLine(line: string): StreamEvent {
   let ev: unknown;
