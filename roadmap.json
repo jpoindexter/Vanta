@@ -14573,7 +14573,7 @@
       "id": "HARNESS-EVENTS-WAIT",
       "track": "Harness",
       "title": "Cursor + long-poll reader over jsonl event stores",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Event stores (loop wake-events, etc.) are poll-only. Add a generic cursor-based reader with a blocking long-poll (timeout_ms, capped ~5min) so the gateway, an editor adapter, and the desktop renderer get near-real-time delivery without busy-polling.",
       "done": "An external consumer reads new events by cursor and can long-poll for the next one with a capped timeout; reused across at least two surfaces; unit-tested.",
@@ -14582,8 +14582,9 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-07",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-07. events/cursor-reader.ts (pure core + injected source/sleep): readSince(lines, cursor) returns new lines after a line-index cursor + the advanced cursor (a cursor past the end resets to the end — no replay after truncation/rotation); longPollEvents blocks until an event appears after the cursor OR the timeout elapses (clamped to MAX_WAIT_MS ~5min, matching the kernel ceiling), returns immediately when events are already pending, honors an abort signal, errors-as-values (a failing read = no-new-events this tick, never throws), and returns the preserved cursor on timeout (retry without miss/replay). fileEventSource(path) is the live JSONL adapter (non-empty lines; missing → []). Fully deterministic-testable via an injected clock — 8 tests (cursor advance, past-end reset, immediate-return, blocks-then-delivers, timeout-preserves-cursor, abort, MAX_WAIT_MS cap, file adapter). The generic engine + adapter is the reusable primitive the gateway / editor adapter / desktop renderer drop in (longPollEvents(fileEventSource(dataDir/events.jsonl)) — near-real-time delivery, no busy-poll); concrete per-surface wiring is a thin follow-up over this API. Full suite 1050 files/11793 green; tsc + size gate clean."
     },
     {
       "id": "HARNESS-CRON-AT-MOST-ONCE",
