@@ -25,11 +25,13 @@ export function useVim(enabled: boolean): VimHandle {
     reset: () => setSt(INITIAL_VIM),
     handle: ({ input, key, value, cursor, setBuf }) => {
       if (!enabled) return false;
-      if (st.mode !== "normal") { if (key.escape) { setSt({ ...st, mode: "normal" }); return true; } return false; }
+      // Insert mode: only Esc returns to normal; everything else falls through to readline.
+      if (st.mode === "insert") { if (key.escape) { setSt({ ...st, mode: "normal" }); return true; } return false; }
+      // Normal + visual are owned by the engine (visual routes internally).
       const r = vimNormalKey({ st, value, cursor, input, key });
       setSt(r.state);
       if (r.value !== value || r.cursor !== cursor) setBuf(r.value, r.cursor);
-      return true;
+      return true; // command modes (normal/visual) never fall through to readline (no typing)
     },
   };
 }

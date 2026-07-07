@@ -23,7 +23,7 @@ export function ComposerView(props: {
   placeholder: string;
   pill?: { count: number; lines: number };
   ghost?: string;
-  vimMode?: "normal" | "insert";
+  vimMode?: "normal" | "insert" | "visual";
 }): ReactElement {
   const blink = useBlink();
   // The Claude-method input: a single rounded-border box (not bare ─ rules), the
@@ -49,10 +49,10 @@ export function ComposerView(props: {
 
 /** A cheap, static vi-mode tag (no animation) shown inside the input when /vim is
  * on. NORMAL is highlighted; INSERT is dimmed so typing feels like the default. */
-function VimTag({ mode }: { mode?: "normal" | "insert" }): ReactElement | null {
+const VIM_TAG: Record<"normal" | "insert" | "visual", string> = { normal: "NOR", insert: "INS", visual: "VIS" };
+function VimTag({ mode }: { mode?: "normal" | "insert" | "visual" }): ReactElement | null {
   if (!mode) return null;
-  const label = mode === "normal" ? "NOR" : "INS";
-  return <Text color={mode === "normal" ? "yellow" : undefined} dimColor={mode === "insert"}>{label}{" "}</Text>;
+  return <Text color={mode === "insert" ? undefined : "yellow"} dimColor={mode === "insert"}>{VIM_TAG[mode]}{" "}</Text>;
 }
 
 function PastedTextPill({ count, lines, blink }: { count: number; lines: number; blink: boolean }): ReactElement {

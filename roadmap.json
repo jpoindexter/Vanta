@@ -5347,7 +5347,7 @@
       "id": "VANTA-VIM-VISUAL-MODE",
       "track": "Operator",
       "title": "Vim visual mode — `v`/`V` selection with operators in the prompt input",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent (v2.1.118) adds vim visual mode (`v` char-select, `V` line-select) with operators (d/y/c) and visual feedback in the prompt input. Extends the existing vim normal mode.",
       "done": "In vim mode, pressing `v` starts character selection. `d` deletes the selection; `y` yanks to register.",
@@ -5356,7 +5356,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 on the VANTA-VIM-OPERATORS engine. VimMode += 'visual'; VimState += visualAnchor. In normal mode `v` enters visual (anchor dropped at the cursor). visualKey (pure): a bare motion (h/l/w/b/e/0/$/… via motionTarget) moves the cursor, extending the [anchor..cursor] selection; d/x delete it (inclusive), y yanks it to the register, c deletes+enters insert; Esc exits to normal and clears the anchor. Reuses applyOpRange (the operator machinery) — visual span is [min,max+1] inclusive. use-vim.ts now routes BOTH normal and visual through the engine (insert still only consumes Esc); command modes never fall through to readline (no stray typing). composer-view VimTag shows NOR/INS/VIS. 7 tests (v enters+anchors, motion extends, v$d deletes to EOL, vlly yanks 'hel', vlx delete, vlc→insert, Esc exits+clears). Size-gate refactors: applyVisualOp extracted (sel options object), VISUAL_OPS Set membership. Full suite 1068 files/11942 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-MARKDOWN-TABLES",

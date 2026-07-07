@@ -10,9 +10,10 @@ import {
 // (ci'/di(), and find motions (f(/dt,) all compose. vim-motions.ts is the pure
 // geometry; this module is the parser + operator application.
 
-export type VimMode = "normal" | "insert";
-/** Vim state carried across keypresses. `pending` = the accumulated command buffer. */
-export type VimState = { mode: VimMode; register: string; pending: string };
+export type VimMode = "normal" | "insert" | "visual";
+/** Vim state carried across keypresses. `pending` = the accumulated command buffer.
+ * `visualAnchor` = the fixed end of a visual-mode selection (set on `v`). */
+export type VimState = { mode: VimMode; register: string; pending: string; visualAnchor?: number };
 export const INITIAL_VIM: VimState = { mode: "normal", register: "", pending: "" };
 
 export type VimResult = { value: string; cursor: number; state: VimState; handled: boolean };
@@ -113,6 +114,7 @@ function resolveOperator(value: string, cursor: number, st: VimState, o: { op: s
 function resolveSimple(value: string, cursor: number, st: VimState, o: { count: number; rest: string; buffer: string }): VimResult {
   const { count, rest, buffer } = o;
   const ch = rest.charAt(0);
+  if (ch === "v") return { value, cursor: clampNormal(value, cursor), state: { ...st, mode: "visual", visualAnchor: clampNormal(value, cursor), pending: "" }, handled: true };
   const insertOp = INSERT_OPS[ch];
   if (insertOp) return insertOp(value, clampNormal(value, cursor), st);
   if (isFind(ch)) { // f( t) F" T,
@@ -137,12 +139,35 @@ function paste(value: string, cursor: number, st: VimState): VimResult {
 /** A normal-mode keypress: the carried state plus the buffer it acts on. */
 export type VimKey = { st: VimState; value: string; cursor: number; input: string; key: Key };
 
+const VISUAL_OPS = new Set(["d", "x", "y", "c"]);
+const ignored = (value: string, cursor: number, st: VimState): VimResult => ({ value, cursor, state: st, handled: false });
+
+/** Apply a visual-mode operator (d/x/y/c) to the [anchor..cursor] inclusive span. */
+function applyVisualOp(input: string, value: string, sel: { anchor: number; cursor: number }, st: VimState): VimResult {
+  const range = { start: Math.min(sel.anchor, sel.cursor), end: Math.max(sel.anchor, sel.cursor) + 1 };
+  const op = input === "x" ? "d" : input;
+  const r = applyOpRange(op, value, range, st);
+  return { ...r, state: { ...r.state, mode: op === "c" ? "insert" : "normal", visualAnchor: undefined } };
+}
+
+/** VANTA-VIM-VISUAL-MODE — a keypress while in visual mode: Esc exits; d/x/y/c
+ * operate on the [anchor..cursor] selection (inclusive); a motion extends it. */
+function visualKey(k: VimKey): VimResult {
+  const { st, value, cursor, input, key } = k;
+  if (key.escape) return { value, cursor: clampNormal(value, cursor), state: { ...st, mode: "normal", visualAnchor: undefined, pending: "" }, handled: true };
+  if (key.ctrl || key.meta || input === "") return ignored(value, cursor, st);
+  if (VISUAL_OPS.has(input)) return applyVisualOp(input, value, { anchor: st.visualAnchor ?? cursor, cursor }, st);
+  const target = motionTarget(value, cursor, input, { count: 1 }); // a bare motion extends the selection
+  return target === null ? ignored(value, cursor, st) : { value, cursor: target, state: st, handled: true };
+}
+
 /**
- * Apply one normal-mode keypress. Accumulates into `pending` until a full
- * command (count? operator? motion|textobject|find) is typed, then executes.
+ * Apply one keypress. Visual mode routes to visualKey; otherwise accumulates into
+ * `pending` until a full command (count? operator? motion|textobject|find) is typed.
  */
 export function vimNormalKey(k: VimKey): VimResult {
   const { st, value, cursor, input, key } = k;
+  if (st.mode === "visual") return visualKey(k);
   if (key.escape) return done(value, cursor, { ...st, pending: "" });
   if (key.ctrl || key.meta || input === "") return done(value, cursor, st, false);
   const buffer = st.pending + input;
