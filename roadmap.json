@@ -5326,7 +5326,7 @@
       "id": "VANTA-SHORTCUT-DISPLAY",
       "track": "Operator",
       "title": "useShortcutDisplay — render user-configured keybinding hints in UI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "React hook and non-React function that return the display text for any action+context pair from the user's live keybinding config. Used in help overlays, confirmation dialogs, and typeahead footers so shown shortcuts always match the user's custom config.",
       "done": "Keyboard hints in help overlays and dialogs show the user's configured binding, not hardcoded defaults; non-React callers (commands, services) use the sync variant.",
@@ -5335,7 +5335,8 @@
       "effort": "low",
       "codex": "gpt-5.4-mini",
       "lens": "tui",
-      "updated": "2026-06-09"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 on the KEYBINDING-CUSTOMIZATION registry. ui/shortcut-display.ts: shortcutFor(action, context, bindings, fallback?) — pure SYNC variant for non-React callers (commands/services), resolves action+context → the configured chord's display text (⌃P etc), context-specific then global fallback, returns the fallback (default \"\") when unbound so a hint is never blank. useShortcut() — React hook returning a shortcut(action, context?, fallback?) lookup bound to the LIVE config (useKeybindingSet loads ~/.vanta/keybindings.json, defaults until it resolves). WIRED into real hint surfaces: help-panel.tsx builds its interrupt/exit row from shortcut(exitOrAbort) (was hardcoded ^C); app-regions.tsx TeammateTree focus/interrupt hint reads cycleAgentPrev/Next + interrupt from config (was literal 'shift+←/→ · esc'). A rebind in keybindings.json now shows through in the help overlay + tree hint. 6 sync-variant tests + 4 keybinding/dispatch + HelpPanel render test (proves the hint is the glyph ⌃C from displayChord, not the old literal). Full suite 1055 files/11819 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-VIM-VISUAL-MODE",

@@ -19,7 +19,7 @@ describe("TeammateTree (VANTA-SPINNER-TEAMMATE)", () => {
     expect(out).toContain("Editing auth.ts");
     expect(out).toContain("audit docs");
     expect(out).toContain("Reading README.md");
-    expect(out).toContain("shift+←/→"); // focus-switch hint
+    expect(out).toContain("⇧left/⇧right"); // focus-switch hint (config-derived display chords)
     inst.unmount();
   });
 

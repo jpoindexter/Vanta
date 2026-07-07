@@ -5,6 +5,8 @@ import { StreamPreview, ThinkingPreview } from "./stream-view.js";
 import { busyLabel } from "./busy.js";
 import { toolLoaderRows } from "./tool-loader.js";
 import { buildTeammateTree, type LeaderState, type TreeRow } from "./teammate-tree.js";
+import { useShortcut } from "./shortcut-display.js";
+import { GLOBAL_ACTIONS } from "./keybindings.js";
 import { FOCUS, ACTIVITY, GOAL } from "../term/palette.js";
 import type { PendingTool, Entry } from "./types.js";
 import { Banner } from "./banner.js";
@@ -79,11 +81,16 @@ function TreeRowView(props: { row: TreeRow; frame: string }): ReactElement {
  * caller falls back to the single-agent spinner, so behavior is unchanged then. */
 export function TeammateTree(props: { agents: SubagentProgress[]; leader: LeaderState; selected: number; frame: string }): ReactElement | null {
   const rows = buildTeammateTree(props.agents, props.leader, props.selected);
+  const shortcut = useShortcut();
   if (rows.length === 0) return null;
+  // VANTA-SHORTCUT-DISPLAY: focus/interrupt hints reflect the live keybinding config.
+  const cyclePrev = shortcut(GLOBAL_ACTIONS.cycleAgentPrev, "global", "shift+←");
+  const cycleNext = shortcut(GLOBAL_ACTIONS.cycleAgentNext, "global", "shift+→");
+  const interrupt = shortcut(GLOBAL_ACTIONS.interrupt, "global", "esc");
   return (
     <Box flexDirection="column">
       {rows.map((row) => <TreeRowView key={row.kind === "leader" ? "leader" : `t${row.index}`} row={row} frame={props.frame} />)}
-      <Text dimColor>  shift+←/→ to switch focus · esc to interrupt</Text>
+      <Text dimColor>{`  ${cyclePrev}/${cycleNext} to switch focus · ${interrupt} to interrupt`}</Text>
     </Box>
   );
 }
