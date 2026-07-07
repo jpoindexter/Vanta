@@ -20,6 +20,12 @@ export type EvolveIteration = {
   /** Prediction precision: of predictedFix, how many actually flipped (%). */
   predictionPrecision: number;
   note: string;
+  // ASI-RECURSION-METRICS — the loop's own returns, made observable.
+  /** Model/compute spend (USD) for this iteration's propose turn, when known. */
+  spendUsd?: number;
+  /** Whether this iteration required a human touch (approval/edit). Autonomous
+   * iterations are false; the ratio across iterations is the human-in-loop metric. */
+  humanInLoop?: boolean;
 };
 
 export type EvolveOutcome = {

@@ -8,7 +8,14 @@ import type { EvolveIteration, EvolveOutcome } from "./types.js";
 // turn that edits the brain (kernel/compartment bounded) + declares predicted
 // fixes; snapshot = back up the brain dir.
 
-export type Proposal = { predictedFix: string[]; summary: string };
+export type Proposal = {
+  predictedFix: string[];
+  summary: string;
+  /** ASI-RECURSION-METRICS: the propose turn's spend (USD) + whether it needed
+   * a human touch, when the adapter can report them. Optional/non-breaking. */
+  spendUsd?: number;
+  humanInLoop?: boolean;
+};
 
 export type EvolveDeps = {
   /** Run the full corpus once → a fresh report. */
@@ -43,6 +50,8 @@ export async function evolve(iters: number, deps: EvolveDeps): Promise<EvolveOut
       regressions,
       predictionPrecision: predictionPrecision(proposal.predictedFix, fixed),
       note: `${keep ? "KEPT" : "reverted"} ${before}%→${after.passAt1}% · ${proposal.summary}`.slice(0, 200),
+      spendUsd: proposal.spendUsd,
+      humanInLoop: proposal.humanInLoop,
     };
     iterations.push(it);
     deps.onIteration?.(it);

@@ -12262,16 +12262,17 @@
       "id": "ASI-RECURSION-METRICS",
       "track": "Cofounder engine",
       "title": "Self-evolve metrics — lift-per-iteration + human-in-loop ratio + spend",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "From 'From AGI to ASI' pathway-3 research: monitor how much AI facilitates AI R&D, the degree of human-in-the-loop, and formulate recursive-improvement scaling laws. Instrument the AHE self-evolve loop to record per-iteration lift vs baseline, human-in-loop ratio, and compute/token spend — so the loop's own returns are observable (and diminishing returns are visible). See docs/from-agi-to-asi-notes.md.",
       "done": "Each evolve iteration logs lift-vs-baseline, human-in-loop ratio, and spend; a trend view shows whether returns are compounding or tapering.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16",
+      "updated": "2026-07-07",
       "after": [
         "AHE-EVOLVE-LOOP"
-      ]
+      ],
+      "notes": "Shipped 2026-07-07. Instrumented the AHE self-evolve loop (src/evolve/) so its OWN returns are observable. evolve/recursion-metrics.ts (pure): computeRecursionMetrics(baseline, iterations) → per-iter liftVsBaseline (after−baseline) + marginalLift (after−before) + kept + spend + human-in-loop, plus humanInLoopRatio, totalSpendUsd, liftPerUsd efficiency (null when no spend — honest, no divide-by-zero), and classifyTrend over KEPT marginal lifts (compounding ↗ / flat → / tapering ↘ = diminishing returns / insufficient). formatRecursionMetrics renders the trend headline + per-iter table. EvolveIteration + Proposal gained optional spendUsd/humanInLoop (non-breaking); loop.ts carries them through. Surfaced two ways: printed at the end of every `vanta evolve` run, and `vanta evolve metrics` reads evolve-journal.jsonl and prints the trend on demand. The autonomous propose turn auto-approves (requestApproval→true) so human-in-loop is a genuine 0% — the metric correctly shows a fully autonomous loop. 11 tests (trend up/down/flat/insufficient, lift/marginal/ratio/spend/efficiency, null-spend honesty, format). Full suite 1060 files/11881 green; tsc + size gate clean."
     },
     {
       "id": "ASI-FORECAST-CALIBRATION",

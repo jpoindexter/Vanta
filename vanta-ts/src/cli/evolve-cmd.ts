@@ -5,8 +5,10 @@ import { buildRunner, evalRollouts } from "./eval-cmd.js";
 import { evolve, type Proposal } from "../evolve/loop.js";
 import { snapshotDir, withFrozen } from "../evolve/snapshot.js";
 import { appendJournal } from "../evolve/journal.js";
+import { computeRecursionMetrics, formatRecursionMetrics } from "../evolve/recursion-metrics.js";
 import { resolveVantaHome } from "../store/home.js";
 import type { EvalReport } from "../eval/types.js";
+import type { EvolveIteration } from "../evolve/types.js";
 
 // `vanta evolve [iters]` — the self-improving loop (AHE Phase 2), built on the
 // factory's safety model. Each iteration: snapshot the brain → an agent turn
@@ -47,7 +49,20 @@ async function proposeEdit(repoRoot: string, current: EvalReport): Promise<Propo
   return { predictedFix: [], summary: (outcome.finalText.split("\n").pop() ?? "").slice(0, 120) };
 }
 
+/** ASI-RECURSION-METRICS — read the journal + print whether returns compound or taper. */
+export async function runEvolveMetrics(repoRoot: string): Promise<void> {
+  const { readFile } = await import("node:fs/promises");
+  const rows = await readFile(join(repoRoot, JOURNAL), "utf8").then(
+    (t) => t.split("\n").filter(Boolean).map((l) => JSON.parse(l) as EvolveIteration),
+    () => [] as EvolveIteration[],
+  );
+  if (rows.length === 0) { console.log(`vanta evolve metrics: no journal yet (${JOURNAL}) — run \`vanta evolve\` first.`); return; }
+  const baseline = rows[0]!.before;
+  console.log(formatRecursionMetrics(computeRecursionMetrics(baseline, rows)));
+}
+
 export async function runEvolveCommand(repoRoot: string, rest: string[] = []): Promise<void> {
+  if (rest[0] === "metrics") return runEvolveMetrics(repoRoot);
   const iters = Math.max(1, parseInt(rest[0] ?? "3", 10));
   const tasks = loadCorpus(join(repoRoot, DEFAULT_CORPUS));
   if (!tasks.length) {
@@ -74,5 +89,7 @@ export async function runEvolveCommand(repoRoot: string, rest: string[] = []): P
   });
   const kept = out.iterations.filter((i) => i.kept).length;
   console.log(`\nbaseline ${out.baselineScore}% → final ${out.finalScore}%  (${kept}/${iters} edits kept)`);
-  console.log(`journal → ${JOURNAL}`);
+  console.log(`journal → ${JOURNAL}\n`);
+  // ASI-RECURSION-METRICS: surface whether the loop's returns are compounding or tapering.
+  console.log(formatRecursionMetrics(computeRecursionMetrics(out.baselineScore, out.iterations)));
 }
