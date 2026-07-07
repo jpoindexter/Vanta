@@ -2,6 +2,7 @@ import { cosineSim } from "../search/embed.js";
 import { fuseRrf } from "../search/rrf.js";
 import { buildEntityIndex, entityRank, entityScores } from "../search/entities.js";
 import { bm25Rank, bm25Score, buildBm25Index, tokenizeLemmas, normalizeBm25 } from "../search/bm25.js";
+import { fuseSumNorm } from "../search/fusion-sumnorm.js";
 import { buildTemporalIndex, temporalRank } from "../brain/temporal.js";
 import type { MemoryRecord, RetrievalMode } from "./types.js";
 
@@ -54,10 +55,13 @@ function bm25Scores(query: string, records: MemoryRecord[]): Map<string, number>
 
 function rankSemantic(records: MemoryRecord[], ctx: RankCtx): string[] {
   if (!ctx.queryVec) return [];
-  return records
-    .map((r) => ({ id: r.id, sim: cosineSim(ctx.queryVec ?? [], ctx.recordVecs.get(r.id) ?? []) }))
-    .sort((a, b) => b.sim - a.sim)
-    .map((x) => x.id);
+  return semanticScores(records, ctx).sort((a, b) => b.score - a.score).map((x) => x.id);
+}
+
+/** Per-doc cosine similarity to the query vector (empty when no embedder). */
+function semanticScores(records: MemoryRecord[], ctx: RankCtx): Array<{ id: string; score: number }> {
+  if (!ctx.queryVec) return [];
+  return records.map((r) => ({ id: r.id, score: cosineSim(ctx.queryVec ?? [], ctx.recordVecs.get(r.id) ?? []) }));
 }
 
 const lexical: Retriever = {
@@ -115,6 +119,21 @@ const hybrid: Retriever = {
   },
 };
 
+// BRAIN-FUSION-AB-SUMNORM — mem0's sum-of-normalized-scores fusion as an A/B
+// against the RRF hybrid: normalize bm25 / entity / semantic to 0..1 and SUM
+// (keeps score magnitude RRF discards), rather than fusing by rank.
+const hybridSumnorm: Retriever = {
+  mode: "hybrid_sumnorm",
+  needsEmbeddings: true,
+  canRunWithoutEmbeddings: true,
+  rank: (q, records, ctx) => {
+    const lex = [...bm25Scores(q, records)].map(([id, score]) => ({ id, score }));
+    const ent = [...entityScores(q, buildEntityIndex(records))].map(([id, score]) => ({ id, score }));
+    const sem = semanticScores(records, ctx);
+    return fuseSumNorm([lex, ent, sem].filter((l) => l.length > 0));
+  },
+};
+
 // BRAIN-BM25-LEXICAL — IDF-weighted BM25 lexical ranking (A/B vs the density lexical).
 const bm25: Retriever = {
   mode: "bm25",
@@ -132,10 +151,10 @@ const temporal: Retriever = {
   rank: (q, records, ctx) => temporalRank(q, records, buildTemporalIndex(records), ctx.now),
 };
 
-const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid, temporal, entity, bm25 };
+const RETRIEVERS: Readonly<Record<RetrievalMode, Retriever>> = { lexical, semantic, hybrid, temporal, entity, bm25, hybrid_sumnorm: hybridSumnorm };
 
 export function resolveRetriever(mode: RetrievalMode): Retriever {
   return RETRIEVERS[mode];
 }
 
-export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid", "temporal", "entity", "bm25"];
+export const ALL_MODES: RetrievalMode[] = ["lexical", "semantic", "hybrid", "temporal", "entity", "bm25", "hybrid_sumnorm"];

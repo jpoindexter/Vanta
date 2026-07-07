@@ -15972,7 +15972,7 @@
       "id": "BRAIN-FUSION-AB-SUMNORM",
       "track": "Operator",
       "title": "A/B mem0's sum-of-normalized-scores fusion vs the existing RRF",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Vanta fuses recall signals with reciprocal-rank-fusion (search/rrf.ts). mem0 instead sums normalized signal scores ((semantic + bm25 + entity_boost)/max_possible). Run both fusions through the existing mem-eval LongMemEval/LoCoMo harness and keep whichever ranks better — a cheap, decisive A/B Vanta is uniquely set up to run.",
       "done": "Both fusion methods are benchmarked on LongMemEval + LoCoMo via `vanta eval mem public`; the winner is adopted with the delta recorded; the loser is documented, not silently dropped.",
@@ -15981,7 +15981,9 @@
       "source": "mem0-audit-2026-06-22",
       "after": [
         "BRAIN-ENTITY-SIGNAL"
-      ]
+      ],
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 — decisive A/B, RRF WINS, kept. search/fusion-sumnorm.ts (pure): fuseSumNorm/fuseSumNormScored — mem0's fusion (normalize each signal to 0..1 by its own max, then SUM, keeping the score magnitude RRF discards). Added a `hybrid_sumnorm` eval mode (bm25 + entity + semantic sum-normalized) and benchmarked vs the RRF `hybrid` on `vanta eval mem public`. RESULT: LongMemEval tied 99.9% (saturated); LoCoMo recall@5 hybrid(RRF) 48.4% vs hybrid_sumnorm 44.3% — RRF wins by -4.1pt. sum-norm edged a few sub-categories (temporal 56.1→57.8, multi-session 20.8→21.0, info-extraction 18.8→19.6) but COLLAPSED on adversarial (55.4→35.1): magnitude-summing lets a confident-but-wrong signal dominate on distractor questions, exactly the failure rank-based RRF guards against. WINNER ADOPTED: RRF retained (hybrid unchanged). LOSER DOCUMENTED (not dropped): the `hybrid_sumnorm` mode stays available for future A/B; this result recorded here + in the fusion module header. 5 fuseSumNorm unit tests (per-list max-normalization, missing-item=0, zero-guard, stable ties, empty). Full suite 1058 files/11860 green; tsc + size gate clean."
     },
     {
       "id": "BRAIN-ADD-ONLY-AB",
