@@ -5,7 +5,37 @@ Project: `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta` · branch `main` (
 Goal (session Stop-hook): keep pushing through the roadmap in logical order toward Hermes/OpenClaw operator stats; everything green; no stubs; commit+push every slice.
 
 ## State
-Horizon **125 → 86** (39 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path/model verified → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1051 files / 11798 tests** @ `1631dd8a`. Kernel untouched (67 tests).
+Horizon **125 → 70** (54 slices shipped 2026-07-06→07 + 3 building mechanisms, every one: complete slice → co-located tests → real-path/model verified → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1070 files / 11979 tests** @ `00c6cddb`. Kernel untouched (67 tests). roadmap.json: **1016 shipped · 69 horizon · 3 building · 28 parked** (72 open).
+
+**STOPPED 2026-07-07 at Jason's explicit request** ("ok stop when done with current task"). Not vein-forced mid-work — the last task (TUI-KEYBOARD-SHORTCUTS) shipped clean; nothing half-done. The clean offline-verifiable pebble vein IS worked out: every remaining open card needs a **decision or setup**, not just execution — dep sign-offs (tree-sitter-bash for the safety layer, transformers.js for WINNOW-LOCAL-SCORER), live-infra rocks (BACKEND-SERVERLESS-LIVE is the ambient-operator keystone, voice-wake, mobile, desktop, screen-context), UI dialogs needing an Ink render harness (GLOBAL-SEARCH-OPEN-TRIGGER — dialog exists, just needs a trigger wire; VANTA-EXPORT/MEMORY/OUTPUT-STYLE/WORKFLOW-MULTISELECT dialogs), agent-loop behavior needing live eval runs (AHE-INTERACTION-AWARE, OP-ADVERSARIAL-UX, PCLIP-CEO-CHAT), harness-limited A/Bs (BRAIN-ADD-ONLY-AB — the static recall harness can't discriminate FORMATION policies), or the 3 building partials' cross-cutting wiring.
+
+### The 3 building partials (each: mechanism done + tested, one bounded thread to finish → shipped)
+- **TUI-SELECT** — pure selection engine shipped+tested. Blocker: Cmd+C/X/V can't reach a TTY (verified — the emulator owns Cmd; Ink key.meta = Alt). Decision needed: remap Cmd→Ctrl/Shift for select-all/copy/cut, or accept terminal-owned Cmd.
+- **AHE-REGRESSION-FORESIGHT** — foresight ranker + offline backtest shipped+tested (beats the frequency baseline on fixtures). To ship: a live `vanta evolve` journal over the real corpus to cite recall-vs-11%.
+- **VANTA-COMMIT-ATTRIBUTION** — hash-track + Co-Authored-By trailers + `extractEditedPath` stream seam shipped+tested. To ship: thread an optional `sessionId` into `ToolContext` → git-commit tool appends `trailersForSession` + external-cli calls `recordAgentEdit` per Write/Edit stream line.
+
+### Slices 40–54 (this session, after 35–39 below):
+40. KEYBINDING-CUSTOMIZATION — `ui/keybindings.ts`; config-driven chords live on the TUI (app-keys dispatch by resolved chord→action).
+41. VANTA-SHORTCUT-DISPLAY — `ui/shortcut-display.ts`; help/tree hints read the live keybinding config.
+42. VANTA-VIM-OPERATORS — `ui/vim-motions.ts` + rewritten `vim-mode.ts`; counts/operator+motion/text-objects/find (3dw, ci', f().
+43. BRAIN-FUSION-AB-SUMNORM — `search/fusion-sumnorm.ts`; measured A/B, RRF beats sum-norm on LoCoMo (48.4 vs 44.3), kept + loser documented.
+44. VANTA-SUGGESTIONS — `repl/suggestions.ts`; `/suggest` recap + ranked next-step, auto-recap on resume.
+45. ASI-RECURSION-METRICS — `evolve/recursion-metrics.ts`; self-evolve lift/spend/human-in-loop + compounding-vs-tapering trend, `vanta evolve metrics`.
+46. VANTA-SKILLS-HUB — `skills/agentskills-format.ts`; agentskills.io import/export/hub, third-party skills load without code changes (store round-trip lossless).
+47. VANTA-BLUEPRINTS — `blueprint/apply.ts` + `vanta blueprint`; data-driven scaffolds, new ones drop into ~/.vanta/blueprints (bundled vanta-tool blueprint).
+48. VANTA-COST-GUARD — `budget/guard.ts`; pre-turn warn-near + halt-before-crossing cost ceiling (wired into the session cap).
+49. ND-CHOICE-REDUCE — completed the "full list on request" half (`formatChoiceList` + `/suggest all`).
+50. WORLD-MODEL (first slice) — `world/system-map.ts` + `vanta world map`; index _active/ repos (stack detect + git state) as world entities. Live-verified on 37 repos.
+51. TUI-CMD-BACKSPACE-TERMINALAPP — `term/cmd-backspace-hint.ts`; one-time Terminal.app hint (Cmd+Backspace needs a kitty terminal; use ^U).
+52. VANTA-VIM-VISUAL-MODE — visual mode on the vim engine (`v` selects, motions extend, d/y/c/x operate).
+53. ND-TIME-RANGES — `repl/time-ranges.ts` + `/time`; estimates as best/realistic/worst ranges + elapsed/since-last.
+54. TUI-KEYBOARD-SHORTCUTS — Cmd/Opt+Backspace composer chords were already wired; added the missing Opt+Backspace test to close honestly.
+
+### Next-session highest-leverage moves (need Jason's call):
+1. **Approve a dep** → build tree-sitter-bash (safety-layer command-substitution parsing) or WINNOW-LOCAL-SCORER (transformers.js logprobs).
+2. **Name the keystone live-infra rock** → BACKEND-SERVERLESS-LIVE (wake-on-message host) unlocks the whole ambient-operator story.
+3. **Say "finish the building partials"** → each is one bounded thread (above).
+4. **TUI dialog tranche** → establish the Ink dialog render-test pattern, then GLOBAL-SEARCH-OPEN-TRIGGER (dialog exists) + the export/memory/output-style/workflow dialogs fall quickly.
 
 ### Slices 35–39 (after the numbered list below):
 35. PCLIP-WORKSPACE-PORTABILITY — `workspace/portability.ts` + `vanta workspace export/import` (scrubbed bundle, collision handling). Also fixed a HARNESS-SKILL-GATING regression (was skipping the operator's own security-topic skills — now warn-don't-skip; VANTA_SKILL_STRICT=1 to hard-skip).
