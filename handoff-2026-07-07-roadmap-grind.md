@@ -5,7 +5,25 @@ Project: `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta` · branch `main` (
 Goal (session Stop-hook): keep pushing through the roadmap in logical order toward Hermes/OpenClaw operator stats; everything green; no stubs; commit+push every slice.
 
 ## State
-Horizon **125 → 100** (25 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path executed → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1038 files / 11683 tests** @ `9bf0e577`. Kernel untouched (67 tests).
+Horizon **125 → 91** (34 slices shipped 2026-07-06→07, every one: complete slice → co-located tests → real-path/model verified → tsc + size gate + FULL suite green → roadmap.json notes → commit+push). Last full verify: **1046 files / 11751 tests** @ `0bc4e9c9`. Kernel untouched (67 tests).
+
+### Slices 26–34 (after the numbered list below):
+26. HARNESS-FLATTEN-TEXT — `agent/flatten-text.ts` (any content shape → text)
+27. MSG-MEDIA-PATH-RECENCY — `gateway/media-send-guard.ts` (anti-exfil recency gate)
+28. HARNESS-IMAGE-SHRINK — `agent/image-recovery.ts` (compaction media strip + 413 retry)
+29. HARNESS-BLUEPRINT-SKILLS — `skills/scheduled.ts` (`schedule:` frontmatter → cron)
+30. HARNESS-SKILL-GATING — `skills/gating.ts` (prereq gate + pre-load injection scan)
+31. SELFHARNESS-SUITE-PRUNE — `verify/suite-prune.ts` (flag stale regression locks)
+32. WEB-BACKEND-SPLIT — `search/index.ts` (per-capability search vs extract backend)
+33. VANTA-MARKDOWN-TABLES — `ui/markdown-table.ts` (GFM tables: borders/align/wrap)
+34. VANTA-STRUCTURED-DIFF — `util/diff-structured.ts` + transcript color-diff
+
+### ⚠️ Still-skipped (precondition/decision-gated — do NOT force)
+- VANTA-SHORTCUT-DISPLAY — needs a live keybinding REGISTRY (KEYBINDING-CUSTOMIZATION, unbuilt) — would be a stub without it.
+- MSG-PLUGIN-PLATFORMS (needs a 2nd transport), HARNESS-EGRESS-ISOLATION (Docker deploy story), EXT-MCP-SERVE-COMMS (multi-platform comms), VANTA-TREE-SITTER-BASH (heavy tree-sitter dep).
+- Rocks needing live infra/hardware/decision: BACKEND-SERVERLESS-LIVE, VOICE-WAKE-WORD, AMBIENT-SCREEN-CONTEXT, MSG-CHANNEL-PARITY, SURFACE-MOBILE-APP, MARKETING-ANALYTICS-CONNECTORS, DESKTOP-*.
+- KEYBINDING-CUSTOMIZATION (M) is the highest-value unblocker: build the DEFAULT_BINDINGS registry + `~/.vanta/keybindings.json` loader; it unlocks VANTA-SHORTCUT-DISPLAY + the shortcut-display cards.
+**Remaining clean pebbles exist deeper in the queue — regenerate `node scripts/build-order.mjs` and scan with the /tmp/scan_cards.py heuristic (buildable = done mentions tested/pure/store/parse and NOT captured/deferred/live).**
 
 ### Slices 23–25 (after the numbered list below):
 23. PCLIP-SCOPED-SECRETS — `secrets/scope.ts`, per-run secret grants, fail-closed
