@@ -31,3 +31,26 @@ export function topNextItems(
 export function wasReduced(total: number): boolean {
   return total > MAX_VISIBLE_CHOICES;
 }
+
+/** The FULL effort-ranked list (no cap) — the "full list on request" path. Pure. */
+export function rankAllItems(items: RoadmapItem[]): RoadmapItem[] {
+  return topNextItems(items, items.length);
+}
+
+/**
+ * ND-CHOICE-REDUCE — render a backlog listing: top-3 + "(N more — <hint>)" by
+ * default, the full ranked list when `all`. `hint` names the on-request
+ * affordance so the reduced view always tells you how to see everything. Pure. */
+export function formatChoiceList(
+  items: RoadmapItem[],
+  opts: { all?: boolean; hint?: string; label?: (i: RoadmapItem) => string } = {},
+): string {
+  if (items.length === 0) return "(nothing ready)";
+  const label = opts.label ?? ((i) => `[${i.id}] ${i.title} (${i.size}, ${i.tier ?? "pebble"})`);
+  const ranked = opts.all ? rankAllItems(items) : topNextItems(items);
+  const lines = ranked.map((i) => `  - ${label(i)}`);
+  if (!opts.all && wasReduced(items.length)) {
+    lines.push(`  … ${items.length - ranked.length} more (${opts.hint ?? "request the full list"})`);
+  }
+  return lines.join("\n");
+}

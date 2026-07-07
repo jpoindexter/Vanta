@@ -1,5 +1,5 @@
 import { readNextItems } from "./next.js";
-import { topNextItems } from "./choice-reduce.js";
+import { topNextItems, formatChoiceList } from "./choice-reduce.js";
 import type { ReplCtx, SlashHandler } from "./types.js";
 
 // VANTA-SUGGESTIONS — proactive operator polish: a concise resume recap (done /
@@ -94,10 +94,15 @@ async function gatherSuggestState(getGoals: () => Promise<GoalRow[]>, dataDir: s
   };
 }
 
-/** `/suggest` — deterministic recap + ranked next-step (no model turn). */
-export const suggest: SlashHandler = async (_arg, ctx: ReplCtx) => {
+/** `/suggest [all]` — deterministic recap + ranked next-step (no model turn).
+ * `all` shows the FULL backlog (ND-CHOICE-REDUCE: full list on request). */
+export const suggest: SlashHandler = async (arg, ctx: ReplCtx) => {
   const s = await gatherSuggestState(() => ctx.setup.safety.getGoals(), ctx.dataDir);
-  return { output: buildSuggestView(s) };
+  if (arg.trim() === "all") {
+    const items = await readNextItems(ctx.dataDir).catch(() => []);
+    return { output: `${buildSuggestView(s)}\n\nFull backlog (${items.length}):\n${formatChoiceList(items, { all: true })}` };
+  }
+  return { output: `${buildSuggestView(s)}\n\nBacklog:\n${formatChoiceList(await readNextItems(ctx.dataDir).catch(() => []), { hint: "/suggest all" })}` };
 };
 
 /** The recap-only view shown automatically on session resume (VANTA-SUGGESTIONS

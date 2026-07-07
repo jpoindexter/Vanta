@@ -12499,13 +12499,14 @@
       "id": "ND-CHOICE-REDUCE",
       "track": "Operator",
       "title": "ND: choice reduction — top-3 ranked + hidden count",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Anywhere Vanta presents options or a backlog (roadmap picks, suggestions, model lists), show only the top 3 ranked by effort (smallest first) and note the hidden count — reduces decision paralysis. Mirrors the assistant's nd-choicereduce, as a product behavior. See .",
       "done": "Option/backlog listings default to top-3 + '(N more)'; full list on request.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 — completed the missing 'full list on request' half. choice-reduce.ts already had topNextItems (effort-ranked top-3: sand<pebble<rock, then size) + wasReduced, used as the default in /next and /suggest. Added rankAllItems (full ranked list, no cap) + formatChoiceList(items, {all?, hint?, label?}) — the reusable ND-CHOICE-REDUCE renderer: top-3 + a '… N more (<hint>)' line that NAMES the on-request affordance by default, the full ranked list when all:true. Wired: `/suggest` now prints the backlog via formatChoiceList (top-3 + '/suggest all' hint); `/suggest all` shows the FULL backlog. DONE met both ways — default top-3 + (N more), full on request. 5 new tests (rankAll no-cap, top-3+affordance-named, all shows full/no-hidden-line, fits-no-line, empty explicit) + existing choice-reduce/suggestions green. Full suite 1065 files/11919 green; tsc + size gate clean."
     },
     {
       "id": "ND-TIME-RANGES",
