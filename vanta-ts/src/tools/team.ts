@@ -12,13 +12,14 @@ import {
 } from "../team/tasks.js";
 import { doRun } from "./team-run.js";
 import { requireStage, decideStage, reviewQueue } from "../team/review-stage.js";
+import { planDelegateDown, planEscalateUp } from "../team/delegation.js";
 import { readWorkProducts, recordWorkProduct, bySourceTask, WORK_PRODUCT_KINDS, type WorkProductKind } from "../cofounder/work-products.js";
 import { resolveTaskArtifactProbe } from "./task-outcome-probe.js";
 
 const TASK_STATUSES = ["assigned", "running", "done", "blocked"] as const;
 
 const Args = z.object({
-  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts"]),
+  action: z.enum(["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts", "delegate_down", "escalate_up"]),
   id: z.string().optional(),
   role: z.string().optional(),
   model: z.string().optional(),
@@ -38,6 +39,10 @@ const Args = z.object({
   // PCLIP-WORK-PRODUCTS fields
   artifact: z.string().optional(),
   artifactKind: z.enum(WORK_PRODUCT_KINDS).optional(),
+  // PCLIP-DELEGATION-UPDOWN fields
+  managerId: z.string().optional(),
+  reportId: z.string().optional(),
+  blocker: z.string().optional(),
 });
 type Parsed = z.infer<typeof Args>;
 
@@ -179,6 +184,28 @@ async function doReviews(a: Parsed): Promise<ToolResult> {
   return { ok: true, output: queue.map((q) => `${q.taskId} · stage "${q.stage.name}" · ${q.title}`).join("\n") };
 }
 
+/** PCLIP-DELEGATION-UPDOWN — a manager assigns a subtask DOWN to a report (ledger task). */
+async function doDelegateDown(a: Parsed): Promise<ToolResult> {
+  if (!a.managerId || !a.reportId || !a.taskId || !a.title) return { ok: false, output: "delegate_down needs managerId, reportId, taskId, title" };
+  const plan = planDelegateDown(latestWorkers(await readTeam()), { managerId: a.managerId, reportId: a.reportId, taskId: a.taskId, title: a.title });
+  if (!plan.ok) return { ok: false, output: plan.error };
+  const assigned = assignTask(await readTasks(), plan.task.taskId, plan.task.workerId, plan.task.title);
+  if (!assigned.ok) return { ok: false, output: assigned.error };
+  await appendTask(assigned.value);
+  return { ok: true, output: `delegated ${plan.task.taskId} down: ${a.managerId} → ${plan.task.workerId}: ${plan.task.title}` };
+}
+
+/** PCLIP-DELEGATION-UPDOWN — a report escalates a blocker UP to its manager (ledger task). */
+async function doEscalateUp(a: Parsed): Promise<ToolResult> {
+  if (!a.id || !a.taskId || !a.blocker) return { ok: false, output: "escalate_up needs id (the escalating worker), taskId, blocker" };
+  const plan = planEscalateUp(latestWorkers(await readTeam()), { fromId: a.id, taskId: a.taskId, blocker: a.blocker });
+  if (!plan.ok) return { ok: false, output: plan.error };
+  const assigned = assignTask(await readTasks(), plan.task.taskId, plan.task.workerId, plan.task.title);
+  if (!assigned.ok) return { ok: false, output: assigned.error };
+  await appendTask(assigned.value);
+  return { ok: true, output: `escalated ${plan.task.taskId} up: ${a.id} → ${plan.task.workerId}: ${a.blocker}` };
+}
+
 const ACTIONS: Record<string, (a: Parsed, ctx: ToolContext) => Promise<ToolResult>> = {
   define: (a) => doDefine(a),
   status: (a) => doStatus(a),
@@ -191,6 +218,8 @@ const ACTIONS: Record<string, (a: Parsed, ctx: ToolContext) => Promise<ToolResul
   reviews: (a) => doReviews(a),
   artifact: (a) => doArtifact(a),
   artifacts: (a) => doArtifacts(a),
+  delegate_down: (a) => doDelegateDown(a),
+  escalate_up: (a) => doEscalateUp(a),
 };
 
 function dispatchAction(a: Parsed, ctx: ToolContext): Promise<ToolResult> {
@@ -213,13 +242,15 @@ export const teamTool: Tool = {
       "action:review — approve/reject a stage (taskId, stage, approve, reviewerId = who decides, detail? = reason); " +
       "action:reviews — list pending review stages routed to a reviewer (reviewerId); " +
       "action:artifact — record a work-product artifact (file path/preview url/deploy ref) on a task (taskId, artifact, artifactKind?); " +
-      "action:artifacts — list a task's linked artifacts without reading the transcript (taskId).",
+      "action:artifacts — list a task's linked artifacts without reading the transcript (taskId); " +
+      "action:delegate_down — a manager assigns a subtask to a direct report (managerId, reportId, taskId, title); " +
+      "action:escalate_up — a report escalates a blocker to its manager (id = the worker, taskId, blocker).",
     parameters: {
       type: "object",
       properties: {
         action: {
           type: "string",
-          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts"],
+          enum: ["define", "status", "list", "dispatch", "advance", "tasks", "run", "require_review", "review", "reviews", "artifact", "artifacts", "delegate_down", "escalate_up"],
           description: "define worker | update worker status | list roster | dispatch task | advance task | list tasks | run task (spawn worker) | require review stage | decide review | list pending reviews",
         },
         id: { type: "string", description: "worker id (define/status)" },
@@ -238,6 +269,9 @@ export const teamTool: Tool = {
         approve: { type: "boolean", description: "review decision (review): true approves, false rejects" },
         artifact: { type: "string", description: "work-product ref — file path, preview/deploy url, or content (artifact action)" },
         artifactKind: { type: "string", enum: [...WORK_PRODUCT_KINDS], description: "artifact category (artifact action, default document)" },
+        managerId: { type: "string", description: "delegating manager id (delegate_down)" },
+        reportId: { type: "string", description: "target report id (delegate_down)" },
+        blocker: { type: "string", description: "blocker text to escalate (escalate_up)" },
       },
       required: ["action"],
     },

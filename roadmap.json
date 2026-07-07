@@ -13737,7 +13737,7 @@
       "id": "PCLIP-DELEGATION-UPDOWN",
       "track": "Cofounder engine",
       "title": "Delegation up/down the org chart",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Heartbeat / Org Chart). A manager agent assigns a subtask to a report; a report escalates a blocker upward. Builds on delegate/team/subagent + the task ledger so work flows along the hierarchy instead of flat fan-out.",
       "done": "A manager can assign a subtask to a report and a report can escalate a blocker to its manager, both recorded in the task ledger.",
@@ -13745,10 +13745,11 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "reach",
-      "updated": "2026-06-19",
+      "updated": "2026-07-07",
       "after": [
         "PCLIP-ORG-CHART"
-      ]
+      ],
+      "notes": "Shipped 2026-07-07. Work flows along the org hierarchy, not flat fan-out. team/delegation.ts (pure, over the existing org-chart edges + team/tasks ledger): planDelegateDown validates reportId is a DIRECT report of managerId (via resolveDelegateTarget — delegation follows the chart, can't jump to a grand-report) → an assignTask spec for the report; planEscalateUp resolves the worker's manager (resolveEscalateTarget) → a manager-assigned task titled '[escalated from <id>] <blocker>', refused when the worker is a root (no manager). Both RECORDED IN THE TASK LEDGER (assignTask + appendTask). Wired as `team` tool actions delegate_down (managerId, reportId, taskId, title) + escalate_up (id, taskId, blocker). 5 pure planner tests (assign to report, refuse non-report/grand-report, unknown manager, escalate-to-manager with origin title, refuse root escalation) + LIVE real-path via ALL_TOOLS (lead→ana delegate + ana→lead escalate both landed as ledger tasks, verified with action:tasks). Full suite 1051 files/11798 green; tsc + size gate clean. Reuses the org-chart resolution + task ledger; no new store."
     },
     {
       "id": "PCLIP-CEO-CHAT",
