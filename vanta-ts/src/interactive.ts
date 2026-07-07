@@ -29,6 +29,7 @@ import type { TrustConfirmer } from "./settings/trust-gate.js";
 
 import { renderBanner } from "./interactive-banner.js";
 import { resumeRecap } from "./repl/suggestions.js";
+import { maybeShowCmdBackspaceHint } from "./term/cmd-backspace-hint.js";
 export { renderBanner };
 
 /** Trust confirmer for the readline REPL host; undefined off a TTY → headless fail-safe. */
@@ -69,6 +70,8 @@ async function announceSessionStart(o: {
     const recap = await resumeRecap({ getGoals: () => o.setup.safety.getGoals(), dataDir: join(o.repoRoot, ".vanta") }).catch(() => "");
     if (recap) console.log(`${recap}\n`);
   } else if (o.resumeId) console.log(`  (no session "${o.resumeId}" found — starting fresh)\n`);
+  // TUI-CMD-BACKSPACE-TERMINALAPP: one-time Terminal.app hint (no-op elsewhere).
+  await maybeShowCmdBackspaceHint(process.env, (m) => console.log(`${m}\n`)).catch(() => false);
 }
 
 /** Load skills and, best-effort, sync skill-declared cron schedules on load

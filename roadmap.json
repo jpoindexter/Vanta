@@ -13704,7 +13704,7 @@
       "id": "TUI-CMD-BACKSPACE-TERMINALAPP",
       "track": "Operator",
       "title": "Cmd+Backspace on Terminal.app — known limitation + ^U hint",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Known limitation (2026-06-19): Cmd+Backspace → clear-line (TUI-CMD-BACKSPACE-CLEAR) only fires on kitty-protocol terminals (Ghostty/Kitty/WezTerm/recent iTerm2). macOS Terminal.app doesn't speak the kitty/CSI-u protocol that carries the Cmd (super) modifier and reserves Cmd for its own menus, so the keystroke can't reach the app there — no reliable in-app fix. ^U is the universal clear-line fallback in every terminal today. Concrete future action: on first run detect Terminal.app (TERM_PROGRAM=Apple_Terminal) and surface a one-time hint to use ^U or switch to a kitty-capable terminal.",
       "done": "On Terminal.app, Vanta surfaces a one-time hint that Cmd+Backspace needs a kitty-capable terminal and that ^U clears the line; zero behavior change on capable terminals.",
@@ -13713,7 +13713,9 @@
       "lens": "tui",
       "after": [
         "TUI-CMD-BACKSPACE-CLEAR"
-      ]
+      ],
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. term/cmd-backspace-hint.ts (pure + tolerant one-time flag): isTerminalApp (TERM_PROGRAM=Apple_Terminal), isKittyCapable (KITTY_WINDOW_ID/TERM kitty/ghostty/wezterm/iterm — carries the Cmd/super modifier), cmdBackspaceHint (points to ^U + a kitty-capable terminal), shouldShowCmdBackspaceHint (Terminal.app AND not-capable AND not-already-shown), maybeShowCmdBackspaceHint (emits once, persists the id to ~/.vanta/shown-hints.json, best-effort — a persist failure just re-shows next time). Wired into interactive.ts announceSessionStart after the banner/resume notice; ZERO behavior change on capable terminals (early false). 7 tests (Terminal.app + kitty detection, should-show matrix, emit-once-then-persisted, never-on-capable). Full suite 1067 files/11935 green; tsc + size gate clean."
     },
     {
       "id": "PCLIP-ORG-CHART",
