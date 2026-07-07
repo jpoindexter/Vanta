@@ -79,6 +79,7 @@ import { runTuneCommand } from "./tune-cmd.js";
 import { runControlCommand } from "./control-cmd.js";
 import { runRunnerCommand } from "./runner-cmd.js";
 import { runWorkspaceCommand } from "./workspace-cmd.js";
+import { runBlueprintCommand } from "./blueprint-cmd.js";
 import { runQueueCommand } from "./queue-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
@@ -185,6 +186,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   watchdog: (root, rest) => runWatchdogCommand(root, rest),
   runner: (root, rest) => runRunnerCommand(root, rest),
   workspace: (root, rest) => runWorkspaceCommand(root, rest),
+  blueprint: (root, rest) => runBlueprintCommand(root, rest),
   queue: (root, rest) => runQueueCommand(root, rest),
   attach: (root, rest) => runAgentsCommand(root, ["attach", ...rest]),
   logs: (root, rest) => runAgentsCommand(root, ["logs", ...rest]),

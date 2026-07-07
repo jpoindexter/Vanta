@@ -1,0 +1,18 @@
+{
+  "name": "vanta-tool",
+  "description": "Scaffold a new kernel-gated Vanta tool (Tool + co-located test) from the ports/adapters pattern.",
+  "vars": [
+    { "key": "name", "description": "snake_case tool name (e.g. read_weather)" },
+    { "key": "summary", "description": "one-line tool description", "default": "does a scoped thing" }
+  ],
+  "files": [
+    {
+      "path": "src/tools/{{name}}.ts",
+      "content": "import { z } from \"zod\";\nimport type { Tool } from \"./types.js\";\n\n// {{summary}}\nconst schema = z.object({ input: z.string() });\n\nexport const {{name}}: Tool = {\n  schema: {\n    name: \"{{name}}\",\n    description: \"{{summary}}\",\n    parameters: { type: \"object\", properties: { input: { type: \"string\" } }, required: [\"input\"] },\n  },\n  // Send only the risk-relevant part to the kernel (never file contents).\n  describeForSafety: (args) => `{{name}} ${String((args as { input?: string }).input ?? \"\")}`,\n  async execute(rawArgs) {\n    const parsed = schema.safeParse(rawArgs);\n    if (!parsed.success) return { ok: false, output: \"{{name}}: invalid args — expected { input: string }\" };\n    // TODO: real logic; return a real value, never a stub.\n    return { ok: true, output: `{{name}} ran on: ${parsed.data.input}` };\n  },\n};\n"
+    },
+    {
+      "path": "src/tools/{{name}}.test.ts",
+      "content": "import { describe, it, expect } from \"vitest\";\nimport { {{name}} } from \"./{{name}}.js\";\n\ndescribe(\"{{name}}\", () => {\n  it(\"runs on valid input\", async () => {\n    const r = await {{name}}.execute({ input: \"x\" }, {} as never);\n    expect(r.ok).toBe(true);\n  });\n  it(\"rejects invalid args as a value (never throws)\", async () => {\n    const r = await {{name}}.execute({}, {} as never);\n    expect(r.ok).toBe(false);\n  });\n});\n"
+    }
+  ]
+}

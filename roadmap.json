@@ -12349,13 +12349,14 @@
       "id": "VANTA-BLUEPRINTS",
       "track": "Extensibility",
       "title": "Blueprints — reusable project/agent scaffolds you instantiate",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From a reference agent (blueprint_cmd): named, parameterized scaffolds (project + agent setup + tools/skills config) you instantiate in one command, instead of hand-rolling each new setup. Grows Vanta without core edits (Extensibility pillar).",
       "done": "`vanta blueprint <name>` scaffolds a configured project/agent from a reusable template; new blueprints are addable without touching src/.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Data-driven scaffolds — a blueprint is a blueprint.json (no src/ edit to add one). blueprint/apply.ts (pure): zod BlueprintSchema {name,description,vars[{key,description,default?}],files[{path,content}]}, parseVarArgs (k=v, values may contain =), resolveVars (provided→default→missing report), applyTemplate ({{key}} substitution, unknown placeholders left intact), planBlueprint (vars applied to BOTH paths and contents → write-plan, no I/O). blueprint/store.ts: listBlueprints/getBlueprint over TWO sources — bundled vanta-ts/blueprints/ + user ~/.vanta/blueprints/ (user overrides bundled by name). cli/blueprint-cmd.ts: `vanta blueprint list` + `vanta blueprint <name> [k=v ...] [--out dir] [--force]` — plans, refuses existing files unless --force, writes + reports. Ships a bundled `vanta-tool` blueprint (scaffolds a kernel-gated Tool + co-located test from the ports/adapters pattern). LIVE-VERIFIED: `vanta blueprint vanta-tool name=read_weather summary=… --out <tmp>` wrote 2 files with vars substituted in paths + contents. 11 tests (schema validate/reject, var parse, resolve defaults+missing, template substitution, plan, bundled load out-of-box, user-override-without-src-edit, unknown→null). Gotcha fixed: a JSDoc comment containing the glob `/*/` closed the comment early (TS1160) — reworded. New CLI command (not a tool/slash). Full suite 1064 files/11907 green; tsc + size gate clean."
     },
     {
       "id": "VANTA-SKILLS-HUB",
