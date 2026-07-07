@@ -123,8 +123,11 @@ function DiffView(props: { diff: DiffLine[] }): ReactElement {
 
 function DiffRow(props: { line: DiffLine }): ReactElement {
   const { line } = props;
-  if (line.type === "add") return <Text>     + {clip(line.text, 96)}</Text>;
-  if (line.type === "remove") return <Text>     - {clip(line.text, 96)}</Text>;
+  // VANTA-STRUCTURED-DIFF: color-diff — additions green, removals red, a
+  // collapsed-context run shown as a dim ⋯ marker, context plain.
+  if (line.type === "add") return <Text color="green">{"     + "}{clip(line.text, 96)}</Text>;
+  if (line.type === "remove") return <Text color="red">{"     - "}{clip(line.text, 96)}</Text>;
+  if (line.text === "···") return <Text dimColor>{"     ⋯"}</Text>;
   return <Text>       {clip(line.text, 96)}</Text>;
 }
 

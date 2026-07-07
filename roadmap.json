@@ -5140,7 +5140,7 @@
       "id": "VANTA-STRUCTURED-DIFF",
       "track": "Operator",
       "title": "Structured diff renderer — color diff, file list, detail view",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent has StructuredDiff (colorized inline diff with context lines), StructuredDiffList, DiffDetailView (expandable hunk view), DiffDialog, and DiffFileList (multi-file diff navigator). The /diff command uses these. VANTA-DIFF-VIEWER (shipped) covers the basic /diff command; Vanta is missing the proper color diff renderer and file-list navigator.",
       "done": "File edits render with color-diff (red/green lines, context collapse); /diff opens a multi-file navigator with DiffFileList; DiffDetailView shows individual hunks with expand/collapse.",
@@ -5148,7 +5148,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
-      "lens": "tui"
+      "lens": "tui",
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Two halves: (1) COLOR-DIFF now real in the transcript — DiffRow rendered +/- with NO color; now additions are green, removals red, a collapsed-context run shows a dim ⋯ marker (the card's 'red/green lines, context collapse' — computeDiff already produced the context-collapsed DiffLine[]). (2) util/diff-structured.ts (pure model behind the detail-view + multi-file navigator): groupHunks (split the collapsed diff on ··· into expand/collapse units, each with ± counts, context-only segments dropped), diffStat, summarizeFiles (per-file diff + ±/hunk counts, unchanged files omitted — the DiffFileList rows), formatFileList, lineMark + renderDiffText (gutter-mark colorless render for logs/non-React). 14 tests (mark mapping, hunk split incl. context-only→none, stat, multi-file summarize omits unchanged, file-list format, text render). Full suite 1046 files/11751 green; tsc + size gate clean. The live Ink DiffFileList/DiffDetailView navigator components render THIS model (data + colorized transcript render shipped now; the standalone /diff multi-file overlay UI is the follow-up over the same pure model — /diff currently shows the git diff --stat)."
     },
     {
       "id": "DESKTOP-P12",
