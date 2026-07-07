@@ -5187,7 +5187,7 @@
       "id": "WORLD-MODEL",
       "track": "Operator",
       "title": "World model of Jason's systems",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "A map of how Jason's digital life fits together -- repos, services, domains, tools, configs, recurring bugs (wants1 #14). Platform-scale; horizon until a real need pulls it. Extends PROJ-IDENTITY + MEM-WORKTREE + MEM-GRAPH from per-project to cross-system. Scoped to a first slice only: index the _active/ repos + their stacks.",
       "done": "First slice: Vanta names every repo under _active/, its stack, and its last-known state from a stored system map (not the full digital-life graph).",
@@ -5195,7 +5195,9 @@
       "model": "sonnet",
       "effort": "high",
       "codex": "gpt-5.5",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 (FIRST SLICE only, per the card's scope — the index, not the full digital-life graph). world/system-map.ts (pure + injected I/O): detectStack (12 marker files → Rust/Go/Python/Ruby/PHP/JVM/Deno/Tauri/Node/TypeScript; TypeScript wins over bare Node; multi-stack like Vanta's Rust+TS supported), repoEntity (a repo → WorldEntity type:'repo', note = 'stack — branch: last-commit'), scanSystemMap (injected listRepos/listFiles/gitState → entities; a failing per-repo read degrades to unknown-stack/no-git, never throws), formatSystemMap. cli/world-cmd.ts: `vanta world map` scans every repo under the projects dir (_active/ via listRooms), detects stack + git branch/last-commit (real git -C), stores each as a world entity (appendWorld — queryable via /world), prints the map. LIVE-VERIFIED: indexed 37 real repos with git state. 9 tests (single/multi/unknown stack, TS-over-Node, entity note, injected scan, per-repo failure degrade, format). New CLI command. Full suite 1066 files/11928 green; tsc + size gate clean. Remaining WORLD-MODEL scope (services/domains/configs/recurring-bugs cross-system graph) stays horizon per the card ('until a real need pulls it')."
     },
     {
       "id": "LIFE-SEARCH",
