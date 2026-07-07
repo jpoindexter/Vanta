@@ -27,7 +27,7 @@ import { useModeState } from "./mode-line.js";
 import { LiveBody } from "./app-body.js";
 import {
   ctxSnapshot, useSkillMatches, useQueueDrain, useTeammateFocus,
-  useFocusFallback, buildFocusTargets, useGlobalKeys, useHookLifecycle,
+  useFocusFallback, buildFocusTargets, useGlobalKeys, useKeybindings, useHookLifecycle,
 } from "./app-keys.js";
 import { useSlackChannels } from "./use-slack-channels.js";
 import type { Conversation } from "../agent.js";
@@ -66,7 +66,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const focusTargets = buildFocusTargets(pending, overlay);
   useFocusFallback(focus, focusTargets, pending ? "approval" : overlay?.kind ?? "composer", setFocus);
   const teammate = useTeammateFocus(agents.length, { busy: state.busy, pending, overlay, quickOpen });
-  useGlobalKeys({ busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), cycleAgent: teammate.cycleAgent });
+  useGlobalKeys({ bindings: useKeybindings(), busy: state.busy, pending, overlayOpen: overlay !== null, abort: () => interruptRef.current?.abort(), exit: app.exit, cycle, focus, focusTargets, setFocus, quickOpenOpen: quickOpen, openQuickOpen: () => setQuickOpen(true), cycleAgent: teammate.cycleAgent });
   const staticItems = buildStaticItems(provider.modelId(), props.repoRoot, state.entries, { tools: props.setup.registry.schemas().length, cmds: SLASH_COMMANDS.length });
   const vp = useViewportRows();
   const rich = useFooterRich({ repoRoot: props.repoRoot, sessionId: replStateRef.current.sessionId, sessionName: replStateRef.current.title, vimEnabled });

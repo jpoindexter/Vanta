@@ -15923,13 +15923,15 @@
       "id": "KEYBINDING-CUSTOMIZATION",
       "track": "Operator",
       "title": "User-customizable keybindings — rebuilt on the current TUI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "The old keybinding registry (DEFAULT_BINDINGS/KeyContext) was deleted in the 06-13 TUI rebuild, parking KEYBINDING-CONTEXTS/-SYSTEM/CHORD-BINDINGS as N/A. The capability — user-defined, context-scoped, chord-capable keybindings from a config file — is still a real product feature users expect. This is the fresh card to rebuild it on the current Ink TUI, replacing those three stale ones.",
       "done": "Users can define context-scoped keybindings (incl. chords) in a config file, hot-reloaded and schema-validated, layered over sensible defaults, on the current TUI.",
       "tier": "pebble",
       "lens": "tui",
-      "source": "parked-audit-2026-06-21"
+      "source": "parked-audit-2026-06-21",
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07. Rebuilt the deleted keybinding registry on the current Ink TUI. ui/keybindings.ts (pure): DEFAULT_BINDINGS (the 5 global actions — exitOrAbort/quickOpen/interrupt/cycleAgentNext|Prev — matching the pre-config hardcoded keys), normalizeChord (canonical modifier order + case), displayChord (⌃⇧T glyphs), KeybindingConfigSchema (zod version:1), resolveBindings (user overrides REPLACE a default's chord for the same action+context, new ones ADD — layered), lookupChord (action+context→chord, global fallback — the shortcut-display seam), actionForChord + eventToChord (Ink event → canonical chord → bound action), loadKeybindings (tolerant ~/.vanta/keybindings.json + defaults; re-call = hot-reload). LIVE ON THE TUI: app-keys.ts handleGlobalKey is now CONFIG-DRIVEN — event→chord→actionForChord→table-driven dispatch (same guards as before); useKeybindings() loads the resolved set in app.tsx. A grantless run is byte-identical (DEFAULT_BINDINGS fallback). 15 registry tests + 6 dispatch tests through the exported handleGlobalKey (default chords fire, a CUSTOM ctrl+k quick-open rebind takes effect live while the old ctrl+p no longer does, guards preserved) — no Ink render harness needed (handleGlobalKey is a pure fn). Full suite 1053 files/11813 green; tsc + size gate clean. Un-parks KEYBINDING-CONTEXTS/-SYSTEM/CHORD-BINDINGS and UNBLOCKS VANTA-SHORTCUT-DISPLAY (lookupChord + displayChord are its exact primitives)."
     },
     {
       "id": "BRAIN-ENTITY-SIGNAL",

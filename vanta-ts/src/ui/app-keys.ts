@@ -13,6 +13,8 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
+import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord } from "./keybindings.js";
+import type { KeyBinding } from "./keybinding-warnings.js";
 
 // The App component's behavior hooks + pure key/focus helpers. Split from app.tsx
 // so both stay under the size gate; app.tsx imports these and stays the wiring.
@@ -29,34 +31,53 @@ type GlobalKeyDeps = {
   quickOpenOpen: boolean; openQuickOpen: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
+  /** KEYBINDING-CUSTOMIZATION: resolved bindings (defaults + user overrides).
+   * Absent → DEFAULT_BINDINGS, so behavior is identical without a config file. */
+  bindings?: KeyBinding[];
 };
-
-const escInterrupts = (key: GlobalKey, d: GlobalKeyDeps): boolean =>
-  Boolean(key.escape) && d.busy && !d.pending && !d.overlayOpen;
-
-/** Ctrl+P opens the unified quick-open picker when nothing else owns input. */
-const opensQuickOpen = (input: string, key: GlobalKey, d: GlobalKeyDeps): boolean =>
-  Boolean(key.ctrl) && input === "p" && !d.quickOpenOpen && !d.pending && !d.overlayOpen;
-
-/** Shift+←/→ cycles teammate-tree focus (only when cycleAgent is set). */
-function cyclesAgent(key: GlobalKey, d: GlobalKeyDeps): boolean {
-  if (!d.cycleAgent || !key.shift) return false;
-  const dir = key.rightArrow ? 1 : key.leftArrow ? -1 : 0;
-  if (dir === 0) return false;
-  d.cycleAgent(dir);
-  return true;
-}
 
 export function useGlobalKeys(deps: GlobalKeyDeps): void {
   useInput((input, key) => handleGlobalKey(input, key, deps));
 }
 
-function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
-  if (key.ctrl && input === "c") return void (d.busy ? d.abort() : d.exit());
-  if (opensQuickOpen(input, key, d)) return void d.openQuickOpen();
-  if (cyclesAgent(key, d)) return;
+/** KEYBINDING-CUSTOMIZATION — load the resolved bindings once (defaults until
+ * ~/.vanta/keybindings.json is read); re-mount picks up an edited file. */
+export function useKeybindings(): KeyBinding[] {
+  const [bindings, setBindings] = useState<KeyBinding[]>(DEFAULT_BINDINGS);
+  useEffect(() => {
+    void import("./keybindings.js").then((m) => m.loadKeybindings()).then(setBindings).catch(() => {});
+  }, []);
+  return bindings;
+}
+
+// KEYBINDING-CUSTOMIZATION — dispatch is now config-driven: an event → its
+// canonical chord → the bound action → the handler (with the same guards as
+// before). Custom chords in ~/.vanta/keybindings.json therefore take effect on
+// the live TUI. Focus keys (tab/shift-tab) stay in handleFocusKey.
+export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
+  const chord = eventToChord(input, key as GlobalKey & { alt?: boolean; meta?: boolean; upArrow?: boolean; downArrow?: boolean });
+  const action = chord ? actionForChord(d.bindings ?? DEFAULT_BINDINGS, chord) : null;
+  if (dispatchGlobalAction(action, d)) return;
   if (handleFocusKey(key, { current: d.focus, targets: d.focusTargets, setFocus: d.setFocus, cycleMode: d.cycle })) return;
-  if (escInterrupts(key, d)) return void d.abort();
+}
+
+// action → {guard, run}. `notBlocked` = no pending/overlay owns input. Keeping
+// this a table holds dispatchGlobalAction flat (one lookup, not a guard chain).
+const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.pending && !d.overlayOpen;
+const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; run: (d: GlobalKeyDeps) => void }> = {
+  [GLOBAL_ACTIONS.exitOrAbort]: { guard: () => true, run: (d) => void (d.busy ? d.abort() : d.exit()) },
+  [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
+  [GLOBAL_ACTIONS.cycleAgentNext]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(1) },
+  [GLOBAL_ACTIONS.cycleAgentPrev]: { guard: (d) => Boolean(d.cycleAgent), run: (d) => d.cycleAgent?.(-1) },
+  [GLOBAL_ACTIONS.interrupt]: { guard: (d) => d.busy && !d.pending && !d.overlayOpen, run: (d) => d.abort() },
+};
+
+/** Run the bound global action if its guard permits; true when handled. */
+function dispatchGlobalAction(action: string | null, d: GlobalKeyDeps): boolean {
+  const h = action ? GLOBAL_HANDLERS[action] : undefined;
+  if (!h || !h.guard(d)) return false;
+  h.run(d);
+  return true;
 }
 
 export function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[], scope: string, setFocus: (t: FocusTarget) => void): void {
