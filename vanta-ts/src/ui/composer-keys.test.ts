@@ -21,6 +21,10 @@ describe("readlineEdit chords", () => {
   it("Cmd+Backspace (super) clears to line start, same as ^U", () => {
     expect(readlineEdit(s("hello world", 6), "", k({ super: true, backspace: true }))).toEqual({ value: "world", cursor: 0, kill: "hello " });
   });
+  it("TUI-KEYBOARD-SHORTCUTS: Opt+Backspace (meta) deletes the previous word, same as ^W", () => {
+    expect(readlineEdit(s("foo bar", 7), "", k({ meta: true, backspace: true }))).toEqual({ value: "foo ", cursor: 4, kill: "bar" });
+    expect(readlineEdit(s("foo bar", 7), "w", k({ ctrl: true }))).toEqual({ value: "foo ", cursor: 4, kill: "bar" });
+  });
   it("does not type a Cmd-modified letter (super is not printable)", () => {
     expect(readlineEdit(s("ab", 2), "a", k({ super: true }))).toBeNull();
   });

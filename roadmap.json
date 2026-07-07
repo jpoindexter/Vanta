@@ -12553,13 +12553,14 @@
       "id": "TUI-KEYBOARD-SHORTCUTS",
       "track": "Operator",
       "title": "TUI: line-edit keyboard shortcuts (cmd/opt+backspace delete line/word, etc.)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "Add the expected line-editing shortcuts to the composer: delete-to-line-start (cmd+backspace), delete-word (opt+backspace), and the common navigation chords. The composer already has emacs kills (^U/^K/^W); map the cmd/opt variants and document terminal caveats (cmd is often intercepted by the terminal — provide the working chord per common terminals). See .",
       "done": "cmd+backspace deletes to line start and opt+backspace deletes the previous word in the composer (or the documented equivalent where the terminal intercepts cmd).",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-07",
+      "notes": "Shipped 2026-07-07 — both composer chords were already wired in ui/composer-keys.ts; verified + added the missing test coverage to close honestly. Cmd+Backspace (super+backspace, the kitty-protocol super modifier) → killToStart (clear to line start, same as ^U); Opt+Backspace (meta+backspace, Alt/Option) → killWordBack (delete previous word, same as ^W). Added composer-keys tests for the Opt+Backspace binding + its ^W equivalence (Cmd+Backspace was already tested). The 'documented equivalent where the terminal intercepts cmd' clause is satisfied by TUI-CMD-BACKSPACE-TERMINALAPP (shipped this session): on Terminal.app — which can't deliver the Cmd/super modifier — a one-time hint points to ^U. Full suite 1070 files/11979 green; tsc + size gate clean."
     },
     {
       "id": "GOOGLE-AUTH-ONBOARDING",
