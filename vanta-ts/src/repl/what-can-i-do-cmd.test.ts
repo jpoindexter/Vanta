@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CAPABILITY_WORKFLOWS,
   formatWhatCanIDo,
+  runColdActivationCheck,
   runWorkflowDemo,
   whatCanIDo,
   workflowViews,
@@ -45,5 +46,21 @@ describe("what-can-i-do workflow catalog", () => {
     const result = await whatCanIDo("--demo crash-log", {} as never);
     expect(result.output).toContain("Demo: Diagnose a crash log");
     expect(result.output).toContain("Command:");
+  });
+
+  it("cold activation check picks a visible workflow and records time", () => {
+    const times = [new Date("2026-07-09T00:00:00.000Z"), new Date("2026-07-09T00:00:01.250Z")];
+    const result = runColdActivationCheck(["shell_cmd", "read_file", "grep_files", "edit_file"], () => times.shift()!);
+    expect(result.ok).toBe(true);
+    expect(result.workflowId).toBe("fix-error");
+    expect(result.elapsedMs).toBe(1250);
+    expect(result.output).toContain("Time-to-first-useful-action: 1250ms");
+    expect(result.output).toContain("VANTA_SHELL_SANDBOX=0 vanta");
+  });
+
+  it("cold activation check fails when the gallery exposes no runnable demo", () => {
+    const result = runColdActivationCheck([]);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("FAIL");
   });
 });

@@ -18,6 +18,14 @@ export type WorkflowView = CapabilityWorkflow & {
   missing: string[];
 };
 
+export type ColdActivationResult = {
+  ok: boolean;
+  workflowId?: string;
+  workflowTitle?: string;
+  elapsedMs: number;
+  output: string;
+};
+
 export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
   {
     id: "fix-error",
@@ -157,11 +165,45 @@ function demoId(arg: string): string | null {
   return m?.[1] ?? null;
 }
 
+function wantsCheck(arg: string): boolean {
+  return arg.trim() === "--check";
+}
+
 export function runWorkflowDemo(id: string): string {
   return DEMOS[id] ?? `Unknown demo '${id}'. Available: ${Object.keys(DEMOS).join(", ")}`;
 }
 
+export function runColdActivationCheck(toolNames: Iterable<string>, now: () => Date = () => new Date()): ColdActivationResult {
+  const started = now().getTime();
+  const chosen = workflowViews(toolNames).find((view) => view.state !== "Setup" && view.demo);
+  if (!chosen?.demo) {
+    return {
+      ok: false,
+      elapsedMs: Math.max(0, now().getTime() - started),
+      output: "Cold activation check: FAIL\nNo visible runnable workflow demo was available from the gallery.",
+    };
+  }
+  const demo = runWorkflowDemo(chosen.demo);
+  const elapsedMs = Math.max(0, now().getTime() - started);
+  return {
+    ok: true,
+    workflowId: chosen.id,
+    workflowTitle: chosen.title,
+    elapsedMs,
+    output: [
+      "Cold activation check: PASS",
+      `Picked: ${chosen.title}`,
+      `Time-to-first-useful-action: ${elapsedMs}ms`,
+      "",
+      demo,
+    ].join("\n"),
+  };
+}
+
 export const whatCanIDo: SlashHandler = (arg, ctx) => {
+  if (wantsCheck(arg)) {
+    return { output: runColdActivationCheck(toolNamesFromSetup(ctx.setup), ctx.now).output };
+  }
   const id = demoId(arg);
   if (id) return { output: runWorkflowDemo(id) };
   return { output: formatWhatCanIDo(workflowViews(toolNamesFromSetup(ctx.setup))) };
