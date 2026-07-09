@@ -6,6 +6,7 @@ const USAGE_LINES = [
       "       vanta --effort <low|medium|high|max>   set model effort for this session",
       "       vanta home                         operator home: workflows, channels, tasks, memory, setup",
       "       vanta what-can-i-do [--check|--fresh-workspace-check|--demo <id>|--review-packet]   show workflows / proofs",
+      "       vanta diagnose-crash [--demo greg-uitests|<file>|-]   diagnose crash/build logs with cited evidence",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",
       "       vanta sessions | resume <id> [--fork-session]   list, resume, or fork a session",

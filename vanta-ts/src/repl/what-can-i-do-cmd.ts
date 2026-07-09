@@ -63,7 +63,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     title: "Diagnose a crash log",
     outcome: "Extract the likely cause, cite evidence lines, and return the repair command or Xcode/runtime fix.",
     example: "EXC_CRASH (SIGABRT), DYLD, Library not loaded: @rpath/lib_TestingInterop.dylib",
-    command: `vanta run "Diagnose this crash log and give me the fix path: <paste report>"`,
+    command: `vanta diagnose-crash --demo greg-uitests`,
     setup: "File reading, search, and shell tools are available.",
     requires: ["read_file", "grep_files", "shell_cmd"],
     demo: "crash-log",
@@ -122,7 +122,7 @@ const DEMOS: Record<string, string> = {
   "crash-log": [
     "Demo: Diagnose a crash log",
     "Input: DYLD Code 1, Library not loaded: @rpath/lib_TestingInterop.dylib.",
-    "Result: name the missing dynamic library as the likely cause, cite the DYLD lines, and suggest repairing the XCTest/test-runtime search path.",
+    "Result: `vanta diagnose-crash --demo greg-uitests` names the missing dynamic library, cites the DYLD lines, and suggests repairing the XCTest/test-runtime search path.",
     `Command: ${CAPABILITY_WORKFLOWS[3]!.command}`,
   ].join("\n"),
 };

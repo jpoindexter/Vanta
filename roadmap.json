@@ -152,7 +152,7 @@
       "id": "CRASHLOG-DIAGNOSE",
       "track": "Operator",
       "title": "Crash-log diagnose — paste a macOS/iOS report and get the fix path",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "A transcript is just a raw crash report unless Vanta can extract the root cause. Add a log-diagnosis workflow that recognizes macOS/iOS crash reports, XCTest/dyld failures, sandbox denials, and common build/runtime logs, then returns likely cause, evidence lines, and next command.",
       "done": "Pasting the GregUITests crash fixture produces a diagnosis for missing @rpath/lib_TestingInterop.dylib, cites the relevant report fields, and suggests concrete Xcode/test-runtime repair steps; parser fixtures cover dyld, sandbox, and generic stack traces.",
@@ -163,7 +163,7 @@
       "lens": "coding",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: 1522ad63 lines 31-39 and 139-190 include EXC_CRASH/SIGABRT, DYLD Code 1, and missing @rpath/lib_TestingInterop.dylib paths.\n\nORGANIZED 2026-07-09: Phase 2 first showcase workflow. Smallest concrete “paste an error, get a fix path” demo after the gallery exists.",
+      "notes": "Evidence: 1522ad63 lines 31-39 and 139-190 include EXC_CRASH/SIGABRT, DYLD Code 1, and missing @rpath/lib_TestingInterop.dylib paths.\n\nORGANIZED 2026-07-09: Phase 2 first showcase workflow. Smallest concrete “paste an error, get a fix path” demo after the gallery exists.\n\nSHIPPED 2026-07-09: Added `vanta diagnose-crash [--demo greg-uitests|<file>|-]` plus `/diagnose-crash <report|--demo greg-uitests>`. The shared parser recognizes dyld missing-library crashes, sandbox denials, and generic stack traces, and formats likely cause, cited evidence line numbers, and concrete next steps. Live demo `npm run vanta -- diagnose-crash --demo greg-uitests` diagnosed missing `@rpath/lib_TestingInterop.dylib`, cited EXC_CRASH/DYLD/Library-not-loaded/Reason lines, and suggested XCTest link/embed, Runpath Search Paths, DerivedData clean, rebuild, and rerun.",
       "after": [
         "WHAT-CAN-I-DO-GALLERY",
         "ACTIVATION-COLD-USER-GATE",
