@@ -11,7 +11,7 @@ describe("tray controller", () => {
     }
     const dialog = { showMessageBox: vi.fn(async () => ({ response: 0 })) };
     const clipboard = { writeText: vi.fn() };
-    const fetchImpl = vi.fn(async (url) => ({ ok: true, json: async () => url.endsWith("/status") ? { kernel: "online" } : url.endsWith("/approval") ? { id: "7" } : url.endsWith("/info") ? { devices: [{ id: "phone" }] } : { code: "BCDFGH", urls: ["http://192.168.1.4:7790/companion"] } }));
+    const fetchImpl = vi.fn(async (url, opts) => ({ ok: true, json: async () => url.endsWith("/status") ? { kernel: "online" } : url.endsWith("/approval") ? { id: "7" } : url.endsWith("/info") ? { devices: [{ id: "phone" }] } : url.endsWith("/wake") ? { enabled: opts?.method === "POST", running: opts?.method === "POST" } : { code: "BCDFGH", urls: ["http://192.168.1.4:7790/companion"] } }));
     const controller = createTrayController({
       Tray: FakeTray, Menu: { buildFromTemplate: (items) => items },
       nativeImage: { createFromNamedImage: () => ({ setTemplateImage() {} }), createEmpty: () => ({}) },
@@ -19,7 +19,9 @@ describe("tray controller", () => {
     });
     await controller.refresh();
     const latest = menus.at(-1);
-    expect(latest.map((item) => item.label).filter(Boolean)).toEqual(expect.arrayContaining(["Vanta · online", "Quick Ask", "Approval waiting", "Pair mobile…", "1 paired device"]));
+    expect(latest.map((item) => item.label).filter(Boolean)).toEqual(expect.arrayContaining(["Vanta · online", "Quick Ask", "Approval waiting", "Wake word · Hey Vanta", "Pair mobile…", "1 paired device"]));
+    await controller.toggleWake();
+    expect(fetchImpl).toHaveBeenCalledWith("http://127.0.0.1:7790/api/wake", expect.objectContaining({ method: "POST" }));
     await controller.pairMobile();
     expect(dialog.showMessageBox).toHaveBeenCalledWith(expect.objectContaining({ message: "BCDFGH" }));
     expect(clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("192.168.1.4"));

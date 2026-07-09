@@ -126,6 +126,11 @@ export async function runInstruction(
 }
 
 export async function runVoiceCommand(repoRoot: string, rest: string[] = []): Promise<void> {
+  if (rest[0] === "wake") {
+    const { runWakeCommand } = await import("./wake-cmd.js");
+    await runWakeCommand(repoRoot, rest.slice(1));
+    return;
+  }
   if (rest[0] === "mic") {
     const { openPrivacyPane } = await import("../platform/macos-prefs.js");
     console.log(openPrivacyPane("microphone").message);

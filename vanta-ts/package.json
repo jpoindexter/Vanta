@@ -18,7 +18,8 @@
     "desktop:sound:smoke": "npm run desktop:build && node scripts/desktop-completion-sound-smoke.mjs",
     "desktop:canvas:smoke": "npm run desktop:build && node --import tsx scripts/desktop-canvas-smoke.mjs",
     "desktop:companion:smoke": "npm run desktop:build && node --import tsx scripts/desktop-companion-smoke.mjs",
-    "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs"
+    "desktop:presence:smoke": "npm run desktop:build && node scripts/desktop-presence-smoke.mjs",
+    "voice:wake:smoke": "node --import tsx scripts/voice-wake-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

@@ -8,6 +8,7 @@ export function createTrayController(deps) {
   let status = "connecting";
   let pending = false;
   let deviceCount = 0;
+  let wakeEnabled = false;
 
   function openMain() {
     const window = BrowserWindow.getAllWindows().find((item) => item !== quickWindow);
@@ -36,12 +37,25 @@ export function createTrayController(deps) {
     }
   }
 
+  async function toggleWake() {
+    try {
+      const response = await fetchImpl(`${baseUrl}/api/wake`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled: !wakeEnabled }) });
+      const wake = await response.json();
+      if (!response.ok) throw new Error(wake.error ?? "wake-word update failed");
+      wakeEnabled = wake.enabled && wake.running;
+    } catch (error) {
+      await dialog.showMessageBox({ type: "error", title: "Wake word failed", message: error instanceof Error ? error.message : String(error) });
+    }
+    await refresh();
+  }
+
   function rebuild() {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: `Vanta · ${status}`, enabled: false },
       { label: "Open Vanta", click: openMain },
       { label: "Quick Ask", click: () => void openQuick() },
       { label: pending ? "Approval waiting" : "Approvals", click: () => void openQuick() },
+      { label: "Wake word · Hey Vanta", type: "checkbox", checked: wakeEnabled, click: () => void toggleWake() },
       { type: "separator" },
       { label: "Pair mobile…", click: () => void pairMobile() },
       { label: `${deviceCount} paired device${deviceCount === 1 ? "" : "s"}`, enabled: false },
@@ -52,11 +66,11 @@ export function createTrayController(deps) {
 
   async function refresh() {
     try {
-      const [statusResponse, approvalResponse, infoResponse] = await Promise.all([
-        fetchImpl(`${baseUrl}/api/status`), fetchImpl(`${baseUrl}/api/approval`), fetchImpl(`${baseUrl}/api/companion/info`),
+      const [statusResponse, approvalResponse, infoResponse, wakeResponse] = await Promise.all([
+        fetchImpl(`${baseUrl}/api/status`), fetchImpl(`${baseUrl}/api/approval`), fetchImpl(`${baseUrl}/api/companion/info`), fetchImpl(`${baseUrl}/api/wake`),
       ]);
-      const [nextStatus, approval, info] = await Promise.all([statusResponse.json(), approvalResponse.json(), infoResponse.json()]);
-      status = nextStatus.kernel === "online" ? "online" : "offline"; pending = !!approval; deviceCount = info.devices?.length ?? 0;
+      const [nextStatus, approval, info, wake] = await Promise.all([statusResponse.json(), approvalResponse.json(), infoResponse.json(), wakeResponse.json()]);
+      status = nextStatus.kernel === "online" ? "online" : "offline"; pending = !!approval; deviceCount = info.devices?.length ?? 0; wakeEnabled = wake.enabled && wake.running;
     } catch { status = "offline"; }
     rebuild();
   }
@@ -65,5 +79,5 @@ export function createTrayController(deps) {
   rebuild();
   void refresh();
   const interval = setInterval(() => void refresh(), 2_000);
-  return { tray, refresh, openQuick, pairMobile, dispose: () => { clearInterval(interval); tray.destroy(); quickWindow?.destroy(); } };
+  return { tray, refresh, openQuick, pairMobile, toggleWake, dispose: () => { clearInterval(interval); tray.destroy(); quickWindow?.destroy(); } };
 }

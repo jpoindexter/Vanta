@@ -1,4 +1,4 @@
-import { execFile, type ChildProcess } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -9,11 +9,21 @@ const execAsync = promisify(execFile);
 export type RecorderResult = { path: string; cleanup: () => Promise<void> };
 
 /** Try to find a working audio recorder. Returns the tool name or null. */
-export async function detectRecorder(): Promise<"sox" | "ffmpeg" | null> {
-  for (const tool of ["sox", "ffmpeg"] as const) {
+export type RecorderProbe = (tool: "sox" | "ffmpeg", args: string[]) => Promise<void>;
+
+const realProbe: RecorderProbe = async (tool, args) => {
+  await execAsync(tool, args, { timeout: 2_000 });
+};
+
+export async function detectRecorder(probe: RecorderProbe = realProbe): Promise<"sox" | "ffmpeg" | null> {
+  const candidates = [
+    { tool: "sox", args: ["--version"] },
+    { tool: "ffmpeg", args: ["-version"] },
+  ] as const;
+  for (const candidate of candidates) {
     try {
-      await execAsync(tool, ["--version"], { timeout: 2_000 });
-      return tool;
+      await probe(candidate.tool, [...candidate.args]);
+      return candidate.tool;
     } catch { /* not found */ }
   }
   return null;

@@ -14,6 +14,7 @@ import {
 import { writeDesktopAsset } from "./assets.js";
 import { handleCompanionRoute, isLoopbackRequest, type CompanionRouteOptions } from "../companion/routes.js";
 import { resolveVantaHome } from "../store/home.js";
+import { getWakeApi, setWakeApi } from "./wake-api.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
 
@@ -21,13 +22,17 @@ async function routeGet(ctx: RouteCtx): Promise<boolean> {
   const { req, res, state, sid, sseClients, pathname: p } = ctx;
   if (await writeDesktopAsset(state.root, p, res)) return true;
   if (p === "/api/events") { attachSse(sseClients, sid, res); return true; }
-  if (p === "/api/status") { await handleStatus(state, res); return true; }
-  if (p === "/api/sessions") { await handleSessions(res); return true; }
-  if (p === "/api/tools") { await handleTools(state, res); return true; }
-  if (p === "/api/files") { await handleFiles(state, res); return true; }
-  if (p === "/api/canvas") { await handleCanvas(state, res); return true; }
-  if (p === "/api/models") { await handleModels(res); return true; }
-  if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
+  const handler: Record<string, () => Promise<void>> = {
+    "/api/status": () => handleStatus(state, res),
+    "/api/sessions": () => handleSessions(res),
+    "/api/tools": () => handleTools(state, res),
+    "/api/files": () => handleFiles(state, res),
+    "/api/canvas": () => handleCanvas(state, res),
+    "/api/models": () => handleModels(res),
+    "/api/approval": () => handleApproval(state, req, res),
+    "/api/wake": async () => sendJson(res, 200, await getWakeApi()),
+  };
+  if (handler[p]) { await handler[p](); return true; }
   return false;
 }
 
@@ -38,6 +43,12 @@ async function routePost(ctx: RouteCtx): Promise<boolean> {
   if (p === "/api/model") { await handleSetModel(state, req, res); return true; }
   if (p === "/api/approval") { await handleApproval(state, req, res); return true; }
   if (p === "/api/terminal") { await handleTerminal(state, req, res); return true; }
+  if (p === "/api/wake") {
+    const body = await readJson(req) as { enabled?: unknown };
+    if (typeof body.enabled !== "boolean") sendJson(res, 400, { error: "enabled must be boolean" });
+    else sendJson(res, 200, await setWakeApi(state.root, body.enabled));
+    return true;
+  }
   if (p === "/api/chat") {
     state._sseSessionId = sid; state._sseClients = sseClients;
     await handleChat(state, req, res); return true;

@@ -16200,7 +16200,7 @@
       "id": "VOICE-WAKE-WORD",
       "track": "Operator",
       "title": "Wake word — hands-free 'Hey Vanta' always-listening trigger",
-      "status": "building",
+      "status": "shipped",
       "size": "M",
       "summary": "Voice STT today is push-to-talk. Add an always-listening wake word ('Hey Vanta') that opens the mic hands-free, like a reference agent harness's voice-wake / a reference agent harness talk mode — the Jarvis 'just say it' trigger. Local wake detection, privacy-first (no audio leaves the device until the wake fires).",
       "done": "Speaking the wake phrase opens a listening turn hands-free on at least macOS; detection runs locally; false-trigger rate is acceptable in normal speech; opt-in and easily disabled.",
