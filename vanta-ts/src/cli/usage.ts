@@ -18,6 +18,7 @@ const USAGE_LINES = [
       "       vanta kanban create <goal> | kanban swarm|status|digest [id]   decompose a goal into lanes + run/resume a local swarm",
       "       vanta lead \"<message>\" | lead list   turn lead-agent chat into tracked work objects",
       "       vanta deep-plan create|revise|approve|start   revisionable plan docs with approval gate",
+      "       vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>   start a preview bound to a fleet worktree",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",

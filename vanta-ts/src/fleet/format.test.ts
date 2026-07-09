@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatFleetDigest } from "./format.js";
+import { formatFleetDigest, formatFleetReview, formatFleetStatus } from "./format.js";
 import type { FleetReport } from "./types.js";
 
 const report: FleetReport = {
@@ -16,6 +16,16 @@ const report: FleetReport = {
       worktreePath: "/tmp/a",
       result: "Implemented auth flow and added tests.",
       diff: "2 files changed",
+      runtimeServices: [{
+        id: "fleet-digest-a-preview-1",
+        kind: "preview",
+        command: "npm run dev",
+        port: 5173,
+        url: "http://127.0.0.1:5173/",
+        status: "running",
+        startedAt: "2026-07-09T00:01:00.000Z",
+        worktreePath: "/tmp/a",
+      }],
       updated: "2026-07-09T00:01:00.000Z",
     },
     {
@@ -41,5 +51,11 @@ describe("formatFleetDigest", () => {
     expect(out).toContain("Conflicts / blockers");
     expect(out).toContain("unblock or retire fleet-digest-b");
     expect(out).toContain("accept or reject fleet-digest-a");
+    expect(out).toContain("preview: http://127.0.0.1:5173/");
+  });
+
+  it("surfaces preview URLs in status and review output", () => {
+    expect(formatFleetStatus(report)).toContain("preview: http://127.0.0.1:5173/");
+    expect(formatFleetReview(report)).toContain("preview http://127.0.0.1:5173/");
   });
 });

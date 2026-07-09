@@ -3,7 +3,7 @@ import type { FleetReport, FleetWorker } from "./types.js";
 function workerLine(w: FleetWorker): string {
   const diff = w.diff ? ` · ${w.diff.replace(/\n/g, " | ")}` : "";
   const detail = w.blocker ? ` · blocker: ${w.blocker}` : diff;
-  return `${w.id} · ${w.status} · ${w.branch} · ${w.title}${detail}`;
+  return `${w.id} · ${w.status} · ${w.branch} · ${w.title}${detail}${previewSuffix(w)}`;
 }
 
 export function formatFleetStatus(report: FleetReport): string {
@@ -20,6 +20,7 @@ export function formatFleetReview(report: FleetReport): string {
       `${w.id} · ${w.status}`,
       `branch ${w.branch}`,
       `worktree ${w.worktreePath}`,
+      latestPreview(w) ? `preview ${latestPreview(w)?.url}` : "",
       `diff ${w.diff ?? "(not captured)"}`,
       w.result ? `result ${w.result}` : "",
       w.blocker ? `blocker ${w.blocker}` : "",
@@ -58,10 +59,11 @@ function statusSummary(counts: Record<FleetWorker["status"], number>): string {
 }
 
 function findingLine(w: FleetWorker): string {
+  const preview = previewSuffix(w);
   if (w.blocker) return `blocked — ${oneLine(w.blocker)}`;
-  if (w.result) return `${w.status} — ${oneLine(w.result)}`;
-  if (w.diff) return `${w.status} — ${oneLine(w.diff)}`;
-  return `${w.status} — ${w.title}`;
+  if (w.result) return `${w.status} — ${oneLine(w.result)}${preview}`;
+  if (w.diff) return `${w.status} — ${oneLine(w.diff)}${preview}`;
+  return `${w.status} — ${w.title}${preview}`;
 }
 
 function conflictLines(workers: FleetWorker[]): string[] {
@@ -90,4 +92,13 @@ function decisionLines(workers: FleetWorker[]): string[] {
 function oneLine(text: string): string {
   const line = text.replace(/\s+/g, " ").trim();
   return line.length > 140 ? `${line.slice(0, 137)}...` : line;
+}
+
+function latestPreview(w: FleetWorker) {
+  return w.runtimeServices?.filter((s) => s.kind === "preview" && s.status !== "stopped").at(-1);
+}
+
+function previewSuffix(w: FleetWorker): string {
+  const preview = latestPreview(w);
+  return preview ? ` · preview: ${preview.url}` : "";
 }

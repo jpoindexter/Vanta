@@ -14370,7 +14370,7 @@
       "id": "PCLIP-EXEC-WORKSPACES-RUNTIME",
       "track": "Harness",
       "title": "Per-run runtime services — dev servers + preview URLs on worktrees",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Paperclip extract (Workspaces & Runtime). On top of the existing worktree fleet: resolve per-run runtime services — dev servers, preview URLs — so an agent's work is previewable and bound to its execution workspace.",
       "done": "A run can start a dev server / preview URL bound to its worktree and surface the URL on the task.",
@@ -14378,7 +14378,8 @@
       "model": "sonnet",
       "effort": "medium",
       "lens": "coding",
-      "updated": "2026-06-19"
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09: Added fleet runtime preview services. `vanta runtime start --fleet <id> --worker <id> --port <n> --command <cmd>` spawns a detached preview process in the worker worktree, records pid/url/command under the worker's fleet report, and `vanta runtime list` plus fleet status/review/digest surface the preview URL. Live evidence: created a temporary fleet worker, started a real HTTP preview through the CLI, fetched the recorded URL successfully, then killed the spawned pid and removed the fixture."
     },
     {
       "id": "PCLIP-TICKETS",

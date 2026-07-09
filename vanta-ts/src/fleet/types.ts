@@ -10,6 +10,19 @@ export const FleetTaskSpecSchema = z.object({
 });
 export type FleetTaskSpec = z.infer<typeof FleetTaskSpecSchema>;
 
+export const FleetRuntimeServiceSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum(["preview"]).default("preview"),
+  command: z.string().min(1),
+  port: z.number().int().positive(),
+  url: z.string().url(),
+  pid: z.number().int().positive().optional(),
+  status: z.enum(["starting", "running", "stopped"]).default("running"),
+  startedAt: z.string().min(1),
+  worktreePath: z.string().min(1),
+});
+export type FleetRuntimeService = z.infer<typeof FleetRuntimeServiceSchema>;
+
 export const FleetWorkerSchema = z.object({
   id: z.string(),
   taskId: z.string(),
@@ -20,6 +33,7 @@ export const FleetWorkerSchema = z.object({
   diff: z.string().optional(),
   result: z.string().optional(),
   blocker: z.string().optional(),
+  runtimeServices: z.array(FleetRuntimeServiceSchema).optional(),
   updated: z.string(),
 });
 export type FleetWorker = z.infer<typeof FleetWorkerSchema>;
