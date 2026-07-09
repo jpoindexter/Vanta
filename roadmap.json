@@ -39,7 +39,7 @@
       "id": "ACTIVATION-COLD-USER-GATE",
       "track": "Operator",
       "title": "Cold-user activation gate — prove a useful Vanta action in under 2 minutes",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Blind audit finding #1: the roadmap says activation is the goal, but the done criteria do not yet require a cold user to actually activate. Add a blocking acceptance gate for the first-run path: fresh workspace, no repo-specific context, pick one suggested workflow, execute it, and get a useful result quickly. This is the measurable Activation v1 spine before chasing more Hermes/OpenClaw surface area.",
       "done": "A fresh-workspace acceptance script or recorded cold run starts Vanta, chooses one visible workflow, executes it, and produces a useful result within 2 minutes; the run records time-to-first-useful-action and fails if the user must know internal command names first.",
@@ -50,7 +50,7 @@
       "lens": "selfhood",
       "updated": "2026-07-09",
       "source": "blind-audit-roadmap-activation-2026-07-09",
-      "notes": "From blind audit finding #1. Prioritize by HEART Task Success/Activation: this is the falsifiable proof that the roadmap is improving user activation, not just moving cards."
+      "notes": "From blind audit finding #1. Prioritize by HEART Task Success/Activation: this is the falsifiable proof that the roadmap is improving user activation, not just moving cards.\n\nSHIPPED 2026-07-09: Added `vanta what-can-i-do [--check|--demo <id>]` as a non-TUI activation surface backed by the same workflow catalog and live tool registry. `--check` selects a visible runnable workflow demo, prints `Cold activation check: PASS`, records time-to-first-useful-action, and exits nonzero if no runnable demo is visible. Verified live with `npm run vanta -- what-can-i-do --check`, which picked `Fix a pasted error` and completed in 0ms. Boundary: this is a CLI cold-activation proof, not the separate fresh-context review required before the broader WHAT-CAN-I-DO-GALLERY ships."
     },
     {
       "id": "GALLERY-SANDBOX-RECOVERY-FIXTURE",
