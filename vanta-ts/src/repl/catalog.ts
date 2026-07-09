@@ -9,7 +9,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "clear", desc: "start a fresh conversation (keeps the session log)" },
   { name: "reset", desc: "start a fresh conversation (alias of /clear)" },
   { name: "history", desc: "show this conversation's transcript" },
-  { name: "export", desc: "export this conversation to a markdown file" },
+  { name: "export", desc: "export this conversation — format, tool/thinking toggles, file or clipboard" },
   { name: "init", arg: "[--force|--print]", desc: "generate .claude/CLAUDE.md project context for future sessions" },
   { name: "init-verifiers", desc: "detect the project's build/test/lint/typecheck gates → verifier skills it can run to check its work" },
   { name: "stop", desc: "graceful soft-stop — finish the current tool call, then end the turn with a summary" },

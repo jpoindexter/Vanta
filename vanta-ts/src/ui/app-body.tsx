@@ -19,6 +19,7 @@ import { HooksPanel } from "./hooks-panel.js";
 import { TasksPanel } from "./tasks-panel.js";
 import { TeamsPanel } from "./teams-panel.js";
 import { OutputStylePanel } from "./output-style-panel.js";
+import { ExportDialog } from "./export-dialog.js";
 import { type FocusTarget } from "./focus.js";
 import { QuickOpen } from "./quick-open.js";
 import { GlobalSearchDialog } from "./global-search-dialog.js";
@@ -131,5 +132,6 @@ function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void }):
   if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
   if (overlay.kind === "teams") return <TeamsPanel data={overlay.data} onClose={onClose} />;
   if (overlay.kind === "outputStyle") return <OutputStylePanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;
+  if (overlay.kind === "export") return <ExportDialog repoRoot={overlay.repoRoot} context={overlay.context} onClose={onClose} />;
   return <HelpPanel onClose={onClose} />;
 }

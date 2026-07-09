@@ -13,14 +13,21 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 import { startHookFileWatcher } from "../hooks/file-watch.js";
 import type { Conversation } from "../agent.js";
 import type { RunSetup } from "../session.js";
+import type { ReplState } from "../repl/types.js";
+import type { Message } from "../types.js";
 import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, eventToChord, actionForChord } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
 // The App component's behavior hooks + pure key/focus helpers. Split from app.tsx
 // so both stay under the size gate; app.tsx imports these and stays the wiring.
 
-export function ctxSnapshot(setup: RunSetup, convo: Conversation | null): { messages: { role: string; content?: string }[]; contextWindow: number } {
-  return { messages: (convo?.messages ?? []) as { role: string; content?: string }[], contextWindow: setup.provider.contextWindow() };
+export function ctxSnapshot(setup: RunSetup, convo: Conversation | null, state?: ReplState): { messages: Message[]; contextWindow: number; sessionId?: string; title?: string } {
+  return {
+    messages: (convo?.messages ?? []) as Message[],
+    contextWindow: setup.provider.contextWindow(),
+    sessionId: state?.sessionId,
+    title: state?.title,
+  };
 }
 
 type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean };

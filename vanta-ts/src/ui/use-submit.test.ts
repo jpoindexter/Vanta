@@ -59,6 +59,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the export dialog for bare /export", () => {
+    const h = harness();
+    h.onSubmit("/export");
+    expect(h.openOverlay).toHaveBeenCalledWith("export");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("runs (not overlay) when a picker command has an argument", () => {
     const h = harness();
     h.onSubmit("/model gemini");

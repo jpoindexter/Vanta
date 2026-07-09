@@ -4359,7 +4359,7 @@
       "id": "VANTA-EXPORT-DIALOG-UI",
       "track": "Operator",
       "title": "Export dialog — conversation export UI",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent's ExportDialog lets users export the transcript in multiple formats (markdown, JSON, plain text) with options to include/exclude tool calls, thinking, and metadata. Vanta has /export (VANTA-S-EXPORT shipped) but no format-selection dialog.",
       "done": "/export opens a dialog with format options (markdown/JSON/text), include/exclude toggles for tool calls and thinking, and destination (file/clipboard); a preview shows the first N lines of the export.",

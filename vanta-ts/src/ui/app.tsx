@@ -69,7 +69,7 @@ export function App(props: { setup: RunSetup; repoRoot: string }): ReactElement 
   const [searchSessions, setSearchSessions] = useState<SearchableSession[]>([]);
   const { send } = useAgent({ setup: props.setup, repoRoot: props.repoRoot, dispatch, setPending, interruptRef, convoRef, replStateRef, gatesRef });
   const { runSlash } = useSlash({ convoRef, replStateRef, setup: props.setup, repoRoot: props.repoRoot, dispatch, send, exit: app.exit, setComposerAnchor, setVim });
-  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current) });
+  const { overlay, openOverlay, closeOverlay, selectRow } = useOverlay({ setup: props.setup, repoRoot: props.repoRoot, runSlash, getContext: () => ctxSnapshot(props.setup, convoRef.current, replStateRef.current) });
   const openGlobalSearch = (): void => {
     void listSessions(process.env).then(async (metas) => {
       const loaded = await Promise.all(metas.map((m) => loadSession(m.id, process.env)));

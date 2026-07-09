@@ -17,11 +17,12 @@ import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js
 import { buildHooksOverlay, type HooksOverlayState } from "./hooks-actions.js";
 import { reloadTeams, type TeamsData } from "./teams-actions.js";
 import { loadOutputStyleData, type OutputStyleData } from "./output-style-actions.js";
+import type { ExportContext } from "./export-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
 import type { RunSetup } from "../session.js";
 
 /** Live conversation snapshot the /context overlay computes its breakdown from. */
-export type CtxSnapshot = { messages: { role: string; content?: string }[]; contextWindow: number };
+export type CtxSnapshot = { messages: import("../types.js").Message[]; contextWindow: number; sessionId?: string; title?: string };
 
 // Owns the inline-overlay state for the v2 UI. Open loads the overlay's data
 // (best-effort), select runs the row's slash command and closes. Mirrors the old
@@ -38,6 +39,7 @@ export type OverlayView =
   | { kind: "tasks"; tasks: WorkerTask[] }
   | { kind: "teams"; data: TeamsData }
   | { kind: "outputStyle"; data: OutputStyleData; repoRoot: string }
+  | { kind: "export"; context: ExportContext; repoRoot: string }
   | ({ kind: "sandbox" } & SandboxOverlayState)
   | ({ kind: "config" } & ConfigOverlayState)
   | ({ kind: "hooks" } & HooksOverlayState)
@@ -64,6 +66,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "tasks": return { kind: "tasks", tasks: await reloadTasks(process.env) };
     case "teams": return { kind: "teams", data: await reloadTeams(process.env) };
     case "outputStyle": return { kind: "outputStyle", data: await loadOutputStyleData(repoRoot, process.env), repoRoot };
+    case "export": return { kind: "export", context: exportContext(getCtx), repoRoot };
     default: return { kind: "help" };
   }
 }
@@ -109,6 +112,15 @@ function contextOverlay(setup: RunSetup, getCtx?: () => CtxSnapshot): OverlayVie
   const categories = contextBreakdown(snap.messages, toolChars);
   const total = categories.reduce((a, c) => a + c.tokens, 0);
   return { kind: "context", categories, total, contextWindow: snap.contextWindow };
+}
+
+function exportContext(getCtx?: () => CtxSnapshot): ExportContext {
+  const snap = getCtx?.();
+  return {
+    sessionId: snap?.sessionId ?? "session",
+    title: snap?.title,
+    messages: snap?.messages ?? [],
+  };
 }
 
 export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: (line: string) => void; getContext?: () => CtxSnapshot }): {
