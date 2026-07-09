@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { goal } from "./goal-cmd.js";
 import { appendVelocityEvent, readVelocityEvents } from "../velocity/store.js";
+import { loadSentinels } from "../goals/sentinel.js";
 import type { ReplCtx } from "./types.js";
 import type { Goal } from "../types.js";
 
@@ -23,6 +24,13 @@ describe("/goal dependencies", () => {
     const result = await goal("done 1", ctx);
     expect(result.output).toContain("completed goal 1");
     expect(result.output).toContain("woke: #2 two");
+  });
+
+  it("creates a standing sentinel when completing a goal with --check", async () => {
+    const ctx = ctxWithGoals(goals("active", "active"));
+    const result = await goal("done 1 --check true", ctx);
+    expect(result.output).toContain("watching: goal-1");
+    expect((await loadSentinels(ctx.dataDir)).sentinels[0]).toMatchObject({ goalId: 1, command: "true" });
   });
 });
 

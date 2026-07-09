@@ -285,7 +285,7 @@
       "id": "STANDING-GOAL-SENTINEL",
       "track": "Harness",
       "title": "Standing-goal sentinels — finished goals stay watched",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A finished goal should become a cheap predicate that stays watched, not a forgotten success claim. Convert verified goals into daily checks that report drift, regressions, or violated invariants without auto-fixing behind the user’s back.",
       "done": "A completed goal can generate a standing predicate file; a scheduled sentinel runs cheap checks, records pass/fail history, wakes the user on violation, and retires flaky predicates only with an explicit note.",

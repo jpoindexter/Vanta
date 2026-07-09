@@ -7,6 +7,7 @@ import { dropIncompleteRalphWork, hasIncompleteRalphWork, readRalphState, select
 import type { ReplCtx, SlashResult } from "./types.js";
 import type { SlashHandler } from "./types.js";
 import { formatGoalLedger } from "./goal-ledger.js";
+import { createGoalSentinel } from "../goals/sentinel.js";
 import type { Goal } from "../types.js";
 
 /** Persist a new goal, patch the live prompt, and auto-fire GOAL-ACTION when vague. */
@@ -93,14 +94,21 @@ async function goalDrop(safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
 }
 
 async function goalDone(arg: string, safety: Safety, ctx: ReplCtx): Promise<SlashResult> {
-  const id = Number(arg.split(/\s+/)[1]);
+  const parsed = parseDoneArgs(arg);
+  const id = parsed.id;
   if (!Number.isInteger(id)) return { output: "  usage: /goal done <id>" };
+  const before = await safety.getGoals().catch(() => []);
+  const completed = before.find((g) => g.id === id);
   const ok = await safety.completeGoal(id);
   if (!ok) return { output: `  could not complete goal ${id}` };
   const [goals, deps] = await Promise.all([safety.getGoals().catch(() => []), readGoalDeps(ctx.dataDir)]);
   const woke = wakingDependents(id, goals, deps.edges);
   const suffix = woke.length ? `\n  ▶ woke: ${woke.map((g) => `#${g.id} ${g.text}`).join("; ")}` : "";
-  return { output: `  ✓ completed goal ${id}${suffix}` };
+  const sentinel = completed && parsed.check
+    ? await createGoalSentinel(ctx.dataDir, { goalId: id, goalText: completed.text, command: parsed.check, now: ctx.now() })
+    : null;
+  const sentinelLine = sentinel ? `\n  ◇ watching: ${sentinel.id} — ${sentinel.command}` : "";
+  return { output: `  ✓ completed goal ${id}${suffix}${sentinelLine}` };
 }
 
 async function goalDependency(arg: string, ctx: ReplCtx, mode: "blocks" | "blocked_by"): Promise<SlashResult> {
@@ -135,4 +143,12 @@ async function handleGoalSubcommand(arg: string, sub: string, safety: Safety, ct
   if (["blocked_by", "blocked-by"].includes(sub)) return goalDependency(arg, ctx, "blocked_by");
   if (sub === "done") return goalDone(arg, safety, ctx);
   return setNewGoal(arg, ctx);
+}
+
+function parseDoneArgs(arg: string): { id: number; check?: string } {
+  const parts = arg.trim().split(/\s+/);
+  const id = Number(parts[1]);
+  const checkIdx = parts.indexOf("--check");
+  const check = checkIdx === -1 ? undefined : parts.slice(checkIdx + 1).join(" ").trim();
+  return { id, check: check || undefined };
 }

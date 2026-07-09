@@ -1,20 +1,39 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { addGoalDependency } from "../goals/deps.js";
 import { runGoalsCommand } from "./goals-cmd.js";
 import type { Goal } from "../types.js";
 
 describe("runGoalsCommand", () => {
+  const dirs: string[] = [];
+  afterEach(() => {
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  });
+
   it("prints goal graph state", async () => {
     const dir = mkdtempSync(join(tmpdir(), "goals-cli-"));
+    dirs.push(dir);
     await addGoalDependency(dir, { blockerId: 1, dependentId: 2 });
     const lines: string[] = [];
     const code = await runGoalsCommand("/repo", { dataDir: dir, getGoals: async () => goals(), log: (line) => lines.push(line) });
     expect(code).toBe(0);
     expect(lines.join("\n")).toContain("◌ dependent");
     expect(lines.join("\n")).toContain("blocked_by:1");
+  });
+
+  it("adds, runs, and retires standing goal sentinels", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "goals-cli-"));
+    dirs.push(dir);
+    const lines: string[] = [];
+    const log = (line: string): void => { lines.push(line); };
+
+    expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "add", "4", "keep", "site", "green", "--check", "false"], log })).toBe(0);
+    expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "run"], log })).toBe(2);
+    expect(lines.join("\n")).toContain("wake goal-4");
+    expect(await runGoalsCommand("/repo", { dataDir: dir, rest: ["sentinel", "retire", "goal-4", "flaky", "check"], log })).toBe(0);
+    expect(lines.join("\n")).toContain("retired: flaky check");
   });
 });
 

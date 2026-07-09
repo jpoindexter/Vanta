@@ -8,6 +8,7 @@ import type { RunTask } from "./runner.js";
 import { fireWindowKey } from "./at-most-once.js";
 import { claimFire, sweepClaims } from "./cron-cas.js";
 import { runCronScript } from "./script-run.js";
+import { runDailySentinels } from "../goals/sentinel.js";
 
 /** Pull `--<flag> <value>` out of an argv slice (value + remaining args). */
 function parseValueFlag(args: string[], flag: string): { value: string | null; rest: string[] } {
@@ -152,11 +153,15 @@ export async function runCron(
   });
   await saveLastFired(dataDir, updated);
   await sweepClaims(dataDir, fireWindowKey(now));
-  if (results.length === 0) {
+  const sentinelResults = await runDailySentinels(dataDir, now);
+  if (results.length === 0 && sentinelResults.length === 0) {
     console.log("vanta cron: no tasks due");
     return;
   }
   for (const r of results) {
     console.log(`#${r.id} ${firstLine(r.result)}`);
+  }
+  for (const r of sentinelResults) {
+    console.log(`sentinel ${r.status === "pass" ? "pass" : "wake"} ${r.sentinel.id}: ${firstLine(r.output)}`);
   }
 }

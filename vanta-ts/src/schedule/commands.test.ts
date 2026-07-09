@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseCronFlag, runScheduleCommand, runCron } from "./commands.js";
 import { addCron } from "./cron.js";
+import { createGoalSentinel } from "../goals/sentinel.js";
 import type { RunTask } from "./runner.js";
 
 describe("parseCronFlag", () => {
@@ -98,6 +99,17 @@ describe("runCron", () => {
     const offHour = new Date(2024, 0, 3, 10, 0, 0);
     const run: RunTask = async () => ({ finalText: "unused" });
     await runCron(dataDir, offHour, run);
+    expect(log).toHaveBeenCalledWith("vanta cron: no tasks due");
+  });
+
+  it("runs standing goal sentinels once per day", async () => {
+    await createGoalSentinel(dataDir, { goalId: 9, goalText: "keep green", command: "true" });
+    const run: RunTask = async () => ({ finalText: "unused" });
+    await runCron(dataDir, NOW, run);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("sentinel pass goal-9"));
+
+    log.mockClear();
+    await runCron(dataDir, new Date(2024, 0, 3, 10, 0, 0), run);
     expect(log).toHaveBeenCalledWith("vanta cron: no tasks due");
   });
 });
