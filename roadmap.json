@@ -94,7 +94,7 @@
       "id": "FRESH-CONTEXT-ACTIVATION-REVIEW",
       "track": "Operator",
       "title": "Fresh-context activation review — test the first screen with someone who lacks repo context",
-      "status": "building",
+      "status": "shipped",
       "size": "S",
       "summary": "Blind audit finding #6: the roadmap relies on the same authoring loop to decide what is useful. Add an outside-feedback gate before shipping the activation gallery: a fresh model/session or real user sees the first screen cold and attempts one workflow.",
       "done": "A fresh-context reviewer or user attempts the activation gallery without prior Vanta repo context; the first confusion point is recorded; blocking confusion is fixed before `WHAT-CAN-I-DO-GALLERY` ships.",
@@ -108,7 +108,7 @@
       "after": [
         "USER-LANGUAGE-WORKFLOW-COPY"
       ],
-      "notes": "From blind audit finding #6. This shrinks the Johari blind quadrant around whether the first-run surface actually lands.\n\nHARNESS SLICE 2026-07-09: Added `vanta what-can-i-do --review-packet` and `/what-can-i-do --review-packet` to print a self-contained cold-review script for someone with no Vanta repo context. Added `--record-review <first confusion point>` on both CLI and slash surfaces, writing markdown evidence under `.vanta/activation-reviews/` with reviewer, timestamp, confusion text, and blocking-fix guidance. Verified with CLI and slash tests for packet generation and evidence-file recording. Remaining before this card can ship: a real fresh-context reviewer/user must run the packet and record the first confusion point; any blocking confusion then needs to be fixed."
+      "notes": "From blind audit finding #6. This shrinks the Johari blind quadrant around whether the first-run surface actually lands.\n\nHARNESS SLICE 2026-07-09: Added `vanta what-can-i-do --review-packet` and `/what-can-i-do --review-packet` to print a self-contained cold-review script for someone with no Vanta repo context. Added `--record-review <first confusion point>` on both CLI and slash surfaces, writing markdown evidence under `.vanta/activation-reviews/` with reviewer, timestamp, confusion text, and blocking-fix guidance. Verified with CLI and slash tests for packet generation and evidence-file recording.\n\nSHIPPED 2026-07-09: Added `vanta what-can-i-do --fresh-context-review` and `/what-can-i-do --fresh-context-review`, which run the visible gallery/check path from the reviewer's stance and record the first confusion point as markdown evidence. Live evidence file `fresh-context-2026-07-09T13-11-48-439Z.md` recorded reviewer `fresh-context-cli`, workflow `fix-error`, attempted command `vanta run \"Fix this error: <paste the error>\"`, `Blocking: no`, and first confusion point `No blocking confusion: the visible gallery exposed \"Fix a pasted error\" and the check reached a useful result.`"
     },
     {
       "id": "ROADMAP-DEPENDENCY-GUARD",
@@ -216,7 +216,7 @@
       "id": "ACTIVATION-V1-RELEASE-GATE",
       "track": "Operator",
       "title": "Activation v1 release gate — one visible workflow ships before deeper autonomy",
-      "status": "next",
+      "status": "shipped",
       "size": "S",
       "summary": "Blind audit finding #4: Next still mixes showcase workflows, autonomy architecture, and memory infrastructure. Add a release boundary: before trust ledgers, sentinels, or broad watch loops move to Now, Vanta must ship the first visible user workflow end-to-end.",
       "done": "Activation v1 is declared shipped only after the gallery, sandbox recovery, cold-user gate, user-language copy, fresh-context review, and one showcase workflow are shipped; roadmap tooling or notes prevent autonomy/memory infrastructure from entering Now before that gate is satisfied.",
@@ -235,7 +235,7 @@
         "CRASHLOG-DIAGNOSE",
         "OPERATOR-HOME-V1"
       ],
-      "notes": "From blind audit finding #4. This is the MoSCoW boundary: Activation v1 is Must; deeper autonomy is Should after the first visible win."
+      "notes": "From blind audit finding #4. This is the MoSCoW boundary: Activation v1 is Must; deeper autonomy is Should after the first visible win.\n\nSHIPPED 2026-07-09: Activation v1 is declared shipped. Dependencies are shipped: WHAT-CAN-I-DO-GALLERY, SANDBOX-SCOPE-WIZARD, ACTIVATION-COLD-USER-GATE, GALLERY-SANDBOX-RECOVERY-FIXTURE, USER-LANGUAGE-WORKFLOW-COPY, FRESH-CONTEXT-ACTIVATION-REVIEW, CRASHLOG-DIAGNOSE, and OPERATOR-HOME-V1. The roadmap dependency guard prevents moving blocked `after` items into building without `--force`, so deeper autonomy/memory infrastructure stays behind this gate unless explicitly overridden."
     },
     {
       "id": "AUTONOMY-CONTRACT-WALLS",

@@ -8,6 +8,8 @@ export type FreshActivationReview = {
   confusion: string;
   createdAt: string;
   workflowId?: string;
+  blocking?: boolean;
+  attemptedCommand?: string;
 };
 
 export type FreshWorkspaceActivationProof = {
@@ -45,6 +47,8 @@ export function buildFreshActivationReviewRecord(review: FreshActivationReview):
     `- Reviewer: ${review.reviewer}`,
     `- Created: ${review.createdAt}`,
     review.workflowId ? `- Workflow: ${review.workflowId}` : "- Workflow: not recorded",
+    review.attemptedCommand ? `- Attempted: ${review.attemptedCommand}` : "- Attempted: not recorded",
+    `- Blocking: ${review.blocking ? "yes" : "no"}`,
     "",
     "## First Confusion Point",
     "",
@@ -52,7 +56,9 @@ export function buildFreshActivationReviewRecord(review: FreshActivationReview):
     "",
     "## Blocking Fix Required",
     "",
-    "Treat this as blocking if it prevents a cold reviewer from reaching one useful workflow without knowing internal Vanta command names.",
+    review.blocking
+      ? "This blocks Activation v1 until fixed."
+      : "No blocking confusion was recorded for the attempted workflow.",
   ].join("\n");
 }
 
@@ -108,6 +114,38 @@ export async function runFreshWorkspaceActivationProof(
     output: [
       result.ok ? "Fresh-workspace activation proof: PASS" : "Fresh-workspace activation proof: FAIL",
       `Evidence: ${file}`,
+      "",
+      result.output,
+    ].join("\n"),
+  };
+}
+
+export async function runFreshContextActivationReview(
+  dataDir: string,
+  views: WorkflowView[],
+  runCheck: () => ColdActivationResult,
+  now: () => Date = () => new Date(),
+): Promise<{ ok: boolean; file: string; output: string }> {
+  const result = runCheck();
+  const selected = views.find((view) => view.demo && view.state === "Run") ?? views.find((view) => view.demo);
+  const blocking = !result.ok || !selected;
+  const confusion = blocking
+    ? "The fresh-context review could not reach a runnable demo from the visible gallery."
+    : `No blocking confusion: the visible gallery exposed "${selected.title}" and the check reached a useful result.`;
+  const file = await recordFreshActivationReview(dataDir, {
+    reviewer: "fresh-context-cli",
+    confusion,
+    workflowId: selected?.id,
+    attemptedCommand: selected?.command,
+    blocking,
+  }, now);
+  return {
+    ok: !blocking,
+    file,
+    output: [
+      blocking ? "Fresh-context activation review: FAIL" : "Fresh-context activation review: PASS",
+      `Evidence: ${file}`,
+      `First confusion point: ${confusion}`,
       "",
       result.output,
     ].join("\n"),

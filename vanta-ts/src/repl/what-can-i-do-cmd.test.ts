@@ -7,6 +7,7 @@ import type { ToolContext } from "../tools/types.js";
 import {
   formatFreshActivationReviewPacket,
   recordFreshActivationReview,
+  runFreshContextActivationReview,
   runFreshWorkspaceActivationProof,
 } from "./activation-review.js";
 import {
@@ -108,6 +109,34 @@ describe("what-can-i-do workflow catalog", () => {
       const body = await readFile(file, "utf8");
       expect(body).toContain("I did not know which workflow to pick.");
       expect(body).toContain("Blocking Fix Required");
+      expect(body).toContain("- Blocking: no");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records a fresh-context activation review attempt", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-fresh-context-"));
+    const times = [
+      new Date("2026-07-09T12:10:00.000Z"),
+      new Date("2026-07-09T12:10:01.000Z"),
+      new Date("2026-07-09T12:10:01.000Z"),
+    ];
+    try {
+      const proof = await runFreshContextActivationReview(
+        dir,
+        workflowViews(["shell_cmd", "read_file", "grep_files", "edit_file"]),
+        () => runColdActivationCheck(["shell_cmd", "read_file", "grep_files", "edit_file"], () => times.shift()!),
+        () => times.shift()!,
+      );
+      expect(proof.ok).toBe(true);
+      expect(proof.output).toContain("Fresh-context activation review: PASS");
+      expect(proof.output).toContain("No blocking confusion");
+      const body = await readFile(proof.file, "utf8");
+      expect(body).toContain("- Reviewer: fresh-context-cli");
+      expect(body).toContain("- Workflow: fix-error");
+      expect(body).toContain("- Blocking: no");
+      expect(body).toContain("No blocking confusion");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

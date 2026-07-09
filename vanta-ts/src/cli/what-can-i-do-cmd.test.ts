@@ -51,6 +51,22 @@ describe("runWhatCanIDoCommand", () => {
     }
   });
 
+  it("runs and records the fresh-context activation review", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-fresh-context-cli-"));
+    try {
+      const result = await capture(() => runWhatCanIDoCommand(["--fresh-context-review"], dir));
+      expect(result.code).toBe(0);
+      expect(result.output).toContain("Fresh-context activation review: PASS");
+      const file = result.output.match(/Evidence: (.+)/)?.[1];
+      expect(file).toBeTruthy();
+      const body = await readFile(file!, "utf8");
+      expect(body).toContain("- Reviewer: fresh-context-cli");
+      expect(body).toContain("- Blocking: no");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("prints the fresh-context review packet", async () => {
     const result = await capture(() => runWhatCanIDoCommand(["--review-packet"]));
     expect(result.code).toBe(0);

@@ -1,5 +1,5 @@
 import type { RunSetup } from "../session.js";
-import { formatFreshActivationReviewPacket, recordFreshActivationReview, runFreshWorkspaceActivationProof } from "./activation-review.js";
+import { formatFreshActivationReviewPacket, recordFreshActivationReview, runFreshContextActivationReview, runFreshWorkspaceActivationProof } from "./activation-review.js";
 import type { SlashHandler } from "./types.js";
 
 export type WorkflowState = "Run" | "Try" | "Setup";
@@ -187,6 +187,10 @@ function wantsFreshWorkspaceCheck(arg: string): boolean {
   return arg.trim() === "--fresh-workspace-check";
 }
 
+function wantsFreshContextReview(arg: string): boolean {
+  return arg.trim() === "--fresh-context-review";
+}
+
 function recordReviewText(arg: string): string | null {
   const m = arg.trim().match(/^--record-review\s+([\s\S]+)$/);
   return m?.[1]?.trim() || null;
@@ -230,6 +234,11 @@ export const whatCanIDo: SlashHandler = async (arg, ctx) => {
   if (wantsFreshWorkspaceCheck(arg)) {
     const toolNames = toolNamesFromSetup(ctx.setup);
     const proof = await runFreshWorkspaceActivationProof(ctx.dataDir, () => runColdActivationCheck(toolNames, ctx.now), ctx.now);
+    return { output: proof.output };
+  }
+  if (wantsFreshContextReview(arg)) {
+    const toolNames = toolNamesFromSetup(ctx.setup);
+    const proof = await runFreshContextActivationReview(ctx.dataDir, workflowViews(toolNames), () => runColdActivationCheck(toolNames, ctx.now), ctx.now);
     return { output: proof.output };
   }
   if (wantsReviewPacket(arg)) {
