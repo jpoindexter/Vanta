@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveCodeIntel } from "./index.js";
+import { codegraphArgs } from "./codegraph.js";
 import { nullProvider, UNAVAILABLE } from "./provider.js";
 import { codeContextTool } from "../tools/code-context.js";
 
@@ -31,6 +32,13 @@ describe("nullProvider (no engine)", () => {
 });
 
 describe("codegraph adapter resilience", () => {
+  it("maps Vanta operations to the installed codegraph CLI commands", () => {
+    expect(codegraphArgs("context", "planner")).toEqual(["explore", "planner"]);
+    expect(codegraphArgs("search", "resolveCodeIntel")).toEqual(["query", "resolveCodeIntel"]);
+    expect(codegraphArgs("affected", ["src/a.ts"])).toEqual(["affected", "src/a.ts"]);
+    expect(codegraphArgs("index")).toEqual(["index"]);
+  });
+
   it("never throws — returns a Result regardless of engine presence", async () => {
     const p = resolveCodeIntel("/nonexistent-root-xyz", { VANTA_CODE_INTEL: "codegraph" });
     const r = await p.context("anything");

@@ -25,6 +25,13 @@ async function cg(root: string, args: string[]): Promise<Result<string>> {
   }
 }
 
+export function codegraphArgs(op: "context" | "search" | "affected" | "index", input: string | string[] = ""): string[] {
+  if (op === "context") return ["explore", String(input)];
+  if (op === "search") return ["query", String(input)];
+  if (op === "affected") return ["affected", ...(Array.isArray(input) ? input : [String(input)])];
+  return ["index"];
+}
+
 /** codegraph CLI adapter bound to an operating root. */
 export function codegraphProvider(root: string): CodeIntelProvider {
   return {
@@ -37,9 +44,9 @@ export function codegraphProvider(root: string): CodeIntelProvider {
         return false;
       }
     },
-    context: (task) => cg(root, ["context", task]),
-    search: (symbol) => cg(root, ["query", symbol]),
-    affected: (files) => cg(root, ["affected", ...files]),
-    ensureIndexed: () => cg(root, ["index"]),
+    context: (task) => cg(root, codegraphArgs("context", task)),
+    search: (symbol) => cg(root, codegraphArgs("search", symbol)),
+    affected: (files) => cg(root, codegraphArgs("affected", files)),
+    ensureIndexed: () => cg(root, codegraphArgs("index")),
   };
 }

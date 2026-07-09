@@ -1,6 +1,6 @@
 # AGENTS.md — vanta-ts/src/tools
 
-Built-in tool implementations. Register new tools in the `ALL_TOOLS` array in `all-tools.ts` (not `index.ts`, which is now just `buildRegistry`) and `tools.test.ts`; every tool parses args at the LLM boundary and returns errors as values. `ALL_TOOLS` holds **92 built-in** tools; `buildRegistry` registers **95** (+ factory-built `mount_mcp`, `tool_search`).
+Built-in tool implementations. Register new tools in the `ALL_TOOLS` array in `all-tools.ts` (not `index.ts`, which is now just `buildRegistry`) and `tools.test.ts`; every tool parses args at the LLM boundary and returns errors as values. `ALL_TOOLS` holds **123 built-in** tools; `buildRegistry` registers **127** (+ factory-built `mount_mcp`, `tool_search`, `mcp_auth`, `run_pipeline`).
 
 - `brain.ts` recall output is memory-guarded: fresh/sourced/non-conflicting entries are marked usable, while stale/conflicting/weak-provenance entries are flagged not used.
 - `cron.ts` owns `cron_create`/`cron_list`; durable tasks persist in `.vanta/scheduled_tasks.json`, non-durable compatibility remains in the legacy TSV store.
