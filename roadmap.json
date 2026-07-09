@@ -16684,7 +16684,7 @@
       "id": "SURFACE-MOBILE-APP",
       "track": "Operator",
       "title": "Native mobile surface (iOS/Android) over the Hermes API/gateway",
-      "status": "horizon",
+      "status": "building",
       "size": "XL",
       "summary": "Real reach gap surfaced by the use-case audit: Hermes community built native Android + iOS wrappers; Vanta has TUI (Ink) + desktop-app (Vite/React) + cockpit web, but no mobile. Lowest-effort path is a thin mobile client over the existing kernel API server / gateway (streaming chat, sessions, slash, tool viz) rather than a full native agent. Messaging (Telegram etc.) already gives phone reach today — this is the dedicated-app gap, not a capability gap.",
       "done": "a mobile client (iOS and/or Android) connects to a running Vanta host over the API/gateway with streaming chat + session management.",
