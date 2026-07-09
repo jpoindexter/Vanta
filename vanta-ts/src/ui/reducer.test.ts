@@ -10,6 +10,19 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(s.entries).toEqual([{ kind: "user", text: "hi" }]);
   });
 
+  it("clear resets committed transcript and live regions", () => {
+    const dirty = run([
+      { t: "submit", text: "old" },
+      { t: "turnStart" },
+      { t: "delta", d: "streaming" },
+      { t: "toolCall", verb: "run", name: "shell_cmd", detail: "npm run dev" },
+      { t: "toolResult", name: "shell_cmd", ok: true },
+      { t: "enqueue", text: "queued" },
+    ]);
+    const cleared = reduce(dirty, { t: "clear" });
+    expect(cleared).toEqual(initialState);
+  });
+
   it("accumulates streaming deltas in the live region (not committed)", () => {
     const s = run([{ t: "turnStart" }, { t: "delta", d: "Hel" }, { t: "delta", d: "lo" }]);
     expect(s.streaming).toBe("Hello");

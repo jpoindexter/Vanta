@@ -15,6 +15,7 @@ import type { Action } from "./reducer.js";
 
 /** Side effects applySlashResult drives — explicit closures so it stays pure + testable. */
 export type SlashEffects = {
+  clear: () => void;
   note: (text: string) => void;
   send: (text: string, display?: string) => void;
   exit: () => void;
@@ -30,6 +31,7 @@ export function applySlashResult(r: SlashResult, fx: SlashEffects): void {
   }
   if (r.composerAnchor) fx.composerAnchor(r.composerAnchor); // /composer → reposition input live
   if (r.vimMode !== undefined) fx.vimMode(r.vimMode); // /vim → toggle composer vi-mode live
+  if (r.cleared) fx.clear(); // /clear → wipe committed TUI scrollback before the fresh-session note
   if (r.output) fx.note(r.output);
   if (r.resend) fx.send(r.resend, r.resendDisplay);
 }
@@ -56,6 +58,7 @@ export function useSlash(deps: SlashDeps): { runSlash: (line: string) => void } 
     now: () => new Date(),
   });
   const fx: SlashEffects = {
+    clear: () => deps.dispatch({ t: "clear" }),
     note: (text) => deps.dispatch({ t: "note", text }),
     send: deps.send,
     exit: deps.exit,

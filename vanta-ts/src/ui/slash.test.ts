@@ -54,15 +54,23 @@ describe("completeSlash + isPartialSlash + slashHead", () => {
 });
 
 describe("applySlashResult", () => {
-  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; anchors: string[]; vims: boolean[]; exits: number } => {
+  const spyFx = (): SlashEffects & { notes: string[]; sends: string[]; anchors: string[]; vims: boolean[]; exits: number; clears: number } => {
     const notes: string[] = [], sends: string[] = [], anchors: string[] = [], vims: boolean[] = [];
-    let exits = 0;
-    return { notes, sends, anchors, vims, get exits() { return exits; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), vimMode: (on) => vims.push(on), exit: () => { exits += 1; } };
+    let exits = 0, clears = 0;
+    return { notes, sends, anchors, vims, get exits() { return exits; }, get clears() { return clears; }, clear: () => { clears += 1; }, note: (t) => notes.push(t), send: (t) => sends.push(t), composerAnchor: (m) => anchors.push(m), vimMode: (on) => vims.push(on), exit: () => { exits += 1; } };
   };
   it("routes output to a note", () => {
     const fx = spyFx();
     applySlashResult({ output: "  hi" }, fx);
     expect(fx.notes).toEqual(["  hi"]);
+  });
+  it("clears the TUI before showing a cleared-command note", () => {
+    const fx = spyFx();
+    const order: string[] = [];
+    fx.clear = () => { order.push("clear"); };
+    fx.note = (t) => { order.push(`note:${t}`); };
+    applySlashResult({ cleared: true, output: "  · started a fresh conversation" }, fx);
+    expect(order).toEqual(["clear", "note:  · started a fresh conversation"]);
   });
   it("routes resend to send", () => {
     const fx = spyFx();

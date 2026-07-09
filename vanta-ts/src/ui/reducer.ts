@@ -1,4 +1,4 @@
-import type { Entry, PendingTool, ToolEntry, UiState } from "./types.js";
+import { initialState, type Entry, type PendingTool, type ToolEntry, type UiState } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import type { TodoItem } from "../todo/store.js";
 
@@ -8,6 +8,7 @@ import type { TodoItem } from "../todo/store.js";
 // streamed assistant text commits to an Entry on turnEnd and `streaming` clears.
 
 export type Action =
+  | { t: "clear" }
   | { t: "submit"; text: string }
   | { t: "delta"; d: string }
   | { t: "thinking"; text: string }
@@ -122,6 +123,8 @@ function flush(state: UiState): UiState {
 /** The append/queue actions, split out so each switch stays under the complexity gate. */
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
+    case "clear":
+      return initialState;
     case "note": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
