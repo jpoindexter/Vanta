@@ -6,6 +6,7 @@ import { selectNextTask } from "../task-stack/select.js";
 import { formatSessionCost } from "../pricing.js";
 import type { OperatorTask } from "../task-stack/types.js";
 import type { SlashHandler } from "./types.js";
+import { formatWhatCanIDo, toolNamesFromSetup, workflowViews } from "./what-can-i-do-cmd.js";
 
 // /dashboard — live operator state at a glance: tasks, goals, repo, model, cost.
 
@@ -106,6 +107,14 @@ function assembleDashboard(opts: {
   ].join("\n");
 }
 
+function emptyDashboard(ctx: import("./types.js").ReplCtx): string {
+  return [
+    "No active tasks, no active goals, clean repo.",
+    "",
+    formatWhatCanIDo(workflowViews(toolNamesFromSetup(ctx.setup))),
+  ].join("\n");
+}
+
 /** Build and return the full dashboard output string. */
 export async function buildDashboard(ctx: import("./types.js").ReplCtx): Promise<string> {
   const repoRoot = dirname(ctx.dataDir);
@@ -118,7 +127,7 @@ export async function buildDashboard(ctx: import("./types.js").ReplCtx): Promise
   ]);
   const { activeSection, pendingSection, blockedSection, stack } = taskData;
   if (stack.tasks.length === 0 && activeGoals.length === 0 && gitData.clean) {
-    return "✓ all clear — no tasks, no goals, clean repo.";
+    return emptyDashboard(ctx);
   }
   return assembleDashboard({
     activeSection, pendingSection, blockedSection,

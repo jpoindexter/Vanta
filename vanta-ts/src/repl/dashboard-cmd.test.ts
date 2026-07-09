@@ -61,7 +61,8 @@ describe("buildDashboard — all-clear", () => {
     const dataDir = join(tmpBase, ".vanta");
     const ctx = makeCtx(dataDir);
     const out = await buildDashboard(ctx);
-    expect(out).toMatch(/all clear/i);
+    expect(out).toContain("No active tasks, no active goals, clean repo.");
+    expect(out).toContain("What Vanta can do now");
   });
 });
 
