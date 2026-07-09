@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { LLMProvider, ToolSchema } from "../providers/interface.js";
 import type { Message } from "../types.js";
 
@@ -10,6 +13,7 @@ vi.mock("../context/graduated-compaction.js", () => ({
 
 import {
   isContextLengthError,
+  persistCompaction,
   prepareCallMessages,
   resetSavingsHistory,
   resolveCompactThresholdPct,
@@ -198,5 +202,32 @@ describe("prepareCallMessages — anti-thrash gate", () => {
     // Assert: no compaction ran, and the call still resolves with a message list.
     expect(mockGraduatedCompaction).not.toHaveBeenCalled();
     expect(out).toEqual(convo);
+  });
+});
+
+describe("persistCompaction — visible compaction state", () => {
+  it("sets compacting true before summarizing and false after the pass", async () => {
+    const messages: Message[] = [
+      { role: "system", content: "sys" },
+      ...Array.from({ length: 12 }, (_, i): Message => ({
+        role: i % 2 === 0 ? "user" : "assistant",
+        content: `message ${i} ${"x".repeat(120)}`,
+      })),
+    ];
+    const events: boolean[] = [];
+    const summaryEvents: boolean[][] = [];
+
+    await persistCompaction(messages, {
+      provider: { ...makeProvider(), contextWindow: () => 100 },
+      root: mkdtempSync(join(tmpdir(), "vanta-compact-state-")),
+      summarize: async () => {
+        summaryEvents.push([...events]);
+        return "short summary";
+      },
+      onCompacting: (active) => events.push(active),
+    });
+
+    expect(summaryEvents[0]).toEqual([true]);
+    expect(events).toEqual([true, false]);
   });
 });

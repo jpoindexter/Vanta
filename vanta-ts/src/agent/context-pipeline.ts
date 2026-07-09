@@ -20,6 +20,7 @@ export type ContextDeps = {
   root: string;
   summarize?: Summarizer;
   onAutoCompact?: (dropped: number, summary: string) => void;
+  onCompacting?: (active: boolean) => void;
   activeGoalText?: string;
   /** The live session scratchpad, re-injected on compaction. */
   sessionMemory?: string;
@@ -66,10 +67,15 @@ export function resolveCompactThresholdPct(env: NodeJS.ProcessEnv): number | und
  */
 export async function persistCompaction(messages: Message[], deps: ContextDeps): Promise<void> {
   if (!deps.summarize) return;
+  let compacting = false;
   try {
     const r = await compactConversation(messages, deps.provider.contextWindow(), deps.summarize, {
       thresholdPct: resolveCompactThresholdPct(process.env),
-      onPreCompact: (middle) => preCompact(deps, middle),
+      onPreCompact: (middle) => {
+        compacting = true;
+        deps.onCompacting?.(true);
+        return preCompact(deps, middle);
+      },
     });
     if (r.compacted) {
       recordCompactedEdits(deps.workingMemory, r.compactedWindow);
@@ -83,6 +89,9 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
       await fireHooks(join(deps.root, ".vanta"), "PostCompact", { trigger: "auto", dropped: r.dropped, summary: r.summary }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider });
     }
   } catch { /* compaction is best-effort — a failure must never block the turn */ }
+  finally {
+    if (compacting) deps.onCompacting?.(false);
+  }
 }
 
 /** PreCompact: fire the hook, and — when VANTA_SESSION_MEMORY_COMPACT is armed —
@@ -108,9 +117,14 @@ function withRestore(messages: Message[], restore: string): Message[] {
 function buildTrackedSummarizer(deps: ContextDeps): Summarizer | undefined {
   return deps.summarize && deps.onAutoCompact
     ? async (mid: Message[]) => {
-        const s = await deps.summarize!(mid);
-        deps.onAutoCompact!(mid.length, s);
-        return s;
+        deps.onCompacting?.(true);
+        try {
+          const s = await deps.summarize!(mid);
+          deps.onAutoCompact!(mid.length, s);
+          return s;
+        } finally {
+          deps.onCompacting?.(false);
+        }
       }
     : deps.summarize;
 }

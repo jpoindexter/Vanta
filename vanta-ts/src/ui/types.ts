@@ -58,6 +58,8 @@ export type UiState = {
    *  that stream their thinking fill this during the pre-output phase; cleared when output text
    *  begins or the turn ends. Empty for backends that hide reasoning (e.g. codex). */
   liveThinking: string;
+  /** True while the current session is actively compacting context. */
+  compacting: boolean;
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "" };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false };

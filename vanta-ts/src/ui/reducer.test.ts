@@ -211,6 +211,24 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(d.queued).toEqual(["second"]);
   });
 
+  it("tracks compaction as live session state", () => {
+    const active = run([{ t: "compacting", active: true }]);
+    expect(active.compacting).toBe(true);
+    expect(reduce(active, { t: "compacting", active: false }).compacting).toBe(false);
+  });
+
+  it("clears compaction state at turn end as a backstop", () => {
+    const s = run([{ t: "turnStart" }, { t: "compacting", active: true }, { t: "turnEnd" }]);
+    expect(s.compacting).toBe(false);
+  });
+
+  it("preserves active compaction state when clearing the transcript", () => {
+    const s = run([{ t: "submit", text: "old" }, { t: "compacting", active: true }]);
+    const cleared = reduce(s, { t: "clear" });
+    expect(cleared.entries).toEqual([]);
+    expect(cleared.compacting).toBe(true);
+  });
+
   it("carries tokens onto the buffered tool entry in pendingGroup", () => {
     const s = run([
       { t: "toolCall", name: "read_file", verb: "read", detail: "x.ts" },

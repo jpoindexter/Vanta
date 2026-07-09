@@ -82,6 +82,7 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     onThinking: (text) => liveDispatch(deps, { t: "thinking", text }, scope),
     onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }, scope),
     onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }, scope),
+    onCompacting: (active) => liveDispatch(deps, { t: "compacting", active }, scope),
     onToolCall: (name, args) => {
       const disp = toolDisplay(name, args);
       liveDispatch(deps, { t: "toolCall", name, verb: disp.verb, detail: disp.detail }, scope);

@@ -95,6 +95,11 @@ export function outputStyleText(style: string | undefined): string {
   return `style:${s.length > 18 ? `${s.slice(0, 17)}…` : s}`;
 }
 
+/** Auto-compaction indicator. Omitted unless the active session is compacting now. */
+export function compactingText(compacting: boolean | undefined): string {
+  return compacting ? "compacting…" : "";
+}
+
 export type RichInput = {
   rateLimit?: RateLimit;
   lineDelta?: LineDelta;
@@ -103,6 +108,7 @@ export type RichInput = {
   vimEnabled?: boolean;
   custom?: string;
   outputStyle?: string;
+  compacting?: boolean;
   /** Active PR number; rendered via prUrlTemplate. Absent → no PR segment. */
   prNumber?: number;
   /** settings.prUrlTemplate; `{PR}` → the number. Absent → no PR segment. */
@@ -130,6 +136,7 @@ export function composeRichSegments(input: RichInput): RichSegment[] {
   push("worktree", worktreeText(input.isWorktree), 4);
   push("vim", vimText(input.vimEnabled), 3);
   push("pr", prText(input.prNumber, input.prUrlTemplate), 3);
+  push("compacting", compactingText(input.compacting), 8);
   push("style", outputStyleText(input.outputStyle), 3);
   push("custom", customText(input.custom), 2);
   return out;

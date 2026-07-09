@@ -15202,7 +15202,7 @@
       "id": "OP-COMPACTION-VISIBLE",
       "track": "Operator",
       "title": "Surface 'compacting now' state in footer",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "When auto-compaction runs mid-turn the scrollback can look like a reset. Set a per-session compacting flag and show 'compacting…' in the interactive footer/status line so the operator knows what's happening.",
       "done": "During auto-compaction the footer shows a compacting indicator scoped to the active session; clears when done; state unit-tested.",

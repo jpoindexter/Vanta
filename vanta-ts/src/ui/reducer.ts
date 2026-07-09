@@ -20,6 +20,7 @@ export type Action =
   | { t: "dequeue" }
   | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
+  | { t: "compacting"; active: boolean }
   | { t: "turnStart" }
   | { t: "turnEnd" };
 
@@ -125,7 +126,7 @@ function flush(state: UiState): UiState {
 function reduceAux(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "clear":
-      return initialState;
+      return { ...initialState, compacting: state.compacting };
     case "note": {
       const s = flush(state);
       return { ...s, entries: [...s.entries, { kind: "note", text: a.text }] };
@@ -150,6 +151,8 @@ function reduceAux(state: UiState, a: Action): UiState {
     case "thinkingDelta":
       // Live reasoning preview (live region only). Cleared the moment real output text begins.
       return { ...state, liveThinking: state.liveThinking + a.d };
+    case "compacting":
+      return { ...state, compacting: a.active };
     default:
       return state;
   }
@@ -176,5 +179,5 @@ function lastIndexByName(tools: PendingTool[], name: string): number {
 
 /** End the turn: commit any trailing streamed text and clear the live region. */
 function commitStreaming(state: UiState): UiState {
-  return { ...commitText(state), activeTools: [], busy: false, liveThinking: "" };
+  return { ...commitText(state), activeTools: [], busy: false, liveThinking: "", compacting: false };
 }

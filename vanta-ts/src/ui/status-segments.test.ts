@@ -9,6 +9,7 @@ import {
   customText,
   prText,
   outputStyleText,
+  compactingText,
   composeRichSegments,
 } from "./status-segments.js";
 
@@ -119,6 +120,16 @@ describe("outputStyleText", () => {
   });
 });
 
+describe("compactingText", () => {
+  it("omits when no compaction is active", () => {
+    expect(compactingText(false)).toBe("");
+    expect(compactingText(undefined)).toBe("");
+  });
+  it("shows the active compaction state", () => {
+    expect(compactingText(true)).toBe("compacting…");
+  });
+});
+
 describe("prText", () => {
   it("omits when there is no active PR (default footer unchanged)", () => {
     expect(prText(undefined, "https://github.com/o/r/pull/{PR}")).toBe("");
@@ -171,6 +182,13 @@ describe("composeRichSegments", () => {
   it("includes the output style segment when non-default", () => {
     const segs = composeRichSegments({ outputStyle: "verbose" });
     expect(segs.find((s) => s.key === "style")?.text).toContain("style:verbose");
+  });
+  it("includes the compacting segment with high priority while active", () => {
+    const segs = composeRichSegments({ compacting: true });
+    expect(segs.find((s) => s.key === "compacting")).toMatchObject({
+      text: "  ·  compacting…",
+      priority: 8,
+    });
   });
   it("prefixes each present segment with a separator", () => {
     const segs = composeRichSegments({ vimEnabled: true });
