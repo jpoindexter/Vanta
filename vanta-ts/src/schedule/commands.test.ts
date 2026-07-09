@@ -6,6 +6,7 @@ import { parseCronFlag, runScheduleCommand, runCron } from "./commands.js";
 import { addCron } from "./cron.js";
 import { createGoalSentinel } from "../goals/sentinel.js";
 import { addAutoWatch } from "../watch/auto-watch.js";
+import { setAmbientEnabled } from "../ambient/screen-context.js";
 import type { RunTask } from "./runner.js";
 
 describe("parseCronFlag", () => {
@@ -124,5 +125,19 @@ describe("runCron", () => {
     await writeFile(state, "two");
     await runCron(dataDir, new Date(2024, 0, 3, 10, 0, 0), run);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("watch repo: queues-for-approval"));
+  });
+
+  it("surfaces ambient screen proposals during cron when opt-in context exists", async () => {
+    const old = process.env.VANTA_AMBIENT_CONTEXT;
+    process.env.VANTA_AMBIENT_CONTEXT = "build failed on screen";
+    await setAmbientEnabled(dataDir, true, 1);
+    const run: RunTask = async () => ({ finalText: "unused" });
+    try {
+      await runCron(dataDir, NOW, run);
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("ambient proposal: Fix failing tests"));
+    } finally {
+      if (old === undefined) delete process.env.VANTA_AMBIENT_CONTEXT;
+      else process.env.VANTA_AMBIENT_CONTEXT = old;
+    }
   });
 });

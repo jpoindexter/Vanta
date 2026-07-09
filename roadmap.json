@@ -551,7 +551,7 @@
       "id": "AMBIENT-SCREEN-CONTEXT",
       "track": "Operator",
       "title": "Continuous live screen + app-context feed (approved local actions)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "A continuous live screen + app-context feed the agent can reason over (vs on-demand screenshots), gated to approved local actions. Community signal (OpenClaw/Hermes X thread 2026-06-22), @Alloutnikhil: a Mac app where \"voice handles input, [it] gets live screen and app context, reasons over intent, and requests approved local actions\" — that is Vanta’s voice + desktop-control + kernel-approval shape, made continuous. Extends VISION-WATCH-ALERT + SCREEN-TO-TASK + COMPANION-PRESENCE.",
       "done": "an opt-in mode streams periodic screen/app context into the loop with privacy controls; the agent proposes actions from it, each kernel-gated + approval-required; throttled and killable.",

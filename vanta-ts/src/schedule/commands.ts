@@ -10,6 +10,7 @@ import { claimFire, sweepClaims } from "./cron-cas.js";
 import { runCronScript } from "./script-run.js";
 import { runDailySentinels } from "../goals/sentinel.js";
 import { runAutoWatch, formatWatchChange } from "../watch/auto-watch.js";
+import { runAmbientScreenTick } from "../ambient/screen-context.js";
 
 /** Pull `--<flag> <value>` out of an argv slice (value + remaining args). */
 function parseValueFlag(args: string[], flag: string): { value: string | null; rest: string[] } {
@@ -154,17 +155,23 @@ export async function runCron(
   });
   await saveLastFired(dataDir, updated);
   await sweepClaims(dataDir, fireWindowKey(now));
-  const sentinelResults = await runDailySentinels(dataDir, now);
-  const watchChanges = await runAutoWatch(dataDir);
-  if (results.length === 0 && sentinelResults.length === 0 && watchChanges.length === 0) {
+  const extraLines = await postCronSurfaceLines(dataDir, now);
+  const taskLines = results.map((r) => `#${r.id} ${firstLine(r.result)}`);
+  const lines = [...taskLines, ...extraLines];
+  if (lines.length === 0) {
     console.log("vanta cron: no tasks due");
     return;
   }
-  for (const r of results) {
-    console.log(`#${r.id} ${firstLine(r.result)}`);
-  }
-  for (const r of sentinelResults) {
-    console.log(`sentinel ${r.status === "pass" ? "pass" : "wake"} ${r.sentinel.id}: ${firstLine(r.output)}`);
-  }
-  for (const c of watchChanges) console.log(formatWatchChange(c));
+  for (const line of lines) console.log(line);
+}
+
+async function postCronSurfaceLines(dataDir: string, now: Date): Promise<string[]> {
+  const sentinelResults = await runDailySentinels(dataDir, now);
+  const watchChanges = await runAutoWatch(dataDir);
+  const ambient = await runAmbientScreenTick(dataDir, process.env.VANTA_AMBIENT_CONTEXT ?? "", now);
+  return [
+    ...sentinelResults.map((r) => `sentinel ${r.status === "pass" ? "pass" : "wake"} ${r.sentinel.id}: ${firstLine(r.output)}`),
+    ...watchChanges.map(formatWatchChange),
+    ...(ambient.ran ? [`ambient proposal: ${ambient.proposal} · ${ambient.lane} · ${ambient.reason}`] : []),
+  ];
 }
