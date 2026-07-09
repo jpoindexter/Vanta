@@ -10,6 +10,7 @@ export type CapabilityWorkflow = {
   example: string;
   command: string;
   requires: string[];
+  demo?: string;
 };
 
 export type WorkflowView = CapabilityWorkflow & {
@@ -25,6 +26,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     example: "mcp: terminal-love failed - mcp server exited (1)",
     command: `vanta run "Fix this error: <paste the error>"`,
     requires: ["shell_cmd", "read_file", "grep_files", "edit_file"],
+    demo: "fix-error",
   },
   {
     id: "continue-roadmap",
@@ -33,6 +35,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     example: "Continue the activation roadmap until the next verified commit is pushed.",
     command: `vanta run "Continue the top roadmap item and push the slice"`,
     requires: ["shell_cmd", "read_file", "edit_file", "roadmap_move"],
+    demo: "continue-roadmap",
   },
   {
     id: "spec-to-preview",
@@ -49,6 +52,7 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
     example: "EXC_CRASH (SIGABRT), DYLD, Library not loaded: @rpath/lib_TestingInterop.dylib",
     command: `vanta run "Diagnose this crash log and give me the fix path: <paste report>"`,
     requires: ["read_file", "grep_files", "shell_cmd"],
+    demo: "crash-log",
   },
   {
     id: "research-receipts",
@@ -84,6 +88,27 @@ export const CAPABILITY_WORKFLOWS: CapabilityWorkflow[] = [
   },
 ];
 
+const DEMOS: Record<string, string> = {
+  "fix-error": [
+    "Demo: Fix a pasted error",
+    "Input: refused: background tasks are not sandboxed under sandbox mode.",
+    "Result: identify sandboxed background refusal; relaunch with `VANTA_SHELL_SANDBOX=0 vanta`; retry long-running server commands with background:true.",
+    `Command: ${CAPABILITY_WORKFLOWS[0]!.command}`,
+  ].join("\n"),
+  "continue-roadmap": [
+    "Demo: Continue the roadmap",
+    "Input: Current build order starts with SANDBOX-SCOPE-WIZARD and WHAT-CAN-I-DO-GALLERY.",
+    "Result: pick the first feasible card, implement a focused verified slice, update roadmap notes, commit, and push.",
+    `Command: ${CAPABILITY_WORKFLOWS[1]!.command}`,
+  ].join("\n"),
+  "crash-log": [
+    "Demo: Diagnose a crash log",
+    "Input: DYLD Code 1, Library not loaded: @rpath/lib_TestingInterop.dylib.",
+    "Result: name the missing dynamic library as the likely cause, cite the DYLD lines, and suggest repairing the XCTest/test-runtime search path.",
+    `Command: ${CAPABILITY_WORKFLOWS[3]!.command}`,
+  ].join("\n"),
+};
+
 function stateForWorkflow(workflow: CapabilityWorkflow, tools: Set<string>): WorkflowState {
   const available = workflow.requires.filter((name) => tools.has(name)).length;
   if (available === workflow.requires.length) return "Run";
@@ -105,11 +130,12 @@ export function toolNamesFromSetup(setup: RunSetup): string[] {
 
 function formatWorkflow(view: WorkflowView, index: number): string {
   const missing = view.missing.length ? `\n     Missing: ${view.missing.join(", ")}` : "";
+  const demo = view.demo ? `\n     Demo: /what-can-i-do --demo ${view.demo}` : "";
   return [
     `  ${index + 1}. [${view.state}] ${view.title}`,
     `     ${view.outcome}`,
     `     Example: ${view.example}`,
-    `     Command: ${view.command}${missing}`,
+    `     Command: ${view.command}${demo}${missing}`,
   ].join("\n");
 }
 
@@ -126,7 +152,17 @@ export function formatWhatCanIDo(views: WorkflowView[]): string {
   ].join("\n");
 }
 
-export const whatCanIDo: SlashHandler = (_arg, ctx) => {
+function demoId(arg: string): string | null {
+  const m = arg.trim().match(/^--demo\s+(\S+)$/);
+  return m?.[1] ?? null;
+}
+
+export function runWorkflowDemo(id: string): string {
+  return DEMOS[id] ?? `Unknown demo '${id}'. Available: ${Object.keys(DEMOS).join(", ")}`;
+}
+
+export const whatCanIDo: SlashHandler = (arg, ctx) => {
+  const id = demoId(arg);
+  if (id) return { output: runWorkflowDemo(id) };
   return { output: formatWhatCanIDo(workflowViews(toolNamesFromSetup(ctx.setup))) };
 };
-
