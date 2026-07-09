@@ -22,6 +22,7 @@ const USAGE_LINES = [
       "       vanta adversarial-ux --fixture checkout | --url <url>   turn hard-user UX findings into tickets",
       "       vanta egress [status|plan]        show Docker/network egress isolation posture",
       "       vanta billing [status|json]      show fail-open provider billing + estimated spend",
+      "       vanta osint plan <subject> [--domain <domain> --ticker <ticker>]   public-records investigation plan",
       "       vanta autonomy [show|init|decide]   acts-alone / queues / wakes-me contract",
       "       vanta --init | --init-only | --maintenance   run lifecycle bootstrap hooks",
       "       vanta --plugin-url <url> | --plugin-dir <path>   install a plugin (.zip/dir) at startup (stays disabled until enabled)",

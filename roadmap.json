@@ -15389,7 +15389,7 @@
       "id": "OP-OSINT-RESEARCH",
       "track": "Operator",
       "title": "OSINT investigation framework (public records)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "A public-records research capability (SEC EDGAR, USAspending, OFAC, OpenCorporates, court records, WHOIS/DNS) with entity resolution + evidence chains, stdlib-only/no keys. Useful for a future research-operator slice; off the active pillars.",
       "done": "Captured for a future research-operator slice; cleanly buildable with no API keys.",
@@ -15398,7 +15398,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "reach",
-      "updated": "2026-06-20",
+      "updated": "2026-07-09",
+      "notes": "Shipped 2026-07-09. Added `vanta osint plan <subject> [--domain <domain> --ticker <ticker> --jurisdiction <jurisdiction>] [--json]`, a stdlib-only/no-key public-records investigation planner. The plan normalizes subject identifiers, selects public-record source starts for SEC EDGAR, USAspending, OFAC, OpenCorporates, CourtListener, and ICANN Lookup, and emits investigation phases, an evidence receipt schema, refresh expiry guidance, and false-positive guardrails. This does not perform live retrieval yet; it is the captured, cleanly buildable research-operator slice the card required. Verified with `npx vitest run src/osint/framework.test.ts src/cli/osint-cmd.test.ts --reporter=dot` (6 passed), `npm run typecheck`, `npm run vanta -- lint src/osint/framework.ts src/osint/framework.test.ts src/cli/osint-cmd.ts src/cli/osint-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- osint plan \"Acme Holdings\" --domain acme.example --ticker ACME --jurisdiction Delaware`.",
       "source": "ref-audit-2026-06-20"
     },
     {
