@@ -5609,7 +5609,7 @@
       "id": "CODEBASE-MINE",
       "track": "Solutioning",
       "title": "Mine Goose/Reference for stealable patterns",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Targeted read of the Goose and Reference codebases for specific stealable patterns (adapt, not copy). was already mined for v1 - see docs/parity-audit.md and -map.html before re-doing that work.",
       "done": "A short adapt/cant/missing/cut analysis per source; worthwhile patterns become roadmap items.",
@@ -5617,7 +5617,9 @@
       "model": "sonnet",
       "effort": "medium",
       "codex": "gpt-5.4",
-      "lens": "memory"
+      "lens": "memory",
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09 as documentation/roadmap cleanup. Added `docs/reference-codebase-mine.md`, summarizing Goose, Hermes/reference-agent, and software-factory references in the requested adapt / cannot-use-directly / missing / cut format. The doc points to existing raw evidence (`docs/feature-audit.md`, `docs/agent-map.html`, `docs/argo-flow.md`, `docs/factory-evolution.md`, `docs/self-repair-architecture.md`, `docs/loop-engineering-plan.md`, `PARKED.md`) and lists the roadmap items already produced or confirmed. Boundary: this closes the broad reference-mining pass; future work should execute the resulting cards instead of re-reading the same reference repos."
     },
     {
       "id": "INSTALL-PARITY",
