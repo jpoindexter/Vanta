@@ -122,7 +122,25 @@ async function buildGatewayApprover(platform: PlatformAdapter | undefined): Prom
 
 // `vanta gateway` — run the cron scheduler as a foreground daemon (the long-lived
 // process that fires scheduled tasks without an external trigger).
-export async function runGatewayCommand(repoRoot: string): Promise<void> {
+export async function runGatewayCommand(repoRoot: string, rest: string[] = []): Promise<void> {
+  if (rest[0] === "verify-channels") {
+    const json = rest.includes("--json");
+    const timeoutIdx = rest.indexOf("--timeout-ms");
+    let timeoutMs: number | undefined;
+    if (timeoutIdx >= 0) {
+      const raw = rest[timeoutIdx + 1];
+      const parsed = raw ? Number(raw) : NaN;
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        console.error("usage: vanta gateway verify-channels [--json] [--timeout-ms N]");
+        return;
+      }
+      timeoutMs = parsed;
+    }
+    const { verifyMessagingChannels, formatChannelVerifyReport } = await import("../gateway/channel-verify.js");
+    const report = await verifyMessagingChannels({ dataDir: dataDirFor(repoRoot), timeoutMs });
+    console.log(json ? JSON.stringify(report, null, 2) : formatChannelVerifyReport(report));
+    return;
+  }
   const platform = resolveMessagingChannel(process.env); // MSG-MULTICHANNEL-LIVE: run all configured channels
 
   const { replyBus, requestApproval } = await buildGatewayApprover(platform);
@@ -287,4 +305,3 @@ async function readMcpJson(path: string): Promise<{ servers: Record<string, impo
     return { servers: {} };
   }
 }
-

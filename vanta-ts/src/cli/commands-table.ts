@@ -131,7 +131,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   },
   config: (root, rest) => runConfigCommand(root, rest),
   cron: (root) => runCron(dataDirFor(root), new Date(), buildCronRunTask(root)),
-  gateway: (root) => runGatewayCommand(root),
+  gateway: (root, rest) => runGatewayCommand(root, rest),
   service: (root, rest) => runServiceCommand(root, rest),
   skills: (_root, rest) => runSkillsCommand(rest),
   skill: (root, rest) => runSkillCommand(root, rest),

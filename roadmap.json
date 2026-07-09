@@ -583,7 +583,7 @@
       "id": "MSG-CHANNEL-PARITY",
       "track": "Operator",
       "title": "Messaging channel parity — reach Hermes(20+)/OpenClaw(13+) channel coverage",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "REVISED 2026-06-22 — verification found most adapters ALREADY SHIPPED: MSG-ADAPTER-DISCORD/MATRIX/GOOGLECHAT/SLACK/EMAIL/MATTERMOST/IRC/NTFY/LINE/WHATSAPP, MSG-SIGNAL, MSG-IMESSAGE, Telegram (HP-21-PLATFORMS claims 21), with 5 verified LIVE from one gateway (MSG-MULTICHANNEL-LIVE: Telegram/WhatsApp/Signal/Discord/Slack). Channels are NOT an unbuilt gap. Re-scoped from 'build adapters' to the REMAINING delta: finish MSG-ADAPTER-TEAMS (horizon), run a live-verify pass over the coded-but-not-live adapters, and decide whether to add OpenClaw-style native mobile nodes + a shareable channel/skills ecosystem (the genuine gap vs the Hermes Skills Hub). The earlier 'out of scope -> in scope' framing on this card came from an incomplete first scan of the roadmap.",
       "done": "MSG-ADAPTER-TEAMS shipped + live; each previously-coded adapter has a logged live-verify result; a recorded decision on native-mobile-nodes + shareable-ecosystem scope. (Core adapter build is already done.)",
