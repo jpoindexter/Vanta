@@ -101,6 +101,7 @@ import { runDeepPlanCommand } from "./deep-plan-cmd.js";
 import { runRuntimeCommand } from "./runtime-cmd.js";
 import { runAdversarialUxCommand } from "./adversarial-ux-cmd.js";
 import { runEgressCommand } from "./egress-cmd.js";
+import { runBillingCommand } from "./billing-cmd.js";
 
 /** A subcommand handler. A returned number is used as the process exit code. */
 export type CommandFn = (repoRoot: string, rest: string[]) => Promise<number | void> | number | void;
@@ -128,6 +129,7 @@ export const COMMANDS: Record<string, CommandFn> = {
   runtime: (root, rest) => runRuntimeCommand(root, rest),
   "adversarial-ux": (root, rest) => runAdversarialUxCommand(root, rest),
   egress: (_root, rest) => runEgressCommand(rest),
+  billing: (root, rest) => runBillingCommand(dataDirFor(root), rest),
   autonomy: (root, rest) => runAutonomyCommand(root, rest),
   home: (root) => runHomeCommand(dataDirFor(root)),
   setup: async (root, rest) => { if (rest[0] === "messaging") await runMessagingSetup(root); else if (rest[0] === "tts") await runTtsSetup(root); else if (rest[0] === "model") await runSetup(root); else await runFullSetup(root); },

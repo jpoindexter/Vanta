@@ -15321,7 +15321,7 @@
       "id": "OP-BILLING-VIEW",
       "track": "Operator",
       "title": "Provider-reported usage / balance panel (fail-open)",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "Budget enforcement exists (the important half); a read of provider-reported balance/quota/reset-window would let the cockpit show 'you have $X left, resets at Y'. Keep the fail-open + Decimal-money discipline if/when a usage panel is built.",
       "done": "Captured as cockpit polish; fail-open + Decimal-money discipline noted for a future usage panel.",
@@ -15330,8 +15330,9 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "infra",
-      "updated": "2026-06-20",
-      "source": "ref-audit-2026-06-20"
+      "updated": "2026-07-09",
+      "source": "ref-audit-2026-06-20",
+      "notes": "Shipped 2026-07-09. Added `vanta billing [status|json]` as a fail-open operator billing panel. It reads the durable spend ledger and scoped budgets, aggregates money as integer USD micros for display, reports estimated priced turns/tokens/providers, and explicitly marks provider-reported balance/quota/reset-window as unavailable until a real provider billing adapter exists. Verified with `npx vitest run src/cli/billing-cmd.test.ts src/cost/ledger.test.ts src/budget/store.test.ts --reporter=dot` (23 passed), `npm run typecheck`, `npm run vanta -- lint src/billing/status.ts src/cli/billing-cmd.ts src/cli/billing-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- billing status`."
     },
     {
       "id": "OP-CHECKPOINT-ROLLBACK",
@@ -15446,8 +15447,8 @@
       "codex": "gpt-5.4",
       "lens": "infra",
       "updated": "2026-07-09",
-      "source": "ref-audit-2026-06-20",
-      "notes": "Shipped 2026-07-09. Docker egress isolation is now operator-visible through `vanta egress [status|plan]`: it reports whether the Docker backend is selected, whether Docker will run with hard no-egress (`--network none`) or opened network, and the app-level HTTP egress allow/deny policy (`VANTA_EGRESS_ALLOW` / `VANTA_EGRESS_DENY`). The command prints the safe launch form `VANTA_EXEC_BACKEND=docker VANTA_SANDBOX_NET=0 vanta run \"<task>\"` and warns when domain allowlists are only Vanta HTTP-guard enforced because Docker itself is open. Existing enforcement verified: exec Docker backend builds `docker run --rm ... --network none` by default, autonomous Docker agent wrapper also defaults to `--network none`, and app-level egress policy is default-deny when an allowlist exists. Verified with `npx vitest run src/cli/egress-cmd.test.ts src/exec/backend.test.ts src/agents/autonomous-docker.test.ts src/net/egress-policy.test.ts --reporter=dot` (24 passed), `npm run typecheck`, `npm run vanta -- lint src/cli/egress-cmd.ts src/cli/egress-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- egress status`."
+      "notes": "Shipped 2026-07-09. Docker egress isolation is now operator-visible through `vanta egress [status|plan]`: it reports whether the Docker backend is selected, whether Docker will run with hard no-egress (`--network none`) or opened network, and the app-level HTTP egress allow/deny policy (`VANTA_EGRESS_ALLOW` / `VANTA_EGRESS_DENY`). The command prints the safe launch form `VANTA_EXEC_BACKEND=docker VANTA_SANDBOX_NET=0 vanta run \"<task>\"` and warns when domain allowlists are only Vanta HTTP-guard enforced because Docker itself is open. Existing enforcement verified: exec Docker backend builds `docker run --rm ... --network none` by default, autonomous Docker agent wrapper also defaults to `--network none`, and app-level egress policy is default-deny when an allowlist exists. Verified with `npx vitest run src/cli/egress-cmd.test.ts src/exec/backend.test.ts src/agents/autonomous-docker.test.ts src/net/egress-policy.test.ts --reporter=dot` (24 passed), `npm run typecheck`, `npm run vanta -- lint src/cli/egress-cmd.ts src/cli/egress-cmd.test.ts src/cli/commands-table.ts src/cli/usage.ts`, and live CLI smoke `npm run vanta -- egress status`.",
+      "source": "ref-audit-2026-06-20"
     },
     {
       "id": "EXT-ACP-ADAPTER",
