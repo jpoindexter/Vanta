@@ -10,7 +10,10 @@ import { ComposerView } from "./composer-view.js";
 import {
   isPasteBurst, isMultiLinePaste, useTextPaste, usePastePill,
   handleReturnKey, handleSpecialChord, handlePaletteKey, handleHistory, handleGhostOrEdit,
+  readClipboardText, writeClipboardText,
 } from "./composer-input.js";
+import type { Sel } from "./selection.js";
+import { composerSelectionCommand, extendComposerSelection } from "./composer-selection.js";
 
 export { ComposerView } from "./composer-view.js";
 // Pure input-processing helpers live in composer-input.ts; re-export the public
@@ -39,19 +42,28 @@ const EMPTY_HIST: HistState = { histIdx: -1, draft: "", value: "" };
 function useComposerBuffer(): {
   value: string; cursor: number; sel: number;
   setSel: (n: number) => void;
-  valueRef: { current: string }; cursorRef: { current: number };
+  selection: Sel | null;
+  valueRef: { current: string }; cursorRef: { current: number }; selectionRef: { current: Sel | null };
   setBuf: (v: string, c: number) => void;
+  setSelection: (s: Sel | null) => void;
 } {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
   const [sel, setSel] = useState(0);
+  const [selection, setSelectionState] = useState<Sel | null>(null);
   const valueRef = useRef("");
   const cursorRef = useRef(0);
+  const selectionRef = useRef<Sel | null>(null);
   const setBuf = (v: string, c: number): void => {
     valueRef.current = v; cursorRef.current = c;
-    setValue(v); setCursor(c); setSel(0);
+    selectionRef.current = null;
+    setValue(v); setCursor(c); setSel(0); setSelectionState(null);
   };
-  return { value, cursor, sel, setSel, valueRef, cursorRef, setBuf };
+  const setSelection = (s: Sel | null): void => {
+    selectionRef.current = s; setSelectionState(s);
+    if (s) { cursorRef.current = s.cursor; setCursor(s.cursor); }
+  };
+  return { value, cursor, sel, setSel, selection, valueRef, cursorRef, selectionRef, setBuf, setSelection };
 }
 
 export function Composer(props: {
@@ -65,7 +77,7 @@ export function Composer(props: {
   focused?: boolean;
   vim?: boolean;
 }): ReactElement {
-  const { value, cursor, sel, setSel, valueRef, cursorRef, setBuf } = useComposerBuffer();
+  const { value, cursor, sel, setSel, selection, valueRef, cursorRef, selectionRef, setBuf, setSelection } = useComposerBuffer();
   const killRef = useRef("");
   const undoRef = useRef("");
   const histRef = useRef<HistState>(EMPTY_HIST);
@@ -86,13 +98,23 @@ export function Composer(props: {
   const applyEdit = (e: Edit): void => { if (e.kill !== undefined) { killRef.current = e.kill; undoRef.current = value; } setBuf(e.value, e.cursor); };
   const insertNewline = (): void => setBuf(value.slice(0, cursor) + "\n" + value.slice(cursor), cursor + 1);
   const openEditor = (): void => { undoRef.current = value; const next = editInEditor(value); setBuf(next, next.length); };
-  const pasteText = useTextPaste({ read: () => ({ value: valueRef.current, cursor: cursorRef.current }), setBuf, focused, onImagePaste: props.onPaste });
+  const pasteText = useTextPaste({ read: () => ({ value: valueRef.current, cursor: cursorRef.current, selection: selectionRef.current }), setBuf, focused, onImagePaste: props.onPaste });
   const undo = (): void => { const prev = undoRef.current; undoRef.current = value; setBuf(prev, prev.length); };
   const histNav = (dir: "up" | "down"): void => { const n = navigateHistory(props.history, histRef.current, dir); histRef.current = n; setBuf(n.value, n.value.length); };
 
   useInput((input, key) => {
     const burst = isPasteBurst(inputAtRef.current); inputAtRef.current = Date.now(); // a return mid-burst = a paste newline
     if (key.tab && key.shift) return; // Shift+Tab is the global mode cycle (App owns it)
+    const selMove = extendComposerSelection(valueRef.current, cursorRef.current, selectionRef.current, key);
+    if (selMove) { setSelection(selMove.selection ?? null); return; }
+    if (key.super && input === "v") { const text = readClipboardText(); if (text) pasteText(text); else props.onPaste?.(); return; }
+    const selEdit = composerSelectionCommand(input, key, valueRef.current, selectionRef.current);
+    if (selEdit) {
+      if (selEdit.clipboard !== undefined) writeClipboardText(selEdit.clipboard);
+      selEdit.selection === undefined ? setSelection(selectionRef.current) : setSelection(selEdit.selection);
+      if (selEdit.value !== valueRef.current || selEdit.cursor !== cursorRef.current) setBuf(selEdit.value, selEdit.cursor);
+      return;
+    }
     if (vimHandle.handle({ input, key, value, cursor, setBuf })) return; // vi normal mode owns the key; insert falls through
     if (isMultiLinePaste(input)) { pasteText(input); return; } // raw multi-line paste chunk → normalize, never submit
     if (handleReturnKey(key, burst, insertNewline, submitNow)) return;
@@ -102,7 +124,7 @@ export function Composer(props: {
     handleGhostOrEdit({ input, key, ghost, value: valueRef.current, cursor: cursorRef.current, killRing: killRef.current, setBuf, applyEdit });
   }, { isActive: focused });
 
-  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
+  return <ComposerView focused={focused} slashMatches={slashMatches} atMatches={atMatches} channelMatches={channelSuggestionLabels(channelMatches)} sel={selClamped} value={value} cursor={cursor} selection={selection} placeholder={props.placeholder} pill={pill} ghost={ghost} vimMode={vimHandle.mode} />;
 }
 
 type PaletteInput = { value: string; cursor: number; files: string[]; channels?: SlackChannel[]; skills?: SlashMatch[] };

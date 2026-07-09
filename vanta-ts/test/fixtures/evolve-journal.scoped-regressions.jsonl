@@ -1,0 +1,16 @@
+{"at":"2026-07-09T00:00:01.000Z","iter":1,"before":40,"after":42,"kept":true,"predictedFix":["auth"],"actualFix":["fix1"],"regressions":["login"],"predictionPrecision":100,"note":"seed auth regression"}
+{"at":"2026-07-09T00:00:02.000Z","iter":2,"before":42,"after":44,"kept":true,"predictedFix":["ui"],"actualFix":["fix2"],"regressions":["r1"],"predictionPrecision":100,"note":"seed ui regression r1"}
+{"at":"2026-07-09T00:00:03.000Z","iter":3,"before":44,"after":46,"kept":true,"predictedFix":["ui"],"actualFix":["fix3"],"regressions":["r2"],"predictionPrecision":100,"note":"seed ui regression r2"}
+{"at":"2026-07-09T00:00:04.000Z","iter":4,"before":46,"after":48,"kept":true,"predictedFix":["ui"],"actualFix":["fix4"],"regressions":["r3"],"predictionPrecision":100,"note":"seed ui regression r3"}
+{"at":"2026-07-09T00:00:05.000Z","iter":5,"before":48,"after":50,"kept":true,"predictedFix":["ui"],"actualFix":["fix5"],"regressions":["r4"],"predictionPrecision":100,"note":"seed ui regression r4"}
+{"at":"2026-07-09T00:00:06.000Z","iter":6,"before":50,"after":52,"kept":true,"predictedFix":["ui"],"actualFix":["fix6"],"regressions":["r5"],"predictionPrecision":100,"note":"seed ui regression r5"}
+{"at":"2026-07-09T00:00:07.000Z","iter":7,"before":52,"after":54,"kept":true,"predictedFix":["ui"],"actualFix":["fix7"],"regressions":["r6"],"predictionPrecision":100,"note":"seed ui regression r6"}
+{"at":"2026-07-09T00:00:08.000Z","iter":8,"before":54,"after":56,"kept":true,"predictedFix":["ui"],"actualFix":["fix8"],"regressions":["r1"],"predictionPrecision":100,"note":"repeat ui regression r1"}
+{"at":"2026-07-09T00:00:09.000Z","iter":9,"before":56,"after":58,"kept":true,"predictedFix":["ui"],"actualFix":["fix9"],"regressions":["r2"],"predictionPrecision":100,"note":"repeat ui regression r2"}
+{"at":"2026-07-09T00:00:10.000Z","iter":10,"before":58,"after":60,"kept":true,"predictedFix":["ui"],"actualFix":["fix10"],"regressions":["r3"],"predictionPrecision":100,"note":"repeat ui regression r3"}
+{"at":"2026-07-09T00:00:11.000Z","iter":11,"before":60,"after":62,"kept":true,"predictedFix":["ui"],"actualFix":["fix11"],"regressions":["r4"],"predictionPrecision":100,"note":"repeat ui regression r4"}
+{"at":"2026-07-09T00:00:12.000Z","iter":12,"before":62,"after":64,"kept":true,"predictedFix":["ui"],"actualFix":["fix12"],"regressions":["r5"],"predictionPrecision":100,"note":"repeat ui regression r5"}
+{"at":"2026-07-09T00:00:13.000Z","iter":13,"before":64,"after":66,"kept":true,"predictedFix":["ui"],"actualFix":["fix13"],"regressions":["r6"],"predictionPrecision":100,"note":"repeat ui regression r6"}
+{"at":"2026-07-09T00:00:14.000Z","iter":14,"before":66,"after":68,"kept":true,"predictedFix":["auth"],"actualFix":["fix14"],"regressions":["login"],"predictionPrecision":100,"note":"auth regression repeats under matching scope"}
+{"at":"2026-07-09T00:00:15.000Z","iter":15,"before":68,"after":70,"kept":true,"predictedFix":["auth"],"actualFix":["fix15"],"regressions":["login"],"predictionPrecision":100,"note":"auth regression repeats again"}
+{"at":"2026-07-09T00:00:16.000Z","iter":16,"before":70,"after":72,"kept":true,"predictedFix":["auth"],"actualFix":["fix16"],"regressions":["login"],"predictionPrecision":100,"note":"auth regression repeats third time"}

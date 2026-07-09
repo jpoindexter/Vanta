@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { usePaste } from "ink";
 import { execSync } from "node:child_process";
 import { readlineEdit, type Key, type Edit } from "./composer-keys.js";
+import { replaceSelection, selEmpty, type Sel } from "./selection.js";
 
 // Pure input-event processing for the Composer: line counting, paste detection /
 // normalization + the paste hooks, and the line-level key-chord handlers the
@@ -65,7 +66,7 @@ export function isMultiLinePaste(input: string): boolean {
 }
 
 type TextPasteOpts = {
-  read: () => { value: string; cursor: number }; focused: boolean;
+  read: () => { value: string; cursor: number; selection?: Sel | null }; focused: boolean;
   setBuf: (v: string, c: number) => void; onImagePaste?: () => void;
 };
 
@@ -78,9 +79,10 @@ export function useTextPaste(o: TextPasteOpts): (text: string) => void {
     // clipboard (the /paste handler just reports "no image").
     if (o.onImagePaste && isImagePasteSignal(raw)) { o.onImagePaste(); return; }
     const text = normalizePaste(raw); // CR → LF so it can't overwrite the render or submit
-    const { value, cursor } = o.read(); // refs → the LATEST buffer, never a stale closure
-    const next = value.slice(0, cursor) + text + value.slice(cursor);
-    o.setBuf(next, cursor + text.length);
+    const { value, cursor, selection } = o.read(); // refs → the LATEST buffer, never a stale closure
+    const activeSelection = selection ?? null;
+    const next = selEmpty(activeSelection) ? { value: value.slice(0, cursor) + text + value.slice(cursor), cursor: cursor + text.length } : replaceSelection(value, activeSelection, text);
+    o.setBuf(next.value, next.cursor);
   };
   // Bracketed paste mode: text with newlines arrives as one string, not returns.
   usePaste(pasteText);
@@ -142,6 +144,14 @@ export function handleSpecialChord(input: string, key: Key, a: { openEditor: () 
     return true;
   }
   return false;
+}
+
+export function readClipboardText(): string {
+  try { return execSync("pbpaste", { encoding: "utf8", timeout: 1000 }); } catch { return ""; }
+}
+
+export function writeClipboardText(text: string): boolean {
+  try { execSync("pbcopy", { input: text, timeout: 1000 }); return true; } catch { return false; }
 }
 
 /** ↑/↓ (palette closed) or ^P/^N walk the input history. True when handled. */

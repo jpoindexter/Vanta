@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { loadCorpus } from "../eval/corpus.js";
 import { runEval } from "../eval/run.js";
 import { buildRunner, evalRollouts } from "./eval-cmd.js";
@@ -63,13 +63,15 @@ export async function runEvolveMetrics(repoRoot: string): Promise<void> {
 }
 
 /** ASI/AHE — read the journal + backtest regression-foresight vs the frequency baseline. */
-async function runEvolveForesight(repoRoot: string): Promise<void> {
+async function runEvolveForesight(repoRoot: string, journalPath = JOURNAL): Promise<void> {
   const { readFile } = await import("node:fs/promises");
-  const rows = await readFile(join(repoRoot, JOURNAL), "utf8").then(
+  const displayPath = journalPath;
+  const path = isAbsolute(journalPath) ? journalPath : join(repoRoot, journalPath);
+  const rows = await readFile(path, "utf8").then(
     (t) => t.split("\n").filter(Boolean).map((l) => JSON.parse(l) as EvolveIteration),
     () => [] as EvolveIteration[],
   );
-  if (rows.length === 0) { console.log(`vanta evolve foresight: no journal yet (${JOURNAL}) — run \`vanta evolve\` first.`); return; }
+  if (rows.length === 0) { console.log(`vanta evolve foresight: no journal yet (${displayPath}) — run \`vanta evolve\` first.`); return; }
   const bt = backtestRegressionRecall(rows);
   console.log(
     `Regression-foresight backtest over ${rows.length} iteration(s), ${bt.scored} with regressions:\n` +
@@ -80,7 +82,7 @@ async function runEvolveForesight(repoRoot: string): Promise<void> {
 
 export async function runEvolveCommand(repoRoot: string, rest: string[] = []): Promise<void> {
   if (rest[0] === "metrics") return runEvolveMetrics(repoRoot);
-  if (rest[0] === "foresight") return runEvolveForesight(repoRoot);
+  if (rest[0] === "foresight") return runEvolveForesight(repoRoot, rest[1] ?? JOURNAL);
   const iters = Math.max(1, parseInt(rest[0] ?? "3", 10));
   const tasks = loadCorpus(join(repoRoot, DEFAULT_CORPUS));
   if (!tasks.length) {

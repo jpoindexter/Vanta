@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { join } from "node:path";
 import type { Tool } from "./types.js";
 import { runGit } from "./git.js";
 import { loadSettings } from "../settings/store.js";
 import { resolveAttribution } from "../settings/git-settings.js";
+import { withTrailers } from "../agents/attribution.js";
+import { trailersForSession } from "../agents/attribution-store.js";
 
 /** Append the resolved attribution line as a trailer, when one is configured.
  *  Unset attribution → message unchanged (today's behavior). */
@@ -51,7 +54,9 @@ export const gitCommitTool: Tool = {
     const add = await runGit(["add", "-A"], ctx.root);
     if (add.code !== 0) return { ok: false, output: add.out || "(no output)" };
     const settings = await loadSettings(ctx.root, process.env);
-    const message = withAttribution(parsed.data.message, resolveAttribution(settings));
+    const baseMessage = withAttribution(parsed.data.message, resolveAttribution(settings));
+    const sessionTrailers = ctx.sessionId ? await trailersForSession(join(ctx.root, ".vanta"), ctx.sessionId) : [];
+    const message = withTrailers(baseMessage, sessionTrailers);
     const { code, out } = await runGit(["commit", "-m", message], ctx.root);
     return { ok: code === 0, output: out || "(no output)" };
   },

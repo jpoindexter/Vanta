@@ -51,6 +51,7 @@ export function sendJson(res: http.ServerResponse, status: number, body: unknown
 function attachConversation(state: DesktopState, setup: RunSetup, history?: Parameters<typeof createConversation>[2]): void {
   state.convo = createConversation(setup.systemPrompt, {
     provider: setup.provider, safety: setup.safety, registry: setup.registry, root: state.root,
+    sessionId: state.sessionId,
     requestApproval: (action, reason, toolName) => requestWebApproval(state, action, reason, toolName),
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(setup.provider),
@@ -166,7 +167,7 @@ export async function handleTerminal(state: DesktopState, req: http.IncomingMess
     const approved = await requestWebApproval(state, `shell_cmd ${command}`, verdict.reason, "shell_cmd");
     if (!approved) return sendJson(res, 200, { ok: false, output: `denied: ${verdict.reason}` });
   }
-  const result = await tool.execute({ command }, { root: state.root, safety: live.setup.safety, requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd") });
+  const result = await tool.execute({ command }, { root: state.root, sessionId: state.sessionId, safety: live.setup.safety, requestApproval: (action: string, reason: string) => requestWebApproval(state, action, reason, "shell_cmd") });
   sendJson(res, 200, result);
 }
 

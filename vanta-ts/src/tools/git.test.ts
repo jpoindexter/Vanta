@@ -1,12 +1,13 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { SafetyClient } from "../safety-client.js";
 import type { ToolContext } from "./types.js";
 import { gitCommitTool, gitCheckoutTool, gitStatusTool } from "./git.js";
+import { recordAgentEdit } from "../agents/attribution-store.js";
 
 const run = promisify(execFile);
 
@@ -53,6 +54,26 @@ describe("git tools", () => {
       () => 1,
     );
     expect(head).toBe(1);
+  });
+
+  it("git_commit appends session attribution trailers when agent edits were recorded", async () => {
+    await run("git", ["config", "user.email", "vanta@example.com"], { cwd: repo });
+    await run("git", ["config", "user.name", "Vanta Test"], { cwd: repo });
+    await run("git", ["remote", "add", "origin", "git@example.com:vanta/test.git"], { cwd: repo });
+    await writeFile(join(repo, "x.txt"), "hello", "utf8");
+    await recordAgentEdit(join(repo, ".vanta"), {
+      sessionId: "s1",
+      agent: "claude",
+      path: "x.txt",
+      content: "hello",
+      remoteUrl: "git@example.com:vanta/test.git",
+    });
+    const ctx = { ...makeCtx(repo, async () => true), sessionId: "s1" };
+    const result = await gitCommitTool.execute({ message: "feat: x" }, ctx);
+    expect(result.ok).toBe(true);
+    const log = await run("git", ["log", "-1", "--pretty=%B"], { cwd: repo });
+    expect(log.stdout).toContain("Co-Authored-By: claude <agent@vanta.local>");
+    expect(log.stdout).toContain("Vanta-Attribution: session=s1 files=1 remote=git@example.com:vanta/test.git");
   });
 
   it("rejects invalid args before reaching approval", async () => {

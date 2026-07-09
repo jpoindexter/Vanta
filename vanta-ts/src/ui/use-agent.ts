@@ -65,6 +65,7 @@ function convoConfig(deps: AgentDeps): Parameters<typeof createConversation>[1] 
     safety: deps.setup.safety,
     registry: deps.setup.registry,
     root: deps.repoRoot,
+    sessionId: deps.replStateRef.current.sessionId,
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,

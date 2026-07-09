@@ -26,6 +26,7 @@ export function createConversation(
   }
   const ctx: ToolContext = {
     root: deps.root,
+    sessionId: deps.sessionId,
     safety: deps.safety,
     requestApproval: deps.requestApproval,
   };

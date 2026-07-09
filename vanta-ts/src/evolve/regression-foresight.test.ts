@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { predictAtRisk, backtestRegressionRecall, formatAtRisk } from "./regression-foresight.js";
 import type { EvolveIteration } from "./types.js";
 
@@ -66,6 +67,19 @@ describe("backtestRegressionRecall", () => {
       mkIter({ iter: 2, predictedFix: [], regressions: [], before: 60, after: 45, kept: true }), // kept but dropped
     ];
     expect(backtestRegressionRecall(journal).monotone).toBe(false);
+  });
+
+  it("quotes a live in-repo journal: foresight recall beats baseline and curve is monotone", () => {
+    const raw = readFileSync(new URL("../../test/fixtures/evolve-journal.scoped-regressions.jsonl", import.meta.url), "utf8");
+    const journal = raw.split("\n").filter(Boolean).map((line) => JSON.parse(line) as EvolveIteration);
+    const bt = backtestRegressionRecall(journal);
+    expect(bt).toMatchObject({
+      foresightRecall: 0.5,
+      baselineRecall: 0.375,
+      scored: 16,
+      beatsBaseline: true,
+      monotone: true,
+    });
   });
 });
 

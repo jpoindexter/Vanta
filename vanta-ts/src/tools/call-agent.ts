@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import { isAbsolute, join, relative, resolve } from "node:path";
+import { promisify } from "node:util";
 import {
   buildAgentInvocation,
   runExternalAgent,
@@ -11,8 +15,11 @@ import { buildAutonomousDockerInvocation, type Mount } from "../agents/autonomou
 import { deriveMountScope, type ScopePlan } from "../agents/mount-scope.js";
 import { autonomousPreflight, AUTONOMOUS_IMAGE_DEFAULT } from "../agents/autonomous-preflight.js";
 import { resolveBoxCredential, type BoxCredential } from "../agents/autonomous-creds.js";
-import { parseClaudeStreamLine } from "../agents/claude-stream.js";
+import { extractEditedPath, parseClaudeStreamLine } from "../agents/claude-stream.js";
+import { recordAgentEdit } from "../agents/attribution-store.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+
+const execFileAsync = promisify(execFile);
 
 /** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
  *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
@@ -33,18 +40,47 @@ export function autonomousInvocation(agent: string, prompt: string, model: strin
 
 const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min headroom
 
+async function originRemoteUrl(root: string): Promise<string | undefined> {
+  try {
+    const { stdout } = await execFileAsync("git", ["config", "--get", "remote.origin.url"], { cwd: root, timeout: 2000 });
+    return stdout.trim() || undefined;
+  } catch { return undefined; }
+}
+
+function pathInRoot(root: string, path: string): { abs: string; rel: string } | null {
+  const abs = resolve(root, path);
+  const rel = relative(root, abs);
+  return rel && !rel.startsWith("..") && !isAbsolute(rel) ? { abs, rel } : null;
+}
+
+export async function recordStreamEdits(ctx: ToolContext, agent: string, paths: Iterable<string>): Promise<void> {
+  if (!ctx.sessionId) return;
+  const remoteUrl = await originRemoteUrl(ctx.root);
+  await Promise.allSettled(Array.from(new Set(paths)).map(async (p) => {
+    const located = pathInRoot(ctx.root, p);
+    if (!located) return;
+    const content = await readFile(located.abs, "utf8").catch(() => null);
+    if (content === null) return;
+    await recordAgentEdit(join(ctx.root, ".vanta"), { sessionId: ctx.sessionId!, agent, path: located.rel, content, remoteUrl });
+  }));
+}
+
 /** Run a claude BUILD: parse stream-json events → live progress (Write/Bash/…) + the final
  * result, instead of a silent block that buffers everything until done. */
-async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.ProcessEnv): Promise<ToolResult> {
+async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.ProcessEnv, agent = "claude"): Promise<ToolResult> {
   let result = "";
   let isError = false;
   let last = "";
+  const edited = new Set<string>();
   const onChunk = (line: string) => {
+    const editedPath = extractEditedPath(line);
+    if (editedPath) edited.add(editedPath);
     const ev = parseClaudeStreamLine(line);
     if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
     if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
   };
   const res = await runExternalAgent(inv, { cwd: ctx.root, env, onChunk, timeoutMs: CODING_TIMEOUT_MS });
+  await recordStreamEdits(ctx, agent, edited);
   if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH." };
   if (!result) return { ok: false, output: `claude build did not finish: ${(res.stderr || res.stdout).trim().slice(0, 500) || `exit ${res.code ?? "?"}`}` };
   return { ok: !isError, output: `[claude]\n${result}` };

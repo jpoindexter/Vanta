@@ -7,6 +7,7 @@ import { AtPalette } from "./at-palette.js";
 import { ChannelPalette } from "./channel-palette.js";
 import { matchSlash } from "./slash.js";
 import { useBlink } from "./use-blink.js";
+import { selEmpty, selRange, type Sel } from "./selection.js";
 
 // Pure render layer for the composer — palettes + the bordered input line.
 // Split out of composer.tsx (size gate) so the stateful Composer stays small.
@@ -20,6 +21,7 @@ export function ComposerView(props: {
   focused?: boolean;
   value: string;
   cursor: number;
+  selection?: Sel | null;
   placeholder: string;
   pill?: { count: number; lines: number };
   ghost?: string;
@@ -41,7 +43,7 @@ export function ComposerView(props: {
           ? <Text><Text inverse={blink}> </Text><Text dimColor>{props.placeholder}</Text></Text>
           : props.pill
             ? <PastedTextPill count={props.pill.count} lines={props.pill.lines} blink={blink} />
-            : <CursorText value={props.value} cursor={props.cursor} blink={blink} ghost={props.ghost} />}
+            : <CursorText value={props.value} cursor={props.cursor} selection={props.selection} blink={blink} ghost={props.ghost} />}
       </Box>
     </Box>
   );
@@ -68,8 +70,17 @@ function PastedTextPill({ count, lines, blink }: { count: number; lines: number;
 
 /** Render the value with a blinking inverse-video block at the cursor column
  * (when `blink` is on; the bare glyph when off — that's the cursor's dark phase). */
-function CursorText(props: { value: string; cursor: number; blink: boolean; ghost?: string }): ReactElement {
-  const { value, cursor, blink, ghost } = props;
+function CursorText(props: { value: string; cursor: number; selection?: Sel | null; blink: boolean; ghost?: string }): ReactElement {
+  const { value, cursor, selection, blink, ghost } = props;
+  const activeSelection = selection ?? null;
+  if (!selEmpty(activeSelection)) {
+    const { start, end } = selRange(activeSelection);
+    return (
+      <Text>
+        {value.slice(0, start)}<Text inverse>{value.slice(start, end)}</Text>{value.slice(end)}
+      </Text>
+    );
+  }
   const before = value.slice(0, cursor);
   const at = value[cursor] ?? " ";
   const after = value.slice(cursor + 1);

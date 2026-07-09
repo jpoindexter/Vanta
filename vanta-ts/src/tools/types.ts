@@ -8,6 +8,8 @@ export type ToolResult = { ok: boolean; output: string; diff?: DiffLine[] };
 
 export type ToolContext = {
   root: string;
+  /** Current conversation/session id, when a host has one. Used for durable sidecar metadata. */
+  sessionId?: string;
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
