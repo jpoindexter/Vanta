@@ -4,7 +4,8 @@ import { tighten, matchRule } from "../permissions/rules.js";
 import { loadRules } from "../permissions/store.js";
 import { classifyAutoModeAction, isAutoModeEnabled, resolveAutoModeConfig } from "../permissions/auto-mode.js";
 import { classifyTighten, classifierEnabled } from "../permissions/auto-classifier.js";
-import { classifyBashSafety, bashClassifierEnabled } from "../permissions/bash-classifier.js";
+import { bashClassifierEnabled } from "../permissions/bash-classifier.js";
+import { classifyBashSafetyAsync } from "../permissions/bash-tree-sitter.js";
 import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 
@@ -24,7 +25,7 @@ export async function resolveLayeredDecision(
 ): Promise<Decision> {
   const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
   const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
-  const bashDecision = applyBashClassifier(autoDecision, call);
+  const bashDecision = await applyBashClassifier(autoDecision, call);
   const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
   return applyAdvisoryClassifier(profileDecision, call.name, action);
 }
@@ -46,12 +47,12 @@ async function applyOperatorProfile(
  * shell_cmd whose command is classified clearly-safe (read-only/idempotent), and
  * ONLY when armed. Never touches a block/allow — the kernel block floor stands,
  * and the downstream tighteners can still re-escalate. Off by default. */
-function applyBashClassifier(current: Decision, call: ToolCall): Decision {
+async function applyBashClassifier(current: Decision, call: ToolCall): Promise<Decision> {
   if (current.decision !== "ask" || call.name !== "shell_cmd" || !bashClassifierEnabled(process.env)) return current;
   // Classify the REAL command (call.arguments.command), not the describeForSafety
   // string — "run shell command: <cmd>" would always classify as unknown (dead).
   const command = typeof call.arguments.command === "string" ? call.arguments.command : "";
-  return classifyBashSafety(command) === "safe"
+  return await classifyBashSafetyAsync(command) === "safe"
     ? { decision: "allow", reason: "bash-classifier: safe read-only command auto-approved" }
     : current;
 }

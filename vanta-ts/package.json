@@ -28,8 +28,10 @@
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "tree-sitter-bash": "^0.25.1",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
+    "web-tree-sitter": "^0.26.10",
     "winnow": "github:jpoindexter/winnow#fae2c69de78f2534a30f8e0128ea5235a9a357d3",
     "zod": "^3.25.0"
   },
