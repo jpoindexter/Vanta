@@ -60,6 +60,8 @@ export type UiState = {
   liveThinking: string;
   /** True while the current session is actively compacting context. */
   compacting: boolean;
+  /** Predicted next prompts for the operator after the latest completed turn. */
+  promptSuggestions: string[];
 };
 
-export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false };
+export const initialState: UiState = { entries: [], streaming: "", activeTools: [], pendingGroup: [], todos: [], queued: [], busy: false, liveThinking: "", compacting: false, promptSuggestions: [] };

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { handleGlobalKey } from "./app-keys.js";
+import { buildFocusTargets, handleGlobalKey } from "./app-keys.js";
 import { DEFAULT_BINDINGS, GLOBAL_ACTIONS, resolveBindings } from "./keybindings.js";
 import type { KeyBinding } from "./keybinding-warnings.js";
 
@@ -87,5 +87,12 @@ describe("handleGlobalKey — CUSTOM bindings take effect on the live path", () 
     const d2 = deps({ bindings: custom });
     handleGlobalKey("p", { ctrl: true }, d2 as never); // old default chord — now unbound
     expect(d2.openQuickOpen).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildFocusTargets", () => {
+  it("adds prompt suggestions as a keyboard focus target only when visible", () => {
+    expect(buildFocusTargets(null, null, false).map((t) => t.id)).toEqual(["composer"]);
+    expect(buildFocusTargets(null, null, true).map((t) => t.id)).toEqual(["composer", "prompt-suggestions"]);
   });
 });

@@ -179,6 +179,18 @@ describe("applySettingsEnv", () => {
     applySettingsEnv({ memory: { autoMemory: true } }, pe);
     expect(pe.VANTA_EXTRACT_MEMORIES).toBe("0");
   });
+
+  it("maps ui.promptSuggestionsEnabled to VANTA_PROMPT_SUGGESTIONS", () => {
+    const pe: NodeJS.ProcessEnv = {};
+    applySettingsEnv({ ui: { promptSuggestionsEnabled: false } }, pe);
+    expect(pe.VANTA_PROMPT_SUGGESTIONS).toBe("0");
+  });
+
+  it("does not overwrite VANTA_PROMPT_SUGGESTIONS from env", () => {
+    const pe: NodeJS.ProcessEnv = { VANTA_PROMPT_SUGGESTIONS: "1" };
+    applySettingsEnv({ ui: { promptSuggestionsEnabled: false } }, pe);
+    expect(pe.VANTA_PROMPT_SUGGESTIONS).toBe("1");
+  });
 });
 
 describe("isToolAllowed / isToolBlocked", () => {

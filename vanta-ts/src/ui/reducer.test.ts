@@ -211,6 +211,13 @@ describe("ui reducer — Claude-method commit model", () => {
     expect(d.queued).toEqual(["second"]);
   });
 
+  it("stores prompt suggestions and clears them on the next submit/turn", () => {
+    const suggested = run([{ t: "promptSuggestions", suggestions: ["Verify it", "Commit it", "Next card"] }]);
+    expect(suggested.promptSuggestions).toEqual(["Verify it", "Commit it", "Next card"]);
+    expect(reduce(suggested, { t: "submit", text: "Verify it" }).promptSuggestions).toEqual([]);
+    expect(reduce(suggested, { t: "turnStart" }).promptSuggestions).toEqual([]);
+  });
+
   it("tracks compaction as live session state", () => {
     const active = run([{ t: "compacting", active: true }]);
     expect(active.compacting).toBe(true);

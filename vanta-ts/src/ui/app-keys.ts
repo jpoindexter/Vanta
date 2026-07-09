@@ -99,10 +99,10 @@ export function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[],
   }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-export function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null): FocusTargetSpec[] {
+export function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null, promptSuggestions = false): FocusTargetSpec[] {
   if (pending) return ["approval-allow", "approval-always", "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
   if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
-  return [{ id: "composer" }];
+  return promptSuggestions ? [{ id: "composer" }, { id: "prompt-suggestions" }] : [{ id: "composer" }];
 }
 
 export function useSkillMatches(): SlashMatch[] {

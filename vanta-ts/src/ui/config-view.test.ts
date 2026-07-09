@@ -13,6 +13,7 @@ describe("config-view — effective state", () => {
     expect(s.effort).toBe("medium");
     expect(s.outputStyle).toBe("normal");
     expect(s.composerAnchor).toBe("float");
+    expect(s.promptSuggestions).toBe(true);
     expect(s.autoMode).toBe(false);
     expect(s.gates.antiSlop).toBe(true);
     expect(s.gates.stallUnblock).toBe(true);
@@ -21,7 +22,7 @@ describe("config-view — effective state", () => {
   it("reads persisted settings when env is unset", () => {
     const settings: Settings = {
       effortLevel: "high",
-      ui: { outputStyle: "concise", composerAnchor: "bottom" },
+      ui: { outputStyle: "concise", composerAnchor: "bottom", promptSuggestionsEnabled: false },
       autoMode: { enabled: true },
       gates: { antiSlop: false },
     };
@@ -29,17 +30,19 @@ describe("config-view — effective state", () => {
     expect(s.effort).toBe("high");
     expect(s.outputStyle).toBe("concise");
     expect(s.composerAnchor).toBe("bottom");
+    expect(s.promptSuggestions).toBe(false);
     expect(s.autoMode).toBe(true);
     expect(s.gates.antiSlop).toBe(false);
   });
 
   it("env wins over persisted settings for env-overridable flags", () => {
-    const settings: Settings = { effortLevel: "low", gates: { modeDetect: true }, autoMode: { enabled: true } };
-    const env = { VANTA_EFFORT_LEVEL: "max", VANTA_MODE_DETECT: "0", VANTA_AUTO_MODE: "0" } as unknown as NodeJS.ProcessEnv;
+    const settings: Settings = { effortLevel: "low", gates: { modeDetect: true }, autoMode: { enabled: true }, ui: { promptSuggestionsEnabled: true } };
+    const env = { VANTA_EFFORT_LEVEL: "max", VANTA_MODE_DETECT: "0", VANTA_AUTO_MODE: "0", VANTA_PROMPT_SUGGESTIONS: "0" } as unknown as NodeJS.ProcessEnv;
     const s = configState(settings, env);
     expect(s.effort).toBe("max");
     expect(s.gates.modeDetect).toBe(false); // VANTA_MODE_DETECT=0 overrides setting true
     expect(s.autoMode).toBe(false); // VANTA_AUTO_MODE=0 overrides setting true
+    expect(s.promptSuggestions).toBe(false);
   });
 
   it("ignores an invalid env effort and falls back to the setting", () => {
@@ -66,6 +69,12 @@ describe("config-view — grouping + actions", () => {
     const model = configRows(state).find((r) => r.label === "Model");
     expect(model?.action).toEqual({ kind: "command", command: "/model" });
     expect(model?.bool).toBeUndefined();
+  });
+
+  it("the prompt suggestions row toggles the setting", () => {
+    const row = configRows(state).find((r) => r.label === "Prompt suggestions");
+    expect(row?.action).toEqual({ kind: "togglePromptSuggestions" });
+    expect(row?.bool).toBe(true);
   });
 
   it("actionAt maps the first row to cycleEffort and clamps past the end", () => {

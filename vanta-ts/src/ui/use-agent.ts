@@ -10,6 +10,7 @@ import { errorDetails, fireStopFailure, stopFailureType } from "../hooks/runtime
 import { fireHooks, fireStopHook } from "../hooks/shell-hooks.js";
 import { resolveDroppedMedia } from "../interactive-turn.js";
 import { failBackgroundResponse, finishBackgroundResponse, isBackgroundResponseRunning } from "../repl/bg-response-cmd.js";
+import { generatePromptSuggestions, promptSuggestionsEnabled } from "./prompt-suggestions.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -126,11 +127,15 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
     const resolved = await resolveDroppedMedia(text, deps.replStateRef.current);
     text = resolved.text;
     const images = resolved.images;
+    const userText = text;
+    let finalText = "";
+    const suggestionTurn = deps.replStateRef.current.turnIndex;
     deps.dispatch({ t: "submit", text: display ?? text });
     deps.dispatch({ t: "turnStart" });
     try {
       await fireHooks(join(deps.repoRoot, ".vanta"), "UserPromptSubmit", { prompt: text }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
       const outcome = await conv.send(text, images, ctrl.signal);
+      finalText = outcome.finalText;
       if (isThisTurnDetached()) finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
       else {
         await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
@@ -144,6 +149,11 @@ export function useAgent(deps: AgentDeps): { send: (text: string, display?: stri
       }
     } finally {
       if (!isThisTurnDetached()) deps.dispatch({ t: "turnEnd" });
+      if (!isThisTurnDetached() && finalText && promptSuggestionsEnabled(process.env)) {
+        void generatePromptSuggestions({ userText, finalText, provider: deps.setup.provider }).then((suggestions) => {
+          if (deps.replStateRef.current.turnIndex === suggestionTurn) deps.dispatch({ t: "promptSuggestions", suggestions });
+        }).catch(() => {});
+      }
       // No per-turn token dump in the transcript (Claude shows none) — context
       // usage lives in the status bar. No blind todo reload either: the panel
       // reflects only what the agent writes via the todo tool this session.

@@ -20,6 +20,7 @@ export type ConfigState = {
   effort: EffortLevel;
   outputStyle: OutputStyle;
   composerAnchor: ComposerAnchor;
+  promptSuggestions: boolean;
   autoMode: boolean;
   sandbox: boolean;
   sandboxShellOnly: boolean;
@@ -55,6 +56,7 @@ export function configState(settings: Settings, env: NodeJS.ProcessEnv): ConfigS
     effort: asEffort(env.VANTA_EFFORT_LEVEL, settings.effortLevel),
     outputStyle: asStyle(settings.ui?.outputStyle),
     composerAnchor: asAnchor(env.VANTA_COMPOSER_ANCHOR, settings.ui?.composerAnchor),
+    promptSuggestions: flagFrom(env.VANTA_PROMPT_SUGGESTIONS, settings.ui?.promptSuggestionsEnabled, true),
     autoMode: flagFrom(env.VANTA_AUTO_MODE, settings.autoMode?.enabled, false),
     sandbox: flagFrom(env.VANTA_SANDBOX, settings.sandbox?.enabled, false),
     sandboxShellOnly: flagFrom(env.VANTA_SHELL_SANDBOX, settings.sandbox?.shellOnly, false),
@@ -74,6 +76,7 @@ export type ConfigAction =
   | { kind: "cycleEffort" }
   | { kind: "cycleStyle" }
   | { kind: "cycleAnchor" }
+  | { kind: "togglePromptSuggestions" }
   | { kind: "toggleAuto" }
   | { kind: "toggleSandbox" }
   | { kind: "toggleSandboxShell" }
@@ -108,6 +111,7 @@ export function configGroups(state: ConfigState): ConfigGroup[] {
         { label: "Effort level", value: state.effort, action: { kind: "cycleEffort" }, hint: "VANTA_EFFORT_LEVEL" },
         { label: "Output style", value: state.outputStyle, action: { kind: "cycleStyle" }, hint: "reply verbosity" },
         { label: "Composer anchor", value: state.composerAnchor, action: { kind: "cycleAnchor" }, hint: "float / pinned" },
+        { label: "Prompt suggestions", value: onOff(state.promptSuggestions), bool: state.promptSuggestions, action: { kind: "togglePromptSuggestions" }, hint: "next prompts" },
         { label: "Model", value: state.model || "(active)", action: { kind: "command", command: "/model" }, hint: "⏎ opens the picker" },
       ],
     },

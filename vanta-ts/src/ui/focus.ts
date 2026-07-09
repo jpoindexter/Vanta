@@ -6,7 +6,8 @@ export type FocusTarget =
   | "approval-deny"
   | "approval-never"
   | "overlay-list"
-  | "overlay-close";
+  | "overlay-close"
+  | "prompt-suggestions";
 
 export type FocusTargetSpec = { id: FocusTarget; enabled?: boolean };
 

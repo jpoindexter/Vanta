@@ -56,6 +56,8 @@ export const SettingsSchema = z.object({
     composerAnchor: z.enum(["float", "bottom"]).optional(),
     /** Reply verbosity preset (the /output-style choice). */
     outputStyle: z.string().optional(),
+    /** Show predicted next prompts below the composer after each completed turn. */
+    promptSuggestionsEnabled: z.boolean().optional(),
   }).merge(UxSettingsSchema).optional(),
   /** Opt-in runtime plugin framework config. Plugin code is disabled by default. */
   plugins: z.object({

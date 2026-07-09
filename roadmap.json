@@ -4484,7 +4484,7 @@
       "id": "VANTA-PROMPT-SUGGEST-UI",
       "track": "Operator",
       "title": "In-TUI next-prompt suggestions — tappable predicted prompts after each turn",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "After each model response, another agent generates 3 predicted next prompts via a forked side-query and shows them as tappable options below the input. Controlled by `promptSuggestionsEnabled` setting. Disabled in swarm/teammate mode and non-interactive sessions.",
       "done": "3 suggested prompts appear after a model response; selecting one submits it; suggestions update per turn; disabling in settings removes them.",

@@ -29,6 +29,7 @@ function base(over = {}) {
     skills: [],
     channels: [],
     vim: false,
+    promptSuggestions: [],
     onQuickActivate: vi.fn(),
     onQuickClose: vi.fn(),
     onSearchSelect: vi.fn(),
@@ -73,6 +74,22 @@ describe("LiveBody global search slot", () => {
     inst.input("\r");
     await waitUntil(() => onMessageRetry.mock.calls.length > 0);
     expect(onMessageRetry).toHaveBeenCalledWith("retry this");
+    inst.unmount();
+  });
+});
+
+describe("LiveBody prompt suggestions", () => {
+  it("shows suggested prompts below the live region and submits the focused one", async () => {
+    const onSubmit = vi.fn();
+    const inst = renderUi(h(LiveBody, base({
+      focus: "prompt-suggestions",
+      promptSuggestions: ["Verify it", "Commit it", "Show roadmap"],
+      onSubmit,
+    })));
+    await waitForFrame(inst, "Next prompts");
+    inst.input("\r");
+    await waitUntil(() => onSubmit.mock.calls.length > 0);
+    expect(onSubmit).toHaveBeenCalledWith("Verify it");
     inst.unmount();
   });
 });

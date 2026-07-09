@@ -26,6 +26,7 @@ import { type FocusTarget } from "./focus.js";
 import { QuickOpen } from "./quick-open.js";
 import { GlobalSearchDialog } from "./global-search-dialog.js";
 import { MessageActionsPanel } from "./message-actions-panel.js";
+import { PromptSuggestionsPanel } from "./prompt-suggestions-panel.js";
 import { type Mode, ModeLine } from "./mode-line.js";
 import type { SlashMatch } from "./slash.js";
 import type { OverlayRow } from "./overlays.js";
@@ -53,6 +54,7 @@ type LiveBodyProps = {
   skills: SlashMatch[];
   channels: SlackChannel[];
   vim: boolean;
+  promptSuggestions: string[];
   onQuickActivate: (command: string) => void;
   onQuickClose: () => void;
   onSearchSelect: (hit: SessionSearchHit) => void;
@@ -79,7 +81,7 @@ export function LiveBody(p: LiveBodyProps): ReactElement {
         ? <MessageActionsPanel entries={p.entries} onRetry={p.onMessageRetry} onBranch={p.onMessageBranch} onNote={p.onMessageNote} onClose={p.onMessageClose} />
         : p.quickOpen
         ? <QuickOpen files={p.files} onActivate={p.onQuickActivate} onClose={p.onQuickClose} />
-        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
+        : <BottomRegion focused={p.focus} overlay={p.overlay} pending={p.pending} mode={p.mode} files={p.files} history={p.history} skills={p.skills} channels={p.channels} vim={p.vim} promptSuggestions={p.promptSuggestions} onSubmit={p.onSubmit} onPaste={p.onPaste} onSelect={p.onSelect} onClose={p.onClose} />}
     </>
   );
 }
@@ -94,6 +96,7 @@ function BottomRegion(props: {
   skills: SlashMatch[];
   channels: SlackChannel[];
   vim: boolean;
+  promptSuggestions: string[];
   onSubmit: (text: string) => void;
   onPaste: () => void;
   onSelect: (row: OverlayRow) => void;
@@ -104,6 +107,7 @@ function BottomRegion(props: {
   if (overlay) return <OverlayPanel overlay={overlay} focused={props.focused} onSelect={props.onSelect} onClose={props.onClose} />;
   return (
     <Box flexDirection="column">
+      <PromptSuggestionsPanel suggestions={props.promptSuggestions} focused={props.focused === "prompt-suggestions"} onSelect={props.onSubmit} />
       <ModeLine mode={props.mode} />
       <Composer focused={props.focused === "composer"} onSubmit={props.onSubmit} placeholder="Ask Vanta anything — /help for commands" files={props.files} history={props.history} skills={props.skills} channels={props.channels} onPaste={props.onPaste} vim={props.vim} />
     </Box>

@@ -52,6 +52,7 @@ function mergeAction(local: Settings, action: ConfigAction, state: ConfigState):
     case "cycleEffort": return { ...local, effortLevel: nextEffort(state.effort) };
     case "cycleStyle": return { ...local, ui: { ...local.ui, outputStyle: nextStyle(state.outputStyle) } };
     case "cycleAnchor": return { ...local, ui: { ...local.ui, composerAnchor: nextAnchor(state.composerAnchor) } };
+    case "togglePromptSuggestions": return { ...local, ui: { ...local.ui, promptSuggestionsEnabled: !state.promptSuggestions } };
     case "toggleAuto": return { ...local, autoMode: { ...local.autoMode, enabled: !state.autoMode } };
     case "toggleSandbox": return { ...local, sandbox: { ...local.sandbox, enabled: !state.sandbox } };
     case "toggleSandboxShell": return { ...local, sandbox: { ...local.sandbox, shellOnly: !state.sandboxShellOnly } };

@@ -21,6 +21,7 @@ export type Action =
   | { t: "detachResponse"; text: string }
   | { t: "thinkingDelta"; d: string }
   | { t: "compacting"; active: boolean }
+  | { t: "promptSuggestions"; suggestions: string[] }
   | { t: "turnStart" }
   | { t: "turnEnd" };
 
@@ -28,10 +29,10 @@ export function reduce(state: UiState, a: Action): UiState {
   switch (a.t) {
     case "submit": {
       const s = flush(state);
-      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }] };
+      return { ...s, entries: [...s.entries, { kind: "user", text: a.text }], promptSuggestions: [] };
     }
     case "turnStart":
-      return { ...state, busy: true, streaming: "", activeTools: [], liveThinking: "" };
+      return { ...state, busy: true, streaming: "", activeTools: [], liveThinking: "", promptSuggestions: [] };
     case "delta": {
       // Commit COMPLETE paragraphs into <Static> as they stream (hermes/CC: text flows into
       // scrollback, scrolling old content up). Only the in-progress paragraph stays in the
@@ -153,6 +154,8 @@ function reduceAux(state: UiState, a: Action): UiState {
       return { ...state, liveThinking: state.liveThinking + a.d };
     case "compacting":
       return { ...state, compacting: a.active };
+    case "promptSuggestions":
+      return { ...state, promptSuggestions: a.suggestions };
     default:
       return state;
   }

@@ -60,6 +60,20 @@ describe("config-actions — persist + re-derive", () => {
     expect(seen.at(-1)?.state.gates.antiSlop).toBe(false);
   });
 
+  it("togglePromptSuggestions persists the ui setting and re-derives it", async () => {
+    const seen: ConfigView[] = [];
+    const view = await buildConfigOverlay(root, host(seen));
+    expect(view.state.promptSuggestions).toBe(true);
+
+    view.onAction({ kind: "togglePromptSuggestions" });
+    await waitFor(() => seen.length > 0);
+
+    const persisted = await loadSettings(root, {} as NodeJS.ProcessEnv);
+    expect(persisted.ui?.promptSuggestionsEnabled).toBe(false);
+    expect(seen.at(-1)?.state.promptSuggestions).toBe(false);
+  });
+
+
   it("a write preserves unrelated keys already in the local scope", async () => {
     await mkdir(join(root, ".vanta"), { recursive: true });
     const { writeFile } = await import("node:fs/promises");

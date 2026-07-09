@@ -86,6 +86,9 @@ export function applySettingsEnv(settings: Settings, processEnv: NodeJS.ProcessE
   if (settings.ui?.outputStyle && !processEnv.VANTA_OUTPUT_STYLE) {
     processEnv.VANTA_OUTPUT_STYLE = settings.ui.outputStyle;
   }
+  if (settings.ui?.promptSuggestionsEnabled !== undefined && !processEnv.VANTA_PROMPT_SUGGESTIONS) {
+    processEnv.VANTA_PROMPT_SUGGESTIONS = settings.ui.promptSuggestionsEnabled ? "1" : "0";
+  }
   if (!settings.env) return;
   for (const [k, v] of Object.entries(settings.env)) {
     if (!processEnv[k]) processEnv[k] = v;

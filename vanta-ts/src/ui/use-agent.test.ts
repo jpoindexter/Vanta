@@ -12,7 +12,7 @@ import type { ReplState } from "../repl/types.js";
 // Proves the ND executive-function engine fires in the DEFAULT TUI host (not just
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
 
-type Action = { t: string; text?: string };
+type Action = { t: string; text?: string; suggestions?: string[] };
 
 function makeDeps(messages: { role: string; content: string }[], notes: Action[]) {
   return {
@@ -76,7 +76,7 @@ describe("useAgent send — image attachments", () => {
         registry: { schemas: () => [] },
       },
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
-      dispatch: () => {},
+      dispatch: (_a?: unknown) => {},
       setPending: () => {},
       interruptRef: { current: null },
       convoRef: { current: conv },
@@ -139,4 +139,46 @@ describe("useAgent send — image attachments", () => {
       prompt: "long prompt",
     });
   });
+
+  it("dispatches next-prompt suggestions after a foreground turn", async () => {
+    const actions: Action[] = [];
+    const { deps } = sendDeps(undefined);
+    deps.dispatch = (a: unknown) => { actions.push(a as Action); };
+    deps.setup.provider.complete = async () => ({
+      text: JSON.stringify(["Verify this", "Commit this", "Show roadmap"]),
+      toolCalls: [],
+      finishReason: "stop",
+    });
+    const { send } = useAgent(deps as never);
+    await send("fix the bug");
+    await waitFor(() => actions.some((a) => a.t === "promptSuggestions"));
+    expect(actions.find((a) => a.t === "promptSuggestions")).toMatchObject({
+      suggestions: ["Verify this", "Commit this", "Show roadmap"],
+    });
+  });
+
+  it("does not dispatch suggestions when the feature is disabled", async () => {
+    const actions: Action[] = [];
+    const { deps } = sendDeps(undefined);
+    deps.dispatch = (a: unknown) => { actions.push(a as Action); };
+    const old = process.env.VANTA_PROMPT_SUGGESTIONS;
+    process.env.VANTA_PROMPT_SUGGESTIONS = "0";
+    try {
+      const { send } = useAgent(deps as never);
+      await send("hi");
+      await new Promise((r) => setTimeout(r, 20));
+      expect(actions.some((a) => a.t === "promptSuggestions")).toBe(false);
+    } finally {
+      if (old === undefined) delete process.env.VANTA_PROMPT_SUGGESTIONS;
+      else process.env.VANTA_PROMPT_SUGGESTIONS = old;
+    }
+  });
 });
+
+async function waitFor(cond: () => boolean, maxTicks = 100): Promise<void> {
+  for (let i = 0; i < maxTicks; i++) {
+    if (cond()) return;
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  if (!cond()) throw new Error("waitFor: condition not met");
+}
