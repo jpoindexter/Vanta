@@ -66,9 +66,14 @@ describe("fleet command", () => {
       });
       expect(code).toBe(0);
       expect(lines.join("\n")).toContain("fleet fleet-2026-06-18T00-00-00-000Z");
+      expect(lines.join("\n")).toContain("fleet digest fleet-2026-06-18T00-00-00-000Z");
+      expect(lines.join("\n")).toContain("Needs operator decision");
       const review = await runFleetCommand(root, ["review"], { log: (line) => lines.push(line) });
       expect(review).toBe(0);
       expect(lines.join("\n")).toContain("diff 1 file changed");
+      const digest = await runFleetCommand(root, ["digest"], { log: (line) => lines.push(line) });
+      expect(digest).toBe(0);
+      expect(lines.join("\n")).toContain("accept or reject fleet-2026-06-18T00-00-00-000Z-1-fix-auth");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

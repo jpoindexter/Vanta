@@ -26,3 +26,68 @@ export function formatFleetReview(report: FleetReport): string {
     ].filter(Boolean).join("\n")),
   ].join("\n\n");
 }
+
+export function formatFleetDigest(report: FleetReport): string {
+  const counts = countByStatus(report.workers);
+  const findings = report.workers.map((w) => `  - ${w.id}: ${findingLine(w)}`);
+  const conflicts = conflictLines(report.workers);
+  const decisions = decisionLines(report.workers);
+  return [
+    `fleet digest ${report.id} · ${report.workers.length} worker(s) · ${statusSummary(counts)}`,
+    "Findings",
+    ...(findings.length ? findings : ["  - no workers reported"]),
+    "Conflicts / blockers",
+    ...(conflicts.length ? conflicts : ["  - none detected"]),
+    "Needs operator decision",
+    ...(decisions.length ? decisions : ["  - no action needed"]),
+  ].join("\n");
+}
+
+function countByStatus(workers: FleetWorker[]): Record<FleetWorker["status"], number> {
+  return workers.reduce<Record<FleetWorker["status"], number>>((acc, w) => {
+    acc[w.status]++;
+    return acc;
+  }, { assigned: 0, running: 0, done: 0, blocked: 0, accepted: 0 });
+}
+
+function statusSummary(counts: Record<FleetWorker["status"], number>): string {
+  return (["done", "blocked", "running", "assigned", "accepted"] as const)
+    .filter((status) => counts[status] > 0)
+    .map((status) => `${counts[status]} ${status}`)
+    .join(", ") || "no activity";
+}
+
+function findingLine(w: FleetWorker): string {
+  if (w.blocker) return `blocked — ${oneLine(w.blocker)}`;
+  if (w.result) return `${w.status} — ${oneLine(w.result)}`;
+  if (w.diff) return `${w.status} — ${oneLine(w.diff)}`;
+  return `${w.status} — ${w.title}`;
+}
+
+function conflictLines(workers: FleetWorker[]): string[] {
+  const lines = workers.filter((w) => w.blocker).map((w) => `  - ${w.id}: ${oneLine(w.blocker ?? "")}`);
+  const branches = new Map<string, FleetWorker[]>();
+  for (const w of workers) {
+    if (!w.branch) continue;
+    branches.set(w.branch, [...(branches.get(w.branch) ?? []), w]);
+  }
+  for (const [branch, owners] of branches) {
+    if (owners.length > 1) lines.push(`  - branch collision ${branch}: ${owners.map((w) => w.id).join(", ")}`);
+  }
+  return lines;
+}
+
+function decisionLines(workers: FleetWorker[]): string[] {
+  const lines: string[] = [];
+  for (const w of workers) {
+    if (w.status === "done") lines.push(`  - accept or reject ${w.id} (${w.branch}) after reviewing diff`);
+    if (w.status === "blocked") lines.push(`  - unblock or retire ${w.id}: ${oneLine(w.blocker ?? "")}`);
+    if (w.status === "running" || w.status === "assigned") lines.push(`  - wait or inspect ${w.id} (${w.status})`);
+  }
+  return lines;
+}
+
+function oneLine(text: string): string {
+  const line = text.replace(/\s+/g, " ").trim();
+  return line.length > 140 ? `${line.slice(0, 137)}...` : line;
+}

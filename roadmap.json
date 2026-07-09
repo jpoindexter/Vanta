@@ -12614,13 +12614,14 @@
       "id": "ASI-FLEET-DIGEST",
       "track": "Operator",
       "title": "Fleet digest — steerable summary when agents output more than a human can read",
-      "status": "horizon",
+      "status": "shipped",
       "size": "M",
       "summary": "From 'From AGI to ASI' pathway-4 open question: how humans meaningfully interact with and steer large groups of agents producing volumes of artifacts impossible to consume in full. When a multi-agent run exceeds human reading capacity, surface a digest (what each agent found, conflicts, decisions needing input) + steering controls instead of raw volume. See docs/from-agi-to-asi-notes.md.",
       "done": "A run with N subagents shows a digest (per-agent finding + conflicts + pending decisions) the operator can act on without reading every raw trace.",
       "tier": "sand",
       "effort": "medium",
-      "updated": "2026-06-16"
+      "updated": "2026-07-09",
+      "notes": "SHIPPED 2026-07-09. Added `formatFleetDigest(report)` and wired it into `vanta fleet run` plus `vanta fleet digest [fleet-id]`. The digest shows per-worker findings, conflicts/blockers, branch collisions, and operator decisions such as accept/reject done workers or unblock/retire blocked workers. Verification: focused fleet tests cover pure digest formatting, run output, saved-report digest, fleet execution regressions, batch command compatibility, plus `npx tsc --noEmit` and `git diff --check`."
     },
     {
       "id": "ASI-RECURSION-METRICS",

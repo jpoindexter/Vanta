@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline/promises";
 import { prepareRun, approver, buildSummarizer } from "../session.js";
 import { runFleet, acceptFleetWorker, type FleetDeps } from "../fleet/fleet.js";
-import { formatFleetReview, formatFleetStatus } from "../fleet/format.js";
+import { formatFleetDigest, formatFleetReview, formatFleetStatus } from "../fleet/format.js";
 import { latestFleetId, loadFleetReport } from "../fleet/store.js";
 import { FleetTaskSpecSchema, type FleetTaskSpec } from "../fleet/types.js";
 import { runFleetTmux } from "./fleet-tmux-cmd.js";
@@ -17,6 +17,7 @@ function usage(log: (line: string) => void): number {
   log("Usage: vanta fleet run --task <instruction> [--task <instruction> ...]");
   log("       vanta fleet tmux --task <instruction> [--task ...]   (spawn workers in tmux panes)");
   log("       vanta fleet status [fleet-id]");
+  log("       vanta fleet digest [fleet-id]");
   log("       vanta fleet review [fleet-id]");
   log("       vanta fleet accept <fleet-id> <worker-id>");
   return 1;
@@ -70,6 +71,7 @@ async function run(repoRoot: string, rest: string[], deps: FleetCommandDeps, log
     const baseDeps = await buildFleetAgentDeps(repoRoot, deps, approver(rl));
     const report = await runFleet({ repoRoot, specs, deps: baseDeps, fleetDeps: deps.fleetDeps });
     log(formatFleetStatus(report));
+    log(formatFleetDigest(report));
     return 0;
   } finally {
     rl.close();
@@ -83,6 +85,11 @@ function status(repoRoot: string, id: string | undefined, log: (line: string) =>
 
 function review(repoRoot: string, id: string | undefined, log: (line: string) => void): number {
   log(formatFleetReview(loadFleetReport(repoRoot, resolveFleetId(repoRoot, id))));
+  return 0;
+}
+
+function digest(repoRoot: string, id: string | undefined, log: (line: string) => void): number {
+  log(formatFleetDigest(loadFleetReport(repoRoot, resolveFleetId(repoRoot, id))));
   return 0;
 }
 
@@ -100,6 +107,7 @@ export async function runFleetCommand(repoRoot: string, rest: string[], deps: Fl
   if (cmd === "run") return run(repoRoot, args, deps, log);
   if (cmd === "tmux") return runFleetTmux(repoRoot, args, log);
   if (cmd === "status") return status(repoRoot, args[0], log);
+  if (cmd === "digest") return digest(repoRoot, args[0], log);
   if (cmd === "review") return review(repoRoot, args[0], log);
   if (cmd === "accept") return accept(repoRoot, args, deps, log);
   return usage(log);
