@@ -48,7 +48,7 @@ export const SLASH_COMMANDS: ReadonlyArray<{ name: string; arg?: string; desc: s
   { name: "goals", desc: "active goals from the kernel" },
   { name: "goal", arg: "<text|status|resume|clear|done N>", desc: "set / resume / drop a standing goal (a carried goal starts paused)" },
   { name: "plan", desc: "show the agent's current task plan (todo list)" },
-  { name: "memory", arg: "<text>", desc: "tell Vanta something to remember (→ its brain)" },
+  { name: "memory", arg: "[text]", desc: "browse memory files, or save a fact to Vanta's brain" },
   { name: "learnings", arg: "[list|add <kind>: <text>]", desc: "per-project learnings index — relevant insights, stale/conflicting flagged" },
   { name: "compress", desc: "compact the conversation context now" },
   { name: "compact", arg: "[instructions]", desc: "compact context now (alias of /compress; optional steer)" },

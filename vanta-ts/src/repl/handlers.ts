@@ -54,6 +54,7 @@ import { summary } from "./summary-cmd.js";
 import { rewind } from "./rewind-cmd.js";
 import { hooks } from "./hooks-cmd.js";
 import { outputStyle } from "./output-style-cmd.js";
+import { brainDir } from "../brain/store.js";
 import { tuiCommand } from "./tui-cmd.js";
 import { focusCommand } from "./focus-cmd.js";
 import { permissions } from "./permissions-cmd.js";
@@ -176,7 +177,7 @@ const memory: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /memory <something to remember>" };
   const { resolveBrain } = await import("../brain/interface.js");
   await resolveBrain(ctx.env).write("semantic", `- ${arg}`, { append: true, env: ctx.env });
-  return { output: `  ◈ remembered: ${oneLine(arg, 80)}` };
+  return { output: `  ◈ memory saved · semantic.md · appended\n  ${brainDir(ctx.env)}/semantic.md\n  ${oneLine(arg, 80)}` };
 };
 
 const goals: SlashHandler = async (_arg, ctx) => {

@@ -66,6 +66,13 @@ describe("useSubmit routing", () => {
     expect(h.runSlash).not.toHaveBeenCalled();
   });
 
+  it("opens the memory selector for bare /memory", () => {
+    const h = harness();
+    h.onSubmit("/memory");
+    expect(h.openOverlay).toHaveBeenCalledWith("memory");
+    expect(h.runSlash).not.toHaveBeenCalled();
+  });
+
   it("runs (not overlay) when a picker command has an argument", () => {
     const h = harness();
     h.onSubmit("/model gemini");

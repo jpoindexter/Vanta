@@ -4345,7 +4345,7 @@
       "id": "VANTA-MEMORY-MGMT-UI",
       "track": "Operator",
       "title": "Memory management UI — file selector + update notifications",
-      "status": "horizon",
+      "status": "shipped",
       "size": "S",
       "summary": "another agent has MemoryFileSelector (browse + select memory files for edit/delete) and MemoryUpdateNotification (inline notification when a memory was saved or changed). Vanta has memory (MEM-* shipped) but no in-session memory management UI.",
       "done": "/memory opens the file selector; selecting a file opens it in the editor; MemoryUpdateNotification appears in the transcript when memory is written; notifications include file name + change type.",

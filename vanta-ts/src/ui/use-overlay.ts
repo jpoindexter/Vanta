@@ -16,6 +16,7 @@ import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions
 import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js";
 import { buildHooksOverlay, type HooksOverlayState } from "./hooks-actions.js";
 import { reloadTeams, type TeamsData } from "./teams-actions.js";
+import { loadMemoryOverlayData, type MemoryOverlayData } from "./memory-actions.js";
 import { loadOutputStyleData, type OutputStyleData } from "./output-style-actions.js";
 import type { ExportContext } from "./export-actions.js";
 import type { WorkerTask } from "../team/tasks.js";
@@ -38,6 +39,7 @@ export type OverlayView =
   | { kind: "mcp"; servers: McpServerView[]; elicitation: ElicitationRequest | null; reconnect: (name: string) => void; onElicitationDone: () => void }
   | { kind: "tasks"; tasks: WorkerTask[] }
   | { kind: "teams"; data: TeamsData }
+  | { kind: "memory"; data: MemoryOverlayData; repoRoot: string }
   | { kind: "outputStyle"; data: OutputStyleData; repoRoot: string }
   | { kind: "export"; context: ExportContext; repoRoot: string }
   | ({ kind: "sandbox" } & SandboxOverlayState)
@@ -65,6 +67,7 @@ async function loadOverlay(kind: OverlayKind, setup: RunSetup, repoRoot: string,
     case "context": return contextOverlay(setup, getCtx);
     case "tasks": return { kind: "tasks", tasks: await reloadTasks(process.env) };
     case "teams": return { kind: "teams", data: await reloadTeams(process.env) };
+    case "memory": return { kind: "memory", data: await loadMemoryOverlayData(repoRoot, process.env), repoRoot };
     case "outputStyle": return { kind: "outputStyle", data: await loadOutputStyleData(repoRoot, process.env), repoRoot };
     case "export": return { kind: "export", context: exportContext(getCtx), repoRoot };
     default: return { kind: "help" };
