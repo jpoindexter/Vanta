@@ -8,7 +8,7 @@
       "status": "building",
       "size": "M",
       "summary": "Transcript extraction 2026-07-09: Vanta is technically deep, but the user-facing gap is discovery — “right now it works but i dont know what i can do with it.” Build a first-run and on-demand capability gallery that turns installed tools, repo context, and the ND/operator positioning into concrete workflows: fix a pasted error, turn a long spec into an app, continue a roadmap item, mine transcripts into memory, research with receipts, watch a repo, and prepare/share a feedback ask.",
-      "done": "`/what-can-i-do` and the empty-state dashboard show 8 concrete, runnable workflows with Run/Try/Setup states based on actual installed capabilities; at least three workflows execute an end-to-end demo fixture and link to the exact command they will run.",
+      "done": "`/what-can-i-do` and the empty-state dashboard show 8 concrete, runnable workflows with Run/Try/Setup states based on actual installed capabilities; at least three workflows execute an end-to-end demo fixture and link to the exact command they will run; a fresh-workspace activation run reaches one useful result in under 2 minutes.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
@@ -16,7 +16,7 @@
       "lens": "selfhood",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: 62230797 transcript lines 76-89 and 330-336 frame Vanta as an ND/operator agent but expose the discovery gap; e91d797b and 1522ad63 provide concrete showcase workflows.\n\nORGANIZED 2026-07-09: Phase 1 activation lead. This is the first build because it turns Vanta from a powerful blank prompt into a menu of concrete successful actions. Success metric: a new user reaches one useful workflow in under 2 minutes."
+      "notes": "Evidence: 62230797 transcript lines 76-89 and 330-336 frame Vanta as an ND/operator agent but expose the discovery gap; e91d797b and 1522ad63 provide concrete showcase workflows.\n\nORGANIZED 2026-07-09: Phase 1 activation lead. This is the first build because it turns Vanta from a powerful blank prompt into a menu of concrete successful actions. Success metric: a new user reaches one useful workflow in under 2 minutes.\n\nBLIND-AUDIT UPDATE 2026-07-09: Done criteria now include the cold-user activation proof from ACTIVATION-COLD-USER-GATE, so the card cannot ship as a pretty menu without a measured first useful action."
     },
     {
       "id": "SANDBOX-SCOPE-WIZARD",
@@ -25,7 +25,7 @@
       "status": "building",
       "size": "S",
       "summary": "The Handy transcript shows the recurring failure mode: the task target is outside the writable scope and background tasks are refused under sandbox, so the agent burns time and explains instead of fixing. Existing sandbox fast-fail is useful; this card adds a guided recovery flow that detects the missing root and emits or applies the exact relaunch/config change.",
-      "done": "When a command fails because the target repo/root is outside Vanta’s writable/readable scope or because a background task requires an unsandboxed run, Vanta identifies the missing root, shows the exact safe relaunch/config command, and can retry after confirmation.",
+      "done": "When a command fails because the target repo/root is outside Vanta’s writable/readable scope or because a background task requires an unsandboxed run, Vanta identifies the missing root, shows the exact safe relaunch/config command, can retry after confirmation, and one gallery workflow proves this recovery path end-to-end.",
       "tier": "rock",
       "model": "sonnet",
       "effort": "medium",
@@ -33,7 +33,120 @@
       "lens": "agent-loop",
       "updated": "2026-07-09",
       "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: 62230797 lines 264-311 and 739fb919 lines 93-140 show bun install/background dev blocked by writable scope and sandboxed background refusal. Builds on shipped SANDBOX-SERVE-FASTFAIL/VANTA-SANDBOX-VIOLATION.\n\nORGANIZED 2026-07-09: Phase 1 reliability unblocker. Build alongside the gallery because wrong-root/background sandbox failures stop the first useful workflow before the user learns what Vanta can do."
+      "notes": "Evidence: 62230797 lines 264-311 and 739fb919 lines 93-140 show bun install/background dev blocked by writable scope and sandboxed background refusal. Builds on shipped SANDBOX-SERVE-FASTFAIL/VANTA-SANDBOX-VIOLATION.\n\nORGANIZED 2026-07-09: Phase 1 reliability unblocker. Build alongside the gallery because wrong-root/background sandbox failures stop the first useful workflow before the user learns what Vanta can do.\n\nBLIND-AUDIT UPDATE 2026-07-09: Done criteria now require a gallery workflow fixture that hits and recovers from wrong-root/background sandbox failure."
+    },
+    {
+      "id": "ACTIVATION-COLD-USER-GATE",
+      "track": "Operator",
+      "title": "Cold-user activation gate — prove a useful Vanta action in under 2 minutes",
+      "status": "next",
+      "size": "S",
+      "summary": "Blind audit finding #1: the roadmap says activation is the goal, but the done criteria do not yet require a cold user to actually activate. Add a blocking acceptance gate for the first-run path: fresh workspace, no repo-specific context, pick one suggested workflow, execute it, and get a useful result quickly. This is the measurable Activation v1 spine before chasing more Hermes/OpenClaw surface area.",
+      "done": "A fresh-workspace acceptance script or recorded cold run starts Vanta, chooses one visible workflow, executes it, and produces a useful result within 2 minutes; the run records time-to-first-useful-action and fails if the user must know internal command names first.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "notes": "From blind audit finding #1. Prioritize by HEART Task Success/Activation: this is the falsifiable proof that the roadmap is improving user activation, not just moving cards."
+    },
+    {
+      "id": "GALLERY-SANDBOX-RECOVERY-FIXTURE",
+      "track": "Harness",
+      "title": "Gallery sandbox recovery fixture — first workflow survives wrong-root/background errors",
+      "status": "next",
+      "size": "S",
+      "summary": "Blind audit finding #2: the what-can-I-do gallery and sandbox scope wizard can ship separately without proving the first useful workflow survives the exact wrong-root/background-refusal failure path. Make that failure path part of the activation flow.",
+      "done": "At least one gallery workflow intentionally starts from an out-of-scope repo or sandboxed background-server command, receives sandbox scope guidance, and either resumes or emits the exact safe restart command; the fixture is covered by a test and linked from the workflow demo.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4-mini",
+      "lens": "agent-loop",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "after": [
+        "WHAT-CAN-I-DO-GALLERY",
+        "SANDBOX-SCOPE-WIZARD"
+      ],
+      "notes": "From blind audit finding #2. This keeps the activation path honest by testing the failure that already confused the user."
+    },
+    {
+      "id": "USER-LANGUAGE-WORKFLOW-COPY",
+      "track": "Operator",
+      "title": "User-language workflow copy — name outcomes, not internal Vanta systems",
+      "status": "next",
+      "size": "S",
+      "summary": "Blind audit finding #5: activation-facing cards still use internal language like trust ledger, sentinels, vault compile, and research decomposition. Translate the first-run surface into plain outcomes that match why someone would use Vanta: fix an error, build an app from a spec, remember transcript lessons, watch this repo, draft the next move.",
+      "done": "Every activation/gallery workflow has a user-facing title, one-sentence outcome, required setup state, and example input; no first-run label requires knowing Vanta internals such as brain/vault/ledger/sentinel/research_decompose.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "notes": "From blind audit finding #5. This is the copy layer that lets the Hermes/OpenClaw-style views read as user capability, not architecture."
+    },
+    {
+      "id": "FRESH-CONTEXT-ACTIVATION-REVIEW",
+      "track": "Operator",
+      "title": "Fresh-context activation review — test the first screen with someone who lacks repo context",
+      "status": "next",
+      "size": "S",
+      "summary": "Blind audit finding #6: the roadmap relies on the same authoring loop to decide what is useful. Add an outside-feedback gate before shipping the activation gallery: a fresh model/session or real user sees the first screen cold and attempts one workflow.",
+      "done": "A fresh-context reviewer or user attempts the activation gallery without prior Vanta repo context; the first confusion point is recorded; blocking confusion is fixed before `WHAT-CAN-I-DO-GALLERY` ships.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "after": [
+        "USER-LANGUAGE-WORKFLOW-COPY"
+      ],
+      "notes": "From blind audit finding #6. This shrinks the Johari blind quadrant around whether the first-run surface actually lands."
+    },
+    {
+      "id": "ROADMAP-DEPENDENCY-GUARD",
+      "track": "Harness",
+      "title": "Roadmap dependency guard — `after` links block premature moves to Now",
+      "status": "next",
+      "size": "S",
+      "summary": "Blind audit finding #3: roadmap `after` links are currently advisory metadata, so the board can still bypass its own sequence. Enforce the sequence mechanically before more activation/autonomy cards are moved around.",
+      "done": "`vanta roadmap move <id> building` and the drag-and-drop board warn or block when any open `after` dependency is not shipped; tests cover allow, block, and override/force behavior if an override exists.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "medium",
+      "codex": "gpt-5.4-mini",
+      "lens": "agent-loop",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "notes": "From blind audit finding #3. This protects the activation sequence from turning back into an aesthetic board shuffle."
+    },
+    {
+      "id": "OPERATOR-HOME-V1",
+      "track": "Operator",
+      "title": "Operator home v1 — Hermes/OpenClaw-style capability view without the full command center",
+      "status": "next",
+      "size": "M",
+      "summary": "Get closer to the visible Hermes/OpenClaw experience discussed in the roadmap without jumping straight to the full COMMAND-CENTER/DESKTOP platform. Build a compact home view that shows what Vanta can do now: workflows, channel health, skills, agents/tasks, memory, watchers, and setup gaps, with one-click entry into the activation gallery.",
+      "done": "A TUI or desktop home view shows live sections for Workflows, Channels, Skills, Agents/Tasks, Memory, Watchers, and Setup; each section has status, next action, and empty/setup state; the first screen answers “what can I do with Vanta?” without reading docs.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.4",
+      "lens": "tui",
+      "updated": "2026-07-09",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
+      "after": [
+        "USER-LANGUAGE-WORKFLOW-COPY",
+        "ACTIVATION-COLD-USER-GATE"
+      ],
+      "notes": "Adds the concrete “views like Hermes/OpenClaw” slice: not full JARVIS/desktop, just the visible operator home that makes shipped Vanta capabilities legible."
     },
     {
       "id": "CRASHLOG-DIAGNOSE",
@@ -52,7 +165,32 @@
       "source": "transcript-roadmap-extract-2026-07-09",
       "notes": "Evidence: 1522ad63 lines 31-39 and 139-190 include EXC_CRASH/SIGABRT, DYLD Code 1, and missing @rpath/lib_TestingInterop.dylib paths.\n\nORGANIZED 2026-07-09: Phase 2 first showcase workflow. Smallest concrete “paste an error, get a fix path” demo after the gallery exists.",
       "after": [
-        "WHAT-CAN-I-DO-GALLERY"
+        "WHAT-CAN-I-DO-GALLERY",
+        "ACTIVATION-COLD-USER-GATE",
+        "USER-LANGUAGE-WORKFLOW-COPY"
+      ]
+    },
+    {
+      "id": "SPEC-TO-APP-WIZARD",
+      "track": "Operator",
+      "title": "Spec-to-app wizard — turn a long product prompt into a verified preview",
+      "status": "next",
+      "size": "M",
+      "summary": "The posture-app transcript is a complete product/build spec, not a question. Vanta should treat this as a first-class workflow: parse requirements, scaffold the app, implement states/interactions, run checks, start a preview, and show the user the result.",
+      "done": "Given the posture routine spec fixture, Vanta extracts requirements, produces a React/Tailwind implementation plan, builds the app, runs type/build checks, opens a local preview, and records screenshot/verification evidence in the task summary.",
+      "tier": "pebble",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.5",
+      "lens": "reach",
+      "updated": "2026-07-09",
+      "source": "transcript-roadmap-extract-2026-07-09",
+      "notes": "Evidence: e91d797b lines 1-24 specify polished responsive React/Tailwind output and lines 26-468 enumerate detailed sections, timers, toggles, localStorage tracker, and accessibility expectations.\n\nORGANIZED 2026-07-09: Phase 2 second showcase workflow. Build after the gallery and sandbox recovery so “long spec → working preview” is discoverable and can run without scope confusion.",
+      "after": [
+        "WHAT-CAN-I-DO-GALLERY",
+        "SANDBOX-SCOPE-WIZARD",
+        "ACTIVATION-COLD-USER-GATE",
+        "GALLERY-SANDBOX-RECOVERY-FIXTURE"
       ]
     },
     {
@@ -75,25 +213,29 @@
       ]
     },
     {
-      "id": "SPEC-TO-APP-WIZARD",
+      "id": "ACTIVATION-V1-RELEASE-GATE",
       "track": "Operator",
-      "title": "Spec-to-app wizard — turn a long product prompt into a verified preview",
+      "title": "Activation v1 release gate — one visible workflow ships before deeper autonomy",
       "status": "next",
-      "size": "M",
-      "summary": "The posture-app transcript is a complete product/build spec, not a question. Vanta should treat this as a first-class workflow: parse requirements, scaffold the app, implement states/interactions, run checks, start a preview, and show the user the result.",
-      "done": "Given the posture routine spec fixture, Vanta extracts requirements, produces a React/Tailwind implementation plan, builds the app, runs type/build checks, opens a local preview, and records screenshot/verification evidence in the task summary.",
-      "tier": "pebble",
+      "size": "S",
+      "summary": "Blind audit finding #4: Next still mixes showcase workflows, autonomy architecture, and memory infrastructure. Add a release boundary: before trust ledgers, sentinels, or broad watch loops move to Now, Vanta must ship the first visible user workflow end-to-end.",
+      "done": "Activation v1 is declared shipped only after the gallery, sandbox recovery, cold-user gate, user-language copy, fresh-context review, and one showcase workflow are shipped; roadmap tooling or notes prevent autonomy/memory infrastructure from entering Now before that gate is satisfied.",
+      "tier": "rock",
       "model": "sonnet",
-      "effort": "high",
-      "codex": "gpt-5.5",
-      "lens": "reach",
+      "effort": "low",
+      "codex": "gpt-5.4-mini",
+      "lens": "selfhood",
       "updated": "2026-07-09",
-      "source": "transcript-roadmap-extract-2026-07-09",
-      "notes": "Evidence: e91d797b lines 1-24 specify polished responsive React/Tailwind output and lines 26-468 enumerate detailed sections, timers, toggles, localStorage tracker, and accessibility expectations.\n\nORGANIZED 2026-07-09: Phase 2 second showcase workflow. Build after the gallery and sandbox recovery so “long spec → working preview” is discoverable and can run without scope confusion.",
+      "source": "blind-audit-roadmap-activation-2026-07-09",
       "after": [
-        "WHAT-CAN-I-DO-GALLERY",
-        "SANDBOX-SCOPE-WIZARD"
-      ]
+        "ACTIVATION-COLD-USER-GATE",
+        "GALLERY-SANDBOX-RECOVERY-FIXTURE",
+        "USER-LANGUAGE-WORKFLOW-COPY",
+        "FRESH-CONTEXT-ACTIVATION-REVIEW",
+        "CRASHLOG-DIAGNOSE",
+        "OPERATOR-HOME-V1"
+      ],
+      "notes": "From blind audit finding #4. This is the MoSCoW boundary: Activation v1 is Must; deeper autonomy is Should after the first visible win."
     },
     {
       "id": "AUTONOMY-CONTRACT-WALLS",
@@ -113,7 +255,9 @@
       "notes": "Evidence: Fable transcript 6209d944 lines 173-196 describes contract.md plus guardrails; aligns with existing kernel approval policy but adds operator-facing semantics.\n\nORGANIZED 2026-07-09: Phase 3 autonomy foundation. Do not deepen autonomy until users can see concrete workflows and recover from scope failures.",
       "after": [
         "WHAT-CAN-I-DO-GALLERY",
-        "SANDBOX-SCOPE-WIZARD"
+        "SANDBOX-SCOPE-WIZARD",
+        "ACTIVATION-V1-RELEASE-GATE",
+        "OPERATOR-HOME-V1"
       ]
     },
     {
@@ -133,7 +277,8 @@
       "source": "transcript-roadmap-extract-2026-07-09",
       "notes": "Evidence: Fable transcript 6209d944 lines 304-339 details pass/fail TSV, auto/queue/watch tiers, and demotion rules.\n\nORGANIZED 2026-07-09: Phase 3 autonomy proof. Depends on explicit contract walls so pass-rate tiers have something concrete to govern.",
       "after": [
-        "AUTONOMY-CONTRACT-WALLS"
+        "AUTONOMY-CONTRACT-WALLS",
+        "ACTIVATION-V1-RELEASE-GATE"
       ]
     },
     {
@@ -153,7 +298,8 @@
       "source": "transcript-roadmap-extract-2026-07-09",
       "notes": "Evidence: Fable transcript 6209d944 lines 340-380: every finished goal becomes a predicate, checked daily, with violations surfaced and flaky checks retired rather than deleted.\n\nORGANIZED 2026-07-09: Phase 3 persistence. Build after trust-ledger gating so daily sentinels inherit demotion/escalation behavior instead of becoming noisy cron.",
       "after": [
-        "TRUST-LEDGER-AUTONOMY"
+        "TRUST-LEDGER-AUTONOMY",
+        "ACTIVATION-V1-RELEASE-GATE"
       ]
     },
     {
@@ -173,7 +319,8 @@
       "source": "transcript-roadmap-extract-2026-07-09",
       "notes": "Evidence: second-brain transcript a5b5decf lines 40-85 specifies raw/entities/concepts/INDEX, source links, graph links, and diff-based backfill. Complements, not duplicates, shipped BRAIN-VAULT-BRIDGE and BRAIN-VAULT-RECALL.\n\nORGANIZED 2026-07-09: Phase 4 memory leverage. Keep next, but behind activation: compile transcripts once Vanta can explain and demo what the compiled knowledge will power.",
       "after": [
-        "WHAT-CAN-I-DO-GALLERY"
+        "WHAT-CAN-I-DO-GALLERY",
+        "ACTIVATION-V1-RELEASE-GATE"
       ]
     },
     {
@@ -194,7 +341,8 @@
       "notes": "Evidence: second-brain transcript a5b5decf lines 97-115: split into subquestions, parallel sources, receipts, skeptic attack, dated survivors with expiry.\n\nORGANIZED 2026-07-09: Phase 4 research quality. Depends on shipped research fan-out plus vault compile so receipts have somewhere useful to land.",
       "after": [
         "VAULT-COMPILE-PIPELINE",
-        "VANTA-RESEARCH-DECOMPOSE"
+        "VANTA-RESEARCH-DECOMPOSE",
+        "ACTIVATION-V1-RELEASE-GATE"
       ]
     },
     {
@@ -235,7 +383,8 @@
       "after": [
         "AUTONOMY-CONTRACT-WALLS",
         "TRUST-LEDGER-AUTONOMY",
-        "STANDING-GOAL-SENTINEL"
+        "STANDING-GOAL-SENTINEL",
+        "OPERATOR-HOME-V1"
       ]
     },
     {
