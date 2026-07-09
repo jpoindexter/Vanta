@@ -5,10 +5,13 @@ import { join } from "node:path";
 import { shellCmdTool } from "../tools/shell-cmd.js";
 import type { ToolContext } from "../tools/types.js";
 import {
-  CAPABILITY_WORKFLOWS,
   formatFreshActivationReviewPacket,
-  formatWhatCanIDo,
   recordFreshActivationReview,
+  runFreshWorkspaceActivationProof,
+} from "./activation-review.js";
+import {
+  CAPABILITY_WORKFLOWS,
+  formatWhatCanIDo,
   runColdActivationCheck,
   runWorkflowDemo,
   whatCanIDo,
@@ -105,6 +108,30 @@ describe("what-can-i-do workflow catalog", () => {
       const body = await readFile(file, "utf8");
       expect(body).toContain("I did not know which workflow to pick.");
       expect(body).toContain("Blocking Fix Required");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records a fresh-workspace activation proof artifact", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-fresh-proof-"));
+    const times = [
+      new Date("2026-07-09T12:00:00.000Z"),
+      new Date("2026-07-09T12:00:01.250Z"),
+      new Date("2026-07-09T12:00:01.250Z"),
+    ];
+    try {
+      const proof = await runFreshWorkspaceActivationProof(
+        dir,
+        () => runColdActivationCheck(["shell_cmd", "read_file", "grep_files", "edit_file"], () => times.shift()!),
+        () => times.shift()!,
+      );
+      expect(proof.ok).toBe(true);
+      expect(proof.output).toContain("Fresh-workspace activation proof: PASS");
+      const body = await readFile(proof.file, "utf8");
+      expect(body).toContain("Fresh-Workspace Activation Proof");
+      expect(body).toContain("Time-to-first-useful-action: 1250ms");
+      expect(body).toContain("Fix a pasted error");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

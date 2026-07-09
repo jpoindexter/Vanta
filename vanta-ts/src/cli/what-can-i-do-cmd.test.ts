@@ -37,6 +37,20 @@ describe("runWhatCanIDoCommand", () => {
     expect(result.output).toMatch(/Time-to-first-useful-action: \d+ms/);
   });
 
+  it("runs and records the fresh-workspace activation check", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-fresh-cli-"));
+    try {
+      const result = await capture(() => runWhatCanIDoCommand(["--fresh-workspace-check"], dir));
+      expect(result.code).toBe(0);
+      expect(result.output).toContain("Fresh-workspace activation proof: PASS");
+      const file = result.output.match(/Evidence: (.+)/)?.[1];
+      expect(file).toBeTruthy();
+      expect(await readFile(file!, "utf8")).toContain("Fresh-Workspace Activation Proof");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("prints the fresh-context review packet", async () => {
     const result = await capture(() => runWhatCanIDoCommand(["--review-packet"]));
     expect(result.code).toBe(0);

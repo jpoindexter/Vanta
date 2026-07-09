@@ -2,8 +2,11 @@ import { join } from "node:path";
 import { buildRegistry } from "../tools/index.js";
 import {
   formatFreshActivationReviewPacket,
-  formatWhatCanIDo,
   recordFreshActivationReview,
+  runFreshWorkspaceActivationProof,
+} from "../repl/activation-review.js";
+import {
+  formatWhatCanIDo,
   runColdActivationCheck,
   runWorkflowDemo,
   workflowViews,
@@ -23,6 +26,11 @@ export async function runWhatCanIDoCommand(rest: string[] = [], dataDir = join(p
     const result = runColdActivationCheck(toolNames);
     console.log(result.output);
     return result.ok ? 0 : 1;
+  }
+  if (rest[0] === "--fresh-workspace-check") {
+    const proof = await runFreshWorkspaceActivationProof(dataDir, () => runColdActivationCheck(toolNames));
+    console.log(proof.output);
+    return proof.ok ? 0 : 1;
   }
   if (rest[0] === "--review-packet") {
     console.log(formatFreshActivationReviewPacket(workflowViews(toolNames)));
