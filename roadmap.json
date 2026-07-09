@@ -14356,7 +14356,7 @@
       "id": "PCLIP-DEEP-PLANNING",
       "track": "Harness",
       "title": "Deep planning — revisionable plan docs with a pre-execution review gate",
-      "status": "horizon",
+      "status": "shipped",
       "size": "L",
       "summary": "Paperclip extract (Deep Planning, roadmap ⚪). Strategy-heavy work gets a revisionable plan/issue document and a review loop BEFORE execution starts. Extends /planmode + VANTA-PLAN-MODE-V2 with durable, revisable plan artifacts.",
       "done": "A strategy task produces a revisionable plan doc that must pass a review gate before execution starts.",
